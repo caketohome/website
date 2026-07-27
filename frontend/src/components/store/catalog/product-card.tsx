@@ -1,0 +1,137 @@
+"use client";
+
+import type { SearchResult } from "@frontend/lib/data/catalog";
+import { addToWishlistAction, removeFromWishlistAction } from "@frontend/lib/actions";
+import { trackProductView } from "@frontend/lib/data/analytics";
+import { Heading, Text, Badge, IconButton } from "@medusajs/ui";
+import { Heart } from "@medusajs/icons";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+/**
+ * Product card — reusable storefront product tile.
+ *
+ * Renders a search/catalog result with dietary badges, rating, price, and a
+ * wishlist toggle. Clicking the card navigates to the product detail page.
+ */
+export function ProductCard({ product }: { product: SearchResult }) {
+    const router = useRouter();
+    const [wished, setWished] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const dietary: string[] = [];
+    if (product.eggless) dietary.push("Eggless");
+    if (product.sugar_free) dietary.push("Sugar-Free");
+    if (product.gluten_free) dietary.push("Gluten-Free");
+    if (product.vegan) dietary.push("Vegan");
+
+    const merchandising: string[] = [];
+    if (product.is_bestseller) merchandising.push("Bestseller");
+    if (product.is_new_arrival) merchandising.push("New");
+    if (product.is_featured) merchandising.push("Featured");
+
+    async function toggleWishlist(e: React.MouseEvent) {
+        e.stopPropagation();
+        setLoading(true);
+        try {
+            if (wished) {
+                await removeFromWishlistAction(product.product_id);
+                setWished(false);
+            } else {
+                await addToWishlistAction(product.product_id);
+                setWished(true);
+            }
+        } catch {
+            // best-effort
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function navigate() {
+        trackProductView(product.product_id);
+        if (product.handle) {
+            router.push(`/products/${product.handle}`);
+        } else {
+            router.push(`/products/${product.product_id}`);
+        }
+    }
+
+    return (
+        <div
+            className="group relative flex flex-col gap-2 p-3 border rounded-lg hover:shadow-md transition-shadow cursor-pointer bg-ui-bg-base"
+            onClick={navigate}
+            role="link"
+            tabIndex={0}
+            onKeyDown={(e) => {
+                if (e.key === "Enter") navigate();
+            }}
+        >
+            <div className="relative aspect-square w-full overflow-hidden rounded-md bg-ui-bg-subtle">
+                {product.thumbnail ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={product.thumbnail}
+                        alt={product.title}
+                        className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center text-ui-fg-subtle">
+                        🎂
+                    </div>
+                )}
+                <div className="absolute top-2 right-2 flex flex-col gap-1">
+                    {merchandising.map((m) => (
+                        <Badge key={m} size="small" color="orange">
+                            {m}
+                        </Badge>
+                    ))}
+                </div>
+                <div className="absolute top-2 left-2">
+                    <IconButton
+                        variant={wished ? "primary" : "transparent"}
+                        size="small"
+                        onClick={toggleWishlist}
+                        disabled={loading}
+                        aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                        <Heart fill={wished ? "currentColor" : "none"} />
+                    </IconButton>
+                </div>
+            </div>
+
+            <Heading level="h3" className="text-sm font-medium line-clamp-2">
+                {product.title}
+            </Heading>
+
+            {product.description && (
+                <Text className="text-ui-fg-subtle text-xs line-clamp-2">
+                    {product.description}
+                </Text>
+            )}
+
+            {dietary.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                    {dietary.map((d) => (
+                        <Badge key={d} size="small" color="green">
+                            {d}
+                        </Badge>
+                    ))}
+                </div>
+            )}
+
+            <div className="flex items-center justify-between mt-auto pt-2">
+                <Text className="font-semibold">
+                    {product.price !== null
+                        ? `₹${product.price.toFixed(0)}`
+                        : "Price on request"}
+                </Text>
+                {product.review_count > 0 && (
+                    <Text className="text-ui-fg-subtle text-xs">
+                        ⭐ {product.rating.toFixed(1)} ({product.review_count})
+                    </Text>
+                )}
+            </div>
+        </div>
+    );
+}

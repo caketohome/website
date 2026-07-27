@@ -1,0 +1,195 @@
+{
+  "shop": {
+    "name": "CakeToHome Bakery",
+    "handle": "caketohome-bakery",
+    "address": "123 Baker Street, Mumbai 400001",
+    "email": "hello@caketohome.com",
+    "phone": "+91 98765 43210",
+    "image_url": "/_de4759b3-096f-47f6-936a-ea291df53f9f.jpeg",
+    "is_open": true
+  },
+  "categories": [
+    {
+      "name": "Birthday Cakes",
+      "handle": "birthday-cakes",
+      "description": "Beautiful birthday cakes for every celebration.",
+      "is_active": true
+    },
+    {
+      "name": "Pastries",
+      "handle": "pastries",
+      "description": "Freshly baked pastries and desserts.",
+      "is_active": true
+    },
+    {
+      "name": "Cupcakes",
+      "handle": "cupcakes",
+      "description": "Delightful cupcakes in a variety of flavors.",
+      "is_active": true
+    }
+  ],
+  "products": [
+    {
+      "title": "Classic Chocolate Truffle Cake",
+      "handle": "classic-chocolate-truffle-cake",
+      "description": "Rich and indulgent chocolate truffle cake with layers of dark chocolate ganache.",
+      "is_giftcard": false,
+      "status": "published",
+      "thumbnail": "/_1ed747de-53f1-4915-aaba-92c046039beb.jpeg",
+      "discountable": true,
+      "category": "birthday-cakes",
+      "variants": [
+        {
+          "title": "Classic Chocolate Truffle Cake - 1kg",
+          "manage_inventory": false,
+          "sku": "CHOC-TRUFFLE-1KG",
+          "prices": [
+            {
+              "amount": 24.99,
+              "currency_code": "usd"
+            },
+            {
+              "amount": 19.99,
+              "currency_code": "eur"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Red Velvet Dream Cake",
+      "handle": "red-velvet-dream-cake",
+      "description": "Stunning red velvet cake with cream cheese frosting, perfect for special occasions.",
+      "is_giftcard": false,
+      "status": "published",
+      "thumbnail": "/_35841975-1e89-4c07-adb8-208cc8c59e17.jpeg",
+      "discountable": true,
+      "category": "birthday-cakes",
+      "variants": [
+        {
+          "title": "Red Velvet Dream Cake - 1kg",
+          "manage_inventory": false,
+          "sku": "RED-VELVET-1KG",
+          "prices": [
+            {
+              "amount": 29.99,
+              "currency_code": "usd"
+            },
+            {
+              "amount": 24.99,
+              "currency_code": "eur"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Butter Croissant",
+      "handle": "butter-croissant",
+      "description": "Flaky, golden butter croissant baked fresh daily with premium French butter.",
+      "is_giftcard": false,
+      "status": "published",
+      "thumbnail": "/_de4759b3-096f-47f6-936a-ea291df53f9f.jpeg",
+      "discountable": true,
+      "category": "pastries",
+      "variants": [
+        {
+          "title": "Butter Croissant",
+          "manage_inventory": false,
+          "sku": "BUTTER-CROISSANT",
+          "prices": [
+            {
+              "amount": 3.99,
+              "currency_code": "usd"
+            },
+            {
+              "amount": 2.99,
+              "currency_code": "eur"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Danish Pastry Assortment",
+      "handle": "danish-pastry-assortment",
+      "description": "Assorted Danish pastries with fruit fillings and sweet glaze.",
+      "is_giftcard": false,
+      "status": "published",
+      "thumbnail": "/_411c260a-d6e5-4989-9a00-1cd8b80265fb.jpeg",
+      "discountable": true,
+      "category": "pastries",
+      "variants": [
+        {
+          "title": "Danish Pastry Assortment - Box of 4",
+          "manage_inventory": false,
+          "sku": "DANISH-PASTRY-4",
+          "prices": [
+            {
+              "amount": 11.99,
+              "currency_code": "usd"
+            },
+            {
+              "amount": 8.99,
+              "currency_code": "eur"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Vanilla Bean Cupcake",
+      "handle": "vanilla-bean-cupcake",
+      "description": "Light and fluffy vanilla bean cupcake topped with silky buttercream frosting.",
+      "is_giftcard": false,
+      "status": "published",
+      "thumbnail": "/_ca16b6a2-9c4c-4a6a-98fa-620f12f6123f.jpeg",
+      "discountable": true,
+      "category": "cupcakes",
+      "variants": [
+        {
+          "title": "Vanilla Bean Cupcake - Box of 6",
+          "manage_inventory": false,
+          "sku": "VANILLA-CUPCAKE-6",
+          "prices": [
+            {
+              "amount": 14.99,
+              "currency_code": "usd"
+            },
+            {
+              "amount": 11.99,
+              "currency_code": "eur"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Chocolate Fudge Cupcake",
+      "handle": "chocolate-fudge-cupcake",
+      "description": "Decadent chocolate fudge cupcake with rich chocolate ganache topping.",
+      "is_giftcard": false,
+      "status": "published",
+      "thumbnail": "/_4476ce30-b852-402d-b65f-e3db54165e4c.jpeg",
+      "discountable": true,
+      "category": "cupcakes",
+      "variants": [
+        {
+          "title": "Chocolate Fudge Cupcake - Box of 6",
+          "manage_inventory": false,
+          "sku": "CHOC-FUDGE-CUPCAKE-6",
+          "prices": [
+            {
+              "amount": 15.99,
+              "currency_code": "usd"
+            },
+            {
+              "amount": 12.99,
+              "currency_code": "eur"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,565 @@
+// packages/database/prisma/schema.prisma
+// CakeToHome Enterprise Commerce Platform Database Schema (v1.0.0 Final Baseline)
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CUSTOMER
+  STAFF
+  BRANCH_MANAGER
+  DELIVERY_PARTNER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum RiderEmploymentType {
+  FIXED_SALARY
+  PER_DELIVERY
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  KITCHEN_PREPARING
+  READY_FOR_DISPATCH
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum KitchenStation {
+  ORDER_RECEIVED
+  PREPARATION
+  SPONGE_BASE
+  CREAM_DECORATION
+  PHOTO_PRINT
+  WRITING
+  QUALITY_CHECK
+  PACKING
+  READY_FOR_DISPATCH
+}
+
+enum DeliveryStatus {
+  UNASSIGNED
+  DRIVER_ASSIGNED
+  DRIVER_ACCEPTED
+  PICKED_UP
+  EN_ROUTE
+  ARRIVED
+  DELIVERED
+  FAILED_DELIVERY
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentProvider {
+  RAZORPAY
+  STRIPE
+  PAYPAL
+  CASH_ON_DELIVERY
+  WALLET
+  UPI
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  PUBLISHED
+  ACKNOWLEDGED
+  FAILED
+  RETRYING
+  DEAD_LETTER
+}
+
+enum OptionDisplayType {
+  DROPDOWN
+  RADIO
+  COLOR_SWATCH
+  TEXT_INPUT
+  FILE_UPLOAD
+}
+
+model OutboxEvent {
+  id                  String       @id @default(cuid())
+  eventType           String
+  aggregateId         String
+  payload             Json
+  status              OutboxStatus @default(PENDING)
+  retryCount          Int          @default(0)
+  maxRetries          Int          @default(5)
+  lastError           String?
+  nextRetryAt         DateTime?
+  workerId            String?
+  processingStartedAt DateTime?
+  createdAt           DateTime     @default(now())
+  publishedAt         DateTime?
+
+  @@index([status, nextRetryAt])
+  @@index([aggregateId])
+  @@index([eventType])
+}
+
+model Store {
+  id         String    @id @default(cuid())
+  name       String    @default("CakeToHome Admin")
+  code       String    @unique @default("default_store")
+  domain     String?   @unique
+  currency   String    @default("INR")
+  branches   Branch[]
+  isArchived Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String?   @unique
+  phone        String?   @unique
+  passwordHash String?
+  firstName    String
+  lastName     String?
+  role         Role      @default(CUSTOMER)
+  isArchived   Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  customer      Customer?
+  branchManager BranchManager?
+  driver        DeliveryPartner?
+  auditLogs     AuditLog[]
+}
+
+model Customer {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id])
+  wallet    Decimal    @default(0.00) @db.Decimal(12, 2)
+  points    Int        @default(0)
+  addresses Address[]
+  orders    Order[]
+  wishlist  Wishlist[]
+  reviews   Review[]
+  occasions Occasion[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  deletedAt DateTime?
+
+  @@index([userId])
+}
+
+model Occasion {
+  id         String    @id @default(cuid())
+  customerId String
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  title      String
+  date       DateTime
+  reminder   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  @@index([customerId])
+}
+
+model Branch {
+  id               String            @id @default(cuid())
+  storeId          String            @default("default_store")
+  store            Store             @relation(fields: [storeId], references: [id])
+  name             String
+  code             String            @unique
+  address          String
+  pincode          String
+  maxCapacity      Int               @default(25)
+  currentLoad      Int               @default(0)
+  isOpen           Boolean           @default(true)
+  emergencyClosure Boolean           @default(false)
+  acceptOrders     Boolean           @default(true)
+  pickupOnly       Boolean           @default(false)
+  deliveryOnly     Boolean           @default(false)
+  phone            String
+  managers         BranchManager[]
+  inventory        BranchInventory[]
+  orders           Order[]
+  kitchenTickets   KitchenTicket[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+
+  @@index([code])
+  @@index([pincode])
+}
+
+model BranchManager {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id])
+  branchId  String
+  branch    Branch    @relation(fields: [branchId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([branchId])
+}
+
+model DeliveryPartner {
+  id                   String              @id @default(cuid())
+  userId               String              @unique
+  user                 User                @relation(fields: [userId], references: [id])
+  employmentType       RiderEmploymentType @default(FIXED_SALARY)
+  vehicleType          String              @default("Bike")
+  isCompanyVehicle     Boolean             @default(true)
+  vehicleNumber        String
+  monthlySalary        Decimal?            @db.Decimal(12, 2)
+  isActive             Boolean             @default(true)
+  activeCount          Int                 @default(0)
+  deliveriesTodayCount Int                 @default(0)
+  earnings             Decimal             @default(0.00) @db.Decimal(12, 2)
+  deliveries           Delivery[]
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  deletedAt            DateTime?
+
+  @@index([userId])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Product {
+  id           String               @id @default(cuid())
+  title        String
+  slug         String               @unique
+  description  String
+  price        Decimal              @db.Decimal(12, 2)
+  rating       Float                @default(4.8)
+  reviewCount  Int                  @default(0)
+  thumbnail    String?
+  images       String[]
+  isEggless    Boolean              @default(true)
+  isBestseller Boolean              @default(false)
+  isFeatured   Boolean              @default(false)
+  categoryId   String
+  category     Category             @relation(fields: [categoryId], references: [id])
+  variants     ProductVariant[]
+  optionGroups ProductOptionGroup[]
+  reviews      Review[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  deletedAt    DateTime?
+
+  @@index([slug])
+  @@index([categoryId])
+}
+
+model ProductOptionGroup {
+  id           String            @id @default(cuid())
+  productId    String
+  product      Product           @relation(fields: [productId], references: [id])
+  name         String
+  displayType  OptionDisplayType @default(DROPDOWN)
+  isRequired   Boolean           @default(true)
+  isEnabled    Boolean           @default(true)
+  displayOrder Int               @default(1)
+  options      ProductOption[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([productId])
+}
+
+model ProductOption {
+  id            String             @id @default(cuid())
+  groupId       String
+  group         ProductOptionGroup @relation(fields: [groupId], references: [id])
+  name          String
+  priceModifier Decimal            @default(0.00) @db.Decimal(12, 2)
+  imageUrl      String?
+  isAvailable   Boolean            @default(true)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([groupId])
+}
+
+model ProductVariant {
+  id        String            @id @default(cuid())
+  productId String
+  product   Product           @relation(fields: [productId], references: [id])
+  sku       String            @unique
+  title     String
+  price     Decimal           @db.Decimal(12, 2)
+  inventory BranchInventory[]
+  lineItems LineItem[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  deletedAt DateTime?
+
+  @@index([productId])
+  @@index([sku])
+}
+
+model BranchInventory {
+  id            String         @id @default(cuid())
+  branchId      String
+  branch        Branch         @relation(fields: [branchId], references: [id])
+  variantId     String
+  variant       ProductVariant @relation(fields: [variantId], references: [id])
+  physicalStock Int            @default(50)
+  reservedStock Int            @default(0)
+  damagedStock  Int            @default(0)
+  incomingStock Int            @default(0)
+  version       Int            @default(1)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([branchId, variantId])
+  @@index([branchId])
+  @@index([variantId])
+}
+
+model InventoryAuditLog {
+  id        String   @id @default(cuid())
+  branchId  String
+  variantId String
+  action    String
+  quantity  Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@index([branchId])
+  @@index([variantId])
+}
+
+model StockTransfer {
+  id             String   @id @default(cuid())
+  sourceBranchId String
+  targetBranchId String
+  variantId      String
+  quantity       Int
+  status         String   @default("PENDING")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([sourceBranchId])
+  @@index([targetBranchId])
+}
+
+model Order {
+  id              String         @id @default(cuid())
+  orderNumber     String         @unique
+  idempotencyKey  String?        @unique
+  customerId      String
+  customer        Customer       @relation(fields: [customerId], references: [id])
+  branchId        String
+  branch          Branch         @relation(fields: [branchId], references: [id])
+  status          OrderStatus    @default(PENDING)
+  totalAmount     Decimal        @db.Decimal(12, 2)
+  deliveryFee     Decimal        @default(49.00) @db.Decimal(12, 2)
+  slotFee         Decimal        @default(0.00) @db.Decimal(12, 2)
+  deliveryPincode String
+  deliveryAddress String
+  isGift          Boolean        @default(false)
+  recipientName   String?
+  recipientPhone  String?
+  greetingMessage String?
+  lineItems       LineItem[]
+  kitchenTicket   KitchenTicket?
+  delivery        Delivery?
+  payment         Payment?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
+
+  @@index([orderNumber])
+  @@index([customerId])
+  @@index([branchId])
+  @@index([status])
+}
+
+model LineItem {
+  id            String         @id @default(cuid())
+  orderId       String
+  order         Order          @relation(fields: [orderId], references: [id])
+  variantId     String
+  variant       ProductVariant @relation(fields: [variantId], references: [id])
+  quantity      Int
+  unitPrice     Decimal        @db.Decimal(12, 2)
+  customization Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([orderId])
+  @@index([variantId])
+}
+
+model KitchenTicket {
+  id            String         @id @default(cuid())
+  orderId       String         @unique
+  order         Order          @relation(fields: [orderId], references: [id])
+  branchId      String
+  branch        Branch         @relation(fields: [branchId], references: [id])
+  station       KitchenStation @default(ORDER_RECEIVED)
+  priorityScore Int            @default(50)
+  qaPassed      Boolean        @default(false)
+  bakerId       String?
+  packerId      String?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([branchId])
+  @@index([station])
+}
+
+model Delivery {
+  id                String           @id @default(cuid())
+  orderId           String           @unique
+  order             Order            @relation(fields: [orderId], references: [id])
+  deliveryPartnerId String?
+  driver            DeliveryPartner? @relation(fields: [deliveryPartnerId], references: [id])
+  status            DeliveryStatus   @default(UNASSIGNED)
+  estimatedMinutes  Int              @default(45)
+  driverPayout      Decimal          @default(40.00) @db.Decimal(12, 2)
+  proofPhotoUrl     String?
+  signatureUrl      String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  deletedAt         DateTime?
+
+  @@index([orderId])
+  @@index([deliveryPartnerId])
+  @@index([status])
+}
+
+model Payment {
+  id            String          @id @default(cuid())
+  orderId       String          @unique
+  order         Order           @relation(fields: [orderId], references: [id])
+  provider      PaymentProvider @default(RAZORPAY)
+  transactionId String          @unique
+  amount        Decimal         @db.Decimal(12, 2)
+  status        PaymentStatus   @default(CAPTURED)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  deletedAt     DateTime?
+
+  @@index([orderId])
+  @@index([transactionId])
+}
+
+model WebhookLedger {
+  id          String   @id @default(cuid())
+  eventId     String   @unique
+  provider    String
+  eventType   String
+  status      String   @default("PROCESSED")
+  payloadHash String
+  createdAt   DateTime @default(now())
+
+  @@index([eventId])
+}
+
+model TaxInvoice {
+  id                     String   @id @default(cuid())
+  invoiceNumber          String   @unique
+  orderId                String   @unique
+  branchCode             String
+  placeOfSupplyStateCode String
+  isInterState           Boolean  @default(false)
+  customerName           String
+  customerGstin          String?
+  totalTaxable           Decimal  @db.Decimal(12, 2)
+  totalCgst              Decimal  @default(0.00) @db.Decimal(12, 2)
+  totalSgst              Decimal  @default(0.00) @db.Decimal(12, 2)
+  totalIgst              Decimal  @default(0.00) @db.Decimal(12, 2)
+  grandTotal             Decimal  @db.Decimal(12, 2)
+  status                 String   @default("ISSUED")
+  createdAt              DateTime @default(now())
+
+  @@index([invoiceNumber])
+  @@index([orderId])
+}
+
+model Address {
+  id         String    @id @default(cuid())
+  customerId String
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  label      String    @default("Home")
+  street     String
+  city       String
+  pincode    String
+  isDefault  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  @@index([customerId])
+}
+
+model Wishlist {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  productId  String
+  createdAt  DateTime @default(now())
+
+  @@unique([customerId, productId])
+  @@index([customerId])
+}
+
+model Review {
+  id         String    @id @default(cuid())
+  productId  String
+  product    Product   @relation(fields: [productId], references: [id])
+  customerId String
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  rating     Int
+  title      String?
+  body       String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  @@index([productId])
+  @@index([customerId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+}

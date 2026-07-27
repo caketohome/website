@@ -1,0 +1,25 @@
+{
+  "name": "CakeToHome Online Cake Store",
+  "short_name": "CakeToHome",
+  "description": "Premium online cake delivery app with offline browsing support.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#e11d48",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/medusa-logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "View Cart",
+      "url": "/checkout",
+      "icons": [{ "src": "/medusa-logo.svg", "sizes": "192x192" }]
+    }
+  ]
+}

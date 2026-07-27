@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "9000:9000"
+    environment:
+      - DATABASE_URL=postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres
+      - JWT_SECRET=supersecret
+      - COOKIE_SECRET=supersecret
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_59553f4aa2d9d80a3bb784566d8f76c043c37a0059fbea0b2e09a7cfa6215a92
+      - NEXT_PUBLIC_BACKEND_URL=http://backend:9000
+      - JWT_SECRET=supersecret
+    restart: always
+    depends_on:
+      - backend

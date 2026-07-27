@@ -1,0 +1,59 @@
+"use client";
+
+import { passDelivery, proceedDelivery } from "@frontend/lib/actions";
+import { DeliveryDTO, DeliveryStatus, DeliveryPartnerDTO } from "@frontend/lib/types";
+import { Button } from "@medusajs/ui";
+import { useState } from "react";
+
+export default function DeliveryPartnerDeliveryButtons({
+  delivery,
+  delivery_partner,
+}: {
+  delivery: DeliveryDTO;
+  delivery_partner: DeliveryPartnerDTO;
+}) {
+  const [proceedIsLoading, setProceedIsLoading] = useState(false);
+  const [declineIsLoading, setDeclineIsLoading] = useState(false);
+
+  const handleProceedDelivery = async () => {
+    setProceedIsLoading(true);
+    await proceedDelivery(delivery, delivery_partner.id);
+  };
+
+  const handleDeclineDelivery = async () => {
+    setDeclineIsLoading(true);
+    await passDelivery(delivery.id, delivery_partner.id);
+  };
+
+  return (
+    <>
+      {delivery.delivery_status === DeliveryStatus.SHOP_ACCEPTED && (
+        <Button
+          variant="transparent"
+          onClick={handleDeclineDelivery}
+          isLoading={declineIsLoading}
+        >
+          Pass
+        </Button>
+      )}
+      {[
+        DeliveryStatus.SHOP_ACCEPTED,
+        DeliveryStatus.READY_FOR_PICKUP,
+        DeliveryStatus.IN_TRANSIT,
+      ].includes(delivery.delivery_status) && (
+        <Button
+          variant="primary"
+          onClick={handleProceedDelivery}
+          isLoading={proceedIsLoading}
+        >
+          {delivery.delivery_status === DeliveryStatus.SHOP_ACCEPTED &&
+            "Claim delivery"}
+          {delivery.delivery_status === DeliveryStatus.READY_FOR_PICKUP &&
+            "Set order picked up"}
+          {delivery.delivery_status === DeliveryStatus.IN_TRANSIT &&
+            "Set order delivered"}
+        </Button>
+      )}
+    </>
+  );
+}

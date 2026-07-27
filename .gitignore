@@ -1,0 +1,25 @@
+**/node_modules/
+backend/plugins/
+.next/
+frontend/.next/
+dist/
+build/
+.medusa/
+.cache/
+*.log
+**/.DS_Store
+**/dump.rdb
+
+# Environment files (secrets must not be committed)
+.env
+.env.*
+!.env.template
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.template
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.template
+!frontend/.env.example
