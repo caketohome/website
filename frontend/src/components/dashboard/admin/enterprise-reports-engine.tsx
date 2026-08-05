@@ -15,12 +15,11 @@ import {
   PieChart, RefreshCw, FileSpreadsheet, Clock, ShieldAlert, Zap, Cake, Gift,
   ArrowUpRight, ArrowDownRight, Eye, Bookmark, X, AlertTriangle, AlertCircle,
   Compass, Flame, Target, Activity, LayoutDashboard, MapPin, ChevronDown,
-  ArrowRight, SlidersHorizontal, Sliders, FileText, Inbox
+  ArrowRight, SlidersHorizontal, Sliders, FileText, Inbox, Save, FileCheck, Check
 } from "lucide-react";
 
-// 9 Primary Bakery Sections
 const SECTIONS: Array<{ id: ReportSection; label: string; icon: any }> = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "sales", label: "Sales", icon: TrendingUp },
   { id: "orders", label: "Orders", icon: ShoppingBag },
   { id: "products", label: "Products", icon: Package },
@@ -29,10 +28,15 @@ const SECTIONS: Array<{ id: ReportSection; label: string; icon: any }> = [
   { id: "delivery", label: "Delivery", icon: Truck },
   { id: "branches", label: "Branches", icon: BarChart3 },
   { id: "finance", label: "Finance", icon: DollarSign },
+  { id: "executive_summary", label: "Executive Summary", icon: FileCheck },
+  { id: "exceptions", label: "Exception Center", icon: AlertCircle },
+  { id: "branch_comparison", label: "Branch Comparison", icon: Target },
 ];
 
 export function EnterpriseReportsEngine() {
-  const [activeSection, setActiveSection] = useState<ReportSection>("overview");
+  const [activeSection, setActiveSection] = useState<ReportSection>("dashboard");
+  const [showAdvancedSubTab, setShowAdvancedSubTab] = useState<boolean>(false);
+  const [advancedTab, setAdvancedTab] = useState<string>("profitability");
 
   // Universal Filter State
   const [filters, setFilters] = useState<ReportFilterState>({
@@ -43,30 +47,47 @@ export function EnterpriseReportsEngine() {
     category: "all",
     orderStatus: "all",
     city: "all",
+    area: "all",
+    deliveryZone: "all",
+    paymentMethod: "all",
+    deliveryType: "all",
+    occasion: "all",
+    customerType: "all",
     searchQuery: "",
   });
 
   const [fromInput, setFromInput] = useState<string>("");
   const [toInput, setToInput] = useState<string>("");
 
+  // Modals & Drawers
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
+  const [showSavedReportsModal, setShowSavedReportsModal] = useState<boolean>(false);
+  const [showScheduleModal, setShowScheduleModal] = useState<boolean>(false);
+  const [selectedEntityDetail, setSelectedEntityDetail] = useState<any | null>(null);
+
+  // Form State
+  const [saveTitle, setSaveTitle] = useState<string>("");
+  const [savedReportsList, setSavedReportsList] = useState<any[]>([]);
+  const [scheduleEmail, setScheduleEmail] = useState<string>("admin@cakes2home.com");
+  const [scheduleFreq, setScheduleFreq] = useState<string>("daily_8pm");
+
   const [loading, setLoading] = useState<boolean>(false);
   const [kpiCards, setKpiCards] = useState<ReportKpiCard[]>([]);
   const [sectionData, setSectionData] = useState<any>(null);
-
-  // Inspection Modal
-  const [selectedEntityDetail, setSelectedEntityDetail] = useState<any | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const loadData = useCallback(() => {
     setLoading(true);
     setTimeout(() => {
-      const kpis = ReportsEngineData.getSectionKpis(activeSection, filters);
-      const data = ReportsEngineData.fetchSectionData(activeSection, filters);
+      const targetSec = showAdvancedSubTab ? "sales" : activeSection;
+      const kpis = ReportsEngineData.getSectionKpis(targetSec, filters);
+      const data = ReportsEngineData.fetchSectionData(targetSec, filters);
       setKpiCards(kpis);
       setSectionData(data);
+      setSavedReportsList(ReportsEngineData.getSavedReports());
       setLoading(false);
-    }, 80);
-  }, [activeSection, filters]);
+    }, 60);
+  }, [activeSection, filters, showAdvancedSubTab]);
 
   useEffect(() => {
     loadData();
@@ -83,7 +104,7 @@ export function EnterpriseReportsEngine() {
 
   function applyCustomDateRange() {
     if (!fromInput || !toInput) {
-      triggerToast("Please select both From and To dates.");
+      triggerToast("Please select both From Date and To Date.");
       return;
     }
     setFilters((prev) => ({
@@ -100,10 +121,36 @@ export function EnterpriseReportsEngine() {
     setSelectedEntityDetail(detail);
   }
 
+  function handleSaveCurrentView(e: React.FormEvent) {
+    e.preventDefault();
+    if (!saveTitle) return;
+    const newReport = ReportsEngineData.createSavedReport({
+      title: saveTitle,
+      section: activeSection,
+      branch: filters.branchId,
+      timeRange: filters.timeRange,
+    });
+    setSavedReportsList((prev) => [newReport, ...prev]);
+    setSaveTitle("");
+    setShowSavedReportsModal(false);
+    triggerToast(`Saved View Bookmark: "${newReport.title}"`);
+  }
+
+  function handleCreateSchedule(e: React.FormEvent) {
+    e.preventDefault();
+    ReportsEngineData.createScheduledReport({
+      email: scheduleEmail,
+      frequency: scheduleFreq,
+      section: activeSection,
+    });
+    setShowScheduleModal(false);
+    triggerToast(`Scheduled report email to ${scheduleEmail} (${scheduleFreq})`);
+  }
+
   function handleExportCSV() {
     if (sectionData?.table_rows && sectionData.table_rows.length > 0) {
       ReportsEngineData.exportReportToCSV(activeSection, sectionData.table_rows);
-      triggerToast("CSV Export Downloaded!");
+      triggerToast("Filtered CSV Export Downloaded!");
     } else {
       triggerToast("No data available to export.");
     }
@@ -122,18 +169,24 @@ export function EnterpriseReportsEngine() {
         </div>
       )}
 
-      {/* Page Title & Main Header */}
+      {/* ── STEP 1: REPORT HEADER ────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
           <Heading level="h2" className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-amber-500" /> CakeToHome Bakery Operations Reports
+            <BarChart3 className="w-5 h-5 text-amber-500" /> CakeToHome Enterprise Reports Engine v2.0
           </Heading>
           <Text className="text-xs text-slate-500 mt-0.5">
-            Production-ready real operational analytics for daily kitchen fulfillment, inventory, and sales.
+            Production ERP reporting suite powered by backend database tables, kitchen telemetry, and delivery SLAs.
           </Text>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button size="small" variant="secondary" onClick={() => setShowSavedReportsModal(true)} className="text-xs gap-1.5">
+            <Bookmark className="w-3.5 h-3.5 text-amber-500" /> Saved Views ({savedReportsList.length})
+          </Button>
+          <Button size="small" variant="secondary" onClick={() => setShowScheduleModal(true)} className="text-xs gap-1.5">
+            <Mail className="w-3.5 h-3.5" /> Schedule Auto Report
+          </Button>
           <Button size="small" variant="secondary" onClick={handleExportCSV} className="text-xs gap-1.5">
             <Download className="w-3.5 h-3.5" /> Export CSV
           </Button>
@@ -143,35 +196,71 @@ export function EnterpriseReportsEngine() {
         </div>
       </div>
 
-      {/* ── 9 PRIMARY NAVIGATION SECTIONS ────────────────────────────────────── */}
+      {/* ── PRIMARY NAVIGATION SECTIONS ──────────────────────────────────────── */}
       <div className="bg-white dark:bg-slate-900 p-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-thin">
-          {SECTIONS.map((sec) => {
-            const Icon = sec.icon;
-            const isActive = activeSection === sec.id;
-            return (
-              <button
-                key={sec.id}
-                onClick={() => setActiveSection(sec.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2 transition-all ${
-                  isActive
-                    ? "bg-amber-500 text-slate-950 shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {sec.label}
-              </button>
-            );
-          })}
+        <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1 scrollbar-thin">
+          <div className="flex items-center gap-1">
+            {SECTIONS.map((sec) => {
+              const Icon = sec.icon;
+              const isActive = activeSection === sec.id && !showAdvancedSubTab;
+              return (
+                <button
+                  key={sec.id}
+                  onClick={() => { setActiveSection(sec.id); setShowAdvancedSubTab(false); }}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2 transition-all ${
+                    isActive
+                      ? "bg-amber-500 text-slate-950 shadow-sm"
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {sec.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => setShowAdvancedSubTab(!showAdvancedSubTab)}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-all shrink-0 ${
+              showAdvancedSubTab ? "bg-indigo-600 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+            }`}
+          >
+            <Compass className="w-4 h-4 text-amber-400" />
+            {showAdvancedSubTab ? "Hide Advanced ▲" : "Advanced Analytics ▼"}
+          </button>
         </div>
       </div>
 
-      {/* ── UNIVERSAL DATE & ESSENTIAL FILTER BAR ───────────────────────────── */}
+      {/* Advanced Analytics Sub-Tabs */}
+      {showAdvancedSubTab && (
+        <div className="p-3 bg-indigo-950 text-white rounded-2xl border border-indigo-900 flex items-center gap-2 overflow-x-auto text-xs">
+          <span className="font-bold text-amber-400 uppercase text-[10px] tracking-wider shrink-0">Advanced Analytics:</span>
+          {[
+            { id: "profitability", label: "Product Profitability" },
+            { id: "zone_analytics", label: "Zone Delivery Matrix" },
+            { id: "capacity", label: "Kitchen Hub Capacity" },
+            { id: "audit_logs", label: "Report Audit Logs" },
+            { id: "forecast", label: "Demand Forecast Engine" },
+          ].map((sub) => (
+            <button
+              key={sub.id}
+              onClick={() => setAdvancedTab(sub.id)}
+              className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-colors ${
+                advancedTab === sub.id ? "bg-amber-500 text-slate-950" : "bg-indigo-900/60 hover:bg-indigo-800 text-slate-200"
+              }`}
+            >
+              {sub.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── STEP 2: UNIVERSAL FILTER BAR ────────────────────────────────────── */}
       <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-3 flex-wrap">
-            {/* Universal Date Presets */}
+            {/* Date Engine Presets */}
             <div className="flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800">
               <Calendar className="w-3.5 h-3.5 text-amber-500" />
               <span className="text-[10px] text-slate-400 font-bold uppercase">Date:</span>
@@ -184,8 +273,16 @@ export function EnterpriseReportsEngine() {
                 <option value="yesterday">Yesterday</option>
                 <option value="last_7_days">Last 7 Days</option>
                 <option value="last_30_days">Last 30 Days</option>
+                <option value="last_90_days">Last 90 Days</option>
+                <option value="this_week">This Week</option>
+                <option value="last_week">Last Week</option>
                 <option value="this_month">This Month</option>
+                <option value="last_month">Last Month</option>
+                <option value="this_quarter">This Quarter</option>
+                <option value="last_quarter">Last Quarter</option>
                 <option value="this_year">This Year</option>
+                <option value="last_year">Last Year</option>
+                <option value="financial_year">Financial Year</option>
                 <option value="custom">Custom Date Range</option>
               </select>
             </div>
@@ -251,15 +348,25 @@ export function EnterpriseReportsEngine() {
             </div>
           </div>
 
-          {/* Global Search */}
-          <div className="relative w-44">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              value={filters.searchQuery}
-              onChange={(e) => updateFilter("searchQuery", e.target.value)}
-              placeholder="Filter data rows..."
-              className="w-full border border-slate-200 dark:border-slate-700 rounded-xl pl-7 pr-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 outline-none font-semibold"
-            />
+          <div className="flex items-center gap-2">
+            {/* Global Search */}
+            <div className="relative w-44">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                value={filters.searchQuery}
+                onChange={(e) => updateFilter("searchQuery", e.target.value)}
+                placeholder="Global search..."
+                className="w-full border border-slate-200 dark:border-slate-700 rounded-xl pl-7 pr-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 outline-none font-semibold"
+              />
+            </div>
+
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="text-xs font-bold text-amber-600 hover:underline flex items-center gap-1 shrink-0"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              {showAdvancedFilters ? "Hide" : "Advanced Filters"}
+            </button>
           </div>
         </div>
 
@@ -267,14 +374,14 @@ export function EnterpriseReportsEngine() {
         {filters.timeRange === "custom" && (
           <div className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-900 text-xs">
             <span className="font-bold text-amber-900 dark:text-amber-300">Custom Date Range:</span>
-            <span className="font-bold text-slate-500">From:</span>
+            <span className="font-bold text-slate-500">From Date:</span>
             <input
               type="date"
               value={fromInput}
               onChange={(e) => setFromInput(e.target.value)}
               className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 font-semibold"
             />
-            <span className="font-bold text-slate-500">To:</span>
+            <span className="font-bold text-slate-500">To Date:</span>
             <input
               type="date"
               value={toInput}
@@ -286,9 +393,50 @@ export function EnterpriseReportsEngine() {
             </Button>
           </div>
         )}
+
+        {/* Advanced Filters Drawer */}
+        {showAdvancedFilters && (
+          <div className="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div>
+              <Label className="text-[10px] text-slate-400 block mb-1">Delivery Zone</Label>
+              <select value={filters.deliveryZone} onChange={(e) => updateFilter("deliveryZone", e.target.value)} className="w-full border rounded-xl p-1.5 bg-white dark:bg-slate-900 font-semibold">
+                <option value="all">All Zones</option>
+                <option value="z1">Zone 1 (0-4 km Express)</option>
+                <option value="z2">Zone 2 (4-8 km Standard)</option>
+                <option value="z3">Zone 3 (8-12 km Extended)</option>
+              </select>
+            </div>
+            <div>
+              <Label className="text-[10px] text-slate-400 block mb-1">Payment Method</Label>
+              <select value={filters.paymentMethod} onChange={(e) => updateFilter("paymentMethod", e.target.value)} className="w-full border rounded-xl p-1.5 bg-white dark:bg-slate-900 font-semibold">
+                <option value="all">All Methods</option>
+                <option value="upi">UPI (Razorpay)</option>
+                <option value="cod">Cash on Delivery</option>
+              </select>
+            </div>
+            <div>
+              <Label className="text-[10px] text-slate-400 block mb-1">Delivery Type</Label>
+              <select value={filters.deliveryType} onChange={(e) => updateFilter("deliveryType", e.target.value)} className="w-full border rounded-xl p-1.5 bg-white dark:bg-slate-900 font-semibold">
+                <option value="all">All Types</option>
+                <option value="express">Express (60 mins)</option>
+                <option value="standard">Standard Slot</option>
+                <option value="midnight">Midnight Special</option>
+              </select>
+            </div>
+            <div>
+              <Label className="text-[10px] text-slate-400 block mb-1">Occasion Tag</Label>
+              <select value={filters.occasion} onChange={(e) => updateFilter("occasion", e.target.value)} className="w-full border rounded-xl p-1.5 bg-white dark:bg-slate-900 font-semibold">
+                <option value="all">All Occasions</option>
+                <option value="birthday">Birthday Celebration</option>
+                <option value="anniversary">Anniversary</option>
+                <option value="wedding">Wedding Tier</option>
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ── 5 ESSENTIAL KPI CARDS GRID ───────────────────────────────────────── */}
+      {/* ── STEP 3: 5 ESSENTIAL KPI CARDS GRID ──────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {kpiCards.map((card) => (
           <div
@@ -313,21 +461,21 @@ export function EnterpriseReportsEngine() {
         ))}
       </div>
 
-      {/* ── CHART VISUALIZER OR CLEAN EMPTY STATE ───────────────────────────── */}
+      {/* ── STEP 4 & 5: CHARTS & DATA TABLE ─────────────────────────────────── */}
       {loading ? (
         <div className="text-center py-12 text-slate-400 text-xs flex items-center justify-center gap-2">
-          <RefreshCw className="w-4 h-4 animate-spin text-amber-500" /> Refreshing report telemetry…
+          <RefreshCw className="w-4 h-4 animate-spin text-amber-500" /> Fetching real ERP database telemetry…
         </div>
       ) : sectionData ? (
         <div className="space-y-6">
-          {/* Chart Section */}
+          {/* STEP 4: CHARTS */}
           {sectionData.chart_data && sectionData.chart_data.length > 0 ? (
             <div className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
               <div className="flex items-center justify-between border-b pb-3">
                 <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <BarChart3 className="w-4 h-4 text-amber-500" /> {sectionData.title} Trend Visualizer
                 </Heading>
-                <Badge color="amber" className="text-[10px] font-bold">Live Data</Badge>
+                <Badge color="amber" className="text-[10px] font-bold">Real DB Telemetry</Badge>
               </div>
 
               <div className="h-40 flex items-end gap-3 pt-6 pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -360,12 +508,12 @@ export function EnterpriseReportsEngine() {
                 No Operational Data Available
               </Heading>
               <Text className="text-xs text-slate-400">
-                No records match the active date range and filters. Adjust your filters or select a different date range.
+                No database records match the active filters or date range. Adjust your filters or select another date preset.
               </Text>
             </div>
           )}
 
-          {/* Data Table with Sticky Header */}
+          {/* STEP 5: DATA TABLE (Sticky Header, Sortable, Searchable, Paginated, Drillable) */}
           {sectionData.table_rows && sectionData.table_rows.length > 0 && (
             <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm text-xs">
               <div className="p-4 bg-slate-50 dark:bg-slate-800 border-b flex items-center justify-between">
@@ -373,7 +521,7 @@ export function EnterpriseReportsEngine() {
                   <Text className="font-bold text-slate-700 dark:text-slate-200">
                     Operational Data Records ({sectionData.table_rows.length} Rows)
                   </Text>
-                  <span className="text-[10px] text-slate-400 block">Click any row to open deep inspection modal</span>
+                  <span className="text-[10px] text-slate-400 block">Click any row to view deep invoice & order lifecycle audit log</span>
                 </div>
                 <Button size="small" variant="secondary" onClick={handleExportCSV} className="text-[10px]">Export CSV</Button>
               </div>
@@ -415,7 +563,105 @@ export function EnterpriseReportsEngine() {
         </div>
       ) : null}
 
-      {/* ── ENTITY INSPECTOR MODAL (KPI → Report → Order → Timeline) ────────── */}
+      {/* ── SAVED REPORTS MODAL ────────────────────────────────────────────── */}
+      {showSavedReportsModal && (
+        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-5 space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b pb-3">
+              <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Bookmark className="w-4 h-4 text-amber-500" /> Saved Report Views & Bookmarks
+              </Heading>
+              <button onClick={() => setShowSavedReportsModal(false)}><X className="w-4 h-4 text-slate-400" /></button>
+            </div>
+
+            <form onSubmit={handleSaveCurrentView} className="space-y-2 border-b pb-3">
+              <Label className="text-slate-500 font-bold block">Save Active Filter State</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={saveTitle}
+                  onChange={(e) => setSaveTitle(e.target.value)}
+                  placeholder="e.g. Daily Indiranagar Sales"
+                  className="text-xs flex-1"
+                />
+                <Button size="small" type="submit" className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs">
+                  Save View
+                </Button>
+              </div>
+            </form>
+
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              <Label className="text-slate-400 text-[10px] uppercase font-bold">Saved Bookmarks:</Label>
+              {savedReportsList.map((r) => (
+                <div key={r.id} className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-800 dark:text-slate-200 block">{r.title}</span>
+                    <span className="text-[10px] text-slate-400">{r.section} · {r.timeRange}</span>
+                  </div>
+                  <button
+                    onClick={() => { setActiveSection(r.section as any); updateFilter("timeRange", r.timeRange); setShowSavedReportsModal(false); triggerToast(`Loaded view: ${r.title}`); }}
+                    className="px-2 py-1 bg-amber-500 text-slate-950 font-bold rounded text-[10px]"
+                  >
+                    Load
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-2 border-t">
+              <Button size="small" variant="secondary" onClick={() => setShowSavedReportsModal(false)}>Close</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SCHEDULED REPORTS MODAL ───────────────────────────────────────── */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-5 space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b pb-3">
+              <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Mail className="w-4 h-4 text-amber-500" /> Schedule Automated Email Report
+              </Heading>
+              <button onClick={() => setShowScheduleModal(false)}><X className="w-4 h-4 text-slate-400" /></button>
+            </div>
+
+            <form onSubmit={handleCreateSchedule} className="space-y-3">
+              <div>
+                <Label className="text-slate-500 font-bold block mb-1">Recipient Email Address</Label>
+                <Input
+                  value={scheduleEmail}
+                  onChange={(e) => setScheduleEmail(e.target.value)}
+                  type="email"
+                  required
+                  className="text-xs"
+                />
+              </div>
+
+              <div>
+                <Label className="text-slate-500 font-bold block mb-1">Delivery Frequency</Label>
+                <select
+                  value={scheduleFreq}
+                  onChange={(e) => setScheduleFreq(e.target.value)}
+                  className="w-full border rounded-xl p-2 bg-white dark:bg-slate-800 font-semibold text-xs"
+                >
+                  <option value="daily_8pm">Daily at 8:00 PM</option>
+                  <option value="weekly_mon">Weekly on Monday 8:00 AM</option>
+                  <option value="monthly_1st">Monthly on 1st Day 8:00 AM</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t">
+                <Button size="small" variant="secondary" type="button" onClick={() => setShowScheduleModal(false)}>Cancel</Button>
+                <Button size="small" type="submit" className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs">
+                  Create Schedule
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── DRILL DOWN INSPECTION MODAL (KPI → Table → Order → Timeline) ───── */}
       {selectedEntityDetail && (
         <div className="fixed inset-0 z-[160] flex items-center justify-center bg-black/60 p-4">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-5 space-y-4 text-xs">

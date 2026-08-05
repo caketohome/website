@@ -242,6 +242,23 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/analytics/dashboard") return jsonWithDataSource({ metrics: ApiEngine.getAdminAnalytics() }, "json-fallback");
     if (path === "admin/security") return jsonWithDataSource({ config: ApiEngine.getAdminSecurityConfig() }, "json-fallback");
     if (path === "admin/reports") return jsonWithDataSource({ reports: ApiEngine.getAdminReports() }, "json-fallback");
+    if (path === "admin/reports/dashboard") return jsonWithDataSource(ApiEngine.getReportsDashboard(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/sales") return jsonWithDataSource(ApiEngine.getReportsSales(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/orders") return jsonWithDataSource(ApiEngine.getReportsOrders(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/products") return jsonWithDataSource(ApiEngine.getReportsProducts(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/customers") return jsonWithDataSource(ApiEngine.getReportsCustomers(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/inventory") return jsonWithDataSource(ApiEngine.getReportsInventory(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/delivery") return jsonWithDataSource(ApiEngine.getReportsDelivery(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/branches") return jsonWithDataSource(ApiEngine.getReportsBranches(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/finance") return jsonWithDataSource(ApiEngine.getReportsFinance(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/executive-summary") return jsonWithDataSource(ApiEngine.getReportsExecutiveSummary(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/exceptions") return jsonWithDataSource(ApiEngine.getReportsExceptions(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/profitability") return jsonWithDataSource(ApiEngine.getReportsProfitability(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/branch-comparison") return jsonWithDataSource(ApiEngine.getReportsBranchComparison(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/export") return jsonWithDataSource(ApiEngine.getReportsExport(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/search") return jsonWithDataSource(ApiEngine.getReportsSearch(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/reports/saved") return jsonWithDataSource({ reports: ApiEngine.getSavedReports() }, "json-fallback");
+    if (path === "admin/reports/audit") return jsonWithDataSource({ logs: ApiEngine.getReportAuditLogs() }, "json-fallback");
     if (path === "admin/support/tickets") return jsonWithDataSource({ tickets: ApiEngine.getAdminSupportTickets() }, "json-fallback");
     if (path === "admin/cms/blocks") return jsonWithDataSource({ blocks: ApiEngine.getAdminCmsBlocks() }, "json-fallback");
     if (path === "admin/media") return jsonWithDataSource({ media: ApiEngine.getAdminMedia() }, "json-fallback");
@@ -366,6 +383,9 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ submission: ApiEngine.submitCmsForm(body.form_type || "contact", body.data || body) }, "json-fallback");
     }
 
+    if (path === "admin/reports/saved") return jsonWithDataSource({ report: ApiEngine.createSavedReport(body), success: true }, "json-fallback");
+    if (path === "admin/reports/schedule" || path === "admin/reports/schedules") return jsonWithDataSource({ schedule: ApiEngine.createScheduledReport(body), success: true }, "json-fallback");
+
     if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "processed" }, "json-fallback");
 
     return jsonWithDataSource({ error: `API Route "${path}" not found` }, "json-fallback", 404);
@@ -420,6 +440,11 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ page: ApiEngine.updateCmsPage(pageId, body) }, "json-fallback");
     }
 
+    if (path.startsWith("admin/reports/saved/")) {
+      const id = path.replace("admin/reports/saved/", "");
+      return jsonWithDataSource({ report: ApiEngine.updateSavedReport(id, body), success: true }, "json-fallback");
+    }
+
     if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "updated" }, "json-fallback");
 
     return jsonWithDataSource({ error: `API Route "${path}" not found` }, "json-fallback", 404);
@@ -462,6 +487,11 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
       return jsonWithDataSource({ deleted: ApiEngine.deleteCmsPage(pageId) });
+    }
+
+    if (path.startsWith("admin/reports/saved/")) {
+      const id = path.replace("admin/reports/saved/", "");
+      return jsonWithDataSource({ deleted: ApiEngine.deleteSavedReport(id), success: true }, "json-fallback");
     }
 
     if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "deleted" }, "json-fallback");
