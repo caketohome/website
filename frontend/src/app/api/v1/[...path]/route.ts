@@ -258,6 +258,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/reports/export") return jsonWithDataSource(ApiEngine.getReportsExport(Object.fromEntries(url.searchParams)), "json-fallback");
     if (path === "admin/reports/search") return jsonWithDataSource(ApiEngine.getReportsSearch(Object.fromEntries(url.searchParams)), "json-fallback");
     if (path === "admin/reports/saved") return jsonWithDataSource({ reports: ApiEngine.getSavedReports() }, "json-fallback");
+    if (path === "admin/reports/dashboards") return jsonWithDataSource({ dashboards: ApiEngine.getSavedDashboards() }, "json-fallback");
+    if (path === "admin/reports/preferences") return jsonWithDataSource({ preferences: ApiEngine.getChartPreferences() }, "json-fallback");
     if (path === "admin/reports/audit") return jsonWithDataSource({ logs: ApiEngine.getReportAuditLogs() }, "json-fallback");
     if (path === "admin/support/tickets") return jsonWithDataSource({ tickets: ApiEngine.getAdminSupportTickets() }, "json-fallback");
     if (path === "admin/cms/blocks") return jsonWithDataSource({ blocks: ApiEngine.getAdminCmsBlocks() }, "json-fallback");
@@ -384,6 +386,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "admin/reports/saved") return jsonWithDataSource({ report: ApiEngine.createSavedReport(body), success: true }, "json-fallback");
+    if (path === "admin/reports/dashboards") return jsonWithDataSource({ layout: ApiEngine.saveDashboardLayout(body), success: true }, "json-fallback");
+    if (path === "admin/reports/preferences") return jsonWithDataSource({ preferences: ApiEngine.saveChartPreferences(body), success: true }, "json-fallback");
     if (path === "admin/reports/schedule" || path === "admin/reports/schedules") return jsonWithDataSource({ schedule: ApiEngine.createScheduledReport(body), success: true }, "json-fallback");
 
     if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "processed" }, "json-fallback");

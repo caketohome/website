@@ -4583,11 +4583,63 @@ export class ApiEngine {
     return schedule;
   }
 
+  static getSavedDashboards() {
+    const store = ApiEngine.getStore();
+    return store.saved_dashboards || [
+      {
+        id: "dash_default",
+        name: "Standard Bakery Operations Dashboard",
+        widgets: ["revenue", "orders", "profit", "customers", "inventory", "delivery", "branches"],
+        layout: "grid",
+        updated_at: new Date().toISOString(),
+      },
+    ];
+  }
+
+  static saveDashboardLayout(data: any) {
+    const store = ApiEngine.getStore();
+    if (!store.saved_dashboards) store.saved_dashboards = [];
+    const layout = {
+      id: data.id || `dash_${Date.now()}`,
+      name: data.name || "Custom Dashboard Layout",
+      widgets: data.widgets || ["revenue", "orders", "profit", "customers"],
+      layout: data.layout || "grid",
+      updated_at: new Date().toISOString(),
+    };
+    const idx = store.saved_dashboards.findIndex((d: any) => d.id === layout.id);
+    if (idx >= 0) store.saved_dashboards[idx] = layout;
+    else store.saved_dashboards.push(layout);
+    ApiEngine.saveStore(store);
+    return layout;
+  }
+
+  static getChartPreferences() {
+    const store = ApiEngine.getStore();
+    return store.chart_preferences || {
+      default_chart_type: "bar",
+      default_group_by: "branch",
+      default_compare_by: "none",
+      selected_metrics: ["revenue", "orders", "profit", "aov"],
+    };
+  }
+
+  static saveChartPreferences(data: any) {
+    const store = ApiEngine.getStore();
+    store.chart_preferences = {
+      ...(store.chart_preferences || {}),
+      ...data,
+      updated_at: new Date().toISOString(),
+    };
+    ApiEngine.saveStore(store);
+    return store.chart_preferences;
+  }
+
   static getReportAuditLogs() {
     const store = ApiEngine.getStore();
     return store.report_audit_logs || [
       { id: "log_r1", action: "Exported CSV Report", section: "sales", user: "admin@cakes2home.com", timestamp: new Date().toISOString() },
       { id: "log_r2", action: "Created Scheduled Report", section: "overview", user: "admin@cakes2home.com", timestamp: new Date().toISOString() },
+      { id: "log_r3", action: "Saved Custom Chart Preferences", section: "visualization", user: "admin@cakes2home.com", timestamp: new Date().toISOString() },
     ];
   }
 }
