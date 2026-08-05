@@ -100,25 +100,66 @@ export interface Subscription {
 }
 
 export async function searchProducts(filters: SearchFilters = {}): Promise<SearchResponse> {
-  const dummy: SearchResult = {
-    product_id: "prod_truffle_01",
-    variant_id: "var_truffle_half_kg",
-    title: "Rich Chocolate Truffle Cake",
-    description: "Decadent Dutch cocoa cake with dark chocolate ganache",
-    thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
-    handle: "rich-chocolate-truffle-cake",
-    price: 699.0,
-    rating: 4.9,
-    review_count: 128,
-    eggless: true,
-    sugar_free: false,
-    gluten_free: false,
-    vegan: false,
-    is_featured: true,
-    is_bestseller: true,
-    is_new_arrival: false,
-  };
-  return { results: [dummy], count: 1, offset: 0, limit: 10 };
+  try {
+    const res: any = await apiClient.getAdminProducts();
+    const rawList: any[] = res?.products || res?.data || [];
+    
+    let list = rawList.map((p: any) => ({
+      product_id: p.id || p.product_id,
+      variant_id: p.variant_id || `var_${p.id}`,
+      title: p.title || p.name || "Gourmet Cake",
+      description: p.description || p.short_description || "Freshly baked cake.",
+      thumbnail: p.thumbnail || p.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
+      handle: p.handle || p.slug || "cake",
+      price: Math.max(1, Number(p.price || p.selling_price) || 599),
+      rating: p.rating || 5.0,
+      review_count: p.review_count || 1,
+      eggless: p.eggless !== undefined ? Boolean(p.eggless) : true,
+      sugar_free: Boolean(p.sugar_free),
+      gluten_free: Boolean(p.gluten_free),
+      vegan: Boolean(p.vegan),
+      is_featured: Boolean(p.is_featured),
+      is_bestseller: Boolean(p.is_bestseller),
+      is_new_arrival: Boolean(p.is_new_arrival),
+      category: p.category,
+      primary_category_id: p.primary_category_id,
+      cake_base: p.cake_base,
+      filling: p.filling,
+      cream: p.cream,
+      tags: p.tags,
+    }));
+
+    if (filters.q && filters.q.trim()) {
+      const q = filters.q.trim().toLowerCase();
+      list = list.filter((p: any) => {
+        const text = [p.title, p.description, p.category, p.cake_base, p.filling, p.cream, p.tags].filter(Boolean).join(" ").toLowerCase();
+        return text.includes(q);
+      });
+    }
+
+    if (filters.category_id) {
+      const catVal = Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id;
+      list = list.filter((p: any) => p.category === catVal || p.primary_category_id === catVal);
+    }
+
+    if (filters.eggless !== undefined) {
+      list = list.filter((p: any) => p.eggless === filters.eggless);
+    }
+    if (filters.sugar_free !== undefined) {
+      list = list.filter((p: any) => p.sugar_free === filters.sugar_free);
+    }
+    if (filters.vegan !== undefined) {
+      list = list.filter((p: any) => p.vegan === filters.vegan);
+    }
+
+    const limit = filters.limit || 20;
+    const offset = filters.offset || 0;
+    const sliced = list.slice(offset, offset + limit);
+
+    return { results: sliced, count: list.length, offset, limit };
+  } catch {
+    return { results: [], count: 0, offset: 0, limit: 10 };
+  }
 }
 
 export async function getProductMeta(productId: string): Promise<ProductMeta> {

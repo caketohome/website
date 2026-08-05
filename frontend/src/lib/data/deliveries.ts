@@ -1,9 +1,8 @@
 /**
  * CakeToHome Storefront Deliveries & Pincode Coverage Data Layer
- * Connects delivery availability and slots to custom NestJS Core API (/api/v1/delivery).
+ * Safe for client & server components.
  */
 
-import { apiClient } from "../api-client";
 import { DeliveryDTO } from "../types";
 
 export interface PincodeZone {
@@ -54,6 +53,38 @@ export async function checkDeliveryAvailability(pincodeInput: string): Promise<{
 }> {
   const cleanPin = (pincodeInput || "").trim().replace(/\D/g, "");
 
+  try {
+    const baseUrl = typeof window !== "undefined" ? "" : (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000");
+    const res = await fetch(`${baseUrl}/api/v1/branches?pincode=${cleanPin}`);
+    const data = await res.json();
+    if (res.ok && data && data.success) {
+      if (data.blockedReason) {
+        return {
+          serviceable: false,
+          delivery_fee: 0,
+          branch_id: null,
+          message: data.blockedReason,
+        };
+      }
+
+      if (data.resolvedBy !== "fallback_default" && data.branch) {
+        return {
+          serviceable: true,
+          delivery_fee: data.deliveryFee ?? 49,
+          branch_id: data.branch.id,
+          branch_name: data.branch.name,
+          area_name: `Zone (${cleanPin})`,
+          express_available: true,
+          midnight_available: true,
+          message: `Fresh cake delivery via ${data.branch.name}. ETA: ~${data.etaminutes || 40} mins.`,
+        };
+      }
+    }
+  } catch {
+    // API unreachable — fallback to static lookup
+  }
+
+  // Fallback to static serviceable zones dictionary if API unreachable or returns fallback
   if (SERVICEABLE_ZONES[cleanPin]) {
     const zone = SERVICEABLE_ZONES[cleanPin];
     return {
@@ -70,7 +101,6 @@ export async function checkDeliveryAvailability(pincodeInput: string): Promise<{
     };
   }
 
-  // Default fallback for testing or out of zone
   if (cleanPin.length === 6 && cleanPin.startsWith("560")) {
     return {
       serviceable: true,
@@ -93,6 +123,17 @@ export async function checkDeliveryAvailability(pincodeInput: string): Promise<{
 }
 
 export async function getDeliverySlots(branchId: string, date: string): Promise<{ delivery_slots: Array<any> }> {
+  try {
+    const baseUrl = typeof window !== "undefined" ? "" : (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000");
+    const res = await fetch(`${baseUrl}/api/v1/branches?type=slots&branchId=${branchId}&date=${encodeURIComponent(date)}`);
+    const data = await res.json();
+    if (res.ok && data && data.delivery_slots) {
+      return { delivery_slots: data.delivery_slots };
+    }
+  } catch {
+    // Fallback
+  }
+
   return {
     delivery_slots: [
       { id: "SLOT_STANDARD_MORNING", slot_name: "Morning Slot (10:00 AM - 01:00 PM)", start_time: "10:00", end_time: "13:00", extra_charge: 0, max_capacity: 30, booked_count: 5, available: true, remaining_capacity: 25 },
@@ -101,3 +142,4 @@ export async function getDeliverySlots(branchId: string, date: string): Promise<
     ],
   };
 }
+

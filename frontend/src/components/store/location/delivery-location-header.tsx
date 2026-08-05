@@ -50,30 +50,19 @@ export function DeliveryLocationHeader() {
   const handleResolveLocation = async (pinInput: string, lat?: number, lng?: number) => {
     setErrorMsg("");
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9000";
-      const publishableKey =
-        process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ||
-        "pk_e43cf3cbad60b9429ac28f7e46cd59022feeb003e3b339782cd5529906377bae";
+      const params = new URLSearchParams();
+      if (pinInput) params.set("pincode", pinInput);
+      if (lat) params.set("lat", String(lat));
+      if (lng) params.set("lng", String(lng));
 
-      const res = await fetch(`${backendUrl}/store/delivery/resolve`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-publishable-api-key": publishableKey,
-        },
-        body: JSON.stringify({
-          pincode: pinInput,
-          latitude: lat,
-          longitude: lng,
-        }),
-      });
-
+      const res = await fetch(`/api/v1/branches?${params.toString()}`);
       const data = await res.json();
-      if (res.ok && data) {
-        const newPin = data.delivery_pincode || pinInput || "560001";
+
+      if (res.ok && data && data.success) {
+        const newPin = pinInput || data.branch?.pincode || "560001";
         const newLoc = `Pincode ${newPin}`;
-        const newEta = `${data.estimated_delivery_minutes || 45} min`;
-        const newFee = `₹${data.delivery_fee ?? 49}`;
+        const newEta = `${data.etaminutes || 40} min`;
+        const newFee = `₹${data.deliveryFee ?? 49}`;
 
         setPincode(newPin);
         setLocationName(newLoc);
@@ -82,11 +71,30 @@ export function DeliveryLocationHeader() {
 
         setDeliverySessionCookies(newPin, newLoc, newEta, newFee);
         setIsOpen(false);
-      } else {
-        setErrorMsg("Location not serviceable yet. Please enter a valid PIN code.");
+        return;
       }
     } catch {
-      setErrorMsg("Could not resolve location. Please try again.");
+      // Fall through to local lookup
+    }
+
+    // Fallback to static local lookup
+    const cleanPin = pinInput.replace(/\D/g, "");
+    if (cleanPin.length === 6) {
+      const newPin = cleanPin;
+      const newLoc = `Pincode ${newPin}`;
+      const newEta = "40-50 min";
+      const newFee = "₹49";
+
+      setPincode(newPin);
+      setLocationName(newLoc);
+      setEta(newEta);
+      setFee(newFee);
+      setDeliverySessionCookies(newPin, newLoc, newEta, newFee);
+      setIsOpen(false);
+    } else if (!pinInput && (lat || lng)) {
+      setErrorMsg("Could not resolve GPS location. Please enter PIN code manually.");
+    } else {
+      setErrorMsg("Location not serviceable yet. Please enter a valid PIN code.");
     }
   };
 
@@ -125,14 +133,14 @@ export function DeliveryLocationHeader() {
     <div className="relative z-50">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-ui-border-strong bg-ui-bg-subtle text-ui-fg-base hover:bg-ui-bg-subtle-hover transition-colors font-medium text-xs shadow-sm"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/15 transition-colors font-medium text-xs shadow-sm"
       >
-        <MapPin className="w-3.5 h-3.5 text-rose-500 animate-pulse shrink-0" />
+        <MapPin className="w-3.5 h-3.5 text-[#FF4D6D] animate-pulse shrink-0" />
         <div className="flex flex-col text-left">
-          <span className="font-semibold text-xs text-rose-600 dark:text-rose-400 truncate max-w-[170px]">
+          <span className="font-semibold text-xs text-white truncate max-w-[170px]">
             Deliver to {pincode}
           </span>
-          <span className="text-[10px] text-ui-fg-muted">
+          <span className="text-[10px] text-white/75">
             ETA: {eta} • Delivery: {fee}
           </span>
         </div>

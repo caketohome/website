@@ -119,7 +119,7 @@ export default function OrderTrackingClient() {
                                     <div key={p.id} className="flex flex-col gap-1">
                                         {p.photo_url && (
                                             // eslint-disable-next-line @next/next/no-img-element
-                                            <img src={p.photo_url} alt="Delivery proof" className="max-h-40 rounded border border-ui-border-base" />
+                                            <img src={p.photo_url} alt="Delivery proof" loading="lazy" className="max-h-40 rounded border border-ui-border-base" />
                                         )}
                                         <Text size="small" className="text-ui-fg-muted">
                                             {new Date(p.captured_at).toLocaleString()}

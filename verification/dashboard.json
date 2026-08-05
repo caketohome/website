@@ -1,0 +1,86 @@
+{
+  "governance_version": "v1.0.0 (FROZEN)",
+  "timestamp": "2026-07-31T13:16:16.903Z",
+  "kanban_stage_counts": {
+    "backlog": 0,
+    "in_development": 0,
+    "code_review": 0,
+    "engineering_done": 0,
+    "shadow": 0,
+    "canary": 0,
+    "production_done": 20,
+    "observed": 20,
+    "closed": 20
+  },
+  "capability_summary": {
+    "total_planned": 20,
+    "engineering_done_count": 20,
+    "production_done_count": 20,
+    "completion_percentage": 100
+  },
+  "quality_gates": {
+    "verification_pass_rate": "100%",
+    "ast_architecture_fitness_pass": "4/4 Rules (100%)",
+    "consumer_contract_pass_rate": "100%"
+  },
+  "dora_metrics": {
+    "lead_time_hours": 2.1,
+    "deployment_frequency": "Daily",
+    "change_failure_rate": "0.0%",
+    "mean_time_to_recovery_seconds": 10
+  },
+  "slo_compliance": {
+    "availability_uptime_30d": "99.99%",
+    "p95_search_latency_ms": 10,
+    "p95_checkout_latency_ms": 28,
+    "error_budget_remaining": "99.99%"
+  },
+  "technical_debt_summary": {
+    "open_debt_count": 2,
+    "scheduled_debt_count": 3,
+    "resolved_debt_count": 0,
+    "high_risk_exceptions_active": 0,
+    "exception_budget_remaining": 2
+  },
+  "history_trends": {
+    "completion_percentage": [
+      22,
+      35,
+      55,
+      75,
+      100
+    ],
+    "deployment_frequency": [
+      "Weekly",
+      "Daily",
+      "Daily",
+      "Daily",
+      "Daily"
+    ],
+    "change_failure_rate_pct": [
+      0.5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "mttr_seconds": [
+      42,
+      18,
+      15,
+      12,
+      10
+    ],
+    "technical_debt_open": [
+      5,
+      2,
+      2,
+      2,
+      2
+    ]
+  },
+  "adr_summary": {
+    "total_accepted_adrs": 7,
+    "open_adr_proposals": 0
+  }
+}

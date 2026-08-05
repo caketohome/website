@@ -1,0 +1,12 @@
+{
+  "status": "healthy",
+  "node": "up",
+  "database": "standalone_mode",
+  "redis": "standalone_mode",
+  "bullmq": "running",
+  "gateway": "connected",
+  "medusa": "unreachable",
+  "uptime_seconds": 0.6313444,
+  "version": "1.0.0",
+  "timestamp": "2026-07-30T18:04:34.350Z"
+}

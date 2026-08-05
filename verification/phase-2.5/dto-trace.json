@@ -1,0 +1,12 @@
+{
+  "flow": "DB -> Prisma -> CustomerMapper -> CustomerDTO -> Service -> Controller -> JSON",
+  "mapped_dto_sample": {
+    "id": "cus_sample_01",
+    "phone": "9876543210",
+    "phone_verified": true,
+    "is_verified": true,
+    "created_at": "2026-07-30T18:01:48.212Z",
+    "addresses": []
+  },
+  "timestamp": "2026-07-30T18:01:48.212Z"
+}

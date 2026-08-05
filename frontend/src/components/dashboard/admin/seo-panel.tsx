@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo, useCallback } from "react";
 import { Container, Heading, Text, Badge, Button, Input, Label, Textarea } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
-import { Search, Globe, Share2, Code, Copy, Check, Save } from "lucide-react";
+import { Search, Globe, Share2, Code, Copy, Check, Save, RefreshCw } from "lucide-react";
 import { VisualPageBuilder } from "./page-builder";
+import { WidgetErrorBoundary } from "./error-boundary";
+import { FormSkeleton } from "./admin-skeletons";
 
-export function SeoPanel() {
+export const SeoPanel = memo(function SeoPanel() {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
@@ -34,21 +37,35 @@ export function SeoPanel() {
   const [utmCampaign, setUtmCampaign] = useState("monsoon_sale");
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
+  const fetchSeoConfig = useCallback(() => {
     setLoading(true);
-    apiClient.getAdminSeoConfig().then((data: any) => {
-      setMetaTitle(data.meta_title || "");
-      setMetaDesc(data.meta_description || "");
-      setKeywords(data.keywords || "");
-      setCanonicalUrl(data.canonical_url || "https://cakes2home.com");
-      setOgImage(data.og_image || "");
-      setGaId(data.ga_id || "");
-      setFbPixelId(data.fb_pixel_id || "");
-      setGtmId(data.gtm_id || "");
-      setRobotsTxt(data.robots_txt || "User-agent: *\nAllow: /\nSitemap: https://cakes2home.com/sitemap.xml");
-      setSchemaType(data.schema_type || "Bakery");
-    }).catch(() => null).finally(() => setLoading(false));
+    setError(null);
+    apiClient
+      .getAdminSeoConfig()
+      .then((data: any) => {
+        if (!data) return;
+        setMetaTitle(data.meta_title || "");
+        setMetaDesc(data.meta_description || "");
+        setKeywords(data.keywords || "");
+        setCanonicalUrl(data.canonical_url || "https://cakes2home.com");
+        setOgImage(data.og_image || "");
+        setGaId(data.ga_id || "");
+        setFbPixelId(data.fb_pixel_id || "");
+        setGtmId(data.gtm_id || "");
+        setRobotsTxt(data.robots_txt || "User-agent: *\nAllow: /\nSitemap: https://cakes2home.com/sitemap.xml");
+        setSchemaType(data.schema_type || "Bakery");
+      })
+      .catch((err) => {
+        console.error("[SEO Panel Error] Failed to fetch SEO config:", err);
+        setError(err.message || "Failed to load SEO configuration");
+      })
+      .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchSeoConfig();
+  }, [fetchSeoConfig]);
+
 
   const handleSaveSeo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +101,14 @@ export function SeoPanel() {
   };
 
   if (loading) {
-    return <Container className="p-8 text-center"><Text className="text-ui-fg-muted">Loading SEO & Digital Marketing Panel...</Text></Container>;
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <Heading level="h2" className="text-xl">Digital Marketing & SEO Management</Heading>
+        </div>
+        <FormSkeleton fields={6} />
+      </div>
+    );
   }
 
   return (
@@ -94,10 +118,22 @@ export function SeoPanel() {
           <Heading level="h2" className="text-xl">Digital Marketing & SEO Management</Heading>
           <Text className="text-ui-fg-subtle text-sm">Configure search engine metadata, analytics pixels, robots.txt, and campaign links.</Text>
         </div>
-        <Button onClick={handleSaveSeo} isLoading={submitting} className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
-          <Save className="w-4 h-4" /> Save Marketing Settings
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="small" variant="secondary" onClick={fetchSeoConfig} className="flex items-center gap-1.5 text-xs">
+            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+          </Button>
+          <Button onClick={handleSaveSeo} isLoading={submitting} className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+            <Save className="w-4 h-4" /> Save Marketing Settings
+          </Button>
+        </div>
       </div>
+
+      {error && (
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center justify-between">
+          <span>⚠️ {error}</span>
+          <Button size="small" variant="secondary" onClick={fetchSeoConfig}>Retry Fetch</Button>
+        </div>
+      )}
 
       {successMsg && (
         <div className="p-3 bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 text-emerald-800 dark:text-emerald-200 text-xs rounded flex items-center justify-between">
@@ -106,200 +142,210 @@ export function SeoPanel() {
       )}
 
       {/* 🔍 On-Page SEO & Meta Settings */}
-      <Container className="p-6 flex flex-col gap-4">
-        <div className="flex items-center gap-2 border-b pb-3">
-          <Search className="w-5 h-5 text-blue-600" />
-          <Text className="font-semibold text-base">On-Page SEO & Search Engine Meta Tags</Text>
-        </div>
+      <WidgetErrorBoundary moduleName="On-Page SEO Settings Widget" compact>
+        <Container className="p-6 flex flex-col gap-4">
+          <div className="flex items-center gap-2 border-b pb-3">
+            <Search className="w-5 h-5 text-blue-600" />
+            <Text className="font-semibold text-base">On-Page SEO & Search Engine Meta Tags</Text>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <div className="flex justify-between items-center mb-1">
-              <Label htmlFor="meta_title">Meta Title Tag</Label>
-              <span className={`text-[11px] ${metaTitle.length > 60 ? "text-rose-500 font-bold" : "text-ui-fg-subtle"}`}>
-                {metaTitle.length} / 60 chars
-              </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <Label htmlFor="meta_title">Meta Title Tag</Label>
+                <span className={`text-[11px] ${metaTitle.length > 60 ? "text-rose-500 font-bold" : "text-ui-fg-subtle"}`}>
+                  {metaTitle.length} / 60 chars
+                </span>
+              </div>
+              <Input
+                id="meta_title"
+                value={metaTitle}
+                onChange={(e) => setMetaTitle(e.target.value)}
+                placeholder="CakeToHome — Premium Gourmet Cakes Delivered in 2 Hours"
+              />
             </div>
-            <Input
-              id="meta_title"
-              value={metaTitle}
-              onChange={(e) => setMetaTitle(e.target.value)}
-              placeholder="CakeToHome — Premium Gourmet Cakes Delivered in 2 Hours"
-            />
-          </div>
 
-          <div>
-            <Label htmlFor="canonical">Canonical URL</Label>
-            <Input
-              id="canonical"
-              value={canonicalUrl}
-              onChange={(e) => setCanonicalUrl(e.target.value)}
-              placeholder="https://cakes2home.com"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <div className="flex justify-between items-center mb-1">
-              <Label htmlFor="meta_desc">Meta Description</Label>
-              <span className={`text-[11px] ${metaDesc.length > 160 ? "text-rose-500 font-bold" : "text-ui-fg-subtle"}`}>
-                {metaDesc.length} / 160 chars
-              </span>
+            <div>
+              <Label htmlFor="canonical">Canonical URL</Label>
+              <Input
+                id="canonical"
+                value={canonicalUrl}
+                onChange={(e) => setCanonicalUrl(e.target.value)}
+                placeholder="https://cakes2home.com"
+              />
             </div>
-            <Textarea
-              id="meta_desc"
-              rows={2}
-              value={metaDesc}
-              onChange={(e) => setMetaDesc(e.target.value)}
-              placeholder="Order handcrafted artisanal cakes online in Bangalore. Midnight delivery, customized birthday cakes, and same-day fresh delivery."
-            />
+
+            <div className="md:col-span-2">
+              <div className="flex justify-between items-center mb-1">
+                <Label htmlFor="meta_desc">Meta Description</Label>
+                <span className={`text-[11px] ${metaDesc.length > 160 ? "text-rose-500 font-bold" : "text-ui-fg-subtle"}`}>
+                  {metaDesc.length} / 160 chars
+                </span>
+              </div>
+              <Textarea
+                id="meta_desc"
+                rows={2}
+                value={metaDesc}
+                onChange={(e) => setMetaDesc(e.target.value)}
+                placeholder="Order handcrafted artisanal cakes online in Bangalore. Midnight delivery, customized birthday cakes, and same-day fresh delivery."
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="keywords">Target Keywords (Comma Separated)</Label>
+              <Input
+                id="keywords"
+                value={keywords}
+                onChange={(e) => setKeywords(e.target.value)}
+                placeholder="cakes online, birthday cake delivery, midnight cake"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="og_image">Social Sharing Image URL (OpenGraph)</Label>
+              <Input
+                id="og_image"
+                value={ogImage}
+                onChange={(e) => setOgImage(e.target.value)}
+                placeholder="https://cakes2home.com/og-banner.jpg"
+              />
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="keywords">Target Keywords (Comma Separated)</Label>
-            <Input
-              id="keywords"
-              value={keywords}
-              onChange={(e) => setKeywords(e.target.value)}
-              placeholder="cakes online, birthday cake delivery, midnight cake"
-            />
+          {/* Live Google Search Result Preview */}
+          <div className="mt-2 p-4 bg-slate-50 dark:bg-slate-900 border rounded-lg flex flex-col gap-1">
+            <Text className="text-xs font-semibold text-ui-fg-subtle uppercase tracking-wider mb-1">Google SERP Live Preview</Text>
+            <Text className="text-xs text-emerald-700 dark:text-emerald-400 font-mono truncate">{canonicalUrl || "https://cakes2home.com"}</Text>
+            <Text className="text-sm font-semibold text-blue-700 dark:text-blue-400 line-clamp-1 hover:underline cursor-pointer">
+              {metaTitle || "CakeToHome — Premium Gourmet Cakes Delivered in 2 Hours"}
+            </Text>
+            <Text className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
+              {metaDesc || "Order handcrafted artisanal cakes online in Bangalore. Midnight delivery, customized birthday cakes, and same-day fresh delivery."}
+            </Text>
           </div>
-
-          <div>
-            <Label htmlFor="og_image">Social Sharing Image URL (OpenGraph)</Label>
-            <Input
-              id="og_image"
-              value={ogImage}
-              onChange={(e) => setOgImage(e.target.value)}
-              placeholder="https://cakes2home.com/og-banner.jpg"
-            />
-          </div>
-        </div>
-
-        {/* Live Google Search Result Preview */}
-        <div className="mt-2 p-4 bg-slate-50 dark:bg-slate-900 border rounded-lg flex flex-col gap-1">
-          <Text className="text-xs font-semibold text-ui-fg-subtle uppercase tracking-wider mb-1">Google SERP Live Preview</Text>
-          <Text className="text-xs text-emerald-700 dark:text-emerald-400 font-mono truncate">{canonicalUrl || "https://cakes2home.com"}</Text>
-          <Text className="text-sm font-semibold text-blue-700 dark:text-blue-400 line-clamp-1 hover:underline cursor-pointer">
-            {metaTitle || "CakeToHome — Premium Gourmet Cakes Delivered in 2 Hours"}
-          </Text>
-          <Text className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
-            {metaDesc || "Order handcrafted artisanal cakes online in Bangalore. Midnight delivery, customized birthday cakes, and same-day fresh delivery."}
-          </Text>
-        </div>
-      </Container>
+        </Container>
+      </WidgetErrorBoundary>
 
       {/* 📈 Analytics & Tracking Pixels */}
-      <Container className="p-6 flex flex-col gap-4">
-        <div className="flex items-center gap-2 border-b pb-3">
-          <Share2 className="w-5 h-5 text-purple-600" />
-          <Text className="font-semibold text-base">Analytics & Social Tracking Pixels</Text>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="ga_id">Google Analytics 4 (GA4) ID</Label>
-            <Input
-              id="ga_id"
-              value={gaId}
-              onChange={(e) => setGaId(e.target.value)}
-              placeholder="G-CTH987654321"
-            />
+      <WidgetErrorBoundary moduleName="Analytics & Tracking Pixels Widget" compact>
+        <Container className="p-6 flex flex-col gap-4">
+          <div className="flex items-center gap-2 border-b pb-3">
+            <Share2 className="w-5 h-5 text-purple-600" />
+            <Text className="font-semibold text-base">Analytics & Social Tracking Pixels</Text>
           </div>
 
-          <div>
-            <Label htmlFor="fb_pixel">Facebook / Meta Pixel ID</Label>
-            <Input
-              id="fb_pixel"
-              value={fbPixelId}
-              onChange={(e) => setFbPixelId(e.target.value)}
-              placeholder="123456789012345"
-            />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="ga_id">Google Analytics 4 (GA4) ID</Label>
+              <Input
+                id="ga_id"
+                value={gaId}
+                onChange={(e) => setGaId(e.target.value)}
+                placeholder="G-CTH987654321"
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="gtm_id">Google Tag Manager (GTM) ID</Label>
-            <Input
-              id="gtm_id"
-              value={gtmId}
-              onChange={(e) => setGtmId(e.target.value)}
-              placeholder="GTM-CTH2026"
-            />
+            <div>
+              <Label htmlFor="fb_pixel">Facebook / Meta Pixel ID</Label>
+              <Input
+                id="fb_pixel"
+                value={fbPixelId}
+                onChange={(e) => setFbPixelId(e.target.value)}
+                placeholder="123456789012345"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="gtm_id">Google Tag Manager (GTM) ID</Label>
+              <Input
+                id="gtm_id"
+                value={gtmId}
+                onChange={(e) => setGtmId(e.target.value)}
+                placeholder="GTM-CTH2026"
+              />
+            </div>
           </div>
-        </div>
-      </Container>
+        </Container>
+      </WidgetErrorBoundary>
 
       {/* 🔗 Campaign UTM Tracking Link Generator */}
-      <Container className="p-6 flex flex-col gap-4">
-        <div className="flex items-center gap-2 border-b pb-3">
-          <Globe className="w-5 h-5 text-emerald-600" />
-          <Text className="font-semibold text-base">UTM Campaign URL Generator</Text>
-        </div>
+      <WidgetErrorBoundary moduleName="UTM Link Generator Widget" compact>
+        <Container className="p-6 flex flex-col gap-4">
+          <div className="flex items-center gap-2 border-b pb-3">
+            <Globe className="w-5 h-5 text-emerald-600" />
+            <Text className="font-semibold text-base">UTM Campaign URL Generator</Text>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <Label htmlFor="utm_url">Target Page URL</Label>
-            <Input id="utm_url" value={utmUrl} onChange={(e) => setUtmUrl(e.target.value)} />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="utm_url">Target Page URL</Label>
+              <Input id="utm_url" value={utmUrl} onChange={(e) => setUtmUrl(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="utm_source">UTM Source (e.g. google, instagram)</Label>
+              <Input id="utm_source" value={utmSource} onChange={(e) => setUtmSource(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="utm_medium">UTM Medium (e.g. cpc, story)</Label>
+              <Input id="utm_medium" value={utmMedium} onChange={(e) => setUtmMedium(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="utm_campaign">UTM Campaign Name</Label>
+              <Input id="utm_campaign" value={utmCampaign} onChange={(e) => setUtmCampaign(e.target.value)} />
+            </div>
           </div>
-          <div>
-            <Label htmlFor="utm_source">UTM Source (e.g. google, instagram)</Label>
-            <Input id="utm_source" value={utmSource} onChange={(e) => setUtmSource(e.target.value)} />
-          </div>
-          <div>
-            <Label htmlFor="utm_medium">UTM Medium (e.g. cpc, story)</Label>
-            <Input id="utm_medium" value={utmMedium} onChange={(e) => setUtmMedium(e.target.value)} />
-          </div>
-          <div>
-            <Label htmlFor="utm_campaign">UTM Campaign Name</Label>
-            <Input id="utm_campaign" value={utmCampaign} onChange={(e) => setUtmCampaign(e.target.value)} />
-          </div>
-        </div>
 
-        <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-between gap-3">
-          <span className="font-mono text-xs text-ui-fg-base truncate">{generatedUtm}</span>
-          <Button size="small" variant="secondary" onClick={handleCopyUtm} className="shrink-0 flex items-center gap-1">
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-            {copied ? "Copied!" : "Copy Campaign Link"}
-          </Button>
-        </div>
-      </Container>
+          <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-between gap-3">
+            <span className="font-mono text-xs text-ui-fg-base truncate">{generatedUtm}</span>
+            <Button size="small" variant="secondary" onClick={handleCopyUtm} className="shrink-0 flex items-center gap-1">
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? "Copied!" : "Copy Campaign Link"}
+            </Button>
+          </div>
+        </Container>
+      </WidgetErrorBoundary>
 
       {/* 🗺️ Robots.txt & Schema Markup */}
-      <Container className="p-6 flex flex-col gap-4">
-        <div className="flex items-center gap-2 border-b pb-3">
-          <Code className="w-5 h-5 text-amber-600" />
-          <Text className="font-semibold text-base">Indexing Controls & Rich Snippets (Schema.org)</Text>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="robots">Robots.txt Directives</Label>
-            <Textarea
-              id="robots"
-              rows={4}
-              value={robotsTxt}
-              onChange={(e) => setRobotsTxt(e.target.value)}
-              className="font-mono text-xs"
-            />
+      <WidgetErrorBoundary moduleName="Robots & Schema Widget" compact>
+        <Container className="p-6 flex flex-col gap-4">
+          <div className="flex items-center gap-2 border-b pb-3">
+            <Code className="w-5 h-5 text-amber-600" />
+            <Text className="font-semibold text-base">Indexing Controls & Rich Snippets (Schema.org)</Text>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="schema">Schema.org JSON-LD Type</Label>
-              <Input id="schema" value={schemaType} onChange={(e) => setSchemaType(e.target.value)} placeholder="Bakery" />
+              <Label htmlFor="robots">Robots.txt Directives</Label>
+              <Textarea
+                id="robots"
+                rows={4}
+                value={robotsTxt}
+                onChange={(e) => setRobotsTxt(e.target.value)}
+                className="font-mono text-xs"
+              />
             </div>
-            <div className="p-3 bg-ui-bg-subtle rounded text-xs flex flex-col gap-1">
-              <span className="font-semibold text-emerald-600">✓ Dynamic XML Sitemap Active:</span>
-              <span className="font-mono text-[11px] text-ui-fg-subtle">https://cakes2home.com/sitemap.xml</span>
-              <Text className="text-[10px] text-ui-fg-muted mt-1">Automatically includes all product slugs, category pages, and branch locations.</Text>
+
+            <div className="flex flex-col gap-3">
+              <div>
+                <Label htmlFor="schema">Schema.org JSON-LD Type</Label>
+                <Input id="schema" value={schemaType} onChange={(e) => setSchemaType(e.target.value)} placeholder="Bakery" />
+              </div>
+              <div className="p-3 bg-ui-bg-subtle rounded text-xs flex flex-col gap-1">
+                <span className="font-semibold text-emerald-600">✓ Dynamic XML Sitemap Active:</span>
+                <span className="font-mono text-[11px] text-ui-fg-subtle">https://cakes2home.com/sitemap.xml</span>
+                <Text className="text-[10px] text-ui-fg-muted mt-1">Automatically includes all product slugs, category pages, and branch locations.</Text>
+              </div>
             </div>
           </div>
-        </div>
-      </Container>
+        </Container>
+      </WidgetErrorBoundary>
 
-      {/* 🎨 Drag & Drop Visual Page Builder & Image Alt Text Manager */}
-      <div className="mt-4 pt-6 border-t border-ui-border-base">
-        <VisualPageBuilder />
-      </div>
+      {/* 🎨 Visual Drag-and-Drop Landing Page Builder */}
+      <WidgetErrorBoundary moduleName="Visual Page Builder Widget" compact>
+        <div className="mt-4 pt-4 border-t border-ui-border-base">
+          <VisualPageBuilder />
+        </div>
+      </WidgetErrorBoundary>
     </div>
   );
-}
+});

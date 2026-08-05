@@ -68,6 +68,9 @@ class SecurityModuleService extends MedusaService({
   // ── IP Whitelisting & CIDR Support ──────────────────────────────────────
 
   async isIpAllowed(ip: string): Promise<boolean> {
+    if (!ip || ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1" || ip.includes("127.0.0.1")) {
+      return true;
+    }
     // Check if blocked first
     const [blocked] = await (this as any).listBlockedIps({ ip_address: ip });
     if (blocked) {

@@ -1,10 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, memo } from "react";
 import { Container, Heading, Text, Badge, Button, Input, Label } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
-import { Plus, Tag } from "lucide-react";
+import { Plus, Tag, Trash2, CheckCircle, AlertCircle } from "lucide-react";
+import { GridSkeleton } from "./admin-skeletons";
 
-export function MarketingPanel() {
+export const MarketingPanel = memo(function MarketingPanel() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [offers, setOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,13 +19,18 @@ export function MarketingPanel() {
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchMarketingData = () => {
     setLoading(true);
     Promise.all([
       apiClient.getAdminCampaigns().then((r: any) => setCampaigns(r?.campaigns || r?.data || [])).catch(() => null),
       apiClient.getAdminOffers().then((r: any) => setOffers(r?.offers || r?.data || [])).catch(() => null),
     ]).finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchMarketingData();
   }, []);
 
   const handleCreateOffer = async (e: React.FormEvent) => {
@@ -31,28 +38,45 @@ export function MarketingPanel() {
     if (!code.trim()) return;
     setSubmitting(true);
     setSuccessMsg(null);
+    setErrorMsg(null);
 
+    const formattedCode = code.trim().toUpperCase();
     const newOffer = {
-      id: `offer_${Date.now()}`,
-      code: code.toUpperCase(),
+      name: formattedCode,
+      code: formattedCode,
+      type: discountType === "percentage" ? "percentage" : "flat",
       discount_value: parseFloat(discountValue) || 10,
       discount_type: discountType,
-      description,
+      description: description || `Promo Offer ${formattedCode}`,
       is_active: true,
-      created_at: new Date().toISOString(),
     };
 
-    await apiClient.createAdminOffer(newOffer);
-    setOffers((prev) => [newOffer, ...prev]);
-    setSuccessMsg(`Successfully created coupon code "${code.toUpperCase()}"!`);
-    setCode("");
-    setDiscountValue("");
-    setDescription("");
-    setSubmitting(false);
-    setTimeout(() => {
-      setShowCreateModal(false);
-      setSuccessMsg(null);
-    }, 1500);
+    try {
+      await apiClient.createAdminOffer(newOffer);
+      fetchMarketingData();
+      setSuccessMsg(`Successfully created coupon code "${formattedCode}"!`);
+      setCode("");
+      setDiscountValue("");
+      setDescription("");
+      setTimeout(() => {
+        setShowCreateModal(false);
+        setSuccessMsg(null);
+      }, 1500);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to create promo offer.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteOffer = async (id: string, offerCode: string) => {
+    if (!confirm(`Are you sure you want to delete coupon code "${offerCode}"?`)) return;
+    try {
+      await apiClient.deleteAdminOffer(id);
+      fetchMarketingData();
+    } catch (err: any) {
+      alert(err.message || "Failed to delete offer.");
+    }
   };
 
   return (
@@ -76,6 +100,18 @@ export function MarketingPanel() {
             </div>
             <button onClick={() => setShowCreateModal(false)} className="text-xs text-ui-fg-subtle hover:underline">Close</button>
           </div>
+
+          {successMsg && (
+            <div className="p-3 mb-4 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-2 text-sm font-medium">
+              <CheckCircle className="w-4 h-4" /> {successMsg}
+            </div>
+          )}
+
+          {errorMsg && (
+            <div className="p-3 mb-4 rounded bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300 flex items-center gap-2 text-sm font-medium">
+              <AlertCircle className="w-4 h-4" /> {errorMsg}
+            </div>
+          )}
 
           <form onSubmit={handleCreateOffer} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -124,21 +160,26 @@ export function MarketingPanel() {
       )}
 
       {loading ? (
-        <Container className="p-8 text-center"><Text className="text-ui-fg-muted">Loading marketing data...</Text></Container>
+        <GridSkeleton count={4} />
       ) : (
         <>
           <Container className="p-5">
             <Text className="text-xs font-semibold text-ui-fg-subtle uppercase tracking-wider mb-3">Active Offers & Coupons ({offers.length})</Text>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {(offers.length > 0 ? offers : [
-                { code: "CAKE50", description: "50% Off up to ₹150", is_active: true },
-                { code: "WELCOME100", description: "Flat ₹100 Off on First Order", is_active: true },
-                { code: "FREEDELIVERY", description: "Free Midnight Delivery", is_active: true },
-              ]).map((o: any, i: number) => (
-                <div key={o.id || i} className="p-4 bg-ui-bg-subtle border rounded-lg flex flex-col gap-2 shadow-sm">
+              {offers.map((o: any, i: number) => (
+                <div key={o.id || i} className="p-4 bg-ui-bg-subtle border rounded-lg flex flex-col gap-2 shadow-sm relative">
                   <div className="flex items-center justify-between">
                     <Text className="font-mono font-bold text-sm text-purple-700 dark:text-purple-300">{o.code}</Text>
-                    <Badge color={o.is_active ? "green" : "red"} className="text-[10px]">{o.is_active ? "Active" : "Expired"}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge color={o.is_active !== false ? "green" : "red"} className="text-[10px]">{o.is_active !== false ? "Active" : "Expired"}</Badge>
+                      <button
+                        onClick={() => handleDeleteOffer(o.id, o.code)}
+                        className="text-gray-400 hover:text-rose-600 transition-colors p-1"
+                        title="Delete Offer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <Text className="text-xs text-ui-fg-muted">{o.description || "Special promotional discount"}</Text>
                 </div>
@@ -149,14 +190,11 @@ export function MarketingPanel() {
           <Container className="p-5">
             <Text className="text-xs font-semibold text-ui-fg-subtle uppercase tracking-wider mb-3">Marketing Campaigns ({campaigns.length})</Text>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(campaigns.length > 0 ? campaigns : [
-                { name: "Monsoon Festival Special", description: "Special seasonal cake collection push", is_active: true },
-                { name: "Birthday Surprise Rewards", description: "Automated birthday notification discounts", is_active: true },
-              ]).map((c: any, i: number) => (
+              {campaigns.map((c: any, i: number) => (
                 <div key={c.id || i} className="p-4 bg-ui-bg-subtle border rounded-lg flex flex-col gap-2">
                   <Text className="font-semibold text-sm">{c.name || c.title}</Text>
-                  <Text className="text-xs text-ui-fg-muted">{c.description}</Text>
-                  <Badge color={c.is_active ? "green" : "grey"} className="w-fit text-[10px]">{c.is_active ? "Active" : "Inactive"}</Badge>
+                  <Text className="text-xs text-ui-fg-muted">{c.description || "Active marketing campaign"}</Text>
+                  <Badge color={c.is_active !== false ? "green" : "grey"} className="w-fit text-[10px]">{c.is_active !== false ? "Active" : "Inactive"}</Badge>
                 </div>
               ))}
             </div>
@@ -165,4 +203,4 @@ export function MarketingPanel() {
       )}
     </div>
   );
-}
+});

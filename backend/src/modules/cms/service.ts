@@ -150,16 +150,14 @@ class CmsModuleService extends MedusaService({
         const newSlug = `${page.slug as string}-copy-${Date.now().toString(36)}`;
         const newTitle = `${page.title as string} (Copy)`;
 
+        const { id: _id, created_at: _ca, updated_at: _ua, ...rest } = page as any;
         return this.createCmsPages({
-            ...page,
-            id: undefined,
+            ...rest,
             slug: newSlug,
             title: newTitle,
             status: "draft",
             published_at: null,
-            created_at: undefined,
-            updated_at: undefined,
-        });
+        } as any);
     }
 
     /**
@@ -177,18 +175,16 @@ class CmsModuleService extends MedusaService({
         if (!snapshot) return null;
 
         await this.updateCmsPages({
-            selector: { id: pageId },
-            data: {
-                title: snapshot.title,
-                slug: snapshot.slug,
-                blocks: stringifyJson(snapshot.blocks),
-                meta_title: snapshot.meta_title,
-                meta_description: snapshot.meta_description,
-                canonical_url: snapshot.canonical_url,
-                og_image: snapshot.og_image,
-                status: "draft",
-            },
-        });
+            id: pageId,
+            title: snapshot.title as string,
+            slug: snapshot.slug as string,
+            blocks: stringifyJson(snapshot.blocks),
+            meta_title: snapshot.meta_title as string,
+            meta_description: snapshot.meta_description as string,
+            canonical_url: snapshot.canonical_url as string,
+            og_image: snapshot.og_image as string,
+            status: "draft",
+        } as any);
 
         return { id: pageId, version, restored: true };
     }

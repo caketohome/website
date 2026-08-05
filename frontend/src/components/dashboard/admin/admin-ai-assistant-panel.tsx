@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Container, Heading, Text, Badge, Button, Input, Textarea } from "@medusajs/ui";
 import { Bot, Sparkles, Send, CheckCircle2, TrendingUp, AlertTriangle, FileText, Megaphone, Tag, ShieldCheck } from "lucide-react";
 import { apiClient } from "@frontend/lib/api-client";
 
-export function AdminAiAssistantPanel() {
+export const AdminAiAssistantPanel = memo(function AdminAiAssistantPanel() {
   const [prompt, setPrompt] = useState("");
   const [executing, setExecuting] = useState(false);
   const [activeTask, setActiveTask] = useState<string | null>(null);
@@ -146,4 +146,4 @@ export function AdminAiAssistantPanel() {
       </Container>
     </div>
   );
-}
+});

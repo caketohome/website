@@ -1,5 +1,6 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework";
 import { DELIVERY_MODULE } from "../../../../modules/delivery/service";
+import { DeliveryStatus } from "../../../../modules/delivery/types/common";
 
 /**
  * POST /admin/delivery/assign
@@ -20,20 +21,22 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
   try {
     const updated = await deliveryService.updateDeliveries({
-      id: delivery_id,
-      delivery_partner_id: partner_id,
-      delivery_status: "assigned",
+      selector: { id: delivery_id },
+      data: {
+        delivery_partner_id: partner_id,
+        delivery_status: DeliveryStatus.PICKUP_CLAIMED,
+      },
     });
 
     // Write to junction table
     await deliveryService.createDeliveryDeliveryPartners([
       {
-        delivery: delivery_id,
-        delivery_partner: partner_id,
+        delivery_id,
+        delivery_partner_id: partner_id,
       },
     ]);
 
-    return res.status(200).json({ delivery: updated[0] });
+    return res.status(200).json({ delivery: updated[0] || updated });
   } catch (error: any) {
     return res.status(500).json({ message: error.message });
   }

@@ -1,9 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { Container, Heading, Text, Badge } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
 
-export function RewardsPanel() {
+export const RewardsPanel = memo(function RewardsPanel() {
   const [ledgers, setLedgers] = useState<any[]>([]);
   const [programs, setPrograms] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -63,4 +63,4 @@ export function RewardsPanel() {
       )}
     </div>
   );
-}
+});

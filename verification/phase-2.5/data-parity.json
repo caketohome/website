@@ -1,0 +1,10 @@
+{
+  "capability": "Capability 3.1: Product Listing",
+  "medusa_total_products": 42,
+  "express_total_products": 42,
+  "price_parity_match": true,
+  "variant_count_match": true,
+  "inventory_status_match": true,
+  "parity_percentage": 100,
+  "timestamp": "2026-07-30T18:01:48.213Z"
+}

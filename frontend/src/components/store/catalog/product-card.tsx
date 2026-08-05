@@ -73,6 +73,7 @@ export function ProductCard({ product }: { product: SearchResult }) {
                     <img
                         src={product.thumbnail}
                         alt={product.title}
+                        loading="lazy"
                         className="h-full w-full object-cover group-hover:scale-105 transition-transform"
                     />
                 ) : (

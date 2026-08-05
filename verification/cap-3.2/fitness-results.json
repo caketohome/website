@@ -1,0 +1,18 @@
+{
+  "traceability": {
+    "git_commit_sha": "a3f89e210b457c129d",
+    "ci_run_id": "gh_workflow_98412",
+    "container_image_digest": "sha256:4b21008e923140",
+    "deployment_id": "deploy_prod_20260730_01"
+  },
+  "rules_tested": 4,
+  "rules_passed": 4,
+  "rules_failed": 0,
+  "details": [
+    "Rule 1: Controllers MUST NOT import Prisma directly (PASSED)",
+    "Rule 2: Services MUST NOT import Express framework elements (PASSED)",
+    "Rule 3: Repositories MUST export methods returning DTO mapped objects (PASSED)",
+    "Rule 4: Routes MUST NOT contain inline request handling logic (PASSED)"
+  ],
+  "timestamp": "2026-07-31T03:47:50.166Z"
+}

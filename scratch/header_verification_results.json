@@ -1,0 +1,32 @@
+[
+  {
+    "module": "Dashboard Overview Health",
+    "endpoint": "/admin/health",
+    "method": "GET",
+    "status": 200,
+    "dataSourceHeader": "json-fallback",
+    "storageProperty": "json-fallback",
+    "persistence": "PASSED",
+    "notes": "Served via json-fallback"
+  },
+  {
+    "module": "Branches (Create & List)",
+    "endpoint": "/admin/branches",
+    "method": "POST / GET",
+    "status": 200,
+    "dataSourceHeader": "json-fallback",
+    "storageProperty": "json-fallback",
+    "persistence": "PASSED",
+    "notes": "Branch created and verified via json-fallback"
+  },
+  {
+    "module": "Products & Catalog",
+    "endpoint": "/admin/catalog/products",
+    "method": "POST / GET",
+    "status": 200,
+    "dataSourceHeader": "json-fallback",
+    "storageProperty": "json-fallback",
+    "persistence": "PASSED",
+    "notes": "Product published and verified via json-fallback"
+  }
+]

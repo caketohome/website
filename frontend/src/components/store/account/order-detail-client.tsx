@@ -290,6 +290,7 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
                                     <img
                                         src={p.photo_url}
                                         alt="Delivery proof"
+                                        loading="lazy"
                                         className="max-h-48 rounded border border-ui-border-base"
                                     />
                                 )}
@@ -298,6 +299,7 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
                                     <img
                                         src={p.signature_url}
                                         alt="Customer signature"
+                                        loading="lazy"
                                         className="max-h-32 rounded border border-ui-border-base"
                                     />
                                 )}

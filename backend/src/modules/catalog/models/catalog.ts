@@ -40,10 +40,49 @@ export const ProductMeta = model.define("product_meta", {
     is_featured: model.boolean().default(false),
     is_bestseller: model.boolean().default(false),
     is_new_arrival: model.boolean().default(false),
+    sku: model.text().nullable(),
+    barcode: model.text().nullable(),
+    tags: model.text().nullable(),
+    occasion: model.text().nullable(),
+    brand: model.text().nullable(),
+    cake_type: model.text().nullable(),
+    cost_price: model.number().nullable(),
+    mrp: model.number().nullable(),
+    gst_rate: model.number().nullable(),
+    tax_class: model.text().nullable(),
+    add_ons_json: model.text().nullable(),
+    variants_json: model.text().nullable(),
+    customization_config_json: model.text().nullable(),
+    seo_keywords: model.text().nullable(),
+    canonical_url: model.text().nullable(),
     // Denormalized text used to build the search tsvector (title + description + tags).
     search_document: model.text().searchable(),
     // Arbitrary JSON extension point.
     meta: model.text().nullable(),
+});
+
+/**
+ * PIM Category — Enterprise category tree for storefront and operations.
+ */
+export const PimCategory = model.define("pim_category", {
+    id: model
+        .id({
+            prefix: "pcat",
+        })
+        .primaryKey(),
+    name: model.text(),
+    slug: model.text().searchable(),
+    description: model.text().nullable(),
+    parent_id: model.text().nullable(),
+    image_url: model.text().nullable(),
+    banner_url: model.text().nullable(),
+    display_order: model.number().default(0),
+    status: model.enum(["active", "archived", "draft"]).default("active"),
+    visibility: model.text().default("public"),
+    seo_title: model.text().nullable(),
+    seo_description: model.text().nullable(),
+    og_image: model.text().nullable(),
+    branch_ids: model.text().nullable(),
 });
 
 /**
@@ -164,5 +203,41 @@ export const CakeOption = model.define("cake_option", {
     // JSON: e.g. ["Round", "Square", "Heart"]
     values: model.text(),
     price_delta: model.number().default(0),
+});
+
+/**
+ * Master weight — master data size definition for bakery ERP (pure size/unit, zero price).
+ */
+export const MasterWeight = model.define("master_weight", {
+    id: model
+        .id({
+            prefix: "mwg",
+        })
+        .primaryKey(),
+    name: model.text(),
+    display_name: model.text().nullable(),
+    weight_val: model.number(),
+    unit: model.text().default("kg"),
+    display_order: model.number().default(0),
+    status: model.enum(["active", "archived"]).default("active"),
+});
+
+/**
+ * Product weight price — product-specific pricing table row per weight size.
+ */
+export const ProductWeightPrice = model.define("product_weight_price", {
+    id: model
+        .id({
+            prefix: "pwp",
+        })
+        .primaryKey(),
+    product_id: model.text().searchable(),
+    weight_id: model.text(),
+    weight_name: model.text(),
+    selling_price: model.number(),
+    mrp: model.number().nullable(),
+    cost_price: model.number().nullable(),
+    prep_time_minutes: model.number().default(60),
+    is_enabled: model.boolean().default(true),
 });
 

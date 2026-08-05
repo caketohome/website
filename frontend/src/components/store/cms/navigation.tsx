@@ -73,23 +73,23 @@ export async function HeaderNavigation({ lang = "en" }: { lang?: string }) {
                 <div key={item.label} className="relative group">
                     <Link
                         href={resolveHref(item)}
-                        className="text-sm font-medium hover:text-ui-bg-base-hover transition-colors"
+                        className="text-sm font-medium text-white/85 hover:text-white transition-colors"
                         onClick={() => handleClick(item.label, "header", resolveHref(item))}
                     >
                         {item.label}
                         {item.badge && (
-                            <span className="ml-1 text-xs bg-ui-fg-on-inverted text-ui-fg-base px-1.5 rounded">
+                            <span className="ml-1 text-xs bg-[#FF4D6D] text-white font-bold px-1.5 rounded">
                                 {item.badge}
                             </span>
                         )}
                     </Link>
                     {item.children && item.children.length > 0 && (
-                        <div className="absolute left-0 top-full hidden group-hover:flex flex-col gap-2 bg-ui-bg-base shadow-lg rounded p-3 min-w-48 z-50">
+                        <div className="absolute left-0 top-full hidden group-hover:flex flex-col gap-2 bg-white text-slate-900 shadow-xl rounded-xl p-3 min-w-48 z-50 border border-gray-100">
                             {item.children.map((child) => (
                                 <Link
                                     key={child.label}
                                     href={resolveHref(child)}
-                                    className="text-sm text-ui-fg-subtle hover:text-ui-fg-base whitespace-nowrap"
+                                    className="text-sm text-slate-800 hover:text-black hover:bg-gray-100 px-2 py-1 rounded transition-colors whitespace-nowrap"
                                     onClick={() => handleClick(child.label, "header", resolveHref(child))}
                                 >
                                     {child.label}

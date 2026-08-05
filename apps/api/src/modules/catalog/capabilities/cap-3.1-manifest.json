@@ -1,0 +1,11 @@
+{
+  "id": "3.1",
+  "name": "Product Listing",
+  "featureFlag": "catalog.listing.v2",
+  "owner": "Catalog Team",
+  "dependsOn": ["catalog.categories.v2"],
+  "provides": ["product_list_feed"],
+  "trafficPercentage": 100,
+  "rollback": ["set catalog.listing.v2 traffic to 0%"],
+  "verification": ["data_parity", "consumer_contract", "performance_sla"]
+}

@@ -65,7 +65,7 @@ export function SubscriptionsManager({
                     <div className="flex gap-4 items-center">
                         {s.thumbnail ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={s.thumbnail} alt={s.product_title} className="w-12 h-12 object-cover rounded" />
+                            <img src={s.thumbnail} alt={s.product_title} loading="lazy" className="w-12 h-12 object-cover rounded" />
                         ) : (
                             <div className="w-12 h-12 bg-ui-bg-hover rounded flex items-center justify-center text-lg">🍰</div>
                         )}

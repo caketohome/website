@@ -1,0 +1,20 @@
+{
+  "traceability": {
+    "git_commit_sha": "a3f89e210b457c129d",
+    "ci_run_id": "gh_workflow_98412",
+    "container_image_digest": "sha256:4b21008e923140",
+    "deployment_id": "deploy_prod_20260730_01"
+  },
+  "test_name": "Controlled Gateway 502 Failover Target Check",
+  "target_route": "GET /store/products",
+  "expected_status": 502,
+  "response_payload": {
+    "success": false,
+    "error": {
+      "code": "BAD_GATEWAY",
+      "message": "Legacy Medusa backend service is currently unreachable.",
+      "details": []
+    }
+  },
+  "timestamp": "2026-07-30T18:12:47.273Z"
+}

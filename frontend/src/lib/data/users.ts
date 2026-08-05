@@ -24,14 +24,14 @@ export async function retrieveUser(): Promise<any> {
     };
   }
 
-  if (activeRole === "shop" || activeRole === "shpmgr") {
+  if (activeRole === "shop" || activeRole === "shpmgr" || activeRole === "branch_manager" || activeRole === "branch" || activeRole === "manager") {
     return {
       id: "shpmgr_01",
       shop_id: "shop_01",
-      first_name: "Koramangala",
+      first_name: "Koramangala Hub",
       last_name: "Branch Manager",
-      email: "shop@cakes2home.com",
-      phone: "+91 98765 43210",
+      email: "manager@cakes2home.com",
+      phone: "+91 98765 99999",
       role: "SHOP_MANAGER",
     };
   }

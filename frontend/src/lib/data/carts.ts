@@ -7,13 +7,14 @@ import { apiClient } from "../api-client";
 
 export async function retrieveCart(cartId?: string) {
   try {
-    return await apiClient.getCart(cartId);
+    const res = await apiClient.getCart(cartId);
+    return res?.cart || res;
   } catch (err) {
     return {
       id: cartId || "cart_guest_100",
       items: [],
-      subtotal: "0.00",
-      total: "0.00",
+      subtotal: 0,
+      total: 0,
     };
   }
 }

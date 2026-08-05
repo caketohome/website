@@ -1,0 +1,18 @@
+{
+  "traceability": {
+    "git_commit_sha": "a3f89e210b457c129d",
+    "ci_run_id": "gh_workflow_98412",
+    "container_image_digest": "sha256:4b21008e923140",
+    "deployment_id": "deploy_prod_20260730_01"
+  },
+  "flow": "DB -> Prisma -> CustomerMapper -> CustomerDTOv1 -> Service -> Controller -> JSON",
+  "mapped_dto_sample": {
+    "id": "cus_sample_01",
+    "phone": "9876543210",
+    "phone_verified": true,
+    "is_verified": true,
+    "created_at": "2026-07-31T03:53:36.833Z",
+    "addresses": []
+  },
+  "timestamp": "2026-07-31T03:53:36.833Z"
+}

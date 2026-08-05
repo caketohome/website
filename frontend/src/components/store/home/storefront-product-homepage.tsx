@@ -460,7 +460,9 @@ function ProductGrid({ products }: { products: SearchResult[] }) {
   const [addingMap, setAddingMap] = useState<Record<string, boolean>>({});
   const [errorMap, setErrorMap] = useState<Record<string, string | null>>({});
 
-  const handleQuickAdd = async (product: SearchResult) => {
+  const handleQuickAdd = async (e: React.MouseEvent, product: SearchResult) => {
+    e.stopPropagation();
+    e.preventDefault();
     setAddingMap((prev) => ({ ...prev, [product.product_id]: true }));
     setErrorMap((prev) => ({ ...prev, [product.product_id]: null }));
     try {
@@ -474,83 +476,86 @@ function ProductGrid({ products }: { products: SearchResult[] }) {
     }
   };
 
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-      {products.map((product) => (
-        <div
-          key={product.product_id}
-          className="group flex flex-col justify-between bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300"
-        >
-          {errorMap[product.product_id] && (
-            <ErrorComponent
-              compact
-              message={errorMap[product.product_id]}
-              onDismiss={() => setErrorMap((prev) => ({ ...prev, [product.product_id]: null }))}
-              className="m-2"
-            />
-          )}
-          <div className="relative aspect-square w-full bg-gray-100 overflow-hidden">
-            {product.thumbnail ? (
-              <Image
-                src={product.thumbnail}
-                alt={product.title}
-                fill
-                className="object-cover group-hover:scale-108 transition-transform duration-500"
+      {products.map((product) => {
+        const productHandle = product.handle || product.slug || product.product_id || product.id;
+        const productHref = `/products/${productHandle}`;
+
+        return (
+          <div
+            key={product.product_id}
+            onClick={() => router.push(productHref)}
+            className="group flex flex-col justify-between bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
+          >
+            {errorMap[product.product_id] && (
+              <ErrorComponent
+                compact
+                message={errorMap[product.product_id]}
+                onDismiss={() => setErrorMap((prev) => ({ ...prev, [product.product_id]: null }))}
+                className="m-2"
               />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-4xl">🎂</div>
             )}
-            {product.eggless && (
-              <div className="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                🌱 Eggless
+            <Link href={productHref} className="relative aspect-square w-full bg-gray-100 overflow-hidden block">
+              {product.thumbnail ? (
+                <Image
+                  src={product.thumbnail}
+                  alt={product.title}
+                  fill
+                  className="object-cover group-hover:scale-108 transition-transform duration-500"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-4xl">🎂</div>
+              )}
+              {product.eggless && (
+                <div className="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm z-10">
+                  🌱 Eggless
+                </div>
+              )}
+              <div
+                onClick={handleWishlist}
+                className="absolute top-3 right-3 bg-white/80 backdrop-blur-md p-1.5 rounded-full shadow-sm text-gray-700 hover:text-rose-600 cursor-pointer transition z-10"
+              >
+                <Heart className="w-4 h-4" />
               </div>
-            )}
-            <div className="absolute top-3 right-3 bg-white/80 backdrop-blur-md p-1.5 rounded-full shadow-sm text-gray-700 hover:text-rose-600 cursor-pointer transition">
-              <Heart className="w-4 h-4" />
-            </div>
-          </div>
+            </Link>
 
-          <div className="p-4 flex flex-col gap-2 flex-1 justify-between">
-            <div>
-              <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                <span>⭐ {product.rating} ({product.review_count})</span>
-                {product.is_bestseller && (
-                  <Badge size="small" color="orange">Bestseller</Badge>
-                )}
-              </div>
-              <h3 className="font-bold text-sm text-gray-900 group-hover:text-rose-600 transition line-clamp-1">
-                {product.title}
-              </h3>
-              <p className="text-xs text-gray-500 line-clamp-2 mt-1">
-                {product.description}
-              </p>
-            </div>
+            <div className="p-4 flex flex-col gap-2 flex-1 justify-between">
+              <Link href={productHref} className="block group-hover:no-underline">
+                <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                  <span>⭐ {product.rating} ({product.review_count})</span>
+                  {product.is_bestseller && (
+                    <Badge size="small" color="orange">Bestseller</Badge>
+                  )}
+                </div>
+                <h3 className="font-bold text-sm text-gray-900 group-hover:text-rose-600 transition line-clamp-1">
+                  {product.title}
+                </h3>
+                <p className="text-xs text-gray-500 line-clamp-2 mt-1">
+                  {product.description}
+                </p>
+              </Link>
 
-            <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-2">
-              <span className="text-base font-extrabold text-gray-900">
-                ₹{product.price}
-              </span>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="small"
-                  variant="secondary"
-                  isLoading={addingMap[product.product_id]}
-                  onClick={() => handleQuickAdd(product)}
-                  className="bg-rose-600 text-white hover:bg-rose-700 font-semibold px-2.5 py-1 text-xs rounded-xl transition"
-                >
-                  + Add
-                </Button>
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-2">
+                <Link href={productHref} className="text-base font-extrabold text-gray-900 hover:text-rose-600">
+                  ₹{product.price}
+                </Link>
                 <Link
-                  href={`/products/${product.handle || product.product_id}`}
-                  className="bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white px-2.5 py-1 rounded-xl text-xs font-bold transition duration-200"
+                  href={productHref}
+                  className="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition duration-200 shadow-sm flex items-center gap-1"
                 >
-                  Details
+                  View Cake →
                 </Link>
               </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

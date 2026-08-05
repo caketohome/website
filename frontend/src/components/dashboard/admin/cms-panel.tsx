@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { Container, Heading, Text, Badge } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
 import Image from "next/image";
 import { PageConfigurator } from "./page-configurator";
 import { VisualPageBuilder } from "./page-builder";
 
-export function CmsPanel() {
+export const CmsPanel = memo(function CmsPanel() {
   const [blocks, setBlocks] = useState<any[]>([]);
   const [media, setMedia] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,4 +73,4 @@ export function CmsPanel() {
       </div>
     </div>
   );
-}
+});

@@ -20,6 +20,21 @@ export interface ProductMetaInput {
     is_featured?: boolean;
     is_bestseller?: boolean;
     is_new_arrival?: boolean;
+    sku?: string | null;
+    barcode?: string | null;
+    tags?: string | null;
+    occasion?: string | null;
+    brand?: string | null;
+    cake_type?: string | null;
+    cost_price?: number | null;
+    mrp?: number | null;
+    gst_rate?: number | null;
+    tax_class?: string | null;
+    add_ons_json?: Record<string, unknown> | string | null;
+    variants_json?: Record<string, unknown> | string | null;
+    customization_config_json?: Record<string, unknown> | string | null;
+    seo_keywords?: string | null;
+    canonical_url?: string | null;
     search_document?: string | null;
     meta?: Record<string, unknown> | string | null;
 }

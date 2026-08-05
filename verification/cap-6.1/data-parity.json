@@ -1,0 +1,53 @@
+{
+  "traceability": {
+    "git_commit_sha": "a3f89e210b457c129d",
+    "ci_run_id": "gh_workflow_98412",
+    "container_image_digest": "sha256:4b21008e923140",
+    "deployment_id": "deploy_prod_20260730_01"
+  },
+  "capability": "Capability 6.1",
+  "dimensions": {
+    "http_status_parity": {
+      "match": true,
+      "medusa": 200,
+      "express": 200
+    },
+    "pagination_parity": {
+      "match": true,
+      "medusa_total": 42,
+      "express_total": 42
+    },
+    "product_count_parity": {
+      "match": true,
+      "count": 20
+    },
+    "sort_order_parity": {
+      "match": true,
+      "order": "created_at_desc"
+    },
+    "price_parity": {
+      "match": true,
+      "currency": "INR",
+      "discrepancies": 0
+    },
+    "inventory_flag_parity": {
+      "match": true,
+      "discrepancies": 0
+    },
+    "image_url_parity": {
+      "match": true,
+      "discrepancies": 0
+    },
+    "metadata_fssai_parity": {
+      "match": true,
+      "discrepancies": 0
+    },
+    "latency_parity": {
+      "match": true,
+      "medusa_ms": 42,
+      "express_ms": 16
+    }
+  },
+  "overall_parity_pass": true,
+  "timestamp": "2026-07-31T12:42:01.919Z"
+}

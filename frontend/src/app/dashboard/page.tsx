@@ -1,24 +1,82 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { Heading, Text } from "@medusajs/ui";
 import { AdminTabs, type AdminTabId } from "@frontend/components/dashboard/admin/admin-tabs";
-import { OverviewPanel } from "@frontend/components/dashboard/admin/overview-panel";
-import { AdminAiAssistantPanel } from "@frontend/components/dashboard/admin/admin-ai-assistant-panel";
-import { OrdersPanel } from "@frontend/components/dashboard/admin/orders-panel";
-import { CatalogPanel } from "@frontend/components/dashboard/admin/catalog-panel";
-import { BranchesPanel } from "@frontend/components/dashboard/admin/branches-panel";
-import { DeliveryPanel } from "@frontend/components/dashboard/admin/delivery-panel";
-import { CrmPanel } from "@frontend/components/dashboard/admin/crm-panel";
-import { MarketingPanel } from "@frontend/components/dashboard/admin/marketing-panel";
-import { SeoPanel } from "@frontend/components/dashboard/admin/seo-panel";
-import { AbTestingPanel } from "@frontend/components/dashboard/admin/ab-testing-panel";
-import { MarketingAutomationPanel } from "@frontend/components/dashboard/admin/marketing-automation-panel";
-import { RewardsPanel } from "@frontend/components/dashboard/admin/rewards-panel";
-import { CmsPanel } from "@frontend/components/dashboard/admin/cms-panel";
-import { AnalyticsPanel } from "@frontend/components/dashboard/admin/analytics-panel";
-import { NotificationsPanel } from "@frontend/components/dashboard/admin/notifications-panel";
-import { SettingsPanel } from "@frontend/components/dashboard/admin/settings-panel";
+import { DashboardPanelSkeleton } from "@frontend/components/dashboard/admin/dashboard-skeleton";
+import { DashboardErrorBoundary } from "@frontend/components/dashboard/admin/error-boundary";
+
+// ---------------------------------------------------------------------------
+// Lazy-load every admin panel via next/dynamic with ssr: false.
+// Only the active panel is downloaded & rendered on the client.
+// Each panel displays a smooth skeleton loader while loading.
+// ---------------------------------------------------------------------------
+
+const OverviewPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/overview-panel").then((mod) => mod.OverviewPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const AdminAiAssistantPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/admin-ai-assistant-panel").then((mod) => mod.AdminAiAssistantPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const OrdersPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/orders-panel").then((mod) => mod.OrdersPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const CatalogPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/catalog-panel").then((mod) => mod.CatalogPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const BranchesPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/branches-panel").then((mod) => mod.BranchesPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const DeliveryPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/delivery-panel").then((mod) => mod.DeliveryPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const CrmPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/crm-panel").then((mod) => mod.CrmPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const MarketingPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/marketing-panel").then((mod) => mod.MarketingPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const SeoPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/seo-panel").then((mod) => mod.SeoPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const AbTestingPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/ab-testing-panel").then((mod) => mod.AbTestingPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const MarketingAutomationPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/marketing-automation-panel").then((mod) => mod.MarketingAutomationPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const RewardsPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/rewards-panel").then((mod) => mod.RewardsPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const CmsPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/cms-panel").then((mod) => mod.CmsPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const AnalyticsPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/analytics-panel").then((mod) => mod.AnalyticsPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const NotificationsPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/notifications-panel").then((mod) => mod.NotificationsPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
+const SettingsPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/settings-panel").then((mod) => mod.SettingsPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
 
 const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   overview: OverviewPanel,
@@ -41,6 +99,29 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
 
 export default function SuperAdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<AdminTabId>("overview");
+
+  useEffect(() => {
+    console.log("[Dashboard Init Step 1: Initializing SuperAdminDashboardPage]");
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search).get("tab") as AdminTabId;
+      if (p && PANEL_MAP[p]) {
+        console.log(`[Dashboard Init Step 2: Tab selection from URL parameter -> "${p}"]`);
+        setActiveTab(p);
+      } else {
+        console.log("[Dashboard Init Step 2: Default active tab -> 'overview']");
+      }
+    }
+  }, []);
+
+  const handleTabChange = (tab: AdminTabId) => {
+    console.log(`[Dashboard Navigation: Tab Changed -> "${tab}"]`);
+    setActiveTab(tab);
+    if (typeof window !== "undefined" && window.history) {
+      const newUrl = `${window.location.pathname}?tab=${tab}`;
+      window.history.replaceState({ path: newUrl }, "", newUrl);
+    }
+  };
+
   const ActivePanel = PANEL_MAP[activeTab];
 
   return (
@@ -54,10 +135,12 @@ export default function SuperAdminDashboardPage() {
         </Text>
       </div>
 
-      <AdminTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      <AdminTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
       <div className="min-h-[400px]">
-        <ActivePanel />
+        <DashboardErrorBoundary key={activeTab} moduleName={`Admin Panel (${activeTab})`}>
+          <ActivePanel />
+        </DashboardErrorBoundary>
       </div>
     </div>
   );

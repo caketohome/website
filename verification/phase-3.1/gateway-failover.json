@@ -1,0 +1,14 @@
+{
+  "test_name": "Controlled Gateway 502 Failover Target Check",
+  "target_route": "GET /store/products",
+  "expected_status": 502,
+  "response_payload": {
+    "success": false,
+    "error": {
+      "code": "BAD_GATEWAY",
+      "message": "Legacy Medusa backend service is currently unreachable.",
+      "details": []
+    }
+  },
+  "timestamp": "2026-07-30T18:04:34.399Z"
+}

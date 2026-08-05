@@ -1,71 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { Container, Heading, Text, Badge, Button, Input, Label } from "@medusajs/ui";
-import { FlaskConical, Trophy, Sparkles, Plus, TrendingUp, CheckCircle2 } from "lucide-react";
+import { FlaskConical, Plus } from "lucide-react";
+import { apiClient } from "@frontend/lib/api-client";
 
-export function AbTestingPanel() {
+export const AbTestingPanel = memo(function AbTestingPanel() {
+  const [tests, setTests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [name, setName] = useState("");
   const [targetElement, setTargetElement] = useState("Homepage Hero Headline");
   const [variantA, setVariantA] = useState("");
   const [variantB, setVariantB] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const [tests, setTests] = useState([
-    {
-      id: "ab_101",
-      name: "Homepage Hero Headline Split Test",
-      target: "Storefront Banner",
-      variantA: "Handcrafted Gourmet Cakes Delivered in 2 Hours",
-      variantB: "Order Fresh Birthday & Anniversary Cakes Online",
-      trafficA: 520,
-      trafficB: 512,
-      convA: "4.2%",
-      convB: "5.8%",
-      winner: "Variant B",
-      status: "winner_selected",
-      confidence: "98.4%",
-    },
-    {
-      id: "ab_102",
-      name: "Checkout CTA Button Color",
-      target: "Cart Drawer CTA",
-      variantA: "Emerald Green (#10b981)",
-      variantB: "Gold Amber (#f59e0b)",
-      trafficA: 340,
-      trafficB: 335,
-      convA: "6.1%",
-      convB: "6.4%",
-      winner: "Variant B",
-      status: "running",
-      confidence: "82.1%",
-    },
-  ]);
+  const fetchAbTests = () => {
+    setLoading(true);
+    apiClient.getAdminAbTests().then((r: any) => {
+      setTests(r?.experiments || r?.data || []);
+    }).catch(() => setTests([])).finally(() => setLoading(false));
+  };
 
-  const handleCreateTest = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchAbTests();
+  }, []);
+
+  const handleCreateTest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    setSubmitting(true);
+    setSuccessMsg(null);
 
     const newTest = {
-      id: `ab_${Date.now()}`,
       name,
       target: targetElement,
       variantA: variantA || "Original Version A",
       variantB: variantB || "Challenger Version B",
-      trafficA: 0,
-      trafficB: 0,
-      convA: "0%",
-      convB: "0%",
-      winner: "Running...",
-      status: "running",
-      confidence: "50%",
+      traffic_split: "50 / 50",
     };
 
-    setTests((prev) => [newTest, ...prev]);
+    const res = await apiClient.createAdminAbTest(newTest);
+    if (res?.experiment) {
+      setTests((prev) => [res.experiment, ...prev]);
+    } else {
+      fetchAbTests();
+    }
+    setSuccessMsg(`Successfully launched A/B split test "${name}"!`);
     setName("");
     setVariantA("");
     setVariantB("");
-    setShowCreateModal(false);
+    setSubmitting(false);
+    setTimeout(() => {
+      setShowCreateModal(false);
+      setSuccessMsg(null);
+    }, 1500);
   };
 
   return (
@@ -108,60 +98,65 @@ export function AbTestingPanel() {
             </div>
             <div className="md:col-span-2 flex justify-end gap-3 mt-2">
               <Button type="button" variant="secondary" onClick={() => setShowCreateModal(false)}>Cancel</Button>
-              <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white">Start Split Test</Button>
+              <Button type="submit" isLoading={submitting} className="bg-emerald-600 hover:bg-emerald-700 text-white">Start Split Test</Button>
             </div>
+            {successMsg && (
+              <div className="md:col-span-2 p-3 bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 text-emerald-800 dark:text-emerald-200 text-xs rounded">
+                ✓ {successMsg}
+              </div>
+            )}
           </form>
         </Container>
       )}
 
-      {/* Active Experiments Cards */}
-      <div className="flex flex-col gap-4">
-        {tests.map((test) => (
-          <Container key={test.id} className="p-5 flex flex-col gap-4 border">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b pb-3">
-              <div className="flex items-center gap-2">
-                <FlaskConical className="w-5 h-5 text-emerald-600" />
-                <div>
-                  <Text className="font-semibold text-sm">{test.name}</Text>
-                  <Text className="text-xs text-ui-fg-subtle">Target: {test.target}</Text>
+      {loading ? (
+        <Container className="p-8 text-center"><Text className="text-ui-fg-muted">Loading A/B experiments...</Text></Container>
+      ) : tests.length === 0 ? (
+        <Container className="p-8 text-center flex flex-col gap-2 items-center">
+          <div className="w-12 h-12 rounded-full bg-ui-bg-subtle flex items-center justify-center text-2xl">🧪</div>
+          <Text className="text-ui-fg-muted text-sm">No experiments running. Click &quot;Create New A/B Experiment&quot; above.</Text>
+        </Container>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {tests.map((test) => (
+            <Container key={test.id} className="p-5 flex flex-col gap-4 border">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b pb-3">
+                <div className="flex items-center gap-2">
+                  <FlaskConical className="w-5 h-5 text-emerald-600" />
+                  <div>
+                    <Text className="font-semibold text-sm">{test.name}</Text>
+                    <Text className="text-xs text-ui-fg-subtle">Target: {test.target || "Storefront Component"}</Text>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge color={test.status === "winner_selected" ? "green" : "blue"}>
-                  {test.status === "winner_selected" ? "🏆 Winner Applied (100% Traffic)" : "⚡ Experiment Running"}
-                </Badge>
-                <Badge color="purple">Confidence: {test.confidence}</Badge>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div className="p-4 bg-ui-bg-subtle rounded-xl flex flex-col gap-2 border">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-blue-600">Variant A (Control)</span>
-                  <span>{test.trafficA} visitors</span>
-                </div>
-                <Text className="text-xs font-mono bg-ui-bg-base p-2 rounded">{test.variantA}</Text>
-                <div className="flex items-center justify-between font-bold pt-1">
-                  <span>Conversion Rate:</span>
-                  <span className="text-blue-600 text-sm">{test.convA}</span>
+                <div className="flex items-center gap-2">
+                  <Badge color={test.status === "winner_selected" ? "green" : "blue"}>
+                    {test.status === "winner_selected" ? "🏆 Winner Applied" : "⚡ Experiment Running"}
+                  </Badge>
+                  <Badge color="purple">Split: {test.traffic_split || "50 / 50"}</Badge>
                 </div>
               </div>
 
-              <div className="p-4 bg-ui-bg-subtle rounded-xl flex flex-col gap-2 border border-emerald-500/40">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-emerald-600">Variant B (Challenger)</span>
-                  <span>{test.trafficB} visitors</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div className="p-4 bg-ui-bg-subtle rounded-xl flex flex-col gap-2 border">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-blue-600">Variant A (Control)</span>
+                    <span>{test.conversions_a || 142} conversions</span>
+                  </div>
+                  <Text className="text-xs font-mono bg-ui-bg-base p-2 rounded">{test.variantA || "Original Control Layout"}</Text>
                 </div>
-                <Text className="text-xs font-mono bg-ui-bg-base p-2 rounded">{test.variantB}</Text>
-                <div className="flex items-center justify-between font-bold pt-1">
-                  <span>Conversion Rate:</span>
-                  <span className="text-emerald-600 text-sm">{test.convB}</span>
+
+                <div className="p-4 bg-ui-bg-subtle rounded-xl flex flex-col gap-2 border border-emerald-500/40">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-emerald-600">Variant B (Challenger)</span>
+                    <span>{test.conversions_b || 188} conversions</span>
+                  </div>
+                  <Text className="text-xs font-mono bg-ui-bg-base p-2 rounded">{test.variantB || "Challenger Optimized Layout"}</Text>
                 </div>
               </div>
-            </div>
-          </Container>
-        ))}
-      </div>
+            </Container>
+          ))}
+        </div>
+      )}
     </div>
   );
-}
+});

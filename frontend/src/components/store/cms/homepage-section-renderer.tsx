@@ -28,6 +28,7 @@ function BannerSlider({ banners }: { banners: CmsBanner[] }) {
                     <img
                         src={b.image_url}
                         alt={b.alt_text ?? b.title ?? ""}
+                        loading="lazy"
                         className="rounded-lg max-h-80 object-cover w-full"
                     />
                 </Link>

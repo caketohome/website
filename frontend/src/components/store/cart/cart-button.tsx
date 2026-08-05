@@ -1,7 +1,7 @@
 "use client";
 
 import { ShoppingBag } from "@medusajs/icons";
-import { DropdownMenu, IconButton } from "@medusajs/ui";
+import { DropdownMenu } from "@medusajs/ui";
 import { CartCounter } from "./cart-counter";
 import CartModal from "./cart-modal";
 import { useRouter } from "next/navigation";
@@ -13,6 +13,7 @@ export default function CartButton({ cart }: { cart: any }) {
 
   useEffect(() => {
     const mainElement = window.document.getElementsByTagName("main")[0];
+    if (!mainElement) return;
 
     mainElement.style.filter = "none";
     if (open) {
@@ -28,16 +29,14 @@ export default function CartButton({ cart }: { cart: any }) {
 
   const handleCheckoutClick = () => {
     const mainElement = window.document.getElementsByTagName("main")[0];
-
-    mainElement.style.filter = "none";
+    if (mainElement) mainElement.style.filter = "none";
 
     setOpen(false);
-
     router.push("/checkout");
   };
 
   return (
-    <div className="relative">
+    <div className="relative flex items-center">
       <DropdownMenu
         onOpenChange={(isOpen) => {
           setOpen(isOpen);
@@ -46,19 +45,19 @@ export default function CartButton({ cart }: { cart: any }) {
       >
         <DropdownMenu.Trigger
           asChild
-          className="relative group flex items-center gap-2"
+          className="relative group flex items-center justify-center p-2 rounded-lg text-white hover:bg-white/10 transition-colors focus:outline-none"
         >
-          <IconButton size="xlarge" variant="transparent">
+          <button type="button" aria-label="Shopping Cart">
             <ShoppingBag
-              className="text-ui-tag-green-bg hover:text-ui-tag-green-icon group-hover:text-ui-tag-green-icon"
+              className="text-white hover:text-[#FF4D6D] transition-colors shrink-0"
               viewBox="2 2 18 18"
-              height={28}
-              width={28}
+              height={24}
+              width={24}
             />
             <CartCounter cart={cart} />
-          </IconButton>
+          </button>
         </DropdownMenu.Trigger>
-        <DropdownMenu.Content className="border-none p-0 m-0 mt-1">
+        <DropdownMenu.Content className="border-none p-0 m-0 mt-2 z-50">
           <CartModal cart={cart} handleCheckoutClick={handleCheckoutClick} />
         </DropdownMenu.Content>
       </DropdownMenu>

@@ -1,0 +1,18 @@
+{
+  "capability_id": "7.2",
+  "capability_name": "Capability 7.2",
+  "version": "v1.2.0",
+  "git_sha": "a3f89e210b457c129d",
+  "image_digest": "sha256:4b21008e923140",
+  "deployment_time": "2026-07-31T12:55:07.215Z",
+  "production_start": "2026-07-31T12:55:07.215Z",
+  "production_complete": "2026-07-31T12:55:07.215Z",
+  "rollback_version": "v1.1.9",
+  "release_approvals": {
+    "engineering_approver": "Lead Software Architect",
+    "operations_approver": "DevOps / Reliability Lead",
+    "product_approver": "Bakery Domain Lead",
+    "deployment_actor": "CI/CD Automated Release Agent"
+  },
+  "status": "PRODUCTION_DONE"
+}

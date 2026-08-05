@@ -1,0 +1,18 @@
+{
+  "traceability": {
+    "git_commit_sha": "a3f89e210b457c129d",
+    "ci_run_id": "gh_workflow_98412",
+    "container_image_digest": "sha256:4b21008e923140",
+    "deployment_id": "deploy_prod_20260730_01"
+  },
+  "status": "healthy",
+  "node": "up",
+  "database": "standalone_mode",
+  "redis": "standalone_mode",
+  "bullmq": "running",
+  "gateway": "connected",
+  "medusa": "unreachable",
+  "uptime_seconds": 0.0597826,
+  "version": "1.0.0",
+  "timestamp": "2026-07-31T13:03:04.050Z"
+}

@@ -1,0 +1,5 @@
+export const INVENTORY_CONSTANTS = {
+  LOW_STOCK_THRESHOLD: 5,
+  RESERVATION_TTL_MINUTES: 15,
+  DEFAULT_BRANCH_ID: "br_koramangala_01",
+};

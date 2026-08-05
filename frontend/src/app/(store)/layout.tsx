@@ -25,11 +25,11 @@ export default async function RootLayout({
 
   return (
     <>
-      <nav className="flex px-4 md:px-10 py-4 h-16 bg-ui-fg-base text-ui-fg-on-inverted justify-between items-center sticky top-0 z-40">
+      <nav className="flex px-4 md:px-10 h-16 bg-[#111111] text-white justify-between items-center sticky top-0 z-40 border-b border-white/10 shadow-[0_4px_18px_rgba(0,0,0,0.25)]">
         <div className="flex gap-6 items-center">
           <Link
             href="/"
-            className="flex gap-2 items-center text-xl font-semibold hover:text-ui-bg-base-hover"
+            className="flex gap-2 items-center text-xl font-bold text-white hover:text-white transition-colors opacity-100"
           >
             🎂 CakeToHome
           </Link>

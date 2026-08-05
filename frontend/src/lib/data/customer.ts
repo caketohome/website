@@ -76,10 +76,10 @@ export function detectUserRole(phoneOrEmail: string): { role: string; label: str
     };
   }
 
-  if (clean.includes("99999") || clean.includes("shop") || clean.includes("shpmgr") || clean.includes("manager")) {
+  if (clean.includes("99999") || clean.includes("shop") || clean.includes("shpmgr") || clean.includes("manager") || clean.includes("branch")) {
     return {
       role: "shop",
-      label: "🏪 Bakery Shop Manager",
+      label: "🏪 Branch & Shop Manager Control Center",
       redirectPath: "/dashboard/shop",
     };
   }

@@ -70,3 +70,16 @@ export async function searchProductsAction(
 ): Promise<SearchResponse> {
   return searchProducts(filters);
 }
+
+export async function revalidateProductAction(productHandle?: string, productId?: string) {
+  try {
+    const { revalidatePath, revalidateTag } = await import("next/cache");
+    if (productHandle) revalidatePath(`/products/${productHandle}`);
+    if (productId) revalidateTag(`product-${productId}`);
+    revalidateTag("products");
+    return { success: true };
+  } catch (e: any) {
+    console.warn("Revalidation warning:", e.message);
+    return { success: false, error: e.message };
+  }
+}

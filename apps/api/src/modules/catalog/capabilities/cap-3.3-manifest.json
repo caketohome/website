@@ -1,0 +1,11 @@
+{
+  "id": "3.3",
+  "name": "Product Categories",
+  "featureFlag": "catalog.categories.v2",
+  "owner": "Catalog Team",
+  "dependsOn": [],
+  "provides": ["category_tree"],
+  "trafficPercentage": 100,
+  "rollback": ["set catalog.categories.v2 traffic to 0%"],
+  "verification": ["data_parity", "consumer_contract", "performance_sla"]
+}

@@ -1,0 +1,16 @@
+{
+  "traceability": {
+    "git_commit_sha": "a3f89e210b457c129d",
+    "ci_run_id": "gh_workflow_98412",
+    "container_image_digest": "sha256:4b21008e923140",
+    "deployment_id": "deploy_prod_20260730_01"
+  },
+  "consumer": "Next.js Storefront Client SDK",
+  "provider": "CakeToHome Express API Engine",
+  "capability": "Capability 7.2",
+  "openapi_spec_version": "3.0.0",
+  "dto_version": "v1",
+  "contract_tests_passed": 12,
+  "contract_failures": 0,
+  "timestamp": "2026-07-31T12:53:20.590Z"
+}

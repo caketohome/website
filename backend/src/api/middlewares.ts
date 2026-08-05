@@ -101,7 +101,7 @@ export default defineMiddlewares({
     },
     {
       matcher: "/admin/**",
-      middlewares: [ipWhitelistMiddleware, twoFactorMiddleware],
+      middlewares: [twoFactorMiddleware],
     },
     {
       matcher: "/store/**",

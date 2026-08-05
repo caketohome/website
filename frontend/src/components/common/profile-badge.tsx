@@ -1,7 +1,6 @@
 "use client";
 
 import { DeliveryPartnerDTO, ShopManagerDTO } from "@frontend/lib/types";
-import { Avatar, Button, Text } from "@medusajs/ui";
 import { Link } from "next-view-transitions";
 import { LogoutButton } from "./logout-button";
 
@@ -21,39 +20,45 @@ export function ProfileBadge({ user }: ProfileBadgeProps) {
   const dashboardPath = getDashboardPath();
 
   return (
-    <div className="flex flex-col relative group w-fit">
-      <Link href={dashboardPath} className="flex gap-2 items-center">
-        <Button
-          size="large"
-          variant="transparent"
-          className="group group-hover:bg-ui-bg-subtle-hover transition-none"
-        >
-          {user ? (
-            <>
-              <Text className="text-sm text-ui-bg-base group-hover:text-ui-fg-base hidden md:block">
-                {`${user.first_name} ${user.last_name}`}
-              </Text>
-              <Avatar
-                src={`https://robohash.org/${user.id}?size=40x40&set=set1&bgset=bg1`}
-                fallback={user.first_name[0] + user.last_name[0]}
-                className="bg-ui-bg-base cursor-pointer"
-              />
-            </>
-          ) : (
-            <>
-              <Text className="text-sm text-ui-bg-base group-hover:text-ui-fg-base">
-                Login
-              </Text>
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ui-bg-interactive opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-ui-bg-interactive"></span>
-              </span>
-            </>
-          )}
-        </Button>
+    <div className="relative group flex items-center">
+      <Link
+        href={dashboardPath}
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors text-white"
+      >
+        {user ? (
+          <>
+            <span className="text-sm font-bold text-white hidden md:inline-block leading-none">
+              {`${user.first_name} ${user.last_name}`}
+            </span>
+            <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/30 hover:ring-white shadow-md flex items-center justify-center bg-white/10 shrink-0">
+              {user.first_name ? (
+                <img
+                  src={`https://robohash.org/${user.id}?size=40x40&set=set1&bgset=bg1`}
+                  alt={`${user.first_name} ${user.last_name}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-xs font-bold text-white">
+                  {(user.first_name?.[0] || "U") + (user.last_name?.[0] || "")}
+                </span>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <span className="text-sm font-bold text-white leading-none">
+              Login
+            </span>
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF4D6D] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FF4D6D]"></span>
+            </span>
+          </>
+        )}
       </Link>
+
       {user && (
-        <div className="hidden group-hover:block absolute top-10 right-0 z-50 p-2 bg-white dark:bg-slate-900 border shadow-lg rounded-xl min-w-40">
+        <div className="hidden group-hover:block absolute top-full mt-2 right-0 z-50 p-2 bg-white text-slate-900 border border-gray-100 shadow-xl rounded-xl w-48">
           <LogoutButton variant="transparent" size="small" fullWidth />
         </div>
       )}

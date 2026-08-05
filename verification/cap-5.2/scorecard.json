@@ -1,0 +1,18 @@
+{
+  "capability_id": "5.2",
+  "capability_name": "Capability 5.2",
+  "feature_flag": "catalog.listing.v2",
+  "scorecard": {
+    "functional_tests": "PASSED",
+    "integration_tests": "PASSED",
+    "contract_tests": "PASSED",
+    "shadow_parity": "100%",
+    "performance_sla": "16ms (Target <50ms)",
+    "architecture_fitness": "PASSED (4/4 Rules)",
+    "rollback_exercised": "PASSED",
+    "observability": "VERIFIED",
+    "security_review": "PASSED",
+    "production_rollout": "100%"
+  },
+  "timestamp": "2026-07-31T13:13:05.077Z"
+}

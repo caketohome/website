@@ -10,7 +10,14 @@
   },
   "dependencies": {
     "@dotlottie/react-player": "^1.6.19",
+    "@medusajs/icons": "^2.18.0",
+    "@medusajs/ui": "^4.2.0",
+    "@medusajs/ui-preset": "^2.18.0",
     "@next/third-parties": "^14.2.5",
+    "@react-aria/focus": "^3.22.1",
+    "@react-aria/i18n": "^3.12.0",
+    "@react-aria/interactions": "^3.28.1",
+    "@react-aria/utils": "^3.34.1",
     "eventsource": "^2.0.2",
     "jose": "^5.2.4",
     "lucide-react": "^0.427.0",
@@ -18,11 +25,13 @@
     "next-view-transitions": "^0.1.1",
     "prop-types": "^15.8.1",
     "react": "^18",
+    "react-aria": "^3.51.0",
     "react-dom": "^18",
     "sharp": "^0.33.4",
     "tailwind-scrollbar-hide": "^1.1.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/eventsource": "^1.1.15",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20",

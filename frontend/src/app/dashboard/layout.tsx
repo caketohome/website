@@ -5,6 +5,7 @@ import { retrieveUser } from "@frontend/lib/data";
 import { Text } from "@medusajs/ui";
 import type { Metadata } from "next";
 import { Link } from "next-view-transitions";
+import { DashboardErrorBoundary } from "@frontend/components/dashboard/admin/error-boundary";
 
 export const metadata: Metadata = {
   title: "CakeToHome",
@@ -20,25 +21,25 @@ export default async function RootLayout({
 
   return (
     <>
-      <nav className="flex px-4 md:px-10 py-4 h-16 bg-ui-fg-base text-ui-fg-on-inverted justify-between items-center sticky top-0 z-40">
+      <nav className="flex w-full px-4 md:px-10 py-4 h-16 bg-[#111111] text-white justify-between items-center sticky top-0 z-50 border-b border-neutral-800 shadow-md">
         <div className="flex items-center gap-6">
           <Link
             href="/"
-            className="flex gap-2 items-center text-xl font-semibold hover:text-ui-bg-base-hover"
+            className="flex gap-2 items-center text-xl font-bold text-white hover:text-amber-300 transition-colors"
           >
             🎂 CakeToHome
           </Link>
-          <div className="hidden lg:flex items-center gap-4 text-xs font-medium">
-            <Link href="/dashboard/shop" className="hover:underline text-amber-300">
+          <div className="hidden lg:flex items-center gap-5 text-xs font-semibold">
+            <Link href="/dashboard/shop" className="hover:underline text-amber-300 hover:text-amber-200 transition-colors flex items-center gap-1">
               🏪 Shop Manager
             </Link>
-            <Link href="/dashboard/shop/menu" className="hover:underline text-amber-300">
+            <Link href="/dashboard/shop/menu" className="hover:underline text-amber-300 hover:text-amber-200 transition-colors flex items-center gap-1">
               🍰 Menu & Items
             </Link>
-            <Link href="/dashboard/delivery-partner" className="hover:underline text-amber-300">
+            <Link href="/dashboard/delivery-partner" className="hover:underline text-amber-300 hover:text-amber-200 transition-colors flex items-center gap-1">
               🛵 Delivery Partner
             </Link>
-            <Link href="/account" className="hover:underline text-emerald-300">
+            <Link href="/account" className="hover:underline text-emerald-300 hover:text-emerald-200 transition-colors flex items-center gap-1">
               👤 Customer Portal
             </Link>
           </div>
@@ -49,7 +50,9 @@ export default async function RootLayout({
         </div>
       </nav>
       <main className="flex flex-col gap-10 p-4 md:p-10 min-h-[calc(100vh-8rem)]">
-        {children}
+        <DashboardErrorBoundary moduleName="Root Dashboard Layout">
+          {children}
+        </DashboardErrorBoundary>
       </main>
       <Footer />
     </>

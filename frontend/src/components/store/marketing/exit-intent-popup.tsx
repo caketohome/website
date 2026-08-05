@@ -147,6 +147,7 @@ export function ExitIntentPopup() {
                     <img
                         src={popup.image_url}
                         alt=""
+                        loading="lazy"
                         className="w-full h-40 object-cover"
                     />
                 )}

@@ -1,177 +1,295 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Container, Heading, Text, Badge, Input, Button, Label } from "@medusajs/ui";
+import { useEffect, useState, memo, useCallback } from "react";
+import { Container, Heading, Text, Badge, Input, Button } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
-import { Search, Plus, Cake } from "lucide-react";
+import { Search, Plus, Cake, Trash2, Edit3, FolderTree, RefreshCw } from "lucide-react";
+import { PimEditorModal } from "./pim-editor-modal";
+import { CategoriesPanel } from "./categories-panel";
+import { AccessoriesManagementPanel } from "./accessories-management-panel";
+import { CrossSellRulesPanel } from "./cross-sell-rules-panel";
 
-export function CatalogPanel() {
+import { GridSkeleton } from "./admin-skeletons";
+import { WidgetErrorBoundary } from "./error-boundary";
+
+export const CatalogPanel = memo(function CatalogPanel() {
   const [products, setProducts] = useState<any[]>([]);
-  const [options, setOptions] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"products" | "options">("products");
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<"products" | "categories" | "accessories" | "rules">("products");
+  
+  // PIM Modal State
+  const [showPimModal, setShowPimModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
 
-  // Form state
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("Artisanal Cakes");
-  const [description, setDescription] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
-
-  useEffect(() => {
+  const fetchCatalog = useCallback(() => {
     setLoading(true);
+    setError(null);
     Promise.all([
-      apiClient.getAdminProducts().then((r: any) => setProducts(r?.products || r?.data || [])).catch(() => null),
-      apiClient.getAdminCakeOptions().then((r: any) => setOptions(r?.options || r?.data || [])).catch(() => null),
-    ]).finally(() => setLoading(false));
+      apiClient.getAdminProducts().then((r: any) => setProducts(r?.products || r?.data || [])).catch((err) => {
+        console.error("[Catalog Panel Error] Failed to fetch products:", err);
+        return [];
+      }),
+      apiClient.getAdminCategories().then((r: any) => setCategories(r?.categories || r?.data || [])).catch((err) => {
+        console.error("[Catalog Panel Error] Failed to fetch categories:", err);
+        return [];
+      }),
+    ])
+      .catch((err) => {
+        console.error("[Catalog Panel Error] Failed to fetch catalog data:", err);
+        setError(err.message || "Failed to load catalog");
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleCreateProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    setSubmitting(true);
-    setSuccessMsg(null);
+  useEffect(() => {
+    fetchCatalog();
+  }, [fetchCatalog]);
 
-    const newProd = {
-      id: `prod_${Date.now()}`,
-      name,
-      price: parseFloat(price) || 599,
-      category,
-      description,
-      is_active: true,
-      created_at: new Date().toISOString(),
-    };
-
-    await apiClient.createAdminProduct(newProd);
-    setProducts((prev) => [newProd, ...prev]);
-    setSuccessMsg(`Successfully created product "${name}"!`);
-    setName("");
-    setPrice("");
-    setDescription("");
-    setSubmitting(false);
-    setTimeout(() => {
-      setShowCreateModal(false);
-      setSuccessMsg(null);
-    }, 1500);
+  const handleOpenCreateModal = () => {
+    setEditingProduct(null);
+    setShowPimModal(true);
   };
 
-  const filtered = (tab === "products" ? products : options).filter((p: any) =>
-    JSON.stringify(p).toLowerCase().includes(search.toLowerCase())
-  );
+  const handleOpenEditModal = (prod: any) => {
+    setEditingProduct(prod);
+    setShowPimModal(true);
+  };
+
+  const handleDeleteProduct = async (id: string, prodTitle: string) => {
+    if (!confirm(`Are you sure you want to delete product "${prodTitle}"?`)) return;
+    try {
+      await apiClient.deleteAdminProduct(id);
+      fetchCatalog();
+    } catch (err: any) {
+      alert(err.message || "Failed to delete product.");
+    }
+  };
+
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("all");
+
+  const resolveCategoryName = (item: any) => {
+    if (!item) return "Artisanal Cakes";
+    if (item.category) return item.category;
+    if (item.primary_category_id) {
+      const match = categories.find((c) => c && (c.id === item.primary_category_id || c.name === item.primary_category_id));
+      if (match) return match.name;
+    }
+    return "Artisanal Cakes";
+  };
+
+  const filtered = products.filter((p: any) => {
+    if (!p) return false;
+    const q = search.toLowerCase().trim();
+    const matchesSearch = !q || (p.title || p.name || "").toLowerCase().includes(q);
+    const matchesCategory =
+      selectedCategoryFilter === "all" ||
+      p.category === selectedCategoryFilter ||
+      p.primary_category_id === selectedCategoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      {/* Header & Main Tabs */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <Heading level="h2" className="text-xl">Product Catalog & Inventory</Heading>
-          <Text className="text-ui-fg-subtle text-sm">Add products, customize cake options, and manage inventory.</Text>
+          <Heading level="h2" className="text-xl font-bold flex items-center gap-2">
+            <Cake className="w-5 h-5 text-emerald-600" /> Enterprise Catalog & Accessory Management
+          </Heading>
+          <Text className="text-ui-fg-subtle text-sm">
+            Manage Cake PIM, inventory-driven accessories, flowers, greeting cards, and cross-sell recommendation rules.
+          </Text>
         </div>
-        <div className="flex gap-2">
-          <Button size="small" onClick={() => setShowCreateModal(true)} className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
-            <Plus className="w-4 h-4" /> Add New Product / Cake
-          </Button>
-          <Badge color={tab === "products" ? "purple" : "grey"} className="cursor-pointer" onClick={() => setTab("products")}>Products ({products.length})</Badge>
-          <Badge color={tab === "options" ? "purple" : "grey"} className="cursor-pointer" onClick={() => setTab("options")}>Cake Options ({options.length})</Badge>
-        </div>
-      </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge
+            color={tab === "products" ? "purple" : "grey"}
+            className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold"
+            onClick={() => setTab("products")}
+          >
+            Products / Cakes ({products.length})
+          </Badge>
+          <Badge
+            color={tab === "categories" ? "purple" : "grey"}
+            className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1"
+            onClick={() => setTab("categories")}
+          >
+            <FolderTree className="w-3.5 h-3.5" /> Categories ({categories.length})
+          </Badge>
+          <Badge
+            color={tab === "accessories" ? "purple" : "grey"}
+            className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold"
+            onClick={() => setTab("accessories")}
+          >
+            🎁 Accessories & Gifts
+          </Badge>
+          <Badge
+            color={tab === "rules" ? "purple" : "grey"}
+            className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold"
+            onClick={() => setTab("rules")}
+          >
+            ⚡ Cross-Sell Rules
+          </Badge>
 
-      {showCreateModal && (
-        <Container className="p-6 border-2 border-emerald-500/30 bg-emerald-50/20 dark:bg-emerald-950/20">
-          <div className="flex items-center justify-between mb-4">
+          {tab === "products" && (
             <div className="flex items-center gap-2">
-              <Cake className="w-5 h-5 text-emerald-600" />
-              <Text className="font-semibold text-base">Add New Product / Cake to Catalog</Text>
-            </div>
-            <button onClick={() => setShowCreateModal(false)} className="text-xs text-ui-fg-subtle hover:underline">Close</button>
-          </div>
-
-          <form onSubmit={handleCreateProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="prod_name">Cake / Product Name</Label>
-              <Input
-                id="prod_name"
-                placeholder="e.g. Belgian Dark Chocolate Truffle"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="prod_price">Base Price (₹)</Label>
-              <Input
-                id="prod_price"
-                type="number"
-                placeholder="799"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="prod_category">Category</Label>
-              <Input
-                id="prod_category"
-                placeholder="Artisanal Cakes"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="prod_desc">Description</Label>
-              <Input
-                id="prod_desc"
-                placeholder="Rich Belgian chocolate layers with fresh ganache"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-            <div className="md:col-span-2 flex items-center justify-end gap-3 mt-2">
-              <Button type="button" variant="secondary" onClick={() => setShowCreateModal(false)}>Cancel</Button>
-              <Button type="submit" isLoading={submitting} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                Publish Product to Storefront
+              <Button size="small" variant="secondary" onClick={fetchCatalog} className="flex items-center gap-1.5 text-xs">
+                <RefreshCw className="w-3.5 h-3.5" /> Refresh
+              </Button>
+              <Button size="small" onClick={handleOpenCreateModal} className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+                <Plus className="w-4 h-4" /> Create Product
               </Button>
             </div>
-            {successMsg && (
-              <div className="md:col-span-2 p-3 bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 text-emerald-800 dark:text-emerald-200 text-xs rounded">
-                ✓ {successMsg}
-              </div>
-            )}
-          </form>
-        </Container>
-      )}
-
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ui-fg-muted" />
-        <Input placeholder="Search catalog..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          )}
+        </div>
       </div>
 
-      {loading ? (
-        <Container className="p-8 text-center"><Text className="text-ui-fg-muted">Loading catalog...</Text></Container>
-      ) : filtered.length === 0 ? (
-        <Container className="p-8 text-center flex flex-col gap-2 items-center">
-          <div className="w-12 h-12 rounded-full bg-ui-bg-subtle flex items-center justify-center text-2xl">🍰</div>
-          <Text className="text-ui-fg-muted text-sm">No {tab} found. Click &quot;Add New Product / Cake&quot; above to create your first cake.</Text>
-        </Container>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.slice(0, 30).map((p: any, i: number) => (
-            <Container key={p.id || i} className="p-4 flex flex-col gap-2 border hover:shadow-md transition-shadow">
-              <Text className="font-semibold text-sm">{p.name || p.title || `Item #${i + 1}`}</Text>
-              <Text className="text-xs text-ui-fg-subtle line-clamp-2">{p.description || "Freshly baked gourmet cake with premium ingredients"}</Text>
-              <div className="flex items-center justify-between mt-auto pt-2">
-                <Text className="text-sm font-bold text-emerald-600">₹{p.price || p.amount || "599"}</Text>
-                <Badge color={p.is_active !== false ? "green" : "red"} className="text-[10px]">
-                  {p.is_active !== false ? "Active" : "Inactive"}
-                </Badge>
-              </div>
-              {p.category && <Badge color="blue" className="w-fit text-[10px]">{p.category}</Badge>}
-            </Container>
-          ))}
+      {error && (
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center justify-between">
+          <span>⚠️ {error}</span>
+          <Button size="small" variant="secondary" onClick={fetchCatalog}>Retry Fetch</Button>
         </div>
+      )}
+
+      {/* Render Sub Panels */}
+      {tab === "categories" ? (
+        <WidgetErrorBoundary moduleName="Categories Management Sub-Panel" compact>
+          <CategoriesPanel />
+        </WidgetErrorBoundary>
+      ) : tab === "accessories" ? (
+        <WidgetErrorBoundary moduleName="Accessories & Gifts Sub-Panel" compact>
+          <AccessoriesManagementPanel />
+        </WidgetErrorBoundary>
+      ) : tab === "rules" ? (
+        <WidgetErrorBoundary moduleName="Cross-Sell Rules Sub-Panel" compact>
+          <CrossSellRulesPanel />
+        </WidgetErrorBoundary>
+      ) : (
+        <>
+          {/* Filter Bar */}
+          <WidgetErrorBoundary moduleName="Catalog Filter Bar" compact>
+            <Container className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="relative w-full md:w-80">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ui-fg-subtle" />
+                <Input
+                  placeholder={`Search ${tab}...`}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
+              {tab === "products" && (
+                <div className="flex items-center gap-2">
+                  <Text className="text-xs text-ui-fg-subtle font-medium">Filter Category:</Text>
+                  <select
+                    value={selectedCategoryFilter}
+                    onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+                    className="h-9 px-3 rounded-md border border-ui-border-base bg-ui-bg-field text-xs"
+                  >
+                    <option value="all">All Categories ({products.length})</option>
+                    {categories.map((c) => (
+                      <option key={c?.id || c?.name} value={c?.id || c?.name}>{c?.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </Container>
+          </WidgetErrorBoundary>
+
+          {/* Product / Options Grid */}
+          <WidgetErrorBoundary moduleName="Products Grid Widget" onRetry={fetchCatalog} compact>
+            <Container className="p-6">
+              <Text className="font-semibold text-base mb-4">
+                Enterprise Cake Catalog ({filtered.length})
+              </Text>
+
+              {loading ? (
+                <GridSkeleton count={6} />
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-8 text-ui-fg-subtle flex flex-col items-center gap-2">
+                  <Cake className="w-8 h-8 opacity-50" />
+                  <Text>No items found matching search filter.</Text>
+                  {products.length === 0 && (
+                    <Button size="small" variant="secondary" onClick={fetchCatalog} className="mt-2 text-xs">
+                      <RefreshCw className="w-3 h-3 mr-1" /> Retry Catalog
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filtered.map((item: any) => {
+                    if (!item) return null;
+                    const title = item.title || item.name || "Untitled Item";
+                    const priceVal = item.price || item.selling_price || item.amount || 0;
+                    const catVal = resolveCategoryName(item);
+                    const thumbnail = item.thumbnail || item.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
+
+                    return (
+                      <WidgetErrorBoundary key={item.id} moduleName={`Product Card (${title})`} compact>
+                        <div className="border border-ui-border-base rounded-xl p-4 bg-ui-bg-subtle/50 flex flex-col justify-between space-y-3 hover:shadow-md transition-shadow">
+                          <div className="space-y-2">
+                            <div className="aspect-video w-full rounded-lg overflow-hidden bg-ui-bg-field relative">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={thumbnail} alt={title} loading="lazy" className="w-full h-full object-cover" />
+                              <Badge color="purple" className="absolute top-2 left-2 text-[10px]">
+                                {catVal}
+                              </Badge>
+                            </div>
+                            <div>
+                              <Text className="font-bold text-base line-clamp-1">{title}</Text>
+                              <Text className="text-xs text-ui-fg-subtle line-clamp-2">
+                                {item.description || "Handcrafted fresh gourmet cake."}
+                              </Text>
+                            </div>
+                          </div>
+
+                          <div className="pt-2 border-t border-ui-border-base flex items-center justify-between">
+                            <div>
+                              <Text className="text-[10px] text-ui-fg-subtle uppercase tracking-wider font-semibold">Starting Price</Text>
+                              <Text className="font-bold text-emerald-600 text-lg">From ₹{priceVal}</Text>
+                              {item.variants_json?.weights && Array.isArray(item.variants_json.weights) && (
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {item.variants_json.weights.slice(0, 3).map((w: string) => (
+                                    <Badge key={w} color="grey" className="text-[9px] px-1.5 py-0.5">{w}</Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button size="small" variant="transparent" onClick={() => handleOpenEditModal(item)} className="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950">
+                                <Edit3 className="w-4 h-4 mr-1" /> Edit PIM
+                              </Button>
+                              <Button size="small" variant="transparent" onClick={() => handleDeleteProduct(item.id, title)} className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </WidgetErrorBoundary>
+                    );
+                  })}
+                </div>
+              )}
+            </Container>
+          </WidgetErrorBoundary>
+        </>
+      )}
+
+      {/* PIM Product Editor Modal */}
+      {showPimModal && (
+        <WidgetErrorBoundary moduleName="PIM Editor Modal" compact>
+          <PimEditorModal
+            product={editingProduct}
+            categories={categories}
+            onClose={() => setShowPimModal(false)}
+            onSuccess={fetchCatalog}
+          />
+        </WidgetErrorBoundary>
       )}
     </div>
   );
-}
+});
+

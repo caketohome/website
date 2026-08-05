@@ -1,0 +1,169 @@
+[
+  {
+    "module": "Dashboard Overview Health",
+    "endpoint": "/admin/health",
+    "method": "GET",
+    "status": 200,
+    "persistence": "PASSED",
+    "notes": "Healthy status returned",
+    "responseData": {
+      "status": "healthy",
+      "timestamp": "2026-07-31T16:26:32.256Z",
+      "uptime": 2508.6066862,
+      "version": "1.0.0",
+      "environment": "development"
+    }
+  },
+  {
+    "module": "Orders Listing",
+    "endpoint": "/admin/orders",
+    "method": "GET",
+    "status": 200,
+    "persistence": "PASSED",
+    "notes": "Returned 4 orders",
+    "responseData": {
+      "orders": [
+        {
+          "id": "ord_101",
+          "order_number": "CTH-20260731-891234",
+          "customer_name": "Ananya Rao",
+          "items_count": 2,
+          "total": 1298,
+          "status": "confirmed",
+          "created_at": "2026-07-31T16:26:32.341Z"
+        },
+        {
+          "id": "ord_102",
+          "order_number": "CTH-20260731-992145",
+          "customer_name": "Rahul Verma",
+          "items_count": 1,
+          "total": 749,
+          "status": "in_kitchen",
+          "created_at": "2026-07-31T16:26:32.341Z"
+        },
+        {
+          "id": "ord_103",
+          "order_number": "CTH-20260731-102934",
+          "customer_name": "Priya Nair",
+          "items_count": 3,
+          "total": 1897,
+          "status": "out_for_delivery",
+          "created_at": "2026-07-31T16:26:32.341Z"
+        },
+        {
+          "id": "ord_104",
+          "order_number": "CTH-20260731-401928",
+          "customer_name": "Vikram Mehta",
+          "items_count": 1,
+          "total": 649,
+          "status": "delivered",
+          "created_at": "2026-07-31T16:26:32.341Z"
+        }
+      ]
+    }
+  },
+  {
+    "module": "Branches (Create & List)",
+    "endpoint": "/admin/branches",
+    "method": "POST / GET",
+    "status": 200,
+    "persistence": "PASSED",
+    "notes": "Branch \"Empirical Test Branch 1785515192353\" created and persisted.",
+    "responseData": {
+      "branch": {
+        "id": "shop_1785515193219",
+        "name": "Empirical Test Branch 1785515192353",
+        "city": "Bangalore",
+        "address": "100 Feet Rd, Indiranagar",
+        "phone": "+91 98765 99999",
+        "manager": "Empirical Test Branch 1785515192353 Manager (+91 98765 99999)",
+        "is_open": true,
+        "pincodes": [
+          "560001"
+        ],
+        "created_at": "2026-07-31T16:26:33.219Z"
+      },
+      "success": true
+    }
+  },
+  {
+    "module": "Branch Managers Mapping",
+    "endpoint": "/admin/branches",
+    "method": "GET",
+    "status": 200,
+    "persistence": "PASSED",
+    "notes": "Manager contact & metadata present in branch object"
+  },
+  {
+    "module": "Cities Management",
+    "endpoint": "/admin/cities",
+    "method": "POST / GET",
+    "status": 200,
+    "persistence": "PASSED",
+    "notes": "City \"TestCity_1785515193303\" created and persisted."
+  },
+  {
+    "module": "Regions Management",
+    "endpoint": "/admin/regions",
+    "method": "POST / GET",
+    "status": 200,
+    "persistence": "PASSED",
+    "notes": "Region \"TestRegion_1785515193405\" created and persisted."
+  },
+  {
+    "module": "Fleet & Delivery Partners",
+    "endpoint": "/admin/delivery/partners",
+    "method": "POST / GET",
+    "status": 200,
+    "persistence": "PASSED",
+    "notes": "Driver \"Empirical Rider 1785515193460\" registered and persisted."
+  },
+  {
+    "module": "Delivery Jobs & Serviceability",
+    "endpoint": "/admin/delivery",
+    "method": "GET",
+    "status": 200,
+    "persistence": "PASSED",
+    "notes": "Returned 2 active delivery jobs"
+  },
+  {
+    "module": "Products & Catalog",
+    "endpoint": "/admin/catalog/products",
+    "method": "POST / GET",
+    "status": 200,
+    "persistence": "PASSED",
+    "notes": "Product \"Empirical Cake 1785515193560\" published and persisted."
+  },
+  {
+    "module": "Customers CRM",
+    "endpoint": "/admin/crm/customers",
+    "method": "POST / GET",
+    "status": 200,
+    "persistence": "PASSED",
+    "notes": "Customer \"Empirical Customer 1785515193626\" created and persisted."
+  },
+  {
+    "module": "Offers & Coupons",
+    "endpoint": "/admin/offers",
+    "method": "POST / GET",
+    "status": 200,
+    "persistence": "PASSED",
+    "notes": "Coupon code \"EMPIRICAL947\" created and persisted."
+  },
+  {
+    "module": "SEO & Digital Settings",
+    "endpoint": "/admin/marketing/seo",
+    "method": "POST / GET",
+    "status": 200,
+    "persistence": "PASSED",
+    "notes": "SEO meta_title updated and persisted."
+  },
+  {
+    "module": "Settings & System Audit Logs",
+    "endpoint": "/admin/settings & /admin/audit-logs",
+    "method": "GET",
+    "status": 200,
+    "persistence": "PASSED",
+    "notes": "Settings loaded. Total audit log entries: 50"
+  }
+]

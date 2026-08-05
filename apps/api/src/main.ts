@@ -1,21 +1,27 @@
 /**
- * CakeToHome Core API Engine (NestJS + Fastify Adapter)
- * Entry point serving versioned REST endpoints under /api/v1/*
+ * CakeToHome Core API Engine (Enterprise Express Engine)
+ * Serves versioned REST endpoints under /api/v1/*
  */
 
+import { createApp } from "./app";
 import { StructuredLogger } from "./core/logger/logger.service";
 
 async function bootstrap() {
   const logger = new StructuredLogger("CakeToHomeApiServer");
   const port = process.env.PORT || 9000;
+  const app = createApp();
 
-  logger.log(`Starting CakeToHome Core API Engine on port ${port}...`, {
-    apiVersion: "v1",
-    framework: "NestJS/Fastify",
-    architecture: "Clean Architecture + CQRS + Outbox Pattern",
+  app.listen(port, () => {
+    logger.log(`CakeToHome Core Enterprise API Engine listening on http://localhost:${port}/api/v1`, {
+      apiVersion: "v1",
+      framework: "Express.js",
+      architecture: "Layered Modular Monolith",
+    });
   });
+}
 
-  logger.log("CakeToHome Core API Engine bootstrapped and listening on http://localhost:" + port + "/api/v1");
+if (require.main === module) {
+  bootstrap();
 }
 
 export { bootstrap };

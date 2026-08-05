@@ -11,6 +11,10 @@ const rateLimiterCache = new Map<string, { count: number; resetAt: number }>();
 export async function ipWhitelistMiddleware(req: MedusaRequest, res: MedusaResponse, next: MedusaNextFunction) {
   const securityService = req.scope.resolve(SECURITY_MODULE) as any;
   const ip = req.ip || req.socket.remoteAddress || "127.0.0.1";
+  const isLocalhost = ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1" || ip.includes("127.0.0.1");
+  if (isLocalhost || process.env.NODE_ENV === "development") {
+    return next();
+  }
 
   try {
     const isAllowed = await securityService.isIpAllowed(ip);
