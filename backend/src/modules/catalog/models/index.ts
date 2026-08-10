@@ -1,3 +1,4 @@
+export {
     ProductMeta,
     PimCategory,
     ProductReview,
@@ -5,7 +6,10 @@
     StockNotification,
     Subscription,
     CakeOption,
-    MasterWeight,
+    FlavorMaster,
+    ShapeMaster,
+    ProductFlavorMapping,
+    ProductShapeMapping,
     ProductWeightPrice,
 } from "./catalog";
 export { BranchProductAvailability } from "./branch_product_availability";

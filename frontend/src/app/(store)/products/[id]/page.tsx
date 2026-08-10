@@ -1,11 +1,35 @@
-import ProductDetailClient from "@frontend/components/store/shop/product-detail-client";
-import { ProductJsonLd } from "@frontend/components/store/seo/json-ld";
-import { ApiEngine } from "@frontend/lib/api-engine";
+import ProductDetailClient from "../../../../components/store/shop/product-detail-client";
+import { ProductJsonLd } from "../../../../components/store/seo/json-ld";
+import { ApiEngine } from "../../../../lib/api-engine";
+import { SeoMetadataBuilder } from "../../../../lib/seo/metadata-builder";
+import type { Metadata } from "next";
 
-export default async function ProductDetailPage({ params }: { params: { id: string } }) {
-  const fetched = ApiEngine.getProductById(params.id) || ApiEngine.getProductBySlug(params.id);
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> | { id: string } }): Promise<Metadata> {
+  const resolvedParams = await Promise.resolve(params);
+  const targetId = resolvedParams.id;
+  const fetched = ApiEngine.getProductById(targetId) || ApiEngine.getProductBySlug(targetId);
+  const title = fetched?.title || fetched?.name || "Gourmet Cake";
+  const rawDesc = fetched?.description || "Decadent handcrafted cake made with rich ingredients and fresh toppings.";
+  const desc = `Order ${title} online from CakeToHome Bangalore. ${rawDesc} Freshly baked with same-day and midnight delivery available.`;
+  const handle = fetched?.handle || targetId;
+  const image = fetched?.thumbnail || "https://cakes2home.com/images/default-cake.jpg";
 
-  const productId = fetched?.id || fetched?.product_id || params.id;
+  return SeoMetadataBuilder.buildMetadata({
+    entityType: "product",
+    entityId: fetched?.id || targetId,
+    slug: `products/${handle}`,
+    fallbackTitle: `${title} 1 Kg | Same Day Cake Delivery | CakeToHome`,
+    fallbackDescription: desc.substring(0, 160),
+    fallbackImage: image,
+  });
+}
+
+export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
+  const resolvedParams = await Promise.resolve(params);
+  const targetId = resolvedParams.id;
+  const fetched = ApiEngine.getProductById(targetId) || ApiEngine.getProductBySlug(targetId);
+
+  const productId = fetched?.id || fetched?.product_id || targetId;
   const productTitle = fetched?.title || fetched?.name || "Gourmet Bakery Product";
   const productDescription =
     fetched?.description ||
@@ -19,7 +43,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
   const images = [
     thumbnail,
     "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800",
+    "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800",
   ];
 
   const product: any = {

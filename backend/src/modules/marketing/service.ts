@@ -47,7 +47,7 @@ import {
  * by the Rewards module. This prevents race conditions when two admin
  * actions or a scheduler + admin action hit the same campaign concurrently.
  */
-class MarketingModuleService extends MedusaService({
+class MarketingModuleService extends (MedusaService({
     Campaign,
     CampaignEvent,
     CampaignMetric,
@@ -56,7 +56,7 @@ class MarketingModuleService extends MedusaService({
     QRCode,
     NewsletterSubscriber,
     RecoveryJob,
-}) {
+}) as any) {
     private locks = new Map<string, Promise<void>>();
     protected container: any;
 

@@ -5,9 +5,10 @@ import { Container, Heading, Text, Badge, Input, Button, Label } from "@medusajs
 import { apiClient } from "@frontend/lib/api-client";
 import { CategorySelectDropdown } from "./category-select-dropdown";
 import { compressImageToWebP } from "@frontend/lib/util/image-compressor";
+import { TaxMasterService } from "@backend/src/services/tax-engine";
 import {
   Sparkles, Cake, Tag, DollarSign, Layers, ShoppingBag, Image as ImageIcon,
-  Truck, Globe, CheckCircle, AlertCircle, Plus, Trash2, Sliders, Wand2, Upload, ArrowUp, ArrowDown
+  Truck, Globe, CheckCircle, AlertCircle, Plus, Trash2, Sliders, Wand2, Upload, ArrowUp, ArrowDown, RefreshCw, X
 } from "lucide-react";
 
 interface PimEditorModalProps {
@@ -73,18 +74,24 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
   const [season, setSeason] = useState("All-Season");
   const [festival, setFestival] = useState("Diwali & Festive Special");
 
-  // Pricing & Tax
+  // Pricing & Tax Master
   const [sellingPrice, setSellingPrice] = useState(String(product?.price || product?.selling_price || 649));
   const [costPrice, setCostPrice] = useState(String(product?.cost_price || 350));
   const [mrp, setMrp] = useState(String(product?.mrp || 799));
+  const [taxConfigurationId, setTaxConfigurationId] = useState(product?.tax_configuration_id || "txcfg_food_5");
   const [gstRate, setGstRate] = useState(String(product?.gst_rate || 5));
   const [taxClass, setTaxClass] = useState(product?.tax_class || "GST_FOOD_5");
+  const [hsnCode, setHsnCode] = useState(product?.hsn_code || "19059090");
+  const [hsnDescription, setHsnDescription] = useState(product?.hsn_description || "Cakes, Pastries & Bakery Goods");
+  const [uqc, setUqc] = useState(product?.uqc || "NOS");
+  const [taxability, setTaxability] = useState(product?.taxability || "Taxable");
+  const [taxInclusive, setTaxInclusive] = useState(product?.tax_inclusive ?? true);
 
-  // Variants Matrix State
-  const [selectedWeights, setSelectedWeights] = useState<string[]>(["0.5 kg", "1.0 kg", "1.5 kg", "2.0 kg"]);
-  const [selectedFlavours, setSelectedFlavours] = useState<string[]>(["Belgian Dark Chocolate", "Red Velvet", "Alphonso Mango"]);
-  const [selectedShapes, setSelectedShapes] = useState<string[]>(["Round", "Heart", "Square"]);
-  const [selectedCream, setSelectedCream] = useState<string[]>(["Fresh Cream", "Fondant", "Ganache"]);
+  // Variants Matrix State — initial values are empty; populated by loadMasterData() from DB
+  const [selectedWeights, setSelectedWeights] = useState<string[]>([]);
+  const [selectedFlavours, setSelectedFlavours] = useState<string[]>([]);
+  const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
+  const [selectedCream, setSelectedCream] = useState<string[]>([]);
 
   // Add-ons State
   const [allowCustomMessage, setAllowCustomMessage] = useState(true);
@@ -120,6 +127,14 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
   const [dailyCapacity, setDailyCapacity] = useState("50");
   const [shelfLifeDays, setShelfLifeDays] = useState("3");
   const [deliveryProfileId, setDeliveryProfileId] = useState(product?.delivery_profile_id || "prof_regular");
+
+  // Logistics – Delivery Option Permissions (missing state vars that the JSX references)
+  const [minPrepHours, setMinPrepHours] = useState<string>(String(product?.pim_config?.min_prep_hours || "2"));
+  const [sameDayAllowed, setSameDayAllowed] = useState<boolean>(product?.pim_config?.same_day_allowed ?? true);
+  const [expressAllowed, setExpressAllowed] = useState<boolean>(product?.pim_config?.express_allowed ?? true);
+  const [midnightAllowed, setMidnightAllowed] = useState<boolean>(product?.pim_config?.midnight_allowed ?? false);
+  const [scheduledAllowed, setScheduledAllowed] = useState<boolean>(product?.pim_config?.scheduled_allowed ?? true);
+  const [allowedZoneIds, setAllowedZoneIds] = useState<string[]>(product?.pim_config?.allowed_zone_ids || ["zone_1", "zone_2"]);
 
   // SEO & AI
   const [seoTitle, setSeoTitle] = useState(product?.title ? `${product.title} - CakeToHome` : "");
@@ -179,76 +194,90 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
   const [weightPrices, setWeightPrices] = useState<any[]>([]);
   const [activeSelectedWeight, setActiveSelectedWeight] = useState("");
 
-  // Master Database Variant Options
-  const [masterOptions, setMasterOptions] = useState<any[]>([]);
+  // Master Database Flavors and Shapes
+  const [masterFlavours, setMasterFlavours] = useState<any[]>([]);
+  const [masterShapes, setMasterShapes] = useState<any[]>([]);
+  const [enableFlavorSelection, setEnableFlavorSelection] = useState(product?.enable_flavor_selection ?? true);
+  const [enableShapeSelection, setEnableShapeSelection] = useState(product?.enable_shape_selection ?? true);
+
+  // Inline Quick-Create State for Flavors
+  const [showInlineFlavorCreate, setShowInlineFlavorCreate] = useState(false);
+  const [inlineFlavorName, setInlineFlavorName] = useState("");
+  const [inlineFlavorPrice, setInlineFlavorPrice] = useState("0");
+  const [inlineFlavorSubmitting, setInlineFlavorSubmitting] = useState(false);
+
+  // Inline Quick-Create State for Shapes
+  const [showInlineShapeCreate, setShowInlineShapeCreate] = useState(false);
+  const [inlineShapeName, setInlineShapeName] = useState("");
+  const [inlineShapePrice, setInlineShapePrice] = useState("0");
+  const [inlineShapeSubmitting, setInlineShapeSubmitting] = useState(false);
+
+  // Variant Matrix search filters
+  const [flavorSearch, setFlavorSearch] = useState("");
+  const [shapeSearch, setShapeSearch] = useState("");
+
+  const [masterDataLoading, setMasterDataLoading] = useState(false);
+
+  const loadMasterData = () => {
+    setMasterDataLoading(true);
+    Promise.all([
+      apiClient.getAdminFlavors().catch(() => ({ flavors: [] })),
+      apiClient.getAdminShapes().catch(() => ({ shapes: [] })),
+      product?.id ? apiClient.getProductFlavorMappings(product.id).catch(() => ({ flavor_mappings: [] })) : Promise.resolve({ flavor_mappings: [] }),
+      product?.id ? apiClient.getProductShapeMappings(product.id).catch(() => ({ shape_mappings: [] })) : Promise.resolve({ shape_mappings: [] }),
+      product?.id ? apiClient.getProductWeightPrices(product.id).catch(() => ({ weight_prices: [] })) : Promise.resolve({ weight_prices: [] })
+    ]).then(([resFlv, resShp, resFlvMaps, resShpMaps, resPrices]: any[]) => {
+      const dbFlavors = resFlv?.flavors || [];
+      const dbShapes = resShp?.shapes || [];
+      setMasterFlavours(dbFlavors);
+      setMasterShapes(dbShapes);
+
+      const mappedFlvIds = (resFlvMaps?.flavor_mappings || []).map((m: any) => m.flavor_id);
+      const mappedShpIds = (resShpMaps?.shape_mappings || []).map((m: any) => m.shape_id);
+
+      if (mappedFlvIds.length > 0) {
+        setSelectedFlavours(dbFlavors.filter((f: any) => mappedFlvIds.includes(f.id)).map((f: any) => f.name));
+      } else {
+        setSelectedFlavours(dbFlavors.map((f: any) => f.name));
+      }
+
+      if (mappedShpIds.length > 0) {
+        setSelectedShapes(dbShapes.filter((s: any) => mappedShpIds.includes(s.id)).map((s: any) => s.name));
+      } else {
+        setSelectedShapes(dbShapes.map((s: any) => s.name));
+      }
+
+      const savedPrices = resPrices?.weight_prices || [];
+      setWeightPrices(savedPrices);
+      if (savedPrices.length > 0) {
+        setActiveSelectedWeight(savedPrices[0].weight_name);
+      }
+    }).finally(() => setMasterDataLoading(false));
+  };
 
   useEffect(() => {
-    Promise.all([
-      apiClient.getAdminVariantOptions().catch(() => ({ options: [] })),
-      apiClient.getAdminWeights().catch(() => ({ weights: [] })),
-      product?.id ? apiClient.getProductWeightPrices(product.id).catch(() => ({ weight_prices: [] })) : Promise.resolve({ weight_prices: [] })
-    ]).then(([resOpts, resWeights, resPrices]: any[]) => {
-      const opts = resOpts?.options || resOpts?.data || [];
-      setMasterOptions(opts);
-
-      const dbWeights = (resWeights?.weights || resWeights?.options || opts.filter((o: any) => o.type === "weight")) || [];
-      const savedPrices = resPrices?.weight_prices || [];
-
-      // Dynamically build weight pricing matrix matching ALL active weights from database
-      const dynamicMatrix = dbWeights
-        .filter((w: any) => w.status !== "archived")
-        .map((w: any) => {
-          const existing = savedPrices.find((sp: any) => sp.weight_id === w.id || sp.weight_name === w.name);
-          return {
-            weight_id: w.id,
-            weight_name: w.name,
-            selling_price: existing ? Number(existing.selling_price) : 500,
-            mrp: existing ? Number(existing.mrp) : 600,
-            cost_price: existing ? Number(existing.cost_price) : 300,
-            prep_time_minutes: existing ? Number(existing.prep_time_minutes) : 60,
-            is_enabled: existing ? Boolean(existing.is_enabled) : true,
-          };
-        });
-
-      setWeightPrices(dynamicMatrix);
-      if (dynamicMatrix.length > 0) {
-        setActiveSelectedWeight(dynamicMatrix[0].weight_name);
-      }
-    });
+    loadMasterData();
   }, [product?.id]);
-
-  const masterWeights = useMemo(() => masterOptions.filter((o) => o.type === "weight" && o.status === "active"), [masterOptions]);
-  const masterShapes = useMemo(() => masterOptions.filter((o) => o.type === "shape" && o.status === "active"), [masterOptions]);
-  const masterFlavours = useMemo(() => masterOptions.filter((o) => o.type === "flavour" && o.status === "active"), [masterOptions]);
-  const masterFillings = useMemo(() => masterOptions.filter((o) => o.type === "filling" && o.status === "active"), [masterOptions]);
-  const masterCreams = useMemo(() => masterOptions.filter((o) => o.type === "cream" && o.status === "active"), [masterOptions]);
-  const masterToppers = useMemo(() => masterOptions.filter((o) => o.type === "topper" && o.status === "active"), [masterOptions]);
-  const masterAddons = useMemo(() => masterOptions.filter((o) => o.type === "addon" && o.status === "active"), [masterOptions]);
 
   // Dynamic Price Recalculation Engine
   const activeWeightPriceObj = weightPrices.find((wp) => wp.weight_name === activeSelectedWeight && wp.is_enabled) || weightPrices.find((wp) => wp.is_enabled) || weightPrices[0];
   const baseWeightPrice = activeWeightPriceObj ? Number(activeWeightPriceObj.selling_price) || 0 : parseFloat(sellingPrice) || 0;
 
-  const { shapeModifierSum, flavourModifierSum, creamModifierSum, calculatedFinalPrice } = useMemo(() => {
+  const { shapeModifierSum, flavourModifierSum, calculatedFinalPrice } = useMemo(() => {
     const shapeSum = selectedShapes.reduce((sum, sName) => {
       const opt = masterShapes.find((o) => o.name === sName || o.display_name === sName);
-      return sum + (opt?.price_modifier || 0);
+      return sum + (opt?.additional_price || opt?.price_modifier || 0);
     }, 0);
     const flavourSum = selectedFlavours.reduce((sum, fName) => {
       const opt = masterFlavours.find((o) => o.name === fName || o.display_name === fName);
-      return sum + (opt?.price_modifier || 0);
-    }, 0);
-    const creamSum = selectedCream.reduce((sum, cName) => {
-      const opt = masterCreams.find((o) => o.name === cName || o.display_name === cName);
-      return sum + (opt?.price_modifier || 0);
+      return sum + (opt?.extra_price || opt?.price_modifier || 0);
     }, 0);
     return {
       shapeModifierSum: shapeSum,
       flavourModifierSum: flavourSum,
-      creamModifierSum: creamSum,
-      calculatedFinalPrice: baseWeightPrice + shapeSum + flavourSum + creamSum,
+      calculatedFinalPrice: baseWeightPrice + shapeSum + flavourSum,
     };
-  }, [baseWeightPrice, selectedShapes, selectedFlavours, selectedCream, masterShapes, masterFlavours, masterCreams]);
+  }, [baseWeightPrice, selectedShapes, selectedFlavours, masterShapes, masterFlavours]);
 
   // AI Auto-Generation Helper
   const handleAiGenerateAll = async () => {
@@ -335,6 +364,13 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       mrp: enabledWeights[0].mrp || 799,
       gst_rate: parseFloat(gstRate) || 5,
       tax_class: taxClass,
+      tax_configuration_id: taxConfigurationId,
+      tax_configuration_code: taxClass,
+      hsn_code: hsnCode,
+      hsn_description: hsnDescription,
+      uqc,
+      taxability,
+      tax_inclusive: taxInclusive,
       is_featured: isFeatured,
       is_bestseller: isBestseller,
       is_new_arrival: isNewArrival,
@@ -353,12 +389,22 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       prep_time_minutes: enabledWeights[0].prep_time_minutes || 120,
       daily_capacity: parseInt(dailyCapacity, 10) || 50,
       shelf_life_days: parseInt(shelfLifeDays, 10) || 3,
-      variants_json: { weights: enabledWeights.map(w => w.weight_name), flavours: selectedFlavours, shapes: selectedShapes, cream: selectedCream },
+      variants_json: { weights: enabledWeights.map(w => w.weight_name), flavours: selectedFlavours, shapes: selectedShapes },
       add_ons_json: { allow_custom_message: allowCustomMessage, message_limit: messageLimit, is_photo_cake: isPhotoCake, add_on_candles: addOnCandles, add_on_card: addOnCard, add_on_flowers: addOnFlowers },
       seo_title: seoTitle || `${name} - CakeToHome`,
+      enable_flavor_selection: enableFlavorSelection,
+      enable_shape_selection: enableShapeSelection,
       seo_description: seoDescription || description,
       seo_keywords: seoKeywords,
-      pim_config: pimConfig,
+      pim_config: {
+        ...pimConfig,
+        min_prep_hours: minPrepHours,
+        same_day_allowed: sameDayAllowed,
+        express_allowed: expressAllowed,
+        midnight_allowed: midnightAllowed,
+        scheduled_allowed: scheduledAllowed,
+        allowed_zone_ids: allowedZoneIds,
+      },
     };
 
     try {
@@ -366,13 +412,26 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       if (product?.id) {
         await apiClient.updateAdminProduct(product.id, payload);
         await apiClient.saveProductWeightPrices(product.id, weightPrices);
-        setSuccessMsg(`Successfully updated product "${name}"!`);
       } else {
         const res: any = await apiClient.createAdminProduct(payload);
         targetProdId = res?.product?.id || `prod_${Date.now()}`;
         await apiClient.saveProductWeightPrices(targetProdId, weightPrices);
-        setSuccessMsg(`Successfully created product "${name}"!`);
       }
+
+      if (targetProdId) {
+        const selectedFlvObjects = masterFlavours
+          .filter((f) => selectedFlavours.includes(f.name))
+          .map((f) => ({ flavor_id: f.id, price_override: f.extra_price }));
+
+        const selectedShpObjects = masterShapes
+          .filter((s) => selectedShapes.includes(s.name))
+          .map((s) => ({ shape_id: s.id, price_override: s.additional_price }));
+
+        await apiClient.saveProductFlavorMappings(targetProdId, selectedFlvObjects);
+        await apiClient.saveProductShapeMappings(targetProdId, selectedShpObjects);
+      }
+
+      setSuccessMsg(`Successfully saved product "${name}"!`);
       try {
         const { revalidateProductAction } = await import("@frontend/lib/actions/catalog");
         await revalidateProductAction(generatedSlug, targetProdId);
@@ -698,15 +757,80 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                 </table>
               </div>
 
-              {/* Tax & GST Settings */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-ui-border-base">
-                <div>
-                  <Label htmlFor="pim_gst">GST Rate (%)</Label>
-                  <Input id="pim_gst" type="number" value={gstRate} onChange={(e) => setGstRate(e.target.value)} />
+              {/* Tax Master & Statutory GST Configuration */}
+              <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-sm text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
+                    🏛️ Statutory GST Tax Master & HSN Classification
+                  </span>
+                  <Badge color="green" className="text-[10px] font-bold uppercase">{taxability}</Badge>
                 </div>
-                <div>
-                  <Label htmlFor="pim_tax_cl">Tax Class Code</Label>
-                  <Input id="pim_tax_cl" value={taxClass} onChange={(e) => setTaxClass(e.target.value)} />
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                  <div className="md:col-span-2">
+                    <Label htmlFor="pim_tax_cfg" className="font-semibold text-emerald-800 dark:text-emerald-300">Select Tax Master Configuration *</Label>
+                    <select
+                      id="pim_tax_cfg"
+                      value={taxConfigurationId}
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        setTaxConfigurationId(id);
+                        const match = TaxMasterService.getTaxConfigurationById(id);
+                        if (match) {
+                          setGstRate(String(match.gstRatePct));
+                          setTaxClass(match.code);
+                          setTaxability(match.taxability);
+                          setTaxInclusive(match.taxInclusive);
+                        }
+                      }}
+                      className="w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900 border-emerald-300 dark:border-emerald-800"
+                    >
+                      {TaxMasterService.listTaxConfigurations().map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.name} ({t.code}) — GST: {t.gstRatePct}% | CGST: {t.cgstRatePct}% | SGST: {t.sgstRatePct}% | {t.taxability}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="pim_hsn_code" className="font-semibold text-emerald-800 dark:text-emerald-300">HSN/SAC Code *</Label>
+                    <Input id="pim_hsn_code" value={hsnCode} onChange={(e) => setHsnCode(e.target.value)} placeholder="19059090" required />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="pim_hsn_desc">HSN Description</Label>
+                    <Input id="pim_hsn_desc" value={hsnDescription} onChange={(e) => setHsnDescription(e.target.value)} placeholder="Cakes, Pastries & Bakery Goods" />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="pim_uqc">UQC (Unit Quantity Code) *</Label>
+                    <select
+                      id="pim_uqc"
+                      value={uqc}
+                      onChange={(e) => setUqc(e.target.value)}
+                      className="w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                    >
+                      <option value="NOS">NOS — Numbers / Items</option>
+                      <option value="KGS">KGS — Kilograms</option>
+                      <option value="BOX">BOX — Box</option>
+                      <option value="PKT">PKT — Packets</option>
+                      <option value="PCS">PCS — Pieces</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="pim_tax_inc">Pricing Tax Mode</Label>
+                    <select
+                      id="pim_tax_inc"
+                      value={taxInclusive ? "true" : "false"}
+                      onChange={(e) => setTaxInclusive(e.target.value === "true")}
+                      className="w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900"
+                    >
+                      <option value="true">Tax Inclusive (GST included in price)</option>
+                      <option value="false">Tax Exclusive (GST added at checkout)</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -722,7 +846,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                     <Sparkles className="w-4 h-4" /> Dynamic Real-Time Price Recalculation Engine
                   </Text>
                   <Text className="text-xs text-ui-fg-subtle">
-                    Formula: Selected Weight Price (₹{baseWeightPrice}) + Shape Mod (+₹{shapeModifierSum}) + Flavour Mod (+₹{flavourModifierSum}) + Cream Mod (+₹{creamModifierSum})
+                    Formula: Selected Weight Price (₹{baseWeightPrice}) + Shape Extra (+₹{shapeModifierSum}) + Flavor Extra (+₹{flavourModifierSum})
                   </Text>
                 </div>
                 <div className="text-right">
@@ -731,85 +855,310 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                 </div>
               </div>
 
-              <div>
-                <Label className="mb-2 block font-semibold text-xs text-purple-600">Weight Master Options (Database-Driven)</Label>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {masterWeights.map((w) => {
-                    const isSelected = selectedWeights.includes(w.name);
-                    const modText = w.price_modifier > 0 ? ` (+₹${w.price_modifier})` : "";
-                    return (
-                      <Badge
-                        key={w.id}
-                        color={isSelected ? "purple" : "grey"}
-                        className="cursor-pointer px-3 py-1.5 text-xs transition-colors"
-                        onClick={() => setSelectedWeights(prev => prev.includes(w.name) ? prev.filter(item => item !== w.name) : [...prev, w.name])}
-                      >
-                        {w.display_name || w.name}{modText}
-                      </Badge>
-                    );
-                  })}
-                </div>
+              {/* Product Level Enable Toggles */}
+              <div className="p-4 bg-purple-50 dark:bg-purple-950/30 border rounded-xl flex flex-wrap gap-6 text-xs font-semibold">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={enableFlavorSelection}
+                    onChange={(e) => setEnableFlavorSelection(e.target.checked)}
+                    className="rounded"
+                  />
+                  <span>Enable Flavor Selection for this Product</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={enableShapeSelection}
+                    onChange={(e) => setEnableShapeSelection(e.target.checked)}
+                    className="rounded"
+                  />
+                  <span>Enable Shape Selection for this Product</span>
+                </label>
               </div>
 
-              <div>
-                <Label className="mb-2 block font-semibold text-xs text-blue-600">Flavour Master Options (Database-Driven)</Label>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {masterFlavours.map((f) => {
-                    const isSelected = selectedFlavours.includes(f.name);
-                    const modText = f.price_modifier > 0 ? ` (+₹${f.price_modifier})` : "";
-                    return (
-                      <Badge
-                        key={f.id}
-                        color={isSelected ? "blue" : "grey"}
-                        className="cursor-pointer px-3 py-1.5 text-xs transition-colors"
-                        onClick={() => setSelectedFlavours(prev => prev.includes(f.name) ? prev.filter(item => item !== f.name) : [...prev, f.name])}
+              {/* Dynamic Flavor Selection Matrix */}
+              {enableFlavorSelection && (
+                <div className="border rounded-xl p-4 bg-blue-50/50 dark:bg-blue-950/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-semibold text-xs text-blue-700 dark:text-blue-400 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" /> Allowed Flavor Options (Database-Driven)
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={loadMasterData}
+                        disabled={masterDataLoading}
+                        className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
                       >
-                        {f.display_name || f.name}{modText}
-                      </Badge>
-                    );
-                  })}
-                </div>
-              </div>
+                        <RefreshCw className={`w-3 h-3 ${masterDataLoading ? "animate-spin" : ""}`} /> Refresh
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setShowInlineFlavorCreate(true); setInlineFlavorName(""); setInlineFlavorPrice("0"); }}
+                        className="flex items-center gap-1 text-[10px] bg-blue-600 text-white px-2 py-1 rounded-md hover:bg-blue-700 font-semibold"
+                      >
+                        <Plus className="w-3 h-3" /> Quick Add Flavor
+                      </button>
+                    </div>
+                  </div>
 
-              <div>
-                <Label className="mb-2 block font-semibold text-xs text-emerald-600">Shape Master Options (Database-Driven)</Label>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {masterShapes.map((s) => {
-                    const isSelected = selectedShapes.includes(s.name);
-                    const modText = s.price_modifier > 0 ? ` (+₹${s.price_modifier})` : "";
-                    return (
-                      <Badge
-                        key={s.id}
-                        color={isSelected ? "green" : "grey"}
-                        className="cursor-pointer px-3 py-1.5 text-xs transition-colors"
-                        onClick={() => setSelectedShapes(prev => prev.includes(s.name) ? prev.filter(item => item !== s.name) : [...prev, s.name])}
+                  {showInlineFlavorCreate && (
+                    <div className="flex flex-wrap items-end gap-2 p-3 bg-white dark:bg-slate-800 rounded-lg border border-blue-200">
+                      <div>
+                        <Label className="text-[10px] block mb-1">Flavor Name *</Label>
+                        <Input
+                          placeholder="e.g. Belgian Chocolate"
+                          value={inlineFlavorName}
+                          onChange={(e) => setInlineFlavorName(e.target.value)}
+                          className="text-xs h-8 w-48"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] block mb-1">Extra Price (₹)</Label>
+                        <Input
+                          type="number"
+                          value={inlineFlavorPrice}
+                          onChange={(e) => setInlineFlavorPrice(e.target.value)}
+                          className="text-xs h-8 w-24"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        size="small"
+                        isLoading={inlineFlavorSubmitting}
+                        className="h-8 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold"
+                        onClick={async () => {
+                          if (!inlineFlavorName.trim()) return;
+                          setInlineFlavorSubmitting(true);
+                          try {
+                            await apiClient.createAdminFlavor({
+                              name: inlineFlavorName.trim(),
+                              display_name: inlineFlavorName.trim(),
+                              extra_price: parseFloat(inlineFlavorPrice) || 0,
+                              status: "active",
+                              is_enabled: true,
+                            });
+                            setShowInlineFlavorCreate(false);
+                            loadMasterData();
+                          } catch (err: any) {
+                            setErrorMsg(err.message || "Failed to create flavor.");
+                          } finally {
+                            setInlineFlavorSubmitting(false);
+                          }
+                        }}
                       >
-                        {s.display_name || s.name}{modText}
-                      </Badge>
-                    );
-                  })}
-                </div>
-              </div>
+                        Save Flavor
+                      </Button>
+                      <button
+                        type="button"
+                        onClick={() => setShowInlineFlavorCreate(false)}
+                        className="h-8 w-8 flex items-center justify-center rounded-md border text-slate-500 hover:bg-slate-100"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
 
-              <div>
-                <Label className="mb-2 block font-semibold text-xs text-amber-600">Cream Master Options (Database-Driven)</Label>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {masterCreams.map((c) => {
-                    const isSelected = selectedCream.includes(c.name);
-                    const modText = c.price_modifier > 0 ? ` (+₹${c.price_modifier})` : "";
-                    return (
-                      <Badge
-                        key={c.id}
-                        color={isSelected ? "orange" : "grey"}
-                        className="cursor-pointer px-3 py-1.5 text-xs transition-colors"
-                        onClick={() => setSelectedCream(prev => prev.includes(c.name) ? prev.filter(item => item !== c.name) : [...prev, c.name])}
-                      >
-                        {c.display_name || c.name}{modText}
-                      </Badge>
-                    );
-                  })}
+                  {masterFlavours.length === 0 ? (
+                    <div className="text-center py-4 text-xs text-blue-600 dark:text-blue-400">
+                      <Sparkles className="w-6 h-6 mx-auto mb-2 opacity-40" />
+                      <p className="font-semibold">No flavor masters found in database.</p>
+                      <p className="text-slate-500 mt-1">Use the <strong>Quick Add Flavor</strong> button above, or go to<br />
+                      <strong>Catalog &rarr; 🍫 Flavors &amp; Shapes</strong> for full management.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          placeholder="Search flavors..."
+                          value={flavorSearch}
+                          onChange={(e) => setFlavorSearch(e.target.value)}
+                          className="text-xs h-8 flex-1"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setSelectedFlavours(masterFlavours.filter(f => !flavorSearch || f.name.toLowerCase().includes(flavorSearch.toLowerCase()) || (f.display_name || "").toLowerCase().includes(flavorSearch.toLowerCase())).map(f => f.name))}
+                          className="text-[10px] px-2 py-1.5 bg-blue-100 text-blue-700 rounded-md font-semibold hover:bg-blue-200 whitespace-nowrap"
+                        >
+                          Select All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedFlavours([])}
+                          className="text-[10px] px-2 py-1.5 bg-slate-100 text-slate-600 rounded-md font-semibold hover:bg-slate-200 whitespace-nowrap"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        {masterFlavours
+                          .filter(f => !flavorSearch || f.name.toLowerCase().includes(flavorSearch.toLowerCase()) || (f.display_name || "").toLowerCase().includes(flavorSearch.toLowerCase()))
+                          .map((f) => {
+                          const isSelected = selectedFlavours.includes(f.name);
+                          const price = f.extra_price || f.price_modifier || 0;
+                          const modText = price > 0 ? ` (+₹${price})` : "";
+                          return (
+                            <Badge
+                              key={f.id}
+                              color={isSelected ? "blue" : "grey"}
+                              className="cursor-pointer px-3 py-1.5 text-xs transition-colors"
+                              onClick={() => setSelectedFlavours(prev => prev.includes(f.name) ? prev.filter(item => item !== f.name) : [...prev, f.name])}
+                            >
+                              {f.display_name || f.name}{modText}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                      <p className="text-[10px] text-slate-400">
+                        {selectedFlavours.length} of {masterFlavours.length} flavors selected &bull; Click badge to toggle
+                      </p>
+                    </div>
+                  )}
+                  <p className="text-[10px] text-slate-400">Selected flavors will be available to customers for this product.</p>
                 </div>
-              </div>
+              )}
+
+              {/* Dynamic Shape Selection Matrix */}
+              {enableShapeSelection && (
+                <div className="border rounded-xl p-4 bg-emerald-50/50 dark:bg-emerald-950/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-semibold text-xs text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5" /> Allowed Shape Options (Database-Driven)
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={loadMasterData}
+                        disabled={masterDataLoading}
+                        className="flex items-center gap-1 text-[10px] text-emerald-600 hover:text-emerald-800 font-medium disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${masterDataLoading ? "animate-spin" : ""}`} /> Refresh
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setShowInlineShapeCreate(true); setInlineShapeName(""); setInlineShapePrice("0"); }}
+                        className="flex items-center gap-1 text-[10px] bg-emerald-600 text-white px-2 py-1 rounded-md hover:bg-emerald-700 font-semibold"
+                      >
+                        <Plus className="w-3 h-3" /> Quick Add Shape
+                      </button>
+                    </div>
+                  </div>
+
+                  {showInlineShapeCreate && (
+                    <div className="flex flex-wrap items-end gap-2 p-3 bg-white dark:bg-slate-800 rounded-lg border border-emerald-200">
+                      <div>
+                        <Label className="text-[10px] block mb-1">Shape Name *</Label>
+                        <Input
+                          placeholder="e.g. Heart, Round, Square"
+                          value={inlineShapeName}
+                          onChange={(e) => setInlineShapeName(e.target.value)}
+                          className="text-xs h-8 w-48"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] block mb-1">Additional Price (₹)</Label>
+                        <Input
+                          type="number"
+                          value={inlineShapePrice}
+                          onChange={(e) => setInlineShapePrice(e.target.value)}
+                          className="text-xs h-8 w-24"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        size="small"
+                        isLoading={inlineShapeSubmitting}
+                        className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+                        onClick={async () => {
+                          if (!inlineShapeName.trim()) return;
+                          setInlineShapeSubmitting(true);
+                          try {
+                            await apiClient.createAdminShape({
+                              name: inlineShapeName.trim(),
+                              additional_price: parseFloat(inlineShapePrice) || 0,
+                              status: "active",
+                              is_enabled: true,
+                            });
+                            setShowInlineShapeCreate(false);
+                            loadMasterData();
+                          } catch (err: any) {
+                            setErrorMsg(err.message || "Failed to create shape.");
+                          } finally {
+                            setInlineShapeSubmitting(false);
+                          }
+                        }}
+                      >
+                        Save Shape
+                      </Button>
+                      <button
+                        type="button"
+                        onClick={() => setShowInlineShapeCreate(false)}
+                        className="h-8 w-8 flex items-center justify-center rounded-md border text-slate-500 hover:bg-slate-100"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {masterShapes.length === 0 ? (
+                    <div className="text-center py-4 text-xs text-emerald-600 dark:text-emerald-400">
+                      <Layers className="w-6 h-6 mx-auto mb-2 opacity-40" />
+                      <p className="font-semibold">No shape masters found in database.</p>
+                      <p className="text-slate-500 mt-1">Use the <strong>Quick Add Shape</strong> button above, or go to<br />
+                      <strong>Catalog &rarr; 🍫 Flavors &amp; Shapes</strong> for full management.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          placeholder="Search shapes..."
+                          value={shapeSearch}
+                          onChange={(e) => setShapeSearch(e.target.value)}
+                          className="text-xs h-8 flex-1"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setSelectedShapes(masterShapes.filter(s => !shapeSearch || s.name.toLowerCase().includes(shapeSearch.toLowerCase()) || (s.display_name || "").toLowerCase().includes(shapeSearch.toLowerCase())).map(s => s.name))}
+                          className="text-[10px] px-2 py-1.5 bg-emerald-100 text-emerald-700 rounded-md font-semibold hover:bg-emerald-200 whitespace-nowrap"
+                        >
+                          Select All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedShapes([])}
+                          className="text-[10px] px-2 py-1.5 bg-slate-100 text-slate-600 rounded-md font-semibold hover:bg-slate-200 whitespace-nowrap"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        {masterShapes
+                          .filter(s => !shapeSearch || s.name.toLowerCase().includes(shapeSearch.toLowerCase()) || (s.display_name || "").toLowerCase().includes(shapeSearch.toLowerCase()))
+                          .map((s) => {
+                          const isSelected = selectedShapes.includes(s.name);
+                          const price = s.additional_price || s.price_modifier || 0;
+                          const modText = price > 0 ? ` (+₹${price})` : "";
+                          return (
+                            <Badge
+                              key={s.id}
+                              color={isSelected ? "green" : "grey"}
+                              className="cursor-pointer px-3 py-1.5 text-xs transition-colors"
+                              onClick={() => setSelectedShapes(prev => prev.includes(s.name) ? prev.filter(item => item !== s.name) : [...prev, s.name])}
+                            >
+                              {s.display_name || s.name}{modText}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                      <p className="text-[10px] text-slate-400">
+                        {selectedShapes.length} of {masterShapes.length} shapes selected &bull; Click badge to toggle
+                      </p>
+                    </div>
+                  )}
+                  <p className="text-[10px] text-slate-400">Selected shapes will be available to customers for this product.</p>
+                </div>
+              )}
             </div>
           )}
 

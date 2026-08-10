@@ -56,7 +56,7 @@ function parseJsonField<T>(raw: unknown): T | null {
  *   - Localization Module (M11): language_code on every entity
  *   - Audit Module: logs content changes
  */
-class CmsModuleService extends MedusaService({
+class CmsModuleService extends (MedusaService({
     CmsPage,
     CmsCategory,
     CmsTag,
@@ -68,7 +68,7 @@ class CmsModuleService extends MedusaService({
     CmsTemplate,
     CmsRevision,
     CmsAssetReference,
-}) {
+}) as any) {
     // ── Pages ────────────────────────────────────────────────────────────
 
     async createPage(input: CmsPageInput) {

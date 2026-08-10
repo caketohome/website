@@ -42,7 +42,7 @@ const SECTION_TYPES = [
     "anniversary_collection", "same_day_delivery", "trending", "offers", "coupons",
     "product_carousel", "category_carousel", "gallery", "testimonials", "faq",
     "instagram", "blog", "video", "countdown", "rich_text", "custom_html",
-    "branches", "delivery_areas", "ai_recommendations", "recently_viewed", "recommended",
+    "branches", "delivery_areas", "recently_viewed", "recommended",
 ];
 
 const NAV_LOCATIONS = ["header", "footer", "mega_menu", "sidebar", "mobile"];

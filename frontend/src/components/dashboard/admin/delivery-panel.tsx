@@ -1,206 +1,489 @@
 "use client";
 
 import { useEffect, useState, memo, useCallback } from "react";
-import { Container, Heading, Text, StatusBadge, Badge, Button, Input, Label } from "@medusajs/ui";
+import { Container, Heading, Text, Badge, Button, Input, Label, Select } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
-import { Plus, Truck, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw, Truck, Search, Filter, ShieldCheck, Settings, Eye, Power, CheckCircle2, AlertCircle, Clock, X } from "lucide-react";
 import { DeliveryCoverageMap } from "@frontend/components/store/coverage-map";
 import { WidgetErrorBoundary } from "./error-boundary";
 import { TableSkeleton } from "./admin-skeletons";
+import { DeliveryPartnerWizard } from "./delivery-partner-wizard";
+import { DeliveryPartnerDetailsDrawer } from "./delivery-partner-details-drawer";
 
 export const DeliveryPanel = memo(function DeliveryPanel() {
-  const [deliveries, setDeliveries] = useState<any[]>([]);
+  const [partners, setPartners] = useState<any[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
 
-  // Form state
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [zone, setZone] = useState("Koramangala Zone");
-  const [submitting, setSubmitting] = useState(false);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  // Modals & Drawers state
+  const [showWizard, setShowWizard] = useState(false);
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
+  const [showRulesModal, setShowRulesModal] = useState(false);
 
-  const fetchDeliveries = useCallback(() => {
+  // Filters State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterBranch, setFilterBranch] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterAvailability, setFilterAvailability] = useState("all");
+  const [filterWorkingNow, setFilterWorkingNow] = useState(false);
+
+  // Assignment Rules State
+  const [rules, setRules] = useState<any>({
+    allow_cross_branch_fallback: false,
+    require_working_hours: true,
+    require_online_status: true,
+    max_capacity_limit: 5,
+  });
+  const [savingRules, setSavingRules] = useState(false);
+
+  const fetchBranches = useCallback(() => {
+    apiClient.getEligibleBranches({})
+      .then((res: any) => {
+        setBranches(res?.branches || res || []);
+      })
+      .catch(() => {
+        setBranches([
+          { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship Kitchen", code: "HUB-BLR-01" },
+          { id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT", name: "Koramangala Gourmet Bakery", code: "HUB-BLR-02" },
+          { id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT", name: "Whitefield Central Kitchen", code: "HUB-BLR-03" },
+        ]);
+      });
+  }, []);
+
+  const fetchPartners = useCallback(() => {
     setLoading(true);
     setError(null);
-    apiClient.getAdminDeliveryPartners().then((r: any) => {
-      setDeliveries(r?.partners || r?.deliveries || r?.data || []);
-    }).catch((err) => {
-      console.error("[Delivery Panel Error] Failed to fetch delivery partners:", err);
-      setError(err.message || "Failed to load delivery partners");
-      setDeliveries([]);
-    }).finally(() => setLoading(false));
+
+    const params: Record<string, any> = {};
+    if (searchQuery.trim()) params.q = searchQuery.trim();
+    if (filterBranch !== "all") params.branch_id = filterBranch;
+    if (filterStatus !== "all") params.status = filterStatus;
+    if (filterAvailability !== "all") params.availability = filterAvailability;
+    if (filterWorkingNow) params.working_now = "true";
+
+    apiClient.getAdminDeliveryPartners(params)
+      .then((r: any) => {
+        setPartners(r?.partners || r?.deliveries || []);
+      })
+      .catch((err) => {
+        console.error("[Delivery Panel Error] Failed to fetch delivery partners:", err);
+        setError(err.message || "Failed to load delivery partners");
+        setPartners([]);
+      })
+      .finally(() => setLoading(false));
+  }, [searchQuery, filterBranch, filterStatus, filterAvailability, filterWorkingNow]);
+
+  const fetchRules = useCallback(() => {
+    apiClient.getDeliveryAssignmentRules()
+      .then((res: any) => {
+        if (res?.rules || res) setRules(res.rules || res);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
-    fetchDeliveries();
-  }, [fetchDeliveries]);
+    fetchBranches();
+    fetchRules();
+  }, [fetchBranches, fetchRules]);
 
-  const handleRegisterPartner = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    setSubmitting(true);
-    setSuccessMsg(null);
+  useEffect(() => {
+    fetchPartners();
+  }, [fetchPartners]);
 
-    const nameParts = name.trim().split(" ");
-    const newPartner = {
-      first_name: nameParts[0] || name,
-      last_name: nameParts.slice(1).join(" ") || "Rider",
-      phone,
-      zone,
-      status: "active",
-      rating: 5.0,
-    };
-
-    const res = await apiClient.createAdminDeliveryPartner(newPartner);
-    if (res?.partner) {
-      setDeliveries((prev) => [res.partner, ...prev]);
-    } else {
-      fetchDeliveries();
+  const handleToggleAvailability = async (partnerId: string, currentAvail: string) => {
+    const nextAvail = currentAvail === "ONLINE" ? "OFFLINE" : "ONLINE";
+    try {
+      await apiClient.updatePartnerAvailability(partnerId, nextAvail, "Admin Table Quick Toggle");
+      fetchPartners();
+    } catch (err: any) {
+      alert(err.message || "Failed to update availability");
     }
-    setSuccessMsg(`Successfully registered delivery partner "${name}"!`);
-    setName("");
-    setPhone("");
-    setSubmitting(false);
-    setTimeout(() => {
-      setShowCreateModal(false);
-      setSuccessMsg(null);
-    }, 1500);
   };
 
-  const statusColor = (s: string) => {
-    const map: Record<string, "green" | "orange" | "blue" | "red" | "grey"> = {
-      active: "green", online: "green", assigned: "blue", in_transit: "blue",
-      offline: "grey", busy: "orange", suspended: "red",
-    };
-    return map[s?.toLowerCase()] || "green";
+  const handleSaveRules = async () => {
+    setSavingRules(true);
+    try {
+      await apiClient.updateDeliveryAssignmentRules(rules);
+      setShowRulesModal(false);
+      alert("✓ Delivery Assignment Engine configuration rules updated successfully.");
+    } catch (err: any) {
+      alert(err.message || "Failed to save assignment rules.");
+    } finally {
+      setSavingRules(false);
+    }
   };
+
+  // Compute fleet KPI counts
+  const totalFleet = partners.length;
+  const onlineCount = partners.filter((p: any) => p.availability_status === "ONLINE").length;
+  const busyCount = partners.filter((p: any) => p.availability_status === "BUSY" || (p.current_active_orders || 0) > 0).length;
+  const inactiveCount = partners.filter((p: any) => p.status === "inactive" || p.status === "suspended").length;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      {/* Top Bar Header */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <Heading level="h2" className="text-xl">Delivery Fleet & Coverage Area Management</Heading>
-          <Text className="text-ui-fg-subtle text-sm">Register delivery partners and monitor live delivery map coverage zones.</Text>
+          <div className="flex items-center gap-2">
+            <Heading level="h2" className="text-xl">Enterprise Delivery Partner Management &amp; Fleet Operations</Heading>
+            <Badge color="purple" className="font-mono text-xs font-bold">CTH-DISPATCH-V2</Badge>
+          </div>
+          <Text className="text-ui-fg-subtle text-sm">
+            Manage onboarding, branch associations, working shifts, inherited coverage, and backend automatic rider dispatch engine.
+          </Text>
         </div>
+
         <div className="flex items-center gap-2">
-          <Button size="small" variant="secondary" onClick={fetchDeliveries} className="flex items-center gap-1.5 text-xs">
+          <Button size="small" variant="secondary" onClick={() => setShowRulesModal(true)} className="flex items-center gap-1.5 text-xs">
+            <Settings className="w-3.5 h-3.5" /> Assignment Rules
+          </Button>
+          <Button size="small" variant="secondary" onClick={fetchPartners} className="flex items-center gap-1.5 text-xs">
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </Button>
-          <Button size="small" onClick={() => setShowCreateModal(true)} className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white">
+          <Button size="small" onClick={() => setShowWizard(true)} className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold">
             <Plus className="w-4 h-4" /> Register Delivery Partner
           </Button>
-          <Badge color="purple">{deliveries.length} partners</Badge>
         </div>
       </div>
+
+      {/* Fleet KPI Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Fleet</span>
+            <span className="text-2xl font-extrabold text-slate-900 dark:text-white">{totalFleet}</span>
+          </div>
+          <Truck className="w-8 h-8 text-blue-600 opacity-75" />
+        </div>
+
+        <div className="p-4 bg-emerald-50/60 dark:bg-emerald-950/20 rounded-2xl border border-emerald-200 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider block">ONLINE &amp; Ready</span>
+            <span className="text-2xl font-extrabold text-emerald-800 dark:text-emerald-200">{onlineCount}</span>
+          </div>
+          <CheckCircle2 className="w-8 h-8 text-emerald-600 opacity-80" />
+        </div>
+
+        <div className="p-4 bg-amber-50/60 dark:bg-amber-950/20 rounded-2xl border border-amber-200 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-extrabold text-amber-700 dark:text-amber-300 uppercase tracking-wider block">On Active Delivery / Busy</span>
+            <span className="text-2xl font-extrabold text-amber-800 dark:text-amber-200">{busyCount}</span>
+          </div>
+          <Clock className="w-8 h-8 text-amber-600 opacity-80" />
+        </div>
+
+        <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Inactive / Deactivated</span>
+            <span className="text-2xl font-extrabold text-slate-500">{inactiveCount}</span>
+          </div>
+          <Power className="w-8 h-8 text-slate-400 opacity-60" />
+        </div>
+      </div>
+
+      {/* Multi-Filter & Search Bar */}
+      <Container className="p-4 bg-white dark:bg-slate-900 rounded-2xl border shadow-sm space-y-3">
+        <div className="flex flex-col md:flex-row items-center gap-3">
+          <div className="relative flex-1 w-full">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by Partner ID (CTH-DP-XXXXXX), Name, Phone, Email, Branch, Pincode..."
+              className="pl-9 text-xs"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto">
+            {/* Branch Filter */}
+            <Select value={filterBranch} onValueChange={(val) => setFilterBranch(val)}>
+              <Select.Trigger className="text-xs min-w-[150px]"><Select.Value placeholder="Branch: All" /></Select.Trigger>
+              <Select.Content>
+                <Select.Item value="all">Branch: All Hubs</Select.Item>
+                {branches.map((b: any) => (
+                  <Select.Item key={b.id} value={b.id}>{b.name}</Select.Item>
+                ))}
+              </Select.Content>
+            </Select>
+
+            {/* Account Status Filter */}
+            <Select value={filterStatus} onValueChange={(val) => setFilterStatus(val)}>
+              <Select.Trigger className="text-xs min-w-[130px]"><Select.Value placeholder="Account: All" /></Select.Trigger>
+              <Select.Content>
+                <Select.Item value="all">Account: All</Select.Item>
+                <Select.Item value="active">Active Only</Select.Item>
+                <Select.Item value="inactive">Inactive Only</Select.Item>
+                <Select.Item value="suspended">Suspended Only</Select.Item>
+              </Select.Content>
+            </Select>
+
+            {/* Availability Filter */}
+            <Select value={filterAvailability} onValueChange={(val) => setFilterAvailability(val)}>
+              <Select.Trigger className="text-xs min-w-[140px]"><Select.Value placeholder="Availability: All" /></Select.Trigger>
+              <Select.Content>
+                <Select.Item value="all">Availability: All</Select.Item>
+                <Select.Item value="ONLINE">ONLINE Only</Select.Item>
+                <Select.Item value="OFFLINE">OFFLINE Only</Select.Item>
+                <Select.Item value="ON_BREAK">ON BREAK Only</Select.Item>
+                <Select.Item value="BUSY">BUSY Only</Select.Item>
+              </Select.Content>
+            </Select>
+
+            {/* Shift Working Now Checkbox */}
+            <label className="flex items-center gap-1.5 p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-semibold whitespace-nowrap cursor-pointer hover:bg-slate-200">
+              <input
+                type="checkbox"
+                checked={filterWorkingNow}
+                onChange={(e) => setFilterWorkingNow(e.target.checked)}
+                className="w-4 h-4 accent-blue-600 rounded"
+              />
+              <span>In Shift Now</span>
+            </label>
+          </div>
+        </div>
+      </Container>
 
       {error && (
         <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center justify-between">
           <span>⚠️ {error}</span>
-          <Button size="small" variant="secondary" onClick={fetchDeliveries}>Retry Fetch</Button>
+          <Button size="small" variant="secondary" onClick={fetchPartners}>Retry Fetch</Button>
         </div>
       )}
 
-      {showCreateModal && (
-        <WidgetErrorBoundary moduleName="Register Partner Modal" compact>
-          <Container className="p-6 border-2 border-blue-500/30 bg-blue-50/20 dark:bg-blue-950/20">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Truck className="w-5 h-5 text-blue-600" />
-                <Text className="font-semibold text-base">Register New Fleet Delivery Partner</Text>
-              </div>
-              <button onClick={() => setShowCreateModal(false)} className="text-xs text-ui-fg-subtle hover:underline">Close</button>
-            </div>
-
-            <form onSubmit={handleRegisterPartner} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="dlp_name">Driver Full Name</Label>
-                <Input
-                  id="dlp_name"
-                  placeholder="e.g. Vikram Singh"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="dlp_phone">Mobile Number</Label>
-                <Input
-                  id="dlp_phone"
-                  placeholder="+91 98765 12345"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="md:col-span-2">
-                <Label htmlFor="dlp_zone">Assigned Delivery Zone</Label>
-                <Input
-                  id="dlp_zone"
-                  placeholder="Koramangala & HSR Zone"
-                  value={zone}
-                  onChange={(e) => setZone(e.target.value)}
-                />
-              </div>
-              <div className="md:col-span-2 flex items-center justify-end gap-3 mt-2">
-                <Button type="button" variant="secondary" onClick={() => setShowCreateModal(false)}>Cancel</Button>
-                <Button type="submit" isLoading={submitting} className="bg-blue-600 hover:bg-blue-700 text-white">
-                  Authorize Partner Account
-                </Button>
-              </div>
-              {successMsg && (
-                <div className="md:col-span-2 p-3 bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 text-emerald-800 dark:text-emerald-200 text-xs rounded">
-                  ✓ {successMsg}
-                </div>
-              )}
-            </form>
-          </Container>
-        </WidgetErrorBoundary>
-      )}
-
-      <WidgetErrorBoundary moduleName="Delivery Fleet Table" onRetry={fetchDeliveries} compact>
+      {/* Expanded Production Partner Table */}
+      <WidgetErrorBoundary moduleName="Delivery Fleet Table" onRetry={fetchPartners} compact>
         {loading ? (
-          <TableSkeleton rows={5} cols={5} />
+          <TableSkeleton rows={6} cols={10} />
         ) : (
-          <Container className="p-0 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-ui-bg-subtle">
-                  <th className="text-left p-3 text-xs font-semibold text-ui-fg-subtle">Partner ID</th>
-                  <th className="text-left p-3 text-xs font-semibold text-ui-fg-subtle">Name</th>
-                  <th className="text-left p-3 text-xs font-semibold text-ui-fg-subtle">Phone</th>
-                  <th className="text-left p-3 text-xs font-semibold text-ui-fg-subtle">Status</th>
-                  <th className="text-left p-3 text-xs font-semibold text-ui-fg-subtle">Rating</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deliveries.map((d: any, i: number) => {
-                  if (!d) return null;
-                  const partnerName = d.first_name ? `${d.first_name} ${d.last_name || ""}` : d.name || d.partner_name || `Partner #${i + 1}`;
-                  return (
-                    <tr key={d.id || i} className="border-b hover:bg-ui-bg-subtle-hover transition-colors">
-                      <td className="p-3 font-mono text-xs">{d.id || `DLP-${i + 1}`}</td>
-                      <td className="p-3 text-xs font-medium">{partnerName}</td>
-                      <td className="p-3 text-xs">{d.phone || "—"}</td>
-                      <td className="p-3"><StatusBadge color={statusColor(d.status)} className="text-[10px]">{d.status || "active"}</StatusBadge></td>
-                      <td className="p-3 text-xs">⭐ {d.rating || "5.0"}</td>
+          <Container className="p-0 overflow-hidden shadow-sm border rounded-2xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead>
+                  <tr className="border-b bg-slate-900 text-white font-bold tracking-wider">
+                    <th className="p-3.5 whitespace-nowrap">Partner ID</th>
+                    <th className="p-3.5 whitespace-nowrap">Rider Identity</th>
+                    <th className="p-3.5 whitespace-nowrap">Contact</th>
+                    <th className="p-3.5 whitespace-nowrap">Primary Hub / Branch</th>
+                    <th className="p-3.5 whitespace-nowrap text-center">Account Status</th>
+                    <th className="p-3.5 whitespace-nowrap text-center">Live Availability</th>
+                    <th className="p-3.5 whitespace-nowrap">Coverage Pincodes</th>
+                    <th className="p-3.5 whitespace-nowrap text-center">Active Load</th>
+                    <th className="p-3.5 whitespace-nowrap text-center">Deliveries</th>
+                    <th className="p-3.5 whitespace-nowrap text-center">Rating</th>
+                    <th className="p-3.5 whitespace-nowrap text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {partners.length === 0 ? (
+                    <tr>
+                      <td colSpan={12} className="p-12 text-center text-slate-400">
+                        No delivery partners found matching current filters.
+                      </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  ) : (
+                    partners.map((p: any) => {
+                      const isOnline = p.availability_status === "ONLINE";
+                      const isAccountActive = p.status === "active";
+                      const partnerName = p.full_name || p.name || `${p.first_name || "Driver"} ${p.last_name || ""}`.trim();
+                      const partnerNum = p.partner_number || p.id || "CTH-DP-000000";
+
+                      return (
+                        <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                          {/* Partner ID */}
+                          <td className="p-3.5 font-mono font-bold text-blue-600 whitespace-nowrap">
+                            {partnerNum}
+                          </td>
+
+                          {/* Rider Identity */}
+                          <td className="p-3.5 whitespace-nowrap">
+                            <div className="flex items-center gap-2.5">
+                              <img
+                                src={p.profile_photo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200"}
+                                className="w-8 h-8 rounded-full object-cover border"
+                                alt="Rider"
+                              />
+                              <div>
+                                <span className="font-extrabold text-slate-900 dark:text-white block">{partnerName}</span>
+                                <span className="text-[10px] text-slate-400">Joined {p.joining_date || "2024"}</span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Contact */}
+                          <td className="p-3.5 whitespace-nowrap font-mono text-[11px]">
+                            <div>{p.phone}</div>
+                            <div className="text-[10px] text-slate-400">{p.city || "Bengaluru"}</div>
+                          </td>
+
+                          {/* Primary Hub */}
+                          <td className="p-3.5 whitespace-nowrap">
+                            <span className="font-bold text-slate-800 dark:text-slate-200 block">{p.primary_branch_name || "Indiranagar Kitchen"}</span>
+                            {(p.associated_branches?.length > 1) && (
+                              <span className="text-[10px] text-purple-600 font-semibold block">+{p.associated_branches.length - 1} secondary hub(s)</span>
+                            )}
+                          </td>
+
+                          {/* Account Status */}
+                          <td className="p-3.5 whitespace-nowrap text-center">
+                            <Badge color={isAccountActive ? "green" : "red"} className="text-[9px] uppercase font-extrabold">
+                              {p.status || "active"}
+                            </Badge>
+                          </td>
+
+                          {/* Live Availability Toggle */}
+                          <td className="p-3.5 whitespace-nowrap text-center">
+                            <button
+                              onClick={() => handleToggleAvailability(p.id, p.availability_status)}
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase transition-all shadow-sm flex items-center gap-1 mx-auto ${
+                                isOnline
+                                  ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                                  : p.availability_status === "BUSY"
+                                  ? "bg-amber-500 text-white hover:bg-amber-600"
+                                  : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300"
+                              }`}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-white animate-ping" : "bg-slate-400"}`} />
+                              {p.availability_status || "OFFLINE"}
+                            </button>
+                          </td>
+
+                          {/* Coverage Pincodes */}
+                          <td className="p-3.5 whitespace-nowrap font-mono text-[10px]">
+                            {(p.coverage?.pincodes || [p.pincode || "560038"]).slice(0, 3).join(", ")}
+                            {(p.coverage?.pincodes?.length > 3) && ` (+${p.coverage.pincodes.length - 3})`}
+                          </td>
+
+                          {/* Active Load */}
+                          <td className="p-3.5 whitespace-nowrap text-center font-bold">
+                            <span className={p.current_active_orders > 0 ? "text-blue-600 font-extrabold" : "text-slate-400"}>
+                              {p.current_active_orders || 0} / {p.maximum_concurrent_orders || 5}
+                            </span>
+                          </td>
+
+                          {/* Deliveries */}
+                          <td className="p-3.5 whitespace-nowrap text-center font-mono">
+                            <span className="font-bold text-slate-800 dark:text-slate-200">{p.total_deliveries || 0}</span>
+                          </td>
+
+                          {/* Rating */}
+                          <td className="p-3.5 whitespace-nowrap text-center font-bold text-amber-600">
+                            ⭐ {p.rating || "5.0"}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="p-3.5 whitespace-nowrap text-right">
+                            <Button
+                              size="small"
+                              variant="secondary"
+                              onClick={() => setSelectedPartnerId(p.id)}
+                              className="flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-800"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> View Profile
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </Container>
         )}
       </WidgetErrorBoundary>
 
-      {/* Embedded Delivery Coverage Map & Pincodes Matrix */}
+      {/* Embedded Delivery Coverage Map */}
       <WidgetErrorBoundary moduleName="Delivery Coverage Map Widget" compact>
         <div className="mt-4 pt-4 border-t border-ui-border-base">
           <DeliveryCoverageMap />
         </div>
       </WidgetErrorBoundary>
+
+      {/* Multi-Step Onboarding Wizard Modal */}
+      <DeliveryPartnerWizard
+        isOpen={showWizard}
+        onClose={() => setShowWizard(false)}
+        onSuccess={(newPartner) => {
+          fetchPartners();
+          setSelectedPartnerId(newPartner.id);
+        }}
+        branches={branches}
+      />
+
+      {/* Partner 13-Tab Details Profile Drawer */}
+      <DeliveryPartnerDetailsDrawer
+        partnerId={selectedPartnerId}
+        isOpen={Boolean(selectedPartnerId)}
+        onClose={() => setSelectedPartnerId(null)}
+        onRefresh={fetchPartners}
+        branches={branches}
+      />
+
+      {/* Assignment Rules Engine Configuration Modal */}
+      {showRulesModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border w-full max-w-xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-blue-600" />
+                <Heading level="h3" className="text-base">Automatic Rider Assignment Engine Configuration</Heading>
+              </div>
+              <button onClick={() => setShowRulesModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <label className="flex items-center justify-between p-3 border rounded-xl bg-slate-50 dark:bg-slate-800 cursor-pointer">
+                <div>
+                  <span className="font-extrabold text-slate-800 dark:text-slate-200 block">Require ONLINE Availability Status</span>
+                  <span className="text-[11px] text-slate-500">Only dispatch orders to partners with availability_status = ONLINE.</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={rules.require_online_status}
+                  onChange={(e) => setRules({ ...rules, require_online_status: e.target.checked })}
+                  className="w-5 h-5 accent-blue-600 rounded cursor-pointer"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3 border rounded-xl bg-slate-50 dark:bg-slate-800 cursor-pointer">
+                <div>
+                  <span className="font-extrabold text-slate-800 dark:text-slate-200 block">Enforce Daily Shift Working Hours</span>
+                  <span className="text-[11px] text-slate-500">Verify local branch time falls within partner's weekly shift schedule.</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={rules.require_working_hours}
+                  onChange={(e) => setRules({ ...rules, require_working_hours: e.target.checked })}
+                  className="w-5 h-5 accent-blue-600 rounded cursor-pointer"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3 border rounded-xl bg-slate-50 dark:bg-slate-800 cursor-pointer">
+                <div>
+                  <span className="font-extrabold text-slate-800 dark:text-slate-200 block">Allow Cross-Branch Fallback Dispatch</span>
+                  <span className="text-[11px] text-slate-500">If no partner in assigned hub is available, dispatch to adjacent secondary hub partners.</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={rules.allow_cross_branch_fallback}
+                  onChange={(e) => setRules({ ...rules, allow_cross_branch_fallback: e.target.checked })}
+                  className="w-5 h-5 accent-blue-600 rounded cursor-pointer"
+                />
+              </label>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t">
+              <Button variant="secondary" onClick={() => setShowRulesModal(false)}>Cancel</Button>
+              <Button onClick={handleSaveRules} isLoading={savingRules} className="bg-blue-600 hover:bg-blue-700 text-white font-bold">
+                Save Assignment Rules
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
-

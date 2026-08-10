@@ -42,7 +42,6 @@ describe("CRM Module - Notes & Customer 360 Unit/Integration Tests", () => {
 
     const dependencies = {
       query: mockQuery,
-      rewardsModuleService: mockRewardsService,
       customerModuleService: mockCustomerService,
     };
 
@@ -183,27 +182,13 @@ describe("CRM Module - Notes & Customer 360 Unit/Integration Tests", () => {
       const profile = await service.getCustomer360Profile("cust_1");
 
       expect(profile.customer).toEqual(expect.objectContaining({ id: "cust_1" }));
-      expect(profile.wallet.balance).toBe(500);
-      expect(profile.loyalty.points).toBe(120);
-      expect(profile.referrals.codes).toHaveLength(1);
-      expect(profile.referrals.events_count).toBe(2);
-      expect(profile.rfm.segment).toBe("Champions");
-      expect(profile.blacklist.is_blacklisted).toBe(true);
-      expect(profile.notes).toHaveLength(1);
-    });
-
-    it("should aggregate profile cleanly for customer without rewards", async () => {
-      mockRewardsService.listWallets.mockResolvedValue([]);
-      mockRewardsService.listLoyaltyLedgers.mockResolvedValue([]);
-      mockRewardsService.listReferralCodes.mockResolvedValue([]);
-      mockRewardsService.listReferralEvents.mockResolvedValue([]);
-
-      const profile = await service.getCustomer360Profile("cust_1");
-
       expect(profile.wallet).toBeNull();
       expect(profile.loyalty).toBeNull();
       expect(profile.referrals.codes).toHaveLength(0);
       expect(profile.referrals.events_count).toBe(0);
+      expect(profile.rfm.segment).toBe("Champions");
+      expect(profile.blacklist.is_blacklisted).toBe(true);
+      expect(profile.notes).toHaveLength(1);
     });
 
     it("should aggregate profile cleanly for customer without notes or blacklist", async () => {
@@ -212,10 +197,7 @@ describe("CRM Module - Notes & Customer 360 Unit/Integration Tests", () => {
       expect(profile.blacklist).toBeNull();
     });
 
-    it("should aggregate profile cleanly even if optional rewards service is missing", async () => {
-      // Set rewards service to null in container
-      service.container.rewardsModuleService = null;
-
+    it("should aggregate profile cleanly when rewards module is disabled", async () => {
       const profile = await service.getCustomer360Profile("cust_1");
 
       expect(profile.wallet).toBeNull();

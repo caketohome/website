@@ -8,12 +8,12 @@ import { ExpenseNotFoundError, ExpenseValidationError, FranchiseNotFoundError, F
  * Analytics module service.
  * Ingests structured events and computes aggregate metrics for dashboards/reports.
  */
-class AnalyticsModuleService extends MedusaService({
+class AnalyticsModuleService extends (MedusaService({
     AnalyticsEvent,
     Expense,
     Franchise,
     ReportSchedule,
-}) {
+}) as any) {
     protected container: any;
     public static emitter = new EventEmitter();
 
@@ -417,11 +417,15 @@ class AnalyticsModuleService extends MedusaService({
 
     private filterOrders(
         orders: any[],
-        options?: { from?: Date; to?: Date; branch_id?: string; franchise_id?: string }
+        options?: { from?: Date; to?: Date; branch_id?: string; branch_ids?: string[]; franchise_id?: string }
     ): any[] {
         return orders.filter((o) => {
             if (o.status === "canceled") return false;
-            if (options?.branch_id && o.branch_id !== options.branch_id) return false;
+            if (options?.branch_ids && options.branch_ids.length > 0) {
+                if (!options.branch_ids.includes(o.branch_id)) return false;
+            } else if (options?.branch_id && options.branch_id !== "all" && o.branch_id !== options.branch_id) {
+                return false;
+            }
             if (options?.franchise_id && o.franchise_id !== options.franchise_id) return false;
             if (options?.from) {
                 const fromTime = new Date(options.from).getTime();
@@ -438,10 +442,14 @@ class AnalyticsModuleService extends MedusaService({
     private filterExpenses(
         expenses: any[],
         franchises: any[],
-        options?: { from?: Date; to?: Date; branch_id?: string; franchise_id?: string }
+        options?: { from?: Date; to?: Date; branch_id?: string; branch_ids?: string[]; franchise_id?: string }
     ): any[] {
         return expenses.filter((e) => {
-            if (options?.branch_id && e.branch_id !== options.branch_id) return false;
+            if (options?.branch_ids && options.branch_ids.length > 0) {
+                if (!options.branch_ids.includes(e.branch_id)) return false;
+            } else if (options?.branch_id && options.branch_id !== "all" && e.branch_id !== options.branch_id) {
+                return false;
+            }
             if (options?.franchise_id) {
                 const fran = franchises.find((f: any) => f.id === options.franchise_id);
                 if (!fran || e.branch_id !== fran.shop_id) return false;
@@ -595,7 +603,7 @@ class AnalyticsModuleService extends MedusaService({
         return this.groupTrend(trendItems, options?.interval || "daily");
     }
 
-    async getDashboardSummary(options?: { from?: Date; to?: Date; branch_id?: string; franchise_id?: string; interval?: "daily" | "weekly" | "monthly" }): Promise<any> {
+    async getDashboardSummary(options?: { from?: Date; to?: Date; branch_id?: string; branch_ids?: string[]; franchise_id?: string; interval?: "daily" | "weekly" | "monthly" }): Promise<any> {
         await this.validateOptions(options);
         const revenue = await this.totalRevenue(options);
         const expenses = await this.totalExpenses(options);

@@ -57,34 +57,9 @@ export class Migration20260718180000 extends Migration {
     `);
     this.addSql(`CREATE INDEX IF NOT EXISTS "IDX_crm_automation_log_execution_id" ON "crm_automation_log" ("execution_id") WHERE deleted_at IS NULL;`);
     this.addSql(`CREATE INDEX IF NOT EXISTS "IDX_crm_automation_log_deleted_at" ON "crm_automation_log" ("deleted_at") WHERE deleted_at IS NULL;`);
-
-    this.addSql(`
-      create table if not exists "crm_ab_test" (
-        "id" text not null,
-        "name" text not null,
-        "test_type" text not null,
-        "target_id" text not null,
-        "variant_a_id" text not null,
-        "variant_b_id" text not null,
-        "ratio_a" integer not null default 50,
-        "ratio_b" integer not null default 50,
-        "metrics_a" text not null default '{"impressions":0,"conversions":0}',
-        "metrics_b" text not null default '{"impressions":0,"conversions":0}',
-        "status" text not null default 'draft',
-        "winner" text null,
-        "confidence_score" real not null default 0.0,
-        "created_at" timestamptz not null default now(),
-        "updated_at" timestamptz not null default now(),
-        "deleted_at" timestamptz null,
-        constraint "crm_ab_test_pkey" primary key ("id")
-      );
-    `);
-    this.addSql(`CREATE INDEX IF NOT EXISTS "IDX_crm_ab_test_target_id" ON "crm_ab_test" ("target_id") WHERE deleted_at IS NULL;`);
-    this.addSql(`CREATE INDEX IF NOT EXISTS "IDX_crm_ab_test_deleted_at" ON "crm_ab_test" ("deleted_at") WHERE deleted_at IS NULL;`);
   }
 
   override async down(): Promise<void> {
-    this.addSql(`drop table if exists "crm_ab_test" cascade;`);
     this.addSql(`drop table if exists "crm_automation_log" cascade;`);
     this.addSql(`drop table if exists "crm_automation_execution" cascade;`);
     this.addSql(`drop table if exists "crm_email_template" cascade;`);

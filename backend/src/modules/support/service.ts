@@ -3,13 +3,13 @@ import { EventEmitter } from "events";
 import { ChatSession, ChatMessage, SupportTicket, TicketMessage, ContactSubmission } from "./models";
 import { SupportValidationError, SupportNotFoundError } from "./errors";
 
-class SupportModuleService extends MedusaService({
+class SupportModuleService extends (MedusaService({
   ChatSession,
   ChatMessage,
   SupportTicket,
   TicketMessage,
   ContactSubmission,
-}) {
+}) as any) {
   protected container: any;
   public static chatEmitter = new EventEmitter();
 

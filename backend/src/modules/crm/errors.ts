@@ -107,23 +107,3 @@ export class TemplateValidationError extends Error {
     this.name = "TemplateValidationError";
   }
 }
-
-export class ABTestNotFoundError extends Error {
-  public code = "AB_TEST_NOT_FOUND";
-  public status = 404;
-
-  constructor(abTestId: string) {
-    super(`A/B Test with ID ${abTestId} not found.`);
-    this.name = "ABTestNotFoundError";
-  }
-}
-
-export class ABTestValidationError extends Error {
-  public code = "AB_TEST_VALIDATION_FAILED";
-  public status = 400;
-
-  constructor(message: string) {
-    super(message);
-    this.name = "ABTestValidationError";
-  }
-}

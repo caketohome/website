@@ -13,9 +13,14 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
   const analyticsService = req.scope.resolve(ANALYTICS_MODULE) as any;
 
-  const { branch_id, franchise_id, interval } = req.query as Record<string, string>;
+  const { branch_id, branch_ids: rawBranchIds, franchise_id, interval } = req.query as Record<string, string>;
   const fromStr = req.query.from as string | undefined;
   const toStr = req.query.to as string | undefined;
+
+  let branch_ids: string[] | undefined;
+  if (rawBranchIds) {
+    branch_ids = Array.isArray(rawBranchIds) ? (rawBranchIds as string[]) : (rawBranchIds as string).split(",");
+  }
 
   let from: Date | undefined;
   let to: Date | undefined;
@@ -38,6 +43,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       from,
       to,
       branch_id,
+      branch_ids,
       franchise_id,
       interval: (interval as any) || "daily",
     });

@@ -6,17 +6,14 @@ import { GET as listAutomationApi, POST as createAutomationApi } from "../../../
 import { GET as getAutomationApi, POST as updateAutomationApi, DELETE as deleteAutomationApi } from "../../../api/admin/crm/automation/[id]/route";
 import { POST as triggerAutomationApi } from "../../../api/admin/crm/automation/[id]/trigger/route";
 import { GET as listExecutionsApi } from "../../../api/admin/crm/automation/executions/route";
-import { GET as listABTestsApi, POST as createABTestApi } from "../../../api/admin/crm/ab-tests/route";
-import { GET as getABTestApi, POST as updateABTestApi, DELETE as deleteABTestApi } from "../../../api/admin/crm/ab-tests/[id]/route";
 import { GET as getAnalyticsApi } from "../../../api/admin/crm/analytics/route";
-import { TemplateNotFoundError, TemplateValidationError, ABTestNotFoundError, ABTestValidationError } from "../errors";
+import { TemplateNotFoundError, TemplateValidationError } from "../errors";
 
 describe("CRM Module - Marketing API Hardening Unit Tests", () => {
   let service: any;
   let templateStore: any[];
   let flowStore: any[];
   let executionStore: any[];
-  let abTestStore: any[];
   let mockReq: any;
   let mockRes: any;
 
@@ -24,7 +21,6 @@ describe("CRM Module - Marketing API Hardening Unit Tests", () => {
     templateStore = [];
     flowStore = [];
     executionStore = [];
-    abTestStore = [];
 
     const dependencies = {
       orderModuleService: {
@@ -53,20 +49,12 @@ describe("CRM Module - Marketing API Hardening Unit Tests", () => {
     service.triggerAutomationFlow = jest.fn().mockResolvedValue(undefined);
     service.runDelayedAutomationSteps = jest.fn().mockResolvedValue(undefined);
 
-    // Mock A/B test methods
-    service.listABTests = jest.fn(async (sel: any) => abTestStore);
-    service.retrieveABTest = jest.fn(async (id: string) => { const m = abTestStore.find((t) => t.id === id); if (!m) throw new ABTestNotFoundError(id); return m; });
-    service.createABTests = jest.fn(async (arr: any[]) => { const c = arr.map((t, i) => ({ id: `crm_ab_${i + 1}`, ...t })); abTestStore.push(...c); return c; });
-    service.updateABTests = jest.fn(async (args: any) => { const m = abTestStore.filter((t) => Object.entries(args.selector).every(([k, v]) => t[k] === v)); m.forEach((t) => Object.assign(t, args.data)); return m; });
-    service.deleteABTests = jest.fn(async (ids: string[]) => { abTestStore = abTestStore.filter((t) => !ids.includes(t.id)); });
-
     // Mock analytics
     service.getMarketingDashboardAnalytics = jest.fn().mockResolvedValue({
       revenue_lift: 50000,
       conversion_rate: 25,
       repeat_purchase_rate: 40,
       funnel: { active_audiences: 10, completed_conversions: 3 },
-      ab_tests_count: 2,
     });
 
     mockReq = {
@@ -80,7 +68,7 @@ describe("CRM Module - Marketing API Hardening Unit Tests", () => {
           return null;
         }),
       },
-      auth_context: { actor_id: "admin_1" },
+      auth_context: { actor_id: "usr_admin_1" },
     };
 
     mockRes = {
@@ -89,8 +77,8 @@ describe("CRM Module - Marketing API Hardening Unit Tests", () => {
     };
   });
 
-  describe("Authentication Gates", () => {
-    test("all template endpoints return 401 without auth", async () => {
+  describe("API Authentication Guards", () => {
+    test("all templates endpoints return 401 without auth", async () => {
       delete mockReq.auth_context;
 
       await listTemplatesApi(mockReq, mockRes);
@@ -134,25 +122,6 @@ describe("CRM Module - Marketing API Hardening Unit Tests", () => {
       expect(mockRes.status).toHaveBeenCalledWith(401);
 
       await listExecutionsApi(mockReq, mockRes);
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-    });
-
-    test("all ab-tests endpoints return 401 without auth", async () => {
-      delete mockReq.auth_context;
-
-      await listABTestsApi(mockReq, mockRes);
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-
-      await createABTestApi(mockReq, mockRes);
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-
-      await getABTestApi(mockReq, mockRes);
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-
-      await updateABTestApi(mockReq, mockRes);
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-
-      await deleteABTestApi(mockReq, mockRes);
       expect(mockRes.status).toHaveBeenCalledWith(401);
     });
 
@@ -230,31 +199,6 @@ describe("CRM Module - Marketing API Hardening Unit Tests", () => {
     test("GET /automation/executions returns list", async () => {
       await listExecutionsApi(mockReq, mockRes);
       expect(mockRes.status).toHaveBeenCalledWith(200);
-    });
-  });
-
-  describe("A/B Test API Happy Paths", () => {
-    test("GET /ab-tests returns list", async () => {
-      await listABTestsApi(mockReq, mockRes);
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-    });
-
-    test("POST /ab-tests creates test", async () => {
-      mockReq.body = {
-        name: "Test",
-        test_type: "campaign",
-        target_id: "camp_1",
-        variant_a_id: "a",
-        variant_b_id: "b",
-      };
-      await createABTestApi(mockReq, mockRes);
-      expect(mockRes.status).toHaveBeenCalledWith(201);
-    });
-
-    test("DELETE /ab-tests/:id returns 404 on missing test", async () => {
-      mockReq.params.id = "crm_ab_missing";
-      await deleteABTestApi(mockReq, mockRes);
-      expect(mockRes.status).toHaveBeenCalledWith(404);
     });
   });
 

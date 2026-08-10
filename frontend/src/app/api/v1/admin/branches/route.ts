@@ -7,11 +7,6 @@ export async function GET(req: NextRequest) {
     const branchId = searchParams.get("branchId");
     const action = searchParams.get("action");
 
-    if (action === "store_mappings") {
-      const storeMappings = ApiEngine.listStoreMappings();
-      const stores = ApiEngine.listStores();
-      return NextResponse.json({ storeMappings, stores, success: true });
-    }
     if (branchId && action === "analytics") {
       const analytics = ApiEngine.getBranchAnalytics(branchId);
       return NextResponse.json({ analytics, success: true });
@@ -23,8 +18,7 @@ export async function GET(req: NextRequest) {
 
     const branches = ApiEngine.listBranches();
     const cityAreas = ApiEngine.listCityAreasPincodes();
-    const stores = ApiEngine.listStores();
-    return NextResponse.json({ branches, cityAreas, stores, success: true });
+    return NextResponse.json({ branches, cityAreas, success: true });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

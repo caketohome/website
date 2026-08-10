@@ -121,7 +121,7 @@ describe("Phase 16 - Acceptance Stress & Latency Tests", () => {
 
     // Attempting 11th reservation must fail with limit exceptions
     await expect(
-      shopService.createSlotReservation("cart_failed", "br_gurgaon", new Date().toISOString())
+      shopService.reserveSlot("cart_failed", "br_gurgaon", new Date().toISOString())
     ).rejects.toThrow("Target capacity slot is fully booked.");
   });
 });

@@ -1,6 +1,6 @@
 import { MedusaService } from "@medusajs/utils";
-import { CustomerRFM, CustomerBlacklist, CustomerNote, Campaign, AutomationFlow, Segment, CustomerSegment, EmailTemplate, AutomationExecution, AutomationLog, ABTest } from "./models";
-import { CustomerNotFoundError, NoteNotFoundError, NotePermissionError, NoteValidationError, CampaignNotFoundError, CampaignValidationError, CampaignArchivedError, SegmentNotFoundError, SegmentValidationError, TemplateNotFoundError, TemplateValidationError, ABTestNotFoundError, ABTestValidationError } from "./errors";
+import { CustomerRFM, CustomerBlacklist, CustomerNote, Campaign, AutomationFlow, Segment, CustomerSegment, EmailTemplate, AutomationExecution, AutomationLog } from "./models";
+import { CustomerNotFoundError, NoteNotFoundError, NotePermissionError, NoteValidationError, CampaignNotFoundError, CampaignValidationError, CampaignArchivedError, SegmentNotFoundError, SegmentValidationError, TemplateNotFoundError, TemplateValidationError } from "./errors";
 
 export const CRM_DEFAULT_THRESHOLDS = {
   RECENCY_DORMANT: 180,
@@ -14,7 +14,7 @@ export const CRM_DEFAULT_THRESHOLDS = {
   VIP_SILVER: 500000,    // ₹5,000 in paise
 };
 
-class CrmModuleService extends MedusaService({
+class CrmModuleService extends (MedusaService({
   CustomerRFM,
   CustomerBlacklist,
   CustomerNote,
@@ -25,8 +25,7 @@ class CrmModuleService extends MedusaService({
   EmailTemplate,
   AutomationExecution,
   AutomationLog,
-  ABTest,
-}) {
+}) as any) {
   protected container: any;
 
   constructor(dependencies: any, ...args: any[]) {
@@ -359,26 +358,9 @@ class CrmModuleService extends MedusaService({
       blacklist,
       notes,
     ] = await Promise.all([
-      rewardsService
-        ? rewardsService
-            .listWallets({ customer_id: customerId })
-            .then((arr: any[]) => arr[0] || null)
-            .catch(() => null)
-        : Promise.resolve(null),
-      rewardsService
-        ? rewardsService
-            .listLoyaltyLedgers({ customer_id: customerId })
-            .then((arr: any[]) => arr[0] || null)
-            .catch(() => null)
-        : Promise.resolve(null),
-      rewardsService
-        ? Promise.all([
-            rewardsService.listReferralCodes({ customer_id: customerId }).catch(() => []),
-            rewardsService.listReferralEvents({ referrer_id: customerId }).catch(() => []),
-          ])
-            .then(([codes, events]) => ({ codes, events }))
-            .catch(() => ({ codes: [], events: [] }))
-        : Promise.resolve({ codes: [], events: [] }),
+      Promise.resolve(null),
+      Promise.resolve(null),
+      Promise.resolve({ codes: [], events: [] }),
       this.listCustomerRFMs({ customer_id: customerId })
         .then((arr: any[]) => arr[0] || null)
         .catch(() => null),
@@ -731,15 +713,9 @@ class CrmModuleService extends MedusaService({
       orderModule
         ? orderModule.listOrders({ customer_id: customerId }, { select: ["id", "status", "total", "created_at", "metadata", "branch_id"] }).catch(() => [])
         : Promise.resolve([]),
-      rewardsService
-        ? rewardsService.listWallets({ customer_id: customerId }).then((arr: any[]) => arr[0] || null).catch(() => null)
-        : Promise.resolve(null),
-      rewardsService
-        ? rewardsService.listLoyaltyLedgers({ customer_id: customerId }).then((arr: any[]) => arr[0] || null).catch(() => null)
-        : Promise.resolve(null),
-      rewardsService
-        ? rewardsService.listReferralEvents({ referrer_id: customerId }).then((arr: any[]) => arr.length).catch(() => 0)
-        : Promise.resolve(0),
+      Promise.resolve(null),
+      Promise.resolve(null),
+      Promise.resolve(0),
     ]);
 
     if (!customer) return null;
@@ -1214,7 +1190,7 @@ class CrmModuleService extends MedusaService({
           const customerModule = this.container.customerModuleService || this.container.customer;
           const customer = await customerModule.retrieveCustomer(execution.customer_id).catch(() => null);
           const vars = {
-            customer_name: customer ? `${customer.first_name || ""} ${customer.last_name || ""}`.trim() : "Valued Customer",
+            customer_name: customer ? `${customer.first_name || ""} ${customer.last_name || ""}`.trim() || "Customer" : "Customer",
             ...payload,
           };
           const rendered = await this.renderTemplate(step.config.template_id, vars);
@@ -1270,165 +1246,6 @@ class CrmModuleService extends MedusaService({
     }
   }
 
-  // ── CRM A/B Testing Framework ──────────────────────────────────────────────
-
-  async createABTest(data: any): Promise<any> {
-    if (!data.name || !data.name.trim()) {
-      throw new ABTestValidationError("Test name is required.");
-    }
-    if (!data.test_type) {
-      throw new ABTestValidationError("Test type is required.");
-    }
-    if (!data.target_id) {
-      throw new ABTestValidationError("Target ID is required.");
-    }
-    if (!data.variant_a_id || !data.variant_b_id) {
-      throw new ABTestValidationError("Variant A and B IDs are required.");
-    }
-
-    const created = await this.createABTests([
-      {
-        ...data,
-        metrics_a: JSON.stringify({ impressions: 0, conversions: 0 }),
-        metrics_b: JSON.stringify({ impressions: 0, conversions: 0 }),
-        status: data.status || "draft",
-      },
-    ]);
-    return created[0];
-  }
-
-  async updateABTest(id: string, data: any): Promise<any> {
-    const test = await this.retrieveABTest(id).catch(() => null);
-    if (!test) {
-      throw new ABTestNotFoundError(id);
-    }
-
-    const updateData: Record<string, any> = {};
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.status !== undefined) updateData.status = data.status;
-    if (data.winner !== undefined) updateData.winner = data.winner;
-    if (data.confidence_score !== undefined) updateData.confidence_score = Number(data.confidence_score);
-
-    const updated = await this.updateABTests({
-      selector: { id },
-      data: updateData,
-    });
-    return updated[0];
-  }
-
-  async getABTest(id: string): Promise<any> {
-    const test = await this.retrieveABTest(id).catch(() => null) as any;
-    if (!test) {
-      throw new ABTestNotFoundError(id);
-    }
-    return {
-      ...test,
-      metrics_a: JSON.parse(test.metrics_a),
-      metrics_b: JSON.parse(test.metrics_b),
-    };
-  }
-
-  async selectVariantForCustomer(abTestId: string, customerId: string): Promise<string> {
-    const test = await this.retrieveABTest(abTestId).catch(() => null) as any;
-    if (!test || test.status !== "active") return "variant_a";
-
-    // Simple deterministic partitioning hash
-    let hash = 0;
-    const str = `${customerId}:${abTestId}`;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const bucket = Math.abs(hash) % 100;
-
-    const assigned = bucket < (test.ratio_a || 50) ? "variant_a" : "variant_b";
-
-    // Increment impressions counts
-    const mA = JSON.parse(test.metrics_a);
-    const mB = JSON.parse(test.metrics_b);
-
-    if (assigned === "variant_a") {
-      mA.impressions += 1;
-    } else {
-      mB.impressions += 1;
-    }
-
-    await this.updateABTests({
-      selector: { id: abTestId },
-      data: {
-        metrics_a: JSON.stringify(mA),
-        metrics_b: JSON.stringify(mB),
-      },
-    });
-
-    return assigned === "variant_a" ? test.variant_a_id : test.variant_b_id;
-  }
-
-  async recordVariantConversion(abTestId: string, customerId: string, value?: number): Promise<void> {
-    const test = await this.retrieveABTest(abTestId).catch(() => null) as any;
-    if (!test || test.status !== "active") return;
-
-    let hash = 0;
-    const str = `${customerId}:${abTestId}`;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const bucket = Math.abs(hash) % 100;
-    const assigned = bucket < (test.ratio_a || 50) ? "variant_a" : "variant_b";
-
-    const mA = JSON.parse(test.metrics_a);
-    const mB = JSON.parse(test.metrics_b);
-
-    if (assigned === "variant_a") {
-      mA.conversions += 1;
-    } else {
-      mB.conversions += 1;
-    }
-
-    const { winner, confidence } = this.calculateWinner(mA, mB);
-
-    await this.updateABTests({
-      selector: { id: abTestId },
-      data: {
-        metrics_a: JSON.stringify(mA),
-        metrics_b: JSON.stringify(mB),
-        confidence_score: confidence,
-        winner: winner || null,
-        status: winner ? "completed" : "active",
-      },
-    });
-  }
-
-  private calculateWinner(metricsA: any, metricsB: any): { winner: string | null; confidence: number } {
-    const convA = metricsA.conversions || 0;
-    const impA = metricsA.impressions || 0;
-    const convB = metricsB.conversions || 0;
-    const impB = metricsB.impressions || 0;
-
-    if (impA === 0 || impB === 0) return { winner: null, confidence: 0 };
-
-    const rateA = convA / impA;
-    const rateB = convB / impB;
-
-    const p = (convA + convB) / (impA + impB);
-    if (p === 0 || p === 1) return { winner: null, confidence: 0 };
-
-    const se = Math.sqrt(p * (1 - p) * (1 / impA + 1 / impB));
-    const z = Math.abs(rateA - rateB) / se;
-
-    let confidence = 0;
-    if (z >= 2.58) confidence = 99;
-    else if (z >= 1.96) confidence = 95;
-    else if (z >= 1.64) confidence = 90;
-    else confidence = Math.round((1 - Math.exp(-z * z / 2)) * 100);
-
-    let winner: string | null = null;
-    if (confidence >= 95) {
-      winner = rateA > rateB ? "variant_a" : "variant_b";
-    }
-
-    return { winner, confidence };
-  }
-
   // ── Marketing Analytics Dashboard ──────────────────────────────────────────
 
   async getMarketingDashboardAnalytics(): Promise<any> {
@@ -1453,9 +1270,6 @@ class CrmModuleService extends MedusaService({
     const completedExecutionsCount = activeExecutions.filter((e: any) => e.status === "completed").length;
     const conversionRate = activeExecutions.length > 0 ? Math.round((completedExecutionsCount / activeExecutions.length) * 100) : 0;
 
-    // Aggregate A/B tests conversions
-    const abTests = await this.listABTests({});
-
     return {
       revenue_lift: completedOrders.reduce((sum: number, o: any) => sum + (o.total ? Number(o.total) : 0), 0),
       conversion_rate: conversionRate,
@@ -1464,7 +1278,6 @@ class CrmModuleService extends MedusaService({
         active_audiences: activeExecutions.length,
         completed_conversions: completedExecutionsCount,
       },
-      ab_tests_count: abTests.length,
     };
   }
 }

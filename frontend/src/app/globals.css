@@ -32,6 +32,41 @@ body {
   padding: 0;
 }
 
+/* ── GLOBAL DROPDOWN & POPOVER SOLID OPAQUE SURFACE STANDARD ──────────── */
+[data-radix-popper-content-wrapper],
+[role="listbox"],
+[role="menu"],
+[data-state="open"] > [role="menu"],
+.radix-popover-content,
+.medusa-popover-content,
+.dropdown-menu-content,
+.select-content,
+.popover-solid-panel,
+select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  opacity: 1 !important;
+  z-index: 1000 !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.dark [data-radix-popper-content-wrapper],
+.dark [role="listbox"],
+.dark [role="menu"],
+.dark .radix-popover-content,
+.dark .medusa-popover-content,
+.dark .dropdown-menu-content,
+.dark .select-content,
+.dark .popover-solid-panel,
+.dark select option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

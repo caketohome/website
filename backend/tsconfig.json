@@ -20,8 +20,8 @@
     "checkJs": false
   },
   "ts-node": {
-    "swc": true
+    "swc": false
   },
   "include": ["**/*", ".medusa/types/*"],
-  "exclude": ["node_modules", ".medusa/server", ".medusa/admin", ".cache", "plugins", "**/__tests__", "**/*.spec.ts"]
+  "exclude": ["node_modules", ".medusa/server", ".medusa/admin", ".cache", "plugins", "plugins/**", "/plugins", "**/__tests__", "**/*.spec.ts"]
 }

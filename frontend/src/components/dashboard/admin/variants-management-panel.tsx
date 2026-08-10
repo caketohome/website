@@ -3,55 +3,86 @@
 import { useEffect, useState } from "react";
 import { Container, Heading, Text, Badge, Input, Button, Label } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
-import { Sliders, Plus, Edit3, Trash2, RotateCcw, Search, CheckCircle, AlertCircle, Scale, Sparkles, Layers, Gift } from "lucide-react";
+import { Sliders, Plus, Edit3, Trash2, Search, CheckCircle, AlertCircle, Sparkles, Layers, Copy } from "lucide-react";
 import { GridSkeleton } from "./admin-skeletons";
 
 export function VariantsManagementPanel() {
-  const [options, setOptions] = useState<any[]>([]);
-  const [activeType, setActiveType] = useState<"weight" | "shape" | "flavour" | "filling" | "cream" | "topper" | "addon">("weight");
+  const [flavors, setFlavors] = useState<any[]>([]);
+  const [shapes, setShapes] = useState<any[]>([]);
+  const [activeType, setActiveType] = useState<"flavour" | "shape">("flavour");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingOption, setEditingOption] = useState<any | null>(null);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
 
-  // Form State
+  // Common & Flavor Form State
   const [name, setName] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [weightVal, setWeightVal] = useState("");
-  const [unit, setUnit] = useState("kg");
-  const [priceModifier, setPriceModifier] = useState("0");
-  const [displayOrder, setDisplayOrder] = useState("1");
-  const [status, setStatus] = useState("active");
+  const [internalCode, setInternalCode] = useState("");
+  const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [icon, setIcon] = useState("");
+  const [color, setColor] = useState("#9333ea");
+  const [extraPrice, setExtraPrice] = useState("0");
+  const [prepTime, setPrepTime] = useState("0");
+  const [sortOrder, setSortOrder] = useState("1");
+  const [status, setStatus] = useState("active");
+  const [isEnabled, setIsEnabled] = useState(true);
+  const [availOnline, setAvailOnline] = useState(true);
+  const [availStore, setAvailStore] = useState(true);
+  const [availPickup, setAvailPickup] = useState(true);
+  const [availDelivery, setAvailDelivery] = useState(true);
+
+  // Shape Specific
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [additionalPrice, setAdditionalPrice] = useState("0");
+  const [maxWeight, setMaxWeight] = useState("10");
 
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const fetchOptions = () => {
+  const fetchData = () => {
     setLoading(true);
-    apiClient
-      .getAdminVariantOptions()
-      .then((r: any) => setOptions(r?.options || r?.data || []))
+    Promise.all([
+      apiClient.getAdminFlavors(search),
+      apiClient.getAdminShapes(search),
+    ])
+      .then(([fRes, sRes]: any) => {
+        setFlavors(fRes?.flavors || []);
+        setShapes(sRes?.shapes || []);
+      })
       .catch(() => null)
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchOptions();
-  }, []);
+    fetchData();
+  }, [search]);
 
   const resetForm = () => {
     setName("");
     setDisplayName("");
-    setWeightVal("");
-    setUnit("kg");
-    setPriceModifier("0");
-    setDisplayOrder("1");
-    setStatus("active");
+    setInternalCode("");
+    setDescription("");
     setImageUrl("");
-    setEditingOption(null);
+    setIcon("");
+    setColor("#9333ea");
+    setExtraPrice("0");
+    setPrepTime("0");
+    setSortOrder("1");
+    setStatus("active");
+    setIsEnabled(true);
+    setAvailOnline(true);
+    setAvailStore(true);
+    setAvailPickup(true);
+    setAvailDelivery(true);
+    setPreviewUrl("");
+    setAdditionalPrice("0");
+    setMaxWeight("10");
+    setEditingItem(null);
     setErrorMsg(null);
+    setSuccessMsg(null);
   };
 
   const handleOpenCreateModal = () => {
@@ -59,17 +90,38 @@ export function VariantsManagementPanel() {
     setShowModal(true);
   };
 
-  const handleOpenEditModal = (opt: any) => {
-    setEditingOption(opt);
-    setName(opt.name || "");
-    setDisplayName(opt.display_name || opt.name || "");
-    setWeightVal(opt.weight_val ? String(opt.weight_val) : "");
-    setUnit(opt.unit || "kg");
-    setPriceModifier(String(opt.price_modifier || 0));
-    setDisplayOrder(String(opt.display_order || 1));
-    setStatus(opt.status || "active");
-    setImageUrl(opt.image_url || "");
+  const handleOpenEditModal = (item: any) => {
+    setEditingItem(item);
+    setName(item.name || "");
+    setDisplayName(item.display_name || item.name || "");
+    setInternalCode(item.internal_code || "");
+    setDescription(item.description || "");
+    setImageUrl(item.image_url || "");
+    setIcon(item.icon || "");
+    setColor(item.color || "#9333ea");
+    setExtraPrice(String(item.extra_price ?? item.price_modifier ?? 0));
+    setPrepTime(String(item.prep_time_minutes || 0));
+    setSortOrder(String(item.sort_order || 1));
+    setStatus(item.status || "active");
+    setIsEnabled(item.is_enabled !== undefined ? Boolean(item.is_enabled) : true);
+    setAvailOnline(item.available_online !== undefined ? Boolean(item.available_online) : true);
+    setAvailStore(item.available_in_store !== undefined ? Boolean(item.available_in_store) : true);
+    setAvailPickup(item.available_for_pickup !== undefined ? Boolean(item.available_for_pickup) : true);
+    setAvailDelivery(item.available_for_delivery !== undefined ? Boolean(item.available_for_delivery) : true);
+    setPreviewUrl(item.preview_url || "");
+    setAdditionalPrice(String(item.additional_price ?? item.price_modifier ?? 0));
+    setMaxWeight(String(item.max_weight || 10));
     setShowModal(true);
+  };
+
+  const handleDuplicate = (item: any) => {
+    handleOpenEditModal(item);
+    setEditingItem(null); // Create new entity instead of updating
+    setName(`Copy of ${item.name || ""}`);
+    setDisplayName(`Copy of ${item.display_name || item.name || ""}`);
+    if (item.internal_code) {
+      setInternalCode(`${item.internal_code}_COPY`);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,234 +131,354 @@ export function VariantsManagementPanel() {
     setSuccessMsg(null);
     setErrorMsg(null);
 
-    const payload = {
-      type: activeType,
-      name,
-      display_name: displayName || name,
-      weight_val: weightVal ? parseFloat(weightVal) : undefined,
-      unit,
-      price_modifier: parseFloat(priceModifier) || 0,
-      display_order: parseInt(displayOrder, 10) || 1,
-      status,
-      image_url: imageUrl || undefined,
-    };
-
     try {
-      if (editingOption) {
-        await apiClient.updateAdminVariantOption(editingOption.id, payload);
-        setSuccessMsg(`Updated option "${name}"!`);
+      if (activeType === "flavour") {
+        const payload = {
+          name,
+          display_name: displayName || name,
+          internal_code: internalCode,
+          description,
+          image_url: imageUrl,
+          icon,
+          color,
+          extra_price: parseFloat(extraPrice) || 0,
+          prep_time_minutes: parseInt(prepTime, 10) || 0,
+          sort_order: parseInt(sortOrder, 10) || 1,
+          status,
+          is_enabled: isEnabled,
+          available_online: availOnline,
+          available_in_store: availStore,
+          available_for_pickup: availPickup,
+          available_for_delivery: availDelivery,
+        };
+
+        if (editingItem) {
+          await apiClient.updateAdminFlavor(editingItem.id, payload);
+          setSuccessMsg(`Updated flavor "${name}"!`);
+        } else {
+          await apiClient.createAdminFlavor(payload);
+          setSuccessMsg(`Created flavor "${name}"!`);
+        }
       } else {
-        await apiClient.createAdminVariantOption(payload);
-        setSuccessMsg(`Created option "${name}"!`);
+        const payload = {
+          name,
+          image_url: imageUrl,
+          preview_url: previewUrl,
+          description,
+          additional_price: parseFloat(additionalPrice) || 0,
+          max_weight: parseFloat(maxWeight) || 10,
+          prep_time_minutes: parseInt(prepTime, 10) || 0,
+          sort_order: parseInt(sortOrder, 10) || 1,
+          status,
+          is_enabled: isEnabled,
+        };
+
+        if (editingItem) {
+          await apiClient.updateAdminShape(editingItem.id, payload);
+          setSuccessMsg(`Updated shape "${name}"!`);
+        } else {
+          await apiClient.createAdminShape(payload);
+          setSuccessMsg(`Created shape "${name}"!`);
+        }
       }
-      fetchOptions();
+
+      fetchData();
       setTimeout(() => {
         setShowModal(false);
         resetForm();
-        setSuccessMsg(null);
-      }, 1000);
+      }, 800);
     } catch (err: any) {
-      setErrorMsg(err.message || "Failed to save variant option.");
+      setErrorMsg(err.message || `Failed to save ${activeType}.`);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: string, optName: string) => {
-    if (!confirm(`Are you sure you want to archive option "${optName}"?`)) return;
+  const handleToggleEnable = async (item: any) => {
     try {
-      await apiClient.deleteAdminVariantOption(id);
-      fetchOptions();
+      const newEnabled = !item.is_enabled;
+      if (activeType === "flavour") {
+        await apiClient.patchAdminFlavorStatus(item.id, { is_enabled: newEnabled });
+      } else {
+        await apiClient.patchAdminShapeStatus(item.id, { is_enabled: newEnabled });
+      }
+      fetchData();
     } catch (err: any) {
-      alert(err.message || "Failed to archive option.");
+      alert(err.message || "Failed to toggle status");
     }
   };
 
-  const filtered = options
-    .filter((o) => o.type === activeType)
-    .filter((o) =>
-      o.name.toLowerCase().includes(search.toLowerCase()) ||
-      (o.display_name && o.display_name.toLowerCase().includes(search.toLowerCase()))
-    );
+  const handleDelete = async (item: any) => {
+    if (!confirm(`Are you sure you want to delete ${activeType} "${item.name}"?`)) return;
+    try {
+      if (activeType === "flavour") {
+        await apiClient.deleteAdminFlavor(item.id);
+      } else {
+        await apiClient.deleteAdminShape(item.id);
+      }
+      fetchData();
+    } catch (err: any) {
+      if (err.status === 409 || err.message?.includes("mapped")) {
+        if (confirm(`${err.message}\n\nDo you want to archive this ${activeType} instead?`)) {
+          if (activeType === "flavour") {
+            await apiClient.patchAdminFlavorStatus(item.id, { status: "archived", is_enabled: false });
+          } else {
+            await apiClient.patchAdminShapeStatus(item.id, { status: "archived", is_enabled: false });
+          }
+          fetchData();
+        }
+      } else {
+        alert(err.message || `Failed to delete ${activeType}.`);
+      }
+    }
+  };
+
+  const currentItems = activeType === "flavour" ? flavors : shapes;
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <Heading level="h2" className="text-xl font-bold flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-purple-600" /> Master Variant & Dynamic Pricing Configuration
+            <Sliders className="w-5 h-5 text-purple-600" /> Database-Driven Flavor & Shape Masters
           </Heading>
           <Text className="text-ui-fg-subtle text-sm">
-            Centralized Super Admin Master Data: Manage weights, shapes, flavours, fillings, creams, toppers, and price modifiers.
+            Configure dynamic bakery options, extra pricing rules, prep times, and availability matrices directly stored in the database.
           </Text>
         </div>
         <Button size="small" onClick={handleOpenCreateModal} className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white">
-          <Plus className="w-4 h-4" /> Add Master {activeType.toUpperCase()} Option
+          <Plus className="w-4 h-4" /> Add Master {activeType === "flavour" ? "Flavor" : "Shape"}
         </Button>
       </div>
 
-      {/* Type Tabs Navigation */}
       <div className="flex border-b border-ui-border-base px-2 gap-2 bg-ui-bg-subtle overflow-x-auto text-xs font-medium rounded-lg p-1">
-        <button onClick={() => setActiveType("weight")} className={`py-2 px-3 rounded flex items-center gap-1.5 ${activeType === "weight" ? "bg-purple-600 text-white font-semibold" : "text-ui-fg-subtle hover:text-ui-fg-base"}`}>
-          Weights ({options.filter(o => o.type === "weight").length})
+        <button
+          onClick={() => setActiveType("flavour")}
+          className={`py-2 px-4 rounded flex items-center gap-1.5 ${activeType === "flavour" ? "bg-purple-600 text-white font-semibold" : "text-ui-fg-subtle hover:text-ui-fg-base"}`}
+        >
+          <Sparkles className="w-4 h-4" /> Flavors ({flavors.length})
         </button>
-        <button onClick={() => setActiveType("shape")} className={`py-2 px-3 rounded flex items-center gap-1.5 ${activeType === "shape" ? "bg-purple-600 text-white font-semibold" : "text-ui-fg-subtle hover:text-ui-fg-base"}`}>
-          Shapes ({options.filter(o => o.type === "shape").length})
-        </button>
-        <button onClick={() => setActiveType("flavour")} className={`py-2 px-3 rounded flex items-center gap-1.5 ${activeType === "flavour" ? "bg-purple-600 text-white font-semibold" : "text-ui-fg-subtle hover:text-ui-fg-base"}`}>
-          Flavours ({options.filter(o => o.type === "flavour").length})
-        </button>
-        <button onClick={() => setActiveType("filling")} className={`py-2 px-3 rounded flex items-center gap-1.5 ${activeType === "filling" ? "bg-purple-600 text-white font-semibold" : "text-ui-fg-subtle hover:text-ui-fg-base"}`}>
-          Fillings ({options.filter(o => o.type === "filling").length})
-        </button>
-        <button onClick={() => setActiveType("cream")} className={`py-2 px-3 rounded flex items-center gap-1.5 ${activeType === "cream" ? "bg-purple-600 text-white font-semibold" : "text-ui-fg-subtle hover:text-ui-fg-base"}`}>
-          Creams ({options.filter(o => o.type === "cream").length})
-        </button>
-        <button onClick={() => setActiveType("topper")} className={`py-2 px-3 rounded flex items-center gap-1.5 ${activeType === "topper" ? "bg-purple-600 text-white font-semibold" : "text-ui-fg-subtle hover:text-ui-fg-base"}`}>
-          Toppers & Decors ({options.filter(o => o.type === "topper").length})
-        </button>
-        <button onClick={() => setActiveType("addon")} className={`py-2 px-3 rounded flex items-center gap-1.5 ${activeType === "addon" ? "bg-purple-600 text-white font-semibold" : "text-ui-fg-subtle hover:text-ui-fg-base"}`}>
-          Add-ons ({options.filter(o => o.type === "addon").length})
+        <button
+          onClick={() => setActiveType("shape")}
+          className={`py-2 px-4 rounded flex items-center gap-1.5 ${activeType === "shape" ? "bg-purple-600 text-white font-semibold" : "text-ui-fg-subtle hover:text-ui-fg-base"}`}
+        >
+          <Layers className="w-4 h-4" /> Shapes ({shapes.length})
         </button>
       </div>
 
-      {activeType === "weight" && (
-        <div className="p-4 rounded-xl bg-purple-50 border border-purple-200 dark:bg-purple-950/40 dark:border-purple-800 text-xs text-purple-900 dark:text-purple-200 flex items-center gap-2">
-          <Scale className="w-5 h-5 text-purple-600 shrink-0" />
-          <div>
-            <span className="font-bold">Weight Master Data (Pure Size Definitions):</span> Weights define available bakery sizes only (<code className="font-mono font-bold">250g, 500g, 1kg, 2kg</code>). Specific Selling Prices, MRPs, and Cost Prices are configured per product in the <strong>Product-Specific Weight Pricing Matrix Table</strong>.
-          </div>
+      <div className="relative max-w-sm">
+        <Search className="w-4 h-4 absolute left-3 top-2.5 text-ui-fg-muted" />
+        <Input
+          placeholder={`Search ${activeType === "flavour" ? "flavors" : "shapes"}...`}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9 text-xs"
+        />
+      </div>
+
+      {loading ? (
+        <GridSkeleton count={6} />
+      ) : currentItems.length === 0 ? (
+        <Container className="p-8 text-center">
+          <Text className="text-ui-fg-muted">No {activeType === "flavour" ? "flavors" : "shapes"} found. Click \"Add Master\" to create one.</Text>
+        </Container>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {currentItems.map((item) => {
+            const isFlv = activeType === "flavour";
+            const price = isFlv ? (item.extra_price || 0) : (item.additional_price || 0);
+            return (
+              <Container key={item.id} className="p-4 border rounded-xl flex flex-col justify-between gap-3 shadow-sm hover:border-purple-300 transition-colors">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    {isFlv && item.color && (
+                      <span className="w-4 h-4 rounded-full inline-block border" style={{ backgroundColor: item.color }} />
+                    )}
+                    <div>
+                      <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-white">
+                        {item.display_name || item.name}
+                      </Heading>
+                      {item.internal_code && (
+                        <Text className="text-[10px] font-mono text-purple-600">{item.internal_code}</Text>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Badge color={item.is_enabled ? "green" : "grey"} className="text-[10px] capitalize cursor-pointer" onClick={() => handleToggleEnable(item)}>
+                      {item.is_enabled ? "Enabled" : "Disabled"}
+                    </Badge>
+                    <Badge color={item.status === "active" ? "purple" : "red"} className="text-[10px] uppercase font-mono">
+                      {item.status}
+                    </Badge>
+                  </div>
+                </div>
+
+                {item.description && (
+                  <Text className="text-xs text-ui-fg-subtle line-clamp-2">{item.description}</Text>
+                )}
+
+                <div className="flex items-center justify-between text-xs pt-2 border-t font-medium">
+                  <span className="text-emerald-600 font-bold">
+                    {price > 0 ? `+₹${price}` : "Standard (No Surcharge)"}
+                  </span>
+                  <span className="text-ui-fg-muted text-[11px]">
+                    Prep: {item.prep_time_minutes || 0} mins
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-end gap-1.5 pt-2">
+                  <Button size="small" variant="secondary" onClick={() => handleOpenEditModal(item)} className="text-xs">
+                    <Edit3 className="w-3.5 h-3.5 mr-1" /> Edit
+                  </Button>
+                  <Button size="small" variant="secondary" onClick={() => handleDuplicate(item)} className="text-xs text-purple-600 hover:text-purple-700" title="Duplicate master entry">
+                    <Copy className="w-3.5 h-3.5 mr-1" /> Duplicate
+                  </Button>
+                  <Button size="small" variant="transparent" onClick={() => handleDelete(item)} className="text-red-500 hover:text-red-700">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </Container>
+            );
+          })}
         </div>
       )}
 
-      {/* Filter & Search Bar */}
-      <Container className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ui-fg-subtle" />
-          <Input
-            placeholder={`Search ${activeType} options...`}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-      </Container>
-
-      {/* Option Create/Edit Modal */}
       {showModal && (
-        <Container className="p-6 border-2 border-purple-500/30 bg-purple-50/20 dark:bg-purple-950/20">
-          <div className="flex items-center justify-between mb-4">
-            <Text className="font-semibold text-base">
-              {editingOption ? `Edit ${activeType.toUpperCase()} Option "${editingOption.name}"` : `Create Master ${activeType.toUpperCase()} Option`}
-            </Text>
-            <Button size="small" variant="transparent" onClick={() => setShowModal(false)}>Close</Button>
-          </div>
-
-          {successMsg && (
-            <div className="p-3 mb-4 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-2 text-sm font-medium">
-              <CheckCircle className="w-4 h-4" /> {successMsg}
-            </div>
-          )}
-
-          {errorMsg && (
-            <div className="p-3 mb-4 rounded bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300 flex items-center gap-2 text-sm font-medium">
-              <AlertCircle className="w-4 h-4" /> {errorMsg}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="opt_name">Option Code / Name *</Label>
-              <Input id="opt_name" placeholder="e.g. 1.0 kg or Heart" value={name} onChange={(e) => setName(e.target.value)} required />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b flex items-center justify-between bg-purple-50 dark:bg-purple-950/40">
+              <Heading level="h3" className="text-base font-bold flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-purple-600" />
+                {editingItem ? `Edit ${activeType === "flavour" ? "Flavor" : "Shape"}` : `Create ${activeType === "flavour" ? "Flavor" : "Shape"}`}
+              </Heading>
+              <Button size="small" variant="transparent" onClick={() => setShowModal(false)}>Close</Button>
             </div>
 
-            <div>
-              <Label htmlFor="opt_disp">Display Name (Storefront Label)</Label>
-              <Input id="opt_disp" placeholder="e.g. 1.0 Kilogram or Romantic Heart" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-            </div>
+            <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs overflow-y-auto">
+              {errorMsg && (
+                <div className="p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+              {successMsg && (
+                <div className="p-3 bg-green-50 text-green-700 rounded-lg flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 shrink-0" />
+                  <span>{successMsg}</span>
+                </div>
+              )}
 
-            {activeType !== "weight" && (
-              <div>
-                <Label htmlFor="opt_mod">Price Modifier (₹ Extra)</Label>
-                <Input id="opt_mod" type="number" placeholder="e.g. 500 or 150" value={priceModifier} onChange={(e) => setPriceModifier(e.target.value)} />
-              </div>
-            )}
-
-            {activeType === "weight" && (
-              <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="opt_w_val">Weight Numeric Value</Label>
-                  <Input id="opt_w_val" type="number" step="0.1" placeholder="1.0" value={weightVal} onChange={(e) => setWeightVal(e.target.value)} />
+                  <Label>Name *</Label>
+                  <Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. Belgian Truffle" />
                 </div>
                 <div>
-                  <Label htmlFor="opt_unit">Unit</Label>
-                  <select id="opt_unit" value={unit} onChange={(e) => setUnit(e.target.value)} className="w-full h-10 px-3 rounded-md border border-ui-border-base bg-ui-bg-field text-sm">
-                    <option value="kg">kg</option>
-                    <option value="g">g</option>
-                    <option value="pound">pound</option>
+                  <Label>Display Name</Label>
+                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="e.g. Belgian Dark Truffle" />
+                </div>
+
+                {activeType === "flavour" ? (
+                  <>
+                    <div>
+                      <Label>Internal Code</Label>
+                      <Input value={internalCode} onChange={(e) => setInternalCode(e.target.value)} placeholder="FLV-TRUF-01" />
+                    </div>
+                    <div>
+                      <Label>Extra Surcharge Price (₹)</Label>
+                      <Input type="number" value={extraPrice} onChange={(e) => setExtraPrice(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label>Theme Color</Label>
+                      <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="w-full h-9 rounded border p-1" />
+                    </div>
+                    <div>
+                      <Label>Preparation Extra Time (Mins)</Label>
+                      <Input type="number" value={prepTime} onChange={(e) => setPrepTime(e.target.value)} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <Label>Additional Price (₹)</Label>
+                      <Input type="number" value={additionalPrice} onChange={(e) => setAdditionalPrice(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label>Max Weight Capacity (KG)</Label>
+                      <Input type="number" value={maxWeight} onChange={(e) => setMaxWeight(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label>Preparation Extra Time (Mins)</Label>
+                      <Input type="number" value={prepTime} onChange={(e) => setPrepTime(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label>Preview Image URL</Label>
+                      <Input value={previewUrl} onChange={(e) => setPreviewUrl(e.target.value)} placeholder="https://..." />
+                    </div>
+                  </>
+                )}
+
+                <div className="sm:col-span-2">
+                  <Label>Description</Label>
+                  <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Detailed description..." />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <Label>Image URL</Label>
+                  <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." />
+                </div>
+
+                <div>
+                  <Label>Sort Order</Label>
+                  <Input type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900">
+                    <option value="active">Active</option>
+                    <option value="archived">Archived</option>
                   </select>
                 </div>
-              </>
-            )}
 
-            <div>
-              <Label htmlFor="opt_order">Display Order</Label>
-              <Input id="opt_order" type="number" value={displayOrder} onChange={(e) => setDisplayOrder(e.target.value)} />
-            </div>
-
-            <div className="md:col-span-2 flex items-center justify-end gap-2 pt-4 border-t border-ui-border-base">
-              <Button type="button" variant="transparent" onClick={() => setShowModal(false)}>Cancel</Button>
-              <Button type="submit" isLoading={submitting} className="bg-purple-600 hover:bg-purple-700 text-white">
-                Save Master Option
-              </Button>
-            </div>
-          </form>
-        </Container>
-      )}
-
-      {/* Options Grid */}
-      <Container className="p-6">
-        <Text className="font-semibold text-base mb-4">Master Options ({filtered.length})</Text>
-
-        {loading ? (
-          <GridSkeleton count={6} />
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-8 text-ui-fg-subtle">
-            <Sliders className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <Text>No master options registered for {activeType}.</Text>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((opt) => {
-              const mod = opt.price_modifier || 0;
-              return (
-                <div key={opt.id} className="border border-ui-border-base rounded-xl p-4 bg-ui-bg-subtle/50 flex flex-col justify-between space-y-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <Text className="font-bold text-base text-ui-fg-base">{opt.name}</Text>
-                      <Badge color={mod > 0 ? "purple" : "grey"}>
-                        {mod > 0 ? `+₹${mod}` : "Included (+₹0)"}
-                      </Badge>
-                    </div>
-                    <Text className="text-xs text-ui-fg-subtle">{opt.display_name || opt.name}</Text>
-                    <Text className="text-[10px] text-purple-600">Order: #{opt.display_order || 0}</Text>
-                  </div>
-
-                  <div className="pt-2 border-t border-ui-border-base flex items-center justify-end gap-2">
-                    <Button size="small" variant="transparent" onClick={() => handleOpenEditModal(opt)} className="text-blue-600">
-                      <Edit3 className="w-4 h-4 mr-1" /> Edit
-                    </Button>
-                    <Button size="small" variant="transparent" onClick={() => handleDelete(opt.id, opt.name)} className="text-rose-600">
-                      <Trash2 className="w-4 h-4" /> Archive
-                    </Button>
-                  </div>
+                <div className="sm:col-span-2 pt-2 border-t flex flex-wrap gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} className="rounded" />
+                    <span className="font-semibold">Option Enabled for Storefront</span>
+                  </label>
                 </div>
-              );
-            })}
+
+                {activeType === "flavour" && (
+                  <div className="sm:col-span-2 grid grid-cols-2 gap-2 text-xs pt-1">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input type="checkbox" checked={availOnline} onChange={(e) => setAvailOnline(e.target.checked)} />
+                      <span>Online Delivery</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input type="checkbox" checked={availStore} onChange={(e) => setAvailStore(e.target.checked)} />
+                      <span>In Store</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input type="checkbox" checked={availPickup} onChange={(e) => setAvailPickup(e.target.checked)} />
+                      <span>Pickup</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input type="checkbox" checked={availDelivery} onChange={(e) => setAvailDelivery(e.target.checked)} />
+                      <span>Express Delivery</span>
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 border-t flex justify-end gap-2">
+                <Button type="button" variant="transparent" onClick={() => setShowModal(false)}>Cancel</Button>
+                <Button type="submit" isLoading={submitting} className="bg-purple-600 hover:bg-purple-700 text-white font-bold">
+                  Save {activeType === "flavour" ? "Flavor" : "Shape"} Master
+                </Button>
+              </div>
+            </form>
           </div>
-        )}
-      </Container>
+        </div>
+      )}
     </div>
   );
 }

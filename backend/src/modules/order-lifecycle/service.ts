@@ -111,7 +111,7 @@ const CUSTOMER_CANCELLABLE_STATUSES = new Set<string>([
  * The Medusa core order entity is referenced by id (soft link); the core order
  * is queried via the framework query service where needed (in the API layer).
  */
-class OrderLifecycleModuleService extends MedusaService({
+class OrderLifecycleModuleService extends (MedusaService({
     OrderStatusHistory,
     OrderEvent,
     OrderNote,
@@ -119,7 +119,7 @@ class OrderLifecycleModuleService extends MedusaService({
     Refund,
     RescheduleRequest,
     OrderStaffAssignment,
-}) {
+}) as any) {
     // ── Status History & Transitions ───────────────────────────────────────
 
     /**

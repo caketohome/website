@@ -21,7 +21,7 @@ test.describe('CakeToHome Critical Bakery E-Commerce Order Flow', () => {
     }
   });
 
-  test('4. Super Admin Control Dashboard loads overview metrics', async ({ page, context }) => {
+  test('4. Super Admin Control Dashboard loads orders management', async ({ page, context }) => {
     await context.addCookies([
       { name: '_cth_role', value: 'admin', domain: 'localhost', path: '/' },
       { name: '_cth_jwt', value: 'mock_jwt_token_admin', domain: 'localhost', path: '/' }

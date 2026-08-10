@@ -3,6 +3,9 @@
 .DS_Store
 /uploads
 /node_modules
+/plugins
+plugins
+plugins/**
 yarn-error.log
 
 .idea
@@ -16,6 +19,9 @@ package-lock.json
 medusa-db.sql
 build
 .cache
+.cache/*
+.tmp
+.tmp/*
 gh-private-key.pem
 
 .yarn/*

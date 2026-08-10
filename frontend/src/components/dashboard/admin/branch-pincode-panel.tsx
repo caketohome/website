@@ -5,7 +5,7 @@ import { Heading, Text, Badge, Input, Button, Label } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
 import { BranchZoneManager } from "./branch-zone-manager";
 import { DeliverySimulator } from "./delivery-simulator";
-import { Compass, FolderTree, Layers, Settings2, ShieldAlert } from "lucide-react";
+import { ArrowRightLeft, Compass, FolderTree, Layers, MapPin, Search, Settings2, ShieldAlert, Upload } from "lucide-react";
 
 export function BranchPincodePanel() {
   const [activeTab, setActiveTab] = useState<"zones" | "simulator" | "matrix" | "service_areas" | "restrictions">("zones");

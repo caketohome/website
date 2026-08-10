@@ -2,7 +2,7 @@
 
 import type { SearchFilters } from "@frontend/lib/data/catalog";
 import { Badge, Button, Input, Select, Switch, Label } from "@medusajs/ui";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const SORT_OPTIONS: Array<{ value: NonNullable<SearchFilters["sort"]>; label: string }> = [
     { value: "relevance", label: "Relevance" },
@@ -53,27 +53,44 @@ export function ProductFilters({
         { key: "is_new_arrival", label: "New Arrivals" },
     ];
 
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+
     return (
         <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
                 <Label>Sort by</Label>
-                <Select
-                    value={filters.sort ?? "relevance"}
-                    onValueChange={(value) =>
-                        onChange({ ...filters, sort: value as SearchFilters["sort"] })
-                    }
-                >
-                    <Select.Trigger>
-                        <Select.Value />
-                    </Select.Trigger>
-                    <Select.Content>
+                {mounted ? (
+                    <Select
+                        value={filters.sort ?? "relevance"}
+                        onValueChange={(value) =>
+                            onChange({ ...filters, sort: value as SearchFilters["sort"] })
+                        }
+                    >
+                        <Select.Trigger>
+                            <Select.Value />
+                        </Select.Trigger>
+                        <Select.Content>
+                            {SORT_OPTIONS.map((opt) => (
+                                <Select.Item key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </Select.Item>
+                            ))}
+                        </Select.Content>
+                    </Select>
+                ) : (
+                    <select
+                        className="w-full h-10 px-3 border rounded-md bg-transparent text-sm"
+                        value={filters.sort ?? "relevance"}
+                        onChange={(e) => onChange({ ...filters, sort: e.target.value as any })}
+                    >
                         {SORT_OPTIONS.map((opt) => (
-                            <Select.Item key={opt.value} value={opt.value}>
+                            <option key={opt.value} value={opt.value}>
                                 {opt.label}
-                            </Select.Item>
+                            </option>
                         ))}
-                    </Select.Content>
-                </Select>
+                    </select>
+                )}
             </div>
 
             <div className="flex flex-col gap-2">

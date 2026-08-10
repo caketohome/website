@@ -55,11 +55,6 @@ export default defineMiddlewares({
       middlewares: [authenticate("customer", "bearer", { allowUnregistered: false })],
     },
     {
-      method: ["GET", "POST"],
-      matcher: "/store/rewards/**",
-      middlewares: [authenticate("customer", "bearer", { allowUnregistered: false })],
-    },
-    {
       method: ["GET", "POST", "DELETE"],
       matcher: "/store/wishlist",
       middlewares: [authenticate("customer", "bearer", { allowUnregistered: false })],

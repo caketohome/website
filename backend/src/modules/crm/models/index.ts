@@ -5,4 +5,3 @@ export * from "./campaign";
 export * from "./segment";
 export * from "./template";
 export * from "./execution";
-export * from "./ab-test";

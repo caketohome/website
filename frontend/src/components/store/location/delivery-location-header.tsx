@@ -147,7 +147,7 @@ export function DeliveryLocationHeader() {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-80 rounded-xl border border-ui-border-strong bg-ui-bg-base text-ui-fg-base shadow-xl p-4 flex flex-col gap-3">
+        <div className="absolute left-0 mt-2 w-80 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xl p-4 flex flex-col gap-3 z-[1000] opacity-100 popover-solid-panel">
           <div className="flex justify-between items-center">
             <h3 className="font-semibold text-sm">Enter Delivery Location</h3>
             <button onClick={() => setIsOpen(false)} className="text-ui-fg-muted hover:text-ui-fg-base">

@@ -1,11 +1,16 @@
 import { MedusaService } from "@medusajs/utils";
 import {
     ProductMeta,
+    PimCategory,
     ProductReview,
     WishlistItem,
     StockNotification,
     Subscription,
     CakeOption,
+    FlavorMaster,
+    ShapeMaster,
+    ProductFlavorMapping,
+    ProductShapeMapping,
 } from "./models";
 import type {
     ProductMetaInput,
@@ -74,7 +79,7 @@ const FREQUENCY_DAYS: Record<SubscriptionFrequency, number> = {
  * The Medusa core product entity is referenced by id (soft link); the core
  * catalog is queried via the framework query service where needed.
  */
-class CatalogModuleService extends MedusaService({
+class CatalogModuleService extends (MedusaService({
     ProductMeta,
     PimCategory,
     ProductReview,
@@ -82,13 +87,21 @@ class CatalogModuleService extends MedusaService({
     StockNotification,
     Subscription,
     CakeOption,
-}) {
+    FlavorMaster,
+    ShapeMaster,
+    ProductFlavorMapping,
+    ProductShapeMapping,
+}) as any) {
     // ── Product Meta ─────────────────────────────────────────────────────
 
     async upsertProductMeta(input: ProductMetaInput) {
         const [existing] = (await this.listProductMetas({
             product_id: input.product_id,
         })) as unknown as Record<string, unknown>[];
+
+        if (!input.hsn_code || input.hsn_code.trim() === "") {
+            throw new Error("PIM Statutory Validation Error: HSN/SAC code is mandatory for product creation and cannot be empty.");
+        }
 
         const data = {
             product_id: input.product_id,
@@ -114,8 +127,14 @@ class CatalogModuleService extends MedusaService({
             cake_type: input.cake_type ?? null,
             cost_price: input.cost_price ?? null,
             mrp: input.mrp ?? null,
-            gst_rate: input.gst_rate ?? null,
-            tax_class: input.tax_class ?? null,
+            gst_rate: input.gst_rate ?? 18,
+            tax_class: input.tax_class ?? "Taxable",
+            hsn_code: input.hsn_code.trim(),
+            hsn_description: input.hsn_description ?? null,
+            uqc: input.uqc ? input.uqc.trim().toUpperCase() : "NOS",
+            cess_rate: input.cess_rate ?? 0,
+            taxability: input.taxability ?? "Taxable",
+            tax_inclusive: input.tax_inclusive !== false,
             add_ons_json: stringifyJson(input.add_ons_json),
             variants_json: stringifyJson(input.variants_json),
             customization_config_json: stringifyJson(input.customization_config_json),
@@ -698,6 +717,62 @@ class CatalogModuleService extends MedusaService({
         });
 
         return created;
+    }
+
+    // ── Flavor & Shape Mappings ──────────────────────────────────────────────
+
+    async saveProductFlavorMappings(productId: string, mappings: { flavor_id: string; price_override?: number; is_enabled?: boolean }[]) {
+        // Clear existing mappings for product
+        const existing = await (this as any).listProductFlavorMappings({ product_id: productId });
+        if (existing.length > 0) {
+            for (const item of existing) {
+                await (this as any).deleteProductFlavorMappings(item.id);
+            }
+        }
+        // Insert new mappings
+        const createdList = [];
+        for (const item of mappings) {
+            const res = await (this as any).createProductFlavorMappings({
+                product_id: productId,
+                flavor_id: item.flavor_id,
+                price_override: item.price_override ?? null,
+                is_enabled: item.is_enabled ?? true,
+            });
+            createdList.push(res);
+        }
+        return createdList;
+    }
+
+    async saveProductShapeMappings(productId: string, mappings: { shape_id: string; price_override?: number; is_enabled?: boolean }[]) {
+        // Clear existing mappings for product
+        const existing = await (this as any).listProductShapeMappings({ product_id: productId });
+        if (existing.length > 0) {
+            for (const item of existing) {
+                await (this as any).deleteProductShapeMappings(item.id);
+            }
+        }
+        // Insert new mappings
+        const createdList = [];
+        for (const item of mappings) {
+            const res = await (this as any).createProductShapeMappings({
+                product_id: productId,
+                shape_id: item.shape_id,
+                price_override: item.price_override ?? null,
+                is_enabled: item.is_enabled ?? true,
+            });
+            createdList.push(res);
+        }
+        return createdList;
+    }
+
+    async checkFlavorUsage(flavorId: string): Promise<number> {
+        const mappings = await (this as any).listProductFlavorMappings({ flavor_id: flavorId });
+        return mappings.length;
+    }
+
+    async checkShapeUsage(shapeId: string): Promise<number> {
+        const mappings = await (this as any).listProductShapeMappings({ shape_id: shapeId });
+        return mappings.length;
     }
 }
 

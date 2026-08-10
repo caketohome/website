@@ -51,9 +51,6 @@ module.exports = defineConfig({
     analyticsModuleService: {
       resolve: "./modules/analytics",
     },
-    aiModuleService: {
-      resolve: "./modules/ai",
-    },
     mediaModuleService: {
       resolve: "./modules/media",
     },
@@ -80,9 +77,6 @@ module.exports = defineConfig({
     },
     orderLifecycleModuleService: {
       resolve: "./modules/order-lifecycle",
-    },
-    rewardsModuleService: {
-      resolve: "./modules/rewards",
     },
     crmModuleService: {
       resolve: "./modules/crm",

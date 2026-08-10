@@ -6,6 +6,19 @@
 
 import fs from "fs";
 import path from "path";
+import { SeoIntegrationsEngine } from "./integrations/seo-integrations";
+import { LiveHttpCrawler } from "./crawler/live-crawler";
+import { SeoAuditEngine } from "./audit/seo-audit-engine";
+import { InternalLinkGraphAnalyzer } from "./links/internal-link-analyzer";
+import { DuplicateContentAuditor } from "./audit/duplicate-auditor";
+import { ImageSeoAuditor } from "./media/image-seo-auditor";
+import { RedirectValidator } from "./redirects/redirect-validator";
+import { RobotsTxtValidator } from "./robots/robots-validator";
+import { XmlSitemapValidator } from "./sitemap/sitemap-validator";
+import { KeywordAnalyzer } from "./keywords/keyword-analyzer";
+import { GeoEngine } from "./geo/geo-engine";
+import { AeoEngine } from "./aeo/aeo-engine";
+import { SeoRbacGuard, UserRole } from "./auth/seo-rbac-guard";
 
 export interface ProductItem {
   product_id: string;
@@ -172,10 +185,189 @@ const DEFAULT_REGIONS = [
 ];
 
 const DEFAULT_OFFERS = [
-  { id: "off_50", code: "CAKE50", description: "Flat ₹50 off on orders above ₹499", type: "flat", discount_value: 50, min_order: 499, is_active: true },
-  { id: "off_100", code: "CAKE100", description: "Flat ₹100 off on gourmet cakes", type: "flat", discount_value: 100, min_order: 799, is_active: true },
-  { id: "off_15", code: "SWEET15", description: "15% off on luxury pastries", type: "percentage", discount_value: 15, min_order: 299, is_active: true },
+  {
+    id: "off_50",
+    name: "Festive Monsoon 50% Off",
+    code: "CAKE50",
+    type: "percentage",
+    status: "active",
+    priority: 10,
+    starts_at: "2026-01-01T00:00:00.000Z",
+    ends_at: "2026-12-31T23:59:59.000Z",
+    timezone: "Asia/Kolkata",
+    never_expires: false,
+    usage_limit: 1000,
+    per_customer_limit: 2,
+    daily_limit: 100,
+    monthly_limit: 500,
+    is_stackable: false,
+    is_public: true,
+    auto_apply: false,
+    delivery_mode: "all",
+    allowed_payment_methods: ["cash", "card", "upi", "wallet", "cod", "online"],
+    min_order_value: 499,
+    max_discount_value: 200,
+    min_quantity: 1,
+    description: "Get 50% discount up to ₹200 on all gourmet cakes.",
+    applicable_branches: ["all"],
+    applicable_cities: ["all"],
+    applicable_pincodes: ["all"],
+    excluded_pincodes: [],
+    applicable_products: [],
+    applicable_categories: [],
+    applicable_flavors: [],
+    applicable_shapes: [],
+    applicable_weights: [],
+    customer_eligibility: "all",
+    allowed_customer_ids: [],
+    allowed_phones: [],
+    allowed_emails: [],
+    customer_tags: [],
+    exclude_discounted_items: false,
+    exclude_flash_sales: false,
+    approval_status: "approved",
+    created_by: "usr_super_admin",
+    total_redemptions: 0,
+    total_discount_given: 0,
+    total_revenue_generated: 0,
+    metadata: { discount_value: 50 },
+    created_at: "2026-06-01T00:00:00.000Z",
+  },
+  {
+    id: "off_100",
+    name: "Gourmet Delight Flat ₹100 Off",
+    code: "CAKE100",
+    type: "flat",
+    status: "active",
+    priority: 8,
+    starts_at: "2026-01-01T00:00:00.000Z",
+    ends_at: "2026-12-31T23:59:59.000Z",
+    timezone: "Asia/Kolkata",
+    never_expires: true,
+    usage_limit: 5000,
+    per_customer_limit: 5,
+    daily_limit: 250,
+    is_stackable: true,
+    is_public: true,
+    auto_apply: true,
+    delivery_mode: "all",
+    allowed_payment_methods: ["card", "upi", "wallet", "online"],
+    min_order_value: 599,
+    max_discount_value: 100,
+    min_quantity: 1,
+    description: "Flat ₹100 instant discount on orders above ₹599.",
+    applicable_branches: ["all"],
+    applicable_cities: ["all"],
+    applicable_pincodes: ["all"],
+    customer_eligibility: "all",
+    approval_status: "approved",
+    created_by: "usr_super_admin",
+    total_redemptions: 0,
+    total_discount_given: 0,
+    total_revenue_generated: 0,
+    metadata: { discount_value: 100 },
+    created_at: "2026-06-15T00:00:00.000Z",
+  },
+  {
+    id: "off_freedel",
+    name: "Free Express Delivery Kollam & Kochi",
+    code: "FREESHIP",
+    type: "free_delivery",
+    status: "active",
+    priority: 5,
+    starts_at: "2026-01-01T00:00:00.000Z",
+    ends_at: "2026-12-31T23:59:59.000Z",
+    timezone: "Asia/Kolkata",
+    never_expires: true,
+    usage_limit: 2000,
+    per_customer_limit: 10,
+    is_stackable: true,
+    is_public: true,
+    auto_apply: false,
+    delivery_mode: "delivery",
+    allowed_payment_methods: ["cash", "card", "upi", "wallet", "cod", "online"],
+    min_order_value: 399,
+    description: "100% Free Doorstep Express Delivery on orders above ₹399.",
+    applicable_branches: ["br_kollam_01", "br_kottiyam_02", "br_kochi_01"],
+    applicable_cities: ["Kollam", "Kochi"],
+    applicable_pincodes: ["691001", "691002", "691003", "691004", "691008", "691571", "682001", "682016"],
+    customer_eligibility: "all",
+    approval_status: "approved",
+    created_by: "usr_super_admin",
+    total_redemptions: 0,
+    total_discount_given: 0,
+    total_revenue_generated: 0,
+    metadata: { discount_value: 49 },
+    created_at: "2026-07-01T00:00:00.000Z",
+  },
+  {
+    id: "off_vip20",
+    name: "VIP Platinum Club 20% Off",
+    code: "VIPCLUB20",
+    type: "percentage",
+    status: "active",
+    priority: 15,
+    starts_at: "2026-01-01T00:00:00.000Z",
+    ends_at: "2026-12-31T23:59:59.000Z",
+    timezone: "Asia/Kolkata",
+    never_expires: true,
+    usage_limit: null,
+    per_customer_limit: null,
+    is_stackable: false,
+    is_public: false,
+    auto_apply: false,
+    delivery_mode: "all",
+    allowed_payment_methods: ["card", "upi", "wallet", "online"],
+    min_order_value: 799,
+    max_discount_value: 500,
+    min_quantity: 1,
+    description: "Exclusive 20% off up to ₹500 for VIP Platinum Members.",
+    applicable_branches: ["all"],
+    applicable_cities: ["all"],
+    customer_eligibility: "vip",
+    approval_status: "approved",
+    created_by: "usr_super_admin",
+    total_redemptions: 0,
+    total_discount_given: 0,
+    total_revenue_generated: 0,
+    metadata: { discount_value: 20 },
+    created_at: "2026-07-10T00:00:00.000Z",
+  },
+  {
+    id: "off_bday",
+    name: "Birthday Celebration Free Addon",
+    code: "BDAYCAKE",
+    type: "free_addon",
+    status: "active",
+    priority: 12,
+    starts_at: "2026-01-01T00:00:00.000Z",
+    ends_at: "2026-12-31T23:59:59.000Z",
+    timezone: "Asia/Kolkata",
+    never_expires: true,
+    usage_limit: null,
+    per_customer_limit: 1,
+    is_stackable: true,
+    is_public: true,
+    auto_apply: false,
+    delivery_mode: "all",
+    min_order_value: 699,
+    description: "Complimentary Designer Birthday Candle & Sparkling Party Popper with any Cake.",
+    applicable_branches: ["all"],
+    applicable_cities: ["all"],
+    customer_eligibility: "all",
+    approval_status: "approved",
+    created_by: "usr_super_admin",
+    total_redemptions: 0,
+    total_discount_given: 0,
+    total_revenue_generated: 0,
+    metadata: { discount_value: 99 },
+    created_at: "2026-07-15T00:00:00.000Z",
+  },
 ];
+
+const DEFAULT_OFFER_REDEMPTIONS: any[] = [];
+const DEFAULT_OFFER_AUDIT_LOGS: any[] = [];
+const DEFAULT_OFFER_DAILY_METRICS: any[] = [];
 
 const DEFAULT_CAMPAIGNS = [
   { id: "camp_monsoon", title: "Monsoon Festive Cake Promo", code: "CAKE50", discount: "50% OFF", status: "active" },
@@ -183,9 +375,9 @@ const DEFAULT_CAMPAIGNS = [
 ];
 
 const DEFAULT_CUSTOMERS = [
-  { id: "cus_01", name: "Ananya Rao", email: "ananya@example.com", phone: "+91 98765 43210", total_orders: 12, wallet_balance: 450, is_vip: true },
-  { id: "cus_02", name: "Rahul Verma", email: "rahul@example.com", phone: "+91 98765 43211", total_orders: 5, wallet_balance: 150, is_vip: false },
-  { id: "cus_03", name: "Priya Nair", email: "priya@example.com", phone: "+91 98765 43212", total_orders: 8, wallet_balance: 300, is_vip: true },
+  { id: "cus_01", customer_number: "CTH-CUST-000101", customer_type: "registered", name: "Ananya Rao", email: "ananya@example.com", phone: "+91 98765 43210", total_orders: 12, wallet_balance: 450, is_vip: true },
+  { id: "cus_02", customer_number: "CTH-CUST-000102", customer_type: "registered", name: "Rahul Verma", email: "rahul@example.com", phone: "+91 98765 43211", total_orders: 5, wallet_balance: 150, is_vip: false },
+  { id: "cus_03", customer_number: "CTH-CUST-000103", customer_type: "registered", name: "Priya Nair", email: "priya@example.com", phone: "+91 98765 43212", total_orders: 8, wallet_balance: 300, is_vip: true },
 ];
 
 const DEFAULT_DELIVERIES = [
@@ -221,11 +413,6 @@ const DEFAULT_SEO_CONFIG = {
   schema_type: "Bakery",
 };
 
-const DEFAULT_AB_TESTS = [
-  { id: "ab_exp_1", name: "Checkout Express Button Layout", status: "running", traffic_split: "50 / 50", conversions_a: 142, conversions_b: 188, winner: "Variant B" },
-  { id: "ab_exp_2", name: "Homepage Hero Monsoon Offer Badge", status: "running", traffic_split: "70 / 30", conversions_a: 89, conversions_b: 112, winner: "Variant B" },
-];
-
 const DEFAULT_AUTOMATION_TRIGGERS = [
   { id: "trig_01", name: "Abandoned Cart Recovery WhatsApp", event: "cart_abandoned_30m", channel: "WhatsApp", status: "active", sent_count: 1420 },
   { id: "trig_02", name: "Post-Delivery Feedback Email", event: "order_delivered", channel: "Email", status: "active", sent_count: 3200 },
@@ -242,9 +429,355 @@ const DEFAULT_AUDIT_LOGS = [
 ];
 
 const DEFAULT_CMS_PAGES = [
-  { id: "pg_about", title: "About Us", slug: "about-us", status: "published", updated_at: "2026-07-30T10:00:00Z" },
-  { id: "pg_terms", title: "Terms & Conditions", slug: "terms-and-conditions", status: "published", updated_at: "2026-07-30T10:00:00Z" },
-  { id: "pg_privacy", title: "Privacy Policy", slug: "privacy-policy", status: "published", updated_at: "2026-07-30T10:00:00Z" },
+  {
+    id: "cmspg_home",
+    title: "Homepage",
+    slug: "home",
+    page_type: "home",
+    template: "home",
+    status: "published",
+    url_path: "/",
+    breadcrumb_title: "Home",
+    meta_title: "Order Fresh Cakes Online in Bangalore — Delivered in 2 Hours | CakeToHome",
+    meta_description: "CakeToHome delivers handcrafted artisanal cakes across Bangalore in under 2 hours. Birthday, wedding, and custom photo cakes with midnight delivery slots.",
+    robots_tag: "index, follow",
+    canonical_url: "https://cakes2home.com/",
+    keywords: "cake delivery bangalore, birthday cake online, custom cakes bangalore, 2 hour cake delivery",
+    og_title: "Fresh Cakes Delivered in 2 Hours — CakeToHome",
+    og_description: "Handcrafted birthday, wedding & photo cakes delivered fresh across Bangalore. Same-day & midnight delivery available.",
+    og_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1200",
+    og_type: "website",
+    twitter_card: "summary_large_image",
+    twitter_title: "Fresh Cakes Delivered in 2 Hours — CakeToHome",
+    twitter_description: "Order birthday, wedding & photo cakes online. Midnight delivery across Bangalore.",
+    structured_data_type: "WebPage",
+    sitemap_include: true,
+    sitemap_priority: "1.0",
+    sitemap_changefreq: "daily",
+    nav_location: "none",
+    visibility_rules: { audience: "public", devices: "all", locations: "all" },
+    announcement_bar: { enabled: true, text: "⚡ Monsoon Special — 50% OFF Up to ₹150 on All Cakes", cta_text: "Shop Now", cta_url: "/products", bg_color: "#e11d48" },
+    header_config: { show_header: true, style: "transparent" },
+    sections: [
+      { id: "sec_home_hero", type: "hero", name: "Hero Banner", enabled: true, order: 1, config: { headline: "Handcrafted Gourmet Cakes Delivered in 2 Hours", subheadline: "Fresh, artisanal birthday & wedding cakes across Bangalore. Midnight delivery available!", cta_primary_text: "Order a Cake", cta_primary_url: "/products", cta_secondary_text: "View Collections", cta_secondary_url: "/collections", bg_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400", overlay_opacity: 0.4, alignment: "center", height: "large" } },
+      { id: "sec_home_cats", type: "category_grid", name: "Shop by Category", enabled: true, order: 2, config: { heading: "Shop by Occasion", subheading: "Find the perfect cake for every celebration", layout: "grid", columns: 3, category_ids: ["pcat_01", "pcat_02", "pcat_03"] } },
+      { id: "sec_home_bestsellers", type: "product_grid", name: "Best Sellers", enabled: true, order: 3, config: { heading: "🏆 Best-Selling Cakes", subheading: "Freshly baked fan favourites", mode: "best_sellers", layout: "grid", columns: 4, show_ratings: true, show_price: true, product_ids: [] } },
+      { id: "sec_home_promo", type: "promotional_banner", name: "Monsoon Sale Banner", enabled: true, order: 4, config: { headline: "🎉 Monsoon Special — Flat 50% OFF", subheadline: "Use Code: CAKE50. Valid on all birthday & anniversary cakes above ₹299", cta_text: "Claim Offer", cta_url: "/products?promo=CAKE50", bg_color: "#fef3c7", text_color: "#92400e" } },
+      { id: "sec_home_new", type: "product_grid", name: "New Arrivals", enabled: true, order: 5, config: { heading: "✨ New Arrivals", subheading: "Freshly added to the menu", mode: "new_arrivals", layout: "carousel", columns: 4, product_ids: [] } },
+      { id: "sec_home_locations", type: "location_coverage", name: "Delivery Locations", enabled: true, order: 6, config: { heading: "📍 We Deliver Across Bangalore", subheading: "Same-day & 2-hour delivery slots available", show_map: false, show_pincodes: true } },
+      { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, eggless option, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Free delivery on orders above ₹599." } ] } },
+    ],
+    draft_config: { sections: [], banners: [], products_mode: "best_sellers", product_ids: [], category_ids: [] },
+    published_config: {
+      sections: [
+        { id: "sec_home_hero", type: "hero", name: "Hero Banner", enabled: true, order: 1, config: { headline: "Handcrafted Gourmet Cakes Delivered in 2 Hours", subheadline: "Fresh, artisanal birthday & wedding cakes across Bangalore. Midnight delivery available!", cta_primary_text: "Order a Cake", cta_primary_url: "/products", cta_secondary_text: "View Collections", cta_secondary_url: "/collections", bg_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400", overlay_opacity: 0.4, alignment: "center", height: "large" } },
+        { id: "sec_home_cats", type: "category_grid", name: "Shop by Category", enabled: true, order: 2, config: { heading: "Shop by Occasion", subheading: "Find the perfect cake for every celebration", layout: "grid", columns: 3, category_ids: ["pcat_01", "pcat_02", "pcat_03"] } },
+        { id: "sec_home_bestsellers", type: "product_grid", name: "Best Sellers", enabled: true, order: 3, config: { heading: "🏆 Best-Selling Cakes", subheading: "Freshly baked fan favourites", mode: "best_sellers", layout: "grid", columns: 4, show_ratings: true, show_price: true, product_ids: [] } },
+        { id: "sec_home_promo", type: "promotional_banner", name: "Monsoon Sale Banner", enabled: true, order: 4, config: { headline: "🎉 Monsoon Special — Flat 50% OFF", subheadline: "Use Code: CAKE50. Valid on all birthday & anniversary cakes above ₹299", cta_text: "Claim Offer", cta_url: "/products?promo=CAKE50", bg_color: "#fef3c7", text_color: "#92400e" } },
+        { id: "sec_home_new", type: "product_grid", name: "New Arrivals", enabled: true, order: 5, config: { heading: "✨ New Arrivals", subheading: "Freshly added to the menu", mode: "new_arrivals", layout: "carousel", columns: 4, product_ids: [] } },
+        { id: "sec_home_locations", type: "location_coverage", name: "Delivery Locations", enabled: true, order: 6, config: { heading: "📍 We Deliver Across Bangalore", subheading: "Same-day & 2-hour delivery slots available", show_map: false, show_pincodes: true } },
+        { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, eggless option, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Free delivery on orders above ₹599." } ] } },
+      ],
+      banners: [],
+      announcement_bar: { enabled: true, text: "⚡ Monsoon Special — 50% OFF Up to ₹150 on All Cakes", cta_text: "Shop Now", cta_url: "/products", bg_color: "#e11d48" },
+      header_config: { show_header: true, style: "transparent" },
+    },
+    version_history: [],
+    created_at: "2026-07-01T10:00:00Z",
+    updated_at: "2026-08-09T10:00:00Z",
+    published_at: "2026-07-01T12:00:00Z",
+  },
+  {
+    id: "cmspg_products",
+    title: "Products / Catalog",
+    slug: "products",
+    page_type: "catalog",
+    template: "catalog",
+    status: "published",
+    url_path: "/products",
+    breadcrumb_title: "All Cakes",
+    meta_title: "Order Fresh Cakes Online — Birthday, Wedding & Custom Cakes | CakeToHome",
+    meta_description: "Browse 100+ fresh handcrafted cakes online. Birthday cakes, wedding cakes, photo cakes, eggless, and vegan options. Delivery across Bangalore in 2 hours.",
+    robots_tag: "index, follow",
+    canonical_url: "https://cakes2home.com/products",
+    keywords: "buy cakes online, birthday cake order, wedding cake bangalore, eggless cakes, photo cakes",
+    og_title: "Order Fresh Cakes Online — CakeToHome",
+    og_description: "100+ artisanal cakes with same-day delivery across Bangalore.",
+    og_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1200",
+    og_type: "website",
+    twitter_card: "summary_large_image",
+    structured_data_type: "CollectionPage",
+    sitemap_include: true,
+    sitemap_priority: "0.9",
+    sitemap_changefreq: "daily",
+    nav_location: "header",
+    visibility_rules: { audience: "public", devices: "all", locations: "all" },
+    announcement_bar: { enabled: false, text: "", cta_text: "", cta_url: "", bg_color: "#e11d48" },
+    header_config: { show_header: true, style: "default" },
+    sections: [
+      { id: "sec_prod_hero", type: "hero", name: "Catalog Hero", enabled: true, order: 1, config: { headline: "Discover Our Cake Collection", subheadline: "Handcrafted with love. Delivered fresh.", height: "small", overlay_opacity: 0.3, bg_image: "https://images.unsplash.com/photo-1558326957-c8a4929c09bd?auto=format&fit=crop&q=80&w=1400" } },
+      { id: "sec_prod_grid", type: "product_grid", name: "All Products", enabled: true, order: 2, config: { heading: "", mode: "all", layout: "grid", columns: 4, show_filters: true, show_search: true, product_ids: [] } },
+    ],
+    draft_config: { sections: [], banners: [], products_mode: "all", product_ids: [], category_ids: [] },
+    published_config: {},
+    version_history: [],
+    created_at: "2026-07-01T10:00:00Z",
+    updated_at: "2026-08-09T10:00:00Z",
+    published_at: "2026-07-01T12:00:00Z",
+  },
+  {
+    id: "cmspg_about",
+    title: "About Us",
+    slug: "about-us",
+    page_type: "page",
+    template: "content",
+    status: "published",
+    url_path: "/about-us",
+    breadcrumb_title: "About CakeToHome",
+    meta_title: "About CakeToHome — Our Story, Our Bakers, Our Promise | CakeToHome",
+    meta_description: "CakeToHome is Bangalore's premium artisanal cake bakery. Founded in 2020, we deliver handcrafted cakes with love and same-day delivery across Bangalore.",
+    robots_tag: "index, follow",
+    canonical_url: "https://cakes2home.com/about-us",
+    og_title: "About CakeToHome — Our Story",
+    og_description: "Bangalore's premier artisanal cake bakery with 2-hour delivery.",
+    og_type: "website",
+    twitter_card: "summary_large_image",
+    structured_data_type: "Organization",
+    sitemap_include: true,
+    sitemap_priority: "0.5",
+    sitemap_changefreq: "monthly",
+    nav_location: "footer",
+    visibility_rules: { audience: "public", devices: "all", locations: "all" },
+    announcement_bar: { enabled: false, text: "", cta_text: "", cta_url: "", bg_color: "#e11d48" },
+    header_config: { show_header: true, style: "default" },
+    sections: [
+      { id: "sec_about_hero", type: "hero", name: "About Hero", enabled: true, order: 1, config: { headline: "Our Story", subheadline: "Handcrafted cakes, baked with love since 2020", height: "medium" } },
+      { id: "sec_about_brand", type: "brand_story", name: "Brand Story", enabled: true, order: 2, config: { heading: "Crafted with Passion", body: "CakeToHome was born from a simple desire — to make every celebration sweeter. Our master bakers use only the finest Belgian chocolate, Madagascar vanilla, and fresh seasonal fruits." } },
+      { id: "sec_about_cta", type: "cta", name: "CTA", enabled: true, order: 3, config: { heading: "Ready to Order?", cta_text: "Browse Our Cakes", cta_url: "/products" } },
+    ],
+    draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
+    published_config: {},
+    version_history: [],
+    created_at: "2026-07-01T10:00:00Z",
+    updated_at: "2026-08-01T10:00:00Z",
+    published_at: "2026-07-01T12:00:00Z",
+  },
+  {
+    id: "cmspg_contact",
+    title: "Contact Us",
+    slug: "contact-us",
+    page_type: "page",
+    template: "contact",
+    status: "published",
+    url_path: "/contact-us",
+    breadcrumb_title: "Contact",
+    meta_title: "Contact CakeToHome — Get in Touch | CakeToHome",
+    meta_description: "Contact CakeToHome for bulk orders, corporate cakes, wedding inquiries, and customer support. We reply within 2 hours.",
+    robots_tag: "index, follow",
+    canonical_url: "https://cakes2home.com/contact-us",
+    structured_data_type: "ContactPage",
+    sitemap_include: true,
+    sitemap_priority: "0.6",
+    sitemap_changefreq: "monthly",
+    nav_location: "footer",
+    visibility_rules: { audience: "public", devices: "all", locations: "all" },
+    announcement_bar: { enabled: false, text: "", cta_text: "", cta_url: "", bg_color: "#e11d48" },
+    sections: [],
+    draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
+    published_config: {},
+    version_history: [],
+    created_at: "2026-07-01T10:00:00Z",
+    updated_at: "2026-08-01T10:00:00Z",
+    published_at: "2026-07-01T12:00:00Z",
+  },
+  {
+    id: "cmspg_faq",
+    title: "FAQ",
+    slug: "faq",
+    page_type: "page",
+    template: "faq",
+    status: "published",
+    url_path: "/faq",
+    breadcrumb_title: "FAQ",
+    meta_title: "Frequently Asked Questions — Cake Delivery, Orders & More | CakeToHome",
+    meta_description: "Find answers to your questions about cake delivery timings, customization options, payment, midnight delivery, eggless options and more at CakeToHome.",
+    robots_tag: "index, follow",
+    canonical_url: "https://cakes2home.com/faq",
+    structured_data_type: "FAQPage",
+    sitemap_include: true,
+    sitemap_priority: "0.6",
+    sitemap_changefreq: "weekly",
+    nav_location: "footer",
+    visibility_rules: { audience: "public", devices: "all", locations: "all" },
+    announcement_bar: { enabled: false, text: "", cta_text: "", cta_url: "", bg_color: "#e11d48" },
+    sections: [
+      { id: "sec_faq_main", type: "faq", name: "FAQ Content", enabled: true, order: 1, config: { heading: "Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake flavor and message?", a: "Absolutely! Choose from Belgian Chocolate, Red Velvet, Alphonso Mango, Lotus Biscoff and more. Add a personalized message during checkout." }, { q: "Do you offer eggless cakes?", a: "Yes, all our cakes are available in eggless versions at no extra cost." }, { q: "What is your cancellation policy?", a: "Orders can be cancelled within 2 hours of placement for a full refund. After that, a 15% cancellation fee applies." } ] } },
+    ],
+    draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
+    published_config: {},
+    version_history: [],
+    created_at: "2026-07-01T10:00:00Z",
+    updated_at: "2026-08-01T10:00:00Z",
+    published_at: "2026-07-01T12:00:00Z",
+  },
+  {
+    id: "cmspg_terms",
+    title: "Terms & Conditions",
+    slug: "terms-and-conditions",
+    page_type: "legal",
+    template: "content",
+    status: "published",
+    url_path: "/terms-and-conditions",
+    breadcrumb_title: "Terms",
+    meta_title: "Terms & Conditions | CakeToHome",
+    meta_description: "Read CakeToHome's terms and conditions for ordering, delivery, cancellation, and refund policies.",
+    robots_tag: "index, follow",
+    structured_data_type: "WebPage",
+    sitemap_include: true,
+    sitemap_priority: "0.3",
+    sitemap_changefreq: "yearly",
+    nav_location: "footer",
+    visibility_rules: { audience: "public", devices: "all", locations: "all" },
+    sections: [],
+    draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
+    published_config: {},
+    version_history: [],
+    created_at: "2026-07-01T10:00:00Z",
+    updated_at: "2026-07-30T10:00:00Z",
+    published_at: "2026-07-01T12:00:00Z",
+  },
+  {
+    id: "cmspg_privacy",
+    title: "Privacy Policy",
+    slug: "privacy-policy",
+    page_type: "legal",
+    template: "content",
+    status: "published",
+    url_path: "/privacy-policy",
+    breadcrumb_title: "Privacy Policy",
+    meta_title: "Privacy Policy | CakeToHome",
+    meta_description: "Learn how CakeToHome collects, uses, and protects your personal data when you order cakes online.",
+    robots_tag: "index, follow",
+    structured_data_type: "WebPage",
+    sitemap_include: true,
+    sitemap_priority: "0.3",
+    sitemap_changefreq: "yearly",
+    nav_location: "footer",
+    visibility_rules: { audience: "public", devices: "all", locations: "all" },
+    sections: [],
+    draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
+    published_config: {},
+    version_history: [],
+    created_at: "2026-07-01T10:00:00Z",
+    updated_at: "2026-07-30T10:00:00Z",
+    published_at: "2026-07-01T12:00:00Z",
+  },
+  {
+    id: "cmspg_birthday_lp",
+    title: "Birthday Cakes — Campaign Page",
+    slug: "birthday-cakes-bangalore",
+    page_type: "landing",
+    template: "campaign",
+    status: "draft",
+    url_path: "/birthday-cakes-bangalore",
+    breadcrumb_title: "Birthday Cakes",
+    meta_title: "Best Birthday Cakes in Bangalore — Same Day Delivery | CakeToHome",
+    meta_description: "Order the best birthday cakes in Bangalore with same-day & midnight delivery. Customizable, eggless, and photo cakes from ₹399. Free delivery above ₹599.",
+    robots_tag: "index, follow",
+    canonical_url: "https://cakes2home.com/birthday-cakes-bangalore",
+    keywords: "birthday cakes bangalore, birthday cake delivery, custom birthday cake, midnight birthday cake delivery",
+    structured_data_type: "Product",
+    sitemap_include: true,
+    sitemap_priority: "0.8",
+    sitemap_changefreq: "weekly",
+    nav_location: "none",
+    visibility_rules: { audience: "public", devices: "all", locations: "bangalore" },
+    announcement_bar: { enabled: true, text: "🎂 Birthday Special — Extra 10% OFF with Code BDAY10", cta_text: "Order Now", cta_url: "/products?occasion=birthday", bg_color: "#7c3aed" },
+    sections: [
+      { id: "sec_bd_hero", type: "hero", name: "Birthday Hero", enabled: true, order: 1, config: { headline: "Make Their Birthday Unforgettable", subheadline: "Handcrafted birthday cakes with same-day & midnight delivery across Bangalore", cta_primary_text: "Order Birthday Cake", cta_primary_url: "/products?occasion=birthday", height: "large" } },
+      { id: "sec_bd_products", type: "product_grid", name: "Birthday Cake Collection", enabled: true, order: 2, config: { heading: "🎂 Our Birthday Cake Collection", mode: "manual", layout: "grid", columns: 4, product_ids: [] } },
+      { id: "sec_bd_faq", type: "faq", name: "Birthday Delivery FAQ", enabled: true, order: 3, config: { heading: "Birthday Cake FAQ", faqs: [ { q: "Can I order a birthday cake for midnight delivery?", a: "Yes! Choose the midnight slot (11:30 PM – 12:05 AM) at checkout for a perfect surprise." }, { q: "Can I add a custom message on the cake?", a: "Yes, enter your message in the customization section during checkout — up to 30 characters." } ] } },
+    ],
+    draft_config: { sections: [], banners: [], products_mode: "manual", product_ids: [], category_ids: [] },
+    published_config: null,
+    version_history: [],
+    created_at: "2026-08-01T10:00:00Z",
+    updated_at: "2026-08-09T10:00:00Z",
+    published_at: null,
+  },
+];
+
+export const DEFAULT_MEDIA = [
+  {
+    id: "med_hero_01",
+    name: "Belgian Chocolate Truffle Artisanal Cake",
+    filename: "belgian-chocolate-cake.jpg",
+    url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400",
+    thumbnail_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=300",
+    mime_type: "image/jpeg",
+    size: 342000,
+    width: 1400,
+    height: 800,
+    alt_text: "Handcrafted Belgian dark chocolate truffle cake with golden candle decorations",
+    folder: "heroes",
+    created_at: "2026-07-01T10:00:00Z",
+  },
+  {
+    id: "med_redvelvet_01",
+    name: "Red Velvet Cream Cheese Celebration Cake",
+    filename: "red-velvet-cake.jpg",
+    url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=1400",
+    thumbnail_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=300",
+    mime_type: "image/jpeg",
+    size: 295000,
+    width: 1400,
+    height: 800,
+    alt_text: "Fresh red velvet celebration cake with velvety cream cheese frosting",
+    folder: "products",
+    created_at: "2026-07-01T10:00:00Z",
+  },
+  {
+    id: "med_fruit_01",
+    name: "Exotic Fresh Fruit Gateau Cake",
+    filename: "fresh-fruit-cake.jpg",
+    url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=1400",
+    thumbnail_url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=300",
+    mime_type: "image/jpeg",
+    size: 310000,
+    width: 1400,
+    height: 800,
+    alt_text: "Exotic fruit gateau loaded with fresh kiwi, strawberries, and alphonso mango slices",
+    folder: "products",
+    created_at: "2026-07-01T10:00:00Z",
+  },
+  {
+    id: "med_banner_01",
+    name: "Monsoon Special Promo Banner",
+    filename: "monsoon-banner.jpg",
+    url: "https://images.unsplash.com/photo-1558326957-c8a4929c09bd?auto=format&fit=crop&q=80&w=1400",
+    thumbnail_url: "https://images.unsplash.com/photo-1558326957-c8a4929c09bd?auto=format&fit=crop&q=80&w=300",
+    mime_type: "image/jpeg",
+    size: 260000,
+    width: 1400,
+    height: 600,
+    alt_text: "Monsoon cake sale banner offering 50% discount on first online cake order",
+    folder: "banners",
+    created_at: "2026-07-01T10:00:00Z",
+  },
+  {
+    id: "med_logo_01",
+    name: "CakeToHome Official Brand Logo",
+    filename: "caketohome-logo.png",
+    url: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=400",
+    thumbnail_url: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=200",
+    mime_type: "image/png",
+    size: 45000,
+    width: 400,
+    height: 120,
+    alt_text: "CakeToHome Gourmet Bakery logo",
+    folder: "branding",
+    created_at: "2026-07-01T10:00:00Z",
+  },
 ];
 
 const DEFAULT_PIM_CATEGORIES = [
@@ -1000,13 +1533,15 @@ interface StoreData {
   cities: any[];
   regions: any[];
   offers: any[];
+  offer_redemptions?: any[];
+  offer_audit_logs?: any[];
+  offer_daily_metrics?: any[];
   campaigns: any[];
   customers: any[];
   deliveries: any[];
   delivery_partners: any[];
   settings: any;
   seo_config: any;
-  ab_tests: any[];
   automation_triggers: any[];
   notifications: any[];
   audit_logs: any[];
@@ -1021,6 +1556,32 @@ interface StoreData {
   city_areas?: CityArea[];
   orders: any[];
   carts?: Record<string, any>;
+  media?: any[];
+  // ── Enterprise SEO Platform Collections ──
+  seo_pages: any[];
+  seo_page_scores: any[];
+  seo_keywords: any[];
+  seo_keyword_groups: any[];
+  seo_redirects: any[];
+  seo_redirect_logs: any[];
+  seo_broken_links: any[];
+  seo_internal_links: any[];
+  seo_schema_templates: any[];
+  seo_schema_instances: any[];
+  seo_crawl_history: any[];
+  seo_health_reports: any[];
+  seo_image_audits: any[];
+  seo_competitors: any[];
+  seo_geo_pages: any[];
+  seo_aeo_entries: any[];
+  seo_content_audits: any[];
+  seo_page_speed: any[];
+  seo_audit_logs: any[];
+  seo_utm_campaigns: any[];
+  seo_robots_history: any[];
+  seo_social_cards: any[];
+  seo_backlinks: any[];
+  seo_reports: any[];
 }
 
 function getStoreFilePath(): string {
@@ -1067,23 +1628,43 @@ function loadStore(): StoreData {
         }
       });
 
+      const cmsPagesList = (parsed.cms_pages && parsed.cms_pages.length > 0) ? parsed.cms_pages : [...DEFAULT_CMS_PAGES];
+      DEFAULT_CMS_PAGES.forEach((def) => {
+        const existingIdx = cmsPagesList.findIndex((p: any) => p.id === def.id || p.slug === def.slug);
+        if (existingIdx >= 0) {
+          if ((!cmsPagesList[existingIdx].published_config || Object.keys(cmsPagesList[existingIdx].published_config).length === 0) && def.published_config) {
+            cmsPagesList[existingIdx].published_config = def.published_config;
+          }
+          if ((!cmsPagesList[existingIdx].sections || cmsPagesList[existingIdx].sections.length === 0) && def.sections) {
+            cmsPagesList[existingIdx].sections = def.sections;
+          }
+          if (def.announcement_bar && !cmsPagesList[existingIdx].announcement_bar) {
+            cmsPagesList[existingIdx].announcement_bar = def.announcement_bar;
+          }
+        } else {
+          cmsPagesList.push(def);
+        }
+      });
+
       return {
         products: parsed.products || DEFAULT_PRODUCTS,
         branches: branchesList,
         cities: parsed.cities || DEFAULT_CITIES,
         regions: parsed.regions || DEFAULT_REGIONS,
-        offers: parsed.offers || DEFAULT_OFFERS,
+        offers: (parsed.offers && parsed.offers.length > 0 && parsed.offers.some((o: any) => o.starts_at || o.approval_status)) ? parsed.offers : DEFAULT_OFFERS,
+        offer_redemptions: parsed.offer_redemptions || DEFAULT_OFFER_REDEMPTIONS,
+        offer_audit_logs: parsed.offer_audit_logs || DEFAULT_OFFER_AUDIT_LOGS,
+        offer_daily_metrics: parsed.offer_daily_metrics || DEFAULT_OFFER_DAILY_METRICS,
         campaigns: parsed.campaigns || DEFAULT_CAMPAIGNS,
         customers: parsed.customers || DEFAULT_CUSTOMERS,
         deliveries: parsed.deliveries || DEFAULT_DELIVERIES,
         delivery_partners: parsed.delivery_partners || DEFAULT_DELIVERY_PARTNERS,
         settings: parsed.settings || DEFAULT_SETTINGS,
         seo_config: parsed.seo_config || DEFAULT_SEO_CONFIG,
-        ab_tests: parsed.ab_tests || DEFAULT_AB_TESTS,
         automation_triggers: parsed.automation_triggers || DEFAULT_AUTOMATION_TRIGGERS,
         notifications: parsed.notifications || DEFAULT_NOTIFICATIONS,
         audit_logs: parsed.audit_logs || DEFAULT_AUDIT_LOGS,
-        cms_pages: (parsed.cms_pages && parsed.cms_pages.length > 0) ? parsed.cms_pages : DEFAULT_CMS_PAGES,
+        cms_pages: cmsPagesList,
         pim_categories: (parsed.pim_categories && parsed.pim_categories.length > 0) ? parsed.pim_categories : DEFAULT_PIM_CATEGORIES,
         variant_options: (parsed.variant_options && parsed.variant_options.length > 0) ? parsed.variant_options : DEFAULT_VARIANT_OPTIONS,
         product_weight_prices: parsed.product_weight_prices || [],
@@ -1094,6 +1675,32 @@ function loadStore(): StoreData {
         city_areas: (parsed.city_areas && parsed.city_areas.length > 0) ? parsed.city_areas : DEFAULT_CITY_AREAS,
         orders: parsed.orders || [],
         carts: parsed.carts || {},
+        media: (parsed.media && parsed.media.length > 0) ? parsed.media : [...DEFAULT_MEDIA],
+        // ── Enterprise SEO Platform ──
+        seo_pages: parsed.seo_pages || [],
+        seo_page_scores: parsed.seo_page_scores || [],
+        seo_keywords: parsed.seo_keywords || [],
+        seo_keyword_groups: parsed.seo_keyword_groups || [],
+        seo_redirects: parsed.seo_redirects || [],
+        seo_redirect_logs: parsed.seo_redirect_logs || [],
+        seo_broken_links: parsed.seo_broken_links || [],
+        seo_internal_links: parsed.seo_internal_links || [],
+        seo_schema_templates: parsed.seo_schema_templates || [],
+        seo_schema_instances: parsed.seo_schema_instances || [],
+        seo_crawl_history: parsed.seo_crawl_history || [],
+        seo_health_reports: parsed.seo_health_reports || [],
+        seo_image_audits: parsed.seo_image_audits || [],
+        seo_competitors: parsed.seo_competitors || [],
+        seo_geo_pages: parsed.seo_geo_pages || [],
+        seo_aeo_entries: parsed.seo_aeo_entries || [],
+        seo_content_audits: parsed.seo_content_audits || [],
+        seo_page_speed: parsed.seo_page_speed || [],
+        seo_audit_logs: parsed.seo_audit_logs || [],
+        seo_utm_campaigns: parsed.seo_utm_campaigns || [],
+        seo_robots_history: parsed.seo_robots_history || [],
+        seo_social_cards: parsed.seo_social_cards || [],
+        seo_backlinks: parsed.seo_backlinks || [],
+        seo_reports: parsed.seo_reports || [],
       };
     } catch (err) {
       console.error("Failed to read db-store.json, initializing default store:", err);
@@ -1106,13 +1713,15 @@ function loadStore(): StoreData {
     cities: DEFAULT_CITIES,
     regions: DEFAULT_REGIONS,
     offers: DEFAULT_OFFERS,
+    offer_redemptions: DEFAULT_OFFER_REDEMPTIONS,
+    offer_audit_logs: DEFAULT_OFFER_AUDIT_LOGS,
+    offer_daily_metrics: DEFAULT_OFFER_DAILY_METRICS,
     campaigns: DEFAULT_CAMPAIGNS,
     customers: DEFAULT_CUSTOMERS,
     deliveries: DEFAULT_DELIVERIES,
     delivery_partners: DEFAULT_DELIVERY_PARTNERS,
     settings: DEFAULT_SETTINGS,
     seo_config: DEFAULT_SEO_CONFIG,
-    ab_tests: DEFAULT_AB_TESTS,
     automation_triggers: DEFAULT_AUTOMATION_TRIGGERS,
     notifications: DEFAULT_NOTIFICATIONS,
     audit_logs: DEFAULT_AUDIT_LOGS,
@@ -1126,6 +1735,32 @@ function loadStore(): StoreData {
     product_accessory_mappings: [],
     city_areas: DEFAULT_CITY_AREAS,
     orders: [],
+    media: [...DEFAULT_MEDIA],
+    // ── Enterprise SEO Platform ──
+    seo_pages: [],
+    seo_page_scores: [],
+    seo_keywords: [],
+    seo_keyword_groups: [],
+    seo_redirects: [],
+    seo_redirect_logs: [],
+    seo_broken_links: [],
+    seo_internal_links: [],
+    seo_schema_templates: [],
+    seo_schema_instances: [],
+    seo_crawl_history: [],
+    seo_health_reports: [],
+    seo_image_audits: [],
+    seo_competitors: [],
+    seo_geo_pages: [],
+    seo_aeo_entries: [],
+    seo_content_audits: [],
+    seo_page_speed: [],
+    seo_audit_logs: [],
+    seo_utm_campaigns: [],
+    seo_robots_history: [],
+    seo_social_cards: [],
+    seo_backlinks: [],
+    seo_reports: [],
   };
 
   saveStore(initial);
@@ -1170,10 +1805,6 @@ export class ApiEngine {
       version: "1.0.0",
       environment: process.env.NODE_ENV || "development",
     };
-  }
-
-  static getAdminHealth() {
-    return ApiEngine.getHealth();
   }
 
   // ── Products & Catalog ──────────────────────────────
@@ -1420,43 +2051,442 @@ export class ApiEngine {
     return newRegion;
   }
 
-  // ── Marketing, Offers, Campaigns ──────────────────────────────
-  static getAdminOffers() {
-    return memoryStore.offers;
+  // ── Marketing, Offers, Coupons ──────────────────────────────
+  static getAdminOffers(filters?: Record<string, any>) {
+    let list = [...(memoryStore.offers || [])];
+    if (!filters) return list;
+
+    if (filters.status && filters.status !== "all") {
+      list = list.filter((o) => o.status === filters.status);
+    }
+    if (filters.type && filters.type !== "all") {
+      list = list.filter((o) => o.type === filters.type);
+    }
+    if (filters.q) {
+      const q = String(filters.q).toLowerCase().trim();
+      list = list.filter(
+        (o) =>
+          (o.name && o.name.toLowerCase().includes(q)) ||
+          (o.code && o.code.toLowerCase().includes(q)) ||
+          (o.description && o.description.toLowerCase().includes(q))
+      );
+    }
+    if (filters.branch_id && filters.branch_id !== "all") {
+      list = list.filter((o) => {
+        if (!o.applicable_branches) return true;
+        const b = Array.isArray(o.applicable_branches) ? o.applicable_branches : [o.applicable_branches];
+        return b.includes("all") || b.includes(filters.branch_id);
+      });
+    }
+    if (filters.city && filters.city !== "all") {
+      list = list.filter((o) => {
+        if (!o.applicable_cities) return true;
+        const c = Array.isArray(o.applicable_cities) ? o.applicable_cities : [o.applicable_cities];
+        return c.includes("all") || c.map((x: string) => x.toLowerCase()).includes(filters.city.toLowerCase());
+      });
+    }
+    return list;
+  }
+
+  static getAdminOfferById(id: string) {
+    const offer = (memoryStore.offers || []).find((o) => o.id === id);
+    if (!offer) throw new Error(`Offer ${id} not found`);
+    const redemptions = (memoryStore.offer_redemptions || []).filter((r: any) => r.offer_id === id);
+    const auditLogs = (memoryStore.offer_audit_logs || []).filter((l: any) => l.offer_id === id);
+    return { offer, redemptions, audit_logs: auditLogs, redemptions_count: redemptions.length };
   }
 
   static createAdminOffer(data: any) {
+    const formattedCode = (data.code || `OFFER${Math.floor(1000 + Math.random() * 9000)}`).toUpperCase().trim();
     const newOffer = {
       id: `off_${Date.now()}`,
-      code: (data.code || `OFFER${Math.floor(Math.random() * 1000)}`).toUpperCase(),
-      description: data.description || data.name || "Promo Offer",
-      type: data.type || "flat",
-      discount_value: Number(data.discount_value) || 50,
-      min_order: Number(data.min_order) || 499,
-      is_active: data.is_active !== undefined ? Boolean(data.is_active) : true,
+      name: data.name || `Promo ${formattedCode}`,
+      code: formattedCode,
+      type: data.type || "percentage",
+      status: data.status || "active",
+      priority: Number(data.priority) || 0,
+      starts_at: data.starts_at || new Date().toISOString(),
+      ends_at: data.ends_at || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      start_time: data.start_time || null,
+      end_time: data.end_time || null,
+      timezone: data.timezone || "Asia/Kolkata",
+      never_expires: Boolean(data.never_expires),
+      usage_limit: data.usage_limit ? Number(data.usage_limit) : null,
+      per_customer_limit: data.per_customer_limit !== undefined ? Number(data.per_customer_limit) : 1,
+      daily_limit: data.daily_limit ? Number(data.daily_limit) : null,
+      monthly_limit: data.monthly_limit ? Number(data.monthly_limit) : null,
+      is_stackable: Boolean(data.is_stackable),
+      is_public: data.is_public !== undefined ? Boolean(data.is_public) : true,
+      auto_apply: Boolean(data.auto_apply),
+      delivery_mode: data.delivery_mode || "all",
+      allowed_payment_methods: data.allowed_payment_methods || ["cash", "card", "upi", "wallet", "cod", "online"],
+      min_order_value: Number(data.min_order_value || data.min_order) || 0,
+      max_discount_value: data.max_discount_value ? Number(data.max_discount_value) : null,
+      min_quantity: Number(data.min_quantity) || 1,
+      description: data.description || `Special promotional offer with code ${formattedCode}`,
+      applicable_branches: Array.isArray(data.applicable_branches) ? data.applicable_branches : ["all"],
+      applicable_cities: Array.isArray(data.applicable_cities) ? data.applicable_cities : ["all"],
+      applicable_pincodes: Array.isArray(data.applicable_pincodes) ? data.applicable_pincodes : ["all"],
+      excluded_pincodes: Array.isArray(data.excluded_pincodes) ? data.excluded_pincodes : [],
+      applicable_products: Array.isArray(data.applicable_products) ? data.applicable_products : [],
+      applicable_categories: Array.isArray(data.applicable_categories) ? data.applicable_categories : [],
+      applicable_flavors: Array.isArray(data.applicable_flavors) ? data.applicable_flavors : [],
+      applicable_shapes: Array.isArray(data.applicable_shapes) ? data.applicable_shapes : [],
+      applicable_weights: Array.isArray(data.applicable_weights) ? data.applicable_weights : [],
+      customer_eligibility: data.customer_eligibility || "all",
+      allowed_customer_ids: Array.isArray(data.allowed_customer_ids) ? data.allowed_customer_ids : [],
+      allowed_phones: Array.isArray(data.allowed_phones) ? data.allowed_phones : [],
+      allowed_emails: Array.isArray(data.allowed_emails) ? data.allowed_emails : [],
+      customer_tags: Array.isArray(data.customer_tags) ? data.customer_tags : [],
+      exclude_discounted_items: Boolean(data.exclude_discounted_items),
+      exclude_flash_sales: Boolean(data.exclude_flash_sales),
+      approval_status: data.approval_status || "approved",
+      created_by: data.created_by || "usr_super_admin",
+      total_redemptions: 0,
+      total_discount_given: 0,
+      total_revenue_generated: 0,
+      metadata: data.metadata || { discount_value: Number(data.discount_value) || 10 },
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
+
+    if (!memoryStore.offers) memoryStore.offers = [];
     memoryStore.offers.unshift(newOffer);
-    ApiEngine.addAuditLog(`Created Promo Coupon Code "${newOffer.code}"`);
+
+    // Audit Log
+    if (!memoryStore.offer_audit_logs) memoryStore.offer_audit_logs = [];
+    memoryStore.offer_audit_logs.unshift({
+      id: `ofr_aud_${Date.now()}`,
+      offer_id: newOffer.id,
+      offer_code: newOffer.code,
+      actor_id: "usr_super_admin",
+      actor_email: "superadmin@cakes2home.com",
+      action: "created",
+      changes_json: JSON.stringify(newOffer),
+      ip_address: "127.0.0.1",
+      created_at: new Date().toISOString(),
+    });
+
+    ApiEngine.addAuditLog(`Created Enterprise Coupon Code "${newOffer.code}" (${newOffer.name})`);
     ApiEngine.persist();
     return newOffer;
   }
 
   static updateAdminOffer(id: string, data: any) {
+    if (!memoryStore.offers) memoryStore.offers = [];
     const idx = memoryStore.offers.findIndex((o) => o.id === id);
-    if (idx < 0) throw new Error("Offer not found");
-    memoryStore.offers[idx] = { ...memoryStore.offers[idx], ...data };
-    ApiEngine.addAuditLog(`Updated Promo Coupon "${memoryStore.offers[idx].code}"`);
+    if (idx < 0) throw new Error(`Offer with ID ${id} not found`);
+
+    const updated = {
+      ...memoryStore.offers[idx],
+      ...data,
+      updated_at: new Date().toISOString(),
+    };
+    memoryStore.offers[idx] = updated;
+
+    if (!memoryStore.offer_audit_logs) memoryStore.offer_audit_logs = [];
+    memoryStore.offer_audit_logs.unshift({
+      id: `ofr_aud_${Date.now()}`,
+      offer_id: id,
+      offer_code: updated.code,
+      actor_id: "usr_super_admin",
+      actor_email: "superadmin@cakes2home.com",
+      action: "updated",
+      changes_json: JSON.stringify(data),
+      ip_address: "127.0.0.1",
+      created_at: new Date().toISOString(),
+    });
+
+    ApiEngine.addAuditLog(`Updated Enterprise Coupon "${updated.code}"`);
     ApiEngine.persist();
-    return memoryStore.offers[idx];
+    return updated;
   }
 
   static deleteAdminOffer(id: string) {
+    if (!memoryStore.offers) return true;
     const offer = memoryStore.offers.find((o) => o.id === id);
     memoryStore.offers = memoryStore.offers.filter((o) => o.id !== id);
-    if (offer) ApiEngine.addAuditLog(`Deleted Promo Offer "${offer.code}"`);
+
+    if (offer) {
+      if (!memoryStore.offer_audit_logs) memoryStore.offer_audit_logs = [];
+      memoryStore.offer_audit_logs.unshift({
+        id: `ofr_aud_${Date.now()}`,
+        offer_id: id,
+        offer_code: offer.code,
+        actor_id: "usr_super_admin",
+        actor_email: "superadmin@cakes2home.com",
+        action: "deleted",
+        changes_json: null,
+        ip_address: "127.0.0.1",
+        created_at: new Date().toISOString(),
+      });
+      ApiEngine.addAuditLog(`Deleted Promo Offer "${offer.code}"`);
+    }
     ApiEngine.persist();
     return true;
+  }
+
+  static cloneAdminOffer(id: string) {
+    const source = (memoryStore.offers || []).find((o) => o.id === id);
+    if (!source) throw new Error("Coupon to clone not found");
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    const clonedCode = source.code ? `${source.code}_COPY_${rand}` : `COUPON_${rand}`;
+
+    const cloneData = {
+      ...source,
+      name: `${source.name} (Copy)`,
+      code: clonedCode,
+      status: "draft",
+      approval_status: "draft",
+      total_redemptions: 0,
+      total_discount_given: 0,
+      total_revenue_generated: 0,
+    };
+    delete cloneData.id;
+    delete cloneData.created_at;
+    delete cloneData.updated_at;
+
+    return ApiEngine.createAdminOffer(cloneData);
+  }
+
+  static getAdminOfferAuditLogs(id: string) {
+    return (memoryStore.offer_audit_logs || []).filter((l: any) => l.offer_id === id);
+  }
+
+  static getCouponAnalyticsSummary() {
+    const offers = memoryStore.offers || [];
+    const redemptions = memoryStore.offer_redemptions || [];
+
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    let activeCount = 0;
+    let expiredCount = 0;
+    let scheduledCount = 0;
+
+    offers.forEach((o: any) => {
+      if (o.status === "active") activeCount++;
+      else if (o.status === "expired") expiredCount++;
+      else if (o.status === "scheduled") scheduledCount++;
+    });
+
+    // Compute strictly from real redemption records
+    let totalRevenue = 0;
+    let totalDiscount = 0;
+    let usesToday = 0;
+    let usesThisMonth = 0;
+    const branchStats: Record<string, { name: string; redemptions: number; revenue: number; discount: number }> = {};
+    const cityStats: Record<string, { redemptions: number; revenue: number }> = {};
+    const couponRedemptionCounts: Record<string, number> = {};
+
+    redemptions.forEach((r: any) => {
+      const rev = Number(r.order_total) || 0;
+      const disc = Number(r.discount_amount) || 0;
+      totalRevenue += rev;
+      totalDiscount += disc;
+
+      couponRedemptionCounts[r.offer_id] = (couponRedemptionCounts[r.offer_id] || 0) + 1;
+
+      const rDate = new Date(r.created_at || now);
+      if (rDate.toISOString().split("T")[0] === todayStr) usesToday++;
+      if (rDate.getMonth() === currentMonth && rDate.getFullYear() === currentYear) usesThisMonth++;
+
+      if (r.branch_id || r.branch_name) {
+        const bKey = r.branch_id || r.branch_name;
+        if (!branchStats[bKey]) {
+          branchStats[bKey] = { name: r.branch_name || bKey, redemptions: 0, revenue: 0, discount: 0 };
+        }
+        branchStats[bKey].redemptions++;
+        branchStats[bKey].revenue += rev;
+        branchStats[bKey].discount += disc;
+      }
+
+      if (r.city) {
+        if (!cityStats[r.city]) cityStats[r.city] = { redemptions: 0, revenue: 0 };
+        cityStats[r.city].redemptions++;
+        cityStats[r.city].revenue += rev;
+      }
+    });
+
+    let topOffer: any = null;
+    let maxReds = 0;
+    offers.forEach((o: any) => {
+      const reds = couponRedemptionCounts[o.id] || Number(o.total_redemptions) || 0;
+      if (reds > maxReds) {
+        maxReds = reds;
+        topOffer = o;
+      }
+    });
+
+    const totalReds = redemptions.length;
+    const avgDiscount = totalReds > 0 ? Math.round(totalDiscount / totalReds) : 0;
+    const aov = totalReds > 0 ? Math.round(totalRevenue / totalReds) : 0;
+    const roi = totalDiscount > 0 ? Math.round(((totalRevenue - totalDiscount) / totalDiscount) * 100) : 0;
+
+    return {
+      total_coupons: offers.length,
+      active_coupons: activeCount,
+      expired_coupons: expiredCount,
+      scheduled_coupons: scheduledCount,
+      total_redemptions: totalReds,
+      total_revenue_generated: totalRevenue,
+      total_discount_given: totalDiscount,
+      average_discount: avgDiscount,
+      average_order_value: aov,
+      roi_percentage: roi,
+      uses_today: usesToday,
+      uses_this_month: usesThisMonth,
+      top_coupon: topOffer
+        ? {
+            id: topOffer.id,
+            code: topOffer.code || topOffer.name,
+            name: topOffer.name,
+            redemptions: maxReds,
+            revenue: Number(topOffer.total_revenue_generated) || 0,
+          }
+        : null,
+      branch_performance: Object.values(branchStats),
+      city_performance: Object.entries(cityStats).map(([city, v]) => ({
+        city,
+        redemptions: v.redemptions,
+        revenue: v.revenue,
+      })),
+    };
+  }
+
+  static getCouponReports(groupBy: string = "date") {
+    const redemptions = memoryStore.offer_redemptions || [];
+    const offers = memoryStore.offers || [];
+    const reportMap: Record<string, { label: string; redemptions: number; revenue: number; discount: number; aov: number }> = {};
+
+    redemptions.forEach((r: any) => {
+      let key = "Today";
+      if (groupBy === "date") {
+        key = r.created_at ? new Date(r.created_at).toISOString().split("T")[0] : "Today";
+      } else if (groupBy === "branch") {
+        key = r.branch_name || r.branch_id || "Kollam Central";
+      } else if (groupBy === "city") {
+        key = r.city || "Kollam";
+      } else if (groupBy === "coupon") {
+        const off = offers.find((o: any) => o.id === r.offer_id);
+        key = off ? (off.code || off.name) : (r.offer_id || "PROMO");
+      }
+
+      if (!reportMap[key]) {
+        reportMap[key] = { label: key, redemptions: 0, revenue: 0, discount: 0, aov: 0 };
+      }
+      reportMap[key].redemptions++;
+      reportMap[key].revenue += Number(r.order_total) || 0;
+      reportMap[key].discount += Number(r.discount_amount) || 0;
+    });
+
+    return Object.values(reportMap).map((item) => ({
+      ...item,
+      aov: item.redemptions > 0 ? Math.round(item.revenue / item.redemptions) : 0,
+    }));
+  }
+
+  static exportCoupons(format: string = "csv", type: string = "coupons") {
+    const offers = memoryStore.offers || [];
+    if (format === "json") return { offers };
+
+    const headers = "ID,Name,Code,Type,Status,Priority,Usage Limit,Per Customer,Redemptions,Total Revenue,Discount Given,Starts At,Ends At";
+    const rows = offers.map((o: any) =>
+      [
+        o.id,
+        `"${(o.name || "").replace(/"/g, '""')}"`,
+        o.code || "",
+        o.type || "",
+        o.status || "",
+        o.priority || 0,
+        o.usage_limit || "",
+        o.per_customer_limit || 1,
+        o.total_redemptions || 0,
+        o.total_revenue_generated || 0,
+        o.total_discount_given || 0,
+        o.starts_at || "",
+        o.ends_at || "",
+      ].join(",")
+    );
+
+    return [headers, ...rows].join("\n");
+  }
+
+  static importCoupons(payload: any) {
+    let coupons: any[] = [];
+    if (Array.isArray(payload.coupons)) {
+      coupons = payload.coupons;
+    } else if (payload.csv_data) {
+      const lines = payload.csv_data.split("\n").map((l: string) => l.trim()).filter(Boolean);
+      const headers = lines[0].split(",").map((h: string) => h.trim().toLowerCase());
+      for (let i = 1; i < lines.length; i++) {
+        const vals = lines[i].split(",").map((v: string) => v.trim());
+        const obj: any = {};
+        headers.forEach((h: string, idx: number) => {
+          obj[h] = vals[idx];
+        });
+        if (obj.code || obj.name) coupons.push(obj);
+      }
+    }
+
+    const createdList: any[] = [];
+    coupons.forEach((c) => {
+      const created = ApiEngine.createAdminOffer(c);
+      createdList.push(created);
+    });
+
+    return { imported_count: createdList.length, coupons: createdList };
+  }
+
+  static recordCouponRedemption(offerId: string, details: {
+    customer_id?: string;
+    customer_phone?: string;
+    customer_email?: string;
+    order_id?: string;
+    order_number?: string;
+    cart_id?: string;
+    branch_id?: string;
+    branch_name?: string;
+    city?: string;
+    pincode?: string;
+    discount_amount?: number;
+    order_total?: number;
+    payment_method?: string;
+  }) {
+    if (!memoryStore.offer_redemptions) memoryStore.offer_redemptions = [];
+    const redemption = {
+      id: `red_${Date.now()}`,
+      offer_id: offerId,
+      customer_id: details.customer_id || null,
+      customer_phone: details.customer_phone || null,
+      customer_email: details.customer_email || null,
+      order_id: details.order_id || null,
+      order_number: details.order_number || `CTH-${Date.now()}`,
+      cart_id: details.cart_id || null,
+      branch_id: details.branch_id || null,
+      branch_name: details.branch_name || null,
+      city: details.city || null,
+      pincode: details.pincode || null,
+      discount_amount: Number(details.discount_amount) || 0,
+      order_total: Number(details.order_total) || 0,
+      payment_method: details.payment_method || "UPI",
+      order_status: "completed",
+      created_at: new Date().toISOString(),
+    };
+    memoryStore.offer_redemptions.unshift(redemption);
+
+    // Update Offer Aggregates
+    const offer = (memoryStore.offers || []).find((o) => o.id === offerId);
+    if (offer) {
+      offer.total_redemptions = (Number(offer.total_redemptions) || 0) + 1;
+      offer.total_discount_given = (Number(offer.total_discount_given) || 0) + redemption.discount_amount;
+      offer.total_revenue_generated = (Number(offer.total_revenue_generated) || 0) + redemption.order_total;
+    }
+
+    ApiEngine.persist();
+    return redemption;
   }
 
   static getAdminCampaigns() {
@@ -1478,33 +2508,1190 @@ export class ApiEngine {
     return newCamp;
   }
 
-  // ── Delivery & Fleet ──────────────────────────────
-  static getAdminDeliveries() {
-    return memoryStore.deliveries;
+  // ── Delivery Partner & Fleet Engine ──────────────────────────────
+  static ensureDeliveryPartnersStore() {
+    if (!Array.isArray(memoryStore.delivery_partners) || memoryStore.delivery_partners.length === 0) {
+      memoryStore.delivery_partners = [
+        {
+          id: "dlp_101",
+          partner_number: "CTH-DP-000001",
+          full_name: "Suresh Kumar",
+          first_name: "Suresh",
+          last_name: "Kumar",
+          name: "Suresh Kumar",
+          phone: "+91 98123 45678",
+          alternate_phone: "+91 98123 45679",
+          email: "suresh.k@cakes2home.com",
+          profile_photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
+          date_of_birth: "1994-05-15",
+          address: "Flat 102, Green Park Apartments, Indiranagar",
+          city: "Bengaluru",
+          state: "Karnataka",
+          pincode: "560038",
+          emergency_contact_name: "Anita Kumar",
+          emergency_contact_relationship: "Spouse",
+          emergency_contact_phone: "+91 98123 00000",
+          joining_date: "2024-01-15",
+          status: "active",
+          availability_status: "ONLINE",
+          rating: 4.9,
+          total_deliveries: 1245,
+          successful_deliveries: 1238,
+          cancelled_deliveries: 4,
+          failed_deliveries: 3,
+          current_active_orders: 1,
+          maximum_concurrent_orders: 5,
+          working_hours: {
+            Monday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Tuesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Wednesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Thursday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Friday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Saturday: { working: true, start: "09:00", end: "22:00", break_start: "14:00", break_end: "15:00" },
+            Sunday: { working: true, start: "09:00", end: "22:00", break_start: "14:00", break_end: "15:00" },
+          },
+          primary_branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          primary_branch_name: "Indiranagar Flagship Kitchen",
+          associated_branches: [
+            { branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Indiranagar Flagship Kitchen", branch_code: "HUB-BLR-01", is_primary: true, active: true, priority: 1 },
+            { branch_id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Koramangala Gourmet Bakery", branch_code: "HUB-BLR-02", is_primary: false, active: true, priority: 2 },
+          ],
+          coverage: {
+            pincodes: ["560038", "560034", "560047", "560071", "560008"],
+            cities: ["Bengaluru"],
+            areas: ["Indiranagar", "Koramangala", "Domlur", "Ulsoor", "HAL"],
+          },
+          documents: {
+            driving_license: { number: "KA-01-20210098412", expiry: "2032-12-31", status: "verified" },
+            rc: { number: "KA01EQ9941RC", status: "verified" },
+            insurance: { number: "INS-99882211", expiry: "2027-06-30", status: "verified" },
+            id_proof: { type: "Aadhaar", number: "XXXX-XXXX-8812", status: "verified" },
+          },
+          notes: "Senior delivery specialist for high-value designer orders.",
+          created_at: "2024-01-15T09:00:00Z",
+          updated_at: "2026-08-09T10:00:00Z",
+        },
+        {
+          id: "dlp_102",
+          partner_number: "CTH-DP-000002",
+          full_name: "Ramesh Patel",
+          first_name: "Ramesh",
+          last_name: "Patel",
+          name: "Ramesh Patel",
+          phone: "+91 98234 56789",
+          alternate_phone: "+91 98234 56790",
+          email: "ramesh.p@cakes2home.com",
+          profile_photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
+          date_of_birth: "1996-08-20",
+          address: "80 Feet Rd, Koramangala 4th Block",
+          city: "Bengaluru",
+          state: "Karnataka",
+          pincode: "560034",
+          emergency_contact_name: "Mahesh Patel",
+          emergency_contact_relationship: "Brother",
+          emergency_contact_phone: "+91 98234 00000",
+          joining_date: "2024-03-01",
+          status: "active",
+          availability_status: "ONLINE",
+          rating: 4.8,
+          total_deliveries: 890,
+          successful_deliveries: 885,
+          cancelled_deliveries: 3,
+          failed_deliveries: 2,
+          current_active_orders: 0,
+          maximum_concurrent_orders: 4,
+          working_hours: {
+            Monday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Tuesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Wednesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Thursday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Friday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Saturday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Sunday: { working: false, start: "09:00", end: "21:00" },
+          },
+          primary_branch_id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT",
+          primary_branch_name: "Koramangala Gourmet Bakery",
+          associated_branches: [
+            { branch_id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Koramangala Gourmet Bakery", branch_code: "HUB-BLR-02", is_primary: true, active: true, priority: 1 },
+            { branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Indiranagar Flagship Kitchen", branch_code: "HUB-BLR-01", is_primary: false, active: true, priority: 2 },
+          ],
+          coverage: {
+            pincodes: ["560034", "560095", "560102", "560068", "560038"],
+            cities: ["Bengaluru"],
+            areas: ["Koramangala", "HSR Layout", "BTM Layout", "Indiranagar"],
+          },
+          documents: {
+            driving_license: { number: "KA-05-20220011223", expiry: "2035-10-15", status: "verified" },
+            rc: { number: "KA05EV4412RC", status: "verified" },
+            insurance: { number: "INS-44556677", expiry: "2027-01-30", status: "verified" },
+            id_proof: { type: "Aadhaar", number: "XXXX-XXXX-4412", status: "verified" },
+          },
+          notes: "Fast express courier for standard sized cakes & pastries.",
+          created_at: "2024-03-01T09:00:00Z",
+          updated_at: "2026-08-09T10:00:00Z",
+        },
+        {
+          id: "dlp_103",
+          partner_number: "CTH-DP-000003",
+          full_name: "Vignesh M.",
+          first_name: "Vignesh",
+          last_name: "M.",
+          name: "Vignesh M.",
+          phone: "+91 98345 67890",
+          alternate_phone: "+91 98345 67891",
+          email: "vignesh.m@cakes2home.com",
+          profile_photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200",
+          date_of_birth: "1992-11-04",
+          address: "100 Feet Rd, Whitefield",
+          city: "Bengaluru",
+          state: "Karnataka",
+          pincode: "560066",
+          emergency_contact_name: "Sowmya M.",
+          emergency_contact_relationship: "Sister",
+          emergency_contact_phone: "+91 98345 00000",
+          joining_date: "2023-11-10",
+          status: "active",
+          availability_status: "ONLINE",
+          rating: 4.95,
+          total_deliveries: 1820,
+          successful_deliveries: 1815,
+          cancelled_deliveries: 3,
+          failed_deliveries: 2,
+          current_active_orders: 0,
+          maximum_concurrent_orders: 5,
+          working_hours: {
+            Monday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Tuesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Wednesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Thursday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Friday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+            Saturday: { working: true, start: "09:00", end: "23:00", break_start: "14:00", break_end: "15:00" },
+            Sunday: { working: true, start: "09:00", end: "23:00", break_start: "14:00", break_end: "15:00" },
+          },
+          primary_branch_id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT",
+          primary_branch_name: "Whitefield Central Kitchen",
+          associated_branches: [
+            { branch_id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Whitefield Central Kitchen", branch_code: "HUB-BLR-03", is_primary: true, active: true, priority: 1 },
+            { branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Indiranagar Flagship Kitchen", branch_code: "HUB-BLR-01", is_primary: false, active: true, priority: 2 },
+          ],
+          coverage: {
+            pincodes: ["560066", "560037", "560048", "560038"],
+            cities: ["Bengaluru"],
+            areas: ["Whitefield", "Marathahalli", "Brookefield", "Indiranagar"],
+          },
+          documents: {
+            driving_license: { number: "KA-02-20190033190", expiry: "2030-05-20", status: "verified" },
+            rc: { number: "KA02EQ3319RC", status: "verified" },
+            insurance: { number: "INS-33198877", expiry: "2027-04-15", status: "verified" },
+            id_proof: { type: "Aadhaar", number: "XXXX-XXXX-3319", status: "verified" },
+          },
+          notes: "Lead driver for East Bengaluru hub.",
+          created_at: "2023-11-10T09:00:00Z",
+          updated_at: "2026-08-09T10:00:00Z",
+        },
+        {
+          id: "dlp_104",
+          partner_number: "CTH-DP-000004",
+          full_name: "Deepak Sharma",
+          first_name: "Deepak",
+          last_name: "Sharma",
+          name: "Deepak Sharma",
+          phone: "+91 98456 78901",
+          alternate_phone: "+91 98456 78902",
+          email: "deepak.s@cakes2home.com",
+          profile_photo: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&q=80&w=200",
+          date_of_birth: "1995-03-12",
+          address: "Outer Ring Rd, Marathahalli",
+          city: "Bengaluru",
+          state: "Karnataka",
+          pincode: "560037",
+          emergency_contact_name: "Pooja Sharma",
+          emergency_contact_relationship: "Spouse",
+          emergency_contact_phone: "+91 98456 00000",
+          joining_date: "2024-05-15",
+          status: "active",
+          availability_status: "OFFLINE",
+          rating: 4.85,
+          total_deliveries: 620,
+          successful_deliveries: 615,
+          cancelled_deliveries: 3,
+          failed_deliveries: 2,
+          current_active_orders: 0,
+          maximum_concurrent_orders: 5,
+          working_hours: {
+            Monday: { working: true, start: "09:00", end: "18:00", break_start: "13:00", break_end: "14:00" },
+            Tuesday: { working: true, start: "09:00", end: "18:00", break_start: "13:00", break_end: "14:00" },
+            Wednesday: { working: true, start: "09:00", end: "18:00", break_start: "13:00", break_end: "14:00" },
+            Thursday: { working: true, start: "09:00", end: "18:00", break_start: "13:00", break_end: "14:00" },
+            Friday: { working: true, start: "09:00", end: "18:00", break_start: "13:00", break_end: "14:00" },
+            Saturday: { working: false, start: "09:00", end: "18:00" },
+            Sunday: { working: false, start: "09:00", end: "18:00" },
+          },
+          primary_branch_id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT",
+          primary_branch_name: "Whitefield Central Kitchen",
+          associated_branches: [
+            { branch_id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Whitefield Central Kitchen", branch_code: "HUB-BLR-03", is_primary: true, active: true, priority: 1 }
+          ],
+          coverage: {
+            pincodes: ["560037", "560066", "560103"],
+            cities: ["Bengaluru"],
+            areas: ["Marathahalli", "Whitefield", "Bellandur"],
+          },
+          documents: {
+            driving_license: { number: "KA-03-20210088120", expiry: "2033-08-12", status: "verified" },
+            rc: { number: "KA03EQ8812RC", status: "verified" },
+            insurance: { number: "INS-88129900", expiry: "2026-11-20", status: "verified" },
+            id_proof: { type: "Aadhaar", number: "XXXX-XXXX-8812", status: "verified" },
+          },
+          notes: "Day shift driver for Marathahalli/Bellandur tech corridor.",
+          created_at: "2024-05-15T09:00:00Z",
+          updated_at: "2026-08-09T10:00:00Z",
+        },
+      ];
+      ApiEngine.persist();
+    }
+
+    if (!Array.isArray(memoryStore.delivery_partner_assignments)) {
+      memoryStore.delivery_partner_assignments = [];
+    }
+
+    if (!memoryStore.delivery_assignment_rules) {
+      memoryStore.delivery_assignment_rules = {
+        allow_cross_branch_fallback: false,
+        require_working_hours: false,
+        require_online_status: true,
+        max_capacity_limit: 5,
+        updated_at: new Date().toISOString(),
+      };
+    }
+
+    // Backfill legacy persisted partners with canonical partner numbers and fields & calculate live workload
+    (memoryStore.delivery_partners || []).forEach((p: any, idx: number) => {
+      if (!p.partner_number) {
+        p.partner_number = `CTH-DP-${String(idx + 1).padStart(6, "0")}`;
+      }
+      if (!p.full_name) p.full_name = p.name || `${p.first_name || "Driver"} ${p.last_name || ""}`.trim();
+      if (!p.name) p.name = p.full_name;
+      if (!p.phone) p.phone = "+91 98123 45678";
+      if (!p.status) p.status = "active";
+      if (!p.primary_branch_id) p.primary_branch_id = p.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT";
+      if (!p.primary_branch_name) p.primary_branch_name = p.branch_name || "Indiranagar Flagship Kitchen";
+      if (!p.maximum_concurrent_orders) p.maximum_concurrent_orders = p.max_capacity || 5;
+
+      // Dynamically derive coverage from associated store/branch delivery territory
+      const effCov = ApiEngine.getPartnerEffectiveCoverage(p);
+      p.coverage = {
+        pincodes: effCov.pincodes,
+        cities: effCov.cities,
+        areas: effCov.areas,
+      };
+
+      // Relational active workload computation
+      const liveActiveCount = (memoryStore.orders || []).filter(
+        (o: any) => o.delivery_partner_id === p.id && ["confirmed", "preparing", "packed", "out_for_delivery"].includes(o.status)
+      ).length;
+      p.current_active_orders = liveActiveCount;
+
+      // Ensure active partners are ONLINE unless explicitly on break or inactive
+      if (p.status === "active" && p.availability_status !== "ON_BREAK") {
+        p.availability_status = liveActiveCount >= (p.maximum_concurrent_orders || 5) ? "BUSY" : "ONLINE";
+      }
+    });
   }
 
-  static getAdminDeliveryPartners() {
-    return memoryStore.delivery_partners;
+  // ── Dynamic Branch & Delivery Coverage Derivation Engine ────────────────
+  static getBranchDeliveryCoverage(branchIdOrObj: string | any) {
+    let branch: any = null;
+    if (typeof branchIdOrObj === "string") {
+      const targetId = branchIdOrObj;
+      branch = (memoryStore.branches || []).find(
+        (b: any) => b.id === targetId || b.code === targetId ||
+                    (b.id === "br_indiranagar" && targetId === "res_01KXYMAHGFPRY1G9TZKEVGAGAT") ||
+                    (b.id === "br_koramangala" && targetId === "res_02KXYMAHGFPRY1G9TZKEVGAGAT") ||
+                    (b.id === "br_hsr" && targetId === "res_03KXYMAHGFPRY1G9TZKEVGAGAT") ||
+                    (b.name || "").toLowerCase() === targetId.toLowerCase()
+      ) || (DEFAULT_BRANCHES || []).find(
+        (b: any) => b.id === targetId || b.code === targetId ||
+                    (b.id === "br_indiranagar" && targetId === "res_01KXYMAHGFPRY1G9TZKEVGAGAT") ||
+                    (b.id === "br_koramangala" && targetId === "res_02KXYMAHGFPRY1G9TZKEVGAGAT") ||
+                    (b.id === "br_hsr" && targetId === "res_03KXYMAHGFPRY1G9TZKEVGAGAT") ||
+                    (b.name || "").toLowerCase() === targetId.toLowerCase()
+      );
+    } else {
+      branch = branchIdOrObj;
+    }
+
+    if (!branch) {
+      const fallbackPincodes = branchIdOrObj === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" || branchIdOrObj === "br_indiranagar"
+        ? ["560038", "560008", "560071", "560047"]
+        : branchIdOrObj === "res_02KXYMAHGFPRY1G9TZKEVGAGAT" || branchIdOrObj === "br_koramangala"
+        ? ["560034", "560095", "560047"]
+        : branchIdOrObj === "br_whitefield"
+        ? ["560066", "560048", "560037"]
+        : ["560038"];
+
+      const fallbackAreas = branchIdOrObj === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" || branchIdOrObj === "br_indiranagar"
+        ? ["Indiranagar", "Domlur", "HAL"]
+        : branchIdOrObj === "res_02KXYMAHGFPRY1G9TZKEVGAGAT" || branchIdOrObj === "br_koramangala"
+        ? ["Koramangala", "BTM Layout"]
+        : branchIdOrObj === "br_whitefield"
+        ? ["Whitefield ITPL", "Brookefield"]
+        : ["Local Hub Area"];
+
+      return {
+        branch_id: typeof branchIdOrObj === "string" ? branchIdOrObj : "unknown",
+        branch_name: branchIdOrObj === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" ? "Indiranagar Flagship Kitchen" : "Store/Hub",
+        branch_code: "HUB-BLR",
+        city: "Bengaluru",
+        pincodes: fallbackPincodes,
+        areas: fallbackAreas,
+        cities: ["Bengaluru"],
+      };
+    }
+
+    const pincodesSet = new Set<string>();
+    const areasSet = new Set<string>();
+    const citiesSet = new Set<string>();
+
+    if (branch.city) citiesSet.add(branch.city);
+    if (branch.pincode) pincodesSet.add(branch.pincode);
+
+    if (Array.isArray(branch.pincodes)) {
+      branch.pincodes.forEach((p: string) => pincodesSet.add(String(p).trim()));
+    }
+    if (Array.isArray(branch.applicable_pincodes)) {
+      branch.applicable_pincodes.forEach((p: string) => pincodesSet.add(String(p).trim()));
+    }
+    if (Array.isArray(branch.deliverable_areas)) {
+      branch.deliverable_areas.forEach((a: string) => areasSet.add(String(a).trim()));
+    }
+
+    if (Array.isArray(branch.delivery_zones)) {
+      branch.delivery_zones.forEach((z: any) => {
+        if (Array.isArray(z.pincodes)) {
+          z.pincodes.forEach((p: string) => pincodesSet.add(String(p).trim()));
+        }
+        if (Array.isArray(z.areas)) {
+          z.areas.forEach((a: string) => areasSet.add(String(a).trim()));
+        }
+        if (Array.isArray(z.cities)) {
+          z.cities.forEach((c: string) => citiesSet.add(String(c).trim()));
+        }
+      });
+    }
+
+    // Mapping fallback for known standard hubs
+    const sampleMappings = [
+      { pincode: "560038", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT", "br_indiranagar", "HUB-BLR-01"], area_name: "Indiranagar", city_name: "Bengaluru" },
+      { pincode: "560008", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT", "br_indiranagar", "HUB-BLR-01"], area_name: "Domlur", city_name: "Bengaluru" },
+      { pincode: "560071", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT", "br_indiranagar", "HUB-BLR-01"], area_name: "HAL", city_name: "Bengaluru" },
+      { pincode: "560034", branch_ids: ["res_02KXYMAHGFPRY1G9TZKEVGAGAT", "br_koramangala", "HUB-BLR-02"], area_name: "Koramangala", city_name: "Bengaluru" },
+      { pincode: "560095", branch_ids: ["res_02KXYMAHGFPRY1G9TZKEVGAGAT", "br_koramangala", "HUB-BLR-02"], area_name: "Koramangala 1st Block", city_name: "Bengaluru" },
+      { pincode: "560047", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT", "res_02KXYMAHGFPRY1G9TZKEVGAGAT", "br_indiranagar", "br_koramangala"], area_name: "Austin Town / Victoria Layout", city_name: "Bengaluru" },
+      { pincode: "560102", branch_ids: ["res_03KXYMAHGFPRY1G9TZKEVGAGAT", "br_hsr", "HUB-BLR-03"], area_name: "HSR Sector 1", city_name: "Bengaluru" },
+      { pincode: "560068", branch_ids: ["res_03KXYMAHGFPRY1G9TZKEVGAGAT", "br_hsr", "HUB-BLR-03"], area_name: "HSR Layout 27th Main", city_name: "Bengaluru" },
+      { pincode: "560066", branch_ids: ["br_whitefield", "HUB-BLR-04"], area_name: "Whitefield ITPL", city_name: "Bengaluru" },
+      { pincode: "560048", branch_ids: ["br_whitefield", "HUB-BLR-04"], area_name: "Brookefield", city_name: "Bengaluru" },
+    ];
+    sampleMappings.forEach((m) => {
+      if (m.branch_ids.includes(branch.id) || m.branch_ids.includes(branch.code)) {
+        pincodesSet.add(m.pincode);
+        if (m.area_name) areasSet.add(m.area_name);
+        if (m.city_name) citiesSet.add(m.city_name);
+      }
+    });
+
+    if (pincodesSet.size === 0 && branch.pincode) {
+      pincodesSet.add(branch.pincode);
+    }
+    if (areasSet.size === 0 && branch.name) {
+      areasSet.add(branch.name.replace(/(Bakery|Hub|Kitchen|Flagship|Central)/gi, "").trim());
+    }
+
+    return {
+      branch_id: branch.id,
+      branch_name: branch.name,
+      branch_code: branch.code || "HUB-BLR",
+      city: branch.city || "Bengaluru",
+      pincodes: Array.from(pincodesSet),
+      areas: Array.from(areasSet),
+      cities: Array.from(citiesSet),
+    };
+  }
+
+  static getPartnerEffectiveCoverage(partnerIdOrObj: string | any) {
+    let partner: any = null;
+    if (typeof partnerIdOrObj === "string") {
+      partner = (memoryStore.delivery_partners || []).find(
+        (p: any) => p.id === partnerIdOrObj || p.partner_number === partnerIdOrObj || p.phone === partnerIdOrObj
+      );
+    } else {
+      partner = partnerIdOrObj;
+    }
+
+    if (!partner) {
+      return {
+        partner_id: typeof partnerIdOrObj === "string" ? partnerIdOrObj : "unknown",
+        partner_name: "Partner",
+        branches: [],
+        pincodes: [],
+        areas: [],
+        cities: ["Bengaluru"],
+      };
+    }
+
+    const branchIds = new Set<string>();
+    if (partner.primary_branch_id) branchIds.add(partner.primary_branch_id);
+    if (partner.branch_id) branchIds.add(partner.branch_id);
+
+    if (Array.isArray(partner.associated_branches)) {
+      partner.associated_branches.forEach((b: any) => {
+        if (typeof b === "string") branchIds.add(b);
+        else if (b && b.branch_id) branchIds.add(b.branch_id);
+      });
+    }
+    if (Array.isArray(partner.secondary_branch_ids)) {
+      partner.secondary_branch_ids.forEach((id: string) => branchIds.add(id));
+    }
+
+    const branchSummaries: any[] = [];
+    const allPincodes = new Set<string>();
+    const allAreas = new Set<string>();
+    const allCities = new Set<string>();
+
+    branchIds.forEach((bId) => {
+      const cov = ApiEngine.getBranchDeliveryCoverage(bId);
+      branchSummaries.push({
+        branch_id: cov.branch_id,
+        branch_name: cov.branch_name,
+        branch_code: cov.branch_code,
+        city: cov.city,
+        is_primary: cov.branch_id === partner.primary_branch_id,
+      });
+      cov.pincodes.forEach((p) => allPincodes.add(p));
+      cov.areas.forEach((a) => allAreas.add(a));
+      cov.cities.forEach((c) => allCities.add(c));
+    });
+
+    return {
+      partner_id: partner.id,
+      partner_name: partner.full_name || partner.name,
+      partner_number: partner.partner_number,
+      branches: branchSummaries,
+      pincodes: Array.from(allPincodes),
+      areas: Array.from(allAreas),
+      cities: Array.from(allCities),
+    };
+  }
+
+  static generateNextPartnerNumber(): string {
+    ApiEngine.ensureDeliveryPartnersStore();
+    const existingNums = (memoryStore.delivery_partners || [])
+      .map((p: any) => p.partner_number)
+      .filter(Boolean);
+
+    let highest = 0;
+    for (const num of existingNums) {
+      const match = num.match(/CTH-DP-(\d+)/i);
+      if (match) {
+        const val = parseInt(match[1], 10);
+        if (!isNaN(val) && val > highest) highest = val;
+      }
+    }
+
+    const nextVal = highest + 1;
+    return `CTH-DP-${String(nextVal).padStart(6, "0")}`;
+  }
+
+  static getAdminDeliveryPartners(params: Record<string, any> = {}) {
+    ApiEngine.ensureDeliveryPartnersStore();
+    let list = [...(memoryStore.delivery_partners || [])];
+
+    const q = (params.q || "").toLowerCase().trim();
+    const status = params.status;
+    const availability = params.availability || params.availability_status;
+    const branchId = params.branch_id || params.branch;
+    const city = (params.city || "").toLowerCase();
+    const pincode = params.pincode;
+    const workingNow = params.working_now !== undefined ? String(params.working_now) === "true" : undefined;
+
+    if (status && status !== "all") {
+      list = list.filter((p: any) => (p.status || "").toLowerCase() === status.toLowerCase());
+    }
+
+    if (availability && availability !== "all") {
+      list = list.filter((p: any) => (p.availability_status || "").toUpperCase() === availability.toUpperCase());
+    }
+
+    if (branchId && branchId !== "all") {
+      list = list.filter((p: any) =>
+        p.primary_branch_id === branchId ||
+        p.branch_id === branchId ||
+        (p.associated_branches || []).some((b: any) => b.branch_id === branchId || (b.branch_name || "").toLowerCase().includes(branchId.toLowerCase())) ||
+        (p.primary_branch_name || "").toLowerCase().includes(branchId.toLowerCase())
+      );
+    }
+
+    if (city && city !== "all") {
+      list = list.filter((p: any) =>
+        (p.city || "").toLowerCase().includes(city) ||
+        (p.coverage?.cities || []).some((c: string) => c.toLowerCase().includes(city))
+      );
+    }
+
+    if (pincode) {
+      list = list.filter((p: any) =>
+        p.pincode === pincode ||
+        (p.coverage?.pincodes || []).includes(pincode)
+      );
+    }
+
+    if (workingNow) {
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const currentDay = days[new Date().getDay()];
+      const currentTime = new Date().toTimeString().slice(0, 5);
+
+      list = list.filter((p: any) => {
+        const schedule = p.working_hours?.[currentDay];
+        if (!schedule || !schedule.working) return false;
+        return currentTime >= (schedule.start || "00:00") && currentTime <= (schedule.end || "23:59");
+      });
+    }
+
+    if (q) {
+      list = list.filter((p: any) =>
+        (p.partner_number || "").toLowerCase().includes(q) ||
+        (p.full_name || p.name || "").toLowerCase().includes(q) ||
+        (p.phone || "").toLowerCase().includes(q) ||
+        (p.email || "").toLowerCase().includes(q) ||
+        (p.primary_branch_name || "").toLowerCase().includes(q) ||
+        (p.pincode || "").includes(q)
+      );
+    }
+
+    return { partners: list, count: list.length, total: memoryStore.delivery_partners.length };
+  }
+
+  static getDeliveryPartnerDetails(id: string) {
+    ApiEngine.ensureDeliveryPartnersStore();
+    ApiEngine.ensureOrdersStore();
+
+    const partner = (memoryStore.delivery_partners || []).find(
+      (p: any) => p.id === id || p.partner_number === id || p.phone === id
+    );
+    if (!partner) return null;
+
+    // Relational active orders & history
+    const allOrders = memoryStore.orders || [];
+    const activeOrders = allOrders.filter(
+      (o: any) => (o.delivery_partner_id === partner.id || o.delivery?.partner_name?.includes(partner.full_name || partner.name)) &&
+                  ["confirmed", "preparing", "packed", "out_for_delivery"].includes(o.status)
+    );
+
+    const deliveryHistory = allOrders.filter(
+      (o: any) => (o.delivery_partner_id === partner.id || o.delivery?.partner_name?.includes(partner.full_name || partner.name)) &&
+                  ["delivered", "completed"].includes(o.status)
+    );
+
+    const assignmentHistory = (memoryStore.delivery_partner_assignments || []).filter(
+      (a: any) => a.partner_id === partner.id || a.previous_partner_id === partner.id
+    );
+
+    const auditLogs = (memoryStore.audit_logs || []).filter(
+      (log: any) => log.action?.includes(partner.name) || log.action?.includes(partner.partner_number) || log.details?.includes(partner.id)
+    );
+
+    return {
+      partner: {
+        ...partner,
+        current_active_orders: activeOrders.length,
+      },
+      active_orders: activeOrders,
+      delivery_history: deliveryHistory,
+      assignment_history: assignmentHistory,
+      audit_logs: auditLogs,
+    };
   }
 
   static createAdminDeliveryPartner(data: any) {
-    const fName = data.first_name || data.name || "New";
-    const lName = data.last_name || "Rider";
-    const partner = {
-      id: `dlp_${Date.now()}`,
+    ApiEngine.ensureDeliveryPartnersStore();
+
+    const phoneClean = (data.phone || "").replace(/\D/g, "");
+    if (!phoneClean || phoneClean.length < 10) {
+      throw new Error("Valid 10-digit mobile number is required.");
+    }
+
+    const duplicate = (memoryStore.delivery_partners || []).find(
+      (p: any) => p.phone && p.phone.replace(/\D/g, "") === phoneClean
+    );
+    if (duplicate) {
+      throw new Error(`Delivery partner with phone number ${data.phone} already exists (${duplicate.partner_number}).`);
+    }
+
+    const partnerNumber = ApiEngine.generateNextPartnerNumber();
+    const id = `dlp_${Date.now()}`;
+    const fName = data.first_name || data.name?.split(" ")[0] || "New";
+    const lName = data.last_name || data.name?.split(" ").slice(1).join(" ") || "Rider";
+    const fullName = `${fName} ${lName}`.trim();
+
+    const primaryBranchId = data.primary_branch_id || data.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT";
+    const branchObj = (memoryStore.branches || []).find((b: any) => b.id === primaryBranchId) || {
+      id: primaryBranchId,
+      name: data.primary_branch_name || "Indiranagar Flagship Kitchen",
+      code: "HUB-BLR-01",
+    };
+
+    const newPartner = {
+      id,
+      partner_number: partnerNumber,
+      full_name: fullName,
       first_name: fName,
       last_name: lName,
-      name: `${fName} ${lName}`.trim(),
-      phone: data.phone || "+91 99000 00000",
-      status: "active",
+      name: fullName,
+      phone: data.phone,
+      alternate_phone: data.alternate_phone || null,
+      email: data.email || `${fName.toLowerCase()}.${lName.toLowerCase()}@cakes2home.com`,
+      profile_photo: data.profile_photo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
+      date_of_birth: data.date_of_birth || "1995-01-01",
+      address: data.address || "Flagship Hub Address",
+      city: data.city || branchObj.city || "Bengaluru",
+      state: data.state || "Karnataka",
+      pincode: data.pincode || "560038",
+
+      emergency_contact_name: data.emergency_contact_name || "Emergency Contact",
+      emergency_contact_relationship: data.emergency_contact_relationship || "Relative",
+      emergency_contact_phone: data.emergency_contact_phone || data.phone,
+
+      joining_date: data.joining_date || new Date().toISOString().slice(0, 10),
+      status: data.status || "active",
+      availability_status: data.availability_status || "ONLINE",
       rating: 5.0,
-      completed_trips: 0,
+      total_deliveries: 0,
+      successful_deliveries: 0,
+      cancelled_deliveries: 0,
+      failed_deliveries: 0,
+      current_active_orders: 0,
+      maximum_concurrent_orders: Number(data.maximum_concurrent_orders || 5),
+
+      working_hours: data.working_hours || {
+        Monday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+        Tuesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+        Wednesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+        Thursday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+        Friday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
+        Saturday: { working: true, start: "09:00", end: "22:00", break_start: "14:00", break_end: "15:00" },
+        Sunday: { working: true, start: "09:00", end: "22:00", break_start: "14:00", break_end: "15:00" },
+      },
+
+      primary_branch_id: branchObj.id,
+      primary_branch_name: branchObj.name,
+      associated_branches: data.associated_branches || [
+        { branch_id: branchObj.id, branch_name: branchObj.name, branch_code: branchObj.code || "HUB-BLR", is_primary: true, active: true, priority: 1 },
+      ],
+
+      coverage: { pincodes: [], cities: [data.city || "Bengaluru"], areas: [] },
+
+      documents: data.documents || {
+        driving_license: { number: data.dl_number || "KA-DL-PENDING", expiry: "2032-12-31", status: "verified" },
+        rc: { number: data.rc_number || "KA-RC-PENDING", status: "verified" },
+        insurance: { number: data.insurance_number || "INS-PENDING", expiry: "2027-01-01", status: "verified" },
+        id_proof: { type: "Aadhaar", number: data.aadhaar_number || "XXXX-XXXX-0000", status: "verified" },
+      },
+
+      notes: data.notes || "Registered via Super Admin Command Center",
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
-    memoryStore.delivery_partners.unshift(partner);
-    ApiEngine.addAuditLog(`Registered Delivery Partner "${partner.name}"`);
+
+    // Dynamically populate inherited coverage from assigned stores
+    const derivedCov = ApiEngine.getPartnerEffectiveCoverage(newPartner);
+    newPartner.coverage = {
+      pincodes: derivedCov.pincodes,
+      cities: derivedCov.cities,
+      areas: derivedCov.areas,
+    };
+
+    memoryStore.delivery_partners.unshift(newPartner);
+    ApiEngine.addAuditLog(`Registered Delivery Partner ${fullName} (${partnerNumber}) assigned to ${branchObj.name}`);
     ApiEngine.persist();
+
+    return newPartner;
+  }
+
+  static updateAdminDeliveryPartner(id: string, data: any) {
+    ApiEngine.ensureDeliveryPartnersStore();
+    const partner = (memoryStore.delivery_partners || []).find((p: any) => p.id === id || p.partner_number === id);
+    if (!partner) throw new Error(`Delivery partner with ID ${id} not found.`);
+
+    if (data.full_name || data.name) {
+      partner.full_name = data.full_name || data.name;
+      partner.name = partner.full_name;
+      const parts = partner.full_name.split(" ");
+      partner.first_name = parts[0] || partner.first_name;
+      partner.last_name = parts.slice(1).join(" ") || partner.last_name;
+    }
+    if (data.phone) partner.phone = data.phone;
+    if (data.alternate_phone) partner.alternate_phone = data.alternate_phone;
+    if (data.email) partner.email = data.email;
+    if (data.address) partner.address = data.address;
+    if (data.city) partner.city = data.city;
+    if (data.pincode) partner.pincode = data.pincode;
+    if (data.status) partner.status = data.status;
+    if (data.availability_status) partner.availability_status = data.availability_status;
+    if (data.maximum_concurrent_orders) partner.maximum_concurrent_orders = Number(data.maximum_concurrent_orders);
+    if (data.notes) partner.notes = data.notes;
+
+    if (data.working_hours) {
+      partner.working_hours = { ...partner.working_hours, ...data.working_hours };
+    }
+    if (data.primary_branch_id) {
+      partner.primary_branch_id = data.primary_branch_id;
+      const branchObj = (memoryStore.branches || []).find((b: any) => b.id === data.primary_branch_id);
+      if (branchObj) partner.primary_branch_name = branchObj.name;
+    }
+    if (data.associated_branches) {
+      partner.associated_branches = data.associated_branches;
+    }
+    if (data.documents) {
+      partner.documents = { ...partner.documents, ...data.documents };
+    }
+
+    // Always recalculate inherited coverage dynamically from associated stores
+    const updatedCov = ApiEngine.getPartnerEffectiveCoverage(partner);
+    partner.coverage = {
+      pincodes: updatedCov.pincodes,
+      cities: updatedCov.cities,
+      areas: updatedCov.areas,
+    };
+
+    partner.updated_at = new Date().toISOString();
+
+    ApiEngine.addAuditLog(`Updated Delivery Partner profile for ${partner.name} (${partner.partner_number})`);
+    ApiEngine.persist();
+
     return partner;
+  }
+
+  static updatePartnerAvailability(id: string, availabilityStatus: string, reason?: string) {
+    ApiEngine.ensureDeliveryPartnersStore();
+    const partner = (memoryStore.delivery_partners || []).find((p: any) => p.id === id || p.partner_number === id);
+    if (!partner) throw new Error(`Delivery partner ${id} not found.`);
+
+    const oldStatus = partner.availability_status;
+    partner.availability_status = availabilityStatus.toUpperCase();
+    partner.updated_at = new Date().toISOString();
+
+    if (!Array.isArray(memoryStore.delivery_partner_status_history)) {
+      memoryStore.delivery_partner_status_history = [];
+    }
+
+    memoryStore.delivery_partner_status_history.unshift({
+      id: `dps_${Date.now()}`,
+      partner_id: partner.id,
+      partner_number: partner.partner_number,
+      previous_status: oldStatus,
+      new_status: partner.availability_status,
+      reason: reason || "Admin toggle",
+      timestamp: new Date().toISOString(),
+    });
+
+    ApiEngine.addAuditLog(`Changed Availability for ${partner.name} (${partner.partner_number}) from ${oldStatus} to ${partner.availability_status}`);
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      partner,
+      message: `Availability updated to ${partner.availability_status}`,
+    };
+  }
+
+  static deactivateDeliveryPartner(id: string, reason?: string) {
+    ApiEngine.ensureDeliveryPartnersStore();
+    const partner = (memoryStore.delivery_partners || []).find((p: any) => p.id === id || p.partner_number === id);
+    if (!partner) throw new Error(`Delivery partner ${id} not found.`);
+
+    partner.status = "inactive";
+    partner.availability_status = "OFFLINE";
+    partner.updated_at = new Date().toISOString();
+
+    ApiEngine.addAuditLog(`Deactivated Delivery Partner ${partner.name} (${partner.partner_number}). Reason: ${reason || 'Admin action'}`);
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      partner,
+      message: `Delivery Partner ${partner.partner_number} deactivated successfully.`,
+    };
+  }
+
+  // ── Candidate Ranking & Eligibility Engine ──────────────────────────────
+  static getEligibleDeliveryPartners(params: Record<string, any>) {
+    ApiEngine.ensureDeliveryPartnersStore();
+    const branchId = params.branch_id || params.branch;
+    const pincode = params.pincode || params.customer_pincode;
+    const city = (params.city || params.customer_city || "").toLowerCase();
+    const area = (params.area || params.customer_area || "").toLowerCase();
+    const rules = memoryStore.delivery_assignment_rules || {};
+
+    const allPartners = memoryStore.delivery_partners || [];
+    const candidates: any[] = [];
+
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const currentDay = days[new Date().getDay()];
+    const currentTime = new Date().toTimeString().slice(0, 5);
+
+    for (const partner of allPartners) {
+      const isAccountActive = partner.status === "active";
+      const liveActive = (memoryStore.orders || []).filter(
+        (o: any) => o.delivery_partner_id === partner.id && ["confirmed", "preparing", "packed", "out_for_delivery"].includes(o.status)
+      ).length;
+      partner.current_active_orders = liveActive;
+
+      const isOnline = partner.availability_status === "ONLINE" || (isAccountActive && partner.availability_status !== "OFFLINE" && partner.availability_status !== "ON_BREAK" && liveActive < (partner.maximum_concurrent_orders || 5));
+
+      // Working hours check
+      const daySchedule = partner.working_hours?.[currentDay];
+      const isShiftWorking = Boolean(daySchedule?.working);
+      const isWithinShiftHours = isShiftWorking && currentTime >= (daySchedule.start || "00:00") && currentTime <= (daySchedule.end || "23:59");
+      const isOnBreak = isShiftWorking && daySchedule.break_start && daySchedule.break_end && currentTime >= daySchedule.break_start && currentTime <= daySchedule.break_end;
+
+      // Dynamic store-derived coverage check
+      const effCov = ApiEngine.getPartnerEffectiveCoverage(partner);
+      partner.coverage = {
+        pincodes: effCov.pincodes,
+        areas: effCov.areas,
+        cities: effCov.cities,
+      };
+
+      // Branch association check
+      const isPrimaryBranch = partner.primary_branch_id === branchId || partner.branch_id === branchId;
+      const isAssociatedBranch = isPrimaryBranch || (partner.associated_branches || []).some((b: any) => b.branch_id === branchId || (b.branch_name || "").toLowerCase().includes(String(branchId || "").toLowerCase()));
+
+      // Coverage check (derived strictly from store territory)
+      const matchesPincode = pincode ? effCov.pincodes.includes(pincode) : false;
+      const matchesArea = area ? effCov.areas.some((a: string) => a.toLowerCase().includes(area)) : false;
+      const matchesCity = city ? (partner.city || "").toLowerCase().includes(city) || effCov.cities.some((c: string) => c.toLowerCase().includes(city)) : true;
+      const coversLocation = matchesPincode || matchesArea || matchesCity;
+
+      // Capacity check
+      const currentActive = partner.current_active_orders || 0;
+      const maxCapacity = partner.maximum_concurrent_orders || 5;
+      const hasCapacity = currentActive < maxCapacity;
+
+      // Validation flags evaluation
+      const passAccount = isAccountActive;
+      const passOnline = !rules.require_online_status || isOnline;
+      const passHours = !rules.require_working_hours || !partner.working_hours || (isWithinShiftHours && !isOnBreak);
+      const passBranch = isAssociatedBranch || Boolean(rules.allow_cross_branch_fallback) || true;
+      const passCapacity = hasCapacity;
+
+      const isLocationMatched = pincode ? matchesPincode : area ? matchesArea : true;
+      const isEligible = passAccount && passOnline && passHours && passBranch && passCapacity && isLocationMatched;
+
+      if (isEligible) {
+        // Deterministic Ranking Score
+        let score = 100;
+        if (isPrimaryBranch) score += 50;
+        else if (isAssociatedBranch) score += 30;
+
+        if (matchesPincode) score += 40;
+        else if (matchesArea) score += 20;
+
+        score += (maxCapacity - currentActive) * 10;
+        score += (partner.rating || 4.5) * 5;
+
+        candidates.push({
+          ...partner,
+          is_fallback: false,
+          ranking_score: score,
+          is_primary_branch: isPrimaryBranch,
+          coverage_match: matchesPincode ? "pincode" : matchesArea ? "area" : "city",
+          available_capacity: maxCapacity - currentActive,
+          assignment_reason: `${isPrimaryBranch ? "Primary branch" : "Associated branch"} + ${matchesPincode ? `pincode ${pincode}` : "city"} coverage + online (${maxCapacity - currentActive} capacity available)`,
+        });
+      }
+    }
+
+    // Fallback: If strict criteria yielded 0 candidates, return any active partner with capacity
+    if (candidates.length === 0) {
+      for (const partner of allPartners) {
+        if (partner.status === "active" && (partner.current_active_orders || 0) < (partner.maximum_concurrent_orders || 5)) {
+          candidates.push({
+            ...partner,
+            is_fallback: true,
+            ranking_score: 50,
+            is_primary_branch: false,
+            coverage_match: "city",
+            available_capacity: (partner.maximum_concurrent_orders || 5) - (partner.current_active_orders || 0),
+            assignment_reason: "Fallback rider selection (Active rider with available capacity)",
+          });
+        }
+      }
+    }
+
+    // Sort by ranking score descending
+    candidates.sort((a, b) => b.ranking_score - a.ranking_score);
+
+    return {
+      success: true,
+      eligible_count: candidates.length,
+      partners: candidates,
+    };
+  }
+
+  static autoAssignDeliveryDriver(orderId: string) {
+    ApiEngine.ensureOrdersStore();
+    ApiEngine.ensureDeliveryPartnersStore();
+
+    const order = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!order) return null;
+
+    const branchId = order.branch_id || order.branch?.id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT";
+    const pincode = order.pincode || order.shipping_address?.postal_code || "560038";
+    const city = order.city || order.shipping_address?.city || "Bengaluru";
+    const area = order.shipping_address?.area || "";
+
+    const eligibleRes = ApiEngine.getEligibleDeliveryPartners({
+      branch_id: branchId,
+      pincode,
+      city,
+      area,
+    });
+
+    const candidate = eligibleRes.partners?.[0];
+
+    const pickupOtp = String(Math.floor(1000 + Math.random() * 9000));
+    const deliveryOtp = String(Math.floor(1000 + Math.random() * 9000));
+
+    if (candidate) {
+      const pName = candidate.full_name || candidate.name || `${candidate.first_name || "Driver"} ${candidate.last_name || ""}`.trim();
+      const pNum = candidate.partner_number || candidate.id;
+
+      // Increment partner workload
+      const partnerObj = memoryStore.delivery_partners.find((p: any) => p.id === candidate.id);
+      if (partnerObj) {
+        partnerObj.current_active_orders = (partnerObj.current_active_orders || 0) + 1;
+        partnerObj.availability_status = partnerObj.current_active_orders >= partnerObj.maximum_concurrent_orders ? "BUSY" : "ONLINE";
+      }
+
+      order.delivery_partner_id = candidate.id;
+      order.driver_name = pName;
+      order.delivery = {
+        partner_id: candidate.id,
+        partner_number: pNum,
+        partner_name: pName,
+        partner_phone: candidate.phone || "+91 98123 45678",
+        branch_name: candidate.primary_branch_name || "Indiranagar Kitchen",
+        status: "Dispatched",
+        assignment_mode: "auto",
+        assignment_reason: candidate.assignment_reason,
+        assignment_score: candidate.ranking_score,
+        pickup_otp: pickupOtp,
+        delivery_otp: deliveryOtp,
+        eta: "25 mins",
+        distance_km: "3.2 km",
+        live_location: "Assigned & Dispatched",
+      };
+      order.status = "out_for_delivery";
+      order.updated_at = new Date().toISOString();
+
+      // Log persistent assignment history
+      memoryStore.delivery_partner_assignments.unshift({
+        id: `dpa_${Date.now()}`,
+        order_id: order.id,
+        order_number: order.order_number,
+        partner_id: candidate.id,
+        partner_number: pNum,
+        partner_name: pName,
+        assignment_mode: "auto",
+        reason: candidate.assignment_reason,
+        score: candidate.ranking_score,
+        timestamp: new Date().toISOString(),
+      });
+
+      ApiEngine.addAuditLog(`Auto-Assigned Delivery Partner ${pName} (${pNum}) to Order ${order.order_number}`);
+      ApiEngine.fireWebhookEvent("order.delivery_partner_changed", { order_id: order.id, rider: candidate, pickup_otp: pickupOtp, delivery_otp: deliveryOtp });
+      ApiEngine.persist();
+
+      return {
+        success: true,
+        assigned: true,
+        order: ApiEngine.getOrderDetails(order.id),
+        partner: {
+          ...candidate,
+          full_name: pName,
+          partner_number: pNum,
+        },
+        reason: candidate.assignment_reason,
+      };
+    } else {
+      // Unassigned empty state when no partner is eligible
+      order.delivery_partner_id = null;
+      order.driver_name = null;
+      order.delivery = {
+        partner_name: "UNASSIGNED",
+        partner_phone: "Not assigned",
+        vehicle: "Not assigned",
+        status: "UNASSIGNED",
+        assignment_mode: "unassigned",
+        assignment_reason: "❌ No available delivery partner currently serving this branch/location.",
+        pickup_otp: "Not generated",
+        delivery_otp: "Not generated",
+        eta: "Pending Rider Assignment",
+        distance_km: "—",
+        live_location: "Awaiting Rider Assignment",
+      };
+      order.updated_at = new Date().toISOString();
+
+      ApiEngine.addAuditLog(`Auto-Assignment Notice: No eligible delivery partner available for Order ${order.order_number}`);
+      ApiEngine.persist();
+
+      return {
+        success: true,
+        assigned: false,
+        order: ApiEngine.getOrderDetails(order.id),
+        message: "No eligible delivery partner currently available for this location/branch.",
+      };
+    }
+  }
+
+  static manualAssignOrderDelivery(orderId: string, partnerId: string, reason?: string) {
+    ApiEngine.ensureOrdersStore();
+    ApiEngine.ensureDeliveryPartnersStore();
+
+    const order = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!order) throw new Error(`Order ${orderId} not found.`);
+
+    const newPartner = memoryStore.delivery_partners.find((p: any) => p.id === partnerId || p.partner_number === partnerId);
+    if (!newPartner) throw new Error(`Delivery partner ${partnerId} not found.`);
+
+    const oldPartnerId = order.delivery_partner_id;
+
+    // Adjust old partner workload
+    if (oldPartnerId && oldPartnerId !== newPartner.id) {
+      const oldPartner = memoryStore.delivery_partners.find((p: any) => p.id === oldPartnerId);
+      if (oldPartner) {
+        oldPartner.current_active_orders = Math.max(0, (oldPartner.current_active_orders || 1) - 1);
+      }
+    }
+
+    // Increment new partner workload
+    newPartner.current_active_orders = (newPartner.current_active_orders || 0) + 1;
+
+    const pickupOtp = order.delivery?.pickup_otp && order.delivery.pickup_otp !== "Not generated" ? order.delivery.pickup_otp : String(Math.floor(1000 + Math.random() * 9000));
+    const deliveryOtp = order.delivery?.delivery_otp && order.delivery.delivery_otp !== "Not generated" ? order.delivery.delivery_otp : String(Math.floor(1000 + Math.random() * 9000));
+
+    order.delivery_partner_id = newPartner.id;
+    order.driver_name = newPartner.full_name;
+    order.delivery = {
+      partner_id: newPartner.id,
+      partner_number: newPartner.partner_number,
+      partner_name: newPartner.full_name,
+      partner_phone: newPartner.phone,
+      vehicle: `${newPartner.vehicle?.type} (${newPartner.vehicle?.number})`,
+      branch_name: newPartner.primary_branch_name,
+      status: "Dispatched",
+      assignment_mode: "manual",
+      assignment_reason: reason || "Manual Admin Override",
+      pickup_otp: pickupOtp,
+      delivery_otp: deliveryOtp,
+      eta: "25 mins",
+      distance_km: "3.5 km",
+      live_location: "Manually Assigned",
+    };
+    order.status = "out_for_delivery";
+    order.updated_at = new Date().toISOString();
+
+    memoryStore.delivery_partner_assignments.unshift({
+      id: `dpa_${Date.now()}`,
+      order_id: order.id,
+      order_number: order.order_number,
+      previous_partner_id: oldPartnerId || null,
+      partner_id: newPartner.id,
+      partner_number: newPartner.partner_number,
+      partner_name: newPartner.full_name,
+      assignment_mode: "manual",
+      reason: reason || "Manual Admin Override",
+      timestamp: new Date().toISOString(),
+    });
+
+    ApiEngine.addAuditLog(`Manually assigned Delivery Partner ${newPartner.full_name} (${newPartner.partner_number}) to Order ${order.order_number}`);
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      order: ApiEngine.getOrderDetails(order.id),
+      partner: newPartner,
+    };
+  }
+
+  static unassignOrderDelivery(orderId: string, reason?: string) {
+    ApiEngine.ensureOrdersStore();
+    ApiEngine.ensureDeliveryPartnersStore();
+
+    const order = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!order) throw new Error(`Order ${orderId} not found.`);
+
+    const oldPartnerId = order.delivery_partner_id;
+    if (oldPartnerId) {
+      const oldPartner = memoryStore.delivery_partners.find((p: any) => p.id === oldPartnerId);
+      if (oldPartner) {
+        oldPartner.current_active_orders = Math.max(0, (oldPartner.current_active_orders || 1) - 1);
+      }
+    }
+
+    order.delivery_partner_id = null;
+    order.driver_name = null;
+    order.delivery = {
+      partner_name: "UNASSIGNED",
+      partner_phone: "Not assigned",
+      vehicle: "Not assigned",
+      status: "UNASSIGNED",
+      assignment_mode: "unassigned",
+      assignment_reason: reason || "Unassigned by Admin",
+      pickup_otp: "Not generated",
+      delivery_otp: "Not generated",
+      eta: "Pending Rider Assignment",
+      distance_km: "—",
+      live_location: "Awaiting Rider Assignment",
+    };
+    order.updated_at = new Date().toISOString();
+
+    memoryStore.delivery_partner_assignments.unshift({
+      id: `dpa_${Date.now()}`,
+      order_id: order.id,
+      order_number: order.order_number,
+      previous_partner_id: oldPartnerId || null,
+      partner_id: null,
+      assignment_mode: "unassign",
+      reason: reason || "Unassigned by Admin",
+      timestamp: new Date().toISOString(),
+    });
+
+    ApiEngine.addAuditLog(`Unassigned rider from Order ${order.order_number}. Reason: ${reason || 'Admin action'}`);
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      order: ApiEngine.getOrderDetails(order.id),
+    };
+  }
+
+  static getDeliveryAssignmentRules() {
+    ApiEngine.ensureDeliveryPartnersStore();
+    return memoryStore.delivery_assignment_rules;
+  }
+
+  static updateDeliveryAssignmentRules(data: any) {
+    ApiEngine.ensureDeliveryPartnersStore();
+    memoryStore.delivery_assignment_rules = {
+      ...memoryStore.delivery_assignment_rules,
+      ...data,
+      updated_at: new Date().toISOString(),
+    };
+    ApiEngine.addAuditLog("Updated Delivery Assignment Engine Configuration Rules");
+    ApiEngine.persist();
+    return memoryStore.delivery_assignment_rules;
   }
 
   static updateAdminDeliveryStatus(id: string, status: string) {
@@ -1519,25 +3706,72 @@ export class ApiEngine {
   }
 
   // ── CRM & Customers ──────────────────────────────
+  static ensureCustomersStore() {
+    if (!memoryStore || !Array.isArray(memoryStore.customers) || memoryStore.customers.length === 0) {
+      if (memoryStore) memoryStore.customers = [...DEFAULT_CUSTOMERS];
+    }
+  }
+
   static getAdminCustomers() {
+    ApiEngine.ensureCustomersStore();
     return memoryStore.customers;
   }
 
-  static createAdminCustomer(data: any) {
-    const newCus = {
-      id: `cus_${Date.now()}`,
-      name: data.name || `${data.first_name || "Customer"} ${data.last_name || ""}`.trim(),
-      email: data.email || "customer@example.com",
-      phone: data.phone || "+91 98765 00000",
+  static findOrCreateCustomerByPhone(data: { name?: string; phone: string; email?: string; address?: any }) {
+    ApiEngine.ensureCustomersStore();
+    const rawPhone = (data.phone || "").trim().replace(/\D/g, "");
+    if (!rawPhone) return null;
+
+    let customer = (memoryStore.customers || []).find((c: any) => {
+      const cPhone = (c.phone || "").trim().replace(/\D/g, "");
+      return cPhone === rawPhone || (cPhone.length >= 10 && rawPhone.length >= 10 && cPhone.slice(-10) === rawPhone.slice(-10));
+    });
+
+    if (customer) {
+      if (data.name && (!customer.name || customer.name === "Valued Customer" || customer.name === "Guest Customer")) {
+        customer.name = data.name;
+      }
+      if (data.email && !customer.email) {
+        customer.email = data.email;
+      }
+      if (!customer.customer_number) {
+        customer.customer_number = `CTH-CUST-${String(memoryStore.customers.length + 100).padStart(6, '0')}`;
+      }
+      customer.customer_type = customer.customer_type || "registered";
+      ApiEngine.persist();
+      return customer;
+    }
+
+    const cusSeq = String((memoryStore.customers || []).length + 101).padStart(6, '0');
+    const customerNumber = `CTH-CUST-${cusSeq}`;
+    customer = {
+      id: `cus_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`,
+      customer_number: customerNumber,
+      customer_type: "registered",
+      name: data.name || "Customer",
+      phone: data.phone,
+      email: data.email || `customer_${Date.now()}@cakes2home.com`,
       total_orders: 0,
       wallet_balance: 0,
-      is_vip: Boolean(data.is_vip),
+      is_vip: false,
+      addresses: data.address ? [data.address] : [],
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
-    memoryStore.customers.unshift(newCus);
-    ApiEngine.addAuditLog(`Created CRM Customer Record "${newCus.name}"`);
+
+    memoryStore.customers.unshift(customer);
+    ApiEngine.addAuditLog(`Created CRM Customer Record "${customer.name}" (${customer.customer_number})`);
     ApiEngine.persist();
-    return newCus;
+    return customer;
+  }
+
+  static createAdminCustomer(data: any) {
+    ApiEngine.ensureCustomersStore();
+    return ApiEngine.findOrCreateCustomerByPhone({
+      name: data.name || `${data.first_name || "Customer"} ${data.last_name || ""}`.trim(),
+      phone: data.phone || "+91 98765 00000",
+      email: data.email,
+    });
   }
 
   // ── Rewards, Loyalty, Referrals ──────────────────────────────
@@ -1571,26 +3805,900 @@ export class ApiEngine {
     return memoryStore.seo_config;
   }
 
-  // ── A/B Testing ──────────────────────────────
-  static getAdminAbTests() {
-    return memoryStore.ab_tests;
+  // ══════════════════════════════════════════════════════════════════
+  // ENTERPRISE SEO, GEO & AEO ENGINE
+  // ══════════════════════════════════════════════════════════════════
+
+  // ── Scoring Engine ────────────────────────────────────────────
+  private static calculateSeoScore(page: any): number {
+    let score = 0;
+    if (page.meta_title) { score += 10; if (page.meta_title.length >= 50 && page.meta_title.length <= 60) score += 5; }
+    if (page.meta_description) { score += 10; if (page.meta_description.length >= 140 && page.meta_description.length <= 160) score += 5; }
+    if (page.h1_text) { score += 10; if (page.h1_count === 1) score += 5; }
+    if (page.canonical_url) score += 5;
+    if (page.has_schema) score += 10;
+    if (page.og_title || page.og_image) score += 5;
+    if (page.images_count > 0 && page.images_missing_alt === 0) score += 10;
+    if (page.internal_links_count > 0) score += 5;
+    if (page.word_count >= 300) score += 5;
+    if (page.keywords) score += 5;
+    if (page.h1_count > 1) score -= 5;
+    if (page.meta_title && page.meta_title.length > 70) score -= 3;
+    if (page.meta_description && page.meta_description.length > 170) score -= 3;
+    return Math.max(0, Math.min(100, score));
   }
 
-  static createAdminAbTest(data: any) {
-    const exp = {
-      id: `ab_exp_${Date.now()}`,
-      name: data.name || "New A/B Experiment",
-      status: "running",
-      traffic_split: data.traffic_split || "50 / 50",
-      conversions_a: 0,
-      conversions_b: 0,
-      winner: "Pending Data",
-      created_at: new Date().toISOString(),
+  private static calculateGeoScore(page: any): number {
+    let score = 0;
+    if (page.has_schema) score += 20;
+    if (page.meta_title && page.meta_description && page.keywords) score += 20;
+    if (page.word_count >= 500) score += 15; else if (page.word_count >= 300) score += 10;
+    if (page.h1_text && page.internal_links_count > 0) score += 15;
+    if (["branch", "city", "geo_landing"].includes(page.entity_type)) score += 15;
+    else if (page.canonical_url) score += 10;
+    if (page.schema_types) { try { const t = JSON.parse(page.schema_types); if (t.length > 1) score += 15; else if (t.length === 1) score += 10; } catch { score += 5; } }
+    return Math.max(0, Math.min(100, score));
+  }
+
+  private static calculateAeoScore(page: any): number {
+    let score = 0;
+    const entries = (memoryStore.seo_aeo_entries || []).filter((e: any) => e.entity_id === page.entity_id || e.page_url === page.url);
+    const faqs = entries.filter((e: any) => e.entry_type === "faq");
+    const howtos = entries.filter((e: any) => e.entry_type === "howto");
+    const speakables = entries.filter((e: any) => e.entry_type === "speakable");
+    if (faqs.length > 0) score += 20;
+    if (howtos.length > 0) score += 15;
+    if (speakables.length > 0) score += 15;
+    if (entries.length > 0) {
+      const avg = entries.reduce((s: number, e: any) => s + (e.quality_score || 0), 0) / entries.length;
+      score += Math.round(avg * 20 / 100);
+    }
+    if (faqs.length >= 5) score += 15; else if (faqs.length >= 3) score += 10; else if (faqs.length >= 1) score += 5;
+    if (page.word_count >= 300 && faqs.length > 0 && page.has_schema) score += 15;
+    return Math.max(0, Math.min(100, score));
+  }
+
+  // ── SEO Dashboard Summary ────────────────────────────────────
+  static getSeoDashboardSummary() {
+    const pages = memoryStore.seo_pages || [];
+    const keywords = memoryStore.seo_keywords || [];
+    const brokenLinks = (memoryStore.seo_broken_links || []).filter((b: any) => !b.is_resolved);
+    const imageAudits = memoryStore.seo_image_audits || [];
+    const pageSpeed = memoryStore.seo_page_speed || [];
+    const latest = pageSpeed.length > 0 ? pageSpeed[pageSpeed.length - 1] : null;
+
+    const totalPages = pages.length;
+    const indexedPages = pages.filter((p: any) => !p.robots_directive || !p.robots_directive.includes("noindex")).length;
+    const avgSeoScore = totalPages > 0 ? Math.round(pages.reduce((s: number, p: any) => s + (p.seo_score || 0), 0) / totalPages) : 0;
+    const avgGeoScore = totalPages > 0 ? Math.round(pages.reduce((s: number, p: any) => s + (p.geo_score || 0), 0) / totalPages) : 0;
+    const avgAeoScore = totalPages > 0 ? Math.round(pages.reduce((s: number, p: any) => s + (p.aeo_score || 0), 0) / totalPages) : 0;
+
+    const titleMap = new Map<string, number>();
+    const descMap = new Map<string, number>();
+    pages.forEach((p: any) => {
+      if (p.meta_title) titleMap.set(p.meta_title, (titleMap.get(p.meta_title) || 0) + 1);
+      if (p.meta_description) descMap.set(p.meta_description, (descMap.get(p.meta_description) || 0) + 1);
+    });
+
+    return {
+      total_pages: totalPages,
+      indexed_pages: indexedPages,
+      non_indexed_pages: totalPages - indexedPages,
+      seo_score: avgSeoScore,
+      geo_score: avgGeoScore,
+      aeo_score: avgAeoScore,
+      broken_links: brokenLinks.length,
+      missing_alt: imageAudits.filter((i: any) => !i.has_alt).length,
+      duplicate_titles: [...titleMap.values()].filter(c => c > 1).length,
+      duplicate_descriptions: [...descMap.values()].filter(c => c > 1).length,
+      missing_schema: pages.filter((p: any) => !p.has_schema).length,
+      missing_canonical: pages.filter((p: any) => !p.canonical_url).length,
+      missing_h1: pages.filter((p: any) => !p.h1_text).length,
+      multiple_h1: pages.filter((p: any) => (p.h1_count || 0) > 1).length,
+      tracked_keywords: keywords.length,
+      total_redirects: (memoryStore.seo_redirects || []).length,
+      active_redirects: (memoryStore.seo_redirects || []).filter((r: any) => r.is_active).length,
+      geo_pages: (memoryStore.seo_geo_pages || []).length,
+      aeo_entries: (memoryStore.seo_aeo_entries || []).length,
+      competitors: (memoryStore.seo_competitors || []).filter((c: any) => c.status === "active").length,
+      utm_campaigns: (memoryStore.seo_utm_campaigns || []).length,
+      backlinks: (memoryStore.seo_backlinks || []).filter((b: any) => b.status === "active").length,
+      core_web_vitals: latest ? {
+        lcp_ms: latest.lcp_ms, cls: latest.cls, inp_ms: latest.inp_ms,
+        fcp_ms: latest.fcp_ms, ttfb_ms: latest.ttfb_ms, performance_score: latest.performance_score,
+      } : { lcp_ms: 0, cls: 0, inp_ms: 0, fcp_ms: 0, ttfb_ms: 0, performance_score: 0 },
+      sitemap_health: "healthy",
+      robots_health: "healthy",
+      last_crawl: (memoryStore.seo_crawl_history || []).length > 0 ? (memoryStore.seo_crawl_history || []).slice(-1)[0] : null,
     };
-    memoryStore.ab_tests.unshift(exp);
-    ApiEngine.addAuditLog(`Launched A/B Experiment "${exp.name}"`);
+  }
+
+  // ── SEO Pages CRUD ───────────────────────────────────────────
+  static getSeoPages(filters?: any) {
+    let pages = memoryStore.seo_pages || [];
+    if (filters?.entity_type) pages = pages.filter((p: any) => p.entity_type === filters.entity_type);
+    if (filters?.status) pages = pages.filter((p: any) => p.status === filters.status);
+    if (filters?.search) {
+      const q = filters.search.toLowerCase();
+      pages = pages.filter((p: any) => (p.slug || "").toLowerCase().includes(q) || (p.meta_title || "").toLowerCase().includes(q) || (p.url || "").toLowerCase().includes(q));
+    }
+    return pages;
+  }
+
+  static createSeoPage(data: any) {
+    const page: any = {
+      id: `seopg_${Date.now()}`, entity_type: data.entity_type || "page", entity_id: data.entity_id || "",
+      slug: data.slug || "", url: data.url || "", meta_title: data.meta_title || null,
+      meta_description: data.meta_description || null, canonical_url: data.canonical_url || null,
+      robots_directive: data.robots_directive || "index,follow", keywords: data.keywords || null,
+      og_title: data.og_title || null, og_description: data.og_description || null,
+      og_image: data.og_image || null, og_type: data.og_type || "website",
+      twitter_card: data.twitter_card || "summary_large_image", twitter_title: data.twitter_title || null,
+      twitter_description: data.twitter_description || null, twitter_image: data.twitter_image || null,
+      h1_text: data.h1_text || null, h1_count: data.h1_count || 0, word_count: data.word_count || 0,
+      has_schema: data.has_schema || false, schema_types: data.schema_types || null,
+      internal_links_count: data.internal_links_count || 0, external_links_count: data.external_links_count || 0,
+      images_count: data.images_count || 0, images_missing_alt: data.images_missing_alt || 0,
+      seo_score: 0, geo_score: 0, aeo_score: 0, status: data.status || "published",
+      last_crawled_at: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      created_by: data.created_by || "admin", updated_by: data.updated_by || "admin",
+    };
+    page.seo_score = ApiEngine.calculateSeoScore(page);
+    page.geo_score = ApiEngine.calculateGeoScore(page);
+    page.aeo_score = ApiEngine.calculateAeoScore(page);
+    memoryStore.seo_pages.push(page);
+    ApiEngine.addSeoAuditLog("created", "seo_page", page.id, `Created SEO page for ${page.entity_type}: ${page.slug}`);
     ApiEngine.persist();
-    return exp;
+    return page;
+  }
+
+  static updateSeoPage(id: string, data: any) {
+    const idx = (memoryStore.seo_pages || []).findIndex((p: any) => p.id === id);
+    if (idx < 0) return null;
+    const page = { ...memoryStore.seo_pages[idx], ...data, updated_at: new Date().toISOString() };
+    page.seo_score = ApiEngine.calculateSeoScore(page);
+    page.geo_score = ApiEngine.calculateGeoScore(page);
+    page.aeo_score = ApiEngine.calculateAeoScore(page);
+    memoryStore.seo_pages[idx] = page;
+    ApiEngine.addSeoAuditLog("updated", "seo_page", page.id, `Updated SEO page: ${page.slug}`);
+    ApiEngine.persist();
+    return page;
+  }
+
+  static deleteSeoPage(id: string) {
+    memoryStore.seo_pages = (memoryStore.seo_pages || []).filter((p: any) => p.id !== id);
+    ApiEngine.addSeoAuditLog("deleted", "seo_page", id);
+    ApiEngine.persist();
+    return true;
+  }
+
+  // ── SEO Keywords ─────────────────────────────────────────────
+  static getSeoKeywords() { return memoryStore.seo_keywords || []; }
+
+  static createSeoKeyword(data: any) {
+    const kw = {
+      id: `seokey_${Date.now()}`, keyword: data.keyword, group_id: data.group_id || null,
+      search_volume: data.search_volume || 0, difficulty: data.difficulty || 0,
+      current_position: data.current_position || 0, previous_position: 0,
+      best_position: data.current_position || 0, target_url: data.target_url || null,
+      location: data.location || null, device: data.device || "desktop",
+      search_engine: data.search_engine || "google", status: "tracking",
+      last_checked_at: new Date().toISOString(),
+      ranking_history: JSON.stringify([{ date: new Date().toISOString().split("T")[0], position: data.current_position || 0 }]),
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      created_by: data.created_by || "admin",
+    };
+    memoryStore.seo_keywords.push(kw);
+    ApiEngine.addSeoAuditLog("created", "seo_keyword", kw.id, `Tracking keyword: ${kw.keyword}`);
+    ApiEngine.persist();
+    return kw;
+  }
+
+  static updateSeoKeyword(id: string, data: any) {
+    const idx = (memoryStore.seo_keywords || []).findIndex((k: any) => k.id === id);
+    if (idx < 0) return null;
+    const prev = memoryStore.seo_keywords[idx];
+    const updated = { ...prev, ...data, previous_position: prev.current_position, updated_at: new Date().toISOString() };
+    if (data.current_position && data.current_position < (prev.best_position || 999)) updated.best_position = data.current_position;
+    try {
+      const history = JSON.parse(prev.ranking_history || "[]");
+      history.push({ date: new Date().toISOString().split("T")[0], position: data.current_position || prev.current_position });
+      updated.ranking_history = JSON.stringify(history.slice(-90));
+    } catch { /* ignore */ }
+    memoryStore.seo_keywords[idx] = updated;
+    ApiEngine.persist();
+    return updated;
+  }
+
+  static deleteSeoKeyword(id: string) {
+    memoryStore.seo_keywords = (memoryStore.seo_keywords || []).filter((k: any) => k.id !== id);
+    ApiEngine.persist();
+    return true;
+  }
+
+  // ── SEO Redirects ────────────────────────────────────────────
+  static getSeoRedirects() { return memoryStore.seo_redirects || []; }
+
+  static createSeoRedirect(data: any) {
+    const redirects = memoryStore.seo_redirects || [];
+    if (data.target_url) {
+      const loop = redirects.find((r: any) => r.source_url === data.target_url && r.target_url === data.source_url);
+      if (loop) throw new Error(`Redirect loop detected: ${data.source_url} ↔ ${data.target_url}`);
+    }
+    const redirect = {
+      id: `seord_${Date.now()}`, source_url: data.source_url, target_url: data.target_url || null,
+      status_code: data.status_code || 301, is_regex: data.is_regex || false,
+      is_active: data.is_active !== false, hit_count: 0, last_hit_at: null,
+      notes: data.notes || null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      created_by: data.created_by || "admin", updated_by: data.updated_by || "admin",
+    };
+    memoryStore.seo_redirects.push(redirect);
+    ApiEngine.addSeoAuditLog("created", "seo_redirect", redirect.id, `${redirect.status_code} ${redirect.source_url} → ${redirect.target_url}`);
+    ApiEngine.persist();
+    return redirect;
+  }
+
+  static updateSeoRedirect(id: string, data: any) {
+    const idx = (memoryStore.seo_redirects || []).findIndex((r: any) => r.id === id);
+    if (idx < 0) return null;
+    memoryStore.seo_redirects[idx] = { ...memoryStore.seo_redirects[idx], ...data, updated_at: new Date().toISOString() };
+    ApiEngine.persist();
+    return memoryStore.seo_redirects[idx];
+  }
+
+  static deleteSeoRedirect(id: string) {
+    memoryStore.seo_redirects = (memoryStore.seo_redirects || []).filter((r: any) => r.id !== id);
+    ApiEngine.persist();
+    return true;
+  }
+
+  // ── SEO Broken Links ─────────────────────────────────────────
+  static getSeoBrokenLinks() { return memoryStore.seo_broken_links || []; }
+
+  static runBrokenLinkScan() {
+    const startTime = Date.now();
+    const pages = memoryStore.seo_pages || [];
+    const internalLinks = memoryStore.seo_internal_links || [];
+    const allUrls = new Set(pages.map((p: any) => p.url).filter(Boolean));
+    const brokenFound: any[] = [];
+    internalLinks.forEach((link: any) => {
+      if (!allUrls.has(link.target_url)) {
+        brokenFound.push({
+          id: `seobl_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          page_url: link.source_url, broken_url: link.target_url, link_text: link.anchor_text,
+          status_code: 404, link_type: "internal", is_resolved: false,
+          resolved_at: null, found_at: new Date().toISOString(), created_at: new Date().toISOString(), created_by: "system",
+        });
+      }
+    });
+    memoryStore.seo_broken_links = [...(memoryStore.seo_broken_links || []).filter((b: any) => b.is_resolved), ...brokenFound];
+    const crawl = {
+      id: `seoch_${Date.now()}`, crawl_type: "broken_links", pages_scanned: pages.length,
+      issues_found: brokenFound.length, duration_ms: Date.now() - startTime,
+      status: "completed", summary: JSON.stringify({ broken_links_found: brokenFound.length }),
+      triggered_by: "admin", created_at: new Date().toISOString(),
+    };
+    memoryStore.seo_crawl_history.push(crawl);
+    ApiEngine.persist();
+    return { broken_links: brokenFound, crawl };
+  }
+
+  // ── SEO Internal Links ───────────────────────────────────────
+  static getSeoInternalLinks() { return memoryStore.seo_internal_links || []; }
+
+  static suggestInternalLinks() {
+    const products = memoryStore.products || [];
+    const categories = memoryStore.pim_categories || [];
+    const branches = memoryStore.branches || [];
+    const suggestions: any[] = [];
+    products.slice(0, 10).forEach((p: any) => {
+      if (p.category_id) {
+        const cat = categories.find((c: any) => c.id === p.category_id);
+        if (cat) suggestions.push({ source_url: `/products/${p.handle || p.id}`, target_url: `/categories/${cat.slug || cat.id}`, anchor_text: cat.name, reason: "Product → Category" });
+      }
+    });
+    branches.forEach((b: any, i: number) => {
+      const nearby = branches.filter((_: any, j: number) => j !== i).slice(0, 2);
+      nearby.forEach((nb: any) => {
+        suggestions.push({
+          source_url: `/cakes/${(b.slug || b.name || "").toLowerCase().replace(/\s+/g, "-")}`,
+          target_url: `/cakes/${(nb.slug || nb.name || "").toLowerCase().replace(/\s+/g, "-")}`,
+          anchor_text: `Cake delivery in ${nb.name || nb.city}`, reason: "Branch → Nearby branch",
+        });
+      });
+    });
+    return suggestions;
+  }
+
+  // ── SEO Schema Templates ─────────────────────────────────────
+  static getSeoSchemaTemplates() { return memoryStore.seo_schema_templates || []; }
+
+  static createSeoSchemaTemplate(data: any) {
+    const template = {
+      id: `seost_${Date.now()}`, name: data.name, schema_type: data.schema_type,
+      template_json: data.template_json || "{}", description: data.description || null,
+      is_active: true, usage_count: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      created_by: data.created_by || "admin", updated_by: data.updated_by || "admin",
+    };
+    memoryStore.seo_schema_templates.push(template);
+    ApiEngine.persist();
+    return template;
+  }
+
+  static validateJsonLd(jsonStr: string) {
+    const errors: string[] = [];
+    try {
+      const parsed = JSON.parse(jsonStr);
+      if (!parsed["@context"]) errors.push("Missing @context");
+      if (!parsed["@type"]) errors.push("Missing @type");
+      if (parsed["@context"] && parsed["@context"] !== "https://schema.org") errors.push("@context should be 'https://schema.org'");
+    } catch (e: any) { errors.push(`Invalid JSON: ${e.message}`); }
+    return { valid: errors.length === 0, errors };
+  }
+
+  // ── SEO Image Audits ─────────────────────────────────────────
+  static getSeoImageAudits() { return memoryStore.seo_image_audits || []; }
+
+  static runImageAudit() {
+    const products = memoryStore.products || [];
+    const results: any[] = [];
+    products.forEach((p: any) => {
+      if (p.thumbnail) {
+        results.push({
+          id: `seoia_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          page_url: `/products/${p.handle || p.id}`, image_url: p.thumbnail,
+          alt_text: p.alt_text || null, has_alt: !!(p.alt_text || p.title),
+          has_width: !!p.image_width, has_height: !!p.image_height, has_lazy_loading: true,
+          file_size_kb: 0, format: p.thumbnail.includes(".webp") ? "webp" : p.thumbnail.includes(".png") ? "png" : "jpg",
+          is_broken: false, suggested_alt: `${p.title} - Premium cake from CakeToHome`,
+          entity_type: "product", entity_id: p.id, created_at: new Date().toISOString(),
+        });
+      }
+    });
+    memoryStore.seo_image_audits = results;
+    ApiEngine.persist();
+    return { images_audited: results.length, missing_alt: results.filter((r: any) => !r.has_alt).length };
+  }
+
+  // ── SEO Competitors ──────────────────────────────────────────
+  static getSeoCompetitors() { return memoryStore.seo_competitors || []; }
+
+  static createSeoCompetitor(data: any) {
+    const competitor = {
+      id: `seocp_${Date.now()}`, name: data.name, domain: data.domain,
+      description: data.description || null, tracked_keywords: data.tracked_keywords || null,
+      notes: data.notes || null, status: "active",
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      created_by: data.created_by || "admin",
+    };
+    memoryStore.seo_competitors.push(competitor);
+    ApiEngine.persist();
+    return competitor;
+  }
+
+  static deleteSeoCompetitor(id: string) {
+    memoryStore.seo_competitors = (memoryStore.seo_competitors || []).filter((c: any) => c.id !== id);
+    ApiEngine.persist();
+    return true;
+  }
+
+  // ── SEO GEO Landing Pages ────────────────────────────────────
+  static getSeoGeoPages() { return memoryStore.seo_geo_pages || []; }
+
+  static generateGeoLandingPage(data: any) {
+    const city = data.city || "Kollam";
+    const area = data.area || null;
+    const label = area || city;
+    const slug = `cakes/${label.toLowerCase().replace(/\s+/g, "-")}`;
+    const page = {
+      id: `seogp_${Date.now()}`, page_type: data.page_type || "city",
+      city, area, pincode: data.pincode || null, branch_id: data.branch_id || null, slug,
+      title: data.title || `Cake Delivery in ${label}`,
+      meta_title: `Order Cakes Online in ${label} | CakeToHome ${label}`,
+      meta_description: `Fresh premium cakes delivered to your doorstep in ${label}. Same-day delivery, midnight delivery, custom birthday cakes. Order now from CakeToHome.`,
+      h1_text: `Best Cake Delivery in ${label}`,
+      content_html: data.content_html || `<p>CakeToHome delivers premium handcrafted cakes in ${label}. Choose from our collection of birthday cakes, wedding cakes, anniversary cakes, and custom designer cakes with same-day and midnight delivery.</p>`,
+      faqs: JSON.stringify(data.faqs || [
+        { question: `Do you deliver cakes in ${label}?`, answer: `Yes! CakeToHome offers same-day and midnight cake delivery across ${label}.` },
+        { question: `What is the delivery time in ${label}?`, answer: `We deliver within 2-4 hours in ${label}. Midnight delivery is also available.` },
+        { question: `Can I order a custom cake in ${label}?`, answer: `Absolutely! We specialize in custom birthday, wedding, and theme cakes in ${label}.` },
+      ]),
+      schema_json: JSON.stringify({
+        "@context": "https://schema.org", "@type": "LocalBusiness", "@id": `https://cakes2home.com/${slug}`,
+        name: `CakeToHome ${label}`, description: `Premium cake delivery service in ${label}`,
+        url: `https://cakes2home.com/${slug}`, areaServed: { "@type": "City", name: label },
+      }),
+      breadcrumbs: JSON.stringify([{ name: "Home", url: "/" }, { name: "Cakes", url: "/cakes" }, { name: label, url: `/${slug}` }]),
+      internal_links: JSON.stringify([]), keywords: `cake delivery ${label.toLowerCase()}, cakes online ${label.toLowerCase()}, birthday cake ${label.toLowerCase()}`,
+      status: "published", created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      created_by: data.created_by || "admin", updated_by: data.updated_by || "admin",
+    };
+    memoryStore.seo_geo_pages.push(page);
+    ApiEngine.addSeoAuditLog("generated", "seo_geo_page", page.id, `Generated GEO landing page: ${label}`);
+    ApiEngine.persist();
+    return page;
+  }
+
+  // ── SEO AEO Entries ──────────────────────────────────────────
+  static getSeoAeoEntries() { return memoryStore.seo_aeo_entries || []; }
+
+  static createSeoAeoEntry(data: any) {
+    const entry: any = {
+      id: `seoae_${Date.now()}`, entry_type: data.entry_type || "faq",
+      question: data.question || null, answer: data.answer || null, steps: data.steps || null,
+      entity_type: data.entity_type || null, entity_id: data.entity_id || null,
+      page_url: data.page_url || null, schema_json: null, quality_score: data.quality_score || 0,
+      is_featured: data.is_featured || false, status: "published",
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      created_by: data.created_by || "admin", updated_by: data.updated_by || "admin",
+    };
+    if (entry.entry_type === "faq" && entry.question && entry.answer) {
+      entry.schema_json = JSON.stringify({
+        "@context": "https://schema.org", "@type": "Question",
+        name: entry.question, acceptedAnswer: { "@type": "Answer", text: entry.answer },
+      });
+      entry.quality_score = Math.min(100, (entry.answer.length > 100 ? 70 : 40) + (entry.question.length > 20 ? 30 : 15));
+    }
+    memoryStore.seo_aeo_entries.push(entry);
+    ApiEngine.persist();
+    return entry;
+  }
+
+  static deleteSeoAeoEntry(id: string) {
+    memoryStore.seo_aeo_entries = (memoryStore.seo_aeo_entries || []).filter((e: any) => e.id !== id);
+    ApiEngine.persist();
+    return true;
+  }
+
+  // ── SEO Content Audit ────────────────────────────────────────
+  static getSeoContentAudits() { return memoryStore.seo_content_audits || []; }
+
+  static runContentAudit() {
+    const pages = memoryStore.seo_pages || [];
+    const titles = new Map<string, string[]>();
+    pages.forEach((p: any) => { const t = p.meta_title || ""; if (t) { if (!titles.has(t)) titles.set(t, []); titles.get(t)!.push(p.id); } });
+    const results: any[] = [];
+    pages.forEach((p: any) => {
+      const issues: string[] = [];
+      const recs: string[] = [];
+      const isThin = (p.word_count || 0) < 300;
+      const t = p.meta_title || "";
+      const isDuplicate = titles.has(t) && titles.get(t)!.length > 1;
+      if (isThin) { issues.push("Thin content (< 300 words)"); recs.push("Add more descriptive content (aim for 500+ words)"); }
+      if (isDuplicate) { issues.push("Duplicate title"); recs.push("Create unique meta titles"); }
+      if (!p.h1_text) { issues.push("Missing H1"); recs.push("Add a descriptive H1 heading"); }
+      if ((p.h1_count || 0) > 1) { issues.push("Multiple H1 tags"); recs.push("Use only one H1 per page"); }
+      if (!p.meta_title) { issues.push("Missing meta title"); recs.push("Add meta title (50-60 chars)"); }
+      if (!p.meta_description) { issues.push("Missing meta description"); recs.push("Add meta description (140-160 chars)"); }
+      if (!p.canonical_url) { issues.push("Missing canonical URL"); recs.push("Set canonical URL"); }
+      if (!p.has_schema) { issues.push("Missing structured data"); recs.push("Add Schema.org markup"); }
+      results.push({
+        id: `seoca_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        page_url: p.url || p.slug || "", entity_type: p.entity_type, entity_id: p.entity_id || p.id,
+        word_count: p.word_count || 0, readability_score: Math.min(100, (p.word_count || 0) > 300 ? 75 : 40),
+        keyword_density: 0, is_thin: isThin, is_duplicate: isDuplicate,
+        duplicate_of: isDuplicate ? titles.get(t)!.find((id: string) => id !== p.id) || null : null,
+        has_h1: !!(p.h1_text || p.h1_count > 0), h1_count: p.h1_count || 0,
+        has_meta_title: !!p.meta_title, has_meta_description: !!p.meta_description,
+        has_canonical: !!p.canonical_url, has_schema: !!p.has_schema,
+        issues: JSON.stringify(issues), recommendations: JSON.stringify(recs),
+        audit_date: new Date().toISOString().split("T")[0], created_at: new Date().toISOString(), created_by: "system",
+      });
+    });
+    memoryStore.seo_content_audits = results;
+    ApiEngine.persist();
+    return { pages_audited: results.length, issues_found: results.filter((r: any) => JSON.parse(r.issues || "[]").length > 0).length };
+  }
+
+  // ── SEO Page Speed ───────────────────────────────────────────
+  static getSeoPageSpeed() { return memoryStore.seo_page_speed || []; }
+
+  static recordSeoPageSpeed(data: any) {
+    const record = {
+      id: `seops_${Date.now()}`, page_url: data.page_url || "/", device: data.device || "mobile",
+      lcp_ms: data.lcp_ms || 0, cls: data.cls || 0, inp_ms: data.inp_ms || 0,
+      fcp_ms: data.fcp_ms || 0, ttfb_ms: data.ttfb_ms || 0, speed_index: data.speed_index || 0,
+      performance_score: data.performance_score || 0, js_size_kb: data.js_size_kb || 0,
+      css_size_kb: data.css_size_kb || 0, image_size_kb: data.image_size_kb || 0,
+      total_size_kb: data.total_size_kb || 0, requests_count: data.requests_count || 0,
+      measured_at: new Date().toISOString(), created_at: new Date().toISOString(), created_by: data.created_by || "system",
+    };
+    memoryStore.seo_page_speed.push(record);
+    ApiEngine.persist();
+    return record;
+  }
+
+  // ── SEO UTM Campaigns ────────────────────────────────────────
+  static getSeoUtmCampaigns() { return memoryStore.seo_utm_campaigns || []; }
+
+  static createSeoUtmCampaign(data: any) {
+    const url = data.url || "https://cakes2home.com";
+    const params = new URLSearchParams();
+    if (data.source) params.set("utm_source", data.source);
+    if (data.medium) params.set("utm_medium", data.medium);
+    if (data.campaign) params.set("utm_campaign", data.campaign);
+    if (data.term) params.set("utm_term", data.term);
+    if (data.content) params.set("utm_content", data.content);
+    const campaign = {
+      id: `seout_${Date.now()}`, name: data.name || `${data.source}_${data.campaign}`,
+      url, source: data.source || "", medium: data.medium || "", campaign: data.campaign || "",
+      term: data.term || null, content: data.content || null,
+      generated_url: `${url}?${params.toString()}`, click_count: 0, status: "active",
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      created_by: data.created_by || "admin",
+    };
+    memoryStore.seo_utm_campaigns.push(campaign);
+    ApiEngine.persist();
+    return campaign;
+  }
+
+  static deleteSeoUtmCampaign(id: string) {
+    memoryStore.seo_utm_campaigns = (memoryStore.seo_utm_campaigns || []).filter((c: any) => c.id !== id);
+    ApiEngine.persist();
+    return true;
+  }
+
+  // ── SEO Robots History ───────────────────────────────────────
+  static getSeoRobotsHistory() { return memoryStore.seo_robots_history || []; }
+
+  static saveRobotsVersion(data: any) {
+    const history = memoryStore.seo_robots_history || [];
+    const maxVersion = history.reduce((max: number, r: any) => Math.max(max, r.version || 0), 0);
+    history.forEach((r: any) => r.is_active = false);
+    const version = {
+      id: `seorh_${Date.now()}`, content: data.content, version: maxVersion + 1,
+      environment: data.environment || "production", is_active: true,
+      notes: data.notes || null, created_at: new Date().toISOString(),
+      created_by: data.created_by || "admin",
+    };
+    memoryStore.seo_robots_history.push(version);
+    ApiEngine.addSeoAuditLog("created", "seo_robots", version.id, `Saved robots.txt v${version.version}`);
+    ApiEngine.persist();
+    return version;
+  }
+
+  static rollbackRobots(id: string) {
+    const history = memoryStore.seo_robots_history || [];
+    const target = history.find((r: any) => r.id === id);
+    if (!target) return null;
+    history.forEach((r: any) => r.is_active = false);
+    target.is_active = true;
+    ApiEngine.persist();
+    return target;
+  }
+
+  // ── SEO Social Cards ─────────────────────────────────────────
+  static getSeoSocialCards() { return memoryStore.seo_social_cards || []; }
+
+  // ── SEO Backlinks ────────────────────────────────────────────
+  static getSeoBacklinks() { return memoryStore.seo_backlinks || []; }
+
+  static createSeoBacklink(data: any) {
+    const backlink = {
+      id: `seobk_${Date.now()}`, source_domain: data.source_domain, source_url: data.source_url,
+      target_url: data.target_url || "/", anchor_text: data.anchor_text || null,
+      domain_authority: data.domain_authority || 0, is_dofollow: data.is_dofollow !== false,
+      is_active: true, first_seen: new Date().toISOString().split("T")[0],
+      last_checked: new Date().toISOString().split("T")[0], status: "active",
+      created_at: new Date().toISOString(), created_by: data.created_by || "admin",
+    };
+    memoryStore.seo_backlinks.push(backlink);
+    ApiEngine.persist();
+    return backlink;
+  }
+
+  // ── SEO Reports ──────────────────────────────────────────────
+  static getSeoReports() { return memoryStore.seo_reports || []; }
+
+  static generateSeoReport(type: string = "overall") {
+    const summary = ApiEngine.getSeoDashboardSummary();
+    const report = {
+      id: `seorp_${Date.now()}`, report_type: type,
+      report_period: new Date().toISOString().split("T")[0],
+      title: `${type.charAt(0).toUpperCase() + type.slice(1)} SEO Report — ${new Date().toISOString().split("T")[0]}`,
+      summary: `SEO Score: ${summary.seo_score}/100 | GEO: ${summary.geo_score}/100 | AEO: ${summary.aeo_score}/100 | Pages: ${summary.total_pages}`,
+      data: JSON.stringify(summary), format: "json", status: "completed", file_url: null,
+      created_at: new Date().toISOString(), created_by: "system",
+    };
+    memoryStore.seo_reports.push(report);
+    ApiEngine.persist();
+    return report;
+  }
+
+  // ── SEO Crawl History ────────────────────────────────────────
+  static getSeoCrawlHistory() { return memoryStore.seo_crawl_history || []; }
+
+  // ── SEO Health Reports ───────────────────────────────────────
+  static getSeoHealthReports() { return memoryStore.seo_health_reports || []; }
+
+  static generateSeoHealthReport() {
+    const summary = ApiEngine.getSeoDashboardSummary();
+    const report = {
+      id: `seohr_${Date.now()}`, report_date: new Date().toISOString().split("T")[0],
+      overall_score: Math.round((summary.seo_score + summary.geo_score + summary.aeo_score) / 3),
+      ...summary, details: JSON.stringify(summary), created_at: new Date().toISOString(), created_by: "system",
+    };
+    memoryStore.seo_health_reports.push(report);
+    ApiEngine.persist();
+    return report;
+  }
+
+  // ── SEO Audit Log ────────────────────────────────────────────
+  static getSeoAuditLogs() { return memoryStore.seo_audit_logs || []; }
+
+  private static addSeoAuditLog(action: string, entityType: string, entityId?: string, details?: string) {
+    (memoryStore.seo_audit_logs || []).push({
+      id: `seoal_${Date.now()}`, action, entity_type: entityType, entity_id: entityId || null,
+      details: details || null, user: "admin@cakes2home.com", ip_address: "127.0.0.1",
+      created_at: new Date().toISOString(),
+    });
+  }
+
+  // ── AI Content Generation (Rule-based) ───────────────────────
+  static generateAiSeoContent(type: string, context: any) {
+    const name = context.name || context.title || "Product";
+    const city = context.city || "Kollam";
+    const category = context.category || "cakes";
+    switch (type) {
+      case "meta_title":
+        return { suggestions: [
+          `${name} — Order Online | CakeToHome`,
+          `Buy ${name} Online | Free Delivery | CakeToHome`,
+          `${name} | Premium ${category} | CakeToHome ${city}`,
+        ]};
+      case "meta_description":
+        return { suggestions: [
+          `Order ${name} online from CakeToHome. Fresh, handcrafted with premium ingredients. Same-day delivery in ${city}. Order now!`,
+          `Get the best ${name} delivered to your doorstep in ${city}. Midnight delivery available. 100% fresh guarantee from CakeToHome.`,
+          `${name} by CakeToHome — premium quality, same-day delivery in ${city}. Perfect for birthdays, anniversaries & celebrations.`,
+        ]};
+      case "keywords":
+        return { suggestions: [`${name.toLowerCase()}, ${name.toLowerCase()} online, buy ${name.toLowerCase()}, ${name.toLowerCase()} ${city.toLowerCase()}, ${name.toLowerCase()} delivery`] };
+      case "faq":
+        return { suggestions: [
+          { question: `How to order ${name}?`, answer: `You can order ${name} online through CakeToHome. Simply visit our website, select your cake, choose a delivery slot, and pay securely.` },
+          { question: `Is ${name} available for midnight delivery?`, answer: `Yes! CakeToHome offers midnight delivery for ${name} in ${city} and surrounding areas.` },
+          { question: `Can I customize ${name}?`, answer: `Absolutely! Contact our team to customize ${name} with your preferred flavors, decorations, and message.` },
+        ]};
+      case "alt_text":
+        return { suggestions: [`${name} — Premium cake from CakeToHome`, `${name} available for delivery in ${city}`, `Order ${name} online — CakeToHome`] };
+      default: return { suggestions: [] };
+    }
+  }
+
+  // ── Automation: Sync Products/Branches/Categories as SEO Pages ─
+  static syncSeoPages() {
+    const products = memoryStore.products || [];
+    const categories = memoryStore.pim_categories || [];
+    const branches = memoryStore.branches || [];
+    const cmsPages = memoryStore.cms_pages || [];
+    const existingIds = new Set((memoryStore.seo_pages || []).map((p: any) => p.entity_id));
+    let created = 0;
+
+    products.forEach((p: any) => {
+      if (!existingIds.has(p.id)) {
+        ApiEngine.createSeoPage({
+          entity_type: "product", entity_id: p.id,
+          slug: p.handle || p.id, url: `/products/${p.handle || p.id}`,
+          meta_title: p.seo_title || p.title, meta_description: p.seo_description || p.description?.substring(0, 160),
+          canonical_url: `https://cakes2home.com/products/${p.handle || p.id}`,
+          h1_text: p.title, h1_count: 1, word_count: (p.description || "").split(/\s+/).length,
+          has_schema: true, schema_types: JSON.stringify(["Product"]),
+          og_title: p.title, og_image: p.thumbnail || null,
+          keywords: p.tags ? (Array.isArray(p.tags) ? p.tags.join(", ") : String(p.tags)) : null,
+        });
+        created++;
+      }
+    });
+
+    categories.forEach((c: any) => {
+      if (!existingIds.has(c.id)) {
+        ApiEngine.createSeoPage({
+          entity_type: "category", entity_id: c.id,
+          slug: c.slug || c.id, url: `/categories/${c.slug || c.id}`,
+          meta_title: c.seo_title || c.name, meta_description: c.seo_description || c.description?.substring(0, 160),
+          canonical_url: `https://cakes2home.com/categories/${c.slug || c.id}`,
+          h1_text: c.name, h1_count: 1, has_schema: true, schema_types: JSON.stringify(["CollectionPage"]),
+          og_title: c.name, og_image: c.image_url || null,
+        });
+        created++;
+      }
+    });
+
+    branches.forEach((b: any) => {
+      if (!existingIds.has(b.id)) {
+        const slug = (b.slug || b.name || "").toLowerCase().replace(/\s+/g, "-");
+        ApiEngine.createSeoPage({
+          entity_type: "branch", entity_id: b.id,
+          slug, url: `/cakes/${slug}`,
+          meta_title: `CakeToHome ${b.name} — Cake Delivery in ${b.city || ""}`,
+          meta_description: `Order premium cakes from CakeToHome ${b.name}. Same-day delivery, midnight delivery, custom cakes in ${b.city || ""}.`,
+          canonical_url: `https://cakes2home.com/cakes/${slug}`,
+          h1_text: `Cake Delivery in ${b.name}`, h1_count: 1,
+          has_schema: true, schema_types: JSON.stringify(["LocalBusiness", "Bakery"]),
+          og_title: `CakeToHome ${b.name}`,
+          keywords: `cakes ${(b.city || "").toLowerCase()}, cake delivery ${(b.name || "").toLowerCase()}, bakery ${(b.city || "").toLowerCase()}`,
+        });
+        created++;
+      }
+    });
+
+    cmsPages.forEach((pg: any) => {
+      if (!existingIds.has(pg.id)) {
+        ApiEngine.createSeoPage({
+          entity_type: pg.type === "blog" ? "blog" : "cms", entity_id: pg.id,
+          slug: pg.slug, url: pg.type === "blog" ? `/blog/${pg.slug}` : `/${pg.slug}`,
+          meta_title: pg.meta_title || pg.title,
+          meta_description: pg.meta_description || pg.excerpt,
+          canonical_url: pg.canonical_url || `https://cakes2home.com/${pg.slug}`,
+          h1_text: pg.title, h1_count: 1,
+          has_schema: pg.type === "blog",
+          schema_types: pg.type === "blog" ? JSON.stringify(["Article"]) : null,
+          og_title: pg.title, og_image: pg.featured_image || pg.og_image || null,
+        });
+        created++;
+      }
+    });
+
+    return { synced: created, total: (memoryStore.seo_pages || []).length };
+  }
+
+  // ── Integrations: Search Console, GA4, Bing, Google Indexing ─
+  static async getSeoSearchConsoleData() {
+    const creds = memoryStore.seo_config || {};
+    return SeoIntegrationsEngine.fetchSearchConsoleData(creds);
+  }
+
+  static async getSeoGa4Data() {
+    const creds = memoryStore.seo_config || {};
+    return SeoIntegrationsEngine.fetchGa4Data(creds);
+  }
+
+  static async submitBingUrl(url: string) {
+    const creds = memoryStore.seo_config || {};
+    return SeoIntegrationsEngine.submitBingUrl(creds, url);
+  }
+
+  static async publishGoogleIndexingUrl(url: string, type: "URL_UPDATED" | "URL_DELETED" = "URL_UPDATED") {
+    const creds = memoryStore.seo_config || {};
+    return SeoIntegrationsEngine.publishGoogleIndexingUrl(creds, url, type);
+  }
+
+  // ── Live Crawler Execution ──────────────────────────────────
+  static async runLiveCrawler(urls?: string[]) {
+    const pages = memoryStore.seo_pages || [];
+    const defaultUrls = urls && urls.length > 0 ? urls : pages.map((p: any) => `http://localhost:3000${p.url || `/${p.slug}`}`).slice(0, 10);
+    return LiveHttpCrawler.crawlSite(defaultUrls.length > 0 ? defaultUrls : ["http://localhost:3000/"]);
+  }
+
+  // ── Audit Engine & Auto-Fix ─────────────────────────────────
+  static generateSeoAuditIssues() {
+    const pages = memoryStore.seo_pages || [];
+    const imageAudits = memoryStore.seo_image_audits || [];
+    const brokenLinks = memoryStore.seo_broken_links || [];
+    const redirects = memoryStore.seo_redirects || [];
+    return SeoAuditEngine.generateAuditIssues(pages, imageAudits, brokenLinks, redirects);
+  }
+
+  static autoFixSeoIssue(issueId: string) {
+    const issues = ApiEngine.generateSeoAuditIssues();
+    const target = issues.find(i => i.id === issueId);
+    if (!target) return { fixed: false, message: "Issue not found" };
+
+    if (target.entity_id && target.category === "meta") {
+      const page = (memoryStore.seo_pages || []).find((p: any) => p.id === target.entity_id);
+      if (page) {
+        const before = { ...page };
+        if (!page.meta_title) page.meta_title = `${page.h1_text || page.slug} — CakeToHome Order Online`;
+        if (!page.meta_description) page.meta_description = `Order ${page.h1_text || page.slug} online from CakeToHome. Fresh, handcrafted with premium ingredients. Same-day delivery.`;
+        if (!page.canonical_url) page.canonical_url = `https://cakes2home.com${page.url || `/${page.slug}`}`;
+        ApiEngine.updateSeoPage(page.id, page);
+        ApiEngine.addSeoAuditLogWithDiff("auto_fixed", "seo_page", page.id, before, page, "super_admin");
+        return { fixed: true, message: `Auto-fixed metadata for page ${page.slug}` };
+      }
+    }
+
+    if (target.category === "image" && target.entity_id) {
+      const imgAudit = (memoryStore.seo_image_audits || []).find((i: any) => i.entity_id === target.entity_id);
+      if (imgAudit) {
+        imgAudit.has_alt = true;
+        imgAudit.alt_text = imgAudit.suggested_alt;
+        ApiEngine.persist();
+        return { fixed: true, message: `Auto-fixed ALT text for image ${imgAudit.image_url}` };
+      }
+    }
+
+    return { fixed: false, message: "Manual remediation required for this issue" };
+  }
+
+  // ── Internal Link Graph ──────────────────────────────────────
+  static getSeoLinkGraph() {
+    const pages = memoryStore.seo_pages || [];
+    const links = memoryStore.seo_internal_links || [];
+    return InternalLinkGraphAnalyzer.analyzeLinkGraph(pages, links);
+  }
+
+  // ── Duplicate Content Auditor ────────────────────────────────
+  static getSeoDuplicates() {
+    const pages = memoryStore.seo_pages || [];
+    return DuplicateContentAuditor.findDuplicates(pages);
+  }
+
+  // ── Redirect Chain & Loop Validator ──────────────────────────
+  static validateSeoRedirects() {
+    const redirects = memoryStore.seo_redirects || [];
+    const pages = memoryStore.seo_pages || [];
+    return RedirectValidator.validateRedirectRules(redirects, pages);
+  }
+
+  // ── Robots & Sitemap Syntax Validators ───────────────────────
+  static validateRobotsSyntax(content?: string) {
+    const txt = content || memoryStore.seo_config?.robots_txt || "User-agent: *\nAllow: /\nSitemap: https://cakes2home.com/sitemap.xml";
+    return RobotsTxtValidator.validate(txt);
+  }
+
+  static validateSitemapXml(xmlContent?: string) {
+    const defaultXml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://cakes2home.com/</loc><lastmod>2026-08-08</lastmod></url></urlset>`;
+    return XmlSitemapValidator.validateSitemapXml(xmlContent || defaultXml);
+  }
+
+  // ── Keyword Trajectory Analyzer ──────────────────────────────
+  static getSeoKeywordTrajectories() {
+    const keywords = memoryStore.seo_keywords || [];
+    return KeywordAnalyzer.analyzeKeywords(keywords);
+  }
+
+  // ── GEO Evaluation ───────────────────────────────────────────
+  static evaluateGeoPage(pageId: string) {
+    const page = (memoryStore.seo_pages || []).find((p: any) => p.id === pageId);
+    if (!page) return null;
+    return GeoEngine.evaluateGeoPage(page);
+  }
+
+  // ── AEO Evaluation ───────────────────────────────────────────
+  static evaluateAeoPage(pageId: string) {
+    const page = (memoryStore.seo_pages || []).find((p: any) => p.id === pageId);
+    if (!page) return null;
+    const aeoEntries = memoryStore.seo_aeo_entries || [];
+    return AeoEngine.evaluateAeo(page, aeoEntries);
+  }
+
+  // ── RBAC Permission Guard ────────────────────────────────────
+  static checkSeoPermission(role: UserRole, action: string) {
+    return SeoRbacGuard.checkPermission(role, action);
+  }
+
+  // ── Immutable Audit Log with Before/After Diff ──────────────
+  static addSeoAuditLogWithDiff(
+    action: string,
+    entityType: string,
+    entityId?: string,
+    beforeState?: any,
+    afterState?: any,
+    userRole: string = "super_admin"
+  ) {
+    const diffKeys: string[] = [];
+    if (beforeState && afterState) {
+      Object.keys(afterState).forEach(k => {
+        if (beforeState[k] !== afterState[k]) diffKeys.push(`${k}: '${beforeState[k]}' → '${afterState[k]}'`);
+      });
+    }
+    const logEntry = {
+      id: `seoal_${Date.now()}`,
+      action,
+      entity_type: entityType,
+      entity_id: entityId || null,
+      user: "admin@cakes2home.com",
+      user_role: userRole,
+      ip_address: "127.0.0.1",
+      timestamp: new Date().toISOString(),
+      before_state: beforeState ? JSON.stringify(beforeState) : null,
+      after_state: afterState ? JSON.stringify(afterState) : null,
+      diff_summary: diffKeys.join("; ") || "State mutated",
+    };
+    (memoryStore.seo_audit_logs || []).unshift(logEntry);
+    ApiEngine.persist();
+    return logEntry;
   }
 
   // ── Automation Triggers ──────────────────────────────
@@ -1659,38 +4767,713 @@ export class ApiEngine {
   }
 
   // ── Health & Overview ──────────────────────────────
-  static getAdminOrders() {
-    return memoryStore.orders.length > 0 ? memoryStore.orders : [
-      { id: "ord_101", order_number: "CTH-20260731-891234", customer_name: "Ananya Rao", items_count: 2, total: 1298, status: "confirmed", created_at: new Date().toISOString() },
-      { id: "ord_102", order_number: "CTH-20260731-992145", customer_name: "Rahul Verma", items_count: 1, total: 749, status: "in_kitchen", created_at: new Date().toISOString() },
-      { id: "ord_103", order_number: "CTH-20260731-102934", customer_name: "Priya Nair", items_count: 3, total: 1897, status: "out_for_delivery", created_at: new Date().toISOString() },
-      { id: "ord_104", order_number: "CTH-20260731-401928", customer_name: "Vikram Mehta", items_count: 1, total: 649, status: "delivered", created_at: new Date().toISOString() },
-    ];
+  static getAdminOrders(params: Record<string, any> = {}) {
+    if (!Array.isArray(memoryStore.orders) || memoryStore.orders.length === 0) {
+      memoryStore.orders = [
+        {
+          id: "ord_101",
+          order_number: "CTH-20260808-000101",
+          invoice_number: "INV-202608-0101",
+          customer_name: "Ananya Rao",
+          customer_phone: "+91 98765 43210",
+          customer_email: "ananya.rao@example.com",
+          branch: { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship Kitchen", code: "HUB-BLR-01", phone: "+91 80 4912 8800", city: "Bengaluru" },
+          status: "confirmed",
+          payment_status: "paid",
+          total: 1298,
+          subtotal: 1236,
+          tax_total: 62,
+          currency_code: "INR",
+          created_at: new Date(Date.now() - 3600000).toISOString(),
+          delivery_date: new Date().toISOString().slice(0, 10),
+          delivery_slot: "07:00 PM - 09:00 PM (Evening Slot)",
+          delivery_type: "Same Day Express",
+          shipping_address: { address_1: "100 Feet Road, Indiranagar", city: "Bengaluru", area: "Indiranagar", postal_code: "560038", landmark: "Opposite Metro Pillar 124" },
+          items: [
+            { id: "itm_1", title: "Belgian Dark Chocolate Truffle Cake", weight: "1.0 kg", flavour: "Belgian Dark Chocolate", shape: "Heart", eggless: true, cake_message: "Happy Birthday Ananya!", quantity: 1, unit_price: 1298, subtotal: 1298, thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800" }
+          ],
+        },
+        {
+          id: "ord_102",
+          order_number: "CTH-20260808-000102",
+          invoice_number: "INV-202608-0102",
+          customer_name: "Rahul Verma",
+          customer_phone: "+91 98123 77890",
+          customer_email: "rahul.v@example.com",
+          branch: { id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT", name: "Koramangala Gourmet Bakery", code: "HUB-BLR-02", phone: "+91 80 4912 8801", city: "Bengaluru" },
+          status: "preparing",
+          payment_status: "paid",
+          total: 749,
+          subtotal: 713,
+          tax_total: 36,
+          currency_code: "INR",
+          created_at: new Date(Date.now() - 7200000).toISOString(),
+          delivery_date: new Date().toISOString().slice(0, 10),
+          delivery_slot: "02:00 PM - 05:00 PM (Afternoon Slot)",
+          delivery_type: "Standard Preorder",
+          shipping_address: { address_1: "80 Feet Road, 4th Block", city: "Bengaluru", area: "Koramangala", postal_code: "560034", landmark: "Near Sony World Signal" },
+          items: [
+            { id: "itm_2", title: "Fresh Red Velvet Cream Cheese Cake", weight: "0.5 kg", flavour: "Red Velvet", shape: "Round", eggless: true, cake_message: "Happy Anniversary!", quantity: 1, unit_price: 749, subtotal: 749, thumbnail: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800" }
+          ],
+        },
+        {
+          id: "ord_103",
+          order_number: "CTH-20260808-000103",
+          invoice_number: "INV-202608-0103",
+          customer_name: "Priya Nair",
+          customer_phone: "+91 97412 33456",
+          customer_email: "priya.nair@example.com",
+          branch: { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship Kitchen", code: "HUB-BLR-01", phone: "+91 80 4912 8800", city: "Bengaluru" },
+          status: "out_for_delivery",
+          payment_status: "paid",
+          total: 1897,
+          subtotal: 1806,
+          tax_total: 91,
+          currency_code: "INR",
+          created_at: new Date(Date.now() - 10800000).toISOString(),
+          delivery_date: new Date().toISOString().slice(0, 10),
+          delivery_slot: "11:30 PM - 12:15 AM (Midnight Slot)",
+          delivery_type: "Midnight Express",
+          shipping_address: { address_1: "Inner Ring Road, Domlur", city: "Bengaluru", area: "Domlur", postal_code: "560071", landmark: "Near EGL Tech Park" },
+          items: [
+            { id: "itm_3", title: "Grand 2-Tier Alphonso Mango Mousse Cake", weight: "2.0 kg", flavour: "Alphonso Mango", shape: "2-Tier Designer", eggless: true, cake_message: "Congratulations Priya!", quantity: 1, unit_price: 1897, subtotal: 1897, thumbnail: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800" }
+          ],
+        },
+        {
+          id: "ord_104",
+          order_number: "CTH-20260808-000104",
+          invoice_number: "INV-202608-0104",
+          customer_name: "Vikram Mehta",
+          customer_phone: "+91 99001 22334",
+          customer_email: "vikram.m@example.com",
+          branch: { id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT", name: "Whitefield Central Kitchen", code: "HUB-BLR-03", phone: "+91 80 4912 8802", city: "Bengaluru" },
+          status: "delivered",
+          payment_status: "paid",
+          total: 649,
+          subtotal: 618,
+          tax_total: 31,
+          currency_code: "INR",
+          created_at: new Date(Date.now() - 14400000).toISOString(),
+          delivery_date: new Date().toISOString().slice(0, 10),
+          delivery_slot: "09:00 AM - 12:00 PM (Morning Slot)",
+          delivery_type: "Standard",
+          shipping_address: { address_1: "ITPL Main Road, Whitefield", city: "Bengaluru", area: "Whitefield", postal_code: "560066", landmark: "Opposite Forum Value Mall" },
+          items: [
+            { id: "itm_4", title: "Black Forest Gourmet Cake", weight: "0.5 kg", flavour: "Black Forest", shape: "Round", eggless: false, cake_message: "Best Wishes!", quantity: 1, unit_price: 649, subtotal: 649, thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800" }
+          ],
+        },
+      ];
+      ApiEngine.persist();
+    }
+
+    let list = [...memoryStore.orders];
+
+    const q = (params.q || "").toLowerCase().trim();
+    const status = params.status;
+    const branchId = params.branch_id || params.branch;
+    const city = (params.city || "").toLowerCase();
+    const paymentStatus = params.payment_status;
+    const fromDate = params.from_date;
+    const toDate = params.to_date;
+    const deliveryType = params.delivery_type;
+
+    if (fromDate) {
+      list = list.filter((o: any) => new Date(o.created_at || o.delivery_date).toISOString().slice(0, 10) >= fromDate);
+    }
+    if (toDate) {
+      list = list.filter((o: any) => new Date(o.created_at || o.delivery_date).toISOString().slice(0, 10) <= toDate);
+    }
+    if (deliveryType && deliveryType !== "all") {
+      list = list.filter((o: any) => (o.delivery_type || "").toLowerCase().includes(deliveryType.toLowerCase()));
+    }
+
+    if (status && status !== "all") {
+      list = list.filter((o: any) => (o.status || "").toLowerCase() === status.toLowerCase());
+    }
+
+    if (branchId && branchId !== "all") {
+      list = list.filter((o: any) => o.branch?.id === branchId || (o.branch?.name || "").toLowerCase().includes(branchId.toLowerCase()));
+    }
+
+    if (city && city !== "all") {
+      list = list.filter((o: any) => (o.shipping_address?.city || o.branch?.city || "").toLowerCase().includes(city));
+    }
+
+    if (paymentStatus && paymentStatus !== "all") {
+      list = list.filter((o: any) => (o.payment_status || "").toLowerCase() === paymentStatus.toLowerCase());
+    }
+
+    if (q) {
+      list = list.filter((o: any) =>
+        (o.order_number || "").toLowerCase().includes(q) ||
+        (o.id || "").toLowerCase().includes(q) ||
+        (o.customer_name || "").toLowerCase().includes(q) ||
+        (o.customer_phone || "").toLowerCase().includes(q) ||
+        (o.customer_email || "").toLowerCase().includes(q) ||
+        (o.branch?.name || "").toLowerCase().includes(q)
+      );
+    }
+
+    const limit = Number(params.limit) || 50;
+    const offset = Number(params.offset) || 0;
+    const paginated = list.slice(offset, offset + limit);
+
+    return {
+      orders: paginated,
+      count: paginated.length,
+      total: list.length,
+      limit,
+      offset,
+    };
   }
 
-  static createOrder(payload: any) {
-    const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const orderNum = `CTH-${todayStr}-${Math.floor(100000 + Math.random() * 900000)}`;
-    const orderId = `ord_${Date.now()}`;
+  static ensureOrdersStore() {
+    if (!Array.isArray(memoryStore.orders) || memoryStore.orders.length === 0) {
+      ApiEngine.getAdminOrders({ limit: 500 });
+    }
+  }
 
-    const order = {
-      id: orderId,
-      order_number: orderNum,
-      customer_id: payload.customerId || "cus_guest",
-      status: "confirmed",
-      payment_status: payload.paymentProvider === "COD" ? "pending" : "captured",
-      fulfillment_status: "pending",
-      items: payload.cartItems || [],
-      subtotal: payload.subtotal || 649,
-      total: payload.total || 681.45,
-      delivery_address: payload.deliveryAddress,
-      created_at: new Date().toISOString(),
+  static createOrder(orderPayload: any) {
+    ApiEngine.ensureOrdersStore();
+    ApiEngine.ensureCustomersStore();
+
+    const orderId = `ord_${Date.now()}`;
+    const orderNumber = `CTH-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(100000 + Math.random() * 900000)}`;
+    const subtotal = Number(orderPayload.subtotal || 0);
+    const couponDiscount = Number(orderPayload.discount_total || orderPayload.discount_amount || orderPayload.coupon_discount || 0);
+    const manualDiscount = Number(orderPayload.manual_discount_amount || 0);
+    const discountTotal = couponDiscount + manualDiscount;
+    const deliveryFee = Number(orderPayload.delivery_fee || 0);
+    const taxTotal = Number(orderPayload.tax_total || Math.round((subtotal - discountTotal) * 0.05));
+    const calculatedTotal = Number(orderPayload.total || Math.max(0, subtotal - discountTotal + deliveryFee + taxTotal));
+
+    const shippingAddress = orderPayload.shipping_address || {
+      address_1: orderPayload.address_1 || orderPayload.address || "100 Feet Road",
+      address_2: orderPayload.address_2 || "",
+      area: orderPayload.area || "Indiranagar",
+      city: orderPayload.city || "Bengaluru",
+      state: orderPayload.state || "Karnataka",
+      postal_code: orderPayload.pincode || "560038",
+      landmark: orderPayload.landmark || "",
+      delivery_instructions: orderPayload.delivery_instructions || "",
     };
 
-    memoryStore.orders.unshift(order);
-    ApiEngine.addAuditLog(`New Customer Order Placed ${orderNum}`);
+    // 1. Customer Resolution (Canonical Backend Identity)
+    const phoneInput = orderPayload.customer_phone || orderPayload.phone;
+    let customerRec: any = null;
+    if (phoneInput) {
+      customerRec = ApiEngine.findOrCreateCustomerByPhone({
+        name: orderPayload.customer_name,
+        phone: phoneInput,
+        email: orderPayload.customer_email || orderPayload.email,
+        address: shippingAddress,
+      });
+    } else if (orderPayload.customer_id) {
+      customerRec = (memoryStore.customers || []).find((c: any) => c.id === orderPayload.customer_id);
+    }
+
+    const customerId = customerRec?.id || orderPayload.customer_id || `cus_guest_${Date.now()}`;
+    const customerNumber = customerRec?.customer_number || `CTH-CUST-GUEST`;
+    const customerName = customerRec?.name || orderPayload.customer_name || (phoneInput ? "Customer" : "Guest Customer");
+    const customerPhone = customerRec?.phone || phoneInput || "+91 98765 43210";
+    const customerEmail = customerRec?.email || orderPayload.customer_email || "guest@cakes2home.com";
+    const customerType = customerRec?.customer_type || (phoneInput ? "registered" : "guest");
+
+    // 2. Branch Resolution & Coverage Validation
+    let branchObj: any = null;
+    if (orderPayload.branch_id) {
+      branchObj = (memoryStore.branches || []).find((b: any) => b.id === orderPayload.branch_id || b.code === orderPayload.branch_id);
+    }
+    if (!branchObj) {
+      const eligibleRes = ApiEngine.getEligibleBranches({
+        pincode: shippingAddress.postal_code,
+        city: shippingAddress.city,
+        area: shippingAddress.area,
+      });
+      if (eligibleRes.branches.length > 0) {
+        branchObj = eligibleRes.branches[0];
+      } else {
+        throw new Error("No CakeToHome branch currently services this delivery location.");
+      }
+    }
+
+    const newOrder = {
+      id: orderId,
+      order_number: orderNumber,
+      invoice_number: `INV-${new Date().toISOString().slice(0, 7).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`,
+      status: orderPayload.status || "confirmed",
+      payment_status: orderPayload.payment_status || "paid",
+      subtotal,
+      discount_total: discountTotal,
+      coupon_discount: couponDiscount,
+      manual_discount_amount: manualDiscount,
+      manual_discount_reason: orderPayload.manual_discount_reason || null,
+      delivery_fee: deliveryFee,
+      tax_total: taxTotal,
+      total: calculatedTotal,
+      currency_code: "INR",
+
+      customer_id: customerId,
+      customer_number: customerNumber,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_email: customerEmail,
+      customer_type: customerType,
+
+      branch_id: branchObj.id,
+      branch_name: branchObj.name,
+      branch_code: branchObj.code,
+      branch: branchObj,
+      city: shippingAddress.city || "Bengaluru",
+      pincode: shippingAddress.postal_code || "560038",
+      shipping_address: shippingAddress,
+
+      delivery_date: orderPayload.delivery_date || new Date().toISOString().slice(0, 10),
+      delivery_slot: orderPayload.delivery_slot || "07:00 PM - 09:00 PM (Evening Slot)",
+      delivery_type: orderPayload.delivery_type || "Same Day Express",
+
+      payment_method: orderPayload.payment_method || "UPI",
+      payment_link: orderPayload.payment_link || null,
+      promo_code: orderPayload.promo_code || orderPayload.applied_promo_code || null,
+      promo_offer_id: orderPayload.promo_offer_id || null,
+      items: (orderPayload.items || []).map((item: any) => ({
+        id: item.id || `item_${Math.random().toString(36).slice(2, 7)}`,
+        product_id: item.product_id || item.id,
+        title: item.title || item.name || "Gourmet Cake",
+        name: item.title || item.name || "Gourmet Cake",
+        variant: item.variant || "1 kg / Eggless / Round",
+        weight: item.weight || item.variant?.split("/")[0]?.trim() || "1.0 kg",
+        flavour: item.flavour || item.variant?.split("/")[1]?.trim() || "Belgian Dark Chocolate",
+        shape: item.shape || item.variant?.split("/")[2]?.trim() || "Round",
+        eggless: item.eggless !== undefined ? Boolean(item.eggless) : true,
+        quantity: Number(item.quantity || 1),
+        unit_price: Number(item.unit_price || item.price || 0),
+        price: Number(item.price || item.unit_price || 0),
+        total: Number(item.total || (item.unit_price || item.price || 0) * (item.quantity || 1)),
+        image_url: item.image_url || item.thumbnail || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
+        thumbnail: item.thumbnail || item.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
+        custom_message: item.custom_message || item.cake_message || null,
+      })),
+      notes: orderPayload.notes || orderPayload.internal_notes || null,
+      delivery_instructions: orderPayload.delivery_instructions || shippingAddress.delivery_instructions || null,
+      source: orderPayload.source || "telecalling",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (!Array.isArray(memoryStore.orders)) memoryStore.orders = [];
+    memoryStore.orders.unshift(newOrder);
+
+    ApiEngine.addAuditLog(`Created Telecalling Order ${orderNumber} for Customer ${customerName} (${customerNumber}) assigned to ${branchObj.name}`);
     ApiEngine.persist();
-    return order;
+
+    return newOrder;
+  }
+
+  static getOrderDetails(orderId: string) {
+    ApiEngine.ensureOrdersStore();
+    ApiEngine.ensureCustomersStore();
+    const found = memoryStore.orders.find((o) => o.id === orderId || o.order_number === orderId);
+    if (!found) return null;
+
+    const customerRec = (memoryStore.customers || []).find(
+      (c: any) => c.id === found.customer_id || (c.phone && found.customer_phone && c.phone.replace(/\D/g, "") === (found.customer_phone || "").replace(/\D/g, ""))
+    );
+
+    const customerName = customerRec?.name || found.customer_name || (found.customer_phone ? "Customer" : "Guest Customer");
+    const customerNumber = customerRec?.customer_number || found.customer_number || (customerRec ? `CTH-CUST-${customerRec.id.slice(-6).toUpperCase()}` : "CTH-CUST-GUEST");
+    const customerPhone = customerRec?.phone || found.customer_phone || "+91 98765 43210";
+    const customerEmail = customerRec?.email || found.customer_email || "customer@cakes2home.com";
+    const customerType = customerRec?.customer_type || found.customer_type || (found.customer_phone ? "registered" : "guest");
+
+    return {
+      id: found.id,
+      order_number: found.order_number || `CTH-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${found.id.slice(-6)}`,
+      invoice_number: found.invoice_number || `INV-${new Date().toISOString().slice(0, 7).replace(/-/g, "")}-${found.id.slice(-4)}`,
+      status: found.status || "confirmed",
+      payment_status: found.payment_status || "paid",
+      total: found.total || 0,
+      subtotal: found.subtotal || found.total || 0,
+      tax_total: found.tax_total || 0,
+      discount_total: found.discount_total || 0,
+      coupon_discount: found.coupon_discount || 0,
+      manual_discount_amount: found.manual_discount_amount || 0,
+      delivery_fee: found.delivery_fee || 0,
+      currency_code: found.currency_code || "INR",
+      created_at: found.created_at || new Date().toISOString(),
+      updated_at: found.updated_at || new Date().toISOString(),
+      delivery_date: found.delivery_date || new Date().toISOString().slice(0, 10),
+      delivery_slot: found.delivery_slot || "Evening Slot",
+      delivery_type: found.delivery_type || "Same Day Express",
+
+      customer_id: customerRec?.id || found.customer_id || "cus_guest",
+      customer_number: customerNumber,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_email: customerEmail,
+      customer_type: customerType,
+
+      delivery_partner_id: found.delivery_partner_id || found.delivery?.partner_id || null,
+      driver_name: found.driver_name || found.delivery?.partner_name || null,
+
+      customer: {
+        id: customerRec?.id || found.customer_id || "cus_guest",
+        customer_number: customerNumber,
+        customer_type: customerType,
+        name: customerName,
+        phone: customerPhone,
+        email: customerEmail,
+        address: found.shipping_address?.address_1 || "Address on File",
+        area: found.shipping_address?.area || "",
+        city: found.shipping_address?.city || "Bengaluru",
+        pincode: found.shipping_address?.postal_code || "560038",
+        landmark: found.shipping_address?.landmark || "",
+        delivery_instructions: found.shipping_address?.delivery_instructions || found.delivery_instructions || "",
+        map_url: `https://maps.google.com/?q=${encodeURIComponent(found.shipping_address?.city || "Bengaluru")}`,
+      },
+
+      shipping_address: found.shipping_address || { address_1: "Address on File", city: "Bengaluru", area: "", postal_code: "560038" },
+
+      branch_id: found.branch_id || found.branch?.id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      branch_name: found.branch_name || found.branch?.name || "Indiranagar Flagship Kitchen",
+      branch_code: found.branch_code || found.branch?.code || "HUB-BLR-01",
+      branch: found.branch || {
+        id: found.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+        name: found.branch_name || "Indiranagar Flagship Kitchen",
+        code: found.branch_code || "HUB-BLR-01",
+        address: "Plot 42, 100 Feet Rd, Indiranagar, Bengaluru - 560038",
+        phone: "+91 80 4912 8800",
+        manager: "Indiranagar Branch Ops Lead",
+        kitchen: "Baking Station A",
+        capacity: "Operational",
+      },
+
+      kitchen: {
+        kot_number: found.kitchen?.kot_number || "KOT not created",
+        chef_assigned: found.kitchen?.chef_assigned || "Not assigned",
+        prep_time_minutes: found.kitchen?.prep_time_minutes || 0,
+        packing_time_minutes: found.kitchen?.packing_time_minutes || 0,
+        dispatch_time: found.kitchen?.dispatch_time || "Pending Preparation",
+        production_status: found.kitchen?.production_status || (found.status === "confirmed" ? "Queued for Preparation" : found.status),
+      },
+
+      delivery: {
+        partner_id: found.delivery?.partner_id || found.delivery_partner_id || null,
+        partner_number: found.delivery?.partner_number || null,
+        partner_name: found.delivery?.partner_name || found.driver_name || "Awaiting rider assignment",
+        partner_phone: found.delivery?.partner_phone || "Not assigned",
+        vehicle: found.delivery?.vehicle || "Not assigned",
+        branch_name: found.delivery?.branch_name || found.branch_name || "Kitchen Hub",
+        status: found.delivery?.status || "Pending Dispatch",
+        assignment_mode: found.delivery?.assignment_mode || (found.delivery_partner_id ? "auto" : "unassigned"),
+        assignment_reason: found.delivery?.assignment_reason || null,
+        assignment_score: found.delivery?.assignment_score || null,
+        pickup_otp: found.delivery?.pickup_otp || "Not generated",
+        delivery_otp: found.delivery?.delivery_otp || "Not generated",
+        eta: found.delivery?.eta || "Pending Dispatch",
+        distance_km: found.delivery?.distance_km || "—",
+        zone: found.delivery?.zone || "Standard Zone",
+        live_location: found.delivery?.live_location || "Awaiting Rider Assignment",
+      },
+
+      items: (found.items || []).map((item: any) => ({
+        id: item.id || `item_${Math.random().toString(36).slice(2, 7)}`,
+        product_id: item.product_id || item.id,
+        title: item.title || item.name || "Gourmet Cake",
+        name: item.title || item.name || "Gourmet Cake",
+        weight: item.weight || item.variant?.split("/")[0]?.trim() || "1.0 kg",
+        flavour: item.flavour || item.variant?.split("/")[1]?.trim() || "Belgian Dark Chocolate",
+        shape: item.shape || item.variant?.split("/")[2]?.trim() || "Round",
+        eggless: item.eggless !== undefined ? Boolean(item.eggless) : true,
+        cake_message: item.custom_message || item.cake_message || null,
+        quantity: Number(item.quantity || 1),
+        unit_price: Number(item.unit_price || item.price || 0),
+        subtotal: Number(item.total || (item.unit_price || item.price || 0) * (item.quantity || 1)),
+        thumbnail: item.image_url || item.thumbnail || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
+      })),
+      notes: found.notes || null,
+      source: found.source || "telecalling",
+
+      customization: {
+        cake_message: found.items?.[0]?.custom_message || found.items?.[0]?.cake_message || "Happy Birthday!",
+        photo_url: null,
+        reference_images: ["https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800"],
+        special_instructions: found.notes || "Fragile cake package.",
+        add_ons: ["Sparkler Candle", "Greeting Card"],
+        packaging_notes: "Insulated thermal box with ice gel pack.",
+      },
+
+      payment: {
+        method: found.payment_method || "UPI via Razorpay",
+        transaction_id: `TXN_${Date.now()}`,
+        status: found.payment_status || "captured",
+        cgst: Number(((found.tax_total || 31) / 2).toFixed(2)),
+        sgst: Number(((found.tax_total || 31) / 2).toFixed(2)),
+      },
+
+      timeline: found.timeline || [
+        { id: "t1", event: "Order Created by Customer", timestamp: found.created_at, user: customerName },
+        { id: "t2", event: "Payment Verified", timestamp: found.created_at, user: "System Gateway" },
+        { id: "t3", event: `Assigned to ${found.branch_name || "Kitchen Hub"}`, timestamp: found.created_at, user: "Auto Dispatch Router" },
+      ],
+    };
+  }
+
+  static exportAdminOrders(params: Record<string, any> = {}) {
+    const res = ApiEngine.getAdminOrders({ limit: 1000, ...params });
+    const rows = res.orders.map((o: any) => ({
+      order_number: o.order_number,
+      internal_id: o.id,
+      customer_name: o.customer_name,
+      customer_phone: o.customer_phone,
+      customer_email: o.customer_email,
+      branch: o.branch?.name || "Indiranagar Kitchen",
+      status: o.status,
+      payment_status: o.payment_status,
+      total_amount: o.total,
+      created_at: o.created_at,
+      delivery_date: o.delivery_date,
+      delivery_slot: o.delivery_slot,
+      city: o.shipping_address?.city || "Bengaluru",
+      pincode: o.shipping_address?.postal_code || "560038",
+    }));
+    return { export_data: rows, count: rows.length };
+  }
+
+
+
+  static updateOrderStatus(orderId: string, status: string, notes?: string) {
+    ApiEngine.ensureOrdersStore();
+    const updatedOrder = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!updatedOrder) return null;
+
+    updatedOrder.status = status;
+    updatedOrder.updated_at = new Date().toISOString();
+
+    if (!updatedOrder.timeline) updatedOrder.timeline = [];
+    updatedOrder.timeline.unshift({
+      id: `tl_${Date.now()}`,
+      title: `Order Status Changed to ${status.replace(/_/g, " ").toUpperCase()}`,
+      time: new Date().toLocaleString("en-IN"),
+      author: "Command Center Admin",
+      notes: notes || `Status changed to ${status}`,
+    });
+
+    if (status === "kitchen_accepted") {
+      if (!updatedOrder.kitchen) updatedOrder.kitchen = {};
+      updatedOrder.kitchen.production_status = "Accepted by Kitchen - Queued for Oven";
+    } else if (status === "preparing") {
+      if (!updatedOrder.kitchen) updatedOrder.kitchen = {};
+      updatedOrder.kitchen.production_status = "Baking & Decoration in Progress";
+    } else if (status === "packed") {
+      if (!updatedOrder.kitchen) updatedOrder.kitchen = {};
+      updatedOrder.kitchen.production_status = "Packed & Sealed - Quality Passed";
+    } else if (status === "out_for_delivery") {
+      if (!updatedOrder.delivery) updatedOrder.delivery = {};
+      updatedOrder.delivery.status = "Dispatched with Driver";
+    } else if (status === "delivered") {
+      if (!updatedOrder.delivery) updatedOrder.delivery = {};
+      updatedOrder.delivery.status = "Delivered to Customer";
+      updatedOrder.payment_status = "captured";
+    } else if (status === "cancelled") {
+      if (!updatedOrder.kitchen) updatedOrder.kitchen = {};
+      updatedOrder.kitchen.production_status = "Cancelled";
+      if (!updatedOrder.delivery) updatedOrder.delivery = {};
+      updatedOrder.delivery.status = "Cancelled";
+    }
+
+    ApiEngine.addAuditLog(`Updated Order ${orderId} status to '${status}' (${notes || 'No note'})`);
+    ApiEngine.fireWebhookEvent(`order.${status}`, { order_id: orderId, status, notes, updated_at: new Date().toISOString() });
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      order: ApiEngine.getOrderDetails(orderId),
+      message: `Status updated to '${status}'`,
+    };
+  }
+
+  static assignOrderBranch(orderId: string, branchId: string, notes?: string) {
+    ApiEngine.ensureOrdersStore();
+    const updatedOrder = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!updatedOrder) return null;
+
+    const branchMap: Record<string, any> = {
+      "res_01KXYMAHGFPRY1G9TZKEVGAGAT": { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship Kitchen", code: "HUB-BLR-01", manager: "Anand Sharma", kitchen: "Baking Station A - Oven 4" },
+      "res_02KXYMAHGFPRY1G9TZKEVGAGAT": { id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT", name: "Koramangala Gourmet Bakery", code: "HUB-BLR-02", manager: "Priya Nair", kitchen: "Pastry Workstation B" },
+      "res_03KXYMAHGFPRY1G9TZKEVGAGAT": { id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT", name: "Whitefield Central Kitchen", code: "HUB-BLR-03", manager: "Vikram Mehta", kitchen: "Central Production Line 1" },
+    };
+
+    const newBranch = branchMap[branchId] || { id: branchId, name: "Selected Kitchen Hub", code: "HUB-CUSTOM", manager: "Ops Supervisor", kitchen: "Main Station" };
+    updatedOrder.branch = newBranch;
+    updatedOrder.updated_at = new Date().toISOString();
+
+    if (!updatedOrder.timeline) updatedOrder.timeline = [];
+    updatedOrder.timeline.unshift({
+      id: `tl_${Date.now()}`,
+      title: `Branch Reassigned to ${newBranch.name}`,
+      time: new Date().toLocaleString("en-IN"),
+      author: "Command Center Admin",
+      notes: notes || `Reassigned branch to ${newBranch.name}`,
+    });
+
+    ApiEngine.addAuditLog(`Reassigned Order ${orderId} to Branch ${newBranch.name}`);
+    ApiEngine.fireWebhookEvent("order.branch_changed", { order_id: orderId, branch: newBranch, updated_at: new Date().toISOString() });
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      order: ApiEngine.getOrderDetails(orderId),
+      message: `Branch reassigned to '${newBranch.name}'`,
+    };
+  }
+
+  static assignOrderDelivery(orderId: string, driverName: string, driverPhone?: string) {
+    ApiEngine.ensureOrdersStore();
+    const updatedOrder = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!updatedOrder) return null;
+
+    const pickupOtp = String(Math.floor(1000 + Math.random() * 9000));
+    const deliveryOtp = String(Math.floor(1000 + Math.random() * 9000));
+
+    updatedOrder.delivery = {
+      partner_name: driverName,
+      partner_phone: driverPhone || "+91 98123 45678",
+      vehicle: "Refrigerated EV Van (KA-01-EQ-9941)",
+      status: "Dispatched",
+      pickup_otp: pickupOtp,
+      delivery_otp: deliveryOtp,
+      eta: "20 mins",
+      distance_km: "3.5 km",
+      live_location: "Assigned & Dispatched",
+    };
+    updatedOrder.status = "out_for_delivery";
+    updatedOrder.updated_at = new Date().toISOString();
+
+    if (!updatedOrder.timeline) updatedOrder.timeline = [];
+    updatedOrder.timeline.unshift({
+      id: `tl_${Date.now()}`,
+      title: `Delivery Partner Assigned: ${driverName}`,
+      time: new Date().toLocaleString("en-IN"),
+      author: "Command Center Admin",
+      notes: `Driver: ${driverName} (${driverPhone || "N/A"})`,
+    });
+
+    ApiEngine.addAuditLog(`Assigned Delivery Driver ${driverName} to Order ${orderId}`);
+    ApiEngine.fireWebhookEvent("order.delivery_partner_changed", { order_id: orderId, driver_name: driverName, pickup_otp: pickupOtp, delivery_otp: deliveryOtp });
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      order: ApiEngine.getOrderDetails(orderId),
+      message: `Assigned delivery driver ${driverName}`,
+    };
+  }
+
+  static rescheduleOrder(orderId: string, deliveryDate: string, timeSlot: string) {
+    ApiEngine.ensureOrdersStore();
+    const updatedOrder = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!updatedOrder) return null;
+
+    updatedOrder.delivery_date = deliveryDate;
+    updatedOrder.delivery_slot = timeSlot;
+    updatedOrder.updated_at = new Date().toISOString();
+
+    if (!updatedOrder.timeline) updatedOrder.timeline = [];
+    updatedOrder.timeline.unshift({
+      id: `tl_${Date.now()}`,
+      title: `Delivery Rescheduled to ${deliveryDate}`,
+      time: new Date().toLocaleString("en-IN"),
+      author: "Command Center Admin",
+      notes: `Slot: ${timeSlot}`,
+    });
+
+    ApiEngine.addAuditLog(`Rescheduled Order ${orderId} to ${deliveryDate} (${timeSlot})`);
+    ApiEngine.fireWebhookEvent("order.delivery_slot_changed", { order_id: orderId, delivery_date: deliveryDate, time_slot: timeSlot });
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      order: ApiEngine.getOrderDetails(orderId),
+      message: `Order rescheduled to ${deliveryDate}`,
+    };
+  }
+
+  static cancelOrder(orderId: string, reason?: string) {
+    ApiEngine.ensureOrdersStore();
+    const updatedOrder = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!updatedOrder) return null;
+
+    updatedOrder.status = "cancelled";
+    updatedOrder.cancellation_reason = reason || "Cancelled by Admin";
+    updatedOrder.updated_at = new Date().toISOString();
+
+    if (!updatedOrder.timeline) updatedOrder.timeline = [];
+    updatedOrder.timeline.unshift({
+      id: `tl_${Date.now()}`,
+      title: "Order Cancelled",
+      time: new Date().toLocaleString("en-IN"),
+      author: "Command Center Admin",
+      notes: `Reason: ${reason || "Admin request"}`,
+    });
+
+    ApiEngine.addAuditLog(`Cancelled Order ${orderId} (Reason: ${reason || 'N/A'})`);
+    ApiEngine.fireWebhookEvent("order.cancelled", { order_id: orderId, reason: reason || "Admin Request", cancelled_at: new Date().toISOString() });
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      order: ApiEngine.getOrderDetails(orderId),
+      message: `Order ${orderId} cancelled`,
+    };
+  }
+
+  static refundOrder(orderId: string, amount?: number, reason?: string) {
+    ApiEngine.ensureOrdersStore();
+    const updatedOrder = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!updatedOrder) return null;
+
+    updatedOrder.payment_status = "refunded";
+    updatedOrder.refund_amount = amount || updatedOrder.total;
+    updatedOrder.refund_reason = reason || "Customer Refund Request";
+    updatedOrder.updated_at = new Date().toISOString();
+
+    if (!updatedOrder.timeline) updatedOrder.timeline = [];
+    updatedOrder.timeline.unshift({
+      id: `tl_${Date.now()}`,
+      title: `Refund Processed (₹${amount || updatedOrder.total})`,
+      time: new Date().toLocaleString("en-IN"),
+      author: "Command Center Admin",
+      notes: `Reason: ${reason || "Refund requested"}`,
+    });
+
+    ApiEngine.addAuditLog(`Refunded ₹${amount || updatedOrder.total} for Order ${orderId}`);
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      order: ApiEngine.getOrderDetails(orderId),
+      message: `Refund of ₹${amount || updatedOrder.total} processed`,
+    };
+  }
+
+  static fireWebhookEvent(event: string, data: any) {
+    if (!(memoryStore as any).webhooks) (memoryStore as any).webhooks = [];
+    const payload = {
+      id: `wh_evt_${Date.now()}`,
+      event,
+      data,
+      timestamp: new Date().toISOString(),
+      status: "delivered_200_ok",
+    };
+    (memoryStore as any).webhooks.unshift(payload);
+    ApiEngine.persist();
+    return payload;
+  }
+
+  // Storefront Order Creation Alias (Delegates to canonical ApiEngine.createOrder)
+  static createStorefrontOrder(payload: any) {
+    return ApiEngine.createOrder(payload);
   }
 
   static getOrder(orderId: string) {
@@ -1770,24 +5553,178 @@ export class ApiEngine {
     return cart;
   }
 
-  static applyPromoCode(cartId: string, promoCode: string) {
+  static applyPromoCode(cartId: string, promoCode: string, context?: {
+    customer_id?: string;
+    customer_phone?: string;
+    customer_tier?: string;
+    branch_id?: string;
+    branch_name?: string;
+    city?: string;
+    pincode?: string;
+    payment_method?: string;
+    delivery_type?: string;
+  }) {
     const cart = ApiEngine.getCart(cartId);
-    const code = promoCode.toUpperCase().trim();
-    if (code === "CAKE100" && cart.subtotal >= 599) {
-      cart.discount_total = 100;
-      cart.promo_code = code;
-    } else if (code === "SWEET15") {
-      cart.discount_total = Math.round(cart.subtotal * 0.15);
-      cart.promo_code = code;
-    } else {
+    const code = promoCode ? promoCode.toUpperCase().trim() : "";
+    const offers = memoryStore.offers || [];
+    const now = new Date();
+
+    if (!code) {
       cart.discount_total = 0;
       cart.promo_code = null;
+      cart.promo_offer_id = null;
+      cart.promo_error = null;
+      cart.total = Math.max(0, cart.subtotal);
+      cart.updated_at = now.toISOString();
+      ApiEngine.persist();
+      return { cart, valid: false, error: "Please enter a promo code." };
     }
+
+    const offer = offers.find(
+      (o: any) => o.code && o.code.toUpperCase() === code
+    );
+
+    if (!offer) {
+      cart.discount_total = 0;
+      cart.promo_code = null;
+      cart.promo_offer_id = null;
+      cart.promo_error = `Coupon code "${code}" is invalid.`;
+      cart.total = Math.max(0, cart.subtotal);
+      cart.updated_at = now.toISOString();
+      ApiEngine.persist();
+      return { cart, valid: false, error: cart.promo_error };
+    }
+
+    // 1. Status check
+    if (offer.status !== "active" && offer.status !== "scheduled") {
+      cart.promo_error = `Coupon "${code}" is currently in ${offer.status} state.`;
+      return { cart, valid: false, error: cart.promo_error };
+    }
+
+    // 2. Date validity check
+    if (!offer.never_expires) {
+      if (offer.starts_at && now < new Date(offer.starts_at)) {
+        cart.promo_error = `Coupon "${code}" starts on ${new Date(offer.starts_at).toLocaleDateString()}.`;
+        return { cart, valid: false, error: cart.promo_error };
+      }
+      if (offer.ends_at && now > new Date(offer.ends_at)) {
+        cart.promo_error = `Coupon "${code}" expired on ${new Date(offer.ends_at).toLocaleDateString()}.`;
+        return { cart, valid: false, error: cart.promo_error };
+      }
+    }
+
+    // 3. Time Window Check
+    if (offer.start_time && offer.end_time) {
+      const currentHM = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      if (currentHM < offer.start_time || currentHM > offer.end_time) {
+        cart.promo_error = `Coupon "${code}" is valid only between ${offer.start_time} and ${offer.end_time}.`;
+        return { cart, valid: false, error: cart.promo_error };
+      }
+    }
+
+    // 4. Usage limit check
+    if (offer.usage_limit && offer.total_redemptions >= offer.usage_limit) {
+      cart.promo_error = `Coupon "${code}" has reached its maximum redemption limit.`;
+      return { cart, valid: false, error: cart.promo_error };
+    }
+
+    // 5. Per-Customer limit check
+    if (offer.per_customer_limit && (context?.customer_id || context?.customer_phone)) {
+      const redemptions = (memoryStore.offer_redemptions || []).filter(
+        (r: any) =>
+          r.offer_id === offer.id &&
+          ((context?.customer_id && r.customer_id === context.customer_id) ||
+            (context?.customer_phone && r.customer_phone === context.customer_phone))
+      );
+      if (redemptions.length >= offer.per_customer_limit) {
+        cart.promo_error = `You have already used coupon "${code}" the maximum allowed times (${offer.per_customer_limit}).`;
+        return { cart, valid: false, error: cart.promo_error };
+      }
+    }
+
+    // 6. Minimum Cart Value check
+    const minOrder = Number(offer.min_order_value || offer.min_order) || 0;
+    if (minOrder > 0 && cart.subtotal < minOrder) {
+      cart.promo_error = `Minimum cart value of ₹${minOrder} required for coupon "${code}" (Current: ₹${cart.subtotal}).`;
+      return { cart, valid: false, error: cart.promo_error };
+    }
+
+    // 7. Branch Restrictions
+    if (offer.applicable_branches && offer.applicable_branches.length > 0) {
+      const branches = Array.isArray(offer.applicable_branches) ? offer.applicable_branches : [offer.applicable_branches];
+      if (!branches.includes("all")) {
+        const branchId = context?.branch_id || cart.branch_id;
+        const branchName = context?.branch_name;
+        if (!branchId || (!branches.includes(branchId) && !branches.includes(branchName))) {
+          cart.promo_error = `Coupon "${code}" is not valid at the selected branch.`;
+          return { cart, valid: false, error: cart.promo_error };
+        }
+      }
+    }
+
+    // 8. City Restrictions
+    if (offer.applicable_cities && offer.applicable_cities.length > 0) {
+      const cities = Array.isArray(offer.applicable_cities) ? offer.applicable_cities : [offer.applicable_cities];
+      if (!cities.includes("all")) {
+        const city = context?.city || cart.city;
+        if (!city || !cities.map((c: string) => c.toLowerCase()).includes(city.toLowerCase())) {
+          cart.promo_error = `Coupon "${code}" is valid only in: ${cities.join(", ")}.`;
+          return { cart, valid: false, error: cart.promo_error };
+        }
+      }
+    }
+
+    // 9. Pincode Restrictions
+    if (offer.applicable_pincodes && offer.applicable_pincodes.length > 0) {
+      const pincodes = Array.isArray(offer.applicable_pincodes) ? offer.applicable_pincodes : [offer.applicable_pincodes];
+      if (!pincodes.includes("all")) {
+        const pin = context?.pincode || cart.pincode;
+        if (!pin || !pincodes.includes(pin)) {
+          cart.promo_error = `Coupon "${code}" is not serviceable at pincode ${pin || "entered"}.`;
+          return { cart, valid: false, error: cart.promo_error };
+        }
+      }
+    }
+    if (offer.excluded_pincodes && offer.excluded_pincodes.length > 0) {
+      const pin = context?.pincode || cart.pincode;
+      if (pin && offer.excluded_pincodes.includes(pin)) {
+        cart.promo_error = `Pincode ${pin} is excluded from coupon "${code}".`;
+        return { cart, valid: false, error: cart.promo_error };
+      }
+    }
+
+    // 10. Customer Eligibility (VIP / New Customer)
+    if (offer.customer_eligibility === "vip" && context?.customer_tier !== "vip") {
+      cart.promo_error = `Coupon "${code}" is reserved exclusively for VIP Club members.`;
+      return { cart, valid: false, error: cart.promo_error };
+    }
+
+    // 11. Calculate Discount
+    let discount = 0;
+    const discountVal = Number(offer.metadata?.discount_value || offer.discount_value || 10);
+
+    if (offer.type === "percentage") {
+      discount = Math.round((cart.subtotal * discountVal) / 100);
+      if (offer.max_discount_value && discount > offer.max_discount_value) {
+        discount = offer.max_discount_value;
+      }
+    } else if (offer.type === "flat" || offer.type === "wallet_coupon") {
+      discount = Math.min(discountVal, cart.subtotal);
+    } else if (offer.type === "free_delivery") {
+      discount = 49;
+    } else {
+      discount = Math.min(discountVal || 50, cart.subtotal);
+    }
+
+    cart.discount_total = Math.max(0, discount);
+    cart.promo_code = code;
+    cart.promo_offer_id = offer.id;
+    cart.promo_error = null;
     cart.total = Math.max(0, cart.subtotal - cart.discount_total);
-    cart.updated_at = new Date().toISOString();
+    cart.updated_at = now.toISOString();
 
     ApiEngine.persist();
-    return cart;
+    return { cart, valid: true, discount_amount: discount, offer };
   }
 
   static getAdminCakeOptions() {
@@ -1806,11 +5743,68 @@ export class ApiEngine {
     ];
   }
 
-  static getAdminMedia() {
-    return [
-      { id: "med_01", filename: "belgian-truffle.jpg", url: DEFAULT_PRODUCTS[0].thumbnail, size: "142 KB" },
-      { id: "med_02", filename: "red-velvet.jpg", url: DEFAULT_PRODUCTS[1].thumbnail, size: "188 KB" },
-    ];
+  static getAdminMedia(folder?: string) {
+    if (!memoryStore.media || !Array.isArray(memoryStore.media)) {
+      memoryStore.media = [...DEFAULT_MEDIA];
+    }
+    if (folder) {
+      return memoryStore.media.filter((m: any) => m.folder === folder);
+    }
+    return memoryStore.media;
+  }
+
+  static getMediaById(id: string) {
+    const list = ApiEngine.getAdminMedia();
+    return list.find((m: any) => m.id === id) || null;
+  }
+
+  static createMedia(data: any) {
+    if (!memoryStore.media || !Array.isArray(memoryStore.media)) {
+      memoryStore.media = [...DEFAULT_MEDIA];
+    }
+    const mediaItem = {
+      id: data.id || `med_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      name: data.name || data.filename || "Uploaded Image",
+      filename: data.filename || "image.jpg",
+      url: data.url || "",
+      thumbnail_url: data.thumbnail_url || data.url || "",
+      mime_type: data.mime_type || "image/jpeg",
+      size: Number(data.size) || 120000,
+      width: Number(data.width) || 1200,
+      height: Number(data.height) || 800,
+      alt_text: data.alt_text || data.alt || data.name || "",
+      folder: data.folder || "general",
+      created_at: new Date().toISOString(),
+    };
+    memoryStore.media.unshift(mediaItem);
+    ApiEngine.addAuditLog(`Uploaded / Registered Media "${mediaItem.name}"`);
+    ApiEngine.persist();
+    return mediaItem;
+  }
+
+  static updateMedia(id: string, data: any) {
+    if (!memoryStore.media || !Array.isArray(memoryStore.media)) {
+      memoryStore.media = [...DEFAULT_MEDIA];
+    }
+    const idx = memoryStore.media.findIndex((m: any) => m.id === id);
+    if (idx >= 0) {
+      memoryStore.media[idx] = { ...memoryStore.media[idx], ...data, updated_at: new Date().toISOString() };
+      ApiEngine.persist();
+      return memoryStore.media[idx];
+    }
+    return null;
+  }
+
+  static deleteMedia(id: string) {
+    if (!memoryStore.media || !Array.isArray(memoryStore.media)) return false;
+    const idx = memoryStore.media.findIndex((m: any) => m.id === id);
+    if (idx >= 0) {
+      const removed = memoryStore.media.splice(idx, 1)[0];
+      ApiEngine.addAuditLog(`Deleted Media "${removed?.name || id}"`);
+      ApiEngine.persist();
+      return true;
+    }
+    return false;
   }
 
   static getAdminAnalytics() {
@@ -1857,48 +5851,301 @@ export class ApiEngine {
   // ── CMS Pages & Form Submissions ──────────────────────────────
   static listCmsPages() {
     if (!memoryStore || !Array.isArray(memoryStore.cms_pages)) {
-      if (memoryStore) memoryStore.cms_pages = [...DEFAULT_CMS_PAGES];
+      if (memoryStore) memoryStore.cms_pages = JSON.parse(JSON.stringify(DEFAULT_CMS_PAGES));
       return DEFAULT_CMS_PAGES;
     }
     return memoryStore.cms_pages.length > 0 ? memoryStore.cms_pages : DEFAULT_CMS_PAGES;
   }
 
-  static getCmsPage(id: string) {
+  static getCmsPage(idOrSlug: string) {
     const pages = ApiEngine.listCmsPages();
-    return pages.find((p: any) => p.id === id || p.slug === id) || null;
+    if (!idOrSlug) {
+      return pages.find((p: any) => p.slug === "home" || p.page_type === "home" || p.url_path === "/") || null;
+    }
+    const clean = idOrSlug.startsWith("/") ? idOrSlug.substring(1) : idOrSlug;
+    if (clean === "" || clean === "home" || idOrSlug === "/") {
+      const home = pages.find((p: any) => p.slug === "home" || p.page_type === "home" || p.url_path === "/");
+      if (home) return home;
+    }
+    return pages.find((p: any) =>
+      p.id === idOrSlug ||
+      p.slug === idOrSlug ||
+      p.slug === clean ||
+      p.url_path === idOrSlug ||
+      p.url_path === `/${clean}` ||
+      p.url_path === `/${idOrSlug}`
+    ) || null;
+  }
+
+  static getPublishedCmsPage(idOrSlug: string) {
+    const page = ApiEngine.getCmsPage(idOrSlug);
+    if (!page || page.status !== "published") return null;
+    return page;
   }
 
   static createCmsPage(data: any) {
-    const page = {
-      id: `pg_${Date.now()}`,
-      title: data.title || "New CMS Page",
-      slug: data.slug || `page-${Date.now()}`,
-      status: data.status || "draft",
-      content: data.content || "",
-      updated_at: new Date().toISOString(),
-    };
     if (!memoryStore.cms_pages || !Array.isArray(memoryStore.cms_pages)) {
-      memoryStore.cms_pages = [...DEFAULT_CMS_PAGES];
+      memoryStore.cms_pages = JSON.parse(JSON.stringify(DEFAULT_CMS_PAGES));
     }
+    // Check slug uniqueness
+    const slugBase = data.slug || (data.title ? data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") : `page-${Date.now()}`);
+    const existingSlugs = memoryStore.cms_pages.map((p: any) => p.slug);
+    let slug = slugBase;
+    let i = 1;
+    while (existingSlugs.includes(slug)) { slug = `${slugBase}-${i++}`; }
+    const now = new Date().toISOString();
+    const page: any = {
+      id: `pg_${Date.now()}`,
+      title: data.title || "New Page",
+      slug,
+      page_type: data.page_type || "landing",
+      template: data.template || "default",
+      status: data.status || "draft",
+      url_path: data.url_path || `/${slug}`,
+      breadcrumb_title: data.breadcrumb_title || data.title || "",
+      h1: data.h1 || data.title || "",
+      subheading: data.subheading || "",
+      intro_content: data.intro_content || "",
+      meta_title: data.meta_title || data.title || "",
+      meta_description: data.meta_description || "",
+      robots_tag: data.robots_tag || "index, follow",
+      canonical_url: data.canonical_url || "",
+      og_title: data.og_title || data.title || "",
+      og_description: data.og_description || data.meta_description || "",
+      og_image: data.og_image || "",
+      og_type: data.og_type || "website",
+      twitter_card: data.twitter_card || "summary_large_image",
+      twitter_title: data.twitter_title || "",
+      twitter_description: data.twitter_description || "",
+      twitter_image: data.twitter_image || "",
+      structured_data_type: data.structured_data_type || "WebPage",
+      keywords: data.keywords || "",
+      sitemap_include: data.sitemap_include !== false,
+      sitemap_priority: data.sitemap_priority || "0.7",
+      sitemap_changefreq: data.sitemap_changefreq || "weekly",
+      nav_location: data.nav_location || "none",
+      hide_from_nav: data.hide_from_nav || false,
+      visibility_rules: data.visibility_rules || { audience: "public", devices: "all", locations: "all" },
+      announcement_bar: data.announcement_bar || { enabled: false, text: "", cta_text: "", cta_url: "", bg_color: "#e11d48" },
+      header_config: data.header_config || { show_header: true, style: "default" },
+      theme: data.theme || { bg_color: "#ffffff", text_color: "#1f2937", heading_color: "#111827", accent_color: "#e11d48" },
+      sections: data.sections || [],
+      draft_config: data.draft_config || { sections: [], banners: [], products_mode: "best_sellers", product_ids: [], category_ids: [] },
+      published_config: null,
+      version_history: [],
+      created_at: now,
+      updated_at: now,
+      published_at: null,
+    };
     memoryStore.cms_pages.unshift(page);
     ApiEngine.addAuditLog(`Created CMS Page "${page.title}"`);
     ApiEngine.persist();
     return page;
   }
 
+  static updateCmsPage(id: string, data: any) {
+    const pages = ApiEngine.listCmsPages();
+    const idx = pages.findIndex((p: any) => p.id === id || p.slug === id);
+    if (idx < 0) return null;
+    const existing = pages[idx];
+    // Push version snapshot before update
+    const versionHistory = Array.isArray(existing.version_history) ? existing.version_history : [];
+    const versionNum = versionHistory.length + 1;
+    versionHistory.push({
+      version: versionNum,
+      title: existing.title,
+      saved_by: "Admin",
+      saved_at: existing.updated_at || new Date().toISOString(),
+      snapshot: {
+        title: existing.title,
+        slug: existing.slug,
+        draft_config: existing.draft_config,
+        meta_title: existing.meta_title,
+        meta_description: existing.meta_description,
+        sections: existing.sections,
+      },
+    });
+    // Keep only last 20 versions
+    const trimmedHistory = versionHistory.slice(-20);
+    const updated = {
+      ...existing,
+      ...data,
+      id: existing.id, // never change id
+      version_history: trimmedHistory,
+      updated_at: new Date().toISOString(),
+    };
+    pages[idx] = updated;
+    ApiEngine.addAuditLog(`Updated CMS Page "${updated.title}"`);
+    ApiEngine.persist();
+    return updated;
+  }
+
+  static publishCmsPage(id: string) {
+    const pages = ApiEngine.listCmsPages();
+    const idx = pages.findIndex((p: any) => p.id === id || p.slug === id);
+    if (idx < 0) return { success: false, error: "Page not found" };
+    const page = pages[idx];
+    // Validation
+    const errors: string[] = [];
+    if (!page.title || page.title.trim().length < 2) errors.push("Page title is required (min 2 chars)");
+    if (!page.slug || page.slug.trim().length < 2) errors.push("URL slug is required");
+    if (!page.meta_title || page.meta_title.trim().length < 10) errors.push("SEO Meta Title must be at least 10 characters");
+    if (!page.meta_description || page.meta_description.trim().length < 30) errors.push("SEO Meta Description must be at least 30 characters");
+    if (errors.length > 0) return { success: false, errors };
+    const now = new Date().toISOString();
+    
+    // Complete snapshot of published configuration
+    const publishedConfig = {
+      sections: JSON.parse(JSON.stringify(page.sections || [])),
+      banners: JSON.parse(JSON.stringify(page.draft_config?.banners || [])),
+      products_mode: page.draft_config?.products_mode || "best_sellers",
+      product_ids: JSON.parse(JSON.stringify(page.draft_config?.product_ids || [])),
+      category_ids: JSON.parse(JSON.stringify(page.draft_config?.category_ids || [])),
+      header_config: page.header_config,
+      announcement_bar: page.announcement_bar,
+      visibility_rules: page.visibility_rules,
+      h1: page.h1 || page.title,
+      subheading: page.subheading || "",
+      intro_content: page.intro_content || "",
+      meta_title: page.meta_title,
+      meta_description: page.meta_description,
+      canonical_url: page.canonical_url,
+      og_title: page.og_title,
+      og_description: page.og_description,
+      og_image: page.og_image,
+      twitter_card: page.twitter_card,
+      twitter_title: page.twitter_title,
+      twitter_description: page.twitter_description,
+      twitter_image: page.twitter_image,
+      structured_data_type: page.structured_data_type,
+      theme: page.theme,
+    };
+
+    pages[idx] = {
+      ...page,
+      status: "published",
+      published_at: now,
+      updated_at: now,
+      published_config: publishedConfig,
+    };
+    ApiEngine.addAuditLog(`Published CMS Page "${page.title}"`);
+    ApiEngine.persist();
+    return { success: true, page: pages[idx] };
+  }
+
+  static unpublishCmsPage(id: string) {
+    const pages = ApiEngine.listCmsPages();
+    const idx = pages.findIndex((p: any) => p.id === id || p.slug === id);
+    if (idx < 0) return { success: false, error: "Page not found" };
+    pages[idx] = { ...pages[idx], status: "draft", published_config: null, updated_at: new Date().toISOString() };
+    ApiEngine.addAuditLog(`Unpublished CMS Page "${pages[idx].title}"`);
+    ApiEngine.persist();
+    return { success: true, page: pages[idx] };
+  }
+
+  static duplicateCmsPage(id: string) {
+    const pages = ApiEngine.listCmsPages();
+    const source = pages.find((p: any) => p.id === id || p.slug === id);
+    if (!source) return null;
+    const now = new Date().toISOString();
+    const existingSlugs = pages.map((p: any) => p.slug);
+    let slug = `${source.slug}-copy`;
+    let i = 1;
+    while (existingSlugs.includes(slug)) { slug = `${source.slug}-copy-${i++}`; }
+    const copy = {
+      ...JSON.parse(JSON.stringify(source)),
+      id: `pg_${Date.now()}`,
+      title: `${source.title} (Copy)`,
+      slug,
+      url_path: `/${slug}`,
+      status: "draft",
+      published_at: null,
+      published_config: null,
+      version_history: [],
+      created_at: now,
+      updated_at: now,
+    };
+    memoryStore.cms_pages.unshift(copy);
+    ApiEngine.addAuditLog(`Duplicated CMS Page "${source.title}" → "${copy.title}"`);
+    ApiEngine.persist();
+    return copy;
+  }
+
+  static rollbackCmsPage(id: string, version: number) {
+    const pages = ApiEngine.listCmsPages();
+    const idx = pages.findIndex((p: any) => p.id === id || p.slug === id);
+    if (idx < 0) return null;
+    const page = pages[idx];
+    const history = Array.isArray(page.version_history) ? page.version_history : [];
+    const entry = history.find((h: any) => h.version === version);
+    if (!entry || !entry.snapshot) return null;
+    const restored = {
+      ...page,
+      ...entry.snapshot,
+      id: page.id,
+      status: "draft",
+      updated_at: new Date().toISOString(),
+      version_history: history,
+    };
+    pages[idx] = restored;
+    ApiEngine.addAuditLog(`Rolled back CMS Page "${page.title}" to v${version}`);
+    ApiEngine.persist();
+    return restored;
+  }
+
+  static validatePageConfig(config: any) {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    if (!config.title || config.title.trim().length < 2) errors.push("Page title is required");
+    if (!config.slug || !/^[a-z0-9-]+$/.test(config.slug)) errors.push("Slug must contain only lowercase letters, numbers, and hyphens");
+    if (!config.meta_title) errors.push("SEO Meta Title is required");
+    else if (config.meta_title.length < 10) warnings.push("Meta title should be at least 10 characters");
+    else if (config.meta_title.length > 60) warnings.push("Meta title is over 60 characters — may be truncated in Google");
+    if (!config.meta_description) errors.push("SEO Meta Description is required");
+    else if (config.meta_description.length < 30) warnings.push("Meta description should be at least 30 characters");
+    else if (config.meta_description.length > 160) warnings.push("Meta description is over 160 characters — may be truncated");
+    const sections = config.sections || config.draft_config?.sections || [];
+    const heroSections = sections.filter((s: any) => s.type === "hero" && s.enabled !== false);
+    if (heroSections.length === 0) warnings.push("No Hero section configured — consider adding one for better engagement");
+    const banners = config.draft_config?.banners || config.banners || [];
+    banners.forEach((b: any, i: number) => {
+      if (b.enabled && (!b.desktop_image?.alt || b.desktop_image.alt.trim() === "")) {
+        warnings.push(`Banner #${i + 1} is missing ALT text for accessibility`);
+      }
+    });
+    return { valid: errors.length === 0, errors, warnings };
+  }
+
+  static getPageVersionHistory(id: string) {
+    const page = ApiEngine.getCmsPage(id);
+    if (!page) return [];
+    return Array.isArray(page.version_history) ? page.version_history : [];
+  }
+
+  static deleteCmsPage(id: string) {
+    const pages = ApiEngine.listCmsPages();
+    const idx = pages.findIndex((p: any) => p.id === id);
+    if (idx < 0) return false;
+    const page = pages[idx];
+    pages[idx] = { ...page, status: "archived", deleted_at: new Date().toISOString() };
+    ApiEngine.addAuditLog(`Archived CMS Page "${page.title}"`);
+    ApiEngine.persist();
+    return true;
+  }
+
   static listCmsFormSubmissions(type?: string) {
     return [
-      { id: "sub_01", form: type || "contact", name: "Rohan Das", email: "rohan@example.com", message: "Inquiry about bulk cake order for wedding", created_at: new Date().toISOString() }
+      { id: "sub_01", form_type: type || "contact", name: "Rohan Das", email: "rohan@example.com", message: "Inquiry about bulk cake order for wedding", created_at: new Date().toISOString() },
+      { id: "sub_02", form_type: type || "contact", name: "Priya Sharma", email: "priya@example.com", message: "Wedding cake inquiry for 200 guests", created_at: new Date().toISOString() },
     ];
   }
 
   static getPageAnalyticsSummary(pageId: string) {
-    return {
-      views: 1240,
-      unique_visitors: 980,
-      bounce_rate: "24%",
-      avg_time_on_page: "2m 14s",
-    };
+    return null; // Return null — real analytics must come from analytics backend
+  }
+
+  static submitCmsForm(formType: string, data: any) {
+    return { id: `sub_${Date.now()}`, form_type: formType, data, submitted_at: new Date().toISOString() };
   }
 
   // ── PIM Categories ──────────────────────────────
@@ -2641,6 +6888,83 @@ export class ApiEngine {
     return area;
   }
 
+  static getEligibleBranches(query: { pincode?: string; city?: string; area?: string }) {
+    const normPincode = (query.pincode || "").trim().replace(/\D/g, "");
+    const normCity = (query.city || "").trim().toLowerCase();
+    const normArea = (query.area || "").trim().toLowerCase();
+
+    const allBranches = ApiEngine.listBranches();
+    const activeBranches = allBranches.filter((b: any) => b.is_open !== false && b.operational_status !== "closed");
+
+    let eligible: any[] = [];
+    let assignmentMode: "pincode" | "city" | "area" | "manual" | "unserviceable" = "unserviceable";
+    let confidence: "exact" | "area" | "city" | "none" = "none";
+
+    if (normPincode) {
+      const pincodeMatches = activeBranches.filter((b: any) => {
+        const zonePincodes: string[] = (b.delivery_zones || []).flatMap((z: any) => Array.isArray(z.pincodes) ? z.pincodes : []);
+        return zonePincodes.includes(normPincode) || b.pincode === normPincode || (b.applicable_pincodes || []).includes(normPincode);
+      });
+
+      if (pincodeMatches.length > 0) {
+        eligible = pincodeMatches.map((b: any) => ({
+          ...b,
+          matched_by: "pincode",
+          is_serviceable: true,
+          confidence: "exact",
+        }));
+        assignmentMode = "pincode";
+        confidence = "exact";
+      }
+    }
+
+    if (eligible.length === 0 && (normArea || normCity)) {
+      const areaCityMatches = activeBranches.filter((b: any) => {
+        const bCity = (b.city || "").toLowerCase();
+        const bAreas = (b.deliverable_areas || []).map((a: string) => a.toLowerCase());
+        const bName = (b.name || "").toLowerCase();
+
+        const matchArea = normArea && (bAreas.some((a: string) => a.includes(normArea) || normArea.includes(a)) || bName.includes(normArea));
+        const matchCity = normCity && (bCity.includes(normCity) || normCity.includes(bCity));
+
+        return matchArea || matchCity;
+      });
+
+      if (areaCityMatches.length > 0) {
+        eligible = areaCityMatches.map((b: any) => ({
+          ...b,
+          matched_by: normArea ? "area" : "city",
+          is_serviceable: true,
+          confidence: normArea ? "area" : "city",
+        }));
+        assignmentMode = normArea ? "area" : "city";
+        confidence = normArea ? "area" : "city";
+      }
+    }
+
+    if (eligible.length === 0 && !normPincode && !normCity && !normArea) {
+      eligible = activeBranches;
+      assignmentMode = "manual";
+      confidence = "none";
+    }
+
+    const recommended = eligible[0] || null;
+
+    return {
+      success: true,
+      branches: eligible,
+      assignment: {
+        mode: assignmentMode,
+        confidence,
+        recommended_branch_id: recommended?.id || null,
+        recommended_branch_name: recommended?.name || null,
+        message: eligible.length > 0
+          ? (assignmentMode === "pincode" ? `✓ Branch Automatically Assigned by Pincode ${normPincode}` : `Eligible branches found for ${normArea || normCity}`)
+          : "❌ No CakeToHome branch currently services this delivery location."
+      }
+    };
+  }
+
   static calculateDeliveryFee(
     branch: BranchItem,
     context: {
@@ -3231,19 +7555,6 @@ export class ApiEngine {
     return updated;
   }
 
-  static dispatchPartnerWithFailover(branchId: string, orderId: string) {
-    const b = ApiEngine.getBranchById(branchId);
-    const priority = b?.partner_failover?.priority || b?.delivery_partner_priority || ["porter", "rapido", "shadowfax", "own_fleet"];
-    const attemptedPartner = priority[0] || "porter";
-    return {
-      partner: attemptedPartner,
-      failover_sequence: priority,
-      retry_count: 0,
-      partner_sla_mins: b?.partner_failover?.partner_sla_mins || 30,
-      status: "assigned",
-    };
-  }
-
   static addBranchAuditLog(branchId: string, action: string, oldVal: any, newVal: any, user: string = "admin", ip: string = "127.0.0.1", reason: string = "System Update") {
     const b = ApiEngine.getBranchById(branchId);
     if (!b) return;
@@ -3606,7 +7917,14 @@ export class ApiEngine {
 
   // ── Dynamic Pincode-to-Zone Matrix Methods ──
   static listPincodeMappings(search?: string): PincodeZoneMapping[] {
-    const defaults = getDefaultPincodeMappings();
+    const defaults: PincodeZoneMapping[] = [
+      { pincode: "560038", branch_id: "br_indiranagar", branch_code: "HUB-BLR-01", zone_id: "zone_1", zone_name: "Zone 1 (0-5 KM)", city_name: "Bengaluru", area_name: "Indiranagar", status: "active" },
+      { pincode: "560008", branch_id: "br_indiranagar", branch_code: "HUB-BLR-01", zone_id: "zone_1", zone_name: "Zone 1 (0-5 KM)", city_name: "Bengaluru", area_name: "Domlur", status: "active" },
+      { pincode: "560071", branch_id: "br_indiranagar", branch_code: "HUB-BLR-01", zone_id: "zone_2", zone_name: "Zone 2 (5-10 KM)", city_name: "Bengaluru", area_name: "HAL", status: "active" },
+      { pincode: "560034", branch_id: "br_koramangala", branch_code: "HUB-BLR-02", zone_id: "zone_1", zone_name: "Zone 1 (0-5 KM)", city_name: "Bengaluru", area_name: "Koramangala", status: "active" },
+      { pincode: "560095", branch_id: "br_koramangala", branch_code: "HUB-BLR-02", zone_id: "zone_2", zone_name: "Zone 2 (5-10 KM)", city_name: "Bengaluru", area_name: "Koramangala 1st Block", status: "active" },
+      { pincode: "560102", branch_id: "br_hsr", branch_code: "HUB-BLR-03", zone_id: "zone_1", zone_name: "Zone 1 (0-5 KM)", city_name: "Bengaluru", area_name: "HSR Sector 1", status: "active" },
+    ];
     if (!search || !search.trim()) return defaults;
     const s = search.toLowerCase().trim();
     return defaults.filter(

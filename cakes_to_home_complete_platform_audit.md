@@ -228,9 +228,8 @@ sequenceDiagram
 | AI Storefront Concierge Widget | ✅ Implemented | Storefront Floating | Custom AI Agent Engine |
 | CRO Live Visitor & Urgency Suite | ✅ Implemented | Storefront PDP & Home | Local Store State |
 | Super Admin AI Command Center | ✅ Implemented | `/dashboard` (Tab 2) | `/admin/ai/execute` |
-| Visual Drag & Drop Page Builder | ✅ Implemented | `/dashboard` (Tab 13) | `/admin/cms/pages` |
-| A/B Split Testing & Auto-Winner | ✅ Implemented | `/dashboard` (Tab 10) | `/admin/ab-testing` |
-| Omnichannel Marketing Automation | ✅ Implemented | `/dashboard` (Tab 11) | `/admin/marketing` |
+| Visual Drag & Drop Page Builder | ✅ Implemented | `/dashboard` (Tab 12) | `/admin/cms/pages` |
+| Omnichannel Marketing Automation | ✅ Implemented | `/dashboard` (Tab 10) | `/admin/marketing` |
 
 ---
 
@@ -297,7 +296,6 @@ All 69 screenshots captured during automated Playwright verification runs are sa
 Key Evidence Files:
 - `super-admin-dashboard-panel.png`
 - `admin-ai-command-center.png`
-- `admin-ab-testing-engine.png`
 - `admin-marketing-automation.png`
 - `delivery-coverage-map-panel.png`
 - `seo-digital-marketing-panel.png`

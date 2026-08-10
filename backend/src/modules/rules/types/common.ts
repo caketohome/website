@@ -1,38 +1,43 @@
 import RulesModuleService from "../service";
 
 // ─── Offer Types ───────────────────────────────────────────────────────────────
-// Every promotion type the platform will ever support flows through this engine.
+// Every promotion type the platform supports flows through this engine.
 
 export type OfferType =
+    | "percentage"
+    | "flat"
+    | "free_delivery"
+    | "buy_x_get_y"
+    | "buy_x_get_discount"
+    | "free_product"
+    | "free_addon"
+    | "category_discount"
+    | "product_discount"
+    | "bundle_discount"
+    | "first_order"
+    | "birthday_coupon"
+    | "anniversary_coupon"
+    | "referral_coupon"
+    | "wallet_coupon"
+    | "cashback_coupon"
     | "coupon"
     | "promo_code"
     | "flash_sale"
     | "combo"
-    | "buy_x_get_y"
-    | "free_delivery"
-    | "free_gift"
-    | "bundle"
-    | "category_discount"
-    | "product_discount"
-    | "cart_discount"
-    | "wallet_cashback"
-    | "referral_reward"
-    | "loyalty_bonus"
-    | "birthday_offer"
-    | "anniversary_offer"
-    | "festival_campaign"
-    | "first_order_offer"
-    | "affiliate_reward"
-    | "influencer_reward"
-    | "gamification_reward"
-    | "branch_specific"
-    | "customer_segment"
-    | "scheduled_campaign";
+    | "festival_campaign";
 
-export type OfferStatus = "draft" | "active" | "scheduled" | "expired" | "disabled";
+export type OfferStatus =
+    | "draft"
+    | "pending_approval"
+    | "approved"
+    | "active"
+    | "paused"
+    | "scheduled"
+    | "expired"
+    | "archived"
+    | "disabled";
 
 // ─── Condition Types ───────────────────────────────────────────────────────────
-// Flexible condition system — all rules are data-driven, never hardcoded.
 
 export type ConditionEntity =
     | "cart"
@@ -42,6 +47,8 @@ export type ConditionEntity =
     | "customer"
     | "customer_segment"
     | "branch"
+    | "city"
+    | "pincode"
     | "order_history"
     | "time"
     | "payment_method"
@@ -69,7 +76,6 @@ export interface OfferCondition {
     field: string;
     operator: ConditionOperator;
     value: unknown;
-    /** Optional label for admin display */
     label?: string;
 }
 
@@ -90,15 +96,10 @@ export interface OfferReward {
     reward_type: RewardType;
     amount_type: AmountType;
     amount: number;
-    /** Maximum discount cap for percent-based rewards */
     cap?: number;
-    /** Product ID for free_item rewards */
     free_item_id?: string;
-    /** Quantity of free items to give */
     free_item_quantity?: number;
-    /** Target product/category IDs for line_discount */
     target_ids?: string[];
-    /** Optional label for admin display */
     label?: string;
 }
 
@@ -113,20 +114,50 @@ export interface OfferDTO {
     priority: number;
     starts_at: Date | null;
     ends_at: Date | null;
+    start_time?: string | null;
+    end_time?: string | null;
+    timezone?: string;
+    never_expires?: boolean;
     usage_limit: number | null;
     per_customer_limit: number | null;
+    daily_limit?: number | null;
+    monthly_limit?: number | null;
     is_stackable: boolean;
     is_public: boolean;
+    auto_apply?: boolean;
+    delivery_mode?: string;
+    allowed_payment_methods?: string[] | null;
+    min_order_value?: number;
+    max_discount_value?: number | null;
+    min_quantity?: number;
     description: string | null;
     conditions: OfferCondition[] | null;
     rewards: OfferReward[] | null;
-    /** Restrict to specific branches. Null = all branches. */
-    branch_ids: string[] | null;
-    /** Restrict to specific customer segments. Null = all customers. */
-    customer_segments: string[] | null;
-    /** Freeform metadata for integrations (campaign ID, source, etc.) */
+    applicable_branches?: string[] | string | null;
+    applicable_cities?: string[] | string | null;
+    applicable_pincodes?: string[] | string | null;
+    excluded_pincodes?: string[] | string | null;
+    applicable_products?: string[] | null;
+    applicable_categories?: string[] | null;
+    applicable_flavors?: string[] | null;
+    applicable_shapes?: string[] | null;
+    applicable_weights?: string[] | null;
+    customer_eligibility?: string;
+    allowed_customer_ids?: string[] | null;
+    allowed_phones?: string[] | null;
+    allowed_emails?: string[] | null;
+    customer_tags?: string[] | null;
+    exclude_discounted_items?: boolean;
+    exclude_flash_sales?: boolean;
+    approval_status?: string;
+    created_by?: string | null;
+    approved_by?: string | null;
+    branch_ids?: string[] | null;
+    customer_segments?: string[] | null;
     metadata: Record<string, unknown> | null;
     total_redemptions: number;
+    total_discount_given?: number;
+    total_revenue_generated?: number;
     created_at: Date;
     updated_at: Date;
 }
@@ -135,9 +166,19 @@ export interface OfferRedemptionDTO {
     id: string;
     offer_id: string;
     customer_id: string | null;
+    customer_phone?: string | null;
+    customer_email?: string | null;
     order_id: string | null;
+    order_number?: string | null;
     cart_id: string | null;
+    branch_id?: string | null;
+    branch_name?: string | null;
+    city?: string | null;
+    pincode?: string | null;
     discount_amount: number;
+    order_total?: number;
+    payment_method?: string | null;
+    order_status?: string;
     cashback_amount: number;
     loyalty_points: number;
     metadata: Record<string, unknown> | null;
@@ -152,102 +193,126 @@ export interface CreateOfferDTO {
     type: OfferType;
     status?: OfferStatus;
     priority?: number;
-    starts_at?: Date;
-    ends_at?: Date;
+    starts_at?: Date | string;
+    ends_at?: Date | string;
+    start_time?: string;
+    end_time?: string;
+    timezone?: string;
+    never_expires?: boolean;
     usage_limit?: number;
     per_customer_limit?: number;
+    daily_limit?: number;
+    monthly_limit?: number;
     is_stackable?: boolean;
     is_public?: boolean;
+    auto_apply?: boolean;
+    delivery_mode?: string;
+    allowed_payment_methods?: string[];
+    min_order_value?: number;
+    max_discount_value?: number;
+    min_quantity?: number;
     description?: string;
     conditions?: OfferCondition[];
     rewards?: OfferReward[];
-    branch_ids?: string[];
-    customer_segments?: string[];
+    applicable_branches?: string[] | string;
+    applicable_cities?: string[] | string;
+    applicable_pincodes?: string[] | string;
+    excluded_pincodes?: string[] | string;
+    applicable_products?: string[];
+    applicable_categories?: string[];
+    applicable_flavors?: string[];
+    applicable_shapes?: string[];
+    applicable_weights?: string[];
+    customer_eligibility?: string;
+    allowed_customer_ids?: string[];
+    allowed_phones?: string[];
+    allowed_emails?: string[];
+    customer_tags?: string[];
+    exclude_discounted_items?: boolean;
+    exclude_flash_sales?: boolean;
+    approval_status?: string;
+    created_by?: string;
     metadata?: Record<string, unknown>;
 }
 
-export interface UpdateOfferDTO {
-    name?: string;
-    code?: string;
-    type?: OfferType;
-    status?: OfferStatus;
-    priority?: number;
-    starts_at?: Date | null;
-    ends_at?: Date | null;
-    usage_limit?: number | null;
-    per_customer_limit?: number | null;
-    is_stackable?: boolean;
-    is_public?: boolean;
-    description?: string;
-    conditions?: OfferCondition[];
-    rewards?: OfferReward[];
-    branch_ids?: string[] | null;
-    customer_segments?: string[] | null;
-    metadata?: Record<string, unknown> | null;
-}
+export interface UpdateOfferDTO extends Partial<CreateOfferDTO> {}
 
 // ─── Evaluation Context ────────────────────────────────────────────────────────
-// Passed by cart, checkout, CRM, referrals, loyalty — any module needing evaluation.
 
 export interface EvaluationContextItem {
     product_id: string;
-    variant_id: string;
+    variant_id?: string;
+    name?: string;
     category_id?: string;
+    flavor?: string;
+    shape?: string;
+    weight?: string;
+    brand?: string;
     quantity: number;
     unit_price: number;
+    is_discounted?: boolean;
+    is_flash_sale?: boolean;
+    is_gift_card?: boolean;
+    is_subscription?: boolean;
 }
 
 export interface EvaluationContext {
-    /** Cart identifier */
     cart_id?: string;
-    /** Customer identifier */
     customer_id?: string;
-    /** Branch identifier */
+    customer_phone?: string;
+    customer_email?: string;
+    customer_tier?: string;
+    customer_tags?: string[];
     branch_id?: string;
-    /** Cart subtotal (before discounts) */
+    branch_name?: string;
+    city?: string;
+    pincode?: string;
     subtotal: number;
-    /** Cart line items */
     items: EvaluationContextItem[];
-    /** Customer segment tag (e.g. "vip", "new", "loyal") */
     customer_segment?: string;
-    /** Coupon/promo code entered by customer */
     code?: string;
-    /** Delivery fee (for free_delivery reward calculation) */
+    applied_codes?: string[];
     delivery_fee?: number;
-    /** Payment method (e.g. "wallet", "upi", "card") */
     payment_method?: string;
-    /** Delivery type (e.g. "standard", "express", "pickup") */
-    delivery_type?: string;
-
-    // Customer profile conditions
-    /** True if today is the customer's birthday */
+    delivery_type?: string; // delivery | pickup
     is_birthday?: boolean;
-    /** True if today is the customer's anniversary */
     is_anniversary?: boolean;
-    /** True if this is a referred customer */
     is_referral?: boolean;
-    /** True if the customer has a loyalty account */
     is_loyalty_member?: boolean;
-    /** True if this is the customer's first order */
     is_first_order?: boolean;
-    /** Customer's total historical order count */
     order_count?: number;
-    /** Customer's total historical spending */
     total_spent?: number;
 }
-
-// ─── Evaluation Results ────────────────────────────────────────────────────────
 
 export type RejectionReason =
     | "inactive"
     | "not_started"
     | "expired"
+    | "time_window_mismatch"
     | "usage_limit_reached"
     | "per_customer_limit_reached"
+    | "daily_limit_reached"
+    | "monthly_limit_reached"
+    | "min_order_not_met"
+    | "min_quantity_not_met"
     | "code_mismatch"
-    | "conditions_not_met"
     | "branch_restricted"
-    | "segment_restricted"
+    | "city_restricted"
+    | "pincode_restricted"
+    | "pincode_excluded"
+    | "customer_tier_restricted"
+    | "customer_not_whitelisted"
+    | "new_customer_only"
+    | "product_restricted"
+    | "category_restricted"
+    | "flavor_restricted"
+    | "shape_restricted"
+    | "weight_restricted"
+    | "payment_method_restricted"
+    | "delivery_mode_restricted"
+    | "excluded_items_only"
+    | "cannot_stack"
+    | "conditions_not_met"
     | "no_valid_reward"
     | "feature_disabled";
 
@@ -273,31 +338,20 @@ export interface RejectedOffer {
 }
 
 export interface EvaluationResult {
-    /** All offers that were applied (respecting priority + stacking) */
     applied: AppliedOffer[];
-    /** All offers that were evaluated but rejected, with reasons */
     rejected: RejectedOffer[];
-    /** Summary values */
     summary: {
-        /** Total cart discount amount */
         total_discount: number;
-        /** Total wallet cashback to credit after order */
         total_cashback: number;
-        /** Total loyalty points to credit after order */
         total_loyalty_points: number;
-        /** Free items to add to cart */
         free_items: Array<{
             product_id: string;
             quantity: number;
         }>;
-        /** Whether delivery fee is waived */
         free_delivery: boolean;
-        /** Count of offers applied */
         offers_applied: number;
-        /** Count of offers evaluated */
         offers_evaluated: number;
     };
-    /** Execution metadata for debugging */
     metadata: {
         evaluated_at: string;
         evaluation_time_ms: number;
@@ -305,15 +359,38 @@ export interface EvaluationResult {
     };
 }
 
-// ─── Legacy Compat ─────────────────────────────────────────────────────────────
-// Old EvaluationResult shape for backward compatibility with existing store API
-// consumers. New consumers should use the full EvaluationResult.
-
-export interface LegacyEvaluationResult {
-    applicable: boolean;
-    offer: OfferDTO;
-    reward: OfferReward;
-    discount_amount: number;
+export interface CouponAnalyticsSummary {
+    total_coupons: number;
+    active_coupons: number;
+    expired_coupons: number;
+    scheduled_coupons: number;
+    total_redemptions: number;
+    total_revenue_generated: number;
+    total_discount_given: number;
+    average_discount: number;
+    average_order_value: number;
+    roi_percentage: number;
+    uses_today: number;
+    uses_this_month: number;
+    top_coupon: {
+        id: string;
+        code: string;
+        name: string;
+        redemptions: number;
+        revenue: number;
+    } | null;
+    branch_performance: Array<{
+        branch_id: string;
+        branch_name: string;
+        redemptions: number;
+        revenue: number;
+        discount: number;
+    }>;
+    city_performance: Array<{
+        city: string;
+        redemptions: number;
+        revenue: number;
+    }>;
 }
 
 // ─── Module Declaration ────────────────────────────────────────────────────────

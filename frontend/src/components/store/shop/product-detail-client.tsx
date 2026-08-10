@@ -124,49 +124,39 @@ export default function ProductDetailClient({
             }));
     }, [weightPrices, masterVariantOptions, product.price]);
 
+    const [storefrontOptions, setStorefrontOptions] = useState<any>({
+        enable_flavor_selection: true,
+        enable_shape_selection: true,
+        flavors: [],
+        shapes: [],
+    });
+
+    useEffect(() => {
+        if (product?.id) {
+            apiClient.getStorefrontProductOptions(product.id).then((res: any) => {
+                if (res) setStorefrontOptions(res);
+            }).catch(() => null);
+        }
+    }, [product?.id]);
+
     const shapesList = useMemo(() => {
-        if (!masterVariantOptions) return [];
-        return masterVariantOptions
-            .filter((o: any) => o.type === "shape" && isOptionActive(o))
-            .map((s: any) => ({
-                id: s.id,
-                name: s.name,
-                price_modifier: Number(s.price_modifier) || 0,
-            }));
-    }, [masterVariantOptions]);
+        if (!storefrontOptions.enable_shape_selection) return [];
+        return (storefrontOptions.shapes || []).filter((s: any) => s.is_enabled !== false && s.status !== "archived");
+    }, [storefrontOptions]);
 
     const flavoursList = useMemo(() => {
-        if (!masterVariantOptions) return [];
-        return masterVariantOptions
-            .filter((o: any) => o.type === "flavour" && isOptionActive(o))
-            .map((f: any) => ({
-                id: f.id,
-                name: f.name,
-                price_modifier: Number(f.price_modifier) || 0,
-            }));
-    }, [masterVariantOptions]);
+        if (!storefrontOptions.enable_flavor_selection) return [];
+        return (storefrontOptions.flavors || []).filter((f: any) => f.is_enabled !== false && f.status !== "archived");
+    }, [storefrontOptions]);
 
+    // Fillings and Creams — derived from storefrontOptions (empty until backend API extends them)
     const fillingsList = useMemo(() => {
-        if (!masterVariantOptions) return [];
-        return masterVariantOptions
-            .filter((o: any) => o.type === "filling" && isOptionActive(o))
-            .map((fil: any) => ({
-                id: fil.id,
-                name: fil.name,
-                price_modifier: Number(fil.price_modifier) || 0,
-            }));
-    }, [masterVariantOptions]);
+        return (storefrontOptions.fillings || []).filter((f: any) => f.is_enabled !== false && f.status !== "archived");
+    }, [storefrontOptions]);
 
     const creamsList = useMemo(() => {
-        if (!masterVariantOptions) return [];
-        return masterVariantOptions
-            .filter((o: any) => o.type === "cream" && isOptionActive(o))
-            .map((c: any) => ({
-                id: c.id,
-                name: c.name,
-                price_modifier: Number(c.price_modifier) || 0,
-            }));
-    }, [masterVariantOptions]);
+        return (storefrontOptions.creams || []).filter((c: any) => c.is_enabled !== false && c.status !== "archived");
+    }, [storefrontOptions]);
 
     const [recommendedAccessories, setRecommendedAccessories] = useState<any[]>([]);
 
@@ -250,10 +240,8 @@ export default function ProductDetailClient({
     // Live Dynamic Price Calculator
     const calculatedPrice = useMemo(() => {
         const base = activePimConfig.show_weight !== false && selectedWeight ? selectedWeight.price : (product.price || 649);
-        const shapeMod = activePimConfig.show_shape && selectedShape ? Number(selectedShape.price_modifier || 0) : 0;
-        const flavourMod = activePimConfig.show_flavour && selectedFlavour ? Number(selectedFlavour.price_modifier || 0) : 0;
-        const fillingMod = activePimConfig.show_filling && selectedFilling ? Number(selectedFilling.price_modifier || 0) : 0;
-        const creamMod = activePimConfig.show_cream && selectedCream ? Number(selectedCream.price_modifier || 0) : 0;
+        const shapeMod = activePimConfig.show_shape && selectedShape ? Number(selectedShape.price_modifier || selectedShape.additional_price || 0) : 0;
+        const flavourMod = activePimConfig.show_flavour && selectedFlavour ? Number(selectedFlavour.price_modifier || selectedFlavour.extra_price || 0) : 0;
 
         const dietaryMod = activePimConfig.show_dietary !== false && hasAnyDietaryOption
             ? ((hasEggless && isEggless) ? 50 : 0) +
@@ -269,14 +257,12 @@ export default function ProductDetailClient({
             return sum + (item ? Number(item.price_modifier || 0) : 0);
         }, 0);
 
-        return (base + shapeMod + flavourMod + fillingMod + creamMod + dietaryMod + photoMod + addonsTotal) * quantity;
+        return (base + shapeMod + flavourMod + dietaryMod + photoMod + addonsTotal) * quantity;
     }, [
         activePimConfig,
         selectedWeight,
         selectedShape,
         selectedFlavour,
-        selectedFilling,
-        selectedCream,
         hasAnyDietaryOption,
         hasEggless,
         isEggless,
@@ -363,8 +349,6 @@ export default function ProductDetailClient({
                 weight: activePimConfig.show_weight !== false && selectedWeight ? selectedWeight.name : null,
                 shape: activePimConfig.show_shape && selectedShape ? selectedShape.name : null,
                 flavour: activePimConfig.show_flavour && selectedFlavour ? selectedFlavour.name : null,
-                filling: activePimConfig.show_filling && selectedFilling ? selectedFilling.name : null,
-                cream: activePimConfig.show_cream && selectedCream ? selectedCream.name : null,
                 eggless: hasEggless ? isEggless : false,
                 sugar_free: hasSugarFree ? isSugarFree : false,
                 gluten_free: hasGlutenFree ? isGlutenFree : false,

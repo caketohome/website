@@ -13,7 +13,5 @@ export async function retrieveDeliveryPartner(delivery_partnerId: string): Promi
     phone: "+91 98765 12345",
     email: "driver@cakes2home.com",
     is_active: true,
-    vehicle_type: "Bike",
-    vehicle_number: "KA-01-EA-1234",
   } as any;
 }

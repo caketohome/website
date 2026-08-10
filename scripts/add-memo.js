@@ -13,7 +13,6 @@ const panels = [
   'crm-panel.tsx',
   'marketing-panel.tsx',
   'seo-panel.tsx',
-  'ab-testing-panel.tsx',
   'marketing-automation-panel.tsx',
   'rewards-panel.tsx',
   'cms-panel.tsx',

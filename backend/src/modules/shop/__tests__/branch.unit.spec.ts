@@ -398,13 +398,13 @@ describe("ShopModuleService - Multi-Branch Operations", () => {
     ]);
 
     // Create reservation slot (should succeed)
-    const res = await service.createSlotReservation("cart_abc", noida.id, "2026-07-20T10:00:00Z");
+    const res = await service.reserveSlot("cart_abc", noida.id, "2026-07-20T10:00:00Z");
     expect(res).toBeDefined();
     expect(res.status).toBe("reserved");
 
     // Second reservation slot at identical hour should fail capacity limits
     await expect(
-      service.createSlotReservation("cart_xyz", noida.id, "2026-07-20T10:00:00Z")
+      service.reserveSlot("cart_xyz", noida.id, "2026-07-20T10:00:00Z")
     ).rejects.toThrow("Target capacity slot is fully booked.");
 
     // Expire first reservation manually

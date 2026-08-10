@@ -1,5 +1,15 @@
-import { OtpLoginForm } from "@frontend/components/store/auth/otp-login-form";
+import { OtpLoginForm } from "../../../components/store/auth/otp-login-form";
 import { Container, Heading, Text } from "@medusajs/ui";
+import { SeoMetadataBuilder } from "../../../lib/seo/metadata-builder";
+import type { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return SeoMetadataBuilder.buildMetadata({
+    fallbackTitle: "Customer Login | CakeToHome",
+    fallbackDescription: "Login to your CakeToHome account to manage orders and track cake delivery.",
+    isPrivate: true,
+  });
+}
 
 export default function LoginPage() {
   return (

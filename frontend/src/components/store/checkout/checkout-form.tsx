@@ -6,11 +6,6 @@ import { Badge, Button, Heading, Input, Label, Text, Textarea } from "@medusajs/
 import { useFormState, useFormStatus } from "react-dom";
 import { useState, useEffect, useRef } from "react";
 import { ErrorComponent } from "@frontend/components/common/error-component";
-import {
-  clientGetWalletBalance,
-  clientGetLoyaltyLedger,
-  clientValidateGiftCard
-} from "@frontend/lib/data/rewards-client";
 
 function Submit({ disabled }: { disabled?: boolean }) {
   const status = useFormStatus();
@@ -82,36 +77,10 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   const [scheduledDate, setScheduledDate] = useState<string>("");
   const [scheduledSlot, setScheduledSlot] = useState<string>("morning_9_12");
 
-  // Rewards integration states
-  const [wallet, setWallet] = useState<any>(null);
-  const [loyalty, setLoyalty] = useState<any>(null);
-  const [useWallet, setUseWallet] = useState<boolean>(false);
-  const [walletAmount, setWalletAmount] = useState<number>(0);
-  const [useLoyalty, setUseLoyalty] = useState<boolean>(false);
-  const [loyaltyPointsToRedeem, setLoyaltyPointsToRedeem] = useState<number>(0);
-
   const [giftCardCodeInput, setGiftCardCodeInput] = useState<string>("");
   const [appliedGiftCard, setAppliedGiftCard] = useState<any>(null);
   const [giftCardError, setGiftCardError] = useState<string>("");
   const [giftCardSuccess, setGiftCardSuccess] = useState<string>("");
-
-  useEffect(() => {
-    async function fetchCustomerRewards() {
-      try {
-        const wRes = await clientGetWalletBalance().catch(() => null);
-        if (wRes && wRes.wallet) {
-          setWallet(wRes.wallet);
-        }
-        const lRes = await clientGetLoyaltyLedger().catch(() => null);
-        if (lRes && lRes.ledger) {
-          setLoyalty(lRes.ledger);
-        }
-      } catch (err) {
-        console.warn("Failed to load rewards info for guest customer:", err);
-      }
-    }
-    fetchCustomerRewards();
-  }, []);
 
   const handleApplyGiftCard = async () => {
     setGiftCardError("");
@@ -136,13 +105,11 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   const currencySymbol = getCurrencySymbol(cart.currency_code);
   const cartTotal = typeof cart.total === "number" ? cart.total : 0;
 
-  const pointsValue = useLoyalty ? (loyaltyPointsToRedeem / 10) * 100 : 0; // convert to cents: e.g. 100 points = ₹10 = 1000 cents
-  const walletValue = useWallet ? walletAmount : 0;
   const giftCardValue = appliedGiftCard 
-    ? Math.min(appliedGiftCard.current_balance, cartTotal * 100 - walletValue - pointsValue) 
+    ? Math.min(appliedGiftCard.current_balance, cartTotal * 100) 
     : 0;
 
-  const totalDiscount = walletValue + pointsValue + giftCardValue;
+  const totalDiscount = giftCardValue;
   const netPayable = Math.max(0, cartTotal * 100 - totalDiscount);
 
 
@@ -767,158 +734,47 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
               </div>
             </div>
 
-            {/* Unified Rewards Redemption Widget */}
-            {(wallet || (loyalty && loyalty.points >= 100)) && (
-              <div className="border border-ui-border-base rounded-xl p-6 bg-ui-bg-base flex flex-col gap-4 shadow-sm">
-                <Heading level="h2" className="text-lg font-bold border-b pb-2">Apply Customer Rewards</Heading>
-                
-                {/* Wallet balance */}
-                {wallet && wallet.balance > 0 && (
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <label className="flex items-center gap-2 text-sm font-semibold cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={useWallet}
-                          onChange={(e) => {
-                            setUseWallet(e.target.checked);
-                            if (e.target.checked) {
-                              const ptsVal = useLoyalty ? (loyaltyPointsToRedeem / 10) * 100 : 0;
-                              const maxApply = Math.min(wallet.balance, cartTotal * 100 - ptsVal);
-                              setWalletAmount(maxApply);
-                            } else {
-                              setWalletAmount(0);
-                            }
-                          }}
-                        />
-                        Apply Store Credit (Wallet)
-                      </label>
-                      <span className="text-sm font-semibold">{currencySymbol}{(wallet.balance / 100).toFixed(2)} available</span>
-                    </div>
-                    {useWallet && (
-                      <div className="pl-6 flex flex-col gap-1">
-                        <Text className="text-xs text-ui-fg-subtle">
-                          Applying {currencySymbol}{(walletAmount / 100).toFixed(2)} to this order.
-                        </Text>
-                        <input
-                          type="number"
-                          value={walletAmount}
-                          onChange={(e) => {
-                            const val = Math.min(wallet.balance, Number(e.target.value), cartTotal * 100 - (useLoyalty ? (loyaltyPointsToRedeem / 10) * 100 : 0));
-                            setWalletAmount(val);
-                          }}
-                          className="w-32 px-2 py-1 text-xs border border-ui-border-base rounded bg-ui-bg-field"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
+            {/* Gift Card code input */}
+            <div className="border border-ui-border-base rounded-xl p-6 bg-ui-bg-base flex flex-col gap-4 shadow-sm">
+              <Label className="font-semibold text-sm">Apply Gift Card Code</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="GC-XXXX-XXXX"
+                  value={giftCardCodeInput}
+                  onChange={(e) => setGiftCardCodeInput(e.target.value)}
+                  className="flex-1 text-sm font-mono"
+                />
+                <Button type="button" variant="secondary" onClick={handleApplyGiftCard}>
+                  Apply
+                </Button>
+              </div>
+              {giftCardError && (
+                <Text className="text-xs text-ui-fg-red font-semibold">{giftCardError}</Text>
+              )}
+              {giftCardSuccess && (
+                <Text className="text-xs text-green-600 font-semibold">{giftCardSuccess}</Text>
+              )}
 
-                {/* Loyalty points */}
-                {loyalty && loyalty.points >= 100 && (
-                  <div className="flex flex-col gap-2 border-t pt-3 mt-1">
-                    <div className="flex items-center justify-between">
-                      <label className="flex items-center gap-2 text-sm font-semibold cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={useLoyalty}
-                          onChange={(e) => {
-                            setUseLoyalty(e.target.checked);
-                            if (!e.target.checked) {
-                              setLoyaltyPointsToRedeem(0);
-                            }
-                          }}
-                        />
-                        Redeem Loyalty Points
-                      </label>
-                      <span className="text-sm font-semibold">{loyalty.points} points available</span>
-                    </div>
-                    {useLoyalty && (
-                      <div className="pl-6 flex flex-col gap-2">
-                        <div className="flex items-center gap-2 text-xs">
-                          <span>Use</span>
-                          <input
-                            type="number"
-                            min="100"
-                            max={loyalty.points}
-                            step="100"
-                            value={loyaltyPointsToRedeem}
-                            onChange={(e) => {
-                              const pts = Math.min(loyalty.points, Math.floor(Number(e.target.value) / 100) * 100);
-                              setLoyaltyPointsToRedeem(pts);
-                              if (useWallet) {
-                                const maxApply = Math.min(wallet.balance, cartTotal * 100 - (pts / 10) * 100);
-                                setWalletAmount(maxApply);
-                              }
-                            }}
-                            className="w-24 px-2 py-1 border border-ui-border-base rounded bg-ui-bg-field text-center font-mono"
-                          />
-                          <span>points for a discount of {currencySymbol}{(loyaltyPointsToRedeem / 10).toFixed(2)}.</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Gift Card code input */}
-                <div className="flex flex-col gap-2 border-t pt-3 mt-1">
-                  <Label className="font-semibold text-sm">Apply Gift Card Code</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="GC-XXXX-XXXX"
-                      value={giftCardCodeInput}
-                      onChange={(e) => setGiftCardCodeInput(e.target.value)}
-                      className="flex-1 text-sm font-mono"
-                    />
-                    <Button type="button" variant="secondary" onClick={handleApplyGiftCard}>
-                      Apply
-                    </Button>
-                  </div>
-                  {giftCardError && (
-                    <Text className="text-xs text-ui-fg-red font-semibold">{giftCardError}</Text>
-                  )}
-                  {giftCardSuccess && (
-                    <Text className="text-xs text-green-600 font-semibold">{giftCardSuccess}</Text>
-                  )}
-                </div>
-
-                {/* Applied summary & breakdown */}
+              {appliedGiftCard && (
                 <div className="bg-ui-bg-subtle p-4 rounded-lg mt-2 flex flex-col gap-1 text-xs border">
                   <div className="flex justify-between font-semibold border-b pb-1 mb-1">
                     <span>Summary of discounts</span>
                     <span>Values</span>
                   </div>
-                  {useWallet && walletAmount > 0 && (
-                    <div className="flex justify-between text-ui-fg-subtle">
-                      <span>Wallet Credit Applied:</span>
-                      <span>-{currencySymbol}{(walletAmount / 100).toFixed(2)}</span>
-                    </div>
-                  )}
-                  {useLoyalty && loyaltyPointsToRedeem > 0 && (
-                    <div className="flex justify-between text-ui-fg-subtle">
-                      <span>Loyalty Discount:</span>
-                      <span>-{currencySymbol}{(loyaltyPointsToRedeem / 10).toFixed(2)}</span>
-                    </div>
-                  )}
-                  {appliedGiftCard && (
-                    <div className="flex justify-between text-ui-fg-subtle">
-                      <span>Gift Card ({appliedGiftCard.code}):</span>
-                      <span>-{currencySymbol}{(Math.min(appliedGiftCard.current_balance, cartTotal * 100 - walletValue - pointsValue) / 100).toFixed(2)}</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between text-ui-fg-subtle">
+                    <span>Gift Card ({appliedGiftCard.code}):</span>
+                    <span>-{currencySymbol}{(Math.min(appliedGiftCard.current_balance, cartTotal * 100) / 100).toFixed(2)}</span>
+                  </div>
                   <div className="flex justify-between font-bold text-sm text-ui-fg-base pt-2 border-t mt-1">
                     <span>Remaining Payable Amount:</span>
                     <span>{currencySymbol}{(netPayable / 100).toFixed(2)}</span>
                   </div>
                 </div>
+              )}
 
-                {/* Hidden form fields to pass to the placeOrder server action */}
-                <input type="hidden" name="applied_wallet" value={useWallet ? walletAmount : 0} />
-                <input type="hidden" name="applied_points" value={useLoyalty ? loyaltyPointsToRedeem : 0} />
-                <input type="hidden" name="applied_gift_card" value={appliedGiftCard ? appliedGiftCard.code : ""} />
-                <input type="hidden" name="applied_gift_card_amount" value={appliedGiftCard ? Math.min(appliedGiftCard.current_balance, cartTotal * 100 - walletValue - pointsValue) : 0} />
-              </div>
-            )}
+              <input type="hidden" name="applied_gift_card" value={appliedGiftCard ? appliedGiftCard.code : ""} />
+              <input type="hidden" name="applied_gift_card_amount" value={appliedGiftCard ? Math.min(appliedGiftCard.current_balance, cartTotal * 100) : 0} />
+            </div>
 
             {/* Additional Notes */}
             <div className="border border-ui-border-base rounded-xl p-6 bg-ui-bg-base flex flex-col gap-4 shadow-sm">

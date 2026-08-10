@@ -32,7 +32,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     let reservation = null;
     if (cart_id && slot_time) {
-      reservation = await shopModuleService.createSlotReservation(cart_id, branch.id, slot_time);
+      reservation = await shopModuleService.reserveSlot(cart_id, branch.id, slot_time);
     }
 
     return res.status(200).json({ branch, reservation });

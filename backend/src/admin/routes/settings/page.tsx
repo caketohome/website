@@ -33,7 +33,6 @@ const SETTING_GROUPS = [
   "marketing",
   "feature_flags",
   "localization",
-  "ai",
   "platform",
 ];
 

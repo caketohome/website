@@ -355,7 +355,7 @@ class ShopModuleService extends MedusaService({
   /**
    * Temporary Slot Reservation Lock Service.
    */
-  async createSlotReservation(
+  async reserveSlot(
     cartId: string,
     branchId: string,
     slotTime: string

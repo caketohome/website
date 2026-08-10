@@ -11,7 +11,5 @@ export * from "./shops";
 export * from "./sessions";
 export * from "./users";
 export * from "./branches";
-export * from "./rewards";
-export * from "./rewards-client";
 export * from "./marketing";
 export * from "./marketing-client";

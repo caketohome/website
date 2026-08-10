@@ -15,6 +15,13 @@ build/
 .env.*
 !.env.template
 !.env.example
+
+# Temporary test exports and downloads
+temp-downloads/
+tmp_report_exports/
+**/temp-downloads/
+**/tmp_report_exports/
+
 backend/.env
 backend/.env.*
 !backend/.env.template

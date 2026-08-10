@@ -29,11 +29,11 @@ const OTP_RESEND_COOLDOWN_MS = 30 * 1000; // 30 seconds
  * The Medusa core customer entity is created lazily on first successful
  * verification and linked via `customer_id` on the `customer_phone` row.
  */
-class CustomerModuleService extends MedusaService({
+class CustomerModuleService extends (MedusaService({
     CustomerPhone,
     CustomerAddress,
     LoginEvent,
-}) {
+}) as any) {
     /**
      * Generate a 6-digit OTP, store its hash + expiry, and dispatch it via
      * the notification module's SMS provider.

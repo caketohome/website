@@ -220,16 +220,22 @@ class CakeToHomeApiClient {
     });
   }
 
-  async applyPromoCode(cartId: string, promoCode: string, appliedCoupons: string[] = []) {
+  async applyPromoCode(cartId: string, promoCode: string, context?: any) {
     return this.request("/cart/promo", {
       method: "POST",
-      body: JSON.stringify({ cartId, promoCode }),
+      body: JSON.stringify({ cartId, promoCode, context }),
     });
   }
 
   // Checkout & Orders APIs (/api/v1/orders)
   async createOrder(orderPayload: any) {
     return this.request("/orders", {
+      method: "POST",
+      body: JSON.stringify(orderPayload),
+    });
+  }
+  async createAdminOrder(orderPayload: any) {
+    return this.request("/admin/orders", {
       method: "POST",
       body: JSON.stringify(orderPayload),
     });
@@ -256,15 +262,83 @@ class CakeToHomeApiClient {
     });
   }
 
-  // ── Admin: Orders ──
-  async getAdminOrders() {
-    return this.request("/admin/orders").catch(() => ({ orders: [] }));
+  // ── Admin: Orders Command Center ──
+  async getAdminOrders(params?: { q?: string; status?: string; branch_id?: string; city?: string; payment_status?: string; from_date?: string; to_date?: string; limit?: number; offset?: number }) {
+    const query = new URLSearchParams();
+    if (params?.q) query.set("q", params.q);
+    if (params?.status) query.set("status", params.status);
+    if (params?.branch_id) query.set("branch_id", params.branch_id);
+    if (params?.city) query.set("city", params.city);
+    if (params?.payment_status) query.set("payment_status", params.payment_status);
+    if (params?.from_date) query.set("from_date", params.from_date);
+    if (params?.to_date) query.set("to_date", params.to_date);
+    if (params?.limit) query.set("limit", String(params.limit));
+    if (params?.offset) query.set("offset", String(params.offset));
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    return this.request(`/admin/orders${qs}`).catch(() => ({ orders: [], count: 0, total: 0 }));
   }
   async getAdminOrder(id: string) {
     return this.request(`/admin/orders/${id}`).catch(() => null);
   }
-  async updateOrderStatus(id: string, status: string) {
-    return this.request(`/admin/order-lifecycle/${id}/status`, { method: "PUT", body: JSON.stringify({ status }) }).catch(() => null);
+  async getAdminOrderDetails(id: string) {
+    return this.request(`/admin/orders/${id}`).then((r: any) => r?.order || null).catch(() => null);
+  }
+  async updateOrderStatus(id: string, status: string, notes?: string) {
+    return this.request(`/admin/orders/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status, notes }),
+    }).catch(() => null);
+  }
+  async assignAdminOrderBranch(id: string, branchId: string, branchName?: string) {
+    return this.request(`/admin/orders/${id}/assign-branch`, {
+      method: "PUT",
+      body: JSON.stringify({ branch_id: branchId, branch_name: branchName }),
+    });
+  }
+  async getAdminDeliveryPartners(branchId?: string) {
+    const qs = branchId ? `?branch_id=${branchId}` : "";
+    return this.request(`/admin/delivery/partners${qs}`).catch(() => ({ partners: [], count: 0 }));
+  }
+  async autoAssignAdminOrderDelivery(id: string) {
+    return this.request(`/admin/orders/${id}/auto-assign-delivery`, {
+      method: "PUT",
+    });
+  }
+  async assignAdminOrderDelivery(id: string, driverName: string, driverPhone?: string) {
+    return this.request(`/admin/orders/${id}/assign-delivery`, {
+      method: "PUT",
+      body: JSON.stringify({ driver_name: driverName, driver_phone: driverPhone }),
+    });
+  }
+  async rescheduleAdminOrder(id: string, deliveryDate: string, timeSlot: string) {
+    return this.request(`/admin/orders/${id}/reschedule`, {
+      method: "PUT",
+      body: JSON.stringify({ delivery_date: deliveryDate, time_slot: timeSlot }),
+    });
+  }
+  async cancelAdminOrder(id: string, reason?: string) {
+    return this.request(`/admin/orders/${id}/cancel`, {
+      method: "PUT",
+      body: JSON.stringify({ reason }),
+    });
+  }
+  async refundAdminOrder(id: string, amount?: number, reason?: string) {
+    return this.request(`/admin/orders/${id}/refund`, {
+      method: "PUT",
+      body: JSON.stringify({ amount, reason }),
+    });
+  }
+  async exportAdminOrders(params?: { q?: string; status?: string; branch_id?: string; city?: string; payment_status?: string; from_date?: string; to_date?: string }) {
+    const query = new URLSearchParams();
+    if (params?.q) query.set("q", params.q);
+    if (params?.status) query.set("status", params.status);
+    if (params?.branch_id) query.set("branch_id", params.branch_id);
+    if (params?.city) query.set("city", params.city);
+    if (params?.payment_status) query.set("payment_status", params.payment_status);
+    if (params?.from_date) query.set("from_date", params.from_date);
+    if (params?.to_date) query.set("to_date", params.to_date);
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    return this.request(`/admin/orders/export${qs}`).catch(() => ({ export_data: [] }));
   }
 
   // ── Admin: Catalog ──
@@ -314,23 +388,64 @@ class CakeToHomeApiClient {
   async updateAdminWeight(id: string, data: any) {
     return this.request(`/admin/variants/options/${id}`, { method: "PUT", body: JSON.stringify(data) });
   }
-  async deleteAdminWeight(id: string) {
-    return this.request(`/admin/variants/options/${id}`, { method: "DELETE" });
+  // ── Admin: Flavors Master CRUD ──
+  async getAdminFlavors(query?: string) {
+    const q = query ? `?q=${encodeURIComponent(query)}` : "";
+    return this.request(`/admin/catalog/flavors${q}`).catch(() => ({ flavors: [] }));
+  }
+  async createAdminFlavor(data: any) {
+    return this.request("/admin/catalog/flavors", { method: "POST", body: JSON.stringify(data) });
+  }
+  async updateAdminFlavor(id: string, data: any) {
+    return this.request(`/admin/catalog/flavors/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  }
+  async patchAdminFlavorStatus(id: string, data: any) {
+    return this.request(`/admin/catalog/flavors/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+  }
+  async deleteAdminFlavor(id: string, force = false) {
+    return this.request(`/admin/catalog/flavors/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
   }
 
-  // ── Admin: Master Variant Options ──
-  async getAdminVariantOptions(type?: string) {
-    const query = type ? `?type=${type}` : "";
-    return this.request(`/admin/variants/options${query}`).catch(() => ({ options: [] }));
+  // ── Admin: Shapes Master CRUD ──
+  async getAdminShapes(query?: string) {
+    const q = query ? `?q=${encodeURIComponent(query)}` : "";
+    return this.request(`/admin/catalog/shapes${q}`).catch(() => ({ shapes: [] }));
   }
-  async createAdminVariantOption(data: any) {
-    return this.request("/admin/variants/options", { method: "POST", body: JSON.stringify(data) });
+  async createAdminShape(data: any) {
+    return this.request("/admin/catalog/shapes", { method: "POST", body: JSON.stringify(data) });
   }
-  async updateAdminVariantOption(id: string, data: any) {
-    return this.request(`/admin/variants/options/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  async updateAdminShape(id: string, data: any) {
+    return this.request(`/admin/catalog/shapes/${id}`, { method: "PUT", body: JSON.stringify(data) });
   }
-  async deleteAdminVariantOption(id: string) {
-    return this.request(`/admin/variants/options/${id}`, { method: "DELETE" });
+  async patchAdminShapeStatus(id: string, data: any) {
+    return this.request(`/admin/catalog/shapes/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+  }
+  async deleteAdminShape(id: string, force = false) {
+    return this.request(`/admin/catalog/shapes/${id}${force ? "?force=true" : ""}`, { method: "DELETE" });
+  }
+
+  // ── Admin: Product Flavor & Shape Mappings ──
+  async getProductFlavorMappings(productId: string) {
+    return this.request(`/admin/catalog/products/${productId}/flavor-mappings`).catch(() => ({ flavor_mappings: [] }));
+  }
+  async saveProductFlavorMappings(productId: string, mappings: any[]) {
+    return this.request(`/admin/catalog/products/${productId}/flavor-mappings`, { method: "POST", body: JSON.stringify({ mappings }) });
+  }
+  async getProductShapeMappings(productId: string) {
+    return this.request(`/admin/catalog/products/${productId}/shape-mappings`).catch(() => ({ shape_mappings: [] }));
+  }
+  async saveProductShapeMappings(productId: string, mappings: any[]) {
+    return this.request(`/admin/catalog/products/${productId}/shape-mappings`, { method: "POST", body: JSON.stringify({ mappings }) });
+  }
+
+  // ── Storefront: Dynamic Product Options ──
+  async getStorefrontProductOptions(productId: string) {
+    return this.request(`/store/catalog/products/${productId}/options`).catch(() => ({
+      enable_flavor_selection: true,
+      enable_shape_selection: true,
+      flavors: [],
+      shapes: [],
+    }));
   }
 
   // ── Product Weight Pricing Matrix ──
@@ -341,24 +456,11 @@ class CakeToHomeApiClient {
     return this.request(`/admin/products/${productId}/weight-prices`, { method: "POST", body: JSON.stringify({ weight_prices: weightPrices }) });
   }
 
-  // ── Admin: Branches ──
-  async getAdminBranches() {
-    return this.request("/admin/branches").catch(() => ({ branches: [] }));
-  }
   async getAdminCities() {
     return this.request("/admin/cities").catch(() => ({ cities: [] }));
   }
   async getAdminRegions() {
     return this.request("/admin/regions").catch(() => ({ regions: [] }));
-  }
-  async createAdminBranch(branchData: any) {
-    return this.request("/admin/branches", { method: "POST", body: JSON.stringify(branchData) });
-  }
-  async updateAdminBranch(id: string, branchData: any) {
-    return this.request(`/admin/branches/${id}`, { method: "PUT", body: JSON.stringify(branchData) });
-  }
-  async deleteAdminBranch(id: string) {
-    return this.request(`/admin/branches/${id}`, { method: "DELETE" });
   }
   async saveBranchZone(branchId: string, zoneData: any) {
     return this.request("/admin/branches", { method: "POST", body: JSON.stringify({ type: "delivery_zone", branchId, zoneData }) });
@@ -391,15 +493,65 @@ class CakeToHomeApiClient {
     return this.request("/admin/regions", { method: "POST", body: JSON.stringify({ name }) });
   }
 
-  // ── Admin: Delivery ──
+  // ── Admin: Delivery Partners & Fleet ──
   async getAdminDeliveries() {
     return this.request("/admin/delivery").catch(() => ({ deliveries: [] }));
   }
-  async getAdminDeliveryPartners() {
-    return this.request("/admin/delivery/partners").catch(() => ({ partners: [] }));
+  async getAdminDeliveryPartners(params?: Record<string, any>) {
+    const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+    return this.request(`/admin/delivery/partners${qs}`).catch(() => ({ partners: [] }));
+  }
+  async getDeliveryPartnerDetails(id: string) {
+    return this.request(`/admin/delivery/partners/${id}`);
   }
   async createAdminDeliveryPartner(partnerData: any) {
     return this.request("/admin/delivery/partners", { method: "POST", body: JSON.stringify(partnerData) });
+  }
+  async updateAdminDeliveryPartner(id: string, data: any) {
+    return this.request(`/admin/delivery/partners/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  }
+  async deactivateAdminDeliveryPartner(id: string, reason?: string) {
+    return this.request(`/admin/delivery/partners/${id}`, { method: "DELETE", body: JSON.stringify({ reason }) });
+  }
+  async updatePartnerAvailability(id: string, availabilityStatus: string, reason?: string) {
+    return this.request(`/admin/delivery/partners/${id}/availability`, { method: "PUT", body: JSON.stringify({ availability_status: availabilityStatus, reason }) });
+  }
+  async updatePartnerWorkingHours(id: string, workingHours: any) {
+    return this.request(`/admin/delivery/partners/${id}/working-hours`, { method: "PUT", body: JSON.stringify({ working_hours: workingHours }) });
+  }
+  async updatePartnerBranches(id: string, branches: any) {
+    return this.request(`/admin/delivery/partners/${id}/branches`, { method: "PUT", body: JSON.stringify({ associated_branches: branches }) });
+  }
+  async updatePartnerCoverage(id: string, coverage: any) {
+    return this.request(`/admin/delivery/partners/${id}/coverage`, { method: "PUT", body: JSON.stringify({ coverage }) });
+  }
+  async getEligibleDeliveryPartners(params: Record<string, any>) {
+    const qs = "?" + new URLSearchParams(params).toString();
+    return this.request(`/admin/delivery/eligible-partners${qs}`);
+  }
+  async autoAssignOrderDelivery(orderId: string) {
+    return this.request(`/admin/orders/${orderId}/auto-assign-delivery`, { method: "POST" });
+  }
+  async manualAssignOrderDelivery(orderId: string, partnerId: string, reason?: string) {
+    return this.request(`/admin/orders/${orderId}/assign-delivery`, { method: "PUT", body: JSON.stringify({ delivery_partner_id: partnerId, reason }) });
+  }
+  async reassignOrderDelivery(orderId: string, partnerId: string, reason?: string) {
+    return this.request(`/admin/orders/${orderId}/reassign-delivery`, { method: "PUT", body: JSON.stringify({ delivery_partner_id: partnerId, reason }) });
+  }
+  async unassignOrderDelivery(orderId: string, reason?: string) {
+    return this.request(`/admin/orders/${orderId}/unassign-delivery`, { method: "DELETE", body: JSON.stringify({ reason }) });
+  }
+  async getDeliveryAssignmentRules() {
+    return this.request("/admin/delivery/assignment-rules");
+  }
+  async updateDeliveryAssignmentRules(rules: any) {
+    return this.request("/admin/delivery/assignment-rules", { method: "PUT", body: JSON.stringify(rules) });
+  }
+  async getBranchDeliveryCoverage(branchId: string) {
+    return this.request(`/admin/branches/${branchId}/delivery-coverage`);
+  }
+  async getPartnerEffectiveCoverage(partnerId: string) {
+    return this.request(`/admin/delivery-partners/${partnerId}/effective-coverage`);
   }
   async updateAdminDeliveryStatus(id: string, status: string) {
     return this.request(`/admin/delivery/jobs/${id}`, { method: "PUT", body: JSON.stringify({ status }) });
@@ -417,8 +569,12 @@ class CakeToHomeApiClient {
   async getAdminCampaigns() {
     return this.request("/admin/marketing/campaigns").catch(() => ({ campaigns: [] }));
   }
-  async getAdminOffers() {
-    return this.request("/admin/offers").catch(() => ({ offers: [] }));
+  async getAdminOffers(params?: Record<string, any>) {
+    const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+    return this.request(`/admin/offers${qs}`).catch(() => ({ offers: [] }));
+  }
+  async getAdminOfferById(id: string) {
+    return this.request(`/admin/offers/${id}`);
   }
   async createAdminOffer(offerData: any) {
     return this.request("/admin/offers", { method: "POST", body: JSON.stringify(offerData) });
@@ -429,27 +585,26 @@ class CakeToHomeApiClient {
   async deleteAdminOffer(id: string) {
     return this.request(`/admin/offers/${id}`, { method: "DELETE" });
   }
+  async cloneAdminOffer(id: string) {
+    return this.request(`/admin/offers/${id}/clone`, { method: "POST" });
+  }
+  async getAdminOfferAuditLogs(id: string) {
+    return this.request(`/admin/offers/${id}/audit-logs`).catch(() => ({ logs: [] }));
+  }
+  async getAdminCouponAnalytics() {
+    return this.request("/admin/offers/analytics").catch(() => ({ analytics: null }));
+  }
+  async getAdminCouponReports(groupBy: string = "date") {
+    return this.request(`/admin/offers/reports?group_by=${groupBy}`).catch(() => ({ reports: [] }));
+  }
+  async exportAdminCoupons(format: string = "csv", type: string = "coupons") {
+    return this.request(`/admin/offers/export?format=${format}&type=${type}`);
+  }
+  async importAdminCoupons(payload: any) {
+    return this.request("/admin/offers/import", { method: "POST", body: JSON.stringify(payload) });
+  }
   async createAdminCampaign(campaignData: any) {
     return this.request("/admin/marketing/campaigns", { method: "POST", body: JSON.stringify(campaignData) });
-  }
-
-  // ── Admin: Rewards ──
-  async getAdminLoyaltyLedgers() {
-    return this.request("/admin/rewards/loyalty/ledgers").catch(() => ({ ledgers: [] }));
-  }
-  async getAdminReferralPrograms() {
-    return this.request("/admin/rewards/referrals/programs").catch(() => ({ programs: [] }));
-  }
-  async getAdminWalletTransactions() {
-    return this.request("/admin/rewards/wallets/transactions").catch(() => ({ transactions: [] }));
-  }
-
-  // ── Admin: A/B Testing ──
-  async getAdminAbTests() {
-    return this.request("/admin/ab-testing").catch(() => ({ experiments: [] }));
-  }
-  async createAdminAbTest(expData: any) {
-    return this.request("/admin/ab-testing", { method: "POST", body: JSON.stringify(expData) });
   }
 
   // ── Admin: Automation ──
@@ -482,6 +637,18 @@ class CakeToHomeApiClient {
   async deleteCmsPage(id: string) {
     return this.request(`/cms/pages/${id}`, { method: "DELETE" });
   }
+  async publishCmsPage(id: string) {
+    return this.request(`/cms/pages/${id}/publish`, { method: "POST" });
+  }
+  async unpublishCmsPage(id: string) {
+    return this.request(`/cms/pages/${id}/unpublish`, { method: "POST" });
+  }
+  async getPageVersions(id: string) {
+    return this.request(`/cms/pages/${id}/versions`).catch(() => ({ versions: [] }));
+  }
+  async validatePageConfig(config: any) {
+    return this.request("/cms/pages/validate", { method: "POST", body: JSON.stringify(config) }).catch(() => ({ valid: true, errors: [], warnings: [] }));
+  }
   async getCmsForms(type?: string) {
     const q = type ? `?type=${type}` : "";
     return this.request(`/cms/forms${q}`).catch(() => ({ submissions: [] }));
@@ -492,8 +659,18 @@ class CakeToHomeApiClient {
   async getAdminCmsBlocks() {
     return this.request("/admin/cms/blocks").catch(() => ({ blocks: [] }));
   }
-  async getAdminMedia() {
-    return this.request("/admin/media").catch(() => ({ media: [] }));
+  async getAdminMedia(folder?: string) {
+    const q = folder ? `?folder=${folder}` : "";
+    return this.request(`/admin/media${q}`).catch(() => ({ media: [] }));
+  }
+  async createAdminMedia(data: any) {
+    return this.request("/admin/media", { method: "POST", body: JSON.stringify(data) });
+  }
+  async uploadMedia(payload: { name?: string; filename: string; dataUrl?: string; url?: string; mime_type?: string; size?: number; alt_text?: string; folder?: string }) {
+    return this.request("/admin/media/upload", { method: "POST", body: JSON.stringify(payload) });
+  }
+  async deleteAdminMedia(id: string) {
+    return this.request(`/admin/media/${id}`, { method: "DELETE" });
   }
 
   // ── Admin: Analytics & Reports ──
@@ -531,9 +708,6 @@ class CakeToHomeApiClient {
   async getAdminSecurityConfig() {
     return this.request("/admin/security").catch(() => ({ config: {} }));
   }
-  async getAdminHealth() {
-    return this.request("/admin/health").catch(() => ({ status: "operational" }));
-  }
 
   // ── Admin: SEO & Digital Marketing ──
   async getAdminSeoConfig() {
@@ -541,6 +715,197 @@ class CakeToHomeApiClient {
   }
   async updateAdminSeoConfig(seoData: any) {
     return this.request("/admin/marketing/seo", { method: "POST", body: JSON.stringify(seoData) }).catch(() => ({ success: false }));
+  }
+
+  // ── Enterprise SEO Platform APIs ──
+  async getSeoDashboardSummary() {
+    return this.request("/admin/seo/dashboard").catch(() => null);
+  }
+  async getSeoPages(params?: any) {
+    const q = params ? `?${new URLSearchParams(params).toString()}` : "";
+    return this.request(`/admin/seo/pages${q}`).catch(() => ({ pages: [] }));
+  }
+  async createSeoPage(data: any) {
+    return this.request("/admin/seo/pages", { method: "POST", body: JSON.stringify(data) });
+  }
+  async updateSeoPage(id: string, data: any) {
+    return this.request(`/admin/seo/pages/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  }
+  async deleteSeoPage(id: string) {
+    return this.request(`/admin/seo/pages/${id}`, { method: "DELETE" });
+  }
+  async syncSeoPages() {
+    return this.request("/admin/seo/pages/sync", { method: "POST" });
+  }
+  async getSeoKeywords() {
+    return this.request("/admin/seo/keywords").catch(() => ({ keywords: [] }));
+  }
+  async createSeoKeyword(data: any) {
+    return this.request("/admin/seo/keywords", { method: "POST", body: JSON.stringify(data) });
+  }
+  async updateSeoKeyword(id: string, data: any) {
+    return this.request(`/admin/seo/keywords/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  }
+  async deleteSeoKeyword(id: string) {
+    return this.request(`/admin/seo/keywords/${id}`, { method: "DELETE" });
+  }
+  async getSeoRedirects() {
+    return this.request("/admin/seo/redirects").catch(() => ({ redirects: [] }));
+  }
+  async createSeoRedirect(data: any) {
+    return this.request("/admin/seo/redirects", { method: "POST", body: JSON.stringify(data) });
+  }
+  async updateSeoRedirect(id: string, data: any) {
+    return this.request(`/admin/seo/redirects/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  }
+  async deleteSeoRedirect(id: string) {
+    return this.request(`/admin/seo/redirects/${id}`, { method: "DELETE" });
+  }
+  async getSeoBrokenLinks() {
+    return this.request("/admin/seo/broken-links").catch(() => ({ broken_links: [] }));
+  }
+  async runBrokenLinkScan() {
+    return this.request("/admin/seo/broken-links/scan", { method: "POST" });
+  }
+  async getSeoInternalLinks() {
+    return this.request("/admin/seo/internal-links").catch(() => ({ internal_links: [] }));
+  }
+  async getSeoInternalLinkSuggestions() {
+    return this.request("/admin/seo/internal-links/suggestions").catch(() => ({ suggestions: [] }));
+  }
+  async getSeoSchemaTemplates() {
+    return this.request("/admin/seo/schema/templates").catch(() => ({ templates: [] }));
+  }
+  async createSeoSchemaTemplate(data: any) {
+    return this.request("/admin/seo/schema/templates", { method: "POST", body: JSON.stringify(data) });
+  }
+  async validateJsonLd(jsonLd: string) {
+    return this.request("/admin/seo/schema/validate", { method: "POST", body: JSON.stringify({ json_ld: jsonLd }) });
+  }
+  async getSeoImageAudits() {
+    return this.request("/admin/seo/image-audits").catch(() => ({ image_audits: [] }));
+  }
+  async runImageAudit() {
+    return this.request("/admin/seo/image-audits/scan", { method: "POST" });
+  }
+  async getSeoCompetitors() {
+    return this.request("/admin/seo/competitors").catch(() => ({ competitors: [] }));
+  }
+  async createSeoCompetitor(data: any) {
+    return this.request("/admin/seo/competitors", { method: "POST", body: JSON.stringify(data) });
+  }
+  async deleteSeoCompetitor(id: string) {
+    return this.request(`/admin/seo/competitors/${id}`, { method: "DELETE" });
+  }
+  async getSeoGeoPages() {
+    return this.request("/admin/seo/geo/pages").catch(() => ({ geo_pages: [] }));
+  }
+  async generateGeoLandingPage(data: any) {
+    return this.request("/admin/seo/geo/generate", { method: "POST", body: JSON.stringify(data) });
+  }
+  async getSeoAeoEntries() {
+    return this.request("/admin/seo/aeo/entries").catch(() => ({ aeo_entries: [] }));
+  }
+  async createSeoAeoEntry(data: any) {
+    return this.request("/admin/seo/aeo/entries", { method: "POST", body: JSON.stringify(data) });
+  }
+  async deleteSeoAeoEntry(id: string) {
+    return this.request(`/admin/seo/aeo/entries/${id}`, { method: "DELETE" });
+  }
+  async getSeoContentAudits() {
+    return this.request("/admin/seo/content-audits").catch(() => ({ content_audits: [] }));
+  }
+  async runContentAudit() {
+    return this.request("/admin/seo/content-audits/scan", { method: "POST" });
+  }
+  async getSeoPageSpeed() {
+    return this.request("/admin/seo/page-speed").catch(() => ({ page_speed: [] }));
+  }
+  async recordSeoPageSpeed(data: any) {
+    return this.request("/admin/seo/page-speed", { method: "POST", body: JSON.stringify(data) });
+  }
+  async getSeoUtmCampaigns() {
+    return this.request("/admin/seo/utm-campaigns").catch(() => ({ utm_campaigns: [] }));
+  }
+  async createSeoUtmCampaign(data: any) {
+    return this.request("/admin/seo/utm-campaigns", { method: "POST", body: JSON.stringify(data) });
+  }
+  async deleteSeoUtmCampaign(id: string) {
+    return this.request(`/admin/seo/utm-campaigns/${id}`, { method: "DELETE" });
+  }
+  async getSeoRobotsHistory() {
+    return this.request("/admin/seo/robots/history").catch(() => ({ robots_history: [] }));
+  }
+  async saveRobotsVersion(data: any) {
+    return this.request("/admin/seo/robots/save", { method: "POST", body: JSON.stringify(data) });
+  }
+  async rollbackRobotsVersion(id: string) {
+    return this.request("/admin/seo/robots/rollback", { method: "POST", body: JSON.stringify({ id }) });
+  }
+  async getSeoBacklinks() {
+    return this.request("/admin/seo/backlinks").catch(() => ({ backlinks: [] }));
+  }
+  async createSeoBacklink(data: any) {
+    return this.request("/admin/seo/backlinks", { method: "POST", body: JSON.stringify(data) });
+  }
+  async getSeoReports() {
+    return this.request("/admin/seo/reports").catch(() => ({ reports: [] }));
+  }
+  async generateSeoReport(type: string = "overall") {
+    return this.request("/admin/seo/reports/generate", { method: "POST", body: JSON.stringify({ type }) });
+  }
+  async generateSeoHealthReport() {
+    return this.request("/admin/seo/health-reports/generate", { method: "POST" });
+  }
+  async getSeoAuditLogs() {
+    return this.request("/admin/seo/audit-logs").catch(() => ({ audit_logs: [] }));
+  }
+  async generateAiSeoContent(type: string, context: any) {
+    return this.request("/admin/seo/ai/generate", { method: "POST", body: JSON.stringify({ type, context }) });
+  }
+
+  // ── Advanced Enterprise SEO Platform Client APIs ──
+  async getSeoSearchConsoleData() {
+    return this.request("/admin/seo/integrations/gsc").catch(() => ({ connected: false }));
+  }
+  async getSeoGa4Data() {
+    return this.request("/admin/seo/integrations/ga4").catch(() => ({ connected: false }));
+  }
+  async submitBingUrl(url: string) {
+    return this.request("/admin/seo/integrations/bing/submit", { method: "POST", body: JSON.stringify({ url }) });
+  }
+  async publishGoogleIndexingUrl(url: string, type: "URL_UPDATED" | "URL_DELETED" = "URL_UPDATED") {
+    return this.request("/admin/seo/integrations/indexing/publish", { method: "POST", body: JSON.stringify({ url, type }) });
+  }
+  async runLiveCrawler(urls?: string[]) {
+    return this.request("/admin/seo/crawler/run", { method: "POST", body: JSON.stringify({ urls }) });
+  }
+  async getSeoAuditIssues() {
+    return this.request("/admin/seo/audits/issues").catch(() => ({ issues: [] }));
+  }
+  async autoFixSeoIssue(issueId: string) {
+    return this.request("/admin/seo/audits/autofix", { method: "POST", body: JSON.stringify({ issue_id: issueId }) });
+  }
+  async getSeoLinkGraph() {
+    return this.request("/admin/seo/links/graph").catch(() => ({ metrics: [], orphanCount: 0 }));
+  }
+  async getSeoDuplicates() {
+    return this.request("/admin/seo/duplicates").catch(() => ({ duplicates: [] }));
+  }
+  async validateSeoRedirects() {
+    return this.request("/admin/seo/redirects/validate").catch(() => ({ validation: [] }));
+  }
+  async validateRobotsSyntax(content?: string) {
+    return this.request("/admin/seo/robots/validate", { method: "POST", body: JSON.stringify({ content }) });
+  }
+  async validateSitemapXml(xml?: string) {
+    return this.request("/admin/seo/sitemap/validate", { method: "POST", body: JSON.stringify({ xml }) });
+  }
+  async getSeoKeywordTrajectories() {
+    return this.request("/admin/seo/keywords/trajectories").catch(() => ({ trajectories: [], topGainers: [], topLosers: [] }));
+  }
+  async checkSeoPermission(role: string, action: string) {
+    return this.request("/admin/seo/rbac/check", { method: "POST", body: JSON.stringify({ role, action }) });
   }
   async getAdminImageAltTexts() {
     return this.request("/admin/cms/image-alt-texts").catch(() => ({ alt_texts: [] }));
@@ -594,6 +959,22 @@ class CakeToHomeApiClient {
 
   async getAdminBranches() {
     return this.request("/admin/branches").catch(() => ({ branches: [], cityAreas: [] }));
+  }
+
+  async getDeliverySlots(branchId: string, date: string) {
+    return this.request(`/branches?type=slots&branchId=${branchId}&date=${encodeURIComponent(date)}`).catch(() => ({ delivery_slots: [] }));
+  }
+
+  async getEligibleBranches(params: { pincode?: string; city?: string; area?: string }) {
+    const q = new URLSearchParams();
+    if (params.pincode) q.append("pincode", params.pincode);
+    if (params.city) q.append("city", params.city);
+    if (params.area) q.append("area", params.area);
+    return this.request(`/branches/eligible?${q.toString()}`).catch(() => ({ branches: [], assignment: { mode: "unserviceable", message: "No CakeToHome branch currently services this location." } }));
+  }
+
+  async lookupCustomer(phone: string) {
+    return this.request(`/customers/lookup?phone=${encodeURIComponent(phone)}`).catch(() => ({ customer: null, found: false }));
   }
 
   async createAdminBranch(data: any) {

@@ -13,14 +13,6 @@ import { DashboardErrorBoundary } from "@frontend/components/dashboard/admin/err
 // Each panel displays a smooth skeleton loader while loading.
 // ---------------------------------------------------------------------------
 
-const OverviewPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/overview-panel").then((mod) => mod.OverviewPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
-);
-const AdminAiAssistantPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/admin-ai-assistant-panel").then((mod) => mod.AdminAiAssistantPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
-);
 const OrdersPanel = dynamic(
   () => import("@frontend/components/dashboard/admin/orders-panel").then((mod) => mod.OrdersPanel),
   { ssr: false, loading: () => <DashboardPanelSkeleton /> }
@@ -37,6 +29,10 @@ const DeliveryPanel = dynamic(
   () => import("@frontend/components/dashboard/admin/delivery-panel").then((mod) => mod.DeliveryPanel),
   { ssr: false, loading: () => <DashboardPanelSkeleton /> }
 );
+const TaxMasterPanel = dynamic(
+  () => import("@frontend/components/dashboard/admin/tax-master-panel").then((mod) => mod.TaxMasterPanel),
+  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+);
 const CrmPanel = dynamic(
   () => import("@frontend/components/dashboard/admin/crm-panel").then((mod) => mod.CrmPanel),
   { ssr: false, loading: () => <DashboardPanelSkeleton /> }
@@ -49,16 +45,8 @@ const SeoPanel = dynamic(
   () => import("@frontend/components/dashboard/admin/seo-panel").then((mod) => mod.SeoPanel),
   { ssr: false, loading: () => <DashboardPanelSkeleton /> }
 );
-const AbTestingPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/ab-testing-panel").then((mod) => mod.AbTestingPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
-);
 const MarketingAutomationPanel = dynamic(
   () => import("@frontend/components/dashboard/admin/marketing-automation-panel").then((mod) => mod.MarketingAutomationPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
-);
-const RewardsPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/rewards-panel").then((mod) => mod.RewardsPanel),
   { ssr: false, loading: () => <DashboardPanelSkeleton /> }
 );
 const CmsPanel = dynamic(
@@ -79,18 +67,15 @@ const SettingsPanel = dynamic(
 );
 
 const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
-  overview: OverviewPanel,
-  ai_agent: AdminAiAssistantPanel,
   orders: OrdersPanel,
   catalog: CatalogPanel,
   branches: BranchesPanel,
   delivery: DeliveryPanel,
+  tax_master: TaxMasterPanel,
   crm: CrmPanel,
   marketing: MarketingPanel,
   seo: SeoPanel,
-  ab_testing: AbTestingPanel,
   automation: MarketingAutomationPanel,
-  rewards: RewardsPanel,
   cms: CmsPanel,
   analytics: AnalyticsPanel,
   notifications: NotificationsPanel,
@@ -98,7 +83,7 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
 };
 
 export default function SuperAdminDashboardPage() {
-  const [activeTab, setActiveTab] = useState<AdminTabId>("overview");
+  const [activeTab, setActiveTab] = useState<AdminTabId>("orders");
 
   useEffect(() => {
     console.log("[Dashboard Init Step 1: Initializing SuperAdminDashboardPage]");
@@ -108,7 +93,7 @@ export default function SuperAdminDashboardPage() {
         console.log(`[Dashboard Init Step 2: Tab selection from URL parameter -> "${p}"]`);
         setActiveTab(p);
       } else {
-        console.log("[Dashboard Init Step 2: Default active tab -> 'overview']");
+        console.log("[Dashboard Init Step 2: Default active tab -> 'orders']");
       }
     }
   }, []);
@@ -125,9 +110,9 @@ export default function SuperAdminDashboardPage() {
   const ActivePanel = PANEL_MAP[activeTab];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full">
       <div className="flex flex-col gap-1">
-        <Heading level="h1" className="text-2xl">
+        <Heading level="h1" className="text-2xl font-bold">
           🛡️ Super Admin Control Panel
         </Heading>
         <Text className="text-ui-fg-subtle text-sm">

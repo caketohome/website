@@ -8,6 +8,7 @@ import { PimEditorModal } from "./pim-editor-modal";
 import { CategoriesPanel } from "./categories-panel";
 import { AccessoriesManagementPanel } from "./accessories-management-panel";
 import { CrossSellRulesPanel } from "./cross-sell-rules-panel";
+import { VariantsManagementPanel } from "./variants-management-panel";
 
 import { GridSkeleton } from "./admin-skeletons";
 import { WidgetErrorBoundary } from "./error-boundary";
@@ -18,7 +19,7 @@ export const CatalogPanel = memo(function CatalogPanel() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"products" | "categories" | "accessories" | "rules">("products");
+  const [tab, setTab] = useState<"products" | "categories" | "accessories" | "rules" | "variants">("products");
   
   // PIM Modal State
   const [showPimModal, setShowPimModal] = useState(false);
@@ -132,6 +133,13 @@ export const CatalogPanel = memo(function CatalogPanel() {
           >
             ⚡ Cross-Sell Rules
           </Badge>
+          <Badge
+            color={tab === "variants" ? "purple" : "grey"}
+            className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold"
+            onClick={() => setTab("variants")}
+          >
+            🍫 Flavors &amp; Shapes
+          </Badge>
 
           {tab === "products" && (
             <div className="flex items-center gap-2">
@@ -165,6 +173,10 @@ export const CatalogPanel = memo(function CatalogPanel() {
       ) : tab === "rules" ? (
         <WidgetErrorBoundary moduleName="Cross-Sell Rules Sub-Panel" compact>
           <CrossSellRulesPanel />
+        </WidgetErrorBoundary>
+      ) : tab === "variants" ? (
+        <WidgetErrorBoundary moduleName="Flavor & Shape Masters Sub-Panel" compact>
+          <VariantsManagementPanel />
         </WidgetErrorBoundary>
       ) : (
         <>

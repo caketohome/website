@@ -3,23 +3,20 @@
 import { useState } from "react";
 import { Text } from "@medusajs/ui";
 import {
-  LayoutDashboard, ShoppingCart, Package, Building2, Truck,
-  Users, Megaphone, Gift, FileText, BarChart3, Bell, Settings, Globe, Bot, FlaskConical, Zap
+  ShoppingCart, Package, Building2, Truck,
+  Users, Megaphone, FileText, BarChart3, Bell, Settings, Globe, Zap, Percent
 } from "lucide-react";
 
 const TABS = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "ai_agent", label: "🤖 AI Command Center", icon: Bot },
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "catalog", label: "Catalog", icon: Package },
   { id: "branches", label: "Branches", icon: Building2 },
   { id: "delivery", label: "Delivery", icon: Truck },
+  { id: "tax_master", label: "Tax Master", icon: Percent },
   { id: "crm", label: "Customers", icon: Users },
   { id: "marketing", label: "Marketing", icon: Megaphone },
   { id: "seo", label: "SEO & Digital", icon: Globe },
-  { id: "ab_testing", label: "🧪 A/B Testing", icon: FlaskConical },
   { id: "automation", label: "⚡ Messaging & Auto", icon: Zap },
-  { id: "rewards", label: "Rewards", icon: Gift },
   { id: "cms", label: "Content", icon: FileText },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "notifications", label: "Alerts", icon: Bell },

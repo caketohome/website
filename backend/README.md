@@ -34,7 +34,6 @@ that power a multi-branch, multi-city cake ordering and delivery platform.
 | Notification | `notificationModuleService` | Provider abstraction (SMS, WhatsApp, Email, Push) |
 | Analytics | `analyticsModuleService` | Event ingestion + aggregation |
 | Audit | `auditModuleService` | Audit logs across modules |
-| AI | `aiModuleService` | AI provider abstraction (forecasting, descriptions, fraud) |
 | Media | `mediaModuleService` | File manager, CDN, WebP + compression |
 | Localization | `localizationModuleService` | Languages, currencies, translations |
 | Webhook | (registered on demand) | Outbound webhook endpoints |

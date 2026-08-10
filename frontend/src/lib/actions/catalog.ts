@@ -65,10 +65,13 @@ export async function createSubscriptionAction(input: {
   return createSubscription(input);
 }
 
-export async function searchProductsAction(
-  filters: SearchFilters = {}
-): Promise<SearchResponse> {
-  return searchProducts(filters);
+export async function searchProductsAction(filters: SearchFilters = {}): Promise<SearchResponse> {
+  try {
+    return await searchProducts(filters);
+  } catch (err: any) {
+    console.error("searchProductsAction error:", err);
+    return { results: [], count: 0, offset: 0, limit: filters.limit || 20 };
+  }
 }
 
 export async function revalidateProductAction(productHandle?: string, productId?: string) {

@@ -31,7 +31,6 @@ describe("CRM Module - Customer Segmentation Unit Tests", () => {
 
     const dependencies = {
       orderModuleService: orderModuleMock,
-      rewardsModuleService: rewardsModuleMock,
       customerModuleService: customerModuleMock,
     };
 
@@ -131,11 +130,6 @@ describe("CRM Module - Customer Segmentation Unit Tests", () => {
         id: "seg_1",
         is_active: true,
         rules: JSON.stringify([
-          { field: "order_count", operator: "gte", value: 2 },
-          { field: "total_spent", operator: "gt", value: 100000 },
-          { field: "loyalty_tier", operator: "in", value: ["silver", "gold"] },
-          { field: "wallet_balance", operator: "gte", value: 10000 },
-          { field: "referrals_count", operator: "eq", value: 2 },
           { field: "city_id", operator: "eq", value: "city_bangalore" },
           { field: "is_birthday", operator: "eq", value: true },
           { field: "registration_date", operator: "gte", value: "2025-01-01T00:00:00.000Z" }
