@@ -106,6 +106,38 @@ export const REPORTS: Record<ReportSection, ReportDefinition> = {
     supportedFilters: ["timeRange", "branches"],
     printSupported: true,
   },
+  profitability: {
+    id: "profitability",
+    title: "Products & Profitability",
+    description: "SKU-level gross margin %, net sales, COGS, unit profit, top & bottom performing items.",
+    exportFilename: "CakeToHome_Product_Profitability",
+    supportedFilters: ["timeRange", "branches", "search", "productSort"],
+    printSupported: true,
+  },
+  invoices: {
+    id: "invoices",
+    title: "Tax & GST Register",
+    description: "Statutory GST registers, HSN code summaries, Tax Master rules, GSTR-1 & GSTR-3B returns.",
+    exportFilename: "CakeToHome_Tax_GST_Register",
+    supportedFilters: ["timeRange", "branches", "gstReportType"],
+    printSupported: true,
+  },
+  refunds: {
+    id: "refunds",
+    title: "Payments & Refunds",
+    description: "Payment gateway reconciliation (UPI, COD, Cards), pending collections, and refund logs.",
+    exportFilename: "CakeToHome_Payments_Refunds",
+    supportedFilters: ["timeRange", "branches"],
+    printSupported: true,
+  },
+  report_builder: {
+    id: "report_builder",
+    title: "Executive Summary",
+    description: "High-level ERP executive dashboard, KPIs, financial totals, and multi-branch operations.",
+    exportFilename: "CakeToHome_Executive_Summary",
+    supportedFilters: ["timeRange", "branches", "search"],
+    printSupported: true,
+  },
 };
 
 export function getReportDefinition(id: ReportSection): ReportDefinition {

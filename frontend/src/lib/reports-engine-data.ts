@@ -322,10 +322,12 @@ export class ReportsEngineData {
       totalCogs,
       packagingCosts,
       deliveryFleetCosts,
-      totalDirectCosts,
       grossProfit,
       grossMarginPct: Number(grossMarginPct.toFixed(2)),
       aov: Math.round(aov),
+      taxCollected: gstCollected,
+      deliveryCharges: deliveryFleetCosts,
+      averageOrderValue: Math.round(aov),
       // Previous Period Values for Comparison Engine
       prevGrossRevenue,
       prevNetSales,
