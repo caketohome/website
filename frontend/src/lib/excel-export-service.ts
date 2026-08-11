@@ -1497,36 +1497,69 @@ export class ExcelExportService {
     const sheet = workbook.addWorksheet("Customer Analytics");
     sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
 
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
+    const fromDate = data.filters?.customStartDate || "2026-07-01";
+    const toDate = data.filters?.customEndDate || "2026-07-31";
 
-    sheet.mergeCells("A1:F1");
+    sheet.mergeCells("A1:H1");
     sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
+    sheet.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF991B1B" } };
 
-    sheet.mergeCells("A2:F2");
-    sheet.getCell("A2").value = `CUSTOMER SEGMENTATION & TOP LTV BUYERS REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
+    sheet.mergeCells("A2:H2");
+    sheet.getCell("A2").value = `CAKETOHOME CUSTOMER INTELLIGENCE & REPEAT RETENTION REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
+    sheet.getCell("A2").font = { name: "Calibri", size: 11, italic: true, color: { argb: "FF475569" } };
 
-    const headers = ["Customer ID", "Customer Name", "Phone", "Total Orders", "Lifetime Spend", "Segment"];
-    sheet.getRow(6).values = headers;
-    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD97706" } };
+    sheet.getCell("A4").value = "GSTIN:"; sheet.getCell("B4").value = "29AAAAA0000A1Z5";
+    sheet.getCell("D4").value = "Generated:"; sheet.getCell("E4").value = new Date().toLocaleString("en-IN");
+    ["A4", "D4"].forEach((ref) => sheet.getCell(ref).font = { bold: true });
+
+    const headers = [
+      "Customer ID",
+      "Customer Name",
+      "Email Address",
+      "Phone Number",
+      "Total Orders",
+      "Lifetime Spend (₹)",
+      "AOV (₹)",
+      "Customer Segment",
+    ];
+
+    const headerRow = sheet.getRow(6);
+    headers.forEach((h, i) => {
+      const cell = headerRow.getCell(i + 1);
+      cell.value = h;
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD97706" } };
+      cell.alignment = { vertical: "middle", horizontal: "center" };
+    });
 
     const topCust = data.customerData?.topCustomers || [];
     if (topCust.length > 0) {
       topCust.forEach((c: any) => {
-        const row = sheet.addRow([c.id, c.name, c.phone, c.totalOrders, c.totalSpend, c.segment]);
-        row.getCell(4).numFmt = "#,##0";
-        row.getCell(5).numFmt = "₹#,##0.00";
+        const row = sheet.addRow([
+          c.id,
+          c.name,
+          c.email || "customer@cakes2home.com",
+          c.phone || "",
+          c.totalOrders || 0,
+          c.totalSpend || 0,
+          c.aov || 0,
+          c.segment || "Standard Buyer",
+        ]);
+        row.getCell(1).alignment = { horizontal: "center" };
+        row.getCell(5).numFmt = "#,##0";
+        [6, 7].forEach((cIdx) => (row.getCell(cIdx).numFmt = "₹#,##0.00"));
       });
     } else {
       const emptyRow = sheet.addRow(["No customer activity recorded for the selected period."]);
-      sheet.mergeCells(`A7:F7`);
+      sheet.mergeCells(`A7:H7`);
       emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
     }
 
-    sheet.columns = [{ width: 16 }, { width: 24 }, { width: 18 }, { width: 14 }, { width: 18 }, { width: 20 }];
+    sheet.columns = [
+      { width: 18 }, { width: 26 }, { width: 28 }, { width: 18 },
+      { width: 14 }, { width: 20 }, { width: 16 }, { width: 22 }
+    ];
+
     const buffer = await workbook.xlsx.writeBuffer();
     this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Customer_Analytics_${fromDate}_to_${toDate}`);
   }
