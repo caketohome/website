@@ -495,6 +495,31 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path === "admin/delivery/partners" || path === "admin/delivery-partners") {
       return jsonWithDataSource({ partner: ApiEngine.createAdminDeliveryPartner(body), success: true }, "json-fallback");
     }
+    // ── Delivery Partner Workflow & OTP Endpoints ──
+    if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/claim")) {
+      const orderId = path.replace("delivery-partner/jobs/", "").replace("/claim", "");
+      const result = ApiEngine.claimDeliveryJob(orderId, body.partner_id || "dlp_101");
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+    }
+    if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/pickup-otp/verify")) {
+      const orderId = path.replace("delivery-partner/jobs/", "").replace("/pickup-otp/verify", "");
+      const result = ApiEngine.verifyPickupOtpBackend(orderId, body.otp || body.pickup_otp, body.partner_id || "dlp_101");
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+    }
+    if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/delivery-otp/verify")) {
+      const orderId = path.replace("delivery-partner/jobs/", "").replace("/delivery-otp/verify", "");
+      const result = ApiEngine.verifyCustomerOtpBackend(orderId, body.otp || body.delivery_otp, body.partner_id || "dlp_101");
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+    }
+    if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/exception")) {
+      const orderId = path.replace("delivery-partner/jobs/", "").replace("/exception", "");
+      const result = ApiEngine.reportDeliveryExceptionBackend(orderId, body.partner_id || "dlp_101", body.type, body.description);
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+    }
+    if (path === "delivery-partner/availability") {
+      const result = ApiEngine.updatePartnerAvailabilityBackend(body.partner_id || "dlp_101", body.status, body.pause_minutes);
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+    }
     if (path === "admin/crm/customers" || path === "admin/customers") {
       return jsonWithDataSource({ customer: ApiEngine.createAdminCustomer(body), success: true }, "json-fallback");
     }
