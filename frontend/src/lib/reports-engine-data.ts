@@ -686,51 +686,113 @@ export class ReportsEngineData {
   }
 
   /**
-   * Exception Center Audit Findings
+   * Exception Center Audit Findings (Real Operational & Financial Issue Detection Engine)
    */
-  public static getExceptionCenterAudit(filters: ReportFilterState): ExceptionAuditItem[] {
-    return [
-      {
-        id: "exc_01",
-        severity: "medium",
-        type: "missing_cost",
-        title: "2 Products Missing Cost Price in PIM",
-        description: "Products 'Sparkler Candles' and 'Helium Balloons' have unverified raw material cost prices.",
-        affectedCount: 2,
-        actionLabel: "Update PIM Costs",
-        actionTab: "products",
-      },
-      {
-        id: "exc_02",
+  public static getExceptionCenterAudit(filters: ReportFilterState, dynamicProducts?: any[], dynamicOrders?: any[]): any[] {
+    const exceptions: any[] = [];
+    const nowIso = new Date().toISOString();
+
+    const productsList = dynamicProducts && dynamicProducts.length > 0
+      ? dynamicProducts
+      : this.getProductPerformance(filters);
+
+    const ordersList = dynamicOrders && dynamicOrders.length > 0
+      ? dynamicOrders
+      : this.getOrderLifecycle(filters);
+
+    // 1. Audit Products missing HSN / Tax Code
+    const missingHsnProducts = productsList.filter((p: any) => !p.hsnCode || p.hsnCode === "UNASSIGNED" || p.hsnCode === "00000000");
+    if (missingHsnProducts.length > 0) {
+      const target = missingHsnProducts[0];
+      exceptions.push({
+        id: `exc_hsn_${target.id || "01"}`,
         severity: "high",
+        category: "tax_gst",
         type: "missing_hsn",
-        title: "1 Custom Product Missing HSN / GST Code",
-        description: "Product 'Custom Edible Photo Print Cake' is missing explicit HSN tax classification.",
-        affectedCount: 1,
+        title: `${missingHsnProducts.length} Product${missingHsnProducts.length > 1 ? "s" : ""} Missing HSN / GST Tax Code`,
+        description: `Product '${target.productName || target.name || target.id}' requires explicit HSN tax classification for GST invoicing.`,
+        affectedCount: missingHsnProducts.length,
+        entityType: "product",
+        entityId: target.id,
+        entityName: target.productName || target.name || target.id,
         actionLabel: "Assign HSN Code",
+        actionType: "OPEN_PRODUCT_PIM",
         actionTab: "tax_gst",
-      },
-      {
-        id: "exc_03",
-        severity: "high",
-        type: "low_margin",
-        title: "1 Product Operating Below 25% Target Margin",
-        description: "Pineapple Glaze Cake margin dropped to 23.4% due to packaging cost inflation.",
-        affectedCount: 1,
-        actionLabel: "Review Product Cost",
-        actionTab: "products",
-      },
-      {
-        id: "exc_04",
+        detectedAt: nowIso,
+        status: "OPEN",
+      });
+    }
+
+    // 2. Audit Products missing Cost Price
+    const missingCostProducts = productsList.filter((p: any) => !p.unitCost || p.unitCost === 0 || p.cogs === 0);
+    if (missingCostProducts.length > 0) {
+      const target = missingCostProducts[0];
+      exceptions.push({
+        id: `exc_cost_${target.id || "02"}`,
         severity: "medium",
+        category: "product",
+        type: "missing_cost",
+        title: `${missingCostProducts.length} Product${missingCostProducts.length > 1 ? "s" : ""} Missing Unit Cost Price in PIM`,
+        description: `Product '${target.productName || target.name || target.id}' has unverified raw material cost price affecting profit margins.`,
+        affectedCount: missingCostProducts.length,
+        entityType: "product",
+        entityId: target.id,
+        entityName: target.productName || target.name || target.id,
+        actionLabel: "Fix Cost Price",
+        actionType: "OPEN_PRODUCT_PIM",
+        actionTab: "products",
+        detectedAt: nowIso,
+        status: "OPEN",
+      });
+    }
+
+    // 3. Audit Products operating below target margin (< 25%)
+    const lowMarginProducts = productsList.filter((p: any) => (p.grossMarginPct || p.marginPct || 0) < 25 && (p.grossMarginPct || p.marginPct || 0) > 0);
+    if (lowMarginProducts.length > 0) {
+      const target = lowMarginProducts[0];
+      exceptions.push({
+        id: `exc_margin_${target.id || "03"}`,
+        severity: "high",
+        category: "financial",
+        type: "low_margin",
+        title: `${lowMarginProducts.length} Product${lowMarginProducts.length > 1 ? "s" : ""} Operating Below 25% Target Margin`,
+        description: `Product '${target.productName || target.name || target.id}' margin dropped to ${(target.grossMarginPct || target.marginPct || 22).toFixed(1)}% due to packaging cost inflation.`,
+        affectedCount: lowMarginProducts.length,
+        entityType: "product",
+        entityId: target.id,
+        entityName: target.productName || target.name || target.id,
+        actionLabel: "Review Product Pricing",
+        actionType: "OPEN_PRODUCT_PIM",
+        actionTab: "products",
+        detectedAt: nowIso,
+        status: "OPEN",
+      });
+    }
+
+    // 4. Audit Delivered Orders pending Invoice Generation
+    const pendingInvoices = ordersList.filter((o: any) => (o.status === "delivered" || o.orderStatus === "delivered") && (!o.invoiceNumber || o.invoiceNumber.includes("TEMP") || o.invoiceNumber.includes("PENDING")));
+    if (pendingInvoices.length > 0) {
+      const target = pendingInvoices[0];
+      exceptions.push({
+        id: `exc_inv_${target.id || "04"}`,
+        severity: "critical",
+        category: "invoice",
         type: "uninvoiced_order",
-        title: "3 Delivered Orders Pending Invoice Generation",
-        description: "Orders ORD-2026-1014 to 1016 require manual invoice generation trigger.",
-        affectedCount: 3,
-        actionLabel: "Generate Invoices",
+        title: `${pendingInvoices.length} Delivered Order${pendingInvoices.length > 1 ? "s" : ""} Pending Tax Invoice Generation`,
+        description: `Order ${target.id} (${target.customerName || "Customer"}) was delivered without an issued tax invoice.`,
+        affectedCount: pendingInvoices.length,
+        entityType: "order",
+        entityId: target.id,
+        entityName: target.id,
+        actionLabel: "Generate Invoice",
+        actionType: "OPEN_ORDER",
         actionTab: "orders",
-      },
-    ];
+        detectedAt: nowIso,
+        status: "OPEN",
+      });
+    }
+
+    return exceptions;
   }
 
   /**

@@ -1688,6 +1688,79 @@ export class ExcelExportService {
 
   // 21. DEDICATED EXCEPTION REPORT EXPORT
   public static async exportExceptionReport(data: { exceptions?: any[]; filters?: any }, filename?: string): Promise<void> {
-    await this.exportValidationAudit(data, filename || `CakeToHome_Exception_Report_${data.filters?.customStartDate || "2026-08-01"}_to_${data.filters?.customEndDate || "2026-08-10"}`);
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Exception & Audit Warnings");
+    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+
+    const fromDate = data.filters?.customStartDate || "2026-07-01";
+    const toDate = data.filters?.customEndDate || "2026-07-31";
+
+    sheet.mergeCells("A1:H1");
+    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
+    sheet.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF991B1B" } };
+
+    sheet.mergeCells("A2:H2");
+    sheet.getCell("A2").value = `CAKETOHOME ERP EXCEPTION & AUDIT WARNINGS REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
+    sheet.getCell("A2").font = { name: "Calibri", size: 11, italic: true, color: { argb: "FF475569" } };
+
+    sheet.getCell("A4").value = "GSTIN:"; sheet.getCell("B4").value = "29AAAAA0000A1Z5";
+    sheet.getCell("D4").value = "Generated:"; sheet.getCell("E4").value = new Date().toLocaleString("en-IN");
+    ["A4", "D4"].forEach((ref) => sheet.getCell(ref).font = { bold: true });
+
+    const headers = [
+      "Exception ID",
+      "Severity",
+      "Category",
+      "Title",
+      "Description",
+      "Affected Entity",
+      "Action Required",
+      "Status",
+    ];
+
+    const headerRow = sheet.getRow(6);
+    headers.forEach((h, i) => {
+      const cell = headerRow.getCell(i + 1);
+      cell.value = h;
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF991B1B" } };
+      cell.alignment = { vertical: "middle", horizontal: "center" };
+    });
+
+    const excList = data.exceptions || [];
+    if (excList.length > 0) {
+      excList.forEach((e: any) => {
+        const row = sheet.addRow([
+          e.id || "exc_01",
+          (e.severity || "HIGH").toUpperCase(),
+          (e.category || "General").toUpperCase(),
+          e.title || "Audit Alert",
+          e.description || "",
+          e.entityName || e.entityId || "System Record",
+          e.actionLabel || "Resolve",
+          e.status || "OPEN",
+        ]);
+
+        row.getCell(1).alignment = { horizontal: "center" };
+        row.getCell(2).alignment = { horizontal: "center" };
+        row.getCell(8).alignment = { horizontal: "center" };
+
+        if (e.severity === "critical" || e.severity === "high") {
+          row.getCell(2).font = { bold: true, color: { argb: "FF991B1B" } };
+        }
+      });
+    } else {
+      const emptyRow = sheet.addRow(["All clear — no operational or financial exceptions flagged for the selected period."]);
+      sheet.mergeCells(`A7:H7`);
+      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF059669" } };
+    }
+
+    sheet.columns = [
+      { width: 18 }, { width: 14 }, { width: 16 }, { width: 36 },
+      { width: 44 }, { width: 24 }, { width: 20 }, { width: 14 }
+    ];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Exception_Report_${fromDate}_to_${toDate}`);
   }
 }

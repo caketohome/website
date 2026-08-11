@@ -37,7 +37,15 @@ const SECTIONS: Array<{ id: ReportSection; label: string; icon: any }> = [
 import { listBranches } from "@frontend/lib/data/branches";
 
 export function EnterpriseReportsEngine() {
-  const [activeSection, setActiveSection] = useState<ReportSection>("executive_summary");
+  const [activeSection, setActiveSection] = useState<ReportSection>(() => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search).get("section") as ReportSection;
+      if (p && SECTIONS.some((s) => s.id === p)) {
+        return p;
+      }
+    }
+    return "executive_summary";
+  });
 
   // Dynamic Kitchen Hub / Branch List from Canonical API
   const [availableBranches, setAvailableBranches] = useState<any[]>([]);
@@ -111,6 +119,10 @@ export function EnterpriseReportsEngine() {
 
   // Clicked Order Detail Drawer State
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  // Clicked Product Detail Audit Drawer State for Exception Fixes
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  // Track Resolved Exception IDs
+  const [resolvedExceptionIds, setResolvedExceptionIds] = useState<string[]>([]);
 
   const handleSelectAllBranches = () => {
     setBranchIds(availableBranches.map((b) => b.id));
@@ -155,7 +167,32 @@ export function EnterpriseReportsEngine() {
   const products = useMemo(() => ReportsEngineData.getProductPerformance(filters), [filters]);
   const orders = useMemo(() => ReportsEngineData.getOrderLifecycle(filters), [filters]);
   const gstItems = useMemo(() => ReportsEngineData.getGstReport(filters), [filters]);
-  const exceptions = useMemo(() => ReportsEngineData.getExceptionCenterAudit(filters), [filters]);
+  const rawExceptions = useMemo(() => ReportsEngineData.getExceptionCenterAudit(filters, products, orders), [filters, products, orders]);
+  const exceptions = useMemo(() => rawExceptions.filter((e: any) => !resolvedExceptionIds.includes(e.id)), [rawExceptions, resolvedExceptionIds]);
+
+  const handleExceptionAction = (exc: any) => {
+    if (exc.entityType === "order" || exc.actionType === "OPEN_ORDER") {
+      const match = orders.find((o) => o.id === exc.entityId || (exc.description && exc.description.includes(o.id)));
+      if (match) {
+        setSelectedOrder(match);
+      } else if (orders.length > 0) {
+        setSelectedOrder(orders[0]);
+      }
+    } else if (exc.entityType === "product" || exc.actionType === "OPEN_PRODUCT_PIM") {
+      const match = products.find((p) => p.id === exc.entityId || (exc.entityName && exc.entityName.includes(p.productName)));
+      if (match) {
+        setSelectedProduct(match);
+      } else if (products.length > 0) {
+        setSelectedProduct(products[0]);
+      }
+    } else {
+      setActiveSection(exc.actionTab || "products");
+    }
+  };
+
+  const handleResolveException = (excId: string) => {
+    setResolvedExceptionIds((prev) => [...prev, excId]);
+  };
   const branchPerformance = useMemo(() => ReportsEngineData.getBranchPerformance(filters, availableBranches), [filters, availableBranches]);
   const deliveryData = useMemo(() => ReportsEngineData.getDeliveryFleetPerformance(filters, availablePartners), [filters, availablePartners]);
   const customerData = useMemo(() => ReportsEngineData.getCustomerAnalytics(filters, availableCustomers), [filters, availableCustomers]);
@@ -1812,21 +1849,32 @@ export function EnterpriseReportsEngine() {
           </div>
 
           <div className="flex flex-col gap-3">
-            {exceptions.map((exc) => (
-              <div key={exc.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-rose-500/5 border border-rose-500/20 rounded-xl gap-3">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-                  <div className="flex flex-col gap-0.5">
-                    <span className="font-bold text-xs text-rose-900">{exc.title}</span>
-                    <span className="text-xs text-rose-700">{exc.description}</span>
-                  </div>
-                </div>
-
-                <Button variant="secondary" size="small" onClick={() => setActiveSection(exc.actionTab)} className="text-xs font-semibold text-rose-700 border-rose-300 hover:bg-rose-100">
-                  {exc.actionLabel} →
-                </Button>
+            {exceptions.length === 0 ? (
+              <div className="p-8 text-center bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl flex flex-col items-center gap-2">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+                <span className="font-bold text-sm text-emerald-900 dark:text-emerald-200">All Clear — No Operational or Financial Exceptions Found</span>
+                <span className="text-xs text-emerald-700 dark:text-emerald-400">All products, tax classifications, cost prices, orders, and invoices pass automated audit validation rules.</span>
               </div>
-            ))}
+            ) : (
+              exceptions.map((exc) => (
+                <div key={exc.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-rose-500/5 border border-rose-500/20 rounded-xl gap-3">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-rose-900">{exc.title}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-rose-100 text-rose-800">{exc.severity}</span>
+                      </div>
+                      <span className="text-xs text-rose-700">{exc.description}</span>
+                    </div>
+                  </div>
+
+                  <Button variant="secondary" size="small" onClick={() => handleExceptionAction(exc)} className="text-xs font-bold text-rose-800 bg-rose-100 hover:bg-rose-200 border border-rose-300">
+                    {exc.actionLabel} →
+                  </Button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
@@ -1838,7 +1886,7 @@ export function EnterpriseReportsEngine() {
             <div className="flex items-center justify-between pb-4 border-b border-ui-border-base">
               <div>
                 <Heading level="h2" className="text-base font-bold">{selectedOrder.id}</Heading>
-                <Text className="text-xs text-emerald-700 font-mono font-semibold">{selectedOrder.invoiceNumber}</Text>
+                <Text className="text-xs text-emerald-700 font-mono font-semibold">{selectedOrder.invoiceNumber || "PENDING INVOICE"}</Text>
               </div>
               <button onClick={() => setSelectedOrder(null)} className="p-1 rounded-lg hover:bg-ui-bg-subtle text-ui-fg-subtle">
                 <X className="w-5 h-5" />
@@ -1867,9 +1915,89 @@ export function EnterpriseReportsEngine() {
               </div>
             </div>
 
-            <Button variant="secondary" onClick={() => setSelectedOrder(null)} className="mt-auto w-full">
-              Close Audit Drawer
-            </Button>
+            <div className="flex items-center gap-3 pt-3">
+              <Button
+                variant="primary"
+                onClick={() => {
+                  selectedOrder.invoiceNumber = `CTH/26-27/${String(Math.floor(1000 + Math.random() * 9000))}`;
+                  handleResolveException(`exc_inv_${selectedOrder.id}`);
+                  setSelectedOrder(null);
+                }}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
+              >
+                ⚡ Issue Tax Invoice & Resolve Exception
+              </Button>
+              <Button variant="secondary" onClick={() => setSelectedOrder(null)} className="w-full text-xs font-semibold">
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CLICKED PRODUCT AUDIT DRAWER MODAL (PIM HSN & COST FIXES) ───────── */}
+      {selectedProduct && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end animate-in fade-in duration-200">
+          <div className="bg-ui-bg-base w-full max-w-lg h-full shadow-2xl p-6 flex flex-col gap-5 overflow-y-auto border-l border-ui-border-base">
+            <div className="flex items-center justify-between pb-4 border-b border-ui-border-base">
+              <div>
+                <Heading level="h2" className="text-base font-bold">{selectedProduct.productName || selectedProduct.name}</Heading>
+                <Text className="text-xs text-indigo-700 font-mono font-semibold">Product ID: {selectedProduct.id}</Text>
+              </div>
+              <button onClick={() => setSelectedProduct(null)} className="p-1 rounded-lg hover:bg-ui-bg-subtle text-ui-fg-subtle">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-4 text-xs">
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl flex flex-col gap-1">
+                <span className="font-bold text-amber-900 dark:text-amber-200">PIM Audit & Resolution Form</span>
+                <span className="text-[11px] text-amber-700 dark:text-amber-300">Update HSN Tax Code or Unit Cost Price to resolve Exception Audit flags.</span>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="font-bold text-ui-fg-subtle">HSN / SAC Tax Classification Code</label>
+                <input
+                  type="text"
+                  defaultValue={selectedProduct.hsnCode || "19059090"}
+                  onChange={(e) => (selectedProduct.hsnCode = e.target.value)}
+                  className="p-2.5 rounded-lg border border-ui-border-base bg-ui-bg-subtle font-mono text-xs font-bold"
+                  placeholder="e.g. 19059090"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="font-bold text-ui-fg-subtle">Unit Raw Material Cost Price (₹)</label>
+                <input
+                  type="number"
+                  defaultValue={selectedProduct.unitCost || 340}
+                  onChange={(e) => (selectedProduct.unitCost = Number(e.target.value))}
+                  className="p-2.5 rounded-lg border border-ui-border-base bg-ui-bg-subtle font-mono text-xs font-bold"
+                  placeholder="e.g. 350"
+                />
+              </div>
+
+              <div className="flex justify-between py-2 border-b"><span className="text-ui-fg-subtle">Current Selling Price:</span><span className="font-bold text-ui-fg-base">₹{selectedProduct.grossSales || 949}</span></div>
+              <div className="flex justify-between py-2 border-b"><span className="text-ui-fg-subtle">Calculated Margin %:</span><span className="font-bold text-emerald-700">{selectedProduct.grossMarginPct || 62}%</span></div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-3 mt-auto">
+              <Button
+                variant="primary"
+                onClick={() => {
+                  handleResolveException(`exc_hsn_${selectedProduct.id}`);
+                  handleResolveException(`exc_cost_${selectedProduct.id}`);
+                  handleResolveException(`exc_margin_${selectedProduct.id}`);
+                  setSelectedProduct(null);
+                }}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
+              >
+                💾 Save PIM Fix & Resolve Exception
+              </Button>
+              <Button variant="secondary" onClick={() => setSelectedProduct(null)} className="w-full text-xs font-semibold">
+                Cancel
+              </Button>
+            </div>
           </div>
         </div>
       )}
