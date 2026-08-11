@@ -6,85 +6,59 @@ import { apiClient } from "../api-client";
 import { getCacheTag } from "../data/cookies";
 import { checkDeliveryAvailability, getDeliverySlots } from "../data/deliveries";
 
-export async function proceedDelivery(delivery: DeliveryDTO, delivery_partnerId?: string) {
-  revalidateTag(getCacheTag("deliveries"));
-  await apiClient.updateAdminDeliveryStatus(delivery.id, delivery.status || "in_transit").catch(() => null);
-  return delivery;
+export async function proceedDelivery(delivery: DeliveryDTO, delivery_partnerId: string) {
+  const { ApiEngine } = await import("../api-engine");
+  const res = ApiEngine.claimDeliveryJob(delivery.id, delivery_partnerId);
+  revalidateTag("deliveries");
+  return res;
 }
 
 export async function claimDelivery(deliveryId: string, delivery_partnerId: string): Promise<any> {
-  revalidateTag(getCacheTag("deliveries"));
-  await apiClient.updateAdminDeliveryStatus(deliveryId, "claimed").catch(() => null);
-  return { id: deliveryId, delivery_partnerId };
+  const { ApiEngine } = await import("../api-engine");
+  const res = ApiEngine.claimDeliveryJob(deliveryId, delivery_partnerId);
+  revalidateTag("deliveries");
+  return res;
 }
 
-export async function passDelivery(deliveryId: string, delivery_partnerId: string): Promise<any> {
-  revalidateTag(getCacheTag("deliveries"));
-  await apiClient.updateAdminDeliveryStatus(deliveryId, "available").catch(() => null);
-  return { message: "Delivery passed" };
+export async function passDelivery(deliveryId: string, delivery_partnerId: string, reason?: string): Promise<any> {
+  const { ApiEngine } = await import("../api-engine");
+  const res = ApiEngine.rejectDeliveryJob(deliveryId, delivery_partnerId, reason || "Delivery partner declined job");
+  revalidateTag("deliveries");
+  return res;
 }
 
 export async function pickUpDelivery(deliveryId: string): Promise<any> {
-  revalidateTag(getCacheTag("deliveries"));
+  revalidateTag("deliveries");
   await apiClient.updateAdminDeliveryStatus(deliveryId, "in_transit").catch(() => null);
   return { id: deliveryId };
 }
 
 export async function verifyPickupOtp(deliveryId: string, otpInput: string, partnerId: string): Promise<any> {
   const { ApiEngine } = await import("../api-engine");
-  ApiEngine.ensureDeliveriesStore();
-  ApiEngine.ensureOrdersStore();
-
-  const order = ApiEngine.getOrderDetails(deliveryId);
-  const expectedOtp = order?.pickup_otp || "1294";
-
-  if (otpInput !== expectedOtp && otpInput !== "1294" && otpInput !== "0000") {
-    return { success: false, error: "Invalid Pickup OTP code. Please verify with kitchen staff." };
-  }
-
-  await apiClient.updateAdminDeliveryStatus(deliveryId, "in_transit").catch(() => null);
-  ApiEngine.updateOrderStatus(deliveryId, "out_for_delivery");
-  ApiEngine.addAuditLog(`Rider ${partnerId} verified Pickup OTP (${otpInput}) for Order ${deliveryId}`);
-  revalidateTag(getCacheTag("deliveries"));
-  return { success: true, status: "in_transit" };
+  const res = ApiEngine.verifyPickupOtpBackend(deliveryId, otpInput, partnerId);
+  revalidateTag("deliveries");
+  return res;
 }
 
 export async function verifyCustomerOtp(deliveryId: string, otpInput: string, partnerId: string): Promise<any> {
   const { ApiEngine } = await import("../api-engine");
-  ApiEngine.ensureDeliveriesStore();
-  ApiEngine.ensureOrdersStore();
-
-  const order = ApiEngine.getOrderDetails(deliveryId);
-  const expectedOtp = order?.delivery_otp || "4819";
-
-  if (otpInput !== expectedOtp && otpInput !== "4819" && otpInput !== "0000") {
-    return { success: false, error: "Invalid Customer OTP code. Please request correct OTP from recipient." };
-  }
-
-  await apiClient.updateAdminDeliveryStatus(deliveryId, "delivered").catch(() => null);
-  ApiEngine.updateOrderStatus(deliveryId, "delivered");
-  ApiEngine.addAuditLog(`Rider ${partnerId} verified Customer OTP (${otpInput}) and completed delivery for Order ${deliveryId}`);
+  const res = ApiEngine.verifyCustomerOtpBackend(deliveryId, otpInput, partnerId);
   revalidateTag("deliveries");
-  return { success: true, status: "delivered" };
+  return res;
 }
 
 export async function reportDeliveryException(deliveryId: string, partnerId: string, type: string, description: string): Promise<any> {
   const { ApiEngine } = await import("../api-engine");
-  ApiEngine.ensureDeliveriesStore();
-  ApiEngine.addAuditLog(`Rider ${partnerId} reported Delivery Exception [${type}] for Order ${deliveryId}: ${description}`);
+  const res = ApiEngine.reportDeliveryExceptionBackend(deliveryId, partnerId, type, description);
   revalidateTag("deliveries");
-  return { success: true, message: "Exception reported to Branch Manager & Admin" };
+  return res;
 }
 
 export async function updatePartnerAvailability(partnerId: string, status: "ONLINE" | "OFFLINE" | "PAUSED", pauseMins?: number): Promise<any> {
   const { ApiEngine } = await import("../api-engine");
-  ApiEngine.ensureDeliveryPartnersStore();
-  ApiEngine.updateAdminDeliveryPartner(partnerId, {
-    availability_status: status,
-    last_online_at: new Date().toISOString(),
-  });
+  const res = ApiEngine.updatePartnerAvailabilityBackend(partnerId, status, pauseMins);
   revalidateTag("deliveries");
-  return { success: true, status };
+  return res;
 }
 
 export async function completeDelivery(deliveryId: string): Promise<any> {

@@ -1,8 +1,9 @@
 import { ApiEngine } from "../src/lib/api-engine";
+import ExcelJS from "exceljs";
 
 async function runEndToEndDeliveryWorkflowTest() {
   console.log("================================================================================");
-  console.log("CAKETOHOME — ULTIMATE 21-STEP DATABASE-VERIFIED DELIVERY SYSTEM TEST");
+  console.log("CAKETOHOME — FORENSIC DATABASE-VERIFIED DELIVERY SYSTEM INTEGRATION TEST");
   console.log("================================================================================\n");
 
   try {
@@ -145,7 +146,7 @@ async function runEndToEndDeliveryWorkflowTest() {
       throw new Error("FAILED: Database record contains wrong partner ID!");
     }
 
-    console.log("\nSTEP 4: Testing Kitchen Pickup OTP Verification (Wrong, Correct & Consumed)...");
+    console.log("\nSTEP 4: Testing Kitchen Pickup OTP Verification & Strict State Synchronization...");
     if (dbOrder1) dbOrder1.delivery_status = "ready_for_pickup";
 
     const wrongPickupRes = ApiEngine.verifyPickupOtpBackend(testOrderId1, "9999", testPartnerA_Id);
@@ -157,8 +158,12 @@ async function runEndToEndDeliveryWorkflowTest() {
 
     const correctPickupRes = ApiEngine.verifyPickupOtpBackend(testOrderId1, "1294", testPartnerA_Id);
     if (correctPickupRes.success && correctPickupRes.statusCode === 200) {
-      console.log("  ✅ PASS: Correct Pickup OTP verified!");
-      console.log(`  ✅ PASS: DB order delivery_status = '${dbOrder1.delivery_status}' (in_transit)`);
+      const refreshedOrder1 = ApiEngine.getOrderDetails(testOrderId1);
+      if (refreshedOrder1 && refreshedOrder1.delivery_status === "in_transit" && refreshedOrder1.status === "out_for_delivery") {
+        console.log(`  ✅ PASS: Correct Pickup OTP verified! Refreshed DB order: delivery_status = '${refreshedOrder1.delivery_status}', status = '${refreshedOrder1.status}'`);
+      } else {
+        throw new Error(`FAILED: State synchronization after pickup failed! Refreshed order: ${JSON.stringify(refreshedOrder1)}`);
+      }
     } else {
       throw new Error(`FAILED: Correct Pickup OTP failed! ${JSON.stringify(correctPickupRes)}`);
     }
@@ -170,7 +175,7 @@ async function runEndToEndDeliveryWorkflowTest() {
       throw new Error("FAILED: Consumed Pickup OTP was allowed twice!");
     }
 
-    console.log("\nSTEP 5: Testing Customer Delivery OTP Verification (Wrong, Correct & Consumed)...");
+    console.log("\nSTEP 5: Testing Customer Delivery OTP Verification & Strict State Synchronization...");
     const wrongCustRes = ApiEngine.verifyCustomerOtpBackend(testOrderId1, "9999", testPartnerA_Id);
     if (!wrongCustRes.success && wrongCustRes.statusCode === 400) {
       console.log(`  ✅ PASS: Wrong Customer OTP rejected: "${wrongCustRes.error}"`);
@@ -180,8 +185,12 @@ async function runEndToEndDeliveryWorkflowTest() {
 
     const correctCustRes = ApiEngine.verifyCustomerOtpBackend(testOrderId1, "4819", testPartnerA_Id);
     if (correctCustRes.success && correctCustRes.statusCode === 200) {
-      console.log("  ✅ PASS: Correct Customer OTP verified!");
-      console.log(`  ✅ PASS: DB order delivery_status = '${dbOrder1.delivery_status}' (delivered)`);
+      const refreshedOrder1_del = ApiEngine.getOrderDetails(testOrderId1);
+      if (refreshedOrder1_del && refreshedOrder1_del.delivery_status === "delivered" && refreshedOrder1_del.status === "delivered") {
+        console.log(`  ✅ PASS: Correct Customer OTP verified! Refreshed DB order: delivery_status = '${refreshedOrder1_del.delivery_status}', status = '${refreshedOrder1_del.status}'`);
+      } else {
+        throw new Error(`FAILED: State synchronization after delivery failed! Refreshed order: ${JSON.stringify(refreshedOrder1_del)}`);
+      }
     } else {
       throw new Error(`FAILED: Correct Customer OTP failed! ${JSON.stringify(correctCustRes)}`);
     }
@@ -308,12 +317,19 @@ async function runEndToEndDeliveryWorkflowTest() {
       throw new Error("FAILED: CSV Report Export failed!");
     }
 
-    console.log("\nSTEP 15: Testing Delivery Report Export (XLSX Format)...");
-    const xlsxContent = ApiEngine.exportDeliveryReportsBackend({ branch_id: testBranchA }, "xlsx");
-    if (xlsxContent.includes("<?xml version=\"1.0\"?>") && xlsxContent.includes("<Worksheet ss:Name=\"Delivery Reports\">")) {
-      console.log("  ✅ PASS: Delivery Report XLSX OpenXML Spreadsheet generated with valid XML markup!");
+    console.log("\nSTEP 15: Testing Physical Binary XLSX File Export Parsing (ExcelJS)...");
+    const xlsxBuffer = await ApiEngine.exportDeliveryReportsXlsxBuffer({ branch_id: testBranchA });
+    const parsedWorkbook = new ExcelJS.Workbook();
+    await parsedWorkbook.xlsx.load(xlsxBuffer);
+    const parsedWorksheet = parsedWorkbook.getWorksheet("Delivery Performance Report");
+
+    if (parsedWorksheet) {
+      const colCount = parsedWorksheet.columnCount;
+      const rowCount = parsedWorksheet.rowCount;
+      const firstHeader = parsedWorksheet.getRow(1).getCell(1).value;
+      console.log(`  ✅ PASS: Physical binary XLSX loaded! Worksheet Name: '${parsedWorksheet.name}', Columns: ${colCount}, Rows: ${rowCount}, Header[1]: '${firstHeader}'`);
     } else {
-      throw new Error("FAILED: XLSX Report Export failed!");
+      throw new Error("FAILED: Physical binary XLSX parsing failed!");
     }
 
     console.log("\nSTEP 16: Testing Delivery Report Export (PDF/HTML Format)...");
@@ -333,7 +349,7 @@ async function runEndToEndDeliveryWorkflowTest() {
     }
 
     console.log("\n================================================================================");
-    console.log("END-TO-END DELIVERY SYSTEM WORKFLOW TEST: ALL 17 STEPS PASSED (100%)");
+    console.log("FORENSIC END-TO-END DELIVERY SYSTEM TEST: ALL 17 STEPS PASSED (100%)");
     console.log("================================================================================\n");
 
   } catch (error: any) {

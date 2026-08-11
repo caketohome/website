@@ -24,6 +24,32 @@
   --ui-border-base: #334155;
 }
 
+/* ── MEDUSA UI & DASHBOARD CORE COMPONENT STYLING SYSTEM ────────── */
+.bg-ui-bg-base {
+  background-color: var(--ui-bg-base, #ffffff);
+}
+.bg-ui-bg-subtle {
+  background-color: var(--ui-bg-subtle, #f8fafc);
+}
+.text-ui-fg-base {
+  color: var(--ui-fg-base, #0f172a);
+}
+.text-ui-fg-subtle {
+  color: var(--ui-fg-subtle, #64748b);
+}
+.text-ui-fg-muted {
+  color: #94a3b8;
+}
+.border-ui-border-base {
+  border-color: var(--ui-border-base, #e2e8f0);
+}
+.shadow-elevation-card-rest {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+.shadow-elevation-card-hover {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
 body {
   color: rgb(var(--fg-base, 15, 23, 42));
   background: rgb(var(--bg-subtle, 248, 250, 252));

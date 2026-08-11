@@ -35,14 +35,24 @@ export default function DeliveryPartnerDeliveryButtons({
 
   const handleProceedDelivery = async () => {
     setProceedIsLoading(true);
-    await proceedDelivery(delivery, delivery_partner.id);
+    const res = await proceedDelivery(delivery, delivery_partner.id);
     setProceedIsLoading(false);
+    if (res && res.success) {
+      window.location.reload();
+    } else {
+      alert(res?.error || "Unable to claim job.");
+    }
   };
 
   const handleDeclineDelivery = async () => {
     setDeclineIsLoading(true);
-    await passDelivery(delivery.id, delivery_partner.id);
+    const res = await passDelivery(delivery.id, delivery_partner.id);
     setDeclineIsLoading(false);
+    if (res && res.success) {
+      window.location.reload();
+    } else {
+      alert(res?.error || "Unable to decline job.");
+    }
   };
 
   const handleVerifyPickupOtp = async (e: React.FormEvent) => {
@@ -84,13 +94,18 @@ export default function DeliveryPartnerDeliveryButtons({
   const handleReportException = async (e: React.FormEvent) => {
     e.preventDefault();
     setProceedIsLoading(true);
-    await reportDeliveryException(delivery.id, delivery_partner.id, exceptionType, exceptionDesc);
+    const res = await reportDeliveryException(delivery.id, delivery_partner.id, exceptionType, exceptionDesc);
     setProceedIsLoading(false);
-    setExceptionSuccess(true);
-    setTimeout(() => {
-      setShowExceptionModal(false);
-      setExceptionSuccess(false);
-    }, 1500);
+    if (res && res.success) {
+      setExceptionSuccess(true);
+      setTimeout(() => {
+        setShowExceptionModal(false);
+        setExceptionSuccess(false);
+        window.location.reload();
+      }, 1000);
+    } else {
+      alert(res?.error || "Unable to report exception.");
+    }
   };
 
   const openGoogleMaps = () => {

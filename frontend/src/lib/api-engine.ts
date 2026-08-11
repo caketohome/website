@@ -4075,43 +4075,50 @@ export class ApiEngine {
     };
   }
 
-  static exportDeliveryReportsBackend(filters: Record<string, any> = {}, format: "csv" | "xlsx" | "pdf" = "csv"): string {
+  static async exportDeliveryReportsXlsxBuffer(filters: Record<string, any> = {}): Promise<Buffer> {
+    const ExcelJS = (await import("exceljs")).default;
     const reportData = ApiEngine.getDeliveryReportsBackend(filters);
     const orders = reportData.orders || [];
 
-    if (format === "xlsx") {
-      const rowsXml = orders.map((o: any) => `
-        <Row>
-          <Cell><Data Type="String">${o.order_number || o.id}</Data></Cell>
-          <Cell><Data Type="String">${o.branch_id || ""}</Data></Cell>
-          <Cell><Data Type="String">${o.customerName || o.customer_name || ""}</Data></Cell>
-          <Cell><Data Type="String">${o.customerPhone || ""}</Data></Cell>
-          <Cell><Data Type="String">${o.pincode || ""}</Data></Cell>
-          <Cell><Data Type="String">${o.delivery_status || o.status}</Data></Cell>
-          <Cell><Data Type="String">${o.delivery_partner_id || ""}</Data></Cell>
-          <Cell><Data Type="String">${o.created_at || ""}</Data></Cell>
-        </Row>`).join("");
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = "CakeToHome Engine";
+    workbook.created = new Date();
 
-      return `<?xml version="1.0"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
-  <Worksheet ss:Name="Delivery Reports">
-    <Table>
-      <Row>
-        <Cell><Data Type="String">Order Number</Data></Cell>
-        <Cell><Data Type="String">Branch ID</Data></Cell>
-        <Cell><Data Type="String">Customer Name</Data></Cell>
-        <Cell><Data Type="String">Customer Phone</Data></Cell>
-        <Cell><Data Type="String">Pincode</Data></Cell>
-        <Cell><Data Type="String">Status</Data></Cell>
-        <Cell><Data Type="String">Partner ID</Data></Cell>
-        <Cell><Data Type="String">Created At</Data></Cell>
-      </Row>
-      ${rowsXml}
-    </Table>
-  </Worksheet>
-</Workbook>`;
-    }
+    const worksheet = workbook.addWorksheet("Delivery Performance Report");
+
+    worksheet.columns = [
+      { header: "Order Number", key: "order_number", width: 25 },
+      { header: "Branch ID", key: "branch_id", width: 25 },
+      { header: "Customer Name", key: "customer_name", width: 20 },
+      { header: "Customer Phone", key: "customer_phone", width: 18 },
+      { header: "Pincode", key: "pincode", width: 12 },
+      { header: "Delivery Status", key: "delivery_status", width: 18 },
+      { header: "Order Status", key: "order_status", width: 18 },
+      { header: "Partner ID", key: "partner_id", width: 20 },
+      { header: "Created At", key: "created_at", width: 25 },
+    ];
+
+    orders.forEach((o: any) => {
+      worksheet.addRow({
+        order_number: o.order_number || o.id,
+        branch_id: o.branch_id || o.branch?.id || "",
+        customer_name: o.customerName || o.customer_name || "",
+        customer_phone: o.customerPhone || o.customer_phone || "",
+        pincode: o.pincode || o.shipping_address?.postal_code || "",
+        delivery_status: o.delivery_status || "available",
+        order_status: o.status || "confirmed",
+        partner_id: o.delivery_partner_id || "",
+        created_at: o.created_at || "",
+      });
+    });
+
+    const uint8Array = await workbook.xlsx.writeBuffer();
+    return Buffer.from(uint8Array);
+  }
+
+  static exportDeliveryReportsBackend(filters: Record<string, any> = {}, format: "csv" | "xlsx" | "pdf" = "csv"): string {
+    const reportData = ApiEngine.getDeliveryReportsBackend(filters);
+    const orders = reportData.orders || [];
 
     if (format === "pdf") {
       const rowsHtml = orders.map((o: any) => `
@@ -5578,6 +5585,7 @@ export class ApiEngine {
       order_number: found.order_number || `CTH-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${found.id.slice(-6)}`,
       invoice_number: found.invoice_number || `INV-${new Date().toISOString().slice(0, 7).replace(/-/g, "")}-${found.id.slice(-4)}`,
       status: found.status || "confirmed",
+      delivery_status: found.delivery_status || "available",
       payment_status: found.payment_status || "paid",
       total: found.total || 0,
       subtotal: found.subtotal || found.total || 0,

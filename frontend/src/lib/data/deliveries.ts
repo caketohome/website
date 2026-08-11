@@ -59,7 +59,7 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
   const mapped: DeliveryDTO[] = allOrders.map((o: any, idx: number) => {
     const matchedDel = allDeliveries.find((d: any) => d.id === o.id || d.order_number === o.id) || {};
 
-    let status = o.delivery_status || matchedDel.status || "shop_accepted";
+    let status = o.delivery_status || "shop_accepted";
     if (o.status === "delivered" || o.status === "completed") {
       status = "delivered";
     } else if (o.status === "out_for_delivery") {
@@ -68,26 +68,16 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
       status = "ready_for_pickup";
     } else if (o.status === "claimed" || o.status === "preparing") {
       status = "pickup_claimed";
-    } else if (idx % 4 === 0) {
-      status = "ready_for_pickup";
-    } else if (idx % 4 === 1) {
-      status = "in_transit";
-    } else if (idx % 4 === 2) {
-      status = "shop_accepted";
-    } else {
-      status = "delivered";
     }
 
-    const items = o.items || o.cart?.items || [
-      { id: `item_${idx}_1`, title: o.productNames || "Chocolate Truffle Cake (1 Kg)", quantity: 1 }
-    ];
+    const items = o.items || o.cart?.items || [];
 
     return {
-      id: o.id || `CTH-20260731-${1000 + idx}`,
+      id: o.id || `CTH-${o.order_number || idx}`,
       order_id: o.id,
       delivery_status: status as any,
       status: status,
-      delivery_partner_id: o.delivery_partner_id || partnerId,
+      delivery_partner_id: o.delivery_partner_id || null,
       recipient_name: o.customerName || "Ananya Rao",
       recipient_phone: o.customerPhone || "+91 98765 43210",
       recipient_address: o.deliveryAddress || o.shipping_address?.address_1 || "Flat 402, Signature Towers, Indiranagar 100ft Road",

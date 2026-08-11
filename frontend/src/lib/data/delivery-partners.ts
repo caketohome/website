@@ -35,54 +35,50 @@ export async function retrieveDeliveryPartner(delivery_partnerId: string, curren
   if (partner) {
     return {
       id: partner.id,
-      partner_number: partner.partner_number || "CTH-DP-000101",
+      partner_number: partner.partner_number || `CTH-DP-${partner.id.slice(-6).toUpperCase()}`,
       first_name: partner.first_name || partner.name?.split(" ")[0] || "Delivery",
       last_name: partner.last_name || partner.name?.split(" ")[1] || "Partner",
       full_name: partner.full_name || partner.name || `${partner.first_name || ""} ${partner.last_name || ""}`.trim(),
-      phone: partner.phone || "+91 98000 11111",
-      email: partner.email || "partner@cakes2home.com",
+      phone: partner.phone || currentUser?.phone || "No phone registered",
+      email: partner.email || currentUser?.email || "No email registered",
       is_active: partner.status === "active" || partner.is_active !== false,
       availability_status: partner.availability_status || "ONLINE",
-      rating: partner.rating || 4.9,
-      total_deliveries: partner.total_deliveries || partner.completed_trips || 142,
-      maximum_concurrent_orders: partner.maximum_concurrent_orders || 5,
+      rating: typeof partner.rating === "number" ? partner.rating : null,
+      total_deliveries: partner.total_deliveries || partner.successful_deliveries || 0,
+      maximum_concurrent_orders: partner.maximum_concurrent_orders || 2,
       current_active_orders: partner.current_active_orders || 0,
-      primary_branch_name: partner.primary_branch_name || "Indiranagar Flagship Kitchen",
-      associated_branches: partner.associated_branches || [
-        { branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Indiranagar Flagship Kitchen", active: true }
-      ],
+      primary_branch_name: partner.primary_branch_name || partner.primary_branch_id || "Unassigned Kitchen Hub",
+      associated_branches: partner.associated_branches || [],
       coverage: partner.coverage || {
-        pincodes: ["560038", "560034", "560047"],
-        cities: ["Bengaluru"],
-        areas: ["Indiranagar", "Koramangala", "Domlur"]
-      }
+        pincodes: [],
+        cities: [],
+        areas: [],
+      },
     } as any;
   }
 
-  const uName = currentUser?.first_name ? `${currentUser.first_name} ${currentUser.last_name || ""}`.trim() : "CakeToHome Rider";
+  const uName = currentUser?.first_name ? `${currentUser.first_name} ${currentUser.last_name || ""}`.trim() : currentUser?.email || "Delivery Partner";
 
   return {
-    id: delivery_partnerId || "dlp_101",
-    partner_number: "CTH-DP-000101",
+    id: delivery_partnerId || currentUser?.id || "dlp_unassigned",
+    partner_number: `CTH-DP-${(delivery_partnerId || "000000").slice(-6).toUpperCase()}`,
     first_name: currentUser?.first_name || "Delivery",
     last_name: currentUser?.last_name || "Partner",
     full_name: uName,
-    phone: currentUser?.phone || "+91 98000 11111",
-    email: currentUser?.email || "driver@cakes2home.com",
+    phone: currentUser?.phone || "No phone registered",
+    email: currentUser?.email || "No email registered",
     is_active: true,
     availability_status: "ONLINE",
-    rating: 4.9,
-    total_deliveries: 142,
-    maximum_concurrent_orders: 5,
+    rating: null,
+    total_deliveries: 0,
+    maximum_concurrent_orders: 2,
     current_active_orders: 0,
-    primary_branch_name: "Indiranagar Flagship Kitchen",
-    associated_branches: [
-      { branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Indiranagar Flagship Kitchen", active: true }
-    ],
+    primary_branch_name: "Unassigned Kitchen Hub",
+    associated_branches: [],
     coverage: {
-      pincodes: ["560038", "560034", "560047"],
-      cities: ["Bengaluru"],
-      areas: ["Indiranagar", "Koramangala", "Domlur"]
-    }
+      pincodes: [],
+      cities: [],
+      areas: [],
+    },
   } as any;
 }

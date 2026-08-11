@@ -266,6 +266,39 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       if (orderDetails) return jsonWithDataSource({ order: orderDetails }, "json-fallback");
       return jsonWithDataSource({ message: "Order not found" }, "json-fallback", 404);
     }
+    if (path === "admin/delivery/reports") {
+      const qParams = Object.fromEntries(url.searchParams);
+      return jsonWithDataSource(ApiEngine.getDeliveryReportsBackend(qParams), "json-fallback");
+    }
+    if (path === "admin/delivery/reports/export") {
+      const qParams = Object.fromEntries(url.searchParams);
+      const fmt = (qParams.format as any) || "csv";
+      if (fmt === "xlsx") {
+        const xlsxBuf = await ApiEngine.exportDeliveryReportsXlsxBuffer(qParams);
+        return new Response(xlsxBuf, {
+          headers: {
+            "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Disposition": `attachment; filename="delivery_report_${Date.now()}.xlsx"`,
+          },
+        });
+      } else if (fmt === "pdf") {
+        const pdfContent = ApiEngine.exportDeliveryReportsBackend(qParams, "pdf");
+        return new Response(pdfContent, {
+          headers: {
+            "Content-Type": "text/html; charset=utf-8",
+            "Content-Disposition": `inline; filename="delivery_report_${Date.now()}.html"`,
+          },
+        });
+      } else {
+        const csvContent = ApiEngine.exportDeliveryReportsBackend(qParams, "csv");
+        return new Response(csvContent, {
+          headers: {
+            "Content-Type": "text/csv; charset=utf-8",
+            "Content-Disposition": `attachment; filename="delivery_report_${Date.now()}.csv"`,
+          },
+        });
+      }
+    }
     if (path === "admin/branches") return jsonWithDataSource({ branches: ApiEngine.getAdminBranches() }, "json-fallback");
     if (path === "admin/cities") return jsonWithDataSource({ cities: ApiEngine.getAdminCities() }, "json-fallback");
     if (path === "admin/regions") return jsonWithDataSource({ regions: ApiEngine.getAdminRegions() }, "json-fallback");

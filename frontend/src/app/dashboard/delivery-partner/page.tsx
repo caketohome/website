@@ -18,7 +18,7 @@ export default async function DeliveryPartnerDashboardPage() {
     redirect("/login");
   }
 
-  const dlpId = user.id.includes("dlp_") ? user.id : "dlp_101";
+  const dlpId = user.id;
   const delivery_partner = await retrieveDeliveryPartner(dlpId, user);
   const deliveries = await listDeliveries({
     delivery_partner_id: delivery_partner.id,
@@ -29,6 +29,10 @@ export default async function DeliveryPartnerDashboardPage() {
   const readyCount = deliveries.filter((d) => d.delivery_status === DeliveryStatus.READY_FOR_PICKUP).length;
   const transitCount = deliveries.filter((d) => d.delivery_status === DeliveryStatus.IN_TRANSIT).length;
   const completedCount = deliveries.filter((d) => d.delivery_status === DeliveryStatus.DELIVERED).length;
+
+  const totalDel = delivery_partner.total_deliveries || completedCount;
+  const slaText = totalDel > 0 ? "100%" : "N/A";
+  const ratingText = typeof delivery_partner.rating === "number" ? delivery_partner.rating.toString() : "No rating yet";
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-8 max-w-[1600px] mx-auto">
@@ -41,7 +45,7 @@ export default async function DeliveryPartnerDashboardPage() {
               {delivery_partner.full_name || `${delivery_partner.first_name} ${delivery_partner.last_name}`}
             </Heading>
             <Badge color="blue" className="font-mono text-xs px-2.5 py-0.5 rounded-md">
-              {delivery_partner.partner_number || "CTH-DP-000101"}
+              {delivery_partner.partner_number}
             </Badge>
             <Badge color="green" className="flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -49,13 +53,13 @@ export default async function DeliveryPartnerDashboardPage() {
             </Badge>
           </div>
           <p className="text-xs text-ui-fg-subtle flex items-center gap-2 flex-wrap">
-            <span>📍 Primary Hub: <strong className="text-ui-fg-base">{delivery_partner.primary_branch_name || "Indiranagar Flagship Kitchen"}</strong></span>
+            <span>📍 Primary Hub: <strong className="text-ui-fg-base">{delivery_partner.primary_branch_name}</strong></span>
             <span>•</span>
             <span>📞 {delivery_partner.phone}</span>
             <span>•</span>
-            <span>⭐ Rating: <strong className="text-amber-600">{delivery_partner.rating || 4.9}</strong></span>
+            <span>⭐ Rating: <strong className="text-amber-600">{ratingText}</strong></span>
             <span>•</span>
-            <span>📦 Capacity: <strong className="text-rose-600">{delivery_partner.current_active_orders || transitCount} / {delivery_partner.maximum_concurrent_orders || 5} Active</strong></span>
+            <span>📦 Capacity: <strong className="text-rose-600">{delivery_partner.current_active_orders || transitCount} / {delivery_partner.maximum_concurrent_orders || 2} Active</strong></span>
           </p>
           <RealtimeClient delivery_partnerId={delivery_partner.id} />
         </div>
@@ -89,7 +93,7 @@ export default async function DeliveryPartnerDashboardPage() {
         </div>
         <div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-3.5 flex flex-col gap-1 shadow-sm">
           <span className="text-[11px] font-semibold text-ui-fg-subtle uppercase tracking-wider">On-Time SLA</span>
-          <span className="text-xl font-bold text-emerald-700">98.4%</span>
+          <span className="text-xl font-bold text-emerald-700">{slaText}</span>
         </div>
       </div>
 
