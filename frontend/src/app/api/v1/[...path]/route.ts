@@ -516,6 +516,16 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const result = ApiEngine.reportDeliveryExceptionBackend(orderId, body.partner_id || "dlp_101", body.type, body.description);
       return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
     }
+    if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/reject")) {
+      const orderId = path.replace("delivery-partner/jobs/", "").replace("/reject", "");
+      const result = ApiEngine.rejectDeliveryJob(orderId, body.partner_id || "dlp_101", body.reason);
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+    }
+    if (path.startsWith("delivery-partner/exceptions/") && path.endsWith("/resolve")) {
+      const excId = path.replace("delivery-partner/exceptions/", "").replace("/resolve", "");
+      const result = ApiEngine.resolveDeliveryExceptionBackend(excId, body.action, body.notes, body.resolved_by);
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+    }
     if (path === "delivery-partner/availability") {
       const result = ApiEngine.updatePartnerAvailabilityBackend(body.partner_id || "dlp_101", body.status, body.pause_minutes);
       return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
