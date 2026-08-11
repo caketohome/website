@@ -797,22 +797,49 @@ export class ReportsEngineData {
   }
 
   /**
-   * Delivery & Fleet Performance Dataset
+   * Delivery & Fleet Performance Dataset (CakeToHome Own Fleet Drivers & Riders)
    */
-  public static getDeliveryFleetPerformance(filters: ReportFilterState) {
+  public static getDeliveryFleetPerformance(filters: ReportFilterState, dynamicPartners?: any[]) {
     const stats = this.getTransactionalMetrics(filters);
-    const partners = [
-      { partner: "Shadowfax Express", total: Math.round(stats.deliveredOrders * 0.45), onTime: Math.round(stats.deliveredOrders * 0.43), delayed: Math.round(stats.deliveredOrders * 0.02), avgMins: 28, rating: 4.8 },
-      { partner: "Dunzo Logistics", total: Math.round(stats.deliveredOrders * 0.30), onTime: Math.round(stats.deliveredOrders * 0.28), delayed: Math.round(stats.deliveredOrders * 0.02), avgMins: 31, rating: 4.7 },
-      { partner: "Porter Local", total: Math.round(stats.deliveredOrders * 0.15), onTime: Math.round(stats.deliveredOrders * 0.14), delayed: Math.round(stats.deliveredOrders * 0.01), avgMins: 35, rating: 4.6 },
-      { partner: "In-House Bakery Fleet", total: Math.round(stats.deliveredOrders * 0.10), onTime: Math.round(stats.deliveredOrders * 0.098), delayed: Math.round(stats.deliveredOrders * 0.002), avgMins: 22, rating: 4.9 },
-    ];
+
+    let partnersList: any[] = [];
+    if (dynamicPartners && dynamicPartners.length > 0) {
+      partnersList = dynamicPartners;
+    } else {
+      partnersList = [
+        { id: "dlp_101", name: "Suresh Kumar (Rider #001)", branchName: "Indiranagar Kitchen Hub", status: "ONLINE", rating: 4.9 },
+        { id: "dlp_102", name: "Ramesh Rider (Rider #002)", branchName: "Koramangala Kitchen Hub", status: "ONLINE", rating: 4.8 },
+        { id: "dlp_103", name: "Mahesh Rider (Rider #003)", branchName: "HSR Layout Kitchen Hub", status: "BUSY", rating: 4.7 },
+        { id: "dlp_104", name: "Vikram Singh (Rider #004)", branchName: "Whitefield Kitchen Hub", status: "ONLINE", rating: 4.9 },
+      ];
+    }
+
+    const partners = partnersList.map((p, idx) => {
+      const ratio = 1 / partnersList.length;
+      const total = Math.max(1, Math.round(stats.deliveredOrders * ratio * (idx % 2 === 0 ? 1.1 : 0.9)));
+      const onTime = Math.round(total * 0.95);
+      const delayed = Math.max(0, total - onTime);
+      const avgMins = 22 + (idx % 4) * 3;
+
+      return {
+        id: p.id,
+        driverName: p.name || `Rider ${p.id}`,
+        partnerNumber: p.id || `CTH-DP-${100 + idx}`,
+        branchName: p.branchName || "Indiranagar Kitchen Hub",
+        status: p.status || "ONLINE",
+        total,
+        onTime,
+        delayed,
+        avgMins,
+        rating: p.rating || 4.8,
+      };
+    });
 
     return {
       totalDeliveries: stats.deliveredOrders,
       onTimeDeliveries: Math.round(stats.deliveredOrders * 0.94),
       delayedDeliveries: Math.round(stats.deliveredOrders * 0.06),
-      avgFulfillmentMins: 34,
+      avgFulfillmentMins: 28,
       partners,
     };
   }

@@ -44,6 +44,7 @@ export function EnterpriseReportsEngine() {
   const [branchIds, setBranchIds] = useState<string[]>([]);
   const [showBranchPopover, setShowBranchPopover] = useState<boolean>(false);
   const [branchSearch, setBranchSearch] = useState<string>("");
+  const [availablePartners, setAvailablePartners] = useState<any[]>([]);
 
   const refreshBranches = useCallback(() => {
     apiClient.getAdminBranches().then((res: any) => {
@@ -56,15 +57,32 @@ export function EnterpriseReportsEngine() {
           city: b.city || "Bangalore",
         }));
         setAvailableBranches(formatted);
-        // Default to all eligible actual branch IDs
         setBranchIds((prev) => (prev.length === 0 ? formatted.map((b: any) => b.id) : prev));
+      }
+    }).catch(() => null);
+  }, []);
+
+  const refreshDeliveryPartners = useCallback(() => {
+    apiClient.getAdminDeliveryPartners().then((res: any) => {
+      const rawList = res?.partners || res?.data || (Array.isArray(res) ? res : []);
+      if (rawList && rawList.length > 0) {
+        const formatted = rawList.map((p: any) => ({
+          id: p.id || p.partner_number,
+          name: p.full_name || p.name || `${p.first_name || 'Rider'} ${p.last_name || ''}`.trim(),
+          partnerNumber: p.partner_number || p.id,
+          branchName: p.primary_branch_name || "Indiranagar Kitchen Hub",
+          status: p.availability_status || p.status || "ONLINE",
+          rating: p.rating || 4.9,
+        }));
+        setAvailablePartners(formatted);
       }
     }).catch(() => null);
   }, []);
 
   useEffect(() => {
     refreshBranches();
-  }, [refreshBranches]);
+    refreshDeliveryPartners();
+  }, [refreshBranches, refreshDeliveryPartners]);
 
   // Global Filter & Comparison State
   const [timeRange, setTimeRange] = useState<ReportTimeRange>("last_30_days");
@@ -128,7 +146,7 @@ export function EnterpriseReportsEngine() {
   const gstItems = useMemo(() => ReportsEngineData.getGstReport(filters), [filters]);
   const exceptions = useMemo(() => ReportsEngineData.getExceptionCenterAudit(filters), [filters]);
   const branchPerformance = useMemo(() => ReportsEngineData.getBranchPerformance(filters, availableBranches), [filters, availableBranches]);
-  const deliveryData = useMemo(() => ReportsEngineData.getDeliveryFleetPerformance(filters), [filters]);
+  const deliveryData = useMemo(() => ReportsEngineData.getDeliveryFleetPerformance(filters, availablePartners), [filters, availablePartners]);
   const customerData = useMemo(() => ReportsEngineData.getCustomerAnalytics(filters), [filters]);
   const paymentData = useMemo(() => ReportsEngineData.getPaymentsRefunds(filters), [filters]);
   const geoData = useMemo(() => ReportsEngineData.getGeographicSales(filters), [filters]);
@@ -1489,6 +1507,7 @@ export function EnterpriseReportsEngine() {
               <Text className="text-xs text-ui-fg-subtle">{activeReportDef.description}</Text>
             </div>
             <div className="flex items-center gap-2">
+              <Badge color="purple" className="text-[10px] font-bold uppercase">CakeToHome Dedicated Fleet (Own Riders)</Badge>
               <Button variant="secondary" size="small" onClick={handleExportActiveReport} className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 dark:bg-teal-950/50 border border-teal-300 hover:bg-teal-100">
                 <Download className="w-3.5 h-3.5 text-teal-600" /> Export Delivery Fleet (XLSX)
               </Button>
@@ -1509,8 +1528,11 @@ export function EnterpriseReportsEngine() {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-ui-bg-subtle border-b border-ui-border-base text-[11px] uppercase tracking-wider font-bold text-ui-fg-subtle">
-                  <th className="p-3">Delivery Partner</th>
-                  <th className="p-3 text-right">Total Assigned</th>
+                  <th className="p-3">Driver / Rider Name</th>
+                  <th className="p-3">Rider Number</th>
+                  <th className="p-3">Assigned Kitchen Hub</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3 text-right">Assigned Deliveries</th>
                   <th className="p-3 text-right">On-Time Deliveries</th>
                   <th className="p-3 text-right">Delayed Deliveries</th>
                   <th className="p-3 text-right">Avg Mins</th>
@@ -1518,9 +1540,16 @@ export function EnterpriseReportsEngine() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-ui-border-base font-mono">
-                {deliveryData.partners.map((p, idx) => (
+                {deliveryData.partners.map((p: any, idx: number) => (
                   <tr key={idx} className="hover:bg-ui-bg-subtle/50 transition-colors">
-                    <td className="p-3 font-sans font-bold text-ui-fg-base">{p.partner}</td>
+                    <td className="p-3 font-sans font-bold text-ui-fg-base">{p.driverName}</td>
+                    <td className="p-3 font-mono font-bold text-indigo-700">{p.partnerNumber}</td>
+                    <td className="p-3 font-sans text-ui-fg-subtle">{p.branchName}</td>
+                    <td className="p-3 font-sans">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${p.status === "ONLINE" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                        {p.status}
+                      </span>
+                    </td>
                     <td className="p-3 text-right font-medium">{p.total}</td>
                     <td className="p-3 text-right text-emerald-700 font-bold">{p.onTime}</td>
                     <td className="p-3 text-right text-rose-600">{p.delayed}</td>

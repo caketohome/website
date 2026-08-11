@@ -312,6 +312,83 @@ export class ExcelExportService {
     this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Branch_Performance_${fromDate}_to_${toDate}`);
   }
 
+  // DEDICATED DELIVERY FLEET EXPORT
+  public static async exportDeliveryFleet(data: { deliveryData: any; filters?: any }, filename?: string): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Delivery & Fleet");
+    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+
+    const fromDate = data.filters?.customStartDate || "2026-07-01";
+    const toDate = data.filters?.customEndDate || "2026-07-31";
+
+    sheet.mergeCells("A1:I1");
+    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
+    sheet.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF991B1B" } };
+
+    sheet.mergeCells("A2:I2");
+    sheet.getCell("A2").value = `CAKETOHOME OWN FLEET DELIVERY & OPERATIONAL SLA REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
+    sheet.getCell("A2").font = { name: "Calibri", size: 11, italic: true, color: { argb: "FF475569" } };
+
+    sheet.getCell("A4").value = "Fleet Model:"; sheet.getCell("B4").value = "CakeToHome Dedicated Fleet (Own Riders)";
+    sheet.getCell("D4").value = "Generated:"; sheet.getCell("E4").value = new Date().toLocaleString("en-IN");
+    ["A4", "D4"].forEach((ref) => sheet.getCell(ref).font = { bold: true });
+
+    const headers = [
+      "Driver / Rider Name",
+      "Rider Number",
+      "Assigned Kitchen Hub",
+      "Status",
+      "Assigned Deliveries",
+      "On-Time Deliveries",
+      "Delayed Deliveries",
+      "Avg Fulfillment (Mins)",
+      "Rating",
+    ];
+
+    const headerRow = sheet.getRow(6);
+    headers.forEach((h, i) => {
+      const cell = headerRow.getCell(i + 1);
+      cell.value = h;
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+      cell.alignment = { vertical: "middle", horizontal: "center" };
+    });
+
+    const partners = data.deliveryData?.partners || [];
+    if (partners && partners.length > 0) {
+      partners.forEach((p: any) => {
+        const row = sheet.addRow([
+          p.driverName || p.partner || "CakeToHome Rider",
+          p.partnerNumber || p.id || "CTH-DP-100",
+          p.branchName || "Indiranagar Kitchen Hub",
+          p.status || "ONLINE",
+          p.total || 0,
+          p.onTime || 0,
+          p.delayed || 0,
+          p.avgMins || 25,
+          p.rating || 4.8,
+        ]);
+
+        row.getCell(2).alignment = { horizontal: "center" };
+        row.getCell(4).alignment = { horizontal: "center" };
+        [5, 6, 7, 8].forEach((colIdx) => (row.getCell(colIdx).numFmt = "#,##0"));
+        row.getCell(9).numFmt = "0.0";
+      });
+    } else {
+      const emptyRow = sheet.addRow(["No delivery partner records found for the selected filter criteria."]);
+      sheet.mergeCells(`A7:I7`);
+      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
+    }
+
+    sheet.columns = [
+      { width: 28 }, { width: 16 }, { width: 28 }, { width: 14 }, { width: 20 },
+      { width: 20 }, { width: 20 }, { width: 22 }, { width: 12 }
+    ];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Delivery_Fleet_${fromDate}_to_${toDate}`);
+  }
+
   // 4. DEDICATED B2B SALES EXPORT
   public static async exportB2B(data: { salesRegister: any[]; filters?: any }, filename?: string): Promise<void> {
     const workbook = new ExcelJS.Workbook();
@@ -1410,95 +1487,9 @@ export class ExcelExportService {
     await this.exportInvoiceRegister({ invoiceRegister: data.orders || data.salesRegister || [], filters: data.filters }, filename || `CakeToHome_Order_Lifecycle_${data.filters?.customStartDate || "2026-08-01"}_to_${data.filters?.customEndDate || "2026-08-10"}`);
   }
 
-  // 15. DEDICATED BRANCH PERFORMANCE EXPORT
-  public static async exportBranchPerformance(data: { branchPerformance?: any[]; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Branch Performance");
-    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
 
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
 
-    sheet.mergeCells("A1:I1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
 
-    sheet.mergeCells("A2:I2");
-    sheet.getCell("A2").value = `MULTI-BRANCH KITCHEN HUB PERFORMANCE REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    const headers = ["Branch Name", "Hub Code", "Total Orders", "Delivered Orders", "Net Sales", "Gross Profit", "Margin %", "AOV", "On-Time %"];
-    sheet.getRow(6).values = headers;
-    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4338CA" } };
-
-    if (data.branchPerformance && data.branchPerformance.length > 0) {
-      data.branchPerformance.forEach((b: any) => {
-        const row = sheet.addRow([
-          b.branchName,
-          b.branchCode,
-          b.ordersCount,
-          b.deliveredCount,
-          b.netSales,
-          b.grossProfit,
-          (b.marginPct || 0) / 100,
-          b.aov,
-          (b.onTimeDeliveryPct || 95) / 100,
-        ]);
-        [3, 4].forEach((cIdx) => row.getCell(cIdx).numFmt = "#,##0");
-        [5, 6, 8].forEach((cIdx) => row.getCell(cIdx).numFmt = "₹#,##0.00");
-        [7, 9].forEach((cIdx) => row.getCell(cIdx).numFmt = "0.00%");
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No operating branch performance data found for the selected period."]);
-      sheet.mergeCells(`A7:I7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
-    }
-
-    sheet.columns = [{ width: 26 }, { width: 14 }, { width: 14 }, { width: 16 }, { width: 18 }, { width: 18 }, { width: 14 }, { width: 14 }, { width: 14 }];
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Branch_Performance_${fromDate}_to_${toDate}`);
-  }
-
-  // 16. DEDICATED DELIVERY & FLEET EXPORT
-  public static async exportDeliveryFleet(data: { deliveryData?: any; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Delivery & Fleet");
-    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
-
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
-
-    sheet.mergeCells("A1:F1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:F2");
-    sheet.getCell("A2").value = `3PL & IN-HOUSE DELIVERY FLEET PERFORMANCE REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    const headers = ["Delivery Partner", "Total Assigned", "On-Time Deliveries", "Delayed Deliveries", "Avg Fulfillment Mins", "Partner Rating"];
-    sheet.getRow(6).values = headers;
-    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0284C7" } };
-
-    const partners = data.deliveryData?.partners || [];
-    if (partners.length > 0) {
-      partners.forEach((p: any) => {
-        const row = sheet.addRow([p.partner, p.total, p.onTime, p.delayed, p.avgMins, p.rating]);
-        [2, 3, 4, 5].forEach((cIdx) => row.getCell(cIdx).numFmt = "#,##0");
-        row.getCell(6).numFmt = "0.0";
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No fleet delivery logs recorded for the selected period."]);
-      sheet.mergeCells(`A7:F7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
-    }
-
-    sheet.columns = [{ width: 28 }, { width: 16 }, { width: 20 }, { width: 18 }, { width: 22 }, { width: 16 }];
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Delivery_Fleet_${fromDate}_to_${toDate}`);
-  }
 
   // 17. DEDICATED CUSTOMER ANALYTICS EXPORT
   public static async exportCustomerAnalytics(data: { customerData?: any; filters?: any }, filename?: string): Promise<void> {
