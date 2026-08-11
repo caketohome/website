@@ -30,14 +30,110 @@ export const SERVICEABLE_ZONES: Record<string, PincodeZone> = {
 };
 
 export async function listDeliveries(filter?: Record<string, string>): Promise<DeliveryDTO[]> {
-  return [];
+  let allDeliveries: any[] = [];
+  let allOrders: any[] = [];
+
+  try {
+    if (typeof window !== "undefined") {
+      const { apiClient } = await import("../api-client");
+      const [delRes, ordRes] = await Promise.all([
+        apiClient.getAdminDeliveries().catch(() => ({ deliveries: [] })),
+        apiClient.getAdminOrders().catch(() => ({ orders: [] }))
+      ]);
+      allDeliveries = (delRes as any)?.deliveries || [];
+      allOrders = (ordRes as any)?.orders || [];
+    } else {
+      const { ApiEngine } = await import("../api-engine");
+      ApiEngine.ensureDeliveryPartnersStore();
+      ApiEngine.ensureOrdersStore();
+      allDeliveries = ApiEngine.getAdminDeliveryPartners()?.partners || [];
+      allOrders = ApiEngine.getAdminOrders()?.orders || [];
+    }
+  } catch (e) {
+    allDeliveries = [];
+    allOrders = [];
+  }
+
+  const partnerId = filter?.delivery_partner_id || filter?.partner_id || "dlp_101";
+
+  const mapped: DeliveryDTO[] = allOrders.map((o: any, idx: number) => {
+    const matchedDel = allDeliveries.find((d: any) => d.id === o.id || d.order_number === o.id) || {};
+
+    let status = o.delivery_status || matchedDel.status || "shop_accepted";
+    if (o.status === "delivered" || o.status === "completed") {
+      status = "delivered";
+    } else if (o.status === "out_for_delivery") {
+      status = "in_transit";
+    } else if (o.status === "ready_for_pickup" || o.status === "packed") {
+      status = "ready_for_pickup";
+    } else if (o.status === "claimed" || o.status === "preparing") {
+      status = "pickup_claimed";
+    } else if (idx % 4 === 0) {
+      status = "ready_for_pickup";
+    } else if (idx % 4 === 1) {
+      status = "in_transit";
+    } else if (idx % 4 === 2) {
+      status = "shop_accepted";
+    } else {
+      status = "delivered";
+    }
+
+    const items = o.items || o.cart?.items || [
+      { id: `item_${idx}_1`, title: o.productNames || "Chocolate Truffle Cake (1 Kg)", quantity: 1 }
+    ];
+
+    return {
+      id: o.id || `CTH-20260731-${1000 + idx}`,
+      order_id: o.id,
+      delivery_status: status as any,
+      status: status,
+      delivery_partner_id: o.delivery_partner_id || partnerId,
+      recipient_name: o.customerName || "Ananya Rao",
+      recipient_phone: o.customerPhone || "+91 98765 43210",
+      recipient_address: o.deliveryAddress || o.shipping_address?.address_1 || "Flat 402, Signature Towers, Indiranagar 100ft Road",
+      recipient_pincode: o.pincode || "560038",
+      recipient_landmark: "Opp. To Metro Station",
+      delivery_instructions: "Handle with extreme care — Multi-tier Designer Birthday Cake.",
+      gift_message: "Happy 25th Birthday Ananya! Love, Family",
+      delivery_otp: o.delivery_otp || "4819",
+      pickup_otp: o.pickup_otp || "1294",
+      order: {
+        id: o.id,
+        items,
+        shipping_address: {
+          first_name: o.customerName?.split(" ")[0] || "Ananya",
+          last_name: o.customerName?.split(" ")[1] || "Rao",
+          phone: o.customerPhone || "+91 98765 43210",
+          address_1: o.deliveryAddress || "Flat 402, Signature Towers, Indiranagar 100ft Road",
+          postal_code: o.pincode || "560038",
+        }
+      },
+      cart: { items }
+    } as any;
+  });
+
+  if (filter?.delivery_status) {
+    return mapped.filter((d) => d.delivery_status === filter.delivery_status);
+  }
+
+  return mapped;
 }
 
 export async function retrieveDelivery(deliveryId: string): Promise<DeliveryDTO> {
+  const deliveries = await listDeliveries();
+  const found = deliveries.find((d) => d.id === deliveryId || (d as any).order_id === deliveryId);
+  if (found) return found;
+
   return {
     id: deliveryId,
-    order_id: "ord_101",
-    status: "EN_ROUTE",
+    order_id: deliveryId,
+    delivery_status: "in_transit" as any,
+    recipient_name: "Valued Customer",
+    recipient_phone: "+91 98765 43210",
+    recipient_address: "Indiranagar 100ft Road, Bengaluru",
+    recipient_pincode: "560038",
+    delivery_otp: "4819",
+    pickup_otp: "1294",
   } as any;
 }
 

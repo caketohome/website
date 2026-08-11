@@ -33,8 +33,8 @@ export default async function DeliveryColumn({
             />
           ))
         ) : (
-          <Container className="p-4 whitespace-pre-wrap">
-            <Text className="break-words">{title} will show up here</Text>
+          <Container className="p-4 text-center bg-ui-bg-subtle/50 border border-dashed border-ui-border-base rounded-xl">
+            <Text className="text-xs text-ui-fg-muted italic">No active {title.toLowerCase()} in your assigned kitchen hubs.</Text>
           </Container>
         )}
       </div>

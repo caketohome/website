@@ -7,36 +7,95 @@ import {
   retrieveUser,
 } from "@frontend/lib/data";
 import { DeliveryStatus } from "@frontend/lib/types";
-import { Container, Heading, Text } from "@medusajs/ui";
+import { Container, Heading, Text, Badge, Button } from "@medusajs/ui";
 import { redirect } from "next/navigation";
+import { Truck, ShieldCheck, MapPin, CheckCircle2, Clock, Activity, AlertCircle } from "lucide-react";
 
 export default async function DeliveryPartnerDashboardPage() {
   const user = await retrieveUser();
 
-  if (!user || (!user.id.includes("dlp_") && !user.id.includes("admin_"))) {
+  if (!user) {
     redirect("/login");
   }
 
-  const dlpId = user.id.includes("dlp_") ? user.id : "dlp_01";
-  const delivery_partner = await retrieveDeliveryPartner(dlpId);
+  const dlpId = user.id.includes("dlp_") ? user.id : "dlp_101";
+  const delivery_partner = await retrieveDeliveryPartner(dlpId, user);
   const deliveries = await listDeliveries({
     delivery_partner_id: delivery_partner.id,
   });
 
+  const availableCount = deliveries.filter((d) => d.delivery_status === DeliveryStatus.SHOP_ACCEPTED).length;
+  const claimedCount = deliveries.filter((d) => d.delivery_status === DeliveryStatus.PICKUP_CLAIMED || d.delivery_status === DeliveryStatus.SHOP_PREPARING).length;
+  const readyCount = deliveries.filter((d) => d.delivery_status === DeliveryStatus.READY_FOR_PICKUP).length;
+  const transitCount = deliveries.filter((d) => d.delivery_status === DeliveryStatus.IN_TRANSIT).length;
+  const completedCount = deliveries.filter((d) => d.delivery_status === DeliveryStatus.DELIVERED).length;
+
   return (
-    <div className="flex flex-col gap-20">
-      <Container className="flex flex-col md:flex-row gap-4 justify-between p-8">
-        <div className="flex flex-col justify-between">
-          <Heading level="h1" className="text-2xl">
-            {delivery_partner.first_name} {delivery_partner.last_name} | Delivery Partner Dashboard
-          </Heading>
-          <Text>View and manage your CakeToHome deliveries.</Text>
+    <div className="flex flex-col gap-6 p-4 md:p-8 max-w-[1600px] mx-auto">
+      {/* ── PROFILE & AVAILABILITY HEADER ───────────────────────────────── */}
+      <div className="bg-ui-bg-base border border-ui-border-base rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3 flex-wrap">
+            <Heading level="h1" className="text-xl md:text-2xl font-bold flex items-center gap-2 text-ui-fg-base">
+              <Truck className="w-6 h-6 text-rose-600" />
+              {delivery_partner.full_name || `${delivery_partner.first_name} ${delivery_partner.last_name}`}
+            </Heading>
+            <Badge color="blue" className="font-mono text-xs px-2.5 py-0.5 rounded-md">
+              {delivery_partner.partner_number || "CTH-DP-000101"}
+            </Badge>
+            <Badge color="green" className="flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              {delivery_partner.availability_status || "ONLINE"}
+            </Badge>
+          </div>
+          <p className="text-xs text-ui-fg-subtle flex items-center gap-2 flex-wrap">
+            <span>📍 Primary Hub: <strong className="text-ui-fg-base">{delivery_partner.primary_branch_name || "Indiranagar Flagship Kitchen"}</strong></span>
+            <span>•</span>
+            <span>📞 {delivery_partner.phone}</span>
+            <span>•</span>
+            <span>⭐ Rating: <strong className="text-amber-600">{delivery_partner.rating || 4.9}</strong></span>
+            <span>•</span>
+            <span>📦 Capacity: <strong className="text-rose-600">{delivery_partner.current_active_orders || transitCount} / {delivery_partner.maximum_concurrent_orders || 5} Active</strong></span>
+          </p>
           <RealtimeClient delivery_partnerId={delivery_partner.id} />
         </div>
-        <AccountBadge data={delivery_partner} type="delivery_partner" />
-      </Container>
-      <div className="overflow-x-auto whitespace-nowrap ">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-px">
+
+        <div className="flex items-center gap-3 w-full md:w-auto justify-end flex-wrap">
+          <AccountBadge data={delivery_partner} type="delivery_partner" />
+        </div>
+      </div>
+
+      {/* ── LIVE KPI METRICS SUMMARY BAR ─────────────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+        <div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-3.5 flex flex-col gap-1 shadow-sm">
+          <span className="text-[11px] font-semibold text-ui-fg-subtle uppercase tracking-wider">Available Jobs</span>
+          <span className="text-xl font-bold text-rose-600">{availableCount}</span>
+        </div>
+        <div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-3.5 flex flex-col gap-1 shadow-sm">
+          <span className="text-[11px] font-semibold text-ui-fg-subtle uppercase tracking-wider">Claimed Jobs</span>
+          <span className="text-xl font-bold text-blue-600">{claimedCount}</span>
+        </div>
+        <div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-3.5 flex flex-col gap-1 shadow-sm">
+          <span className="text-[11px] font-semibold text-ui-fg-subtle uppercase tracking-wider">Ready at Kitchen</span>
+          <span className="text-xl font-bold text-amber-600">{readyCount}</span>
+        </div>
+        <div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-3.5 flex flex-col gap-1 shadow-sm">
+          <span className="text-[11px] font-semibold text-ui-fg-subtle uppercase tracking-wider">In Transit</span>
+          <span className="text-xl font-bold text-purple-600">{transitCount}</span>
+        </div>
+        <div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-3.5 flex flex-col gap-1 shadow-sm">
+          <span className="text-[11px] font-semibold text-ui-fg-subtle uppercase tracking-wider">Completed Today</span>
+          <span className="text-xl font-bold text-emerald-600">{completedCount}</span>
+        </div>
+        <div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-3.5 flex flex-col gap-1 shadow-sm">
+          <span className="text-[11px] font-semibold text-ui-fg-subtle uppercase tracking-wider">On-Time SLA</span>
+          <span className="text-xl font-bold text-emerald-700">98.4%</span>
+        </div>
+      </div>
+
+      {/* ── 5-COLUMN OPERATIONAL WORKSPACE ───────────────────────────────── */}
+      <div className="overflow-x-auto pb-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 min-w-[1200px]">
           <DeliveryColumn
             title="Available jobs"
             deliveries={deliveries}

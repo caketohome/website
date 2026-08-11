@@ -855,22 +855,199 @@
   "branches": [
     {
       "id": "br_1786393681287",
-      "name": "New Koramangala Express Kitchen",
       "code": "HUB-EXPRESS-1286",
-      "city": "Bengaluru",
+      "name": "New Koramangala Express Kitchen",
+      "hierarchy": {
+        "region_id": "reg_south",
+        "state_id": "st_ka",
+        "city_id": "city_blr",
+        "zone_id": "zone_south",
+        "kitchen_id": "ktch_02"
+      },
+      "gst_number": "29AAAAA0000A1Z5",
+      "is_branch_gst": false,
+      "fssai_number": "11223344556688",
+      "pan_number": "AAAAA0000A",
       "address": "80 Feet Rd, Koramangala 4th Block, Bengaluru",
-      "phone": "+91 99887 76655",
-      "email": "branch_1786393681287@cakes2home.com",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "pincode": "560034",
       "latitude": 12.9716,
       "longitude": 77.6412,
+      "phone": "+91 99887 76655",
+      "whatsapp": "+91 98765 00002",
+      "email": "branch_1786393681287@cakes2home.com",
+      "manager_name": "Anita Sharma",
+      "manager_user_id": "usr_mgr_02",
+      "operating_hours": {
+        "Monday": {
+          "open": "08:30",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Tuesday": {
+          "open": "08:30",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Wednesday": {
+          "open": "08:30",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Thursday": {
+          "open": "08:30",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Friday": {
+          "open": "08:30",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Saturday": {
+          "open": "08:30",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Sunday": {
+          "open": "08:30",
+          "close": "23:30",
+          "is_open": true
+        }
+      },
+      "is_open": true,
+      "operational_status": "operational",
+      "max_orders_per_hour": 30,
+      "max_orders_per_day": 250,
+      "simultaneous_cakes_capacity": 20,
+      "current_hourly_load": 6,
+      "deliverable_areas": [
+        "Koramangala",
+        "Ejipura",
+        "Adugodi"
+      ],
+      "delivery_zones": [
+        {
+          "id": "br_koramangala_z1",
+          "name": "Zone A",
+          "display_order": 1,
+          "min_km": 0,
+          "max_km": 4,
+          "enabled": true,
+          "est_delivery_mins": 30,
+          "preparation_buffer_mins": 15,
+          "max_cake_weight_kg": 10,
+          "max_cake_quantity": 5,
+          "min_order_value": 299,
+          "max_order_value": 50000,
+          "free_delivery_threshold": 999,
+          "same_day_allowed": true,
+          "express_allowed": true,
+          "midnight_allowed": true,
+          "scheduled_allowed": true,
+          "delivery_charge": 0,
+          "express_charge": 49,
+          "midnight_charge": 79,
+          "holiday_charge": 49,
+          "pincodes": [
+            "560034",
+            "560095"
+          ],
+          "cities": [
+            "Bengaluru"
+          ],
+          "areas": [
+            "Koramangala"
+          ],
+          "service_areas": [
+            "4th Block Hub"
+          ]
+        },
+        {
+          "id": "br_koramangala_z2",
+          "name": "Zone B",
+          "display_order": 2,
+          "min_km": 4,
+          "max_km": 8,
+          "enabled": true,
+          "est_delivery_mins": 50,
+          "preparation_buffer_mins": 20,
+          "max_cake_weight_kg": 8,
+          "max_cake_quantity": 3,
+          "min_order_value": 399,
+          "max_order_value": 50000,
+          "free_delivery_threshold": 1299,
+          "same_day_allowed": true,
+          "express_allowed": true,
+          "midnight_allowed": true,
+          "scheduled_allowed": true,
+          "delivery_charge": 49,
+          "express_charge": 99,
+          "midnight_charge": 99,
+          "holiday_charge": 79,
+          "pincodes": [
+            "560047",
+            "560076",
+            "560029"
+          ],
+          "cities": [
+            "Bengaluru"
+          ],
+          "areas": [
+            "Ejipura",
+            "BTM Layout"
+          ],
+          "service_areas": [
+            "Sony Signal Corridor"
+          ]
+        },
+        {
+          "id": "br_koramangala_z3",
+          "name": "Zone C",
+          "display_order": 3,
+          "min_km": 8,
+          "max_km": 12,
+          "enabled": true,
+          "est_delivery_mins": 75,
+          "preparation_buffer_mins": 30,
+          "max_cake_weight_kg": 6,
+          "max_cake_quantity": 2,
+          "min_order_value": 499,
+          "max_order_value": 50000,
+          "free_delivery_threshold": 1499,
+          "same_day_allowed": true,
+          "express_allowed": false,
+          "midnight_allowed": false,
+          "scheduled_allowed": true,
+          "delivery_charge": 79,
+          "express_charge": 149,
+          "midnight_charge": 149,
+          "holiday_charge": 99,
+          "pincodes": [
+            "560102",
+            "560068"
+          ],
+          "cities": [
+            "Bengaluru"
+          ],
+          "areas": [
+            "HSR Layout",
+            "Bommanahalli"
+          ],
+          "service_areas": [
+            "HSR Sector 1 Hub"
+          ]
+        }
+      ],
+      "created_at": "2026-08-10T20:28:01.287Z",
+      "updated_at": "2026-08-11T04:05:12.284Z",
       "shop_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
       "manager": "New Koramangala Express Kitchen Manager (+91 99887 76655)",
-      "is_open": true,
       "pincodes": [
         "560038",
         "560008"
-      ],
-      "created_at": "2026-08-10T20:28:01.287Z"
+      ]
     },
     {
       "id": "br_1786392788271",
@@ -8683,6 +8860,20 @@
     }
   ],
   "audit_logs": [
+    {
+      "id": "log_1786442460787",
+      "action": "Updated Storefront Global Settings",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T10:01:00.787Z"
+    },
+    {
+      "id": "log_1786442460190",
+      "action": "Updated Storefront Global Settings",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T10:01:00.190Z"
+    },
     {
       "id": "log_1786393681287",
       "action": "Created Bakery Branch \"New Koramangala Express Kitchen\"",
@@ -34735,5 +34926,13 @@
   "seo_robots_history": [],
   "seo_social_cards": [],
   "seo_backlinks": [],
-  "seo_reports": []
+  "seo_reports": [],
+  "delivery_partner_assignments": [],
+  "delivery_assignment_rules": {
+    "allow_cross_branch_fallback": false,
+    "require_working_hours": false,
+    "require_online_status": true,
+    "max_capacity_limit": 5,
+    "updated_at": "2026-08-11T04:05:12.624Z"
+  }
 }

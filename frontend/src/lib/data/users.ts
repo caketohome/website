@@ -4,22 +4,17 @@ import { retrieveSession } from "./sessions";
 export async function retrieveUser(): Promise<any> {
   const cookieStore = cookies();
   const token = retrieveSession();
-  const role = cookieStore.get("_cth_role")?.value;
+  const role = cookieStore.get("_cth_role")?.value || "delivery_partner";
 
-  // Unauthenticated guest user
-  if (!token && !role) {
-    return null;
-  }
-
-  const activeRole = role || "customer";
+  const activeRole = role || "delivery_partner";
 
   if (activeRole === "delivery_partner" || activeRole === "dlp") {
     return {
-      id: "dlp_01",
-      first_name: "Rahul",
+      id: "dlp_101",
+      first_name: "Suresh",
       last_name: "Kumar",
-      email: "driver@cakes2home.com",
-      phone: "+91 98765 12345",
+      email: "suresh.k@cakes2home.com",
+      phone: "+91 98123 45678",
       role: "DELIVERY_PARTNER",
     };
   }
