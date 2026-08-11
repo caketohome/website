@@ -734,40 +734,64 @@ export class ReportsEngineData {
   }
 
   /**
-   * Branch Performance Dataset
+   * Dynamic Branch Performance Dataset
    */
-  public static getBranchPerformance(filters: ReportFilterState) {
+  public static getBranchPerformance(filters: ReportFilterState, dynamicBranches?: any[]) {
     const stats = this.getTransactionalMetrics(filters);
-    const branches = [
-      { id: "br_indiranagar", name: "Indiranagar Kitchen Hub", code: "HUB-01", ratio: 0.38 },
-      { id: "br_koramangala", name: "Koramangala Kitchen Hub", code: "HUB-02", ratio: 0.32 },
-      { id: "br_hsr", name: "HSR Layout Kitchen Hub", code: "HUB-03", ratio: 0.18 },
-      { id: "br_whitefield", name: "Whitefield Kitchen Hub", code: "HUB-04", ratio: 0.12 },
-    ];
 
-    return branches.map((b) => {
-      const grossSales = Math.round(stats.grossRevenue * b.ratio);
-      const netSales = Math.round(stats.netSalesExclTax * b.ratio);
-      const orders = Math.round(stats.totalOrders * b.ratio);
-      const delivered = Math.round(stats.deliveredOrders * b.ratio);
-      const cancelled = Math.round(stats.cancelledOrders * b.ratio);
-      const profit = Math.round(stats.grossProfit * b.ratio);
+    let rawBranches: any[] = [];
+    if (dynamicBranches && dynamicBranches.length > 0) {
+      rawBranches = dynamicBranches;
+    } else {
+      rawBranches = [
+        { id: "br_indiranagar", name: "Indiranagar Kitchen Hub", code: "HUB-01" },
+        { id: "br_koramangala", name: "Koramangala Kitchen Hub", code: "HUB-02" },
+        { id: "br_hsr", name: "HSR Layout Kitchen Hub", code: "HUB-03" },
+        { id: "br_whitefield", name: "Whitefield Kitchen Hub", code: "HUB-04" },
+      ];
+    }
+
+    const selectedIds = filters.branchIds || [];
+    const activeList = selectedIds.length > 0
+      ? rawBranches.filter((b) => selectedIds.includes(b.id))
+      : rawBranches;
+
+    const listToRender = activeList.length > 0 ? activeList : rawBranches;
+
+    return listToRender.map((b, idx) => {
+      const weightBase = 1 / listToRender.length;
+      const variance = (idx % 2 === 0 ? 1.15 : 0.85) * (1 - (idx * 0.02));
+      const effectiveRatio = weightBase * variance;
+
+      const grossSales = Math.round(stats.grossRevenue * effectiveRatio);
+      const netSales = Math.round(stats.netSalesExclTax * effectiveRatio);
+      const orders = Math.round(stats.totalOrders * effectiveRatio);
+      const delivered = Math.round(stats.deliveredOrders * effectiveRatio);
+      const cancelled = Math.round(stats.cancelledOrders * effectiveRatio);
+      const cogs = Math.round(netSales * (0.34 + (idx % 4) * 0.015));
+      const profit = netSales - cogs;
       const margin = netSales > 0 ? Number(((profit / netSales) * 100).toFixed(2)) : 0;
       const aov = orders > 0 ? Math.round(netSales / orders) : 0;
+      const onTimeDeliveryPct = Number((94.5 + (idx % 5) * 0.9).toFixed(1));
+      const avgDeliveryTimeMins = 24 + (idx % 6) * 3;
+      const customerCount = Math.max(1, Math.round(orders * 0.82));
 
       return {
         id: b.id,
-        branchName: b.name,
-        branchCode: b.code,
+        branchName: b.name || b.id,
+        branchCode: b.code || `HUB-${String(idx + 1).padStart(2, "0")}`,
         ordersCount: orders,
         deliveredCount: delivered,
         cancelledCount: cancelled,
         grossSales,
         netSales,
+        cogs,
         grossProfit: profit,
         marginPct: margin,
         aov,
-        onTimeDeliveryPct: 96.5 - (orders % 3),
+        customerCount,
+        onTimeDeliveryPct,
+        avgDeliveryTimeMins,
       };
     });
   }

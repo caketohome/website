@@ -227,6 +227,91 @@ export class ExcelExportService {
     this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_GST_Transactions_${fromDate}_to_${toDate}`);
   }
 
+  // DEDICATED BRANCH PERFORMANCE EXPORT
+  public static async exportBranchPerformance(data: { branchPerformance: any[]; filters?: any }, filename?: string): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Branch Performance");
+    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+
+    const fromDate = data.filters?.customStartDate || "2026-07-01";
+    const toDate = data.filters?.customEndDate || "2026-07-31";
+
+    sheet.mergeCells("A1:L1");
+    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
+    sheet.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF991B1B" } };
+
+    sheet.mergeCells("A2:L2");
+    sheet.getCell("A2").value = `MULTI-BRANCH OPERATIONAL PERFORMANCE & FINANCIAL RANKING | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
+    sheet.getCell("A2").font = { name: "Calibri", size: 11, italic: true, color: { argb: "FF475569" } };
+
+    sheet.getCell("A4").value = "GSTIN:"; sheet.getCell("B4").value = "29AAAAA0000A1Z5";
+    sheet.getCell("D4").value = "Generated:"; sheet.getCell("E4").value = new Date().toLocaleString("en-IN");
+    ["A4", "D4"].forEach((ref) => sheet.getCell(ref).font = { bold: true });
+
+    const headers = [
+      "Rank",
+      "Branch Name",
+      "Hub Code",
+      "Total Orders",
+      "Delivered",
+      "Cancelled",
+      "Gross Sales (₹)",
+      "Net Sales (₹)",
+      "Gross Profit (₹)",
+      "Margin %",
+      "AOV (₹)",
+      "On-Time %",
+    ];
+
+    const headerRow = sheet.getRow(6);
+    headers.forEach((h, i) => {
+      const cell = headerRow.getCell(i + 1);
+      cell.value = h;
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+      cell.alignment = { vertical: "middle", horizontal: "center" };
+    });
+
+    if (data.branchPerformance && data.branchPerformance.length > 0) {
+      data.branchPerformance.forEach((b: any, idx: number) => {
+        const row = sheet.addRow([
+          idx + 1,
+          b.branchName,
+          b.branchCode,
+          b.ordersCount || 0,
+          b.deliveredCount || 0,
+          b.cancelledCount || 0,
+          b.grossSales || 0,
+          b.netSales || 0,
+          b.grossProfit || 0,
+          (b.marginPct || 0) / 100,
+          b.aov || 0,
+          (b.onTimeDeliveryPct || 0) / 100,
+        ]);
+
+        row.getCell(1).alignment = { horizontal: "center" };
+        row.getCell(3).alignment = { horizontal: "center" };
+        [4, 5, 6].forEach((colIdx) => (row.getCell(colIdx).numFmt = "#,##0"));
+        [7, 8, 9, 11].forEach((colIdx) => (row.getCell(colIdx).numFmt = "₹#,##0.00"));
+        row.getCell(10).numFmt = "0.00%";
+        row.getCell(12).numFmt = "0.00%";
+      });
+    } else {
+      const emptyRow = sheet.addRow(["No branch performance records found for the selected filter criteria."]);
+      sheet.mergeCells(`A7:L7`);
+      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
+    }
+
+    sheet.columns = [
+      { width: 10 }, { width: 32 }, { width: 14 }, { width: 14 }, { width: 14 },
+      { width: 14 }, { width: 20 }, { width: 20 }, { width: 20 }, { width: 14 },
+      { width: 16 }, { width: 14 }
+    ];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Branch_Performance_${fromDate}_to_${toDate}`);
+  }
+
   // 4. DEDICATED B2B SALES EXPORT
   public static async exportB2B(data: { salesRegister: any[]; filters?: any }, filename?: string): Promise<void> {
     const workbook = new ExcelJS.Workbook();

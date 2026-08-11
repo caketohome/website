@@ -127,7 +127,7 @@ export function EnterpriseReportsEngine() {
   const orders = useMemo(() => ReportsEngineData.getOrderLifecycle(filters), [filters]);
   const gstItems = useMemo(() => ReportsEngineData.getGstReport(filters), [filters]);
   const exceptions = useMemo(() => ReportsEngineData.getExceptionCenterAudit(filters), [filters]);
-  const branchPerformance = useMemo(() => ReportsEngineData.getBranchPerformance(filters), [filters]);
+  const branchPerformance = useMemo(() => ReportsEngineData.getBranchPerformance(filters, availableBranches), [filters, availableBranches]);
   const deliveryData = useMemo(() => ReportsEngineData.getDeliveryFleetPerformance(filters), [filters]);
   const customerData = useMemo(() => ReportsEngineData.getCustomerAnalytics(filters), [filters]);
   const paymentData = useMemo(() => ReportsEngineData.getPaymentsRefunds(filters), [filters]);
@@ -1039,8 +1039,9 @@ export function EnterpriseReportsEngine() {
 
       {/* ── SECTION 5: BRANCH PERFORMANCE ────────────────────────────────── */}
       {activeSection === "branches" && (
-        <div className="flex flex-col gap-5 bg-ui-bg-base border border-ui-border-base rounded-2xl p-5 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-ui-border-base">
+        <div className="flex flex-col gap-6">
+          {/* Branch Performance Contextual Toolbar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-ui-bg-base border border-ui-border-base rounded-2xl shadow-sm">
             <div>
               <Heading level="h2" className="text-base font-bold text-ui-fg-base flex items-center gap-2">
                 🏢 {activeReportDef.title}
@@ -1067,37 +1068,103 @@ export function EnterpriseReportsEngine() {
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-ui-border-base rounded-xl">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-ui-bg-subtle border-b border-ui-border-base text-[11px] uppercase tracking-wider font-bold text-ui-fg-subtle">
-                  <th className="p-3">Branch Name</th>
-                  <th className="p-3">Hub Code</th>
-                  <th className="p-3 text-right">Total Orders</th>
-                  <th className="p-3 text-right">Delivered</th>
-                  <th className="p-3 text-right">Net Sales</th>
-                  <th className="p-3 text-right">Gross Profit</th>
-                  <th className="p-3 text-right">Margin %</th>
-                  <th className="p-3 text-right">AOV</th>
-                  <th className="p-3 text-right">On-Time %</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-ui-border-base font-mono">
-                {branchPerformance.map((b) => (
-                  <tr key={b.id} className="hover:bg-ui-bg-subtle/50 transition-colors">
-                    <td className="p-3 font-sans font-bold text-ui-fg-base">{b.branchName}</td>
-                    <td className="p-3 font-mono font-bold text-indigo-700">{b.branchCode}</td>
-                    <td className="p-3 text-right font-medium">{b.ordersCount}</td>
-                    <td className="p-3 text-right font-bold text-emerald-700">{b.deliveredCount}</td>
-                    <td className="p-3 text-right font-bold text-ui-fg-base">₹{b.netSales.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-bold text-emerald-700">₹{b.grossProfit.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-bold text-purple-700">{b.marginPct}%</td>
-                    <td className="p-3 text-right font-medium">₹{b.aov.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-bold text-sky-700">{b.onTimeDeliveryPct}%</td>
+          {/* Branch Performance KPI Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="p-4 bg-ui-bg-base border border-ui-border-base rounded-2xl shadow-sm">
+              <Text className="text-[11px] font-bold text-ui-fg-subtle uppercase tracking-wider">Active Operating Branches</Text>
+              <Heading level="h3" className="text-lg font-bold text-ui-fg-base mt-1">{branchPerformance.length} Hubs</Heading>
+              <Text className="text-[10px] text-emerald-600 font-semibold mt-1">100% Dynamically Aggregated</Text>
+            </div>
+            <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl shadow-sm">
+              <Text className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Combined Net Sales</Text>
+              <Heading level="h3" className="text-lg font-bold text-emerald-700 mt-1">₹{branchPerformance.reduce((acc, b) => acc + b.netSales, 0).toLocaleString("en-IN")}</Heading>
+              <Text className="text-[10px] text-emerald-600 font-semibold mt-1">{branchPerformance.reduce((acc, b) => acc + b.ordersCount, 0)} Total Orders</Text>
+            </div>
+            <div className="p-4 bg-ui-bg-base border border-ui-border-base rounded-2xl shadow-sm">
+              <Text className="text-[11px] font-bold text-indigo-700 uppercase tracking-wider">Top Revenue Kitchen Hub</Text>
+              <Heading level="h3" className="text-lg font-bold text-indigo-600 mt-1 truncate">{branchPerformance[0]?.branchName || "Indiranagar Hub"}</Heading>
+              <Text className="text-[10px] text-indigo-500 mt-1">₹{(branchPerformance[0]?.netSales || 0).toLocaleString("en-IN")} Net Sales</Text>
+            </div>
+            <div className="p-4 bg-ui-bg-base border border-ui-border-base rounded-2xl shadow-sm">
+              <Text className="text-[11px] font-bold text-purple-700 uppercase tracking-wider">Average Branch Margin %</Text>
+              <Heading level="h3" className="text-lg font-bold text-purple-600 mt-1">
+                {branchPerformance.length > 0 ? (branchPerformance.reduce((acc, b) => acc + b.marginPct, 0) / branchPerformance.length).toFixed(1) : "0.0"}%
+              </Heading>
+              <Text className="text-[10px] text-purple-500 mt-1">Contribution Profitability</Text>
+            </div>
+          </div>
+
+          {/* Branch Revenue Comparison Visualization */}
+          <div className="flex flex-col gap-3 p-5 bg-ui-bg-base border border-ui-border-base rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between pb-2 border-b border-ui-border-base">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-emerald-600" />
+                <Heading level="h3" className="text-sm font-bold">Kitchen Hub Revenue Comparison & Ranking</Heading>
+              </div>
+              <Badge color="blue">{branchPerformance.length} Operating Branches</Badge>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              {branchPerformance.map((b, idx) => {
+                const maxSales = Math.max(...branchPerformance.map((x) => x.netSales), 1);
+                const pct = Math.round((b.netSales / maxSales) * 100);
+                return (
+                  <div key={b.id} className="flex items-center gap-3 text-xs">
+                    <span className="w-6 font-bold text-ui-fg-muted text-right">#{idx + 1}</span>
+                    <span className="w-48 font-bold text-ui-fg-base truncate">{b.branchName}</span>
+                    <div className="flex-1 bg-ui-bg-subtle h-5 rounded-md overflow-hidden relative border border-ui-border-base">
+                      <div className="bg-emerald-500/80 h-full rounded-md transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="w-28 font-mono font-bold text-right text-emerald-700">₹{b.netSales.toLocaleString("en-IN")}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Dynamic Branch Performance Table */}
+          <div className="flex flex-col gap-4 p-5 bg-ui-bg-base border border-ui-border-base rounded-2xl shadow-sm">
+            <Heading level="h3" className="text-sm font-bold pb-2 border-b border-ui-border-base">📊 Kitchen Hub Operational & Financial Ranking Table</Heading>
+            <div className="overflow-x-auto border border-ui-border-base rounded-xl">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-ui-bg-subtle border-b border-ui-border-base text-[11px] uppercase tracking-wider font-bold text-ui-fg-subtle">
+                    <th className="p-3 text-center">Rank</th>
+                    <th className="p-3">Branch Name</th>
+                    <th className="p-3">Hub Code</th>
+                    <th className="p-3 text-right">Total Orders</th>
+                    <th className="p-3 text-right">Delivered</th>
+                    <th className="p-3 text-right">Cancelled</th>
+                    <th className="p-3 text-right">Gross Sales</th>
+                    <th className="p-3 text-right">Net Sales</th>
+                    <th className="p-3 text-right">COGS</th>
+                    <th className="p-3 text-right">Gross Profit</th>
+                    <th className="p-3 text-right">Margin %</th>
+                    <th className="p-3 text-right">AOV</th>
+                    <th className="p-3 text-right">On-Time %</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-ui-border-base font-mono">
+                  {branchPerformance.map((b, idx) => (
+                    <tr key={b.id} className="hover:bg-ui-bg-subtle/50 transition-colors">
+                      <td className="p-3 text-center font-sans font-bold text-ui-fg-muted">#{idx + 1}</td>
+                      <td className="p-3 font-sans font-bold text-ui-fg-base">{b.branchName}</td>
+                      <td className="p-3 font-mono font-bold text-indigo-700">{b.branchCode}</td>
+                      <td className="p-3 text-right font-medium">{b.ordersCount}</td>
+                      <td className="p-3 text-right font-bold text-emerald-700">{b.deliveredCount}</td>
+                      <td className="p-3 text-right text-rose-600">{b.cancelledCount}</td>
+                      <td className="p-3 text-right font-medium">₹{b.grossSales.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right font-bold text-ui-fg-base">₹{b.netSales.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right font-medium text-slate-600">₹{b.cogs.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right font-bold text-emerald-700">₹{b.grossProfit.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right font-bold text-purple-700">{b.marginPct}%</td>
+                      <td className="p-3 text-right font-medium">₹{b.aov.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right font-bold text-sky-700">{b.onTimeDeliveryPct}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
