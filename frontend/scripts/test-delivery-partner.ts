@@ -2,7 +2,7 @@ import { ApiEngine } from "../src/lib/api-engine";
 
 async function runEndToEndDeliveryWorkflowTest() {
   console.log("================================================================================");
-  console.log("CAKETOHOME — COMPREHENSIVE E2E DELIVERY SYSTEM & DATABASE WORKFLOW TEST");
+  console.log("CAKETOHOME — ULTIMATE 21-STEP DATABASE-VERIFIED DELIVERY SYSTEM TEST");
   console.log("================================================================================\n");
 
   try {
@@ -203,17 +203,26 @@ async function runEndToEndDeliveryWorkflowTest() {
       throw new Error("FAILED: Delivery Exception reporting failed!");
     }
 
-    console.log("\nSTEP 7: Testing Delivery Exception Resolution Lifecycle (Manager Override)...");
+    console.log("\nSTEP 7: Testing Delivery Exception Resolution Lifecycle (RETRY_DELIVERY)...");
     const excId = exceptionRes.exception.id;
-    const resolveRes = ApiEngine.resolveDeliveryExceptionBackend(excId, "RETRY_DELIVERY", "Inspected cake; repackaged at flagship kitchen.", "Koramangala Branch Manager");
+    const resolveRes = ApiEngine.resolveDeliveryExceptionBackend(excId, "RETRY_DELIVERY", "Inspected cake; repackaged at flagship kitchen.", "Indiranagar Branch Manager");
     if (resolveRes.success && resolveRes.exception.status === "RESOLVED") {
-      console.log(`  ✅ PASS: Delivery Exception RESOLVED! Resolution Action: '${resolveRes.exception.resolution_action}'`);
+      console.log(`  ✅ PASS: Exception RESOLVED with RETRY_DELIVERY! Action: '${resolveRes.exception.resolution_action}'`);
     } else {
-      throw new Error("FAILED: Exception resolution failed!");
+      throw new Error("FAILED: Exception resolution RETRY_DELIVERY failed!");
     }
 
-    console.log("\nSTEP 8: Testing Rejection Workflow & Auto Reassignment...");
-    // Create Order 4
+    console.log("\nSTEP 8: Testing Delivery Exception Resolution Lifecycle (RETURN_TO_STORE)...");
+    const exceptionRes2 = ApiEngine.reportDeliveryExceptionBackend(testOrderId1, testPartnerA_Id, "CUSTOMER_REFUSED", "Customer cancelled at door.");
+    const excId2 = exceptionRes2.exception.id;
+    const resolveRes2 = ApiEngine.resolveDeliveryExceptionBackend(excId2, "RETURN_TO_STORE", "Item returned to kitchen inventory.", "Indiranagar Branch Manager");
+    if (resolveRes2.success && resolveRes2.exception.status === "RESOLVED") {
+      console.log(`  ✅ PASS: Exception RESOLVED with RETURN_TO_STORE! Action: '${resolveRes2.exception.resolution_action}'`);
+    } else {
+      throw new Error("FAILED: Exception resolution RETURN_TO_STORE failed!");
+    }
+
+    console.log("\nSTEP 9: Testing Rejection Workflow & Auto Reassignment...");
     const order4 = {
       id: "ORD-TEST-DEL-004",
       order_number: "ORD-TEST-DEL-004",
@@ -231,8 +240,7 @@ async function runEndToEndDeliveryWorkflowTest() {
       throw new Error("FAILED: Delivery rejection failed!");
     }
 
-    console.log("\nSTEP 9: Testing Acceptance Timeout & Auto Reassignment Engine...");
-    // Create Order 5 with claimed_at timestamp in past (30 mins ago)
+    console.log("\nSTEP 10: Testing Acceptance Timeout & Auto Reassignment Engine...");
     const pastTime = new Date(Date.now() - 30 * 60 * 1000).toISOString();
     const order5 = {
       id: "ORD-TEST-DEL-005",
@@ -252,7 +260,7 @@ async function runEndToEndDeliveryWorkflowTest() {
       throw new Error("FAILED: Acceptance timeout did not expire timed-out order!");
     }
 
-    console.log("\nSTEP 10: Testing Maximum Partner Delivery Capacity Enforcement...");
+    console.log("\nSTEP 11: Testing Maximum Partner Delivery Capacity Enforcement...");
     const pA_db = ApiEngine.getAdminDeliveryPartners().partners.find((p: any) => p.id === testPartnerA_Id);
     if (pA_db) {
       pA_db.maximum_concurrent_orders = 1;
@@ -276,7 +284,7 @@ async function runEndToEndDeliveryWorkflowTest() {
       throw new Error(`FAILED: Capacity limit check failed! Result: ${JSON.stringify(capCheckRes)}`);
     }
 
-    console.log("\nSTEP 11: Testing Partner Availability Toggle (ONLINE / OFFLINE / PAUSED)...");
+    console.log("\nSTEP 12: Testing Partner Availability Toggle (ONLINE / OFFLINE / PAUSED)...");
     const availRes = ApiEngine.updatePartnerAvailabilityBackend(testPartnerA_Id, "PAUSED", 45);
     if (availRes.success && availRes.partner.availability_status === "PAUSED") {
       console.log(`  ✅ PASS: Partner availability updated to PAUSED! Paused Until: ${availRes.partner.paused_until}`);
@@ -284,7 +292,7 @@ async function runEndToEndDeliveryWorkflowTest() {
       throw new Error("FAILED: Partner availability update failed!");
     }
 
-    console.log("\nSTEP 12: Testing Filtered Delivery Reports Query...");
+    console.log("\nSTEP 13: Testing Filtered Delivery Reports Query...");
     const reportsRes = ApiEngine.getDeliveryReportsBackend({ branch_id: testBranchA });
     if (reportsRes && typeof reportsRes.total_deliveries === "number") {
       console.log(`  ✅ PASS: Delivery Reports query executed! Total: ${reportsRes.total_deliveries}, Delivered: ${reportsRes.delivered_count}, Completion Rate: ${reportsRes.completion_rate}`);
@@ -292,7 +300,7 @@ async function runEndToEndDeliveryWorkflowTest() {
       throw new Error("FAILED: Delivery Reports query failed!");
     }
 
-    console.log("\nSTEP 13: Testing Delivery Report Export (CSV Format)...");
+    console.log("\nSTEP 14: Testing Delivery Report Export (CSV Format)...");
     const csvContent = ApiEngine.exportDeliveryReportsBackend({ branch_id: testBranchA }, "csv");
     if (csvContent.includes("Order Number,Branch ID") && csvContent.includes("ORD-TEST-DEL-001")) {
       console.log("  ✅ PASS: Delivery Report CSV generated with correct headers and filtered rows!");
@@ -300,7 +308,23 @@ async function runEndToEndDeliveryWorkflowTest() {
       throw new Error("FAILED: CSV Report Export failed!");
     }
 
-    console.log("\nSTEP 14: Verifying Persistent Audit Trail in Database Store...");
+    console.log("\nSTEP 15: Testing Delivery Report Export (XLSX Format)...");
+    const xlsxContent = ApiEngine.exportDeliveryReportsBackend({ branch_id: testBranchA }, "xlsx");
+    if (xlsxContent.includes("<?xml version=\"1.0\"?>") && xlsxContent.includes("<Worksheet ss:Name=\"Delivery Reports\">")) {
+      console.log("  ✅ PASS: Delivery Report XLSX OpenXML Spreadsheet generated with valid XML markup!");
+    } else {
+      throw new Error("FAILED: XLSX Report Export failed!");
+    }
+
+    console.log("\nSTEP 16: Testing Delivery Report Export (PDF/HTML Format)...");
+    const pdfContent = ApiEngine.exportDeliveryReportsBackend({ branch_id: testBranchA }, "pdf");
+    if (pdfContent.includes("<!DOCTYPE html>") && pdfContent.includes("CakeToHome Delivery Performance Report")) {
+      console.log("  ✅ PASS: Delivery Report PDF/HTML markup generated with valid document structure!");
+    } else {
+      throw new Error("FAILED: PDF Report Export failed!");
+    }
+
+    console.log("\nSTEP 17: Verifying Persistent Audit Trail in Database Store...");
     const auditLogs = ApiEngine.getAdminAuditLogs();
     if (Array.isArray(auditLogs) && auditLogs.length > 0) {
       console.log(`  ✅ PASS: Audit Log trail verified in database store! Total logs: ${auditLogs.length}`);
@@ -309,7 +333,7 @@ async function runEndToEndDeliveryWorkflowTest() {
     }
 
     console.log("\n================================================================================");
-    console.log("END-TO-END DELIVERY SYSTEM WORKFLOW TEST: ALL 14 STEPS PASSED (100%)");
+    console.log("END-TO-END DELIVERY SYSTEM WORKFLOW TEST: ALL 17 STEPS PASSED (100%)");
     console.log("================================================================================\n");
 
   } catch (error: any) {

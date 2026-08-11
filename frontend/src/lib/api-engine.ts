@@ -4075,10 +4075,74 @@ export class ApiEngine {
     };
   }
 
-  static exportDeliveryReportsBackend(filters: Record<string, any> = {}, format: "csv" | "xlsx" = "csv"): string {
+  static exportDeliveryReportsBackend(filters: Record<string, any> = {}, format: "csv" | "xlsx" | "pdf" = "csv"): string {
     const reportData = ApiEngine.getDeliveryReportsBackend(filters);
     const orders = reportData.orders || [];
 
+    if (format === "xlsx") {
+      const rowsXml = orders.map((o: any) => `
+        <Row>
+          <Cell><Data Type="String">${o.order_number || o.id}</Data></Cell>
+          <Cell><Data Type="String">${o.branch_id || ""}</Data></Cell>
+          <Cell><Data Type="String">${o.customerName || o.customer_name || ""}</Data></Cell>
+          <Cell><Data Type="String">${o.customerPhone || ""}</Data></Cell>
+          <Cell><Data Type="String">${o.pincode || ""}</Data></Cell>
+          <Cell><Data Type="String">${o.delivery_status || o.status}</Data></Cell>
+          <Cell><Data Type="String">${o.delivery_partner_id || ""}</Data></Cell>
+          <Cell><Data Type="String">${o.created_at || ""}</Data></Cell>
+        </Row>`).join("");
+
+      return `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <Worksheet ss:Name="Delivery Reports">
+    <Table>
+      <Row>
+        <Cell><Data Type="String">Order Number</Data></Cell>
+        <Cell><Data Type="String">Branch ID</Data></Cell>
+        <Cell><Data Type="String">Customer Name</Data></Cell>
+        <Cell><Data Type="String">Customer Phone</Data></Cell>
+        <Cell><Data Type="String">Pincode</Data></Cell>
+        <Cell><Data Type="String">Status</Data></Cell>
+        <Cell><Data Type="String">Partner ID</Data></Cell>
+        <Cell><Data Type="String">Created At</Data></Cell>
+      </Row>
+      ${rowsXml}
+    </Table>
+  </Worksheet>
+</Workbook>`;
+    }
+
+    if (format === "pdf") {
+      const rowsHtml = orders.map((o: any) => `
+        <tr>
+          <td>${o.order_number || o.id}</td>
+          <td>${o.branch_id || ""}</td>
+          <td>${o.customerName || o.customer_name || ""}</td>
+          <td>${o.customerPhone || ""}</td>
+          <td>${o.pincode || ""}</td>
+          <td>${o.delivery_status || o.status}</td>
+          <td>${o.delivery_partner_id || ""}</td>
+          <td>${o.created_at || ""}</td>
+        </tr>`).join("");
+
+      return `<!DOCTYPE html>
+<html>
+<head><style>body { font-family: sans-serif; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }</style></head>
+<body>
+  <h2>CakeToHome Delivery Performance Report</h2>
+  <p>Total Deliveries: ${reportData.total_deliveries} | Delivered: ${reportData.delivered_count} | Completion Rate: ${reportData.completion_rate}</p>
+  <table>
+    <thead>
+      <tr><th>Order #</th><th>Branch</th><th>Customer</th><th>Phone</th><th>Pincode</th><th>Status</th><th>Rider</th><th>Created At</th></tr>
+    </thead>
+    <tbody>${rowsHtml}</tbody>
+  </table>
+</body>
+</html>`;
+    }
+
+    // Default CSV format
     let header = "Order Number,Branch ID,Customer Name,Customer Phone,Pincode,Status,Partner ID,Created At\n";
     let rows = orders.map((o: any) => {
       return `"${o.order_number || o.id}","${o.branch_id || ""}","${o.customerName || o.customer_name || ""}","${o.customerPhone || ""}","${o.pincode || ""}","${o.delivery_status || o.status}","${o.delivery_partner_id || ""}","${o.created_at || ""}"`;
