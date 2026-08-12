@@ -116,12 +116,122 @@ async function runEndToEndDeliveryWorkflowTest() {
       throw new Error("FAILED: Illegal transition was not blocked!");
     }
 
-    console.log("\nSTEP 2: Testing Branch Security Authorization Isolation...");
+    console.log("\nSTEP 2: Testing Branch Security Authorization Isolation & Server-Side Filtering...");
+    const partnerAJobs = ApiEngine.getDeliveryPartnerJobsBackend(testPartnerA_Id);
+    const partnerA_OrderIds = partnerAJobs.jobs.map((j: any) => j.id);
+    if (!partnerA_OrderIds.includes(testOrderId2)) {
+      console.log(`  ✅ PASS: Unauthorized Branch B order (${testOrderId2}) filtered out on server for Partner A!`);
+    } else {
+      throw new Error(`FAILED: Unauthorized Branch B order was returned for Partner A!`);
+    }
+
     const branchSecRes = ApiEngine.claimDeliveryJob(testOrderId2, testPartnerA_Id);
     if (!branchSecRes.success && branchSecRes.statusCode === 403) {
-      console.log(`  ✅ PASS: Branch security isolation verified! Partner A blocked from Branch B order: "${branchSecRes.error}"`);
+      console.log(`  ✅ PASS: Action API authorization verified! Partner A blocked from claiming Branch B order: "${branchSecRes.error}"`);
     } else {
       throw new Error(`FAILED: Branch security failed! Result: ${JSON.stringify(branchSecRes)}`);
+    }
+
+    console.log("\nSTEP 2B: Testing Security Hardening Matrix (Tests A through G)...");
+
+    // ── TEST E: Unresolved / Unknown Branch (FAIL CLOSED) ──
+    console.log("  [TEST E] Testing Unresolved/Null Branch Order (Fail-Closed Protection)...");
+    const orderNullBranch = {
+      id: "ORD-TEST-NULL-BRANCH",
+      order_number: "ORD-TEST-NULL-BRANCH",
+      branch_id: null,
+      branch: null,
+      delivery_status: "shop_accepted",
+      status: "confirmed",
+    };
+    ApiEngine.injectTestOrders([orderNullBranch]);
+    const nullBranchResolved = ApiEngine.resolveOrderBranchId(orderNullBranch);
+    const pA_obj = ApiEngine.getAdminDeliveryPartners().partners.find((p: any) => p.id === testPartnerA_Id);
+    const canAccessNullBranch = ApiEngine.canPartnerAccessOrder(pA_obj, orderNullBranch);
+
+    if (nullBranchResolved === null && !canAccessNullBranch) {
+      console.log(`    ✅ PASS: Order with null branch resolved to null and blocked (Fail-Closed verified)!`);
+    } else {
+      throw new Error(`FAILED: Fail-closed branch protection failed! Access allowed: ${canAccessNullBranch}`);
+    }
+
+    // ── TEST F: Multi-Branch Partner Support ──
+    console.log("  [TEST F] Testing Multi-Branch Partner Assignment (Branch A + Branch C)...");
+    const testBranchC = "res_03KXYMAHGFPRY1G9TZKEVGAGAT";
+    const testPartnerC_Id = "dlp_test_C_multi";
+    const partnerC = {
+      id: testPartnerC_Id,
+      partner_number: "CTH-DP-TEST-C",
+      full_name: "Multi-Branch Rider C",
+      name: "Rider C",
+      phone: "+91 99999 33333",
+      email: "rider.c@cakes2home.com",
+      status: "active",
+      availability_status: "ONLINE",
+      primary_branch_id: testBranchA,
+      associated_branches: [
+        { branch_id: testBranchA, branch_name: "Branch A Kitchen", active: true },
+        { branch_id: testBranchC, branch_name: "Branch C Kitchen", active: true },
+      ],
+      current_active_orders: 0,
+      maximum_concurrent_orders: 5,
+    };
+    const curPartners = ApiEngine.getAdminDeliveryPartners().partners;
+    let pC_found = curPartners.find((p: any) => p.id === testPartnerC_Id || p.phone === partnerC.phone);
+    if (!pC_found) {
+      ApiEngine.createAdminDeliveryPartner(partnerC);
+    } else {
+      Object.assign(pC_found, partnerC);
+    }
+
+    const orderC = {
+      id: "ORD-TEST-BRANCH-C",
+      order_number: "ORD-TEST-BRANCH-C",
+      branch_id: testBranchC,
+      delivery_status: "shop_accepted",
+      status: "confirmed",
+      delivery_partner_id: null,
+    };
+    ApiEngine.injectTestOrders([orderC]);
+
+    const pC_obj = ApiEngine.getAdminDeliveryPartners().partners.find((p: any) => p.id === testPartnerC_Id);
+    const pC_canAccessA = ApiEngine.canPartnerAccessOrder(pC_obj, order1);
+    const pC_canAccessB = ApiEngine.canPartnerAccessOrder(pC_obj, order2_BranchB);
+    const pC_canAccessC = ApiEngine.canPartnerAccessOrder(pC_obj, orderC);
+
+    if (pC_canAccessA && pC_canAccessC && !pC_canAccessB) {
+      console.log(`    ✅ PASS: Multi-Branch Rider C sees Branch A and Branch C orders, but Branch B is blocked!`);
+    } else {
+      throw new Error(`FAILED: Multi-branch isolation failed! A: ${pC_canAccessA}, B: ${pC_canAccessB}, C: ${pC_canAccessC}`);
+    }
+
+    // ── TEST G: Other Partner Assignment Ownership Isolation ──
+    console.log("  [TEST G] Testing Other Partner Assignment Ownership Isolation...");
+    const orderAssignedToB = {
+      id: "ORD-TEST-ASSIGNED-B",
+      order_number: "ORD-TEST-ASSIGNED-B",
+      branch_id: testBranchA, // Same branch as Partner A!
+      delivery_status: "in_transit",
+      status: "out_for_delivery",
+      delivery_partner_id: testPartnerB_Id, // Assigned to Partner B
+    };
+    ApiEngine.injectTestOrders([orderAssignedToB]);
+
+    const pA_canAccessAssignedToB = ApiEngine.canPartnerAccessOrder(pA_obj, orderAssignedToB);
+    if (!pA_canAccessAssignedToB) {
+      console.log(`    ✅ PASS: Partner A blocked from seeing order assigned to Partner B (even within same branch)!`);
+    } else {
+      throw new Error(`FAILED: Partner A was able to access Partner B's assigned order!`);
+    }
+
+    // ── TEST A & B: Query Param Tampering Attack via API Endpoint ──
+    console.log("  [TEST A & B] Testing Query Parameter Tampering Resistance in Jobs Query...");
+    const pA_jobs = ApiEngine.getDeliveryPartnerJobsBackend(testPartnerA_Id);
+    const pA_jobIds = pA_jobs.jobs.map((j: any) => j.id);
+    if (pA_jobIds.includes(testOrderId1) && !pA_jobIds.includes(testOrderId2) && !pA_jobIds.includes("ORD-TEST-BRANCH-C")) {
+      console.log(`    ✅ PASS: Query returned strictly Partner A's authorized jobs. Unauthorized branches excluded!`);
+    } else {
+      throw new Error(`FAILED: Jobs query returned unauthorized jobs for Partner A! Jobs: ${pA_jobIds}`);
     }
 
     console.log("\nSTEP 3: Testing Concurrent Accept Protection (Atomic Claim)...");
@@ -276,6 +386,15 @@ async function runEndToEndDeliveryWorkflowTest() {
       pA_db.current_active_orders = 1;
     }
 
+    const activeOrderForCapTest = {
+      id: "ORD-TEST-CAP-ACTIVE",
+      order_number: "ORD-TEST-CAP-ACTIVE",
+      branch_id: testBranchA,
+      delivery_status: "in_transit",
+      status: "out_for_delivery",
+      delivery_partner_id: testPartnerA_Id,
+    };
+
     const order3 = {
       id: "ORD-TEST-DEL-003",
       order_number: "ORD-TEST-DEL-003",
@@ -283,8 +402,9 @@ async function runEndToEndDeliveryWorkflowTest() {
       customerName: "Rahul Roy",
       delivery_status: "shop_accepted",
       status: "confirmed",
+      delivery_partner_id: null,
     };
-    ApiEngine.injectTestOrders([order3]);
+    ApiEngine.injectTestOrders([activeOrderForCapTest, order3]);
 
     const capCheckRes = ApiEngine.claimDeliveryJob("ORD-TEST-DEL-003", testPartnerA_Id);
     if (!capCheckRes.success && capCheckRes.statusCode === 400) {

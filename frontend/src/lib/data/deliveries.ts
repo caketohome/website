@@ -32,6 +32,9 @@ export const SERVICEABLE_ZONES: Record<string, PincodeZone> = {
 export async function listDeliveries(filter?: Record<string, string>): Promise<DeliveryDTO[]> {
   let allDeliveries: any[] = [];
   let allOrders: any[] = [];
+  let partnerObj: any = null;
+
+  const targetPartnerId = filter?.delivery_partner_id || filter?.partner_id || null;
 
   try {
     if (typeof window !== "undefined") {
@@ -48,10 +51,42 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
       ApiEngine.ensureOrdersStore();
       allDeliveries = ApiEngine.getAdminDeliveryPartners()?.partners || [];
       allOrders = ApiEngine.getAdminOrders()?.orders || [];
+      if (targetPartnerId) {
+        partnerObj = (allDeliveries || []).find(
+          (p: any) => p.id === targetPartnerId || p.partner_number === targetPartnerId || p.phone === targetPartnerId
+        );
+      }
     }
   } catch (e) {
     allDeliveries = [];
     allOrders = [];
+  }
+
+  // ── SERVER-SIDE BRANCH & PARTNER ISOLATION FILTERING (FAIL CLOSED) ──
+  if (partnerObj) {
+    const partnerBranchIds = (partnerObj.associated_branches || []).map((b: any) => (typeof b === "string" ? b : (b.branch_id || b.id)));
+    if (partnerObj.primary_branch_id) partnerBranchIds.push(partnerObj.primary_branch_id);
+
+    allOrders = allOrders.filter((o: any) => {
+      const orderBranchId = o.branch_id || o.branch?.id || o.kitchen_hub_id || o.fulfillment_hub_id || null;
+
+      // 1. Fail closed: Orders with no valid branch relationship are NEVER visible to Delivery Partners
+      if (!orderBranchId) {
+        return false;
+      }
+
+      // 2. Branch Security Authorization Check: Order MUST belong to partner's assigned branches
+      if (partnerBranchIds.length === 0 || !partnerBranchIds.includes(orderBranchId)) {
+        return false;
+      }
+
+      // 3. Partner Assignment Ownership: Unassigned OR assigned to THIS partner
+      if (o.delivery_partner_id && o.delivery_partner_id !== partnerObj.id) {
+        return false;
+      }
+
+      return true;
+    });
   }
 
   const partnerId = filter?.delivery_partner_id || filter?.partner_id || "dlp_101";

@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
   try {
+    const pathname = request.nextUrl.pathname;
     const response = NextResponse.next();
 
+    // Cache ID tracking
     const cacheId = request.cookies.get("_medusa_cache_id")?.value;
     if (!cacheId) {
       const newCacheId = Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -14,6 +16,44 @@ export async function middleware(request: NextRequest) {
       response.headers.set("x-medusa-cache-id", newCacheId);
     } else {
       response.headers.set("x-medusa-cache-id", cacheId);
+    }
+
+    // Role-based route protection
+    const token = request.cookies.get("_cth_jwt")?.value || request.cookies.get("_medusa_jwt")?.value;
+    const rawRole = (request.cookies.get("_cth_role")?.value || "").toUpperCase();
+    const hasAuthSession = Boolean(token || request.cookies.get("_cth_user_id")?.value || request.cookies.get("_cth_phone")?.value);
+
+    // 1. /dashboard/delivery-partner protection
+    if (pathname.startsWith("/dashboard/delivery-partner")) {
+      if (!hasAuthSession) {
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
+      if (rawRole !== "DELIVERY_PARTNER" && rawRole !== "DLP" && rawRole !== "SUPER_ADMIN" && rawRole !== "ADMIN") {
+        if (rawRole === "BRANCH_MANAGER" || rawRole === "SHOP_MANAGER" || rawRole === "SHOP") {
+          return NextResponse.redirect(new URL("/dashboard/shop", request.url));
+        }
+        return NextResponse.redirect(new URL("/account", request.url));
+      }
+    }
+
+    // 2. /dashboard/shop protection
+    if (pathname.startsWith("/dashboard/shop")) {
+      if (!hasAuthSession) {
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
+      if (rawRole !== "BRANCH_MANAGER" && rawRole !== "SHOP_MANAGER" && rawRole !== "SHOP" && rawRole !== "SHPMGR" && rawRole !== "SUPER_ADMIN" && rawRole !== "ADMIN") {
+        if (rawRole === "DELIVERY_PARTNER" || rawRole === "DLP") {
+          return NextResponse.redirect(new URL("/dashboard/delivery-partner", request.url));
+        }
+        return NextResponse.redirect(new URL("/account", request.url));
+      }
+    }
+
+    // 3. /account protection
+    if (pathname.startsWith("/account")) {
+      if (!hasAuthSession) {
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
     }
 
     return response;

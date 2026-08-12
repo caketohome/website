@@ -1,61 +1,51 @@
 /**
  * CakeToHome Storefront Shops & Branches Data Layer
- * Connects branch retrieval to custom NestJS Core API (/api/v1/branches).
+ * Connects branch retrieval to ApiEngine & custom NestJS Core API (/api/v1/branches).
  */
 
-import { apiClient } from "../api-client";
+import { ApiEngine } from "../api-engine";
 import { ShopDTO } from "../types";
 
 export async function retrieveShop(shopId: string): Promise<ShopDTO> {
+  const branch = ApiEngine.resolveBranchRecord(shopId);
+  const branchProds = ApiEngine.getBranchProducts(branch?.id || shopId);
+
   return {
-    id: shopId || "shop_01",
-    name: "CakeToHome Koramangala Central",
+    id: branch?.id || shopId || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+    name: branch?.name || "CakeToHome Indiranagar Flagship",
     description: "Main Bakery Branch & Fulfillment Center",
-    handle: "caketohome-central",
-    is_open: true,
-    address: "100 Feet Rd, Indiranagar, Bengaluru",
-    phone: "+91 98765 43210",
-    email: "branch@cakes2home.com",
+    handle: branch?.code?.toLowerCase() || "caketohome-indiranagar",
+    is_open: branch?.is_open !== false && !branch?.is_paused,
+    address: branch?.address || "100 Feet Rd, Indiranagar, Bengaluru",
+    phone: branch?.phone || "+91 98765 43210",
+    email: branch?.email || "branch@cakes2home.com",
     deliveries: [],
-    products: [
-      {
-        id: "prod_truffle_01",
-        title: "Rich Chocolate Truffle Cake",
-        description: "Decadent Dutch cocoa cake with dark chocolate ganache",
-        thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
-        categories: [{ id: "cat_bestseller", name: "Bestseller Cakes" }, { id: "cat_chocolate", name: "Chocolate Cakes" }],
-        variants: [
-          {
-            id: "var_truffle_half_kg",
-            title: "0.5 kg",
-            sku: "SKU_TRUFFLE_500",
-            price: { calculated_amount: "699.00" },
-          },
-        ],
-      },
-      {
-        id: "prod_redvelvet_02",
-        title: "Classic Red Velvet Cream Cheese Cake",
-        description: "Moist red velvet sponge layered with cream cheese frosting",
-        thumbnail: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c",
-        categories: [{ id: "cat_bestseller", name: "Bestseller Cakes" }, { id: "cat_exotic", name: "Exotic Flavors" }],
-        variants: [
-          {
-            id: "var_redvelvet_1kg",
-            title: "1 kg",
-            sku: "SKU_REDVELVET_1000",
-            price: { calculated_amount: "1199.00" },
-          },
-        ],
-      },
-    ],
+    products: (branchProds.products || []).map((p: any) => ({
+      id: p.id,
+      title: p.title || p.name,
+      description: "Artisanal gourmet cake made fresh daily",
+      thumbnail: p.thumbnail,
+      categories: [{ id: "cat_bestseller", name: p.category || "Gourmet Cakes" }],
+      variants: [
+        {
+          id: `var_${p.id}`,
+          title: "1 kg",
+          sku: `SKU_${p.id}`,
+          price: { calculated_amount: String(p.price || 599) },
+        },
+      ],
+    })),
   } as any;
 }
 
 export async function listShops(filter?: Record<string, string>): Promise<ShopDTO[]> {
-  return [await retrieveShop("shop_01")];
+  const branches = ApiEngine.listBranches();
+  return Promise.all(branches.map((b: any) => retrieveShop(b.id)));
 }
 
 export async function retrieveShopByHandle(handle: string): Promise<ShopDTO> {
-  return retrieveShop("shop_01");
+  const branches = ApiEngine.listBranches();
+  const found = branches.find((b: any) => b.code?.toLowerCase() === handle?.toLowerCase() || b.id === handle);
+  return retrieveShop(found?.id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT");
 }
+

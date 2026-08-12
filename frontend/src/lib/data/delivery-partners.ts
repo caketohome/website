@@ -20,17 +20,15 @@ export async function retrieveDeliveryPartner(delivery_partnerId: string, curren
     partners = [];
   }
 
+  let cleanUserPhone = currentUser?.phone ? currentUser.phone.replace(/\D/g, "").slice(-10) : "";
+
   let partner = partners.find(
     (p: any) =>
       p.id === delivery_partnerId ||
       p.partner_number === delivery_partnerId ||
       (currentUser?.email && p.email === currentUser.email) ||
-      (currentUser?.phone && p.phone === currentUser.phone)
+      (cleanUserPhone && (p.phone || "").replace(/\D/g, "").endsWith(cleanUserPhone))
   );
-
-  if (!partner && partners.length > 0) {
-    partner = partners[0];
-  }
 
   if (partner) {
     return {

@@ -187,8 +187,12 @@ class CakeToHomeApiClient {
   }
 
   // Products & Catalog APIs (/api/v1/products)
-  async getProducts() {
-    return this.request("/products");
+  async getProducts(params?: { branchId?: string; pincode?: string }) {
+    const q = new URLSearchParams();
+    if (params?.branchId) q.set("branchId", params.branchId);
+    if (params?.pincode) q.set("pincode", params.pincode);
+    const queryString = q.toString() ? `?${q.toString()}` : "";
+    return this.request(`/products${queryString}`);
   }
 
   async getProductBySlug(slug: string) {

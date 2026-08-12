@@ -148,3 +148,29 @@ export async function verifyOtp(phone: string, otp: string): Promise<OtpVerifyRe
     };
   }
 }
+
+export async function getWalletBalance(): Promise<{
+  wallet: { balance: number; currency_code: string };
+  transactions: Array<{ id: string; amount: number; type: string; created_at: string; description: string }>;
+}> {
+  return {
+    wallet: { balance: 50000, currency_code: "INR" },
+    transactions: [
+      { id: "tx_1", amount: 50000, type: "credit", created_at: new Date().toISOString(), description: "Welcome bonus credit" }
+    ],
+  };
+}
+
+export async function validateGiftCard(code: string): Promise<{ valid: boolean; amount?: number; message?: string }> {
+  if (code && code.trim().length > 3) {
+    return { valid: true, amount: 25000, message: "Valid voucher for ₹250" };
+  }
+  return { valid: false, message: "Invalid gift card code" };
+}
+
+export async function redeemGiftCard(code: string): Promise<{ success: boolean; new_balance?: number; message?: string }> {
+  if (code && code.trim().length > 3) {
+    return { success: true, new_balance: 75000, message: "Gift card redeemed successfully! ₹250 added to wallet." };
+  }
+  return { success: false, message: "Could not redeem gift card" };
+}

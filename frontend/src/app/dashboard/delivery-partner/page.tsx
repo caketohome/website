@@ -14,7 +14,7 @@ import { Truck, ShieldCheck, MapPin, CheckCircle2, Clock, Activity, AlertCircle 
 export default async function DeliveryPartnerDashboardPage() {
   const user = await retrieveUser();
 
-  if (!user) {
+  if (!user || (user.role !== "DELIVERY_PARTNER" && user.role !== "SUPER_ADMIN" && !user.id?.includes("dlp_") && !user.id?.includes("driver_"))) {
     redirect("/login");
   }
 

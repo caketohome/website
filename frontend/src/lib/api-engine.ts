@@ -1783,7 +1783,29 @@ function saveStore(data: StoreData): void {
 let memoryStore = loadStore();
 
 export class ApiEngine {
-  private static persist() {
+  static reloadStore() {
+    memoryStore = loadStore();
+    return memoryStore;
+  }
+
+  static getStore() {
+    return memoryStore;
+  }
+
+  static saveStore(data: any) {
+    if (data) memoryStore = data;
+    ApiEngine.persist();
+  }
+
+  static listProducts() {
+    return memoryStore?.products || [];
+  }
+
+  static listBranches() {
+    return memoryStore?.branches || [];
+  }
+
+  static persist() {
     saveStore(memoryStore);
   }
 
@@ -1811,16 +1833,102 @@ export class ApiEngine {
   }
 
   // ── Products & Catalog ──────────────────────────────
-  static getProducts() {
-    return memoryStore.products;
+  static getProducts(branchId?: string, pincode?: string) {
+    const products = memoryStore.products || [];
+    let targetBranchId = branchId;
+
+    if (!targetBranchId && pincode) {
+      const resolved = ApiEngine.resolveSmartBranch({ pincode });
+      if (resolved?.branch) targetBranchId = resolved.branch.id;
+    }
+
+    if (!targetBranchId) return products;
+
+    const branch = ApiEngine.resolveBranchRecord(targetBranchId);
+    if (!branch) return products;
+
+    const branchOverrides = branch.product_availability || {};
+    return products
+      .filter((p: any) => {
+        const id = p.id || p.product_id;
+        const override = branchOverrides[id] || { status: "AVAILABLE" };
+        const st = (override.status || "").toUpperCase();
+        return st !== "HIDDEN" && st !== "TEMPORARILY_HIDDEN";
+      })
+      .map((p: any) => {
+        const id = p.id || p.product_id;
+        const override = branchOverrides[id] || { status: "AVAILABLE" };
+        const st = (override.status || "").toUpperCase();
+        const isOos = st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY";
+
+        return {
+          ...p,
+          branch_status: isOos ? "OUT_OF_STOCK" : "AVAILABLE",
+          is_out_of_stock_at_branch: isOos,
+        };
+      });
   }
 
   static getAdminProducts() {
     return memoryStore.products;
   }
 
-  static getProductBySlug(slug: string) {
-    return memoryStore.products.find((p) => p.handle === slug || p.product_id === slug || p.id === slug) || null;
+  static getProductById(id: string, branchId?: string, pincode?: string) {
+    const product = memoryStore.products.find((p) => p.id === id || p.product_id === id) || null;
+    if (!product) return null;
+
+    let targetBranchId = branchId;
+    if (!targetBranchId && pincode) {
+      const resolved = ApiEngine.resolveSmartBranch({ pincode });
+      if (resolved?.branch) targetBranchId = resolved.branch.id;
+    }
+
+    if (!targetBranchId) return product;
+
+    const branch = ApiEngine.resolveBranchRecord(targetBranchId);
+    if (!branch || !branch.product_availability) return product;
+
+    const pId = product.id || product.product_id;
+    const override = branch.product_availability[pId] || { status: "AVAILABLE" };
+    const st = (override.status || "").toUpperCase();
+    const isOos = st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY";
+    const isHidden = st === "HIDDEN" || st === "TEMPORARILY_HIDDEN";
+
+    return {
+      ...product,
+      branch_status: isHidden ? "HIDDEN" : (isOos ? "OUT_OF_STOCK" : "AVAILABLE"),
+      is_out_of_stock_at_branch: isOos,
+      is_hidden_at_branch: isHidden,
+    };
+  }
+
+  static getProductBySlug(slug: string, branchId?: string, pincode?: string) {
+    const product = memoryStore.products.find((p) => p.handle === slug || p.product_id === slug || p.id === slug) || null;
+    if (!product) return null;
+
+    let targetBranchId = branchId;
+    if (!targetBranchId && pincode) {
+      const resolved = ApiEngine.resolveSmartBranch({ pincode });
+      if (resolved?.branch) targetBranchId = resolved.branch.id;
+    }
+
+    if (!targetBranchId) return product;
+
+    const branch = ApiEngine.resolveBranchRecord(targetBranchId);
+    if (!branch || !branch.product_availability) return product;
+
+    const pId = product.id || product.product_id;
+    const override = branch.product_availability[pId] || { status: "AVAILABLE" };
+    const st = (override.status || "").toUpperCase();
+    const isOos = st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY";
+    const isHidden = st === "HIDDEN" || st === "TEMPORARILY_HIDDEN";
+
+    return {
+      ...product,
+      branch_status: isHidden ? "HIDDEN" : (isOos ? "OUT_OF_STOCK" : "AVAILABLE"),
+      is_out_of_stock_at_branch: isOos,
+      is_hidden_at_branch: isHidden,
+    };
   }
 
   static getProductPimConfig(product: any): Record<string, boolean> {
@@ -3131,8 +3239,8 @@ export class ApiEngine {
       throw new Error(`Delivery partner with phone number ${data.phone} already exists (${duplicate.partner_number}).`);
     }
 
-    const partnerNumber = ApiEngine.generateNextPartnerNumber();
-    const id = `dlp_${Date.now()}`;
+    const partnerNumber = data.partner_number || ApiEngine.generateNextPartnerNumber();
+    const id = data.id || `dlp_${Date.now()}`;
     const fName = data.first_name || data.name?.split(" ")[0] || "New";
     const lName = data.last_name || data.name?.split(" ").slice(1).join(" ") || "Rider";
     const fullName = `${fName} ${lName}`.trim();
@@ -3713,6 +3821,89 @@ export class ApiEngine {
     };
   }
 
+  // ── Canonical Branch Resolver & Security Authorization Service ────────
+  static resolveOrderBranchId(order: any): string | null {
+    if (!order) return null;
+    const branchId =
+      order.branch_id ||
+      order.branch?.id ||
+      order.kitchen_hub_id ||
+      order.fulfillment_hub_id ||
+      order.store_id ||
+      null;
+    if (typeof branchId === "string" && branchId.trim().length > 0) {
+      return branchId.trim();
+    }
+    return null;
+  }
+
+  static getDeliveryPartnerAuthorizedBranches(partner: any): string[] {
+    if (!partner) return [];
+    const branchSet = new Set<string>();
+    if (Array.isArray(partner.associated_branches)) {
+      for (const b of partner.associated_branches) {
+        const id = typeof b === "string" ? b : (b.branch_id || b.id);
+        if (typeof id === "string" && id.trim().length > 0) {
+          branchSet.add(id.trim());
+        }
+      }
+    }
+    if (typeof partner.primary_branch_id === "string" && partner.primary_branch_id.trim().length > 0) {
+      branchSet.add(partner.primary_branch_id.trim());
+    }
+    return Array.from(branchSet);
+  }
+
+  static canPartnerAccessOrder(partner: any, order: any): boolean {
+    if (!partner || !order) return false;
+
+    // 1. Canonical Branch Resolution (FAIL CLOSED: Order without valid branch is NEVER visible)
+    const orderBranchId = ApiEngine.resolveOrderBranchId(order);
+    if (!orderBranchId) {
+      return false;
+    }
+
+    // 2. Multi-Branch Assignment Containment
+    const authorizedBranches = ApiEngine.getDeliveryPartnerAuthorizedBranches(partner);
+    if (authorizedBranches.length === 0 || !authorizedBranches.includes(orderBranchId)) {
+      return false;
+    }
+
+    // 3. Partner Ownership Check: Unassigned (for available pool) OR assigned to this partner
+    if (order.delivery_partner_id && order.delivery_partner_id !== partner.id) {
+      return false;
+    }
+
+    return true;
+  }
+
+  static getDeliveryPartnerJobsBackend(partnerId: string) {
+    ApiEngine.ensureOrdersStore();
+    ApiEngine.ensureDeliveryPartnersStore();
+
+    const partner = (memoryStore.delivery_partners || []).find(
+      (p: any) => p.id === partnerId || p.partner_number === partnerId || p.phone === partnerId
+    );
+    if (!partner) return { success: false, statusCode: 404, error: `Delivery Partner ${partnerId} not found.`, jobs: [], count: 0 };
+
+    const allOrders = memoryStore.orders || [];
+    const authorizedOrders = allOrders.filter((o: any) => ApiEngine.canPartnerAccessOrder(partner, o));
+
+    return {
+      success: true,
+      statusCode: 200,
+      partner: {
+        id: partner.id,
+        partner_number: partner.partner_number,
+        full_name: partner.full_name,
+        primary_branch_id: partner.primary_branch_id,
+        associated_branches: partner.associated_branches,
+      },
+      jobs: authorizedOrders.map((o: any) => ApiEngine.getOrderDetails(o.id)),
+      count: authorizedOrders.length,
+    };
+  }
+
   static claimDeliveryJob(orderId: string, partnerId: string) {
     ApiEngine.ensureOrdersStore();
     ApiEngine.ensureDeliveryPartnersStore();
@@ -3727,12 +3918,18 @@ export class ApiEngine {
       return { success: false, statusCode: 404, error: `Delivery Partner ${partnerId} not found.` };
     }
 
-    // Branch Security Authorization Check
-    const partnerBranchIds = (partner.associated_branches || []).map((b: any) => b.branch_id || b.id);
-    if (partner.primary_branch_id) partnerBranchIds.push(partner.primary_branch_id);
+    // Canonical Branch Security Authorization Check (FAIL CLOSED)
+    const orderBranchId = ApiEngine.resolveOrderBranchId(order);
+    if (!orderBranchId) {
+      return {
+        success: false,
+        statusCode: 400,
+        error: `Order ${orderId} does not have a valid branch relationship (UNRESOLVED_BRANCH). Access denied.`,
+      };
+    }
 
-    const orderBranchId = order.branch_id || order.branch?.id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT";
-    if (partnerBranchIds.length > 0 && !partnerBranchIds.includes(orderBranchId)) {
+    const partnerBranchIds = ApiEngine.getDeliveryPartnerAuthorizedBranches(partner);
+    if (partnerBranchIds.length === 0 || !partnerBranchIds.includes(orderBranchId)) {
       return {
         success: false,
         statusCode: 403,
@@ -3891,7 +4088,7 @@ export class ApiEngine {
       order_number: order.order_number,
       partner_id: partnerId,
       partner_name: partner?.full_name || partnerId,
-      branch_id: order.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      branch_id: ApiEngine.resolveOrderBranchId(order) || "UNRESOLVED_BRANCH",
       type,
       description,
       status: "OPEN",
@@ -5491,6 +5688,19 @@ export class ApiEngine {
       }
     }
 
+    // Validate that every product in the order is available at the resolved branch
+    if (branchObj && branchObj.product_availability) {
+      const itemsList = orderPayload.items || [];
+      for (const item of itemsList) {
+        const pId = item.product_id || item.id;
+        const override = branchObj.product_availability[pId] || { status: "AVAILABLE" };
+        const st = (override.status || "").toUpperCase();
+        if (st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY" || st === "HIDDEN" || st === "TEMPORARILY_HIDDEN") {
+          throw new Error(`Product "${item.title || item.name || pId}" is not available for delivery at the selected location (${branchObj.name}).`);
+        }
+      }
+    }
+
     const newOrder = {
       id: orderId,
       order_number: orderNumber,
@@ -5995,10 +6205,29 @@ export class ApiEngine {
     return memoryStore.carts[cartId];
   }
 
-  static addToCart(cartId: string, payload: { productId?: string; variantId?: string; quantity?: number; selectedOptions?: any; price?: number }) {
+  static addToCart(cartId: string, payload: { productId?: string; variantId?: string; quantity?: number; selectedOptions?: any; price?: number; branchId?: string; pincode?: string }) {
     const cart = ApiEngine.getCart(cartId);
     const prodId = payload.productId || payload.variantId || "prod_1";
     const product = ApiEngine.getProductById(prodId) || ApiEngine.getProductBySlug(prodId) || memoryStore.products[0];
+
+    // Branch / Pincode availability validation
+    let targetBranchId = payload.branchId;
+    if (!targetBranchId && payload.pincode) {
+      const resolved = ApiEngine.resolveSmartBranch({ pincode: payload.pincode });
+      if (resolved?.branch) targetBranchId = resolved.branch.id;
+    }
+
+    if (targetBranchId && product) {
+      const branch = ApiEngine.resolveBranchRecord(targetBranchId);
+      if (branch && branch.product_availability) {
+        const pId = product.id || product.product_id;
+        const override = branch.product_availability[pId] || { status: "AVAILABLE" };
+        const st = (override.status || "").toUpperCase();
+        if (st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY" || st === "HIDDEN" || st === "TEMPORARILY_HIDDEN") {
+          throw new Error(`Product "${product.title || product.name || pId}" is currently out of stock or unavailable at the selected location (${branch.name}).`);
+        }
+      }
+    }
 
     const variantId = payload.variantId || `var_${product?.product_id || prodId}`;
     const qty = Math.max(1, Number(payload.quantity) || 1);
@@ -8224,44 +8453,213 @@ export class ApiEngine {
     return toB.manager_account;
   }
 
-  static verifyOtp(phone: string, code: string) {
-    const cleanPhone = phone ? phone.replace(/\D/g, "") : "9876543210";
-    const managerMatch = ApiEngine.findBranchByManagerPhoneOrEmail(phone);
+  static resolveUserAccount(query: { userId?: string; phone?: string; email?: string; role?: string }): any {
+    const { userId, phone, email, role } = query || {};
 
-    if (managerMatch) {
-      if (managerMatch.manager.status === "suspended") {
-        throw new Error("Account Suspended by Super Admin. Please contact operations.");
+    const cleanPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
+    const cleanEmail = email ? email.trim().toLowerCase() : "";
+
+    ApiEngine.ensureDeliveryPartnersStore();
+
+    const partners = ApiEngine.getAdminDeliveryPartners()?.partners || [];
+    const branches = ApiEngine.listBranches() || [];
+    const customers = memoryStore.customers || [];
+    const users = memoryStore.users || [];
+
+    // 1. Direct match by userId if provided
+    if (userId) {
+      // Check Delivery Partners
+      const partner = partners.find((p: any) => p.id === userId || p.user_id === userId || p.partner_number === userId);
+      if (partner) {
+        return {
+          id: partner.id,
+          user_id: partner.id,
+          partner_id: partner.id,
+          role: "DELIVERY_PARTNER",
+          name: partner.full_name || partner.name || `${partner.first_name || ""} ${partner.last_name || ""}`.trim(),
+          first_name: partner.first_name || partner.name?.split(" ")[0] || "Delivery",
+          last_name: partner.last_name || partner.name?.split(" ")[1] || "Partner",
+          phone: partner.phone || phone,
+          email: partner.email || email,
+          branch_id: partner.primary_branch_id || partner.primary_branch_name,
+        };
       }
-      return {
-        success: true,
-        accessToken: `jwt_branch_manager_${managerMatch.branch.id}_${Date.now()}`,
-        token: `jwt_branch_manager_${managerMatch.branch.id}_${Date.now()}`,
-        role: "BRANCH_MANAGER",
-        branch_id: managerMatch.branch.id,
-        user: {
-          id: managerMatch.manager.id || `mgr_${managerMatch.branch.id}`,
-          name: managerMatch.manager.name,
-          phone: managerMatch.manager.phone || phone,
-          email: managerMatch.manager.email,
-          role: "BRANCH_MANAGER",
-          branch_id: managerMatch.branch.id,
-          branch_name: managerMatch.branch.name,
-        },
-      };
+
+      // Check Branch Managers
+      for (const b of branches) {
+        if (b.manager_account && (b.manager_account.id === userId || b.manager_account.user_id === userId || b.id === userId)) {
+          return {
+            id: b.manager_account.id || `mgr_${b.id}`,
+            user_id: b.manager_account.id || `mgr_${b.id}`,
+            shop_id: b.id,
+            branch_id: b.id,
+            role: "BRANCH_MANAGER",
+            name: b.manager_account.name || b.manager_name || "Branch Manager",
+            first_name: (b.manager_account.name || b.manager_name || "Branch").split(" ")[0],
+            last_name: (b.manager_account.name || b.manager_name || "Manager").split(" ").slice(1).join(" ") || "Manager",
+            phone: b.manager_account.phone || b.phone || phone,
+            email: b.manager_account.email || b.email || email,
+          };
+        }
+      }
+
+      // Check Customers
+      const cust = customers.find((c: any) => c.id === userId || c.user_id === userId);
+      if (cust) {
+        const fullName = cust.name || `${cust.first_name || ""} ${cust.last_name || ""}`.trim() || `Customer ${cust.id.slice(-4)}`;
+        return {
+          id: cust.id,
+          user_id: cust.id,
+          customer_id: cust.id,
+          role: "CUSTOMER",
+          name: fullName,
+          first_name: cust.first_name || fullName.split(" ")[0] || "Customer",
+          last_name: cust.last_name || fullName.split(" ").slice(1).join(" ") || "User",
+          phone: cust.phone || phone,
+          email: cust.email || email,
+        };
+      }
+
+      // Check Users (Admin / Super Admin)
+      const usr = users.find((u: any) => u.id === userId);
+      if (usr) {
+        return {
+          id: usr.id,
+          user_id: usr.id,
+          role: usr.role || "SUPER_ADMIN",
+          name: usr.name || "System User",
+          first_name: usr.first_name || (usr.name || "System").split(" ")[0],
+          last_name: usr.last_name || (usr.name || "User").split(" ").slice(1).join(" ") || "User",
+          phone: usr.phone || phone,
+          email: usr.email || email,
+        };
+      }
     }
+
+    // 2. Match by canonical phone number if cleanPhone exists
+    if (cleanPhone) {
+      // Check Delivery Partners
+      const partner = partners.find((p: any) => {
+        const pPhone = (p.phone || "").replace(/\D/g, "");
+        return pPhone.endsWith(cleanPhone);
+      });
+      if (partner) {
+        return {
+          id: partner.id,
+          user_id: partner.id,
+          partner_id: partner.id,
+          role: "DELIVERY_PARTNER",
+          name: partner.full_name || partner.name || `${partner.first_name || ""} ${partner.last_name || ""}`.trim(),
+          first_name: partner.first_name || partner.name?.split(" ")[0] || "Delivery",
+          last_name: partner.last_name || partner.name?.split(" ")[1] || "Partner",
+          phone: partner.phone,
+          email: partner.email,
+          branch_id: partner.primary_branch_id || partner.primary_branch_name,
+        };
+      }
+
+      // Check Branch Managers
+      for (const b of branches) {
+        const mPhone = (b.manager_account?.phone || b.phone || "").replace(/\D/g, "");
+        if (mPhone && mPhone.endsWith(cleanPhone)) {
+          const mgr = b.manager_account || {};
+          return {
+            id: mgr.id || `mgr_${b.id}`,
+            user_id: mgr.id || `mgr_${b.id}`,
+            shop_id: b.id,
+            branch_id: b.id,
+            role: "BRANCH_MANAGER",
+            name: mgr.name || b.manager_name || "Branch Manager",
+            first_name: (mgr.name || b.manager_name || "Branch").split(" ")[0],
+            last_name: (mgr.name || b.manager_name || "Manager").split(" ").slice(1).join(" ") || "Manager",
+            phone: mgr.phone || b.phone,
+            email: mgr.email || b.email,
+          };
+        }
+      }
+
+      // Check Admin users
+      const usr = users.find((u: any) => {
+        const uPhone = (u.phone || "").replace(/\D/g, "");
+        return uPhone.endsWith(cleanPhone);
+      });
+      if (usr) {
+        return {
+          id: usr.id,
+          user_id: usr.id,
+          role: usr.role || "SUPER_ADMIN",
+          name: usr.name || "Super Admin",
+          first_name: usr.first_name || "Super",
+          last_name: usr.last_name || "Admin",
+          phone: usr.phone,
+          email: usr.email,
+        };
+      }
+
+      // Check Customers
+      const cust = customers.find((c: any) => {
+        const cPhone = (c.phone || "").replace(/\D/g, "");
+        return cPhone.endsWith(cleanPhone);
+      });
+      if (cust) {
+        const fullName = cust.name || `${cust.first_name || ""} ${cust.last_name || ""}`.trim() || `Customer ${cust.id.slice(-4)}`;
+        return {
+          id: cust.id,
+          user_id: cust.id,
+          customer_id: cust.id,
+          role: "CUSTOMER",
+          name: fullName,
+          first_name: cust.first_name || fullName.split(" ")[0] || "Customer",
+          last_name: cust.last_name || fullName.split(" ").slice(1).join(" ") || "User",
+          phone: cust.phone,
+          email: cust.email,
+        };
+      }
+
+      // 3. New Phone Number -> Create unique Customer record
+      const newCustId = `cus_${cleanPhone}`;
+      const newCust = {
+        id: newCustId,
+        user_id: newCustId,
+        customer_id: newCustId,
+        role: "CUSTOMER",
+        first_name: "Customer",
+        last_name: cleanPhone.slice(-4),
+        name: `Customer ${cleanPhone.slice(-4)}`,
+        phone: phone,
+        email: `customer_${cleanPhone}@cakes2home.com`,
+        created_at: new Date().toISOString(),
+      };
+      if (!memoryStore.customers) memoryStore.customers = [];
+      memoryStore.customers.push(newCust);
+      ApiEngine.persist();
+      return newCust;
+    }
+
+    return null;
+  }
+
+  static verifyOtp(phone: string, code: string) {
+    const userAccount = ApiEngine.resolveUserAccount({ phone });
+    if (!userAccount) {
+      throw new Error("Unable to resolve user account for phone");
+    }
+
+    if (userAccount.status === "suspended") {
+      throw new Error("Account Suspended by Super Admin. Please contact operations.");
+    }
+
+    const role = userAccount.role || "CUSTOMER";
+    const token = `jwt_${role.toLowerCase()}_${userAccount.id}_${Date.now()}`;
 
     return {
       success: true,
-      accessToken: "mock_jwt_access_token_customer_2026",
-      token: "mock_jwt_access_token_customer_2026",
-      role: "CUSTOMER",
-      user: {
-        id: `usr_${cleanPhone || "customer_1"}`,
-        name: "Alex Johnson",
-        phone: phone || "+91 98765 43210",
-        email: "alex@example.com",
-        role: "CUSTOMER",
-      },
+      accessToken: token,
+      token,
+      role,
+      branch_id: userAccount.branch_id || userAccount.shop_id,
+      partner_id: userAccount.partner_id,
+      user: userAccount,
     };
   }
 
@@ -8862,12 +9260,8 @@ export class ApiEngine {
     };
   }
 
-  // ── Order Acceptance & Timeout Failover Workflow ──
-  static acceptBranchOrder(orderId: string, branchId: string) {
-    return { orderId, branchId, status: "accepted", accepted_at: new Date().toISOString() };
-  }
-
-  static rejectBranchOrder(orderId: string, branchId: string, reason: string) {
+  // ── Order Acceptance & Timeout Failover Routing ──
+  static simulateRoutingFailover(orderId: string, branchId: string, reason: string) {
     const branches = ApiEngine.listBranches();
     const nextBranch = branches.find((b: any) => b.id !== branchId && b.is_open) || branches[0];
     return { orderId, rejected_branch_id: branchId, reason, auto_reassigned_to: nextBranch.name, next_branch_id: nextBranch.id, status: "reassigned" };
@@ -9454,6 +9848,906 @@ export class ApiEngine {
       { id: "log_r2", action: "Created Scheduled Report", section: "overview", user: "admin@cakes2home.com", timestamp: new Date().toISOString() },
       { id: "log_r3", action: "Saved Custom Chart Preferences", section: "visualization", user: "admin@cakes2home.com", timestamp: new Date().toISOString() },
     ];
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── BRANCH MANAGER COMPLETE PRODUCTION OPERATIONS SYSTEM ──────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  static resolveBranchRecord(branchId: string) {
+    if (!memoryStore.branches) memoryStore.branches = [...DEFAULT_BRANCHES];
+    const bId = branchId || "res_01KXYMAHGFPRY1G9TZKEVGAGAT";
+    const found = memoryStore.branches.find((b: any) =>
+      b.id === bId ||
+      b.code === bId ||
+      (bId === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" && (b.id === "br_indiranagar" || b.id === "res_01KXYMAHGFPRY1G9TZKEVGAGAT")) ||
+      (bId === "res_02KXYMAHGFPRY1G9TZKEVGAGAT" && (b.id === "br_koramangala" || b.id === "res_02KXYMAHGFPRY1G9TZKEVGAGAT")) ||
+      (bId === "res_03KXYMAHGFPRY1G9TZKEVGAGAT" && (b.id === "br_whitefield" || b.id === "res_03KXYMAHGFPRY1G9TZKEVGAGAT")) ||
+      (bId === "shop_01" && (b.id === "br_indiranagar" || b.id === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" || b.id === "shop_01"))
+    );
+    return found || memoryStore.branches[0] || null;
+  }
+
+  static isOrderInBranch(order: any, branchId: string): boolean {
+    const resolved = ApiEngine.resolveOrderBranchId(order);
+    if (!resolved) return false;
+    if (resolved === branchId) return true;
+    if ((branchId === "br_indiranagar" || branchId === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" || branchId === "shop_01") &&
+        (resolved === "br_indiranagar" || resolved === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" || resolved === "shop_01")) return true;
+    if ((branchId === "br_koramangala" || branchId === "res_02KXYMAHGFPRY1G9TZKEVGAGAT") &&
+        (resolved === "br_koramangala" || resolved === "res_02KXYMAHGFPRY1G9TZKEVGAGAT")) return true;
+    if ((branchId === "br_whitefield" || branchId === "res_03KXYMAHGFPRY1G9TZKEVGAGAT") &&
+        (resolved === "br_whitefield" || resolved === "res_03KXYMAHGFPRY1G9TZKEVGAGAT")) return true;
+    return false;
+  }
+
+  static getBranchManagerDashboard(branchId: string) {
+    ApiEngine.ensureOrdersStore();
+    ApiEngine.ensureDeliveryPartnersStore();
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    if (!branch) return { success: false, error: "Branch not found", statusCode: 404 };
+
+    const branchOrders = (memoryStore.orders || []).filter((o: any) => ApiEngine.isOrderInBranch(o, branch.id));
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+
+    const todaysOrders = branchOrders.filter((o: any) => (o.created_at || "").slice(0, 10) === todayStr || true);
+    const pendingCount = branchOrders.filter((o: any) => ["pending", "confirmed", "shop_accepted", "kitchen_accepted"].includes(o.status || "") || ["pending", "shop_accepted"].includes(o.delivery_status || "")).length;
+    const preparingCount = branchOrders.filter((o: any) => (o.status === "preparing" || o.delivery_status === "shop_preparing")).length;
+    const readyCount = branchOrders.filter((o: any) => ["ready_for_pickup", "packed", "ready"].includes(o.status || "") || o.delivery_status === "ready_for_pickup").length;
+    const inTransitCount = branchOrders.filter((o: any) => (o.status === "out_for_delivery" || o.delivery_status === "in_transit")).length;
+    const deliveredCount = branchOrders.filter((o: any) => (o.status === "delivered" || o.delivery_status === "delivered")).length;
+    const cancelledCount = branchOrders.filter((o: any) => (o.status === "cancelled" || o.delivery_status === "cancelled")).length;
+    const delayedCount = branchOrders.filter((o: any) => o.is_delayed || o.delivery_status === "delayed" || !!o.delay_reason).length;
+
+    // Online riders eligible for this branch
+    const branchRiders = (memoryStore.delivery_partners || []).filter((p: any) => {
+      const authBranches = ApiEngine.getDeliveryPartnerAuthorizedBranches(p);
+      return authBranches.some((b: string) => b === branch.id || (branch.id === "br_indiranagar" && b === "res_01KXYMAHGFPRY1G9TZKEVGAGAT") || (branch.id === "br_koramangala" && b === "res_02KXYMAHGFPRY1G9TZKEVGAGAT"));
+    });
+    const onlineRidersCount = branchRiders.filter((p: any) => p.availability_status === "ONLINE" || p.status === "active").length;
+
+    // Low stock items
+    const inventory = ApiEngine.getBranchInventory(branch.id);
+    const lowStockCount = inventory.items.filter((i: any) => i.is_low_stock).length;
+
+    // Branch pause status evaluation
+    let isPaused = branch.is_paused || false;
+    let pauseRemainingMins = 0;
+    if (branch.pause_until) {
+      const pauseEnd = new Date(branch.pause_until).getTime();
+      const diffMins = Math.ceil((pauseEnd - Date.now()) / 60000);
+      if (diffMins > 0) {
+        isPaused = true;
+        pauseRemainingMins = diffMins;
+      } else {
+        isPaused = false;
+        branch.is_paused = false;
+        branch.pause_until = null;
+        ApiEngine.persist();
+      }
+    }
+
+    return {
+      success: true,
+      statusCode: 200,
+      branch: {
+        id: branch.id,
+        code: branch.code,
+        name: branch.name,
+        address: branch.address,
+        phone: branch.phone,
+        email: branch.email,
+        manager_name: branch.manager_name,
+        is_open: branch.is_open !== false,
+        is_paused: isPaused,
+        pause_until: branch.pause_until,
+        pause_remaining_minutes: pauseRemainingMins,
+        operational_status: branch.operational_status || "operational",
+        operating_hours: branch.operating_hours,
+        preparation_buffer_mins: branch.preparation_buffer_mins || 15,
+      },
+      kpis: {
+        todays_orders: todaysOrders.length,
+        pending_orders: pendingCount,
+        preparing_orders: preparingCount,
+        ready_orders: readyCount,
+        in_transit_orders: inTransitCount,
+        delivered_orders: deliveredCount,
+        cancelled_orders: cancelledCount,
+        delayed_orders: delayedCount,
+        online_riders: onlineRidersCount,
+        low_stock_items: lowStockCount,
+      },
+      recent_orders: branchOrders.slice(0, 10).map((o: any) => ({
+        id: o.id,
+        order_number: o.order_number,
+        customer_name: o.customer_name || o.customerName,
+        customer_phone: o.customer_phone || o.customerPhone,
+        total: o.total || 599,
+        status: o.status,
+        delivery_status: o.delivery_status,
+        delivery_slot: o.delivery_slot || "2:00 PM - 4:00 PM",
+        is_photo_cake: o.is_photo_cake || !!o.customization?.photo_url || o.items?.some((i: any) => (i.title || "").toLowerCase().includes("photo")),
+        photo_url: o.photo_url || o.customization?.photo_url || null,
+        created_at: o.created_at,
+        is_delayed: o.is_delayed || false,
+      })),
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  static getBranchOrders(branchId: string, queryParams: Record<string, any> = {}) {
+    ApiEngine.ensureOrdersStore();
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    if (!branch) return { success: false, error: "Branch not found", orders: [], total: 0 };
+
+    let orders = (memoryStore.orders || []).filter((o: any) => ApiEngine.isOrderInBranch(o, branch.id));
+
+    // Status Filter
+    const status = queryParams.status;
+    if (status && status !== "all") {
+      if (status === "pending") {
+        orders = orders.filter((o: any) => ["pending", "confirmed", "shop_accepted", "kitchen_accepted"].includes(o.status || "") || ["pending", "shop_accepted"].includes(o.delivery_status || ""));
+      } else if (status === "preparing") {
+        orders = orders.filter((o: any) => o.status === "preparing" || o.delivery_status === "shop_preparing" || o.delivery_status === "pickup_claimed");
+      } else if (status === "ready") {
+        orders = orders.filter((o: any) => ["ready_for_pickup", "packed", "ready"].includes(o.status || "") || o.delivery_status === "ready_for_pickup");
+      } else if (status === "in_transit" || status === "out_for_delivery") {
+        orders = orders.filter((o: any) => o.status === "out_for_delivery" || o.delivery_status === "in_transit");
+      } else if (status === "delivered") {
+        orders = orders.filter((o: any) => o.status === "delivered" || o.delivery_status === "delivered");
+      } else if (status === "delayed") {
+        orders = orders.filter((o: any) => o.is_delayed || o.delivery_status === "delayed" || !!o.delay_reason);
+      } else if (status === "cancelled") {
+        orders = orders.filter((o: any) => o.status === "cancelled" || o.delivery_status === "cancelled");
+      } else if (status === "on_hold") {
+        orders = orders.filter((o: any) => o.is_on_hold);
+      }
+    }
+
+    // Search Query (order number, customer name, phone, item title)
+    const q = (queryParams.q || queryParams.search || "").toLowerCase().trim();
+    if (q) {
+      orders = orders.filter((o: any) => {
+        const orderNum = (o.order_number || o.id || "").toLowerCase();
+        const custName = (o.customer_name || o.customerName || "").toLowerCase();
+        const custPhone = (o.customer_phone || o.customerPhone || "").toLowerCase();
+        const itemMatch = (o.items || []).some((i: any) => (i.title || i.name || "").toLowerCase().includes(q));
+        return orderNum.includes(q) || custName.includes(q) || custPhone.includes(q) || itemMatch;
+      });
+    }
+
+    // Priority Filter
+    if (queryParams.priority) {
+      orders = orders.filter((o: any) => (o.priority || "NORMAL").toUpperCase() === queryParams.priority.toUpperCase());
+    }
+
+    // Date Filter
+    if (queryParams.date) {
+      orders = orders.filter((o: any) => (o.created_at || "").slice(0, 10) === queryParams.date || (o.delivery_date || "").slice(0, 10) === queryParams.date);
+    }
+
+    return {
+      success: true,
+      statusCode: 200,
+      orders: orders.map((o: any) => ({
+        id: o.id,
+        order_number: o.order_number,
+        customer_name: o.customer_name || o.customerName || "Gourmet Customer",
+        customer_phone: o.customer_phone || o.customerPhone || "+91 98765 43210",
+        customer_email: o.customer_email || "customer@cakes2home.com",
+        delivery_address: o.deliveryAddress || o.shipping_address?.address_1 || "Flat 101, Indiranagar, Bengaluru",
+        pincode: o.pincode || o.shipping_address?.postal_code || "560038",
+        items: o.items || [{ title: "Rich Chocolate Truffle Cake", quantity: 1, unit_price: 599, total: 599, weight: "1 kg", flavor: "Belgian Chocolate" }],
+        total: o.total || 599,
+        payment_status: o.payment_status || "captured",
+        payment_method: o.payment_method || "UPI via Razorpay",
+        status: o.status || "confirmed",
+        delivery_status: o.delivery_status || "shop_accepted",
+        delivery_date: o.delivery_date || new Date().toISOString().slice(0, 10),
+        delivery_slot: o.delivery_slot || "2:00 PM - 4:00 PM",
+        priority: o.priority || (o.is_express ? "EXPRESS" : (o.is_midnight ? "MIDNIGHT" : "NORMAL")),
+        delivery_partner_id: o.delivery_partner_id || null,
+        driver_name: o.driver_name || o.delivery?.partner_name || null,
+        is_photo_cake: o.is_photo_cake || !!o.customization?.photo_url || (o.items || []).some((i: any) => (i.title || "").toLowerCase().includes("photo")),
+        photo_url: o.photo_url || o.customization?.photo_url || null,
+        custom_message: o.custom_message || o.customization?.cake_message || "Happy Birthday!",
+        special_instructions: o.special_instructions || o.notes || null,
+        is_delayed: o.is_delayed || false,
+        delay_reason: o.delay_reason || null,
+        new_eta: o.new_eta || null,
+        is_on_hold: o.is_on_hold || false,
+        hold_reason: o.hold_reason || null,
+        kot_reprint_count: o.kot_reprint_count || 1,
+        created_at: o.created_at,
+        updated_at: o.updated_at,
+      })),
+      total: orders.length,
+    };
+  }
+
+  static getBranchOrderDetails(orderId: string, branchId: string) {
+    ApiEngine.ensureOrdersStore();
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+
+    if (!order) {
+      return { success: false, statusCode: 404, error: "Order not found" };
+    }
+
+    // Strict Branch Security Check
+    if (!ApiEngine.isOrderInBranch(order, branch.id)) {
+      return { success: false, statusCode: 403, error: `Forbidden: Order ${order.order_number} belongs to another branch. Access denied.` };
+    }
+
+    const items = (order.items && order.items.length > 0) ? order.items : [
+      {
+        id: "item_1",
+        title: "Signature Dutch Chocolate Truffle Cake",
+        name: "Signature Dutch Chocolate Truffle Cake",
+        sku: "CK-TRUF-1000",
+        quantity: 1,
+        weight: "1.0 kg",
+        flavor: "Dutch Cocoa Ganache",
+        filling: "Chocolate Mousse",
+        shape: "Round",
+        unit_price: 699,
+        tax_amount: 34.95,
+        total: 699,
+      }
+    ];
+
+    const isPhotoCake = order.is_photo_cake || !!order.customization?.photo_url || items.some((i: any) => (i.title || "").toLowerCase().includes("photo"));
+    const photoUrl = order.photo_url || order.customization?.photo_url || (isPhotoCake ? "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800" : null);
+
+    return {
+      success: true,
+      statusCode: 200,
+      order: {
+        id: order.id,
+        order_number: order.order_number,
+        branch_id: branch.id,
+        branch_name: branch.name,
+        branch_code: branch.code,
+        customer: {
+          name: order.customer_name || order.customerName || "Priya Sharma",
+          phone: order.customer_phone || order.customerPhone || "+91 98765 00001",
+          email: order.customer_email || "priya.sharma@example.com",
+          delivery_address: order.deliveryAddress || order.shipping_address?.address_1 || "Flat 402, Signature Heights, 12th Main, Indiranagar",
+          landmark: order.landmark || "Near Sony Signal",
+          pincode: order.pincode || order.shipping_address?.postal_code || "560038",
+          city: order.city || "Bengaluru",
+          occasion: order.occasion || "Birthday Celebration",
+        },
+        items,
+        customization: {
+          cake_message: order.custom_message || order.customization?.cake_message || "Happy Birthday Priya!",
+          candle: order.candle || "Included (Gold Sparkler)",
+          knife: order.knife || "Included (Cake Knife)",
+          accessories: order.accessories || ["Gold Birthday Topper", "Greeting Card"],
+          special_instructions: order.special_instructions || order.notes || "Please keep refrigerated upon arrival. Eggless formulation verified.",
+        },
+        photo_cake: {
+          is_photo_cake: isPhotoCake,
+          photo_url: photoUrl,
+          instructions: order.photo_instructions || "High-resolution edible sugar sheet print centered on top surface.",
+        },
+        pricing: {
+          subtotal: order.subtotal || order.total || 699,
+          tax_total: order.tax_total || 34.95,
+          cgst: Number(((order.tax_total || 34.95) / 2).toFixed(2)),
+          sgst: Number(((order.tax_total || 34.95) / 2).toFixed(2)),
+          delivery_fee: order.delivery_fee || 0,
+          discount_total: order.discount_total || 0,
+          total: order.total || 733.95,
+        },
+        payment: {
+          status: order.payment_status || "captured",
+          method: order.payment_method || "Online UPI (Razorpay)",
+          transaction_id: order.transaction_id || `TXN_${order.id}`,
+        },
+        status: order.status || "confirmed",
+        delivery_status: order.delivery_status || "shop_accepted",
+        delivery_partner_id: order.delivery_partner_id || null,
+        driver_name: order.driver_name || order.delivery?.partner_name || null,
+        driver_phone: order.driver_phone || order.delivery?.partner_phone || null,
+        delivery_date: order.delivery_date || new Date().toISOString().slice(0, 10),
+        delivery_slot: order.delivery_slot || "2:00 PM - 4:00 PM",
+        priority: order.priority || (order.is_express ? "EXPRESS" : "NORMAL"),
+        pickup_otp: order.pickup_otp || "1294",
+        delivery_otp: order.delivery_otp || "4819",
+        is_delayed: order.is_delayed || false,
+        delay_reason: order.delay_reason || null,
+        new_eta: order.new_eta || null,
+        is_on_hold: order.is_on_hold || false,
+        hold_reason: order.hold_reason || null,
+        kot_reprint_count: order.kot_reprint_count || 1,
+        timeline: order.timeline || [
+          { id: "tl_1", title: "Order Placed & Payment Verified", time: order.created_at, author: "Customer" },
+          { id: "tl_2", title: `Routed to ${branch.name}`, time: order.created_at, author: "Dispatch Router" },
+        ],
+        created_at: order.created_at,
+        updated_at: order.updated_at,
+      },
+    };
+  }
+
+  static acceptBranchOrder(orderId: string, branchId: string, notes?: string) {
+    ApiEngine.ensureOrdersStore();
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+
+    if (!order) return { success: false, statusCode: 404, error: "Order not found" };
+    if (!ApiEngine.isOrderInBranch(order, branch.id)) {
+      return { success: false, statusCode: 403, error: "Forbidden: Cannot mutate an order belonging to another branch." };
+    }
+
+    if (order.status === "delivered" || order.status === "cancelled") {
+      return { success: false, statusCode: 400, error: `Cannot accept order in '${order.status}' state.` };
+    }
+
+    order.status = "kitchen_accepted";
+    order.delivery_status = "shop_accepted";
+    order.updated_at = new Date().toISOString();
+
+    if (!order.timeline) order.timeline = [];
+    order.timeline.unshift({
+      id: `tl_${Date.now()}`,
+      title: "Order Accepted by Branch Kitchen",
+      time: new Date().toISOString(),
+      author: branch.manager_name || "Branch Manager",
+      notes: notes || "Queued for kitchen baking station",
+    });
+
+    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) accepted Order ${order.order_number}`);
+    ApiEngine.fireWebhookEvent("branch.order_accepted", { order_id: order.id, branch_id: branch.id });
+    ApiEngine.persist();
+
+    return { success: true, statusCode: 200, order, message: "Order accepted successfully." };
+  }
+
+  static rejectBranchOrder(orderId: string, branchId: string, reason: string) {
+    ApiEngine.ensureOrdersStore();
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+
+    if (!order) return { success: false, statusCode: 404, error: "Order not found" };
+    if (!ApiEngine.isOrderInBranch(order, branch.id)) {
+      return { success: false, statusCode: 403, error: "Forbidden: Cannot reject an order belonging to another branch." };
+    }
+
+    order.status = "cancelled";
+    order.delivery_status = "shop_declined";
+    order.cancellation_reason = reason || "Declined by Branch Kitchen";
+    order.updated_at = new Date().toISOString();
+
+    if (!order.timeline) order.timeline = [];
+    order.timeline.unshift({
+      id: `tl_${Date.now()}`,
+      title: "Order Rejected by Branch Kitchen",
+      time: new Date().toISOString(),
+      author: branch.manager_name || "Branch Manager",
+      notes: `Reason: ${reason || "Branch capacity full / out of ingredients"}`,
+    });
+
+    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) rejected Order ${order.order_number}: ${reason}`);
+    ApiEngine.fireWebhookEvent("branch.order_rejected", { order_id: order.id, branch_id: branch.id, reason });
+    ApiEngine.persist();
+
+    return { success: true, statusCode: 200, order, message: "Order rejection recorded." };
+  }
+
+  static holdBranchOrder(orderId: string, branchId: string, reason: string) {
+    ApiEngine.ensureOrdersStore();
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+
+    if (!order) return { success: false, statusCode: 404, error: "Order not found" };
+    if (!ApiEngine.isOrderInBranch(order, branch.id)) {
+      return { success: false, statusCode: 403, error: "Forbidden: Cannot hold an order belonging to another branch." };
+    }
+
+    order.is_on_hold = true;
+    order.hold_reason = reason || "Awaiting customer design confirmation";
+    order.updated_at = new Date().toISOString();
+
+    if (!order.timeline) order.timeline = [];
+    order.timeline.unshift({
+      id: `tl_${Date.now()}`,
+      title: "Order Put On Hold",
+      time: new Date().toISOString(),
+      author: branch.manager_name || "Branch Manager",
+      notes: `Reason: ${reason}`,
+    });
+
+    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) placed Order ${order.order_number} on hold: ${reason}`);
+    ApiEngine.persist();
+
+    return { success: true, statusCode: 200, order, message: "Order placed on hold." };
+  }
+
+  static delayBranchOrder(orderId: string, branchId: string, reason: string, newEta: string) {
+    ApiEngine.ensureOrdersStore();
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+
+    if (!order) return { success: false, statusCode: 404, error: "Order not found" };
+    if (!ApiEngine.isOrderInBranch(order, branch.id)) {
+      return { success: false, statusCode: 403, error: "Forbidden: Cannot delay an order belonging to another branch." };
+    }
+
+    order.is_delayed = true;
+    order.delay_reason = reason || "Custom artisanal decoration in progress";
+    order.original_eta = order.delivery_slot || "Original Slot";
+    order.new_eta = newEta || "Delayed by 30 mins";
+    order.delayed_at = new Date().toISOString();
+    order.updated_at = new Date().toISOString();
+
+    if (!order.timeline) order.timeline = [];
+    order.timeline.unshift({
+      id: `tl_${Date.now()}`,
+      title: `Order Delayed — New ETA: ${newEta}`,
+      time: new Date().toISOString(),
+      author: branch.manager_name || "Branch Manager",
+      notes: `Reason: ${reason}`,
+    });
+
+    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) marked Order ${order.order_number} delayed: ${reason} (New ETA: ${newEta})`);
+    ApiEngine.fireWebhookEvent("customer.order_delayed", { order_id: order.id, new_eta: newEta, reason });
+    ApiEngine.persist();
+
+    return { success: true, statusCode: 200, order, message: "Order marked delayed and customer notified." };
+  }
+
+  static markBranchOrderReady(orderId: string, branchId: string) {
+    ApiEngine.ensureOrdersStore();
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+
+    if (!order) return { success: false, statusCode: 404, error: "Order not found" };
+    if (!ApiEngine.isOrderInBranch(order, branch.id)) {
+      return { success: false, statusCode: 403, error: "Forbidden: Cannot mark ready an order belonging to another branch." };
+    }
+
+    order.status = "packed";
+    order.delivery_status = "ready_for_pickup";
+    if (!order.pickup_otp) order.pickup_otp = String(Math.floor(1000 + Math.random() * 9000));
+    if (!order.delivery_otp) order.delivery_otp = String(Math.floor(1000 + Math.random() * 9000));
+    order.updated_at = new Date().toISOString();
+
+    if (!order.timeline) order.timeline = [];
+    order.timeline.unshift({
+      id: `tl_${Date.now()}`,
+      title: "Cake Baked & Packed — Ready for Pickup",
+      time: new Date().toISOString(),
+      author: branch.manager_name || "Branch Manager",
+      notes: `Pickup OTP: ${order.pickup_otp}`,
+    });
+
+    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) marked Order ${order.order_number} Ready for Pickup`);
+    ApiEngine.fireWebhookEvent("order.ready_for_pickup", { order_id: order.id, branch_id: branch.id });
+    ApiEngine.persist();
+
+    return { success: true, statusCode: 200, order, message: "Order marked ready for pickup." };
+  }
+
+  static assignBranchOrderRider(orderId: string, branchId: string, partnerId: string) {
+    ApiEngine.ensureOrdersStore();
+    ApiEngine.ensureDeliveryPartnersStore();
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+
+    if (!order) return { success: false, statusCode: 404, error: "Order not found" };
+    if (!ApiEngine.isOrderInBranch(order, branch.id)) {
+      return { success: false, statusCode: 403, error: "Forbidden: Cannot assign rider to an order belonging to another branch." };
+    }
+
+    const partner = (memoryStore.delivery_partners || []).find((p: any) => p.id === partnerId || p.partner_number === partnerId);
+    if (!partner) {
+      return { success: false, statusCode: 404, error: "Delivery partner not found." };
+    }
+
+    // Security Check: Rider must be assigned to this branch
+    const authBranches = ApiEngine.getDeliveryPartnerAuthorizedBranches(partner);
+    const isRiderInBranch = authBranches.some((b: string) => b === branch.id || (branch.id === "br_indiranagar" && b === "res_01KXYMAHGFPRY1G9TZKEVGAGAT") || (branch.id === "br_koramangala" && b === "res_02KXYMAHGFPRY1G9TZKEVGAGAT"));
+    if (!isRiderInBranch) {
+      return { success: false, statusCode: 403, error: `Forbidden: Rider ${partner.full_name || partner.name} is not authorized for branch ${branch.name}.` };
+    }
+
+    // Capacity Check
+    const activeJobs = (partner.current_active_orders || 0);
+    const maxCapacity = (partner.maximum_concurrent_orders || 5);
+    if (activeJobs >= maxCapacity) {
+      return { success: false, statusCode: 400, error: `Rider has reached maximum active capacity (${activeJobs}/${maxCapacity} orders).` };
+    }
+
+    order.delivery_partner_id = partner.id;
+    order.driver_name = partner.full_name || partner.name;
+    order.driver_phone = partner.phone;
+    order.delivery_status = "pickup_claimed";
+    partner.current_active_orders = activeJobs + 1;
+    order.updated_at = new Date().toISOString();
+
+    if (!order.timeline) order.timeline = [];
+    order.timeline.unshift({
+      id: `tl_${Date.now()}`,
+      title: `Assigned to Delivery Partner ${partner.full_name || partner.name}`,
+      time: new Date().toISOString(),
+      author: branch.manager_name || "Branch Manager",
+      notes: `Driver Phone: ${partner.phone}`,
+    });
+
+    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) assigned Order ${order.order_number} to Rider ${partner.full_name || partner.name}`);
+    ApiEngine.fireWebhookEvent("order.rider_assigned", { order_id: order.id, partner_id: partner.id });
+    ApiEngine.persist();
+
+    return { success: true, statusCode: 200, order, message: `Rider ${partner.full_name || partner.name} assigned successfully.` };
+  }
+
+  static getBranchOrderKot(orderId: string, branchId: string) {
+    const details = ApiEngine.getBranchOrderDetails(orderId, branchId);
+    if (!details.success || !details.order) return details;
+
+    const ord = details.order;
+    const kotNumber = `KOT-${ord.order_number}`;
+
+    const kotPayload = {
+      kot_number: kotNumber,
+      order_number: ord.order_number,
+      brand_name: "CakeToHome Gourmet Bakery",
+      branch_name: ord.branch_name,
+      branch_code: ord.branch_code,
+      created_at: ord.created_at,
+      printed_at: new Date().toISOString(),
+      customer_name: ord.customer.name,
+      delivery_slot: ord.delivery_slot,
+      delivery_date: ord.delivery_date,
+      priority: ord.priority,
+      items: ord.items.map((i: any) => ({
+        title: i.title || i.name,
+        quantity: i.quantity || 1,
+        weight: i.weight || "1.0 kg",
+        flavor: i.flavor || "Dutch Truffle",
+        filling: i.filling || "Ganache",
+        shape: i.shape || "Round",
+        notes: i.notes || null,
+      })),
+      customization: ord.customization,
+      photo_cake: ord.photo_cake,
+      reprint_count: ord.kot_reprint_count || 1,
+    };
+
+    return { success: true, statusCode: 200, kot: kotPayload };
+  }
+
+  static reprintBranchOrderKot(orderId: string, branchId: string) {
+    ApiEngine.ensureOrdersStore();
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+
+    if (!order) return { success: false, statusCode: 404, error: "Order not found" };
+    if (!ApiEngine.isOrderInBranch(order, branch.id)) {
+      return { success: false, statusCode: 403, error: "Forbidden: Cannot reprint KOT for an order belonging to another branch." };
+    }
+
+    order.kot_reprint_count = (order.kot_reprint_count || 1) + 1;
+    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) reprinted KOT for Order ${order.order_number} (Reprint #${order.kot_reprint_count})`);
+    ApiEngine.persist();
+
+    return { success: true, statusCode: 200, kot_reprint_count: order.kot_reprint_count, message: "KOT reprint logged." };
+  }
+
+  static getBranchOrderInvoice(orderId: string, branchId: string) {
+    const details = ApiEngine.getBranchOrderDetails(orderId, branchId);
+    if (!details.success || !details.order) return details;
+
+    const ord = details.order;
+    const invNumber = `INV-${ord.order_number}`;
+
+    const invoicePayload = {
+      invoice_number: invNumber,
+      order_number: ord.order_number,
+      invoice_date: new Date().toISOString(),
+      branch_name: ord.branch_name,
+      branch_code: ord.branch_code,
+      branch_gstin: "29AAAAA0000A1Z5",
+      branch_fssai: "11223344556677",
+      customer: ord.customer,
+      items: ord.items.map((i: any) => ({
+        description: i.title || i.name,
+        hsn_sac: "1905",
+        quantity: i.quantity || 1,
+        unit_price: i.unit_price || 699,
+        taxable_amount: Number((i.unit_price || 699) / 1.05).toFixed(2),
+        gst_rate: "5%",
+        cgst_amount: Number(((i.unit_price || 699) * 0.025)).toFixed(2),
+        sgst_amount: Number(((i.unit_price || 699) * 0.025)).toFixed(2),
+        total: i.total || i.unit_price || 699,
+      })),
+      pricing: ord.pricing,
+      payment: ord.payment,
+    };
+
+    return { success: true, statusCode: 200, invoice: invoicePayload };
+  }
+
+  static getBranchProducts(branchId: string) {
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    if (!branch) return { success: false, products: [] };
+
+    const branchOverrides = branch.product_availability || {};
+    const allProducts = ApiEngine.listProducts();
+
+    const products = allProducts.map((p: any) => {
+      const override = branchOverrides[p.id] || { status: "available" };
+      let effectiveStatus = "AVAILABLE";
+      if (override.status === "unavailable" || override.status === "out_today" || override.status === "OUT_OF_STOCK") {
+        effectiveStatus = "OUT_OF_STOCK";
+      } else if (override.status === "temporarily_hidden" || override.status === "HIDDEN") {
+        effectiveStatus = "HIDDEN";
+      }
+
+      return {
+        id: p.id,
+        title: p.title || p.name,
+        name: p.title || p.name,
+        thumbnail: p.thumbnail,
+        price: p.price || 599,
+        category: p.category || "Gourmet Cakes",
+        branch_status: effectiveStatus,
+        reason: override.reason || null,
+      };
+    });
+
+    return { success: true, statusCode: 200, products, branch_id: branch.id, branch_name: branch.name };
+  }
+
+  static updateBranchProductAvailability(branchId: string, productId: string, status: string, reason?: string) {
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    if (!branch) return { success: false, statusCode: 404, error: "Branch not found" };
+
+    if (!branch.product_availability) branch.product_availability = {};
+    const normStatus = (status || "").toUpperCase();
+    const validStatus = ["AVAILABLE", "OUT_OF_STOCK", "HIDDEN"].includes(normStatus)
+      ? normStatus
+      : status;
+
+    branch.product_availability[productId] = {
+      status: validStatus as any,
+      reason: reason || `Updated by Branch Operations`,
+      available_again_time: new Date().toISOString(),
+    };
+
+    ApiEngine.addAuditLog(`Branch Operations (${branch.name}) updated Product ${productId} availability to '${validStatus}' (${reason || 'No reason'})`);
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      statusCode: 200,
+      productId,
+      branchId: branch.id,
+      status: validStatus,
+      message: `Product availability updated to '${validStatus}'.`,
+    };
+  }
+
+  static getBranchInventory(branchId: string) {
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    if (!branch) return { success: false, items: [] };
+
+    const branchInv = branch.accessory_inventory || {};
+    const defaultAccessories = DEFAULT_ACCESSORIES;
+
+    const items = defaultAccessories.map((acc: any) => {
+      const custom = branchInv[acc.id] || {};
+      const currentStock = custom.current_stock !== undefined ? custom.current_stock : acc.stock;
+      const lowThreshold = custom.low_stock_threshold !== undefined ? custom.low_stock_threshold : acc.low_stock_threshold;
+      const isLowStock = currentStock <= lowThreshold;
+
+      return {
+        id: acc.id,
+        sku: acc.sku,
+        name: acc.name,
+        category_name: acc.category_name,
+        price: acc.price,
+        stock: currentStock,
+        low_stock_threshold: lowThreshold,
+        is_low_stock: isLowStock,
+        status: currentStock === 0 ? "OUT_OF_STOCK" : (isLowStock ? "LOW_STOCK" : "IN_STOCK"),
+      };
+    });
+
+    return { success: true, statusCode: 200, items, branch_id: branch.id, branch_name: branch.name };
+  }
+
+  static updateBranchInventoryStock(branchId: string, itemId: string, stock: number, lowStockThreshold?: number) {
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    if (!branch) return { success: false, statusCode: 404, error: "Branch not found" };
+
+    if (!branch.accessory_inventory) branch.accessory_inventory = {};
+    const prev = branch.accessory_inventory[itemId] || { current_stock: 50, low_stock_threshold: 10 };
+    branch.accessory_inventory[itemId] = {
+      current_stock: stock,
+      reserved_stock: prev.reserved_stock || 0,
+      available_stock: stock,
+      low_stock_threshold: lowStockThreshold !== undefined ? lowStockThreshold : prev.low_stock_threshold,
+      reorder_level: prev.reorder_level || 20,
+    };
+
+    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) updated Stock for Item ${itemId} to ${stock} (Threshold: ${lowStockThreshold || prev.low_stock_threshold})`);
+    ApiEngine.persist();
+
+    return { success: true, statusCode: 200, itemId, stock, message: "Inventory stock updated." };
+  }
+
+  static getBranchEligibleDeliveryPartners(branchId: string) {
+    ApiEngine.ensureDeliveryPartnersStore();
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    if (!branch) return { success: false, partners: [] };
+
+    const branchRiders = (memoryStore.delivery_partners || []).filter((p: any) => {
+      const authBranches = ApiEngine.getDeliveryPartnerAuthorizedBranches(p);
+      return authBranches.some((b: string) => b === branch.id || (branch.id === "br_indiranagar" && b === "res_01KXYMAHGFPRY1G9TZKEVGAGAT") || (branch.id === "br_koramangala" && b === "res_02KXYMAHGFPRY1G9TZKEVGAGAT"));
+    });
+
+    return {
+      success: true,
+      statusCode: 200,
+      partners: branchRiders.map((p: any) => ({
+        id: p.id,
+        partner_number: p.partner_number,
+        name: p.full_name || p.name,
+        phone: p.phone,
+        status: p.status || "active",
+        availability_status: p.availability_status || "ONLINE",
+        current_active_orders: p.current_active_orders || 0,
+        maximum_concurrent_orders: p.maximum_concurrent_orders || 5,
+        rating: p.rating || 5.0,
+      })),
+    };
+  }
+
+  static getBranchActiveDeliveries(branchId: string) {
+    ApiEngine.ensureOrdersStore();
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    if (!branch) return { success: false, deliveries: [] };
+
+    const activeOrders = (memoryStore.orders || []).filter((o: any) =>
+      ApiEngine.isOrderInBranch(o, branch.id) &&
+      ["pickup_claimed", "ready_for_pickup", "in_transit"].includes(o.delivery_status || "")
+    );
+
+    return {
+      success: true,
+      statusCode: 200,
+      deliveries: activeOrders.map((o: any) => ({
+        order_id: o.id,
+        order_number: o.order_number,
+        customer_name: o.customer_name || o.customerName,
+        customer_phone: o.customer_phone || o.customerPhone,
+        delivery_address: o.deliveryAddress || o.shipping_address?.address_1,
+        rider_name: o.driver_name || o.delivery?.partner_name || "Unassigned",
+        rider_phone: o.driver_phone || o.delivery?.partner_phone || null,
+        delivery_status: o.delivery_status,
+        eta: o.new_eta || o.delivery_slot || "30 mins",
+        pincode: o.pincode || o.shipping_address?.postal_code || "560038",
+      })),
+    };
+  }
+
+  static updateBranchStatus(branchId: string, status: string, pauseDurationMinutes?: number, reason?: string) {
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    if (!branch) return { success: false, statusCode: 404, error: "Branch not found" };
+
+    if (status === "PAUSED") {
+      branch.is_paused = true;
+      const mins = Number(pauseDurationMinutes) || 30;
+      branch.pause_until = new Date(Date.now() + mins * 60000).toISOString();
+      branch.operational_status = "busy";
+    } else if (status === "OPEN") {
+      branch.is_open = true;
+      branch.is_paused = false;
+      branch.pause_until = null;
+      branch.operational_status = "operational";
+    } else if (status === "CLOSED" || status === "TEMPORARILY_CLOSED") {
+      branch.is_open = false;
+      branch.is_paused = false;
+      branch.operational_status = "temporarily_closed";
+    }
+
+    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) updated Branch Status to '${status}' (Reason: ${reason || 'N/A'})`);
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      statusCode: 200,
+      status,
+      is_paused: branch.is_paused,
+      pause_until: branch.pause_until,
+      message: `Branch status updated to '${status}'.`,
+    };
+  }
+
+  static updateBranchOperationalSettings(branchId: string, settings: Record<string, any>) {
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    if (!branch) return { success: false, statusCode: 404, error: "Branch not found" };
+
+    // WHITELIST ONLY ALLOWED LOCAL OPERATIONAL FIELDS (Rejecting unauthorized global changes)
+    if (settings.phone) branch.phone = settings.phone;
+    if (settings.whatsapp) branch.whatsapp = settings.whatsapp;
+    if (settings.email) branch.email = settings.email;
+    if (settings.operating_hours) branch.operating_hours = settings.operating_hours;
+    if (settings.preparation_buffer_mins !== undefined) branch.preparation_buffer_mins = Number(settings.preparation_buffer_mins);
+    if (settings.weekly_operating_days) branch.weekly_operating_days = settings.weekly_operating_days;
+    if (settings.holidays) branch.holidays = settings.holidays;
+
+    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) updated Operational Settings (Hours, Contact, Buffer: ${branch.preparation_buffer_mins}m)`);
+    ApiEngine.persist();
+
+    return { success: true, statusCode: 200, message: "Branch operational settings updated successfully." };
+  }
+
+  static getBranchReports(branchId: string, reportType: string, dateRange: string = "today") {
+    ApiEngine.ensureOrdersStore();
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    if (!branch) return { success: false, reports: [] };
+
+    const branchOrders = (memoryStore.orders || []).filter((o: any) => ApiEngine.isOrderInBranch(o, branch.id));
+    const totalRevenue = branchOrders.reduce((sum: number, o: any) => sum + (o.total || 0), 0);
+    const delivered = branchOrders.filter((o: any) => o.status === "delivered" || o.delivery_status === "delivered").length;
+    const cancelled = branchOrders.filter((o: any) => o.status === "cancelled" || o.delivery_status === "cancelled").length;
+
+    return {
+      success: true,
+      statusCode: 200,
+      branch_name: branch.name,
+      branch_code: branch.code,
+      report_type: reportType,
+      date_range: dateRange,
+      metrics: {
+        total_orders: branchOrders.length,
+        total_revenue: totalRevenue,
+        delivered_orders: delivered,
+        cancelled_orders: cancelled,
+        fulfillment_rate: branchOrders.length > 0 ? Number(((delivered / branchOrders.length) * 100).toFixed(1)) : 100,
+        average_order_value: branchOrders.length > 0 ? Number((totalRevenue / branchOrders.length).toFixed(2)) : 0,
+      },
+      rows: branchOrders.map((o: any) => ({
+        order_number: o.order_number,
+        customer_name: o.customer_name || o.customerName,
+        total: o.total,
+        status: o.status,
+        delivery_status: o.delivery_status,
+        created_at: o.created_at,
+      })),
+    };
+  }
+
+  static getBranchNotifications(branchId: string) {
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    if (!branch) return { success: false, notifications: [] };
+
+    const notifs = branch.notifications || [
+      { id: "notif_1", type: "NEW_ORDER", title: "New Express Order Received", message: "Order #ORD-101 requires 2-hour delivery slot", timestamp: new Date().toISOString(), is_read: false },
+      { id: "notif_2", type: "LOW_STOCK", title: "Low Stock Alert: Gold Toppers", message: "Remaining stock is below threshold (5 items)", timestamp: new Date().toISOString(), is_read: false },
+      { id: "notif_3", type: "PHOTO_CAKE", title: "Photo Cake High-Res Asset Ready", message: "Customer uploaded photo for Order #ORD-105", timestamp: new Date().toISOString(), is_read: true },
+    ];
+
+    return { success: true, statusCode: 200, notifications: notifs };
+  }
+
+  static markBranchNotificationRead(branchId: string, notifId: string) {
+    const branch = ApiEngine.resolveBranchRecord(branchId);
+    if (!branch) return { success: false, error: "Branch not found" };
+
+    if (branch.notifications) {
+      const n = branch.notifications.find((item: any) => item.id === notifId);
+      if (n) n.is_read = true;
+      ApiEngine.persist();
+    }
+
+    return { success: true, statusCode: 200, message: "Notification marked as read" };
   }
 }
 

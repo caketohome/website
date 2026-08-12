@@ -4,51 +4,31 @@ import { retrieveSession } from "./sessions";
 export async function retrieveUser(): Promise<any> {
   const cookieStore = cookies();
   const token = retrieveSession();
-  const role = cookieStore.get("_cth_role")?.value || "delivery_partner";
+  const userId = cookieStore.get("_cth_user_id")?.value;
+  const phone = cookieStore.get("_cth_phone")?.value;
+  const role = cookieStore.get("_cth_role")?.value;
 
-  const activeRole = role || "delivery_partner";
-
-  if (activeRole === "delivery_partner" || activeRole === "dlp") {
-    return {
-      id: "dlp_101",
-      first_name: "Suresh",
-      last_name: "Kumar",
-      email: "suresh.k@cakes2home.com",
-      phone: "+91 98123 45678",
-      role: "DELIVERY_PARTNER",
-    };
+  // If no session exists, return null (fail closed)
+  if (!token && !userId && !phone) {
+    return null;
   }
 
-  if (activeRole === "shop" || activeRole === "shpmgr" || activeRole === "branch_manager" || activeRole === "branch" || activeRole === "manager") {
-    return {
-      id: "shpmgr_01",
-      shop_id: "shop_01",
-      first_name: "Koramangala Hub",
-      last_name: "Branch Manager",
-      email: "manager@cakes2home.com",
-      phone: "+91 98765 99999",
-      role: "SHOP_MANAGER",
-    };
+  try {
+    const { ApiEngine } = await import("../api-engine");
+    const resolvedUser = ApiEngine.resolveUserAccount({ userId, phone, role });
+    if (resolvedUser) {
+      return resolvedUser;
+    }
+  } catch (err) {
+    // Ignore import or resolution errors
   }
 
-  if (activeRole === "admin" || activeRole === "super_admin") {
-    return {
-      id: "admin_01",
-      shop_id: "shop_01",
-      first_name: "Super",
-      last_name: "Admin",
-      email: "admin@cakes2home.com",
-      phone: "+91 98765 00000",
-      role: "SUPER_ADMIN",
-    };
+  // Fallback check if role cookie exists for legacy support but userId missing
+  if (role === "delivery_partner" || role === "dlp") {
+    const { ApiEngine } = await import("../api-engine");
+    const partner = ApiEngine.resolveUserAccount({ role: "DELIVERY_PARTNER", phone });
+    if (partner) return partner;
   }
 
-  return {
-    id: "cus_9876543210",
-    first_name: "Alex",
-    last_name: "Johnson",
-    email: "alex@cakes2home.com",
-    phone: "+91 98765 43210",
-    role: "CUSTOMER",
-  };
+  return null;
 }

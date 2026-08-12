@@ -75,23 +75,36 @@ export function OtpLoginForm() {
                 return;
             }
 
-            const roleInfo = detectUserRole(currentPhone);
-            const autoRole = roleInfo.role;
-            const targetPath = roleInfo.redirectPath;
+            const serverRole = (result as any).role || (result as any).user?.role || result.detected_role || "CUSTOMER";
+            const userId = (result as any).user?.id || result.customer_id;
+            const userPhone = (result as any).user?.phone || currentPhone;
+            const branchId = (result as any).branch_id || (result as any).user?.branch_id || (result as any).user?.shop_id;
+            const partnerId = (result as any).partner_id || (result as any).user?.partner_id;
 
-            // Set role cookie client-side for immediate routing
-            document.cookie = `_cth_role=${autoRole}; path=/;`;
+            let targetPath = "/account";
+            const normRole = (serverRole || "").toUpperCase();
+            if (normRole === "DELIVERY_PARTNER" || normRole === "DLP") {
+                targetPath = "/dashboard/delivery-partner";
+            } else if (normRole === "BRANCH_MANAGER" || normRole === "SHOP_MANAGER" || normRole === "SHOP" || normRole === "SHPMGR") {
+                targetPath = "/dashboard/shop";
+            } else if (normRole === "SUPER_ADMIN" || normRole === "ADMIN") {
+                targetPath = "/admin";
+            }
 
-            // Set the real server-issued JWT token (not a mock)
+            // Set cookies client-side for immediate hydration
+            document.cookie = `_cth_role=${serverRole}; path=/;`;
             document.cookie = `_cth_jwt=${result.token}; path=/; SameSite=Lax;`;
+            if (userId) document.cookie = `_cth_user_id=${userId}; path=/; SameSite=Lax;`;
+            if (userPhone) document.cookie = `_cth_phone=${userPhone}; path=/; SameSite=Lax;`;
+            if (branchId) document.cookie = `_cth_branch_id=${branchId}; path=/; SameSite=Lax;`;
+            if (partnerId) document.cookie = `_cth_partner_id=${partnerId}; path=/; SameSite=Lax;`;
 
-            // Fire background server actions asynchronously
-            setRoleCookie(autoRole).catch(() => null);
-            loginCustomer(result.token, autoRole).catch(() => null);
+            // Persist session cookies on server
+            await loginCustomer(result.token, serverRole, userId, userPhone, branchId, partnerId).catch(() => null);
 
             setInfo("Login successful! Redirecting...");
 
-            // Instant non-blocking window location navigation
+            // Instant non-blocking navigation
             window.location.assign(targetPath);
         } catch (err: any) {
             setError(err.message || "Verification failed. Please check your OTP.");

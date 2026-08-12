@@ -9,7 +9,6 @@ import { getCacheTag } from "../data/cookies";
 
 export async function logout() {
   destroySession();
-  cookies().delete("_cth_role");
   redirect("/");
 }
 
@@ -60,10 +59,21 @@ export async function getToken(input: any) {
   return `token_${Date.now()}`;
 }
 
-export async function loginCustomer(token: string, role?: string): Promise<void> {
+export async function loginCustomer(
+  token: string,
+  role?: string,
+  userId?: string,
+  phone?: string,
+  branchId?: string,
+  partnerId?: string
+): Promise<void> {
   createSession(token);
   const existingRole = cookies().get("_cth_role")?.value;
   const targetRole = role || existingRole || "customer";
   cookies().set("_cth_role", targetRole, { path: "/", httpOnly: false });
+  if (userId) cookies().set("_cth_user_id", userId, { path: "/", httpOnly: false });
+  if (phone) cookies().set("_cth_phone", phone, { path: "/", httpOnly: false });
+  if (branchId) cookies().set("_cth_branch_id", branchId, { path: "/", httpOnly: false });
+  if (partnerId) cookies().set("_cth_partner_id", partnerId, { path: "/", httpOnly: false });
   revalidateTag(getCacheTag("users"));
 }

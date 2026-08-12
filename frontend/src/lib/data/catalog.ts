@@ -101,8 +101,8 @@ export interface Subscription {
 
 export async function searchProducts(filters: SearchFilters = {}): Promise<SearchResponse> {
   try {
-    const res: any = await apiClient.getAdminProducts();
-    const rawList: any[] = res?.products || res?.data || [];
+    const res: any = await apiClient.getProducts({ branchId: filters.shop_id });
+    const rawList: any[] = res?.products || res?.results || res?.data || [];
     
     let list = rawList.map((p: any) => ({
       product_id: p.id || p.product_id,
@@ -121,6 +121,8 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
       is_featured: Boolean(p.is_featured),
       is_bestseller: Boolean(p.is_bestseller),
       is_new_arrival: Boolean(p.is_new_arrival),
+      branch_status: p.branch_status || "AVAILABLE",
+      is_out_of_stock_at_branch: Boolean(p.is_out_of_stock_at_branch),
       category: p.category,
       primary_category_id: p.primary_category_id,
       cake_base: p.cake_base,

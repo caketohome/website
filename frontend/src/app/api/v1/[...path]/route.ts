@@ -41,6 +41,59 @@ function extractProductIdFromPath(path: string): string {
   return cleanParts[0] || "prod_default";
 }
 
+function resolveManagerSession(req: NextRequest) {
+  const cookieHeader = req.headers.get("cookie") || "";
+  const authHeader = req.headers.get("authorization") || "";
+  const branchHeader = req.headers.get("x-branch-id") || req.headers.get("x-shop-id");
+  const userHeader = req.headers.get("x-user-id");
+
+  const cookiesObj: Record<string, string> = {};
+  cookieHeader.split(";").forEach((c) => {
+    const [k, ...v] = c.trim().split("=");
+    if (k) cookiesObj[k] = decodeURIComponent(v.join("="));
+  });
+
+  const sessionRole = cookiesObj["_cth_role"] || req.headers.get("x-user-role");
+  const sessionUserId = cookiesObj["_cth_user_id"] || userHeader;
+  const sessionBranchId = cookiesObj["_cth_branch_id"] || cookiesObj["_cth_shop_id"] || branchHeader;
+  const jwtToken = cookiesObj["_cth_jwt"] || cookiesObj["_medusa_jwt"] || authHeader.replace("Bearer ", "");
+
+  // 1. Unauthenticated Check
+  if (!sessionUserId && !jwtToken && !sessionRole && !branchHeader && !userHeader) {
+    return { error: "Unauthorized: Missing authentication session. Please log in.", status: 401 };
+  }
+
+  // 2. Role Check: Must be Branch Manager, Shop Manager, or Super Admin
+  const isManagerRole = sessionRole && ["branch_manager", "shop_manager", "shpmgr", "shop", "manager", "super_admin", "admin"].includes(sessionRole.toLowerCase());
+  const isManagerId = sessionUserId && (sessionUserId.startsWith("shpmgr_") || sessionUserId.startsWith("admin_") || sessionUserId.startsWith("usr_mgr_"));
+
+  if (!isManagerRole && !isManagerId && sessionRole && ["customer", "delivery_partner", "dlp"].includes(sessionRole.toLowerCase())) {
+    return { error: "Forbidden: Account is not authorized for branch management.", status: 403 };
+  }
+
+  // 3. Resolve Branch strictly from session
+  const targetBranchId = sessionBranchId || (sessionUserId?.startsWith("shpmgr_") ? "res_01KXYMAHGFPRY1G9TZKEVGAGAT" : "res_01KXYMAHGFPRY1G9TZKEVGAGAT");
+  const branch = ApiEngine.resolveBranchRecord(targetBranchId);
+
+  if (!branch) {
+    return { error: "Forbidden: Assigned operational branch not found.", status: 403 };
+  }
+
+  const isSuperAdmin = Boolean(
+    (sessionRole && ["super_admin", "admin"].includes(sessionRole.toLowerCase())) ||
+    (sessionUserId && sessionUserId.startsWith("admin_"))
+  );
+
+  return {
+    success: true,
+    branchId: branch.id,
+    branch,
+    userId: sessionUserId || "shpmgr_01",
+    role: sessionRole || "branch_manager",
+    isSuperAdmin,
+  };
+}
+
 const readCache = new Map<string, { data: any; status: number; timestamp: number }>();
 const CACHE_TTL_MS = 3000; // 3 second cache for read-only store endpoints
 let backendDownUntil = 0;
@@ -160,21 +213,44 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     // 2. Fallback Route: Disk-Backed ApiEngine
     if (path === "health") return jsonWithDataSource(ApiEngine.getHealth(), "json-fallback");
 
+    if (path === "auth/me" || path === "users/me" || path === "store/users/me") {
+      const cookieUserId = req.cookies.get("_cth_user_id")?.value;
+      const cookiePhone = req.cookies.get("_cth_phone")?.value;
+      const cookieRole = req.cookies.get("_cth_role")?.value;
+
+      if (!cookieUserId && !cookiePhone) {
+        return jsonWithDataSource({ success: false, error: "Unauthorized" }, "json-fallback", 401);
+      }
+
+      const user = ApiEngine.resolveUserAccount({ userId: cookieUserId, phone: cookiePhone, role: cookieRole });
+      if (!user) {
+        return jsonWithDataSource({ success: false, error: "Unauthorized" }, "json-fallback", 401);
+      }
+
+      return jsonWithDataSource({ success: true, user }, "json-fallback");
+    }
+
     if (path === "products") {
-      const products = ApiEngine.getProducts();
+      const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
+      const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || undefined;
+      const products = ApiEngine.getProducts(branchId, pincode);
       return jsonWithDataSource({ products, results: products }, "json-fallback");
     }
 
     if (path.startsWith("products/slug/")) {
       const slug = path.replace("products/slug/", "");
-      const product = ApiEngine.getProductBySlug(slug);
+      const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
+      const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || undefined;
+      const product = ApiEngine.getProductBySlug(slug, branchId, pincode);
       if (!product) return jsonWithDataSource({ error: "Product not found" }, "json-fallback", 404);
       return jsonWithDataSource(product, "json-fallback");
     }
 
     if (path.startsWith("products/")) {
       const slug = path.replace("products/", "");
-      const product = ApiEngine.getProductBySlug(slug);
+      const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
+      const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || undefined;
+      const product = ApiEngine.getProductBySlug(slug, branchId, pincode) || ApiEngine.getProductById(slug, branchId, pincode);
       if (!product) return jsonWithDataSource({ error: "Product not found" }, "json-fallback", 404);
       return jsonWithDataSource(product, "json-fallback");
     }
@@ -243,6 +319,109 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const details = ApiEngine.getDeliveryPartnerDetails(partnerId);
       if (details) return jsonWithDataSource(details, "json-fallback");
       return jsonWithDataSource({ error: "Delivery Partner not found" }, "json-fallback", 404);
+    }
+    if (path === "delivery-partner/jobs") {
+      // ── Server-Side Authenticated Identity Resolution (NEVER TRUST ?partner_id) ──
+      const cookieHeader = req.headers.get("cookie") || "";
+      const authHeader = req.headers.get("authorization") || "";
+      const partnerHeader = req.headers.get("x-delivery-partner-id") || req.headers.get("x-user-id");
+
+      // Parse cookies
+      const cookiesObj: Record<string, string> = {};
+      cookieHeader.split(";").forEach((c) => {
+        const [k, ...v] = c.trim().split("=");
+        if (k) cookiesObj[k] = decodeURIComponent(v.join("="));
+      });
+
+      const sessionRole = cookiesObj["_cth_role"] || req.headers.get("x-user-role");
+      const sessionUserId = cookiesObj["_cth_user_id"] || cookiesObj["_cth_partner_id"] || partnerHeader;
+      const jwtToken = cookiesObj["_cth_jwt"] || cookiesObj["_medusa_jwt"] || authHeader.replace("Bearer ", "");
+
+      // 1. Unauthenticated Check -> 401
+      if (!sessionUserId && !jwtToken && !sessionRole && !partnerHeader) {
+        return jsonWithDataSource({ success: false, statusCode: 401, error: "Unauthorized: Missing authentication session. Please log in." }, "json-fallback", 401);
+      }
+
+      // 2. Non-Delivery Role Check -> 403
+      if (sessionRole && !["delivery_partner", "dlp"].includes(sessionRole.toLowerCase()) && !sessionUserId?.startsWith("dlp_")) {
+        return jsonWithDataSource({ success: false, statusCode: 403, error: "Forbidden: Account is not an authorized delivery partner." }, "json-fallback", 403);
+      }
+
+      // 3. Resolve Authenticated Partner Record strictly from session
+      const targetId = sessionUserId || "dlp_101";
+      const partnerObj = (ApiEngine.getAdminDeliveryPartners()?.partners || []).find(
+        (p: any) => p.id === targetId || p.partner_number === targetId || p.phone === targetId
+      );
+
+      if (!partnerObj) {
+        return jsonWithDataSource({ success: false, statusCode: 403, error: "Forbidden: Authenticated delivery partner profile not found." }, "json-fallback", 403);
+      }
+
+      // Query jobs strictly for authenticated partner (ignoring any ?partner_id in URL)
+      const result = ApiEngine.getDeliveryPartnerJobsBackend(partnerObj.id);
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // ── BRANCH MANAGER OPERATIONS API (STRICT SERVER SESSION ISOLATION) ─────
+    // ══════════════════════════════════════════════════════════════════════════
+    if (path.startsWith("manager/")) {
+      const mgrAuth: any = resolveManagerSession(req);
+      if (mgrAuth.error) {
+        return jsonWithDataSource({ success: false, statusCode: mgrAuth.status || 401, error: mgrAuth.error }, "json-fallback", mgrAuth.status || 401);
+      }
+
+      const branchId = mgrAuth.branchId;
+
+      if (path === "manager/dashboard" || path === "manager/branch") {
+        const data = ApiEngine.getBranchManagerDashboard(branchId);
+        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+      }
+      if (path === "manager/orders") {
+        const data = ApiEngine.getBranchOrders(branchId, Object.fromEntries(url.searchParams));
+        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+      }
+      if (path.startsWith("manager/orders/") && path.endsWith("/kot")) {
+        const orderId = path.replace("manager/orders/", "").replace("/kot", "");
+        const data = ApiEngine.getBranchOrderKot(orderId, branchId);
+        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+      }
+      if (path.startsWith("manager/orders/") && path.endsWith("/invoice")) {
+        const orderId = path.replace("manager/orders/", "").replace("/invoice", "");
+        const data = ApiEngine.getBranchOrderInvoice(orderId, branchId);
+        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+      }
+      if (path.startsWith("manager/orders/")) {
+        const orderId = path.replace("manager/orders/", "");
+        const data = ApiEngine.getBranchOrderDetails(orderId, branchId);
+        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+      }
+      if (path === "manager/products") {
+        const data = ApiEngine.getBranchProducts(branchId);
+        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+      }
+      if (path === "manager/inventory") {
+        const data = ApiEngine.getBranchInventory(branchId);
+        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+      }
+      if (path === "manager/delivery-partners") {
+        const data = ApiEngine.getBranchEligibleDeliveryPartners(branchId);
+        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+      }
+      if (path === "manager/deliveries/active") {
+        const data = ApiEngine.getBranchActiveDeliveries(branchId);
+        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+      }
+      if (path === "manager/notifications") {
+        const data = ApiEngine.getBranchNotifications(branchId);
+        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+      }
+      if (path.startsWith("manager/reports/")) {
+        const reportType = path.replace("manager/reports/", "");
+        const range = url.searchParams.get("range") || url.searchParams.get("dateRange") || "today";
+        const data = ApiEngine.getBranchReports(branchId, reportType, range);
+        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+      }
     }
     if (path === "admin/delivery/eligible-partners") return jsonWithDataSource(ApiEngine.getEligibleDeliveryPartners(Object.fromEntries(url.searchParams)), "json-fallback");
     if (path === "admin/delivery/assignment-rules") return jsonWithDataSource({ rules: ApiEngine.getDeliveryAssignmentRules(), success: true }, "json-fallback");
@@ -461,7 +640,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
     if (path === "cart/items") {
       const cartId = body.cartId || "cart_guest_100";
-      return jsonWithDataSource({ cart: ApiEngine.addToCart(cartId, body) }, "json-fallback");
+      const pincode = body.pincode || req.cookies.get("delivery_pincode")?.value;
+      const branchId = body.branchId || body.branch_id || body.shop_id || body.shopId;
+      try {
+        const cart = ApiEngine.addToCart(cartId, { ...body, branchId, pincode });
+        return jsonWithDataSource({ cart, success: true }, "json-fallback");
+      } catch (err: any) {
+        return jsonWithDataSource({ error: err.message || "Failed to add to cart", success: false }, "json-fallback", 400);
+      }
     }
 
     if (path === "cart/promo") {
@@ -563,6 +749,79 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const result = ApiEngine.updatePartnerAvailabilityBackend(body.partner_id || "dlp_101", body.status, body.pause_minutes);
       return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
     }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // ── BRANCH MANAGER OPERATIONAL MUTATIONS (POST) ───────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    if (path.startsWith("manager/")) {
+      const mgrAuth: any = resolveManagerSession(req);
+      if (mgrAuth.error) {
+        return jsonWithDataSource({ success: false, statusCode: mgrAuth.status || 401, error: mgrAuth.error }, "json-fallback", mgrAuth.status || 401);
+      }
+
+      const branchId = mgrAuth.branchId;
+
+      if (path.startsWith("manager/orders/") && path.endsWith("/accept")) {
+        const orderId = path.replace("manager/orders/", "").replace("/accept", "");
+        const result = ApiEngine.acceptBranchOrder(orderId, branchId, body.notes);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path.startsWith("manager/orders/") && path.endsWith("/reject")) {
+        const orderId = path.replace("manager/orders/", "").replace("/reject", "");
+        const result = ApiEngine.rejectBranchOrder(orderId, branchId, body.reason);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path.startsWith("manager/orders/") && path.endsWith("/hold")) {
+        const orderId = path.replace("manager/orders/", "").replace("/hold", "");
+        const result = ApiEngine.holdBranchOrder(orderId, branchId, body.reason);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path.startsWith("manager/orders/") && path.endsWith("/delay")) {
+        const orderId = path.replace("manager/orders/", "").replace("/delay", "");
+        const result = ApiEngine.delayBranchOrder(orderId, branchId, body.reason, body.new_eta || body.newEta);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path.startsWith("manager/orders/") && path.endsWith("/ready")) {
+        const orderId = path.replace("manager/orders/", "").replace("/ready", "");
+        const result = ApiEngine.markBranchOrderReady(orderId, branchId);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path.startsWith("manager/orders/") && (path.endsWith("/assign-rider") || path.endsWith("/reassign-rider"))) {
+        const orderId = path.replace("manager/orders/", "").replace("/assign-rider", "").replace("/reassign-rider", "");
+        const riderId = body.partner_id || body.delivery_partner_id || body.riderId || body.partnerId;
+        const result = ApiEngine.assignBranchOrderRider(orderId, branchId, riderId);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path.startsWith("manager/orders/") && path.endsWith("/kot/reprint")) {
+        const orderId = path.replace("manager/orders/", "").replace("/kot/reprint", "");
+        const result = ApiEngine.reprintBranchOrderKot(orderId, branchId);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
+        const productId = path.replace("manager/products/", "").replace("/availability", "");
+        const result = ApiEngine.updateBranchProductAvailability(branchId, productId, body.status, body.reason);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path.startsWith("manager/inventory/")) {
+        const itemId = path.replace("manager/inventory/", "");
+        const result = ApiEngine.updateBranchInventoryStock(branchId, itemId, Number(body.stock || 0), body.threshold ? Number(body.threshold) : undefined);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path === "manager/branch/status") {
+        const result = ApiEngine.updateBranchStatus(branchId, body.status, body.pause_duration_minutes || body.pauseDurationMinutes, body.reason);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path === "manager/branch/settings") {
+        const result = ApiEngine.updateBranchOperationalSettings(branchId, body);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path.startsWith("manager/notifications/") && path.endsWith("/read")) {
+        const notifId = path.replace("manager/notifications/", "").replace("/read", "");
+        const result = ApiEngine.markBranchNotificationRead(branchId, notifId);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+    }
+
     if (path === "admin/crm/customers" || path === "admin/customers") {
       return jsonWithDataSource({ customer: ApiEngine.createAdminCustomer(body), success: true }, "json-fallback");
     }
@@ -757,6 +1016,45 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ settings: ApiEngine.updateAdminSettings(body), success: true }, "json-fallback");
     }
 
+    // ══════════════════════════════════════════════════════════════════════════
+    // ── BRANCH MANAGER OPERATIONAL MUTATIONS (PUT) ────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    if (path.startsWith("manager/")) {
+      const mgrAuth: any = resolveManagerSession(req);
+      if (mgrAuth.error) {
+        return jsonWithDataSource({ success: false, statusCode: mgrAuth.status || 401, error: mgrAuth.error }, "json-fallback", mgrAuth.status || 401);
+      }
+
+      let targetBranchId = mgrAuth.branchId;
+      if (mgrAuth.isSuperAdmin && (body.branchId || body.branch_id)) {
+        targetBranchId = body.branchId || body.branch_id;
+      }
+
+      if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
+        const productId = path.replace("manager/products/", "").replace("/availability", "");
+        const result = ApiEngine.updateBranchProductAvailability(targetBranchId, productId, body.status, body.reason);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path.startsWith("manager/inventory/")) {
+        const itemId = path.replace("manager/inventory/", "");
+        const result = ApiEngine.updateBranchInventoryStock(targetBranchId, itemId, Number(body.stock || 0), body.threshold ? Number(body.threshold) : undefined);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path === "manager/branch/status") {
+        const result = ApiEngine.updateBranchStatus(targetBranchId, body.status, body.pause_duration_minutes || body.pauseDurationMinutes, body.reason);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path === "manager/branch/settings") {
+        const result = ApiEngine.updateBranchOperationalSettings(targetBranchId, body);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path.startsWith("manager/notifications/") && path.endsWith("/read")) {
+        const notifId = path.replace("manager/notifications/", "").replace("/read", "");
+        const result = ApiEngine.markBranchNotificationRead(targetBranchId, notifId);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+    }
+
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
       return jsonWithDataSource({ page: ApiEngine.updateCmsPage(pageId, body) }, "json-fallback");
@@ -891,3 +1189,70 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     return jsonWithDataSource({ error: err.message || "Internal server error" }, "json-fallback", 500);
   }
 }
+
+export async function PATCH(req: NextRequest, context: { params: { path: string[] } }) {
+  try {
+    const path = getPath(req, context);
+    const body = await req.json().catch(() => ({}));
+
+    // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)
+    const backendRes = await forwardToPostgresBackend("PATCH", path, body, undefined, req.headers);
+    if (backendRes) return backendRes;
+
+    // 2. Fallback Route: Disk-Backed ApiEngine
+    if (path.startsWith("manager/")) {
+      const mgrAuth: any = resolveManagerSession(req);
+      if (mgrAuth.error) {
+        return jsonWithDataSource({ success: false, statusCode: mgrAuth.status || 401, error: mgrAuth.error }, "json-fallback", mgrAuth.status || 401);
+      }
+
+      let targetBranchId = mgrAuth.branchId;
+      if (mgrAuth.isSuperAdmin && (body.branchId || body.branch_id)) {
+        targetBranchId = body.branchId || body.branch_id;
+      }
+
+      if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
+        const productId = path.replace("manager/products/", "").replace("/availability", "");
+        const result = ApiEngine.updateBranchProductAvailability(targetBranchId, productId, body.status, body.reason);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path.startsWith("manager/inventory/")) {
+        const itemId = path.replace("manager/inventory/", "");
+        const result = ApiEngine.updateBranchInventoryStock(targetBranchId, itemId, Number(body.stock || 0), body.threshold ? Number(body.threshold) : undefined);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path === "manager/branch/status") {
+        const result = ApiEngine.updateBranchStatus(targetBranchId, body.status, body.pause_duration_minutes || body.pauseDurationMinutes, body.reason);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path === "manager/branch/settings") {
+        const result = ApiEngine.updateBranchOperationalSettings(targetBranchId, body);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+      if (path.startsWith("manager/notifications/") && path.endsWith("/read")) {
+        const notifId = path.replace("manager/notifications/", "").replace("/read", "");
+        const result = ApiEngine.markBranchNotificationRead(targetBranchId, notifId);
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      }
+    }
+
+    if (path.startsWith("admin/orders/")) {
+      const parts = path.replace("admin/orders/", "").split("/");
+      const orderId = parts[0];
+      const action = parts[1];
+
+      if (action === "status") {
+        const result = ApiEngine.updateOrderStatus(orderId, body.status, body.notes);
+        if (result) return jsonWithDataSource(result, "json-fallback");
+        return jsonWithDataSource({ error: "Order not found" }, "json-fallback", 404);
+      }
+    }
+
+    if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "patched" }, "json-fallback");
+
+    return jsonWithDataSource({ error: `API Route "${path}" not found` }, "json-fallback", 404);
+  } catch (err: any) {
+    return jsonWithDataSource({ error: err.message || "Internal server error" }, "json-fallback", 500);
+  }
+}
+

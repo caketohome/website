@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import ProductDetailClient from "../../../../components/store/shop/product-detail-client";
 import { ProductJsonLd } from "../../../../components/store/seo/json-ld";
 import { ApiEngine } from "../../../../lib/api-engine";
@@ -27,7 +28,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
   const resolvedParams = await Promise.resolve(params);
   const targetId = resolvedParams.id;
-  const fetched = ApiEngine.getProductById(targetId) || ApiEngine.getProductBySlug(targetId);
+  const pincodeCookie = cookies().get("delivery_pincode")?.value;
+  const fetched = ApiEngine.getProductById(targetId, undefined, pincodeCookie) || ApiEngine.getProductBySlug(targetId, undefined, pincodeCookie);
 
   const productId = fetched?.id || fetched?.product_id || targetId;
   const productTitle = fetched?.title || fetched?.name || "Gourmet Bakery Product";
@@ -57,6 +59,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     price: basePrice,
     rating: fetched?.rating || 4.9,
     review_count: fetched?.review_count || 128,
+    branch_status: fetched?.branch_status || "AVAILABLE",
+    is_out_of_stock_at_branch: fetched?.is_out_of_stock_at_branch || false,
     variants: [
       {
         id: `var_${productId}`,

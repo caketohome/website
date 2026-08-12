@@ -2645,8 +2645,8 @@
       "pincode": "560038",
       "latitude": 12.9716,
       "longitude": 77.6412,
-      "phone": "+91 98765 90888",
-      "whatsapp": "+91 98765 00001",
+      "phone": "+91 98765 12345",
+      "whatsapp": "+91 98765 12345",
       "email": "rahul.hsr@cakes2home.com",
       "manager_name": "Rahul Kumar",
       "manager_user_id": "usr_mgr_01",
@@ -2877,7 +2877,41 @@
           "ip": "127.0.0.1",
           "reason": "Manager account assigned"
         }
-      ]
+      ],
+      "product_availability": {
+        "prod_1785863253290": {
+          "status": "AVAILABLE",
+          "reason": "Updated by Branch Manager",
+          "available_again_time": "2026-08-11T16:37:09.861Z"
+        },
+        "undefined": {
+          "status": "AVAILABLE",
+          "reason": "Updated by Branch Operations",
+          "available_again_time": "2026-08-12T03:30:08.995Z"
+        },
+        "prod_1785669289711": {
+          "status": "OUT_OF_STOCK",
+          "reason": "Updated by Branch Operations",
+          "available_again_time": "2026-08-12T04:04:19.628Z"
+        },
+        "prod_1785588412217": {
+          "status": "OUT_OF_STOCK",
+          "reason": "Updated by Branch Operations",
+          "available_again_time": "2026-08-12T04:04:42.998Z"
+        }
+      },
+      "accessory_inventory": {
+        "acc_01": {
+          "current_stock": 50,
+          "reserved_stock": 0,
+          "available_stock": 50,
+          "low_stock_threshold": 10,
+          "reorder_level": 20
+        }
+      },
+      "is_paused": false,
+      "pause_until": null,
+      "preparation_buffer_mins": 25
     },
     {
       "id": "br_koramangala",
@@ -4183,6 +4217,54 @@
       "total_orders": 8,
       "wallet_balance": 300,
       "is_vip": true
+    },
+    {
+      "id": "cus_9000000001",
+      "user_id": "cus_9000000001",
+      "customer_id": "cus_9000000001",
+      "role": "CUSTOMER",
+      "first_name": "Customer",
+      "last_name": "0001",
+      "name": "Customer 0001",
+      "phone": "+91 90000 00001",
+      "email": "customer_9000000001@cakes2home.com",
+      "created_at": "2026-08-12T04:14:09.697Z"
+    },
+    {
+      "id": "cus_9000000002",
+      "user_id": "cus_9000000002",
+      "customer_id": "cus_9000000002",
+      "role": "CUSTOMER",
+      "first_name": "Customer",
+      "last_name": "0002",
+      "name": "Customer 0002",
+      "phone": "+91 90000 00002",
+      "email": "customer_9000000002@cakes2home.com",
+      "created_at": "2026-08-12T04:17:31.250Z"
+    },
+    {
+      "id": "cus_9000000003",
+      "user_id": "cus_9000000003",
+      "customer_id": "cus_9000000003",
+      "role": "CUSTOMER",
+      "first_name": "Customer",
+      "last_name": "0003",
+      "name": "Customer 0003",
+      "phone": "+91 90000 00003",
+      "email": "customer_9000000003@cakes2home.com",
+      "created_at": "2026-08-12T04:19:21.636Z"
+    },
+    {
+      "id": "cus_9000000004",
+      "user_id": "cus_9000000004",
+      "customer_id": "cus_9000000004",
+      "role": "CUSTOMER",
+      "first_name": "Customer",
+      "last_name": "0004",
+      "name": "Customer 0004",
+      "phone": "+91 90000 00004",
+      "email": "customer_9000000004@cakes2home.com",
+      "created_at": "2026-08-12T04:22:59.634Z"
     }
   ],
   "deliveries": [
@@ -4204,6 +4286,155 @@
     }
   ],
   "delivery_partners": [
+    {
+      "id": "dlp_test_C_multi",
+      "partner_number": "CTH-DP-TEST-C",
+      "full_name": "Multi-Branch Rider C",
+      "first_name": "Rider",
+      "last_name": "C",
+      "name": "Rider C",
+      "phone": "+91 99999 33333",
+      "alternate_phone": null,
+      "email": "rider.c@cakes2home.com",
+      "profile_photo": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
+      "date_of_birth": "1995-01-01",
+      "address": "Flagship Hub Address",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "pincode": "560038",
+      "emergency_contact_name": "Emergency Contact",
+      "emergency_contact_relationship": "Relative",
+      "emergency_contact_phone": "+91 99999 33333",
+      "joining_date": "2026-08-11",
+      "status": "active",
+      "availability_status": "ONLINE",
+      "rating": 5,
+      "total_deliveries": 0,
+      "successful_deliveries": 0,
+      "cancelled_deliveries": 0,
+      "failed_deliveries": 0,
+      "current_active_orders": 2,
+      "maximum_concurrent_orders": 5,
+      "working_hours": {
+        "Monday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Tuesday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Wednesday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Thursday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Friday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Saturday": {
+          "working": true,
+          "start": "09:00",
+          "end": "22:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Sunday": {
+          "working": true,
+          "start": "09:00",
+          "end": "22:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        }
+      },
+      "primary_branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "primary_branch_name": "Indiranagar Flagship Kitchen",
+      "associated_branches": [
+        {
+          "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": "Branch A Kitchen",
+          "active": true
+        },
+        {
+          "branch_id": "res_03KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": "Branch C Kitchen",
+          "active": true
+        }
+      ],
+      "coverage": {
+        "pincodes": [
+          "560038",
+          "560008",
+          "560075",
+          "560071",
+          "560001",
+          "560051",
+          "560047",
+          "560102",
+          "560068",
+          "560076"
+        ],
+        "cities": [
+          "Bengaluru"
+        ],
+        "areas": [
+          "Indiranagar",
+          "Domlur",
+          "HAL",
+          "MG Road",
+          "Shivajinagar",
+          "Austin Town / Victoria Layout",
+          "HSR Layout",
+          "Bommanahalli",
+          "BTM Layout",
+          "HSR Sector 1",
+          "HSR Layout 27th Main"
+        ]
+      },
+      "documents": {
+        "driving_license": {
+          "number": "KA-DL-PENDING",
+          "expiry": "2032-12-31",
+          "status": "verified"
+        },
+        "rc": {
+          "number": "KA-RC-PENDING",
+          "status": "verified"
+        },
+        "insurance": {
+          "number": "INS-PENDING",
+          "expiry": "2027-01-01",
+          "status": "verified"
+        },
+        "id_proof": {
+          "type": "Aadhaar",
+          "number": "XXXX-XXXX-0000",
+          "status": "verified"
+        }
+      },
+      "notes": "Registered via Super Admin Command Center",
+      "created_at": "2026-08-11T14:12:24.825Z",
+      "updated_at": "2026-08-11T14:12:24.825Z"
+    },
     {
       "id": "dlp_1786452544449",
       "partner_number": "CTH-DP-000042",
@@ -4227,11 +4458,11 @@
       "status": "active",
       "availability_status": "ONLINE",
       "rating": 5,
-      "total_deliveries": 0,
-      "successful_deliveries": 0,
+      "total_deliveries": 1,
+      "successful_deliveries": 1,
       "cancelled_deliveries": 0,
       "failed_deliveries": 0,
-      "current_active_orders": 0,
+      "current_active_orders": 1,
       "maximum_concurrent_orders": 5,
       "working_hours": {
         "Monday": {
@@ -4639,7 +4870,7 @@
       "successful_deliveries": 5,
       "cancelled_deliveries": 0,
       "failed_deliveries": 0,
-      "current_active_orders": 1,
+      "current_active_orders": 0,
       "maximum_concurrent_orders": 2,
       "working_hours": {
         "Monday": {
@@ -4769,13 +5000,13 @@
       "emergency_contact_phone": "+91 99999 11111",
       "joining_date": "2026-08-11",
       "status": "active",
-      "availability_status": "ONLINE",
+      "availability_status": "BUSY",
       "rating": 5,
       "total_deliveries": 11,
       "successful_deliveries": 11,
       "cancelled_deliveries": 0,
       "failed_deliveries": 0,
-      "current_active_orders": 0,
+      "current_active_orders": 1,
       "maximum_concurrent_orders": 1,
       "working_hours": {
         "Monday": {
@@ -4883,8 +5114,8 @@
       "notes": "Registered via Super Admin Command Center",
       "created_at": "2026-08-11T11:09:37.098Z",
       "updated_at": "2026-08-11T11:09:37.098Z",
-      "paused_until": "2026-08-11T13:26:19.288Z",
-      "last_online_at": "2026-08-11T12:41:19.288Z"
+      "paused_until": "2026-08-11T16:39:25.306Z",
+      "last_online_at": "2026-08-11T15:54:25.306Z"
     },
     {
       "id": "dlp_1786281453974",
@@ -4913,7 +5144,7 @@
       "successful_deliveries": 0,
       "cancelled_deliveries": 0,
       "failed_deliveries": 0,
-      "current_active_orders": 1,
+      "current_active_orders": 0,
       "maximum_concurrent_orders": 5,
       "working_hours": {
         "Monday": {
@@ -5202,7 +5433,7 @@
       "successful_deliveries": 0,
       "cancelled_deliveries": 0,
       "failed_deliveries": 0,
-      "current_active_orders": 1,
+      "current_active_orders": 0,
       "maximum_concurrent_orders": 5,
       "vehicle": {
         "type": "Refrigerated EV Van",
@@ -9542,6 +9773,790 @@
     }
   ],
   "audit_logs": [
+    {
+      "id": "log_1786507482998",
+      "action": "Branch Operations (Indiranagar Flagship Kitchen) updated Product prod_1785588412217 availability to 'OUT_OF_STOCK' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-12T04:04:42.998Z"
+    },
+    {
+      "id": "log_1786507482938",
+      "action": "Branch Operations (Indiranagar Flagship Kitchen) updated Product prod_1785588412217 availability to 'OUT_OF_STOCK' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-12T04:04:42.938Z"
+    },
+    {
+      "id": "log_1786507468556",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Branch Status to 'CLOSED' (Reason: N/A)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-12T04:04:28.556Z"
+    },
+    {
+      "id": "log_1786507459628",
+      "action": "Branch Operations (Indiranagar Flagship Kitchen) updated Product prod_1785669289711 availability to 'OUT_OF_STOCK' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-12T04:04:19.628Z"
+    },
+    {
+      "id": "log_1786507457835",
+      "action": "Branch Operations (Indiranagar Flagship Kitchen) updated Product prod_1785669289711 availability to 'OUT_OF_STOCK' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-12T04:04:17.835Z"
+    },
+    {
+      "id": "log_1786507457367",
+      "action": "Branch Operations (Indiranagar Flagship Kitchen) updated Product prod_1785669289711 availability to 'OUT_OF_STOCK' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-12T04:04:17.367Z"
+    },
+    {
+      "id": "log_1786505408995",
+      "action": "Branch Operations (Indiranagar Flagship Kitchen) updated Product undefined availability to 'AVAILABLE' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-12T03:30:08.995Z"
+    },
+    {
+      "id": "log_1786505371686",
+      "action": "Branch Operations (Indiranagar Flagship Kitchen) updated Product undefined availability to 'HIDDEN' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-12T03:29:31.686Z"
+    },
+    {
+      "id": "log_1786505314524",
+      "action": "Branch Operations (Indiranagar Flagship Kitchen) updated Product undefined availability to 'OUT_OF_STOCK' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-12T03:28:34.524Z"
+    },
+    {
+      "id": "log_1786466230110",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Operational Settings (Hours, Contact, Buffer: 25m)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:37:10.110Z"
+    },
+    {
+      "id": "log_1786466230058",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Branch Status to 'OPEN' (Reason: N/A)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:37:10.058Z"
+    },
+    {
+      "id": "log_1786466230009",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Branch Status to 'PAUSED' (Reason: Kitchen deep sanitization)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:37:10.009Z"
+    },
+    {
+      "id": "log_1786466229958",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Stock for Item acc_01 to 50 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:37:09.958Z"
+    },
+    {
+      "id": "log_1786466229914",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Stock for Item acc_01 to 2 (Threshold: 5)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:37:09.914Z"
+    },
+    {
+      "id": "log_1786466229861",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Product prod_1785863253290 availability to 'AVAILABLE' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:37:09.861Z"
+    },
+    {
+      "id": "log_1786466229800",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Product prod_1785863253290 availability to 'OUT_OF_STOCK' (Fresh strawberries unavailable today)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:37:09.800Z"
+    },
+    {
+      "id": "log_1786466229740",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) reprinted KOT for Order ORD-TEST-ASSIGNED-B (Reprint #3)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:37:09.740Z"
+    },
+    {
+      "id": "log_1786466229648",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) assigned Order ORD-TEST-ASSIGNED-B to Rider Multi-Branch Rider C",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:37:09.648Z"
+    },
+    {
+      "id": "log_1786466229561",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) marked Order ORD-TEST-ASSIGNED-B Ready for Pickup",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:37:09.561Z"
+    },
+    {
+      "id": "log_1786466229511",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) marked Order ORD-TEST-ASSIGNED-B delayed: Artisanal hand-piped roses in progress (New ETA: +30 mins)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:37:09.511Z"
+    },
+    {
+      "id": "log_1786466229441",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) accepted Order ORD-TEST-ASSIGNED-B",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:37:09.441Z"
+    },
+    {
+      "id": "log_1786465622640",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Operational Settings (Hours, Contact, Buffer: 25m)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:27:02.640Z"
+    },
+    {
+      "id": "log_1786465622610",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Branch Status to 'OPEN' (Reason: N/A)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:27:02.610Z"
+    },
+    {
+      "id": "log_1786465622581",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Branch Status to 'PAUSED' (Reason: Kitchen deep sanitization)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:27:02.581Z"
+    },
+    {
+      "id": "log_1786465622551",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Stock for Item acc_01 to 50 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:27:02.551Z"
+    },
+    {
+      "id": "log_1786465622524",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Stock for Item acc_01 to 2 (Threshold: 5)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:27:02.524Z"
+    },
+    {
+      "id": "log_1786465622492",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Product prod_1785863253290 availability to 'AVAILABLE' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:27:02.492Z"
+    },
+    {
+      "id": "log_1786465622433",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) updated Product prod_1785863253290 availability to 'OUT_OF_STOCK' (Fresh strawberries unavailable today)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:27:02.433Z"
+    },
+    {
+      "id": "log_1786465622408",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) reprinted KOT for Order ORD-TEST-ASSIGNED-B (Reprint #2)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:27:02.408Z"
+    },
+    {
+      "id": "log_1786465622365",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) assigned Order ORD-TEST-ASSIGNED-B to Rider Multi-Branch Rider C",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:27:02.365Z"
+    },
+    {
+      "id": "log_1786465622292",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) marked Order ORD-TEST-ASSIGNED-B Ready for Pickup",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:27:02.292Z"
+    },
+    {
+      "id": "log_1786465622143",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) marked Order ORD-TEST-ASSIGNED-B delayed: Artisanal hand-piped roses in progress (New ETA: +30 mins)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:27:02.143Z"
+    },
+    {
+      "id": "log_1786465621829",
+      "action": "Branch Manager (Indiranagar Flagship Kitchen) accepted Order ORD-TEST-ASSIGNED-B",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T16:27:01.829Z"
+    },
+    {
+      "id": "log_1786463750558",
+      "action": "Delivery Exception [CAKE_DAMAGED] reported by Partner dlp_browser_test for Order ORD-BROWSER-E2E-001: Cake box damaged in transit.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:55:50.558Z"
+    },
+    {
+      "id": "log_1786463750476",
+      "action": "Customer Delivery OTP (4819) verified by Partner Browser Test Rider. Order ORD-BROWSER-E2E-001 marked DELIVERED.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:55:50.476Z"
+    },
+    {
+      "id": "log_1786463743612",
+      "action": "Partner Browser Test Rider (CTH-DP-BROWSER01) claimed Order ORD-BROWSER-E2E-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:55:43.612Z"
+    },
+    {
+      "id": "log_1786463665306",
+      "action": "Partner Test Rider Alpha availability updated to PAUSED",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:54:25.306Z"
+    },
+    {
+      "id": "log_1786463665186",
+      "action": "Auto-Assigned Delivery Partner Browser Rider (CTH-DP-000042) to Order ORD-TEST-DEL-005",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:54:25.186Z"
+    },
+    {
+      "id": "log_1786463665059",
+      "action": "Acceptance timeout expired for Order ORD-TEST-DEL-005. Re-releasing for assignment.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:54:25.059Z"
+    },
+    {
+      "id": "log_1786463664932",
+      "action": "Auto-Assigned Delivery Partner Multi-Branch Rider C (CTH-DP-TEST-C) to Order ORD-TEST-DEL-004",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:54:24.932Z"
+    },
+    {
+      "id": "log_1786463664880",
+      "action": "Partner Test Rider Alpha rejected Order ORD-TEST-DEL-004. Reason: Vehicle tire puncture on route",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:54:24.880Z"
+    },
+    {
+      "id": "log_1786463664807",
+      "action": "Delivery Exception [dexc_1786463664735] RESOLVED by Indiranagar Branch Manager. Action: RETURN_TO_STORE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:54:24.807Z"
+    },
+    {
+      "id": "log_1786463664735",
+      "action": "Delivery Exception [CUSTOMER_REFUSED] reported by Partner dlp_test_A for Order ORD-TEST-DEL-001: Customer cancelled at door.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:54:24.735Z"
+    },
+    {
+      "id": "log_1786463664690",
+      "action": "Delivery Exception [dexc_1786463664456] RESOLVED by Indiranagar Branch Manager. Action: RETRY_DELIVERY",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:54:24.690Z"
+    },
+    {
+      "id": "log_1786463664525",
+      "action": "Auto-Assigned Delivery Partner Browser Rider (CTH-DP-000041) to Order ORD-TEST-DEL-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:54:24.525Z"
+    },
+    {
+      "id": "log_1786463664456",
+      "action": "Delivery Exception [CAKE_DAMAGED] reported by Partner dlp_test_A for Order ORD-TEST-DEL-001: Cake box damaged in transit due to sudden braking.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:54:24.456Z"
+    },
+    {
+      "id": "log_1786463664392",
+      "action": "Customer Delivery OTP (4819) verified by Partner Test Rider Alpha. Order ORD-TEST-DEL-001 marked DELIVERED.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:54:24.392Z"
+    },
+    {
+      "id": "log_1786463664321",
+      "action": "Kitchen Pickup OTP (1294) verified by Partner Test Rider Alpha for Order ORD-TEST-DEL-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:54:24.321Z"
+    },
+    {
+      "id": "log_1786463664252",
+      "action": "Partner Test Rider Alpha (CTH-DP-TEST01) claimed Order ORD-TEST-DEL-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:54:24.252Z"
+    },
+    {
+      "id": "log_1786463529935",
+      "action": "Updated Storefront Global Settings",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:52:09.935Z"
+    },
+    {
+      "id": "log_1786463529802",
+      "action": "Updated Storefront Global Settings",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:52:09.802Z"
+    },
+    {
+      "id": "log_1786463379951",
+      "action": "Updated Storefront Global Settings",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:49:39.951Z"
+    },
+    {
+      "id": "log_1786463379828",
+      "action": "Updated Storefront Global Settings",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T15:49:39.828Z"
+    },
+    {
+      "id": "log_1786457696411",
+      "action": "Delivery Exception [CAKE_DAMAGED] reported by Partner dlp_browser_test for Order ORD-BROWSER-E2E-001: Cake box damaged in transit.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:56.411Z"
+    },
+    {
+      "id": "log_1786457696351",
+      "action": "Customer Delivery OTP (4819) verified by Partner Browser Test Rider. Order ORD-BROWSER-E2E-001 marked DELIVERED.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:56.351Z"
+    },
+    {
+      "id": "log_1786457689814",
+      "action": "Partner Browser Test Rider (CTH-DP-BROWSER01) claimed Order ORD-BROWSER-E2E-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:49.814Z"
+    },
+    {
+      "id": "log_1786457640904",
+      "action": "Partner Test Rider Alpha availability updated to PAUSED",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:00.904Z"
+    },
+    {
+      "id": "log_1786457640814",
+      "action": "Auto-Assigned Delivery Partner Browser Rider (CTH-DP-000042) to Order ORD-TEST-DEL-005",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:00.814Z"
+    },
+    {
+      "id": "log_1786457640795",
+      "action": "Acceptance timeout expired for Order ORD-TEST-DEL-005. Re-releasing for assignment.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:00.795Z"
+    },
+    {
+      "id": "log_1786457640707",
+      "action": "Auto-Assigned Delivery Partner Multi-Branch Rider C (CTH-DP-TEST-C) to Order ORD-TEST-DEL-004",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:00.707Z"
+    },
+    {
+      "id": "log_1786457640662",
+      "action": "Partner Test Rider Alpha rejected Order ORD-TEST-DEL-004. Reason: Vehicle tire puncture on route",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:00.662Z"
+    },
+    {
+      "id": "log_1786457640606",
+      "action": "Delivery Exception [dexc_1786457640539] RESOLVED by Indiranagar Branch Manager. Action: RETURN_TO_STORE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:00.606Z"
+    },
+    {
+      "id": "log_1786457640540",
+      "action": "Delivery Exception [CUSTOMER_REFUSED] reported by Partner dlp_test_A for Order ORD-TEST-DEL-001: Customer cancelled at door.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:00.540Z"
+    },
+    {
+      "id": "log_1786457640498",
+      "action": "Delivery Exception [dexc_1786457640346] RESOLVED by Indiranagar Branch Manager. Action: RETRY_DELIVERY",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:00.498Z"
+    },
+    {
+      "id": "log_1786457640426",
+      "action": "Auto-Assigned Delivery Partner Multi-Branch Rider C (CTH-DP-TEST-C) to Order ORD-TEST-DEL-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:00.426Z"
+    },
+    {
+      "id": "log_1786457640346",
+      "action": "Delivery Exception [CAKE_DAMAGED] reported by Partner dlp_test_A for Order ORD-TEST-DEL-001: Cake box damaged in transit due to sudden braking.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:00.346Z"
+    },
+    {
+      "id": "log_1786457640292",
+      "action": "Customer Delivery OTP (4819) verified by Partner Test Rider Alpha. Order ORD-TEST-DEL-001 marked DELIVERED.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:00.292Z"
+    },
+    {
+      "id": "log_1786457640217",
+      "action": "Kitchen Pickup OTP (1294) verified by Partner Test Rider Alpha for Order ORD-TEST-DEL-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:00.217Z"
+    },
+    {
+      "id": "log_1786457640112",
+      "action": "Partner Test Rider Alpha (CTH-DP-TEST01) claimed Order ORD-TEST-DEL-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:14:00.112Z"
+    },
+    {
+      "id": "log_1786457544826",
+      "action": "Registered Delivery Partner Rider C (CTH-DP-000043) assigned to Indiranagar Flagship Kitchen",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T14:12:24.826Z"
+    },
+    {
+      "id": "log_1786456461213",
+      "action": "Delivery Exception [CAKE_DAMAGED] reported by Partner dlp_browser_test for Order ORD-BROWSER-E2E-001: Cake box damaged in transit.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:54:21.213Z"
+    },
+    {
+      "id": "log_1786456461088",
+      "action": "Customer Delivery OTP (4819) verified by Partner Browser Test Rider. Order ORD-BROWSER-E2E-001 marked DELIVERED.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:54:21.088Z"
+    },
+    {
+      "id": "log_1786456453164",
+      "action": "Partner Browser Test Rider (CTH-DP-BROWSER01) claimed Order ORD-BROWSER-E2E-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:54:13.164Z"
+    },
+    {
+      "id": "log_1786456326814",
+      "action": "Partner Browser Test Rider (CTH-DP-BROWSER01) claimed Order ORD-BROWSER-E2E-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:52:06.814Z"
+    },
+    {
+      "id": "log_1786456206659",
+      "action": "Partner Browser Test Rider (CTH-DP-BROWSER01) claimed Order ORD-BROWSER-E2E-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:50:06.659Z"
+    },
+    {
+      "id": "log_1786456064726",
+      "action": "Partner Browser Test Rider (CTH-DP-BROWSER01) claimed Order ORD-BROWSER-E2E-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:47:44.726Z"
+    },
+    {
+      "id": "log_1786455995091",
+      "action": "Partner Browser Test Rider (CTH-DP-BROWSER01) claimed Order ORD-BROWSER-E2E-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:46:35.091Z"
+    },
+    {
+      "id": "log_1786455931769",
+      "action": "Partner Browser Test Rider (CTH-DP-BROWSER01) claimed Order ORD-BROWSER-E2E-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:45:31.769Z"
+    },
+    {
+      "id": "log_1786455713199",
+      "action": "Partner Browser Test Rider (CTH-DP-BROWSER01) claimed Order ORD-BROWSER-E2E-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:41:53.199Z"
+    },
+    {
+      "id": "log_1786455619933",
+      "action": "Partner Browser Test Rider (CTH-DP-BROWSER01) claimed Order ORD-BROWSER-E2E-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:40:19.933Z"
+    },
+    {
+      "id": "log_1786455489900",
+      "action": "Partner Browser Test Rider (CTH-DP-BROWSER01) claimed Order ORD-BROWSER-E2E-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:38:09.900Z"
+    },
+    {
+      "id": "log_1786454924989",
+      "action": "Partner Browser Test Rider (CTH-DP-BROWSER01) claimed Order ORD-BROWSER-E2E-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:28:44.989Z"
+    },
+    {
+      "id": "log_1786454854754",
+      "action": "Partner Browser Test Rider (CTH-DP-BROWSER01) claimed Order ORD-BROWSER-E2E-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:27:34.754Z"
+    },
+    {
+      "id": "log_1786454786911",
+      "action": "Customer Delivery OTP (4819) verified by Partner Browser Rider. Order CTH-20260809-976525 marked DELIVERED.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:26:26.911Z"
+    },
+    {
+      "id": "log_1786454727204",
+      "action": "Partner Test Rider Alpha availability updated to PAUSED",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:25:27.204Z"
+    },
+    {
+      "id": "log_1786454727114",
+      "action": "Auto-Assigned Delivery Partner Browser Rider (CTH-DP-000041) to Order ORD-TEST-DEL-005",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:25:27.114Z"
+    },
+    {
+      "id": "log_1786454727097",
+      "action": "Acceptance timeout expired for Order ORD-TEST-DEL-005. Re-releasing for assignment.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:25:27.097Z"
+    },
+    {
+      "id": "log_1786454727020",
+      "action": "Auto-Assigned Delivery Partner Browser Rider (CTH-DP-000042) to Order ORD-TEST-DEL-004",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:25:27.020Z"
+    },
+    {
+      "id": "log_1786454726986",
+      "action": "Partner Test Rider Alpha rejected Order ORD-TEST-DEL-004. Reason: Vehicle tire puncture on route",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:25:26.986Z"
+    },
+    {
+      "id": "log_1786454726942",
+      "action": "Delivery Exception [dexc_1786454726898] RESOLVED by Indiranagar Branch Manager. Action: RETURN_TO_STORE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:25:26.942Z"
+    },
+    {
+      "id": "log_1786454726898",
+      "action": "Delivery Exception [CUSTOMER_REFUSED] reported by Partner dlp_test_A for Order ORD-TEST-DEL-001: Customer cancelled at door.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:25:26.898Z"
+    },
+    {
+      "id": "log_1786454726863",
+      "action": "Delivery Exception [dexc_1786454726769] RESOLVED by Indiranagar Branch Manager. Action: RETRY_DELIVERY",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:25:26.863Z"
+    },
+    {
+      "id": "log_1786454726819",
+      "action": "Auto-Assigned Delivery Partner Browser Test Rider (CTH-DP-BROWSER01) to Order ORD-TEST-DEL-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:25:26.819Z"
+    },
+    {
+      "id": "log_1786454726769",
+      "action": "Delivery Exception [CAKE_DAMAGED] reported by Partner dlp_test_A for Order ORD-TEST-DEL-001: Cake box damaged in transit due to sudden braking.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:25:26.769Z"
+    },
+    {
+      "id": "log_1786454726720",
+      "action": "Customer Delivery OTP (4819) verified by Partner Test Rider Alpha. Order ORD-TEST-DEL-001 marked DELIVERED.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:25:26.720Z"
+    },
+    {
+      "id": "log_1786454726677",
+      "action": "Kitchen Pickup OTP (1294) verified by Partner Test Rider Alpha for Order ORD-TEST-DEL-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:25:26.677Z"
+    },
+    {
+      "id": "log_1786454726624",
+      "action": "Partner Test Rider Alpha (CTH-DP-TEST01) claimed Order ORD-TEST-DEL-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:25:26.624Z"
+    },
+    {
+      "id": "log_1786454618330",
+      "action": "Partner Test Rider Alpha (CTH-DP-TEST01) claimed Order ORD-TEST-DEL-003",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:38.330Z"
+    },
+    {
+      "id": "log_1786454618182",
+      "action": "Auto-Assigned Delivery Partner Browser Test Rider (CTH-DP-BROWSER01) to Order ORD-TEST-DEL-003",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:38.182Z"
+    },
+    {
+      "id": "log_1786454618158",
+      "action": "Acceptance timeout expired for Order ORD-TEST-DEL-003. Re-releasing for assignment.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:38.158Z"
+    },
+    {
+      "id": "log_1786454618084",
+      "action": "Auto-Assigned Delivery Partner Browser Rider (CTH-DP-000041) to Order ORD-TEST-DEL-005",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:38.084Z"
+    },
+    {
+      "id": "log_1786454618058",
+      "action": "Acceptance timeout expired for Order ORD-TEST-DEL-005. Re-releasing for assignment.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:38.058Z"
+    },
+    {
+      "id": "log_1786454617928",
+      "action": "Auto-Assigned Delivery Partner Browser Rider (CTH-DP-000042) to Order ORD-TEST-DEL-004",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:37.928Z"
+    },
+    {
+      "id": "log_1786454617880",
+      "action": "Partner Test Rider Alpha rejected Order ORD-TEST-DEL-004. Reason: Vehicle tire puncture on route",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:37.880Z"
+    },
+    {
+      "id": "log_1786454617808",
+      "action": "Delivery Exception [dexc_1786454617731] RESOLVED by Indiranagar Branch Manager. Action: RETURN_TO_STORE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:37.808Z"
+    },
+    {
+      "id": "log_1786454617731",
+      "action": "Delivery Exception [CUSTOMER_REFUSED] reported by Partner dlp_test_A for Order ORD-TEST-DEL-001: Customer cancelled at door.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:37.731Z"
+    },
+    {
+      "id": "log_1786454617685",
+      "action": "Delivery Exception [dexc_1786454617412] RESOLVED by Indiranagar Branch Manager. Action: RETRY_DELIVERY",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:37.685Z"
+    },
+    {
+      "id": "log_1786454617595",
+      "action": "Auto-Assigned Delivery Partner Browser Rider (CTH-DP-000042) to Order ORD-TEST-DEL-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:37.595Z"
+    },
+    {
+      "id": "log_1786454617412",
+      "action": "Delivery Exception [CAKE_DAMAGED] reported by Partner dlp_test_A for Order ORD-TEST-DEL-001: Cake box damaged in transit due to sudden braking.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:37.412Z"
+    },
+    {
+      "id": "log_1786454617323",
+      "action": "Customer Delivery OTP (4819) verified by Partner Test Rider Alpha. Order ORD-TEST-DEL-001 marked DELIVERED.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:37.323Z"
+    },
+    {
+      "id": "log_1786454617246",
+      "action": "Kitchen Pickup OTP (1294) verified by Partner Test Rider Alpha for Order ORD-TEST-DEL-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:37.246Z"
+    },
+    {
+      "id": "log_1786454617168",
+      "action": "Partner Test Rider Alpha (CTH-DP-TEST01) claimed Order ORD-TEST-DEL-001",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-11T13:23:37.168Z"
+    },
     {
       "id": "log_1786452924995",
       "action": "Delivery Exception [CAKE_DAMAGED] reported by Partner dlp_browser_test for Order ORD-BROWSER-E2E-001: Cake box damaged in transit.",
@@ -23585,6 +24600,170 @@
   ],
   "delivery_exceptions": [
     {
+      "id": "dexc_1786463750558",
+      "order_id": "ORD-BROWSER-E2E-001",
+      "order_number": "ORD-BROWSER-E2E-001",
+      "partner_id": "dlp_browser_test",
+      "partner_name": "Browser Test Rider",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "type": "CAKE_DAMAGED",
+      "description": "Cake box damaged in transit.",
+      "status": "OPEN",
+      "created_at": "2026-08-11T15:55:50.558Z"
+    },
+    {
+      "id": "dexc_1786463664735",
+      "order_id": "ORD-TEST-DEL-001",
+      "order_number": "ORD-TEST-DEL-001",
+      "partner_id": "dlp_test_A",
+      "partner_name": "Test Rider Alpha",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "type": "CUSTOMER_REFUSED",
+      "description": "Customer cancelled at door.",
+      "status": "RESOLVED",
+      "created_at": "2026-08-11T15:54:24.735Z",
+      "resolved_at": "2026-08-11T15:54:24.807Z",
+      "resolved_by": "Indiranagar Branch Manager",
+      "resolution_action": "RETURN_TO_STORE",
+      "resolution_notes": "Item returned to kitchen inventory."
+    },
+    {
+      "id": "dexc_1786463664456",
+      "order_id": "ORD-TEST-DEL-001",
+      "order_number": "ORD-TEST-DEL-001",
+      "partner_id": "dlp_test_A",
+      "partner_name": "Test Rider Alpha",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "type": "CAKE_DAMAGED",
+      "description": "Cake box damaged in transit due to sudden braking.",
+      "status": "RESOLVED",
+      "created_at": "2026-08-11T15:54:24.456Z",
+      "resolved_at": "2026-08-11T15:54:24.521Z",
+      "resolved_by": "Indiranagar Branch Manager",
+      "resolution_action": "RETRY_DELIVERY",
+      "resolution_notes": "Inspected cake; repackaged at flagship kitchen."
+    },
+    {
+      "id": "dexc_1786457696411",
+      "order_id": "ORD-BROWSER-E2E-001",
+      "order_number": "ORD-BROWSER-E2E-001",
+      "partner_id": "dlp_browser_test",
+      "partner_name": "Browser Test Rider",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "type": "CAKE_DAMAGED",
+      "description": "Cake box damaged in transit.",
+      "status": "OPEN",
+      "created_at": "2026-08-11T14:14:56.411Z"
+    },
+    {
+      "id": "dexc_1786457640539",
+      "order_id": "ORD-TEST-DEL-001",
+      "order_number": "ORD-TEST-DEL-001",
+      "partner_id": "dlp_test_A",
+      "partner_name": "Test Rider Alpha",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "type": "CUSTOMER_REFUSED",
+      "description": "Customer cancelled at door.",
+      "status": "RESOLVED",
+      "created_at": "2026-08-11T14:14:00.540Z",
+      "resolved_at": "2026-08-11T14:14:00.606Z",
+      "resolved_by": "Indiranagar Branch Manager",
+      "resolution_action": "RETURN_TO_STORE",
+      "resolution_notes": "Item returned to kitchen inventory."
+    },
+    {
+      "id": "dexc_1786457640346",
+      "order_id": "ORD-TEST-DEL-001",
+      "order_number": "ORD-TEST-DEL-001",
+      "partner_id": "dlp_test_A",
+      "partner_name": "Test Rider Alpha",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "type": "CAKE_DAMAGED",
+      "description": "Cake box damaged in transit due to sudden braking.",
+      "status": "RESOLVED",
+      "created_at": "2026-08-11T14:14:00.346Z",
+      "resolved_at": "2026-08-11T14:14:00.421Z",
+      "resolved_by": "Indiranagar Branch Manager",
+      "resolution_action": "RETRY_DELIVERY",
+      "resolution_notes": "Inspected cake; repackaged at flagship kitchen."
+    },
+    {
+      "id": "dexc_1786456461213",
+      "order_id": "ORD-BROWSER-E2E-001",
+      "order_number": "ORD-BROWSER-E2E-001",
+      "partner_id": "dlp_browser_test",
+      "partner_name": "Browser Test Rider",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "type": "CAKE_DAMAGED",
+      "description": "Cake box damaged in transit.",
+      "status": "OPEN",
+      "created_at": "2026-08-11T13:54:21.213Z"
+    },
+    {
+      "id": "dexc_1786454726898",
+      "order_id": "ORD-TEST-DEL-001",
+      "order_number": "ORD-TEST-DEL-001",
+      "partner_id": "dlp_test_A",
+      "partner_name": "Test Rider Alpha",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "type": "CUSTOMER_REFUSED",
+      "description": "Customer cancelled at door.",
+      "status": "RESOLVED",
+      "created_at": "2026-08-11T13:25:26.898Z",
+      "resolved_at": "2026-08-11T13:25:26.942Z",
+      "resolved_by": "Indiranagar Branch Manager",
+      "resolution_action": "RETURN_TO_STORE",
+      "resolution_notes": "Item returned to kitchen inventory."
+    },
+    {
+      "id": "dexc_1786454726769",
+      "order_id": "ORD-TEST-DEL-001",
+      "order_number": "ORD-TEST-DEL-001",
+      "partner_id": "dlp_test_A",
+      "partner_name": "Test Rider Alpha",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "type": "CAKE_DAMAGED",
+      "description": "Cake box damaged in transit due to sudden braking.",
+      "status": "RESOLVED",
+      "created_at": "2026-08-11T13:25:26.769Z",
+      "resolved_at": "2026-08-11T13:25:26.817Z",
+      "resolved_by": "Indiranagar Branch Manager",
+      "resolution_action": "RETRY_DELIVERY",
+      "resolution_notes": "Inspected cake; repackaged at flagship kitchen."
+    },
+    {
+      "id": "dexc_1786454617731",
+      "order_id": "ORD-TEST-DEL-001",
+      "order_number": "ORD-TEST-DEL-001",
+      "partner_id": "dlp_test_A",
+      "partner_name": "Test Rider Alpha",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "type": "CUSTOMER_REFUSED",
+      "description": "Customer cancelled at door.",
+      "status": "RESOLVED",
+      "created_at": "2026-08-11T13:23:37.731Z",
+      "resolved_at": "2026-08-11T13:23:37.808Z",
+      "resolved_by": "Indiranagar Branch Manager",
+      "resolution_action": "RETURN_TO_STORE",
+      "resolution_notes": "Item returned to kitchen inventory."
+    },
+    {
+      "id": "dexc_1786454617412",
+      "order_id": "ORD-TEST-DEL-001",
+      "order_number": "ORD-TEST-DEL-001",
+      "partner_id": "dlp_test_A",
+      "partner_name": "Test Rider Alpha",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "type": "CAKE_DAMAGED",
+      "description": "Cake box damaged in transit due to sudden braking.",
+      "status": "RESOLVED",
+      "created_at": "2026-08-11T13:23:37.412Z",
+      "resolved_at": "2026-08-11T13:23:37.591Z",
+      "resolved_by": "Indiranagar Branch Manager",
+      "resolution_action": "RETRY_DELIVERY",
+      "resolution_notes": "Inspected cake; repackaged at flagship kitchen."
+    },
+    {
       "id": "dexc_1786452924995",
       "order_id": "ORD-BROWSER-E2E-001",
       "order_number": "ORD-BROWSER-E2E-001",
@@ -23771,6 +24950,42 @@
   ],
   "delivery_rejections": [
     {
+      "id": "rej_1786463664880",
+      "order_id": "ORD-TEST-DEL-004",
+      "order_number": "ORD-TEST-DEL-004",
+      "partner_id": "dlp_test_A",
+      "partner_name": "Test Rider Alpha",
+      "reason": "Vehicle tire puncture on route",
+      "rejected_at": "2026-08-11T15:54:24.880Z"
+    },
+    {
+      "id": "rej_1786457640662",
+      "order_id": "ORD-TEST-DEL-004",
+      "order_number": "ORD-TEST-DEL-004",
+      "partner_id": "dlp_test_A",
+      "partner_name": "Test Rider Alpha",
+      "reason": "Vehicle tire puncture on route",
+      "rejected_at": "2026-08-11T14:14:00.662Z"
+    },
+    {
+      "id": "rej_1786454726986",
+      "order_id": "ORD-TEST-DEL-004",
+      "order_number": "ORD-TEST-DEL-004",
+      "partner_id": "dlp_test_A",
+      "partner_name": "Test Rider Alpha",
+      "reason": "Vehicle tire puncture on route",
+      "rejected_at": "2026-08-11T13:25:26.986Z"
+    },
+    {
+      "id": "rej_1786454617880",
+      "order_id": "ORD-TEST-DEL-004",
+      "order_number": "ORD-TEST-DEL-004",
+      "partner_id": "dlp_test_A",
+      "partner_name": "Test Rider Alpha",
+      "reason": "Vehicle tire puncture on route",
+      "rejected_at": "2026-08-11T13:23:37.880Z"
+    },
+    {
       "id": "rej_1786452078493",
       "order_id": "ORD-TEST-DEL-004",
       "order_number": "ORD-TEST-DEL-004",
@@ -23826,6 +25041,162 @@
     }
   ],
   "delivery_partner_assignments": [
+    {
+      "id": "dpa_1786463665186",
+      "order_id": "ORD-TEST-DEL-005",
+      "order_number": "ORD-TEST-DEL-005",
+      "partner_id": "dlp_1786452544449",
+      "partner_number": "CTH-DP-000042",
+      "partner_name": "Browser Rider",
+      "assignment_mode": "auto",
+      "reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+      "score": 265,
+      "timestamp": "2026-08-11T15:54:25.186Z"
+    },
+    {
+      "id": "dpa_1786463664932",
+      "order_id": "ORD-TEST-DEL-004",
+      "order_number": "ORD-TEST-DEL-004",
+      "partner_id": "dlp_test_C_multi",
+      "partner_number": "CTH-DP-TEST-C",
+      "partner_name": "Multi-Branch Rider C",
+      "assignment_mode": "auto",
+      "reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+      "score": 265,
+      "timestamp": "2026-08-11T15:54:24.932Z"
+    },
+    {
+      "id": "dpa_1786463664525",
+      "order_id": "ORD-TEST-DEL-001",
+      "order_number": "ORD-TEST-DEL-001",
+      "partner_id": "dlp_1786452382017",
+      "partner_number": "CTH-DP-000041",
+      "partner_name": "Browser Rider",
+      "assignment_mode": "auto",
+      "reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+      "score": 265,
+      "timestamp": "2026-08-11T15:54:24.525Z"
+    },
+    {
+      "id": "dpa_1786457640814",
+      "order_id": "ORD-TEST-DEL-005",
+      "order_number": "ORD-TEST-DEL-005",
+      "partner_id": "dlp_1786452544449",
+      "partner_number": "CTH-DP-000042",
+      "partner_name": "Browser Rider",
+      "assignment_mode": "auto",
+      "reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+      "score": 265,
+      "timestamp": "2026-08-11T14:14:00.814Z"
+    },
+    {
+      "id": "dpa_1786457640707",
+      "order_id": "ORD-TEST-DEL-004",
+      "order_number": "ORD-TEST-DEL-004",
+      "partner_id": "dlp_test_C_multi",
+      "partner_number": "CTH-DP-TEST-C",
+      "partner_name": "Multi-Branch Rider C",
+      "assignment_mode": "auto",
+      "reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+      "score": 265,
+      "timestamp": "2026-08-11T14:14:00.707Z"
+    },
+    {
+      "id": "dpa_1786457640426",
+      "order_id": "ORD-TEST-DEL-001",
+      "order_number": "ORD-TEST-DEL-001",
+      "partner_id": "dlp_test_C_multi",
+      "partner_number": "CTH-DP-TEST-C",
+      "partner_name": "Multi-Branch Rider C",
+      "assignment_mode": "auto",
+      "reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+      "score": 265,
+      "timestamp": "2026-08-11T14:14:00.426Z"
+    },
+    {
+      "id": "dpa_1786454727114",
+      "order_id": "ORD-TEST-DEL-005",
+      "order_number": "ORD-TEST-DEL-005",
+      "partner_id": "dlp_1786452382017",
+      "partner_number": "CTH-DP-000041",
+      "partner_name": "Browser Rider",
+      "assignment_mode": "auto",
+      "reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+      "score": 265,
+      "timestamp": "2026-08-11T13:25:27.114Z"
+    },
+    {
+      "id": "dpa_1786454727020",
+      "order_id": "ORD-TEST-DEL-004",
+      "order_number": "ORD-TEST-DEL-004",
+      "partner_id": "dlp_1786452544449",
+      "partner_number": "CTH-DP-000042",
+      "partner_name": "Browser Rider",
+      "assignment_mode": "auto",
+      "reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+      "score": 265,
+      "timestamp": "2026-08-11T13:25:27.020Z"
+    },
+    {
+      "id": "dpa_1786454726819",
+      "order_id": "ORD-TEST-DEL-001",
+      "order_number": "ORD-TEST-DEL-001",
+      "partner_id": "dlp_browser_test",
+      "partner_number": "CTH-DP-BROWSER01",
+      "partner_name": "Browser Test Rider",
+      "assignment_mode": "auto",
+      "reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+      "score": 265,
+      "timestamp": "2026-08-11T13:25:26.819Z"
+    },
+    {
+      "id": "dpa_1786454618182",
+      "order_id": "ORD-TEST-DEL-003",
+      "order_number": "ORD-TEST-DEL-003",
+      "partner_id": "dlp_browser_test",
+      "partner_number": "CTH-DP-BROWSER01",
+      "partner_name": "Browser Test Rider",
+      "assignment_mode": "auto",
+      "reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+      "score": 265,
+      "timestamp": "2026-08-11T13:23:38.182Z"
+    },
+    {
+      "id": "dpa_1786454618084",
+      "order_id": "ORD-TEST-DEL-005",
+      "order_number": "ORD-TEST-DEL-005",
+      "partner_id": "dlp_1786452382017",
+      "partner_number": "CTH-DP-000041",
+      "partner_name": "Browser Rider",
+      "assignment_mode": "auto",
+      "reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+      "score": 265,
+      "timestamp": "2026-08-11T13:23:38.084Z"
+    },
+    {
+      "id": "dpa_1786454617928",
+      "order_id": "ORD-TEST-DEL-004",
+      "order_number": "ORD-TEST-DEL-004",
+      "partner_id": "dlp_1786452544449",
+      "partner_number": "CTH-DP-000042",
+      "partner_name": "Browser Rider",
+      "assignment_mode": "auto",
+      "reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+      "score": 265,
+      "timestamp": "2026-08-11T13:23:37.928Z"
+    },
+    {
+      "id": "dpa_1786454617595",
+      "order_id": "ORD-TEST-DEL-001",
+      "order_number": "ORD-TEST-DEL-001",
+      "partner_id": "dlp_1786452544449",
+      "partner_number": "CTH-DP-000042",
+      "partner_name": "Browser Rider",
+      "assignment_mode": "auto",
+      "reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+      "score": 265,
+      "timestamp": "2026-08-11T13:23:37.595Z"
+    },
     {
       "id": "dpa_1786452078898",
       "order_id": "ORD-TEST-DEL-005",
@@ -24045,6 +25416,107 @@
   ],
   "orders": [
     {
+      "id": "ORD-TEST-ASSIGNED-B",
+      "order_number": "ORD-TEST-ASSIGNED-B",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "delivery_status": "pickup_claimed",
+      "status": "packed",
+      "delivery_partner_id": "dlp_test_C_multi",
+      "updated_at": "2026-08-11T16:37:09.648Z",
+      "timeline": [
+        {
+          "id": "tl_1786466229648",
+          "title": "Assigned to Delivery Partner Multi-Branch Rider C",
+          "time": "2026-08-11T16:37:09.648Z",
+          "author": "Rahul Kumar",
+          "notes": "Driver Phone: +91 99999 33333"
+        },
+        {
+          "id": "tl_1786466229561",
+          "title": "Cake Baked & Packed — Ready for Pickup",
+          "time": "2026-08-11T16:37:09.561Z",
+          "author": "Rahul Kumar",
+          "notes": "Pickup OTP: 3261"
+        },
+        {
+          "id": "tl_1786466229511",
+          "title": "Order Delayed — New ETA: +30 mins",
+          "time": "2026-08-11T16:37:09.511Z",
+          "author": "Rahul Kumar",
+          "notes": "Reason: Artisanal hand-piped roses in progress"
+        },
+        {
+          "id": "tl_1786466229441",
+          "title": "Order Accepted by Branch Kitchen",
+          "time": "2026-08-11T16:37:09.441Z",
+          "author": "Rahul Kumar",
+          "notes": "Queued for baking oven station 1"
+        },
+        {
+          "id": "tl_1786465622365",
+          "title": "Assigned to Delivery Partner Multi-Branch Rider C",
+          "time": "2026-08-11T16:27:02.365Z",
+          "author": "Rahul Kumar",
+          "notes": "Driver Phone: +91 99999 33333"
+        },
+        {
+          "id": "tl_1786465622292",
+          "title": "Cake Baked & Packed — Ready for Pickup",
+          "time": "2026-08-11T16:27:02.292Z",
+          "author": "Rahul Kumar",
+          "notes": "Pickup OTP: 3261"
+        },
+        {
+          "id": "tl_1786465622142",
+          "title": "Order Delayed — New ETA: +30 mins",
+          "time": "2026-08-11T16:27:02.143Z",
+          "author": "Rahul Kumar",
+          "notes": "Reason: Artisanal hand-piped roses in progress"
+        },
+        {
+          "id": "tl_1786465621829",
+          "title": "Order Accepted by Branch Kitchen",
+          "time": "2026-08-11T16:27:01.829Z",
+          "author": "Rahul Kumar",
+          "notes": "Queued for baking oven station 1"
+        }
+      ],
+      "is_delayed": true,
+      "delay_reason": "Artisanal hand-piped roses in progress",
+      "original_eta": "Original Slot",
+      "new_eta": "+30 mins",
+      "delayed_at": "2026-08-11T16:37:09.511Z",
+      "pickup_otp": "3261",
+      "delivery_otp": "8083",
+      "driver_name": "Multi-Branch Rider C",
+      "driver_phone": "+91 99999 33333",
+      "kot_reprint_count": 3
+    },
+    {
+      "id": "ORD-TEST-BRANCH-C",
+      "order_number": "ORD-TEST-BRANCH-C",
+      "branch_id": "res_03KXYMAHGFPRY1G9TZKEVGAGAT",
+      "delivery_status": "shop_accepted",
+      "status": "confirmed",
+      "delivery_partner_id": null
+    },
+    {
+      "id": "ORD-TEST-NULL-BRANCH",
+      "order_number": "ORD-TEST-NULL-BRANCH",
+      "branch_id": null,
+      "branch": null,
+      "delivery_status": "shop_accepted",
+      "status": "confirmed"
+    },
+    {
+      "id": "ORD-TEST-CAP-ACTIVE",
+      "order_number": "ORD-TEST-CAP-ACTIVE",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "delivery_status": "in_transit",
+      "status": "out_for_delivery",
+      "delivery_partner_id": "dlp_test_A"
+    },
+    {
       "id": "ORD-BROWSER-E2E-001",
       "order_number": "ORD-BROWSER-E2E-001",
       "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
@@ -24057,13 +25529,13 @@
       "delivery_partner_id": "dlp_browser_test",
       "pickup_otp": "1294",
       "delivery_otp": "4819",
-      "created_at": "2026-08-11T12:55:02.906Z",
+      "created_at": "2026-08-11T15:55:32.743Z",
       "driver_name": "Browser Test Rider",
-      "claimed_at": "2026-08-11T12:55:10.162Z",
+      "claimed_at": "2026-08-11T15:55:43.611Z",
       "pickup_verified_at": "2026-08-11T12:55:20.252Z",
       "pickup_verified_by": "dlp_browser_test",
-      "delivery_otp_verified_at": "2026-08-11T12:55:24.839Z",
-      "delivered_at": "2026-08-11T12:55:24.839Z"
+      "delivery_otp_verified_at": "2026-08-11T15:55:50.476Z",
+      "delivered_at": "2026-08-11T15:55:50.476Z"
     },
     {
       "id": "ORD-TEST-DEL-005",
@@ -24071,27 +25543,27 @@
       "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
       "customerName": "Neha Gupta",
       "delivery_status": "available",
-      "claimed_at": "2026-08-11T12:11:18.755Z",
-      "delivery_partner_id": "dlp_1786280269021",
-      "driver_name": "Suresh Kumar",
+      "claimed_at": "2026-08-11T15:24:25.029Z",
+      "delivery_partner_id": "dlp_1786452544449",
+      "driver_name": "Browser Rider",
       "delivery": {
-        "partner_id": "dlp_1786280269021",
-        "partner_number": "CTH-DP-000037",
-        "partner_name": "Suresh Kumar",
-        "partner_phone": "+91 9145919565",
-        "branch_name": "Whitefield Express Hub",
+        "partner_id": "dlp_1786452544449",
+        "partner_number": "CTH-DP-000042",
+        "partner_name": "Browser Rider",
+        "partner_phone": "+91 9913065525",
+        "branch_name": "Indiranagar Flagship Kitchen",
         "status": "Dispatched",
         "assignment_mode": "auto",
         "assignment_reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
         "assignment_score": 265,
-        "pickup_otp": "6576",
-        "delivery_otp": "6534",
+        "pickup_otp": "4589",
+        "delivery_otp": "7518",
         "eta": "25 mins",
         "distance_km": "3.2 km",
         "live_location": "Assigned & Dispatched"
       },
       "status": "out_for_delivery",
-      "updated_at": "2026-08-11T12:41:18.898Z"
+      "updated_at": "2026-08-11T15:54:25.186Z"
     },
     {
       "id": "ORD-TEST-DEL-004",
@@ -24100,36 +25572,53 @@
       "customerName": "Anil Kumar",
       "delivery_status": "available",
       "status": "out_for_delivery",
-      "delivery_partner_id": "dlp_1786281453974",
-      "driver_name": "Suresh Kumar",
+      "delivery_partner_id": "dlp_test_C_multi",
+      "driver_name": "Multi-Branch Rider C",
       "delivery": {
-        "partner_id": "dlp_1786281453974",
-        "partner_number": "CTH-DP-000039",
-        "partner_name": "Suresh Kumar",
-        "partner_phone": "+91 9124327423",
-        "branch_name": "Whitefield Express Hub",
+        "partner_id": "dlp_test_C_multi",
+        "partner_number": "CTH-DP-TEST-C",
+        "partner_name": "Multi-Branch Rider C",
+        "partner_phone": "+91 99999 33333",
+        "branch_name": "Indiranagar Flagship Kitchen",
         "status": "Dispatched",
         "assignment_mode": "auto",
         "assignment_reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
         "assignment_score": 265,
-        "pickup_otp": "2338",
-        "delivery_otp": "2966",
+        "pickup_otp": "9969",
+        "delivery_otp": "6656",
         "eta": "25 mins",
         "distance_km": "3.2 km",
         "live_location": "Assigned & Dispatched"
       },
-      "updated_at": "2026-08-11T12:41:18.603Z"
+      "updated_at": "2026-08-11T15:54:24.932Z"
     },
     {
       "id": "ORD-TEST-DEL-003",
       "order_number": "ORD-TEST-DEL-003",
       "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
       "customerName": "Rahul Roy",
-      "delivery_status": "pickup_claimed",
-      "status": "preparing",
-      "delivery_partner_id": "dlp_test_B",
-      "driver_name": "Test Rider Beta",
-      "claimed_at": "2026-08-11T12:43:09.425Z"
+      "delivery_status": "shop_accepted",
+      "status": "confirmed",
+      "delivery_partner_id": null,
+      "driver_name": "Test Rider Alpha",
+      "claimed_at": "2026-08-11T13:23:38.330Z",
+      "delivery": {
+        "partner_id": "dlp_browser_test",
+        "partner_number": "CTH-DP-BROWSER01",
+        "partner_name": "Browser Test Rider",
+        "partner_phone": "+91 99999 88888",
+        "branch_name": "Indiranagar Flagship Kitchen",
+        "status": "Dispatched",
+        "assignment_mode": "auto",
+        "assignment_reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
+        "assignment_score": 265,
+        "pickup_otp": "1963",
+        "delivery_otp": "5631",
+        "eta": "25 mins",
+        "distance_km": "3.2 km",
+        "live_location": "Assigned & Dispatched"
+      },
+      "updated_at": "2026-08-11T13:23:38.182Z"
     },
     {
       "id": "ORD-TEST-DEL-002",
@@ -24143,7 +25632,7 @@
       "status": "confirmed",
       "pickup_otp": "3344",
       "delivery_otp": "7788",
-      "created_at": "2026-08-11T12:41:17.574Z"
+      "created_at": "2026-08-11T15:54:24.125Z"
     },
     {
       "id": "ORD-TEST-DEL-001",
@@ -24157,31 +25646,31 @@
       "status": "cancelled",
       "pickup_otp": "1294",
       "delivery_otp": "4819",
-      "created_at": "2026-08-11T12:41:17.574Z",
-      "delivery_partner_id": "dlp_1786280162960",
-      "driver_name": "Suresh Kumar",
-      "claimed_at": "2026-08-11T12:41:17.646Z",
-      "pickup_verified_at": "2026-08-11T12:41:17.752Z",
+      "created_at": "2026-08-11T15:54:24.125Z",
+      "delivery_partner_id": "dlp_1786452382017",
+      "driver_name": "Browser Rider",
+      "claimed_at": "2026-08-11T15:54:24.252Z",
+      "pickup_verified_at": "2026-08-11T15:54:24.321Z",
       "pickup_verified_by": "dlp_test_A",
-      "delivery_otp_verified_at": "2026-08-11T12:41:17.859Z",
-      "delivered_at": "2026-08-11T12:41:17.859Z",
+      "delivery_otp_verified_at": "2026-08-11T15:54:24.391Z",
+      "delivered_at": "2026-08-11T15:54:24.391Z",
       "delivery": {
-        "partner_id": "dlp_1786280162960",
-        "partner_number": "CTH-DP-000035",
-        "partner_name": "Suresh Kumar",
-        "partner_phone": "+91 9113381017",
-        "branch_name": "Whitefield Express Hub",
+        "partner_id": "dlp_1786452382017",
+        "partner_number": "CTH-DP-000041",
+        "partner_name": "Browser Rider",
+        "partner_phone": "+91 9974525645",
+        "branch_name": "Indiranagar Flagship Kitchen",
         "status": "Dispatched",
         "assignment_mode": "auto",
         "assignment_reason": "Primary branch + pincode 560038 coverage + online (5 capacity available)",
         "assignment_score": 265,
-        "pickup_otp": "2275",
-        "delivery_otp": "2490",
+        "pickup_otp": "3241",
+        "delivery_otp": "2438",
         "eta": "25 mins",
         "distance_km": "3.2 km",
         "live_location": "Assigned & Dispatched"
       },
-      "updated_at": "2026-08-11T12:41:18.019Z"
+      "updated_at": "2026-08-11T15:54:24.525Z"
     },
     {
       "id": "ord_1786281453735",
@@ -29936,7 +31425,7 @@
       "id": "ord_1786268126002",
       "order_number": "CTH-20260809-976525",
       "customer_id": "cus_guest",
-      "status": "out_for_delivery",
+      "status": "delivered",
       "payment_status": "captured",
       "fulfillment_status": "pending",
       "items": [],
@@ -29978,8 +31467,12 @@
         "production_status": "Packed & Sealed - Quality Passed"
       },
       "delivery": {
-        "status": "Dispatched with Driver"
-      }
+        "status": "Delivered",
+        "delivered_at": "2026-08-11T13:26:26.910Z"
+      },
+      "delivery_otp_verified_at": "2026-08-11T13:26:26.910Z",
+      "delivered_at": "2026-08-11T13:26:26.910Z",
+      "delivery_status": "delivered"
     },
     {
       "id": "ord_1786267658133",
@@ -30496,6 +31989,32 @@
       "total": 0,
       "created_at": "2026-08-03T13:17:59.224Z",
       "updated_at": "2026-08-04T17:03:12.922Z"
+    },
+    "cart_1786510836178": {
+      "id": "cart_1786510836178",
+      "items": [
+        {
+          "id": "item_1786517423431_73",
+          "cart_id": "cart_1786510836178",
+          "product_id": "prod_01KXYMAJKNWZCFXJHESPTZE01G",
+          "variant_id": "var_prod_01KXYMAJKNWZCFXJHESPTZE01G",
+          "title": "Classic Chocolate Truffle Cake",
+          "description": "Indulge in our exquisite Classic Chocolate Truffle Cake. Handcrafted daily by master pastry chefs using premium ingredients, silky ganache, and authentic cocoa. Perfect for Birthday celebrations and special moments!",
+          "thumbnail": "http://localhost:3000/_1ed747de-53f1-4915-aaba-92c046039beb.jpeg",
+          "unit_price": 500,
+          "price": 500,
+          "quantity": 1,
+          "subtotal": 500,
+          "total": 500,
+          "selected_options": {}
+        }
+      ],
+      "subtotal": 500,
+      "tax_total": 0,
+      "discount_total": 0,
+      "total": 500,
+      "created_at": "2026-08-12T05:00:36.259Z",
+      "updated_at": "2026-08-12T06:50:23.431Z"
     }
   },
   "media": [
@@ -36949,64 +38468,5 @@
   "seo_robots_history": [],
   "seo_social_cards": [],
   "seo_backlinks": [],
-  "seo_reports": [],
-  "delivery_assignment_rules": {
-    "allow_cross_branch_fallback": false,
-    "require_working_hours": false,
-    "require_online_status": true,
-    "max_capacity_limit": 5,
-    "updated_at": "2026-08-11T12:55:02.902Z"
-  },
-  "webhooks": [
-    {
-      "id": "wh_evt_1786452925020",
-      "event": "delivery.exception_reported",
-      "data": {
-        "id": "dexc_1786452924995",
-        "order_id": "ORD-BROWSER-E2E-001",
-        "order_number": "ORD-BROWSER-E2E-001",
-        "partner_id": "dlp_browser_test",
-        "partner_name": "Browser Test Rider",
-        "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-        "type": "CAKE_DAMAGED",
-        "description": "Cake box damaged in transit.",
-        "status": "OPEN",
-        "created_at": "2026-08-11T12:55:24.995Z"
-      },
-      "timestamp": "2026-08-11T12:55:25.020Z",
-      "status": "delivered_200_ok"
-    },
-    {
-      "id": "wh_evt_1786452924858",
-      "event": "order.delivered",
-      "data": {
-        "order_id": "ORD-BROWSER-E2E-001",
-        "partner_id": "dlp_browser_test",
-        "delivered_at": "2026-08-11T12:55:24.839Z"
-      },
-      "timestamp": "2026-08-11T12:55:24.858Z",
-      "status": "delivered_200_ok"
-    },
-    {
-      "id": "wh_evt_1786452920276",
-      "event": "order.picked_up",
-      "data": {
-        "order_id": "ORD-BROWSER-E2E-001",
-        "partner_id": "dlp_browser_test",
-        "verified_at": "2026-08-11T12:55:20.252Z"
-      },
-      "timestamp": "2026-08-11T12:55:20.276Z",
-      "status": "delivered_200_ok"
-    },
-    {
-      "id": "wh_evt_1786452910281",
-      "event": "order.claimed",
-      "data": {
-        "order_id": "ORD-BROWSER-E2E-001",
-        "partner_id": "dlp_browser_test"
-      },
-      "timestamp": "2026-08-11T12:55:10.281Z",
-      "status": "delivered_200_ok"
-    }
-  ]
+  "seo_reports": []
 }

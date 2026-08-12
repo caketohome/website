@@ -739,11 +739,11 @@ export default function ProductDetailClient({
                             onClick={handleAddToCart}
                             isLoading={cartLoading}
                             size="large"
-                            disabled={branchStock !== null && branchStock <= 0}
+                            disabled={(branchStock !== null && branchStock <= 0) || product?.is_out_of_stock_at_branch === true || product?.branch_status === "OUT_OF_STOCK"}
                             className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3.5 text-base rounded-xl shadow-lg transition"
                         >
-                            {branchStock !== null && branchStock <= 0
-                                ? "Out of Stock"
+                            {(branchStock !== null && branchStock <= 0) || product?.is_out_of_stock_at_branch === true || product?.branch_status === "OUT_OF_STOCK"
+                                ? "Out of Stock at Your Location"
                                 : `Add to Cart • ₹${calculatedPrice}`}
                         </Button>
 

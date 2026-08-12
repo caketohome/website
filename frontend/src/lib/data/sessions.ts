@@ -31,6 +31,11 @@ export function destroySession() {
   cookies().delete("_cth_jwt");
   cookies().delete("_medusa_jwt");
   cookies().delete("_cth_role");
+  cookies().delete("_cth_user_id");
+  cookies().delete("_cth_phone");
+  cookies().delete("_cth_branch_id");
+  cookies().delete("_cth_shop_id");
+  cookies().delete("_cth_partner_id");
   revalidateTag("user");
 }
 

@@ -46,7 +46,6 @@ export default async function RootLayout({
         </div>
         <div className="flex gap-3 items-center">
           <ProfileBadge user={user} />
-          <LogoutButton variant="secondary" size="small" />
         </div>
       </nav>
       <main className="flex-1 flex flex-col gap-6 p-3 sm:p-4 md:p-6 min-h-[calc(100vh-4rem)]">
