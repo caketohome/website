@@ -2,25 +2,25 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Input, Label, Text } from "@medusajs/ui";
+import { Button, Input, Label, Text, Heading } from "@medusajs/ui";
 import { ErrorComponent } from "@frontend/components/common/error-component";
 import { requestOtp, verifyOtp, detectUserRole } from "@frontend/lib/data/customer";
-import { loginCustomer, setRoleCookie } from "@frontend/lib/actions/users";
+import { loginCustomer } from "@frontend/lib/actions/users";
 
 const isDev = process.env.NODE_ENV !== "production";
 
 export function OtpLoginForm() {
     const router = useRouter();
-    const [step, setStep] = useState<"phone" | "otp">("phone");
+    const [step, setStep] = useState<"phone" | "otp" | "new_customer">("phone");
     const [phone, setPhone] = useState("");
     const [otp, setOtp] = useState("");
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [isNewUser, setIsNewUser] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [devOtp, setDevOtp] = useState<string | null>(null);
     const [info, setInfo] = useState<string | null>(null);
-
-    const activeInput = phone || (typeof document !== "undefined" ? (document.getElementById("phone") as HTMLInputElement)?.value : "") || "";
-    const detectedInfo = detectUserRole(activeInput);
 
     async function handleRequestOtp(e?: any) {
         if (e && typeof e.preventDefault === "function") {
@@ -44,7 +44,14 @@ export function OtpLoginForm() {
             } else {
                 setInfo("OTP sent to your mobile number.");
             }
-            setStep("otp");
+
+            if (result.account_exists === false) {
+                setIsNewUser(true);
+                setStep("new_customer");
+            } else {
+                setIsNewUser(false);
+                setStep("otp");
+            }
         } catch (err: any) {
             setError(err.message || "Failed to send OTP. Please try again.");
         } finally {
@@ -52,7 +59,7 @@ export function OtpLoginForm() {
         }
     }
 
-    async function handleVerifyOtp(e: React.FormEvent<HTMLFormElement>) {
+    async function handleVerifyAndLogin(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setError(null);
         const formData = new FormData(e.currentTarget);
@@ -61,13 +68,19 @@ export function OtpLoginForm() {
             setError("Please enter the 6-digit OTP.");
             return;
         }
+
+        if (step === "new_customer" && !name.trim()) {
+            setError("Please enter your full name to create an account.");
+            return;
+        }
+
         setLoading(true);
 
         try {
             const currentPhone = phone || (typeof document !== "undefined" ? (document.getElementById("phone") as HTMLInputElement)?.value : "") || "";
 
-            // Call the real backend OTP verification endpoint
-            const result = await verifyOtp(currentPhone, code);
+            const extra = step === "new_customer" ? { name: name.trim(), email: email.trim() || undefined } : undefined;
+            const result = await verifyOtp(currentPhone, code, extra);
 
             if (!result || !result.token) {
                 setError("Verification failed. Please try again.");
@@ -75,20 +88,19 @@ export function OtpLoginForm() {
                 return;
             }
 
-            const serverRole = (result as any).role || (result as any).user?.role || result.detected_role || "CUSTOMER";
-            const userId = (result as any).user?.id || result.customer_id;
-            const userPhone = (result as any).user?.phone || currentPhone;
-            const branchId = (result as any).branch_id || (result as any).user?.branch_id || (result as any).user?.shop_id;
-            const partnerId = (result as any).partner_id || (result as any).user?.partner_id;
+            const serverRole = (result.role || result.detected_role || "CUSTOMER").toUpperCase();
+            const userId = result.user?.id || result.customer_id;
+            const userPhone = result.user?.phone || currentPhone;
+            const branchId = result.branch_id || result.user?.branch_id || result.user?.shop_id;
+            const partnerId = result.partner_id || result.user?.partner_id;
 
             let targetPath = "/account";
-            const normRole = (serverRole || "").toUpperCase();
-            if (normRole === "DELIVERY_PARTNER" || normRole === "DLP") {
+            if (serverRole === "DELIVERY_PARTNER" || serverRole === "DLP") {
                 targetPath = "/dashboard/delivery-partner";
-            } else if (normRole === "BRANCH_MANAGER" || normRole === "SHOP_MANAGER" || normRole === "SHOP" || normRole === "SHPMGR") {
+            } else if (serverRole === "BRANCH_MANAGER" || serverRole === "SHOP_MANAGER" || serverRole === "SHOP" || serverRole === "SHPMGR") {
                 targetPath = "/dashboard/shop";
-            } else if (normRole === "SUPER_ADMIN" || normRole === "ADMIN") {
-                targetPath = "/admin";
+            } else if (serverRole === "SUPER_ADMIN" || serverRole === "ADMIN") {
+                targetPath = "/dashboard";
             }
 
             // Set cookies client-side for immediate hydration
@@ -102,9 +114,8 @@ export function OtpLoginForm() {
             // Persist session cookies on server
             await loginCustomer(result.token, serverRole, userId, userPhone, branchId, partnerId).catch(() => null);
 
-            setInfo("Login successful! Redirecting...");
+            setInfo("Authentication successful! Redirecting...");
 
-            // Instant non-blocking navigation
             window.location.assign(targetPath);
         } catch (err: any) {
             setError(err.message || "Verification failed. Please check your OTP.");
@@ -114,9 +125,9 @@ export function OtpLoginForm() {
 
     if (step === "phone") {
         return (
-            <div className="flex flex-col gap-4 max-w-96">
+            <div className="flex flex-col gap-4 max-w-96 w-full">
                 <div>
-                    <Label htmlFor="phone">Mobile Number or Username</Label>
+                    <Label htmlFor="phone">Mobile Number</Label>
                     <Input
                         id="phone"
                         name="phone"
@@ -132,7 +143,7 @@ export function OtpLoginForm() {
                 </div>
 
                 <Button type="button" size="large" isLoading={loading} onClick={handleRequestOtp}>
-                    Send OTP
+                    Continue
                 </Button>
                 {error && (
                     <ErrorComponent
@@ -148,8 +159,108 @@ export function OtpLoginForm() {
         );
     }
 
+    if (step === "new_customer") {
+        return (
+            <form onSubmit={handleVerifyAndLogin} className="flex flex-col gap-4 max-w-96 w-full border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/30 p-5 rounded-xl">
+                <div className="flex flex-col gap-1 border-b border-amber-200 dark:border-amber-900 pb-3">
+                    <Heading level="h2" className="text-base font-semibold text-amber-900 dark:text-amber-100">
+                        Looks like you&apos;re new to CakeToHome
+                    </Heading>
+                    <Text className="text-xs text-amber-800 dark:text-amber-300">
+                        Create your account to track orders and save addresses.
+                    </Text>
+                </div>
+
+                <div>
+                    <Label htmlFor="otp">Verification Code (OTP)</Label>
+                    <Input
+                        id="otp"
+                        name="otp"
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        placeholder="Enter 6-digit OTP"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                        autoFocus
+                    />
+                </div>
+
+                <div>
+                    <Label htmlFor="name">Your Full Name <span className="text-rose-500">*</span></Label>
+                    <Input
+                        id="name"
+                        name="name"
+                        type="text"
+                        placeholder="e.g. Rahul Sharma"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                    />
+                </div>
+
+                <div>
+                    <Label htmlFor="email">Email Address (Optional)</Label>
+                    <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="e.g. rahul@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </div>
+
+                <Text className="text-ui-fg-subtle text-xs">
+                    Mobile: <span className="font-mono font-semibold">{phone}</span>{" "}
+                    <button
+                        type="button"
+                        className="underline text-blue-600 dark:text-blue-400 ml-1"
+                        onClick={() => {
+                            setStep("phone");
+                            setOtp("");
+                            setError(null);
+                            setInfo(null);
+                        }}
+                    >
+                        Change
+                    </button>
+                </Text>
+
+                {isDev && devOtp && (
+                    <div className="p-2 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md flex items-center justify-between gap-2">
+                        <Text className="text-xs font-semibold text-blue-900 dark:text-blue-100">
+                            🔑 Dev OTP: <span className="font-mono text-sm underline">{devOtp}</span>
+                        </Text>
+                        <button
+                            type="button"
+                            onClick={() => setOtp(devOtp)}
+                            className="text-xs bg-blue-600 hover:bg-blue-700 text-white py-0.5 px-2 rounded font-medium transition-colors"
+                        >
+                            Auto-fill
+                        </button>
+                    </div>
+                )}
+
+                <Button type="submit" size="large" isLoading={loading}>
+                    Create Account & Continue
+                </Button>
+
+                {error && (
+                    <ErrorComponent
+                        title="Account Creation Failed"
+                        message={error}
+                        onDismiss={() => setError(null)}
+                    />
+                )}
+                {info && (
+                    <Text className="text-ui-fg-subtle text-center text-sm">{info}</Text>
+                )}
+            </form>
+        );
+    }
+
     return (
-        <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4 max-w-96">
+        <form onSubmit={handleVerifyAndLogin} className="flex flex-col gap-4 max-w-96 w-full">
             <div>
                 <Label htmlFor="otp">Verification Code</Label>
                 <Input
@@ -169,7 +280,7 @@ export function OtpLoginForm() {
                 OTP sent to {phone}.{" "}
                 <button
                     type="button"
-                    className="underline"
+                    className="underline text-blue-600 dark:text-blue-400"
                     onClick={() => {
                         setStep("phone");
                         setOtp("");
@@ -181,7 +292,6 @@ export function OtpLoginForm() {
                 </button>
             </Text>
 
-            {/* Development-only OTP helper — hidden in production builds */}
             {isDev && devOtp && (
                 <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md flex flex-col gap-2">
                     <Text className="text-xs font-semibold text-blue-900 dark:text-blue-100">
@@ -198,7 +308,7 @@ export function OtpLoginForm() {
             )}
 
             <Button type="submit" size="large" isLoading={loading}>
-                Verify & Login
+                Verify & Continue
             </Button>
             {error && (
                 <ErrorComponent
@@ -213,3 +323,4 @@ export function OtpLoginForm() {
         </form>
     );
 }
+

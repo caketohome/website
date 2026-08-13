@@ -116,19 +116,19 @@ export function AiChatAssistant() {
 
   return (
     <>
-      {/* Floating Trigger Widget */}
+      {/* Floating Trigger Widget (Bottom Left) */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-105"
+        className="fixed bottom-4 sm:bottom-6 left-3 sm:left-6 z-50 flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-105"
       >
-        <Bot className="w-5 h-5 animate-pulse" />
-        <span className="text-xs font-bold tracking-wide">AI Cake Assistant</span>
-        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 border border-white"></span>
+        <Bot className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
+        <span className="text-[11px] sm:text-xs font-bold tracking-wide">AI Cake Assistant</span>
+        <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-400 border border-white"></span>
       </button>
 
       {/* Interactive Chat Dialog Modal */}
       {isOpen && (
-        <div className="fixed bottom-20 right-6 z-50 w-[360px] md:w-[400px] h-[520px] bg-slate-900 border-2 border-amber-500/30 text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-16 sm:bottom-20 left-3 sm:left-6 z-50 w-[calc(100vw-24px)] max-w-[380px] md:max-w-[400px] h-[480px] sm:h-[520px] bg-slate-900 border-2 border-amber-500/30 text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5">
           {/* Header */}
           <div className="p-4 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
             <div className="flex items-center gap-2.5">

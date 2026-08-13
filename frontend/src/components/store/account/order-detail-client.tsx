@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Heading, Text, Button, Input, Textarea, Label, Badge, StatusBadge, Container } from "@medusajs/ui";
+import { addToCartAction } from "@frontend/lib/actions";
 import {
     clientGetOrder as getOrder,
     clientCancelOrder as cancelOrder,
@@ -17,9 +19,10 @@ import {
 /**
  * Order detail client component — renders the full order lifecycle timeline,
  * delivery proofs, refunds, and customer actions (cancel, reschedule, note,
- * download invoice).
+ * download invoice, 1-click reorder).
  */
 export default function OrderDetailClient({ orderId }: { orderId: string }) {
+    const router = useRouter();
     const [order, setOrder] = useState<OrderDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -57,6 +60,30 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
         };
         load();
     }, [orderId]);
+
+    const handleReorder = async () => {
+        setBusy(true);
+        try {
+            const items = (order as any)?.items || [];
+            for (const item of items) {
+                const prodId = item.product_id || item.id;
+                if (prodId) {
+                    await addToCartAction({
+                        product_id: prodId,
+                        quantity: Number(item.quantity || 1),
+                    }).catch(() => null);
+                }
+            }
+            setActionMsg("🎉 Items added to cart! Redirecting to checkout...");
+            setTimeout(() => {
+                router.push("/checkout");
+            }, 600);
+        } catch (e: any) {
+            setActionMsg(`Reorder failed: ${e.message}`);
+        } finally {
+            setBusy(false);
+        }
+    };
 
     const handleCancel = async () => {
         if (!cancelReason.trim()) return;
@@ -162,7 +189,10 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
                     <Heading level="h1">Order {order.display_number ?? order.order_id}</Heading>
                     <StatusBadge color={statusColor(order.status)}>{order.status}</StatusBadge>
                 </div>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-2 flex-wrap items-center">
+                    <Button size="small" variant="secondary" onClick={handleReorder} disabled={busy} className="bg-rose-50 text-rose-700 hover:bg-rose-100 font-bold border-rose-200">
+                        🔄 Reorder
+                    </Button>
                     <Button size="small" variant="secondary" onClick={handleInvoice} disabled={busy}>
                         Download Invoice
                     </Button>

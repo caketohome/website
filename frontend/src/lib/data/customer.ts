@@ -9,6 +9,8 @@ export interface OtpRequestResponse {
   sent: boolean;
   dev_otp?: string;
   message: string;
+  account_exists?: boolean;
+  role?: string;
 }
 
 export interface OtpVerifyResponse {
@@ -16,6 +18,10 @@ export interface OtpVerifyResponse {
   is_new_customer: boolean;
   token?: string;
   detected_role?: string;
+  role?: string;
+  user?: any;
+  branch_id?: string;
+  partner_id?: string;
 }
 
 export interface CustomerAddress {
@@ -56,11 +62,13 @@ export interface AddressInput {
 
 /**
  * Smart automatic role detection based on input mobile number or username/email.
+ * Real role verification is ALWAYS server-authoritative upon OTP verification.
  */
 export function detectUserRole(phoneOrEmail: string): { role: string; label: string; redirectPath: string } {
   const clean = (phoneOrEmail || "").trim().toLowerCase().replace(/\s+/g, "");
 
-  if (clean.includes("12345") || clean.includes("driver") || clean.includes("dlp") || clean.includes("delivery")) {
+  // Explicit demo keywords for testing (non-numeric)
+  if (clean === "driver" || clean === "dlp" || clean === "delivery") {
     return {
       role: "delivery_partner",
       label: "🛵 Delivery Partner Fleet",
@@ -68,7 +76,7 @@ export function detectUserRole(phoneOrEmail: string): { role: string; label: str
     };
   }
 
-  if (clean.includes("00000") || clean.includes("admin") || clean.includes("superadmin") || clean.includes("owner")) {
+  if (clean === "admin" || clean === "superadmin" || clean === "owner") {
     return {
       role: "admin",
       label: "🛡️ Super Admin Control",
@@ -76,7 +84,7 @@ export function detectUserRole(phoneOrEmail: string): { role: string; label: str
     };
   }
 
-  if (clean.includes("99999") || clean.includes("shop") || clean.includes("shpmgr") || clean.includes("manager") || clean.includes("branch")) {
+  if (clean === "shop" || clean === "shpmgr" || clean === "manager" || clean === "branch") {
     return {
       role: "shop",
       label: "🏪 Branch & Shop Manager Control Center",
@@ -84,6 +92,7 @@ export function detectUserRole(phoneOrEmail: string): { role: string; label: str
     };
   }
 
+  // All phone numbers default to Customer Profile; backend OTP verification provides server-authoritative role
   return {
     role: "customer",
     label: "👤 Customer Profile",
@@ -102,7 +111,9 @@ export async function requestOtp(phone: string): Promise<OtpRequestResponse> {
     return {
       sent: true,
       dev_otp: (isDev && res?.dev_otp) ? res.dev_otp : undefined,
-      message: "OTP sent successfully",
+      message: res.message || "OTP sent successfully",
+      account_exists: res.account_exists,
+      role: res.role,
     };
   } catch (err: any) {
     if (!isDev) {
@@ -112,28 +123,35 @@ export async function requestOtp(phone: string): Promise<OtpRequestResponse> {
       sent: true,
       dev_otp: "123456",
       message: "Development fallback: OTP service unavailable",
+      account_exists: true,
+      role: "CUSTOMER",
     };
   }
 }
 
-export async function verifyOtp(phone: string, otp: string): Promise<OtpVerifyResponse> {
+export async function verifyOtp(phone: string, otp: string, extra?: { name?: string; email?: string }): Promise<OtpVerifyResponse> {
   const isDev = process.env.NODE_ENV !== "production";
   const detected = detectUserRole(phone);
   try {
     const res: any = await Promise.race([
-      apiClient.verifyOtp(phone, otp),
+      apiClient.verifyOtp(phone, otp, extra),
       new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000))
     ]);
 
-    if (!res || (!res.accessToken && !res.token)) {
+    const token = res.accessToken || res.token;
+    if (!res || !token) {
       throw new Error("Verification failed: no token received");
     }
 
     return {
-      customer_id: res.customer_id || res.user?.id || `cus_${phone.replace(/\D/g, "")}`,
+      customer_id: res.user?.customer_id || res.user?.id || res.customer_id || `cus_${phone.replace(/\D/g, "").slice(-10)}`,
       is_new_customer: res.is_new_customer ?? false,
-      token: res.accessToken || res.token,
-      detected_role: detected.role,
+      token,
+      detected_role: res.role || detected.role,
+      role: res.role,
+      user: res.user,
+      branch_id: res.branch_id || res.user?.branch_id,
+      partner_id: res.partner_id || res.user?.partner_id,
     };
   } catch (err: any) {
     if (!isDev) {
@@ -141,7 +159,7 @@ export async function verifyOtp(phone: string, otp: string): Promise<OtpVerifyRe
     }
     // Development fallback only
     return {
-      customer_id: "cus_9876543210",
+      customer_id: `cus_${phone.replace(/\D/g, "").slice(-10)}`,
       is_new_customer: false,
       token: "mock_jwt_token_for_dev",
       detected_role: detected.role,

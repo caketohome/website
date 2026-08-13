@@ -130,24 +130,24 @@ export function DeliveryLocationHeader() {
   };
 
   return (
-    <div className="relative z-50">
+    <div className="relative z-50 shrink-0">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/15 transition-colors font-medium text-xs shadow-sm"
+        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/15 transition-colors font-medium text-xs shadow-sm max-w-[160px] sm:max-w-none"
       >
         <MapPin className="w-3.5 h-3.5 text-[#FF4D6D] animate-pulse shrink-0" />
-        <div className="flex flex-col text-left">
-          <span className="font-semibold text-xs text-white truncate max-w-[170px]">
+        <div className="flex flex-col text-left overflow-hidden">
+          <span className="font-semibold text-[11px] sm:text-xs text-white truncate max-w-[95px] sm:max-w-[170px]">
             Deliver to {pincode}
           </span>
-          <span className="text-[10px] text-white/75">
+          <span className="text-[9px] sm:text-[10px] text-white/75 truncate hidden sm:inline">
             ETA: {eta} • Delivery: {fee}
           </span>
         </div>
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-80 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xl p-4 flex flex-col gap-3 z-[1000] opacity-100 popover-solid-panel">
+        <div className="absolute left-0 mt-2 w-[calc(100vw-24px)] sm:w-80 max-w-80 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xl p-4 flex flex-col gap-3 z-[1000] opacity-100 popover-solid-panel">
           <div className="flex justify-between items-center">
             <h3 className="font-semibold text-sm">Enter Delivery Location</h3>
             <button onClick={() => setIsOpen(false)} className="text-ui-fg-muted hover:text-ui-fg-base">

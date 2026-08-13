@@ -1,10 +1,42 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Heading, Text, Badge, Input, Button, Label } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
-import { Search, Plus, Trash2, Edit3, Gift, Package, AlertTriangle, CheckCircle } from "lucide-react";
-import Image from "next/image";
+import { compressImageToWebP } from "@frontend/lib/util/image-compressor";
+import { Search, Plus, Trash2, Edit3, Gift, Package, AlertTriangle, CheckCircle, Upload, Image as ImageIcon, X, RefreshCw, Calculator, FileText } from "lucide-react";
+
+// Platform Authoritative Tax Categories Configuration
+const TAX_CATEGORIES = [
+  { id: "cat_tax_candles", name: "Sparklers & Birthday Candles", hsn: "34060010", rate: 18 },
+  { id: "cat_tax_balloons", name: "Balloons & Party Decor", hsn: "95059000", rate: 18 },
+  { id: "cat_tax_cards", name: "Greeting Cards & Stationery", hsn: "49090090", rate: 12 },
+  { id: "cat_tax_cake", name: "Bakery & Edible Toppers", hsn: "19059090", rate: 5 },
+  { id: "cat_tax_custom", name: "Custom Tax Classification", hsn: "99990000", rate: 18 },
+];
+
+function AccessoryTableRowImage({ src, alt }: { src?: string; alt: string }) {
+  const [hasError, setHasError] = useState(false);
+
+  if (!src || hasError) {
+    return (
+      <div className="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+        <Package className="w-5 h-5 text-slate-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 shrink-0">
+      <img
+        src={src}
+        alt={alt}
+        className="w-full h-full object-cover"
+        onError={() => setHasError(true)}
+      />
+    </div>
+  );
+}
 
 export function AccessoriesManagementPanel() {
   const [accessories, setAccessories] = useState<any[]>([]);
@@ -25,14 +57,27 @@ export function AccessoriesManagementPanel() {
   const [mrp, setMrp] = useState("149");
   const [stock, setStock] = useState("50");
   const [lowStockThreshold, setLowStockThreshold] = useState("5");
+
+  // Tax Engine Form State
+  const [taxCategoryId, setTaxCategoryId] = useState("cat_tax_candles");
+  const [hsnCode, setHsnCode] = useState("34060010");
   const [gstRate, setGstRate] = useState("18");
+  const [taxTreatment, setTaxTreatment] = useState<"inclusive" | "exclusive">("inclusive");
+
+  // Image Upload & Compression State
   const [thumbnail, setThumbnail] = useState("");
+  const [compressingImage, setCompressingImage] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [imageMeta, setImageMeta] = useState<{ dimensions?: string; sizeKb?: number } | null>(null);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<"active" | "inactive">("active");
-  const [occasionTags, setOccasionTags] = useState<string[]>(["birthday"]);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchAccessories = async () => {
     setLoading(true);
@@ -51,6 +96,57 @@ export function AccessoriesManagementPanel() {
     fetchAccessories();
   }, []);
 
+  const handleTaxCategoryChange = (catId: string) => {
+    setTaxCategoryId(catId);
+    const matched = TAX_CATEGORIES.find((t) => t.id === catId);
+    if (matched && catId !== "cat_tax_custom") {
+      setHsnCode(matched.hsn);
+      setGstRate(String(matched.rate));
+    }
+  };
+
+  const handleImageFileSelect = async (file: File) => {
+    setImageError(null);
+    if (!file) return;
+
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      setImageError("Please upload a JPG, PNG, or WebP image.");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setImageError("Image is too large. Please choose a smaller file under 10MB.");
+      return;
+    }
+
+    setCompressingImage(true);
+    try {
+      const compressedWebP = await compressImageToWebP(file, {
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.82,
+      });
+
+      setThumbnail(compressedWebP);
+      const sizeKb = Math.round((compressedWebP.length * 0.75) / 1024);
+
+      // Measure dimensions
+      const img = new Image();
+      img.onload = () => {
+        setImageMeta({
+          dimensions: `${img.width} × ${img.height}`,
+          sizeKb,
+        });
+      };
+      img.src = compressedWebP;
+    } catch {
+      setImageError("Unable to process this image. Please try another file.");
+    } finally {
+      setCompressingImage(false);
+    }
+  };
+
   const handleOpenCreate = () => {
     setEditingItem(null);
     setName("");
@@ -62,8 +158,17 @@ export function AccessoriesManagementPanel() {
     setMrp("149");
     setStock("50");
     setLowStockThreshold("5");
+
+    setTaxCategoryId("cat_tax_candles");
+    setHsnCode("34060010");
     setGstRate("18");
+    setTaxTreatment("inclusive");
+
     setThumbnail("https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=400");
+    setImageMeta(null);
+    setImageError(null);
+    setShowUrlInput(false);
+
     setDescription("Premium celebration accessory.");
     setStatus("active");
     setShowModal(true);
@@ -80,8 +185,18 @@ export function AccessoriesManagementPanel() {
     setMrp(String(item.mrp || 149));
     setStock(String(item.stock ?? 50));
     setLowStockThreshold(String(item.low_stock_threshold || 5));
-    setGstRate(String(item.gst_rate || 18));
+
+    const matchedTax = TAX_CATEGORIES.find((t) => t.hsn === item.hsn_code || t.rate === item.gst_rate_pct);
+    setTaxCategoryId(item.tax_category_id || matchedTax?.id || "cat_tax_candles");
+    setHsnCode(item.hsn_code || matchedTax?.hsn || "34060010");
+    setGstRate(String(item.gst_rate_pct || item.gst_rate || 18));
+    setTaxTreatment(item.tax_treatment || "inclusive");
+
     setThumbnail(item.thumbnail || "");
+    setImageMeta(null);
+    setImageError(null);
+    setShowUrlInput(false);
+
     setDescription(item.description || "");
     setStatus(item.status || "active");
     setShowModal(true);
@@ -104,6 +219,8 @@ export function AccessoriesManagementPanel() {
     setErrorMsg(null);
 
     const catObj = categories.find((c) => c.id === categoryId);
+    const parsedPrice = parseFloat(price) || 0;
+    const parsedGst = parseFloat(gstRate) || 18;
 
     const payload = {
       id: editingItem?.id,
@@ -112,12 +229,19 @@ export function AccessoriesManagementPanel() {
       name,
       category_id: categoryId,
       category_name: catObj?.name || "Cake Accessories",
-      price: parseFloat(price) || 0,
+      price: parsedPrice,
       cost_price: parseFloat(costPrice) || 0,
       mrp: parseFloat(mrp) || 0,
       stock: parseInt(stock, 10) || 0,
       low_stock_threshold: parseInt(lowStockThreshold, 10) || 5,
-      gst_rate: parseFloat(gstRate) || 18,
+
+      // Authoritative Tax Configuration Payload
+      tax_category_id: taxCategoryId,
+      hsn_code: hsnCode,
+      gst_rate: parsedGst,
+      gst_rate_pct: parsedGst,
+      tax_treatment: taxTreatment,
+
       thumbnail,
       images: [thumbnail],
       description,
@@ -145,6 +269,13 @@ export function AccessoriesManagementPanel() {
     return matchesSearch && matchesCat;
   });
 
+  // Calculate live tax breakdown
+  const numSellingPrice = parseFloat(price) || 0;
+  const numGstRate = parseFloat(gstRate) || 0;
+  const calculatedTaxable = Math.round((numSellingPrice / (1 + numGstRate / 100)) * 100) / 100;
+  const calculatedTax = Math.round((numSellingPrice - calculatedTaxable) * 100) / 100;
+  const halfGst = Math.round((calculatedTax / 2) * 100) / 100;
+
   return (
     <div className="space-y-6">
       {/* Action Header */}
@@ -154,7 +285,7 @@ export function AccessoriesManagementPanel() {
             <Gift className="w-5 h-5 text-rose-500" /> Accessory & Gift Catalog Management ({filtered.length})
           </Heading>
           <Text className="text-xs text-slate-600 dark:text-slate-400">
-            Inventory-driven accessories, toppers, greeting cards, flowers, plush toys, and gift hampers. Out-of-stock items hide automatically.
+            Inventory-driven accessories, toppers, cards, and candles configured with platform-authoritative GST tax rules and WebP compression.
           </Text>
         </div>
 
@@ -196,7 +327,7 @@ export function AccessoriesManagementPanel() {
                 <th className="p-3">Category</th>
                 <th className="p-3">Price & Cost</th>
                 <th className="p-3">Stock Level</th>
-                <th className="p-3">GST Rate</th>
+                <th className="p-3">GST Tax Configuration</th>
                 <th className="p-3">Status</th>
                 <th className="p-3 text-right">Actions</th>
               </tr>
@@ -215,18 +346,14 @@ export function AccessoriesManagementPanel() {
                   const stockNum = Number(item.stock || 0);
                   const isOut = stockNum === 0;
                   const isLow = stockNum > 0 && stockNum <= Number(item.low_stock_threshold || 5);
+                  const hsn = item.hsn_code || "34060010";
+                  const rate = item.gst_rate_pct || item.gst_rate || 18;
 
                   return (
                     <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                       <td className="p-3">
                         <div className="flex items-center gap-3">
-                          <div className="relative w-10 h-10 rounded-lg overflow-hidden border bg-slate-100 shrink-0">
-                            {item.thumbnail ? (
-                              <Image src={item.thumbnail} alt={item.name} fill className="object-cover" />
-                            ) : (
-                              <Package className="w-5 h-5 text-slate-400 m-auto mt-2" />
-                            )}
-                          </div>
+                          <AccessoryTableRowImage src={item.thumbnail} alt={item.name} />
                           <div className="flex flex-col">
                             <span className="font-bold text-slate-900 dark:text-white">{item.name}</span>
                             <span className="text-[10px] text-slate-500">SKU: {item.sku}</span>
@@ -257,7 +384,12 @@ export function AccessoriesManagementPanel() {
                           </span>
                         )}
                       </td>
-                      <td className="p-3 font-medium text-slate-600">{item.gst_rate || 18}% GST</td>
+                      <td className="p-3">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-slate-800 dark:text-slate-200">{rate}% GST (Inclusive)</span>
+                          <span className="text-[10px] text-slate-400 font-mono">HSN: {hsn}</span>
+                        </div>
+                      </td>
                       <td className="p-3">
                         <Badge color={item.status === "active" ? "green" : "red"}>
                           {item.status === "active" ? "Active" : "Inactive"}
@@ -285,7 +417,7 @@ export function AccessoriesManagementPanel() {
       {/* Add / Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col my-8">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col my-6">
             <div className="p-5 border-b flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
               <Heading level="h3" className="text-base font-bold flex items-center gap-2">
                 <Gift className="w-5 h-5 text-rose-500" />
@@ -300,8 +432,9 @@ export function AccessoriesManagementPanel() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <form onSubmit={handleSubmit} className="p-6 space-y-5 text-xs overflow-y-auto max-h-[80vh]">
+              {/* Product Basic Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <Label>Accessory Name *</Label>
                   <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Gold Acrylic Topper" required />
@@ -311,7 +444,7 @@ export function AccessoriesManagementPanel() {
                   <select
                     value={categoryId}
                     onChange={(e) => setCategoryId(e.target.value)}
-                    className="w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900"
+                    className="w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
                     required
                   >
                     {categories.map((c) => (
@@ -342,26 +475,215 @@ export function AccessoriesManagementPanel() {
                   <Input type="number" value={mrp} onChange={(e) => setMrp(e.target.value)} />
                 </div>
                 <div>
-                  <Label>GST Tax Rate (%)</Label>
-                  <Input type="number" value={gstRate} onChange={(e) => setGstRate(e.target.value)} />
-                </div>
-
-                <div>
                   <Label>Stock Quantity *</Label>
                   <Input type="number" value={stock} onChange={(e) => setStock(e.target.value)} required />
                 </div>
-                <div>
-                  <Label>Low Stock Threshold</Label>
-                  <Input type="number" value={lowStockThreshold} onChange={(e) => setLowStockThreshold(e.target.value)} />
+              </div>
+
+              {/* SECTION: PLATFORM TAX ENGINE CONFIGURATION */}
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 text-xs">
+                    <Calculator className="w-4 h-4 text-emerald-500" /> Platform Tax Engine Configuration
+                  </span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                    Tax Inclusive Rule
+                  </span>
                 </div>
 
-                <div className="sm:col-span-2">
-                  <Label>WebP Image URL</Label>
-                  <Input value={thumbnail} onChange={(e) => setThumbnail(e.target.value)} placeholder="https://..." />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <Label>Tax Category</Label>
+                    <select
+                      value={taxCategoryId}
+                      onChange={(e) => handleTaxCategoryChange(e.target.value)}
+                      className="w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                    >
+                      {TAX_CATEGORIES.map((t) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label>HSN / SAC Code</Label>
+                    <Input
+                      value={hsnCode}
+                      onChange={(e) => setHsnCode(e.target.value)}
+                      readOnly={taxCategoryId !== "cat_tax_custom"}
+                      className={taxCategoryId !== "cat_tax_custom" ? "bg-slate-100 dark:bg-slate-800 font-mono" : "font-mono"}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>GST Rate (%)</Label>
+                    <select
+                      value={gstRate}
+                      onChange={(e) => setGstRate(e.target.value)}
+                      disabled={taxCategoryId !== "cat_tax_custom"}
+                      className="w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 disabled:opacity-75"
+                    >
+                      <option value="5">5% GST (Bakery / Edible)</option>
+                      <option value="12">12% GST (Cards / Stationery)</option>
+                      <option value="18">18% GST (Candles / Decor / Services)</option>
+                      <option value="28">28% GST (Luxury Decor)</option>
+                    </select>
+                  </div>
                 </div>
+
+                {/* Live Tax Breakdown Summary */}
+                <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[11px]">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Selling Price</span>
+                    <span className="font-bold text-slate-900 dark:text-white">₹{numSellingPrice.toFixed(2)}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Taxable Amount</span>
+                    <span className="font-bold text-slate-700 dark:text-slate-300">₹{calculatedTaxable.toFixed(2)}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">CGST ({numGstRate / 2}%) + SGST</span>
+                    <span className="font-bold text-emerald-600">₹{halfGst.toFixed(2)} × 2</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Total Tax (GST)</span>
+                    <span className="font-bold text-rose-600">₹{calculatedTax.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION: PRODUCT IMAGE UPLOADER & WEBP COMPRESSION */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <ImageIcon className="w-4 h-4 text-blue-500" /> Product Image
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={() => setShowUrlInput(!showUrlInput)}
+                    className="text-[11px] text-blue-600 hover:underline font-semibold"
+                  >
+                    {showUrlInput ? "← Switch to Image Uploader" : "Enter Image URL directly"}
+                  </button>
+                </div>
+
+                {imageError && (
+                  <div className="p-2.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-semibold">
+                    ⚠️ {imageError}
+                  </div>
+                )}
+
+                {showUrlInput ? (
+                  <div>
+                    <Input
+                      value={thumbnail}
+                      onChange={(e) => setThumbnail(e.target.value)}
+                      placeholder="https://images.unsplash.com/..."
+                    />
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Direct image URL input. Formats: WebP, PNG, JPG.
+                    </span>
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageFileSelect(file);
+                      }}
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                    />
+
+                    {thumbnail ? (
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-4">
+                        <div className="relative w-20 h-20 rounded-lg overflow-hidden border bg-white dark:bg-slate-900 shrink-0">
+                          <img src={thumbnail} alt="Accessory Preview" className="w-full h-full object-cover" />
+                        </div>
+
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-900 dark:text-white">Product Photo</span>
+                            <span className="px-2 py-0.5 bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 font-extrabold text-[10px] rounded">
+                              WebP Compressed
+                            </span>
+                          </div>
+                          {imageMeta && (
+                            <p className="text-[11px] text-slate-500">
+                              Dimensions: <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">{imageMeta.dimensions}</span> • Size: <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">{imageMeta.sizeKb} KB</span>
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 pt-1">
+                            <Button
+                              type="button"
+                              size="small"
+                              variant="secondary"
+                              onClick={() => fileInputRef.current?.click()}
+                              isLoading={compressingImage}
+                            >
+                              <RefreshCw className="w-3 h-3 mr-1" /> Replace Image
+                            </Button>
+                            <Button
+                              type="button"
+                              size="small"
+                              variant="transparent"
+                              className="text-rose-600 hover:text-rose-700"
+                              onClick={() => {
+                                setThumbnail("");
+                                setImageMeta(null);
+                              }}
+                            >
+                              <Trash2 className="w-3 h-3 mr-1" /> Remove
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const file = e.dataTransfer.files?.[0];
+                          if (file) handleImageFileSelect(file);
+                        }}
+                        className="p-8 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-rose-400 dark:hover:border-rose-500 rounded-xl bg-slate-50/50 dark:bg-slate-800/20 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2"
+                      >
+                        {compressingImage ? (
+                          <div className="flex items-center gap-2 text-rose-600 font-bold text-xs">
+                            <RefreshCw className="w-4 h-4 animate-spin" /> Auto-Compressing to WebP format...
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="w-8 h-8 text-rose-500" />
+                            <div>
+                              <p className="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                                Click or drag an image here to upload
+                              </p>
+                              <p className="text-[10px] text-slate-400 mt-0.5">
+                                Supports JPG, PNG, WebP (Auto-compressed & resized to max 1200px)
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Description & Status */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="sm:col-span-2">
                   <Label>Description</Label>
                   <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Accessory details..." />
+                </div>
+
+                <div>
+                  <Label>Low Stock Threshold</Label>
+                  <Input type="number" value={lowStockThreshold} onChange={(e) => setLowStockThreshold(e.target.value)} />
                 </div>
 
                 <div>
@@ -369,10 +691,10 @@ export function AccessoriesManagementPanel() {
                   <select
                     value={status}
                     onChange={(e: any) => setStatus(e.target.value)}
-                    className="w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900"
+                    className="w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
                   >
-                    <option value="active">Active (Visible)</option>
-                    <option value="inactive">Inactive (Hidden)</option>
+                    <option value="active">Active (Visible in Storefront)</option>
+                    <option value="inactive">Inactive (Hidden from Storefront)</option>
                   </select>
                 </div>
               </div>

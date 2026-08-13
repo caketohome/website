@@ -6,70 +6,179 @@ import { redirect } from "next/navigation";
 import { apiClient } from "../api-client";
 import { getCacheTag } from "../data/cookies";
 
-export async function updateCart(data: Record<string, unknown>) {
-  const cartId = cookies().get("_cth_cart_id")?.value || "cart_guest";
-  revalidateTag(getCacheTag("carts"));
-  return { id: cartId, ...data };
+export async function getCheckoutAvailabilityAction(payload: {
+  cart_id?: string;
+  delivery_type?: "delivery" | "pickup";
+  pincode?: string;
+  branch_id?: string;
+  date?: string;
+  slot_id?: string;
+  coupon_code?: string;
+}) {
+  const cookieStore = cookies();
+  const cartId = payload.cart_id || cookieStore.get("_cth_cart_id")?.value || cookieStore.get("_medusa_cart_id")?.value || "cart_guest";
+  const pincode = payload.pincode || cookieStore.get("delivery_pincode")?.value;
+
+  try {
+    const { ApiEngine } = await import("../api-engine");
+    return ApiEngine.getCheckoutAvailability({
+      ...payload,
+      cart_id: cartId,
+      pincode,
+    });
+  } catch (err: any) {
+    return {
+      success: false,
+      serviceable: false,
+      status_message: err.message || "Failed to check availability.",
+    };
+  }
 }
 
-export async function completeCart() {
-  const cartId = cookies().get("_cth_cart_id")?.value || "cart_guest";
-  revalidateTag(getCacheTag("carts"));
-  return { id: cartId, status: "completed" };
+export async function validateCheckoutAction(payload: {
+  cart_id?: string;
+  customer_id?: string;
+  address?: any;
+  address_id?: string;
+  pincode?: string;
+  delivery_date?: string;
+  delivery_slot_id?: string;
+  delivery_type?: string;
+  branch_id?: string;
+  coupon_code?: string;
+  occasion?: string;
+}) {
+  const cookieStore = cookies();
+  const cartId = payload.cart_id || cookieStore.get("_cth_cart_id")?.value || cookieStore.get("_medusa_cart_id")?.value || "cart_guest";
+  const customerId = payload.customer_id || cookieStore.get("_cth_user_id")?.value || "cus_guest";
+  const pincode = payload.pincode || cookieStore.get("delivery_pincode")?.value || payload.address?.pincode;
+
+  try {
+    const result = await apiClient.validateCheckout({
+      ...payload,
+      cart_id: cartId,
+      customer_id: customerId,
+      pincode,
+    });
+    return result;
+  } catch (err: any) {
+    return {
+      valid: false,
+      errors: [{ code: "VALIDATION_FAILED", message: err.message || "Failed to validate checkout." }],
+    };
+  }
 }
 
-export async function addPaymentSession(cartId: string) {
-  return { id: `pay_sess_${Date.now()}` };
-}
+export async function confirmCheckoutAction(payload: {
+  cart_id?: string;
+  customer_id?: string;
+  address: any;
+  pincode: string;
+  delivery_date: string;
+  delivery_slot_id: string;
+  delivery_type?: string;
+  coupon_code?: string;
+  payment_method: "cod" | "razorpay" | "test_mode" | "wallet";
+  payment_details?: any;
+  occasion?: string;
+  ordered_for_self?: boolean;
+  recipient_name?: string;
+  recipient_phone?: string;
+  gift_message?: string;
+  special_instructions?: string;
+}) {
+  const cookieStore = cookies();
+  const cartId = payload.cart_id || cookieStore.get("_cth_cart_id")?.value || cookieStore.get("_medusa_cart_id")?.value || "cart_guest";
+  const customerId = payload.customer_id || cookieStore.get("_cth_user_id")?.value || "cus_guest";
 
-export async function createDelivery(cartId: string, shopId: string, deliveryDate?: string | null, deliverySlotId?: string | null) {
-  revalidateTag(getCacheTag("deliveries"));
-  return { id: `dlv_${Date.now()}`, cartId, shopId, deliveryDate, deliverySlotId };
+  try {
+    const result = await apiClient.confirmCheckout({
+      ...payload,
+      cart_id: cartId,
+      customer_id: customerId,
+    });
+
+    if (result.success && result.order_id) {
+      cookieStore.set("_cth_order_id", result.order_id, { path: "/", maxAge: 60 * 60 * 24 * 7 });
+      cookieStore.set("_medusa_order_id", result.order_id, { path: "/", maxAge: 60 * 60 * 24 * 7 });
+      cookieStore.set("_cth_cart_id", "", { path: "/", maxAge: 0 });
+      cookieStore.set("_medusa_cart_id", "", { path: "/", maxAge: 0 });
+
+      revalidateTag(getCacheTag("carts"));
+      revalidateTag(getCacheTag("orders"));
+    }
+
+    return result;
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || "Order placement failed.",
+    };
+  }
 }
 
 export async function placeOrder(prevState: any, data: FormData) {
-  const cartId = cookies().get("_cth_cart_id")?.value || "cart_guest";
+  const cookieStore = cookies();
+  const cartId = cookieStore.get("_cth_cart_id")?.value || cookieStore.get("_medusa_cart_id")?.value || "cart_guest";
+  const customerId = cookieStore.get("_cth_user_id")?.value || "cus_guest";
 
-  const firstName = data.get("first-name")?.toString();
-  const lastName = data.get("last-name")?.toString();
+  const firstName = data.get("first-name")?.toString() || data.get("name")?.toString() || "Customer";
+  const lastName = data.get("last-name")?.toString() || "";
   const phone = data.get("phone")?.toString();
-  const email = data.get("email")?.toString();
-  const shopId = data.get("shop-id")?.toString();
-  const zip = data.get("zip")?.toString() || cookies().get("delivery_pincode")?.value;
+  const email = data.get("email")?.toString() || "customer@cakes2home.com";
+  const addressLine1 = data.get("address-line1")?.toString() || data.get("address")?.toString() || "Address on File";
+  const addressLine2 = data.get("address-line2")?.toString() || "";
+  const city = data.get("city")?.toString() || "Bengaluru";
+  const state = data.get("state")?.toString() || "Karnataka";
+  const pincode = data.get("zip")?.toString() || data.get("pincode")?.toString() || cookieStore.get("delivery_pincode")?.value || "560038";
+  const landmark = data.get("landmark")?.toString() || "";
 
-  if (!firstName || !phone || !shopId) {
-    return { message: "Please fill in all required fields" };
+  const deliveryDate = data.get("delivery-date")?.toString() || new Date().toISOString().slice(0, 10);
+  const deliverySlotId = data.get("delivery-slot")?.toString() || data.get("delivery_slot_id")?.toString() || "slot_morning";
+  const paymentMethod = (data.get("payment-method")?.toString() || "cod") as "cod" | "razorpay" | "test_mode";
+
+  const occasion = data.get("occasion")?.toString() || "Celebration";
+  const orderedForSelf = data.get("ordered-for-self")?.toString() !== "false";
+  const recipientName = data.get("recipient-name")?.toString();
+  const recipientPhone = data.get("recipient-phone")?.toString();
+  const giftMessage = data.get("gift-message")?.toString();
+  const specialInstructions = data.get("special-instructions")?.toString();
+
+  if (!firstName || !phone || !pincode) {
+    return { message: "Please fill in all required fields (Name, Phone, and Pincode)." };
   }
 
-  // Revalidate cart items availability against destination pincode/branch
-  try {
-    const { ApiEngine } = await import("../api-engine");
-    const cart = ApiEngine.getCart(cartId);
-    if (cart && Array.isArray(cart.items) && cart.items.length > 0) {
-      let targetBranch: any = null;
-      if (zip) {
-        targetBranch = ApiEngine.resolveSmartBranch({ pincode: zip })?.branch;
-      }
-      if (!targetBranch && shopId) {
-        targetBranch = ApiEngine.resolveBranchRecord(shopId);
-      }
-      if (targetBranch && targetBranch.product_availability) {
-        for (const item of cart.items) {
-          const pId = item.product_id || item.id;
-          const override = targetBranch.product_availability[pId] || { status: "AVAILABLE" };
-          const st = (override.status || "").toUpperCase();
-          if (st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY" || st === "HIDDEN" || st === "TEMPORARILY_HIDDEN") {
-            return { message: `"${item.title || "Product"}" is not available for delivery at pincode ${zip || targetBranch.pincode} (${targetBranch.name}). Please remove it to proceed.` };
-          }
-        }
-      }
-    }
-  } catch (err: any) {
-    console.error("Cart validation error during checkout:", err);
+  const result = await confirmCheckoutAction({
+    cart_id: cartId,
+    customer_id: customerId,
+    address: {
+      first_name: firstName,
+      last_name: lastName,
+      phone,
+      email,
+      line1: addressLine1,
+      line2: addressLine2,
+      city,
+      state,
+      pincode,
+      landmark,
+    },
+    pincode,
+    delivery_date: deliveryDate,
+    delivery_slot_id: deliverySlotId,
+    payment_method: paymentMethod,
+    occasion,
+    ordered_for_self: orderedForSelf,
+    recipient_name: recipientName,
+    recipient_phone: recipientPhone,
+    gift_message: giftMessage,
+    special_instructions: specialInstructions,
+  });
+
+  if (!result.success) {
+    return { message: result.error || "Failed to place order. Please verify your details." };
   }
 
-  cookies().set("_cth_cart_id", "", { maxAge: 0 });
-  cookies().set("_cth_order_id", `ord_${Date.now()}`);
-
-  redirect("/your-order");
+  redirect(`/your-order?order_id=${encodeURIComponent(result.order_id || "")}`);
 }
+

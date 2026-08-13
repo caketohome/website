@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ capacity, success: true });
     }
 
-    const branches = ApiEngine.listBranches();
+    const branches = ApiEngine.listBranches({ includeArchived: true });
     const cityAreas = ApiEngine.listCityAreasPincodes();
     return NextResponse.json({ branches, cityAreas, success: true });
   } catch (err: any) {
@@ -28,6 +28,16 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
+
+    if (data.type === "archive" || data.type === "archive_branch") {
+      const res = ApiEngine.archiveBranch(data.id || data.branchId);
+      return NextResponse.json({ ...res });
+    }
+
+    if (data.type === "restore" || data.type === "restore_branch") {
+      const res = ApiEngine.restoreBranch(data.id || data.branchId);
+      return NextResponse.json({ ...res });
+    }
 
     if (data.type === "delivery_zone") {
       const zone = ApiEngine.saveBranchZone(data.branchId, data.zoneData);

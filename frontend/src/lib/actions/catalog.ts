@@ -74,6 +74,11 @@ export async function searchProductsAction(filters: SearchFilters = {}): Promise
   }
 }
 
+export async function getCatalogFilterOptionsAction() {
+  const { getCatalogFilterOptions } = await import("../data/catalog");
+  return getCatalogFilterOptions();
+}
+
 export async function revalidateProductAction(productHandle?: string, productId?: string) {
   try {
     const { revalidatePath, revalidateTag } = await import("next/cache");

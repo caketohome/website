@@ -74,7 +74,6 @@ export async function HeaderNavigation({ lang = "en" }: { lang?: string }) {
                     <Link
                         href={resolveHref(item)}
                         className="text-sm font-medium text-white/85 hover:text-white transition-colors"
-                        onClick={() => handleClick(item.label, "header", resolveHref(item))}
                     >
                         {item.label}
                         {item.badge && (
@@ -90,7 +89,6 @@ export async function HeaderNavigation({ lang = "en" }: { lang?: string }) {
                                     key={child.label}
                                     href={resolveHref(child)}
                                     className="text-sm text-slate-800 hover:text-black hover:bg-gray-100 px-2 py-1 rounded transition-colors whitespace-nowrap"
-                                    onClick={() => handleClick(child.label, "header", resolveHref(child))}
                                 >
                                     {child.label}
                                 </Link>
@@ -120,7 +118,6 @@ export async function FooterNavigation({ lang = "en" }: { lang?: string }) {
                     key={item.label}
                     href={resolveHref(item)}
                     className="text-sm text-ui-fg-on-inverted hover:underline"
-                    onClick={() => handleClick(item.label, "footer", resolveHref(item))}
                 >
                     {item.label}
                 </Link>

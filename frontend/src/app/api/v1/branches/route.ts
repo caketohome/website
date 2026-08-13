@@ -7,9 +7,10 @@ export async function GET(req: NextRequest) {
     const actionType = searchParams.get("type");
 
     if (actionType === "slots") {
-      const branchId = searchParams.get("branchId") || "";
+      const branchId = searchParams.get("branchId") || searchParams.get("branch_id") || "";
       const date = searchParams.get("date") || "";
-      const slots = ApiEngine.getDeliverySlots(branchId, date);
+      const mode = (searchParams.get("mode") as any) || "delivery";
+      const slots = ApiEngine.getDeliverySlots(branchId, date, mode);
       return NextResponse.json({ ...slots, success: true });
     }
 

@@ -23,7 +23,23 @@ export async function middleware(request: NextRequest) {
     const rawRole = (request.cookies.get("_cth_role")?.value || "").toUpperCase();
     const hasAuthSession = Boolean(token || request.cookies.get("_cth_user_id")?.value || request.cookies.get("_cth_phone")?.value);
 
-    // 1. /dashboard/delivery-partner protection
+    // 1. /dashboard (root super admin) protection
+    if (pathname === "/dashboard" || pathname === "/dashboard/") {
+      if (!hasAuthSession) {
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
+      if (rawRole !== "SUPER_ADMIN" && rawRole !== "ADMIN") {
+        if (rawRole === "DELIVERY_PARTNER" || rawRole === "DLP") {
+          return NextResponse.redirect(new URL("/dashboard/delivery-partner", request.url));
+        }
+        if (rawRole === "BRANCH_MANAGER" || rawRole === "SHOP_MANAGER" || rawRole === "SHOP" || rawRole === "SHPMGR") {
+          return NextResponse.redirect(new URL("/dashboard/shop", request.url));
+        }
+        return NextResponse.redirect(new URL("/account", request.url));
+      }
+    }
+
+    // 2. /dashboard/delivery-partner protection
     if (pathname.startsWith("/dashboard/delivery-partner")) {
       if (!hasAuthSession) {
         return NextResponse.redirect(new URL("/login", request.url));
@@ -53,6 +69,12 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith("/account")) {
       if (!hasAuthSession) {
         return NextResponse.redirect(new URL("/login", request.url));
+      }
+      if (rawRole === "DELIVERY_PARTNER" || rawRole === "DLP") {
+        return NextResponse.redirect(new URL("/dashboard/delivery-partner", request.url));
+      }
+      if (rawRole === "BRANCH_MANAGER" || rawRole === "SHOP_MANAGER" || rawRole === "SHOP" || rawRole === "SHPMGR") {
+        return NextResponse.redirect(new URL("/dashboard/shop", request.url));
       }
     }
 

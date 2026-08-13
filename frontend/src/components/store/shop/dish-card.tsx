@@ -31,10 +31,10 @@ export default function DishCard({
         <Heading>{product.title}</Heading>
         <Text className="line-clamp-3">{product.description}</Text>
         <Text className="text-lg font-semibold">
-          €
+          ₹
           {
             //@ts-ignore
-            product.variants[0].calculated_price.calculated_amount
+            product.variants[0].calculated_price?.calculated_amount || product.variants[0].prices?.[0]?.amount || 599
           }
         </Text>
       </div>

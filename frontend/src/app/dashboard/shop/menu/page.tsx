@@ -84,7 +84,7 @@ export default async function MenuPage() {
                     <Table.Cell>{product.title}</Table.Cell>
                     <Table.Cell>{product.description}</Table.Cell>
                     <Table.Cell>
-                      €{variants[0].price?.calculated_amount}
+                      ₹{variants[0].price?.calculated_amount || 599}
                     </Table.Cell>
                     <Table.Cell>
                       <MenuProductActions

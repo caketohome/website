@@ -18,7 +18,7 @@ export function createSession(token: string) {
     httpOnly: true,
     secure: process.env.VERCEL_ENV === "production",
     expires: expiresAt,
-    sameSite: "strict",
+    sameSite: "lax",
     path: "/",
   });
 }

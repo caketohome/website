@@ -174,14 +174,15 @@ class CakeToHomeApiClient {
     });
   }
 
-  async verifyOtp(phone: string, code: string) {
-    const res = await this.request<{ accessToken: string; user: any }>("/auth/verify-otp", {
+  async verifyOtp(phone: string, code: string, extra?: { name?: string; email?: string }) {
+    const res = await this.request<{ accessToken: string; token?: string; user: any; role?: string; is_new_customer?: boolean }>("/auth/verify-otp", {
       method: "POST",
-      body: JSON.stringify({ phone, code }),
+      body: JSON.stringify({ phone, code, ...(extra || {}) }),
     });
 
-    if (res.accessToken) {
-      this.setToken(res.accessToken);
+    const token = res.accessToken || res.token;
+    if (token) {
+      this.setToken(token);
     }
     return res;
   }
@@ -495,6 +496,25 @@ class CakeToHomeApiClient {
   }
   async createAdminRegion(name: string) {
     return this.request("/admin/regions", { method: "POST", body: JSON.stringify({ name }) });
+  }
+
+  // ── Product Delivery Restrictions (Store + Zone Scoped) ──
+  async getProductDeliveryRestrictions(filters?: { product_id?: string; branch_id?: string; zone_id?: string }) {
+    const params: Record<string, string> = {};
+    if (filters?.product_id) params.product_id = filters.product_id;
+    if (filters?.branch_id) params.branch_id = filters.branch_id;
+    if (filters?.zone_id) params.zone_id = filters.zone_id;
+    const qs = Object.keys(params).length > 0 ? "?" + new URLSearchParams(params).toString() : "";
+    return this.request(`/admin/product-delivery-restrictions${qs}`).catch(() => ({ restrictions: [] }));
+  }
+  async updateProductDeliveryRestriction(data: { product_id: string; branch_id: string; zone_id: string; is_restricted: boolean; reason?: string }) {
+    return this.request("/admin/product-delivery-restrictions", { method: "POST", body: JSON.stringify(data) });
+  }
+  async bulkUpdateProductDeliveryRestrictions(restrictions: Array<{ product_id: string; branch_id: string; zone_id: string; is_restricted: boolean; reason?: string }>) {
+    return this.request("/admin/product-delivery-restrictions", { method: "POST", body: JSON.stringify({ restrictions }) });
+  }
+  async deleteProductDeliveryRestriction(id: string) {
+    return this.request(`/admin/product-delivery-restrictions/${id}`, { method: "DELETE" });
   }
 
   // ── Admin: Delivery Partners & Fleet ──
@@ -989,8 +1009,16 @@ class CakeToHomeApiClient {
     return this.request("/admin/branches", { method: "PUT", body: JSON.stringify({ id, ...data }) });
   }
 
+  async archiveAdminBranch(id: string) {
+    return this.request("/admin/branches", { method: "POST", body: JSON.stringify({ type: "archive_branch", branchId: id }) });
+  }
+
+  async restoreAdminBranch(id: string) {
+    return this.request("/admin/branches", { method: "POST", body: JSON.stringify({ type: "restore_branch", branchId: id }) });
+  }
+
   async deleteAdminBranch(id: string) {
-    return this.request(`/admin/branches?id=${id}`, { method: "DELETE" });
+    return this.archiveAdminBranch(id);
   }
 
   async saveAreaPincodes(data: any) {
@@ -1039,6 +1067,218 @@ class CakeToHomeApiClient {
 
   async validateOrderEligibility(data: { pincode: string; product_ids?: string[]; accessory_ids?: string[]; delivery_type?: string; scheduled_date?: string; order_total?: number }) {
     return this.request("/admin/branches", { method: "POST", body: JSON.stringify({ type: "validate_order", ...data }) });
+  }
+
+  // ── Authoritative Cart & Checkout APIs ──
+  async getCart(cartId?: string) {
+    const q = cartId ? `?cart_id=${encodeURIComponent(cartId)}` : "";
+    return this.request(`/cart${q}`).catch(() => ({
+      success: true,
+      cart: {
+        id: cartId || "cart_guest_100",
+        items: [],
+        subtotal: 0,
+        total: 0,
+        currency_code: "inr",
+      },
+    }));
+  }
+
+  async createCart(data?: any) {
+    return this.request("/cart", { method: "POST", body: JSON.stringify(data || {}) });
+  }
+
+  async addToCart(data: {
+    cartId: string;
+    productId: string;
+    variantId?: string;
+    quantity: number;
+    selectedOptions?: any;
+    metadata?: any;
+  }) {
+    return this.request("/cart/items", { method: "POST", body: JSON.stringify(data) });
+  }
+
+  async updateCartItem(cartId: string, lineItemId: string, quantity: number) {
+    return this.request("/cart/items", { method: "PUT", body: JSON.stringify({ cartId, lineItemId, quantity }) });
+  }
+
+  async deleteLineItem(cartId: string, lineItemId: string) {
+    return this.request(`/cart/items?cart_id=${encodeURIComponent(cartId)}&item_id=${encodeURIComponent(lineItemId)}`, { method: "DELETE" });
+  }
+
+  async clearCart(cartId: string) {
+    return this.request(`/cart?cart_id=${encodeURIComponent(cartId)}`, { method: "DELETE" });
+  }
+
+  async validateCheckout(data: {
+    cart_id: string;
+    customer_id?: string;
+    address?: any;
+    address_id?: string;
+    pincode?: string;
+    delivery_date?: string;
+    delivery_slot_id?: string;
+    delivery_type?: string;
+    coupon_code?: string;
+    occasion?: string;
+    ordered_for_self?: boolean;
+    recipient_name?: string;
+    recipient_phone?: string;
+    gift_message?: string;
+    special_instructions?: string;
+  }) {
+    return this.request("/checkout/validate", { method: "POST", body: JSON.stringify(data) });
+  }
+
+  async confirmCheckout(data: {
+    cart_id: string;
+    customer_id?: string;
+    address: any;
+    pincode: string;
+    delivery_date: string;
+    delivery_slot_id: string;
+    delivery_type?: string;
+    coupon_code?: string;
+    payment_method: "cod" | "razorpay" | "test_mode" | "wallet";
+    payment_details?: any;
+    occasion?: string;
+    ordered_for_self?: boolean;
+    recipient_name?: string;
+    recipient_phone?: string;
+    recipient_alt_phone?: string;
+    recipient_address?: string;
+    recipient_landmark?: string;
+    gift_wrap?: boolean;
+    greeting_card?: boolean;
+    gift_message?: string;
+    anonymous_delivery?: boolean;
+    hide_invoice?: boolean;
+    is_surprise_delivery?: boolean;
+    special_instructions?: string;
+  }) {
+    return this.request("/checkout/confirm", { method: "POST", body: JSON.stringify(data) });
+  }
+
+  // ── Customer Addresses APIs ──
+  async getCustomerAddresses(customerId?: string) {
+    const q = customerId ? `?customer_id=${encodeURIComponent(customerId)}` : "";
+    return this.request(`/customers/addresses${q}`).catch(() => ({ addresses: [] }));
+  }
+
+  async createCustomerAddress(data: any) {
+    return this.request("/customers/addresses", { method: "POST", body: JSON.stringify(data) });
+  }
+
+  async updateCustomerAddress(addressId: string, data: any) {
+    return this.request(`/customers/addresses/${addressId}`, { method: "PUT", body: JSON.stringify(data) });
+  }
+
+  async deleteCustomerAddress(addressId: string) {
+    return this.request(`/customers/addresses/${addressId}`, { method: "DELETE" });
+  }
+
+  // ── Order Details API ──
+  async getOrder(orderId: string) {
+    return this.request(`/orders/${orderId}`).catch(() => ({ order: null }));
+  }
+
+  // ── Delivery Eligibility ──
+  async validateOrderEligibility(query: {
+    pincode: string;
+    product_ids?: string[];
+    accessory_ids?: string[];
+    delivery_type?: string;
+    scheduled_date?: string;
+    order_total?: number;
+  }) {
+    const q = new URLSearchParams();
+    q.set("pincode", query.pincode);
+    if (query.delivery_type) q.set("delivery_type", query.delivery_type);
+    if (query.scheduled_date) q.set("scheduled_date", query.scheduled_date);
+    if (query.order_total) q.set("order_total", String(query.order_total));
+    return this.request(`/delivery/eligibility?${q.toString()}`, {
+      method: "POST",
+      body: JSON.stringify(query),
+    });
+  }
+
+  // ── Razorpay Payment APIs ──
+  async createRazorpayOrder(amount: number, currency = "INR", receipt?: string) {
+    return this.request("/payments/razorpay/create-order", {
+      method: "POST",
+      body: JSON.stringify({ amount, currency, receipt }),
+    });
+  }
+
+  async verifyRazorpaySignature(payload: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) {
+    return this.request("/payments/razorpay/verify-signature", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  // ── Checkout & Availability Engine ──
+  async getCheckoutAvailability(query: {
+    cart_id?: string;
+    delivery_type?: "delivery" | "pickup";
+    pincode?: string;
+    branch_id?: string;
+    date?: string;
+    slot_id?: string;
+    coupon_code?: string;
+  }) {
+    const q = new URLSearchParams();
+    if (query.cart_id) q.set("cart_id", query.cart_id);
+    if (query.delivery_type) q.set("delivery_type", query.delivery_type);
+    if (query.pincode) q.set("pincode", query.pincode);
+    if (query.branch_id) q.set("branch_id", query.branch_id);
+    if (query.date) q.set("date", query.date);
+    if (query.slot_id) q.set("slot_id", query.slot_id);
+    if (query.coupon_code) q.set("coupon_code", query.coupon_code);
+    return this.request(`/checkout/availability?${q.toString()}`);
+  }
+
+  async validateCheckout(payload: any) {
+    return this.request("/checkout/validate", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async confirmCheckout(payload: any) {
+    return this.request("/checkout/confirm", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateBranchStoreOperations(branchId: string, operations: any) {
+    return this.request(`/admin/branches/${branchId}/operations`, {
+      method: "PUT",
+      body: JSON.stringify(operations),
+    });
+  }
+
+  // ── Delivery Slots ──
+  async getDeliverySlots(branchId: string, date?: string, mode: "delivery" | "pickup" = "delivery") {
+    const q = new URLSearchParams();
+    if (branchId) q.set("branch_id", branchId);
+    if (date) q.set("date", date);
+    if (mode) q.set("mode", mode);
+    return this.request(`/delivery/slots?${q.toString()}`).catch(() => ({ delivery_slots: [] }));
+  }
+
+  async checkDeliveryAvailability(pincode: string) {
+    return this.request(`/delivery/availability?pincode=${encodeURIComponent(pincode)}`).catch(() => ({ serviceable: false }));
+  }
+
+  // ── Customer Order History ──
+  async listOrders(customerId?: string, limit = 50) {
+    const q = new URLSearchParams();
+    if (customerId) q.set("customer_id", customerId);
+    q.set("limit", String(limit));
+    return this.request(`/orders?${q.toString()}`).catch(() => ({ orders: [], count: 0 }));
   }
 }
 

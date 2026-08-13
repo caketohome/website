@@ -243,13 +243,63 @@ export async function checkDeliveryAvailability(pincodeInput: string): Promise<{
   };
 }
 
-export async function getDeliverySlots(branchId: string, date: string): Promise<{ delivery_slots: Array<any> }> {
+export async function getCheckoutAvailability(query: {
+  cart_id?: string;
+  delivery_type?: "delivery" | "pickup";
+  pincode?: string;
+  branch_id?: string;
+  date?: string;
+  slot_id?: string;
+  coupon_code?: string;
+}) {
   try {
     const baseUrl = typeof window !== "undefined" ? "" : (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000");
-    const res = await fetch(`${baseUrl}/api/v1/branches?type=slots&branchId=${branchId}&date=${encodeURIComponent(date)}`);
+    const params = new URLSearchParams();
+    if (query.cart_id) params.set("cart_id", query.cart_id);
+    if (query.delivery_type) params.set("delivery_type", query.delivery_type);
+    if (query.pincode) params.set("pincode", query.pincode);
+    if (query.branch_id) params.set("branch_id", query.branch_id);
+    if (query.date) params.set("date", query.date);
+    if (query.slot_id) params.set("slot_id", query.slot_id);
+    if (query.coupon_code) params.set("coupon_code", query.coupon_code);
+
+    const res = await fetch(`${baseUrl}/api/v1/checkout/availability?${params.toString()}`);
+    const data = await res.json();
+    if (res.ok && data) {
+      return data;
+    }
+  } catch (err) {
+    console.error("Failed to fetch checkout availability:", err);
+  }
+
+  return {
+    success: false,
+    serviceable: false,
+    branch_id: null,
+    branch_name: null,
+    delivery_type: query.delivery_type || "delivery",
+    status_message: "Unable to verify service availability. Please try again.",
+    operating_status: "OPERATIONAL",
+    available_dates: [],
+    available_slots: [],
+    pricing: {
+      subtotal: 0,
+      discount: 0,
+      delivery_fee: 0,
+      slot_surcharge: 0,
+      tax: 0,
+      grand_total: 0,
+    },
+  };
+}
+
+export async function getDeliverySlots(branchId: string, date: string, mode: "delivery" | "pickup" = "delivery"): Promise<{ delivery_slots: Array<any>; status?: string; message?: string; is_open?: boolean }> {
+  try {
+    const baseUrl = typeof window !== "undefined" ? "" : (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000");
+    const res = await fetch(`${baseUrl}/api/v1/branches?type=slots&branchId=${encodeURIComponent(branchId)}&date=${encodeURIComponent(date)}&mode=${encodeURIComponent(mode)}`);
     const data = await res.json();
     if (res.ok && data && data.delivery_slots) {
-      return { delivery_slots: data.delivery_slots };
+      return { delivery_slots: data.delivery_slots, status: data.status, message: data.message, is_open: data.is_open };
     }
   } catch {
     // Fallback
@@ -257,9 +307,10 @@ export async function getDeliverySlots(branchId: string, date: string): Promise<
 
   return {
     delivery_slots: [
-      { id: "SLOT_STANDARD_MORNING", slot_name: "Morning Slot (10:00 AM - 01:00 PM)", start_time: "10:00", end_time: "13:00", extra_charge: 0, max_capacity: 30, booked_count: 5, available: true, remaining_capacity: 25 },
-      { id: "SLOT_EXPRESS_45MIN", slot_name: "⚡ Express 45-Min Delivery", start_time: "Now", end_time: "+45 Min", extra_charge: 49, max_capacity: 10, booked_count: 2, available: true, remaining_capacity: 8 },
-      { id: "SLOT_MIDNIGHT", slot_name: "🌙 Midnight Surprise (11:30 PM - 12:05 AM)", start_time: "23:30", end_time: "00:05", extra_charge: 149, max_capacity: 15, booked_count: 8, available: true, remaining_capacity: 7 },
+      { id: "SLOT_STANDARD_MORNING", slot_name: "Morning Slot (10:00 AM - 01:00 PM)", start_time: "10:00", end_time: "13:00", slot_type: "standard", extra_charge: 0, max_capacity: 30, booked_count: 5, available: true, remaining_capacity: 25, status: "AVAILABLE" },
+      { id: "SLOT_STANDARD_EVENING", slot_name: "Evening Slot (05:00 PM - 08:00 PM)", start_time: "17:00", end_time: "20:00", slot_type: "standard", extra_charge: 0, max_capacity: 30, booked_count: 8, available: true, remaining_capacity: 22, status: "AVAILABLE" },
+      { id: "SLOT_EXPRESS_45MIN", slot_name: "⚡ Express 45-Min Delivery", start_time: "Now", end_time: "+45 Min", slot_type: "express", extra_charge: 49, max_capacity: 10, booked_count: 2, available: true, remaining_capacity: 8, status: "AVAILABLE" },
+      { id: "SLOT_MIDNIGHT", slot_name: "🌙 Midnight Surprise (11:30 PM - 12:05 AM)", start_time: "23:30", end_time: "00:05", slot_type: "midnight", extra_charge: 79, max_capacity: 15, booked_count: 8, available: true, remaining_capacity: 7, status: "AVAILABLE" },
     ],
   };
 }

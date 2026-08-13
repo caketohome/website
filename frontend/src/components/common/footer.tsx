@@ -14,7 +14,7 @@ export default function Footer() {
       <Suspense fallback={null}>
         <FooterNavigation />
       </Suspense>
-      <Text className="flex gap-1 text-sm text-ui-fg">
+      <Text className="flex flex-wrap gap-1 text-xs sm:text-sm text-center px-4 justify-center text-ui-fg">
         © {new Date().getFullYear()} CakeToHome — Premium Cake & Bakery
         Ordering Platform
       </Text>

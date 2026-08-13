@@ -12,6 +12,7 @@ export type {
     SearchResult,
     SearchResponse,
     SearchFilters,
+    CatalogFilterOptions,
     ProductMeta,
     ProductReview,
     ReviewAggregate,
