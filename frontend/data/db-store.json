@@ -2111,6 +2111,103 @@
       ],
       "created_at": "2026-08-13T14:20:00.721Z",
       "updated_at": "2026-08-13T14:20:00.721Z"
+    },
+    {
+      "id": "br_1786632201270",
+      "status": "archived",
+      "is_archived": true,
+      "archived_at": "2026-08-13T14:43:21.577Z",
+      "code": "HUB-JYN-201269",
+      "name": "Jayanagar Hub 201269",
+      "linked_store_id": "store_blr_01",
+      "linked_store_name": "Crown Bakery Indiranagar",
+      "hierarchy": {
+        "region_id": "reg_south",
+        "state_id": "st_ka",
+        "city_id": "city_blr",
+        "zone_id": "zone_east"
+      },
+      "address": "4th Block Jayanagar",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "pincode": "560041",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "google_map_url": "",
+      "phone": "+91 98765 44444",
+      "whatsapp": "+91 98765 44444",
+      "email": "branch_1786632201270@cakes2home.com",
+      "manager_name": "Branch Manager",
+      "manager_user_id": "usr_mgr_default",
+      "manager_account": {
+        "name": "Branch Manager",
+        "phone": "+91 98765 44444",
+        "email": "manager_br_1786632201270@cakes2home.com",
+        "status": "active"
+      },
+      "branch_type": "main_hub",
+      "extended_status": "open",
+      "operating_hours": {
+        "Monday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Tuesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Wednesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Thursday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Friday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Saturday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Sunday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        }
+      },
+      "is_open": true,
+      "operational_status": "operational",
+      "max_orders_per_hour": 25,
+      "max_orders_per_day": 200,
+      "simultaneous_cakes_capacity": 15,
+      "current_hourly_load": 0,
+      "capacity_settings": {
+        "max_hourly_orders": 25,
+        "max_simultaneous_orders": 15,
+        "max_scheduled_orders": 50,
+        "max_express_orders": 20,
+        "max_midnight_orders": 15,
+        "busy_threshold": 80,
+        "emergency_stop": false,
+        "current_load": 0,
+        "auto_pause_enabled": true,
+        "is_auto_paused": false
+      },
+      "delivery_zones": [],
+      "deliverable_areas": [],
+      "product_availability": {},
+      "accessory_inventory": {},
+      "created_at": "2026-08-13T14:43:21.270Z",
+      "updated_at": "2026-08-13T14:43:21.577Z"
     }
   ],
   "cities": [
@@ -13540,6 +13637,41 @@
     }
   ],
   "audit_logs": [
+    {
+      "id": "log_1786632201577",
+      "action": "STORE_ARCHIVED: Store \"Jayanagar Hub 201269\" (HUB-JYN-201269) archived by Super Admin. Previous: ACTIVE → New: ARCHIVED",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-13T14:43:21.577Z"
+    },
+    {
+      "id": "log_1786632201537",
+      "action": "STORE_RESTORED: Store \"Jayanagar Hub 201269\" (HUB-JYN-201269) restored by Super Admin. Previous: ARCHIVED → New: ACTIVE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-13T14:43:21.537Z"
+    },
+    {
+      "id": "log_1786632201494",
+      "action": "STORE_ARCHIVED: Store \"Jayanagar Hub 201269\" (HUB-JYN-201269) archived by Super Admin. Previous: ACTIVE → New: ARCHIVED",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-13T14:43:21.494Z"
+    },
+    {
+      "id": "log_1786632201435",
+      "action": "New Order CTH-20260813-209 placed by Archive Tester (₹697) -> Assigned to Jayanagar Hub 201269",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-13T14:43:21.435Z"
+    },
+    {
+      "id": "log_1786632201270",
+      "action": "Saved Branch \"Jayanagar Hub 201269\" (HUB-JYN-201269)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-13T14:43:21.270Z"
+    },
     {
       "id": "log_1786630801184",
       "action": "Product Delivery Restriction Changed | Product: prod_1, Branch: br_indiranagar, Zone: br_indiranagar_z1, Status: RESTRICTED -> AVAILABLE, Changed by: super_admin",
@@ -32735,6 +32867,130 @@
     }
   ],
   "orders": [
+    {
+      "id": "ord_1786632201416_iu6pl",
+      "cart_id": "cart_arch_test_201269",
+      "order_number": "CTH-20260813-209",
+      "invoice_number": "CTH/26-27/000209",
+      "kot_number": "KOT-CTH-20260813-209",
+      "customer_id": "cus_archive_tester",
+      "customer_name": "Archive Tester",
+      "customer_phone": "+91 98765 00000",
+      "customer_email": "customer@cakes2home.com",
+      "delivery_address": "Jayanagar 4th block, , Bengaluru",
+      "landmark": "",
+      "pincode": "560041",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_1786632201270",
+      "branch_name": "Jayanagar Hub 201269",
+      "branch_code": "HUB-JYN-201269",
+      "items": [
+        {
+          "id": "item_1786632201342_784",
+          "product_id": "prod_1",
+          "variant_id": "var_prod_1",
+          "title": "Belgian Chocolate Truffle Cake",
+          "name": "Belgian Chocolate Truffle Cake",
+          "weight": "1.0 kg",
+          "shape": "Round",
+          "flavour": "Chocolate",
+          "eggless": true,
+          "quantity": 1,
+          "unit_price": 599,
+          "subtotal": 599,
+          "total": 599,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 570.48,
+          "tax_amount": 28.52,
+          "cgst": 14.26,
+          "sgst": 14.26,
+          "igst": 0,
+          "thumbnail": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
+          "cake_message": null,
+          "selected_addons": []
+        }
+      ],
+      "pricing": {
+        "subtotal": 599,
+        "discount": 0,
+        "applied_coupon": null,
+        "delivery_fee": 49,
+        "slot_surcharge": 49,
+        "taxable_value": 570.48,
+        "cgst": 14.26,
+        "sgst": 14.26,
+        "igst": 0,
+        "total_tax": 28.52,
+        "round_off": 0,
+        "grand_total": 697,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "hsn_code": "19059090",
+        "uqc": "NOS",
+        "gst_rate_pct": 5,
+        "supply_type": "INTRA-STATE",
+        "place_of_supply": "Karnataka (29)",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "taxable_value": 570.48,
+        "cgst": 14.26,
+        "sgst": 14.26,
+        "igst": 0,
+        "cess": 0,
+        "total_tax": 28.52
+      },
+      "subtotal": 599,
+      "total": 697,
+      "delivery_fee": 49,
+      "tax_total": 28.52,
+      "discount_total": 0,
+      "status": "confirmed",
+      "delivery_status": "shop_accepted",
+      "payment_status": "captured",
+      "payment_method": "Online Verified",
+      "transaction_id": "TXN_1786632201417",
+      "delivery_type": "delivery",
+      "delivery_date": "2026-08-13",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "5632",
+      "delivery_otp": "3277",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Celebration!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1786632201417",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-13T14:43:21.417Z",
+          "author": "Customer",
+          "notes": "Payment method: TEST_MODE"
+        },
+        {
+          "id": "tl_1786632201418",
+          "title": "Assigned to Kitchen: Jayanagar Hub 201269",
+          "time": "2026-08-13T14:43:21.417Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260813-209"
+        }
+      ],
+      "created_at": "2026-08-13T14:43:21.417Z",
+      "updated_at": "2026-08-13T14:43:21.417Z"
+    },
     {
       "id": "ord_1786630795464_03ffy",
       "cart_id": "cart_test_1786630795332",
@@ -55710,6 +55966,16 @@
       "total": 1298,
       "created_at": "2026-08-13T14:20:01.124Z",
       "updated_at": "2026-08-13T14:20:01.162Z"
+    },
+    "cart_arch_test_201269": {
+      "id": "cart_arch_test_201269",
+      "items": [],
+      "subtotal": 0,
+      "tax_total": 0,
+      "discount_total": 0,
+      "total": 0,
+      "created_at": "2026-08-13T14:43:21.321Z",
+      "updated_at": "2026-08-13T14:43:21.417Z"
     }
   },
   "media": [
@@ -62177,11 +62443,35 @@
       "created_by": "super_admin"
     }
   ],
-  "delivery_assignment_rules": {
-    "allow_cross_branch_fallback": false,
-    "require_working_hours": false,
-    "require_online_status": true,
-    "max_capacity_limit": 5,
-    "updated_at": "2026-08-13T14:20:01.102Z"
-  }
+  "partners": [
+    {
+      "id": "dlp_101",
+      "name": "Vikram Sethi",
+      "phone": "+91 98765 00001",
+      "role": "DELIVERY_PARTNER",
+      "status": "online",
+      "is_online": true
+    },
+    {
+      "id": "dlp_102",
+      "name": "Suresh Gowda",
+      "phone": "+91 98765 00002",
+      "role": "DELIVERY_PARTNER",
+      "status": "online",
+      "is_online": true
+    }
+  ],
+  "webhooks": [
+    {
+      "id": "wh_evt_1786632201456",
+      "event": "order.created",
+      "data": {
+        "order_id": "ord_1786632201416_iu6pl",
+        "order_number": "CTH-20260813-209",
+        "branch_id": "br_1786632201270"
+      },
+      "timestamp": "2026-08-13T14:43:21.456Z",
+      "status": "delivered_200_ok"
+    }
+  ]
 }
