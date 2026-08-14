@@ -19,7 +19,7 @@ export default async function RootLayout({
 
   return (
     <>
-      <nav className="flex px-4 md:px-10 h-16 bg-[#111111] text-white justify-between items-center sticky top-0 z-40 border-b border-white/10 shadow-[0_4px_18px_rgba(0,0,0,0.25)]">
+      <nav className="flex px-4 md:px-10 h-16 bg-[#111111] text-white justify-between items-center sticky top-0 z-50 border-b border-white/10 shadow-[0_4px_18px_rgba(0,0,0,0.25)]">
         <Link
           href="/"
           className="flex gap-2 items-center text-xl font-bold text-white hover:text-white transition-colors opacity-100"

@@ -33,7 +33,7 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
     address_1: "",
     address_2: "",
     area: "",
-    city: "Bengaluru",
+    city: "",
     state: "Karnataka",
     pincode: "560038",
     landmark: "",
@@ -705,7 +705,7 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
                         <div>
                           <Label className="text-xs font-semibold">City *</Label>
                           <Input
-                            placeholder="Bengaluru"
+                            placeholder="City"
                             value={addressForm.city}
                             onChange={(e) => setAddressForm((prev) => ({ ...prev, city: e.target.value }))}
                             className="mt-1 text-sm"
@@ -780,7 +780,7 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
                     >
                       {branches.map((b) => (
                         <option key={b.id} value={b.id}>
-                          {b.name} ({b.code}) — {b.city || "Bengaluru"}
+                          {b.name} ({b.code}) — {b.city || ""}
                         </option>
                       ))}
                     </select>

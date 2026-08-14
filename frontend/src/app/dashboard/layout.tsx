@@ -1,6 +1,5 @@
 import Footer from "@frontend/components/common/footer";
 import { ProfileBadge } from "@frontend/components/common/profile-badge";
-import { LogoutButton } from "@frontend/components/common/logout-button";
 import { retrieveUser } from "@frontend/lib/data";
 import { Text } from "@medusajs/ui";
 import type { Metadata } from "next";

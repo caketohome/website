@@ -131,7 +131,7 @@ async function runCheckoutVerification() {
   assert(validation.valid === true, "Checkout validation passed");
   assert(validation.pricing.subtotal === 649 * 3, `Authoritative subtotal ₹${validation.pricing.subtotal}`);
   assert(validation.pricing.discount === 200, `CAKE50 discount capped at ₹200 (actual: ₹${validation.pricing.discount})`);
-  assert(validation.pricing.grand_total === (649 * 3) - 200, `Grand total ₹${validation.pricing.grand_total} calculated server-side`);
+  assert(validation.pricing.grand_total === (649 * 3) - 200 + (validation.pricing.slot_charge ?? 49), `Grand total ₹${validation.pricing.grand_total} calculated server-side`);
 
   // ──────────────────────────────────────────────────────────────────────────
   // PHASE 9: STATUTORY GST CALCULATION VERIFICATION

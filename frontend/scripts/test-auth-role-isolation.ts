@@ -40,7 +40,7 @@ async function runAuthRoleIsolationTestSuite() {
   const phoneNewGuest = "+91 98765 00099";
 
   // Register Delivery Partner Suresh Kumar for phone 9000000002 if not present
-  const partners = ApiEngine.getAdminDeliveryPartners().partners;
+  const partners = ApiEngine.listDeliveryPartners();
   let driverRecord = partners.find((p: any) => (p.phone || "").replace(/\D/g, "").endsWith("9000000002"));
   if (!driverRecord) {
     driverRecord = {
@@ -62,9 +62,8 @@ async function runAuthRoleIsolationTestSuite() {
   }
 
   // Register Store Manager Rahul Kumar for phone 9000000003 if not present
-  const branches = ApiEngine.listBranches();
-  const targetBranch = branches[0];
-  targetBranch.manager_account = {
+  const rawBranch = ApiEngine.getBranchById("br_indiranagar") || ApiEngine.getBranchById("res_01KXYMAHGFPRY1G9TZKEVGAGAT") || ApiEngine.listBranches()[0];
+  const mgrAccount = {
     id: "shpmgr_manager_9000000003",
     employee_id: "EMP-9003",
     name: "Rahul Kumar",
@@ -73,24 +72,26 @@ async function runAuthRoleIsolationTestSuite() {
     role: "BRANCH_MANAGER",
     status: "active",
   };
-  targetBranch.manager_name = "Rahul Kumar";
-  targetBranch.phone = "+91 90000 00003";
+  rawBranch.manager_account = mgrAccount;
+  rawBranch.manager_name = "Rahul Kumar";
+  rawBranch.phone = "+91 90000 00003";
   ApiEngine.persist();
 
   // Register Customer Alex Johnson for phone 9000000001
-  const alexCust = {
-    id: "cus_9000000001",
-    user_id: "cus_9000000001",
-    customer_id: "cus_9000000001",
-    name: "Alex Johnson",
-    first_name: "Alex",
-    last_name: "Johnson",
-    phone: "+91 90000 00001",
-    email: "alex.johnson@cakes2home.com",
-    role: "CUSTOMER",
-  };
-  const customers = ApiEngine.getProducts(); // Trigger engine load
-  ApiEngine.resolveUserAccount({ userId: alexCust.id });
+  let custInStore = (ApiEngine.listCustomers() || []).find((c: any) => (c.phone || "").replace(/\D/g, "").endsWith("9000000001"));
+  if (custInStore) {
+    custInStore.name = "Alex Johnson";
+    custInStore.first_name = "Alex";
+    custInStore.last_name = "Johnson";
+    custInStore.email = "alex.johnson@cakes2home.com";
+  } else {
+    custInStore = ApiEngine.createCustomerAccount({
+      phone: "+91 90000 00001",
+      name: "Alex Johnson",
+      email: "alex.johnson@cakes2home.com",
+    });
+  }
+  ApiEngine.persist();
 
   // ── TEST 1: Customer Account OTP Verification ──
   console.log("TEST GROUP 1: Customer Authentication (9000000001)");

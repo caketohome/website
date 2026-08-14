@@ -9,7 +9,7 @@ import { getCacheTag } from "../data/cookies";
 
 export async function logout() {
   destroySession();
-  redirect("/");
+  redirect("/login");
 }
 
 export async function setRoleCookie(role: string): Promise<void> {

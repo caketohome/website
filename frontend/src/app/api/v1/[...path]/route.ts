@@ -752,9 +752,57 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
     }
     if (path === "admin/branches") return jsonWithDataSource({ branches: ApiEngine.getAdminBranches() }, "json-fallback");
-    if (path === "admin/cities") return jsonWithDataSource({ cities: ApiEngine.getAdminCities() }, "json-fallback");
+
+    // ── Multi-City Public + Admin Endpoints ──
+    if (path === "cities" || path === "store/cities") {
+      const cities = ApiEngine.listCities();
+      return jsonWithDataSource({ cities, success: true }, "json-fallback");
+    }
+    if (path.startsWith("cities/") && !path.startsWith("cities/admin")) {
+      const slug = path.replace("cities/", "");
+      const city = ApiEngine.getCityBySlug(slug) || ApiEngine.getCityById(slug);
+      if (!city) return jsonWithDataSource({ error: "City not found" }, "json-fallback", 404);
+      const stats = ApiEngine.getCityStats(city.id);
+      const branches = ApiEngine.getCityBranches(city.id);
+      return jsonWithDataSource({ city, stats, branches, success: true }, "json-fallback");
+    }
+    if (path === "delivery/resolve" || path === "store/delivery/resolve") {
+      const pincode = url.searchParams.get("pincode") || "";
+      const result = ApiEngine.resolveDeliveryContext(pincode);
+      return jsonWithDataSource({ ...result, success: result.serviceable }, "json-fallback");
+    }
+    if (path === "admin/cities") return jsonWithDataSource({ cities: ApiEngine.getAdminCities(), success: true }, "json-fallback");
+    if (path.startsWith("admin/cities/")) {
+      const cityId = path.replace("admin/cities/", "");
+      const city = ApiEngine.getCityById(cityId);
+      if (!city) return jsonWithDataSource({ error: "City not found" }, "json-fallback", 404);
+      return jsonWithDataSource({ city, stats: ApiEngine.getCityStats(cityId), success: true }, "json-fallback");
+    }
+    if (path === "admin/cities/migrate") {
+      const result = ApiEngine.migrateExistingDataToMultiCity();
+      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+    }
     if (path === "admin/regions") return jsonWithDataSource({ regions: ApiEngine.getAdminRegions() }, "json-fallback");
     if (path === "admin/categories" || path === "categories" || path === "admin/cms/categories") return jsonWithDataSource({ categories: ApiEngine.listPimCategories() }, "json-fallback");
+    if (path === "admin/occasions" || path === "occasions") return jsonWithDataSource({ occasions: ApiEngine.listOccasions(url.searchParams.get("status") || undefined), success: true }, "json-fallback");
+    if (path.startsWith("occasions/")) {
+      const slug = path.replace("occasions/", "");
+      const occ = ApiEngine.getOccasionBySlug(slug) || ApiEngine.getOccasionById(slug);
+      if (occ) return jsonWithDataSource({ occasion: occ, products: ApiEngine.getOccasionProducts(slug, url.searchParams.get("branchId") || undefined), success: true }, "json-fallback");
+      return jsonWithDataSource({ error: "Occasion not found" }, "json-fallback", 404);
+    }
+    if (path === "catalog/recommendations" || path === "store/recommendations") {
+      const recs = ApiEngine.getRecommendedProducts(
+        url.searchParams.get("productId") || undefined,
+        url.searchParams.get("occasion") || undefined,
+        {
+          limit: Number(url.searchParams.get("limit")) || 6,
+          branchId: url.searchParams.get("branchId") || undefined,
+          city: url.searchParams.get("city") || undefined,
+        }
+      );
+      return jsonWithDataSource({ ...recs, success: true }, "json-fallback");
+    }
     if (path === "admin/weights" || path === "weights") return jsonWithDataSource({ weights: ApiEngine.listVariantOptions("weight") }, "json-fallback");
     if (path === "admin/variants/options" || path === "variants/options") return jsonWithDataSource({ options: ApiEngine.listVariantOptions(url.searchParams.get("type") || undefined) }, "json-fallback");
     if (path.includes("/weight-prices")) {
@@ -834,7 +882,36 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/seo/keywords/trajectories") return jsonWithDataSource(ApiEngine.getSeoKeywordTrajectories(), "json-fallback");
     if (path === "admin/marketing-automation" || path === "marketing-automation") return jsonWithDataSource({ triggers: ApiEngine.getAdminAutomationTriggers() }, "json-fallback");
     if (path === "admin/notifications" || path === "notifications") return jsonWithDataSource({ notifications: ApiEngine.getAdminNotifications() }, "json-fallback");
-    if (path === "admin/settings") return jsonWithDataSource({ settings: ApiEngine.updateAdminSettings() }, "json-fallback");
+    if (path === "admin/settings") return jsonWithDataSource({ settings: ApiEngine.getAdminSettings() }, "json-fallback");
+    
+    // ── Enterprise Compliance & Statutory Endpoints (GET) ──
+    if (path === "admin/compliance/business-profile") return jsonWithDataSource({ profile: ApiEngine.getBusinessProfile() }, "json-fallback");
+    if (path === "admin/compliance/gst-registrations") return jsonWithDataSource({ registrations: ApiEngine.listGstRegistrations() }, "json-fallback");
+    if (path === "admin/compliance/fssai") return jsonWithDataSource({ compliance: ApiEngine.listBranchCompliance() }, "json-fallback");
+    if (path === "admin/compliance/overview") return jsonWithDataSource({ overview: ApiEngine.getFssaiComplianceOverview() }, "json-fallback");
+    if (path === "admin/compliance/documents") return jsonWithDataSource({ documents: ApiEngine.listComplianceDocuments(url.searchParams.get("entityType") || undefined, url.searchParams.get("entityId") || undefined) }, "json-fallback");
+    if (path === "admin/compliance/invoices") return jsonWithDataSource({ settings: ApiEngine.getInvoiceSettings() }, "json-fallback");
+    if (path === "admin/compliance/delivery-defaults") return jsonWithDataSource({ defaults: ApiEngine.getDeliveryDefaults() }, "json-fallback");
+    if (path === "admin/compliance/payments") return jsonWithDataSource({ payments: ApiEngine.getPaymentSettings() }, "json-fallback");
+    if (path === "admin/compliance/integrations") return jsonWithDataSource({ integrations: ApiEngine.getIntegrationSettings() }, "json-fallback");
+    if (path === "admin/compliance/all") {
+      return jsonWithDataSource({
+        profile: ApiEngine.getBusinessProfile(),
+        gstRegistrations: ApiEngine.listGstRegistrations(),
+        branchCompliance: ApiEngine.listBranchCompliance(),
+        overview: ApiEngine.getFssaiComplianceOverview(),
+        invoiceSettings: ApiEngine.getInvoiceSettings(),
+        deliveryDefaults: ApiEngine.getDeliveryDefaults(),
+        paymentSettings: ApiEngine.getPaymentSettings(),
+        integrationSettings: ApiEngine.getIntegrationSettings(),
+        documents: ApiEngine.listComplianceDocuments(),
+      }, "json-fallback");
+    }
+    if (path.startsWith("admin/branches/") && path.endsWith("/compliance")) {
+      const branchId = path.replace("admin/branches/", "").replace("/compliance", "");
+      return jsonWithDataSource({ compliance: ApiEngine.getBranchCompliance(branchId) }, "json-fallback");
+    }
+
     if (path === "admin/audit-logs") return jsonWithDataSource({ logs: ApiEngine.getAdminAuditLogs() }, "json-fallback");
     if (path === "admin/analytics/dashboard") return jsonWithDataSource({ metrics: ApiEngine.getAdminAnalytics() }, "json-fallback");
     if (path === "admin/security") return jsonWithDataSource({ config: ApiEngine.getAdminSecurityConfig() }, "json-fallback");
@@ -886,6 +963,15 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (backendRes) return backendRes;
 
     // 2. Fallback Route: Disk-Backed ApiEngine
+    if (path === "auth/logout" || path === "user/logout" || path === "admin/logout" || path === "store/auth/logout") {
+      const res = jsonWithDataSource({ success: true, message: "Logged out successfully" }, "json-fallback");
+      const cookieNames = ["_cth_jwt", "_medusa_jwt", "_cth_role", "_cth_user_id", "_cth_phone", "_cth_branch_id", "_cth_shop_id", "_cth_partner_id", "_cth_cart_id", "_medusa_cart_id"];
+      cookieNames.forEach((n) => {
+        res.cookies.set(n, "", { path: "/", maxAge: 0, expires: new Date(0) });
+      });
+      return res;
+    }
+
     if (path === "auth/user/emailpass" || path === "auth/login") {
       return jsonWithDataSource(
         {
@@ -999,6 +1085,26 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
     if (path === "admin/cities") {
       return jsonWithDataSource({ city: ApiEngine.createAdminCity(body), success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/cities/") && path.endsWith("/archive")) {
+      const cityId = path.replace("admin/cities/", "").replace("/archive", "");
+      const city = ApiEngine.archiveAdminCity(cityId);
+      if (!city) return jsonWithDataSource({ error: "City not found" }, "json-fallback", 404);
+      return jsonWithDataSource({ city, success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/cities/") && path.endsWith("/restore")) {
+      const cityId = path.replace("admin/cities/", "").replace("/restore", "");
+      const city = ApiEngine.restoreAdminCity(cityId);
+      if (!city) return jsonWithDataSource({ error: "City not found" }, "json-fallback", 404);
+      return jsonWithDataSource({ city, success: true }, "json-fallback");
+    }
+    if (path === "delivery/resolve" || path === "store/delivery/resolve") {
+      const result = ApiEngine.resolveDeliveryContext(body.pincode || "");
+      return jsonWithDataSource({ ...result, success: result.serviceable }, "json-fallback");
+    }
+    if (path === "admin/cities/migrate") {
+      const result = ApiEngine.migrateExistingDataToMultiCity();
+      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
     }
     if (path === "admin/regions") {
       return jsonWithDataSource({ region: ApiEngine.createAdminRegion(body), success: true }, "json-fallback");
@@ -1174,16 +1280,86 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ settings: ApiEngine.updateAdminSettings(body), success: true }, "json-fallback");
     }
 
+    // ── Enterprise Compliance & Statutory Endpoints (POST) ──
+    if (path === "admin/compliance/business-profile") {
+      return jsonWithDataSource({ profile: ApiEngine.updateBusinessProfile(body), success: true }, "json-fallback");
+    }
+    if (path === "admin/compliance/gst-registrations") {
+      return jsonWithDataSource({ registration: ApiEngine.createGstRegistration(body), success: true }, "json-fallback", 201);
+    }
+    if (path.startsWith("admin/compliance/gst-registrations/") && path.endsWith("/verify")) {
+      const id = path.replace("admin/compliance/gst-registrations/", "").replace("/verify", "");
+      return jsonWithDataSource({ registration: await ApiEngine.verifyGstRegistration(id), success: true }, "json-fallback");
+    }
+    if (path === "admin/compliance/fssai") {
+      return jsonWithDataSource({ compliance: ApiEngine.createBranchCompliance(body), success: true }, "json-fallback", 201);
+    }
+    if (path.startsWith("admin/compliance/fssai/") && path.endsWith("/verify")) {
+      const id = path.replace("admin/compliance/fssai/", "").replace("/verify", "");
+      return jsonWithDataSource({ compliance: await ApiEngine.verifyBranchCompliance(id), success: true }, "json-fallback");
+    }
+    if (path === "admin/compliance/documents") {
+      return jsonWithDataSource({ document: ApiEngine.createComplianceDocument(body), success: true }, "json-fallback", 201);
+    }
+
+    // Categories Management
+    if (path === "admin/categories" || path === "categories") {
+      return jsonWithDataSource({ category: ApiEngine.createPimCategory(body), success: true }, "json-fallback", 201);
+    }
+    if (path.startsWith("admin/categories/") && path.endsWith("/restore")) {
+      const id = path.replace("admin/categories/", "").replace("/restore", "");
+      return jsonWithDataSource({ success: ApiEngine.restorePimCategory(id) }, "json-fallback");
+    }
+
+    // Occasions Taxonomy Management
+    if (path === "admin/occasions" || path === "occasions") {
+      return jsonWithDataSource({ occasion: ApiEngine.createOccasion(body), success: true }, "json-fallback", 201);
+    }
+    if (path === "admin/occasions/migrate" || path === "occasions/migrate") {
+      return jsonWithDataSource({ result: ApiEngine.migrateOccasions(), success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/occasions/") && path.endsWith("/restore")) {
+      const id = path.replace("admin/occasions/", "").replace("/restore", "");
+      return jsonWithDataSource({ success: ApiEngine.restoreOccasion(id) }, "json-fallback");
+    }
+
     // Media Upload & Management
     if (path === "admin/media" || path === "admin/media/create") {
       return jsonWithDataSource({ media: ApiEngine.createMedia(body) }, "json-fallback", 201);
     }
     if (path === "admin/media/upload") {
+      // 1. Security & Format Validation
+      const mimeType = (body.mime_type || "").toLowerCase();
+      const allowedMimes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/avif"];
+      
+      // Reject SVG, HTML, executable scripts
+      if (mimeType.includes("svg") || mimeType.includes("html") || mimeType.includes("xml") || mimeType.includes("javascript")) {
+        return jsonWithDataSource({ error: "Invalid format. SVG, HTML, and executable files are strictly prohibited." }, "json-fallback", 400);
+      }
+
+      if (mimeType && !allowedMimes.includes(mimeType)) {
+        return jsonWithDataSource({ error: "Unsupported image format. Allowed: JPG, PNG, WebP." }, "json-fallback", 400);
+      }
+
+      // Max size validation (10 MB)
+      const maxSizeBytes = 10 * 1024 * 1024;
+      if (body.size && Number(body.size) > maxSizeBytes) {
+        return jsonWithDataSource({ error: "File exceeds 10MB limit." }, "json-fallback", 400);
+      }
+
       let mediaUrl = body.url;
-      const fileName = body.filename || `upload_${Date.now()}.jpg`;
+      const rawExt = (body.filename || "").split(".").pop()?.toLowerCase() || "webp";
+      const safeExt = ["jpg", "jpeg", "png", "webp", "avif"].includes(rawExt) ? rawExt : "webp";
+      const safeUniqueName = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${safeExt}`;
       
       // If base64 payload provided, save to public/uploads directory
       if (body.dataUrl && typeof body.dataUrl === "string" && body.dataUrl.startsWith("data:")) {
+        // Deep inspection of payload for dangerous tags
+        const lowerData = body.dataUrl.substring(0, 200).toLowerCase();
+        if (lowerData.includes("<svg") || lowerData.includes("<?xml") || lowerData.includes("<script") || lowerData.includes("<!doctype")) {
+          return jsonWithDataSource({ error: "Security violation: File contains prohibited markup." }, "json-fallback", 400);
+        }
+
         try {
           const fs = await import("fs");
           const pathModule = await import("path");
@@ -1197,10 +1373,9 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           }
           const base64Data = body.dataUrl.split(";base64,").pop();
           if (base64Data) {
-            const cleanName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9._-]/g, "")}`;
-            const targetPath = pathModule.join(uploadsDir, cleanName);
+            const targetPath = pathModule.join(uploadsDir, safeUniqueName);
             fs.writeFileSync(targetPath, Buffer.from(base64Data, "base64"));
-            mediaUrl = `/uploads/${cleanName}`;
+            mediaUrl = `/uploads/${safeUniqueName}`;
           }
         } catch (err) {
           console.error("Failed to write uploaded file to disk:", err);
@@ -1208,11 +1383,11 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
 
       const registered = ApiEngine.createMedia({
-        name: body.name || fileName,
-        filename: fileName,
+        name: body.name || safeUniqueName,
+        filename: safeUniqueName,
         url: mediaUrl || body.dataUrl || "",
         thumbnail_url: mediaUrl || body.dataUrl || "",
-        mime_type: body.mime_type || "image/jpeg",
+        mime_type: mimeType || "image/webp",
         size: body.size || 150000,
         alt_text: body.alt_text || body.alt || body.name || "",
         folder: body.folder || "uploads",
@@ -1220,7 +1395,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         height: body.height || 800,
       });
 
-      return jsonWithDataSource({ media: registered, success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ media: registered, success: true, url: registered.url }, "json-fallback", 201);
     }
 
     // CMS Configurator
@@ -1285,6 +1460,16 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ address, success: true }, "json-fallback");
     }
 
+    if (path.startsWith("admin/categories/") || path.startsWith("categories/")) {
+      const id = path.replace("admin/categories/", "").replace("categories/", "");
+      return jsonWithDataSource({ category: ApiEngine.updatePimCategory(id, body), success: true }, "json-fallback");
+    }
+
+    if (path.startsWith("admin/occasions/") || path.startsWith("occasions/")) {
+      const id = path.replace("admin/occasions/", "").replace("occasions/", "");
+      return jsonWithDataSource({ occasion: ApiEngine.updateOccasion(id, body), success: true }, "json-fallback");
+    }
+
     if (path.startsWith("admin/branches/") && path.endsWith("/operations")) {
       const id = path.replace("admin/branches/", "").replace("/operations", "");
       return jsonWithDataSource({ branch: ApiEngine.updateBranchStoreOperations(id, body), success: true }, "json-fallback");
@@ -1292,6 +1477,12 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     if (path.startsWith("admin/branches/")) {
       const id = path.replace("admin/branches/", "");
       return jsonWithDataSource({ branch: ApiEngine.updateAdminBranch(id, body), success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/cities/")) {
+      const id = path.replace("admin/cities/", "");
+      const city = ApiEngine.updateAdminCity(id, body);
+      if (!city) return jsonWithDataSource({ error: "City not found" }, "json-fallback", 404);
+      return jsonWithDataSource({ city, success: true }, "json-fallback");
     }
     if (path.includes("/weight-prices")) {
       const prodId = extractProductIdFromPath(path);
@@ -1340,6 +1531,35 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     }
     if (path === "admin/settings") {
       return jsonWithDataSource({ settings: ApiEngine.updateAdminSettings(body), success: true }, "json-fallback");
+    }
+
+    // ── Enterprise Compliance & Statutory Endpoints (PUT) ──
+    if (path === "admin/compliance/business-profile") {
+      return jsonWithDataSource({ profile: ApiEngine.updateBusinessProfile(body), success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/compliance/gst-registrations/")) {
+      const id = path.replace("admin/compliance/gst-registrations/", "");
+      return jsonWithDataSource({ registration: ApiEngine.updateGstRegistration(id, body), success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/compliance/fssai/")) {
+      const id = path.replace("admin/compliance/fssai/", "");
+      return jsonWithDataSource({ compliance: ApiEngine.updateBranchCompliance(id, body), success: true }, "json-fallback");
+    }
+    if (path === "admin/compliance/invoices") {
+      return jsonWithDataSource({ settings: ApiEngine.updateInvoiceSettings(body), success: true }, "json-fallback");
+    }
+    if (path === "admin/compliance/delivery-defaults") {
+      return jsonWithDataSource({ defaults: ApiEngine.updateDeliveryDefaults(body), success: true }, "json-fallback");
+    }
+    if (path === "admin/compliance/payments") {
+      return jsonWithDataSource({ payments: ApiEngine.updatePaymentSettings(body), success: true }, "json-fallback");
+    }
+    if (path === "admin/compliance/integrations") {
+      return jsonWithDataSource({ integrations: ApiEngine.updateIntegrationSettings(body), success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/branches/") && path.endsWith("/compliance")) {
+      const branchId = path.replace("admin/branches/", "").replace("/compliance", "");
+      return jsonWithDataSource({ compliance: ApiEngine.updateBranchCompliance(branchId, body), success: true }, "json-fallback");
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -1494,6 +1714,17 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       return jsonWithDataSource({ deleted, success: true }, "json-fallback");
     }
 
+    if (path.startsWith("admin/categories/") || path.startsWith("categories/")) {
+      const id = path.replace("admin/categories/", "").replace("categories/", "");
+      return jsonWithDataSource({ deleted: ApiEngine.deletePimCategory(id), success: true }, "json-fallback");
+    }
+
+    if (path.startsWith("admin/occasions/") || path.startsWith("occasions/")) {
+      const id = path.replace("admin/occasions/", "").replace("occasions/", "");
+      const res = ApiEngine.archiveOccasion(id);
+      return jsonWithDataSource(res, "json-fallback");
+    }
+
     if (path.startsWith("admin/branches/")) {
       const id = path.replace("admin/branches/", "");
       return jsonWithDataSource({ deleted: ApiEngine.deleteAdminBranch(id), success: true }, "json-fallback");
@@ -1512,6 +1743,11 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     if (path.startsWith("admin/media/")) {
       const id = path.replace("admin/media/", "");
       return jsonWithDataSource({ deleted: ApiEngine.deleteMedia(id), success: true }, "json-fallback");
+    }
+
+    if (path.startsWith("admin/compliance/documents/")) {
+      const id = path.replace("admin/compliance/documents/", "");
+      return jsonWithDataSource({ deleted: ApiEngine.deleteComplianceDocument(id), success: true }, "json-fallback");
     }
 
     if (path.startsWith("cms/pages/")) {

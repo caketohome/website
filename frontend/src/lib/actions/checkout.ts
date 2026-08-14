@@ -128,9 +128,9 @@ export async function placeOrder(prevState: any, data: FormData) {
   const email = data.get("email")?.toString() || "customer@cakes2home.com";
   const addressLine1 = data.get("address-line1")?.toString() || data.get("address")?.toString() || "Address on File";
   const addressLine2 = data.get("address-line2")?.toString() || "";
-  const city = data.get("city")?.toString() || "Bengaluru";
-  const state = data.get("state")?.toString() || "Karnataka";
-  const pincode = data.get("zip")?.toString() || data.get("pincode")?.toString() || cookieStore.get("delivery_pincode")?.value || "560038";
+  const city = data.get("city")?.toString() || cookieStore.get("delivery_city")?.value || "";
+  const state = data.get("state")?.toString() || "";
+  const pincode = data.get("zip")?.toString() || data.get("pincode")?.toString() || cookieStore.get("delivery_pincode")?.value || "";
   const landmark = data.get("landmark")?.toString() || "";
 
   const deliveryDate = data.get("delivery-date")?.toString() || new Date().toISOString().slice(0, 10);

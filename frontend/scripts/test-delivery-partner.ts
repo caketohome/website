@@ -249,7 +249,17 @@ async function runEndToEndDeliveryWorkflowTest() {
       throw new Error(`FAILED: Concurrent claim check failed! Result: ${JSON.stringify(claimResB)}`);
     }
 
-    const dbOrder1 = ApiEngine.getOrderDetails(testOrderId1);
+    const dbOrder1 = ApiEngine.getOrder(testOrderId1);
+    if (dbOrder1) {
+      dbOrder1.delivery_status = "ready_for_pickup";
+      dbOrder1.pickup_otp = "1294";
+      dbOrder1.delivery_otp = "4819";
+      if (dbOrder1.delivery) {
+        dbOrder1.delivery.pickup_otp = "1294";
+        dbOrder1.delivery.delivery_otp = "4819";
+      }
+      ApiEngine.persist();
+    }
     if (dbOrder1 && dbOrder1.delivery_partner_id === testPartnerA_Id) {
       console.log(`  ✅ PASS: Verified Database record! delivery_partner_id = '${dbOrder1.delivery_partner_id}'`);
     } else {

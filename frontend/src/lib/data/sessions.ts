@@ -28,15 +28,31 @@ export function retrieveSession() {
 }
 
 export function destroySession() {
-  cookies().delete("_cth_jwt");
-  cookies().delete("_medusa_jwt");
-  cookies().delete("_cth_role");
-  cookies().delete("_cth_user_id");
-  cookies().delete("_cth_phone");
-  cookies().delete("_cth_branch_id");
-  cookies().delete("_cth_shop_id");
-  cookies().delete("_cth_partner_id");
+  const cookieNames = [
+    "_cth_jwt",
+    "_medusa_jwt",
+    "_cth_role",
+    "_cth_user_id",
+    "_cth_phone",
+    "_cth_branch_id",
+    "_cth_shop_id",
+    "_cth_partner_id",
+    "_cth_cart_id",
+    "_medusa_cart_id",
+  ];
+
+  const cookieStore = cookies();
+  cookieNames.forEach((name) => {
+    try {
+      cookieStore.delete(name);
+      cookieStore.set(name, "", { path: "/", maxAge: 0, expires: new Date(0) });
+    } catch {
+      // Ignore
+    }
+  });
+
   revalidateTag("user");
+  revalidateTag("users");
 }
 
 export async function decrypt(session: string | undefined = ""): Promise<object | { message: string }> {

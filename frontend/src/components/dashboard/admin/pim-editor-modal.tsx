@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Container, Heading, Text, Badge, Input, Button, Label } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
 import { CategorySelectDropdown } from "./category-select-dropdown";
+import { OccasionSelector } from "./occasion-selector";
 import { compressImageToWebP } from "@frontend/lib/util/image-compressor";
 import { TaxMasterService } from "@backend/src/services/tax-engine";
 import {
@@ -55,6 +56,20 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
   const [shortDesc, setShortDesc] = useState(product?.short_description || "Handcrafted fresh gourmet cake.");
   const [tags, setTags] = useState(product?.tags || "chocolate, celebration, birthday");
   const [occasion, setOccasion] = useState(product?.occasion || "Birthday");
+  const [occasionIds, setOccasionIds] = useState<string[]>(() => {
+    if (Array.isArray(product?.occasion_ids) && product.occasion_ids.length > 0) {
+      return product.occasion_ids;
+    }
+    if (product?.occasion) {
+      const raw = String(product.occasion).toLowerCase();
+      if (raw.includes("anniversary")) return ["occ_anniversary"];
+      if (raw.includes("wedding")) return ["occ_wedding"];
+      if (raw.includes("valentine")) return ["occ_valentines_day"];
+      if (raw.includes("kids") || raw.includes("baby")) return ["occ_baby_birthday"];
+      return ["occ_birthday"];
+    }
+    return ["occ_birthday"];
+  });
   const [brand, setBrand] = useState(product?.brand || "CakeToHome Signature");
   const [cakeType, setCakeType] = useState(product?.cake_type || "Layer Cake");
 
@@ -353,6 +368,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       is_published: true,
       tags,
       occasion,
+      occasion_ids: occasionIds,
       brand,
       cake_type: cakeType,
       category: primaryCategoryName,
@@ -552,12 +568,23 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
               </div>
 
               <div>
-                <Label htmlFor="pim_occ">Occasion Target</Label>
-                <Input id="pim_occ" value={occasion} onChange={(e) => setOccasion(e.target.value)} />
-              </div>
-              <div>
                 <Label htmlFor="pim_brand">Brand / Bakery Studio</Label>
                 <Input id="pim_brand" value={brand} onChange={(e) => setBrand(e.target.value)} />
+              </div>
+
+              {/* Structured Multi-Select Occasion Taxonomy */}
+              <div className="md:col-span-2">
+                <OccasionSelector
+                  label="Occasion Target & Celebrations"
+                  selectedIds={occasionIds}
+                  onChange={(ids) => {
+                    setOccasionIds(ids);
+                    if (ids.length > 0) {
+                      setOccasion(ids[0].replace(/^occ_/, "").replace(/_/g, " "));
+                    }
+                  }}
+                  helperText="Multi-select celebration occasions. Connects to smart cross-sell rules, upselling engines, and storefront occasion discovery."
+                />
               </div>
 
               {/* Merchandising & Dietary Flags */}

@@ -96,9 +96,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const variantId = `var_${productId}`;
 
   // Fetch dynamic PIM configuration from database engine
-  const weightPrices = ApiEngine.getProductWeightPrices(productId);
-  const masterVariantOptions = ApiEngine.listVariantOptions();
-  const pimConfig = ApiEngine.getProductPimConfig(fetched);
+  const weightPrices = (fetched as any)?.weight_prices || (fetched as any)?.weights || [];
+  const masterVariantOptions = (fetched as any)?.variant_options || [];
+  const pimConfig = (fetched as any)?.pim_config || {};
 
   return (
     <>

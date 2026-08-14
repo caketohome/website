@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Heading, Text, Badge, Input, Button, Label } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
 import { Sliders, Plus, Edit3, Trash2, CheckCircle, Wand2 } from "lucide-react";
+import { OccasionSelector } from "./occasion-selector";
 
 export function CrossSellRulesPanel() {
   const [rules, setRules] = useState<any[]>([]);
@@ -14,7 +15,7 @@ export function CrossSellRulesPanel() {
 
   // Form State
   const [name, setName] = useState("");
-  const [occasion, setOccasion] = useState("Birthday");
+  const [occasionIds, setOccasionIds] = useState<string[]>(["occ_birthday"]);
   const [selectedAccessoryIds, setSelectedAccessoryIds] = useState<string[]>([]);
   const [priority, setPriority] = useState("1");
   const [status, setStatus] = useState<"active" | "inactive">("active");
@@ -41,7 +42,7 @@ export function CrossSellRulesPanel() {
   const handleOpenCreate = () => {
     setEditingRule(null);
     setName("Birthday Party Smart Cross-Sell");
-    setOccasion("Birthday");
+    setOccasionIds(["occ_birthday"]);
     setSelectedAccessoryIds(accessories.slice(0, 4).map((a) => a.id));
     setPriority("1");
     setStatus("active");
@@ -51,7 +52,10 @@ export function CrossSellRulesPanel() {
   const handleOpenEdit = (rule: any) => {
     setEditingRule(rule);
     setName(rule.name || "");
-    setOccasion(rule.occasion || "Birthday");
+    const initialOccIds = Array.isArray(rule.occasion_ids) && rule.occasion_ids.length > 0
+      ? rule.occasion_ids
+      : (rule.occasion ? [rule.occasion.toLowerCase().includes("anniv") ? "occ_anniversary" : "occ_birthday"] : []);
+    setOccasionIds(initialOccIds);
     setSelectedAccessoryIds(Array.isArray(rule.accessory_ids) ? rule.accessory_ids : []);
     setPriority(String(rule.priority || 1));
     setStatus(rule.status || "active");
@@ -73,7 +77,8 @@ export function CrossSellRulesPanel() {
       type: "rule",
       id: editingRule?.id,
       name,
-      occasion,
+      occasion: occasionIds.length > 0 ? occasionIds[0] : "General",
+      occasion_ids: occasionIds,
       accessory_ids: selectedAccessoryIds,
       priority: parseInt(priority, 10) || 1,
       status,
@@ -99,7 +104,7 @@ export function CrossSellRulesPanel() {
             <Wand2 className="w-5 h-5 text-purple-600" /> Smart Auto-Mapping Rule Engine ({rules.length})
           </Heading>
           <Text className="text-xs text-purple-700 dark:text-purple-300">
-            Automatically maps accessories to cake products based on occasion (Birthday, Anniversary, Wedding, Kids) and category rules.
+            Automatically maps accessories to cake products based on structured occasion taxonomy and category rules.
           </Text>
         </div>
 
@@ -117,12 +122,20 @@ export function CrossSellRulesPanel() {
         ) : (
           rules.map((rule) => {
             const mappedAccs = accessories.filter((a) => (rule.accessory_ids || []).includes(a.id));
+            const ruleOccs = Array.isArray(rule.occasion_ids) && rule.occasion_ids.length > 0
+              ? rule.occasion_ids
+              : (rule.occasion ? [rule.occasion] : []);
+
             return (
               <div key={rule.id} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-bold text-sm text-slate-900 dark:text-white">{rule.name}</span>
-                    <Badge color="purple">Occasion: {rule.occasion || "General"}</Badge>
+                    {ruleOccs.map((occ: string) => (
+                      <Badge key={occ} color="purple" className="text-[10px]">
+                        {occ.replace(/^occ_/, "")}
+                      </Badge>
+                    ))}
                   </div>
                   <div className="flex items-center gap-1">
                     <Button size="small" variant="transparent" onClick={() => handleOpenEdit(rule)}>
@@ -131,16 +144,22 @@ export function CrossSellRulesPanel() {
                   </div>
                 </div>
 
-                <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                  Mapped Accessories ({mappedAccs.length}):
+                <div className="text-xs text-slate-500 flex items-center justify-between">
+                  <span>Priority: #{rule.priority}</span>
+                  <Badge color={rule.status === "active" ? "green" : "grey"}>{rule.status}</Badge>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5">
-                  {mappedAccs.map((acc) => (
-                    <span key={acc.id} className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded font-semibold text-[11px] flex items-center gap-1">
-                      🎁 {acc.name} (₹{acc.price})
-                    </span>
-                  ))}
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <span className="text-[11px] font-bold text-slate-400 block mb-1">
+                    Mapped Celebration Accessories ({mappedAccs.length}):
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {mappedAccs.map((acc) => (
+                      <span key={acc.id} className="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {acc.name}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             );
@@ -150,12 +169,12 @@ export function CrossSellRulesPanel() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col my-8">
-            <div className="p-4 border-b flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
-              <Heading level="h3" className="text-base font-bold flex items-center gap-2">
-                <Wand2 className="w-5 h-5 text-purple-600" />
-                {editingRule ? `Edit Rule: ${editingRule.name}` : "Create Smart Cross-Sell Rule"}
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full border shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-b flex items-center justify-between">
+              <Heading level="h3" className="text-sm font-bold flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-purple-600" />
+                {editingRule ? "Edit Cross-Sell Rule" : "Create Smart Cross-Sell Rule"}
               </Heading>
               <Button size="small" variant="transparent" onClick={() => setShowModal(false)}>Close</Button>
             </div>
@@ -167,18 +186,12 @@ export function CrossSellRulesPanel() {
               </div>
 
               <div>
-                <Label>Target Occasion</Label>
-                <select
-                  value={occasion}
-                  onChange={(e) => setOccasion(e.target.value)}
-                  className="w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900"
-                >
-                  <option value="Birthday">Birthday</option>
-                  <option value="Anniversary">Anniversary</option>
-                  <option value="Wedding">Wedding</option>
-                  <option value="Kids">Kids Party</option>
-                  <option value="General">General / All Occasions</option>
-                </select>
+                <OccasionSelector
+                  label="Target Celebration Occasions"
+                  selectedIds={occasionIds}
+                  onChange={setOccasionIds}
+                  helperText="Accessories in this rule trigger whenever a product matching these occasions is viewed or added to cart."
+                />
               </div>
 
               <div>
@@ -202,10 +215,28 @@ export function CrossSellRulesPanel() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t flex justify-end gap-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Priority Weight</Label>
+                  <Input type="number" value={priority} onChange={(e) => setPriority(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <select
+                    value={status}
+                    onChange={(e: any) => setStatus(e.target.value)}
+                    className="w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t flex justify-end gap-2">
                 <Button type="button" variant="transparent" onClick={() => setShowModal(false)}>Cancel</Button>
                 <Button type="submit" isLoading={submitting} className="bg-purple-600 hover:bg-purple-700 text-white font-bold">
-                  Save Rule
+                  {editingRule ? "Save Rule" : "Create Rule"}
                 </Button>
               </div>
             </form>

@@ -9,13 +9,17 @@ import { BranchProductAvailabilityModal } from "./branch-product-availability-mo
 import { BranchAccessoryInventoryModal } from "./branch-accessory-inventory-modal";
 import { BranchOperationsModal } from "./branch-operations-modal";
 import { BranchZoneProductRestrictionsModal } from "./branch-zone-product-restrictions-modal";
+import { BranchComplianceModal } from "./compliance/branch-compliance-modal";
 import { TableSkeleton } from "./admin-skeletons";
 import { WidgetErrorBoundary } from "./error-boundary";
 
 const STORES_LIST = [];
 
 export const BranchesPanel = memo(function BranchesPanel() {
+  const [tab, setTab] = useState<"branches" | "pincodes">("branches");
   const [branches, setBranches] = useState<any[]>([]);
+  const [gstRegistrations, setGstRegistrations] = useState<any[]>([]);
+  const [complianceList, setComplianceList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lifecycleFilter, setLifecycleFilter] = useState<"active" | "archived" | "all">("active");
@@ -24,10 +28,13 @@ export const BranchesPanel = memo(function BranchesPanel() {
   const [actionSubmitting, setActionSubmitting] = useState(false);
 
   // Operational Modals
+  const [showModal, setShowModal] = useState(false);
+  const [editingBranch, setEditingBranch] = useState<any | null>(null);
   const [activeProductModalBranch, setActiveProductModalBranch] = useState<any | null>(null);
   const [activeAccessoryModalBranch, setActiveAccessoryModalBranch] = useState<any | null>(null);
   const [activeOperationsModalBranch, setActiveOperationsModalBranch] = useState<any | null>(null);
   const [activeZoneRestrictionsBranch, setActiveZoneRestrictionsBranch] = useState<any | null>(null);
+  const [activeComplianceModalBranch, setActiveComplianceModalBranch] = useState<any | null>(null);
 
   // Form State
   const [name, setName] = useState("");
@@ -35,7 +42,9 @@ export const BranchesPanel = memo(function BranchesPanel() {
   const [linkedStoreId, setLinkedStoreId] = useState("");
   const [branchType, setBranchType] = useState<string>("main_hub");
   const [extendedStatus, setExtendedStatus] = useState<string>("open");
-  const [city, setCity] = useState("Bengaluru");
+  const [city, setCity] = useState("");
+  const [cityId, setCityId] = useState("");
+  const [citiesList, setCitiesList] = useState<any[]>([]);
   const [state, setState] = useState("Karnataka");
   const [pincode, setPincode] = useState("560038");
   const [address, setAddress] = useState("");
@@ -50,8 +59,11 @@ export const BranchesPanel = memo(function BranchesPanel() {
   const fetchBranches = () => {
     setLoading(true);
     setError(null);
-    apiClient.getAdminBranches()
-      .then((r: any) => setBranches(r?.branches || r?.data || []))
+    Promise.all([
+      apiClient.getAdminBranches().then((r: any) => setBranches(r?.branches || r?.data || [])),
+      apiClient.getGstRegistrations().then((r: any) => setGstRegistrations(r?.registrations || [])).catch(() => {}),
+      apiClient.getBranchCompliance().then((r: any) => setComplianceList(r?.compliance || [])).catch(() => {}),
+    ])
       .catch((err) => {
         console.error("[Branches Panel Error] Failed to fetch branches:", err);
         setError(err.message || "Failed to load branch operations");
@@ -62,6 +74,7 @@ export const BranchesPanel = memo(function BranchesPanel() {
 
   useEffect(() => {
     fetchBranches();
+    apiClient.getAdminCities().then((r: any) => setCitiesList(r?.cities || [])).catch(() => {});
   }, []);
 
   const handleConfirmArchive = async () => {
@@ -101,8 +114,9 @@ export const BranchesPanel = memo(function BranchesPanel() {
     setLinkedStoreId("");
     setBranchType("main_hub");
     setExtendedStatus("open");
-    setCity("Bengaluru");
-    setState("Karnataka");
+    setCity("");
+    setCityId("");
+    setState("");
     setPincode("560038");
     setAddress("");
     setPhone("+91 98765 00000");
@@ -121,8 +135,9 @@ export const BranchesPanel = memo(function BranchesPanel() {
     setLinkedStoreId(b.linked_store_id || "");
     setBranchType(b.branch_type || "main_hub");
     setExtendedStatus(b.extended_status || b.operational_status || "open");
-    setCity(b.city || "Bengaluru");
-    setState(b.state || "Karnataka");
+    setCity(b.city || "");
+    setCityId(b.city_id || "");
+    setState(b.state || "");
     setPincode(b.pincode || "560038");
     setAddress(b.address || "");
     setPhone(b.phone || "");
@@ -175,6 +190,7 @@ export const BranchesPanel = memo(function BranchesPanel() {
       operational_status: extendedStatus === "open" ? "operational" : extendedStatus === "busy" ? "busy" : "temporarily_closed",
       address,
       city,
+      city_id: cityId || undefined,
       state,
       pincode,
       phone,
@@ -450,9 +466,12 @@ export const BranchesPanel = memo(function BranchesPanel() {
                           </div>
                         </div>
                       ) : (
-                        <div className="pt-3 border-t grid grid-cols-2 sm:grid-cols-6 gap-1.5">
+                        <div className="pt-3 border-t grid grid-cols-2 sm:grid-cols-7 gap-1.5">
                           <Button size="small" variant="secondary" onClick={() => setActiveOperationsModalBranch(b)} className="text-[11px] font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40">
                             <Clock className="w-3.5 h-3.5 mr-1 text-rose-600" /> Operations
+                          </Button>
+                          <Button size="small" variant="secondary" onClick={() => setActiveComplianceModalBranch(b)} className="text-[11px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40">
+                            <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-600" /> Compliance
                           </Button>
                           <Button size="small" variant="secondary" onClick={() => setActiveZoneRestrictionsBranch(b)} className="text-[11px] font-bold text-rose-700 bg-rose-50/70 dark:bg-rose-950/40">
                             <ShieldCheck className="w-3.5 h-3.5 mr-1 text-rose-600" /> Zone Rules
@@ -560,6 +579,20 @@ export const BranchesPanel = memo(function BranchesPanel() {
         />
       )}
 
+      {/* Branch Compliance Modal */}
+      {activeComplianceModalBranch && (
+        <BranchComplianceModal
+          branch={activeComplianceModalBranch}
+          compliance={complianceList.find((c) => c.branch_id === activeComplianceModalBranch.id)}
+          gstRegistrations={gstRegistrations}
+          onClose={() => setActiveComplianceModalBranch(null)}
+          onSaved={() => {
+            setActiveComplianceModalBranch(null);
+            fetchBranches();
+          }}
+        />
+      )}
+
       {/* Create / Edit Fulfillment Hub Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
@@ -617,7 +650,28 @@ export const BranchesPanel = memo(function BranchesPanel() {
 
                 <div>
                   <Label>City *</Label>
-                  <Input value={city} onChange={(e) => setCity(e.target.value)} required />
+                  <select
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                    value={cityId}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      setCityId(selectedId);
+                      const match = citiesList.find((c: any) => c.id === selectedId);
+                      if (match) {
+                        setCity(match.name);
+                        setState(match.state || "");
+                      } else {
+                        setCity("");
+                        setState("");
+                      }
+                    }}
+                    required
+                  >
+                    <option value="">Select City...</option>
+                    {citiesList.filter((c: any) => c.status === "active").map((c: any) => (
+                      <option key={c.id} value={c.id}>{c.name}, {c.state}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <Label>Primary Pincode *</Label>

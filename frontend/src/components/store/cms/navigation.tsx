@@ -69,8 +69,8 @@ export async function HeaderNavigation({ lang = "en" }: { lang?: string }) {
 
     return (
         <nav className="hidden md:flex items-center gap-6">
-            {items.map((item) => (
-                <div key={item.label} className="relative group">
+            {items.map((item, idx) => (
+                <div key={item.id || `${item.label}-${idx}`} className="relative group">
                     <Link
                         href={resolveHref(item)}
                         className="text-sm font-medium text-white/85 hover:text-white transition-colors"
@@ -84,9 +84,9 @@ export async function HeaderNavigation({ lang = "en" }: { lang?: string }) {
                     </Link>
                     {item.children && item.children.length > 0 && (
                         <div className="absolute left-0 top-full hidden group-hover:flex flex-col gap-2 bg-white text-slate-900 shadow-xl rounded-xl p-3 min-w-48 z-50 border border-gray-100">
-                            {item.children.map((child) => (
+                            {item.children.map((child, cIdx) => (
                                 <Link
-                                    key={child.label}
+                                    key={child.id || `${child.label}-${cIdx}`}
                                     href={resolveHref(child)}
                                     className="text-sm text-slate-800 hover:text-black hover:bg-gray-100 px-2 py-1 rounded transition-colors whitespace-nowrap"
                                 >
@@ -113,9 +113,9 @@ export async function FooterNavigation({ lang = "en" }: { lang?: string }) {
 
     return (
         <nav className="flex flex-wrap gap-4 justify-center">
-            {items.map((item) => (
+            {items.map((item, idx) => (
                 <Link
-                    key={item.label}
+                    key={item.id || `${item.label}-${idx}`}
                     href={resolveHref(item)}
                     className="text-sm text-ui-fg-on-inverted hover:underline"
                 >

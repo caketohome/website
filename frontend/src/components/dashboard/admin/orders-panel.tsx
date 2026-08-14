@@ -28,6 +28,9 @@ export const OrdersPanel = memo(function OrdersPanel() {
   const [error, setError] = useState<string | null>(null);
   const [isCreateOrderOpen, setIsCreateOrderOpen] = useState(false);
 
+  const [page, setPage] = useState(1);
+  const limit = 25;
+
   const handleDatePresetChange = (preset: string) => {
     setDatePreset(preset);
     setPage(1);
@@ -70,10 +73,6 @@ export const OrdersPanel = memo(function OrdersPanel() {
       setFromDate(formatDate(fyStart)); setToDate(formatDate(now)); return;
     }
   };
-
-  // Pagination State
-  const [page, setPage] = useState(1);
-  const limit = 25;
 
   // Selected Order Drawer State
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);

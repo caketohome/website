@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { logout } from "@frontend/lib/actions/users";
+import { authLogout } from "@frontend/lib/auth-service";
 import { Button } from "@medusajs/ui";
 import { LogOut } from "lucide-react";
 
@@ -21,18 +21,12 @@ export function LogoutButton({
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
+    if (loading) return;
     setLoading(true);
     try {
-      // Clear client-side session cookies
-      document.cookie = "_cth_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = "_cth_jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = "_medusa_jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-      logout().catch(() => null);
-    } catch {
-      // Fallback
+      await authLogout({ redirectUrl: "/login", reason: "user_initiated" });
     } finally {
-      window.location.href = "/login";
+      setLoading(false);
     }
   };
 
@@ -42,12 +36,13 @@ export function LogoutButton({
       variant={variant}
       size={size}
       isLoading={loading}
+      disabled={loading}
       onClick={handleLogout}
       className={`${fullWidth ? "w-full justify-center" : ""} flex items-center gap-2 font-medium transition-colors ${className}`}
       aria-label="Logout of CakeToHome session"
     >
       <LogOut className="w-4 h-4 shrink-0" />
-      <span>Logout</span>
+      <span>{loading ? "Logging out..." : "Logout"}</span>
     </Button>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Heading, Text, Button, Input, Switch, Badge, Textarea, Label } from "@medusajs/ui";
 import {
     addToWishlistAction,
@@ -10,6 +10,7 @@ import type { ProductReview } from "@frontend/lib/data/catalog";
 import { addToCart } from "@frontend/lib/actions/carts";
 import { retrieveBranchInventory } from "@frontend/lib/data/branches";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@frontend/lib/api-client";
 
@@ -59,6 +60,9 @@ export default function ProductDetailClient({
     const [isWishlisted, setIsWishlisted] = useState(isWishlistedInitial);
     const [wishlistLoading, setWishlistLoading] = useState(false);
     const [cartLoading, setCartLoading] = useState(false);
+    const isSubmittingRef = useRef(false);
+    const messageInputRef = useRef<HTMLInputElement>(null);
+    const [showMessageReminder, setShowMessageReminder] = useState(false);
 
     // Merge PIM visibility & requirement controls
     const activePimConfig = useMemo(() => {
@@ -214,6 +218,30 @@ export default function ProductDetailClient({
 
     // Branch Inventory State
     const [branchStock, setBranchStock] = useState<number | null>(null);
+    const [allOccasions, setAllOccasions] = useState<any[]>([]);
+
+    useEffect(() => {
+        apiClient.getOccasions().then((r: any) => {
+            if (r?.occasions) setAllOccasions(r.occasions);
+        }).catch(() => null);
+    }, []);
+
+    const productOccasions = useMemo(() => {
+        const pOccIds = Array.isArray(product?.occasion_ids) && product.occasion_ids.length > 0
+            ? product.occasion_ids
+            : (product?.occasion ? [product.occasion] : []);
+        if (pOccIds.length === 0) return [{ name: "Birthday", slug: "birthday", icon: "🎂" }];
+        return pOccIds.map((idOrName: string) => {
+            const found = allOccasions.find((o) => o.id === idOrName || o.slug === idOrName || o.name.toLowerCase() === idOrName.toLowerCase());
+            if (found) return found;
+            const cleanName = idOrName.replace(/^occ_/, "").replace(/_/g, " ");
+            return {
+                name: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+                slug: cleanName.toLowerCase().replace(/\s+/g, "-"),
+                icon: "🎉",
+            };
+        });
+    }, [product, allOccasions]);
 
     const getCookie = (name: string): string | null => {
         if (typeof document === "undefined") return null;
@@ -306,6 +334,11 @@ export default function ProductDetailClient({
     const [validationError, setValidationError] = useState<string | null>(null);
 
     const handleAddToCart = async () => {
+        // Prevent duplicate API requests and rapid click submissions
+        if (isSubmittingRef.current || cartLoading) {
+            return;
+        }
+
         // Enforce required PIM fields before allowing Add to Cart
         if (activePimConfig.show_weight !== false && activePimConfig.required_weight !== false && weightsList.length > 0 && !selectedWeight) {
             setValidationError("Please select a cake size before adding to cart.");
@@ -335,8 +368,8 @@ export default function ProductDetailClient({
         setValidationError(null);
 
         const targetShopId = shopId || "default_shop";
+        isSubmittingRef.current = true;
         setCartLoading(true);
-        setAddedCartSuccess(true);
 
         try {
             const chosenAddons = addonsList
@@ -354,7 +387,7 @@ export default function ProductDetailClient({
                 gluten_free: hasGlutenFree ? isGlutenFree : false,
                 vegan: hasVegan ? isVegan : false,
                 photo_cake: activePimConfig.show_photo_cake && isPhotoCake ? photoUrl || "Uploaded Photo" : null,
-                cake_message: activePimConfig.show_cake_message !== false ? cakeMessage : null,
+                cake_message: activePimConfig.show_cake_message !== false ? cakeMessage.trim() || null : null,
                 greeting_card_text: greetingCardText,
                 selected_addons: chosenAddons,
                 price: calculatedPrice / quantity,
@@ -363,12 +396,28 @@ export default function ProductDetailClient({
 
             await addToCart(variantId, targetShopId, metadata);
             router.refresh();
-            setTimeout(() => setAddedCartSuccess(false), 5000);
+
+            // Reminder & Focus Logic after successful addition
+            if (activePimConfig.show_cake_message !== false && !cakeMessage.trim()) {
+                setShowMessageReminder(true);
+                if (messageInputRef.current) {
+                    messageInputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+                    setTimeout(() => {
+                        messageInputRef.current?.focus({ preventScroll: true });
+                    }, 300);
+                }
+            } else {
+                setShowMessageReminder(false);
+            }
+
+            setAddedCartSuccess(true);
+            setTimeout(() => setAddedCartSuccess(false), 6000);
         } catch (e) {
             console.error("Failed to add to cart", e);
             setAddedCartSuccess(false);
         } finally {
             setCartLoading(false);
+            isSubmittingRef.current = false;
         }
     };
 
@@ -431,6 +480,21 @@ export default function ProductDetailClient({
                         <div className="flex items-center gap-2 mt-1">
                             <span className="text-amber-500 font-bold text-base">★ {averageRating}</span>
                             <span className="text-gray-500 text-sm">({reviewCount} customer reviews)</span>
+                        </div>
+
+                        {/* Structured Occasion Badges */}
+                        <div className="flex items-center gap-2 flex-wrap pt-2">
+                            <span className="text-xs font-semibold text-gray-500">Perfect for:</span>
+                            {productOccasions.map((occ) => (
+                                <Link
+                                    key={occ.slug}
+                                    href={`/occasions/${occ.slug}`}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 text-xs font-bold transition-all shadow-sm hover:scale-105"
+                                >
+                                    <span>{occ.icon || "🎉"}</span>
+                                    <span>{occ.name}</span>
+                                </Link>
+                            ))}
                         </div>
                     </div>
 
@@ -629,16 +693,61 @@ export default function ProductDetailClient({
 
                     {/* Custom Cake Message - Rendered ONLY if enabled in PIM */}
                     {activePimConfig.show_cake_message !== false && (
-                        <div className="flex flex-col gap-1.5 border-t border-gray-100 pt-4">
-                            <Label className="font-bold text-sm text-gray-900">
-                                Message on Cake (Max 30 characters) {activePimConfig.required_cake_message && "*"}
-                            </Label>
+                        <div
+                            id="cake-message-section"
+                            className={`flex flex-col gap-2 border-t border-gray-100 pt-4 rounded-2xl transition-all duration-300 ${
+                                showMessageReminder ? "p-3.5 bg-amber-50/70 border border-amber-300/80 ring-2 ring-amber-100/80" : ""
+                            }`}
+                        >
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="cake-message-input" className="font-bold text-sm text-gray-900 flex items-center gap-1.5">
+                                    <span>Message on Cake</span>
+                                    {activePimConfig.required_cake_message ? (
+                                        <span className="text-rose-600 font-bold">*</span>
+                                    ) : (
+                                        <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                                    )}
+                                </Label>
+                                <span className={`text-xs font-semibold ${cakeMessage.length === 30 ? "text-amber-600 font-bold" : "text-gray-400"}`}>
+                                    {cakeMessage.length}/30 characters
+                                </span>
+                            </div>
                             <Input
+                                id="cake-message-input"
+                                ref={messageInputRef}
                                 value={cakeMessage}
-                                onChange={(e) => setCakeMessage(e.target.value.slice(0, 30))}
+                                maxLength={30}
+                                onChange={(e) => {
+                                    setCakeMessage(e.target.value.slice(0, 30));
+                                    if (showMessageReminder) setShowMessageReminder(false);
+                                }}
                                 placeholder="e.g., Happy Birthday Ananya!"
-                                className="w-full text-xs"
+                                className={`w-full text-xs transition ${
+                                    showMessageReminder ? "border-amber-400 ring-2 ring-amber-200 bg-white" : ""
+                                }`}
                             />
+
+                            {showMessageReminder && (
+                                <div className="p-2.5 bg-amber-100/70 border border-amber-300/80 rounded-xl text-xs text-amber-900 animate-in fade-in flex items-start justify-between gap-2">
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-base leading-none">🎂</span>
+                                        <div className="flex flex-col">
+                                            <span className="font-bold text-amber-950 text-xs">Don&apos;t forget your cake message!</span>
+                                            <span className="text-[11px] text-amber-800 leading-tight mt-0.5">
+                                                Add a message on the cake if you&apos;d like one. This is <strong>optional</strong> — you can leave it blank and continue.
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowMessageReminder(false)}
+                                        className="text-amber-700 hover:text-amber-950 text-xs font-bold px-1.5 py-0.5 rounded hover:bg-amber-200/60 shrink-0"
+                                        aria-label="Dismiss message reminder"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 

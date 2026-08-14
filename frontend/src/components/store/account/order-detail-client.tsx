@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Heading, Text, Button, Input, Textarea, Label, Badge, StatusBadge, Container } from "@medusajs/ui";
-import { addToCartAction } from "@frontend/lib/actions";
 import {
     clientGetOrder as getOrder,
     clientCancelOrder as cancelOrder,

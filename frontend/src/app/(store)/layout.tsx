@@ -27,7 +27,7 @@ export default async function RootLayout({
 
   return (
     <>
-      <nav className="flex px-3 sm:px-6 md:px-10 h-16 bg-[#111111] text-white justify-between items-center sticky top-0 z-40 border-b border-white/10 shadow-[0_4px_18px_rgba(0,0,0,0.25)] w-full max-w-full overflow-hidden">
+      <nav className="flex px-3 sm:px-6 md:px-10 h-16 bg-[#111111] text-white justify-between items-center sticky top-0 z-50 border-b border-white/10 shadow-[0_4px_18px_rgba(0,0,0,0.25)] w-full max-w-full">
         <div className="flex gap-2 sm:gap-6 items-center shrink min-w-0">
           <Link
             href="/"

@@ -11,10 +11,11 @@ import { Button, Input, Label, Text } from "@medusajs/ui";
  * internal branch names or branch IDs.
  */
 export function DeliveryLocationHeader() {
-  const [pincode, setPincode] = useState("560001");
-  const [locationName, setLocationName] = useState("Central Pincode 560001");
-  const [eta, setEta] = useState("40-50 min");
-  const [fee, setFee] = useState("₹49");
+  const [pincode, setPincode] = useState("");
+  const [cityName, setCityName] = useState("");
+  const [locationName, setLocationName] = useState("Set your location");
+  const [eta, setEta] = useState("");
+  const [fee, setFee] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [inputPin, setInputPin] = useState("");
   const [isLocating, setIsLocating] = useState(false);
@@ -28,11 +29,12 @@ export function DeliveryLocationHeader() {
     return null;
   };
 
-  const setDeliverySessionCookies = (pin: string, locName: string, etaTime: string, delFee: string) => {
+  const setDeliverySessionCookies = (pin: string, locName: string, etaTime: string, delFee: string, city?: string) => {
     document.cookie = `delivery_pincode=${pin}; path=/; max-age=31536000; SameSite=Lax`;
     document.cookie = `delivery_location=${encodeURIComponent(locName)}; path=/; max-age=31536000; SameSite=Lax`;
     document.cookie = `delivery_eta=${encodeURIComponent(etaTime)}; path=/; max-age=31536000; SameSite=Lax`;
     document.cookie = `delivery_fee=${encodeURIComponent(delFee)}; path=/; max-age=31536000; SameSite=Lax`;
+    if (city) document.cookie = `delivery_city=${encodeURIComponent(city)}; path=/; max-age=31536000; SameSite=Lax`;
   };
 
   useEffect(() => {
@@ -40,11 +42,13 @@ export function DeliveryLocationHeader() {
     const savedLoc = getCookie("delivery_location");
     const savedEta = getCookie("delivery_eta");
     const savedFee = getCookie("delivery_fee");
+    const savedCity = getCookie("delivery_city");
 
     if (savedPin) setPincode(savedPin);
     if (savedLoc) setLocationName(decodeURIComponent(savedLoc));
     if (savedEta) setEta(decodeURIComponent(savedEta));
     if (savedFee) setFee(decodeURIComponent(savedFee));
+    if (savedCity) setCityName(decodeURIComponent(savedCity));
   }, []);
 
   const handleResolveLocation = async (pinInput: string, lat?: number, lng?: number) => {
@@ -55,22 +59,27 @@ export function DeliveryLocationHeader() {
       if (lat) params.set("lat", String(lat));
       if (lng) params.set("lng", String(lng));
 
-      const res = await fetch(`/api/v1/branches?${params.toString()}`);
+      const res = await fetch(`/api/v1/delivery/resolve?pincode=${encodeURIComponent(pinInput)}`);
       const data = await res.json();
 
-      if (res.ok && data && data.success) {
-        const newPin = pinInput || data.branch?.pincode || "560001";
-        const newLoc = `Pincode ${newPin}`;
-        const newEta = `${data.etaminutes || 40} min`;
-        const newFee = `₹${data.deliveryFee ?? 49}`;
+      if (res.ok && data && data.serviceable) {
+        const newPin = pinInput || data.pincode || "";
+        const resolvedCity = data.cityName || "";
+        const newLoc = resolvedCity ? `${resolvedCity} — ${newPin}` : `Pincode ${newPin}`;
+        const newEta = `${data.etaMinutes || 40} min`;
+        const newFee = data.deliveryFee === 0 ? "FREE" : `₹${data.deliveryFee ?? 49}`;
 
         setPincode(newPin);
+        setCityName(resolvedCity);
         setLocationName(newLoc);
         setEta(newEta);
         setFee(newFee);
 
-        setDeliverySessionCookies(newPin, newLoc, newEta, newFee);
+        setDeliverySessionCookies(newPin, newLoc, newEta, newFee, resolvedCity);
         setIsOpen(false);
+        return;
+      } else if (data && !data.serviceable) {
+        setErrorMsg(data.blockedReason || "This location is not currently serviceable.");
         return;
       }
     } catch {
@@ -138,10 +147,10 @@ export function DeliveryLocationHeader() {
         <MapPin className="w-3.5 h-3.5 text-[#FF4D6D] animate-pulse shrink-0" />
         <div className="flex flex-col text-left overflow-hidden">
           <span className="font-semibold text-[11px] sm:text-xs text-white truncate max-w-[95px] sm:max-w-[170px]">
-            Deliver to {pincode}
+            {pincode ? `Deliver to ${pincode}` : "Set location"}
           </span>
           <span className="text-[9px] sm:text-[10px] text-white/75 truncate hidden sm:inline">
-            ETA: {eta} • Delivery: {fee}
+            {cityName && `${cityName} • `}{eta && `ETA: ${eta}`}{fee && ` • ${fee}`}
           </span>
         </div>
       </button>

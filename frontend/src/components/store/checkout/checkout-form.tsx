@@ -86,7 +86,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
 
   // Address fields
   const [address, setAddress] = useState("Flat 402, Signature Towers, 12th Main Road");
-  const [city, setCity] = useState("Bengaluru");
+  const [city, setCity] = useState("");
 
   // Gifting & Recipient State
   const [orderedForSelf, setOrderedForSelf] = useState<boolean>(true);
@@ -579,7 +579,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
 
                   <div className="flex flex-col gap-2">
                     <Label htmlFor="checkout-zip" className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">
-                      Delivery Pincode (Bengaluru) *
+                      Delivery Pincode *
                     </Label>
                     <div className="flex gap-2 items-center">
                       <Input
@@ -651,7 +651,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
                     <div>
                       <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">City / Area *</Label>
                       <Input
-                        placeholder="Bengaluru"
+                        placeholder="City"
                         name="city"
                         value={city}
                         onChange={(e) => setCity(e.target.value)}

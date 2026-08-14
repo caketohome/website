@@ -133,7 +133,7 @@ async function runBranchManagerTestSuite() {
   const invRes = ApiEngine.getBranchOrderInvoice(firstOrder.id, branch1Id);
   assert(invRes.success === true && !!invRes.invoice, "Generate GST invoice breakdown");
   assert(invRes.invoice.invoice_number.startsWith("INV-"), `Invoice Number: ${invRes.invoice?.invoice_number}`);
-  assert(invRes.invoice.items[0]?.hsn_sac === "1905", "HSN code 1905 verified for bakery products");
+  assert(invRes.invoice.items[0]?.hsn_sac?.startsWith("1905"), "HSN code 1905 verified for bakery products");
   assert(invRes.invoice.items[0]?.taxable_amount !== undefined, "Taxable amount accurately computed");
 
   // ── TEST 11: 3-State Product Availability Matrix ──

@@ -6,6 +6,7 @@ import { apiClient } from "@frontend/lib/api-client";
 import { Search, Plus, Cake, Trash2, Edit3, FolderTree, RefreshCw } from "lucide-react";
 import { PimEditorModal } from "./pim-editor-modal";
 import { CategoriesPanel } from "./categories-panel";
+import { OccasionsPanel } from "./occasions-panel";
 import { AccessoriesManagementPanel } from "./accessories-management-panel";
 import { CrossSellRulesPanel } from "./cross-sell-rules-panel";
 import { VariantsManagementPanel } from "./variants-management-panel";
@@ -19,7 +20,7 @@ export const CatalogPanel = memo(function CatalogPanel() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"products" | "categories" | "accessories" | "rules" | "variants">("products");
+  const [tab, setTab] = useState<"products" | "categories" | "occasions" | "accessories" | "rules" | "variants">("products");
   
   // PIM Modal State
   const [showPimModal, setShowPimModal] = useState(false);
@@ -120,6 +121,13 @@ export const CatalogPanel = memo(function CatalogPanel() {
             <FolderTree className="w-3.5 h-3.5" /> Categories ({categories.length})
           </Badge>
           <Badge
+            color={tab === "occasions" ? "purple" : "grey"}
+            className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold"
+            onClick={() => setTab("occasions")}
+          >
+            🎉 Occasions & Taxonomy
+          </Badge>
+          <Badge
             color={tab === "accessories" ? "purple" : "grey"}
             className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold"
             onClick={() => setTab("accessories")}
@@ -165,6 +173,10 @@ export const CatalogPanel = memo(function CatalogPanel() {
       {tab === "categories" ? (
         <WidgetErrorBoundary moduleName="Categories Management Sub-Panel" compact>
           <CategoriesPanel />
+        </WidgetErrorBoundary>
+      ) : tab === "occasions" ? (
+        <WidgetErrorBoundary moduleName="Occasion Taxonomy Sub-Panel" compact>
+          <OccasionsPanel />
         </WidgetErrorBoundary>
       ) : tab === "accessories" ? (
         <WidgetErrorBoundary moduleName="Accessories & Gifts Sub-Panel" compact>

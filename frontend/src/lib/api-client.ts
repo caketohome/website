@@ -187,6 +187,14 @@ class CakeToHomeApiClient {
     return res;
   }
 
+  async logout(reason: string = "user_initiated") {
+    this.token = null;
+    return this.request("/auth/logout", {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    });
+  }
+
   // Products & Catalog APIs (/api/v1/products)
   async getProducts(params?: { branchId?: string; pincode?: string }) {
     const q = new URLSearchParams();
@@ -383,6 +391,39 @@ class CakeToHomeApiClient {
     return this.request(`/admin/categories/${id}/restore`, { method: "POST" });
   }
 
+  // ── Occasions & Structured Taxonomy ──
+  async getOccasions(status?: string) {
+    const q = status ? `?status=${status}` : "";
+    return this.request(`/occasions${q}`).catch(() => ({ occasions: [] }));
+  }
+  async getAdminOccasions(status?: string) {
+    const q = status ? `?status=${status}` : "";
+    return this.request(`/admin/occasions${q}`).catch(() => ({ occasions: [] }));
+  }
+  async getOccasion(slug: string) {
+    return this.request(`/occasions/${slug}`);
+  }
+  async createAdminOccasion(data: any) {
+    return this.request("/admin/occasions", { method: "POST", body: JSON.stringify(data) });
+  }
+  async updateAdminOccasion(id: string, data: any) {
+    return this.request(`/admin/occasions/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  }
+  async deleteAdminOccasion(id: string) {
+    return this.request(`/admin/occasions/${id}`, { method: "DELETE" });
+  }
+  async restoreAdminOccasion(id: string) {
+    return this.request(`/admin/occasions/${id}/restore`, { method: "POST" });
+  }
+  async getProductRecommendations(params: { productId?: string; occasion?: string; limit?: number; branchId?: string }) {
+    const query = new URLSearchParams();
+    if (params.productId) query.set("productId", params.productId);
+    if (params.occasion) query.set("occasion", params.occasion);
+    if (params.limit) query.set("limit", String(params.limit));
+    if (params.branchId) query.set("branchId", params.branchId);
+    return this.request(`/catalog/recommendations?${query.toString()}`).catch(() => ({ related: [], upsells: [], sameOccasion: [] }));
+  }
+
   // ── Admin: Master Weights ──
   async getAdminWeights() {
     return this.request("/admin/weights").catch(() => ({ weights: [] }));
@@ -464,8 +505,38 @@ class CakeToHomeApiClient {
   async getAdminCities() {
     return this.request("/admin/cities").catch(() => ({ cities: [] }));
   }
+  async getAdminCity(id: string) {
+    return this.request(`/admin/cities/${id}`).catch(() => null);
+  }
+  async getCities() {
+    return this.request("/cities").catch(() => ({ cities: [] }));
+  }
+  async getCityBySlug(slug: string) {
+    return this.request(`/cities/${slug}`).catch(() => null);
+  }
+  async createAdminCity(data: any) {
+    return this.request("/admin/cities", { method: "POST", body: JSON.stringify(data) });
+  }
+  async updateAdminCity(id: string, data: any) {
+    return this.request(`/admin/cities/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  }
+  async archiveAdminCity(id: string) {
+    return this.request(`/admin/cities/${id}/archive`, { method: "POST", body: JSON.stringify({}) });
+  }
+  async restoreAdminCity(id: string) {
+    return this.request(`/admin/cities/${id}/restore`, { method: "POST", body: JSON.stringify({}) });
+  }
+  async migrateToMultiCity() {
+    return this.request("/admin/cities/migrate", { method: "POST", body: JSON.stringify({}) });
+  }
+  async resolveDeliveryContext(pincode: string) {
+    return this.request(`/delivery/resolve?pincode=${encodeURIComponent(pincode)}`).catch(() => ({ serviceable: false }));
+  }
   async getAdminRegions() {
     return this.request("/admin/regions").catch(() => ({ regions: [] }));
+  }
+  async createAdminRegion(name: string) {
+    return this.request("/admin/regions", { method: "POST", body: JSON.stringify({ name }) });
   }
   async saveBranchZone(branchId: string, zoneData: any) {
     return this.request("/admin/branches", { method: "POST", body: JSON.stringify({ type: "delivery_zone", branchId, zoneData }) });
@@ -490,12 +561,6 @@ class CakeToHomeApiClient {
   }
   async pauseBranchOrders(branchId: string, durationMins: number) {
     return this.request("/admin/branches", { method: "POST", body: JSON.stringify({ type: "pause_orders", branchId, durationMins }) });
-  }
-  async createAdminCity(name: string) {
-    return this.request("/admin/cities", { method: "POST", body: JSON.stringify({ name }) });
-  }
-  async createAdminRegion(name: string) {
-    return this.request("/admin/regions", { method: "POST", body: JSON.stringify({ name }) });
   }
 
   // ── Product Delivery Restrictions (Store + Zone Scoped) ──
@@ -1279,6 +1344,125 @@ class CakeToHomeApiClient {
     if (customerId) q.set("customer_id", customerId);
     q.set("limit", String(limit));
     return this.request(`/orders?${q.toString()}`).catch(() => ({ orders: [], count: 0 }));
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── ENTERPRISE BUSINESS, TAX & STATUTORY COMPLIANCE CLIENT METHODS ────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async getAdminSettings() {
+    return this.request("/admin/settings").catch(() => ({ settings: {} }));
+  }
+
+  async updateAdminSettings(data: any) {
+    return this.request("/admin/settings", { method: "POST", body: JSON.stringify(data) });
+  }
+
+  async getBusinessProfile() {
+    return this.request("/admin/compliance/business-profile").catch(() => ({ profile: null }));
+  }
+
+  async updateBusinessProfile(data: any) {
+    return this.request("/admin/compliance/business-profile", { method: "PUT", body: JSON.stringify(data) });
+  }
+
+  async getGstRegistrations() {
+    return this.request("/admin/compliance/gst-registrations").catch(() => ({ registrations: [] }));
+  }
+
+  async createGstRegistration(data: any) {
+    return this.request("/admin/compliance/gst-registrations", { method: "POST", body: JSON.stringify(data) });
+  }
+
+  async updateGstRegistration(id: string, data: any) {
+    return this.request(`/admin/compliance/gst-registrations/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  }
+
+  async verifyGstRegistration(id: string) {
+    return this.request(`/admin/compliance/gst-registrations/${id}/verify`, { method: "POST", body: JSON.stringify({}) });
+  }
+
+  async getBranchCompliance(branchId?: string) {
+    const path = branchId ? `/admin/branches/${branchId}/compliance` : "/admin/compliance/fssai";
+    return this.request(path).catch(() => ({ compliance: branchId ? null : [] }));
+  }
+
+  async createBranchCompliance(data: any) {
+    return this.request("/admin/compliance/fssai", { method: "POST", body: JSON.stringify(data) });
+  }
+
+  async updateBranchCompliance(id: string, data: any) {
+    return this.request(`/admin/compliance/fssai/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  }
+
+  async verifyBranchCompliance(id: string) {
+    return this.request(`/admin/compliance/fssai/${id}/verify`, { method: "POST", body: JSON.stringify({}) });
+  }
+
+  async getComplianceOverview() {
+    return this.request("/admin/compliance/overview").catch(() => ({ overview: { totalBranches: 0, valid: 0, expiringSoon: 0, expired: 0, pendingVerification: 0, alerts: [] } }));
+  }
+
+  async getComplianceDocuments(entityType?: string, entityId?: string) {
+    const q = new URLSearchParams();
+    if (entityType) q.set("entityType", entityType);
+    if (entityId) q.set("entityId", entityId);
+    const qs = q.toString() ? `?${q.toString()}` : "";
+    return this.request(`/admin/compliance/documents${qs}`).catch(() => ({ documents: [] }));
+  }
+
+  async createComplianceDocument(data: any) {
+    return this.request("/admin/compliance/documents", { method: "POST", body: JSON.stringify(data) });
+  }
+
+  async deleteComplianceDocument(id: string) {
+    return this.request(`/admin/compliance/documents/${id}`, { method: "DELETE" });
+  }
+
+  async getInvoiceSettings() {
+    return this.request("/admin/compliance/invoices").catch(() => ({ settings: null }));
+  }
+
+  async updateInvoiceSettings(data: any) {
+    return this.request("/admin/compliance/invoices", { method: "PUT", body: JSON.stringify(data) });
+  }
+
+  async getDeliveryDefaults() {
+    return this.request("/admin/compliance/delivery-defaults").catch(() => ({ defaults: null }));
+  }
+
+  async updateDeliveryDefaults(data: any) {
+    return this.request("/admin/compliance/delivery-defaults", { method: "PUT", body: JSON.stringify(data) });
+  }
+
+  async getPaymentSettings() {
+    return this.request("/admin/compliance/payments").catch(() => ({ payments: null }));
+  }
+
+  async updatePaymentSettings(data: any) {
+    return this.request("/admin/compliance/payments", { method: "PUT", body: JSON.stringify(data) });
+  }
+
+  async getIntegrationSettings() {
+    return this.request("/admin/compliance/integrations").catch(() => ({ integrations: null }));
+  }
+
+  async updateIntegrationSettings(data: any) {
+    return this.request("/admin/compliance/integrations", { method: "PUT", body: JSON.stringify(data) });
+  }
+
+  async getAllComplianceBundle() {
+    return this.request("/admin/compliance/all").catch(() => ({
+      profile: null,
+      gstRegistrations: [],
+      branchCompliance: [],
+      overview: null,
+      invoiceSettings: null,
+      deliveryDefaults: null,
+      paymentSettings: null,
+      integrationSettings: null,
+      documents: [],
+    }));
   }
 }
 

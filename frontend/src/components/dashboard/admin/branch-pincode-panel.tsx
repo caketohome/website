@@ -5,10 +5,10 @@ import { Heading, Text, Badge, Input, Button, Label } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
 import { BranchZoneManager } from "./branch-zone-manager";
 import { DeliverySimulator } from "./delivery-simulator";
-import { ArrowRightLeft, Compass, FolderTree, Layers, MapPin, Search, Settings2, ShieldAlert, Upload } from "lucide-react";
+import { ArrowRightLeft, Compass, FolderTree, Layers, MapPin, Search, Settings2, Upload } from "lucide-react";
 
 export function BranchPincodePanel() {
-  const [activeTab, setActiveTab] = useState<"zones" | "simulator" | "matrix" | "service_areas" | "restrictions">("zones");
+  const [activeTab, setActiveTab] = useState<"zones" | "simulator" | "matrix" | "service_areas">("zones");
   const [cityAreas, setCityAreas] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
   const [pincodeMappings, setPincodeMappings] = useState<any[]>([]);
@@ -52,15 +52,7 @@ export function BranchPincodePanel() {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkCsvText, setBulkCsvText] = useState("560038, br_indiranagar, zone_1\n560068, br_hsr, zone_2");
 
-  // Area Restriction Form Modal
-  const [showAreaModal, setShowAreaModal] = useState(false);
-  const [editingArea, setEditingArea] = useState<any | null>(null);
-  const [cityName, setCityName] = useState("Bengaluru");
-  const [areaName, setAreaName] = useState("");
-  const [areaZoneName, setAreaZoneName] = useState("East Zone");
-  const [pincodesStr, setPincodesStr] = useState("");
-  const [status, setStatus] = useState<string>("open");
-  const [blockedReason, setBlockedReason] = useState("");
+
   
   const [submitting, setSubmitting] = useState(false);
 
@@ -275,13 +267,7 @@ export function BranchPincodePanel() {
           >
             <Settings2 className="w-3.5 h-3.5" /> Service Areas
           </Badge>
-          <Badge
-            color={activeTab === "restrictions" ? "purple" : "grey"}
-            className="cursor-pointer px-3 py-1.5 text-xs font-semibold flex items-center gap-1"
-            onClick={() => setActiveTab("restrictions")}
-          >
-            <ShieldAlert className="w-3.5 h-3.5" /> Area Restrictions
-          </Badge>
+
         </div>
       </div>
 
@@ -381,31 +367,7 @@ export function BranchPincodePanel() {
         </div>
       )}
 
-      {activeTab === "restrictions" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {cityAreas.map((area) => (
-            <div key={area.id} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-slate-900 dark:text-white">{area.area_name}</span>
-                  <Badge color="purple">{area.city_name}</Badge>
-                </div>
-                <Badge color={area.status === "open" ? "green" : "red"} className="uppercase font-mono text-[10px]">
-                  {area.status || "open"}
-                </Badge>
-              </div>
 
-              <div className="flex flex-wrap gap-1.5">
-                {(area.pincodes || []).map((pin: string) => (
-                  <span key={pin} className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 rounded font-bold text-xs">
-                    📍 {pin}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
       {showZoneModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">

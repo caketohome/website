@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Container, Heading, Text, Badge, Input, Button, Label } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
 import { Plus, FolderTree, Edit3, Trash2, RotateCcw, Search, AlertCircle, CheckCircle, ChevronRight, ChevronDown, Layers, Globe, ShieldAlert } from "lucide-react";
+import { CategoryImageUploader } from "./category-image-uploader";
+import { OccasionSelector } from "./occasion-selector";
 
 export function CategoriesPanel() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -41,8 +43,10 @@ export function CategoriesPanel() {
   const [canonicalUrl, setCanonicalUrl] = useState("");
   const [ogImage, setOgImage] = useState("");
   const [selectedBranches, setSelectedBranches] = useState<string[]>(["res_01KXYMAHGFPRY1G9TZKEVGAGAT"]);
+  const [occasionIds, setOccasionIds] = useState<string[]>(["occ_birthday"]);
 
   const [submitting, setSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -94,6 +98,7 @@ export function CategoriesPanel() {
     setCanonicalUrl("");
     setOgImage("");
     setSelectedBranches(["res_01KXYMAHGFPRY1G9TZKEVGAGAT"]);
+    setOccasionIds(["occ_birthday"]);
     setEditingCategory(null);
     setErrorMsg(null);
   };
@@ -125,6 +130,7 @@ export function CategoriesPanel() {
     setCanonicalUrl(cat.canonical_url || "");
     setOgImage(cat.og_image || "");
     setSelectedBranches(Array.isArray(cat.branch_ids) ? cat.branch_ids : ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"]);
+    setOccasionIds(Array.isArray(cat.occasion_ids) ? cat.occasion_ids : ["occ_birthday"]);
     setShowModal(true);
   };
 
@@ -160,6 +166,7 @@ export function CategoriesPanel() {
       canonical_url: canonicalUrl,
       og_image: ogImage || imageUrl,
       branch_ids: selectedBranches,
+      occasion_ids: occasionIds,
     };
 
     try {
@@ -341,14 +348,34 @@ export function CategoriesPanel() {
               <Input id="cat_order" type="number" value={displayOrder} onChange={(e) => setDisplayOrder(e.target.value)} />
             </div>
 
-            <div>
-              <Label htmlFor="cat_image">Thumbnail Image URL</Label>
-              <Input id="cat_image" placeholder="https://..." value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-            </div>
+            <div className="md:col-span-2 space-y-4 pt-3 pb-3 border-t border-b border-ui-border-base bg-ui-bg-subtle/30 p-4 rounded-xl">
+              <CategoryImageUploader
+                label="Category Thumbnail"
+                value={imageUrl}
+                onChange={(url) => setImageUrl(url)}
+                type="thumbnail"
+                helperText="Optimal for category cards and menu navigation (600×600px square WebP)"
+                onUploadingChange={setIsUploadingImage}
+              />
 
-            <div>
-              <Label htmlFor="cat_banner">Hero Banner URL</Label>
-              <Input id="cat_banner" placeholder="https://..." value={bannerUrl} onChange={(e) => setBannerUrl(e.target.value)} />
+              <CategoryImageUploader
+                label="Category Hero Banner"
+                value={bannerUrl}
+                onChange={(url) => setBannerUrl(url)}
+                type="hero"
+                helperText="Optimal for storefront category header & promotional hero banners (1920×1080px landscape WebP)"
+                onUploadingChange={setIsUploadingImage}
+              />
+
+              {/* Category Occasion Mapping */}
+              <div className="pt-2 border-t border-ui-border-base">
+                <OccasionSelector
+                  label="Category Default Occasion Mapping"
+                  selectedIds={occasionIds}
+                  onChange={setOccasionIds}
+                  helperText="Products in this category inherit these occasions unless explicitly overridden."
+                />
+              </div>
             </div>
 
             <div>
@@ -381,8 +408,13 @@ export function CategoriesPanel() {
 
             <div className="md:col-span-2 flex items-center justify-end gap-2 pt-4 border-t border-ui-border-base">
               <Button type="button" variant="transparent" onClick={() => setShowModal(false)}>Cancel</Button>
-              <Button type="submit" isLoading={submitting} className="bg-purple-600 hover:bg-purple-700 text-white">
-                {editingCategory ? "Update Category" : "Save & Register Category"}
+              <Button
+                type="submit"
+                isLoading={submitting}
+                disabled={submitting || isUploadingImage}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                {isUploadingImage ? "Uploading Image..." : editingCategory ? "Update Category" : "Save & Register Category"}
               </Button>
             </div>
           </form>
@@ -417,6 +449,13 @@ export function CategoriesPanel() {
                         </button>
                       ) : (
                         <span className="w-6" />
+                      )}
+                      {topCat.image_url && (
+                        <img
+                          src={topCat.image_url}
+                          alt={topCat.name}
+                          className="w-8 h-8 rounded-md object-cover border border-ui-border-base shrink-0 bg-ui-bg-field"
+                        />
                       )}
                       <div>
                         <div className="flex items-center gap-2">
@@ -455,12 +494,21 @@ export function CategoriesPanel() {
                         const childProdCount = getProductCountForCategory(child);
                         return (
                           <div key={child.id} className="p-3 flex items-center justify-between">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <Text className="font-semibold text-sm text-ui-fg-base">↳ {child.name}</Text>
-                                <Badge color="grey" className="text-[10px]">{childProdCount} Products</Badge>
+                            <div className="flex items-center gap-2.5">
+                              {child.image_url && (
+                                <img
+                                  src={child.image_url}
+                                  alt={child.name}
+                                  className="w-7 h-7 rounded object-cover border border-ui-border-base shrink-0 bg-ui-bg-field"
+                                />
+                              )}
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <Text className="font-semibold text-sm text-ui-fg-base">↳ {child.name}</Text>
+                                  <Badge color="grey" className="text-[10px]">{childProdCount} Products</Badge>
+                                </div>
+                                <Text className="text-[11px] text-ui-fg-subtle">/{child.slug}</Text>
                               </div>
-                              <Text className="text-[11px] text-ui-fg-subtle">/{child.slug}</Text>
                             </div>
                             <div className="flex items-center gap-2">
                               <Button size="small" variant="transparent" onClick={() => handleOpenEditModal(child)} className="text-blue-600">

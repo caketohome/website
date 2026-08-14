@@ -1,69 +1,54 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Heading, Text } from "@medusajs/ui";
 import { AdminTabs, type AdminTabId } from "@frontend/components/dashboard/admin/admin-tabs";
 import { DashboardPanelSkeleton } from "@frontend/components/dashboard/admin/dashboard-skeleton";
 import { DashboardErrorBoundary } from "@frontend/components/dashboard/admin/error-boundary";
 
 // ---------------------------------------------------------------------------
-// Lazy-load every admin panel via next/dynamic with ssr: false.
-// Only the active panel is downloaded & rendered on the client.
-// Each panel displays a smooth skeleton loader while loading.
+// Lazy-load every admin panel via React.lazy with Suspense fallback.
+// Only the active panel is loaded on demand when selected.
 // ---------------------------------------------------------------------------
 
-const OrdersPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/orders-panel").then((mod) => mod.OrdersPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+const OrdersPanel = lazy(() =>
+  import("@frontend/components/dashboard/admin/orders-panel").then((mod) => ({ default: mod.OrdersPanel }))
 );
-const CatalogPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/catalog-panel").then((mod) => mod.CatalogPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+const CatalogPanel = lazy(() =>
+  import("@frontend/components/dashboard/admin/catalog-panel").then((mod) => ({ default: mod.CatalogPanel }))
 );
-const BranchesPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/branches-panel").then((mod) => mod.BranchesPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+const BranchesPanel = lazy(() =>
+  import("@frontend/components/dashboard/admin/branches-panel").then((mod) => ({ default: mod.BranchesPanel }))
 );
-const DeliveryPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/delivery-panel").then((mod) => mod.DeliveryPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+const DeliveryPanel = lazy(() =>
+  import("@frontend/components/dashboard/admin/delivery-panel").then((mod) => ({ default: mod.DeliveryPanel }))
 );
-const TaxMasterPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/tax-master-panel").then((mod) => mod.TaxMasterPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+const TaxMasterPanel = lazy(() =>
+  import("@frontend/components/dashboard/admin/tax-master-panel").then((mod) => ({ default: mod.TaxMasterPanel }))
 );
-const CrmPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/crm-panel").then((mod) => mod.CrmPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+const CrmPanel = lazy(() =>
+  import("@frontend/components/dashboard/admin/crm-panel").then((mod) => ({ default: mod.CrmPanel }))
 );
-const MarketingPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/marketing-panel").then((mod) => mod.MarketingPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+const MarketingPanel = lazy(() =>
+  import("@frontend/components/dashboard/admin/marketing-panel").then((mod) => ({ default: mod.MarketingPanel }))
 );
-const SeoPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/seo-panel").then((mod) => mod.SeoPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+const SeoPanel = lazy(() =>
+  import("@frontend/components/dashboard/admin/seo-panel").then((mod) => ({ default: mod.SeoPanel }))
 );
-const MarketingAutomationPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/marketing-automation-panel").then((mod) => mod.MarketingAutomationPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+const MarketingAutomationPanel = lazy(() =>
+  import("@frontend/components/dashboard/admin/marketing-automation-panel").then((mod) => ({ default: mod.MarketingAutomationPanel }))
 );
-const CmsPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/cms-panel").then((mod) => mod.CmsPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+const CmsPanel = lazy(() =>
+  import("@frontend/components/dashboard/admin/cms-panel").then((mod) => ({ default: mod.CmsPanel }))
 );
-const AnalyticsPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/analytics-panel").then((mod) => mod.AnalyticsPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+const AnalyticsPanel = lazy(() =>
+  import("@frontend/components/dashboard/admin/analytics-panel").then((mod) => ({ default: mod.AnalyticsPanel }))
 );
-const NotificationsPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/notifications-panel").then((mod) => mod.NotificationsPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+const NotificationsPanel = lazy(() =>
+  import("@frontend/components/dashboard/admin/notifications-panel").then((mod) => ({ default: mod.NotificationsPanel }))
 );
-const SettingsPanel = dynamic(
-  () => import("@frontend/components/dashboard/admin/settings-panel").then((mod) => mod.SettingsPanel),
-  { ssr: false, loading: () => <DashboardPanelSkeleton /> }
+const SettingsPanel = lazy(() =>
+  import("@frontend/components/dashboard/admin/settings-panel").then((mod) => ({ default: mod.SettingsPanel }))
 );
 
 const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
@@ -124,7 +109,9 @@ export default function SuperAdminDashboardPage() {
 
       <div className="min-h-[400px]">
         <DashboardErrorBoundary key={activeTab} moduleName={`Admin Panel (${activeTab})`}>
-          <ActivePanel />
+          <Suspense fallback={<DashboardPanelSkeleton />}>
+            <ActivePanel />
+          </Suspense>
         </DashboardErrorBoundary>
       </div>
     </div>
