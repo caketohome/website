@@ -12,15 +12,18 @@ export interface ScrollFrameHeroProps {
 }
 
 export const FRAME_CONFIG = {
-  totalFrames: 112,
+  totalFrames: 39,
   firstFrame: 1,
-  lastFrame: 112,
-  scrollLengthVh: 420,
+  lastFrame: 39,
+  scrollLengthVh: 260,
   nativeWidth: 1920,
   nativeHeight: 1080,
-  easing: 0.18,
+  easing: 0.20,
 };
 
+/**
+ * Resolves Cloudinary frame URL for frames1_0001.jpg through frames1_0039.jpg
+ */
 export function getFrameUrl(frameNumber: number, isMobile = false): string {
   const clamped = Math.max(1, Math.min(FRAME_CONFIG.totalFrames, Math.round(frameNumber)));
   const padded = String(clamped).padStart(4, "0");
@@ -40,19 +43,20 @@ export function ScrollFrameHero({
   const introOverlayRef = useRef<HTMLDivElement | null>(null);
   const craftOverlayRef = useRef<HTMLDivElement | null>(null);
   const fleetOverlayRef = useRef<HTMLDivElement | null>(null);
-
   const progressBarRef = useRef<HTMLDivElement | null>(null);
 
-  // Mutable state (Zero React state on scroll)
+  // Mutable High-Frequency State (Zero React state on scroll ticks)
   const currentFrameRef = useRef<number>(1);
   const targetFrameRef = useRef<number>(1);
-  const lastDrawnImageIndexRef = useRef<number>(-1);
+  const lastDrawnFrameRef = useRef<number>(-1);
   const scrollProgressRef = useRef<number>(0);
   const loadedFramesRef = useRef<Map<number, HTMLImageElement>>(new Map());
   const isMobileRef = useRef<boolean>(false);
+  const prefersReducedMotionRef = useRef<boolean>(false);
   const rafIdRef = useRef<number | null>(null);
+  const isLoopRunningRef = useRef<boolean>(false);
 
-  // ── 1. Direct Canvas Draw ──────────────────────────────────────────────────
+  // ── 1. Direct Canvas Draw (Cover Math + Zero Distortion) ─────────────────
   const drawFrame = useCallback((frameNumber: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -62,14 +66,15 @@ export function ScrollFrameHero({
     const clamped = Math.max(1, Math.min(FRAME_CONFIG.totalFrames, Math.round(frameNumber)));
     let img = loadedFramesRef.current.get(clamped);
 
-    // If target frame not loaded yet, find closest available frame for smooth transition
-    let isFallback = false;
-    if (!img) {
-      isFallback = true;
-      const keys = Array.from(loadedFramesRef.current.keys());
-      if (keys.length > 0) {
-        keys.sort((a, b) => Math.abs(a - clamped) - Math.abs(b - clamped));
-        img = loadedFramesRef.current.get(keys[0]);
+    // Fallback: If target frame not loaded yet, find closest available loaded frame
+    if (!img || !img.complete || img.naturalWidth === 0) {
+      const loadedKeys = Array.from(loadedFramesRef.current.keys()).filter((k) => {
+        const item = loadedFramesRef.current.get(k);
+        return item && item.complete && item.naturalWidth > 0;
+      });
+      if (loadedKeys.length > 0) {
+        loadedKeys.sort((a, b) => Math.abs(a - clamped) - Math.abs(b - clamped));
+        img = loadedFramesRef.current.get(loadedKeys[0]);
       }
     }
 
@@ -77,10 +82,12 @@ export function ScrollFrameHero({
 
     const cw = canvas.width;
     const ch = canvas.height;
+    if (cw === 0 || ch === 0) return;
+
     const iw = img.naturalWidth || FRAME_CONFIG.nativeWidth;
     const ih = img.naturalHeight || FRAME_CONFIG.nativeHeight;
 
-    // Cover math (zero distortion)
+    // Cover math (preserve aspect ratio, zero stretch)
     const scale = Math.max(cw / iw, ch / ih);
     const nw = iw * scale;
     const nh = ih * scale;
@@ -89,114 +96,48 @@ export function ScrollFrameHero({
 
     ctx.clearRect(0, 0, cw, ch);
     ctx.drawImage(img, nx, ny, nw, nh);
-
-    if (!isFallback) {
-      lastDrawnImageIndexRef.current = clamped;
-    }
+    lastDrawnFrameRef.current = clamped;
   }, []);
 
-  // ── 2. Resize Canvas Buffer ────────────────────────────────────────────────
+  // ── 2. Resize Canvas Buffer (High-DPI DPR capped at 2) ───────────────────
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 2) : 1;
     const rect = canvas.getBoundingClientRect();
-    const w = Math.round(rect.width * dpr);
-    const h = Math.round(rect.height * dpr);
+    const w = Math.max(100, Math.round((rect.width || (typeof window !== "undefined" ? window.innerWidth : 1920)) * dpr));
+    const h = Math.max(100, Math.round((rect.height || (typeof window !== "undefined" ? window.innerHeight : 1080)) * dpr));
 
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w;
       canvas.height = h;
+      lastDrawnFrameRef.current = -1; // Reset so frame re-paints onto resized buffer
     }
 
-    isMobileRef.current = window.innerWidth < 768;
+    if (typeof window !== "undefined") {
+      isMobileRef.current = window.innerWidth < 768;
+    }
+
     drawFrame(Math.round(currentFrameRef.current));
   }, [drawFrame]);
 
-  // ── 3. Full Frame Preloader ────────────────────────────────────────────────
-  useEffect(() => {
-    isMobileRef.current = window.innerWidth < 768;
-
-    // Load Frame 1 immediately
-    const img1 = new Image();
-    img1.crossOrigin = "anonymous";
-    img1.src = getFrameUrl(1, isMobileRef.current);
-    img1.onload = () => {
-      loadedFramesRef.current.set(1, img1);
-      drawFrame(1);
-    };
-
-    // Preload all 112 frames
-    for (let f = 1; f <= FRAME_CONFIG.totalFrames; f++) {
-      if (f === 1) continue;
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.decoding = "async";
-      img.src = getFrameUrl(f, isMobileRef.current);
-      img.onload = () => {
-        loadedFramesRef.current.set(f, img);
-        const cur = Math.round(currentFrameRef.current);
-        if (cur === f || lastDrawnImageIndexRef.current !== cur) {
-          drawFrame(cur);
-        }
-      };
-    }
-
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas, { passive: true });
-
-    // Expose dev debugging functions on window
-    (window as any).__cakeToHomeDebug = {
-      drawFrame,
-      setFrame: (frame: number) => {
-        targetFrameRef.current = frame;
-        currentFrameRef.current = frame;
-        drawFrame(frame);
-      },
-      getCurrentFrame: () => currentFrameRef.current,
-      getTargetFrame: () => targetFrameRef.current,
-      getLoadedCount: () => loadedFramesRef.current.size,
-      hasFrame: (f: number) => loadedFramesRef.current.has(f),
-    };
-
-    return () => {
-      window.removeEventListener("resize", resizeCanvas);
-      delete (window as any).__cakeToHomeDebug;
-    };
-  }, [drawFrame, resizeCanvas]);
-
-  // ── 4. Scroll Listener ─────────────────────────────────────────────────────
-  useEffect(() => {
-    const handleScroll = () => {
-      const section = sectionRef.current;
-      if (!section) return;
-
-      const rect = section.getBoundingClientRect();
-      const totalScrollable = rect.height - window.innerHeight;
-
-      if (totalScrollable <= 0) return;
-
-      const scrolled = -rect.top;
-      const progress = Math.max(0, Math.min(1, scrolled / totalScrollable));
-
-      scrollProgressRef.current = progress;
-      targetFrameRef.current = 1 + progress * (FRAME_CONFIG.totalFrames - 1);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // ── 5. RAF Single Render Loop ──────────────────────────────────────────────
-  useEffect(() => {
-    let lastRenderedFrame = -1;
+  // ── 3. Optimized RAF Single Render Loop ──────────────────────────────────
+  const startRenderLoop = useCallback(() => {
+    if (isLoopRunningRef.current) return;
+    isLoopRunningRef.current = true;
 
     const renderLoop = () => {
+      // Reduced motion bypass
+      if (prefersReducedMotionRef.current) {
+        currentFrameRef.current = 1;
+        drawFrame(1);
+        isLoopRunningRef.current = false;
+        return;
+      }
+
       // Smoothly interpolate towards target frame
       const diff = targetFrameRef.current - currentFrameRef.current;
-      if (Math.abs(diff) > 0.001) {
+      if (Math.abs(diff) > 0.005) {
         currentFrameRef.current += diff * FRAME_CONFIG.easing;
       } else {
         currentFrameRef.current = targetFrameRef.current;
@@ -207,12 +148,8 @@ export function ScrollFrameHero({
         Math.min(FRAME_CONFIG.totalFrames, Math.round(currentFrameRef.current))
       );
 
-      if (
-        frameToDraw !== lastRenderedFrame ||
-        lastDrawnImageIndexRef.current !== frameToDraw
-      ) {
+      if (frameToDraw !== lastDrawnFrameRef.current) {
         drawFrame(frameToDraw);
-        lastRenderedFrame = frameToDraw;
       }
 
       const p = scrollProgressRef.current;
@@ -221,8 +158,6 @@ export function ScrollFrameHero({
       if (progressBarRef.current) {
         progressBarRef.current.style.transform = `scaleX(${p})`;
       }
-
-
 
       // Phase 1: Intro Overlay (0% -> 25%)
       if (introOverlayRef.current) {
@@ -261,15 +196,113 @@ export function ScrollFrameHero({
         fleetOverlayRef.current.style.pointerEvents = op > 0.1 ? "auto" : "none";
       }
 
-      rafIdRef.current = requestAnimationFrame(renderLoop);
+      // Keep running if not settled, or idle when stationary
+      if (Math.abs(diff) > 0.005) {
+        rafIdRef.current = requestAnimationFrame(renderLoop);
+      } else {
+        isLoopRunningRef.current = false;
+      }
     };
 
     rafIdRef.current = requestAnimationFrame(renderLoop);
+  }, [drawFrame]);
+
+  // ── 4. Initial Frame Load & Preload Pipeline ─────────────────────────────
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    isMobileRef.current = window.innerWidth < 768;
+    prefersReducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    resizeCanvas();
+
+    const handleFrameLoaded = (frameIdx: number, imgElem: HTMLImageElement) => {
+      loadedFramesRef.current.set(frameIdx, imgElem);
+      const cur = Math.round(currentFrameRef.current);
+      if (cur === frameIdx || lastDrawnFrameRef.current === -1) {
+        drawFrame(cur);
+      }
+    };
+
+    // 1. Load Frame 0001 immediately (Priority 1)
+    const img1 = new Image();
+    img1.crossOrigin = "anonymous";
+    img1.src = getFrameUrl(1, isMobileRef.current);
+    img1.onload = () => handleFrameLoaded(1, img1);
+
+    // 2. Preload nearby priority frames (2 through 10)
+    for (let f = 2; f <= Math.min(10, FRAME_CONFIG.totalFrames); f++) {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.decoding = "async";
+      img.src = getFrameUrl(f, isMobileRef.current);
+      img.onload = () => handleFrameLoaded(f, img);
+    }
+
+    // 3. Preload remaining frames (11 through 39) asynchronously
+    const timer = setTimeout(() => {
+      for (let f = 11; f <= FRAME_CONFIG.totalFrames; f++) {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.decoding = "async";
+        img.src = getFrameUrl(f, isMobileRef.current);
+        img.onload = () => handleFrameLoaded(f, img);
+      }
+    }, 50);
+
+    const ro = new ResizeObserver(() => resizeCanvas());
+    if (stickyRef.current) {
+      ro.observe(stickyRef.current);
+    }
+
+    window.addEventListener("resize", resizeCanvas, { passive: true });
+
+    // Expose dev helpers for verification
+    (window as any).__cakeToHomeDebug = {
+      drawFrame,
+      getCurrentFrame: () => currentFrameRef.current,
+      getTargetFrame: () => targetFrameRef.current,
+      getLoadedCount: () => loadedFramesRef.current.size,
+      hasFrame: (f: number) => loadedFramesRef.current.has(f),
+    };
 
     return () => {
+      clearTimeout(timer);
+      ro.disconnect();
+      window.removeEventListener("resize", resizeCanvas);
       if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      delete (window as any).__cakeToHomeDebug;
     };
-  }, [drawFrame]);
+  }, [drawFrame, resizeCanvas]);
+
+  // ── 5. Scroll Listener (Tied to Section Bounds) ─────────────────────────
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleScroll = () => {
+      const section = sectionRef.current;
+      if (!section) return;
+
+      const rect = section.getBoundingClientRect();
+      const totalScrollable = rect.height - window.innerHeight;
+
+      if (totalScrollable <= 0) return;
+
+      const scrolled = -rect.top;
+      const progress = Math.max(0, Math.min(1, scrolled / totalScrollable));
+
+      scrollProgressRef.current = progress;
+      // Formula: frameIndex = Math.round(progress * (TOTAL_FRAMES - 1)) + 1
+      targetFrameRef.current = 1 + progress * (FRAME_CONFIG.totalFrames - 1);
+
+      startRenderLoop();
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [startRenderLoop]);
 
   return (
     <section
@@ -286,7 +319,8 @@ export function ScrollFrameHero({
           className="scroll-frame-canvas absolute inset-0 h-full w-full object-cover pointer-events-none"
         />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/60 pointer-events-none" />
+        {/* Subtle cinematic gradient overlay for readability without obscuring cake artwork */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/40 pointer-events-none" />
 
         {/* Phase 1 Overlay (0% - 25%) */}
         <div
@@ -369,8 +403,6 @@ export function ScrollFrameHero({
             className="h-full bg-gradient-to-r from-rose-500 via-amber-400 to-rose-400 origin-left scale-x-0"
           />
         </div>
-
-
       </div>
     </section>
   );

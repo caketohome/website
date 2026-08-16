@@ -50,13 +50,13 @@ export interface ScrollSequenceConfig {
 
 export const DEFAULT_SCROLL_SEQUENCE_CONFIG: ScrollSequenceConfig = {
   baseUrl: "https://res.cloudinary.com/r0k56n3j/image/upload/v1786881616/frames1_",
-  frameCount: 118,
+  frameCount: 39,
   framePadding: 4,
   firstFrame: 1,
-  sectionHeight: "450vh",
-  mobileFrameCount: 59,
-  desktopFrameCount: 118,
-  easing: 0.12,
+  sectionHeight: "260vh",
+  mobileFrameCount: 39,
+  desktopFrameCount: 39,
+  easing: 0.18,
   pixelRatioLimit: 2,
   nativeWidth: 1920,
   nativeHeight: 1080,

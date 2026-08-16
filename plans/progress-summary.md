@@ -15,7 +15,7 @@
 | **ERP Reporting V3 (Full Final Acceptance Audit)** | `/dashboard?tab=analytics`, `ExcelExportService` | `200 OK` | `authoritative` | `single-source` | `PASSED ✅` (59/59 final acceptance assertions) | 15 reporting tabs verified in browser, 6 responsive viewports, 14-sheet ExcelJS export, Statutory B2C HSN Summary, MoM growth | **PRODUCTION READY (CURRENT ARCHITECTURE) ✅** |
 | **Master Webhooks & Transactional Outbox (n8n)** | `/admin/webhooks`, `/api/v1/admin/webhooks` | `200 OK` | `postgres/outbox` | `transactional` | `PASSED ✅` (37/37 automated assertions) | 23 canonical event schemas, HMAC-SHA256 signing, async non-blocking queue, exponential backoff, DLQ, zero-downtime resilience | **PRODUCTION READY (CURRENT ARCHITECTURE) ✅** |
 | **Telemarketing Reorder & Reactivation Engine** | `/dashboard?tab=telemarketing`, `/api/v1/admin/telemarketing` | `200 OK` | `authoritative` | `deterministic` | `PASSED ✅` (31/31 automated assertions) | Anniversary matching (±14d), explainable scoring (0-100), 8 outreach statuses, order/revenue attribution, 5-sheet XLSX workbook | **PRODUCTION READY (CURRENT ARCHITECTURE) ✅** |
-| **Scroll-Driven Frame Animation Hero (ScrollFrameHero)** | `/`, `ScrollFrameHero`, `Cloudinary 112 Frames` | `200 OK` | `hardware-canvas` | `useRef-raf` | `PASSED ✅` (7/7 Playwright E2E suites) | 112 frames (0001->0112), 60 FPS RAF interpolation (easing 0.15), cover math, High-DPI DPR 2, priority preloader, reversible scroll (112->1), sticky release into catalog, 7 viewports verified | **PRODUCTION READY (CURRENT ARCHITECTURE) ✅** |
+| **Scroll-Driven Frame Animation Hero (ScrollFrameHero Rebuild)** | `/`, `ScrollFrameHero`, `Cloudinary 39 Frames` | `200 OK` | `hardware-canvas` | `useRef-raf` | `PASSED ✅` (7/7 Playwright E2E suites) | 39 frames (`frames1_0001.jpg` -> `frames1_0039.jpg`), forward scroll mapping (0% = F1, 100% = F39), 60 FPS single RAF loop with idle settling, section-bound progress, cover math, High-DPI DPR 2, priority preloader, reversible scroll (F39 -> F1), sticky release into catalog, 7 viewports verified, zero HUD overlays | **FULLY PRODUCTION READY ✅** |
 | **CakeToHome AI Concierge (Platform-Aware Commerce Agent)** | `/api/v1/ai/chat`, `/api/v1/ai/context`, Storefront AI Widget, `/dashboard?tab=ai_concierge` | `200 OK` | `hybrid-rag-engine` | `controlled-tools` | `PASSED ✅` (15/15 automated E2E assertions + 7 browser screenshots) | Live catalog RAG sync (148 docs), 22 controlled server tools, multi-city aware, zero price/stock hallucination, live cart actions, coupon validation (CAKE50), pincode delivery resolver, admin telemetry | **PRODUCTION READY (CURRENT ARCHITECTURE) ✅** |
 | **Centralized Staff Multi-Access Profiles System** | `/admin/staff-profiles/*`, `/dashboard?tab=staff_profiles` | `200 OK` | `authoritative` | `many-to-many` | `PASSED ✅` (9/9 automated E2E assertions + 5 browser screenshots) | Full many-to-many junction assignments (`StaffAccessProfileAssignment`), deduplicated permission union calculation, atomic profile assignment updates, explicit DENY override precedence, safe archiving guards, accessible `MultiAccessProfileSelect` with live union metrics | **PRODUCTION READY (CURRENT ARCHITECTURE) ✅** |
 
@@ -140,3 +140,29 @@
      - `staff_multiselect_04_edit_modal.png`: Edit Staff Account modal loading existing multi-profile assignments seamlessly.
      - `staff_multiselect_05_edited_table_view.png`: Staff table view reflecting updated staff profile assignments with live success alert (`Updated staff member Aarav Sharma successfully with 4 profiles!`).
 
+---
+
+## Rebuilt ScrollFrameHero (39-Frame Forward Mapping) Direct Evidence
+
+1. **Cloudinary Frame Endpoint Verification (`scripts/test-cloudinary-frames.ts`)**:
+   - **39 / 39 Frames Verified (100% HTTP 200 OK)**:
+   - Initial Frame: `https://res.cloudinary.com/r0k56n3j/image/upload/v1786881616/frames1_0001.jpg`
+   - Ending Frame: `https://res.cloudinary.com/r0k56n3j/image/upload/v1786881629/frames1_0039.jpg`
+   - Zero missing or 404 images across standard and mobile (`w_800`) transforms.
+
+2. **Automated Playwright E2E Verification Suite (`scripts/test-scroll-frame-hero-e2e.ts`)**:
+   - **7 / 7 Test Phases Passed (100% PASS)**:
+     - `initial_frame_0001_render`: **PASS** (Frame 1 rendered immediately on page load, 0 blank canvas, zero start at frame 39).
+     - `stepwise_scroll_down_0_to_100`: **PASS** (Stepwise scroll progress smoothly maps 0% $\rightarrow$ Frame 1, 25% $\rightarrow$ Frame 11, 50% $\rightarrow$ Frame 20, 75% $\rightarrow$ Frame 30, 100% $\rightarrow$ Frame 39).
+     - `final_frame_0039_and_release`: **PASS** (Sticky container pins until 100% at Frame 39, then cleanly releases into product catalog).
+     - `reversible_scroll_up_39_to_1`: **PASS** (Reverse scroll 100% $\rightarrow$ 50% $\rightarrow$ 0% steps cleanly back to Frame 1 with 0 reset or jumping).
+     - `clean_production_dom_no_hud`: **PASS** (Zero debug HUD overlays in production DOM).
+     - `interactive_elements_unblocked`: **PASS** (CTAs, AI Cake Concierge floating widget, WhatsApp button, and navigation header are unblocked).
+     - `multi_viewport_visual_qa`: **PASS** (0 horizontal overflow across 1920x1080 HD, 1440x900 MacBook, 1280x800 Laptop, 1024x768 iPad Landscape, 768x1024 iPad Portrait, 390x844 iPhone 14, 375x812 Small Mobile).
+
+3. **Visual Verification Artifacts Captured (`scripts/test-preloaded-gallery.ts`)**:
+   - `gallery_00_frame0001_0pct.png`: Initial liquid chocolate pouring stream at 0% scroll.
+   - `gallery_25_frame0011_25pct.png`: Smooth liquid chocolate streaming at 25% scroll.
+   - `gallery_50_frame0020_50pct.png`: Gourmet glazed cake on rotating turntable at 50% scroll.
+   - `gallery_75_frame0030_75pct.png`: Cake descending into delivery box at 75% scroll.
+   - `gallery_100_frame0039_100pct.png`: Luxury white delivery box sealed with gold crest at 100% scroll.
