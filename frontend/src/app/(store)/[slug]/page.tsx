@@ -33,6 +33,7 @@ export default async function CmsPageRoute({
 
   const allProducts = ApiEngine.getProducts();
   const allCategories = ApiEngine.listPimCategories();
+  const occasions = ApiEngine.listOccasions();
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://cakes2home.com";
   const pageUrl = `${baseUrl}/${params.slug}`;
 
@@ -52,10 +53,12 @@ export default async function CmsPageRoute({
           sections={sections}
           allProducts={allProducts}
           allCategories={allCategories}
+          occasions={occasions}
           announcementBar={page.announcement_bar}
           h1={page.h1 || page.title}
           subheading={page.subheading}
           introContent={page.intro_content}
+          theme={page.theme}
         />
       ) : (
         <div className="max-w-3xl mx-auto w-full flex flex-col gap-6">

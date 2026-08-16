@@ -26,6 +26,7 @@ export default async function Home() {
   const sections = cms?.sections ?? [];
   const banners = cms?.banners ?? [];
   const announcementBar = "announcementBar" in cms ? cms.announcementBar : undefined;
+  const occasions = ApiEngine.listOccasions();
 
   return (
     <div className="flex flex-col gap-12">
@@ -36,6 +37,7 @@ export default async function Home() {
           banners={banners}
           allProducts={allProducts}
           allCategories={allCategories}
+          occasions={occasions}
           announcementBar={announcementBar}
         />
       ) : (

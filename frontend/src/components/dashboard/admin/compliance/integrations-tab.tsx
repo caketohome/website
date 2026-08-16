@@ -159,6 +159,37 @@ export function IntegrationsTab({
             </label>
           </div>
         </Container>
+
+        {/* n8n Automation & Webhook Outbox Card */}
+        <Container className="p-5 flex flex-col gap-4 lg:col-span-2 bg-slate-900 text-white border-slate-800">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div className="flex items-center gap-2">
+              <Plug className="w-4 h-4 text-purple-400" />
+              <Text className="text-xs font-bold uppercase tracking-wider text-purple-300">
+                n8n Automation &amp; Transactional Webhook Outbox
+              </Text>
+            </div>
+            <Badge color="purple" size="small">
+              HMAC-SHA256 SIGNED
+            </Badge>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col gap-1">
+              <Text className="text-sm font-semibold text-white">
+                Outbound Event Stream for CRM, Messaging &amp; Marketing
+              </Text>
+              <Text className="text-xs text-slate-300">
+                Dispatches real-time customer lifecycle events (logins, registrations, cart abandonments, orders, telemarketing candidates) with zero downtime resilience.
+              </Text>
+            </div>
+            <a
+              href="?tab=webhooks"
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shrink-0 flex items-center gap-1.5 transition-colors"
+            >
+              <Plug className="w-3.5 h-3.5" /> Manage n8n Webhooks &rarr;
+            </a>
+          </div>
+        </Container>
       </div>
     </form>
   );

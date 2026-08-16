@@ -10,6 +10,7 @@ import { searchProductsAction } from "@frontend/lib/actions/catalog";
 import { type SearchResult } from "@frontend/lib/data/catalog-client";
 import { addToCart } from "@frontend/lib/actions/carts";
 import { ErrorComponent } from "@frontend/components/common/error-component";
+import { ScrollFrameHero } from "@frontend/components/store/animation/scroll-frame-hero";
 
 const SAMPLE_PRODUCTS: SearchResult[] = [
   {
@@ -190,72 +191,13 @@ export function StorefrontProductHomepage() {
   const newArrivals = (products.filter((p) => p.is_new_arrival).length > 0 ? products.filter((p) => p.is_new_arrival) : products).slice(0, 4);
 
   return (
-    <div className="flex flex-col gap-12 w-full max-w-7xl mx-auto px-1 sm:px-4 md:px-6 py-2 sm:py-4 overflow-hidden">
-      {/* Hero Banner Section */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-rose-900 via-pink-800 to-rose-950 text-white p-5 sm:p-8 md:p-14 shadow-2xl">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-rose-400/20 via-transparent to-transparent opacity-60"></div>
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8">
-          <div className="flex flex-col gap-4 sm:gap-5 max-w-2xl w-full">
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[11px] sm:text-xs font-semibold text-rose-200 w-fit max-w-full">
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 animate-pulse shrink-0" />
-              <span className="truncate">100% Fresh & Artisanal • Express 2-Hour Delivery</span>
-            </div>
-            <Heading level="h1" className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight leading-tight text-white">
-              Freshly Baked Happiness <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-rose-200 to-pink-100">
-                Delivered To Your Doorstep
-              </span>
-            </Heading>
-            <Text className="text-rose-100/90 text-xs sm:text-sm md:text-base leading-relaxed">
-              Explore gourmet cakes, handcrafted chocolates, fresh pastries, and savory treats. Delivered directly from our nearest kitchen for maximum freshness.
-            </Text>
-
-            {/* Quick Product Search Bar */}
-            <div className="relative w-full max-w-lg mt-2">
-              <Input
-                type="text"
-                placeholder="Search Belgian Chocolate, Red Velvet, Cookies..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 sm:pl-11 pr-20 sm:pr-24 py-2.5 sm:py-3 rounded-xl bg-white text-gray-900 shadow-lg text-xs sm:text-sm focus:ring-2 focus:ring-rose-400 border-0"
-              />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Link
-                href={`/search${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ""}`}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-rose-600 hover:bg-rose-700 text-white px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold transition"
-              >
-                Search
-              </Link>
-            </div>
-
-            {/* Trust Badges */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-white/10 text-xs text-rose-100/80">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-300 shrink-0" />
-                <span>2-Hour Delivery</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-300 shrink-0" />
-                <span>Eggless Options</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Gift className="w-4 h-4 text-pink-300 shrink-0" />
-                <span>Gift & Surprise</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative shrink-0 w-full md:w-80 aspect-square rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 hidden sm:block">
-            <Image
-              src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800"
-              alt="Gourmet CakeToHome Cake"
-              fill
-              className="object-cover hover:scale-105 transition duration-500"
-              priority
-            />
-          </div>
-        </div>
-      </section>
+    <div className="flex flex-col gap-12 w-full max-w-7xl mx-auto px-1 sm:px-4 md:px-6 py-2 sm:py-4">
+      {/* Real Scroll-Driven Frame Animation Hero */}
+      <ScrollFrameHero
+        headline="Freshly Baked Happiness"
+        subheadline="Explore gourmet cakes, handcrafted chocolates, fresh pastries, and savory treats. Delivered directly from our nearest kitchen for maximum freshness."
+        badgeText="100% Fresh & Artisanal • Express 2-Hour Delivery"
+      />
 
       {/* Offers & Promotions Bar */}
       <section className="flex flex-col gap-4">

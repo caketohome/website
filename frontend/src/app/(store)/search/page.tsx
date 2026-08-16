@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
 import { Heading, Text, Input } from "@medusajs/ui";
 import { searchProductsAction } from "@frontend/lib/actions/catalog";
 import { type SearchFilters, type SearchResult } from "@frontend/lib/data/catalog-client";
@@ -10,11 +10,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 
-/**
- * Search page — full-text product search with faceted filters.
- * Reads the initial query from the `q` URL search param.
- */
 export default function SearchPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center py-24 text-ui-fg-muted">Loading search...</div>}>
+            <SearchPageContent />
+        </Suspense>
+    );
+}
+
+function SearchPageContent() {
     const searchParams = useSearchParams();
     const initialQ = searchParams.get("q") ?? "";
     const [q, setQ] = useState(initialQ);

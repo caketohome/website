@@ -4,6 +4,7 @@ import NavCart from "@frontend/components/store/cart/nav-cart";
 import { HeaderNavigation } from "@frontend/components/store/cms/navigation";
 import { DeliveryLocationHeader } from "@frontend/components/store/location/delivery-location-header";
 import { ExitIntentPopup } from "@frontend/components/store/marketing/exit-intent-popup";
+import { EngagementProvider } from "@frontend/components/store/engagement/engagement-provider";
 import { WhatsAppSupportButton } from "@frontend/components/store/whatsapp-support-button";
 import { AiChatAssistant } from "@frontend/components/store/ai-chat-assistant";
 import { retrieveUser } from "@frontend/lib/data";
@@ -26,7 +27,7 @@ export default async function RootLayout({
   const user = await retrieveUser();
 
   return (
-    <>
+    <EngagementProvider>
       <nav className="flex px-3 sm:px-6 md:px-10 h-16 bg-[#111111] text-white justify-between items-center sticky top-0 z-50 border-b border-white/10 shadow-[0_4px_18px_rgba(0,0,0,0.25)] w-full max-w-full">
         <div className="flex gap-2 sm:gap-6 items-center shrink min-w-0">
           <Link
@@ -54,7 +55,7 @@ export default async function RootLayout({
           <ProfileBadge user={user} />
         </div>
       </nav>
-      <main className="flex flex-col gap-12 sm:gap-20 p-3 sm:p-6 md:p-10 transition-all duration-150 ease-in-out min-h-[calc(100vh-8rem)] w-full max-w-full min-w-0 overflow-x-clip">
+      <main className="flex flex-col min-h-[calc(100vh-8rem)] w-full max-w-full min-w-0">
         {children}
       </main>
       <Footer />
@@ -67,6 +68,6 @@ export default async function RootLayout({
       <Suspense fallback={null}>
         <ExitIntentPopup />
       </Suspense>
-    </>
+    </EngagementProvider>
   );
 }

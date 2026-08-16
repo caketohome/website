@@ -95,7 +95,31 @@ class CakeToHomeApiClient {
   }
 
 
-  private async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  public async get<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: "GET" });
+  }
+
+  public async post<T = any>(endpoint: string, body?: any, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: "POST",
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
+  public async put<T = any>(endpoint: string, body?: any, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: "PUT",
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
+  public async delete<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: "DELETE" });
+  }
+
+  public async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const startTime = Date.now();
     const method = options.method || "GET";
     const headers: Record<string, string> = {
@@ -112,9 +136,16 @@ class CakeToHomeApiClient {
       headers["Authorization"] = `Bearer ${activeToken}`;
     }
 
+    let cleanEndpoint = endpoint;
+    if (cleanEndpoint.startsWith("/api/v1/")) {
+      cleanEndpoint = cleanEndpoint.substring("/api/v1".length);
+    } else if (cleanEndpoint.startsWith("/api/")) {
+      cleanEndpoint = cleanEndpoint.substring("/api".length);
+    }
+
     const primaryUrl = typeof window !== "undefined"
-      ? `/api/v1${endpoint}`
-      : `http://localhost:3000/api/v1${endpoint}`;
+      ? `/api/v1${cleanEndpoint}`
+      : `http://localhost:3000/api/v1${cleanEndpoint}`;
 
     try {
       const response = await fetch(primaryUrl, {
@@ -731,6 +762,9 @@ class CakeToHomeApiClient {
   }
   async unpublishCmsPage(id: string) {
     return this.request(`/cms/pages/${id}/unpublish`, { method: "POST" });
+  }
+  async reorderCmsPageSections(id: string, sectionIds: string[]) {
+    return this.request(`/cms/pages/${id}/reorder-sections`, { method: "POST", body: JSON.stringify({ section_ids: sectionIds }) });
   }
   async getPageVersions(id: string) {
     return this.request(`/cms/pages/${id}/versions`).catch(() => ({ versions: [] }));
@@ -1463,6 +1497,268 @@ class CakeToHomeApiClient {
       integrationSettings: null,
       documents: [],
     }));
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── POPUP & ENGAGEMENT MANAGER (ADMIN & STOREFRONT) ───────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async getAdminPopups(params?: Record<string, string>) {
+    const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+    return this.request(`/admin/popups${qs}`).catch(() => ({ campaigns: [], success: false }));
+  }
+
+  async getAdminPopupById(id: string) {
+    return this.request(`/admin/popups/${id}`).catch(() => ({ campaign: null, success: false }));
+  }
+
+  async createAdminPopup(data: any) {
+    return this.request("/admin/popups", { method: "POST", body: JSON.stringify(data) });
+  }
+
+  async updateAdminPopup(id: string, data: any) {
+    return this.request(`/admin/popups/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+  }
+
+  async publishAdminPopup(id: string, versionData?: any) {
+    return this.request(`/admin/popups/${id}/publish`, { method: "POST", body: JSON.stringify(versionData || {}) });
+  }
+
+  async pauseAdminPopup(id: string) {
+    return this.request(`/admin/popups/${id}/pause`, { method: "POST", body: JSON.stringify({}) });
+  }
+
+  async archiveAdminPopup(id: string) {
+    return this.request(`/admin/popups/${id}/archive`, { method: "POST", body: JSON.stringify({}) });
+  }
+
+  async duplicateAdminPopup(id: string) {
+    return this.request(`/admin/popups/${id}/duplicate`, { method: "POST", body: JSON.stringify({}) });
+  }
+
+  async deleteAdminPopup(id: string) {
+    return this.request(`/admin/popups/${id}`, { method: "DELETE" });
+  }
+
+  async getAdminPopupOptions() {
+    return this.request("/admin/popups/options").catch(() => ({
+      customer_statuses: [],
+      devices: [],
+      popup_types: [],
+      actions: [],
+      cities: [],
+      branches: [],
+      categories: [],
+      occasions: [],
+      products: [],
+      coupons: [],
+    }));
+  }
+
+  async getAdminPopupAnalytics(params?: Record<string, string>) {
+    const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+    return this.request(`/admin/popups/analytics/summary${qs}`).catch(() => ({ summary: null, success: false }));
+  }
+
+  async getStoreEngagementConfig(params?: Record<string, string>) {
+    const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+    return this.request(`/engagement/config${qs}`).catch(() => ({ campaigns: [], version: 1 }));
+  }
+
+  async recordEngagementImpression(data: any) {
+    return this.request("/engagement/impression", { method: "POST", body: JSON.stringify(data) }).catch(() => ({ success: false }));
+  }
+
+  async recordEngagementConversion(data: any) {
+    return this.request("/engagement/conversion", { method: "POST", body: JSON.stringify(data) }).catch(() => ({ success: false }));
+  }
+
+  async requestOtp(phone: string, method: string = "OTP_SMS") {
+    return this.request("/auth/request-otp", {
+      method: "POST",
+      body: JSON.stringify({ phone, method }),
+    });
+  }
+
+  async verifyOtp(phone: string, otp: string, extra?: { name?: string; email?: string }) {
+    return this.request("/auth/verify-otp", {
+      method: "POST",
+      body: JSON.stringify({ phone, code: otp, ...extra }),
+    });
+  }
+
+  // ── Webhooks & n8n Outbox APIs ────────────────────────────────
+  async getAdminWebhookEndpoints() {
+    return this.request("/admin/webhooks").catch(() => ({ endpoints: [] }));
+  }
+
+  async getAdminWebhookLogs(params?: Record<string, any>) {
+    const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+    return this.request(`/admin/webhooks/logs${qs}`).catch(() => ({ logs: [], total: 0, metrics: null }));
+  }
+
+  async getAdminWebhookOutbox(status?: string) {
+    const qs = status ? `?status=${status}` : "";
+    return this.request(`/admin/webhooks/outbox${qs}`).catch(() => ({ outbox: [] }));
+  }
+
+  async updateAdminWebhookEndpoint(id: string, updates: any) {
+    return this.request(`/admin/webhooks/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(updates),
+    });
+  }
+
+  async rotateAdminWebhookSecret(id: string) {
+    return this.request(`/admin/webhooks/${id}/rotate-secret`, {
+      method: "POST",
+    });
+  }
+
+  async triggerAdminTestWebhook(id: string = "ep_n8n_production") {
+    return this.request("/admin/webhooks/test", {
+      method: "POST",
+      body: JSON.stringify({ endpoint_id: id }),
+    });
+  }
+
+  async retryAdminWebhookOutbox(outboxId: string) {
+    return this.request(`/admin/webhooks/retry/${outboxId}`, {
+      method: "POST",
+    });
+  }
+
+  // ── Telemarketing Reorder APIs ─────────────────────────────────
+  async getAdminTelemarketingCandidates(params?: Record<string, any>) {
+    const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+    return this.request(`/admin/telemarketing/candidates${qs}`).catch(() => ({ candidates: [], total: 0, metrics: null }));
+  }
+
+  async evaluateAdminTelemarketingCandidates(currentDate?: string) {
+    return this.request("/admin/telemarketing/evaluate", {
+      method: "POST",
+      body: JSON.stringify({ currentDate }),
+    });
+  }
+
+  async updateAdminTelemarketingStatus(candidateId: string, payload: {
+    status: string;
+    note?: string;
+    agentName?: string;
+    nextFollowupDate?: string;
+  }) {
+    return this.request(`/admin/telemarketing/candidates/${candidateId}/status`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async assignAdminTelemarketingCandidate(candidateId: string, agentName: string) {
+    return this.request(`/admin/telemarketing/candidates/${candidateId}/assign`, {
+      method: "PUT",
+      body: JSON.stringify({ agent_name: agentName }),
+    });
+  }
+
+  async recordAdminTelemarketingOrder(candidateId: string, orderId: string, revenue: number) {
+    return this.request(`/admin/telemarketing/candidates/${candidateId}/convert`, {
+      method: "POST",
+      body: JSON.stringify({ order_id: orderId, revenue }),
+    });
+  }
+
+  async exportAdminTelemarketingList(payload?: {
+    type?: "telecaller_list" | "high_priority" | "calls_due" | "follow_ups" | "full_workbook";
+    priorityFilter?: string;
+    cityFilter?: string;
+    branchFilter?: string;
+    statusFilter?: string;
+    filename?: string;
+  }) {
+    return this.request("/admin/telemarketing/export", {
+      method: "POST",
+      body: JSON.stringify(payload || {}),
+    });
+  }
+
+  // ── Admin: Staff Profiles & Permissions ──
+  async getAdminStaffProfiles() {
+    return this.request("/admin/staff-profiles/profiles").catch(() => ({ profiles: [] }));
+  }
+
+  async createAdminStaffProfile(payload: {
+    name: string;
+    description: string;
+    permissions: string[];
+    status?: "ACTIVE" | "DISABLED";
+  }) {
+    return this.request("/admin/staff-profiles/profiles", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateAdminStaffProfile(id: string, payload: any) {
+    return this.request(`/admin/staff-profiles/profiles/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async duplicateAdminStaffProfile(id: string) {
+    return this.request(`/admin/staff-profiles/profiles/${id}/duplicate`, {
+      method: "POST",
+    });
+  }
+
+  async archiveAdminStaffProfile(id: string) {
+    return this.request(`/admin/staff-profiles/profiles/${id}/archive`, {
+      method: "POST",
+    });
+  }
+
+  async getAdminStaffMembers() {
+    return this.request("/admin/staff-profiles/staff").catch(() => ({ staff: [] }));
+  }
+
+  async createAdminStaffMember(payload: {
+    name: string;
+    phone: string;
+    email: string;
+    profile_id?: string;
+    accessProfileIds?: string[];
+    profile_ids?: string[];
+    branch_id?: string | null;
+    branch_name?: string | null;
+    city?: string | null;
+    status?: "ACTIVE" | "SUSPENDED";
+  }) {
+    return this.request("/admin/staff-profiles/staff", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateAdminStaffMember(id: string, payload: any) {
+    return this.request(`/admin/staff-profiles/staff/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async setAdminStaffOverride(id: string, permissionId: string, effect: "ALLOW" | "DENY" | "RESET") {
+    return this.request(`/admin/staff-profiles/staff/${id}/overrides`, {
+      method: "POST",
+      body: JSON.stringify({ permission_id: permissionId, effect }),
+    });
+  }
+
+  async getAdminPermissionAuditLogs() {
+    return this.request("/admin/staff-profiles/audit-logs").catch(() => ({ logs: [] }));
+  }
+
+  async getAdminPermissionCatalog() {
+    return this.request("/admin/staff-profiles/catalog").catch(() => ({ catalog: [] }));
   }
 }
 

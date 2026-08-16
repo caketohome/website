@@ -7,6 +7,9 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   transpilePackages: ["@medusajs/ui"],
+  experimental: {
+    webpackBuildWorker: false,
+  },
   images: {
     remotePatterns: [
       {
@@ -25,6 +28,10 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
       },
     ],
   },

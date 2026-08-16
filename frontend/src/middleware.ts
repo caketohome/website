@@ -23,12 +23,22 @@ export async function middleware(request: NextRequest) {
     const rawRole = (request.cookies.get("_cth_role")?.value || "").toUpperCase();
     const hasAuthSession = Boolean(token || request.cookies.get("_cth_user_id")?.value || request.cookies.get("_cth_phone")?.value);
 
-    // 1. /dashboard (root super admin) protection
+    // 1. /dashboard (staff & admin) protection
     if (pathname === "/dashboard" || pathname === "/dashboard/") {
       if (!hasAuthSession) {
         return NextResponse.redirect(new URL("/login", request.url));
       }
-      if (rawRole !== "SUPER_ADMIN" && rawRole !== "ADMIN") {
+      const isStaffOrAdmin =
+        rawRole === "SUPER_ADMIN" ||
+        rawRole === "ADMIN" ||
+        rawRole === "STAFF" ||
+        rawRole === "TELECALLER" ||
+        rawRole === "DIGITAL_MARKETING" ||
+        rawRole === "SEO_MANAGER" ||
+        rawRole === "CONTENT_MANAGER" ||
+        rawRole === "CUSTOMER_SUPPORT";
+
+      if (!isStaffOrAdmin) {
         if (rawRole === "DELIVERY_PARTNER" || rawRole === "DLP") {
           return NextResponse.redirect(new URL("/dashboard/delivery-partner", request.url));
         }

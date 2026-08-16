@@ -107,9 +107,14 @@ export async function getHomepage(lang = "en"): Promise<{
   };
 }
 
-export async function getCmsPage(slug: string, lang = "en"): Promise<CmsPage | null> {
+export async function getCmsPage(slug: string, lang = "en", includeDrafts = false): Promise<CmsPage | null> {
   const page = ApiEngine.getCmsPage(slug);
   if (!page) return null;
+
+  // If not published and drafts not explicitly allowed (e.g. public storefront), return null
+  if (page.status !== "published" && !includeDrafts) {
+    return null;
+  }
 
   // If page is published, merge published_config fields
   if (page.status === "published") {
@@ -133,6 +138,10 @@ export async function getCmsPage(slug: string, lang = "en"): Promise<CmsPage | n
   }
 
   return page as CmsPage;
+}
+
+export async function getOccasions(): Promise<any[]> {
+  return ApiEngine.listOccasions();
 }
 
 export async function getNavigation(location: string, lang = "en"): Promise<any | null> {

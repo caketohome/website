@@ -107,30 +107,66 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
 
     const items = o.items || o.cart?.items || [];
 
+    // Safely extract string values for address, name, and phone
+    const rawAddr = o.delivery_address || o.deliveryAddress || o.recipient_address || o.shipping_address || o.address;
+    let formattedAddress = "Flat 402, Signature Towers, Indiranagar 100ft Road";
+    if (typeof rawAddr === "string" && rawAddr.trim()) {
+      formattedAddress = rawAddr.trim();
+    } else if (rawAddr && typeof rawAddr === "object") {
+      const parts = [
+        rawAddr.address_1 || rawAddr.line1 || rawAddr.address,
+        rawAddr.address_2 || rawAddr.line2,
+        rawAddr.landmark,
+        rawAddr.area,
+        rawAddr.city,
+        rawAddr.state,
+        rawAddr.postal_code || rawAddr.pincode || rawAddr.zip,
+      ].filter(Boolean);
+      if (parts.length > 0) formattedAddress = parts.join(", ");
+    }
+
+    const rawName = o.customer_name || o.customerName || o.recipient_name || (o.shipping_address && typeof o.shipping_address === "object" ? `${o.shipping_address.first_name || ""} ${o.shipping_address.last_name || ""}`.trim() : null);
+    let formattedName = "Ananya Rao";
+    if (typeof rawName === "string" && rawName.trim()) {
+      formattedName = rawName.trim();
+    }
+
+    const rawPhone = o.customer_phone || o.customerPhone || o.recipient_phone || (o.shipping_address && typeof o.shipping_address === "object" ? o.shipping_address.phone : null);
+    let formattedPhone = "+91 98765 43210";
+    if (typeof rawPhone === "string" && rawPhone.trim()) {
+      formattedPhone = rawPhone.trim();
+    }
+
+    const rawPincode = o.pincode || o.recipient_pincode || (o.shipping_address && typeof o.shipping_address === "object" ? (o.shipping_address.postal_code || o.shipping_address.pincode) : null);
+    let formattedPincode = "560038";
+    if (typeof rawPincode === "string" || typeof rawPincode === "number") {
+      formattedPincode = String(rawPincode).trim();
+    }
+
     return {
       id: o.id || `CTH-${o.order_number || idx}`,
       order_id: o.id,
       delivery_status: status as any,
       status: status,
       delivery_partner_id: o.delivery_partner_id || null,
-      recipient_name: o.customerName || "Ananya Rao",
-      recipient_phone: o.customerPhone || "+91 98765 43210",
-      recipient_address: o.deliveryAddress || o.shipping_address?.address_1 || "Flat 402, Signature Towers, Indiranagar 100ft Road",
-      recipient_pincode: o.pincode || "560038",
-      recipient_landmark: "Opp. To Metro Station",
-      delivery_instructions: "Handle with extreme care — Multi-tier Designer Birthday Cake.",
-      gift_message: "Happy 25th Birthday Ananya! Love, Family",
-      delivery_otp: o.delivery_otp || "4819",
-      pickup_otp: o.pickup_otp || "1294",
+      recipient_name: formattedName,
+      recipient_phone: formattedPhone,
+      recipient_address: formattedAddress,
+      recipient_pincode: formattedPincode,
+      recipient_landmark: typeof o.landmark === "string" ? o.landmark : "Opp. To Metro Station",
+      delivery_instructions: typeof o.delivery_instructions === "string" ? o.delivery_instructions : "Handle with extreme care — Multi-tier Designer Birthday Cake.",
+      gift_message: typeof o.gift_message === "string" ? o.gift_message : "Happy Celebration!",
+      delivery_otp: typeof o.delivery_otp === "string" ? o.delivery_otp : "4819",
+      pickup_otp: typeof o.pickup_otp === "string" ? o.pickup_otp : "1294",
       order: {
         id: o.id,
         items,
         shipping_address: {
-          first_name: o.customerName?.split(" ")[0] || "Ananya",
-          last_name: o.customerName?.split(" ")[1] || "Rao",
-          phone: o.customerPhone || "+91 98765 43210",
-          address_1: o.deliveryAddress || "Flat 402, Signature Towers, Indiranagar 100ft Road",
-          postal_code: o.pincode || "560038",
+          first_name: formattedName.split(" ")[0] || "Ananya",
+          last_name: formattedName.split(" ").slice(1).join(" ") || "Rao",
+          phone: formattedPhone,
+          address_1: formattedAddress,
+          postal_code: formattedPincode,
         }
       },
       cart: { items }

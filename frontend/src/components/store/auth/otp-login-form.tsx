@@ -9,7 +9,15 @@ import { loginCustomer } from "@frontend/lib/actions/users";
 
 const isDev = process.env.NODE_ENV !== "production";
 
-export function OtpLoginForm() {
+export interface OtpLoginFormProps {
+    intentAction?: string;
+    redirectUrl?: string;
+    onSuccess?: (user: any) => void;
+    isModal?: boolean;
+    onClose?: () => void;
+}
+
+export function OtpLoginForm({ intentAction, redirectUrl, onSuccess, isModal, onClose }: OtpLoginFormProps = {}) {
     const router = useRouter();
     const [step, setStep] = useState<"phone" | "otp" | "new_customer">("phone");
     const [phone, setPhone] = useState("");
@@ -94,7 +102,7 @@ export function OtpLoginForm() {
             const branchId = result.branch_id || result.user?.branch_id || result.user?.shop_id;
             const partnerId = result.partner_id || result.user?.partner_id;
 
-            let targetPath = "/account";
+            let targetPath = redirectUrl || "/account";
             if (serverRole === "DELIVERY_PARTNER" || serverRole === "DLP") {
                 targetPath = "/dashboard/delivery-partner";
             } else if (serverRole === "BRANCH_MANAGER" || serverRole === "SHOP_MANAGER" || serverRole === "SHOP" || serverRole === "SHPMGR") {
@@ -114,7 +122,18 @@ export function OtpLoginForm() {
             // Persist session cookies on server
             await loginCustomer(result.token, serverRole, userId, userPhone, branchId, partnerId).catch(() => null);
 
-            setInfo("Authentication successful! Redirecting...");
+            setInfo("Authentication successful!");
+
+            if (onSuccess) {
+                onSuccess(result);
+            }
+
+            if (isModal && serverRole === "CUSTOMER" && !redirectUrl) {
+                // If in modal mode for customer and no redirect explicitly requested, do not force full navigation
+                setLoading(false);
+                if (onClose) onClose();
+                return;
+            }
 
             window.location.assign(targetPath);
         } catch (err: any) {

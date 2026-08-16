@@ -1,5 +1,6 @@
 "use client";
 
+import React, { memo } from "react";
 import { ProfileMenu, type ProfileUserDTO } from "../layout/profile-menu";
 
 type ProfileBadgeProps = {
@@ -9,7 +10,7 @@ type ProfileBadgeProps = {
   showNameOnDesktop?: boolean;
 };
 
-export function ProfileBadge({
+export const ProfileBadge = memo(function ProfileBadge({
   user,
   isLoading = false,
   className = "",
@@ -23,4 +24,4 @@ export function ProfileBadge({
       showNameOnDesktop={showNameOnDesktop}
     />
   );
-}
+});

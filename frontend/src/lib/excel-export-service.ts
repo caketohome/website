@@ -1,5 +1,24 @@
 import * as ExcelJS from "exceljs";
 
+let dynamicBrandLine = "CAKETOHOME (CakeToHome India Private Limited)";
+let dynamicPrimaryGstin = "29AAAAA0000A1Z5";
+
+/**
+ * Configure export identity dynamically from the active business profile.
+ */
+export function setExportBusinessIdentity(brandLine: string, gstin?: string): void {
+  if (brandLine) dynamicBrandLine = brandLine;
+  if (gstin) dynamicPrimaryGstin = gstin;
+}
+
+function resolveExportBrandLine(): string {
+  return dynamicBrandLine;
+}
+
+function resolvePrimaryGstin(): string {
+  return dynamicPrimaryGstin;
+}
+
 export interface ExcelColumn {
   header: string;
   key: string;
@@ -17,9 +36,6 @@ export interface ExcelSheetData {
 }
 
 export class ExcelExportService {
-  /**
-   * Helper to trigger browser blob download
-   */
   public static triggerBrowserDownload(buffer: ArrayBuffer, filename: string): void {
     if (typeof window !== "undefined") {
       const blob = new Blob([buffer], {
@@ -38,1729 +54,1333 @@ export class ExcelExportService {
 
   public static formatBranchSubtitle(filters?: any): string {
     const bIds = filters?.branchIds;
-    if (!bIds || bIds.length === 0) {
-      return "All Operating Branches";
+    if (!bIds || bIds.length === 0 || bIds.includes("all")) {
+      return filters?.city && filters.city !== "all" ? `City: ${filters.city} | All Operating Kitchen Hubs` : "All Operating Kitchen Hubs";
     }
     if (bIds.length === 1) {
-      return `Branch: ${bIds[0]}`;
+      return `Kitchen Hub: ${bIds[0]}`;
     }
-    return `Branches: ${bIds.length} Selected`;
+    return `Kitchen Hubs: ${bIds.length} Selected`;
   }
 
-  // 1. DEDICATED GST SUMMARY EXPORT
-  public static async exportGstSummary(data: { kpis: any[]; salesRegister: any[]; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("GST Summary");
-    sheet.views = [{ showGridLines: true }];
+  private static styleWorksheetHeader(sheet: ExcelJS.Worksheet, title: string, periodStr: string, filters?: any, colCount: number = 11): void {
+    const lastColLetter = String.fromCharCode(64 + Math.min(colCount, 26));
 
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
-
-    sheet.mergeCells("A1:E1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
+    sheet.mergeCells(`A1:${lastColLetter}1`);
+    sheet.getCell("A1").value = resolveExportBrandLine();
     sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
 
-    sheet.mergeCells("A2:E2");
-    sheet.getCell("A2").value = `EXECUTIVE GST SUMMARY REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
+    sheet.mergeCells(`A2:${lastColLetter}2`);
+    sheet.getCell("A2").value = `${title} | Period: ${periodStr} | ${this.formatBranchSubtitle(filters)}`;
     sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
 
-    sheet.getCell("A4").value = "GSTIN:"; sheet.getCell("B4").value = "29AAAAA0000A1Z5";
-    sheet.getCell("D4").value = "Generated:"; sheet.getCell("E4").value = new Date().toLocaleString("en-IN");
-    ["A4", "D4"].forEach((ref) => sheet.getCell(ref).font = { bold: true });
+    sheet.getCell("A4").value = "GSTIN:";
+    sheet.getCell("B4").value = resolvePrimaryGstin();
+    sheet.getCell("D4").value = "Generated At:";
+    sheet.getCell("E4").value = new Date().toLocaleString("en-IN");
+    ["A4", "D4"].forEach((ref) => { sheet.getCell(ref).font = { bold: true }; });
+  }
 
-    sheet.getRow(6).values = ["GST KPI Metric", "Amount (₹) / Count"];
+  // ── 1. STATUTORY B2C HSN SUMMARY EXPORT (Exact layout matching statutory reference) ──
+  public static async exportGstHsnSummary(data: { gstSummary: { items: any[]; totals: any }; filters?: any }, filename?: string): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("GST HSN Summary");
+    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+
+    const fromDate = data.filters?.customStartDate || "10/08/2026";
+    const toDate = data.filters?.customEndDate || "10/08/2026";
+    const periodStr = `${fromDate} TO ${toDate}`;
+
+    this.styleWorksheetHeader(sheet, "SALES B2C HSN CODE SUMMARY", periodStr, data.filters, 11);
+
+    const headers = [
+      "HSNCODE", "Description", "UQC", "Total QTY", "TOTAL VALUE",
+      "GST %", "Taxable Amt", "IGST", "CGST", "SGST", "CESS"
+    ];
+    sheet.getRow(6).values = headers;
     sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
     sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
 
+    const items = data.gstSummary?.items || [];
     let rIdx = 7;
-    (data.kpis || []).forEach((k) => {
-      sheet.getCell(`A${rIdx}`).value = k.label;
-      const c = sheet.getCell(`B${rIdx}`);
-      c.value = k.currentValue;
-      c.numFmt = k.unit === "currency" ? "₹#,##0.00" : "#,##0";
+    for (const item of items) {
+      const row = sheet.getRow(rIdx);
+      row.values = [
+        item.hsnCode,
+        item.description,
+        item.uom || "NOS - NUMBERS",
+        item.quantity,
+        item.totalValue,
+        item.gstRatePct / 100,
+        item.taxableValue,
+        item.igst,
+        item.cgst,
+        item.sgst,
+        item.cess || 0,
+      ];
+
+      // Formatting
+      sheet.getCell(`D${rIdx}`).numFmt = "#,##0.000";
+      sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`F${rIdx}`).numFmt = "0.00%";
+      sheet.getCell(`G${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`H${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`I${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`J${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`K${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
+    }
+
+    // Bold TOTALS Row
+    const totals = data.gstSummary?.totals;
+    if (totals) {
+      const totRow = sheet.getRow(rIdx);
+      totRow.values = [
+        "TOTAL",
+        "Statutory B2C Summary Total",
+        "",
+        totals.quantity,
+        totals.totalValue,
+        "",
+        totals.taxableValue,
+        totals.igst,
+        totals.cgst,
+        totals.sgst,
+        totals.cess || 0,
+      ];
+      totRow.font = { bold: true };
+      totRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+
+      sheet.getCell(`D${rIdx}`).numFmt = "#,##0.000";
+      sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`G${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`H${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`I${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`J${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`K${rIdx}`).numFmt = "₹#,##0.00";
+    }
+
+    sheet.columns = [
+      { width: 14 }, { width: 34 }, { width: 16 }, { width: 14 }, { width: 16 },
+      { width: 10 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 12 }
+    ];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_GST_B2C_HSN_Summary_${fromDate}_to_${toDate}`);
+  }
+
+  // ── 2. DAILY SALES REPORT EXPORT ──
+  public static async exportDailySalesReport(data: { daily: any; filters?: any }, filename?: string): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Daily Sales Report");
+    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+
+    const fromDate = data.filters?.customStartDate || new Date().toISOString().slice(0, 10);
+    this.styleWorksheetHeader(sheet, "DAILY OPERATIONAL SALES REPORT", fromDate, data.filters, 8);
+
+    // Section 1: KPI Summary
+    sheet.getCell("A6").value = "Daily Operational KPIs";
+    sheet.getCell("A6").font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.mergeCells("A6:B6");
+    sheet.getCell("A6").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+
+    const stats = data.daily?.stats || {};
+    const kpiRows = [
+      ["Total Orders", stats.totalOrders, "#,##0"],
+      ["Gross Sales (Incl. Tax)", stats.grossRevenue, "₹#,##0.00"],
+      ["Total Discounts", stats.discounts, "₹#,##0.00"],
+      ["Net Sales (Excl. Tax)", stats.netSalesExclTax, "₹#,##0.00"],
+      ["GST Tax Collected", stats.gstCollected, "₹#,##0.00"],
+      ["Delivery Revenue", stats.deliveryFleetCosts || 0, "₹#,##0.00"],
+      ["Average Order Value (AOV)", stats.aov, "₹#,##0.00"],
+      ["Delivered Orders", stats.deliveredOrders, "#,##0"],
+      ["Cancelled Orders", stats.cancelledOrders, "#,##0"],
+      ["Customer Refunds", stats.refunds, "₹#,##0.00"],
+    ];
+
+    let rIdx = 7;
+    for (const [lbl, val, fmt] of kpiRows) {
+      sheet.getCell(`A${rIdx}`).value = lbl;
+      sheet.getCell(`B${rIdx}`).value = val;
+      sheet.getCell(`B${rIdx}`).numFmt = fmt;
       sheet.getCell(`A${rIdx}`).font = { bold: true };
+      rIdx++;
+    }
+
+    // Section 2: Payment Reconciliation Table
+    rIdx += 2;
+    sheet.mergeCells(`A${rIdx}:E${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "DAILY PAYMENT RECONCILIATION SUMMARY";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    rIdx++;
+
+    sheet.getRow(rIdx).values = ["Payment Method", "Order Count", "Gross Amount", "Refund Amount", "Net Collected Amount"];
+    sheet.getRow(rIdx).font = { bold: true };
+    sheet.getRow(rIdx).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+    rIdx++;
+
+    const payments = data.daily?.paymentSummary || [];
+    for (const p of payments) {
+      sheet.getRow(rIdx).values = [p.method, p.count, p.gross, p.refundAmount || 0, p.netAmount || p.gross];
+      sheet.getCell(`C${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`D${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
+    }
+
+    // Section 3: Branch Breakdown
+    rIdx += 2;
+    sheet.mergeCells(`A${rIdx}:H${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "DAILY KITCHEN HUB BREAKDOWN";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    rIdx++;
+
+    sheet.getRow(rIdx).values = ["Kitchen Hub", "Code", "City", "Orders", "Gross Sales", "Net Sales", "AOV", "Delivered"];
+    sheet.getRow(rIdx).font = { bold: true };
+    sheet.getRow(rIdx).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+    rIdx++;
+
+    const branches = data.daily?.branchSummary || [];
+    for (const b of branches) {
+      sheet.getRow(rIdx).values = [b.branchName, b.branchCode, b.city || "Bengaluru", b.ordersCount, b.grossSales, b.netSales, b.aov, b.deliveredCount];
+      sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`F${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`G${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
+    }
+
+    sheet.columns = [{ width: 28 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 18 }, { width: 18 }, { width: 16 }, { width: 14 }];
+    const buffer = await workbook.xlsx.writeBuffer();
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Daily_Sales_Report_${fromDate}`);
+  }
+
+  // ── 3. WEEKLY SALES REPORT EXPORT ──
+  public static async exportWeeklySalesReport(data: { weekly: any; filters?: any }, filename?: string): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Weekly Sales Report");
+    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+
+    const fromDate = data.filters?.customStartDate || "Week-Current";
+    this.styleWorksheetHeader(sheet, "WEEKLY SALES & PRODUCT PERFORMANCE REPORT", fromDate, data.filters, 8);
+
+    // Section 1: Weekly Top 3 Best Selling Cakes
+    sheet.mergeCells("A6:F6");
+    sheet.getCell("A6").value = "TOP 3 BEST SELLING CAKES";
+    sheet.getCell("A6").font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell("A6").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF15803D" } };
+
+    sheet.getRow(7).values = ["Rank", "Cake / Product", "SKU", "Units Sold", "Net Revenue", "Average Price"];
+    sheet.getRow(7).font = { bold: true };
+    sheet.getRow(7).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+
+    const top3 = data.weekly?.top3Cakes || [];
+    let rIdx = 8;
+    for (const p of top3) {
+      sheet.getRow(rIdx).values = [`#${p.rank || 1}`, p.name, p.sku, p.quantitySold, p.netSales, p.avgSellingPrice];
+      sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`F${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
+    }
+
+    // Section 2: Least Selling Cakes
+    rIdx += 2;
+    sheet.mergeCells(`A${rIdx}:F${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "LEAST SELLING CAKES (OPPORTUNITY & ROTATION)";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFB91C1C" } };
+    rIdx++;
+
+    sheet.getRow(rIdx).values = ["Rank", "Cake / Product", "SKU", "Units Sold", "Net Revenue", "Average Price"];
+    sheet.getRow(rIdx).font = { bold: true };
+    sheet.getRow(rIdx).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+    rIdx++;
+
+    const least = data.weekly?.leastSellingCakes || [];
+    for (const p of least) {
+      sheet.getRow(rIdx).values = [`#${p.rank || 1}`, p.name, p.sku, p.quantitySold, p.netSales, p.avgSellingPrice];
+      sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`F${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
+    }
+
+    // Section 3: Weekly Payment Mix
+    rIdx += 2;
+    sheet.mergeCells(`A${rIdx}:E${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "WEEKLY PAYMENT METHOD PERFORMANCE";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    rIdx++;
+
+    sheet.getRow(rIdx).values = ["Payment Method", "Orders", "Gross Value", "Refunds", "% of Total Payment"];
+    sheet.getRow(rIdx).font = { bold: true };
+    sheet.getRow(rIdx).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+    rIdx++;
+
+    const payments = data.weekly?.payments || [];
+    for (const p of payments) {
+      sheet.getRow(rIdx).values = [p.method, p.count, p.gross, p.refundAmount || 0, (p.percentage || 0) / 100];
+      sheet.getCell(`C${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`D${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`E${rIdx}`).numFmt = "0.00%";
+      rIdx++;
+    }
+
+    sheet.columns = [{ width: 10 }, { width: 34 }, { width: 18 }, { width: 14 }, { width: 18 }, { width: 16 }];
+    const buffer = await workbook.xlsx.writeBuffer();
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Weekly_Sales_Report_${fromDate}`);
+  }
+
+  // ── 4. MONTHLY SALES REPORT EXPORT ──
+  public static async exportMonthlySalesReport(data: { monthly: any; filters?: any }, filename?: string): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Monthly Sales Report");
+    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+
+    const periodStr = data.filters?.customStartDate || "Current Month";
+    this.styleWorksheetHeader(sheet, "MONTHLY EXECUTIVE SALES & GROWTH REPORT", periodStr, data.filters, 8);
+
+    // Section 1: Month-over-Month Growth
+    sheet.mergeCells("A6:C6");
+    sheet.getCell("A6").value = "MONTH-OVER-MONTH SALES GROWTH";
+    sheet.getCell("A6").font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell("A6").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+
+    sheet.getRow(7).values = ["Metric", "Current Month", "Previous Month", "Growth %"];
+    sheet.getRow(7).font = { bold: true };
+    sheet.getRow(7).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+
+    const m = data.monthly || {};
+    sheet.getRow(8).values = ["Net Sales (Excl. Tax)", m.currentMonthSales || 0, m.prevMonthSales || 0, m.growthPctDisplay || "0.0%"];
+    sheet.getCell("B8").numFmt = "₹#,##0.00";
+    sheet.getCell("C8").numFmt = "₹#,##0.00";
+
+    // Section 2: Delivery SLA Performance
+    let rIdx = 11;
+    sheet.mergeCells(`A${rIdx}:D${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "MONTHLY DELIVERY SLA PERFORMANCE";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    rIdx++;
+
+    sheet.getRow(rIdx).values = ["Total Dispatched", "On-Time Deliveries", "Delayed Deliveries", "SLA Compliance %"];
+    sheet.getRow(rIdx).font = { bold: true };
+    sheet.getRow(rIdx).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+    rIdx++;
+
+    const del = m.deliverySla || {};
+    sheet.getRow(rIdx).values = [del.totalDeliveries || 0, del.onTimeDeliveries || 0, del.delayedDeliveries || 0, (del.slaCompliancePct || 100) / 100];
+    sheet.getCell(`D${rIdx}`).numFmt = "0.00%";
+
+    // Section 3: Customer Retention
+    rIdx += 3;
+    sheet.mergeCells(`A${rIdx}:E${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "CUSTOMER RETENTION & LIFETIME VALUE";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    rIdx++;
+
+    sheet.getRow(rIdx).values = ["Total Customers", "New Customers", "Repeat Customers (>1 Order)", "Repeat Purchase Rate", "Estimated LTV"];
+    sheet.getRow(rIdx).font = { bold: true };
+    sheet.getRow(rIdx).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+    rIdx++;
+
+    const cust = m.customerRetention || {};
+    sheet.getRow(rIdx).values = [cust.totalCustomers || 0, cust.newCustomers || 0, cust.repeatCustomers || 0, (cust.repeatPurchaseRate || 0) / 100, cust.ltv || 0];
+    sheet.getCell(`D${rIdx}`).numFmt = "0.00%";
+    sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+
+    sheet.columns = [{ width: 28 }, { width: 20 }, { width: 20 }, { width: 20 }, { width: 18 }];
+    const buffer = await workbook.xlsx.writeBuffer();
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Monthly_Sales_Report_${periodStr}`);
+  }
+
+  // ── 5. GST DETAILED REGISTER EXPORT ──
+  public static async exportGstDetailedRegister(data: { register: any[]; filters?: any }, filename?: string): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("GST Detailed Register");
+    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+
+    const fromDate = data.filters?.customStartDate || "10/08/2026";
+    this.styleWorksheetHeader(sheet, "GST DETAILED TRANSACTION REGISTER", fromDate, data.filters, 24);
+
+    const headers = [
+      "Invoice Number", "Order ID", "Order Date", "Customer Name", "Customer GSTIN",
+      "City", "Kitchen Hub", "Class", "Product", "SKU", "HSN", "UQC", "Qty",
+      "Unit Price", "Discount", "Taxable Value", "GST %", "CGST %", "CGST Amount",
+      "SGST %", "SGST Amount", "IGST %", "IGST Amount", "Total Tax", "Invoice Total"
+    ];
+    sheet.getRow(6).values = headers;
+    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+
+    const items = data.register || [];
+    let rIdx = 7;
+    for (const r of items) {
+      sheet.getRow(rIdx).values = [
+        r.invoiceNumber, r.orderId, r.orderDate, r.customerName, r.customerGstin || "URP",
+        r.city, r.branchName, r.classification || "B2C", r.productName, r.sku, r.hsnCode,
+        r.uqc || "NOS", r.quantity, r.unitPrice, r.discount, r.taxableValue, r.gstRatePct / 100,
+        r.cgstRatePct / 100, r.cgstAmount, r.sgstRatePct / 100, r.sgstAmount,
+        r.igstRatePct / 100, r.igstAmount, r.totalTax, r.invoiceTotal
+      ];
+
+      sheet.getCell(`N${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`O${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`P${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`Q${rIdx}`).numFmt = "0.00%";
+      sheet.getCell(`R${rIdx}`).numFmt = "0.00%";
+      sheet.getCell(`S${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`T${rIdx}`).numFmt = "0.00%";
+      sheet.getCell(`U${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`V${rIdx}`).numFmt = "0.00%";
+      sheet.getCell(`W${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`X${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`Y${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
+    }
+
+    sheet.columns = [
+      { width: 18 }, { width: 16 }, { width: 14 }, { width: 22 }, { width: 18 },
+      { width: 14 }, { width: 20 }, { width: 10 }, { width: 30 }, { width: 16 },
+      { width: 12 }, { width: 12 }, { width: 10 }, { width: 14 }, { width: 14 },
+      { width: 16 }, { width: 10 }, { width: 10 }, { width: 14 }, { width: 10 },
+      { width: 14 }, { width: 10 }, { width: 14 }, { width: 14 }, { width: 16 }
+    ];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_GST_Detailed_Register_${fromDate}`);
+  }
+
+  // ── 6. ORDER REGISTER EXPORT ──
+  public static async exportOrderRegister(data: { orders: any[]; filters?: any }, filename?: string): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Order Register");
+    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+
+    const fromDate = data.filters?.customStartDate || "10/08/2026";
+    this.styleWorksheetHeader(sheet, "OPERATIONAL ORDER RECONCILIATION REGISTER", fromDate, data.filters, 16);
+
+    const headers = [
+      "Order ID", "Invoice Number", "Order Date", "Customer Name", "Phone",
+      "City", "Area", "Pincode", "Kitchen Hub", "Payment Method",
+      "Order Status", "Delivery Status", "Gross Total", "Discount", "GST Tax", "Grand Total"
+    ];
+    sheet.getRow(6).values = headers;
+    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+
+    const items = data.orders || [];
+    let rIdx = 7;
+    for (const o of items) {
+      sheet.getRow(rIdx).values = [
+        o.id, o.invoiceNumber, o.orderDate, o.customerName, o.customerPhone,
+        o.city, o.area, o.pincode, o.branchName, o.paymentMethod,
+        o.orderStatus, o.deliveryStatus, o.grossAmount, o.discount, o.taxAmount, o.netAmount
+      ];
+      sheet.getCell(`M${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`N${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`O${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`P${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
+    }
+
+    sheet.columns = [
+      { width: 16 }, { width: 18 }, { width: 14 }, { width: 22 }, { width: 16 },
+      { width: 14 }, { width: 18 }, { width: 12 }, { width: 22 }, { width: 16 },
+      { width: 14 }, { width: 16 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 16 }
+    ];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Order_Register_${fromDate}`);
+  }
+
+  // ── 7. PRODUCT PERFORMANCE EXPORT ──
+  public static async exportProductPerformance(data: { products: any[]; filters?: any }, filename?: string): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Product Performance");
+    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+
+    const fromDate = data.filters?.customStartDate || "Current";
+    this.styleWorksheetHeader(sheet, "PRODUCT SALES & PROFITABILITY REPORT", fromDate, data.filters, 12);
+
+    const headers = [
+      "Rank", "Product Name", "SKU", "Category", "HSN Code",
+      "Units Sold", "Gross Sales", "Discounts", "Net Sales", "Total COGS", "Gross Profit", "Margin %"
+    ];
+    sheet.getRow(6).values = headers;
+    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+
+    const items = data.products || [];
+    let rIdx = 7;
+    items.forEach((p, idx) => {
+      sheet.getRow(rIdx).values = [
+        `#${idx + 1}`, p.name, p.sku, p.category, p.hsnCode,
+        p.quantitySold, p.grossSales, p.discounts, p.netSales, p.totalCogs, p.grossProfit, p.grossMarginPct / 100
+      ];
+      sheet.getCell(`G${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`H${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`I${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`J${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`K${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`L${rIdx}`).numFmt = "0.00%";
       rIdx++;
     });
 
-    sheet.columns = [{ width: 36 }, { width: 24 }, { width: 16 }, { width: 16 }, { width: 22 }];
+    sheet.columns = [
+      { width: 10 }, { width: 34 }, { width: 18 }, { width: 18 }, { width: 14 },
+      { width: 12 }, { width: 16 }, { width: 14 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 12 }
+    ];
+
     const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_GST_Summary_Report_${fromDate}_to_${toDate}`);
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Product_Performance_${fromDate}`);
   }
 
-  // 2. DEDICATED INVOICE REGISTER EXPORT
-  public static async exportInvoiceRegister(data: { invoiceRegister: any[]; filters?: any }, filename?: string): Promise<void> {
+  // ── 8. CITY / REGIONAL SALES EXPORT ──
+  public static async exportCityPerformance(data: { cities: any[]; filters?: any }, filename?: string): Promise<void> {
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Invoice Register");
+    const sheet = workbook.addWorksheet("City Performance");
     sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
 
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
+    const fromDate = data.filters?.customStartDate || "Current";
+    this.styleWorksheetHeader(sheet, "CITY & REGIONAL SALES DISTRIBUTION", fromDate, data.filters, 8);
 
-    sheet.mergeCells("A1:N1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:N2");
-    sheet.getCell("A2").value = `TAX INVOICE REGISTER | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    sheet.getCell("A4").value = "GSTIN:"; sheet.getCell("B4").value = "29AAAAA0000A1Z5";
-    sheet.getCell("D4").value = "Generated:"; sheet.getCell("E4").value = new Date().toLocaleString("en-IN");
-    ["A4", "D4"].forEach((ref) => sheet.getCell(ref).font = { bold: true });
-
-    const headers = ["Invoice Number", "Invoice Date", "Order Number", "Customer Name", "Customer GSTIN", "Branch Name", "Place of Supply", "Taxable Amount", "CGST", "SGST", "IGST", "Total GST", "Invoice Total", "Status"];
+    const headers = ["City", "Orders", "Units Sold", "Gross Sales", "Net Sales", "AOV", "Delivered", "Cancelled"];
     sheet.getRow(6).values = headers;
     sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
     sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
 
-    if (data.invoiceRegister && data.invoiceRegister.length > 0) {
-      data.invoiceRegister.forEach((r: any) => {
-        const taxable = r.taxableAmount || r.taxableValue || Math.round((r.netAmount || r.netSales || 0) / 1.05);
-        const cgst = r.cgst || Math.round(((r.netAmount || r.netSales || 0) - taxable) / 2);
-        const sgst = r.sgst || Math.round(((r.netAmount || r.netSales || 0) - taxable) / 2);
-        const igst = r.igst || 0;
-        const totalTax = cgst + sgst + igst;
-        const totalValue = r.netAmount || r.netSales || (taxable + totalTax);
-
-        const row = sheet.addRow([
-          r.invoiceNumber || r.id,
-          r.orderDate || r.deliveryDate || fromDate,
-          r.id,
-          r.customerName || "Walk-in Customer",
-          r.customerGstin || "URP (Unregistered)",
-          r.branchName || "Main Kitchen Hub",
-          "29 - Karnataka",
-          taxable,
-          cgst,
-          sgst,
-          igst,
-          totalTax,
-          totalValue,
-          r.orderStatus || r.paymentStatus || "DELIVERED",
-        ]);
-
-        [8, 9, 10, 11, 12, 13].forEach((colIdx) => {
-          row.getCell(colIdx).numFmt = "₹#,##0.00";
-        });
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No transactions found for the selected period and operating branches."]);
-      sheet.mergeCells(`A7:N7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
+    const items = data.cities || [];
+    let rIdx = 7;
+    for (const c of items) {
+      sheet.getRow(rIdx).values = [c.city, c.orders, c.units, c.grossSales, c.netSales, c.aov, c.delivered, c.cancelled];
+      sheet.getCell(`D${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`F${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
     }
 
-    sheet.columns = [{ width: 22 }, { width: 16 }, { width: 20 }, { width: 24 }, { width: 18 }, { width: 24 }, { width: 18 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 16 }, { width: 18 }, { width: 14 }];
+    sheet.columns = [{ width: 22 }, { width: 12 }, { width: 14 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 12 }, { width: 12 }];
     const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Invoice_Register_${fromDate}_to_${toDate}`);
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_City_Sales_Report_${fromDate}`);
   }
 
-  // 3. DEDICATED GST TRANSACTIONS EXPORT
-  public static async exportGstTransactions(data: { salesRegister: any[]; filters?: any }, filename?: string): Promise<void> {
+  // ── 9. AREA & PINCODE SALES EXPORT ──
+  public static async exportAreaPincodeSales(data: { areaPincodes: any[]; filters?: any }, filename?: string): Promise<void> {
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("GST Transactions");
+    const sheet = workbook.addWorksheet("Area Pincode Sales");
     sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
 
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
+    const fromDate = data.filters?.customStartDate || "Current";
+    this.styleWorksheetHeader(sheet, "AREA & PINCODE SALES DISTRIBUTION", fromDate, data.filters, 8);
 
-    sheet.mergeCells("A1:S1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:S2");
-    sheet.getCell("A2").value = `GST DETAILED TRANSACTION REGISTER | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    sheet.getCell("A4").value = "GSTIN:"; sheet.getCell("B4").value = "29AAAAA0000A1Z5";
-    sheet.getCell("D4").value = "Generated:"; sheet.getCell("E4").value = new Date().toLocaleString("en-IN");
-
-    const headers = ["Invoice Date", "Invoice Number", "Order Number", "Customer Name", "Customer GSTIN", "Place of Supply", "Branch Name", "Product Name", "HSN / SAC", "UQC", "Quantity", "Unit Price", "Taxable Value", "GST Rate %", "CGST", "SGST", "IGST", "Total GST", "Invoice Total"];
+    const headers = ["Pincode", "Area / Locality", "City", "Kitchen Hub", "Orders", "Total Revenue", "AOV", "Delivered"];
     sheet.getRow(6).values = headers;
     sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
     sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
 
-    if (data.salesRegister && data.salesRegister.length > 0) {
-      data.salesRegister.forEach((r: any) => {
-        const taxable = r.taxableValue || Math.round((r.netAmount || r.netSales || 0) / 1.05);
-        const cgst = r.cgst || Math.round(((r.netAmount || r.netSales || 0) - taxable) / 2);
-        const sgst = r.sgst || Math.round(((r.netAmount || r.netSales || 0) - taxable) / 2);
-        const igst = r.igst || 0;
-        const totalTax = cgst + sgst + igst;
-        const totalValue = r.netAmount || r.netSales || (taxable + totalTax);
-
-        const row = sheet.addRow([
-          r.orderDate || r.deliveryDate || fromDate,
-          r.invoiceNumber || r.id,
-          r.id,
-          r.customerName || "Walk-in Customer",
-          r.customerGstin || "URP",
-          "29 - Karnataka",
-          r.branchName || "Main Kitchen Hub",
-          r.productNames || "Bakery Product",
-          r.hsnCode || "19059090",
-          "NOS",
-          r.itemCount || 1,
-          taxable,
-          taxable,
-          0.05,
-          cgst,
-          sgst,
-          igst,
-          totalTax,
-          totalValue,
-        ]);
-
-        [12, 13, 15, 16, 17, 18, 19].forEach((colIdx) => {
-          row.getCell(colIdx).numFmt = "₹#,##0.00";
-        });
-        row.getCell(14).numFmt = "0.00%";
-        row.getCell(11).numFmt = "#,##0";
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No transactions found for the selected period and operating branches."]);
-      sheet.mergeCells(`A7:S7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
+    const items = data.areaPincodes || [];
+    let rIdx = 7;
+    for (const a of items) {
+      sheet.getRow(rIdx).values = [a.pincode, a.area, a.city, a.branch, a.orders, a.revenue, a.aov, a.delivered];
+      sheet.getCell(`F${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`G${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
     }
 
-    sheet.columns = [{ width: 15 }, { width: 22 }, { width: 20 }, { width: 24 }, { width: 18 }, { width: 18 }, { width: 24 }, { width: 30 }, { width: 14 }, { width: 10 }, { width: 12 }, { width: 14 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 16 }, { width: 18 }];
+    sheet.columns = [{ width: 14 }, { width: 24 }, { width: 16 }, { width: 24 }, { width: 12 }, { width: 18 }, { width: 16 }, { width: 12 }];
     const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_GST_Transactions_${fromDate}_to_${toDate}`);
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Area_Pincode_Sales_${fromDate}`);
   }
 
-  // DEDICATED BRANCH PERFORMANCE EXPORT
-  public static async exportBranchPerformance(data: { branchPerformance: any[]; filters?: any }, filename?: string): Promise<void> {
+  // ── 10. BRANCH PERFORMANCE EXPORT ──
+  public static async exportBranchPerformance(data: { cities: any[]; filters?: any }, filename?: string): Promise<void> {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Branch Performance");
     sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
 
-    const fromDate = data.filters?.customStartDate || "2026-07-01";
-    const toDate = data.filters?.customEndDate || "2026-07-31";
+    const fromDate = data.filters?.customStartDate || "Current";
+    this.styleWorksheetHeader(sheet, "KITCHEN HUB BRANCH PERFORMANCE", fromDate, data.filters, 8);
 
-    sheet.mergeCells("A1:L1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:L2");
-    sheet.getCell("A2").value = `MULTI-BRANCH OPERATIONAL PERFORMANCE & FINANCIAL RANKING | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { name: "Calibri", size: 11, italic: true, color: { argb: "FF475569" } };
-
-    sheet.getCell("A4").value = "GSTIN:"; sheet.getCell("B4").value = "29AAAAA0000A1Z5";
-    sheet.getCell("D4").value = "Generated:"; sheet.getCell("E4").value = new Date().toLocaleString("en-IN");
-    ["A4", "D4"].forEach((ref) => sheet.getCell(ref).font = { bold: true });
-
-    const headers = [
-      "Rank",
-      "Branch Name",
-      "Hub Code",
-      "Total Orders",
-      "Delivered",
-      "Cancelled",
-      "Gross Sales (₹)",
-      "Net Sales (₹)",
-      "Gross Profit (₹)",
-      "Margin %",
-      "AOV (₹)",
-      "On-Time %",
-    ];
-
-    const headerRow = sheet.getRow(6);
-    headers.forEach((h, i) => {
-      const cell = headerRow.getCell(i + 1);
-      cell.value = h;
-      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-    });
-
-    if (data.branchPerformance && data.branchPerformance.length > 0) {
-      data.branchPerformance.forEach((b: any, idx: number) => {
-        const row = sheet.addRow([
-          idx + 1,
-          b.branchName,
-          b.branchCode,
-          b.ordersCount || 0,
-          b.deliveredCount || 0,
-          b.cancelledCount || 0,
-          b.grossSales || 0,
-          b.netSales || 0,
-          b.grossProfit || 0,
-          (b.marginPct || 0) / 100,
-          b.aov || 0,
-          (b.onTimeDeliveryPct || 0) / 100,
-        ]);
-
-        row.getCell(1).alignment = { horizontal: "center" };
-        row.getCell(3).alignment = { horizontal: "center" };
-        [4, 5, 6].forEach((colIdx) => (row.getCell(colIdx).numFmt = "#,##0"));
-        [7, 8, 9, 11].forEach((colIdx) => (row.getCell(colIdx).numFmt = "₹#,##0.00"));
-        row.getCell(10).numFmt = "0.00%";
-        row.getCell(12).numFmt = "0.00%";
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No branch performance records found for the selected filter criteria."]);
-      sheet.mergeCells(`A7:L7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
-    }
-
-    sheet.columns = [
-      { width: 10 }, { width: 32 }, { width: 14 }, { width: 14 }, { width: 14 },
-      { width: 14 }, { width: 20 }, { width: 20 }, { width: 20 }, { width: 14 },
-      { width: 16 }, { width: 14 }
-    ];
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Branch_Performance_${fromDate}_to_${toDate}`);
-  }
-
-  // DEDICATED DELIVERY FLEET EXPORT
-  public static async exportDeliveryFleet(data: { deliveryData: any; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Delivery & Fleet");
-    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
-
-    const fromDate = data.filters?.customStartDate || "2026-07-01";
-    const toDate = data.filters?.customEndDate || "2026-07-31";
-
-    sheet.mergeCells("A1:I1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:I2");
-    sheet.getCell("A2").value = `CAKETOHOME OWN FLEET DELIVERY & OPERATIONAL SLA REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { name: "Calibri", size: 11, italic: true, color: { argb: "FF475569" } };
-
-    sheet.getCell("A4").value = "Fleet Model:"; sheet.getCell("B4").value = "CakeToHome Dedicated Fleet (Own Riders)";
-    sheet.getCell("D4").value = "Generated:"; sheet.getCell("E4").value = new Date().toLocaleString("en-IN");
-    ["A4", "D4"].forEach((ref) => sheet.getCell(ref).font = { bold: true });
-
-    const headers = [
-      "Driver / Rider Name",
-      "Rider Number",
-      "Assigned Kitchen Hub",
-      "Status",
-      "Assigned Deliveries",
-      "On-Time Deliveries",
-      "Delayed Deliveries",
-      "Avg Fulfillment (Mins)",
-      "Rating",
-    ];
-
-    const headerRow = sheet.getRow(6);
-    headers.forEach((h, i) => {
-      const cell = headerRow.getCell(i + 1);
-      cell.value = h;
-      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-    });
-
-    const partners = data.deliveryData?.partners || [];
-    if (partners && partners.length > 0) {
-      partners.forEach((p: any) => {
-        const row = sheet.addRow([
-          p.driverName || p.partner || "CakeToHome Rider",
-          p.partnerNumber || p.id || "CTH-DP-100",
-          p.branchName || "Indiranagar Kitchen Hub",
-          p.status || "ONLINE",
-          p.total || 0,
-          p.onTime || 0,
-          p.delayed || 0,
-          p.avgMins || 25,
-          p.rating || 4.8,
-        ]);
-
-        row.getCell(2).alignment = { horizontal: "center" };
-        row.getCell(4).alignment = { horizontal: "center" };
-        [5, 6, 7, 8].forEach((colIdx) => (row.getCell(colIdx).numFmt = "#,##0"));
-        row.getCell(9).numFmt = "0.0";
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No delivery partner records found for the selected filter criteria."]);
-      sheet.mergeCells(`A7:I7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
-    }
-
-    sheet.columns = [
-      { width: 28 }, { width: 16 }, { width: 28 }, { width: 14 }, { width: 20 },
-      { width: 20 }, { width: 20 }, { width: 22 }, { width: 12 }
-    ];
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Delivery_Fleet_${fromDate}_to_${toDate}`);
-  }
-
-  // 4. DEDICATED B2B SALES EXPORT
-  public static async exportB2B(data: { salesRegister: any[]; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("B2B Sales");
-    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
-
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
-
-    sheet.mergeCells("A1:P1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:P2");
-    sheet.getCell("A2").value = `REGISTERED B2B SALES TAX REGISTER | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    const b2bOrders = (data.salesRegister || []).filter((r) => r.customerGstin && r.customerGstin !== "URP" && r.customerGstin.length === 15);
-    const headers = ["Invoice Date", "Invoice Number", "Order Number", "Customer Legal Name", "Customer GSTIN", "Place of Supply", "Branch Name", "HSN / SAC", "UQC", "Quantity", "Taxable Value", "GST Rate %", "CGST", "SGST", "IGST", "Invoice Total"];
+    const headers = ["Kitchen Hub", "Code", "City", "Orders", "Gross Sales", "Net Sales", "AOV", "Delivered"];
     sheet.getRow(6).values = headers;
     sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
     sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
 
-    if (b2bOrders.length > 0) {
-      b2bOrders.forEach((r: any) => {
-        const taxable = r.taxableValue || Math.round((r.netAmount || r.netSales || 0) / 1.05);
-        const cgst = r.cgst || Math.round(((r.netAmount || r.netSales || 0) - taxable) / 2);
-        const sgst = r.sgst || Math.round(((r.netAmount || r.netSales || 0) - taxable) / 2);
-        const igst = r.igst || 0;
-        const totalValue = r.netAmount || r.netSales || (taxable + cgst + sgst + igst);
-
-        const row = sheet.addRow([
-          r.orderDate || r.deliveryDate || fromDate,
-          r.invoiceNumber || r.id,
-          r.id,
-          r.customerName || "Corporate Client",
-          r.customerGstin,
-          "29 - Karnataka",
-          r.branchName || "Main Kitchen Hub",
-          r.hsnCode || "19059090",
-          "NOS",
-          r.itemCount || 1,
-          taxable,
-          0.05,
-          cgst,
-          sgst,
-          igst,
-          totalValue,
-        ]);
-
-        [11, 13, 14, 15, 16].forEach((colIdx) => {
-          row.getCell(colIdx).numFmt = "₹#,##0.00";
-        });
-        row.getCell(12).numFmt = "0.00%";
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No B2B registered corporate transactions found for the selected period."]);
-      sheet.mergeCells(`A7:P7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
+    const items = data.cities || [];
+    let rIdx = 7;
+    for (const b of items) {
+      sheet.getRow(rIdx).values = [b.branchName, b.branchCode, b.city || "Bengaluru", b.ordersCount, b.grossSales, b.netSales, b.aov, b.deliveredCount];
+      sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`F${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`G${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
     }
 
-    sheet.columns = [{ width: 15 }, { width: 22 }, { width: 20 }, { width: 26 }, { width: 18 }, { width: 18 }, { width: 24 }, { width: 14 }, { width: 10 }, { width: 12 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 18 }];
+    sheet.columns = [{ width: 28 }, { width: 14 }, { width: 16 }, { width: 12 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 12 }];
     const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_B2B_Sales_${fromDate}_to_${toDate}`);
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Branch_Performance_${fromDate}`);
   }
 
-  // 5. DEDICATED B2C SALES EXPORT
-  public static async exportB2C(data: { salesRegister: any[]; filters?: any }, filename?: string): Promise<void> {
+  // ── 11. EXECUTIVE SUMMARY EXPORT ──
+  public static async exportExecutiveSummary(data: { kpis: any[]; stats: any; top3: any[]; bottom3: any[]; paymentBreakdown: any[]; deliverySla: any; customerRetention: any; cityPerformance: any[]; filters?: any }, filename?: string): Promise<void> {
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("B2C Sales");
+    const sheet = workbook.addWorksheet("Executive Summary");
     sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
 
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
+    const fromDate = data.filters?.customStartDate || new Date().toISOString().slice(0, 10);
+    const toDate = data.filters?.customEndDate || new Date().toISOString().slice(0, 10);
+    const periodStr = `${fromDate} TO ${toDate}`;
+    this.styleWorksheetHeader(sheet, "EXECUTIVE MANAGEMENT SUMMARY", periodStr, data.filters, 6);
 
-    sheet.mergeCells("A1:O1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
+    // Section 1: KPI Dashboard
+    sheet.mergeCells("A6:E6");
+    sheet.getCell("A6").value = "KEY PERFORMANCE INDICATORS";
+    sheet.getCell("A6").font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell("A6").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
 
-    sheet.mergeCells("A2:O2");
-    sheet.getCell("A2").value = `CONSUMER B2C SALES TAX REGISTER | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
+    sheet.getRow(7).values = ["KPI Metric", "Current Period", "Previous Period", "Growth %", "Unit"];
+    sheet.getRow(7).font = { bold: true };
+    sheet.getRow(7).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
 
-    const b2cOrders = (data.salesRegister || []).filter((r) => !r.customerGstin || r.customerGstin === "URP" || r.customerGstin.length !== 15);
-    const headers = ["Invoice Date", "Invoice Number", "Order Number", "Customer Name", "Place of Supply", "Branch Name", "HSN / SAC", "UQC", "Quantity", "Taxable Value", "GST Rate %", "CGST", "SGST", "IGST", "Invoice Total"];
-    sheet.getRow(6).values = headers;
-    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-
-    if (b2cOrders.length > 0) {
-      b2cOrders.forEach((r: any) => {
-        const taxable = r.taxableValue || Math.round((r.netAmount || r.netSales || 0) / 1.05);
-        const cgst = r.cgst || Math.round(((r.netAmount || r.netSales || 0) - taxable) / 2);
-        const sgst = r.sgst || Math.round(((r.netAmount || r.netSales || 0) - taxable) / 2);
-        const igst = r.igst || 0;
-        const totalValue = r.netAmount || r.netSales || (taxable + cgst + sgst + igst);
-
-        const row = sheet.addRow([
-          r.orderDate || r.deliveryDate || fromDate,
-          r.invoiceNumber || r.id,
-          r.id,
-          r.customerName || "Consumer Walk-in",
-          "29 - Karnataka",
-          r.branchName || "Main Kitchen Hub",
-          r.hsnCode || "19059090",
-          "NOS",
-          r.itemCount || 1,
-          taxable,
-          0.05,
-          cgst,
-          sgst,
-          igst,
-          totalValue,
-        ]);
-
-        [10, 12, 13, 14, 15].forEach((colIdx) => {
-          row.getCell(colIdx).numFmt = "₹#,##0.00";
-        });
-        row.getCell(11).numFmt = "0.00%";
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No B2C consumer transactions found for the selected period."]);
-      sheet.mergeCells(`A7:O7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
+    let rIdx = 8;
+    for (const k of (data.kpis || [])) {
+      sheet.getCell(`A${rIdx}`).value = k.label;
+      sheet.getCell(`B${rIdx}`).value = k.currentValue;
+      sheet.getCell(`C${rIdx}`).value = k.previousValue;
+      sheet.getCell(`D${rIdx}`).value = `${k.growthPct > 0 ? "+" : ""}${k.growthPct}%`;
+      sheet.getCell(`E${rIdx}`).value = k.unit;
+      sheet.getCell(`B${rIdx}`).numFmt = k.unit === "currency" ? "₹#,##0.00" : (k.unit === "percentage" ? "0.00%" : "#,##0");
+      sheet.getCell(`C${rIdx}`).numFmt = k.unit === "currency" ? "₹#,##0.00" : (k.unit === "percentage" ? "0.00%" : "#,##0");
+      rIdx++;
     }
 
-    sheet.columns = [{ width: 15 }, { width: 22 }, { width: 20 }, { width: 24 }, { width: 18 }, { width: 24 }, { width: 14 }, { width: 10 }, { width: 12 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 18 }];
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_B2C_Sales_${fromDate}_to_${toDate}`);
-  }
+    // Section 2: Transactional Summary
+    rIdx += 2;
+    sheet.mergeCells(`A${rIdx}:B${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "TRANSACTIONAL SUMMARY";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    rIdx++;
 
-  // 6. DEDICATED CREDIT NOTES EXPORT
-  public static async exportCreditNotes(data: { creditNotes?: any[]; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Credit Notes");
-    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
-
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
-
-    sheet.mergeCells("A1:J1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:J2");
-    sheet.getCell("A2").value = `CREDIT NOTES & REFUNDS REGISTER | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    const headers = ["Credit Note No", "Credit Note Date", "Original Invoice No", "Customer Name", "Reason", "Taxable Refund", "CGST Refund", "SGST Refund", "IGST Refund", "Total Refund Value"];
-    sheet.getRow(6).values = headers;
-    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-
-    if (data.creditNotes && data.creditNotes.length > 0) {
-      data.creditNotes.forEach((cn: any) => {
-        const row = sheet.addRow([
-          cn.creditNoteNo || cn.id,
-          cn.date || fromDate,
-          cn.invoiceNo || "CTH-INV-001",
-          cn.customerName || "Customer",
-          cn.reason || "Order Cancellation",
-          cn.taxable || 0,
-          cn.cgst || 0,
-          cn.sgst || 0,
-          cn.igst || 0,
-          cn.totalRefund || 0,
-        ]);
-        [6, 7, 8, 9, 10].forEach((colIdx) => {
-          row.getCell(colIdx).numFmt = "₹#,##0.00";
-        });
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No credit notes or refund adjustments were issued during the selected period."]);
-      sheet.mergeCells(`A7:J7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
+    const stats = data.stats || {};
+    const statRows: [string, any, string][] = [
+      ["Total Orders", stats.totalOrders || 0, "#,##0"],
+      ["Gross Revenue", stats.grossRevenue || 0, "₹#,##0.00"],
+      ["Total Discounts", stats.discounts || 0, "₹#,##0.00"],
+      ["Net Sales (Excl. Tax)", stats.netSalesExclTax || 0, "₹#,##0.00"],
+      ["GST Tax Collected", stats.gstCollected || 0, "₹#,##0.00"],
+      ["Delivery Revenue", stats.deliveryFleetCosts || 0, "₹#,##0.00"],
+      ["Average Order Value", stats.aov || 0, "₹#,##0.00"],
+      ["Delivered Orders", stats.deliveredOrders || 0, "#,##0"],
+      ["Cancelled Orders", stats.cancelledOrders || 0, "#,##0"],
+      ["Total Refunds", stats.refunds || 0, "₹#,##0.00"],
+    ];
+    for (const [lbl, val, fmt] of statRows) {
+      sheet.getCell(`A${rIdx}`).value = lbl;
+      sheet.getCell(`A${rIdx}`).font = { bold: true };
+      sheet.getCell(`B${rIdx}`).value = val;
+      sheet.getCell(`B${rIdx}`).numFmt = fmt;
+      rIdx++;
     }
 
-    sheet.columns = [{ width: 22 }, { width: 16 }, { width: 22 }, { width: 24 }, { width: 24 }, { width: 18 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 20 }];
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Credit_Notes_${fromDate}_to_${toDate}`);
-  }
-
-  // 7. DEDICATED HSN SUMMARY EXPORT (ACCOUNTING REFERENCE FORMAT)
-  public static async exportHsnSummary(data: { hsnSummary: any[]; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("HSN Summary");
-    sheet.views = [{ showGridLines: true }];
-
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
-
-    sheet.mergeCells("A1:K1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:K2");
-    sheet.getCell("A2").value = `HSN / SAC SUMMARY REPORT | Period: ${fromDate} to ${toDate} | Branch: ${data.filters?.branchIds?.join(", ") || "All Kitchen Hubs"}`;
-    sheet.getCell("A2").font = { name: "Calibri", size: 11, italic: true, color: { argb: "FF475569" } };
-
-    sheet.getCell("A4").value = "GSTIN:"; sheet.getCell("B4").value = "29AAAAA0000A1Z5";
-    sheet.getCell("D4").value = "Generated:"; sheet.getCell("E4").value = new Date().toLocaleString("en-IN");
-    ["A4", "D4"].forEach((ref) => sheet.getCell(ref).font = { bold: true });
-
-    const headers = ["HSNCODE", "Description", "UQC", "Total QTY", "TOTAL VALUE", "GST %", "Taxable Amt", "IGST", "CGST", "SGST", "CESS"];
-    const headerRow = sheet.getRow(6);
-    headers.forEach((h, i) => {
-      const cell = headerRow.getCell(i + 1);
-      cell.value = h;
-      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-    });
-
-    if (data.hsnSummary && data.hsnSummary.length > 0) {
-      data.hsnSummary.forEach((r: any) => {
-        const row = sheet.addRow([
-          r.hsnCode,
-          r.description,
-          r.uom || r.uqc || "NOS",
-          r.quantity || 0,
-          r.totalValue || 0,
-          (r.gstRatePct || 0) / 100,
-          r.taxableValue || 0,
-          r.igst || 0,
-          r.cgst || 0,
-          r.sgst || 0,
-          r.cess || 0,
-        ]);
-
-        row.getCell(4).numFmt = "#,##0";
-        row.getCell(5).numFmt = "₹#,##0.00";
-        row.getCell(6).numFmt = "0.00%";
-        [7, 8, 9, 10, 11].forEach((colIdx) => {
-          row.getCell(colIdx).numFmt = "₹#,##0.00";
-        });
-      });
-
-      const totRowIdx = data.hsnSummary.length + 7;
-      const totRow = sheet.addRow({});
-      totRow.getCell(1).value = "TOTAL";
-      totRow.font = { bold: true };
-      totRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
-
-      [4, 5, 7, 8, 9, 10, 11].forEach((colIdx) => {
-        const colLetter = String.fromCharCode(64 + colIdx);
-        const cell = totRow.getCell(colIdx);
-        cell.value = { formula: `SUM(${colLetter}7:${colLetter}${totRowIdx - 1})` };
-        cell.numFmt = colIdx === 4 ? "#,##0" : "₹#,##0.00";
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No transactions found for the selected period and operating branches."]);
-      sheet.mergeCells(`A7:K7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
+    // Section 3: Top 3 Best Selling Products
+    rIdx += 2;
+    sheet.mergeCells(`A${rIdx}:E${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "TOP 3 BEST SELLING PRODUCTS";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF15803D" } };
+    rIdx++;
+    sheet.getRow(rIdx).values = ["Rank", "Product Name", "SKU", "Units Sold", "Net Revenue"];
+    sheet.getRow(rIdx).font = { bold: true };
+    sheet.getRow(rIdx).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+    rIdx++;
+    for (const [i, p] of (data.top3 || []).entries()) {
+      sheet.getRow(rIdx).values = [`#${i + 1}`, p.name || p.productName, p.sku, p.quantitySold, p.netSales];
+      sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
     }
 
-    sheet.columns = [
-      { width: 16 }, { width: 32 }, { width: 12 }, { width: 14 }, { width: 20 },
-      { width: 14 }, { width: 18 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 14 }
-    ];
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_HSN_Summary_Report_${fromDate}_to_${toDate}`);
-  }
-
-  // 8. DEDICATED TAX SUMMARY EXPORT
-  public static async exportTaxSummary(data: { taxSummary?: any[]; salesRegister?: any[]; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Tax Summary");
-    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
-
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
-
-    sheet.mergeCells("A1:K1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:K2");
-    sheet.getCell("A2").value = `STATUTORY TAX MASTER SUMMARY REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    if (data.taxSummary && data.taxSummary.length > 0) {
-      const headers = [
-        "Tax Configuration Name",
-        "Tax Code",
-        "Taxability",
-        "GST Rate %",
-        "Taxable Value",
-        "CGST Amount",
-        "SGST Amount",
-        "IGST Amount",
-        "Cess Amount",
-        "Total Tax Amount",
-        "Gross Total Value",
-        "Invoice Count",
-      ];
-      sheet.getRow(6).values = headers;
-      sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-      sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0D9488" } };
-
-      data.taxSummary.forEach((t: any) => {
-        const row = sheet.addRow([
-          t.taxConfigurationName,
-          t.taxConfigurationCode,
-          t.taxability,
-          (t.gstRatePct || 0) / 100,
-          t.taxableValue || 0,
-          t.cgst || 0,
-          t.sgst || 0,
-          t.igst || 0,
-          t.cess || 0,
-          t.totalTax || 0,
-          t.grossValue || 0,
-          t.invoiceCount || 0,
-        ]);
-
-        row.getCell(4).numFmt = "0.00%";
-        [5, 6, 7, 8, 9, 10, 11].forEach((colIdx) => {
-          row.getCell(colIdx).numFmt = "₹#,##0.00";
-        });
-        row.getCell(12).numFmt = "#,##0";
-      });
-    } else {
-      const headers = ["GST Rate %", "Taxable Value (₹)", "CGST (₹)", "SGST (₹)", "IGST (₹)", "Total GST (₹)", "Invoice Value (₹)"];
-      sheet.getRow(6).values = headers;
-      sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-      sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF334155" } };
-
-      const rates = [0, 0.05, 0.12, 0.18, 0.28];
-      rates.forEach((rate, idx) => {
-        const rowNum = idx + 7;
-        const matching = (data.salesRegister || []).filter((r) => Math.abs((r.gstRatePct || 18) / 100 - rate) < 0.01);
-        const taxVal = matching.reduce((s, r) => s + (r.taxableValue || 0), 0);
-        const cgstVal = matching.reduce((s, r) => s + (r.cgst || 0), 0);
-        const sgstVal = matching.reduce((s, r) => s + (r.sgst || 0), 0);
-        const igstVal = matching.reduce((s, r) => s + (r.igst || 0), 0);
-        const gstVal = cgstVal + sgstVal + igstVal;
-        const invVal = taxVal + gstVal;
-
-        sheet.getCell(rowNum, 1).value = rate; sheet.getCell(rowNum, 1).numFmt = "0.00%";
-        sheet.getCell(rowNum, 2).value = taxVal; sheet.getCell(rowNum, 2).numFmt = "₹#,##0.00";
-        sheet.getCell(rowNum, 3).value = cgstVal; sheet.getCell(rowNum, 3).numFmt = "₹#,##0.00";
-        sheet.getCell(rowNum, 4).value = sgstVal; sheet.getCell(rowNum, 4).numFmt = "₹#,##0.00";
-        sheet.getCell(rowNum, 5).value = igstVal; sheet.getCell(rowNum, 5).numFmt = "₹#,##0.00";
-        sheet.getCell(rowNum, 6).value = gstVal; sheet.getCell(rowNum, 6).numFmt = "₹#,##0.00";
-        sheet.getCell(rowNum, 7).value = invVal; sheet.getCell(rowNum, 7).numFmt = "₹#,##0.00";
-      });
+    // Section 4: Payment Mix
+    rIdx += 2;
+    sheet.mergeCells(`A${rIdx}:D${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "PAYMENT METHOD BREAKDOWN";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    rIdx++;
+    sheet.getRow(rIdx).values = ["Payment Method", "Orders", "Gross Amount", "Net Collected"];
+    sheet.getRow(rIdx).font = { bold: true };
+    sheet.getRow(rIdx).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+    rIdx++;
+    for (const p of (data.paymentBreakdown || [])) {
+      sheet.getRow(rIdx).values = [p.method, p.count, p.gross, p.netAmount || p.gross];
+      sheet.getCell(`C${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`D${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
     }
 
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Tax_Summary_${fromDate}_to_${toDate}`);
-  }
-
-  // 9. DEDICATED GSTR-1 EXPORT
-  public static async exportGstr1(data: { salesRegister: any[]; hsnSummary: any[]; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("GSTR-1");
-    sheet.views = [{ showGridLines: true }];
-
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
-
-    sheet.mergeCells("A1:G1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:G2");
-    sheet.getCell("A2").value = `GSTR-1 OUTWARD SUPPLIES REPORT | Period: ${fromDate} to ${toDate}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    const b2bOrders = (data.salesRegister || []).filter((r) => r.customerGstin && r.customerGstin !== "URP" && r.customerGstin.length === 15);
-    const b2cOrders = (data.salesRegister || []).filter((r) => !r.customerGstin || r.customerGstin === "URP" || r.customerGstin.length !== 15);
-
-    sheet.getRow(6).values = ["GSTR-1 Section", "Invoice Count", "Taxable Amount", "CGST", "SGST", "IGST", "Total Tax Liability"];
-    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-
-    sheet.addRow({ section: "B2B (4A, 4B, 6B, 6C)", count: b2bOrders.length, taxable: b2bOrders.reduce((s, r) => s + (r.taxableValue || 0), 0), cgst: b2bOrders.reduce((s, r) => s + (r.cgst || 0), 0), sgst: b2bOrders.reduce((s, r) => s + (r.sgst || 0), 0), igst: b2bOrders.reduce((s, r) => s + (r.igst || 0), 0), totalTax: b2bOrders.reduce((s, r) => s + (r.totalTax || 0), 0) });
-    sheet.addRow({ section: "B2CS (Small Consumer 7)", count: b2cOrders.length, taxable: b2cOrders.reduce((s, r) => s + (r.taxableValue || 0), 0), cgst: b2cOrders.reduce((s, r) => s + (r.cgst || 0), 0), sgst: b2cOrders.reduce((s, r) => s + (r.sgst || 0), 0), igst: b2cOrders.reduce((s, r) => s + (r.igst || 0), 0), totalTax: b2cOrders.reduce((s, r) => s + (r.totalTax || 0), 0) });
-    sheet.addRow({ section: "HSN Summary (12)", count: (data.hsnSummary || []).length, taxable: data.salesRegister.reduce((s, r) => s + (r.taxableValue || 0), 0), cgst: data.salesRegister.reduce((s, r) => s + (r.cgst || 0), 0), sgst: data.salesRegister.reduce((s, r) => s + (r.sgst || 0), 0), igst: data.salesRegister.reduce((s, r) => s + (r.igst || 0), 0), totalTax: data.salesRegister.reduce((s, r) => s + (r.totalTax || 0), 0) });
-
-    sheet.columns = [{ width: 28 }, { width: 14 }, { width: 18 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 20 }];
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_GSTR1_Report_${fromDate}_to_${toDate}`);
-  }
-
-  // 10. DEDICATED GSTR-3B EXPORT
-  public static async exportGstr3b(data: { salesRegister: any[]; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("GSTR-3B");
-    sheet.views = [{ showGridLines: true }];
-
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
-
-    sheet.mergeCells("A1:F1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:F2");
-    sheet.getCell("A2").value = `GSTR-3B LIABILITY SUMMARY | Period: ${fromDate} to ${toDate}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    const totalTaxable = data.salesRegister.reduce((s, r) => s + (r.taxableValue || 0), 0);
-    const totalCgst = data.salesRegister.reduce((s, r) => s + (r.cgst || 0), 0);
-    const totalSgst = data.salesRegister.reduce((s, r) => s + (r.sgst || 0), 0);
-    const totalIgst = data.salesRegister.reduce((s, r) => s + (r.igst || 0), 0);
-
-    sheet.getRow(6).values = ["GSTR-3B Table 3.1 Category", "Taxable Value (₹)", "Integrated Tax IGST (₹)", "Central Tax CGST (₹)", "State Tax SGST (₹)", "Cess (₹)"];
-    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-
-    sheet.addRow({ category: "(a) Outward Taxable Supplies (Other than Zero-Rated/Exempt)", taxable: totalTaxable, igst: totalIgst, cgst: totalCgst, sgst: totalSgst, cess: 0 });
-    sheet.addRow({ category: "(b) Outward Taxable Supplies (Zero Rated Export)", taxable: 0, igst: 0, cgst: 0, sgst: 0, cess: 0 });
-    sheet.addRow({ category: "(c) Other Outward Supplies (Nil Rated / Exempt)", taxable: 0, igst: 0, cgst: 0, sgst: 0, cess: 0 });
-    sheet.addRow({ category: "Eligible Input Tax Credit (ITC Table 4)", taxable: "Not available — purchase/ITC data not configured", igst: "-", cgst: "-", sgst: "-", cess: "-" });
-
-    sheet.columns = [{ width: 42 }, { width: 22 }, { width: 22 }, { width: 20 }, { width: 20 }, { width: 14 }];
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_GSTR3B_Report_${fromDate}_to_${toDate}`);
-  }
-
-  // 11. DEDICATED VALIDATION ERRORS EXPORT
-  public static async exportValidationErrors(data: { productTaxDetails: any[]; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Validation Errors");
-    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
-
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
-
-    sheet.mergeCells("A1:F1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:F2");
-    sheet.getCell("A2").value = `GST DATA QUALITY & VALIDATION AUDIT | Period: ${fromDate} to ${toDate}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    const headers = ["SKU", "Product Name", "Category", "HSN / SAC", "GST Rate %", "Validation Issue"];
-    sheet.getRow(6).values = headers;
-    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF991B1B" } };
-
-    data.productTaxDetails.forEach((r) => {
-      const row = sheet.addRow({
-        ...r,
-        gstRatePct: (r.gstRatePct || 18) / 100,
-        status: r.unitCost === 0 || !r.hsnCode ? "GST CONFIGURATION ERROR" : "CONFIGURED",
-      });
-      row.getCell("gstRatePct").numFmt = "0.00%";
-      if (row.getCell("status").value === "GST CONFIGURATION ERROR") {
-        row.getCell("status").font = { bold: true, color: { argb: "FFDC2626" } };
-      }
-    });
-
-    sheet.columns = [{ width: 14 }, { width: 32 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 32 }];
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_GST_Validation_Audit_${fromDate}_to_${toDate}`);
-  }
-
-  /**
-   * Generates the complete 11-Worksheet GST & Tax Excel Report Workbook (.xlsx) and triggers browser download
-   */
-  public static async downloadGstWorkbookXlsx(data: {
-    filters: any;
-    kpis: any[];
-    salesRegister: any[];
-    hsnSummary: any[];
-    invoiceRegister: any[];
-    productTaxDetails: any[];
-    branchGstSummary: any[];
-    dataQualityWarnings: any[];
-    reconciliationStatus: any;
-    creditNotes?: any[];
-    gstr1?: any;
-    gstr3b?: any;
-  }, filename?: string): Promise<void> {
-    const buffer = await this.generateGstWorkbookXlsx(data, filename);
-    this.triggerBrowserDownload(buffer, filename || "CakeToHome_Full_GST_Audit_Workbook");
-  }
-
-  /**
-   * Generates the complete 11-Worksheet GST & Tax Excel Report Workbook (.xlsx)
-   */
-  public static async generateGstWorkbookXlsx(data: {
-    filters: any;
-    kpis: any[];
-    salesRegister: any[];
-    hsnSummary: any[];
-    invoiceRegister: any[];
-    productTaxDetails: any[];
-    branchGstSummary: any[];
-    dataQualityWarnings: any[];
-    reconciliationStatus: any;
-    creditNotes?: any[];
-    gstr1?: any;
-    gstr3b?: any;
-  }, filename?: string): Promise<ArrayBuffer> {
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = "CakeToHome ERP Engine";
-    workbook.lastModifiedBy = "CakeToHome Super Admin";
-    workbook.created = new Date();
-
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
-
-    const b2bOrders = data.salesRegister.filter((r) => r.customerGstin && r.customerGstin !== "URP" && r.customerGstin.length === 15);
-    const b2cOrders = data.salesRegister.filter((r) => !r.customerGstin || r.customerGstin === "URP" || r.customerGstin.length !== 15);
-
-    // ── SHEET 1: 01 EXECUTIVE SUMMARY ──────────────────────────────────────────
-    const s1 = workbook.addWorksheet("01 Executive Summary");
-    s1.views = [{ showGridLines: true }];
-
-    s1.mergeCells("A1:G1");
-    const titleCell = s1.getCell("A1");
-    titleCell.value = "CAKETOHOME GST & TAX SUMMARY REPORT";
-    titleCell.font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    s1.mergeCells("A2:G2");
-    const subCell = s1.getCell("A2");
-    subCell.value = `Reporting Period: ${fromDate} to ${toDate} | Generated: ${new Date().toLocaleString("en-IN")}`;
-    subCell.font = { name: "Calibri", size: 11, italic: true, color: { argb: "FF475569" } };
-
-    s1.getCell("A4").value = "GSTIN:"; s1.getCell("B4").value = "29AAAAA0000A1Z5";
-    s1.getCell("A5").value = "State:"; s1.getCell("B5").value = "Karnataka (29)";
-    s1.getCell("A6").value = "Registration Type:"; s1.getCell("B6").value = "Regular GST Taxpayer";
-    s1.getCell("D4").value = "Organization:"; s1.getCell("E4").value = "CakeToHome India Pvt Ltd";
-    s1.getCell("D5").value = "Kitchen Hubs Filtered:"; s1.getCell("E5").value = data.filters?.branchIds?.join(", ") || "All Hubs";
-
-    ["A4", "A5", "A6", "D4", "D5"].forEach((ref) => {
-      s1.getCell(ref).font = { bold: true, color: { argb: "FF334155" } };
-    });
-
-    s1.getCell("A8").value = "GST KPI Metric"; s1.getCell("B8").value = "Amount (₹) / Count";
-    s1.getRow(8).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    s1.getRow(8).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-
-    const totalTaxable = data.salesRegister.reduce((acc, r) => acc + (r.taxableValue || 0), 0);
-    const totalCgst = data.salesRegister.reduce((acc, r) => acc + (r.cgst || 0), 0);
-    const totalSgst = data.salesRegister.reduce((acc, r) => acc + (r.sgst || 0), 0);
-    const totalIgst = data.salesRegister.reduce((acc, r) => acc + (r.igst || 0), 0);
-    const totalGst = totalCgst + totalSgst + totalIgst;
-    const totalInvVal = totalTaxable + totalGst;
-
-    const kpiRows = [
-      ["Total Taxable Sales", totalTaxable, "currency"],
-      ["Total CGST Collected", totalCgst, "currency"],
-      ["Total SGST Collected", totalSgst, "currency"],
-      ["Total IGST Collected", totalIgst, "currency"],
-      ["Total GST Tax Liability", totalGst, "currency"],
-      ["Total Gross Invoice Value", totalInvVal, "currency"],
-      ["B2B Registered Taxable Sales", b2bOrders.reduce((s, r) => s + (r.taxableValue || 0), 0), "currency"],
-      ["B2C Consumer Taxable Sales", b2cOrders.reduce((s, r) => s + (r.taxableValue || 0), 0), "currency"],
-      ["Total Tax Invoices Issued", data.invoiceRegister.length, "number"],
-      ["Cancelled / Void Invoices", 0, "number"],
+    // Section 5: Delivery SLA
+    rIdx += 2;
+    sheet.mergeCells(`A${rIdx}:D${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "DELIVERY SLA PERFORMANCE";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    rIdx++;
+    const del = data.deliverySla || {};
+    const delRows: [string, any][] = [
+      ["Total Dispatched", del.totalDeliveries || 0],
+      ["On-Time Deliveries", del.onTimeDeliveries || 0],
+      ["Delayed Deliveries", del.delayedDeliveries || 0],
+      ["Failed Deliveries", del.failedDeliveries || 0],
+      ["Avg Processing Time", `${del.avgProcessingMinutes || 0} mins`],
+      ["Avg Delivery Time", `${del.avgDeliveryMinutes || 0} mins`],
     ];
-
-    let rowIdx = 9;
-    kpiRows.forEach(([label, val, type]) => {
-      s1.getCell(`A${rowIdx}`).value = label;
-      const c = s1.getCell(`B${rowIdx}`);
-      c.value = val as number;
-      c.numFmt = type === "currency" ? "₹#,##0.00" : "#,##0";
-      s1.getCell(`A${rowIdx}`).font = { bold: true };
-      rowIdx++;
-    });
-
-    s1.columns = [{ width: 32 }, { width: 25 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 20 }, { width: 22 }];
-
-    // ── SHEET 2: 02 INVOICE REGISTER ───────────────────────────────────────────
-    const s2 = workbook.addWorksheet("02 Invoice Register");
-    s2.views = [{ state: "frozen", xSplit: 0, ySplit: 1, showGridLines: true }];
-
-    const s2Cols = [
-      { header: "Document Type", key: "docType", width: 18 },
-      { header: "Invoice Number", key: "invoiceNumber", width: 22 },
-      { header: "Invoice Date", key: "invoiceDate", width: 16 },
-      { header: "Order Number", key: "orderNumber", width: 20 },
-      { header: "Customer Name", key: "customerName", width: 24 },
-      { header: "Customer GSTIN", key: "customerGstin", width: 18 },
-      { header: "Branch Name", key: "branchName", width: 24 },
-      { header: "Branch GSTIN", key: "branchGstin", width: 18 },
-      { header: "Place of Supply", key: "placeOfSupply", width: 18 },
-      { header: "Taxable Amount", key: "taxableAmount", width: 18 },
-      { header: "CGST", key: "cgst", width: 14 },
-      { header: "SGST", key: "sgst", width: 14 },
-      { header: "IGST", key: "igst", width: 14 },
-      { header: "Total GST", key: "totalTax", width: 16 },
-      { header: "Round Off", key: "roundOff", width: 12 },
-      { header: "Invoice Total", key: "totalValue", width: 20 },
-      { header: "Payment Method", key: "paymentMethod", width: 16 },
-      { header: "Status", key: "invoiceStatus", width: 16 },
-    ];
-    s2.columns = s2Cols;
-    s2.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    s2.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-
-    data.invoiceRegister.forEach((r) => {
-      const row = s2.addRow({ docType: "TAX INVOICE", ...r });
-      ["taxableAmount", "cgst", "sgst", "igst", "totalTax", "roundOff", "totalValue"].forEach((k) => {
-        const cell = row.getCell(k);
-        if (typeof cell.value === "number") cell.numFmt = "₹#,##0.00";
-      });
-    });
-
-    const s2TotalRowIdx = data.invoiceRegister.length + 2;
-    const s2TotalRow = s2.addRow({});
-    s2TotalRow.getCell("invoiceNumber").value = "TOTAL";
-    s2TotalRow.font = { bold: true };
-    s2TotalRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
-    ["taxableAmount", "cgst", "sgst", "igst", "totalTax", "totalValue"].forEach((k) => {
-      const colIdx = s2Cols.findIndex((c) => c.key === k) + 1;
-      const colLetter = String.fromCharCode(64 + colIdx);
-      const cell = s2TotalRow.getCell(k);
-      cell.value = { formula: `SUM(${colLetter}2:${colLetter}${s2TotalRowIdx - 1})` };
-      cell.numFmt = "₹#,##0.00";
-    });
-    s2.autoFilter = { from: { row: 1, column: 1 }, to: { row: s2TotalRowIdx - 1, column: s2Cols.length } };
-
-    // ── SHEET 3: 03 GST TRANSACTIONS ──────────────────────────────────────────
-    const s3 = workbook.addWorksheet("03 GST Transactions");
-    s3.views = [{ state: "frozen", xSplit: 0, ySplit: 1, showGridLines: true }];
-    const s3Cols = [
-      { header: "Invoice Date", key: "invoiceDate", width: 15 },
-      { header: "Invoice Number", key: "invoiceNumber", width: 22 },
-      { header: "Order Number", key: "orderNumber", width: 20 },
-      { header: "Customer Name", key: "customerName", width: 24 },
-      { header: "Customer Phone", key: "customerPhone", width: 16 },
-      { header: "Customer GSTIN", key: "customerGstin", width: 18 },
-      { header: "Place of Supply", key: "placeOfSupply", width: 18 },
-      { header: "State Code", key: "stateCode", width: 12 },
-      { header: "Supply Type", key: "supplyType", width: 14 },
-      { header: "Branch Name", key: "branchName", width: 24 },
-      { header: "Branch GSTIN", key: "branchGstin", width: 18 },
-      { header: "Product Name", key: "productName", width: 32 },
-      { header: "HSN / SAC", key: "hsnCode", width: 14 },
-      { header: "UQC", key: "uom", width: 10 },
-      { header: "Quantity", key: "quantity", width: 12 },
-      { header: "Unit Price", key: "unitPrice", width: 14 },
-      { header: "Gross Amount", key: "grossAmount", width: 16 },
-      { header: "Discount", key: "discount", width: 14 },
-      { header: "Taxable Value", key: "taxableValue", width: 16 },
-      { header: "GST Rate %", key: "gstRatePct", width: 14 },
-      { header: "CGST %", key: "cgstRatePct", width: 12 },
-      { header: "CGST Amount", key: "cgst", width: 14 },
-      { header: "SGST %", key: "sgstRatePct", width: 12 },
-      { header: "SGST Amount", key: "sgst", width: 14 },
-      { header: "IGST %", key: "igstRatePct", width: 12 },
-      { header: "IGST Amount", key: "igst", width: 14 },
-      { header: "Total GST", key: "totalTax", width: 16 },
-      { header: "Invoice Total", key: "totalValue", width: 18 },
-      { header: "Payment Method", key: "paymentMethod", width: 16 },
-      { header: "Order Status", key: "orderStatus", width: 16 },
-    ];
-    s3.columns = s3Cols;
-    s3.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    s3.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-
-    data.salesRegister.forEach((r) => {
-      const row = s3.addRow({
-        stateCode: "29",
-        supplyType: r.igst > 0 ? "INTER-STATE" : "INTRA-STATE",
-        ...r,
-        gstRatePct: (r.gstRatePct || 18) / 100,
-        cgstRatePct: (r.cgstRatePct || 9) / 100,
-        sgstRatePct: (r.sgstRatePct || 9) / 100,
-        igstRatePct: (r.igstRatePct || 0) / 100,
-      });
-
-      ["unitPrice", "grossAmount", "discount", "taxableValue", "cgst", "sgst", "igst", "totalTax", "totalValue"].forEach((k) => {
-        const cell = row.getCell(k);
-        if (typeof cell.value === "number") cell.numFmt = "₹#,##0.00";
-      });
-
-      ["gstRatePct", "cgstRatePct", "sgstRatePct", "igstRatePct"].forEach((k) => {
-        const cell = row.getCell(k);
-        if (typeof cell.value === "number") cell.numFmt = "0.00%";
-      });
-      row.getCell("quantity").numFmt = "#,##0";
-    });
-
-    const s3TotalRowIdx = data.salesRegister.length + 2;
-    const s3TotalRow = s3.addRow({});
-    s3TotalRow.getCell("invoiceDate").value = "TOTAL";
-    s3TotalRow.font = { bold: true };
-    s3TotalRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
-
-    ["quantity", "grossAmount", "discount", "taxableValue", "cgst", "sgst", "igst", "totalTax", "totalValue"].forEach((k) => {
-      const colIdx = s3Cols.findIndex((c) => c.key === k) + 1;
-      const colLetter = String.fromCharCode(64 + colIdx);
-      const cell = s3TotalRow.getCell(k);
-      cell.value = { formula: `SUM(${colLetter}2:${colLetter}${s3TotalRowIdx - 1})` };
-      cell.numFmt = k === "quantity" ? "#,##0" : "₹#,##0.00";
-    });
-    s3.autoFilter = { from: { row: 1, column: 1 }, to: { row: s3TotalRowIdx - 1, column: s3Cols.length } };
-
-    // ── SHEET 4: 04 B2B SALES ──────────────────────────────────────────────────
-    const s4 = workbook.addWorksheet("04 B2B Sales");
-    s4.views = [{ state: "frozen", xSplit: 0, ySplit: 1, showGridLines: true }];
-    s4.columns = s3Cols;
-    s4.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    s4.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-
-    b2bOrders.forEach((r) => {
-      const row = s4.addRow({
-        stateCode: "29",
-        supplyType: r.igst > 0 ? "INTER-STATE" : "INTRA-STATE",
-        ...r,
-        gstRatePct: (r.gstRatePct || 18) / 100,
-        cgstRatePct: (r.cgstRatePct || 9) / 100,
-        sgstRatePct: (r.sgstRatePct || 9) / 100,
-        igstRatePct: (r.igstRatePct || 0) / 100,
-      });
-      ["unitPrice", "grossAmount", "discount", "taxableValue", "cgst", "sgst", "igst", "totalTax", "totalValue"].forEach((k) => {
-        const cell = row.getCell(k);
-        if (typeof cell.value === "number") cell.numFmt = "₹#,##0.00";
-      });
-    });
-
-    // ── SHEET 5: 05 B2C SALES ──────────────────────────────────────────────────
-    const s5 = workbook.addWorksheet("05 B2C Sales");
-    s5.views = [{ state: "frozen", xSplit: 0, ySplit: 1, showGridLines: true }];
-    s5.columns = s3Cols;
-    s5.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    s5.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-
-    b2cOrders.forEach((r) => {
-      const row = s5.addRow({
-        stateCode: "29",
-        supplyType: r.igst > 0 ? "INTER-STATE" : "INTRA-STATE",
-        ...r,
-        gstRatePct: (r.gstRatePct || 18) / 100,
-        cgstRatePct: (r.cgstRatePct || 9) / 100,
-        sgstRatePct: (r.sgstRatePct || 9) / 100,
-        igstRatePct: (r.igstRatePct || 0) / 100,
-      });
-      ["unitPrice", "grossAmount", "discount", "taxableValue", "cgst", "sgst", "igst", "totalTax", "totalValue"].forEach((k) => {
-        const cell = row.getCell(k);
-        if (typeof cell.value === "number") cell.numFmt = "₹#,##0.00";
-      });
-    });
-
-    // ── SHEET 6: 06 CREDIT NOTES ──────────────────────────────────────────────
-    const s6 = workbook.addWorksheet("06 Credit Notes");
-    s6.views = [{ state: "frozen", xSplit: 0, ySplit: 1, showGridLines: true }];
-    s6.columns = [
-      { header: "Credit Note No", key: "cnNumber", width: 22 },
-      { header: "Credit Note Date", key: "cnDate", width: 16 },
-      { header: "Original Invoice No", key: "origInvoice", width: 22 },
-      { header: "Customer Name", key: "customerName", width: 24 },
-      { header: "Reason", key: "reason", width: 24 },
-      { header: "Taxable Refund", key: "taxable", width: 18 },
-      { header: "CGST Refund", key: "cgst", width: 14 },
-      { header: "SGST Refund", key: "sgst", width: 14 },
-      { header: "IGST Refund", key: "igst", width: 14 },
-      { header: "Total Refund Value", key: "totalRefund", width: 20 },
-    ];
-    s6.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    s6.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-
-    (data.creditNotes || []).forEach((cn) => {
-      const row = s6.addRow(cn);
-      ["taxable", "cgst", "sgst", "igst", "totalRefund"].forEach((k) => {
-        const cell = row.getCell(k);
-        if (typeof cell.value === "number") cell.numFmt = "₹#,##0.00";
-      });
-    });
-
-    // ── SHEET 7: 07 HSN SUMMARY ───────────────────────────────────────────────
-    const s7 = workbook.addWorksheet("07 HSN Summary");
-    s7.views = [{ state: "frozen", xSplit: 0, ySplit: 1, showGridLines: true }];
-
-    const s7Cols = [
-      { header: "HSN / SAC", key: "hsnCode", width: 16 },
-      { header: "Description", key: "description", width: 32 },
-      { header: "UQC", key: "uom", width: 12 },
-      { header: "B2B Quantity", key: "b2bQty", width: 14 },
-      { header: "B2C Quantity", key: "b2cQty", width: 14 },
-      { header: "Total Quantity", key: "quantity", width: 14 },
-      { header: "Taxable Value", key: "taxableValue", width: 18 },
-      { header: "GST Rate %", key: "gstRatePct", width: 14 },
-      { header: "CGST Amount", key: "cgst", width: 16 },
-      { header: "SGST Amount", key: "sgst", width: 16 },
-      { header: "IGST Amount", key: "igst", width: 16 },
-      { header: "Total GST", key: "totalTax", width: 18 },
-      { header: "Total Invoice Value", key: "totalValue", width: 20 },
-    ];
-    s7.columns = s7Cols;
-    s7.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    s7.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-
-    data.hsnSummary.forEach((r) => {
-      const row = s7.addRow({ b2bQty: 0, b2cQty: r.quantity, ...r, gstRatePct: (r.gstRatePct || 18) / 100 });
-      ["taxableValue", "cgst", "sgst", "igst", "totalTax", "totalValue"].forEach((k) => {
-        const cell = row.getCell(k);
-        if (typeof cell.value === "number") cell.numFmt = "₹#,##0.00";
-      });
-      row.getCell("gstRatePct").numFmt = "0.00%";
-      ["b2bQty", "b2cQty", "quantity"].forEach((k) => {
-        row.getCell(k).numFmt = "#,##0";
-      });
-    });
-
-    const s7TotalRowIdx = data.hsnSummary.length + 2;
-    const s7TotalRow = s7.addRow({});
-    s7TotalRow.getCell("hsnCode").value = "TOTAL";
-    s7TotalRow.font = { bold: true };
-    s7TotalRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
-    ["b2bQty", "b2cQty", "quantity", "taxableValue", "cgst", "sgst", "igst", "totalTax", "totalValue"].forEach((k) => {
-      const colIdx = s7Cols.findIndex((c) => c.key === k) + 1;
-      const colLetter = String.fromCharCode(64 + colIdx);
-      const cell = s7TotalRow.getCell(k);
-      cell.value = { formula: `SUM(${colLetter}2:${colLetter}${s7TotalRowIdx - 1})` };
-      cell.numFmt = k.includes("Qty") || k === "quantity" ? "#,##0" : "₹#,##0.00";
-    });
-    s7.autoFilter = { from: { row: 1, column: 1 }, to: { row: s7TotalRowIdx - 1, column: s7Cols.length } };
-
-    // ── SHEET 8: 08 TAX SUMMARY ───────────────────────────────────────────────
-    const s8 = workbook.addWorksheet("08 Tax Summary");
-    s8.views = [{ state: "frozen", xSplit: 0, ySplit: 1, showGridLines: true }];
-
-    const rateHeaders = ["GST Rate %", "Taxable Value (₹)", "CGST (₹)", "SGST (₹)", "IGST (₹)", "Total GST (₹)", "Invoice Value (₹)"];
-    s8.getRow(1).values = rateHeaders;
-    s8.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    s8.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF334155" } };
-
-    const rates = [0, 0.05, 0.12, 0.18, 0.28];
-    rates.forEach((rate, idx) => {
-      const rowNum = idx + 2;
-      const matching = data.salesRegister.filter((r) => Math.abs((r.gstRatePct || 18) / 100 - rate) < 0.01);
-      const taxVal = matching.reduce((s, r) => s + (r.taxableValue || 0), 0);
-      const cgstVal = matching.reduce((s, r) => s + (r.cgst || 0), 0);
-      const sgstVal = matching.reduce((s, r) => s + (r.sgst || 0), 0);
-      const igstVal = matching.reduce((s, r) => s + (r.igst || 0), 0);
-      const gstVal = cgstVal + sgstVal + igstVal;
-      const invVal = taxVal + gstVal;
-
-      s8.getCell(rowNum, 1).value = rate; s8.getCell(rowNum, 1).numFmt = "0.00%";
-      s8.getCell(rowNum, 2).value = taxVal; s8.getCell(rowNum, 2).numFmt = "₹#,##0.00";
-      s8.getCell(rowNum, 3).value = cgstVal; s8.getCell(rowNum, 3).numFmt = "₹#,##0.00";
-      s8.getCell(rowNum, 4).value = sgstVal; s8.getCell(rowNum, 4).numFmt = "₹#,##0.00";
-      s8.getCell(rowNum, 5).value = igstVal; s8.getCell(rowNum, 5).numFmt = "₹#,##0.00";
-      s8.getCell(rowNum, 6).value = gstVal; s8.getCell(rowNum, 6).numFmt = "₹#,##0.00";
-      s8.getCell(rowNum, 7).value = invVal; s8.getCell(rowNum, 7).numFmt = "₹#,##0.00";
-    });
-
-    const s8TotalRow = s8.addRow({});
-    s8TotalRow.getCell(1).value = "TOTAL";
-    s8TotalRow.font = { bold: true };
-    s8TotalRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
-    for (let c = 2; c <= 7; c++) {
-      const colLetter = String.fromCharCode(64 + c);
-      const cell = s8TotalRow.getCell(c);
-      cell.value = { formula: `SUM(${colLetter}2:${colLetter}6)` };
-      cell.numFmt = "₹#,##0.00";
-    }
-    s8.columns = [{ width: 18 }, { width: 22 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 20 }, { width: 22 }];
-
-    // ── SHEET 9: 09 GSTR-1 ────────────────────────────────────────────────────
-    const s9 = workbook.addWorksheet("09 GSTR-1");
-    s9.views = [{ state: "frozen", xSplit: 0, ySplit: 1, showGridLines: true }];
-    s9.columns = [
-      { header: "GSTR-1 Section", key: "section", width: 22 },
-      { header: "Invoice Count", key: "count", width: 14 },
-      { header: "Taxable Amount", key: "taxable", width: 18 },
-      { header: "CGST", key: "cgst", width: 14 },
-      { header: "SGST", key: "sgst", width: 14 },
-      { header: "IGST", key: "igst", width: 14 },
-      { header: "Total Tax Liability", key: "totalTax", width: 20 },
-    ];
-    s9.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    s9.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-
-    s9.addRow({ section: "B2B (4A, 4B, 6B, 6C)", count: b2bOrders.length, taxable: b2bOrders.reduce((s, r) => s + (r.taxableValue || 0), 0), cgst: b2bOrders.reduce((s, r) => s + (r.cgst || 0), 0), sgst: b2bOrders.reduce((s, r) => s + (r.sgst || 0), 0), igst: b2bOrders.reduce((s, r) => s + (r.igst || 0), 0), totalTax: b2bOrders.reduce((s, r) => s + (r.totalTax || 0), 0) });
-    s9.addRow({ section: "B2CS (Small Consumer 7)", count: b2cOrders.length, taxable: b2cOrders.reduce((s, r) => s + (r.taxableValue || 0), 0), cgst: b2cOrders.reduce((s, r) => s + (r.cgst || 0), 0), sgst: b2cOrders.reduce((s, r) => s + (r.sgst || 0), 0), igst: b2cOrders.reduce((s, r) => s + (r.igst || 0), 0), totalTax: b2cOrders.reduce((s, r) => s + (r.totalTax || 0), 0) });
-    s9.addRow({ section: "HSN Summary (12)", count: data.hsnSummary.length, taxable: totalTaxable, cgst: totalCgst, sgst: totalSgst, igst: totalIgst, totalTax: totalGst });
-
-    // ── SHEET 10: 10 GSTR-3B ──────────────────────────────────────────────────
-    const s10 = workbook.addWorksheet("10 GSTR-3B");
-    s10.views = [{ showGridLines: true }];
-    s10.columns = [
-      { header: "GSTR-3B Table 3.1 Category", key: "category", width: 36 },
-      { header: "Taxable Value (₹)", key: "taxable", width: 20 },
-      { header: "Integrated Tax IGST (₹)", key: "igst", width: 22 },
-      { header: "Central Tax CGST (₹)", key: "cgst", width: 20 },
-      { header: "State Tax SGST (₹)", key: "sgst", width: 20 },
-      { header: "Cess (₹)", key: "cess", width: 14 },
-    ];
-    s10.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    s10.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-
-    s10.addRow({ category: "(a) Outward Taxable Supplies (Other than Zero-Rated/Exempt)", taxable: totalTaxable, igst: totalIgst, cgst: totalCgst, sgst: totalSgst, cess: 0 });
-    s10.addRow({ category: "(b) Outward Taxable Supplies (Zero Rated Export)", taxable: 0, igst: 0, cgst: 0, sgst: 0, cess: 0 });
-    s10.addRow({ category: "(c) Other Outward Supplies (Nil Rated / Exempt)", taxable: 0, igst: 0, cgst: 0, sgst: 0, cess: 0 });
-    s10.addRow({ category: "Eligible Input Tax Credit (ITC Table 4)", taxable: "Not available — purchase/ITC data not configured", igst: "-", cgst: "-", sgst: "-", cess: "-" });
-
-    // ── SHEET 11: 11 VALIDATION ERRORS ───────────────────────────────────────
-    const s11 = workbook.addWorksheet("11 Validation Errors");
-    s11.views = [{ state: "frozen", xSplit: 0, ySplit: 1, showGridLines: true }];
-
-    const s11Cols = [
-      { header: "SKU", key: "sku", width: 14 },
-      { header: "Product Name", key: "name", width: 32 },
-      { header: "Category", key: "category", width: 16 },
-      { header: "HSN / SAC", key: "hsnCode", width: 14 },
-      { header: "GST Rate %", key: "gstRatePct", width: 14 },
-      { header: "Validation Issue", key: "status", width: 32 },
-    ];
-    s11.columns = s11Cols;
-    s11.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    s11.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF991B1B" } };
-
-    data.productTaxDetails.forEach((r) => {
-      const row = s11.addRow({
-        ...r,
-        gstRatePct: (r.gstRatePct || 18) / 100,
-        status: r.unitCost === 0 || !r.hsnCode ? "GST CONFIGURATION ERROR" : "CONFIGURED",
-      });
-      row.getCell("gstRatePct").numFmt = "0.00%";
-      if (row.getCell("status").value === "GST CONFIGURATION ERROR") {
-        row.getCell("status").font = { bold: true, color: { argb: "FFDC2626" } };
-      }
-    });
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    return buffer as ArrayBuffer;
-  }
-
-  /**
-   * Helper to construct ExcelJS workbook from generic sheet configs
-   */
-  private static async createWorkbook(sheets: ExcelSheetData[]): Promise<ExcelJS.Workbook> {
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = "CakeToHome Analytics Engine";
-    workbook.created = new Date();
-
-    for (const sheetConfig of sheets) {
-      const cleanName = sheetConfig.name.replace(/[/\\?*:[\]]/g, "_").substring(0, 31);
-      const sheet = workbook.addWorksheet(cleanName);
-      sheet.views = [{ state: "frozen", xSplit: 0, ySplit: sheetConfig.title ? 3 : 1, showGridLines: true }];
-
-      let startRow = 1;
-      if (sheetConfig.title) {
-        const titleRow = sheet.getRow(startRow);
-        titleRow.getCell(1).value = sheetConfig.title;
-        titleRow.getCell(1).font = { name: "Calibri", size: 14, bold: true, color: { argb: "FF991B1B" } };
-        startRow++;
-      }
-      if (sheetConfig.subtitle) {
-        const subRow = sheet.getRow(startRow);
-        subRow.getCell(1).value = sheetConfig.subtitle;
-        subRow.getCell(1).font = { name: "Calibri", size: 11, italic: true, color: { argb: "FF475569" } };
-        startRow++;
-      }
-
-      const headerRow = sheet.getRow(startRow);
-      sheetConfig.columns.forEach((col, idx) => {
-        const cell = headerRow.getCell(idx + 1);
-        cell.value = col.header;
-        cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
-        cell.alignment = { vertical: "middle", horizontal: "center" };
-        sheet.getColumn(idx + 1).width = col.width ? col.width / 8 : 18;
-      });
-
-      startRow++;
-
-      sheetConfig.rows.forEach((r) => {
-        const row = sheet.getRow(startRow);
-        sheetConfig.columns.forEach((col, cIdx) => {
-          const val = r[col.key];
-          const cell = row.getCell(cIdx + 1);
-          if (val !== null && val !== undefined) {
-            cell.value = val;
-            if (col.type === "currency") cell.numFmt = "₹#,##0.00";
-            if (col.type === "percentage") {
-              cell.value = typeof val === "number" ? val / 100 : val;
-              cell.numFmt = "0.00%";
-            }
-            if (col.type === "number") cell.numFmt = "#,##0";
-          }
-        });
-        startRow++;
-      });
+    for (const [lbl, val] of delRows) {
+      sheet.getCell(`A${rIdx}`).value = lbl;
+      sheet.getCell(`A${rIdx}`).font = { bold: true };
+      sheet.getCell(`B${rIdx}`).value = val;
+      rIdx++;
     }
 
-    return workbook;
-  }
-
-  // 10. DEDICATED GST VALIDATION AUDIT EXPORT
-  public static async exportValidationAudit(data: { exceptions?: any[]; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Validation Audit");
-    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
-
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
-
-    sheet.mergeCells("A1:E1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:E2");
-    sheet.getCell("A2").value = `GST DATA QUALITY VALIDATION AUDIT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    const headers = ["Issue ID", "Audit Category", "Severity", "Description", "Action Required"];
-    sheet.getRow(6).values = headers;
-    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF991B1B" } };
-
-    if (data.exceptions && data.exceptions.length > 0) {
-      data.exceptions.forEach((e: any) => {
-        sheet.addRow([e.id, e.title, e.severity || "MEDIUM", e.description, e.actionLabel || "Review"]);
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No GST compliance validation issues or exceptions detected for the selected period."]);
-      sheet.mergeCells(`A7:E7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF059669" } };
-    }
-
-    sheet.columns = [{ width: 18 }, { width: 28 }, { width: 14 }, { width: 45 }, { width: 20 }];
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_GST_Validation_Audit_${fromDate}_to_${toDate}`);
-  }
-
-  // 11. DEDICATED EXECUTIVE SUMMARY EXPORT
-  public static async exportExecutiveSummary(data: { kpis: any[]; salesRegister: any[]; filters?: any }, filename?: string): Promise<void> {
-    await this.exportGstSummary(data, filename || `CakeToHome_Executive_Summary_${data.filters?.customStartDate || "2026-08-01"}_to_${data.filters?.customEndDate || "2026-08-10"}`);
-  }
-
-  // 12. DEDICATED SALES & REVENUE EXPORT
-  public static async exportSalesRevenue(data: { salesRegister: any[]; filters?: any }, filename?: string): Promise<void> {
-    await this.exportB2C(data, filename || `CakeToHome_Sales_Revenue_${data.filters?.customStartDate || "2026-08-01"}_to_${data.filters?.customEndDate || "2026-08-10"}`);
-  }
-
-  // 13. DEDICATED PRODUCTS & PROFITABILITY EXPORT
-  public static async exportProductsProfitability(data: { products?: any[]; salesRegister?: any[]; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Product Profitability");
-    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
-
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
-
-    sheet.mergeCells("A1:K1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:K2");
-    sheet.getCell("A2").value = `PRODUCT PROFITABILITY & COGS AUDIT REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    const headers = ["SKU Code", "Product Name", "Category", "HSN Code", "Qty Sold", "Gross Sales", "Net Sales", "Unit COGS", "Total COGS", "Gross Profit", "Margin %"];
-    sheet.getRow(6).values = headers;
-    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF15803D" } };
-
-    const list = data.products || data.salesRegister || [];
-    if (list.length > 0) {
-      list.forEach((p: any) => {
-        const row = sheet.addRow([
-          p.sku || p.id,
-          p.name || p.productNames || "Product",
-          p.category || "Cakes",
-          p.hsnCode || "19059090",
-          p.quantitySold || p.itemCount || 1,
-          p.grossSales || p.netAmount || 0,
-          p.netSales || p.netAmount || 0,
-          p.unitCost || 120,
-          p.totalCogs || Math.round((p.netAmount || 0) * 0.35),
-          p.grossProfit || Math.round((p.netAmount || 0) * 0.65),
-          (p.grossMarginPct || 65) / 100,
-        ]);
-
-        [6, 7, 8, 9, 10].forEach((cIdx) => {
-          row.getCell(cIdx).numFmt = "₹#,##0.00";
-        });
-        row.getCell(5).numFmt = "#,##0";
-        row.getCell(11).numFmt = "0.00%";
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No product sales transactions found for the selected period."]);
-      sheet.mergeCells(`A7:K7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
-    }
-
-    sheet.columns = [{ width: 16 }, { width: 28 }, { width: 18 }, { width: 14 }, { width: 12 }, { width: 16 }, { width: 16 }, { width: 14 }, { width: 16 }, { width: 16 }, { width: 14 }];
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Product_Profitability_${fromDate}_to_${toDate}`);
-  }
-
-  // 14. DEDICATED ORDERS & LIFECYCLE EXPORT
-  public static async exportOrdersLifecycle(data: { orders?: any[]; salesRegister?: any[]; filters?: any }, filename?: string): Promise<void> {
-    await this.exportInvoiceRegister({ invoiceRegister: data.orders || data.salesRegister || [], filters: data.filters }, filename || `CakeToHome_Order_Lifecycle_${data.filters?.customStartDate || "2026-08-01"}_to_${data.filters?.customEndDate || "2026-08-10"}`);
-  }
-
-
-
-
-
-  // 17. DEDICATED CUSTOMER ANALYTICS EXPORT
-  public static async exportCustomerAnalytics(data: { customerData?: any; filters?: any }, filename?: string): Promise<void> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Customer Analytics");
-    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
-
-    const fromDate = data.filters?.customStartDate || "2026-07-01";
-    const toDate = data.filters?.customEndDate || "2026-07-31";
-
-    sheet.mergeCells("A1:H1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:H2");
-    sheet.getCell("A2").value = `CAKETOHOME CUSTOMER INTELLIGENCE & REPEAT RETENTION REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { name: "Calibri", size: 11, italic: true, color: { argb: "FF475569" } };
-
-    sheet.getCell("A4").value = "GSTIN:"; sheet.getCell("B4").value = "29AAAAA0000A1Z5";
-    sheet.getCell("D4").value = "Generated:"; sheet.getCell("E4").value = new Date().toLocaleString("en-IN");
-    ["A4", "D4"].forEach((ref) => sheet.getCell(ref).font = { bold: true });
-
-    const headers = [
-      "Customer ID",
-      "Customer Name",
-      "Email Address",
-      "Phone Number",
-      "Total Orders",
-      "Lifetime Spend (₹)",
-      "AOV (₹)",
-      "Customer Segment",
+    // Section 6: Customer Retention
+    rIdx += 2;
+    sheet.mergeCells(`A${rIdx}:B${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "CUSTOMER RETENTION";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    rIdx++;
+    const cust = data.customerRetention || {};
+    const custRows: [string, any, string][] = [
+      ["Total Customers", cust.totalCustomers || 0, "#,##0"],
+      ["New Customers", cust.newCustomers || 0, "#,##0"],
+      ["Repeat Customers", cust.repeatCustomers || 0, "#,##0"],
+      ["Repeat Purchase Rate", (cust.repeatPurchaseRate || 0) / 100, "0.00%"],
+      ["Customer Lifetime Value", cust.ltv || 0, "₹#,##0.00"],
     ];
-
-    const headerRow = sheet.getRow(6);
-    headers.forEach((h, i) => {
-      const cell = headerRow.getCell(i + 1);
-      cell.value = h;
-      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD97706" } };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-    });
-
-    const topCust = data.customerData?.topCustomers || [];
-    if (topCust.length > 0) {
-      topCust.forEach((c: any) => {
-        const row = sheet.addRow([
-          c.id,
-          c.name,
-          c.email || "customer@cakes2home.com",
-          c.phone || "",
-          c.totalOrders || 0,
-          c.totalSpend || 0,
-          c.aov || 0,
-          c.segment || "Standard Buyer",
-        ]);
-        row.getCell(1).alignment = { horizontal: "center" };
-        row.getCell(5).numFmt = "#,##0";
-        [6, 7].forEach((cIdx) => (row.getCell(cIdx).numFmt = "₹#,##0.00"));
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No customer activity recorded for the selected period."]);
-      sheet.mergeCells(`A7:H7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
+    for (const [lbl, val, fmt] of custRows) {
+      sheet.getCell(`A${rIdx}`).value = lbl;
+      sheet.getCell(`A${rIdx}`).font = { bold: true };
+      sheet.getCell(`B${rIdx}`).value = val;
+      sheet.getCell(`B${rIdx}`).numFmt = fmt;
+      rIdx++;
     }
 
-    sheet.columns = [
-      { width: 18 }, { width: 26 }, { width: 28 }, { width: 18 },
-      { width: 14 }, { width: 20 }, { width: 16 }, { width: 22 }
-    ];
-
+    sheet.columns = [{ width: 30 }, { width: 22 }, { width: 20 }, { width: 18 }, { width: 16 }];
     const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Customer_Analytics_${fromDate}_to_${toDate}`);
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Executive_Summary_${fromDate}`);
   }
 
-  // 18. DEDICATED PAYMENTS & REFUNDS EXPORT
-  public static async exportPaymentsRefunds(data: { paymentData?: any; filters?: any }, filename?: string): Promise<void> {
+  // ── 12. PAYMENTS & REFUNDS EXPORT ──
+  public static async exportPaymentsRefunds(data: { payments: any; filters?: any }, filename?: string): Promise<void> {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Payments & Refunds");
     sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
 
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
+    const fromDate = data.filters?.customStartDate || new Date().toISOString().slice(0, 10);
+    this.styleWorksheetHeader(sheet, "PAYMENT METHOD RECONCILIATION & REFUND REPORT", fromDate, data.filters, 6);
 
-    sheet.mergeCells("A1:D1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
+    // Section 1: Payment Breakdown Table
+    sheet.mergeCells("A6:F6");
+    sheet.getCell("A6").value = "PAYMENT METHOD BREAKDOWN";
+    sheet.getCell("A6").font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell("A6").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
 
-    sheet.mergeCells("A2:D2");
-    sheet.getCell("A2").value = `PAYMENT GATEWAY & REFUND RECONCILIATION REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
+    sheet.getRow(7).values = ["Payment Method", "Order Count", "Gross Collection", "Refunds", "Net Collection", "Share %"];
+    sheet.getRow(7).font = { bold: true };
+    sheet.getRow(7).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
 
-    const headers = ["Payment Method", "Transaction Count", "Gross Collections", "Success Rate %"];
-    sheet.getRow(6).values = headers;
-    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF475569" } };
-
-    const breakdown = data.paymentData?.breakdown || [];
-    if (breakdown.length > 0) {
-      breakdown.forEach((p: any) => {
-        const row = sheet.addRow([p.method, p.count, p.gross, (p.successPct || 98) / 100]);
-        row.getCell(2).numFmt = "#,##0";
-        row.getCell(3).numFmt = "₹#,##0.00";
-        row.getCell(4).numFmt = "0.00%";
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No payment gateway transactions recorded for the selected period."]);
-      sheet.mergeCells(`A7:D7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
+    const payments = data.payments || {};
+    const breakdown = payments.breakdown || [];
+    const totalGross = payments.totalCollected || 0;
+    let rIdx = 8;
+    for (const p of breakdown) {
+      const share = totalGross > 0 ? p.gross / totalGross : 0;
+      sheet.getRow(rIdx).values = [p.method, p.count, p.gross, p.refundAmount || 0, p.netAmount || p.gross, share];
+      sheet.getCell(`C${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`D${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`F${rIdx}`).numFmt = "0.00%";
+      rIdx++;
     }
 
-    sheet.columns = [{ width: 28 }, { width: 18 }, { width: 20 }, { width: 16 }];
+    // Totals row
+    const totRow = sheet.getRow(rIdx);
+    totRow.values = ["TOTAL", breakdown.reduce((s: number, p: any) => s + (p.count || 0), 0), totalGross, payments.totalRefunds || 0, payments.netCollected || 0, 1];
+    totRow.font = { bold: true };
+    totRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+    sheet.getCell(`C${rIdx}`).numFmt = "₹#,##0.00";
+    sheet.getCell(`D${rIdx}`).numFmt = "₹#,##0.00";
+    sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+    sheet.getCell(`F${rIdx}`).numFmt = "0.00%";
+
+    // Section 2: Reconciliation Summary
+    rIdx += 3;
+    sheet.mergeCells(`A${rIdx}:B${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "RECONCILIATION SUMMARY";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    rIdx++;
+    sheet.getCell(`A${rIdx}`).value = "Total Payment Collections";
+    sheet.getCell(`A${rIdx}`).font = { bold: true };
+    sheet.getCell(`B${rIdx}`).value = totalGross;
+    sheet.getCell(`B${rIdx}`).numFmt = "₹#,##0.00";
+    rIdx++;
+    sheet.getCell(`A${rIdx}`).value = "Total Refunds";
+    sheet.getCell(`A${rIdx}`).font = { bold: true };
+    sheet.getCell(`B${rIdx}`).value = payments.totalRefunds || 0;
+    sheet.getCell(`B${rIdx}`).numFmt = "₹#,##0.00";
+    rIdx++;
+    sheet.getCell(`A${rIdx}`).value = "Net Collection";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, size: 12 };
+    sheet.getCell(`B${rIdx}`).value = payments.netCollected || 0;
+    sheet.getCell(`B${rIdx}`).numFmt = "₹#,##0.00";
+    sheet.getCell(`B${rIdx}`).font = { bold: true, size: 12 };
+
+    sheet.columns = [{ width: 24 }, { width: 16 }, { width: 20 }, { width: 18 }, { width: 20 }, { width: 14 }];
     const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Payments_Refunds_${fromDate}_to_${toDate}`);
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Payments_Refunds_${fromDate}`);
   }
 
-  // 19. DEDICATED GEOGRAPHIC SALES EXPORT
-  public static async exportGeographicSales(data: { geoData?: any[]; filters?: any }, filename?: string): Promise<void> {
+  // ── 13. DELIVERY & FLEET EXPORT ──
+  public static async exportDeliveryFleet(data: { delivery: any; filters?: any }, filename?: string): Promise<void> {
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Geographic Sales");
+    const sheet = workbook.addWorksheet("Delivery & Fleet");
     sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
 
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
+    const fromDate = data.filters?.customStartDate || new Date().toISOString().slice(0, 10);
+    this.styleWorksheetHeader(sheet, "DELIVERY FLEET & SLA PERFORMANCE REPORT", fromDate, data.filters, 6);
 
-    sheet.mergeCells("A1:E1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
+    // Section 1: SLA Summary
+    sheet.mergeCells("A6:B6");
+    sheet.getCell("A6").value = "DELIVERY SLA PERFORMANCE SUMMARY";
+    sheet.getCell("A6").font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell("A6").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
 
-    sheet.mergeCells("A2:E2");
-    sheet.getCell("A2").value = `GEOGRAPHIC SALES & PINCODE REVENUE REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    const headers = ["City", "Delivery Area", "Pincode", "Orders Count", "Net Revenue"];
-    sheet.getRow(6).values = headers;
-    sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF059669" } };
-
-    const locations = data.geoData || [];
-    if (locations.length > 0) {
-      locations.forEach((g: any) => {
-        const row = sheet.addRow([g.city, g.area, g.pincode, g.orders, g.revenue]);
-        row.getCell(4).numFmt = "#,##0";
-        row.getCell(5).numFmt = "₹#,##0.00";
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No geographic address data logged for the selected period."]);
-      sheet.mergeCells(`A7:E7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
+    const del = data.delivery || {};
+    const slaRows: [string, any, string][] = [
+      ["Total Dispatched", del.totalDeliveries || 0, "#,##0"],
+      ["Delivered Successfully", del.deliveredOrders || 0, "#,##0"],
+      ["On-Time Deliveries", del.onTimeDeliveries || 0, "#,##0"],
+      ["Delayed Deliveries", del.delayedDeliveries || 0, "#,##0"],
+      ["Failed/Cancelled", del.failedDeliveries || 0, "#,##0"],
+      ["SLA Compliance", (del.slaCompliancePct || 0) / 100, "0.00%"],
+      ["Avg Processing Time", del.avgProcessingMinutes || 0, "#,##0\" mins\""],
+      ["Avg Delivery Time", del.avgDeliveryMinutes || 0, "#,##0\" mins\""],
+    ];
+    let rIdx = 7;
+    for (const [lbl, val, fmt] of slaRows) {
+      sheet.getCell(`A${rIdx}`).value = lbl;
+      sheet.getCell(`A${rIdx}`).font = { bold: true };
+      sheet.getCell(`B${rIdx}`).value = val;
+      sheet.getCell(`B${rIdx}`).numFmt = fmt;
+      rIdx++;
     }
 
-    sheet.columns = [{ width: 18 }, { width: 24 }, { width: 14 }, { width: 16 }, { width: 20 }];
+    // Section 2: Fleet Partner Performance
+    rIdx += 2;
+    sheet.mergeCells(`A${rIdx}:H${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "FLEET PARTNER PERFORMANCE";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    rIdx++;
+
+    sheet.getRow(rIdx).values = ["Partner Name", "Partner ID", "Kitchen Hub", "Status", "Total Deliveries", "On-Time", "Delayed", "Rating"];
+    sheet.getRow(rIdx).font = { bold: true };
+    sheet.getRow(rIdx).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+    rIdx++;
+
+    const partners = del.partners || [];
+    for (const p of partners) {
+      sheet.getRow(rIdx).values = [p.driverName, p.partnerNumber || p.id, p.branchName, p.status, p.total, p.onTime, p.delayed, p.rating];
+      rIdx++;
+    }
+
+    sheet.columns = [{ width: 26 }, { width: 18 }, { width: 22 }, { width: 12 }, { width: 18 }, { width: 12 }, { width: 12 }, { width: 10 }];
     const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Geographic_Sales_${fromDate}_to_${toDate}`);
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Delivery_Fleet_${fromDate}`);
   }
 
-  // 20. DEDICATED CROSS-SELL & UPSELL EXPORT
-  public static async exportCrossSellUpsell(data: { crossSellData?: any[]; filters?: any }, filename?: string): Promise<void> {
+  // ── 14. CUSTOMER ANALYTICS EXPORT ──
+  public static async exportCustomerAnalytics(data: { customers: any; filters?: any }, filename?: string): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Customer Analytics");
+    sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+
+    const fromDate = data.filters?.customStartDate || new Date().toISOString().slice(0, 10);
+    this.styleWorksheetHeader(sheet, "CUSTOMER ANALYTICS & RETENTION REPORT", fromDate, data.filters, 8);
+
+    // Section 1: Summary Metrics
+    sheet.mergeCells("A6:B6");
+    sheet.getCell("A6").value = "CUSTOMER RETENTION SUMMARY";
+    sheet.getCell("A6").font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell("A6").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+
+    const cust = data.customers || {};
+    const summaryRows: [string, any, string][] = [
+      ["Total Active Customers", cust.totalCustomers || 0, "#,##0"],
+      ["New Customers", cust.newCustomers || 0, "#,##0"],
+      ["Repeat Customers (>1 Order)", cust.repeatCustomers || 0, "#,##0"],
+      ["Repeat Purchase Rate", (cust.repeatPurchaseRate || 0) / 100, "0.00%"],
+      ["Customer Lifetime Value (LTV)", cust.ltv || 0, "₹#,##0.00"],
+      ["Avg Orders Per Customer", cust.avgOrdersPerCustomer || 0, "#,##0.0"],
+    ];
+    let rIdx = 7;
+    for (const [lbl, val, fmt] of summaryRows) {
+      sheet.getCell(`A${rIdx}`).value = lbl;
+      sheet.getCell(`A${rIdx}`).font = { bold: true };
+      sheet.getCell(`B${rIdx}`).value = val;
+      sheet.getCell(`B${rIdx}`).numFmt = fmt;
+      rIdx++;
+    }
+
+    // Section 2: Customer Detail Table
+    rIdx += 2;
+    sheet.mergeCells(`A${rIdx}:H${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "CUSTOMER DETAIL TABLE";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    rIdx++;
+
+    sheet.getRow(rIdx).values = ["Customer ID", "Customer Name", "Email", "Phone", "Total Orders", "Total Spend", "AOV", "Segment"];
+    sheet.getRow(rIdx).font = { bold: true };
+    sheet.getRow(rIdx).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+    rIdx++;
+
+    const topCustomers = cust.topCustomers || [];
+    for (const c of topCustomers) {
+      sheet.getRow(rIdx).values = [c.id, c.name, c.email, c.phone, c.totalOrders, c.totalSpend, c.aov, c.segment];
+      sheet.getCell(`F${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`G${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
+    }
+
+    sheet.columns = [{ width: 18 }, { width: 24 }, { width: 26 }, { width: 18 }, { width: 14 }, { width: 18 }, { width: 16 }, { width: 16 }];
+    const buffer = await workbook.xlsx.writeBuffer();
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Customer_Analytics_${fromDate}`);
+  }
+
+  // ── 15. CROSS-SELL & UPSELL EXPORT ──
+  public static async exportCrossSellUpsell(data: { crossSell: any[]; filters?: any }, filename?: string): Promise<void> {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Cross-Sell & Upsell");
     sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
 
-    const fromDate = data.filters?.customStartDate || "2026-08-01";
-    const toDate = data.filters?.customEndDate || "2026-08-10";
+    const fromDate = data.filters?.customStartDate || new Date().toISOString().slice(0, 10);
+    this.styleWorksheetHeader(sheet, "CROSS-SELL & UPSELL BASKET AFFINITY REPORT", fromDate, data.filters, 5);
 
-    sheet.mergeCells("A1:E1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
-
-    sheet.mergeCells("A2:E2");
-    sheet.getCell("A2").value = `CROSS-SELL & CO-PURCHASE BASKET AFFINITY REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
-
-    const headers = ["Primary Product", "Co-Purchased Item", "Basket Co-Purchases", "Attach Rate %", "Added Revenue"];
+    const headers = ["Primary Product", "Co-Purchased Item", "Co-Purchase Count", "Attach Rate %", "Added Revenue"];
     sheet.getRow(6).values = headers;
     sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF7C3AED" } };
+    sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
 
-    const pairs = data.crossSellData || [];
-    if (pairs.length > 0) {
-      pairs.forEach((p: any) => {
-        const row = sheet.addRow([p.primaryItem, p.coPurchasedItem, p.coPurchaseCount, (p.attachRatePct || 20) / 100, p.addedRevenue]);
-        row.getCell(3).numFmt = "#,##0";
-        row.getCell(4).numFmt = "0.00%";
-        row.getCell(5).numFmt = "₹#,##0.00";
-      });
-    } else {
-      const emptyRow = sheet.addRow(["No co-purchase item combinations detected for the selected period."]);
-      sheet.mergeCells(`A7:E7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF94A3B8" } };
+    const items = data.crossSell || [];
+    let rIdx = 7;
+    for (const cs of items) {
+      sheet.getRow(rIdx).values = [cs.primaryItem, cs.coPurchasedItem, cs.coPurchaseCount, (cs.attachRatePct || 0) / 100, cs.addedRevenue];
+      sheet.getCell(`D${rIdx}`).numFmt = "0.00%";
+      sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+      rIdx++;
     }
 
-    sheet.columns = [{ width: 32 }, { width: 32 }, { width: 20 }, { width: 16 }, { width: 18 }];
+    // Totals
+    if (items.length > 0) {
+      const totRow = sheet.getRow(rIdx);
+      totRow.values = ["TOTAL", "", items.reduce((s: number, i: any) => s + (i.coPurchaseCount || 0), 0), "", items.reduce((s: number, i: any) => s + (i.addedRevenue || 0), 0)];
+      totRow.font = { bold: true };
+      totRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+      sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
+    }
+
+    sheet.columns = [{ width: 34 }, { width: 30 }, { width: 20 }, { width: 16 }, { width: 18 }];
     const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Cross_Sell_Upsell_${fromDate}_to_${toDate}`);
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Cross_Sell_Upsell_${fromDate}`);
   }
 
-  // 21. DEDICATED EXCEPTION REPORT EXPORT
-  public static async exportExceptionReport(data: { exceptions?: any[]; filters?: any }, filename?: string): Promise<void> {
+  // ── 16. EXCEPTION CENTER EXPORT ──
+  public static async exportExceptionCenter(data: { exceptions: any[]; filters?: any }, filename?: string): Promise<void> {
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Exception & Audit Warnings");
+    const sheet = workbook.addWorksheet("Exception Center");
     sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
 
-    const fromDate = data.filters?.customStartDate || "2026-07-01";
-    const toDate = data.filters?.customEndDate || "2026-07-31";
+    const fromDate = data.filters?.customStartDate || new Date().toISOString().slice(0, 10);
+    this.styleWorksheetHeader(sheet, "EXCEPTION CENTER AUDIT REPORT", fromDate, data.filters, 9);
 
-    sheet.mergeCells("A1:H1");
-    sheet.getCell("A1").value = "CAKETOHOME / THE CROWN BAKERY";
-    sheet.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF991B1B" } };
+    // Section 1: Summary
+    sheet.mergeCells("A6:D6");
+    sheet.getCell("A6").value = "EXCEPTION SEVERITY SUMMARY";
+    sheet.getCell("A6").font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell("A6").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
 
-    sheet.mergeCells("A2:H2");
-    sheet.getCell("A2").value = `CAKETOHOME ERP EXCEPTION & AUDIT WARNINGS REPORT | Period: ${fromDate} to ${toDate} | ${this.formatBranchSubtitle(data.filters)}`;
-    sheet.getCell("A2").font = { name: "Calibri", size: 11, italic: true, color: { argb: "FF475569" } };
+    const items = data.exceptions || [];
+    const critical = items.filter((e: any) => e.severity === "critical").length;
+    const high = items.filter((e: any) => e.severity === "high").length;
+    const medium = items.filter((e: any) => e.severity === "medium").length;
+    const low = items.filter((e: any) => e.severity === "low").length;
+    const open = items.filter((e: any) => e.status === "OPEN").length;
+    const resolved = items.filter((e: any) => e.status === "RESOLVED").length;
 
-    sheet.getCell("A4").value = "GSTIN:"; sheet.getCell("B4").value = "29AAAAA0000A1Z5";
-    sheet.getCell("D4").value = "Generated:"; sheet.getCell("E4").value = new Date().toLocaleString("en-IN");
-    ["A4", "D4"].forEach((ref) => sheet.getCell(ref).font = { bold: true });
-
-    const headers = [
-      "Exception ID",
-      "Severity",
-      "Category",
-      "Title",
-      "Description",
-      "Affected Entity",
-      "Action Required",
-      "Status",
+    const summaryRows: [string, number][] = [
+      ["Total Exceptions", items.length],
+      ["Critical", critical],
+      ["High", high],
+      ["Medium", medium],
+      ["Low", low],
+      ["Open", open],
+      ["Resolved", resolved],
     ];
-
-    const headerRow = sheet.getRow(6);
-    headers.forEach((h, i) => {
-      const cell = headerRow.getCell(i + 1);
-      cell.value = h;
-      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF991B1B" } };
-      cell.alignment = { vertical: "middle", horizontal: "center" };
-    });
-
-    const excList = data.exceptions || [];
-    if (excList.length > 0) {
-      excList.forEach((e: any) => {
-        const row = sheet.addRow([
-          e.id || "exc_01",
-          (e.severity || "HIGH").toUpperCase(),
-          (e.category || "General").toUpperCase(),
-          e.title || "Audit Alert",
-          e.description || "",
-          e.entityName || e.entityId || "System Record",
-          e.actionLabel || "Resolve",
-          e.status || "OPEN",
-        ]);
-
-        row.getCell(1).alignment = { horizontal: "center" };
-        row.getCell(2).alignment = { horizontal: "center" };
-        row.getCell(8).alignment = { horizontal: "center" };
-
-        if (e.severity === "critical" || e.severity === "high") {
-          row.getCell(2).font = { bold: true, color: { argb: "FF991B1B" } };
-        }
-      });
-    } else {
-      const emptyRow = sheet.addRow(["All clear — no operational or financial exceptions flagged for the selected period."]);
-      sheet.mergeCells(`A7:H7`);
-      emptyRow.getCell(1).font = { italic: true, color: { argb: "FF059669" } };
+    let rIdx = 7;
+    for (const [lbl, val] of summaryRows) {
+      sheet.getCell(`A${rIdx}`).value = lbl;
+      sheet.getCell(`A${rIdx}`).font = { bold: true };
+      sheet.getCell(`B${rIdx}`).value = val;
+      rIdx++;
     }
 
-    sheet.columns = [
-      { width: 18 }, { width: 14 }, { width: 16 }, { width: 36 },
-      { width: 44 }, { width: 24 }, { width: 20 }, { width: 14 }
-    ];
+    // Section 2: Exception Detail Table
+    rIdx += 2;
+    sheet.mergeCells(`A${rIdx}:I${rIdx}`);
+    sheet.getCell(`A${rIdx}`).value = "EXCEPTION DETAILS";
+    sheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    sheet.getCell(`A${rIdx}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    rIdx++;
+
+    sheet.getRow(rIdx).values = ["Exception ID", "Severity", "Category", "Type", "Title", "Description", "Affected Count", "Status", "Detected At"];
+    sheet.getRow(rIdx).font = { bold: true };
+    sheet.getRow(rIdx).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+    rIdx++;
+
+    for (const exc of items) {
+      sheet.getRow(rIdx).values = [
+        exc.id, (exc.severity || "").toUpperCase(), exc.category, exc.type,
+        exc.title, exc.description, exc.affectedCount || 1, exc.status, exc.detectedAt
+      ];
+      rIdx++;
+    }
+
+    sheet.columns = [{ width: 22 }, { width: 12 }, { width: 16 }, { width: 18 }, { width: 40 }, { width: 50 }, { width: 16 }, { width: 12 }, { width: 22 }];
+    const buffer = await workbook.xlsx.writeBuffer();
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Exception_Center_${fromDate}`);
+  }
+
+  // ── COMPLETE 16-SHEET ENTERPRISE WORKBOOK EXPORT ──
+
+  public static async exportCompleteWorkbook(data: {
+    kpis: any[];
+    daily: any;
+    weekly: any;
+    monthly: any;
+    products: any[];
+    branches: any[];
+    cities: any[];
+    areaPincodes: any[];
+    payments: any;
+    delivery: any;
+    customers: any;
+    gstSummary: { items: any[]; totals: any };
+    gstDetailedRegister: any[];
+    orderRegister: any[];
+    crossSell?: any[];
+    exceptions?: any[];
+    filters?: any;
+  }, filename?: string): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const fromDate = data.filters?.customStartDate || "2026-08-01";
+    const toDate = data.filters?.customEndDate || "2026-08-10";
+    const periodStr = `${fromDate} TO ${toDate}`;
+
+    // Sheet 1: Executive Summary
+    const s1 = workbook.addWorksheet("Executive Summary");
+    s1.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s1, "EXECUTIVE MANAGEMENT DASHBOARD", periodStr, data.filters, 6);
+    s1.getRow(6).values = ["Executive KPI Metric", "Current Period", "Previous Period", "Growth %", "Unit"];
+    s1.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s1.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r1 = 7;
+    (data.kpis || []).forEach((k) => {
+      s1.getCell(`A${r1}`).value = k.label;
+      s1.getCell(`B${r1}`).value = k.currentValue;
+      s1.getCell(`C${r1}`).value = k.previousValue;
+      s1.getCell(`D${r1}`).value = `${k.growthPct > 0 ? "+" : ""}${k.growthPct}%`;
+      s1.getCell(`E${r1}`).value = k.unit;
+      s1.getCell(`B${r1}`).numFmt = k.unit === "currency" ? "₹#,##0.00" : (k.unit === "percentage" ? "0.00%" : "#,##0");
+      s1.getCell(`C${r1}`).numFmt = k.unit === "currency" ? "₹#,##0.00" : (k.unit === "percentage" ? "0.00%" : "#,##0");
+      r1++;
+    });
+    s1.columns = [{ width: 34 }, { width: 20 }, { width: 20 }, { width: 14 }, { width: 14 }];
+
+    // Sheet 2: Daily Sales
+    const s2 = workbook.addWorksheet("Daily Sales");
+    s2.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s2, "DAILY SALES AUDIT", periodStr, data.filters, 6);
+    s2.getRow(6).values = ["Payment Method", "Order Count", "Gross Amount", "Refund Amount", "Net Collected"];
+    s2.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s2.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r2 = 7;
+    (data.daily?.paymentSummary || []).forEach((p: any) => {
+      s2.getRow(r2).values = [p.method, p.count, p.gross, p.refundAmount || 0, p.netAmount || p.gross];
+      s2.getCell(`C${r2}`).numFmt = "₹#,##0.00";
+      s2.getCell(`D${r2}`).numFmt = "₹#,##0.00";
+      s2.getCell(`E${r2}`).numFmt = "₹#,##0.00";
+      r2++;
+    });
+    s2.columns = [{ width: 24 }, { width: 14 }, { width: 18 }, { width: 18 }, { width: 18 }];
+
+    // Sheet 3: Weekly Sales (Top 3 & Least Selling)
+    const s3 = workbook.addWorksheet("Weekly Sales");
+    s3.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s3, "WEEKLY SALES & PRODUCT RANKING", periodStr, data.filters, 6);
+    s3.getRow(6).values = ["Category Ranking", "Cake / Product Name", "SKU", "Units Sold", "Net Revenue", "Average Price"];
+    s3.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s3.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r3 = 7;
+    (data.weekly?.top3Cakes || []).forEach((p: any) => {
+      s3.getRow(r3).values = [`Top #${p.rank}`, p.name, p.sku, p.quantitySold, p.netSales, p.avgSellingPrice];
+      s3.getCell(`E${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`F${r3}`).numFmt = "₹#,##0.00";
+      r3++;
+    });
+    (data.weekly?.leastSellingCakes || []).forEach((p: any) => {
+      s3.getRow(r3).values = [`Bottom #${p.rank}`, p.name, p.sku, p.quantitySold, p.netSales, p.avgSellingPrice];
+      s3.getCell(`E${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`F${r3}`).numFmt = "₹#,##0.00";
+      r3++;
+    });
+    s3.columns = [{ width: 18 }, { width: 34 }, { width: 18 }, { width: 14 }, { width: 18 }, { width: 16 }];
+
+    // Sheet 4: Monthly Sales & Growth
+    const s4 = workbook.addWorksheet("Monthly Sales");
+    s4.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s4, "MONTHLY GROWTH & DELIVERY SLA", periodStr, data.filters, 5);
+    s4.getRow(6).values = ["Metric", "Current Period", "Previous Period", "Growth %", "Status"];
+    s4.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s4.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    s4.getRow(7).values = ["Net Sales", data.monthly?.currentMonthSales || 0, data.monthly?.prevMonthSales || 0, data.monthly?.growthPctDisplay || "0.0%", "On Target"];
+    s4.getCell("B7").numFmt = "₹#,##0.00";
+    s4.getCell("C7").numFmt = "₹#,##0.00";
+    s4.columns = [{ width: 28 }, { width: 20 }, { width: 20 }, { width: 16 }, { width: 14 }];
+
+    // Sheet 5: Product Performance
+    const s5 = workbook.addWorksheet("Product Performance");
+    s5.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s5, "PRODUCT PERFORMANCE & PROFITABILITY", periodStr, data.filters, 11);
+    s5.getRow(6).values = ["Rank", "Product Name", "SKU", "Category", "HSN", "Units", "Gross Sales", "Discounts", "Net Sales", "Gross Profit", "Margin %"];
+    s5.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s5.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r5 = 7;
+    (data.products || []).forEach((p, idx) => {
+      s5.getRow(r5).values = [`#${idx + 1}`, p.name, p.sku, p.category, p.hsnCode, p.quantitySold, p.grossSales, p.discounts, p.netSales, p.grossProfit, p.grossMarginPct / 100];
+      s5.getCell(`G${r5}`).numFmt = "₹#,##0.00";
+      s5.getCell(`H${r5}`).numFmt = "₹#,##0.00";
+      s5.getCell(`I${r5}`).numFmt = "₹#,##0.00";
+      s5.getCell(`J${r5}`).numFmt = "₹#,##0.00";
+      s5.getCell(`K${r5}`).numFmt = "0.00%";
+      r5++;
+    });
+    s5.columns = [{ width: 8 }, { width: 34 }, { width: 18 }, { width: 18 }, { width: 14 }, { width: 10 }, { width: 16 }, { width: 14 }, { width: 16 }, { width: 16 }, { width: 12 }];
+
+    // Sheet 6: Branch Performance
+    const s6 = workbook.addWorksheet("Branch Performance");
+    s6.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s6, "KITCHEN HUB PERFORMANCE", periodStr, data.filters, 8);
+    s6.getRow(6).values = ["Hub Name", "Code", "City", "Orders", "Gross Sales", "Net Sales", "AOV", "Delivered"];
+    s6.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s6.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r6 = 7;
+    (data.branches || []).forEach((b) => {
+      s6.getRow(r6).values = [b.branchName, b.branchCode, b.city, b.ordersCount, b.grossSales, b.netSales, b.aov, b.deliveredCount];
+      s6.getCell(`E${r6}`).numFmt = "₹#,##0.00";
+      s6.getCell(`F${r6}`).numFmt = "₹#,##0.00";
+      s6.getCell(`G${r6}`).numFmt = "₹#,##0.00";
+      r6++;
+    });
+    s6.columns = [{ width: 28 }, { width: 14 }, { width: 16 }, { width: 12 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 12 }];
+
+    // Sheet 7: City Performance
+    const s7 = workbook.addWorksheet("City Performance");
+    s7.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s7, "CITY & REGIONAL DISTRIBUTION", periodStr, data.filters, 7);
+    s7.getRow(6).values = ["City", "Orders", "Units", "Gross Sales", "Net Sales", "AOV", "Delivered"];
+    s7.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s7.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r7 = 7;
+    (data.cities || []).forEach((c) => {
+      s7.getRow(r7).values = [c.city, c.orders, c.units, c.grossSales, c.netSales, c.aov, c.delivered];
+      s7.getCell(`D${r7}`).numFmt = "₹#,##0.00";
+      s7.getCell(`E${r7}`).numFmt = "₹#,##0.00";
+      s7.getCell(`F${r7}`).numFmt = "₹#,##0.00";
+      r7++;
+    });
+    s7.columns = [{ width: 22 }, { width: 12 }, { width: 12 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 12 }];
+
+    // Sheet 8: Payment Summary
+    const s8 = workbook.addWorksheet("Payment Summary");
+    s8.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s8, "PAYMENT METHOD RECONCILIATION", periodStr, data.filters, 5);
+    s8.getRow(6).values = ["Method", "Count", "Gross Amount", "Refund Amount", "Net Collected"];
+    s8.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s8.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r8 = 7;
+    (data.payments?.breakdown || []).forEach((p: any) => {
+      s8.getRow(r8).values = [p.method, p.count, p.gross, p.refundAmount || 0, p.netAmount || p.gross];
+      s8.getCell(`C${r8}`).numFmt = "₹#,##0.00";
+      s8.getCell(`D${r8}`).numFmt = "₹#,##0.00";
+      s8.getCell(`E${r8}`).numFmt = "₹#,##0.00";
+      r8++;
+    });
+    s8.columns = [{ width: 20 }, { width: 12 }, { width: 18 }, { width: 18 }, { width: 18 }];
+
+    // Sheet 9: Delivery Performance
+    const s9 = workbook.addWorksheet("Delivery Performance");
+    s9.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s9, "FLEET & SLA PERFORMANCE", periodStr, data.filters, 5);
+    s9.getRow(6).values = ["Metric", "Value", "Benchmark", "Variance", "Status"];
+    s9.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s9.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    const del = data.delivery || {};
+    s9.getRow(7).values = ["Total Dispatched", del.totalDeliveries || 0, "—", "—", "Active"];
+    s9.getRow(8).values = ["On-Time Deliveries", del.onTimeDeliveries || 0, "95.0%", "+3.2%", "Good"];
+    s9.getRow(9).values = ["Average Delivery Time", `${del.avgDeliveryMinutes || 24} mins`, "30 mins", "-6 mins", "Optimal"];
+    s9.columns = [{ width: 28 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 14 }];
+
+    // Sheet 10: Customer Summary
+    const s10 = workbook.addWorksheet("Customer Summary");
+    s10.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s10, "CUSTOMER RETENTION & SEGMENTS", periodStr, data.filters, 5);
+    s10.getRow(6).values = ["Metric", "Value", "Metric", "Value", "Status"];
+    s10.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s10.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    const cust = data.customers || {};
+    s10.getRow(7).values = ["Total Customers", cust.totalCustomers || 0, "Repeat Rate", `${cust.repeatPurchaseRate || 0}%`, "Growing"];
+    s10.getRow(8).values = ["New Customers", cust.newCustomers || 0, "Customer LTV", cust.ltv || 0, "Healthy"];
+    s10.getCell("D8").numFmt = "₹#,##0.00";
+    s10.columns = [{ width: 24 }, { width: 16 }, { width: 20 }, { width: 18 }, { width: 14 }];
+
+    // Sheet 11: Area-Pincode Sales
+    const s11 = workbook.addWorksheet("Area Pincode Sales");
+    s11.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s11, "AREA & PINCODE SALES BREAKDOWN", periodStr, data.filters, 8);
+    s11.getRow(6).values = ["Pincode", "Area", "City", "Kitchen Hub", "Orders", "Revenue", "AOV", "Delivered"];
+    s11.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s11.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r11 = 7;
+    (data.areaPincodes || []).forEach((a) => {
+      s11.getRow(r11).values = [a.pincode, a.area, a.city, a.branch, a.orders, a.revenue, a.aov, a.delivered];
+      s11.getCell(`F${r11}`).numFmt = "₹#,##0.00";
+      s11.getCell(`G${r11}`).numFmt = "₹#,##0.00";
+      r11++;
+    });
+    s11.columns = [{ width: 14 }, { width: 22 }, { width: 16 }, { width: 24 }, { width: 12 }, { width: 18 }, { width: 16 }, { width: 12 }];
+
+    // Sheet 12: GST HSN Summary
+    const s12 = workbook.addWorksheet("GST HSN Summary");
+    s12.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s12, "SALES B2C HSN CODE SUMMARY", periodStr, data.filters, 11);
+    s12.getRow(6).values = ["HSNCODE", "Description", "UQC", "Total QTY", "TOTAL VALUE", "GST %", "Taxable Amt", "IGST", "CGST", "SGST", "CESS"];
+    s12.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s12.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r12 = 7;
+    (data.gstSummary?.items || []).forEach((i) => {
+      s12.getRow(r12).values = [i.hsnCode, i.description, i.uom, i.quantity, i.totalValue, i.gstRatePct / 100, i.taxableValue, i.igst, i.cgst, i.sgst, i.cess || 0];
+      s12.getCell(`D${r12}`).numFmt = "#,##0.000";
+      s12.getCell(`E${r12}`).numFmt = "₹#,##0.00";
+      s12.getCell(`F${r12}`).numFmt = "0.00%";
+      s12.getCell(`G${r12}`).numFmt = "₹#,##0.00";
+      s12.getCell(`H${r12}`).numFmt = "₹#,##0.00";
+      s12.getCell(`I${r12}`).numFmt = "₹#,##0.00";
+      s12.getCell(`J${r12}`).numFmt = "₹#,##0.00";
+      s12.getCell(`K${r12}`).numFmt = "₹#,##0.00";
+      r12++;
+    });
+    if (data.gstSummary?.totals) {
+      const tot = data.gstSummary.totals;
+      const tRow = s12.getRow(r12);
+      tRow.values = ["TOTAL", "Statutory Total", "", tot.quantity, tot.totalValue, "", tot.taxableValue, tot.igst, tot.cgst, tot.sgst, tot.cess || 0];
+      tRow.font = { bold: true };
+      tRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+      s12.getCell(`D${r12}`).numFmt = "#,##0.000";
+      s12.getCell(`E${r12}`).numFmt = "₹#,##0.00";
+      s12.getCell(`G${r12}`).numFmt = "₹#,##0.00";
+      s12.getCell(`H${r12}`).numFmt = "₹#,##0.00";
+      s12.getCell(`I${r12}`).numFmt = "₹#,##0.00";
+      s12.getCell(`J${r12}`).numFmt = "₹#,##0.00";
+      s12.getCell(`K${r12}`).numFmt = "₹#,##0.00";
+    }
+    s12.columns = [{ width: 14 }, { width: 34 }, { width: 16 }, { width: 14 }, { width: 16 }, { width: 10 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 12 }];
+
+    // Sheet 13: GST Detailed Register
+    const s13 = workbook.addWorksheet("GST Detailed Register");
+    s13.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s13, "GST DETAILED TRANSACTION REGISTER", periodStr, data.filters, 16);
+    s13.getRow(6).values = ["Invoice Number", "Order ID", "Date", "Customer", "City", "Kitchen Hub", "Product", "HSN", "Qty", "Taxable Value", "GST %", "CGST", "SGST", "IGST", "Invoice Total"];
+    s13.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s13.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r13 = 7;
+    (data.gstDetailedRegister || []).slice(0, 100).forEach((r) => {
+      s13.getRow(r13).values = [r.invoiceNumber, r.orderId, r.orderDate, r.customerName, r.city, r.branchName, r.productName, r.hsnCode, r.quantity, r.taxableValue, r.gstRatePct / 100, r.cgstAmount, r.sgstAmount, r.igstAmount, r.invoiceTotal];
+      s13.getCell(`J${r13}`).numFmt = "₹#,##0.00";
+      s13.getCell(`K${r13}`).numFmt = "0.00%";
+      s13.getCell(`L${r13}`).numFmt = "₹#,##0.00";
+      s13.getCell(`M${r13}`).numFmt = "₹#,##0.00";
+      s13.getCell(`N${r13}`).numFmt = "₹#,##0.00";
+      s13.getCell(`O${r13}`).numFmt = "₹#,##0.00";
+      r13++;
+    });
+    s13.columns = [{ width: 18 }, { width: 16 }, { width: 14 }, { width: 22 }, { width: 14 }, { width: 20 }, { width: 28 }, { width: 12 }, { width: 10 }, { width: 16 }, { width: 10 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 16 }];
+
+    // Sheet 14: Order Register
+    const s14 = workbook.addWorksheet("Order Register");
+    s14.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s14, "OPERATIONAL ORDER RECONCILIATION", periodStr, data.filters, 12);
+    s14.getRow(6).values = ["Order ID", "Invoice Number", "Date", "Customer", "City", "Kitchen Hub", "Payment", "Status", "Gross Total", "Discount", "Tax", "Grand Total"];
+    s14.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s14.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r14 = 7;
+    (data.orderRegister || []).slice(0, 100).forEach((o) => {
+      s14.getRow(r14).values = [o.id, o.invoiceNumber, o.orderDate, o.customerName, o.city, o.branchName, o.paymentMethod, o.orderStatus, o.grossAmount, o.discount, o.taxAmount, o.netAmount];
+      s14.getCell(`I${r14}`).numFmt = "₹#,##0.00";
+      s14.getCell(`J${r14}`).numFmt = "₹#,##0.00";
+      s14.getCell(`K${r14}`).numFmt = "₹#,##0.00";
+      s14.getCell(`L${r14}`).numFmt = "₹#,##0.00";
+      r14++;
+    });
+    s14.columns = [{ width: 16 }, { width: 18 }, { width: 14 }, { width: 22 }, { width: 14 }, { width: 22 }, { width: 14 }, { width: 14 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 16 }];
+
+    // Sheet 15: Cross-Sell & Upsell
+    const s15 = workbook.addWorksheet("Cross-Sell & Upsell");
+    s15.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s15, "CROSS-SELL & UPSELL BASKET AFFINITY", periodStr, data.filters, 5);
+    s15.getRow(6).values = ["Primary Product", "Co-Purchased Item", "Co-Purchase Count", "Attach Rate %", "Added Revenue"];
+    s15.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s15.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r15 = 7;
+    (data.crossSell || []).forEach((cs) => {
+      s15.getRow(r15).values = [cs.primaryItem, cs.coPurchasedItem, cs.coPurchaseCount, (cs.attachRatePct || 0) / 100, cs.addedRevenue];
+      s15.getCell(`D${r15}`).numFmt = "0.00%";
+      s15.getCell(`E${r15}`).numFmt = "₹#,##0.00";
+      r15++;
+    });
+    s15.columns = [{ width: 34 }, { width: 30 }, { width: 20 }, { width: 16 }, { width: 18 }];
+
+    // Sheet 16: Exception Center
+    const s16 = workbook.addWorksheet("Exception Center");
+    s16.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s16, "ERP EXCEPTION & COMPLIANCE AUDIT", periodStr, data.filters, 9);
+    s16.getRow(6).values = ["Exception ID", "Severity", "Category", "Type", "Title", "Description", "Affected Count", "Status", "Detected At"];
+    s16.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s16.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r16 = 7;
+    (data.exceptions || []).forEach((exc) => {
+      s16.getRow(r16).values = [
+        exc.id, (exc.severity || "").toUpperCase(), exc.category, exc.type,
+        exc.title, exc.description, exc.affectedCount || 1, exc.status, exc.detectedAt
+      ];
+      r16++;
+    });
+    s16.columns = [{ width: 22 }, { width: 12 }, { width: 16 }, { width: 18 }, { width: 40 }, { width: 50 }, { width: 16 }, { width: 12 }, { width: 22 }];
 
     const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Exception_Report_${fromDate}_to_${toDate}`);
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Complete_Enterprise_Workbook_${fromDate}_to_${toDate}`);
   }
 }

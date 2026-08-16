@@ -8,6 +8,7 @@ import {
   MapPin, CheckCircle2, ArrowRight, Heart, ShoppingBag, Truck,
   Check, Gift, Tag, Award, Zap, Smile
 } from "lucide-react";
+import { ScrollFrameHero } from "@frontend/components/store/animation/scroll-frame-hero";
 
 export interface PageSectionConfig {
   id: string;
@@ -23,6 +24,7 @@ export interface PageRendererProps {
   banners?: any[];
   allProducts?: any[];
   allCategories?: any[];
+  occasions?: any[];
   isPreview?: boolean;
   selectedSectionId?: string | null;
   onSectionClick?: (sectionId: string) => void;
@@ -49,6 +51,7 @@ export function PageRenderer({
   banners = [],
   allProducts = [],
   allCategories = [],
+  occasions = [],
   isPreview = false,
   selectedSectionId = null,
   onSectionClick,
@@ -212,6 +215,17 @@ export function PageRenderer({
               const primaryCtaUrl = config.cta_primary_url || config.cta_url || "/products";
               const secondaryCtaText = config.cta_secondary_text;
               const secondaryCtaUrl = config.cta_secondary_url || "/products";
+
+              if (config.disable_scroll_sequence !== true) {
+                return (
+                  <ScrollFrameHero
+                    key={sectionKey}
+                    headline={headline}
+                    subheadline={subheadline}
+                    badgeText={badgeText}
+                  />
+                );
+              }
 
               return (
                 <section key={sectionKey} className="w-full">
@@ -743,8 +757,25 @@ export function PageRenderer({
               ];
               const faqs = (config.faqs && config.faqs.length > 0) ? config.faqs : defaultFaqs;
 
+              const faqJsonLd = {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": faqs.map((f: any) => ({
+                  "@type": "Question",
+                  "name": f.q,
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": f.a,
+                  },
+                })),
+              };
+
               return (
                 <section key={sectionKey} className="max-w-3xl mx-auto w-full flex flex-col gap-6">
+                  <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+                  />
                   <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight text-center" style={{ color: theme?.heading_color }}>
                     {heading}
                   </Heading>
@@ -852,17 +883,188 @@ export function PageRenderer({
               );
             }
 
+            // ── 11. Occasions Grid ──────────────────────────────────────
+            case "occasions_grid":
+            case "occasions": {
+              const heading = config.heading || "Cakes for Every Special Occasion";
+              const subheading = config.subheading || "Birthdays, anniversaries, weddings, and milestones handcrafted to perfection";
+              const occasionIds = config.occasion_ids || [];
+              const displayOccasions = (occasionIds.length > 0 && occasions && occasions.length > 0)
+                ? occasionIds.map((oid: string) => occasions.find((o: any) => o.id === oid || o.slug === oid)).filter(Boolean)
+                : (occasions && occasions.length > 0 ? occasions.slice(0, 6) : [
+                    { id: "occ_birthday", name: "Birthday Cakes", slug: "birthday", image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400" },
+                    { id: "occ_anniversary", name: "Anniversary Cakes", slug: "anniversary", image_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400" },
+                    { id: "occ_wedding", name: "Wedding Cakes", slug: "wedding", image_url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=400" },
+                    { id: "occ_baby_shower", name: "Baby Shower Cakes", slug: "baby-shower", image_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=400" },
+                  ]);
+
+              const dtCols = desktopConfig.columns || config.columns || 4;
+              const tbCols = tabletConfig.columns || 3;
+              const mbCols = mobileConfig.columns || 2;
+              const dtGap = desktopConfig.gap || 16;
+              const tbGap = tabletConfig.gap || 14;
+              const mbGap = mobileConfig.gap || 12;
+
+              return (
+                <section key={sectionKey} className="flex flex-col gap-6">
+                  <style>{`
+                    .occ-grid-${sectionKey} {
+                      display: grid;
+                      grid-template-columns: repeat(${mbCols}, minmax(0, 1fr));
+                      gap: ${mbGap}px;
+                    }
+                    @media (min-width: 640px) and (max-width: 1023px) {
+                      .occ-grid-${sectionKey} {
+                        grid-template-columns: repeat(${tbCols}, minmax(0, 1fr));
+                        gap: ${tbGap}px;
+                      }
+                    }
+                    @media (min-width: 1024px) {
+                      .occ-grid-${sectionKey} {
+                        grid-template-columns: repeat(${dtCols}, minmax(0, 1fr));
+                        gap: ${dtGap}px;
+                      }
+                    }
+                  `}</style>
+                  <div className="flex flex-col gap-1">
+                    <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
+                      {heading}
+                    </Heading>
+                    {subheading && <Text className="text-xs sm:text-sm text-ui-fg-subtle">{subheading}</Text>}
+                  </div>
+
+                  <div className={`occ-grid-${sectionKey}`}>
+                    {displayOccasions.map((occ: any) => (
+                      <Link
+                        key={occ.id || occ.slug}
+                        href={`/products?occasion=${occ.slug || occ.id}`}
+                        className="group relative rounded-2xl overflow-hidden aspect-[4/3] bg-ui-bg-subtle border border-ui-border-base hover:shadow-lg hover:border-rose-300 transition-all flex flex-col justify-end p-4"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={occ.image_url || occ.thumbnail || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600"}
+                          alt={occ.name || "Occasion"}
+                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <div className="relative z-10 text-white">
+                          <h3 className="font-bold text-sm sm:text-base leading-tight group-hover:text-rose-200 transition-colors flex items-center gap-1.5">
+                            <Gift className="w-3.5 h-3.5 text-rose-400" /> {occ.name}
+                          </h3>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              );
+            }
+
+            // ── 12. Recommendations / Cross Sell ────────────────────────
+            case "recommendations":
+            case "cross_sell": {
+              const heading = config.heading || "Chef's Handcrafted Recommendations";
+              const subheading = config.subheading || "Specially curated pairings and best-sellers based on trending customer favorites";
+              const recProducts = allProducts.slice(0, 4);
+
+              return (
+                <section key={sectionKey} className="flex flex-col gap-6 bg-gradient-to-br from-rose-50/60 to-purple-50/60 dark:from-rose-950/20 dark:to-purple-950/20 p-6 sm:p-8 rounded-3xl border border-rose-200/60 dark:border-rose-900/30">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600 flex items-center gap-1">
+                        <Zap className="w-3.5 h-3.5" /> Curated Pairings
+                      </span>
+                      <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
+                        {heading}
+                      </Heading>
+                      {subheading && <Text className="text-xs sm:text-sm text-ui-fg-subtle">{subheading}</Text>}
+                    </div>
+                    <Link href="/products" className="text-xs font-semibold text-rose-600 hover:text-rose-700 hidden sm:flex items-center gap-1">
+                      Explore All <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {recProducts.map((p: any) => {
+                      const price = p.price || 599;
+                      const thumbnail = p.thumbnail || p.images?.[0]?.url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400";
+                      const slug = p.handle || p.slug || p.id;
+                      return (
+                        <Link
+                          key={p.id}
+                          href={`/products/${slug}`}
+                          className="group bg-white dark:bg-ui-bg-base rounded-2xl overflow-hidden border border-ui-border-base hover:border-rose-300 hover:shadow-lg transition-all flex flex-col justify-between"
+                        >
+                          <div className="aspect-[4/3] w-full overflow-hidden bg-ui-bg-subtle relative">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={thumbnail} alt={p.title || "Cake"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-rose-600 text-white text-[9px] font-bold">Recommended</span>
+                          </div>
+                          <div className="p-3 flex flex-col gap-1.5 flex-1 justify-between">
+                            <h4 className="font-bold text-xs sm:text-sm line-clamp-1 group-hover:text-rose-600 transition-colors">{p.title}</h4>
+                            <div className="flex items-center justify-between pt-1 border-t border-ui-border-base">
+                              <span className="text-sm font-extrabold text-ui-fg-base">₹{price}</span>
+                              <span className="text-[11px] font-semibold text-rose-600 group-hover:underline">Order →</span>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            }
+
+            // ── 13. Trust Badges / Compliance ───────────────────────────
+            case "trust_badges":
+            case "compliance": {
+              const heading = config.heading || "CakeToHome Safety & Quality Assurance";
+              const badges = [
+                { icon: <ShieldCheck className="w-6 h-6 text-emerald-500" />, title: "FSSAI Certified Bakery", desc: "Lic. No. 11223334000123 — 100% compliant with food safety regulations." },
+                { icon: <Sparkles className="w-6 h-6 text-amber-500" />, title: "Pure Eggless Kitchens", desc: "Dedicated vegetarian prep lines with 100% pure vegetarian ingredients." },
+                { icon: <Truck className="w-6 h-6 text-rose-500" />, title: "2-Hour Express Delivery", desc: "Temperature-controlled sanitized delivery boxes ensuring zero melting." },
+                { icon: <Award className="w-6 h-6 text-indigo-500" />, title: "Freshly Baked Guarantee", desc: "Baked fresh only upon order confirmation with premium ingredients." },
+              ];
+
+              return (
+                <section key={sectionKey} className="flex flex-col gap-6 py-2">
+                  {heading && (
+                    <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight text-center" style={{ color: theme?.heading_color }}>
+                      {heading}
+                    </Heading>
+                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {badges.map((b: any, bi: number) => (
+                      <div key={bi} className="p-5 rounded-2xl bg-ui-bg-base border border-ui-border-base flex flex-col gap-2 shadow-sm">
+                        <div className="p-3 bg-ui-bg-subtle rounded-xl w-fit">{b.icon}</div>
+                        <h4 className="font-bold text-sm text-ui-fg-base">{b.title}</h4>
+                        <p className="text-xs text-ui-fg-muted">{b.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            }
+
             default:
               return null;
           }
         };
+
+        if (section.type === "hero") {
+          return (
+            <div key={sectionKey} data-section-id={section.id} className="w-full relative">
+              {renderSectionContent()}
+            </div>
+          );
+        }
 
         return (
           <div
             key={sectionKey}
             data-section-id={section.id}
             onClick={() => isPreview && onSectionClick?.(section.id)}
-            className={`sec-wrap-${sectionKey} relative transition-all duration-200 ${
+            className={`sec-wrap-${sectionKey} relative w-full max-w-7xl mx-auto px-3 sm:px-6 md:px-10 transition-all duration-200 ${
               isPreview
                 ? `cursor-pointer hover:ring-2 hover:ring-rose-400 hover:ring-offset-2 ${
                     isSelected ? "ring-4 ring-rose-500 ring-offset-4 shadow-2xl z-20" : ""

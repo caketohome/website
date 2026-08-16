@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { Link } from "next-view-transitions";
+import React, { useState, useEffect, useRef, useCallback, memo } from "react";
+import Link from "next/link";
 import { authLogout } from "@frontend/lib/auth-service";
 import {
   User,
-  Settings,
   LogOut,
   ChevronDown,
   Shield,
@@ -14,10 +13,8 @@ import {
   ShoppingBag,
   MapPin,
   Clock,
-  Sparkles,
   Layers,
   AlertTriangle,
-  X,
   CreditCard,
 } from "lucide-react";
 
@@ -44,7 +41,102 @@ interface ProfileMenuProps {
   showNameOnDesktop?: boolean;
 }
 
-export function ProfileMenu({
+// ── Static Role Configuration (Instantiated once, never on render) ─────────────
+const ROLE_CONFIGS = {
+  SUPER_ADMIN: {
+    label: "Super Admin",
+    badgeClass: "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800",
+    avatarBg: "bg-gradient-to-br from-purple-600 to-indigo-700 text-white ring-purple-400/40",
+    icon: Shield,
+    links: [
+      { label: "Admin Dashboard", href: "/dashboard", icon: Layers },
+    ],
+  },
+  BRANCH_MANAGER: {
+    label: "Branch Manager",
+    badgeClass: "bg-amber-100 text-amber-900 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800",
+    avatarBg: "bg-gradient-to-br from-amber-500 to-orange-600 text-white ring-amber-400/40",
+    icon: Store,
+    links: [
+      { label: "Shop Dashboard", href: "/dashboard/shop", icon: Store },
+      { label: "Menu & Items", href: "/dashboard/shop/menu", icon: ShoppingBag },
+      { label: "Live Branch Orders", href: "/dashboard/shop/orders", icon: Clock },
+    ],
+  },
+  DELIVERY_PARTNER: {
+    label: "Delivery Partner",
+    badgeClass: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800",
+    avatarBg: "bg-gradient-to-br from-blue-500 to-cyan-600 text-white ring-blue-400/40",
+    icon: Truck,
+    links: [
+      { label: "Partner Portal", href: "/dashboard/delivery-partner", icon: Truck },
+      { label: "Assigned Deliveries", href: "/dashboard/delivery-partner", icon: MapPin },
+    ],
+  },
+  CUSTOMER: {
+    label: "Customer",
+    badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800",
+    avatarBg: "bg-gradient-to-br from-emerald-500 to-teal-600 text-white ring-emerald-400/40",
+    icon: User,
+    links: [
+      { label: "My Profile", href: "/account", icon: User },
+      { label: "My Orders", href: "/account/orders", icon: ShoppingBag },
+      { label: "Saved Addresses", href: "/account/addresses", icon: MapPin },
+      { label: "Wallet & Credits", href: "/account/wallet", icon: CreditCard },
+    ],
+  },
+} as const;
+
+function getNormalizedRole(user?: ProfileUserDTO | null): AuthRole {
+  if (!user) return "CUSTOMER";
+  const rawRole = (user.role || "").toUpperCase();
+  const userId = user.id || "";
+  if (rawRole === "SUPER_ADMIN" || rawRole === "ADMIN" || userId.startsWith("admin_")) {
+    return "SUPER_ADMIN";
+  }
+  if (
+    rawRole === "BRANCH_MANAGER" ||
+    rawRole === "SHOP_MANAGER" ||
+    rawRole === "SHOP" ||
+    rawRole === "SHPMGR" ||
+    userId.startsWith("shpmgr_") ||
+    userId.startsWith("mgr_")
+  ) {
+    return "BRANCH_MANAGER";
+  }
+  if (
+    rawRole === "DELIVERY_PARTNER" ||
+    rawRole === "DLP" ||
+    userId.startsWith("dlp_") ||
+    userId.startsWith("driver_")
+  ) {
+    return "DELIVERY_PARTNER";
+  }
+  return "CUSTOMER";
+}
+
+function getUserDisplayName(user: ProfileUserDTO | null, role: AuthRole): string {
+  if (!user) return "Guest";
+  if (user.full_name) return user.full_name;
+  if (user.name) return user.name;
+  const parts = [user.first_name, user.last_name].filter(Boolean);
+  if (parts.length > 0) return parts.join(" ");
+  switch (role) {
+    case "SUPER_ADMIN": return "Super Admin";
+    case "BRANCH_MANAGER": return "Branch Manager";
+    case "DELIVERY_PARTNER": return "Delivery Partner";
+    default: return "Valued Customer";
+  }
+}
+
+function getUserInitials(user: ProfileUserDTO | null, fullName: string): string {
+  if (user?.first_name && user?.last_name) {
+    return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase();
+  }
+  return (fullName[0] || "U").toUpperCase();
+}
+
+export const ProfileMenu = memo(function ProfileMenu({
   user = null,
   isLoading = false,
   className = "",
@@ -55,144 +147,59 @@ export function ProfileMenu({
   const [showConfirm, setShowConfirm] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Normalize role
-  const rawRole = (user?.role || "").toUpperCase();
-  let normalizedRole: AuthRole = "CUSTOMER";
-  if (rawRole === "SUPER_ADMIN" || rawRole === "ADMIN" || user?.id?.startsWith("admin_")) {
-    normalizedRole = "SUPER_ADMIN";
-  } else if (
-    rawRole === "BRANCH_MANAGER" ||
-    rawRole === "SHOP_MANAGER" ||
-    rawRole === "SHOP" ||
-    rawRole === "SHPMGR" ||
-    user?.id?.startsWith("shpmgr_") ||
-    user?.id?.startsWith("mgr_")
-  ) {
-    normalizedRole = "BRANCH_MANAGER";
-  } else if (
-    rawRole === "DELIVERY_PARTNER" ||
-    rawRole === "DLP" ||
-    user?.id?.startsWith("dlp_") ||
-    user?.id?.startsWith("driver_")
-  ) {
-    normalizedRole = "DELIVERY_PARTNER";
-  }
+  const normalizedRole = getNormalizedRole(user);
+  const roleConfig = ROLE_CONFIGS[normalizedRole];
+  const fullName = getUserDisplayName(user, normalizedRole);
+  const initials = getUserInitials(user, fullName);
 
-  // Display Name & Initials
-  const fullName =
-    user?.full_name ||
-    user?.name ||
-    [user?.first_name, user?.last_name].filter(Boolean).join(" ") ||
-    (normalizedRole === "SUPER_ADMIN"
-      ? "Super Admin"
-      : normalizedRole === "BRANCH_MANAGER"
-      ? "Branch Manager"
-      : normalizedRole === "DELIVERY_PARTNER"
-      ? "Delivery Partner"
-      : "Valued Customer");
+  const toggleOpen = useCallback(() => {
+    setIsOpen(prev => !prev);
+    setShowConfirm(false);
+  }, []);
 
-  const initials =
-    user?.first_name && user?.last_name
-      ? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
-      : (fullName[0] || "U").toUpperCase();
+  const closeMenu = useCallback(() => {
+    setIsOpen(false);
+    setShowConfirm(false);
+  }, []);
 
-  // Role Metadata (Colors, Badges, Icons)
-  const roleConfig = {
-    SUPER_ADMIN: {
-      label: "Super Admin",
-      badgeClass: "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800",
-      avatarBg: "bg-gradient-to-br from-purple-600 to-indigo-700 text-white ring-purple-400/40",
-      icon: Shield,
-      profileHref: "/dashboard?tab=settings",
-      dashboardHref: "/dashboard",
-      links: [
-        { label: "Admin Dashboard", href: "/dashboard", icon: Layers },
-        { label: "Compliance & Settings", href: "/dashboard?tab=settings", icon: Settings },
-        { label: "Branch Operations", href: "/dashboard?tab=branches", icon: Store },
-        { label: "Live Orders Matrix", href: "/dashboard?tab=orders", icon: ShoppingBag },
-      ],
-    },
-    BRANCH_MANAGER: {
-      label: "Branch Manager",
-      badgeClass: "bg-amber-100 text-amber-900 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800",
-      avatarBg: "bg-gradient-to-br from-amber-500 to-orange-600 text-white ring-amber-400/40",
-      icon: Store,
-      profileHref: "/dashboard/shop",
-      dashboardHref: "/dashboard/shop",
-      links: [
-        { label: "Shop Dashboard", href: "/dashboard/shop", icon: Store },
-        { label: "Menu & Items", href: "/dashboard/shop/menu", icon: ShoppingBag },
-        { label: "Live Branch Orders", href: "/dashboard/shop/orders", icon: Clock },
-      ],
-    },
-    DELIVERY_PARTNER: {
-      label: "Delivery Partner",
-      badgeClass: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800",
-      avatarBg: "bg-gradient-to-br from-blue-500 to-cyan-600 text-white ring-blue-400/40",
-      icon: Truck,
-      profileHref: "/dashboard/delivery-partner",
-      dashboardHref: "/dashboard/delivery-partner",
-      links: [
-        { label: "Partner Portal", href: "/dashboard/delivery-partner", icon: Truck },
-        { label: "Assigned Deliveries", href: "/dashboard/delivery-partner", icon: MapPin },
-      ],
-    },
-    CUSTOMER: {
-      label: "Customer",
-      badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800",
-      avatarBg: "bg-gradient-to-br from-emerald-500 to-teal-600 text-white ring-emerald-400/40",
-      icon: User,
-      profileHref: "/account",
-      dashboardHref: "/account",
-      links: [
-        { label: "My Profile", href: "/account", icon: User },
-        { label: "My Orders", href: "/account/orders", icon: ShoppingBag },
-        { label: "Saved Addresses", href: "/account/addresses", icon: MapPin },
-        { label: "Wallet & Credits", href: "/account/wallet", icon: CreditCard },
-      ],
-    },
-  }[normalizedRole];
-
-  // Click Outside & Escape Key Handlers
+  // Click Outside & Escape Key Handlers (Attached strictly while open)
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setShowConfirm(false);
+        closeMenu();
       }
-    }
+    };
 
-    function handleKeyDown(event: KeyboardEvent) {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setIsOpen(false);
-        setShowConfirm(false);
+        closeMenu();
       }
-    }
+    };
 
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleKeyDown);
-    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, closeMenu]);
 
   // Central Logout Trigger with Double-Click Protection
-  const handleLogoutClick = async () => {
+  const handleLogoutClick = useCallback(async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
     try {
       await authLogout({ redirectUrl: "/login", reason: "user_initiated" });
     } finally {
       setIsLoggingOut(false);
-      setIsOpen(false);
+      closeMenu();
     }
-  };
+  }, [isLoggingOut, closeMenu]);
 
-  // Loading Skeleton (Neutral — prevents flashing "Super Admin" for other users)
+  // Loading Skeleton
   if (isLoading) {
     return (
       <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 animate-pulse ${className}`}>
@@ -210,6 +217,7 @@ export function ProfileMenu({
     return (
       <Link
         href="/login"
+        prefetch={false}
         className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/10 transition-all hover:shadow-sm ${className}`}
       >
         <User className="w-4 h-4 text-amber-300" />
@@ -227,14 +235,11 @@ export function ProfileMenu({
       {/* Trigger Button */}
       <button
         type="button"
-        onClick={() => {
-          setIsOpen(!isOpen);
-          setShowConfirm(false);
-        }}
+        onClick={toggleOpen}
         aria-expanded={isOpen}
         aria-haspopup="true"
         aria-label="User profile and account settings menu"
-        className={`flex items-center gap-2.5 p-1.5 md:px-3 md:py-1.5 rounded-xl transition-all duration-150 border ${
+        className={`flex items-center gap-2.5 p-1.5 md:px-3 md:py-1.5 rounded-xl transition-colors duration-100 border select-none ${
           isOpen
             ? "bg-white/20 border-white/30 ring-2 ring-white/20 text-white"
             : "bg-white/10 hover:bg-white/15 border-white/10 text-white/90 hover:text-white"
@@ -256,7 +261,7 @@ export function ProfileMenu({
         )}
 
         <ChevronDown
-          className={`w-3.5 h-3.5 text-white/70 transition-transform duration-200 hidden sm:inline-block ${
+          className={`w-3.5 h-3.5 text-white/70 transition-transform duration-150 hidden sm:inline-block ${
             isOpen ? "rotate-180 text-white" : ""
           }`}
         />
@@ -265,7 +270,10 @@ export function ProfileMenu({
       {/* Dropdown Popover */}
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-72 sm:w-80 rounded-2xl bg-white dark:bg-neutral-900 shadow-2xl border border-neutral-200/80 dark:border-neutral-800 p-2 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-neutral-900 dark:text-neutral-100"
+          className="absolute right-0 top-full mt-2 w-72 sm:w-80 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 p-2 z-[9999] text-neutral-900 dark:text-neutral-100 shadow-2xl transition-all duration-100 ease-out origin-top-right transform"
+          style={{
+            boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+          }}
           role="menu"
           aria-orientation="vertical"
         >
@@ -305,9 +313,10 @@ export function ProfileMenu({
           <div className="py-1 flex flex-col gap-0.5">
             {roleConfig.links.map((item) => (
               <Link
-                key={item.href + item.label}
+                key={item.href}
                 href={item.href}
-                onClick={() => setIsOpen(false)}
+                prefetch={false}
+                onClick={closeMenu}
                 className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 role="menuitem"
               >
@@ -376,4 +385,4 @@ export function ProfileMenu({
       )}
     </div>
   );
-}
+});

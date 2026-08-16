@@ -92,10 +92,10 @@ export function MediaSelectorModal({
     if (!files || files.length === 0) return;
     const file = files[0];
 
-    // Validate type
-    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/svg+xml"];
+    // Validate type (strictly secure formats only - JPEG, PNG, WebP, AVIF)
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/avif"];
     if (!validTypes.includes(file.type)) {
-      setUploadError("Invalid format. Please upload JPEG, PNG, WebP, AVIF or SVG.");
+      setUploadError("Invalid format. Please upload JPEG, PNG, WebP, or AVIF (SVG & scripts are prohibited for security).");
       return;
     }
 

@@ -32,10 +32,10 @@ async function runAll12AnalyticsReportsTestSuite() {
     topProductsMetric: "revenue",
   };
 
-  console.log("TEST 1: Validating Central Report Registry (12 Main Reports)...");
+  console.log("TEST 1: Validating Central Report Registry (12 Main Reports + Aliases)...");
   const reportKeys = Object.keys(REPORTS) as Array<keyof typeof REPORTS>;
-  if (reportKeys.length !== 12) {
-    throw new Error(`Expected 12 reports in registry, but found ${reportKeys.length}`);
+  if (reportKeys.length < 12) {
+    throw new Error(`Expected at least 12 reports in registry, but found ${reportKeys.length}`);
   }
   reportKeys.forEach((key) => {
     const def = getReportDefinition(key);
@@ -43,7 +43,7 @@ async function runAll12AnalyticsReportsTestSuite() {
       throw new Error(`Report definition ${key} is missing title or exportFilename!`);
     }
   });
-  console.log(`  ✅ PASS: All 12 reports registered with metadata and filenames!\n`);
+  console.log(`  ✅ PASS: All ${reportKeys.length} reports registered with metadata and filenames!\n`);
 
   console.log("TEST 2: Validating Datasets for All 12 Report Sections...");
   const kpis = ReportsEngineData.getExecutiveKpis(filters);

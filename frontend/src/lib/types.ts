@@ -1,10 +1,8 @@
-import {
-  CartDTO,
-  CartLineItemDTO,
-  OrderDTO,
-  OrderLineItemDTO,
-  ProductDTO,
-} from "@medusajs/types";
+export type CartDTO = any;
+export type CartLineItemDTO = any;
+export type OrderDTO = any;
+export type OrderLineItemDTO = any;
+export type ProductDTO = any;
 
 export enum DeliveryStatus {
   PENDING = "pending",

@@ -11,7 +11,8 @@ import {
   Smartphone, FormInput, Sparkles, ChevronDown, ChevronUp, Settings,
   Image as ImageIcon, ArrowUp, ArrowDown, XCircle, AlertCircle, Check,
   Search, Tag, Monitor, ExternalLink, Send, EyeOff, ShieldCheck, Megaphone,
-  List, Sliders, PenLine, Tablet, Upload, Undo2, Redo2, Palette, Box, CheckSquare
+  List, Sliders, PenLine, Tablet, Upload, Undo2, Redo2, Palette, Box, CheckSquare,
+  GripVertical, Gift, Zap
 } from "lucide-react";
 import { MediaSelectorModal, MediaSelection } from "./media-selector-modal";
 import { PageRenderer } from "@frontend/components/store/cms/page-renderer";
@@ -25,6 +26,9 @@ const SECTION_TYPES = [
   { value: "hero", label: "Hero Banner", icon: "🖼️" },
   { value: "category_grid", label: "Category Grid", icon: "🗂️" },
   { value: "product_grid", label: "Product Grid", icon: "🏷️" },
+  { value: "occasions_grid", label: "Occasions Grid", icon: "🎁" },
+  { value: "recommendations", label: "Chef Recommendations", icon: "⚡" },
+  { value: "trust_badges", label: "Trust & Compliance", icon: "🛡️" },
   { value: "promotional_banner", label: "Promotional Banner", icon: "📢" },
   { value: "image_text", label: "Image + Text", icon: "📋" },
   { value: "text_content", label: "Text Content", icon: "📝" },
@@ -189,6 +193,11 @@ export function PageConfigurator() {
   // Related API Data
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [allOccasions, setAllOccasions] = useState<any[]>([]);
+
+  // Drag & Drop State
+  const [draggedSectionIndex, setDraggedSectionIndex] = useState<number | null>(null);
+  const [dragOverSectionIndex, setDragOverSectionIndex] = useState<number | null>(null);
 
   // Media Selector Modal Config
   const [mediaModalConfig, setMediaModalConfig] = useState<{
@@ -214,15 +223,17 @@ export function PageConfigurator() {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [pagesRes, productsRes, catsRes] = await Promise.allSettled([
+      const [pagesRes, productsRes, catsRes, occsRes] = await Promise.allSettled([
         apiClient.getCmsPages(),
         apiClient.getAdminProducts(),
         apiClient.getAdminCategories(),
+        apiClient.getAdminOccasions(),
       ]);
       const fetchedPages = (pagesRes.status === "fulfilled" ? (pagesRes.value as any)?.pages : null) || [];
       setPages(fetchedPages);
       setAllProducts((productsRes.status === "fulfilled" ? (productsRes.value as any)?.products : null) || []);
       setAllCategories((catsRes.status === "fulfilled" ? (catsRes.value as any)?.categories : null) || []);
+      setAllOccasions((occsRes.status === "fulfilled" ? (occsRes.value as any)?.occasions : null) || []);
 
       if (fetchedPages.length > 0) {
         const def = fetchedPages.find((p: any) => p.id === selectedPageId) || fetchedPages[0];
@@ -236,6 +247,46 @@ export function PageConfigurator() {
       // ignore
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedSectionIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverSectionIndex !== index) {
+      setDragOverSectionIndex(index);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedSectionIndex === null || draggedSectionIndex === targetIndex) {
+      setDraggedSectionIndex(null);
+      setDragOverSectionIndex(null);
+      return;
+    }
+    const secs = [...getSections()];
+    const [draggedItem] = secs.splice(draggedSectionIndex, 1);
+    secs.splice(targetIndex, 0, draggedItem);
+    secs.forEach((s, i) => (s.order = i + 1));
+    setSections(secs);
+    setDraggedSectionIndex(null);
+    setDragOverSectionIndex(null);
+
+    // Save reordered sections to database atomically if page exists
+    if (editingPage.id) {
+      try {
+        await apiClient.reorderCmsPageSections(editingPage.id, secs.map(s => s.id));
+        showToast("Section order updated & saved!");
+      } catch {
+        // ignore
+      }
     }
   };
 
@@ -1467,6 +1518,114 @@ export function PageConfigurator() {
                     </div>
                   )}
 
+                  {(selectedSection.type === "occasions_grid" || selectedSection.type === "occasions") && (
+                    <div className="flex flex-col gap-3">
+                      <Field label="Section Heading">
+                        <Input
+                          value={selectedSection.config?.heading || ""}
+                          onChange={e => updateSectionConfig(selectedSection.id, "heading", e.target.value)}
+                          placeholder="e.g. Cakes for Every Special Occasion"
+                        />
+                      </Field>
+                      <Field label="Subheading">
+                        <Input
+                          value={selectedSection.config?.subheading || ""}
+                          onChange={e => updateSectionConfig(selectedSection.id, "subheading", e.target.value)}
+                          placeholder="e.g. Birthdays, anniversaries, and weddings"
+                        />
+                      </Field>
+                      <div className="flex flex-col gap-2">
+                        <Text className="text-xs font-bold">Select Occasions from Taxonomy</Text>
+                        <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-ui-bg-subtle rounded-xl border border-ui-border-base">
+                          {allOccasions.map((occ: any) => {
+                            const isSelected = (selectedSection.config?.occasion_ids || []).includes(occ.id) || (selectedSection.config?.occasion_ids || []).includes(occ.slug);
+                            return (
+                              <label key={occ.id} className="flex items-center gap-2 p-1.5 rounded bg-ui-bg-base border border-ui-border-base cursor-pointer text-xs">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={e => {
+                                    const cur = selectedSection.config?.occasion_ids || [];
+                                    const next = e.target.checked
+                                      ? [...cur, occ.id]
+                                      : cur.filter((id: string) => id !== occ.id && id !== occ.slug);
+                                    updateSectionConfig(selectedSection.id, "occasion_ids", next);
+                                  }}
+                                  className="rounded border-ui-border-base text-rose-600 focus:ring-rose-500"
+                                />
+                                <span className="truncate">{occ.name}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {(selectedSection.type === "recommendations" || selectedSection.type === "cross_sell") && (
+                    <div className="flex flex-col gap-3">
+                      <Field label="Heading">
+                        <Input
+                          value={selectedSection.config?.heading || ""}
+                          onChange={e => updateSectionConfig(selectedSection.id, "heading", e.target.value)}
+                          placeholder="e.g. Chef's Handcrafted Recommendations"
+                        />
+                      </Field>
+                      <Field label="Subheading">
+                        <Input
+                          value={selectedSection.config?.subheading || ""}
+                          onChange={e => updateSectionConfig(selectedSection.id, "subheading", e.target.value)}
+                          placeholder="e.g. Specially curated pairings based on trending favorites"
+                        />
+                      </Field>
+                      <Field label="Recommendation Algorithm">
+                        <Select
+                          value={selectedSection.config?.algorithm || "bestsellers"}
+                          onValueChange={v => updateSectionConfig(selectedSection.id, "algorithm", v)}
+                        >
+                          <Select.Trigger><Select.Value /></Select.Trigger>
+                          <Select.Content>
+                            <Select.Item value="bestsellers">Trending Best Sellers</Select.Item>
+                            <Select.Item value="frequently_bought_together">Frequently Bought Together</Select.Item>
+                            <Select.Item value="similar">Similar Flavour Profiles</Select.Item>
+                            <Select.Item value="cross_sell">Cross-Sell Add-ons</Select.Item>
+                          </Select.Content>
+                        </Select>
+                      </Field>
+                    </div>
+                  )}
+
+                  {(selectedSection.type === "trust_badges" || selectedSection.type === "compliance") && (
+                    <div className="flex flex-col gap-3">
+                      <Field label="Heading">
+                        <Input
+                          value={selectedSection.config?.heading || ""}
+                          onChange={e => updateSectionConfig(selectedSection.id, "heading", e.target.value)}
+                          placeholder="e.g. CakeToHome Safety & Quality Assurance"
+                        />
+                      </Field>
+                      <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2 text-xs">
+                        <Text className="font-bold text-rose-600">Assurance Badges Included:</Text>
+                        <div className="flex items-center gap-2 text-ui-fg-base">
+                          <Check className="w-4 h-4 text-emerald-600" />
+                          <span>FSSAI Certified Bakery (Lic. No. 11223334000123)</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-ui-fg-base">
+                          <Check className="w-4 h-4 text-emerald-600" />
+                          <span>Pure Eggless Dedicated Kitchen Lines</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-ui-fg-base">
+                          <Check className="w-4 h-4 text-emerald-600" />
+                          <span>2-Hour Temperature Controlled Express Delivery</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-ui-fg-base">
+                          <Check className="w-4 h-4 text-emerald-600" />
+                          <span>Freshly Baked After Order Guarantee</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {(selectedSection.type === "text_content" || selectedSection.type === "brand_story" || selectedSection.type === "seo_content" || selectedSection.type === "promotional_banner" || selectedSection.type === "cta") && (
                     <div className="flex flex-col gap-3">
                       <Field label="Heading">
@@ -1844,6 +2003,7 @@ export function PageConfigurator() {
                   banners={editingPage.draft_config?.banners || []}
                   allProducts={allProducts}
                   allCategories={allCategories}
+                  occasions={allOccasions}
                   announcementBar={editingPage.announcement_bar}
                   h1={editingPage.h1 || editingPage.title}
                   subheading={editingPage.subheading}
@@ -1881,12 +2041,20 @@ export function PageConfigurator() {
             <div className="flex flex-col gap-2">
               {getSections().map((sec: any, idx: number) => {
                 const isSelected = configuringSection === sec.id;
+                const isDragOver = dragOverSectionIndex === idx;
                 return (
                   <div
                     key={sec.id}
+                    draggable={true}
+                    onDragStart={e => handleDragStart(e, idx)}
+                    onDragOver={e => handleDragOver(e, idx)}
+                    onDrop={e => handleDrop(e, idx)}
+                    onDragEnd={() => { setDraggedSectionIndex(null); setDragOverSectionIndex(null); }}
                     onClick={() => scrollToSectionInCanvas(sec.id)}
                     className={`p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col gap-1.5 ${
-                      isSelected
+                      isDragOver
+                        ? "border-rose-500 border-2 scale-[1.02] shadow-lg bg-rose-50/50 dark:bg-rose-950/40"
+                        : isSelected
                         ? "bg-rose-50 border-rose-400 shadow-md dark:bg-rose-950/40"
                         : sec.enabled !== false
                         ? "bg-ui-bg-subtle/50 border-ui-border-base hover:border-rose-300"
@@ -1895,8 +2063,11 @@ export function PageConfigurator() {
                   >
                     <div className="flex items-center justify-between gap-1">
                       <div className="flex items-center gap-1.5 min-w-0">
+                        <div className="cursor-grab active:cursor-grabbing text-ui-fg-muted hover:text-ui-fg-base" title="Drag to reorder">
+                          <GripVertical className="w-3.5 h-3.5 shrink-0" />
+                        </div>
                         <SectionIcon type={sec.type} />
-                        <Text className="text-xs font-bold truncate max-w-[90px]">{sec.name}</Text>
+                        <Text className="text-xs font-bold truncate max-w-[80px]">{sec.name}</Text>
                       </div>
                       <Badge color={sec.enabled !== false ? "green" : "grey"} className="text-[8px] px-1 py-0 shrink-0">
                         {sec.enabled !== false ? "Active" : "Off"}

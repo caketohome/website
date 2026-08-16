@@ -5,7 +5,12 @@
 import { apiClient } from "../api-client";
 
 export async function clientListEligiblePopups(ctx?: any): Promise<any> {
-  return { popups: [] };
+  try {
+    const res: any = await apiClient.getStoreEngagementConfig(ctx);
+    return { popups: res.campaigns || [] };
+  } catch {
+    return { popups: [] };
+  }
 }
 
 export async function clientSubscribeNewsletter(input: any): Promise<any> {

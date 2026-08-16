@@ -126,3 +126,15 @@
 - [x] **13.1 PASS** — `GET /api/v1/health` returns status `"operational"`.
 - [x] **13.2 PASS** — Middleware enforces role protection on `/dashboard`, `/dashboard/shop`, and `/dashboard/delivery-partner`.
 - [x] **13.3 PASS** — Idempotency guard prevents duplicate order submissions on double-clicks.
+
+### Section 14: Smart Login, Security Audit Analytics & Abandoned Cart Recovery
+- [x] **14.1 PASS** — [Pillar 1] Smart Login & Authentication Experience (New Customer OTP, account registration, role isolation).
+- [x] **14.2 PASS** — [Pillar 2] Login Activity & Security Audit Logging (Role filters, search, server pagination).
+- [x] **14.3 PASS** — [Pillar 3] Abandoned Cart Ingestion & Real-Time Inactivity-Based Abandonment Detection.
+- [x] **14.4 PASS** — [Pillar 4] Abandoned Cart Recovery (Secure token generation, cart/identity restoration, server-side revalidation).
+- [x] **14.5 PASS** — [Pillar 5] Customer Exit Intent & Engagement (Eligible marketing popups with active incentives).
+- [x] **14.6 PASS** — [Pillar 6] Cart Recovery Popups & Automated Offers (Recovery coupon code SWEET10 validation).
+- [x] **14.7 PASS** — [Pillar 7] Multi-Channel Recovery Dispatch (Automated WhatsApp message with restoration URL).
+- [x] **14.8 PASS** — [Pillar 8] Admin Recovery Management & Revenue Attribution (Attributed revenue strictly credited to recovered order).
+- [x] **14.9 PASS** — [Pillar 9] Date-Filtered Operational Reporting (`today`, `last_7d`, `last_30d`, and custom date ranges).
+

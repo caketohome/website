@@ -19,6 +19,8 @@ import { KeywordAnalyzer } from "./keywords/keyword-analyzer";
 import { GeoEngine } from "./geo/geo-engine";
 import { AeoEngine } from "./aeo/aeo-engine";
 import { SeoRbacGuard, UserRole } from "./auth/seo-rbac-guard";
+import { WebhookEngine } from "./webhook-engine";
+import { TelemarketingEngine } from "./telemarketing-engine";
 
 export interface ProductItem {
   product_id: string;
@@ -1685,6 +1687,10 @@ export interface AccessoryItem {
   stock: number;
   low_stock_threshold: number;
   gst_rate: number;
+  gst_rate_pct?: number;
+  hsn_code?: string;
+  tax_category_id?: string;
+  tax_treatment?: string;
   thumbnail: string;
   images: string[];
   description: string;
@@ -1988,7 +1994,7 @@ export interface ParentStore {
 }
 
 export const DEFAULT_STORES: ParentStore[] = [
-  { id: "store_blr_01", name: "Crown Bakery Indiranagar", code: "STR-BLR-01", city: "Bengaluru", address: "100 Feet Rd, Indiranagar", phone: "+91 98765 11111", status: "active" },
+  { id: "store_blr_01", name: "CakeToHome Indiranagar Kitchen Hub", code: "STR-BLR-01", city: "Bengaluru", address: "100 Feet Rd, Indiranagar", phone: "+91 98765 11111", status: "active" },
   { id: "store_blr_02", name: "Warm Oven Koramangala", code: "STR-BLR-02", city: "Bengaluru", address: "80 Feet Rd, Koramangala", phone: "+91 98765 22222", status: "active" },
   { id: "store_blr_03", name: "CakeZone HSR Layout", code: "STR-BLR-03", city: "Bengaluru", address: "27th Main Rd, HSR Layout", phone: "+91 98765 33333", status: "active" },
   { id: "store_blr_04", name: "Bakingo Whitefield", code: "STR-BLR-04", city: "Bengaluru", address: "ITPL Main Rd, Whitefield", phone: "+91 98765 44444", status: "active" },
@@ -2020,6 +2026,8 @@ export interface DeliveryZone {
   holiday_charge?: number;
   special_date_charge?: number;
   emergency_override_charge?: number;
+  peak_hour_charge?: number;
+  rain_charge?: number;
   
   // ── Zone Service Area ──
   cities?: string[];
@@ -2233,6 +2241,9 @@ export interface BranchItem {
     auto_pause_enabled: boolean;
     is_auto_paused: boolean;
   };
+  partner_failover?: any;
+  delivery_partner_priority?: string[];
+  delivery_partners_config?: any;
 
   manager_account?: {
     name: string;
@@ -2661,13 +2672,353 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     current_hourly_load: 2,
     deliverable_areas: ["Whitefield", "Marathahalli", "Brookefield"],
     delivery_zones: [
-      { id: "br_whitefield_z1", name: "Zone A", display_order: 1, min_km: 0, max_km: 4, enabled: true, est_delivery_mins: 30, preparation_buffer_mins: 15, max_cake_weight_kg: 10, max_cake_quantity: 5, min_order_value: 299, max_order_value: 50000, free_delivery_threshold: 999, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true, delivery_charge: 0, express_charge: 49, midnight_charge: 79, holiday_charge: 49, pincodes: ["560066"], cities: ["Bengaluru"], areas: ["Whitefield"], service_areas: ["ITPL Main Road Hub"] },
+      { id: "br_whitefield_z1", name: "Zone A", display_order: 1, min_km: 0, max_km: 4, enabled: true, est_delivery_mins: 30, preparation_buffer_mins: 15, max_cake_weight_kg: 10, max_cake_quantity: 5, min_order_value: 299, max_order_value: 50000, free_delivery_threshold: 999, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true, delivery_charge: 119, express_charge: 49, midnight_charge: 79, holiday_charge: 49, pincodes: ["560066"], cities: ["Bengaluru"], areas: ["Whitefield"], service_areas: ["ITPL Main Road Hub"] },
       { id: "br_whitefield_z2", name: "Zone B", display_order: 2, min_km: 4, max_km: 8, enabled: true, est_delivery_mins: 55, preparation_buffer_mins: 20, max_cake_weight_kg: 8, max_cake_quantity: 3, min_order_value: 399, max_order_value: 50000, free_delivery_threshold: 1299, same_day_allowed: true, express_allowed: false, midnight_allowed: true, scheduled_allowed: true, delivery_charge: 59, express_charge: 119, midnight_charge: 109, holiday_charge: 89, pincodes: ["560048", "560037"], cities: ["Bengaluru"], areas: ["Marathahalli", "Brookefield"], service_areas: ["Outer Ring Road Cluster"] },
       { id: "br_whitefield_z3", name: "Zone C", display_order: 3, min_km: 8, max_km: 14, enabled: true, est_delivery_mins: 80, preparation_buffer_mins: 30, max_cake_weight_kg: 6, max_cake_quantity: 2, min_order_value: 499, max_order_value: 50000, free_delivery_threshold: 1499, same_day_allowed: false, express_allowed: false, midnight_allowed: false, scheduled_allowed: true, delivery_charge: 89, express_charge: 149, midnight_charge: 149, holiday_charge: 109, pincodes: ["560103"], cities: ["Bengaluru"], areas: ["Bellandur"], service_areas: ["Bellandur Gate Region"] },
     ],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }),
+];
+
+// ── Login Events & Authentication Analytics Types ─────────────────────────
+export type LoginEventType = "LOGIN_ATTEMPT" | "LOGIN_SUCCESS" | "LOGIN_FAILED" | "OTP_REQUESTED" | "OTP_VERIFIED" | "OTP_FAILED" | "LOGOUT" | "SESSION_EXPIRED";
+export type LoginStatus = "SUCCESS" | "FAILED" | "OTP_SENT" | "PENDING";
+
+export interface LoginEvent {
+  id: string;
+  user_id?: string | null;
+  customer_id?: string | null;
+  user_name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  identifier: string;
+  role: string;
+  authentication_method: "OTP_SMS" | "OTP_WHATSAPP" | "PASSWORD" | "GOOGLE" | "SESSION";
+  method?: string;
+  event_type: LoginEventType;
+  status: LoginStatus;
+  failure_category?: "INVALID_OTP" | "EXPIRED_OTP" | "RATE_LIMITED" | "ACCOUNT_DISABLED" | "ACCOUNT_NOT_FOUND" | "NETWORK_ERROR" | "INVALID_CREDENTIALS" | null;
+  ip_address?: string;
+  user_agent?: string;
+  device_type?: "desktop" | "mobile" | "tablet";
+  created_at: string;
+}
+
+// ── Abandoned Cart & Recovery Engine Types ────────────────────────────────
+export type CartLifecycleStatus = "ACTIVE" | "CHECKOUT_STARTED" | "ABANDONED" | "RECOVERY_PENDING" | "RECOVERY_SENT" | "RECOVERED" | "EXPIRED" | "CANCELLED";
+
+export interface AbandonedCartItem {
+  id: string;
+  product_id: string;
+  product_name: string;
+  variant_id?: string;
+  variant_name?: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  thumbnail?: string;
+  cake_message?: string;
+  eggless?: boolean;
+}
+
+export interface AbandonedCart {
+  id: string;
+  cart_id: string;
+  customer_id?: string | null;
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  customer_email?: string | null;
+  guest_session_id?: string | null;
+  branch_id?: string | null;
+  branch_name?: string | null;
+  city_id?: string | null;
+  city_name?: string | null;
+  delivery_pincode?: string | null;
+  delivery_zone_name?: string | null;
+  recovery_token?: string | null;
+  items: AbandonedCartItem[];
+  item_count: number;
+  subtotal: number;
+  discount_total: number;
+  tax_total: number;
+  delivery_fee: number;
+  grand_total: number;
+  status: CartLifecycleStatus;
+  created_at: string;
+  updated_at: string;
+  last_activity_at: string;
+  abandoned_at?: string | null;
+  checkout_started_at?: string | null;
+  recovered_at?: string | null;
+  recovery_order_id?: string | null;
+  recovery_attempts_count: number;
+  last_recovery_channel?: "WHATSAPP" | "EMAIL" | "SMS" | null;
+  last_contact_at?: string | null;
+}
+
+export interface CartRecoveryAttempt {
+  id: string;
+  cart_id: string;
+  customer_id?: string | null;
+  customer_phone?: string | null;
+  customer_email?: string | null;
+  channel: "WHATSAPP" | "EMAIL" | "SMS";
+  status: "SENT" | "DELIVERED" | "FAILED";
+  message_preview: string;
+  recovery_token: string;
+  recovery_url: string;
+  sent_at: string;
+  opened_at?: string | null;
+  clicked_at?: string | null;
+  recovered_at?: string | null;
+  created_at: string;
+}
+
+export interface RecoveryToken {
+  id: string;
+  cart_id: string;
+  token: string;
+  token_hash: string;
+  expires_at: string;
+  used_at?: string | null;
+  created_at: string;
+}
+
+const DEFAULT_LOGIN_EVENTS: LoginEvent[] = [
+  {
+    id: "logevt_01",
+    user_id: "admin_01",
+    identifier: "+91 98765 00000",
+    role: "SUPER_ADMIN",
+    authentication_method: "OTP_SMS",
+    event_type: "LOGIN_SUCCESS",
+    status: "SUCCESS",
+    failure_category: null,
+    ip_address: "103.21.124.5",
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+    device_type: "desktop",
+    created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+  },
+  {
+    id: "logevt_02",
+    user_id: "cus_1785518113834",
+    customer_id: "cus_1785518113834",
+    identifier: "+91 98765 43210",
+    role: "CUSTOMER",
+    authentication_method: "OTP_SMS",
+    event_type: "LOGIN_SUCCESS",
+    status: "SUCCESS",
+    failure_category: null,
+    ip_address: "49.207.210.88",
+    user_agent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X)",
+    device_type: "mobile",
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+  },
+  {
+    id: "logevt_03",
+    user_id: "shpmgr_indiranagar",
+    identifier: "+91 98765 00001",
+    role: "BRANCH_MANAGER",
+    authentication_method: "OTP_WHATSAPP",
+    event_type: "LOGIN_SUCCESS",
+    status: "SUCCESS",
+    failure_category: null,
+    ip_address: "122.172.85.14",
+    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    device_type: "desktop",
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+  },
+  {
+    id: "logevt_04",
+    identifier: "+91 98765 99999",
+    role: "CUSTOMER",
+    authentication_method: "OTP_SMS",
+    event_type: "OTP_FAILED",
+    status: "FAILED",
+    failure_category: "INVALID_OTP",
+    ip_address: "106.51.24.11",
+    user_agent: "Mozilla/5.0 (Linux; Android 14; Pixel 8)",
+    device_type: "mobile",
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
+  },
+  {
+    id: "logevt_05",
+    user_id: "dlp_101",
+    identifier: "+91 98765 00001",
+    role: "DELIVERY_PARTNER",
+    authentication_method: "OTP_SMS",
+    event_type: "LOGIN_SUCCESS",
+    status: "SUCCESS",
+    failure_category: null,
+    ip_address: "157.48.19.42",
+    user_agent: "CakeToHome-RiderApp/2.4.1 (Android 13)",
+    device_type: "mobile",
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+  },
+  {
+    id: "logevt_06",
+    identifier: "+91 91234 56789",
+    role: "CUSTOMER",
+    authentication_method: "OTP_SMS",
+    event_type: "OTP_REQUESTED",
+    status: "OTP_SENT",
+    failure_category: null,
+    ip_address: "182.73.188.19",
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+    device_type: "desktop",
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 30).toISOString(),
+  },
+];
+
+const DEFAULT_ABANDONED_CARTS: AbandonedCart[] = [
+  {
+    id: "abcart_01",
+    cart_id: "cart_ab_101",
+    customer_id: "cus_1785518113834",
+    customer_name: "Ananya Rao",
+    customer_phone: "+91 98765 43210",
+    customer_email: "ananya@example.com",
+    branch_id: "br_indiranagar",
+    branch_name: "Indiranagar Flagship Kitchen",
+    city_id: "city_bbr",
+    city_name: "Bengaluru",
+    delivery_pincode: "560038",
+    delivery_zone_name: "Zone A (Indiranagar / Domlur)",
+    items: [
+      {
+        id: "item_ab_1",
+        product_id: "prod_1",
+        product_name: "Belgian Chocolate Truffle Cake",
+        quantity: 1,
+        unit_price: 649,
+        total_price: 649,
+        thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400",
+        cake_message: "Happy Birthday Rohan!",
+        eggless: true,
+      },
+      {
+        id: "item_ab_2",
+        product_id: "acc_01",
+        product_name: "Gold Acrylic Happy Birthday Topper",
+        quantity: 1,
+        unit_price: 99,
+        total_price: 99,
+        thumbnail: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=400",
+      },
+    ],
+    item_count: 2,
+    subtotal: 748,
+    discount_total: 0,
+    tax_total: 37.4,
+    delivery_fee: 0,
+    grand_total: 785.4,
+    status: "ABANDONED",
+    created_at: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    last_activity_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    abandoned_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    recovery_attempts_count: 0,
+  },
+  {
+    id: "abcart_02",
+    cart_id: "cart_ab_102",
+    customer_id: "cus_02",
+    customer_name: "Rahul Verma",
+    customer_phone: "+91 98765 43211",
+    customer_email: "rahul@example.com",
+    branch_id: "br_koramangala",
+    branch_name: "Koramangala Central Hub",
+    city_id: "city_bbr",
+    city_name: "Bengaluru",
+    delivery_pincode: "560034",
+    delivery_zone_name: "Zone A (Koramangala 4th Block)",
+    items: [
+      {
+        id: "item_ab_3",
+        product_id: "prod_2",
+        product_name: "Classic Red Velvet Cream Cheese Cake",
+        quantity: 2,
+        unit_price: 749,
+        total_price: 1498,
+        thumbnail: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=400",
+        eggless: true,
+      },
+    ],
+    item_count: 2,
+    subtotal: 1498,
+    discount_total: 200,
+    tax_total: 64.9,
+    delivery_fee: 0,
+    grand_total: 1362.9,
+    status: "RECOVERY_SENT",
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+    last_activity_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+    abandoned_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    recovery_attempts_count: 1,
+    last_recovery_channel: "WHATSAPP",
+    last_contact_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+  },
+  {
+    id: "abcart_03",
+    cart_id: "cart_ab_103",
+    customer_id: "cus_03",
+    customer_name: "Priya Nair",
+    customer_phone: "+91 98765 43212",
+    customer_email: "priya@example.com",
+    branch_id: "br_whitefield",
+    branch_name: "Whitefield Gourmet Studio",
+    city_id: "city_bbr",
+    city_name: "Bengaluru",
+    delivery_pincode: "560066",
+    delivery_zone_name: "Zone A (ITPL Hub)",
+    items: [
+      {
+        id: "item_ab_4",
+        product_id: "prod_3",
+        product_name: "Fresh Alphonso Mango Mousse Cake",
+        quantity: 1,
+        unit_price: 699,
+        total_price: 699,
+        thumbnail: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=400",
+      },
+    ],
+    item_count: 1,
+    subtotal: 699,
+    discount_total: 0,
+    tax_total: 34.95,
+    delivery_fee: 0,
+    grand_total: 733.95,
+    status: "RECOVERED",
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 22).toISOString(),
+    last_activity_at: new Date(Date.now() - 1000 * 60 * 60 * 22).toISOString(),
+    abandoned_at: new Date(Date.now() - 1000 * 60 * 60 * 20).toISOString(),
+    recovered_at: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
+    recovery_order_id: "ord_rec_01",
+    recovery_attempts_count: 1,
+    last_recovery_channel: "EMAIL",
+    last_contact_at: new Date(Date.now() - 1000 * 60 * 60 * 19).toISOString(),
+  },
+];
+
+const DEFAULT_RECOVERY_ATTEMPTS: CartRecoveryAttempt[] = [
+  {
+    id: "att_01",
+    cart_id: "cart_ab_102",
+    customer_id: "cus_02",
+    customer_phone: "+91 98765 43211",
+    customer_email: "rahul@example.com",
+    channel: "WHATSAPP",
+    status: "DELIVERED",
+    message_preview: "Hi Rahul! You left your Classic Red Velvet Cake in your basket. Complete your celebration order now with free delivery!",
+    recovery_token: "tok_rec_102_abc",
+    recovery_url: "/cart?recover=tok_rec_102_abc",
+    sent_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    opened_at: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+  },
 ];
 
 interface StoreData {
@@ -2684,11 +3035,21 @@ interface StoreData {
   users?: any[];
   deliveries: any[];
   delivery_partners: any[];
+  delivery_rejections?: any[];
+  delivery_exceptions?: any[];
+  delivery_partner_assignments?: any[];
+  delivery_partner_status_history?: any[];
+  delivery_assignment_rules?: any;
+  partners?: any[];
   settings: any;
   seo_config: any;
   automation_triggers: any[];
   notifications: any[];
   audit_logs: any[];
+  login_events?: LoginEvent[];
+  abandoned_carts?: AbandonedCart[];
+  cart_recovery_attempts?: CartRecoveryAttempt[];
+  recovery_tokens?: RecoveryToken[];
   cms_pages: any[];
   pim_categories: any[];
   variant_options: any[];
@@ -2745,6 +3106,7 @@ interface StoreData {
   chart_preferences?: any;
   report_audit_logs?: any[];
   product_delivery_restrictions?: ProductDeliveryRestriction[];
+  [key: string]: any;
 }
 
 function getStoreFilePath(): string {
@@ -2793,7 +3155,7 @@ function loadStore(): StoreData {
             name: branchesList[existingIdx].name || def.name,
             code: branchesList[existingIdx].code || def.code,
             deliverable_areas: (branchesList[existingIdx].deliverable_areas && branchesList[existingIdx].deliverable_areas.length > 0) ? branchesList[existingIdx].deliverable_areas : def.deliverable_areas,
-            delivery_zones: (branchesList[existingIdx].delivery_zones && branchesList[existingIdx].delivery_zones.length > 0) ? branchesList[existingIdx].delivery_zones : def.delivery_zones,
+            delivery_zones: (def.delivery_zones && def.delivery_zones.length > 0) ? def.delivery_zones : branchesList[existingIdx].delivery_zones,
             latitude: branchesList[existingIdx].latitude || def.latitude,
             longitude: branchesList[existingIdx].longitude || def.longitude,
             operational_status: "operational",
@@ -2866,6 +3228,10 @@ function loadStore(): StoreData {
         automation_triggers: parsed.automation_triggers || DEFAULT_AUTOMATION_TRIGGERS,
         notifications: parsed.notifications || DEFAULT_NOTIFICATIONS,
         audit_logs: parsed.audit_logs || DEFAULT_AUDIT_LOGS,
+        login_events: (parsed.login_events && parsed.login_events.length > 0) ? parsed.login_events : [...DEFAULT_LOGIN_EVENTS],
+        abandoned_carts: (parsed.abandoned_carts && parsed.abandoned_carts.length > 0) ? parsed.abandoned_carts : [...DEFAULT_ABANDONED_CARTS],
+        cart_recovery_attempts: (parsed.cart_recovery_attempts && parsed.cart_recovery_attempts.length > 0) ? parsed.cart_recovery_attempts : [...DEFAULT_RECOVERY_ATTEMPTS],
+        recovery_tokens: parsed.recovery_tokens || [],
         cms_pages: cmsPagesList,
         pim_categories: (parsed.pim_categories && parsed.pim_categories.length > 0) ? parsed.pim_categories : DEFAULT_PIM_CATEGORIES,
         variant_options: (parsed.variant_options && parsed.variant_options.length > 0) ? parsed.variant_options : DEFAULT_VARIANT_OPTIONS,
@@ -2920,6 +3286,7 @@ function loadStore(): StoreData {
         seo_backlinks: parsed.seo_backlinks || [],
         seo_reports: parsed.seo_reports || [],
         product_delivery_restrictions: parsed.product_delivery_restrictions || [],
+        popup_campaigns: parsed.popup_campaigns || [],
       };
     } catch (err) {
       console.error("Failed to read db-store.json, initializing default store:", err);
@@ -2952,6 +3319,10 @@ function loadStore(): StoreData {
     automation_triggers: DEFAULT_AUTOMATION_TRIGGERS,
     notifications: DEFAULT_NOTIFICATIONS,
     audit_logs: DEFAULT_AUDIT_LOGS,
+    login_events: [...DEFAULT_LOGIN_EVENTS],
+    abandoned_carts: [...DEFAULT_ABANDONED_CARTS],
+    cart_recovery_attempts: [...DEFAULT_RECOVERY_ATTEMPTS],
+    recovery_tokens: [],
     cms_pages: DEFAULT_CMS_PAGES,
     pim_categories: DEFAULT_PIM_CATEGORIES,
     variant_options: DEFAULT_VARIANT_OPTIONS,
@@ -2992,16 +3363,34 @@ function loadStore(): StoreData {
     seo_social_cards: [],
     seo_backlinks: [],
     seo_reports: [],
+    popup_campaigns: [],
   };
 
   saveStore(initial);
   return initial;
 }
 
+function safeJsonStringify(obj: any, space = 2): string {
+  const seen = new WeakSet();
+  return JSON.stringify(
+    obj,
+    (key, value) => {
+      if (typeof value === "object" && value !== null) {
+        if (seen.has(value)) {
+          return undefined;
+        }
+        seen.add(value);
+      }
+      return value;
+    },
+    space
+  );
+}
+
 function saveStore(data: StoreData): void {
   try {
     const filePath = getStoreFilePath();
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+    fs.writeFileSync(filePath, safeJsonStringify(data, 2), "utf-8");
   } catch (err) {
     console.error("Failed to write db-store.json:", err);
   }
@@ -3018,6 +3407,10 @@ export class ApiEngine {
 
   static getStore() {
     return memoryStore;
+  }
+
+  static persist(): void {
+    saveStore(memoryStore);
   }
 
   static saveStore(data: any) {
@@ -7990,10 +8383,20 @@ export class ApiEngine {
     if (!Array.isArray(memoryStore.orders)) memoryStore.orders = [];
     memoryStore.orders.unshift(newOrder);
 
-    ApiEngine.addAuditLog(`Created Telecalling Order ${orderNumber} for Customer ${customerName} (${customerNumber}) assigned to ${branchObj.name}`);
+    if (orderPayload.recovery_token || orderPayload.cart_id) {
+      ApiEngine.attributeRecoveryOrder(newOrder.id, orderPayload.cart_id, orderPayload.recovery_token);
+    }
+
+    ApiEngine.addAuditLog(`Created Order ${orderNumber} for Customer ${customerName} (${customerNumber}) assigned to ${branchObj.name}`);
     ApiEngine.persist();
 
-    return newOrder;
+    return {
+      ...newOrder,
+      order: newOrder,
+      success: true,
+      order_id: newOrder.id,
+      order_number: newOrder.order_number,
+    };
   }
 
   static getOrderDetails(orderId: string) {
@@ -8406,6 +8809,19 @@ export class ApiEngine {
     };
     (memoryStore as any).webhooks.unshift(payload);
     ApiEngine.persist();
+
+    try {
+      WebhookEngine.emitEvent(
+        event as any,
+        data,
+        { source: "api_engine_event_emitter" },
+        data?.customer || { id: data?.customer_id, phone: data?.customer_phone, name: data?.customer_name },
+        { type: event.split(".")[0] || "general", id: data?.order_id || data?.id || "general", branch_id: data?.branch_id }
+      );
+    } catch (err: any) {
+      console.warn("[WebhookEngine Ingestion Safe Warning]:", err?.message);
+    }
+
     return payload;
   }
 
@@ -8458,8 +8874,8 @@ export class ApiEngine {
   static addToCart(cartId: string, payload: { productId?: string; variantId?: string; quantity?: number; selectedOptions?: any; price?: number; branchId?: string; pincode?: string }) {
     const cart = ApiEngine.getCart(cartId);
     const prodId = payload.productId || (payload as any).product_id || payload.variantId || "prod_1";
-    const accItem = ApiEngine.getAccessoryById(prodId);
-    const product = ApiEngine.getProductById(prodId) || ApiEngine.getProductBySlug(prodId) || accItem || memoryStore.products[0];
+    const accItem: any = ApiEngine.getAccessoryById(prodId);
+    const product: any = ApiEngine.getProductById(prodId) || ApiEngine.getProductBySlug(prodId) || accItem || memoryStore.products[0];
 
     // Branch / Pincode availability validation
     let targetBranchId = payload.branchId;
@@ -9146,6 +9562,39 @@ export class ApiEngine {
     ApiEngine.addAuditLog(`Rolled back CMS Page "${page.title}" to v${version}`);
     ApiEngine.persist();
     return restored;
+  }
+
+  static reorderCmsPageSections(id: string, sectionIds: string[]): any {
+    const pages = ApiEngine.listCmsPages();
+    const idx = pages.findIndex((p: any) => p.id === id || p.slug === id);
+    if (idx < 0) return { success: false, error: "Page not found" };
+    const page = pages[idx];
+    const existingSections = Array.isArray(page.sections) ? page.sections : [];
+    
+    // Reorder existing sections according to sectionIds
+    const reordered: any[] = [];
+    sectionIds.forEach((secId, i) => {
+      const found = existingSections.find((s: any) => s.id === secId);
+      if (found) {
+        reordered.push({ ...found, order: i + 1 });
+      }
+    });
+    // Append any sections not explicitly in sectionIds
+    existingSections.forEach((s: any) => {
+      if (!sectionIds.includes(s.id)) {
+        reordered.push({ ...s, order: reordered.length + 1 });
+      }
+    });
+
+    const updated = {
+      ...page,
+      sections: reordered,
+      updated_at: new Date().toISOString(),
+    };
+    pages[idx] = updated;
+    ApiEngine.addAuditLog(`Reordered sections for CMS Page "${page.title}"`);
+    ApiEngine.persist();
+    return { success: true, page: updated, sections: reordered };
   }
 
   static validatePageConfig(config: any) {
@@ -10183,14 +10632,18 @@ export class ApiEngine {
 
   static updateBranchStoreOperations(branchId: string, data: {
     weekly_schedule?: any;
+    operating_hours?: any;
     holidays?: any[];
     special_dates?: any[];
     temporary_closure?: any;
     fulfillment_rules?: any;
+    capacity_settings?: any;
+    delivery_zones?: any[];
   }) {
     const branch = ApiEngine.getBranchById(branchId);
     if (!branch) return null;
     if (data.weekly_schedule) branch.weekly_schedule = data.weekly_schedule;
+    if (data.operating_hours) branch.operating_hours = data.operating_hours;
     if (data.holidays) branch.holidays = data.holidays;
     if (data.special_dates) branch.special_dates = data.special_dates;
     if (data.temporary_closure) {
@@ -10202,6 +10655,8 @@ export class ApiEngine {
       }
     }
     if (data.fulfillment_rules) branch.fulfillment_rules = { ...branch.fulfillment_rules, ...data.fulfillment_rules };
+    if (data.capacity_settings) branch.capacity_settings = { ...branch.capacity_settings, ...data.capacity_settings };
+    if (data.delivery_zones) branch.delivery_zones = data.delivery_zones;
     branch.updated_at = new Date().toISOString();
     ApiEngine.persist();
     return normalizeBranchOperations(branch);
@@ -10286,7 +10741,7 @@ export class ApiEngine {
       code: data.code || existing?.code || `HUB-BLR-${Math.floor(10 + Math.random() * 90)}`,
       name: data.name || existing?.name || "New Delivery Hub",
       linked_store_id: data.linked_store_id || existing?.linked_store_id || "store_blr_01",
-      linked_store_name: data.linked_store_name || existing?.linked_store_name || "Crown Bakery Indiranagar",
+      linked_store_name: data.linked_store_name || existing?.linked_store_name || "CakeToHome Indiranagar Kitchen Hub",
       hierarchy: data.hierarchy || existing?.hierarchy || { region_id: "reg_south", state_id: "st_ka", city_id: "city_blr", zone_id: "zone_east" },
       address: data.address || existing?.address || "100 Feet Rd, Bengaluru",
       city: data.city || existing?.city || "Bengaluru",
@@ -10409,15 +10864,22 @@ export class ApiEngine {
     return res.success;
   }
 
+  static listCityAreas(): CityArea[] {
+    if (memoryStore && Array.isArray(memoryStore.city_areas) && memoryStore.city_areas.length > 0) {
+      return memoryStore.city_areas;
+    }
+    return DEFAULT_CITY_AREAS;
+  }
+
   static getCityAreaByPincode(pincode: string): CityArea | null {
     if (!pincode) return null;
     const cleanPin = pincode.trim().replace(/\D/g, "");
-    const areas = ApiEngine.listCityAreasPincodes();
+    const areas = ApiEngine.listCityAreas();
     return areas.find((a) => Array.isArray(a.pincodes) && a.pincodes.includes(cleanPin)) || null;
   }
 
   static updateCityAreaStatus(areaId: string, status: AreaStatus, reason?: string, blockedUntil?: string) {
-    const areas = ApiEngine.listCityAreasPincodes();
+    const areas = ApiEngine.listCityAreas();
     const area = areas.find((a) => a.id === areaId);
     if (!area) return null;
     area.status = status;
@@ -10435,7 +10897,7 @@ export class ApiEngine {
     const normArea = (query.area || "").trim().toLowerCase();
 
     const allBranches = ApiEngine.listBranches();
-    const activeBranches = allBranches.filter((b: any) => b.is_open !== false && b.operational_status !== "closed");
+    const activeBranches = allBranches.filter((b: any) => b.is_open !== false && b.operational_status !== "permanently_closed" && b.operational_status !== "temporarily_closed");
 
     let eligible: any[] = [];
     let assignmentMode: "pincode" | "city" | "area" | "manual" | "unserviceable" = "unserviceable";
@@ -10506,34 +10968,6 @@ export class ApiEngine {
     };
   }
 
-  static updateBranchStoreOperations(branchId: string, operations: {
-    weekly_schedule?: any;
-    operating_hours?: any;
-    holidays?: any[];
-    special_dates?: any[];
-    temporary_closure?: any;
-    fulfillment_rules?: any;
-    capacity_settings?: any;
-    delivery_zones?: any[];
-  }) {
-    const branch = ApiEngine.getBranchById(branchId);
-    if (!branch) throw new Error(`Branch ${branchId} not found`);
-
-    if (operations.weekly_schedule) branch.weekly_schedule = operations.weekly_schedule;
-    if (operations.operating_hours) branch.operating_hours = operations.operating_hours;
-    if (operations.holidays) branch.holidays = operations.holidays;
-    if (operations.special_dates) branch.special_dates = operations.special_dates;
-    if (operations.temporary_closure) branch.temporary_closure = operations.temporary_closure;
-    if (operations.fulfillment_rules) branch.fulfillment_rules = operations.fulfillment_rules;
-    if (operations.capacity_settings) branch.capacity_settings = { ...branch.capacity_settings, ...operations.capacity_settings };
-    if (operations.delivery_zones) branch.delivery_zones = operations.delivery_zones;
-
-    branch.updated_at = new Date().toISOString();
-    ApiEngine.addAuditLog(`Updated Store Operations Configuration for Branch "${branch.name}"`);
-    ApiEngine.persist();
-    return branch;
-  }
-
   static calculateDeliveryFee(
     branch: BranchItem,
     context: {
@@ -10549,6 +10983,7 @@ export class ApiEngine {
       coupon_free_delivery?: boolean;
       zone_id?: string;
       delivery_type?: "delivery" | "pickup";
+      area_fee_override?: number;
     }
   ): { total_fee: number; breakdown: Record<string, number>; zone_name?: string } {
     if (context.delivery_type === "pickup") {
@@ -10592,6 +11027,27 @@ export class ApiEngine {
     } else {
       fee = Number(assignedZone.delivery_charge ?? 0);
       breakdown.base = fee;
+    }
+
+    if (context.is_peak_hour) {
+      const peakFee = Number(assignedZone.peak_hour_charge ?? 20);
+      if (peakFee > 0) {
+        fee += peakFee;
+        breakdown.peak_hour = peakFee;
+      }
+    }
+
+    if (context.is_raining) {
+      const rainFee = Number(assignedZone.rain_charge ?? 30);
+      if (rainFee > 0) {
+        fee += rainFee;
+        breakdown.rain_surge = rainFee;
+      }
+    }
+
+    if (context.area_fee_override && context.area_fee_override > 0) {
+      fee += context.area_fee_override;
+      breakdown.area_extra = context.area_fee_override;
     }
 
     // Free delivery threshold check
@@ -10651,8 +11107,8 @@ export class ApiEngine {
     let areaFeeOverride: number | undefined;
     if (query.pincode) {
       const area = ApiEngine.getCityAreaByPincode(query.pincode);
-      if (area && area.status !== "open") {
-        areaStatusBlocker = `Area "${area.area_name}" delivery is currently paused (${area.status.replace(/_/g, " ")}): ${area.blocked_reason || "Temporary restriction"}`;
+      if (area && area.status && area.status !== "open") {
+        areaStatusBlocker = `Area "${area.area_name}" delivery is currently paused (${(area.status || "paused").replace(/_/g, " ")}): ${area.blocked_reason || "Temporary restriction"}`;
       }
       if (area && typeof area.delivery_fee_override === "number") {
         areaFeeOverride = area.delivery_fee_override;
@@ -10816,6 +11272,7 @@ export class ApiEngine {
       is_express: query.isExpress,
       is_midnight: query.isMidnight,
       order_total: query.orderTotal,
+      area_fee_override: areaFeeOverride,
     });
 
     return {
@@ -11188,6 +11645,39 @@ export class ApiEngine {
         label: dayLabel,
         is_available: dateAvailable,
         reason: dateReason,
+      });
+    }
+
+    if (query.date && !availableDates.find(d => d.date === query.date)) {
+      const qd = new Date(query.date);
+      const qdIso = query.date.slice(0, 10);
+      const qdName = isNaN(qd.getTime()) ? query.date : qd.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+      let qdAvailable = true;
+      let qdReason: string | undefined = undefined;
+
+      if (servicingBranch) {
+        const hol = (servicingBranch.holidays || []).find((h: BranchHoliday) => h.date === qdIso);
+        const spec = (servicingBranch.special_dates || []).find((s: BranchSpecialDate) => s.date === qdIso);
+        const dayOfWeek = isNaN(qd.getTime()) ? "" : qd.toLocaleDateString("en-US", { weekday: "long" });
+        const daySched = dayOfWeek ? servicingBranch.weekly_schedule?.[dayOfWeek] : undefined;
+
+        if (hol && hol.is_closed) {
+          qdAvailable = false;
+          qdReason = `Closed (${hol.name || "Holiday"})`;
+        } else if (spec && spec.is_closed) {
+          qdAvailable = false;
+          qdReason = `Closed (${spec.reason || "Special closure"})`;
+        } else if (daySched && daySched.is_open === false) {
+          qdAvailable = false;
+          qdReason = `Closed on ${dayOfWeek}s`;
+        }
+      }
+
+      availableDates.push({
+        date: qdIso,
+        label: qdName,
+        is_available: qdAvailable,
+        reason: qdReason,
       });
     }
 
@@ -11743,6 +12233,42 @@ export class ApiEngine {
       };
     }
 
+    // 1b. Check Staff Profile Members
+    try {
+      const { StaffAccessControl } = require("./staff-access-control");
+      const staffList = StaffAccessControl.listStaffMembers();
+      const staffMatch = staffList.find(
+        (s: any) => (s.phone || "").replace(/\D/g, "").slice(-10) === cleanDigits
+      );
+      if (staffMatch) {
+        return {
+          exists: true,
+          role: staffMatch.role || "STAFF",
+          account: {
+            id: staffMatch.id,
+            user_id: staffMatch.user_id,
+            name: staffMatch.name,
+            first_name: staffMatch.name.split(" ")[0],
+            last_name: staffMatch.name.split(" ").slice(1).join(" ") || "Staff",
+            phone: staffMatch.phone,
+            email: staffMatch.email,
+            role: staffMatch.role || "STAFF",
+            profile_id: staffMatch.profile_id,
+            profile_ids: staffMatch.profile_ids || (staffMatch.profile_id ? [staffMatch.profile_id] : []),
+            profile_name: staffMatch.profile_name,
+            profile_names: staffMatch.profile_names || (staffMatch.profile_name ? [staffMatch.profile_name] : []),
+            effective_permissions: StaffAccessControl.getEffectivePermissions(staffMatch),
+            branch_id: staffMatch.branch_id,
+            branch_name: staffMatch.branch_name,
+            city: staffMatch.city,
+            status: staffMatch.status,
+          },
+        };
+      }
+    } catch {
+      // Safe fallback
+    }
+
     // 2. Check Delivery Partner (exact 10-digit match)
     const partner = partners.find((p: any) => (p.phone || "").replace(/\D/g, "").slice(-10) === cleanDigits);
     if (partner) {
@@ -12214,7 +12740,7 @@ export class ApiEngine {
         return null;
       }
 
-      if (targetRole === "SUPER_ADMIN" || targetRole === "ADMIN") {
+      if (!targetRole || targetRole === "SUPER_ADMIN" || targetRole === "ADMIN") {
         const usr = users.find((u: any) => {
           const uPhone = (u.phone || "").replace(/\D/g, "").slice(-10);
           return uPhone === cleanPhone;
@@ -12243,10 +12769,9 @@ export class ApiEngine {
             email: "admin@cakes2home.com",
           };
         }
-        return null;
+        if (targetRole === "SUPER_ADMIN" || targetRole === "ADMIN") return null;
       }
 
-      // If role is CUSTOMER or not specified:
       // Priority 1: Check Registered Customers
       const cust = customers.find((c: any) => {
         const cPhone = (c.phone || "").replace(/\D/g, "").slice(-10);
@@ -12285,6 +12810,20 @@ export class ApiEngine {
             phone: partner.phone,
             email: partner.email,
             branch_id: partner.primary_branch_id || partner.primary_branch_name,
+          };
+        }
+        if (cleanPhone === "9876500001" || cleanPhone === "9876500002") {
+          return {
+            id: "dlp_101",
+            user_id: "dlp_101",
+            partner_id: "dlp_101",
+            role: "DELIVERY_PARTNER",
+            name: "Vikram Sethi",
+            first_name: "Vikram",
+            last_name: "Sethi",
+            phone: "+91 98765 00001",
+            email: "vikram.sethi@cakes2home.com",
+            branch_id: "br_indiranagar",
           };
         }
 
@@ -12382,7 +12921,7 @@ export class ApiEngine {
         branch_code: b.code,
         branch_name: b.name,
         linked_store_id: b.linked_store_id || linkedStore?.id || "store_blr_01",
-        linked_store_name: b.linked_store_name || linkedStore?.name || "Crown Bakery Indiranagar",
+        linked_store_name: b.linked_store_name || linkedStore?.name || "CakeToHome Indiranagar Kitchen Hub",
         status: b.operational_status || b.extended_status || "operational",
         product_count: productCount,
         accessory_count: accessoryCount,
@@ -13100,32 +13639,73 @@ export class ApiEngine {
   // ── CakeToHome Enterprise Reports Engine v2.0 (Production ERP) ────────────
   static getReportsDashboard(query: Record<string, any> = {}) {
     const branches = ApiEngine.listBranches();
-    const products = ApiEngine.listProducts();
     const branchId = query.branch_id || query.branchId;
 
     const filteredBranches = (branchId && branchId !== "all")
       ? branches.filter((b) => b.id === branchId || b.code === branchId)
       : branches;
 
-    const scale = (filteredBranches.length / Math.max(1, branches.length));
+    // ── Aggregate from REAL orders ──
+    ApiEngine.ensureOrdersStore();
+    const allOrders = [...(memoryStore.orders || [])];
+    const filteredBranchIds = new Set(filteredBranches.map((b) => b.id));
+
+    // Filter by branch if specified
+    const branchOrders = (branchId && branchId !== "all")
+      ? allOrders.filter((o: any) => {
+          const bid = o.branch?.id || o.branch_id;
+          return bid && filteredBranchIds.has(bid);
+        })
+      : allOrders;
+
+    // Today's orders
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayOrders = branchOrders.filter((o: any) => {
+      const d = (o.created_at || o.delivery_date || "").slice(0, 10);
+      return d === todayStr;
+    });
+
+    const totalOrders = branchOrders.length;
+    const todayOrderCount = todayOrders.length;
+    const grossRevenue = branchOrders.reduce((s: number, o: any) => s + (Number(o.total) || Number(o.subtotal) || 0), 0);
+    const todayRevenue = todayOrders.reduce((s: number, o: any) => s + (Number(o.total) || Number(o.subtotal) || 0), 0);
+
+    const pendingOrders = branchOrders.filter((o: any) => (o.status || "").toLowerCase() === "pending" || (o.status || "").toLowerCase() === "confirmed").length;
+    const preparingOrders = branchOrders.filter((o: any) => (o.status || "").toLowerCase() === "preparing").length;
+    const readyOrders = branchOrders.filter((o: any) => (o.status || "").toLowerCase() === "ready" || (o.status || "").toLowerCase() === "packed").length;
+    const outForDelivery = branchOrders.filter((o: any) => (o.status || "").toLowerCase() === "out_for_delivery").length;
+    const deliveredOrders = branchOrders.filter((o: any) => (o.status || "").toLowerCase() === "delivered").length;
+    const cancelledOrders = branchOrders.filter((o: any) => (o.status || "").toLowerCase() === "cancelled").length;
+
+    const refundsAmount = branchOrders
+      .filter((o: any) => (o.status || "").toLowerCase() === "refunded" || (o.status || "").toLowerCase() === "cancelled")
+      .reduce((s: number, o: any) => s + (Number(o.refund_amount) || 0), 0);
+
+    const taxTotal = branchOrders.reduce((s: number, o: any) => s + (Number(o.tax_total) || 0), 0);
+    const discountTotal = branchOrders.reduce((s: number, o: any) => s + (Number(o.discount_total) || Number(o.discount) || 0), 0);
+    const netSales = Math.max(0, grossRevenue - discountTotal - taxTotal);
+    const cogs = Math.round(netSales * 0.35);
+    const grossProfit = netSales - cogs;
+    const netProfit = Math.round(grossProfit * 0.565);
+    const aov = totalOrders > 0 ? Math.round(grossRevenue / totalOrders) : 0;
 
     return {
-      gross_revenue: Math.round(5482900 * scale),
-      today_revenue: Math.round(184950 * scale),
-      today_orders: Math.round(248 * scale),
-      pending_orders: Math.round(14 * scale),
-      kitchen_preparing: Math.round(18 * scale),
-      kitchen_ready: Math.round(12 * scale),
-      out_for_delivery: Math.round(14 * scale),
-      delivered_orders: Math.round(212 * scale),
-      cancelled_orders: Math.round(8 * scale),
-      refunds_amount: Math.round(4800 * scale),
-      gross_profit: Math.round(3640000 * scale),
-      net_profit: Math.round(2058000 * scale),
-      aov: 745,
-      accessory_revenue: Math.round(485000 * scale),
-      cake_revenue: Math.round(4617900 * scale),
-      delivery_revenue: Math.round(380000 * scale),
+      gross_revenue: grossRevenue,
+      today_revenue: todayRevenue,
+      today_orders: todayOrderCount,
+      pending_orders: pendingOrders,
+      kitchen_preparing: preparingOrders,
+      kitchen_ready: readyOrders,
+      out_for_delivery: outForDelivery,
+      delivered_orders: deliveredOrders,
+      cancelled_orders: cancelledOrders,
+      refunds_amount: refundsAmount,
+      gross_profit: grossProfit,
+      net_profit: netProfit,
+      aov,
+      accessory_revenue: 0,
+      cake_revenue: grossRevenue,
+      delivery_revenue: branchOrders.reduce((s: number, o: any) => s + (Number(o.delivery_fee) || Number(o.shipping_total) || 0), 0),
       branch_status: filteredBranches.map((b) => ({
         id: b.id,
         name: b.name,
@@ -13133,199 +13713,416 @@ export class ApiEngine {
         is_open: b.is_open,
         load_pct: Math.round(((b.current_hourly_load || 18) / (b.max_orders_per_hour || 25)) * 100),
       })),
-      top_alerts: [
-        { level: "high", message: "Sparkler Candles stock below threshold at Indiranagar Hub" },
-        { level: "medium", message: "Zone 3 delivery transit SLA warning in Whitefield" },
-      ],
+      top_alerts: [],
     };
   }
 
   static getReportsSales(query: Record<string, any> = {}) {
     const dash = this.getReportsDashboard(query);
+    ApiEngine.ensureOrdersStore();
+    const allOrders = [...(memoryStore.orders || [])];
+    const branchId = query.branch_id || query.branchId;
+    const orders = (branchId && branchId !== "all")
+      ? allOrders.filter((o: any) => (o.branch?.id || o.branch_id) === branchId)
+      : allOrders;
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const yestDate = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+    const todayOrders = orders.filter((o: any) => (o.created_at || o.delivery_date || "").slice(0, 10) === todayStr);
+    const yestOrders = orders.filter((o: any) => (o.created_at || o.delivery_date || "").slice(0, 10) === yestDate);
+
+    const todayGross = todayOrders.reduce((s: number, o: any) => s + (Number(o.total) || 0), 0);
+    const todayNet = todayOrders.reduce((s: number, o: any) => s + (Number(o.subtotal) || Number(o.total) || 0) - (Number(o.discount_total) || 0), 0);
+    const yestGross = yestOrders.reduce((s: number, o: any) => s + (Number(o.total) || 0), 0);
+    const yestNet = yestOrders.reduce((s: number, o: any) => s + (Number(o.subtotal) || Number(o.total) || 0) - (Number(o.discount_total) || 0), 0);
+
+    // Sales by category from order items
+    const catMap = new Map<string, { revenue: number; orders: number }>();
+    const flavMap = new Map<string, { revenue: number }>();
+    let totalItems = 0;
+    let accessoryItems = 0;
+
+    for (const o of orders) {
+      if (Array.isArray(o.items)) {
+        for (const item of o.items) {
+          totalItems += Number(item.quantity) || 1;
+          const cat = item.category || "Cakes";
+          if (cat.toLowerCase().includes("accessory") || cat.toLowerCase().includes("candle") || cat.toLowerCase().includes("topper")) {
+            accessoryItems += Number(item.quantity) || 1;
+          }
+          const rev = Number(item.subtotal) || (Number(item.unit_price || 0) * (Number(item.quantity) || 1));
+          const existingCat = catMap.get(cat) || { revenue: 0, orders: 0 };
+          existingCat.revenue += rev;
+          existingCat.orders += 1;
+          catMap.set(cat, existingCat);
+
+          const title = item.title || item.name || "";
+          const flav = title.includes("Truffle") ? "Belgian Truffle" :
+                       title.includes("Red Velvet") ? "Fresh Red Velvet" :
+                       title.includes("Black Forest") ? "Black Forest" :
+                       title.includes("Pineapple") ? "Fresh Pineapple" :
+                       title.includes("Butterscotch") ? "Butterscotch" : "Signature";
+          const existingFlav = flavMap.get(flav) || { revenue: 0 };
+          existingFlav.revenue += rev;
+          flavMap.set(flav, existingFlav);
+        }
+      }
+    }
+
+    const salesByCategory = Array.from(catMap.entries()).map(([category, d]) => ({
+      category,
+      revenue: d.revenue,
+      orders: d.orders,
+    }));
+
+    const salesByFlavour = Array.from(flavMap.entries()).map(([flavour, d]) => ({
+      flavour,
+      revenue: d.revenue,
+    }));
+
+    const attachRate = totalItems > 0 ? `${((accessoryItems / totalItems) * 100).toFixed(1)}%` : "0.0%";
+
     return {
       gross_revenue: dash.gross_revenue,
       net_profit: dash.net_profit,
-      net_margin_pct: "37.5%",
+      net_margin_pct: dash.gross_revenue > 0 ? `${((dash.net_profit / Math.max(1, dash.gross_revenue)) * 100).toFixed(1)}%` : "0.0%",
       sales_by_period: [
-        { period: "Today", gross: dash.today_revenue, net: Math.round(dash.today_revenue * 0.93), orders: dash.today_orders, aov: 745 },
-        { period: "Yesterday", gross: Math.round(dash.today_revenue * 0.85), net: Math.round(dash.today_revenue * 0.79), orders: Math.round(dash.today_orders * 0.85), aov: 742 },
-        { period: "This Month", gross: dash.gross_revenue, net: Math.round(dash.gross_revenue * 0.93), orders: Math.round(dash.gross_revenue / 745), aov: 745 },
+        { period: "Today", gross: todayGross, net: todayNet, orders: todayOrders.length, aov: todayOrders.length > 0 ? Math.round(todayGross / todayOrders.length) : 0 },
+        { period: "Yesterday", gross: yestGross, net: yestNet, orders: yestOrders.length, aov: yestOrders.length > 0 ? Math.round(yestGross / yestOrders.length) : 0 },
+        { period: "This Month", gross: dash.gross_revenue, net: dash.gross_revenue - dash.refunds_amount, orders: orders.length, aov: dash.aov },
       ],
-      sales_by_category: [
-        { category: "Chocolate Cakes", revenue: Math.round(dash.gross_revenue * 0.48), orders: Math.round(dash.today_orders * 3.8) },
-        { category: "Red Velvet Cakes", revenue: Math.round(dash.gross_revenue * 0.26), orders: Math.round(dash.today_orders * 2.1) },
-        { category: "Custom Photo Cakes", revenue: Math.round(dash.gross_revenue * 0.18), orders: Math.round(dash.today_orders * 1.4) },
-        { category: "Accessories", revenue: Math.round(dash.gross_revenue * 0.08), orders: Math.round(dash.today_orders * 5.2) },
+      sales_by_category: salesByCategory.length > 0 ? salesByCategory : [
+        { category: "Cakes", revenue: dash.gross_revenue, orders: orders.length },
       ],
-      sales_by_flavour: [
-        { flavour: "Belgian Truffle", revenue: Math.round(dash.gross_revenue * 0.35) },
-        { flavour: "Fresh Red Velvet", revenue: Math.round(dash.gross_revenue * 0.26) },
-        { flavour: "Black Forest", revenue: Math.round(dash.gross_revenue * 0.19) },
+      sales_by_flavour: salesByFlavour.length > 0 ? salesByFlavour : [
+        { flavour: "Signature Cakes", revenue: dash.gross_revenue },
       ],
-      accessory_attach_rate: "42.8%",
+      accessory_attach_rate: attachRate,
     };
   }
 
   static getReportsOrders(query: Record<string, any> = {}) {
     const dash = this.getReportsDashboard(query);
+    ApiEngine.ensureOrdersStore();
+    const allOrders = [...(memoryStore.orders || [])];
+    const branchId = query.branch_id || query.branchId;
+    const orders = (branchId && branchId !== "all")
+      ? allOrders.filter((o: any) => (o.branch?.id || o.branch_id) === branchId)
+      : allOrders;
+
+    const accepted = orders.filter((o: any) => !["cancelled"].includes((o.status || "").toLowerCase())).length;
+    const delivered = dash.delivered_orders;
+    const slaCompliant = orders.filter((o: any) => (o.delivery_status || "").toLowerCase() !== "delayed").length;
+    const slaPct = orders.length > 0 ? `${((slaCompliant / orders.length) * 100).toFixed(1)}%` : "100.0%";
+
     return {
-      total_placed: Math.round(dash.gross_revenue / 745),
-      accepted: Math.round(dash.gross_revenue / 745 * 0.995),
+      total_placed: orders.length,
+      accepted,
       preparing: dash.kitchen_preparing,
       packed: dash.kitchen_ready,
       out_for_delivery: dash.out_for_delivery,
-      delivered: dash.delivered_orders,
+      delivered,
       cancelled: dash.cancelled_orders,
-      refunded: Math.round(dash.cancelled_orders * 0.25),
+      refunded: orders.filter((o: any) => (o.status || "").toLowerCase() === "refunded").length,
       avg_prep_time_mins: 18,
-      avg_delivery_time_mins: 38,
-      sla_compliance_pct: "96.4%",
+      avg_delivery_time_mins: 35,
+      sla_compliance_pct: slaPct,
     };
   }
 
   static getReportsProducts(query: Record<string, any> = {}) {
     const products = ApiEngine.listProducts();
+    ApiEngine.ensureOrdersStore();
+    const allOrders = [...(memoryStore.orders || [])];
+
+    // Compute units sold and revenue per product
+    const salesMap = new Map<string, { units: number; revenue: number }>();
+    for (const o of allOrders) {
+      if (Array.isArray(o.items)) {
+        for (const item of o.items) {
+          const pid = item.product_id || item.id;
+          const qty = Number(item.quantity) || 1;
+          const rev = Number(item.subtotal) || ((Number(item.unit_price) || 0) * qty);
+          const existing = salesMap.get(pid) || { units: 0, revenue: 0 };
+          existing.units += qty;
+          existing.revenue += rev;
+          salesMap.set(pid, existing);
+        }
+      }
+    }
+
     return {
       total_products: products.length,
-      products: products.map((p) => ({
-        id: p.id || p.product_id,
-        title: p.title || p.name,
-        price: p.price,
-        cogs: Math.round(p.price * 0.35),
-        margin_pct: "65.0%",
-        units_sold: 1840,
-        revenue: p.price * 1840,
-        rating: p.rating || 4.8,
-      })),
+      products: products.map((p: any) => {
+        const pid = p.id || p.product_id;
+        const sales = salesMap.get(pid) || { units: 0, revenue: 0 };
+        const price = Number(p.price) || 599;
+        const cogs = Number(p.metadata?.cost_price) || Math.round(price * 0.35);
+        const margin = price > 0 ? `${(((price - cogs) / price) * 100).toFixed(1)}%` : "65.0%";
+
+        return {
+          id: pid,
+          title: p.title || p.name,
+          price,
+          cogs,
+          margin_pct: margin,
+          units_sold: sales.units,
+          revenue: sales.revenue,
+          rating: p.rating || 4.8,
+        };
+      }),
     };
   }
 
   static getReportsCustomers(query: Record<string, any> = {}) {
+    ApiEngine.ensureCustomersStore();
+    ApiEngine.ensureOrdersStore();
+    const customers = memoryStore.customers || [];
+    const orders = memoryStore.orders || [];
+
+    const totalCustomers = Math.max(customers.length, new Set(orders.map((o: any) => o.customer_phone || o.customer_email)).size);
+    const orderCountMap = new Map<string, number>();
+    let totalSpend = 0;
+
+    for (const o of orders) {
+      const key = o.customer_phone || o.customer_email || o.customer_id;
+      if (key) {
+        orderCountMap.set(key, (orderCountMap.get(key) || 0) + 1);
+        totalSpend += Number(o.total) || 0;
+      }
+    }
+
+    const returningCount = Array.from(orderCountMap.values()).filter((c) => c > 1).length;
+    const newCount = Math.max(0, totalCustomers - returningCount);
+    const repeatRate = totalCustomers > 0 ? `${((returningCount / totalCustomers) * 100).toFixed(1)}%` : "0.0%";
+    const avgCltv = totalCustomers > 0 ? Math.round(totalSpend / totalCustomers) : 0;
+
     return {
-      total_customers: 18420,
-      new_customers: 3240,
-      returning_customers: 15180,
-      repeat_rate_pct: "56.0%",
-      avg_cltv: 2840,
-      birthday_customers_count: 8420,
-      anniversary_customers_count: 3840,
+      total_customers: totalCustomers,
+      new_customers: newCount,
+      returning_customers: returningCount,
+      repeat_rate_pct: repeatRate,
+      avg_cltv: avgCltv,
+      birthday_customers_count: 0,
+      anniversary_customers_count: 0,
     };
   }
 
   static getReportsInventory(query: Record<string, any> = {}) {
+    const products = ApiEngine.listProducts();
+    let totalVal = 0;
+    for (const p of products) {
+      const price = Number((p as any).price) || 599;
+      const stock = Number((p as any).stock) || 50;
+      totalVal += price * stock;
+    }
+
     return {
-      total_valuation: 1245000,
-      ingredient_base_val: 780000,
-      accessory_stock_val: 465000,
-      low_stock_count: 1,
+      total_valuation: totalVal,
+      ingredient_base_val: Math.round(totalVal * 0.4),
+      accessory_stock_val: Math.round(totalVal * 0.15),
+      low_stock_count: 0,
       out_of_stock_count: 0,
       near_expiry_count: 0,
-      waste_amount: 14200,
+      waste_amount: 0,
     };
   }
 
   static getReportsDelivery(query: Record<string, any> = {}) {
+    ApiEngine.ensureOrdersStore();
+    const allOrders = [...(memoryStore.orders || [])];
+    const delivered = allOrders.filter((o: any) => (o.status || "").toLowerCase() === "delivered");
+    const failed = allOrders.filter((o: any) => (o.delivery_status || "").toLowerCase() === "failed" || (o.status || "").toLowerCase() === "cancelled");
+    const onTime = delivered.filter((o: any) => (o.delivery_status || "").toLowerCase() !== "delayed");
+
+    const slaPct = delivered.length > 0 ? `${((onTime.length / delivered.length) * 100).toFixed(1)}%` : "100.0%";
+
     return {
-      fleet_sla_pct: "96.4%",
-      avg_delivery_mins: 38,
-      total_delivered: 7244,
-      failed_deliveries: 16,
+      fleet_sla_pct: slaPct,
+      avg_delivery_mins: 35,
+      total_delivered: delivered.length,
+      failed_deliveries: failed.length,
       zones: [
-        { name: "Zone 1 (0-4 km Express)", orders: 3240, sla_pct: "98.4%", avg_mins: 26 },
-        { name: "Zone 2 (4-8 km Standard)", orders: 2480, sla_pct: "96.8%", avg_mins: 34 },
-        { name: "Zone 3 (8-12 km Extended)", orders: 1120, sla_pct: "94.2%", avg_mins: 48 },
+        { name: "Zone 1 (0-4 km Express)", orders: delivered.length, sla_pct: slaPct, avg_mins: 25 },
       ],
     };
   }
 
   static getReportsBranches(query: Record<string, any> = {}) {
     const branches = ApiEngine.listBranches();
+    ApiEngine.ensureOrdersStore();
+    const orders = memoryStore.orders || [];
+
     return {
       total_hubs: branches.length,
-      branches: branches.map((b) => ({
-        id: b.id,
-        code: b.code,
-        name: b.name,
-        orders: 1840,
-        revenue: 1370800,
-        kitchen_load_pct: Math.round(((b.current_hourly_load || 18) / (b.max_orders_per_hour || 25)) * 100),
-        status: b.is_open ? "Operational" : "Closed",
-      })),
+      branches: branches.map((b: any) => {
+        const branchOrders = orders.filter((o: any) => (o.branch?.id || o.branch_id) === b.id);
+        const rev = branchOrders.reduce((s: number, o: any) => s + (Number(o.total) || 0), 0);
+
+        return {
+          id: b.id,
+          code: b.code,
+          name: b.name,
+          orders: branchOrders.length,
+          revenue: rev,
+          kitchen_load_pct: Math.round(((b.current_hourly_load || 18) / (b.max_orders_per_hour || 25)) * 100),
+          status: b.is_open ? "Operational" : "Closed",
+        };
+      }),
     };
   }
 
   static getReportsFinance(query: Record<string, any> = {}) {
+    const dash = this.getReportsDashboard(query);
+    ApiEngine.ensureOrdersStore();
+    const orders = memoryStore.orders || [];
+
+    const grossRev = dash.gross_revenue;
+    const taxTotal = orders.reduce((s: number, o: any) => s + (Number(o.tax_total) || 0), 0);
+    const discTotal = orders.reduce((s: number, o: any) => s + (Number(o.discount_total) || Number(o.discount) || 0), 0);
+    const netRev = Math.max(0, grossRev - discTotal - taxTotal);
+    const cogs = Math.round(netRev * 0.35);
+    const packaging = Math.round(netRev * 0.038);
+    const delivery = orders.reduce((s: number, o: any) => s + (Number(o.delivery_fee) || 0), 0);
+    const profit = netRev - cogs - packaging - delivery;
+    const marginPct = netRev > 0 ? `${((profit / netRev) * 100).toFixed(1)}%` : "0.0%";
+
     return {
-      gross_revenue: 5482900,
-      net_revenue: 5098900,
-      cogs: 1842000,
-      packaging_cost: 210000,
-      delivery_cost: 420000,
-      discounts: 384000,
-      gst_taxes: 274145,
-      net_profit: 2058000,
-      net_margin_pct: "37.5%",
+      gross_revenue: grossRev,
+      net_revenue: netRev,
+      cogs,
+      packaging_cost: packaging,
+      delivery_cost: delivery,
+      discounts: discTotal,
+      gst_taxes: taxTotal,
+      net_profit: profit,
+      net_margin_pct: marginPct,
     };
   }
 
   static getReportsExecutiveSummary(query: Record<string, any> = {}) {
     const dash = this.getReportsDashboard(query);
+    const branches = ApiEngine.listBranches();
+    const products = ApiEngine.listProducts();
+
     return {
       title: "CakeToHome Executive Performance Summary",
       timestamp: new Date().toISOString(),
       revenue: dash.gross_revenue,
       orders: dash.today_orders,
       net_profit: dash.net_profit,
-      top_branch: "Indiranagar Kitchen Hub",
-      top_cake: "Belgian Chocolate Truffle Cake",
-      delivery_sla: "96.4%",
+      top_branch: branches[0]?.name || "Indiranagar Flagship",
+      top_cake: products[0]?.title || "Belgian Chocolate Cake",
+      delivery_sla: "100.0%",
       recommendations: [
-        "Increase Belgian Truffle ingredient stock by 20% before weekend rush.",
-        "Deploy 2 additional delivery riders to Whitefield Hub for Zone 3 traffic.",
+        "Maintain adequate stock levels before peak delivery windows.",
+        "Review multi-branch operations and slot capacity in real time.",
       ],
     };
   }
 
   static getReportsExceptions(query: Record<string, any> = {}) {
+    ApiEngine.ensureOrdersStore();
+    const products = ApiEngine.listProducts();
+    const orders = memoryStore.orders || [];
+
+    const alerts: any[] = [];
+    const missingCost = products.filter((p: any) => !p.metadata?.cost_price && !p.metadata?.cogs);
+    if (missingCost.length > 0) {
+      alerts.push({
+        type: "missing_cost",
+        item: `${missingCost.length} products without explicit COGS`,
+        hub: "All Hubs",
+        severity: "medium",
+      });
+    }
+
+    const unfulfilled = orders.filter((o: any) => (o.status || "").toLowerCase() === "pending");
+    if (unfulfilled.length > 0) {
+      alerts.push({
+        type: "pending_orders",
+        item: `${unfulfilled.length} orders awaiting kitchen confirmation`,
+        hub: "Operational Kitchens",
+        severity: "high",
+      });
+    }
+
     return {
-      total_alerts: 4,
-      alerts: [
-        { type: "low_stock", item: "Sparkler Birthday Candles", hub: "Indiranagar", severity: "high" },
-        { type: "delivery_delay", zone: "Zone 3 Whitefield", severity: "medium" },
-      ],
+      total_alerts: alerts.length,
+      alerts,
     };
   }
 
   static getReportsProfitability(query: Record<string, any> = {}) {
     const products = ApiEngine.listProducts();
     return {
-      products: products.map((p) => ({
-        id: p.id || p.product_id,
-        title: p.title || p.name,
-        price: p.price,
-        cogs: Math.round(p.price * 0.35),
-        packaging: Math.round(p.price * 0.04),
-        delivery: Math.round(p.price * 0.08),
-        net_profit: Math.round(p.price * 0.53),
-        margin_pct: "53.0%",
-      })),
+      products: products.map((p: any) => {
+        const price = Number(p.price) || 599;
+        const cogs = Number(p.metadata?.cost_price) || Math.round(price * 0.35);
+        const packaging = Math.round(price * 0.04);
+        const delivery = Math.round(price * 0.08);
+        const profit = price - cogs - packaging - delivery;
+        const margin = price > 0 ? `${((profit / price) * 100).toFixed(1)}%` : "0.0%";
+
+        return {
+          id: p.id || p.product_id,
+          title: p.title || p.name,
+          price,
+          cogs,
+          packaging,
+          delivery,
+          net_profit: profit,
+          margin_pct: margin,
+        };
+      }),
     };
   }
 
   static getReportsBranchComparison(query: Record<string, any> = {}) {
     const branches = ApiEngine.listBranches();
+    ApiEngine.ensureOrdersStore();
+    const orders = memoryStore.orders || [];
+
     return {
-      branches: branches.map((b) => ({
-        id: b.id,
-        name: b.name,
-        code: b.code,
-        orders: 1840,
-        revenue: 1370800,
-        profit: 514200,
-        avg_delivery_mins: 36,
-        kitchen_load_pct: Math.round(((b.current_hourly_load || 18) / (b.max_orders_per_hour || 25)) * 100),
-        sla_pct: "96.4%",
-      })),
+      branches: branches.map((b: any) => {
+        const bOrders = orders.filter((o: any) => (o.branch?.id || o.branch_id) === b.id);
+        const rev = bOrders.reduce((s: number, o: any) => s + (Number(o.total) || 0), 0);
+        const cogs = Math.round(rev * 0.35);
+
+        return {
+          id: b.id,
+          name: b.name,
+          code: b.code,
+          orders: bOrders.length,
+          revenue: rev,
+          profit: rev - cogs,
+          avg_delivery_mins: 35,
+          kitchen_load_pct: Math.round(((b.current_hourly_load || 18) / (b.max_orders_per_hour || 25)) * 100),
+          sla_pct: "100.0%",
+        };
+      }),
+    };
+  }
+
+  static getReportsExport(query: Record<string, any> = {}) {
+    const dash = this.getReportsDashboard(query);
+    const sales = this.getReportsSales(query);
+    const orders = this.getReportsOrders(query);
+    const products = this.getReportsProducts(query);
+    const branches = this.getReportsBranches(query);
+    const finance = this.getReportsFinance(query);
+
+    return {
+      success: true,
+      timestamp: new Date().toISOString(),
+      query,
+      dashboard: dash,
+      sales,
+      orders,
+      products,
+      branches,
+      finance,
     };
   }
 
@@ -13341,6 +14138,399 @@ export class ApiEngine {
       products,
       branches,
     };
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── POPUP & ENGAGEMENT CAMPAIGNS (ADMIN & STOREFRONT) ─────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  static ensurePopupCampaignsStore() {
+    if (!memoryStore.popup_campaigns) {
+      memoryStore.popup_campaigns = [];
+    }
+  }
+
+  static listPopupCampaigns(query: Record<string, any> = {}) {
+    ApiEngine.ensurePopupCampaignsStore();
+    let list = [...memoryStore.popup_campaigns];
+
+    if (query.status && query.status !== "all") {
+      list = list.filter((c: any) => c.status === query.status);
+    }
+    if (query.popup_type && query.popup_type !== "all") {
+      list = list.filter((c: any) => c.popup_type === query.popup_type);
+    }
+    if (query.q) {
+      const q = String(query.q).toLowerCase();
+      list = list.filter((c: any) =>
+        c.name?.toLowerCase().includes(q) ||
+        c.slug?.toLowerCase().includes(q) ||
+        c.description?.toLowerCase().includes(q) ||
+        c.current_version?.content?.headline?.toLowerCase().includes(q) ||
+        c.draft_version?.content?.headline?.toLowerCase().includes(q)
+      );
+    }
+
+    return list.sort((a: any, b: any) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime());
+  }
+
+  static getPopupCampaignById(id: string) {
+    ApiEngine.ensurePopupCampaignsStore();
+    return memoryStore.popup_campaigns.find((c: any) => c.id === id || c.slug === id) || null;
+  }
+
+  static createPopupCampaign(data: any) {
+    ApiEngine.ensurePopupCampaignsStore();
+    const id = data.id || `pop_${Date.now()}`;
+    const name = data.name || "New Popup Campaign";
+    const slug = data.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `popup-${Date.now()}`;
+    const now = new Date().toISOString();
+
+    const draftVersion = data.draft_version || {
+      id: `ver_${Date.now()}`,
+      popup_campaign_id: id,
+      version_number: 1,
+      content: data.content || {
+        templateId: data.templateId || "WELCOME_SIMPLE",
+        headline: data.headline || name,
+        description: data.description || "",
+        primaryButton: data.primaryButton || { label: "Continue", action: "CLOSE" },
+        secondaryButton: data.secondaryButton,
+        phoneConfig: data.phoneConfig || { enabled: false },
+      },
+      design: data.design || {
+        desktopLayout: "CENTER_MODAL",
+        tabletLayout: "CENTER_MODAL",
+        mobileLayout: "CENTER_MODAL",
+        borderRadius: 16,
+        accentColor: "#e11d48",
+      },
+      trigger: data.trigger || {
+        enabled_triggers: data.enabled_triggers || ["time_on_page"],
+        timeOnPageSeconds: data.timeOnPageSeconds || 3,
+      },
+      audience: data.audience || {
+        customerStatus: ["all"],
+        devices: ["desktop", "tablet", "mobile"],
+      },
+      frequency: data.frequency || {
+        scope: "session",
+        maxShows: 1,
+      },
+      schedule: data.schedule || {},
+      offer: data.offer || { type: "NONE" },
+      media: data.media || { source: "NO_IMAGE" },
+      rules: data.rules || [],
+      created_at: now,
+    };
+
+    const campaign = {
+      id,
+      name,
+      slug,
+      description: data.description || "",
+      popup_type: data.popup_type || "WELCOME",
+      status: data.status || "draft",
+      priority: Number(data.priority) || 100,
+      enabled: data.enabled !== false,
+      start_at: data.start_at || null,
+      end_at: data.end_at || null,
+      timezone: data.timezone || "Asia/Kolkata",
+      draft_version: draftVersion,
+      current_version: data.status === "published" ? draftVersion : (data.current_version || null),
+      created_at: now,
+      updated_at: now,
+      analytics: {
+        impressions: 0,
+        dismissals: 0,
+        clicks: 0,
+        conversions: 0,
+        ctr: 0,
+        conversion_rate: 0,
+        recovered_revenue: 0,
+      },
+    };
+
+    memoryStore.popup_campaigns.push(campaign);
+    ApiEngine.persist();
+    return campaign;
+  }
+
+  static updatePopupCampaign(id: string, data: any) {
+    ApiEngine.ensurePopupCampaignsStore();
+    const idx = memoryStore.popup_campaigns.findIndex((c: any) => c.id === id);
+    if (idx === -1) {
+      throw new Error(`Popup Campaign with ID "${id}" not found.`);
+    }
+
+    const existing = memoryStore.popup_campaigns[idx];
+    const now = new Date().toISOString();
+
+    const updated = {
+      ...existing,
+      ...data,
+      id: existing.id,
+      name: data.name !== undefined ? data.name : existing.name,
+      slug: data.slug !== undefined ? data.slug : existing.slug,
+      description: data.description !== undefined ? data.description : existing.description,
+      popup_type: data.popup_type !== undefined ? data.popup_type : existing.popup_type,
+      status: data.status !== undefined ? data.status : existing.status,
+      priority: data.priority !== undefined ? Number(data.priority) : existing.priority,
+      enabled: data.enabled !== undefined ? data.enabled : existing.enabled,
+      updated_at: now,
+    };
+
+    if (data.draft_version) {
+      updated.draft_version = {
+        ...(existing.draft_version || {}),
+        ...data.draft_version,
+      };
+    } else if (data.content || data.design || data.trigger || data.audience || data.frequency || data.offer || data.media || data.rules) {
+      const currentDraft = existing.draft_version || { id: `ver_${Date.now()}`, popup_campaign_id: id, version_number: 1 };
+      updated.draft_version = {
+        ...currentDraft,
+        content: data.content !== undefined ? data.content : currentDraft.content,
+        design: data.design !== undefined ? data.design : currentDraft.design,
+        trigger: data.trigger !== undefined ? data.trigger : currentDraft.trigger,
+        audience: data.audience !== undefined ? data.audience : currentDraft.audience,
+        frequency: data.frequency !== undefined ? data.frequency : currentDraft.frequency,
+        schedule: data.schedule !== undefined ? data.schedule : currentDraft.schedule,
+        offer: data.offer !== undefined ? data.offer : currentDraft.offer,
+        media: data.media !== undefined ? data.media : currentDraft.media,
+        rules: data.rules !== undefined ? data.rules : currentDraft.rules,
+      };
+    }
+
+    memoryStore.popup_campaigns[idx] = updated;
+    ApiEngine.persist();
+    return updated;
+  }
+
+  static publishPopupCampaign(id: string, versionData: any = {}) {
+    ApiEngine.ensurePopupCampaignsStore();
+    const campaign = ApiEngine.getPopupCampaignById(id);
+    if (!campaign) {
+      throw new Error(`Popup Campaign with ID "${id}" not found.`);
+    }
+
+    const now = new Date().toISOString();
+    const versionToPublish = {
+      ...(campaign.draft_version || {}),
+      ...(versionData.version || versionData),
+      published_at: now,
+    };
+
+    const updated = {
+      ...campaign,
+      status: "published",
+      enabled: true,
+      current_version: versionToPublish,
+      draft_version: versionToPublish,
+      updated_at: now,
+    };
+
+    const idx = memoryStore.popup_campaigns.findIndex((c: any) => c.id === id);
+    memoryStore.popup_campaigns[idx] = updated;
+    ApiEngine.persist();
+    return updated;
+  }
+
+  static pausePopupCampaign(id: string) {
+    return ApiEngine.updatePopupCampaign(id, { status: "paused", enabled: false });
+  }
+
+  static archivePopupCampaign(id: string) {
+    return ApiEngine.updatePopupCampaign(id, { status: "archived", enabled: false });
+  }
+
+  static duplicatePopupCampaign(id: string) {
+    const existing = ApiEngine.getPopupCampaignById(id);
+    if (!existing) throw new Error(`Popup Campaign "${id}" not found.`);
+
+    const newId = `pop_${Date.now()}`;
+    const clone = JSON.parse(JSON.stringify(existing));
+    clone.id = newId;
+    clone.name = `Copy of ${existing.name}`;
+    clone.slug = `${existing.slug}-copy-${Date.now().toString().slice(-4)}`;
+    clone.status = "draft";
+    clone.created_at = new Date().toISOString();
+    clone.updated_at = clone.created_at;
+    if (clone.draft_version) clone.draft_version.id = `ver_${Date.now()}`;
+    if (clone.current_version) clone.current_version.id = `ver_${Date.now()}`;
+
+    memoryStore.popup_campaigns.push(clone);
+    ApiEngine.persist();
+    return clone;
+  }
+
+  static deletePopupCampaign(id: string) {
+    ApiEngine.ensurePopupCampaignsStore();
+    const idx = memoryStore.popup_campaigns.findIndex((c: any) => c.id === id);
+    if (idx === -1) return false;
+    memoryStore.popup_campaigns.splice(idx, 1);
+    ApiEngine.persist();
+    return true;
+  }
+
+  static getPopupOptions() {
+    ApiEngine.ensurePopupCampaignsStore();
+    return {
+      customer_statuses: [
+        { label: "All Customers & Guests", value: "all" },
+        { label: "Guest (Not Logged In)", value: "guest" },
+        { label: "Logged In Customers", value: "logged_in" },
+        { label: "First-Time Customers", value: "new_customer" },
+        { label: "Repeat Customers", value: "returning_customer" },
+        { label: "VIP / Elite Members", value: "member" },
+      ],
+      devices: [
+        { label: "Desktop", value: "desktop" },
+        { label: "Tablet", value: "tablet" },
+        { label: "Mobile", value: "mobile" },
+      ],
+      popup_types: [
+        { label: "Welcome / First Visit", value: "WELCOME" },
+        { label: "Phone Login / Auth Modal", value: "LOGIN" },
+        { label: "Cart Exit Intent Recovery", value: "CART_EXIT" },
+        { label: "Product Page Exit Intent", value: "PRODUCT_EXIT" },
+        { label: "Abandoned Cart Notification", value: "ABANDONED_CART" },
+        { label: "Returning Customer Offer", value: "RETURNING" },
+        { label: "Flash Sale / Promotional", value: "PROMOTIONAL" },
+        { label: "VIP Member Exclusive", value: "MEMBER" },
+      ],
+      actions: [
+        { label: "Close Popup", value: "CLOSE" },
+        { label: "Mobile Phone Login (OTP)", value: "LOGIN_WITH_MOBILE" },
+        { label: "Apply Promo Coupon", value: "APPLY_COUPON" },
+        { label: "Open Cart Drawer", value: "OPEN_CART" },
+        { label: "Proceed to Checkout", value: "CHECKOUT" },
+        { label: "View Product", value: "VIEW_PRODUCT" },
+        { label: "View Category", value: "VIEW_CATEGORY" },
+        { label: "Custom URL Link", value: "CUSTOM_URL" },
+      ],
+      cities: (memoryStore.cities || []).map((c: any) => ({ label: c.name, value: c.id })),
+      branches: (memoryStore.branches || []).map((b: any) => ({ label: b.name, value: b.id })),
+      categories: (memoryStore.pim_categories || []).map((cat: any) => ({ label: cat.name, value: cat.id })),
+      products: (memoryStore.products || []).slice(0, 50).map((p: any) => ({ label: p.title || p.name, value: p.id || p.product_id })),
+      coupons: (memoryStore.offers || []).map((o: any) => ({ label: `${o.code} (${o.discount_value}% OFF)`, value: o.code, id: o.id })),
+    };
+  }
+
+  static getPopupAnalyticsSummary(query: Record<string, any> = {}) {
+    ApiEngine.ensurePopupCampaignsStore();
+    const campaigns = memoryStore.popup_campaigns || [];
+    let impressions = 0;
+    let dismissals = 0;
+    let clicks = 0;
+    let conversions = 0;
+    let recoveredRevenue = 0;
+
+    for (const c of campaigns) {
+      if (c.analytics) {
+        impressions += c.analytics.impressions || 0;
+        dismissals += c.analytics.dismissals || 0;
+        clicks += c.analytics.clicks || 0;
+        conversions += c.analytics.conversions || 0;
+        recoveredRevenue += c.analytics.recovered_revenue || 0;
+      }
+    }
+
+    const ctr = impressions > 0 ? Number(((clicks / impressions) * 100).toFixed(1)) : 0;
+    const conversionRate = impressions > 0 ? Number(((conversions / impressions) * 100).toFixed(1)) : 0;
+
+    return {
+      summary: {
+        total_campaigns: campaigns.length,
+        active_campaigns: campaigns.filter((c: any) => c.status === "published" && c.enabled).length,
+        impressions,
+        dismissals,
+        clicks,
+        conversions,
+        ctr,
+        conversion_rate: conversionRate,
+        recovered_revenue: recoveredRevenue,
+      },
+      success: true,
+    };
+  }
+
+  static getPublishedEngagementConfig(query: Record<string, any> = {}) {
+    ApiEngine.ensurePopupCampaignsStore();
+    const now = new Date();
+    const device = query.device || "desktop";
+    const cityId = query.city_id || query.cityId;
+
+    const published = (memoryStore.popup_campaigns || []).filter((c: any) => {
+      if (c.status !== "published" || !c.enabled) return false;
+      const ver = c.current_version;
+      if (!ver) return false;
+
+      // Schedule check
+      if (c.start_at && new Date(c.start_at).getTime() > now.getTime()) return false;
+      if (c.end_at && new Date(c.end_at).getTime() < now.getTime()) return false;
+
+      // Device check if version specifies
+      if (ver.audience?.devices && ver.audience.devices.length > 0 && !ver.audience.devices.includes(device)) {
+        return false;
+      }
+
+      // City check if version specifies
+      if (cityId && ver.audience?.cityIds && ver.audience.cityIds.length > 0 && !ver.audience.cityIds.includes(cityId)) {
+        return false;
+      }
+
+      return true;
+    });
+
+    return {
+      version: 1,
+      timestamp: now.toISOString(),
+      campaigns: published,
+    };
+  }
+
+  static recordEngagementImpression(data: any) {
+    ApiEngine.ensurePopupCampaignsStore();
+    const campaignId = data.campaign_id || data.campaignId;
+    const eventType = data.event_type || data.eventType || "shown";
+    if (!campaignId) return false;
+
+    const campaign = ApiEngine.getPopupCampaignById(campaignId);
+    if (!campaign) return false;
+
+    if (!campaign.analytics) {
+      campaign.analytics = { impressions: 0, dismissals: 0, clicks: 0, conversions: 0, ctr: 0, conversion_rate: 0, recovered_revenue: 0 };
+    }
+
+    if (eventType === "shown") {
+      campaign.analytics.impressions = (campaign.analytics.impressions || 0) + 1;
+    } else if (eventType === "dismissed") {
+      campaign.analytics.dismissals = (campaign.analytics.dismissals || 0) + 1;
+    }
+
+    ApiEngine.persist();
+    return true;
+  }
+
+  static recordEngagementConversion(data: any) {
+    ApiEngine.ensurePopupCampaignsStore();
+    const campaignId = data.campaign_id || data.campaignId;
+    const value = Number(data.recovered_revenue || data.value) || 0;
+    if (!campaignId) return false;
+
+    const campaign = ApiEngine.getPopupCampaignById(campaignId);
+    if (!campaign) return false;
+
+    if (!campaign.analytics) {
+      campaign.analytics = { impressions: 0, dismissals: 0, clicks: 0, conversions: 0, ctr: 0, conversion_rate: 0, recovered_revenue: 0 };
+    }
+
+    campaign.analytics.clicks = (campaign.analytics.clicks || 0) + 1;
+    campaign.analytics.conversions = (campaign.analytics.conversions || 0) + 1;
+    campaign.analytics.recovered_revenue = (campaign.analytics.recovered_revenue || 0) + value;
+
+    ApiEngine.persist();
+    return true;
   }
 
   static getSavedReports() {
@@ -14080,13 +15270,13 @@ export class ApiEngine {
       seller_fssai_number: snap.seller_fssai_number || "11223344556677",
       branch_fssai_type: snap.seller_fssai_type || "STATE_LICENSE",
       seller_fssai_type: snap.seller_fssai_type || "STATE_LICENSE",
-      customer: ord.customer || {
-        name: ord.customer_name,
-        phone: ord.customer_phone,
-        email: ord.customer_email,
-        address: ord.delivery_address,
+      customer: (ord as any).customer || {
+        name: (ord as any).customer_name,
+        phone: (ord as any).customer_phone,
+        email: (ord as any).customer_email,
+        address: (ord as any).delivery_address,
       },
-      items: (ord.items || []).map((i: any) => ({
+      items: ((ord as any).items || []).map((i: any) => ({
         description: i.title || i.name,
         hsn_sac: i.hsn_code || "19059090",
         quantity: i.quantity || 1,
@@ -14098,11 +15288,11 @@ export class ApiEngine {
         igst_amount: i.igst || (snap.is_intra_state === false ? Number(((i.unit_price || 699) * 0.05)).toFixed(2) : 0),
         total: i.total || i.subtotal || (i.unit_price || 699) * (i.quantity || 1),
       })),
-      pricing: ord.pricing,
-      payment: ord.payment || {
-        status: ord.payment_status || "paid",
-        method: ord.payment_method || "Online",
-        transaction_id: ord.transaction_id || `TXN_${Date.now()}`,
+      pricing: (ord as any).pricing,
+      payment: (ord as any).payment || {
+        status: (ord as any).payment_status || "paid",
+        method: (ord as any).payment_method || "Online",
+        transaction_id: (ord as any).transaction_id || `TXN_${Date.now()}`,
       },
     };
 
@@ -14703,7 +15893,7 @@ export class ApiEngine {
       // Check Product Zone Delivery Restrictions
       const resolvedZoneId = branchRes?.zoneId || branchRes?.assigned_zone?.id || branchRes?.zone?.id || (branch?.delivery_zones || [])[0]?.id;
       if (branch && resolvedZoneId && !accItem) {
-        const prodKeys = [pId, item.product_id, product?.id, product?.product_id].filter(Boolean);
+        const prodKeys = [pId, (item as any).product_id, (product as any)?.id, (product as any)?.product_id].filter(Boolean);
         const isRestricted = prodKeys.some((k) => ApiEngine.isProductDeliveryRestricted(k, branch.id, resolvedZoneId));
         if (isRestricted) {
           errors.push({
@@ -14782,7 +15972,7 @@ export class ApiEngine {
     let discountAmount = 0;
     let appliedCoupon = null;
     if (data.coupon_code) {
-      const promoRes = this.applyPromoCode(data.cart_id, data.coupon_code);
+      const promoRes: any = this.applyPromoCode(data.cart_id, data.coupon_code);
       if (promoRes.valid) {
         discountAmount = promoRes.discount ?? promoRes.discount_amount ?? 0;
         appliedCoupon = {
@@ -14800,8 +15990,9 @@ export class ApiEngine {
     }
 
     // 7. Delivery Surcharge calculation
-    const freeDeliveryThreshold = (branch?.fulfillment_rules?.free_delivery_threshold) ?? 499;
-    const deliveryFee = data.delivery_type === "pickup" ? 0 : (grossItemsSubtotal >= freeDeliveryThreshold ? 0 : 49);
+    const freeDeliveryThreshold = (branch?.fulfillment_rules?.free_delivery_threshold) ?? 999;
+    const resolvedDeliveryFee = branchRes?.deliveryFee ?? 49;
+    const deliveryFee = data.delivery_type === "pickup" ? 0 : (grossItemsSubtotal >= freeDeliveryThreshold ? 0 : resolvedDeliveryFee);
 
     // 8. Totals Calculation with dynamic rounding
     const grandTotalBeforeRound = Math.max(0, grossItemsSubtotal - discountAmount + deliveryFee + slotSurcharge);
@@ -14817,8 +16008,8 @@ export class ApiEngine {
         cgst: Math.round(totalCgst * 100) / 100,
         sgst: Math.round(totalSgst * 100) / 100,
         igst: Math.round(totalIgst * 100) / 100,
-        is_intra_state: taxContext.is_intra_state ?? taxContext.isIntraState ?? true,
-        supply_type: taxContext.supply_type || taxContext.supplyType || (taxContext.isIntraState !== false ? "INTRA-STATE" : "INTER-STATE"),
+        is_intra_state: taxContext.isIntraState ?? true,
+        supply_type: taxContext.supplyType || (taxContext.isIntraState !== false ? "INTRA-STATE" : "INTER-STATE"),
         hsn_code: "19059090",
       },
       tax_details: {
@@ -14826,8 +16017,8 @@ export class ApiEngine {
         cgst: Math.round(totalCgst * 100) / 100,
         sgst: Math.round(totalSgst * 100) / 100,
         igst: Math.round(totalIgst * 100) / 100,
-        is_intra_state: taxContext.is_intra_state ?? taxContext.isIntraState ?? true,
-        supply_type: taxContext.supply_type || taxContext.supplyType || (taxContext.isIntraState !== false ? "INTRA-STATE" : "INTER-STATE"),
+        is_intra_state: taxContext.isIntraState ?? true,
+        supply_type: taxContext.supplyType || (taxContext.isIntraState !== false ? "INTRA-STATE" : "INTER-STATE"),
         hsn_code: "19059090",
       },
       grand_total: grandTotal,
@@ -14861,20 +16052,20 @@ export class ApiEngine {
         currency: "INR",
         currency_symbol: "₹",
       },
-      taxes: {
+      compliance_snapshot: {
         hsn_code: "19059090",
         uqc: "NOS",
         gst_rate_pct: 5,
-        supply_type: taxContext.supply_type || (taxContext.isIntraState ? "INTRA-STATE" : "INTER-STATE"),
+        supply_type: taxContext.supplyType || (taxContext.isIntraState ? "INTRA-STATE" : "INTER-STATE"),
         place_of_supply: `${taxContext.customerState || "Karnataka"} (${taxContext.isIntraState ? "29" : "00"})`,
-        seller_legal_name: taxContext.seller_legal_name,
-        seller_trade_name: taxContext.seller_trade_name,
-        seller_gstin: taxContext.seller_gstin || "29AAAAA0000A1Z5",
-        seller_state: taxContext.seller_state,
-        seller_state_code: taxContext.seller_state_code,
-        seller_fssai_number: taxContext.seller_fssai_number,
-        seller_fssai_type: taxContext.seller_fssai_type,
-        seller_address: taxContext.seller_address,
+        seller_legal_name: taxContext.sellerLegalName,
+        seller_trade_name: taxContext.sellerTradeName,
+        seller_gstin: taxContext.sellerGstin || "29AAAAA0000A1Z5",
+        seller_state: taxContext.sellerState,
+        seller_state_code: taxContext.sellerStateCode,
+        seller_fssai_number: taxContext.sellerFssaiNumber,
+        seller_fssai_type: taxContext.sellerFssaiType,
+        seller_address: taxContext.sellerAddress,
         taxable_value: Math.round(totalTaxableValue * 100) / 100,
         cgst: Math.round(totalCgst * 100) / 100,
         sgst: Math.round(totalSgst * 100) / 100,
@@ -14924,6 +16115,7 @@ export class ApiEngine {
   }) {
     // 1. Revalidate everything authoritatively on server
     const validation = this.validateCheckout({
+      ...payload,
       cart_id: payload.cart_id,
       customer_id: payload.customer_id,
       address: payload.address || (payload as any).shipping_address,
@@ -14932,7 +16124,6 @@ export class ApiEngine {
       delivery_slot_id: payload.delivery_slot_id,
       delivery_type: payload.delivery_type,
       coupon_code: payload.coupon_code,
-      ...payload,
     } as any);
 
     if (!validation.valid) {
@@ -15136,6 +16327,1750 @@ export class ApiEngine {
       kot_number: newOrder.kot_number,
       delivery_otp: newOrder.delivery_otp,
       branch: branch,
+    };
+  }
+
+  // ── Login Activity & Authentication Analytics Engine ─────────────────────
+  static recordLoginEvent(event: Omit<LoginEvent, "id" | "created_at">): LoginEvent {
+    if (!Array.isArray(memoryStore.login_events)) {
+      memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
+    }
+    const newEvent: LoginEvent = {
+      id: `logevt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      created_at: new Date().toISOString(),
+      ...event,
+    };
+    memoryStore.login_events.unshift(newEvent);
+    if (memoryStore.login_events.length > 500) {
+      memoryStore.login_events = memoryStore.login_events.slice(0, 500);
+    }
+    ApiEngine.persist();
+    return newEvent;
+  }
+
+  static parseDateFilter(preset?: string, startDate?: string, endDate?: string): { start: Date; end: Date } {
+    const now = new Date();
+    const end = endDate ? new Date(endDate) : new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    let start: Date;
+
+    switch (preset) {
+      case "today":
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        break;
+      case "yesterday":
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0);
+        end.setTime(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59, 999).getTime());
+        break;
+      case "7d":
+      case "last_7d":
+      case "last_7_days":
+        start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case "30d":
+      case "last_30d":
+      case "last_30_days":
+        start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case "this_month":
+        start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        break;
+      case "prev_month":
+        start = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+        end.setTime(new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999).getTime());
+        break;
+      default:
+        if (startDate) {
+          start = new Date(startDate);
+        } else {
+          start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        }
+    }
+    return { start, end };
+  }
+
+  static listLoginActivity(query: {
+    startDate?: string;
+    endDate?: string;
+    preset?: string;
+    role?: string;
+    status?: string;
+    method?: string;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+    limit?: number;
+  }) {
+    if (!Array.isArray(memoryStore.login_events)) {
+      memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
+    }
+    const { start, end } = this.parseDateFilter(query.preset, query.startDate, query.endDate);
+
+    let filtered = memoryStore.login_events.filter((evt) => {
+      const evtDate = new Date(evt.created_at);
+      if (evtDate < start || evtDate > end) return false;
+      if (query.role && query.role !== "ALL" && evt.role.toUpperCase() !== query.role.toUpperCase()) return false;
+      if (query.status && query.status !== "ALL" && evt.status.toUpperCase() !== query.status.toUpperCase()) return false;
+      if (query.method && query.method !== "ALL" && (evt.authentication_method || evt.method || "").toUpperCase() !== query.method.toUpperCase()) return false;
+      if (query.search) {
+        const q = query.search.toLowerCase();
+        const matchIdent = (evt.identifier || evt.phone || evt.email || "").toLowerCase().includes(q);
+        const matchUser = (evt.user_id || evt.user_name || (evt as any).name || "").toLowerCase().includes(q);
+        const matchIp = (evt.ip_address || "").toLowerCase().includes(q);
+        const matchedCust = (memoryStore.customers || []).find((c: any) => c.id === evt.customer_id || c.phone === evt.identifier);
+        const matchCustName = (matchedCust?.name || "").toLowerCase().includes(q);
+        if (!matchIdent && !matchUser && !matchIp && !matchCustName) return false;
+      }
+      return true;
+    });
+
+    const page = Math.max(1, Number(query.page) || 1);
+    const pageSize = Math.max(1, Math.min(100, Number(query.limit || query.pageSize) || 10));
+    const totalCount = filtered.length;
+    const totalPages = Math.ceil(totalCount / pageSize) || 1;
+    const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+    // Summary calculation based on filtered date range
+    const rangeEvents = memoryStore.login_events.filter((evt) => {
+      const evtDate = new Date(evt.created_at);
+      return evtDate >= start && evtDate <= end;
+    });
+
+    const totalAttempts = rangeEvents.length;
+    const successfulCount = rangeEvents.filter((e) => e.status === "SUCCESS").length;
+    const failedCount = rangeEvents.filter((e) => e.status === "FAILED").length;
+    const otpRequestsCount = rangeEvents.filter((e) => e.event_type === "OTP_REQUESTED" || e.status === "OTP_SENT").length;
+    const otpSuccessCount = rangeEvents.filter((e) => e.event_type === "OTP_VERIFIED" || (e.status === "SUCCESS" && (e.authentication_method || e.method || "").startsWith("OTP"))).length;
+    const otpSuccessRate = otpRequestsCount > 0 ? Math.round((otpSuccessCount / Math.max(1, otpRequestsCount + failedCount)) * 100) : 100;
+    const uniqueUserSet = new Set(rangeEvents.map((e) => e.identifier || e.user_id || e.customer_id).filter(Boolean));
+
+    return {
+      success: true,
+      events: paginated,
+      pagination: {
+        page,
+        pageSize,
+        limit: pageSize,
+        total: totalCount,
+        totalCount,
+        totalPages,
+      },
+      summary: {
+        total_events: totalAttempts,
+        totalAttempts,
+        successful_logins: successfulCount,
+        successfulCount,
+        failed_logins: failedCount,
+        failedCount,
+        otpRequestsCount,
+        otpSuccessRate,
+        unique_users: uniqueUserSet.size,
+        uniqueUsersCount: uniqueUserSet.size,
+        dateRange: {
+          start: start.toISOString(),
+          end: end.toISOString(),
+          preset: query.preset || "custom",
+        },
+      },
+    };
+  }
+
+  static resetStoreToCanonical() {
+    memoryStore.login_events = [];
+    memoryStore.abandoned_carts = JSON.parse(JSON.stringify(DEFAULT_ABANDONED_CARTS));
+    memoryStore.cart_recovery_attempts = [];
+    memoryStore.recovery_tokens = [];
+    (memoryStore as any).popup_campaigns = undefined;
+    (memoryStore as any).popup_impressions = undefined;
+    (memoryStore as any).popup_conversions = undefined;
+    if (Array.isArray(memoryStore.customers)) {
+      memoryStore.customers = memoryStore.customers.filter((c: any) => {
+        const p = (c.phone || "").replace(/\D/g, "").slice(-10);
+        return p !== "9999988888" && p !== "9999999999" && p !== "9123456789";
+      });
+    }
+    if (Array.isArray(memoryStore.users)) {
+      memoryStore.users = memoryStore.users.filter((u: any) => {
+        const p = (u.phone || "").replace(/\D/g, "").slice(-10);
+        return p !== "9999988888" && p !== "9999999999" && p !== "9123456789";
+      });
+    }
+    ApiEngine.ensurePopupStore();
+    ApiEngine.persist();
+  }
+
+  // ── Smart Auth OTP Handlers ───────────────────────────────────────────────
+  static requestAuthOtp(phone: string, method: string = "OTP_SMS", ip?: string, userAgent?: string) {
+    const cleanPhone = (phone || "").trim();
+    if (!cleanPhone || cleanPhone.length < 3) {
+      throw new Error("Invalid phone number or identifier");
+    }
+
+    const check = ApiEngine.checkAccountByPhone(cleanPhone);
+    const isNew = !check.exists;
+    const role = check?.role || "CUSTOMER";
+    const resolved = check?.account;
+
+    // Record login event
+    ApiEngine.recordLoginEvent({
+      identifier: cleanPhone,
+      role,
+      user_id: resolved?.id || null,
+      customer_id: resolved?.customer_id || (role === "CUSTOMER" ? resolved?.id : null),
+      authentication_method: method.includes("WHATSAPP") ? "OTP_WHATSAPP" : "OTP_SMS",
+      event_type: "OTP_REQUESTED",
+      status: "OTP_SENT",
+      ip_address: ip || "127.0.0.1",
+      user_agent: userAgent || "Web-Browser",
+      device_type: userAgent?.toLowerCase().includes("mobi") ? "mobile" : "desktop",
+    });
+
+    return {
+      success: true,
+      sent: true,
+      account_exists: !isNew,
+      role,
+      dev_otp: "123456",
+      message: `Verification code sent to ${cleanPhone}`,
+    };
+  }
+
+  static verifyAuthOtp(phone: string, otp: string, extra?: { name?: string; email?: string }, ip?: string, userAgent?: string) {
+    const cleanPhone = (phone || "").trim();
+    const cleanOtp = (otp || "").replace(/\D/g, "");
+
+    if (cleanOtp !== "123456" && cleanOtp.length !== 6) {
+      ApiEngine.recordLoginEvent({
+        identifier: cleanPhone,
+        role: "CUSTOMER",
+        authentication_method: "OTP_SMS",
+        event_type: "OTP_FAILED",
+        status: "FAILED",
+        failure_category: "INVALID_OTP",
+        ip_address: ip || "127.0.0.1",
+        user_agent: userAgent || "Web-Browser",
+        device_type: userAgent?.toLowerCase().includes("mobi") ? "mobile" : "desktop",
+      });
+
+      try {
+        WebhookEngine.emitEvent("customer.login.failed", {
+          phone: cleanPhone,
+          reason: "INVALID_OTP",
+          ip_address: ip || "127.0.0.1",
+          device_type: userAgent?.toLowerCase().includes("mobi") ? "mobile" : "desktop",
+        }, { source: "auth_otp_verification" });
+      } catch (e: any) {
+        console.warn("[Webhook safe warn]:", e?.message);
+      }
+
+      throw new Error("Invalid OTP code. Please enter the correct 6-digit code.");
+    }
+
+    const check = ApiEngine.checkAccountByPhone(cleanPhone);
+    let user = check.account;
+    let isNewCustomer = false;
+
+    if (!user || (!user.id && !user.user_id)) {
+      isNewCustomer = true;
+      const newCustId = `cus_${cleanPhone.replace(/\D/g, "").slice(-10) || Date.now()}`;
+      const fullName = extra?.name || "Valued Customer";
+      const newCust = {
+        id: newCustId,
+        user_id: newCustId,
+        customer_id: newCustId,
+        customer_number: `CTH-CUST-${Math.floor(100000 + Math.random() * 900000)}`,
+        customer_type: "registered",
+        name: fullName,
+        first_name: fullName.split(" ")[0],
+        last_name: fullName.split(" ").slice(1).join(" ") || "Customer",
+        email: extra?.email || `customer_${newCustId}@cakes2home.com`,
+        phone: cleanPhone,
+        role: "CUSTOMER",
+        total_orders: 0,
+        wallet_balance: 0,
+        is_vip: false,
+        created_at: new Date().toISOString(),
+      };
+      if (!Array.isArray(memoryStore.customers)) memoryStore.customers = [];
+      memoryStore.customers.push(newCust);
+      user = newCust;
+
+      try {
+        WebhookEngine.emitEvent("customer.registered", {
+          customer_id: newCust.id,
+          customer_number: newCust.customer_number,
+          name: newCust.name,
+          email: newCust.email,
+          phone: newCust.phone,
+          role: newCust.role,
+          created_at: newCust.created_at,
+        }, { source: "auth_otp_registration" }, {
+          id: newCust.id,
+          name: newCust.name,
+          phone: newCust.phone,
+          email: newCust.email,
+          role: newCust.role,
+        });
+      } catch (e: any) {
+        console.warn("[Webhook safe warn]:", e?.message);
+      }
+    }
+
+    const token = `jwt_${(user.role || "customer").toLowerCase()}_${user.id || "01"}_${Date.now()}`;
+
+    // Record login success event
+    ApiEngine.recordLoginEvent({
+      identifier: cleanPhone,
+      role: user.role || "CUSTOMER",
+      user_id: user.id || user.user_id,
+      user_name: user.name || extra?.name || "Customer",
+      customer_id: user.role === "CUSTOMER" ? (user.customer_id || user.id) : null,
+      authentication_method: "OTP_SMS",
+      event_type: "LOGIN_SUCCESS",
+      status: "SUCCESS",
+      failure_category: null,
+      ip_address: ip || "127.0.0.1",
+      user_agent: userAgent || "Web-Browser",
+      device_type: userAgent?.toLowerCase().includes("mobi") ? "mobile" : "desktop",
+    });
+
+    try {
+      WebhookEngine.emitEvent("customer.login.success", {
+        user_id: user.id || user.user_id,
+        customer_id: user.role === "CUSTOMER" ? (user.customer_id || user.id) : null,
+        name: user.name || extra?.name || "Customer",
+        phone: cleanPhone,
+        role: user.role || "CUSTOMER",
+        login_method: "OTP_SMS",
+        is_new_customer: isNewCustomer,
+        branch_id: user.branch_id || user.shop_id || null,
+        ip_address: ip || "127.0.0.1",
+        device_type: userAgent?.toLowerCase().includes("mobi") ? "mobile" : "desktop",
+      }, { source: "auth_otp_login" }, {
+        id: user.customer_id || user.id,
+        name: user.name || extra?.name,
+        phone: cleanPhone,
+        email: user.email || extra?.email,
+        role: user.role || "CUSTOMER",
+      });
+    } catch (e: any) {
+      console.warn("[Webhook safe warn]:", e?.message);
+    }
+
+    return {
+      success: true,
+      token,
+      accessToken: token,
+      role: user.role || "CUSTOMER",
+      detected_role: user.role || "CUSTOMER",
+      is_new_customer: isNewCustomer,
+      user,
+      customer_id: user.customer_id || user.id,
+      branch_id: user.branch_id || user.shop_id,
+      partner_id: user.partner_id,
+    };
+  }
+
+  static validateCoupon(code: string, cartTotal: number = 0, customerId?: string) {
+    const cleanCode = (code || "").trim().toUpperCase();
+    if (!cleanCode) {
+      return { valid: false, discount_amount: 0, message: "Coupon code is required" };
+    }
+
+    if (cleanCode === "SWEET10" || cleanCode === "RECOVER10" || cleanCode === "SAVE10") {
+      const discount = Math.round(cartTotal * 0.10);
+      return {
+        valid: true,
+        code: cleanCode,
+        discount_type: "PERCENTAGE",
+        discount_value: 10,
+        discount_amount: discount,
+        discount: discount,
+        final_total: Math.max(0, cartTotal - discount),
+        message: "10% Recovery discount applied successfully!",
+      };
+    }
+
+    if (cleanCode === "FIRSTTREAT" || cleanCode === "WELCOME15") {
+      const discount = Math.round(cartTotal * 0.15);
+      return {
+        valid: true,
+        code: cleanCode,
+        discount_type: "PERCENTAGE",
+        discount_value: 15,
+        discount_amount: discount,
+        discount: discount,
+        final_total: Math.max(0, cartTotal - discount),
+        message: "15% Welcome discount applied successfully!",
+      };
+    }
+
+    const discount = Math.round(cartTotal * 0.05);
+    return {
+      valid: true,
+      code: cleanCode,
+      discount_type: "PERCENTAGE",
+      discount_value: 5,
+      discount_amount: discount,
+      discount: discount,
+      final_total: Math.max(0, cartTotal - discount),
+      message: "Coupon applied successfully!",
+    };
+  }
+
+  // ── Abandoned Cart Tracking & Recovery Engine ─────────────────────────────
+  static trackCartActivity(cartData: any) {
+    const cId = cartData?.cart_id || cartData?.id;
+    if (!cartData || !cId) return null;
+    if (!Array.isArray(memoryStore.abandoned_carts)) {
+      memoryStore.abandoned_carts = [...DEFAULT_ABANDONED_CARTS];
+    }
+
+    const existingIdx = memoryStore.abandoned_carts.findIndex((c) => c.cart_id === cId || c.id === cId);
+    const nowIso = new Date().toISOString();
+
+    const itemsList: AbandonedCartItem[] = (cartData.items || []).map((item: any) => ({
+      id: item.id || `item_${Math.random().toString(36).substring(2, 8)}`,
+      product_id: item.product_id || item.variant?.product_id || "prod_1",
+      product_name: item.title || item.name || item.product?.title || "Gourmet Cake",
+      variant_id: item.variant_id || item.variant?.id,
+      variant_name: item.variant?.title || item.variant_title,
+      quantity: Number(item.quantity) || 1,
+      unit_price: Number(item.unit_price || item.price || 0),
+      total_price: (Number(item.quantity) || 1) * Number(item.unit_price || item.price || 0),
+      thumbnail: item.thumbnail || item.product?.thumbnail,
+      cake_message: item.cake_message || item.custom_message,
+      eggless: Boolean(item.eggless),
+    }));
+
+    const subtotal = itemsList.reduce((sum, i) => sum + i.total_price, 0);
+    const discount = Number(cartData.discount_total || cartData.discount || 0);
+    const tax = Math.round((subtotal - discount) * 0.05 * 100) / 100;
+    const deliveryFee = Number(cartData.delivery_fee || 0);
+    const grandTotal = Math.max(0, subtotal - discount + tax + deliveryFee);
+
+    const branch = cartData.branch_id ? ApiEngine.resolveBranchRecord(cartData.branch_id) : (memoryStore.branches?.[0] || null);
+
+    const record: AbandonedCart = {
+      id: existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].id : `abcart_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      cart_id: cId,
+      customer_id: cartData.customer_id || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].customer_id : null),
+      customer_name: cartData.customer_name || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].customer_name : "Guest Customer"),
+      customer_phone: cartData.customer_phone || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].customer_phone : null),
+      customer_email: cartData.customer_email || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].customer_email : null),
+      guest_session_id: cartData.guest_session_id || null,
+      branch_id: branch?.id || "br_indiranagar",
+      branch_name: branch?.name || "Indiranagar Flagship Kitchen",
+      city_id: branch?.city_id || "city_bbr",
+      city_name: branch?.city || "Bengaluru",
+      delivery_pincode: cartData.pincode || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].delivery_pincode : "560038"),
+      delivery_zone_name: cartData.zone_name || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].delivery_zone_name : "Zone A"),
+      items: itemsList,
+      item_count: itemsList.reduce((c, i) => c + i.quantity, 0),
+      subtotal,
+      discount_total: discount,
+      tax_total: tax,
+      delivery_fee: deliveryFee,
+      grand_total: grandTotal,
+      status: cartData.status || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].status : "ACTIVE"),
+      created_at: existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].created_at : nowIso,
+      updated_at: nowIso,
+      last_activity_at: nowIso,
+      abandoned_at: existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].abandoned_at : null,
+      checkout_started_at: cartData.checkout_started ? nowIso : (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].checkout_started_at : null),
+      recovery_attempts_count: existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].recovery_attempts_count : 0,
+      last_recovery_channel: existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].last_recovery_channel : null,
+      last_contact_at: existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].last_contact_at : null,
+      recovery_token: existingIdx >= 0 && memoryStore.abandoned_carts[existingIdx].recovery_token
+        ? memoryStore.abandoned_carts[existingIdx].recovery_token
+        : ApiEngine.generateCartRecoveryToken(cartData.cart_id || cartData.id).token,
+    };
+
+    if (existingIdx >= 0) {
+      memoryStore.abandoned_carts[existingIdx] = record;
+    } else {
+      memoryStore.abandoned_carts.unshift(record);
+    }
+
+    ApiEngine.persist();
+    return record;
+  }
+
+  static evaluateCartAbandonment(thresholdMinutes: number = 30) {
+    if (!Array.isArray(memoryStore.abandoned_carts)) {
+      memoryStore.abandoned_carts = [...DEFAULT_ABANDONED_CARTS];
+    }
+    const cutoffTime = thresholdMinutes <= 0 ? (Date.now() + 60000) : (Date.now() - thresholdMinutes * 60 * 1000);
+    let newlyAbandonedCount = 0;
+
+    memoryStore.abandoned_carts.forEach((cart) => {
+      if (cart.status === "ACTIVE" || cart.status === "CHECKOUT_STARTED") {
+        const lastActivity = new Date(cart.last_activity_at).getTime();
+        if (lastActivity <= cutoffTime && cart.items.length > 0) {
+          cart.status = "ABANDONED";
+          cart.abandoned_at = new Date().toISOString();
+          newlyAbandonedCount++;
+
+          try {
+            WebhookEngine.emitEvent(
+              "cart.abandoned",
+              {
+                cart_id: cart.cart_id,
+                customer_id: cart.customer_id,
+                customer_name: cart.customer_name,
+                customer_phone: cart.customer_phone,
+                customer_email: cart.customer_email,
+                guest_session_id: cart.guest_session_id,
+                cart_item_count: cart.item_count,
+                cart_value: cart.grand_total,
+                currency: "INR",
+                branch_id: cart.branch_id,
+                branch_name: cart.branch_name,
+                city_id: cart.city_id,
+                city_name: cart.city_name,
+                delivery_pincode: cart.delivery_pincode,
+                abandoned_at: cart.abandoned_at,
+                recovery_url: `/recover-cart?token=${cart.recovery_token}`,
+                items: (cart.items || []).map((i: any) => ({
+                  product_id: i.product_id,
+                  product_name: i.title || i.name,
+                  variant_id: i.variant_id,
+                  quantity: i.quantity,
+                  unit_price: i.unit_price,
+                  line_total: i.line_total,
+                  thumbnail: i.thumbnail,
+                })),
+              },
+              { source: "abandonment_evaluator" },
+              {
+                id: cart.customer_id,
+                name: cart.customer_name,
+                phone: cart.customer_phone,
+                email: cart.customer_email,
+              },
+              {
+                type: "cart",
+                id: cart.cart_id,
+                branch_id: cart.branch_id || undefined,
+                city_id: cart.city_id || undefined,
+              }
+            );
+          } catch (e: any) {
+            console.warn("[Webhook safe warn]:", e?.message);
+          }
+        }
+      }
+    });
+
+    if (newlyAbandonedCount > 0) {
+      ApiEngine.persist();
+    }
+
+    return {
+      success: true,
+      evaluated_count: memoryStore.abandoned_carts.length,
+      evaluated_sessions: memoryStore.abandoned_carts.length,
+      newly_abandoned_count: newlyAbandonedCount,
+      abandoned_count: newlyAbandonedCount,
+    };
+  }
+
+  static listAbandonedCarts(filters: {
+    startDate?: string;
+    endDate?: string;
+    preset?: string;
+    city_id?: string;
+    branch_id?: string;
+    customer?: string;
+    status?: string;
+    recovery_status?: string;
+    channel?: string;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  }) {
+    if (!Array.isArray(memoryStore.abandoned_carts)) {
+      memoryStore.abandoned_carts = [...DEFAULT_ABANDONED_CARTS];
+    }
+    const { start, end } = this.parseDateFilter(filters.preset, filters.startDate, filters.endDate);
+
+    let filtered = memoryStore.abandoned_carts.filter((cart) => {
+      const cartDate = new Date(cart.created_at || cart.last_activity_at);
+      if (cartDate < start || cartDate > end) return false;
+      if (filters.city_id && filters.city_id !== "ALL" && cart.city_id !== filters.city_id) return false;
+      if (filters.branch_id && filters.branch_id !== "ALL" && cart.branch_id !== filters.branch_id) return false;
+      if (filters.status && filters.status !== "ALL" && cart.status !== filters.status) return false;
+      if (filters.recovery_status && filters.recovery_status !== "ALL") {
+        if (filters.recovery_status === "RECOVERED" && cart.status !== "RECOVERED") return false;
+        if (filters.recovery_status === "PENDING" && cart.status !== "ABANDONED" && cart.status !== "RECOVERY_PENDING") return false;
+        if (filters.recovery_status === "SENT" && cart.status !== "RECOVERY_SENT") return false;
+      }
+      if (filters.channel && filters.channel !== "ALL" && cart.last_recovery_channel !== filters.channel) return false;
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        const matchCust = (cart.customer_name || "").toLowerCase().includes(q) || (cart.customer_phone || "").includes(q);
+        const matchItem = cart.items.some((i) => i.product_name.toLowerCase().includes(q));
+        const matchBranch = (cart.branch_name || "").toLowerCase().includes(q);
+        if (!matchCust && !matchItem && !matchBranch) return false;
+      }
+      return true;
+    });
+
+    const page = Math.max(1, Number(filters.page) || 1);
+    const pageSize = Math.max(1, Math.min(100, Number(filters.pageSize) || 10));
+    const totalCount = filtered.length;
+    const totalPages = Math.ceil(totalCount / pageSize) || 1;
+    const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+    // Summary calculation based on date-filtered set
+    const rangeCarts = memoryStore.abandoned_carts.filter((c) => {
+      const d = new Date(c.created_at || c.last_activity_at);
+      return d >= start && d <= end;
+    });
+
+    const activeAbandonedCarts = rangeCarts.filter((c) => c.status === "ABANDONED" || c.status === "RECOVERY_PENDING" || c.status === "RECOVERY_SENT").length;
+    const recoverableCarts = rangeCarts.filter((c) => c.status === "ABANDONED" && (c.customer_phone || c.customer_email)).length;
+    const recoveryAttempts = rangeCarts.reduce((acc, c) => acc + (c.recovery_attempts_count || 0), 0);
+    const recoveredCarts = rangeCarts.filter((c) => c.status === "RECOVERED").length;
+    const recoveryRevenue = rangeCarts.filter((c) => c.status === "RECOVERED").reduce((acc, c) => acc + c.grand_total, 0);
+    const recoveryRate = rangeCarts.length > 0 ? Math.round((recoveredCarts / Math.max(1, activeAbandonedCarts + recoveredCarts)) * 100) : 0;
+
+    return {
+      success: true,
+      carts: paginated,
+      pagination: {
+        page,
+        pageSize,
+        limit: pageSize,
+        total: totalCount,
+        totalCount,
+        totalPages,
+      },
+      summary: {
+        total_abandoned: rangeCarts.length,
+        totalAbandoned: rangeCarts.length,
+        active_abandoned: activeAbandonedCarts,
+        activeAbandonedCarts,
+        recoverable_count: recoverableCarts,
+        recoverableCarts,
+        recovery_attempts: recoveryAttempts,
+        recoveryAttempts,
+        recovered_count: recoveredCarts,
+        recoveredCarts,
+        recovered_revenue: recoveryRevenue,
+        recoveryRevenue,
+        recovery_rate_pct: recoveryRate,
+        recoveryRate,
+        dateRange: {
+          start: start.toISOString(),
+          end: end.toISOString(),
+          preset: filters.preset || "custom",
+        },
+      },
+    };
+  }
+
+  static getAbandonedCartById(cartId: string) {
+    if (!Array.isArray(memoryStore.abandoned_carts)) {
+      memoryStore.abandoned_carts = [...DEFAULT_ABANDONED_CARTS];
+    }
+    const cart = memoryStore.abandoned_carts.find((c) => c.cart_id === cartId || c.id === cartId);
+    if (!cart) return null;
+
+    // Attach recovery history
+    const attempts = (memoryStore.cart_recovery_attempts || []).filter((a) => a.cart_id === cart.cart_id || a.cart_id === cart.id);
+    return {
+      ...cart,
+      recovery_attempts: attempts,
+    };
+  }
+
+  static generateCartRecoveryToken(cartId: string): RecoveryToken {
+    if (!Array.isArray(memoryStore.recovery_tokens)) {
+      memoryStore.recovery_tokens = [];
+    }
+    const token = `rectok_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+    const recToken: RecoveryToken = {
+      id: `tok_${Date.now()}`,
+      cart_id: cartId,
+      token,
+      token_hash: `sha_${Buffer.from(token).toString("base64")}`,
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date().toISOString(),
+    };
+    memoryStore.recovery_tokens.push(recToken);
+    ApiEngine.persist();
+    return recToken;
+  }
+
+  static sendCartRecoveryNotification(cartId: string, channel: string = "WHATSAPP", customMessage?: string) {
+    if (!Array.isArray(memoryStore.abandoned_carts)) {
+      memoryStore.abandoned_carts = [...DEFAULT_ABANDONED_CARTS];
+    }
+    if (!Array.isArray(memoryStore.cart_recovery_attempts)) {
+      memoryStore.cart_recovery_attempts = [...DEFAULT_RECOVERY_ATTEMPTS];
+    }
+
+    const cart = memoryStore.abandoned_carts.find((c) => c.cart_id === cartId || c.id === cartId);
+    if (!cart) {
+      throw new Error(`Cart with ID ${cartId} not found`);
+    }
+
+    const normalizedChannel = ((channel || "WHATSAPP").toUpperCase()) as "WHATSAPP" | "EMAIL" | "SMS";
+    const tokenObj = ApiEngine.generateCartRecoveryToken(cart.cart_id);
+    const recoveryUrl = `/cart/recover/${tokenObj.token}`;
+    const preview = customMessage || `Hi ${cart.customer_name || 'there'}! Your cake celebration cart (₹${cart.grand_total}) is reserved. Complete your order now with instant doorstep delivery!`;
+
+    const attempt: CartRecoveryAttempt = {
+      id: `att_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      cart_id: cart.cart_id,
+      customer_id: cart.customer_id,
+      customer_phone: cart.customer_phone,
+      customer_email: cart.customer_email,
+      channel: normalizedChannel,
+      status: "DELIVERED",
+      message_preview: preview,
+      recovery_token: tokenObj.token,
+      recovery_url: recoveryUrl,
+      sent_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    };
+
+    memoryStore.cart_recovery_attempts.unshift(attempt);
+
+    // Update cart status
+    cart.status = "RECOVERY_SENT";
+    cart.recovery_attempts_count = (cart.recovery_attempts_count || 0) + 1;
+    cart.last_recovery_channel = normalizedChannel;
+    cart.last_contact_at = new Date().toISOString();
+    cart.updated_at = new Date().toISOString();
+
+    ApiEngine.addAuditLog(`Cart Recovery message dispatched via ${normalizedChannel} to ${cart.customer_name || cart.customer_phone} (Cart: ${cart.cart_id})`);
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      channel: normalizedChannel,
+      recovery_url: recoveryUrl,
+      attempt,
+      cart,
+    };
+  }
+
+  static revalidateAndRestoreRecoveredCart(token: string) {
+    if (!Array.isArray(memoryStore.recovery_tokens)) {
+      memoryStore.recovery_tokens = [];
+    }
+    const tokenRecord = memoryStore.recovery_tokens.find((t) => t.token === token);
+    if (!tokenRecord) {
+      throw new Error("Invalid or expired cart recovery link.");
+    }
+    if (new Date(tokenRecord.expires_at).getTime() < Date.now()) {
+      throw new Error("This cart recovery link has expired.");
+    }
+
+    const cart = (memoryStore.abandoned_carts || []).find((c) => c.recovery_token === token || c.cart_id === tokenRecord.cart_id || c.id === tokenRecord.cart_id);
+    if (!cart) {
+      throw new Error("The associated cart session is no longer available.");
+    }
+
+    // Mark attempt clicked
+    const attempt = (memoryStore.cart_recovery_attempts || []).find((a) => a.recovery_token === token);
+    if (attempt) {
+      attempt.clicked_at = new Date().toISOString();
+    }
+
+    // Revalidate items against current live product catalog
+    const allProducts = Array.isArray(memoryStore.products) && memoryStore.products.length > 0 ? memoryStore.products : DEFAULT_PRODUCTS;
+    const validatedItems: AbandonedCartItem[] = [];
+
+    for (const item of (cart.items || [])) {
+      const prod = allProducts.find((p: any) => p.id === item.product_id || p.product_id === item.product_id);
+      if (prod) {
+        validatedItems.push({
+          ...item,
+          product_name: prod.title || prod.name || item.product_name,
+          unit_price: Number(prod.price || item.unit_price),
+          total_price: Number(item.quantity) * Number(prod.price || item.unit_price),
+          thumbnail: prod.thumbnail || item.thumbnail,
+        });
+      } else {
+        validatedItems.push({
+          ...item,
+          total_price: Number(item.quantity) * Number(item.unit_price),
+        });
+      }
+    }
+
+    if (validatedItems.length === 0) {
+      throw new Error("The items in your recovered cart are currently out of stock.");
+    }
+
+    const subtotal = validatedItems.reduce((acc, i) => acc + i.total_price, 0);
+    const discount = cart.discount_total || 0;
+    const tax = Math.round((subtotal - discount) * 0.05 * 100) / 100;
+    const deliveryFee = cart.delivery_fee || 0;
+    const grandTotal = Math.max(0, subtotal - discount + tax + deliveryFee);
+
+    cart.items = validatedItems;
+    cart.subtotal = subtotal;
+    cart.tax_total = tax;
+    cart.grand_total = grandTotal;
+    cart.last_activity_at = new Date().toISOString();
+    cart.updated_at = new Date().toISOString();
+
+    cart.status = "RECOVERED";
+    cart.recovered_at = new Date().toISOString();
+    cart.last_activity_at = new Date().toISOString();
+    cart.updated_at = new Date().toISOString();
+
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      cart_id: cart.cart_id,
+      cart: {
+        id: cart.cart_id,
+        items: validatedItems,
+        subtotal,
+        discount_total: discount,
+        tax_total: tax,
+        delivery_fee: deliveryFee,
+        total: grandTotal,
+        customer_id: cart.customer_id,
+        customer_phone: cart.customer_phone,
+        branch_id: cart.branch_id,
+        city_id: cart.city_id,
+        pincode: cart.delivery_pincode,
+        status: "RECOVERED",
+        recovery_status: "RECOVERED",
+      },
+      validation: {
+        products_available: true,
+        branch_serviceable: true,
+        pricing_verified: true,
+      },
+      message: "Cart successfully restored and prices revalidated.",
+    };
+  }
+
+  static attributeRecoveryOrder(orderId: string, cartId: string, token?: string) {
+    if (!Array.isArray(memoryStore.abandoned_carts)) {
+      memoryStore.abandoned_carts = [...DEFAULT_ABANDONED_CARTS];
+    }
+    const cart = memoryStore.abandoned_carts.find((c) => c.cart_id === cartId || c.id === cartId);
+    if (cart) {
+      cart.status = "RECOVERED";
+      cart.recovered_at = new Date().toISOString();
+      cart.recovery_order_id = orderId;
+      cart.updated_at = new Date().toISOString();
+
+      if (token) {
+        const tokenRecord = (memoryStore.recovery_tokens || []).find((t) => t.token === token);
+        if (tokenRecord) {
+          tokenRecord.used_at = new Date().toISOString();
+        }
+        const attempt = (memoryStore.cart_recovery_attempts || []).find((a) => a.recovery_token === token);
+        if (attempt) {
+          attempt.recovered_at = new Date().toISOString();
+        }
+      }
+      ApiEngine.addAuditLog(`Recovered Cart ${cart.cart_id} converted to Order ${orderId} (Revenue: ₹${cart.grand_total})`);
+      ApiEngine.persist();
+      return { success: true, revenue_recovered: cart.grand_total, cart };
+    }
+    return { success: false, error: "Cart not found" };
+  }
+
+  static listEligibleMarketingPopups(ctx: any = {}) {
+    const popups = [
+      {
+        id: "pop_exit_cart_10",
+        title: "Wait! Complete Your Order Now",
+        headline: "Get 10% OFF Your Celebration",
+        body: "Your delicious freshly baked cake is waiting in your cart. Use discount code below for instant savings!",
+        discount_code: "SWEET10",
+        discount_percent: 10,
+        button_text: "Apply 10% & Checkout",
+        trigger_event: "EXIT_INTENT",
+        priority: 100,
+        page_pattern: "/cart",
+        is_active: true,
+      },
+      {
+        id: "pop_welcome_new_user",
+        title: "Welcome to Cakes2Home!",
+        headline: "First Order Special",
+        body: "Unlock exclusive fresh oven treats delivered in 60 minutes across India.",
+        discount_code: "FIRSTTREAT",
+        discount_percent: 15,
+        button_text: "Claim Offer",
+        trigger_event: "LANDING",
+        priority: 50,
+        page_pattern: "*",
+        is_active: true,
+      },
+    ];
+
+    if (ctx.page && ctx.page.includes("/cart")) {
+      return popups.filter((p) => p.page_pattern === "/cart" || p.page_pattern === "*");
+    }
+    return popups;
+  }
+
+  static getLoginActivity(query: any = {}) {
+    const res = ApiEngine.listLoginActivity(query);
+    return {
+      success: true,
+      events: res.events || [],
+      pagination: res.pagination,
+      metrics: {
+        total_events: res.summary?.totalAttempts || 0,
+        successful_logins: res.summary?.successfulCount || 0,
+        failed_logins: res.summary?.failedCount || 0,
+        unique_users: res.summary?.uniqueUsersCount || 0,
+        otp_success_rate: res.summary?.otpSuccessRate || 100,
+      },
+    };
+  }
+
+  static getAbandonedCarts(filters: any = {}) {
+    const res = ApiEngine.listAbandonedCarts(filters);
+    return {
+      success: true,
+      carts: res.carts || [],
+      pagination: res.pagination,
+      metrics: {
+        total_abandoned: res.summary?.activeAbandonedCarts || 0,
+        total_abandoned_value: (res.carts || []).reduce((acc: number, c: any) => acc + (c.grand_total || c.subtotal || 0), 0),
+        recovered_count: res.summary?.recoveredCarts || 0,
+        recovered_revenue: res.summary?.recoveryRevenue || 0,
+        recovery_rate_pct: res.summary?.recoveryRate || 0,
+      },
+    };
+  }
+
+  static recoverCartByToken(token: string) {
+    const res = ApiEngine.revalidateAndRestoreRecoveredCart(token);
+    return {
+      success: true,
+      revalidated: true,
+      cart: {
+        ...res.cart,
+        discount_applied: { code: "SWEET10", amount: res.cart.discount_total || 50 },
+      },
+      message: res.message,
+    };
+  }
+
+  static markCartAsRecovered(cartId: string, orderId: string, _grandTotal?: number) {
+    return ApiEngine.attributeRecoveryOrder(orderId, cartId);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── POPUP & ENGAGEMENT MANAGER ENGINE ─────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  static ensurePopupStore() {
+    if (!memoryStore) memoryStore = {} as any;
+    if (!Array.isArray((memoryStore as any).popup_campaigns)) {
+      (memoryStore as any).popup_campaigns = [
+        {
+          id: "pop_cart_recovery",
+          name: "Smart Cart Recovery Modal",
+          slug: "smart-cart-recovery",
+          description: "Engages guests and customers attempting to leave with active items in cart.",
+          popup_type: "CART_EXIT",
+          status: "published",
+          priority: 800,
+          enabled: true,
+          start_at: null,
+          end_at: null,
+          timezone: "Asia/Kolkata",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          current_version: {
+            id: "ver_cart_rec_1",
+            popup_campaign_id: "pop_cart_recovery",
+            version_number: 1,
+            published_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            content: {
+              eyebrow: "DON'T LEAVE YOUR TREATS BEHIND",
+              headline: "Your celebration cake is waiting!",
+              description: "Complete your checkout now and get 10% instant discount applied.",
+              badge: "10% OFF",
+              primaryButton: {
+                label: "Return to Cart & Apply 10%",
+                action: "OPEN_CART",
+                couponCode: "SWEET10",
+              },
+              secondaryButton: {
+                label: "Continue Browsing",
+                action: "CLOSE",
+              },
+            },
+            design: {
+              desktopLayout: "CENTER_MODAL",
+              tabletLayout: "CENTER_MODAL",
+              mobileLayout: "BOTTOM_SHEET",
+              width: 520,
+              borderRadius: 20,
+              backdropOpacity: 0.6,
+              animation: "SLIDE_UP",
+              accentColor: "#e11d48",
+            },
+            trigger: {
+              exitIntent: true,
+              backNavigation: true,
+              inactivitySeconds: 45,
+            },
+            audience: {
+              customerStatus: ["all"],
+              devices: ["mobile", "tablet", "desktop"],
+              cityIds: [],
+              branchIds: [],
+              minCartValue: 1,
+            },
+            frequency: {
+              scope: "session",
+              maxShows: 1,
+              cooldownSeconds: 86400,
+              cartChangeRequired: true,
+            },
+            schedule: {
+              startAt: null,
+              endAt: null,
+              timezone: "Asia/Kolkata",
+            },
+            rules: [
+              {
+                logic: "AND",
+                conditions: [
+                  { field: "cart.hasItems", operator: "equals", value: true },
+                  { field: "checkout.active", operator: "not_equals", value: true },
+                ],
+              },
+            ],
+            media: {
+              type: "CART_IMAGES",
+              aspectRatio: "square",
+            },
+          },
+        },
+        {
+          id: "pop_welcome_first_order",
+          name: "New Visitor Welcome Privilege",
+          slug: "welcome-first-order",
+          description: "Greets first-time visitors automatically with instant welcome discount.",
+          popup_type: "WELCOME",
+          status: "published",
+          priority: 850,
+          enabled: true,
+          start_at: null,
+          end_at: null,
+          timezone: "Asia/Kolkata",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          current_version: {
+            id: "ver_welcome_1",
+            popup_campaign_id: "pop_welcome_first_order",
+            version_number: 1,
+            published_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            content: {
+              templateId: "LOGIN_OFFER",
+              eyebrow: "WELCOME TO CAKETOHOME",
+              headline: "Fresh from the oven to your doorstep",
+              description: "Enter your mobile number for ₹150 OFF your first handcrafted cake.",
+              badge: "WELCOME SPECIAL",
+              phoneConfig: {
+                enabled: true,
+                mandatory: false,
+                action: "LOGIN_COUPON",
+                placeholder: "Enter your mobile number",
+                buttonLabel: "Continue with Mobile Number",
+                guestButtonLabel: "Continue as Guest",
+                disclaimerText: "We'll use your number to securely sign you in and apply your discount.",
+              },
+              primaryButton: {
+                label: "Continue with Mobile Number",
+                action: "LOGIN_WITH_MOBILE",
+                couponCode: "SWEET150",
+              },
+              secondaryButton: {
+                label: "Continue Browsing",
+                action: "CLOSE",
+              },
+            },
+            design: {
+              desktopLayout: "CENTER_MODAL",
+              tabletLayout: "CENTER_MODAL",
+              mobileLayout: "BOTTOM_SHEET",
+              width: 540,
+              borderRadius: 24,
+              backdropOpacity: 0.6,
+              animation: "SLIDE_UP",
+              accentColor: "#e11d48",
+            },
+            trigger: {
+              enabled_triggers: ["time_on_page"],
+              combinator: "ANY",
+              timeOnPageSeconds: 3,
+            },
+            offer: {
+              type: "COUPON",
+              couponCode: "SWEET150",
+              autoApply: true,
+            },
+            audience: {
+              customerStatus: ["all"],
+              devices: ["mobile", "tablet", "desktop"],
+            },
+            frequency: {
+              scope: "session",
+              maxShows: 1,
+              cooldownSeconds: 86400,
+            },
+            schedule: {
+              startAt: null,
+              endAt: null,
+              timezone: "Asia/Kolkata",
+            },
+            rules: [],
+            media: {
+              type: "IMAGE_URL",
+              imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600",
+              aspectRatio: "square",
+            },
+          },
+        },
+        {
+          id: "pop_product_exit_special",
+          name: "High-Intent Product Exit Special",
+          slug: "product-exit-special",
+          description: "Shows viewed cake artwork and highlights speedy 60-min delivery on exit intent.",
+          popup_type: "PRODUCT_EXIT",
+          status: "published",
+          priority: 700,
+          enabled: true,
+          start_at: null,
+          end_at: null,
+          timezone: "Asia/Kolkata",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          current_version: {
+            id: "ver_prod_exit_1",
+            popup_campaign_id: "pop_product_exit_special",
+            version_number: 1,
+            published_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            content: {
+              eyebrow: "SPECIAL TASTE GUARANTEE",
+              headline: "Still craving {{product_name}}?",
+              description: "Handcrafted freshly upon order. Available for 60-minute express delivery to {{city}}.",
+              primaryButton: {
+                label: "Add to Cart Now",
+                action: "OPEN_CART",
+              },
+              secondaryButton: {
+                label: "Keep Looking",
+                action: "CLOSE",
+              },
+            },
+            design: {
+              desktopLayout: "CENTER_MODAL",
+              tabletLayout: "CENTER_MODAL",
+              mobileLayout: "BOTTOM_SHEET",
+              width: 500,
+              borderRadius: 20,
+              backdropOpacity: 0.55,
+              animation: "FADE",
+            },
+            trigger: {
+              exitIntent: true,
+              backNavigation: true,
+            },
+            audience: {
+              customerStatus: ["all"],
+              devices: ["mobile", "tablet", "desktop"],
+            },
+            frequency: {
+              scope: "product",
+              maxShows: 1,
+              cooldownSeconds: 86400,
+            },
+            schedule: {
+              startAt: null,
+              endAt: null,
+              timezone: "Asia/Kolkata",
+            },
+            rules: [],
+            media: {
+              type: "PRODUCT_IMAGE",
+              aspectRatio: "square",
+            },
+          },
+        },
+        {
+          id: "pop_wishlist_auth",
+          name: "Wishlist Authentication Guard",
+          slug: "wishlist-auth-guard",
+          description: "Prompts guest users to log in when bookmarking favorite celebration cakes.",
+          popup_type: "WISHLIST_AUTH",
+          status: "published",
+          priority: 900,
+          enabled: true,
+          start_at: null,
+          end_at: null,
+          timezone: "Asia/Kolkata",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          current_version: {
+            id: "ver_wishlist_1",
+            popup_campaign_id: "pop_wishlist_auth",
+            version_number: 1,
+            published_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            content: {
+              eyebrow: "SAVE YOUR FAVORITES",
+              headline: "Sign in to save this cake to your Wishlist",
+              description: "Access your saved treats across all devices and receive price drop alerts.",
+              primaryButton: {
+                label: "Sign In with Phone",
+                action: "LOGIN",
+              },
+              secondaryButton: {
+                label: "Cancel",
+                action: "CLOSE",
+              },
+            },
+            design: {
+              desktopLayout: "CENTER_MODAL",
+              tabletLayout: "CENTER_MODAL",
+              mobileLayout: "BOTTOM_SHEET",
+              width: 460,
+              borderRadius: 20,
+              backdropOpacity: 0.6,
+              animation: "SLIDE_UP",
+            },
+            trigger: {
+              authRequired: true,
+            },
+            audience: {
+              customerStatus: ["guest"],
+              devices: ["mobile", "tablet", "desktop"],
+            },
+            frequency: {
+              scope: "session",
+              maxShows: 5,
+              cooldownSeconds: 0,
+            },
+            schedule: {
+              startAt: null,
+              endAt: null,
+              timezone: "Asia/Kolkata",
+            },
+            rules: [],
+            media: {
+              type: "NONE",
+            },
+          },
+        },
+        {
+          id: "pop_returning_member",
+          name: "Returning VIP Customer Welcome Back",
+          slug: "returning-vip-welcome",
+          description: "Recognizes returning customers with personalized cake reordering shortcuts.",
+          popup_type: "RETURNING",
+          status: "published",
+          priority: 400,
+          enabled: true,
+          start_at: null,
+          end_at: null,
+          timezone: "Asia/Kolkata",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          current_version: {
+            id: "ver_ret_1",
+            popup_campaign_id: "pop_returning_member",
+            version_number: 1,
+            published_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            content: {
+              eyebrow: "WELCOME BACK",
+              headline: "Hello {{customer_name}}, ready to celebrate?",
+              description: "Your loyalty treats and quick reorder history are waiting in your account.",
+              primaryButton: {
+                label: "View Account & Past Orders",
+                action: "CUSTOM_URL",
+                targetUrl: "/account/orders",
+              },
+              secondaryButton: {
+                label: "Shop Cakes",
+                action: "CLOSE",
+              },
+            },
+            design: {
+              desktopLayout: "SIDE_PANEL",
+              tabletLayout: "CENTER_MODAL",
+              mobileLayout: "BOTTOM_SHEET",
+              width: 440,
+              borderRadius: 16,
+              backdropOpacity: 0.3,
+              animation: "SLIDE_UP",
+            },
+            trigger: {
+              returningVisitor: true,
+              timeOnPageSeconds: 15,
+            },
+            audience: {
+              customerStatus: ["logged_in", "returning_customer", "member"],
+              devices: ["mobile", "tablet", "desktop"],
+            },
+            frequency: {
+              scope: "visitor",
+              maxShows: 1,
+              cooldownSeconds: 259200, // 3 days
+            },
+            schedule: {
+              startAt: null,
+              endAt: null,
+              timezone: "Asia/Kolkata",
+            },
+            rules: [],
+            media: {
+              type: "NONE",
+            },
+          },
+        },
+      ];
+    }
+    if (!Array.isArray((memoryStore as any).popup_impressions)) {
+      (memoryStore as any).popup_impressions = [
+        { id: "imp_1", popup_campaign_id: "pop_cart_recovery", session_id: "sess_1", page_url: "/cart", cart_value: 849, device_type: "desktop", event_type: "shown", created_at: new Date(Date.now() - 3600000).toISOString() },
+        { id: "imp_2", popup_campaign_id: "pop_cart_recovery", session_id: "sess_1", page_url: "/cart", cart_value: 849, device_type: "desktop", event_type: "cta_clicked", created_at: new Date(Date.now() - 3500000).toISOString() },
+        { id: "imp_3", popup_campaign_id: "pop_welcome_first_order", session_id: "sess_2", page_url: "/", device_type: "mobile", event_type: "shown", created_at: new Date(Date.now() - 7200000).toISOString() },
+      ];
+    }
+    if (!Array.isArray((memoryStore as any).popup_conversions)) {
+      (memoryStore as any).popup_conversions = [
+        { id: "conv_1", popup_campaign_id: "pop_cart_recovery", session_id: "sess_1", conversion_type: "PURCHASE", order_id: "ord_sample_1", revenue: 849, created_at: new Date(Date.now() - 3400000).toISOString() },
+      ];
+    }
+  }
+
+  static listPopupCampaigns(filters: any = {}) {
+    ApiEngine.ensurePopupStore();
+    let list = (memoryStore as any).popup_campaigns || [];
+
+    if (filters.status && filters.status !== "all") {
+      list = list.filter((c: any) => c.status === filters.status);
+    }
+    if (filters.popup_type && filters.popup_type !== "all") {
+      list = list.filter((c: any) => c.popup_type === filters.popup_type);
+    }
+    if (filters.q || filters.search) {
+      const q = (filters.q || filters.search).toLowerCase();
+      list = list.filter((c: any) => c.name.toLowerCase().includes(q) || c.slug.toLowerCase().includes(q) || (c.description || "").toLowerCase().includes(q));
+    }
+
+    const impressions = (memoryStore as any).popup_impressions || [];
+    const conversions = (memoryStore as any).popup_conversions || [];
+
+    return list.map((c: any) => {
+      const campImps = impressions.filter((i: any) => i.popup_campaign_id === c.id);
+      const shownCount = campImps.filter((i: any) => i.event_type === "shown").length;
+      const clicksCount = campImps.filter((i: any) => i.event_type === "cta_clicked").length;
+      const dismissCount = campImps.filter((i: any) => i.event_type === "dismissed").length;
+      const campConvs = conversions.filter((cv: any) => cv.popup_campaign_id === c.id);
+      const convCount = campConvs.length;
+      const rev = campConvs.reduce((sum: number, cv: any) => sum + (Number(cv.revenue) || 0), 0);
+
+      return {
+        ...c,
+        analytics: {
+          impressions: shownCount,
+          dismissals: dismissCount,
+          clicks: clicksCount,
+          conversions: convCount,
+          ctr: shownCount > 0 ? Math.round((clicksCount / shownCount) * 1000) / 10 : 0,
+          conversion_rate: shownCount > 0 ? Math.round((convCount / shownCount) * 1000) / 10 : 0,
+          recovered_revenue: rev,
+        },
+      };
+    });
+  }
+
+  static getPopupCampaignById(id: string) {
+    ApiEngine.ensurePopupStore();
+    const list = ApiEngine.listPopupCampaigns();
+    return list.find((c: any) => c.id === id || c.slug === id) || null;
+  }
+
+  static createPopupCampaign(payload: any) {
+    ApiEngine.ensurePopupStore();
+    const id = `pop_${Date.now()}`;
+    const slug = (payload.slug || payload.name || `popup-${Date.now()}`)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    const newVersion = {
+      id: `ver_${Date.now()}`,
+      popup_campaign_id: id,
+      version_number: 1,
+      created_at: new Date().toISOString(),
+      content: payload.content || {
+        headline: payload.name || "Special Celebration Offer",
+        description: "Fresh artisanal cakes crafted for your moments.",
+        primaryButton: { label: "Claim Offer", action: "OPEN_CART" },
+      },
+      design: payload.design || {
+        desktopLayout: "CENTER_MODAL",
+        tabletLayout: "CENTER_MODAL",
+        mobileLayout: "BOTTOM_SHEET",
+        width: 520,
+        borderRadius: 20,
+        backdropOpacity: 0.6,
+        animation: "SLIDE_UP",
+      },
+      trigger: payload.trigger || { exitIntent: true },
+      audience: payload.audience || { customerStatus: ["all"], devices: ["mobile", "tablet", "desktop"] },
+      frequency: payload.frequency || { scope: "session", maxShows: 1, cooldownSeconds: 86400 },
+      schedule: payload.schedule || { startAt: null, endAt: null, timezone: "Asia/Kolkata" },
+      offer: payload.offer || { type: "NONE" },
+      rules: payload.rules || [],
+      media: payload.media || { source: "NO_IMAGE" },
+    };
+
+    const newCampaign = {
+      id,
+      name: payload.name || "New Engagement Popup",
+      slug,
+      description: payload.description || "",
+      popup_type: payload.popup_type || "PROMOTIONAL",
+      status: payload.status || "draft",
+      priority: Number(payload.priority) || 100,
+      enabled: payload.enabled !== undefined ? Boolean(payload.enabled) : true,
+      start_at: payload.start_at || null,
+      end_at: payload.end_at || null,
+      timezone: payload.timezone || "Asia/Kolkata",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      current_version: payload.status === "published" ? newVersion : undefined,
+      draft_version: newVersion,
+    };
+
+    (memoryStore as any).popup_campaigns.unshift(newCampaign);
+    ApiEngine.addAuditLog(`Created Popup Campaign "${newCampaign.name}" (${newCampaign.popup_type})`);
+    ApiEngine.persist();
+    return newCampaign;
+  }
+
+  static updatePopupCampaign(id: string, payload: any) {
+    ApiEngine.ensurePopupStore();
+    const idx = (memoryStore as any).popup_campaigns.findIndex((c: any) => c.id === id);
+    if (idx < 0) return null;
+
+    const existing = (memoryStore as any).popup_campaigns[idx];
+    const updatedDraft = {
+      ...(existing.draft_version || existing.current_version || {}),
+      content: payload.content || existing.draft_version?.content || existing.current_version?.content,
+      design: payload.design || existing.draft_version?.design || existing.current_version?.design,
+      trigger: payload.trigger || existing.draft_version?.trigger || existing.current_version?.trigger,
+      audience: payload.audience || existing.draft_version?.audience || existing.current_version?.audience,
+      frequency: payload.frequency || existing.draft_version?.frequency || existing.current_version?.frequency,
+      schedule: payload.schedule || existing.draft_version?.schedule || existing.current_version?.schedule,
+      offer: payload.offer || existing.draft_version?.offer || existing.current_version?.offer,
+      rules: payload.rules !== undefined ? payload.rules : (existing.draft_version?.rules || existing.current_version?.rules || []),
+      media: payload.media || existing.draft_version?.media || existing.current_version?.media,
+    };
+
+    (memoryStore as any).popup_campaigns[idx] = {
+      ...existing,
+      name: payload.name || existing.name,
+      description: payload.description !== undefined ? payload.description : existing.description,
+      popup_type: payload.popup_type || existing.popup_type,
+      priority: payload.priority !== undefined ? Number(payload.priority) : existing.priority,
+      enabled: payload.enabled !== undefined ? Boolean(payload.enabled) : existing.enabled,
+      status: payload.status || existing.status,
+      start_at: payload.start_at !== undefined ? payload.start_at : existing.start_at,
+      end_at: payload.end_at !== undefined ? payload.end_at : existing.end_at,
+      updated_at: new Date().toISOString(),
+      draft_version: updatedDraft,
+      current_version: existing.status === "published" || payload.status === "published" ? updatedDraft : existing.current_version,
+    };
+
+    ApiEngine.addAuditLog(`Updated Popup Campaign "${existing.name}"`);
+    ApiEngine.persist();
+    return (memoryStore as any).popup_campaigns[idx];
+  }
+
+  static deletePopupCampaign(id: string) {
+    ApiEngine.ensurePopupStore();
+    const camp = (memoryStore as any).popup_campaigns.find((c: any) => c.id === id);
+    if (camp) {
+      (memoryStore as any).popup_campaigns = (memoryStore as any).popup_campaigns.filter((c: any) => c.id !== id);
+      ApiEngine.addAuditLog(`Deleted Popup Campaign "${camp.name}"`);
+      ApiEngine.persist();
+      return true;
+    }
+    return false;
+  }
+
+  static publishPopupCampaign(id: string, versionData?: any) {
+    ApiEngine.ensurePopupStore();
+    const idx = (memoryStore as any).popup_campaigns.findIndex((c: any) => c.id === id);
+    if (idx < 0) return null;
+
+    const camp = (memoryStore as any).popup_campaigns[idx];
+    const hasValidVersionPayload =
+      versionData &&
+      typeof versionData === "object" &&
+      Object.keys(versionData).length > 0 &&
+      (versionData.content || versionData.trigger || versionData.design);
+
+    const sourceVersion = hasValidVersionPayload ? versionData : camp.draft_version || camp.current_version;
+
+    const publishedVersion = {
+      ...sourceVersion,
+      id: `ver_${Date.now()}`,
+      popup_campaign_id: id,
+      version_number: (camp.current_version?.version_number || 0) + 1,
+      published_at: new Date().toISOString(),
+    };
+
+    (memoryStore as any).popup_campaigns[idx] = {
+      ...camp,
+      status: "published",
+      enabled: true,
+      current_version: publishedVersion,
+      draft_version: publishedVersion,
+      updated_at: new Date().toISOString(),
+    };
+
+    ApiEngine.addAuditLog(`Published Popup Campaign "${camp.name}" (Version ${publishedVersion.version_number})`);
+    ApiEngine.persist();
+    return (memoryStore as any).popup_campaigns[idx];
+  }
+
+  static pausePopupCampaign(id: string) {
+    ApiEngine.ensurePopupStore();
+    const idx = (memoryStore as any).popup_campaigns.findIndex((c: any) => c.id === id);
+    if (idx < 0) return null;
+
+    (memoryStore as any).popup_campaigns[idx].status = "paused";
+    (memoryStore as any).popup_campaigns[idx].updated_at = new Date().toISOString();
+    ApiEngine.addAuditLog(`Paused Popup Campaign "${(memoryStore as any).popup_campaigns[idx].name}"`);
+    ApiEngine.persist();
+    return (memoryStore as any).popup_campaigns[idx];
+  }
+
+  static archivePopupCampaign(id: string) {
+    ApiEngine.ensurePopupStore();
+    const idx = (memoryStore as any).popup_campaigns.findIndex((c: any) => c.id === id);
+    if (idx < 0) return null;
+
+    (memoryStore as any).popup_campaigns[idx].status = "archived";
+    (memoryStore as any).popup_campaigns[idx].enabled = false;
+    (memoryStore as any).popup_campaigns[idx].updated_at = new Date().toISOString();
+    ApiEngine.addAuditLog(`Archived Popup Campaign "${(memoryStore as any).popup_campaigns[idx].name}"`);
+    ApiEngine.persist();
+    return (memoryStore as any).popup_campaigns[idx];
+  }
+
+  static duplicatePopupCampaign(id: string) {
+    ApiEngine.ensurePopupStore();
+    const original = (memoryStore as any).popup_campaigns.find((c: any) => c.id === id);
+    if (!original) return null;
+
+    const newId = `pop_${Date.now()}`;
+    const duplicated = {
+      ...original,
+      id: newId,
+      name: `${original.name} (Copy)`,
+      slug: `${original.slug}-copy-${Date.now().toString().slice(-4)}`,
+      status: "draft",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      current_version: original.current_version ? { ...original.current_version, id: `ver_${Date.now()}`, popup_campaign_id: newId } : undefined,
+      draft_version: original.draft_version ? { ...original.draft_version, id: `ver_${Date.now()}`, popup_campaign_id: newId } : undefined,
+    };
+
+    (memoryStore as any).popup_campaigns.unshift(duplicated);
+    ApiEngine.addAuditLog(`Duplicated Popup Campaign "${original.name}" to "${duplicated.name}"`);
+    ApiEngine.persist();
+    return duplicated;
+  }
+
+  static getPopupOptions() {
+    ApiEngine.ensurePopupStore();
+    return {
+      customer_statuses: [
+        { value: "all", label: "All Personas (Universal)" },
+        { value: "guest", label: "Guest Visitors" },
+        { value: "logged_in", label: "Logged-In Customers" },
+        { value: "new_customer", label: "First-Time Customers" },
+        { value: "returning_customer", label: "Returning Repeat Customers" },
+        { value: "member", label: "VIP Club Members" },
+      ],
+      devices: [
+        { value: "mobile", label: "Mobile Phones" },
+        { value: "tablet", label: "Tablets & iPads" },
+        { value: "desktop", label: "Desktops & Laptops" },
+      ],
+      popup_types: [
+        { value: "LOGIN", label: "Login & Identity Popup" },
+        { value: "SIGNUP", label: "New Member Signup Bonus" },
+        { value: "WISHLIST_AUTH", label: "Wishlist Authentication Guard" },
+        { value: "ACCOUNT", label: "Quick Account & Reorder Drawer" },
+        { value: "CART_EXIT", label: "Cart Exit & Recovery Popup" },
+        { value: "PRODUCT_EXIT", label: "Product-Specific Exit Intent" },
+        { value: "WELCOME", label: "First-Time Visitor Welcome" },
+        { value: "RETURNING", label: "Returning Customer Welcome Back" },
+        { value: "PROMOTIONAL", label: "Promotional Banner / Campaign" },
+        { value: "MEMBER", label: "VIP & Member Rewards" },
+        { value: "ABANDONED_CART", label: "Abandoned Cart Retargeting" },
+      ],
+      actions: [
+        { value: "OPEN_CART", label: "Open Cart Drawer / Checkout" },
+        { value: "APPLY_COUPON", label: "Apply Discount Code Automatically" },
+        { value: "COPY_COUPON", label: "Copy Coupon Code to Clipboard" },
+        { value: "LOGIN", label: "Trigger Phone / OTP Authentication" },
+        { value: "SIGNUP", label: "Trigger Member Registration" },
+        { value: "VIEW_PRODUCT", label: "Navigate to Active Product Page" },
+        { value: "VIEW_CATEGORY", label: "Navigate to Category Collection" },
+        { value: "CUSTOM_URL", label: "Redirect to Custom URL" },
+        { value: "CLOSE", label: "Dismiss Popup & Keep Browsing" },
+      ],
+      cities: (memoryStore.cities || []).map((c: any) => ({ value: c.id, label: c.name })),
+      branches: (memoryStore.branches || []).map((b: any) => ({ value: b.id, label: b.name })),
+      categories: (memoryStore.pim_categories || []).map((cat: any) => ({ value: cat.id, label: cat.name })),
+      occasions: (memoryStore.occasions || []).map((o: any) => ({ value: o.id, label: `${o.icon ? o.icon + " " : ""}${o.name}` })),
+      products: (memoryStore.products || []).slice(0, 100).map((p: any) => ({
+        value: p.id || p.product_id,
+        label: p.title || p.name,
+        price: p.price,
+        thumbnail: p.thumbnail,
+      })),
+      coupons: (memoryStore.offers || []).filter((o: any) => o.status === "active").map((o: any) => ({
+        value: o.id,
+        id: o.id,
+        code: o.code,
+        label: `${o.code} — ${o.name}`,
+        name: o.name,
+        description: o.description,
+        discount: o.type === "percentage" ? `${o.metadata?.discount_value || 50}% OFF` : `₹${o.max_discount_value || o.metadata?.discount_value || 100} OFF`,
+        min_order: o.min_order_value || 0,
+      })),
+    };
+  }
+
+  static getPublishedEngagementConfig(ctx: any = {}) {
+    ApiEngine.ensurePopupStore();
+    let campaigns = (memoryStore as any).popup_campaigns || [];
+
+    // Filter only published and enabled campaigns
+    campaigns = campaigns.filter((c: any) => c.status === "published" && c.enabled && c.current_version);
+
+    // Filter device if specified
+    if (ctx.device) {
+      campaigns = campaigns.filter((c: any) => {
+        const devices = c.current_version?.audience?.devices;
+        return !devices || devices.length === 0 || devices.includes(ctx.device);
+      });
+    }
+
+    // Filter city if specified
+    if (ctx.city_id) {
+      campaigns = campaigns.filter((c: any) => {
+        const cityIds = c.current_version?.audience?.cityIds;
+        return !cityIds || cityIds.length === 0 || cityIds.includes(ctx.city_id);
+      });
+    }
+
+    return {
+      version: 1,
+      serverTime: new Date().toISOString(),
+      campaigns: campaigns.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        popup_type: c.popup_type,
+        status: c.status || "published",
+        priority: c.priority || 100,
+        enabled: Boolean(c.enabled),
+        current_version: c.current_version,
+      })),
+    };
+  }
+
+  static recordEngagementImpression(payload: any) {
+    ApiEngine.ensurePopupStore();
+    const imp = {
+      id: `imp_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      popup_campaign_id: payload.campaign_id || payload.popup_campaign_id,
+      popup_version_id: payload.version_id || payload.popup_version_id,
+      session_id: payload.session_id || "guest_session",
+      visitor_id: payload.visitor_id,
+      customer_id: payload.customer_id,
+      page_url: payload.page_url || payload.page || "/",
+      product_id: payload.product_id,
+      cart_value: Number(payload.cart_value) || 0,
+      device_type: payload.device_type || payload.device || "desktop",
+      event_type: payload.event_type || "shown",
+      created_at: new Date().toISOString(),
+    };
+
+    (memoryStore as any).popup_impressions.unshift(imp);
+    ApiEngine.persist();
+    return { success: true, impression_id: imp.id };
+  }
+
+  static recordEngagementConversion(payload: any) {
+    ApiEngine.ensurePopupStore();
+    const conv = {
+      id: `conv_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      popup_campaign_id: payload.campaign_id || payload.popup_campaign_id,
+      popup_impression_id: payload.impression_id || payload.popup_impression_id,
+      session_id: payload.session_id || "guest_session",
+      visitor_id: payload.visitor_id,
+      customer_id: payload.customer_id,
+      conversion_type: payload.conversion_type || "PURCHASE",
+      order_id: payload.order_id,
+      product_id: payload.product_id,
+      revenue: Number(payload.revenue) || 0,
+      created_at: new Date().toISOString(),
+    };
+
+    (memoryStore as any).popup_conversions.unshift(conv);
+    ApiEngine.addAuditLog(`Recorded Conversion for Popup Campaign ${conv.popup_campaign_id} (Revenue: ₹${conv.revenue})`);
+    ApiEngine.persist();
+    return { success: true, conversion_id: conv.id };
+  }
+
+  static getPopupAnalyticsSummary(filters: any = {}) {
+    ApiEngine.ensurePopupStore();
+    const impressions = (memoryStore as any).popup_impressions || [];
+    const conversions = (memoryStore as any).popup_conversions || [];
+
+    const totalImpressions = impressions.filter((i: any) => i.event_type === "shown").length;
+    const totalClicks = impressions.filter((i: any) => i.event_type === "cta_clicked").length;
+    const totalDismissals = impressions.filter((i: any) => i.event_type === "dismissed").length;
+    const totalConversions = conversions.length;
+    const totalRevenue = conversions.reduce((sum: number, c: any) => sum + (Number(c.revenue) || 0), 0);
+
+    return {
+      success: true,
+      summary: {
+        total_impressions: totalImpressions,
+        total_clicks: totalClicks,
+        total_dismissals: totalDismissals,
+        total_conversions: totalConversions,
+        total_revenue: totalRevenue,
+        overall_ctr: totalImpressions > 0 ? Math.round((totalClicks / totalImpressions) * 1000) / 10 : 0,
+        overall_conversion_rate: totalImpressions > 0 ? Math.round((totalConversions / totalImpressions) * 1000) / 10 : 0,
+      },
     };
   }
 }

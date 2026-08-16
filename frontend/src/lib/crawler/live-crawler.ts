@@ -75,7 +75,7 @@ export class LiveHttpCrawler {
     if (h1Count === 0) {
       issues.push("Missing <h1> tag");
     } else {
-      const firstMatch = h1Matches[0].match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+      const firstMatch = h1Matches[0] ? h1Matches[0].match(/<h1[^>]*>([\s\S]*?)<\/h1>/i) : null;
       h1Text = firstMatch && firstMatch[1] ? firstMatch[1].replace(/<[^>]+>/g, "").trim() : null;
       if (h1Count > 1) issues.push(`Multiple <h1> tags found (${h1Count})`);
     }
