@@ -21,6 +21,7 @@ import { AeoEngine } from "./aeo/aeo-engine";
 import { SeoRbacGuard, UserRole } from "./auth/seo-rbac-guard";
 import { WebhookEngine } from "./webhook-engine";
 import { TelemarketingEngine } from "./telemarketing-engine";
+import { StaffAccessControl } from "./staff-access-control";
 import {
   normalizePhone,
   formatDisplayPhone,
@@ -5292,8 +5293,25 @@ export class ApiEngine {
     };
 
     const formattedPhone = data.phone?.startsWith("+91") ? data.phone : `+91 ${phoneClean.slice(0, 5)} ${phoneClean.slice(5)}`;
+
+    // Unify with canonical StaffAccessControl
+    const staff = StaffAccessControl.resolveOrCreateStaff({
+      name: fullName,
+      phone: formattedPhone,
+      email: data.email || `${fName.toLowerCase()}.${lName.toLowerCase()}@cakes2home.com`,
+      role: "DELIVERY_PARTNER",
+      profile_ids: ["prof_delivery_ops"],
+      branch_id: branchObj.id,
+      branch_name: branchObj.name,
+      delivery_partner_id: id,
+      city: data.city || branchObj.city || "Bengaluru",
+      status: (data.status === "suspended" || data.status === "SUSPENDED" || data.status === "inactive") ? "SUSPENDED" : "ACTIVE",
+    });
+
     const newPartner = {
       id,
+      staff_id: staff.id,
+      staff_user_id: staff.user_id,
       partner_number: partnerNumber,
       full_name: fullName,
       first_name: fName,
@@ -5363,7 +5381,7 @@ export class ApiEngine {
     };
 
     memoryStore.delivery_partners.unshift(newPartner);
-    ApiEngine.addAuditLog(`Registered Delivery Partner ${fullName} (${partnerNumber}) assigned to ${branchObj.name}`);
+    ApiEngine.addAuditLog(`Registered Delivery Partner ${fullName} (${partnerNumber}) assigned to ${branchObj.name} (Staff ID: ${staff.id})`);
     ApiEngine.persist();
 
     return newPartner;
@@ -5416,6 +5434,21 @@ export class ApiEngine {
     };
 
     partner.updated_at = new Date().toISOString();
+
+    // Synchronize to StaffAccessControl if linked
+    const staffId = partner.staff_id || partner.id;
+    const existingStaff = StaffAccessControl.getStaffMember(staffId) || StaffAccessControl.getStaffMemberByPhone(partner.phone);
+    if (existingStaff) {
+      StaffAccessControl.updateStaffMember(existingStaff.id, {
+        name: partner.full_name || partner.name,
+        phone: partner.phone,
+        email: partner.email,
+        branch_id: partner.primary_branch_id,
+        branch_name: partner.primary_branch_name,
+        city: partner.city,
+        status: (partner.status === "suspended" || partner.status === "inactive") ? "SUSPENDED" : "ACTIVE",
+      });
+    }
 
     ApiEngine.addAuditLog(`Updated Delivery Partner profile for ${partner.name} (${partner.partner_number})`);
     ApiEngine.persist();
@@ -12120,7 +12153,6 @@ export class ApiEngine {
     };
   }
 
-  // ── Authentication Domain APIs ─────────────────────────────────────────────
   static checkAccountByPhone(phone: string): {
     exists: boolean;
     role: string;
@@ -12141,17 +12173,42 @@ export class ApiEngine {
       };
     }
 
-    // 2. Standard test delivery partner fallback
-    if (cleanDigits === "9876500001") {
+    // 2. Authoritative StaffAccessControl lookup (Covers all staff, branch managers, delivery partners)
+    const staffMember = StaffAccessControl.getStaffMemberByPhone(cleanDigits);
+    if (staffMember) {
+      if (staffMember.role === "SUPER_ADMIN") {
+        return {
+          exists: true,
+          role: "SUPER_ADMIN",
+          user: staffMember,
+        };
+      }
+      if (staffMember.role === "BRANCH_MANAGER") {
+        return {
+          exists: true,
+          role: "BRANCH_MANAGER",
+          branch_id: staffMember.branch_id || "br_indiranagar",
+          user: staffMember,
+        };
+      }
+      if (staffMember.role === "DELIVERY_PARTNER") {
+        return {
+          exists: true,
+          role: "DELIVERY_PARTNER",
+          partner_id: staffMember.delivery_partner_id || staffMember.id || "dlp_01",
+          branch_id: staffMember.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          user: staffMember,
+        };
+      }
       return {
         exists: true,
-        role: "DELIVERY_PARTNER",
-        partner_id: "dlp_01",
-        user: { id: "dlp_01", name: "Delivery Partner 1", role: "DELIVERY_PARTNER", phone: "+91 98765 00001", branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT" },
+        role: "STAFF",
+        branch_id: staffMember.branch_id || undefined,
+        user: staffMember,
       };
     }
 
-    // 2. Branch Manager check
+    // 3. Branch Manager fallback check
     const branchManager = ApiEngine.findBranchByManagerPhoneOrEmail(raw);
     if (branchManager) {
       return {
@@ -12162,14 +12219,13 @@ export class ApiEngine {
       };
     }
 
-    // 3. Delivery Partner check
-    const partners = ApiEngine.getAdminDeliveryPartners();
-    const partner = Array.isArray(partners)
-      ? partners.find((p: any) => {
-          const pPhone = (p.phone || "").replace(/\D/g, "").slice(-10);
-          return cleanDigits && pPhone === cleanDigits;
-        })
-      : null;
+    // 4. Delivery Partner fallback check
+    const partnersRes = ApiEngine.getAdminDeliveryPartners();
+    const partnerList = Array.isArray(partnersRes) ? partnersRes : (partnersRes?.partners || memoryStore.delivery_partners || []);
+    const partner = partnerList.find((p: any) => {
+      const pPhone = (p.phone || "").replace(/\D/g, "").slice(-10);
+      return cleanDigits && pPhone === cleanDigits;
+    });
     if (partner) {
       return {
         exists: true,
@@ -12179,7 +12235,7 @@ export class ApiEngine {
       };
     }
 
-    // 4. Customer check
+    // 5. Customer check
     ApiEngine.ensureCustomersStore();
     const customers: CustomerRecord[] = memoryStore.customers || [];
     const customer = customers.find(
@@ -12352,7 +12408,7 @@ export class ApiEngine {
         phone,
         email: (check.user as any)?.email || "partner@caketohome.com",
         role: "DELIVERY_PARTNER",
-        user_id: check.partner_id || "dlp_01",
+        user_id: check.partner_id || (check.user as any)?.id || "dlp_01",
         user_name: (check.user as any)?.name || "Delivery Partner",
         status: "SUCCESS",
         authentication_method: "OTP_SMS",
@@ -12367,6 +12423,33 @@ export class ApiEngine {
         accessToken: token,
         role: "DELIVERY_PARTNER",
         partner_id: check.partner_id,
+        user: check.user,
+      };
+    }
+
+    if (check.role === "STAFF") {
+      if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
+      memoryStore.login_events.unshift({
+        id: `log_${Date.now()}_staff`,
+        identifier: phone,
+        phone,
+        email: (check.user as any)?.email || "staff@caketohome.com",
+        role: "STAFF",
+        user_id: (check.user as any)?.id || "staff_01",
+        user_name: (check.user as any)?.name || "Staff Member",
+        status: "SUCCESS",
+        authentication_method: "OTP_SMS",
+        event_type: "OTP_VERIFIED",
+        ip_address: ip,
+        user_agent: userAgent,
+        created_at: new Date().toISOString(),
+      });
+      return {
+        success: true,
+        token,
+        accessToken: token,
+        role: "STAFF",
+        branch_id: check.branch_id,
         user: check.user,
       };
     }
@@ -12534,7 +12617,46 @@ export class ApiEngine {
     ApiEngine.ensureCustomersStore();
     const cleanPhone = query.phone ? normalizePhone(query.phone) : "";
 
-    // Super Admin
+    // 1. Authoritative StaffAccessControl lookup (Covers all staff, branch managers, delivery partners)
+    const staffMember = cleanPhone
+      ? StaffAccessControl.getStaffMemberByPhone(cleanPhone)
+      : (query.userId ? StaffAccessControl.getStaffMember(query.userId) : null);
+
+    if (staffMember) {
+      if (query.role === "CUSTOMER") {
+        // Strict role isolation: Staff phone/account cannot be returned when querying for customer
+        return null;
+      }
+      const roleMatches = !query.role || query.role === staffMember.role ||
+        (query.role === "STAFF" && staffMember.role === "STAFF") ||
+        (query.role === "BRANCH_MANAGER" && staffMember.role === "BRANCH_MANAGER") ||
+        (query.role === "DELIVERY_PARTNER" && staffMember.role === "DELIVERY_PARTNER") ||
+        (query.role === "SUPER_ADMIN" && staffMember.role === "SUPER_ADMIN");
+
+      if (roleMatches) {
+        return {
+          id: staffMember.id,
+          user_id: staffMember.user_id,
+          name: staffMember.name,
+          first_name: staffMember.name.split(" ")[0],
+          last_name: staffMember.name.split(" ").slice(1).join(" ") || "",
+          email: staffMember.email,
+          phone: staffMember.phone,
+          role: staffMember.role,
+          profile_ids: staffMember.profile_ids,
+          profile_names: staffMember.profile_names,
+          effective_permissions: staffMember.effective_permissions,
+          branch_id: staffMember.branch_id || (staffMember.role === "BRANCH_MANAGER" ? "br_indiranagar" : staffMember.role === "DELIVERY_PARTNER" ? "res_01KXYMAHGFPRY1G9TZKEVGAGAT" : undefined),
+          branch_name: staffMember.branch_name,
+          partner_id: staffMember.delivery_partner_id || (staffMember.role === "DELIVERY_PARTNER" ? staffMember.id : undefined),
+          delivery_partner_id: staffMember.delivery_partner_id,
+          city: staffMember.city,
+          status: staffMember.status,
+        };
+      }
+    }
+
+    // Super Admin Fallback
     if (query.role === "SUPER_ADMIN" || (!query.role && (query.userId === "admin_01" || cleanPhone === "9999999999" || cleanPhone === "9876500000"))) {
       if (query.role && query.role !== "SUPER_ADMIN") return null;
       return {
@@ -12549,8 +12671,8 @@ export class ApiEngine {
       };
     }
 
-    // Branch Manager
-    if (query.role === "BRANCH_MANAGER" || query.role === "SHOP_MANAGER" || query.role === "SHOP" || query.role === "SHPMGR") {
+    // Branch Manager Fallback
+    if (!query.role || query.role === "BRANCH_MANAGER" || query.role === "SHOP_MANAGER" || query.role === "SHOP" || query.role === "SHPMGR") {
       if (cleanPhone === "9876500001" || query.userId === "usr_mgr_01") {
         return {
           id: "usr_mgr_01",
@@ -12570,11 +12692,10 @@ export class ApiEngine {
           branch_name: bRes.branch.name,
         };
       }
-      return null;
     }
 
-    // Delivery Partner
-    if (query.role === "DELIVERY_PARTNER" || query.role === "DLP") {
+    // Delivery Partner Fallback
+    if (!query.role || query.role === "DELIVERY_PARTNER" || query.role === "DLP") {
       if (cleanPhone === "9876500001" || query.userId === "dlp_01" || query.userId === "dlp_101") {
         return {
           id: query.userId || "dlp_01",
@@ -12584,12 +12705,10 @@ export class ApiEngine {
           branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
         };
       }
-      const partners = ApiEngine.getAdminDeliveryPartners();
-      const p = Array.isArray(partners)
-        ? partners.find((dp: any) => dp.id === query.userId || (cleanPhone && (dp.phone || "").replace(/\D/g, "").slice(-10) === cleanPhone))
-        : null;
+      const partnersRes = ApiEngine.getAdminDeliveryPartners();
+      const partnerList = Array.isArray(partnersRes) ? partnersRes : (partnersRes?.partners || memoryStore.delivery_partners || []);
+      const p = partnerList.find((dp: any) => dp.id === query.userId || (cleanPhone && (dp.phone || "").replace(/\D/g, "").slice(-10) === cleanPhone));
       if (p) return { ...p, role: "DELIVERY_PARTNER" };
-      return null;
     }
 
     // Explicitly rejected if query.role is not CUSTOMER or empty
@@ -13288,6 +13407,9 @@ export class ApiEngine {
 
     for (const b of branches) {
       if (b.manager_account) {
+        if (b.manager_account.id === identifier || b.manager_staff_id === identifier || (b.manager_account as any).user_id === identifier) {
+          return { branch: b, manager: b.manager_account };
+        }
         const mPhone = (b.manager_account.phone || "").trim().toLowerCase().replace(/\D/g, "");
         const mEmail = (b.manager_account.email || "").trim().toLowerCase();
 
@@ -13335,55 +13457,86 @@ export class ApiEngine {
   }
 
   static assignBranchManager(branchId: string, managerData: any) {
-    const b = ApiEngine.getBranchById(branchId);
+    const b = ApiEngine.resolveBranchRecord(branchId);
     if (!b) return null;
 
+    const mgrPhone = managerData.phone || b.phone || "+91 98765 00000";
+    const mgrEmail = managerData.email || b.email || `manager_${b.id}@cakes2home.com`;
+    const mgrName = managerData.name || "Branch Manager";
+
+    // Unify with canonical StaffAccessControl
+    const staff = StaffAccessControl.resolveOrCreateStaff({
+      name: mgrName,
+      phone: mgrPhone,
+      email: mgrEmail,
+      role: "BRANCH_MANAGER",
+      profile_ids: ["prof_branch_ops"],
+      branch_id: b.id,
+      branch_name: b.name,
+      city: b.city || "Bengaluru",
+      status: (managerData.status === "suspended" || managerData.status === "SUSPENDED") ? "SUSPENDED" : "ACTIVE",
+    });
+
+    b.manager_staff_id = staff.id;
     b.manager_account = {
-      id: managerData.id || `mgr_${Date.now()}`,
+      id: staff.id,
+      user_id: staff.user_id,
       employee_id: managerData.employee_id || `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
-      name: managerData.name || "Branch Manager",
-      phone: managerData.phone || b.phone || "+91 98765 00000",
-      email: managerData.email || b.email || `manager_${b.id}@cakes2home.com`,
+      name: staff.name,
+      phone: staff.phone,
+      email: staff.email,
       emergency_contact: managerData.emergency_contact || "+91 98765 99999",
       profile_photo: managerData.profile_photo || "",
       role: "BRANCH_MANAGER",
-      status: managerData.status || "active",
-      created_at: managerData.created_at || new Date().toISOString(),
+      status: staff.status === "SUSPENDED" ? "suspended" : "active",
+      created_at: staff.created_at || new Date().toISOString(),
       token_version: (b.manager_account?.token_version || 1) + 1,
     };
     b.manager_name = b.manager_account.name;
     b.phone = b.manager_account.phone;
     b.email = b.manager_account.email;
 
-    ApiEngine.addBranchAuditLog(branchId, "Assign Manager", b.manager_account?.name, managerData.name, "super_admin", "127.0.0.1", "Manager account assigned");
+    ApiEngine.addBranchAuditLog(branchId, "Assign Manager", b.manager_account?.name, managerData.name, "super_admin", "127.0.0.1", `Manager assigned (Staff ID: ${staff.id})`);
     ApiEngine.persist();
     return b.manager_account;
   }
 
   static suspendBranchManager(branchId: string, suspend: boolean = true) {
-    const b = ApiEngine.getBranchById(branchId);
+    const b = ApiEngine.resolveBranchRecord(branchId);
     if (!b) return null;
+
+    const currentStatus = suspend ? "suspended" : "active";
     if (!b.manager_account) {
       b.manager_account = {
         id: `mgr_${b.id}`,
         name: b.manager_name || "Branch Manager",
         phone: b.phone || "+91 98765 00000",
         email: b.email || `manager_${b.id}@cakes2home.com`,
-        status: suspend ? "suspended" : "active",
+        status: currentStatus,
         role: "BRANCH_MANAGER",
         created_at: new Date().toISOString(),
       };
     } else {
-      b.manager_account.status = suspend ? "suspended" : "active";
+      b.manager_account.status = currentStatus;
     }
     b.manager_account.token_version = (b.manager_account.token_version || 1) + 1;
+
+    // Synchronize to StaffAccessControl
+    const staffId = b.manager_staff_id || b.manager_account.id;
+    const staff = StaffAccessControl.getStaffMember(staffId) || StaffAccessControl.getStaffMemberByPhone(b.manager_account.phone);
+    if (staff) {
+      StaffAccessControl.updateStaffMember(staff.id, {
+        status: suspend ? "SUSPENDED" : "ACTIVE",
+      });
+    }
+
     ApiEngine.addBranchAuditLog(branchId, suspend ? "Suspend Manager" : "Reactivate Manager", "", b.manager_account.status, "super_admin", "127.0.0.1", "Status updated by admin");
     ApiEngine.persist();
     return b.manager_account;
   }
 
   static forceLogoutBranchManager(branchId: string) {
-    const b = ApiEngine.getBranchById(branchId);
+    const b = ApiEngine.resolveBranchRecord(branchId);
     if (!b || !b.manager_account) return null;
     b.manager_account.token_version = (b.manager_account.token_version || 1) + 1;
     ApiEngine.addBranchAuditLog(branchId, "Force Logout", "", `token_version_${b.manager_account.token_version}`, "super_admin", "127.0.0.1", "Admin force logout");
@@ -13392,8 +13545,8 @@ export class ApiEngine {
   }
 
   static transferBranchManager(fromBranchId: string, toBranchId: string) {
-    const fromB = ApiEngine.getBranchById(fromBranchId);
-    const toB = ApiEngine.getBranchById(toBranchId);
+    const fromB = ApiEngine.resolveBranchRecord(fromBranchId);
+    const toB = ApiEngine.resolveBranchRecord(toBranchId);
     if (!fromB || !toB || !fromB.manager_account) return null;
 
     const mgr = { ...fromB.manager_account };

@@ -63,6 +63,7 @@ export interface StaffMember {
   effective_permissions?: string[]; // Cached union of effective permissions
   branch_id?: string | null;
   branch_name?: string | null;
+  delivery_partner_id?: string | null;
   city?: string | null;
   status: "ACTIVE" | "SUSPENDED";
   overrides: Record<string, "ALLOW" | "DENY">; // e.g. { "TELEMARKETING.EXPORT": "DENY" }
@@ -308,6 +309,23 @@ export const SYSTEM_ACCESS_PROFILES: AccessProfile[] = [
     created_at: "2026-08-01T00:00:00.000Z",
     updated_at: "2026-08-16T08:00:00.000Z",
   },
+  {
+    id: "prof_delivery_ops",
+    name: "Delivery Operations",
+    slug: "delivery-operations",
+    description: "Fleet jobs, delivery assignments, order pickup, and fulfillment tracking.",
+    status: "ACTIVE",
+    is_system: true,
+    permissions: [
+      "DELIVERY.VIEW",
+      "DELIVERY.ASSIGN",
+      "ORDERS.VIEW",
+      "ORDERS.VIEW_DETAILS",
+      "BRANCHES.VIEW",
+    ],
+    created_at: "2026-08-01T00:00:00.000Z",
+    updated_at: "2026-08-18T08:00:00.000Z",
+  },
 ];
 
 // ── PRE-SEEDED REALISTIC STAFF ACCOUNTS ────────────────────────────────────
@@ -316,7 +334,7 @@ export const INITIAL_STAFF_MEMBERS: StaffMember[] = [
     id: "staff_01",
     user_id: "usr_priya_telecaller",
     name: "Priya Sharma",
-    phone: "+91 98765 43210",
+    phone: "+91 98765 99001",
     email: "priya.sharma@cakes2home.com",
     role: "STAFF",
     profile_id: "prof_telecaller",
@@ -384,6 +402,65 @@ export const INITIAL_STAFF_MEMBERS: StaffMember[] = [
     overrides: {},
     created_at: "2026-08-10T00:00:00.000Z",
     updated_at: "2026-08-16T08:00:00.000Z",
+  },
+  {
+    id: "staff_mgr_01",
+    user_id: "usr_mgr_01",
+    name: "Rajesh Kumar",
+    phone: "+91 98765 00001",
+    email: "rajesh.kumar@cakes2home.com",
+    role: "BRANCH_MANAGER",
+    profile_id: "prof_branch_ops",
+    profile_name: "Branch Operations",
+    profile_ids: ["prof_branch_ops"],
+    profile_names: ["Branch Operations"],
+    branch_id: "br_indiranagar",
+    branch_name: "Indiranagar Flagship Bakery",
+    city: "Bengaluru",
+    status: "ACTIVE",
+    overrides: {},
+    created_at: "2026-08-01T00:00:00.000Z",
+    updated_at: "2026-08-18T08:00:00.000Z",
+  },
+  {
+    id: "staff_dlp_01",
+    user_id: "dlp_01",
+    name: "Ramesh Rider",
+    phone: "+91 99000 11111",
+    email: "ramesh.rider@cakes2home.com",
+    role: "DELIVERY_PARTNER",
+    profile_id: "prof_delivery_ops",
+    profile_name: "Delivery Operations",
+    profile_ids: ["prof_delivery_ops"],
+    profile_names: ["Delivery Operations"],
+    branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+    branch_name: "Indiranagar Flagship Kitchen",
+    delivery_partner_id: "dlp_01",
+    city: "Bengaluru",
+    status: "ACTIVE",
+    overrides: {},
+    created_at: "2026-08-01T00:00:00.000Z",
+    updated_at: "2026-08-18T08:00:00.000Z",
+  },
+  {
+    id: "staff_dlp_02",
+    user_id: "dlp_02",
+    name: "Mahesh Rider",
+    phone: "+91 99000 22222",
+    email: "mahesh.rider@cakes2home.com",
+    role: "DELIVERY_PARTNER",
+    profile_id: "prof_delivery_ops",
+    profile_name: "Delivery Operations",
+    profile_ids: ["prof_delivery_ops"],
+    profile_names: ["Delivery Operations"],
+    branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+    branch_name: "Indiranagar Flagship Kitchen",
+    delivery_partner_id: "dlp_02",
+    city: "Bengaluru",
+    status: "ACTIVE",
+    overrides: {},
+    created_at: "2026-08-01T00:00:00.000Z",
+    updated_at: "2026-08-18T08:00:00.000Z",
   },
 ];
 
@@ -826,6 +903,71 @@ class StaffAccessControlStore {
     };
   }
 
+  public getStaffMemberByPhone(phone: string): StaffMember | null {
+    if (!phone) return null;
+    const cleanDigits = phone.replace(/\D/g, "").slice(-10);
+    if (!cleanDigits) return null;
+
+    const staff = this.staffMembers.find((s) => {
+      const sPhone = (s.phone || "").replace(/\D/g, "").slice(-10);
+      return sPhone === cleanDigits;
+    });
+    if (!staff) return null;
+    return this.getStaffMember(staff.id);
+  }
+
+  public getStaffMemberByEmail(email: string): StaffMember | null {
+    if (!email) return null;
+    const clean = email.trim().toLowerCase();
+    if (!clean) return null;
+
+    const staff = this.staffMembers.find((s) => (s.email || "").trim().toLowerCase() === clean);
+    if (!staff) return null;
+    return this.getStaffMember(staff.id);
+  }
+
+  public resolveOrCreateStaff(
+    input: {
+      name: string;
+      phone: string;
+      email: string;
+      role?: StaffRole;
+      profile_id?: string;
+      accessProfileIds?: string[];
+      profile_ids?: string[];
+      branch_id?: string;
+      branch_name?: string;
+      delivery_partner_id?: string;
+      city?: string;
+      status?: "ACTIVE" | "SUSPENDED";
+    },
+    actorId: string = "admin_01",
+    actorName: string = "Super Admin"
+  ): StaffMember {
+    const existing = this.getStaffMemberByPhone(input.phone) || this.getStaffMemberByEmail(input.email);
+    if (existing) {
+      // Synchronize / update operational role and assignments if provided
+      const updatePayload: any = {};
+      if (input.name && input.name !== existing.name) updatePayload.name = input.name;
+      if (input.email && input.email !== existing.email) updatePayload.email = input.email;
+      if (input.branch_id) updatePayload.branch_id = input.branch_id;
+      if (input.branch_name) updatePayload.branch_name = input.branch_name;
+      if (input.city) updatePayload.city = input.city;
+      if (input.role && input.role !== existing.role) updatePayload.role = input.role;
+      if (input.delivery_partner_id) updatePayload.delivery_partner_id = input.delivery_partner_id;
+      if (input.accessProfileIds || input.profile_ids || input.profile_id) {
+        const merged = Array.from(new Set([
+          ...(existing.profile_ids || []),
+          ...(input.accessProfileIds || input.profile_ids || (input.profile_id ? [input.profile_id] : []))
+        ]));
+        updatePayload.profile_ids = merged;
+      }
+      return this.updateStaffMember(existing.id, updatePayload, actorId, actorName);
+    }
+
+    return this.createStaffMember(input, actorId, actorName);
+  }
+
   public getStaffJunctionAssignments(staffId: string): StaffAccessProfileAssignment[] {
     return this.profileAssignments.filter((a) => a.staff_id === staffId);
   }
@@ -835,19 +977,33 @@ class StaffAccessControlStore {
       name: string;
       phone: string;
       email: string;
+      role?: StaffRole;
       profile_id?: string;
       accessProfileIds?: string[];
       profile_ids?: string[];
       branch_id?: string;
       branch_name?: string;
+      delivery_partner_id?: string;
       city?: string;
       status?: "ACTIVE" | "SUSPENDED";
     },
     actorId: string = "admin_01",
     actorName: string = "Super Admin"
   ): StaffMember {
+    const cleanPhone = (input.phone || "").replace(/\D/g, "").slice(-10);
+    if (!cleanPhone || cleanPhone.length < 10) {
+      throw new Error("Validation failed: A valid 10-digit mobile number is required.");
+    }
+
+    // Duplicate check
+    const existing = this.getStaffMemberByPhone(input.phone);
+    if (existing) {
+      throw new Error(`Staff member with phone ${input.phone} already exists (${existing.name}).`);
+    }
+
     const id = `staff_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-    const userId = `usr_${input.phone.replace(/\D/g, "").slice(-10) || id}`;
+    const userId = `usr_${cleanPhone || id}`;
+    const staffRole: StaffRole = input.role || "STAFF";
 
     // 1. Normalize and deduplicate incoming profile IDs
     const rawIds = input.accessProfileIds || input.profile_ids || (input.profile_id ? [input.profile_id] : []);
@@ -880,13 +1036,14 @@ class StaffAccessControlStore {
       name: input.name.trim(),
       phone: input.phone.trim(),
       email: input.email.trim(),
-      role: "STAFF",
+      role: staffRole,
       profile_id: primaryProfileId,
       profile_name: primaryProfileName,
       profile_ids: uniqueIds,
       profile_names: profileNames,
       branch_id: input.branch_id || null,
       branch_name: input.branch_name || null,
+      delivery_partner_id: input.delivery_partner_id || null,
       city: input.city || "Bengaluru",
       status: input.status || "ACTIVE",
       overrides: {},
@@ -917,7 +1074,7 @@ class StaffAccessControlStore {
       target_id: newStaff.id,
       target_name: newStaff.name,
       action: "CREATE_STAFF",
-      details: `Created staff account for ${newStaff.name} (${newStaff.phone}) with ${uniqueIds.length} profiles: [${profileNames.join(", ")}]. Effective permissions: ${unionPerms.length}.`,
+      details: `Created staff account for ${newStaff.name} (${newStaff.phone}) with role ${newStaff.role} and ${uniqueIds.length} profiles: [${profileNames.join(", ")}]. Effective permissions: ${unionPerms.length}.`,
       new_state: {
         ...newStaff,
         assigned_profiles: profileNames,
@@ -937,11 +1094,13 @@ class StaffAccessControlStore {
       name: string;
       phone: string;
       email: string;
+      role: StaffRole;
       profile_id: string;
       accessProfileIds: string[];
       profile_ids: string[];
       branch_id: string | null;
       branch_name: string | null;
+      delivery_partner_id: string | null;
       city: string | null;
       status: "ACTIVE" | "SUSPENDED";
       overrides: Record<string, "ALLOW" | "DENY">;
@@ -961,8 +1120,10 @@ class StaffAccessControlStore {
     if (input.name !== undefined) staff.name = input.name.trim();
     if (input.phone !== undefined) staff.phone = input.phone.trim();
     if (input.email !== undefined) staff.email = input.email.trim();
+    if (input.role !== undefined) staff.role = input.role;
     if (input.branch_id !== undefined) staff.branch_id = input.branch_id;
     if (input.branch_name !== undefined) staff.branch_name = input.branch_name;
+    if (input.delivery_partner_id !== undefined) staff.delivery_partner_id = input.delivery_partner_id;
     if (input.city !== undefined) staff.city = input.city;
     if (input.status !== undefined) staff.status = input.status;
     if (input.overrides !== undefined) staff.overrides = input.overrides;

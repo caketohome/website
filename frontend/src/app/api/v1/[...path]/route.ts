@@ -2548,6 +2548,12 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ campaign: ApiEngine.updatePopupCampaign(id, body), success: true }, "json-fallback");
     }
 
+    if (path.startsWith("admin/delivery/partners/") || path.startsWith("admin/delivery-partners/")) {
+      const partnerId = path.replace("admin/delivery/partners/", "").replace("admin/delivery-partners/", "");
+      const partner = ApiEngine.updateAdminDeliveryPartner(partnerId, body);
+      return jsonWithDataSource({ partner, success: true }, "json-fallback");
+    }
+
     // ── Staff & Access Profiles Endpoints (PUT) ──
     if (path.startsWith("admin/staff-profiles/profiles/") || path.startsWith("admin/staff/profiles/")) {
       const permErr = verifyApiPermission(req, "STAFF_MANAGEMENT", "PROFILES_CRUD");

@@ -979,10 +979,10 @@
       "pincode": "560038",
       "latitude": 12.9716,
       "longitude": 77.6412,
-      "phone": "+91 98765 12345",
+      "phone": "+91 98765 89405",
       "whatsapp": "+91 98765 12345",
-      "email": "indiranagar@cakes2home.com",
-      "manager_name": "Rahul Kumar",
+      "email": "manager.89405@cakes2home.com",
+      "manager_name": "Ananya Desai 89405",
       "manager_user_id": "usr_mgr_01",
       "operating_hours": {
         "Monday": {
@@ -1265,7 +1265,17 @@
         "prod_1786645942087": {
           "status": "AVAILABLE",
           "reason": "Updated by Branch Operations",
-          "available_again_time": "2026-08-18T10:51:48.631Z"
+          "available_again_time": "2026-08-18T12:11:06.002Z"
+        },
+        "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+          "status": "OUT_OF_STOCK",
+          "reason": "Updated by Branch Operations",
+          "available_again_time": "2026-08-18T11:57:43.143Z"
+        },
+        "prod_1785665663614": {
+          "status": "OUT_OF_STOCK",
+          "reason": "Updated by Branch Operations",
+          "available_again_time": "2026-08-18T11:57:44.842Z"
         }
       },
       "audit_logs": [
@@ -1818,13 +1828,18 @@
         }
       ],
       "manager_account": {
-        "id": "shpmgr_manager_9000000003",
-        "employee_id": "EMP-9003",
-        "name": "Rahul Kumar",
-        "phone": "+91 90000 00003",
-        "email": "rahul.kumar@cakes2home.com",
+        "id": "staff_1787055089405_1wnu",
+        "user_id": "usr_9876589405",
+        "employee_id": "EMP-MGR-89405",
+        "name": "Ananya Desai 89405",
+        "phone": "+91 98765 89405",
+        "email": "manager.89405@cakes2home.com",
+        "emergency_contact": "+91 98765 99999",
+        "profile_photo": "",
         "role": "BRANCH_MANAGER",
-        "status": "active"
+        "status": "active",
+        "created_at": "2026-08-18T12:11:29.405Z",
+        "token_version": 3
       },
       "accessory_inventory": {
         "acc_01": {
@@ -1833,11 +1848,26 @@
           "available_stock": 50,
           "low_stock_threshold": 10,
           "reorder_level": 20
+        },
+        "acc_02": {
+          "current_stock": 0,
+          "reserved_stock": 0,
+          "available_stock": 0,
+          "low_stock_threshold": 10,
+          "reorder_level": 20
+        },
+        "acc_03": {
+          "current_stock": 0,
+          "reserved_stock": 0,
+          "available_stock": 0,
+          "low_stock_threshold": 10,
+          "reorder_level": 20
         }
       },
       "is_paused": false,
       "pause_until": null,
-      "preparation_buffer_mins": 25
+      "preparation_buffer_mins": 25,
+      "manager_staff_id": "staff_1787055089405_1wnu"
     },
     {
       "id": "br_koramangala",
@@ -2142,7 +2172,7 @@
         "prod_1786645942087": {
           "status": "HIDDEN",
           "reason": "Not offered at this hub",
-          "available_again_time": "2026-08-17T23:56:49.327Z"
+          "available_again_time": "2026-08-18T12:11:06.137Z"
         }
       },
       "audit_logs": [
@@ -2976,7 +3006,7 @@
         "prod_1786645942087": {
           "status": "AVAILABLE",
           "reason": "Updated by Branch Operations",
-          "available_again_time": "2026-08-17T23:56:49.685Z"
+          "available_again_time": "2026-08-18T12:11:06.446Z"
         }
       }
     },
@@ -4251,6 +4281,120 @@
   ],
   "customers": [
     {
+      "id": "cus_9999989405",
+      "customer_uid": "cth_cus_9999989405",
+      "customer_number": "CTH-CUST-000186",
+      "customer_type": "registered",
+      "name": "Aditi Rao 89405",
+      "first_name": "Aditi",
+      "last_name": "Rao 89405",
+      "phone": "+91 99999 89405",
+      "normalized_phone": "9999989405",
+      "email": "aditi.89405@gmail.com",
+      "normalized_email": "aditi.89405@gmail.com",
+      "lifecycle_stage": "NEW",
+      "tier": "STANDARD",
+      "is_vip": false,
+      "orders_count": 0,
+      "total_spend": 0,
+      "aov": 0,
+      "last_active_at": "2026-08-18T12:11:29.515Z",
+      "last_login_at": "2026-08-18T12:11:29.515Z",
+      "cart_status": "NO_CART",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "branch_name": "Indiranagar Flagship Kitchen",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "delivery_pincode": "560038",
+      "addresses": [],
+      "notes": [],
+      "tags": [
+        "New Account",
+        "Self Registered"
+      ],
+      "loyalty": {
+        "points_balance": 100,
+        "points_earned": 100,
+        "points_redeemed": 0,
+        "tier": "STANDARD",
+        "last_updated": "2026-08-18T12:11:29.515Z"
+      },
+      "consent": {
+        "whatsapp_status": "ELIGIBLE",
+        "marketing_email": "SUBSCRIBED",
+        "marketing_sms": "SUBSCRIBED",
+        "marketing_whatsapp": "SUBSCRIBED",
+        "transactional": "SUBSCRIBED",
+        "updated_at": "2026-08-18T12:11:29.515Z"
+      },
+      "acquisition_channel": "Direct Storefront",
+      "created_at": "2026-08-18T12:11:29.515Z",
+      "updated_at": "2026-08-18T12:11:29.515Z"
+    },
+    {
+      "id": "cus_9112205429",
+      "customer_uid": "cth_cus_9112205429",
+      "customer_number": "CTH-CUST-000185",
+      "customer_type": "registered",
+      "name": "Vikram Malhotra",
+      "first_name": "Vikram",
+      "last_name": "Malhotra",
+      "phone": "+91 91122 05429",
+      "normalized_phone": "9112205429",
+      "email": "vikram.m@example.com",
+      "normalized_email": "vikram.m@example.com",
+      "lifecycle_stage": "FIRST_PURCHASE",
+      "tier": "STANDARD",
+      "is_vip": false,
+      "orders_count": 1,
+      "total_spend": 1348,
+      "aov": 1348,
+      "last_active_at": "2026-08-18T12:08:26.013Z",
+      "last_login_at": "2026-08-18T12:08:26.013Z",
+      "cart_status": "NO_CART",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "branch_name": "Indiranagar Flagship Kitchen",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "delivery_pincode": "560038",
+      "addresses": [
+        {
+          "first_name": "Vikram",
+          "last_name": "Malhotra",
+          "phone": "+91 91122 05429",
+          "line1": "Prestige Ozone, Whitefield",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "postal_code": "560066"
+        }
+      ],
+      "notes": [],
+      "tags": [
+        "New Account",
+        "Self Registered"
+      ],
+      "loyalty": {
+        "points_balance": 100,
+        "points_earned": 100,
+        "points_redeemed": 0,
+        "tier": "STANDARD",
+        "last_updated": "2026-08-18T12:08:25.433Z"
+      },
+      "consent": {
+        "whatsapp_status": "ELIGIBLE",
+        "marketing_email": "SUBSCRIBED",
+        "marketing_sms": "SUBSCRIBED",
+        "marketing_whatsapp": "SUBSCRIBED",
+        "transactional": "SUBSCRIBED",
+        "updated_at": "2026-08-18T12:08:25.433Z"
+      },
+      "acquisition_channel": "Direct Storefront",
+      "created_at": "2026-08-18T12:08:25.433Z",
+      "updated_at": "2026-08-18T12:08:25.433Z",
+      "last_order_at": "2026-08-18T12:08:25.692Z",
+      "first_order_at": "2026-08-18T12:08:25.692Z"
+    },
+    {
       "id": "cus_9123456789",
       "customer_uid": "cth_cus_9123456789",
       "customer_number": "CTH-CUST-000184",
@@ -4289,6 +4433,15 @@
       ],
       "notes": [
         {
+          "id": "not_1787054792861",
+          "customer_uid": "cth_cus_9123456789",
+          "author_id": "admin_01",
+          "author_name": "Staff Member",
+          "content": "E2E Test Note",
+          "category": "GENERAL",
+          "created_at": "2026-08-18T12:06:32.861Z"
+        },
+        {
           "id": "not_1787051241213",
           "customer_uid": "cth_cus_9123456789",
           "author_id": "admin_01",
@@ -4319,7 +4472,7 @@
       },
       "acquisition_channel": "Direct Storefront",
       "created_at": "2026-08-18T11:06:55.191Z",
-      "updated_at": "2026-08-18T11:07:21.243Z",
+      "updated_at": "2026-08-18T12:06:32.904Z",
       "last_order_at": "2026-08-18T11:06:55.787Z",
       "first_order_at": "2026-08-18T11:06:55.787Z"
     },
@@ -4675,16 +4828,16 @@
       "last_name": "Test Patron",
       "phone": "+91 99999 11111",
       "normalized_phone": "9999911111",
-      "email": "",
-      "normalized_email": "",
+      "email": "aditi@gmail.com",
+      "normalized_email": "aditi@gmail.com",
       "lifecycle_stage": "NEW",
       "tier": "STANDARD",
       "is_vip": false,
       "orders_count": 0,
       "total_spend": 0,
       "aov": 0,
-      "last_active_at": "2026-08-18T01:51:48.560Z",
-      "last_login_at": "2026-08-18T01:51:48.560Z",
+      "last_active_at": "2026-08-18T12:03:03.521Z",
+      "last_login_at": "2026-08-18T12:03:03.521Z",
       "cart_status": "NO_CART",
       "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
       "branch_name": "Indiranagar Flagship Kitchen",
@@ -5997,11 +6150,11 @@
         "transactional": "SUBSCRIBED",
         "updated_at": "2026-08-17T15:04:06.386Z"
       },
-      "last_active_at": "2026-08-18T11:06:40.691Z",
-      "orders_count": 88,
-      "total_spend": 96934,
-      "aov": 1102,
-      "last_order_at": "2026-08-18T11:06:40.690Z",
+      "last_active_at": "2026-08-18T12:11:06.346Z",
+      "orders_count": 90,
+      "total_spend": 98833,
+      "aov": 1098,
+      "last_order_at": "2026-08-18T12:11:06.345Z",
       "first_order_at": "2026-08-17T23:56:49.559Z",
       "cart_status": "NO_CART",
       "last_login_at": "2026-08-18T01:51:48.427Z"
@@ -6465,7 +6618,9 @@
         "marketing_whatsapp": "SUBSCRIBED",
         "transactional": "SUBSCRIBED",
         "updated_at": "2026-08-17T15:04:06.386Z"
-      }
+      },
+      "last_login_at": "2026-08-18T12:06:24.631Z",
+      "last_active_at": "2026-08-18T12:06:24.631Z"
     },
     {
       "id": "cus_9000000002",
@@ -6500,7 +6655,9 @@
         "marketing_whatsapp": "SUBSCRIBED",
         "transactional": "SUBSCRIBED",
         "updated_at": "2026-08-17T15:04:06.386Z"
-      }
+      },
+      "last_login_at": "2026-08-18T12:04:20.542Z",
+      "last_active_at": "2026-08-18T12:04:20.542Z"
     },
     {
       "id": "cus_9000000003",
@@ -7348,7 +7505,9 @@
         "marketing_whatsapp": "SUBSCRIBED",
         "transactional": "SUBSCRIBED",
         "updated_at": "2026-08-17T15:04:06.386Z"
-      }
+      },
+      "last_login_at": "2026-08-18T12:06:24.790Z",
+      "last_active_at": "2026-08-18T12:06:24.790Z"
     },
     {
       "id": "cus_9999888877",
@@ -7916,6 +8075,286 @@
   ],
   "delivery_partners": [
     {
+      "id": "dlp_1787055089443",
+      "staff_id": "staff_1787055089443_o2de",
+      "staff_user_id": "usr_9900089405",
+      "partner_number": "CTH-DP-900005",
+      "full_name": "Vikram Rathore 89405",
+      "first_name": "Vikram",
+      "last_name": "Rathore 89405",
+      "name": "Vikram Rathore 89405",
+      "phone": "+91 99000 89405",
+      "alternate_phone": null,
+      "email": "driver.89405@cakes2home.com",
+      "profile_photo": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
+      "date_of_birth": "1995-01-01",
+      "address": "Flagship Hub Address",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "pincode": "560038",
+      "emergency_contact_name": "Emergency Contact",
+      "emergency_contact_relationship": "Relative",
+      "emergency_contact_phone": "+91 99000 89405",
+      "joining_date": "2026-08-18",
+      "status": "active",
+      "availability_status": "ONLINE",
+      "rating": 5,
+      "total_deliveries": 0,
+      "successful_deliveries": 0,
+      "cancelled_deliveries": 0,
+      "failed_deliveries": 0,
+      "current_active_orders": 0,
+      "maximum_concurrent_orders": 5,
+      "working_hours": {
+        "Monday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Tuesday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Wednesday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Thursday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Friday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Saturday": {
+          "working": true,
+          "start": "09:00",
+          "end": "22:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Sunday": {
+          "working": true,
+          "start": "09:00",
+          "end": "22:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        }
+      },
+      "primary_branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "primary_branch_name": "Indiranagar Flagship Kitchen",
+      "associated_branches": [
+        {
+          "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": "Indiranagar Flagship Kitchen",
+          "branch_code": "HUB-BLR-01",
+          "is_primary": true,
+          "active": true,
+          "priority": 1
+        }
+      ],
+      "coverage": {
+        "pincodes": [
+          "560038",
+          "560008",
+          "560071",
+          "560001",
+          "560051",
+          "560047"
+        ],
+        "cities": [
+          "Bengaluru"
+        ],
+        "areas": [
+          "Indiranagar",
+          "Domlur",
+          "HAL",
+          "MG Road",
+          "Shivajinagar",
+          "Austin Town / Victoria Layout"
+        ]
+      },
+      "documents": {
+        "driving_license": {
+          "number": "KA-DL-PENDING",
+          "expiry": "2032-12-31",
+          "status": "verified"
+        },
+        "rc": {
+          "number": "KA-RC-PENDING",
+          "status": "verified"
+        },
+        "insurance": {
+          "number": "INS-PENDING",
+          "expiry": "2027-01-01",
+          "status": "verified"
+        },
+        "id_proof": {
+          "type": "Aadhaar",
+          "number": "XXXX-XXXX-0000",
+          "status": "verified"
+        }
+      },
+      "notes": "Registered via Super Admin Command Center",
+      "created_at": "2026-08-18T12:11:29.443Z",
+      "updated_at": "2026-08-18T12:11:29.443Z"
+    },
+    {
+      "id": "dlp_1787054583418",
+      "staff_id": "staff_1787054583418_xizw",
+      "staff_user_id": "usr_9900088882",
+      "partner_number": "CTH-DP-900004",
+      "full_name": "Vikram Rathore",
+      "first_name": "Vikram",
+      "last_name": "Rathore",
+      "name": "Vikram Rathore",
+      "phone": "+91 99000 88882",
+      "alternate_phone": null,
+      "email": "driver.test@cakes2home.com",
+      "profile_photo": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
+      "date_of_birth": "1995-01-01",
+      "address": "Flagship Hub Address",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "pincode": "560038",
+      "emergency_contact_name": "Emergency Contact",
+      "emergency_contact_relationship": "Relative",
+      "emergency_contact_phone": "+91 99000 88882",
+      "joining_date": "2026-08-18",
+      "status": "active",
+      "availability_status": "ONLINE",
+      "rating": 5,
+      "total_deliveries": 0,
+      "successful_deliveries": 0,
+      "cancelled_deliveries": 0,
+      "failed_deliveries": 0,
+      "current_active_orders": 1,
+      "maximum_concurrent_orders": 5,
+      "working_hours": {
+        "Monday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Tuesday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Wednesday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Thursday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Friday": {
+          "working": true,
+          "start": "09:00",
+          "end": "21:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Saturday": {
+          "working": true,
+          "start": "09:00",
+          "end": "22:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        },
+        "Sunday": {
+          "working": true,
+          "start": "09:00",
+          "end": "22:00",
+          "break_start": "14:00",
+          "break_end": "15:00"
+        }
+      },
+      "primary_branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "primary_branch_name": "Indiranagar Flagship Kitchen",
+      "associated_branches": [
+        {
+          "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": "Indiranagar Flagship Kitchen",
+          "branch_code": "HUB-BLR-01",
+          "is_primary": true,
+          "active": true,
+          "priority": 1
+        }
+      ],
+      "coverage": {
+        "pincodes": [
+          "560038",
+          "560008",
+          "560071",
+          "560001",
+          "560051",
+          "560047"
+        ],
+        "cities": [
+          "Bengaluru"
+        ],
+        "areas": [
+          "Indiranagar",
+          "Domlur",
+          "HAL",
+          "MG Road",
+          "Shivajinagar",
+          "Austin Town / Victoria Layout"
+        ]
+      },
+      "documents": {
+        "driving_license": {
+          "number": "KA-DL-PENDING",
+          "expiry": "2032-12-31",
+          "status": "verified"
+        },
+        "rc": {
+          "number": "KA-RC-PENDING",
+          "status": "verified"
+        },
+        "insurance": {
+          "number": "INS-PENDING",
+          "expiry": "2027-01-01",
+          "status": "verified"
+        },
+        "id_proof": {
+          "type": "Aadhaar",
+          "number": "XXXX-XXXX-0000",
+          "status": "verified"
+        }
+      },
+      "notes": "Registered via Super Admin Command Center",
+      "created_at": "2026-08-18T12:03:03.419Z",
+      "updated_at": "2026-08-18T12:03:03.419Z"
+    },
+    {
       "id": "dlp_1786717588840",
       "partner_number": "CTH-DP-900003",
       "full_name": "Browser Test Rider Updated",
@@ -8059,7 +8498,7 @@
       },
       "notes": "Registered via Super Admin Command Center",
       "created_at": "2026-08-14T14:26:28.840Z",
-      "updated_at": "2026-08-16T15:16:41.449Z"
+      "updated_at": "2026-08-18T11:46:57.730Z"
     },
     {
       "id": "dlp_1786630789499",
@@ -8197,7 +8636,7 @@
       },
       "notes": "Registered via Super Admin Command Center",
       "created_at": "2026-08-13T14:19:49.499Z",
-      "updated_at": "2026-08-13T14:19:49.499Z"
+      "updated_at": "2026-08-18T11:45:30.486Z"
     },
     {
       "id": "dlp_1786630777499",
@@ -13748,7 +14187,7 @@
       },
       "notes": "Registered via Super Admin Command Center",
       "created_at": "2026-08-11T11:09:37.098Z",
-      "updated_at": "2026-08-11T11:09:37.098Z",
+      "updated_at": "2026-08-18T11:45:37.992Z",
       "paused_until": "2026-08-15T04:38:15.460Z",
       "last_online_at": "2026-08-15T03:53:15.460Z"
     },
@@ -18482,6 +18921,825 @@
     }
   ],
   "audit_logs": [
+    {
+      "id": "log_1787055089443",
+      "action": "Registered Delivery Partner Vikram Rathore 89405 (CTH-DP-900005) assigned to Indiranagar Flagship Kitchen (Staff ID: staff_1787055089443_o2de)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:11:29.443Z"
+    },
+    {
+      "id": "log_1787055066446",
+      "action": "Branch Operations (HSR Layout Kitchen) updated Product prod_1786645942087 availability to 'AVAILABLE' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:11:06.446Z"
+    },
+    {
+      "id": "log_1787055066380",
+      "action": "New Order CTH-20260818-347 placed by Gourmet Customer (₹649) -> Assigned to Indiranagar Flagship Bakery",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:11:06.380Z"
+    },
+    {
+      "id": "log_1787055066137",
+      "action": "Branch Operations (Koramangala Central Hub) updated Product prod_1786645942087 availability to 'HIDDEN' (Not offered at this hub)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:11:06.137Z"
+    },
+    {
+      "id": "log_1787055066072",
+      "action": "Branch Operations (HSR Layout Kitchen) updated Product prod_1786645942087 availability to 'OUT_OF_STOCK' (Kitchen sold out for today)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:11:06.072Z"
+    },
+    {
+      "id": "log_1787055066002",
+      "action": "Branch Operations (Indiranagar Flagship Bakery) updated Product prod_1786645942087 availability to 'AVAILABLE' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:11:06.002Z"
+    },
+    {
+      "id": "log_1787054905758",
+      "action": "New Order CTH-20260818-346 placed by Vikram Malhotra (₹1348) -> Assigned to Whitefield Tech Hub",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:08:25.758Z"
+    },
+    {
+      "id": "log_1787054591142",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Operational Settings (Hours, Contact, Buffer: 25m)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:03:11.142Z"
+    },
+    {
+      "id": "log_1787054591082",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Branch Status to 'OPEN' (Reason: N/A)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:03:11.082Z"
+    },
+    {
+      "id": "log_1787054591023",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Branch Status to 'PAUSED' (Reason: Kitchen deep sanitization)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:03:11.023Z"
+    },
+    {
+      "id": "log_1787054590964",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 50 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:03:10.964Z"
+    },
+    {
+      "id": "log_1787054590905",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 2 (Threshold: 5)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:03:10.905Z"
+    },
+    {
+      "id": "log_1787054590846",
+      "action": "Branch Operations (Indiranagar Flagship Bakery) updated Product prod_1786645942087 availability to 'AVAILABLE' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:03:10.846Z"
+    },
+    {
+      "id": "log_1787054590783",
+      "action": "Branch Operations (Indiranagar Flagship Bakery) updated Product prod_1786645942087 availability to 'OUT_OF_STOCK' (Fresh strawberries unavailable today)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:03:10.783Z"
+    },
+    {
+      "id": "log_1787054590724",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) reprinted KOT for Order CTH-20260818-345 (Reprint #3)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:03:10.724Z"
+    },
+    {
+      "id": "log_1787054590659",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) assigned Order CTH-20260818-345 to Rider Vikram Rathore",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:03:10.659Z"
+    },
+    {
+      "id": "log_1787054590597",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) marked Order CTH-20260818-345 Ready for Pickup",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:03:10.597Z"
+    },
+    {
+      "id": "log_1787054590537",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) marked Order CTH-20260818-345 delayed: Artisanal hand-piped roses in progress (New ETA: +30 mins)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:03:10.537Z"
+    },
+    {
+      "id": "log_1787054590476",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) accepted Order CTH-20260818-345",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:03:10.476Z"
+    },
+    {
+      "id": "log_1787054583419",
+      "action": "Registered Delivery Partner Vikram Rathore (CTH-DP-900004) assigned to Indiranagar Flagship Kitchen (Staff ID: staff_1787054583418_xizw)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T12:03:03.419Z"
+    },
+    {
+      "id": "log_1787054382872",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) marked Order CTH-20260818-345 delayed: not ready yett (New ETA: +30 mins)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:59:42.872Z"
+    },
+    {
+      "id": "log_1787054373493",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) marked Order CTH-20260818-345 delayed: not ready yett (New ETA: +30 mins)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:59:33.493Z"
+    },
+    {
+      "id": "log_1787054308246",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:28.246Z"
+    },
+    {
+      "id": "log_1787054307637",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:27.637Z"
+    },
+    {
+      "id": "log_1787054306969",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:26.969Z"
+    },
+    {
+      "id": "log_1787054306764",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:26.764Z"
+    },
+    {
+      "id": "log_1787054306563",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:26.563Z"
+    },
+    {
+      "id": "log_1787054306341",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:26.341Z"
+    },
+    {
+      "id": "log_1787054306134",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:26.134Z"
+    },
+    {
+      "id": "log_1787054305883",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:25.883Z"
+    },
+    {
+      "id": "log_1787054305656",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:25.656Z"
+    },
+    {
+      "id": "log_1787054305254",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 5 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:25.254Z"
+    },
+    {
+      "id": "log_1787054305028",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 10 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:25.028Z"
+    },
+    {
+      "id": "log_1787054304800",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 15 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:24.800Z"
+    },
+    {
+      "id": "log_1787054304572",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 20 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:24.572Z"
+    },
+    {
+      "id": "log_1787054304356",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 25 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:24.356Z"
+    },
+    {
+      "id": "log_1787054304125",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 30 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:24.125Z"
+    },
+    {
+      "id": "log_1787054303888",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 35 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:23.888Z"
+    },
+    {
+      "id": "log_1787054303652",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 40 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:23.652Z"
+    },
+    {
+      "id": "log_1787054302951",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 45 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:22.951Z"
+    },
+    {
+      "id": "log_1787054302751",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 50 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:22.751Z"
+    },
+    {
+      "id": "log_1787054302519",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 55 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:22.519Z"
+    },
+    {
+      "id": "log_1787054302351",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 55 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:22.351Z"
+    },
+    {
+      "id": "log_1787054302131",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 60 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:22.131Z"
+    },
+    {
+      "id": "log_1787054301851",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 60 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:21.851Z"
+    },
+    {
+      "id": "log_1787054301611",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 65 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:21.611Z"
+    },
+    {
+      "id": "log_1787054301386",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 65 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:21.386Z"
+    },
+    {
+      "id": "log_1787054301142",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 70 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:21.142Z"
+    },
+    {
+      "id": "log_1787054300947",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 75 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:20.947Z"
+    },
+    {
+      "id": "log_1787054300775",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 80 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:20.775Z"
+    },
+    {
+      "id": "log_1787054300563",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 85 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:20.563Z"
+    },
+    {
+      "id": "log_1787054299504",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 90 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:19.504Z"
+    },
+    {
+      "id": "log_1787054299264",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 95 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:19.264Z"
+    },
+    {
+      "id": "log_1787054299011",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 100 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:19.011Z"
+    },
+    {
+      "id": "log_1787054298728",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 105 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:18.728Z"
+    },
+    {
+      "id": "log_1787054298175",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 110 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:18.175Z"
+    },
+    {
+      "id": "log_1787054297701",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_03 to 115 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:17.701Z"
+    },
+    {
+      "id": "log_1787054296460",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:16.460Z"
+    },
+    {
+      "id": "log_1787054296242",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:16.242Z"
+    },
+    {
+      "id": "log_1787054296035",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:16.035Z"
+    },
+    {
+      "id": "log_1787054295802",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:15.802Z"
+    },
+    {
+      "id": "log_1787054295570",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 5 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:15.570Z"
+    },
+    {
+      "id": "log_1787054295303",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 10 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:15.303Z"
+    },
+    {
+      "id": "log_1787054295023",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 15 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:15.024Z"
+    },
+    {
+      "id": "log_1787054294885",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 20 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:14.885Z"
+    },
+    {
+      "id": "log_1787054294620",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 20 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:14.620Z"
+    },
+    {
+      "id": "log_1787054294425",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 25 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:14.425Z"
+    },
+    {
+      "id": "log_1787054294242",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 30 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:14.242Z"
+    },
+    {
+      "id": "log_1787054294073",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 35 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:14.073Z"
+    },
+    {
+      "id": "log_1787054293860",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 40 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:13.860Z"
+    },
+    {
+      "id": "log_1787054293656",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 45 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:13.656Z"
+    },
+    {
+      "id": "log_1787054293468",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 50 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:13.468Z"
+    },
+    {
+      "id": "log_1787054293304",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 55 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:13.304Z"
+    },
+    {
+      "id": "log_1787054293102",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 60 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:13.102Z"
+    },
+    {
+      "id": "log_1787054292909",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 65 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:12.909Z"
+    },
+    {
+      "id": "log_1787054292736",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 70 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:12.736Z"
+    },
+    {
+      "id": "log_1787054292360",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_02 to 75 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:12.361Z"
+    },
+    {
+      "id": "log_1787054286827",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 0 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:06.827Z"
+    },
+    {
+      "id": "log_1787054286382",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 5 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:06.382Z"
+    },
+    {
+      "id": "log_1787054286267",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 10 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:06.267Z"
+    },
+    {
+      "id": "log_1787054285959",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 10 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:05.959Z"
+    },
+    {
+      "id": "log_1787054285660",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 10 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:05.660Z"
+    },
+    {
+      "id": "log_1787054284968",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 10 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:04.968Z"
+    },
+    {
+      "id": "log_1787054284894",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 10 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:04.894Z"
+    },
+    {
+      "id": "log_1787054284812",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 10 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:04.812Z"
+    },
+    {
+      "id": "log_1787054284605",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 10 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:04.605Z"
+    },
+    {
+      "id": "log_1787054284338",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 15 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:04.338Z"
+    },
+    {
+      "id": "log_1787054283710",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 15 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:03.710Z"
+    },
+    {
+      "id": "log_1787054282609",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 15 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:02.609Z"
+    },
+    {
+      "id": "log_1787054282357",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 15 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:02.357Z"
+    },
+    {
+      "id": "log_1787054281760",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 20 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:01.760Z"
+    },
+    {
+      "id": "log_1787054281562",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 25 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:01.562Z"
+    },
+    {
+      "id": "log_1787054281406",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 30 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:01.406Z"
+    },
+    {
+      "id": "log_1787054281181",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 35 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:01.181Z"
+    },
+    {
+      "id": "log_1787054280946",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 40 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:00.946Z"
+    },
+    {
+      "id": "log_1787054280717",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 45 (Threshold: 10)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:58:00.717Z"
+    },
+    {
+      "id": "log_1787054264842",
+      "action": "Branch Operations (Indiranagar Flagship Bakery) updated Product prod_1785665663614 availability to 'OUT_OF_STOCK' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:57:44.842Z"
+    },
+    {
+      "id": "log_1787054263143",
+      "action": "Branch Operations (Indiranagar Flagship Bakery) updated Product prod_01KXYMAJKNWZCFXJHESPTZE01G availability to 'OUT_OF_STOCK' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:57:43.143Z"
+    },
+    {
+      "id": "log_1787054256681",
+      "action": "Branch Operations (Indiranagar Flagship Bakery) updated Product prod_1786645942087 availability to 'OUT_OF_STOCK' (No reason)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:57:36.681Z"
+    },
+    {
+      "id": "log_1787053724706",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) reprinted KOT for Order CTH-20260818-345 (Reprint #2)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:48:44.706Z"
+    },
+    {
+      "id": "log_1787053720193",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) marked Order CTH-20260818-345 Ready for Pickup",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:48:40.193Z"
+    },
+    {
+      "id": "log_1787053719794",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) accepted Order CTH-20260818-345",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:48:39.794Z"
+    },
+    {
+      "id": "log_1787053716562",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Branch Status to 'OPEN' (Reason: N/A)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:48:36.562Z"
+    },
+    {
+      "id": "log_1787053714152",
+      "action": "Branch Manager (Indiranagar Flagship Bakery) updated Branch Status to 'CLOSED' (Reason: N/A)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:48:34.152Z"
+    },
+    {
+      "id": "log_1787053617730",
+      "action": "Deactivated Delivery Partner Browser Test Rider Updated (CTH-DP-900003). Reason: Deactivated via Admin Drawer",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:46:57.730Z"
+    },
+    {
+      "id": "log_1787053615592",
+      "action": "Changed Availability for Browser Test Rider Updated (CTH-DP-900003) from OFFLINE to OFFLINE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:46:55.592Z"
+    },
+    {
+      "id": "log_1787053613751",
+      "action": "Deactivated Delivery Partner Browser Test Rider Updated (CTH-DP-900003). Reason: Deactivated via Admin Drawer",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:46:53.751Z"
+    },
+    {
+      "id": "log_1787053609862",
+      "action": "Deactivated Delivery Partner Browser Test Rider Updated (CTH-DP-900003). Reason: Deactivated via Admin Drawer",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:46:49.862Z"
+    },
+    {
+      "id": "log_1787053606604",
+      "action": "Changed Availability for Browser Test Rider Updated (CTH-DP-900003) from OFFLINE to ONLINE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:46:46.604Z"
+    },
+    {
+      "id": "log_1787053565621",
+      "action": "Changed Availability for Browser Test Rider Updated (CTH-DP-900003) from ONLINE to OFFLINE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:46:05.621Z"
+    },
+    {
+      "id": "log_1787053562742",
+      "action": "Changed Availability for Browser Test Rider Updated (CTH-DP-900003) from OFFLINE to ONLINE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:46:02.742Z"
+    },
+    {
+      "id": "log_1787053537992",
+      "action": "Changed Availability for Test Alpha (CTH-DP-TEST01) from BUSY to ONLINE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:45:37.992Z"
+    },
+    {
+      "id": "log_1787053536545",
+      "action": "Changed Availability for Test Alpha (CTH-DP-TEST01) from BUSY to ONLINE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:45:36.545Z"
+    },
+    {
+      "id": "log_1787053530486",
+      "action": "Changed Availability for Browser Test Rider Updated (CTH-DP-000077) from ONLINE to OFFLINE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:45:30.486Z"
+    },
+    {
+      "id": "log_1787053528987",
+      "action": "Changed Availability for Browser Test Rider Updated (CTH-DP-900003) from ONLINE to OFFLINE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:45:28.987Z"
+    },
+    {
+      "id": "log_1787053527848",
+      "action": "Changed Availability for Browser Test Rider Updated (CTH-DP-900003) from OFFLINE to ONLINE",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:45:27.848Z"
+    },
+    {
+      "id": "log_1787053426380",
+      "action": "Recorded Conversion for Popup Campaign pop_returning_member (Revenue: ₹0)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-18T11:43:46.380Z"
+    },
     {
       "id": "log_1787051215873",
       "action": "New Order CTH-20260818-345 placed by Ananya Sharma (₹584) -> Assigned to Indiranagar Flagship Bakery",
@@ -33150,6 +34408,186 @@
   ],
   "login_events": [
     {
+      "id": "log_1787055089511_staff",
+      "identifier": "+91 97700 89405",
+      "phone": "+91 97700 89405",
+      "email": "kavya.89405@cakes2home.com",
+      "role": "STAFF",
+      "user_id": "staff_1787055089507_66t8",
+      "user_name": "Kavya Murthy 89405",
+      "status": "SUCCESS",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_VERIFIED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-18T12:11:29.511Z"
+    },
+    {
+      "id": "log_1787055089509_partner",
+      "identifier": "+91 99000 89405",
+      "phone": "+91 99000 89405",
+      "email": "driver.89405@cakes2home.com",
+      "role": "DELIVERY_PARTNER",
+      "user_id": "dlp_1787055089443",
+      "user_name": "Vikram Rathore 89405",
+      "status": "SUCCESS",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_VERIFIED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-18T12:11:29.509Z"
+    },
+    {
+      "id": "log_1787055089508_mgr",
+      "identifier": "+91 98765 89405",
+      "phone": "+91 98765 89405",
+      "email": "manager.89405@cakes2home.com",
+      "role": "BRANCH_MANAGER",
+      "user_id": "staff_1787055089405_1wnu",
+      "user_name": "Ananya Desai 89405",
+      "status": "SUCCESS",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_VERIFIED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-18T12:11:29.508Z"
+    },
+    {
+      "id": "log_1787054905432_req",
+      "identifier": "+91 91122 05429",
+      "phone": "+91 91122 05429",
+      "normalized_phone": "9112205429",
+      "role": "CUSTOMER",
+      "user_id": "cus_9112205429",
+      "user_name": "Guest",
+      "status": "OTP_SENT",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_REQUESTED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-18T12:08:25.432Z"
+    },
+    {
+      "id": "log_1787054784787_mgr",
+      "identifier": "+91 90000 00003",
+      "phone": "+91 90000 00003",
+      "email": "rahul.kumar@cakes2home.com",
+      "role": "BRANCH_MANAGER",
+      "user_id": "shpmgr_manager_9000000003",
+      "user_name": "Rahul Kumar",
+      "status": "SUCCESS",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_VERIFIED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-18T12:06:24.787Z"
+    },
+    {
+      "id": "log_1787054784785_partner",
+      "identifier": "+91 90000 00002",
+      "phone": "+91 90000 00002",
+      "email": "suresh.kumar@cakes2home.com",
+      "role": "DELIVERY_PARTNER",
+      "user_id": "dlp_driver_9000000002",
+      "user_name": "Suresh Kumar",
+      "status": "SUCCESS",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_VERIFIED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-18T12:06:24.785Z"
+    },
+    {
+      "id": "log_1787054753151_mgr",
+      "identifier": "+91 90000 00003",
+      "phone": "+91 90000 00003",
+      "email": "rahul.kumar@cakes2home.com",
+      "role": "BRANCH_MANAGER",
+      "user_id": "shpmgr_manager_9000000003",
+      "user_name": "Rahul Kumar",
+      "status": "SUCCESS",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_VERIFIED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-18T12:05:53.151Z"
+    },
+    {
+      "id": "log_1787054753150_partner",
+      "identifier": "+91 90000 00002",
+      "phone": "+91 90000 00002",
+      "email": "suresh.kumar@cakes2home.com",
+      "role": "DELIVERY_PARTNER",
+      "user_id": "dlp_driver_9000000002",
+      "user_name": "Suresh Kumar",
+      "status": "SUCCESS",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_VERIFIED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-18T12:05:53.150Z"
+    },
+    {
+      "id": "log_1787054660711_mgr",
+      "identifier": "+91 90000 00003",
+      "phone": "+91 90000 00003",
+      "email": "rahul.kumar@cakes2home.com",
+      "role": "BRANCH_MANAGER",
+      "user_id": "shpmgr_manager_9000000003",
+      "user_name": "Rahul Kumar",
+      "status": "SUCCESS",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_VERIFIED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-18T12:04:20.711Z"
+    },
+    {
+      "id": "log_1787054583517_staff",
+      "identifier": "+91 97700 88883",
+      "phone": "+91 97700 88883",
+      "email": "kavya.murthy@cakes2home.com",
+      "role": "STAFF",
+      "user_id": "staff_1787054583513_dt4f",
+      "user_name": "Kavya Murthy",
+      "status": "SUCCESS",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_VERIFIED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-18T12:03:03.517Z"
+    },
+    {
+      "id": "log_1787054583516_partner",
+      "identifier": "+91 99000 88882",
+      "phone": "+91 99000 88882",
+      "email": "driver.test@cakes2home.com",
+      "role": "DELIVERY_PARTNER",
+      "user_id": "dlp_1787054583418",
+      "user_name": "Vikram Rathore",
+      "status": "SUCCESS",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_VERIFIED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-18T12:03:03.516Z"
+    },
+    {
+      "id": "log_1787054583515_mgr",
+      "identifier": "+91 98765 88881",
+      "phone": "+91 98765 88881",
+      "email": "manager.test@cakes2home.com",
+      "role": "BRANCH_MANAGER",
+      "user_id": "staff_1787054583345_ocxp",
+      "user_name": "Ananya Desai",
+      "status": "SUCCESS",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_VERIFIED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-18T12:03:03.515Z"
+    },
+    {
       "id": "log_1787051215281_partner",
       "identifier": "+91 98765 00001",
       "phone": "+91 98765 00001",
@@ -33258,7 +34696,7 @@
       "abandoned_at": "2026-08-18T11:06:55.312Z",
       "last_contacted_at": "2026-08-18T11:06:55.496Z",
       "recovery_attempts_count": 1,
-      "recovery_token": "recov_tok_cart_abandon_test_1787051215282_1787051215496",
+      "recovery_token": "recov_tok_cart_abandon_test_1787051215282_1787054905862",
       "recovered_at": "2026-08-18T11:06:55.930Z",
       "recovered_order_id": "ord_1787051215759_i5qen",
       "recovered_order_number": "CTH-20260818-345",
@@ -47828,6 +49266,279 @@
   ],
   "orders": [
     {
+      "id": "ord_1787055066311_tkuh1",
+      "order_number": "CTH-20260818-347",
+      "invoice_number": "CTH/26-27/000347",
+      "kot_number": "KOT-CTH-20260818-347",
+      "customer_id": "cus_1785518113834",
+      "customer_uid": "cth_cus_1785518113834",
+      "customer_name": "Gourmet Customer",
+      "customer_phone": "+91 98765 43210",
+      "customer_email": "customer@cakes2home.com",
+      "delivery_address": ", , Bengaluru",
+      "landmark": "",
+      "pincode": "560038",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_indiranagar",
+      "branch_name": "Indiranagar Flagship Bakery",
+      "branch_code": "HUB-BLR-01",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "branch_id": "br_indiranagar",
+        "branch_code": "HUB-BLR-01",
+        "branch_name": "Indiranagar Flagship Bakery",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE"
+      },
+      "items": [
+        {
+          "id": "prod_1786645942087",
+          "title": "Royal Belgian Truffle Milestone Cake",
+          "name": "Royal Belgian Truffle Milestone Cake",
+          "weight": "1.0 kg",
+          "shape": "Round",
+          "flavour": "Dutch Chocolate",
+          "eggless": true,
+          "quantity": 1,
+          "unit_price": 649,
+          "subtotal": 649,
+          "total": 649,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 618.1,
+          "tax_amount": 30.9,
+          "cgst": 15.45,
+          "sgst": 15.45,
+          "igst": 0,
+          "cake_message": null,
+          "selected_addons": []
+        }
+      ],
+      "pricing": {
+        "subtotal": 649,
+        "discount": 0,
+        "applied_coupon": null,
+        "delivery_fee": 0,
+        "delivery_charge": 0,
+        "slot_surcharge": 0,
+        "slot_charge": 0,
+        "taxable_value": 618.1,
+        "cgst": 15.45,
+        "sgst": 15.45,
+        "igst": 0,
+        "total_tax": 30.9,
+        "round_off": 0,
+        "grand_total": 649,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 30.9,
+        "cgst": 15.45,
+        "sgst": 15.45,
+        "igst": 0,
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 649,
+      "total": 649,
+      "delivery_fee": 0,
+      "tax_total": 30.9,
+      "discount_total": 0,
+      "status": "confirmed",
+      "delivery_status": "shop_accepted",
+      "payment_status": "captured",
+      "payment_method": "Online Verified",
+      "transaction_id": "TXN_1787055066345",
+      "delivery_type": "delivery",
+      "delivery_date": "2026-08-18",
+      "delivery_slot": "07:00 PM - 08:00 PM",
+      "delivery_slot_id": "SLOT_DELIVERY_1900_2000",
+      "priority": "NORMAL",
+      "pickup_otp": "5643",
+      "delivery_otp": "1240",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Celebration!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787055066345",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-18T12:11:06.345Z",
+          "author": "Customer",
+          "notes": "Payment method: COD"
+        },
+        {
+          "id": "tl_1787055066346",
+          "title": "Assigned to Kitchen: Indiranagar Flagship Bakery",
+          "time": "2026-08-18T12:11:06.345Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260818-347"
+        }
+      ],
+      "created_at": "2026-08-18T12:11:06.345Z",
+      "updated_at": "2026-08-18T12:11:06.345Z"
+    },
+    {
+      "id": "ord_1787054905656_o961k",
+      "cart_id": "cart_guest_1787054905545",
+      "order_number": "CTH-20260818-346",
+      "invoice_number": "CTH/26-27/000346",
+      "kot_number": "KOT-CTH-20260818-346",
+      "customer_id": "cus_9112205429",
+      "customer_uid": "cth_cus_9112205429",
+      "customer_name": "Vikram Malhotra",
+      "customer_phone": "+91 91122 05429",
+      "customer_email": "customer@cakes2home.com",
+      "delivery_address": "Prestige Ozone, Whitefield, , Bengaluru",
+      "landmark": "",
+      "pincode": "560066",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_whitefield",
+      "branch_name": "Whitefield Tech Hub",
+      "branch_code": "HUB-BLR-04",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "ITPL Main Rd, Whitefield",
+        "branch_id": "br_whitefield",
+        "branch_code": "HUB-BLR-04",
+        "branch_name": "Whitefield Tech Hub",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE"
+      },
+      "items": [
+        {
+          "id": "item_1787054905579_77py",
+          "product_id": "prod_01KXY_BELGIAN_TRUFFLE",
+          "title": "Belgian Dark Chocolate Truffle Cake",
+          "name": "Belgian Dark Chocolate Truffle Cake",
+          "weight": "500g",
+          "shape": "Round",
+          "flavour": "Classic",
+          "eggless": true,
+          "quantity": 1,
+          "unit_price": 1299,
+          "subtotal": 1299,
+          "total": 1299,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 1237.14,
+          "tax_amount": 61.86,
+          "cgst": 30.93,
+          "sgst": 30.93,
+          "igst": 0,
+          "thumbnail": "",
+          "cake_message": "Happy Anniversary!",
+          "selected_addons": []
+        }
+      ],
+      "pricing": {
+        "subtotal": 1299,
+        "discount": 0,
+        "applied_coupon": null,
+        "delivery_fee": 0,
+        "delivery_charge": 0,
+        "slot_surcharge": 49,
+        "slot_charge": 49,
+        "taxable_value": 1237.14,
+        "cgst": 30.93,
+        "sgst": 30.93,
+        "igst": 0,
+        "total_tax": 61.86,
+        "round_off": 0,
+        "grand_total": 1348,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 61.86,
+        "cgst": 30.93,
+        "sgst": 30.93,
+        "igst": 0,
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 1299,
+      "total": 1348,
+      "delivery_fee": 0,
+      "tax_total": 61.86,
+      "discount_total": 0,
+      "status": "confirmed",
+      "delivery_status": "shop_accepted",
+      "payment_status": "captured",
+      "payment_method": "Online UPI (Razorpay)",
+      "transaction_id": "pay_test_vikram_101",
+      "delivery_type": "delivery",
+      "delivery_date": "2026-08-18",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "3574",
+      "delivery_otp": "3227",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Anniversary!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787054905692",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-18T12:08:25.692Z",
+          "author": "Customer",
+          "notes": "Payment method: RAZORPAY"
+        },
+        {
+          "id": "tl_1787054905693",
+          "title": "Assigned to Kitchen: Whitefield Tech Hub",
+          "time": "2026-08-18T12:08:25.692Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260818-346"
+        }
+      ],
+      "created_at": "2026-08-18T12:08:25.692Z",
+      "updated_at": "2026-08-18T12:08:25.692Z"
+    },
+    {
       "id": "ord_1787051215759_i5qen",
       "cart_id": "cart_abandon_test_1787051215282",
       "order_number": "CTH-20260818-345",
@@ -47923,8 +49634,8 @@
       "delivery_fee": 0,
       "tax_total": 30.9,
       "discount_total": 65,
-      "status": "confirmed",
-      "delivery_status": "shop_accepted",
+      "status": "packed",
+      "delivery_status": "pickup_claimed",
       "payment_status": "pending",
       "payment_method": "Cash on Delivery (COD)",
       "transaction_id": "TXN_1787051215787",
@@ -47947,8 +49658,64 @@
       "is_surprise_delivery": false,
       "special_instructions": null,
       "custom_message": "Happy Celebration!",
-      "kot_reprint_count": 1,
+      "kot_reprint_count": 3,
       "timeline": [
+        {
+          "id": "tl_1787054590659",
+          "title": "Assigned to Delivery Partner Vikram Rathore",
+          "time": "2026-08-18T12:03:10.659Z",
+          "author": "Ananya Desai",
+          "notes": "Driver Phone: +91 99000 88882"
+        },
+        {
+          "id": "tl_1787054590597",
+          "title": "Cake Baked & Packed — Ready for Pickup",
+          "time": "2026-08-18T12:03:10.597Z",
+          "author": "Ananya Desai",
+          "notes": "Pickup OTP: 1853"
+        },
+        {
+          "id": "tl_1787054590537",
+          "title": "Order Delayed — New ETA: +30 mins",
+          "time": "2026-08-18T12:03:10.537Z",
+          "author": "Ananya Desai",
+          "notes": "Reason: Artisanal hand-piped roses in progress"
+        },
+        {
+          "id": "tl_1787054590476",
+          "title": "Order Accepted by Branch Kitchen",
+          "time": "2026-08-18T12:03:10.476Z",
+          "author": "Ananya Desai",
+          "notes": "Queued for baking oven station 1"
+        },
+        {
+          "id": "tl_1787054382872",
+          "title": "Order Delayed — New ETA: +30 mins",
+          "time": "2026-08-18T11:59:42.872Z",
+          "author": "Rahul Kumar",
+          "notes": "Reason: not ready yett"
+        },
+        {
+          "id": "tl_1787054373493",
+          "title": "Order Delayed — New ETA: +30 mins",
+          "time": "2026-08-18T11:59:33.493Z",
+          "author": "Rahul Kumar",
+          "notes": "Reason: not ready yett"
+        },
+        {
+          "id": "tl_1787053720193",
+          "title": "Cake Baked & Packed — Ready for Pickup",
+          "time": "2026-08-18T11:48:40.193Z",
+          "author": "Rahul Kumar",
+          "notes": "Pickup OTP: 1853"
+        },
+        {
+          "id": "tl_1787053719794",
+          "title": "Order Accepted by Branch Kitchen",
+          "time": "2026-08-18T11:48:39.794Z",
+          "author": "Rahul Kumar",
+          "notes": "Queued for kitchen baking station"
+        },
         {
           "id": "tl_1787051215787",
           "title": "Order Placed & Confirmed",
@@ -47965,7 +49732,15 @@
         }
       ],
       "created_at": "2026-08-18T11:06:55.787Z",
-      "updated_at": "2026-08-18T11:06:55.787Z"
+      "updated_at": "2026-08-18T12:03:10.659Z",
+      "is_delayed": true,
+      "delay_reason": "Artisanal hand-piped roses in progress",
+      "original_eta": "06:00 PM - 07:00 PM",
+      "new_eta": "+30 mins",
+      "delayed_at": "2026-08-18T12:03:10.537Z",
+      "delivery_partner_id": "dlp_1787054583418",
+      "driver_name": "Vikram Rathore",
+      "driver_phone": "+91 99000 88882"
     },
     {
       "id": "ord_1787051207525_3nue",
@@ -84154,15 +85929,99 @@
   ],
   "carts": [
     {
+      "id": "cart_test_1787055066203_B",
+      "customer_uid": null,
+      "items": [
+        {
+          "id": "item_1787055066515_4mh2",
+          "product_id": "prod_1786645942087",
+          "title": "Celebration Cake",
+          "thumbnail": "",
+          "unit_price": 0,
+          "price": 0,
+          "quantity": 1,
+          "total_price": 0,
+          "subtotal": 0,
+          "weight": "500g",
+          "shape": "Round",
+          "flavour": "Classic",
+          "cake_message": null,
+          "eggless": true,
+          "sugar_free": false,
+          "gluten_free": false,
+          "vegan": false,
+          "greeting_card_text": null,
+          "selected_addons": [],
+          "occasion": null,
+          "special_instructions": null
+        }
+      ],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "ACTIVE",
+      "created_at": "2026-08-18T12:11:06.273Z",
+      "updated_at": "2026-08-18T12:11:06.515Z",
+      "last_activity_at": "2026-08-18T12:11:06.515Z"
+    },
+    {
+      "id": "cart_test_1787055066203_A",
+      "customer_uid": null,
+      "items": [
+        {
+          "id": "item_1787055066237_amz4",
+          "product_id": "prod_1786645942087",
+          "title": "Celebration Cake",
+          "thumbnail": "",
+          "unit_price": 0,
+          "price": 0,
+          "quantity": 1,
+          "total_price": 0,
+          "subtotal": 0,
+          "weight": "500g",
+          "shape": "Round",
+          "flavour": "Classic",
+          "cake_message": null,
+          "eggless": true,
+          "sugar_free": false,
+          "gluten_free": false,
+          "vegan": false,
+          "greeting_card_text": null,
+          "selected_addons": [],
+          "occasion": null,
+          "special_instructions": null
+        }
+      ],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "ACTIVE",
+      "created_at": "2026-08-18T12:11:06.203Z",
+      "updated_at": "2026-08-18T12:11:06.237Z",
+      "last_activity_at": "2026-08-18T12:11:06.237Z"
+    },
+    {
+      "id": "cart_guest_1787054905545",
+      "customer_uid": "cth_cus_9112205429",
+      "items": [],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "CLEARED",
+      "created_at": "2026-08-18T12:08:25.545Z",
+      "updated_at": "2026-08-18T12:08:25.724Z",
+      "last_activity_at": "2026-08-18T12:08:25.579Z"
+    },
+    {
       "id": "cart_abandon_test_1787051215282",
       "customer_uid": "cus_9123456789",
       "items": [],
       "subtotal": 0,
       "total": 0,
       "currency_code": "inr",
-      "status": "CLEARED",
+      "status": "RECOVERED_IN_PROGRESS",
       "created_at": "2026-08-18T11:06:55.282Z",
-      "updated_at": "2026-08-18T11:06:55.845Z",
+      "updated_at": "2026-08-18T12:08:25.913Z",
       "last_activity_at": "2026-08-18T11:06:55.312Z",
       "cart_id": "cart_abandon_test_1787051215282",
       "customer_phone": "+91 99999 88888",
@@ -92593,41 +94452,31 @@
       }
     }
   ],
+  "delivery_assignment_rules": {
+    "allow_cross_branch_fallback": false,
+    "require_working_hours": false,
+    "require_online_status": true,
+    "max_capacity_limit": 5,
+    "updated_at": "2026-08-18T12:11:29.439Z"
+  },
   "customer_activity": [
     {
-      "id": "act_1787051241275_call",
-      "customer_uid": "cth_cus_9123456789",
-      "event_type": "CALL_INITIATED",
-      "title": "Phone Call Initiated to +91 91234 56789",
-      "description": "Staff member Admin initiated call with customer \"Ananya Sharma\". Outcome: CALL_INITIATED",
-      "source": "ADMIN_CRM",
-      "staff_id": "admin_01",
-      "staff_name": "Staff Member",
-      "metadata": {
-        "outcome": "CALL_INITIATED",
-        "phone": "+91 91234 56789"
-      },
-      "timestamp": "2026-08-18T11:07:21.275Z"
+      "id": "act_1787055089552_yce0",
+      "customer_uid": "cth_cus_9999989405",
+      "event_type": "LOGIN",
+      "title": "Customer Logged In",
+      "description": "Authenticated via mobile OTP on +91 99999 89405.",
+      "source": "STOREFRONT",
+      "timestamp": "2026-08-18T12:11:29.552Z"
     },
     {
-      "id": "act_1787051241243_tags",
-      "customer_uid": "cth_cus_9123456789",
-      "event_type": "TAG_ADDED",
-      "title": "Customer Tags Updated",
-      "description": "Tags: E2E-Tested, VIP",
-      "source": "ADMIN_CRM",
-      "timestamp": "2026-08-18T11:07:21.243Z"
-    },
-    {
-      "id": "act_1787051241213_note",
-      "customer_uid": "cth_cus_9123456789",
-      "event_type": "NOTE_ADDED",
-      "title": "Staff Note Added by Staff Member",
-      "description": "E2E Test Note",
-      "source": "ADMIN_CRM",
-      "staff_id": "admin_01",
-      "staff_name": "Staff Member",
-      "timestamp": "2026-08-18T11:07:21.213Z"
+      "id": "act_1787055089516_pv11",
+      "customer_uid": "cth_cus_9999989405",
+      "event_type": "ACCOUNT_CREATED",
+      "title": "Customer Account Created",
+      "description": "Verified OTP for +91 99999 89405 and created new account.",
+      "source": "STOREFRONT",
+      "timestamp": "2026-08-18T12:11:29.516Z"
     },
     {
       "id": "act_01",
@@ -92642,7 +94491,7 @@
         "order_id": "ord_101",
         "amount": 1298
       },
-      "timestamp": "2026-08-18T10:07:21.212Z"
+      "timestamp": "2026-08-18T11:11:29.516Z"
     },
     {
       "id": "act_02",
@@ -92657,7 +94506,7 @@
         "cart_id": "cart_ab_102",
         "channel": "WHATSAPP"
       },
-      "timestamp": "2026-08-18T10:37:21.212Z"
+      "timestamp": "2026-08-18T11:41:29.516Z"
     },
     {
       "id": "act_03",
@@ -92666,7 +94515,7 @@
       "title": "New Customer Account Created",
       "description": "Verified Mobile OTP (+91 98765 43213) and initialized customer profile.",
       "source": "STOREFRONT",
-      "timestamp": "2026-08-18T09:07:21.212Z"
+      "timestamp": "2026-08-18T10:11:29.516Z"
     }
   ]
 }

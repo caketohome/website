@@ -1725,11 +1725,13 @@ class CakeToHomeApiClient {
     name: string;
     phone: string;
     email: string;
+    role?: string;
     profile_id?: string;
     accessProfileIds?: string[];
     profile_ids?: string[];
     branch_id?: string | null;
     branch_name?: string | null;
+    delivery_partner_id?: string | null;
     city?: string | null;
     status?: "ACTIVE" | "SUSPENDED";
   }) {

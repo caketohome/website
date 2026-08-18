@@ -11,6 +11,7 @@ import { apiClient } from "@frontend/lib/api-client";
 import {
   AccessProfile,
   StaffMember,
+  StaffRole,
   PermissionAuditLog,
   PermissionDefinition,
   PERMISSION_CATALOG,
@@ -46,6 +47,7 @@ export function StaffProfilesPanel() {
   const [staffFormName, setStaffFormName] = useState("");
   const [staffFormPhone, setStaffFormPhone] = useState("");
   const [staffFormEmail, setStaffFormEmail] = useState("");
+  const [staffFormRole, setStaffFormRole] = useState<StaffRole>("STAFF");
   const [staffFormProfileIds, setStaffFormProfileIds] = useState<string[]>([]);
   const [staffFormBranch, setStaffFormBranch] = useState("Flagship Kitchen");
   const [staffFormCity, setStaffFormCity] = useState("Bengaluru");
@@ -191,6 +193,7 @@ export function StaffProfilesPanel() {
     setStaffFormName("");
     setStaffFormPhone("");
     setStaffFormEmail("");
+    setStaffFormRole("STAFF");
     setStaffFormProfileIds([profilesList[0]?.id || "prof_telecaller"]);
     setStaffFormBranch("Indiranagar Flagship Kitchen");
     setStaffFormCity("Bengaluru");
@@ -203,6 +206,7 @@ export function StaffProfilesPanel() {
     setStaffFormName(staff.name);
     setStaffFormPhone(staff.phone);
     setStaffFormEmail(staff.email);
+    setStaffFormRole(staff.role || "STAFF");
     const initialIds =
       staff.profile_ids && staff.profile_ids.length > 0
         ? [...staff.profile_ids]
@@ -232,6 +236,7 @@ export function StaffProfilesPanel() {
           name: staffFormName,
           phone: staffFormPhone,
           email: staffFormEmail,
+          role: staffFormRole,
           accessProfileIds: staffFormProfileIds,
           profile_ids: staffFormProfileIds,
           profile_id: staffFormProfileIds[0],
@@ -248,6 +253,7 @@ export function StaffProfilesPanel() {
           name: staffFormName,
           phone: staffFormPhone,
           email: staffFormEmail,
+          role: staffFormRole,
           accessProfileIds: staffFormProfileIds,
           profile_ids: staffFormProfileIds,
           profile_id: staffFormProfileIds[0],
@@ -257,7 +263,7 @@ export function StaffProfilesPanel() {
         });
         setFeedback({
           type: "success",
-          message: `Created staff account for ${staffFormName} with ${staffFormProfileIds.length} profiles!`,
+          message: `Created staff account for ${staffFormName} (${staffFormRole}) with ${staffFormProfileIds.length} profiles!`,
         });
       }
       setStaffModalOpen(false);
@@ -470,7 +476,18 @@ export function StaffProfilesPanel() {
                               {staff.name.charAt(0)}
                             </div>
                             <div>
-                              <div className="font-semibold text-slate-900 dark:text-slate-100">{staff.name}</div>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-semibold text-slate-900 dark:text-slate-100">{staff.name}</span>
+                                {staff.role === "BRANCH_MANAGER" && (
+                                  <Badge color="orange" className="text-[9px] px-1 py-0 font-bold">Manager</Badge>
+                                )}
+                                {staff.role === "DELIVERY_PARTNER" && (
+                                  <Badge color="blue" className="text-[9px] px-1 py-0 font-bold">Delivery</Badge>
+                                )}
+                                {staff.role === "SUPER_ADMIN" && (
+                                  <Badge color="red" className="text-[9px] px-1 py-0 font-bold">Admin</Badge>
+                                )}
+                              </div>
                               <div className="text-[10px] text-slate-400 font-mono">ID: {staff.id}</div>
                             </div>
                           </div>
@@ -1005,18 +1022,42 @@ export function StaffProfilesPanel() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  Account Status
-                </label>
-                <select
-                  value={staffFormStatus}
-                  onChange={(e: any) => setStaffFormStatus(e.target.value)}
-                  className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
-                >
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="SUSPENDED">SUSPENDED</option>
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                    Business Role *
+                  </label>
+                  <select
+                    value={staffFormRole}
+                    onChange={(e: any) => {
+                      const newRole = e.target.value as StaffRole;
+                      setStaffFormRole(newRole);
+                      if (newRole === "BRANCH_MANAGER" && !staffFormProfileIds.includes("prof_branch_ops")) {
+                        setStaffFormProfileIds((prev) => Array.from(new Set([...prev, "prof_branch_ops"])));
+                      } else if (newRole === "DELIVERY_PARTNER" && !staffFormProfileIds.includes("prof_delivery_ops")) {
+                        setStaffFormProfileIds((prev) => Array.from(new Set([...prev, "prof_delivery_ops"])));
+                      }
+                    }}
+                    className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-medium"
+                  >
+                    <option value="STAFF">General Staff</option>
+                    <option value="BRANCH_MANAGER">Store / Branch Manager</option>
+                    <option value="DELIVERY_PARTNER">Delivery Partner / Driver</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                    Account Status
+                  </label>
+                  <select
+                    value={staffFormStatus}
+                    onChange={(e: any) => setStaffFormStatus(e.target.value)}
+                    className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+                  >
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="SUSPENDED">SUSPENDED</option>
+                  </select>
+                </div>
               </div>
             </div>
 
