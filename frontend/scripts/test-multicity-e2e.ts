@@ -122,6 +122,7 @@ async function runMultiCityE2ETests() {
   const orderRes = ApiEngine.confirmCheckout({
     cart_id: cartId,
     pincode: "560038",
+    delivery_slot_id: "slot_standard",
     delivery_type: "delivery",
     delivery_date: new Date().toISOString().slice(0, 10),
     payment_method: "cod",

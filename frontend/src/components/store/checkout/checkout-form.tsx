@@ -2,7 +2,7 @@
 
 import { placeOrder } from "@frontend/lib/actions";
 import { apiClient } from "@frontend/lib/api-client";
-import { HttpTypes } from "@medusajs/types";
+import { HttpTypes } from "@frontend/lib/types";
 import { Badge, Button, Heading, Input, Label, Text, Textarea } from "@medusajs/ui";
 import { useFormState, useFormStatus } from "react-dom";
 import { useState, useEffect, useRef, useCallback } from "react";

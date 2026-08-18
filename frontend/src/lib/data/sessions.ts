@@ -33,6 +33,7 @@ export function destroySession() {
     "_medusa_jwt",
     "_cth_role",
     "_cth_user_id",
+    "_cth_customer_uid",
     "_cth_phone",
     "_cth_branch_id",
     "_cth_shop_id",

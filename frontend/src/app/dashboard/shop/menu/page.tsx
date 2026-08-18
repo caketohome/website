@@ -5,8 +5,7 @@ import {
   retrieveShop,
   retrieveUser,
 } from "@frontend/lib/data";
-import { ShopManagerDTO } from "@frontend/lib/types";
-import { ProductDTO, ProductVariantDTO } from "@medusajs/types";
+import { ShopManagerDTO, ProductDTO, ProductVariantDTO } from "@frontend/lib/types";
 import { Heading, Table, Text } from "@medusajs/ui";
 import Image from "next/image";
 
@@ -19,9 +18,9 @@ export default async function MenuPage() {
 
   const categoryProductMap = new Map();
 
-  shop?.products?.forEach((product) => {
+  shop?.products?.forEach((product: any) => {
     if (product.categories) {
-      product.categories.forEach((category) => {
+      product.categories.forEach((category: any) => {
         if (categoryProductMap.has(category.id)) {
           categoryProductMap.get(category.id).products.push(product);
         } else {

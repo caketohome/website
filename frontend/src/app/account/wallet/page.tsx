@@ -66,7 +66,7 @@ export default async function AccountWalletPage() {
               try {
                 const check = await validateGiftCard(code);
                 if (check && check.valid) {
-                  await redeemGiftCard(code, check.gift_card.current_balance);
+                  await redeemGiftCard(code);
                   // Refresh page
                 }
               } catch (e) {

@@ -2,7 +2,7 @@
 
 import { createProduct } from "@frontend/lib/actions";
 import { ShopDTO } from "@frontend/lib/types";
-import { HttpTypes } from "@medusajs/types";
+import { HttpTypes } from "@frontend/lib/types";
 import { Input, Label, Select, Textarea } from "@medusajs/ui";
 import { useFormState } from "react-dom";
 

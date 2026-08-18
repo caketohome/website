@@ -21,6 +21,7 @@ import { trackNavClick } from "@frontend/lib/data/analytics";
  */
 
 export interface NavItem {
+    id?: string;
     label: string;
     type?: "url" | "page" | "category" | "blog";
     url?: string;

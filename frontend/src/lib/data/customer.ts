@@ -15,6 +15,7 @@ export interface OtpRequestResponse {
 
 export interface OtpVerifyResponse {
   customer_id: string;
+  customer_uid?: string;
   is_new_customer: boolean;
   token?: string;
   detected_role?: string;

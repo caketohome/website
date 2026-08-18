@@ -30,16 +30,16 @@ async function runScrollSequenceTests() {
   console.log("1. Testing Frame URL Resolver & Boundary Clamping...");
   try {
     const url1 = resolveFrameUrl(1, false);
-    const url118 = resolveFrameUrl(118, false);
-    const urlOver = resolveFrameUrl(250, false); // should clamp to 118
+    const url112 = resolveFrameUrl(112, false);
+    const urlOver = resolveFrameUrl(250, false); // should clamp to 112
     const urlUnder = resolveFrameUrl(-5, false); // should clamp to 1
 
     const validUrl1 = url1.includes("frames1_0001.jpg") && url1.includes("f_auto,q_auto");
-    const validUrl118 = url118.includes("frames1_0118.jpg");
-    const clampedOver = urlOver.includes("frames1_0118.jpg");
+    const validUrl112 = url112.includes("frames1_0112.jpg");
+    const clampedOver = urlOver.includes("frames1_0112.jpg");
     const clampedUnder = urlUnder.includes("frames1_0001.jpg");
 
-    if (validUrl1 && validUrl118 && clampedOver && clampedUnder) {
+    if (validUrl1 && validUrl112 && clampedOver && clampedUnder) {
       results.config_and_url_resolution = "PASS";
       console.log(`   [PASS] URL Resolution: Frame 1 -> '${url1}' | Clamping Verified.`);
     }
@@ -50,7 +50,7 @@ async function runScrollSequenceTests() {
   // ── 2. Cloudinary Cloud Assets Verification ────────────────────────────────
   console.log("\n2. Verifying Real Cloudinary Frame Assets...");
   try {
-    const testIndices = [1, 30, 60, 90, 118];
+    const testIndices = [1, 30, 60, 90, 112];
     const checks = await Promise.all(
       testIndices.map(async (idx) => {
         const url = resolveFrameUrl(idx, false);
@@ -127,29 +127,29 @@ async function runScrollSequenceTests() {
   // ── 5. Scroll Math & Interpolation ─────────────────────────────────────────
   console.log("\n5. Testing Scroll-to-Frame Mathematical Mapping & RAF Easing...");
   try {
-    const totalFrames = 118;
+    const totalFrames = 112;
 
     // Progress 0.0 -> Frame 1
     const f0 = 1 + 0.0 * (totalFrames - 1);
-    // Progress 0.5 -> Frame 59.5 (rounded 60)
+    // Progress 0.5 -> Frame 56.5 (rounded 57)
     const f50 = 1 + 0.5 * (totalFrames - 1);
-    // Progress 1.0 -> Frame 118
+    // Progress 1.0 -> Frame 112
     const f100 = 1 + 1.0 * (totalFrames - 1);
 
     // Test linear interpolation easing:
     let current = 1;
-    const target = 60;
+    const target = 57;
     const easing = 0.12;
 
     for (let step = 0; step < 10; step++) {
       current += (target - current) * easing;
     }
 
-    const smoothlyProgressed = current > 35 && current < 60;
+    const smoothlyProgressed = current > 30 && current < 57;
 
-    if (f0 === 1 && Math.round(f50) === 60 && f100 === 118 && smoothlyProgressed) {
+    if (f0 === 1 && Math.round(f50) === 57 && f100 === 112 && smoothlyProgressed) {
       results.scroll_math_and_interpolation = "PASS";
-      console.log(`   [PASS] Scroll Mapping: 0% -> 1 | 50% -> 60 | 100% -> 118. Interpolated smoothly from 1 to ${current.toFixed(1)}.`);
+      console.log(`   [PASS] Scroll Mapping: 0% -> 1 | 50% -> 57 | 100% -> 112. Interpolated smoothly from 1 to ${current.toFixed(1)}.`);
     }
   } catch (err: any) {
     console.error("   [FAIL] Scroll math error:", err.message);

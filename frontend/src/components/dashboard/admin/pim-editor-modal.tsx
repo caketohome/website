@@ -1539,7 +1539,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
 
               {/* Live Storefront Preview */}
               <div className="border border-rose-200 dark:border-rose-900 bg-rose-50/40 dark:bg-rose-950/30 p-4 rounded-2xl space-y-3">
-                <Heading level="h4" className="text-xs font-extrabold uppercase text-rose-700 dark:text-rose-400 tracking-wider">
+                <Heading level="h3" className="text-xs font-extrabold uppercase text-rose-700 dark:text-rose-400 tracking-wider">
                   👁️ Live Storefront Product Page Preview
                 </Heading>
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-xl space-y-3 text-xs">

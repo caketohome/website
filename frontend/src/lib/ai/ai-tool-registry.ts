@@ -360,7 +360,7 @@ export class AiToolRegistry {
         subtotal: 0,
         total: 0,
       };
-      if (ApiEngine.saveCart) ApiEngine.saveCart(cart);
+      if (ApiEngine.persist) ApiEngine.persist();
     }
 
     const item = {
@@ -377,7 +377,7 @@ export class AiToolRegistry {
     cart.items.push(item);
     cart.subtotal = cart.items.reduce((acc: number, it: any) => acc + it.total, 0);
     cart.total = cart.subtotal;
-    if (ApiEngine.saveCart) ApiEngine.saveCart(cart);
+    if (ApiEngine.persist) ApiEngine.persist();
 
     return {
       success: true,
@@ -408,7 +408,7 @@ export class AiToolRegistry {
 
     cart.subtotal = cart.items.reduce((acc: number, it: any) => acc + it.total, 0);
     cart.total = cart.subtotal;
-    if (ApiEngine.saveCart) ApiEngine.saveCart(cart);
+    if (ApiEngine.persist) ApiEngine.persist();
 
     return { success: true, cartTotal: cart.total, itemCount: cart.items.length };
   }

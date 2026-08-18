@@ -29,12 +29,11 @@ import {
   Users,
   CheckCircle,
   AlertCircle,
-  ExternalLink,
-  Layers,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { apiClient } from "@frontend/lib/api-client";
 import { PopupCampaign, CampaignStatus, PopupType } from "@frontend/lib/engagement/types";
-import { PopupEditorDrawer } from "./popup-editor-drawer";
+const PopupEditorDrawer = dynamic(() => import("./popup-editor-drawer").then((mod) => mod.PopupEditorDrawer), { ssr: false });
 
 export const PopupsPanel = memo(function PopupsPanel() {
   const [campaigns, setCampaigns] = useState<PopupCampaign[]>([]);
@@ -460,7 +459,7 @@ export const PopupsPanel = memo(function PopupsPanel() {
                       {/* Status */}
                       <td className="p-3.5 text-center">
                         <Badge
-                          color={getStatusBadgeColor(camp.status)}
+                          color={getStatusBadgeColor((camp.status || "PUBLISHED") as CampaignStatus)}
                           className="text-[10px] capitalize"
                         >
                           {camp.status}

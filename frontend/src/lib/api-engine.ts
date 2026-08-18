@@ -21,9 +21,35 @@ import { AeoEngine } from "./aeo/aeo-engine";
 import { SeoRbacGuard, UserRole } from "./auth/seo-rbac-guard";
 import { WebhookEngine } from "./webhook-engine";
 import { TelemarketingEngine } from "./telemarketing-engine";
+import {
+  normalizePhone,
+  formatDisplayPhone,
+  normalizeEmail,
+  deriveLifecycleStage,
+  deriveCustomerTier,
+  deriveCustomerJourneyFunnel,
+  detectCustomerDuplicates,
+  mergeCustomerRecords,
+  evaluateCustomerAgainstSegment,
+  exportCustomersToCsv,
+  exportAbandonedCartsToCsv,
+  SYSTEM_SEGMENTS,
+} from "./crm/crm-engine";
+import {
+  CustomerRecord,
+  CustomerProfile,
+  CustomerTier,
+  CustomerLifecycleStage,
+  CustomerActivityEvent,
+  CustomerSegment,
+  AbandonedCartRecord,
+  CrmAnalyticsSummary,
+} from "./crm/types";
 
 export interface ProductItem {
   product_id: string;
+  pim_config?: any;
+  occasion_ids?: string[];
   id?: string;
   title: string;
   name?: string;
@@ -160,10 +186,6 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     review_count: 115,
     eggless: true,
     sugar_free: false,
-    gluten_free: false,
-    vegan: false,
-    is_featured: true,
-    is_bestseller: false,
     gluten_free: false,
     vegan: false,
     is_featured: true,
@@ -1142,7 +1164,7 @@ const DEFAULT_CMS_PAGES = [
     announcement_bar: { enabled: false, text: "", cta_text: "", cta_url: "", bg_color: "#e11d48" },
     header_config: { show_header: true, style: "default" },
     sections: [
-      { id: "sec_prod_hero", type: "hero", name: "Catalog Hero", enabled: true, order: 1, config: { headline: "Discover Our Cake Collection", subheadline: "Handcrafted with love. Delivered fresh.", height: "small", overlay_opacity: 0.3, bg_image: "https://images.unsplash.com/photo-1558326957-c8a4929c09bd?auto=format&fit=crop&q=80&w=1400" } },
+      { id: "sec_prod_hero", type: "hero", name: "Catalog Hero", enabled: true, order: 1, config: { headline: "Discover Our Cake Collection", subheadline: "Handcrafted with love. Delivered fresh.", height: "small", overlay_opacity: 0.3, bg_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400" } },
       { id: "sec_prod_grid", type: "product_grid", name: "All Products", enabled: true, order: 2, config: { heading: "", mode: "all", layout: "grid", columns: 4, show_filters: true, show_search: true, product_ids: [] } },
     ],
     draft_config: { sections: [], banners: [], products_mode: "all", product_ids: [], category_ids: [] },
@@ -1561,8 +1583,8 @@ export const DEFAULT_MEDIA = [
     id: "med_banner_01",
     name: "Monsoon Special Promo Banner",
     filename: "monsoon-banner.jpg",
-    url: "https://images.unsplash.com/photo-1558326957-c8a4929c09bd?auto=format&fit=crop&q=80&w=1400",
-    thumbnail_url: "https://images.unsplash.com/photo-1558326957-c8a4929c09bd?auto=format&fit=crop&q=80&w=300",
+    url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400",
+    thumbnail_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=300",
     mime_type: "image/jpeg",
     size: 260000,
     width: 1400,
@@ -1765,8 +1787,8 @@ const DEFAULT_ACCESSORIES: AccessoryItem[] = [
     stock: 80,
     low_stock_threshold: 10,
     gst_rate: 18,
-    thumbnail: "https://images.unsplash.com/photo-1558326957-c8a4929c09bd?auto=format&fit=crop&q=80&w=400",
-    images: ["https://images.unsplash.com/photo-1558326957-c8a4929c09bd?auto=format&fit=crop&q=80&w=400"],
+    thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400",
+    images: ["https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400"],
     description: "Fun magic trick candles that relight automatically after blowing out.",
     status: "active",
     weight: "30g",
@@ -2340,10 +2362,10 @@ export function normalizeBranchOperations(b: any): BranchItem {
     next_day_allowed: true,
     express_enabled: b.branch_settings?.express_delivery_enabled ?? true,
     express_prep_mins: 45,
-    express_surcharge: 49,
+    express_surcharge: b.fulfillment_rules?.express_surcharge ?? 99,
     midnight_enabled: b.branch_settings?.midnight_delivery_enabled ?? true,
     midnight_window: { start: "23:30", end: "00:05" },
-    midnight_surcharge: 79,
+    midnight_surcharge: b.fulfillment_rules?.midnight_surcharge ?? 199,
     slot_duration_mins: 60,
     slot_capacity: b.capacity_settings?.max_scheduled_orders || 15,
     pickup_slot_duration_mins: 60,
@@ -2682,7 +2704,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
 ];
 
 // ── Login Events & Authentication Analytics Types ─────────────────────────
-export type LoginEventType = "LOGIN_ATTEMPT" | "LOGIN_SUCCESS" | "LOGIN_FAILED" | "OTP_REQUESTED" | "OTP_VERIFIED" | "OTP_FAILED" | "LOGOUT" | "SESSION_EXPIRED";
+export type LoginEventType = "LOGIN" | "LOGIN_ATTEMPT" | "LOGIN_SUCCESS" | "LOGIN_FAILED" | "OTP_REQUESTED" | "OTP_VERIFIED" | "OTP_FAILED" | "LOGOUT" | "SESSION_EXPIRED";
 export type LoginStatus = "SUCCESS" | "FAILED" | "OTP_SENT" | "PENDING";
 
 export interface LoginEvent {
@@ -2691,6 +2713,7 @@ export interface LoginEvent {
   customer_id?: string | null;
   user_name?: string | null;
   phone?: string | null;
+  normalized_phone?: string | null;
   email?: string | null;
   identifier: string;
   role: string;
@@ -2711,7 +2734,9 @@ export type CartLifecycleStatus = "ACTIVE" | "CHECKOUT_STARTED" | "ABANDONED" | 
 export interface AbandonedCartItem {
   id: string;
   product_id: string;
-  product_name: string;
+  product_name?: string;
+  title?: string;
+  name?: string;
   variant_id?: string;
   variant_name?: string;
   quantity: number;
@@ -2726,35 +2751,48 @@ export interface AbandonedCart {
   id: string;
   cart_id: string;
   customer_id?: string | null;
+  customer_uid?: string | null;
   customer_name?: string | null;
   customer_phone?: string | null;
   customer_email?: string | null;
+  phone?: string | null;
+  normalized_phone?: string | null;
+  email?: string | null;
   guest_session_id?: string | null;
   branch_id?: string | null;
   branch_name?: string | null;
+  city?: string | null;
   city_id?: string | null;
   city_name?: string | null;
   delivery_pincode?: string | null;
   delivery_zone_name?: string | null;
   recovery_token?: string | null;
   items: AbandonedCartItem[];
-  item_count: number;
-  subtotal: number;
-  discount_total: number;
-  tax_total: number;
-  delivery_fee: number;
-  grand_total: number;
+  item_count?: number;
+  subtotal?: number;
+  discount_total?: number;
+  tax_total?: number;
+  delivery_fee?: number;
+  grand_total?: number;
+  total?: number;
+  cart_value?: number;
+  currency_code?: string;
   status: CartLifecycleStatus;
-  created_at: string;
-  updated_at: string;
-  last_activity_at: string;
+  recovery_status?: string;
+  whatsapp_status?: string | null;
   abandoned_at?: string | null;
+  last_contacted_at?: string | null;
+  last_contact_at?: string | null;
+  recovery_attempts_count?: number;
+  created_at: string;
+  updated_at?: string;
+  last_activity_at?: string;
   checkout_started_at?: string | null;
   recovered_at?: string | null;
   recovery_order_id?: string | null;
-  recovery_attempts_count: number;
+  recovered_order_id?: string | null;
+  recovered_revenue?: number;
   last_recovery_channel?: "WHATSAPP" | "EMAIL" | "SMS" | null;
-  last_contact_at?: string | null;
 }
 
 export interface CartRecoveryAttempt {
@@ -2792,7 +2830,7 @@ const DEFAULT_LOGIN_EVENTS: LoginEvent[] = [
     identifier: "+91 98765 00000",
     role: "SUPER_ADMIN",
     authentication_method: "OTP_SMS",
-    event_type: "LOGIN_SUCCESS",
+    event_type: "LOGIN",
     status: "SUCCESS",
     failure_category: null,
     ip_address: "103.21.124.5",
@@ -2807,7 +2845,7 @@ const DEFAULT_LOGIN_EVENTS: LoginEvent[] = [
     identifier: "+91 98765 43210",
     role: "CUSTOMER",
     authentication_method: "OTP_SMS",
-    event_type: "LOGIN_SUCCESS",
+    event_type: "LOGIN",
     status: "SUCCESS",
     failure_category: null,
     ip_address: "49.207.210.88",
@@ -2821,7 +2859,7 @@ const DEFAULT_LOGIN_EVENTS: LoginEvent[] = [
     identifier: "+91 98765 00001",
     role: "BRANCH_MANAGER",
     authentication_method: "OTP_WHATSAPP",
-    event_type: "LOGIN_SUCCESS",
+    event_type: "LOGIN",
     status: "SUCCESS",
     failure_category: null,
     ip_address: "122.172.85.14",
@@ -2848,7 +2886,7 @@ const DEFAULT_LOGIN_EVENTS: LoginEvent[] = [
     identifier: "+91 98765 00001",
     role: "DELIVERY_PARTNER",
     authentication_method: "OTP_SMS",
-    event_type: "LOGIN_SUCCESS",
+    event_type: "LOGIN",
     status: "SUCCESS",
     failure_category: null,
     ip_address: "157.48.19.42",
@@ -3409,6 +3447,91 @@ export class ApiEngine {
     return memoryStore;
   }
 
+  static fireWebhookEvent(
+    eventType: string,
+    payload: any,
+    metadata?: Record<string, any>,
+    customerContext?: {
+      id?: string | null;
+      customer_uid?: string | null;
+      name?: string | null;
+      phone?: string | null;
+      email?: string | null;
+      city?: string | null;
+      role?: string;
+    },
+    aggregate?: {
+      type?: string;
+      id?: string;
+      branch_id?: string;
+      city_id?: string;
+      correlation_id?: string;
+      request_id?: string;
+      actor_type?: "customer" | "staff" | "system";
+      actor_id?: string;
+    }
+  ) {
+    try {
+      return WebhookEngine.emitEvent(eventType as any, payload, metadata, customerContext, aggregate);
+    } catch (err: any) {
+      console.warn("[ApiEngine Webhook Event Non-Blocking Error]:", err?.message || err);
+      return null;
+    }
+  }
+
+  static attributeRecoveryOrder(orderId: string, cartId?: string, recoveryToken?: string) {
+    if (!memoryStore.abandoned_carts) memoryStore.abandoned_carts = [];
+    const carts = memoryStore.abandoned_carts || [];
+    const found = carts.find((c: any) => (cartId && c.id === cartId) || (recoveryToken && c.recovery_token === recoveryToken));
+    if (found) {
+      found.status = "RECOVERED";
+      found.recovery_status = "RECOVERED";
+      found.recovered_at = new Date().toISOString();
+      found.recovered_order_id = orderId;
+      found.recovery_order_id = orderId;
+      found.recovered_revenue = found.cart_value || found.total || 0;
+      ApiEngine.persist();
+
+      ApiEngine.fireWebhookEvent(
+        "cart.recovered",
+        {
+          cart_id: found.id,
+          customer_uid: found.customer_uid,
+          recovered_order_id: orderId,
+          recovered_revenue: found.recovered_revenue,
+          recovered_at: found.recovered_at,
+        },
+        { source: "CART_RECOVERY_ATTRIBUTION" },
+        { customer_uid: found.customer_uid, name: found.customer_name, phone: found.phone },
+        { type: "cart", id: found.id }
+      );
+
+      ApiEngine.fireWebhookEvent(
+        "recovery.converted",
+        {
+          cart_id: found.id,
+          order_id: orderId,
+          customer_uid: found.customer_uid,
+          revenue: found.recovered_revenue,
+          channel: found.last_recovery_channel || "WHATSAPP",
+          converted_at: found.recovered_at,
+        },
+        { source: "RECOVERY_CAMPAIGN" },
+        { customer_uid: found.customer_uid, name: found.customer_name, phone: found.phone },
+        { type: "recovery", id: found.id }
+      );
+
+      return {
+        success: true,
+        cart: found,
+        revenue_recovered: found.recovered_revenue || found.cart_value || found.total || 0,
+        order_id: orderId,
+        cart_id: found.id,
+      };
+    }
+    return { success: false, message: "No matching abandoned cart found" };
+  }
+
   static persist(): void {
     saveStore(memoryStore);
   }
@@ -3422,9 +3545,7 @@ export class ApiEngine {
     return memoryStore?.products || [];
   }
 
-  static listBranches() {
-    return memoryStore?.branches || [];
-  }
+
 
   // ── Multi-City CRUD ──────────────────────────────
   static listCities(includeArchived?: boolean): CityItem[] {
@@ -3666,9 +3787,6 @@ export class ApiEngine {
     return { migrated_branches: migrated, orphaned, errors };
   }
 
-  static persist() {
-    saveStore(memoryStore);
-  }
 
   static addAuditLog(action: string, user: string = "admin@cakes2home.com", ip: string = "127.0.0.1") {
     const log = {
@@ -3877,10 +3995,6 @@ export class ApiEngine {
     return newProd;
   }
 
-  static getProductById(id: string) {
-    if (!memoryStore || !Array.isArray(memoryStore.products)) return null;
-    return memoryStore.products.find((p) => p.id === id || p.product_id === id || p.handle === id) || null;
-  }
 
   static updateAdminProduct(id: string, data: any) {
     let idx = memoryStore.products.findIndex((p) => p.product_id === id || p.id === id || p.handle === id);
@@ -4947,7 +5061,15 @@ export class ApiEngine {
     };
   }
 
-  static getPartnerEffectiveCoverage(partnerIdOrObj: string | any) {
+  static getPartnerEffectiveCoverage(partnerIdOrObj: string | any): {
+    partner_id: string;
+    partner_name: string;
+    partner_number?: string;
+    branches: any[];
+    pincodes: string[];
+    areas: string[];
+    cities: string[];
+  } {
     let partner: any = null;
     if (typeof partnerIdOrObj === "string") {
       partner = (memoryStore.delivery_partners || []).find(
@@ -5218,7 +5340,7 @@ export class ApiEngine {
         { branch_id: branchObj.id, branch_name: branchObj.name, branch_code: branchObj.code || "HUB-BLR", is_primary: true, active: true, priority: 1 },
       ],
 
-      coverage: { pincodes: [], cities: [data.city || "Bengaluru"], areas: [] },
+      coverage: { pincodes: [] as string[], cities: [data.city || "Bengaluru"] as string[], areas: [] as string[] },
 
       documents: data.documents || {
         driving_license: { number: data.dl_number || "KA-DL-PENDING", expiry: "2032-12-31", status: "verified" },
@@ -5525,6 +5647,7 @@ export class ApiEngine {
       order.updated_at = new Date().toISOString();
 
       // Log persistent assignment history
+      if (!memoryStore.delivery_partner_assignments) memoryStore.delivery_partner_assignments = [];
       memoryStore.delivery_partner_assignments.unshift({
         id: `dpa_${Date.now()}`,
         order_id: order.id,
@@ -5655,6 +5778,7 @@ export class ApiEngine {
     order.status = "out_for_delivery";
     order.updated_at = new Date().toISOString();
 
+    if (!memoryStore.delivery_partner_assignments) memoryStore.delivery_partner_assignments = [];
     memoryStore.delivery_partner_assignments.unshift({
       id: `dpa_${Date.now()}`,
       order_id: order.id,
@@ -5710,6 +5834,7 @@ export class ApiEngine {
     };
     order.updated_at = new Date().toISOString();
 
+    if (!memoryStore.delivery_partner_assignments) memoryStore.delivery_partner_assignments = [];
     memoryStore.delivery_partner_assignments.unshift({
       id: `dpa_${Date.now()}`,
       order_id: order.id,
@@ -6364,64 +6489,1023 @@ export class ApiEngine {
     return null;
   }
 
-  // ── CRM & Customers ──────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── ENTERPRISE CRM & CUSTOMER LIFECYCLE ENGINE ────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
   static ensureCustomersStore() {
     if (!memoryStore || !Array.isArray(memoryStore.customers) || memoryStore.customers.length === 0) {
-      if (memoryStore) memoryStore.customers = [...DEFAULT_CUSTOMERS];
+      if (memoryStore) {
+        memoryStore.customers = [
+          {
+            id: "cus_01",
+            customer_uid: "cth_cus_ananya_01",
+            customer_number: "CTH-CUST-000101",
+            customer_type: "registered",
+            name: "Ananya Rao",
+            first_name: "Ananya",
+            last_name: "Rao",
+            phone: "+91 98765 43210",
+            normalized_phone: "9876543210",
+            email: "ananya.rao@example.com",
+            normalized_email: "ananya.rao@example.com",
+            account_id: "usr_ananya_01",
+            lifecycle_stage: "LOYAL",
+            tier: "VIP_PLATINUM",
+            is_vip: true,
+            orders_count: 12,
+            total_spend: 14280,
+            aov: 1190,
+            first_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 180).toISOString(),
+            last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+            last_active_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+            last_login_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+            cart_status: "NO_CART",
+            branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+            branch_name: "Indiranagar Flagship Kitchen",
+            city_id: "city_bbr",
+            city_name: "Bengaluru",
+            delivery_pincode: "560038",
+            addresses: [
+              {
+                address_1: "100 Feet Road, HAL 2nd Stage, Indiranagar",
+                landmark: "Opp Metro Pillar 124",
+                city: "Bengaluru",
+                city_id: "city_bbr",
+                state: "Karnataka",
+                postal_code: "560038",
+                is_default: true,
+                type: "HOME",
+              },
+            ],
+            notes: [
+              {
+                id: "not_01",
+                customer_uid: "cth_cus_ananya_01",
+                author_id: "admin_01",
+                author_name: "Chef Rajesh",
+                content: "VIP Platinum Customer. Prefers 100% eggless Belgian Chocolate with less sugar. Midnight birthday delivery guaranteed.",
+                category: "VIP_REQUEST",
+                created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString(),
+              },
+            ],
+            tags: ["VIP", "Midnight Delivery", "Birthday Buyer", "Chocolate Lover"],
+            loyalty: {
+              points_balance: 450,
+              points_earned: 1420,
+              points_redeemed: 970,
+              tier: "VIP_PLATINUM",
+              last_updated: new Date().toISOString(),
+            },
+            consent: {
+              whatsapp_status: "ELIGIBLE",
+              marketing_email: "SUBSCRIBED",
+              marketing_sms: "SUBSCRIBED",
+              marketing_whatsapp: "SUBSCRIBED",
+              transactional: "SUBSCRIBED",
+              updated_at: new Date().toISOString(),
+            },
+            acquisition_channel: "Organic Search",
+            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 200).toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+          {
+            id: "cus_02",
+            customer_uid: "cth_cus_rahul_02",
+            customer_number: "CTH-CUST-000102",
+            customer_type: "registered",
+            name: "Rahul Verma",
+            first_name: "Rahul",
+            last_name: "Verma",
+            phone: "+91 98765 43211",
+            normalized_phone: "9876543211",
+            email: "rahul.verma@example.com",
+            normalized_email: "rahul.verma@example.com",
+            account_id: "usr_rahul_02",
+            lifecycle_stage: "REPEAT_BUYER",
+            tier: "GOLD",
+            is_vip: false,
+            orders_count: 5,
+            total_spend: 5240,
+            aov: 1048,
+            first_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString(),
+            last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12).toISOString(),
+            last_active_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+            last_login_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+            cart_status: "ABANDONED_CART",
+            active_cart_id: "cart_ab_102",
+            active_cart_value: 1362.9,
+            branch_id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT",
+            branch_name: "Koramangala Gourmet Bakery",
+            city_id: "city_bbr",
+            city_name: "Bengaluru",
+            delivery_pincode: "560034",
+            addresses: [
+              {
+                address_1: "80 Feet Road, 4th Block, Koramangala",
+                landmark: "Near Sony World Signal",
+                city: "Bengaluru",
+                city_id: "city_bbr",
+                state: "Karnataka",
+                postal_code: "560034",
+                is_default: true,
+                type: "HOME",
+              },
+            ],
+            notes: [
+              {
+                id: "not_02",
+                customer_uid: "cth_cus_rahul_02",
+                author_id: "admin_01",
+                author_name: "Operations Desk",
+                content: "Left Red Velvet cake in cart with code SWEET10. Follow-up dispatched via WhatsApp.",
+                category: "RECOVERY",
+                created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+              },
+            ],
+            tags: ["Red Velvet", "Anniversary Buyer", "Active Recovery"],
+            loyalty: {
+              points_balance: 150,
+              points_earned: 520,
+              points_redeemed: 370,
+              tier: "GOLD",
+              last_updated: new Date().toISOString(),
+            },
+            consent: {
+              whatsapp_status: "ELIGIBLE",
+              marketing_email: "SUBSCRIBED",
+              marketing_sms: "SUBSCRIBED",
+              marketing_whatsapp: "SUBSCRIBED",
+              transactional: "SUBSCRIBED",
+              updated_at: new Date().toISOString(),
+            },
+            acquisition_channel: "Instagram Ads",
+            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 100).toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+          {
+            id: "cus_03",
+            customer_uid: "cth_cus_priya_03",
+            customer_number: "CTH-CUST-000103",
+            customer_type: "registered",
+            name: "Priya Nair",
+            first_name: "Priya",
+            last_name: "Nair",
+            phone: "+91 98765 43212",
+            normalized_phone: "9876543212",
+            email: "priya.nair@example.com",
+            normalized_email: "priya.nair@example.com",
+            account_id: "usr_priya_03",
+            lifecycle_stage: "LOYAL",
+            tier: "VIP_PLATINUM",
+            is_vip: true,
+            orders_count: 8,
+            total_spend: 9650,
+            aov: 1206,
+            first_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 120).toISOString(),
+            last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+            last_active_at: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
+            last_login_at: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
+            cart_status: "RECOVERED",
+            branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+            branch_name: "Indiranagar Flagship Kitchen",
+            city_id: "city_bbr",
+            city_name: "Bengaluru",
+            delivery_pincode: "560071",
+            addresses: [
+              {
+                address_1: "Inner Ring Road, Domlur",
+                landmark: "Near EGL Tech Park",
+                city: "Bengaluru",
+                city_id: "city_bbr",
+                state: "Karnataka",
+                postal_code: "560071",
+                is_default: true,
+                type: "HOME",
+              },
+            ],
+            notes: [],
+            tags: ["VIP", "Designer Cakes", "Alphonso Mango"],
+            loyalty: {
+              points_balance: 300,
+              points_earned: 960,
+              points_redeemed: 660,
+              tier: "VIP_PLATINUM",
+              last_updated: new Date().toISOString(),
+            },
+            consent: {
+              whatsapp_status: "ELIGIBLE",
+              marketing_email: "SUBSCRIBED",
+              marketing_sms: "SUBSCRIBED",
+              marketing_whatsapp: "SUBSCRIBED",
+              transactional: "SUBSCRIBED",
+              updated_at: new Date().toISOString(),
+            },
+            acquisition_channel: "Referral",
+            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 140).toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+          {
+            id: "cus_04",
+            customer_uid: "cth_cus_kavita_04",
+            customer_number: "CTH-CUST-000104",
+            customer_type: "registered",
+            name: "Kavita Reddy",
+            first_name: "Kavita",
+            last_name: "Reddy",
+            phone: "+91 98765 43213",
+            normalized_phone: "9876543213",
+            email: "kavita.reddy@example.com",
+            normalized_email: "kavita.reddy@example.com",
+            account_id: "usr_kavita_04",
+            lifecycle_stage: "NEW",
+            tier: "STANDARD",
+            is_vip: false,
+            orders_count: 0,
+            total_spend: 0,
+            aov: 0,
+            first_order_at: null,
+            last_order_at: null,
+            last_active_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+            last_login_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+            cart_status: "ACTIVE_CART",
+            active_cart_id: "cart_act_204",
+            active_cart_value: 849,
+            branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+            branch_name: "Indiranagar Flagship Kitchen",
+            city_id: "city_bbr",
+            city_name: "Bengaluru",
+            delivery_pincode: "560038",
+            addresses: [],
+            notes: [
+              {
+                id: "not_04",
+                customer_uid: "cth_cus_kavita_04",
+                author_id: "admin_01",
+                author_name: "CRM Lead",
+                content: "Registered today via Mobile OTP. Browsed Pineapple cakes. Sent 15% First Order Welcome Voucher.",
+                category: "GENERAL",
+                created_at: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
+              },
+            ],
+            tags: ["New Account", "No Purchase", "First Order Welcome"],
+            loyalty: {
+              points_balance: 50,
+              points_earned: 50,
+              points_redeemed: 0,
+              tier: "STANDARD",
+              last_updated: new Date().toISOString(),
+            },
+            consent: {
+              whatsapp_status: "ELIGIBLE",
+              marketing_email: "SUBSCRIBED",
+              marketing_sms: "SUBSCRIBED",
+              marketing_whatsapp: "SUBSCRIBED",
+              transactional: "SUBSCRIBED",
+              updated_at: new Date().toISOString(),
+            },
+            acquisition_channel: "Storefront Modal",
+            created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+          {
+            id: "cus_05",
+            customer_uid: "cth_cus_suresh_05",
+            customer_number: "CTH-CUST-000105",
+            customer_type: "registered",
+            name: "Suresh Menon",
+            first_name: "Suresh",
+            last_name: "Menon",
+            phone: "+91 98765 43214",
+            normalized_phone: "9876543214",
+            email: "suresh.menon@example.com",
+            normalized_email: "suresh.menon@example.com",
+            account_id: "usr_suresh_05",
+            lifecycle_stage: "AT_RISK",
+            tier: "SILVER",
+            is_vip: false,
+            orders_count: 2,
+            total_spend: 2198,
+            aov: 1099,
+            first_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 120).toISOString(),
+            last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 55).toISOString(),
+            last_active_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20).toISOString(),
+            last_login_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20).toISOString(),
+            cart_status: "NO_CART",
+            branch_id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT",
+            branch_name: "Koramangala Gourmet Bakery",
+            city_id: "city_bbr",
+            city_name: "Bengaluru",
+            delivery_pincode: "560034",
+            addresses: [],
+            notes: [],
+            tags: ["At Risk", "Black Forest Buyer"],
+            loyalty: {
+              points_balance: 80,
+              points_earned: 220,
+              points_redeemed: 140,
+              tier: "SILVER",
+              last_updated: new Date().toISOString(),
+            },
+            consent: {
+              whatsapp_status: "ELIGIBLE",
+              marketing_email: "SUBSCRIBED",
+              marketing_sms: "SUBSCRIBED",
+              marketing_whatsapp: "SUBSCRIBED",
+              transactional: "SUBSCRIBED",
+              updated_at: new Date().toISOString(),
+            },
+            acquisition_channel: "Google Ads",
+            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 130).toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ];
+      }
+    } else {
+      // Ensure all loaded customer records contain canonical fields
+      for (const cus of memoryStore.customers) {
+        if (!cus.customer_uid) {
+          cus.customer_uid = cus.id ? `cth_${cus.id}` : `cth_cus_${Date.now()}_${Math.floor(100 + Math.random() * 900)}`;
+        }
+        if (!cus.normalized_phone) {
+          cus.normalized_phone = normalizePhone(cus.phone);
+        }
+        if (!cus.normalized_email && cus.email) {
+          cus.normalized_email = normalizeEmail(cus.email);
+        }
+        if (!cus.lifecycle_stage) {
+          cus.lifecycle_stage = deriveLifecycleStage(cus, []);
+        }
+        if (!cus.tier) {
+          cus.tier = deriveCustomerTier(cus.total_spend || 0, cus.orders_count || cus.total_orders || 0, cus.is_vip);
+        }
+        if (!Array.isArray(cus.notes)) cus.notes = [];
+        if (!Array.isArray(cus.tags)) cus.tags = [];
+        if (!Array.isArray(cus.addresses)) cus.addresses = [];
+        if (!cus.loyalty) {
+          cus.loyalty = {
+            points_balance: cus.wallet_balance || 0,
+            points_earned: (cus.wallet_balance || 0) + 100,
+            points_redeemed: 100,
+            tier: cus.tier,
+            last_updated: new Date().toISOString(),
+          };
+        }
+        if (!cus.consent) {
+          cus.consent = {
+            whatsapp_status: "ELIGIBLE",
+            marketing_email: "SUBSCRIBED",
+            marketing_sms: "SUBSCRIBED",
+            marketing_whatsapp: "SUBSCRIBED",
+            transactional: "SUBSCRIBED",
+            updated_at: new Date().toISOString(),
+          };
+        }
+      }
     }
+  }
+
+  static ensureActivityStore() {
+    if (!memoryStore.customer_activity || !Array.isArray(memoryStore.customer_activity)) {
+      memoryStore.customer_activity = [
+        {
+          id: "act_01",
+          customer_uid: "cth_cus_ananya_01",
+          event_type: "ORDER_PLACED",
+          title: "Order Placed: Belgian Dark Chocolate Truffle Cake (1.0 kg)",
+          description: "Order #CTH-20260808-000101 confirmed. Value: ₹1,298 via Razorpay Online UPI.",
+          source: "STOREFRONT",
+          branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          city_id: "city_bbr",
+          metadata: { order_id: "ord_101", amount: 1298 },
+          timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+        },
+        {
+          id: "act_02",
+          customer_uid: "cth_cus_rahul_02",
+          event_type: "RECOVERY_MESSAGE_SENT",
+          title: "Abandoned Cart Recovery Sent via WhatsApp",
+          description: "Sent template ABANDONED_CART_1 with 10% discount code SWEET10 for ₹1,362 cart.",
+          source: "ADMIN_CRM",
+          staff_id: "admin_01",
+          staff_name: "Super Admin",
+          metadata: { cart_id: "cart_ab_102", channel: "WHATSAPP" },
+          timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+        },
+        {
+          id: "act_03",
+          customer_uid: "cth_cus_kavita_04",
+          event_type: "ACCOUNT_CREATED",
+          title: "New Customer Account Created",
+          description: "Verified Mobile OTP (+91 98765 43213) and initialized customer profile.",
+          source: "STOREFRONT",
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+        },
+      ];
+    }
+  }
+
+  static recordCustomerActivity(event: Partial<CustomerActivityEvent> & { customer_uid: string; event_type: string; title: string }) {
+    ApiEngine.ensureActivityStore();
+    const newEvent: CustomerActivityEvent = {
+      id: event.id || `act_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      customer_uid: event.customer_uid,
+      event_type: event.event_type as any,
+      title: event.title,
+      description: event.description || "",
+      source: event.source || "STOREFRONT",
+      staff_id: event.staff_id,
+      staff_name: event.staff_name,
+      metadata: event.metadata,
+      timestamp: event.timestamp || new Date().toISOString(),
+    };
+    if (!Array.isArray(memoryStore.customer_activity)) memoryStore.customer_activity = [];
+    memoryStore.customer_activity.unshift(newEvent);
+    ApiEngine.persist();
+    return newEvent;
+  }
+
+  static findOrCreateCustomerByPhone(params: { phone: string; name?: string; email?: string; address?: any }) {
+    ApiEngine.ensureCustomersStore();
+    const cleanPhone = normalizePhone(params.phone);
+    if (!cleanPhone) return null;
+
+    let customer = (memoryStore.customers as CustomerRecord[]).find(
+      (c) => c.normalized_phone === cleanPhone || (c.phone && normalizePhone(c.phone) === cleanPhone)
+    );
+
+    if (!customer) {
+      const customerSeq = (memoryStore.customers?.length || 0) + 101;
+      const uid = `cth_cus_${cleanPhone}`;
+      const custNum = `CTH-CUST-${String(customerSeq).padStart(6, "0")}`;
+      customer = {
+        id: `cus_${cleanPhone}`,
+        customer_uid: uid,
+        customer_number: custNum,
+        customer_type: "registered",
+        name: params.name || "Customer",
+        first_name: params.name ? params.name.split(" ")[0] : "Customer",
+        last_name: params.name ? params.name.split(" ").slice(1).join(" ") : "",
+        phone: formatDisplayPhone(cleanPhone),
+        normalized_phone: cleanPhone,
+        email: params.email && !params.email.includes("customer_") ? params.email : "",
+        normalized_email: params.email ? normalizeEmail(params.email) : "",
+        lifecycle_stage: "NEW",
+        tier: "STANDARD",
+        is_vip: false,
+        orders_count: 0,
+        total_spend: 0,
+        aov: 0,
+        last_active_at: new Date().toISOString(),
+        last_login_at: new Date().toISOString(),
+        cart_status: "NO_CART",
+        branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+        branch_name: "Indiranagar Flagship Kitchen",
+        city_id: "city_bbr",
+        city_name: "Bengaluru",
+        delivery_pincode: params.address?.postal_code || "560038",
+        addresses: params.address ? [params.address] : [],
+        notes: [],
+        tags: ["New Account"],
+        loyalty: {
+          points_balance: 100,
+          points_earned: 100,
+          points_redeemed: 0,
+          tier: "STANDARD",
+          last_updated: new Date().toISOString(),
+        },
+        consent: {
+          whatsapp_status: "ELIGIBLE",
+          marketing_email: "SUBSCRIBED",
+          marketing_sms: "SUBSCRIBED",
+          marketing_whatsapp: "SUBSCRIBED",
+          transactional: "SUBSCRIBED",
+          updated_at: new Date().toISOString(),
+        },
+        acquisition_channel: "Direct Storefront",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      memoryStore.customers.unshift(customer);
+      ApiEngine.recordCustomerActivity({
+        customer_uid: uid,
+        event_type: "ACCOUNT_CREATED",
+        title: "Account Initialized",
+        description: `Customer account initialized with mobile ${formatDisplayPhone(cleanPhone)}.`,
+        source: "STOREFRONT",
+      });
+      ApiEngine.persist();
+    } else {
+      if (params.name && (!customer.name || customer.name === "Customer" || customer.name === "Gourmet Customer")) {
+        customer.name = params.name;
+        customer.first_name = params.name.split(" ")[0];
+        customer.last_name = params.name.split(" ").slice(1).join(" ");
+      }
+      if (params.email && !customer.email && !params.email.includes("customer_")) {
+        customer.email = params.email;
+        customer.normalized_email = normalizeEmail(params.email);
+      }
+      if (params.address && Array.isArray(customer.addresses)) {
+        const hasAddr = customer.addresses.some((a: any) => a.postal_code === params.address.postal_code && a.address_1 === params.address.address_1);
+        if (!hasAddr) customer.addresses.push(params.address);
+      }
+      customer.last_active_at = new Date().toISOString();
+      ApiEngine.persist();
+    }
+
+    return customer;
   }
 
   static getAdminCustomers() {
     ApiEngine.ensureCustomersStore();
-    return memoryStore.customers;
+    return memoryStore.customers.filter((c: any) => !c.merged_into_uid);
   }
 
-  static findOrCreateCustomerByPhone(data: { name?: string; phone: string; email?: string; address?: any }) {
+  static listAdminCustomersDetailed(filters: {
+    q?: string;
+    search?: string;
+    lifecycle?: string;
+    lifecycle_stage?: string;
+    tier?: string;
+    branch_id?: string;
+    city_id?: string;
+    segment?: string;
+    whatsapp_eligible?: string;
+    preset?: string;
+    page?: number | string;
+    pageSize?: number | string;
+    limit?: number | string;
+    sortBy?: string;
+    sortDir?: string;
+  } = {}) {
     ApiEngine.ensureCustomersStore();
-    const rawPhone = (data.phone || "").trim().replace(/\D/g, "");
-    if (!rawPhone) return null;
+    const allCustomers: CustomerRecord[] = memoryStore.customers || [];
+    const allOrders = memoryStore.orders || [];
 
-    let customer = (memoryStore.customers || []).find((c: any) => {
-      const cPhone = (c.phone || "").trim().replace(/\D/g, "");
-      return cPhone === rawPhone || (cPhone.length >= 10 && rawPhone.length >= 10 && cPhone.slice(-10) === rawPhone.slice(-10));
+    // Filter out merged records
+    let list = allCustomers.filter((c) => !c.merged_into_uid);
+
+    // Synchronize derived metrics
+    list = list.map((c) => {
+      const custOrders = allOrders.filter(
+        (o: any) => o.customer_uid === c.customer_uid || o.customer_phone === c.phone || (c.normalized_phone && o.customer_phone?.replace(/\D/g, "").slice(-10) === c.normalized_phone)
+      );
+      const completedOrders = custOrders.filter((o: any) => o.status !== "cancelled" && o.status !== "refunded");
+      const orderCount = completedOrders.length;
+      const totalSpend = completedOrders.reduce((sum: number, o: any) => sum + (Number(o.total) || Number(o.grand_total) || 0), 0);
+      const aov = orderCount > 0 ? Math.round(totalSpend / orderCount) : 0;
+      const lifecycle = deriveLifecycleStage(c, custOrders);
+      const tier = deriveCustomerTier(totalSpend, orderCount, c.is_vip);
+
+      return {
+        ...c,
+        orders_count: orderCount,
+        total_spend: totalSpend,
+        aov,
+        lifecycle_stage: lifecycle,
+        tier,
+      };
     });
 
-    if (customer) {
-      if (data.name && (!customer.name || customer.name === "Valued Customer" || customer.name === "Guest Customer")) {
-        customer.name = data.name;
-      }
-      if (data.email && !customer.email) {
-        customer.email = data.email;
-      }
-      if (!customer.customer_number) {
-        customer.customer_number = `CTH-CUST-${String(memoryStore.customers.length + 100).padStart(6, '0')}`;
-      }
-      customer.customer_type = customer.customer_type || "registered";
-      ApiEngine.persist();
-      return customer;
+    // Search query
+    const searchQuery = (filters.q || filters.search || "").trim().toLowerCase();
+    if (searchQuery) {
+      list = list.filter((c) => {
+        const name = (c.name || "").toLowerCase();
+        const phone = (c.phone || "").replace(/\D/g, "");
+        const email = (c.email || "").toLowerCase();
+        const num = (c.customer_number || "").toLowerCase();
+        const uid = (c.customer_uid || "").toLowerCase();
+        return (
+          name.includes(searchQuery) ||
+          phone.includes(searchQuery) ||
+          email.includes(searchQuery) ||
+          num.includes(searchQuery) ||
+          uid.includes(searchQuery)
+        );
+      });
     }
 
-    const cusSeq = String((memoryStore.customers || []).length + 101).padStart(6, '0');
-    const customerNumber = `CTH-CUST-${cusSeq}`;
-    customer = {
-      id: `cus_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`,
-      customer_number: customerNumber,
-      customer_type: "registered",
-      name: data.name || "Customer",
-      phone: data.phone,
-      email: data.email || `customer_${Date.now()}@cakes2home.com`,
-      total_orders: 0,
-      wallet_balance: 0,
-      is_vip: false,
-      addresses: data.address ? [data.address] : [],
+    // Lifecycle filter
+    const lifecycleFilter = filters.lifecycle || filters.lifecycle_stage;
+    if (lifecycleFilter && lifecycleFilter !== "all") {
+      list = list.filter((c) => c.lifecycle_stage === lifecycleFilter);
+    }
+
+    // Tier filter
+    if (filters.tier && filters.tier !== "all") {
+      list = list.filter((c) => c.tier === filters.tier);
+    }
+
+    // Branch filter
+    if (filters.branch_id && filters.branch_id !== "all") {
+      list = list.filter((c) => c.branch_id === filters.branch_id);
+    }
+
+    // City filter
+    if (filters.city_id && filters.city_id !== "all") {
+      list = list.filter((c) => c.city_id === filters.city_id);
+    }
+
+    // WhatsApp filter
+    if (filters.whatsapp_eligible === "true" || filters.whatsapp_eligible === "yes") {
+      list = list.filter((c) => c.consent?.whatsapp_status === "ELIGIBLE");
+    }
+
+    // Segment filter
+    if (filters.segment && filters.segment !== "all" && filters.segment !== "seg_all") {
+      const seg = SYSTEM_SEGMENTS.find((s) => s.id === filters.segment || s.slug === filters.segment);
+      if (seg) {
+        list = list.filter((c) => evaluateCustomerAgainstSegment(c, seg));
+      }
+    }
+
+    // Sorting
+    const sortBy = filters.sortBy || "created_at";
+    const sortDir = filters.sortDir === "asc" ? 1 : -1;
+
+    list.sort((a: any, b: any) => {
+      if (sortBy === "orders_count" || sortBy === "orders") {
+        return (a.orders_count - b.orders_count) * sortDir;
+      }
+      if (sortBy === "total_spend" || sortBy === "spend") {
+        return (a.total_spend - b.total_spend) * sortDir;
+      }
+      if (sortBy === "name") {
+        return (a.name || "").localeCompare(b.name || "") * sortDir;
+      }
+      const dateA = new Date(a[sortBy] || a.created_at || 0).getTime();
+      const dateB = new Date(b[sortBy] || b.created_at || 0).getTime();
+      return (dateA - dateB) * sortDir;
+    });
+
+    const page = Math.max(1, Number(filters.page) || 1);
+    const limit = Math.max(1, Math.min(100, Number(filters.pageSize || filters.limit) || 25));
+    const total = list.length;
+    const totalPages = Math.ceil(total / limit) || 1;
+    const paginated = list.slice((page - 1) * limit, page * limit);
+
+    return {
+      success: true,
+      customers: paginated,
+      data: paginated,
+      pagination: {
+        page,
+        pageSize: limit,
+        limit,
+        total,
+        totalPages,
+      },
+      summary: ApiEngine.getCrmAnalyticsSummary(),
+    };
+  }
+
+  static getCustomerProfile(idOrUid: string): CustomerProfile | null {
+    ApiEngine.ensureCustomersStore();
+    ApiEngine.ensureActivityStore();
+
+    const clean = idOrUid.trim();
+    const customer = (memoryStore.customers || []).find(
+      (c: any) => c.customer_uid === clean || c.id === clean || c.customer_number === clean || normalizePhone(c.phone) === normalizePhone(clean)
+    );
+
+    if (!customer) return null;
+
+    const allOrders = memoryStore.orders || [];
+    const allAbandoned = memoryStore.abandoned_carts || [];
+    const allActivity: CustomerActivityEvent[] = memoryStore.customer_activity || [];
+
+    const normPhone = normalizePhone(customer.phone);
+    const customerOrders = allOrders.filter(
+      (o: any) => o.customer_uid === customer.customer_uid || o.customer_phone === customer.phone || (normPhone && normalizePhone(o.customer_phone) === normPhone)
+    );
+
+    const customerAbandoned = allAbandoned.filter(
+      (c: any) => c.customer_uid === customer.customer_uid || c.customer_phone === customer.phone || (normPhone && normalizePhone(c.customer_phone) === normPhone)
+    );
+
+    const customerActivity = allActivity
+      .filter((a) => a.customer_uid === customer.customer_uid || a.customer_uid === customer.id || (normPhone && normalizePhone(a.customer_uid) === normPhone))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    const completedOrders = customerOrders.filter((o: any) => o.status !== "cancelled" && o.status !== "refunded");
+    const totalSpend = completedOrders.reduce((sum: number, o: any) => sum + (Number(o.total) || Number(o.grand_total) || 0), 0);
+    const ordersCount = completedOrders.length;
+    const aov = ordersCount > 0 ? Math.round(totalSpend / ordersCount) : 0;
+    const lifecycle = deriveLifecycleStage(customer, customerOrders);
+    const tier = deriveCustomerTier(totalSpend, ordersCount, customer.is_vip);
+    const funnel = deriveCustomerJourneyFunnel(customer, customerOrders, customerAbandoned, customerActivity);
+
+    const fullProfile: CustomerProfile = {
+      ...customer,
+      orders_count: ordersCount,
+      total_spend: totalSpend,
+      aov,
+      lifecycle_stage: lifecycle,
+      tier,
+      orders: customerOrders,
+      carts: [],
+      abandoned_carts: customerAbandoned,
+      activity_timeline: customerActivity,
+      journey_funnel: funnel,
+      recovery_attempts: (memoryStore.cart_recovery_attempts || []).filter(
+        (a: any) => a.customer_phone === customer.phone || (normPhone && normalizePhone(a.customer_phone) === normPhone)
+      ),
+      reorder_opportunity: TelemarketingEngine.getCandidateByCustomerUid(customer.customer_uid) || (customer.phone ? TelemarketingEngine.getCandidateByCustomerUid(customer.phone) : null),
+      reorder_opportunities: TelemarketingEngine.listCandidates({ customer_uid: customer.customer_uid }).candidates.length > 0
+        ? TelemarketingEngine.listCandidates({ customer_uid: customer.customer_uid }).candidates
+        : (customer.phone ? TelemarketingEngine.listCandidates({ search: customer.phone }).candidates : []),
+    };
+
+    return fullProfile;
+  }
+
+  static createCustomerNote(customerUid: string, data: { content: string; category?: any }, staffUser?: any) {
+    ApiEngine.ensureCustomersStore();
+    ApiEngine.ensureActivityStore();
+
+    const customer = (memoryStore.customers || []).find((c: any) => c.customer_uid === customerUid || c.id === customerUid);
+    if (!customer) return null;
+
+    if (!Array.isArray(customer.notes)) customer.notes = [];
+
+    const note = {
+      id: `not_${Date.now()}`,
+      customer_uid: customer.customer_uid,
+      author_id: staffUser?.id || "admin_01",
+      author_name: staffUser?.name || "Staff Member",
+      content: data.content,
+      category: data.category || "GENERAL",
       created_at: new Date().toISOString(),
+    };
+
+    customer.notes.unshift(note);
+
+    // Log Activity Event
+    const actEvent: CustomerActivityEvent = {
+      id: `act_${Date.now()}_note`,
+      customer_uid: customer.customer_uid,
+      event_type: "NOTE_ADDED",
+      title: `Staff Note Added by ${note.author_name}`,
+      description: data.content,
+      source: "ADMIN_CRM",
+      staff_id: note.author_id,
+      staff_name: note.author_name,
+      timestamp: new Date().toISOString(),
+    };
+    memoryStore.customer_activity.unshift(actEvent);
+
+    ApiEngine.persist();
+    return note;
+  }
+
+  static updateCustomerTags(customerUid: string, tags: string[]) {
+    ApiEngine.ensureCustomersStore();
+    ApiEngine.ensureActivityStore();
+
+    const customer = (memoryStore.customers || []).find((c: any) => c.customer_uid === customerUid || c.id === customerUid);
+    if (!customer) return null;
+
+    customer.tags = Array.from(new Set(tags));
+    customer.updated_at = new Date().toISOString();
+
+    const actEvent: CustomerActivityEvent = {
+      id: `act_${Date.now()}_tags`,
+      customer_uid: customer.customer_uid,
+      event_type: "TAG_ADDED",
+      title: "Customer Tags Updated",
+      description: `Tags: ${customer.tags.join(", ")}`,
+      source: "ADMIN_CRM",
+      timestamp: new Date().toISOString(),
+    };
+    memoryStore.customer_activity.unshift(actEvent);
+
+    ApiEngine.persist();
+    return customer.tags;
+  }
+
+  static updateCustomerProfile(customerUid: string, data: Partial<CustomerRecord>) {
+    ApiEngine.ensureCustomersStore();
+    const idx = (memoryStore.customers || []).findIndex((c: any) => c.customer_uid === customerUid || c.id === customerUid);
+    if (idx === -1) return null;
+
+    const existing = memoryStore.customers[idx];
+    const updated: CustomerRecord = {
+      ...existing,
+      ...data,
+      normalized_phone: data.phone ? normalizePhone(data.phone) : existing.normalized_phone,
+      normalized_email: data.email ? normalizeEmail(data.email) : existing.normalized_email,
       updated_at: new Date().toISOString(),
     };
 
-    memoryStore.customers.unshift(customer);
-    ApiEngine.addAuditLog(`Created CRM Customer Record "${customer.name}" (${customer.customer_number})`);
+    memoryStore.customers[idx] = updated;
     ApiEngine.persist();
-    return customer;
+    return updated;
+  }
+
+  static listCustomerDuplicates() {
+    ApiEngine.ensureCustomersStore();
+    return detectCustomerDuplicates(memoryStore.customers || []);
+  }
+
+  static mergeCustomerRecords(primaryUid: string, duplicateUid: string, staffUser?: any) {
+    ApiEngine.ensureCustomersStore();
+    ApiEngine.ensureActivityStore();
+
+    const primary = (memoryStore.customers || []).find((c: any) => c.customer_uid === primaryUid || c.id === primaryUid);
+    const duplicate = (memoryStore.customers || []).find((c: any) => c.customer_uid === duplicateUid || c.id === duplicateUid);
+
+    if (!primary || !duplicate) {
+      throw new Error("One or both customer records not found for merge operation");
+    }
+
+    const { mergedPrimary, mergedDuplicate, updatedOrders, updatedCarts, newActivity } = mergeCustomerRecords(
+      primary,
+      duplicate,
+      memoryStore.orders || [],
+      memoryStore.abandoned_carts || [],
+      memoryStore.customer_activity || [],
+      staffUser
+    );
+
+    // Update in-memory store
+    const pIdx = memoryStore.customers.findIndex((c: any) => c.customer_uid === primary.customer_uid);
+    const dIdx = memoryStore.customers.findIndex((c: any) => c.customer_uid === duplicate.customer_uid);
+
+    if (pIdx >= 0) memoryStore.customers[pIdx] = mergedPrimary;
+    if (dIdx >= 0) memoryStore.customers[dIdx] = mergedDuplicate;
+
+    memoryStore.orders = updatedOrders;
+    memoryStore.abandoned_carts = updatedCarts;
+    memoryStore.customer_activity.unshift(newActivity);
+
+    ApiEngine.addAuditLog(`Merged Customer Record "${duplicate.name}" (${duplicate.customer_number}) into "${primary.name}" (${primary.customer_number})`);
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      merged_primary: mergedPrimary,
+      merged_duplicate: mergedDuplicate,
+      message: `Successfully merged customer records. Primary UID: ${mergedPrimary.customer_uid}`,
+    };
+  }
+
+  static getNewAccountsNoPurchase(filters: Record<string, any> = {}) {
+    ApiEngine.ensureCustomersStore();
+    const all = ApiEngine.listAdminCustomersDetailed({ ...filters, lifecycle: "all" });
+    const noPurchase = (all.customers || []).filter(
+      (c: CustomerRecord) => (c.orders_count === 0 || !c.orders_count) && (c.customer_type === "registered" || c.account_id)
+    );
+
+    return {
+      success: true,
+      customers: noPurchase,
+      count: noPurchase.length,
+    };
+  }
+
+  static getCrmAnalyticsSummary(filters: Record<string, any> = {}): CrmAnalyticsSummary {
+    ApiEngine.ensureCustomersStore();
+    const customers: CustomerRecord[] = (memoryStore.customers || []).filter((c: any) => !c.merged_into_uid);
+    const orders: any[] = memoryStore.orders || [];
+
+    const now = Date.now();
+    const sevenDaysAgo = now - 1000 * 60 * 60 * 24 * 7;
+    const thirtyDaysAgo = now - 1000 * 60 * 60 * 24 * 30;
+
+    let activeCount = 0;
+    let newThisWeek = 0;
+    let newThisMonth = 0;
+    let noOrderCount = 0;
+    let firstTimeCount = 0;
+    let repeatCount = 0;
+    let vipCount = 0;
+    let atRiskCount = 0;
+    let dormantCount = 0;
+    let whatsappEligible = 0;
+    let totalSpend = 0;
+
+    const lifecycleBreakdown: Record<CustomerLifecycleStage, number> = {
+      NEW: 0,
+      REGISTERED: 0,
+      FIRST_PURCHASE: 0,
+      ACTIVE: 0,
+      REPEAT_BUYER: 0,
+      LOYAL: 0,
+      AT_RISK: 0,
+      DORMANT: 0,
+    };
+
+    const tierBreakdown: Record<CustomerTier, number> = {
+      STANDARD: 0,
+      SILVER: 0,
+      GOLD: 0,
+      VIP_PLATINUM: 0,
+    };
+
+    const acquisitionBreakdown: Record<string, number> = {};
+
+    for (const c of customers) {
+      const createdMs = new Date(c.created_at || now).getTime();
+      const lastActiveMs = new Date(c.last_active_at || c.created_at || now).getTime();
+
+      if (createdMs >= sevenDaysAgo) newThisWeek++;
+      if (createdMs >= thirtyDaysAgo) newThisMonth++;
+      if (lastActiveMs >= thirtyDaysAgo) activeCount++;
+
+      const custOrders = orders.filter((o: any) => o.customer_uid === c.customer_uid || o.customer_phone === c.phone);
+      const completed = custOrders.filter((o: any) => o.status !== "cancelled" && o.status !== "refunded");
+      const ordCount = completed.length;
+      const spend = completed.reduce((sum: number, o: any) => sum + (Number(o.total) || 0), 0);
+
+      totalSpend += spend;
+
+      if (ordCount === 0) noOrderCount++;
+      else if (ordCount === 1) firstTimeCount++;
+      else if (ordCount >= 2) repeatCount++;
+
+      const lifecycle = deriveLifecycleStage(c, custOrders);
+      const tier = deriveCustomerTier(spend, ordCount, c.is_vip);
+
+      lifecycleBreakdown[lifecycle] = (lifecycleBreakdown[lifecycle] || 0) + 1;
+      tierBreakdown[tier] = (tierBreakdown[tier] || 0) + 1;
+
+      if (tier === "VIP_PLATINUM" || c.is_vip) vipCount++;
+      if (lifecycle === "AT_RISK") atRiskCount++;
+      if (lifecycle === "DORMANT") dormantCount++;
+      if (c.consent?.whatsapp_status === "ELIGIBLE") whatsappEligible++;
+
+      const ch = c.acquisition_channel || "Direct / Storefront";
+      acquisitionBreakdown[ch] = (acquisitionBreakdown[ch] || 0) + 1;
+    }
+
+    const overallAov = customers.length > 0 ? Math.round(totalSpend / Math.max(1, customers.filter((c) => (c.orders_count || 0) > 0).length)) : 0;
+
+    return {
+      total_customers: customers.length,
+      active_customers: activeCount,
+      new_customers_this_week: newThisWeek,
+      new_customers_this_month: newThisMonth,
+      new_customers_no_order: noOrderCount,
+      first_time_buyers: firstTimeCount,
+      repeat_customers: repeatCount,
+      high_value_customers: vipCount,
+      at_risk_customers: atRiskCount,
+      dormant_customers: dormantCount,
+      whatsapp_contactable: whatsappEligible,
+      total_customer_spend: totalSpend,
+      overall_aov: overallAov,
+      lifecycle_breakdown: lifecycleBreakdown,
+      tier_breakdown: tierBreakdown,
+      acquisition_breakdown: acquisitionBreakdown,
+      date_range: {
+        start: new Date(thirtyDaysAgo).toISOString(),
+        end: new Date().toISOString(),
+        preset: filters.preset || "last_30_days",
+      },
+    };
+  }
+
+  static exportCustomersCsv(filters: Record<string, any> = {}) {
+    ApiEngine.ensureCustomersStore();
+    const result = ApiEngine.listAdminCustomersDetailed({ ...filters, page: 1, limit: 10000 });
+    return exportCustomersToCsv(result.customers || []);
+  }
+
+  static exportAbandonedCartsCsv(filters: Record<string, any> = {}) {
+    const result = ApiEngine.listAbandonedCarts({ ...filters, page: 1, pageSize: 10000 });
+    return exportAbandonedCartsToCsv(result.carts as any || []);
+  }
+
+  static recordCallAction(customerUid: string, cartId?: string, staffUser?: any, outcome: string = "CALL_INITIATED") {
+    ApiEngine.ensureCustomersStore();
+    ApiEngine.ensureActivityStore();
+
+    const customer = (memoryStore.customers || []).find((c: any) => c.customer_uid === customerUid || c.id === customerUid);
+    const customerPhone = customer ? customer.phone : "+91 XXXXX XXXXX";
+    const customerName = customer ? customer.name : "Valued Customer";
+
+    const actEvent: CustomerActivityEvent = {
+      id: `act_${Date.now()}_call`,
+      customer_uid: customerUid,
+      event_type: "CALL_INITIATED",
+      title: `Phone Call Initiated to ${customerPhone}`,
+      description: `Staff member ${staffUser?.name || "Admin"} initiated call with customer "${customerName}". Outcome: ${outcome}`,
+      source: "ADMIN_CRM",
+      staff_id: staffUser?.id || "admin_01",
+      staff_name: staffUser?.name || "Staff Member",
+      metadata: { cart_id: cartId, outcome, phone: customerPhone },
+      timestamp: new Date().toISOString(),
+    };
+
+    memoryStore.customer_activity.unshift(actEvent);
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      event: actEvent,
+      message: `Call initiated and logged to customer activity timeline.`,
+    };
   }
 
   static createAdminCustomer(data: any) {
@@ -6432,6 +7516,8 @@ export class ApiEngine {
       email: data.email,
     });
   }
+
+  // ── Rewards, Loyalty, Referrals ──────────────────────────────
 
   // ── Rewards, Loyalty, Referrals ──────────────────────────────
   static getAdminLoyaltyLedgers() {
@@ -7502,6 +8588,7 @@ export class ApiEngine {
       updated_at: new Date().toISOString(),
     };
 
+    if (!memoryStore.gst_registrations) memoryStore.gst_registrations = [];
     memoryStore.gst_registrations.unshift(newRecord);
     ApiEngine.addAuditLog(`Created GST Registration "${newRecord.gstin}" (${newRecord.state})`);
     ApiEngine.persist();
@@ -7524,6 +8611,7 @@ export class ApiEngine {
       updated_at: new Date().toISOString(),
     };
 
+    if (!memoryStore.gst_registrations) memoryStore.gst_registrations = [];
     memoryStore.gst_registrations[idx] = updated;
     ApiEngine.addAuditLog(`Updated GST Registration "${updated.gstin}" (${updated.state})`);
     ApiEngine.persist();
@@ -7534,7 +8622,7 @@ export class ApiEngine {
     const reg = ApiEngine.getGstRegistrationById(id);
     if (!reg) return null;
 
-    const verificationResult = await GstVerificationProvider.verifyGSTIN(reg.gstin);
+    const verificationResult = await GstVerificationProvider.verifyGSTIN(reg.gstin || "");
     const updated = ApiEngine.updateGstRegistration(id, {
       verification_status: verificationResult.verified ? "VERIFIED" : "FAILED",
       verification_source: "API",
@@ -7569,7 +8657,7 @@ export class ApiEngine {
 
   static createBranchCompliance(data: Partial<BranchComplianceItem>): BranchComplianceItem {
     const list = ApiEngine.listBranchCompliance();
-    const branch = ApiEngine.resolveBranchRecord(data.branch_id);
+    const branch = ApiEngine.resolveBranchRecord(data.branch_id || "");
     const id = data.id || `comp_${data.branch_id || Date.now()}`;
 
     // Auto-calculate FSSAI Expiry Status
@@ -7615,6 +8703,7 @@ export class ApiEngine {
     };
 
     const existingIdx = list.findIndex((c: any) => c.branch_id === newRecord.branch_id);
+    if (!memoryStore.branch_compliance) memoryStore.branch_compliance = [];
     if (existingIdx >= 0) {
       memoryStore.branch_compliance[existingIdx] = { ...memoryStore.branch_compliance[existingIdx], ...newRecord };
     } else {
@@ -7653,6 +8742,7 @@ export class ApiEngine {
       updated_at: new Date().toISOString(),
     };
 
+    if (!memoryStore.branch_compliance) memoryStore.branch_compliance = [];
     memoryStore.branch_compliance[idx] = updated;
     ApiEngine.addAuditLog(`Updated FSSAI Compliance for Branch "${updated.branch_name}" (${updated.fssai_number})`);
     ApiEngine.persist();
@@ -7883,23 +8973,7 @@ export class ApiEngine {
     branchId?: string;
     customerAddress?: any;
     sellerAddress?: any;
-  }): {
-    branch: any;
-    compliance: BranchComplianceItem | null;
-    gstRegistration: GstRegistrationItem | null;
-    sellerState: string;
-    sellerStateCode: string;
-    customerState: string;
-    customerStateCode: string;
-    isIntraState: boolean;
-    supplyType: string;
-    sellerGstin: string;
-    sellerLegalName: string;
-    sellerTradeName: string;
-    sellerFssai: string;
-    sellerFssaiType: string;
-    sellerAddress: string;
-  } {
+  }): Record<string, any> {
     const branch = (params.branchId ? ApiEngine.resolveBranchRecord(params.branchId) : null) || ApiEngine.listBranches()[0] || DEFAULT_BRANCHES[0];
     const compliance = ApiEngine.getBranchCompliance(branch?.id);
     const gstReg = (compliance?.gst_registration_id ? ApiEngine.getGstRegistrationById(compliance.gst_registration_id) : null) || ApiEngine.listGstRegistrations()[0] || DEFAULT_GST_REGISTRATIONS[0];
@@ -7944,114 +9018,6 @@ export class ApiEngine {
     };
   }
 
-  // ── Statutory Checkout Validation & Tax Calculation ────────────────
-  static validateCheckout(payload: any): any {
-    const items = payload.cart_items || payload.items || [];
-    const pincode = payload.delivery_pincode || payload.pincode || "560038";
-    const branchId = payload.branch_id || "br_indiranagar";
-    const customerAddress = payload.shipping_address || { state: "Karnataka", state_code: "29", pincode };
-
-    const taxContext: any = ApiEngine.resolveTaxContext({ branchId, customerAddress });
-
-    let itemTotal = 0;
-    let totalTax = 0;
-    const processedItems = items.map((itm: any) => {
-      const price = Number(itm.price || itm.unit_price || 0);
-      const qty = Number(itm.quantity || 1);
-      const rowTotal = price * qty;
-      itemTotal += rowTotal;
-
-      const isCake = !itm.hsn_code || itm.hsn_code.startsWith("1905");
-      const taxRate = isCake ? 0.05 : 0.18;
-      const taxable = Math.round((rowTotal / (1 + taxRate)) * 100) / 100;
-      const tax = Math.round((rowTotal - taxable) * 100) / 100;
-      totalTax += tax;
-
-      return {
-        ...itm,
-        unit_price: price,
-        quantity: qty,
-        taxable_value: taxable,
-        tax_amount: tax,
-        hsn_code: itm.hsn_code || (isCake ? "19059090" : "34060010"),
-      };
-    });
-
-    const deliveryFee = payload.delivery_type === "midnight" ? 149 : payload.delivery_type === "express" ? 99 : (itemTotal >= 599 ? 0 : 49);
-    const grandTotal = itemTotal + deliveryFee;
-
-    return {
-      valid: true,
-      item_total: itemTotal,
-      tax_details: {
-        total_tax: totalTax,
-        cgst: taxContext.is_intra_state ? Math.round((totalTax / 2) * 100) / 100 : 0,
-        sgst: taxContext.is_intra_state ? Math.round((totalTax / 2) * 100) / 100 : 0,
-        igst: taxContext.is_intra_state ? 0 : totalTax,
-        is_intra_state: taxContext.is_intra_state,
-        supply_type: taxContext.supply_type,
-      },
-      delivery_fee: deliveryFee,
-      grand_total: grandTotal,
-      items: processedItems,
-      tax_context: taxContext,
-    };
-  }
-
-  // ── Order Confirmation with Immutable Compliance Snapshot ────────
-  static confirmCheckout(payload: any) {
-    const val = ApiEngine.validateCheckout(payload);
-    const orderId = `ord_${Date.now()}`;
-    const invNum = `CTH/${new Date().getFullYear().toString().slice(2)}-${(new Date().getFullYear() + 1).toString().slice(2)}/${String(Math.floor(100000 + Math.random() * 900000))}`;
-
-    const newOrder = {
-      id: orderId,
-      order_number: `CTH-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${orderId.slice(-6)}`,
-      invoice_number: invNum,
-      customer_name: payload.customer_name || "Guest Customer",
-      customer_phone: payload.customer_phone || "+91 98765 43210",
-      customer_email: payload.customer_email || "customer@cakes2home.com",
-      branch: val.tax_context.branch,
-      status: "confirmed",
-      payment_status: "paid",
-      payment_method: payload.payment_method || "upi",
-      total: val.grand_total,
-      subtotal: val.item_total,
-      tax_total: val.tax_details.total_tax,
-      shipping_address: payload.shipping_address || { address_1: "100 Feet Rd", city: "Bengaluru", state: "Karnataka", state_code: "29", pincode: "560038" },
-      items: val.items,
-      compliance_snapshot: {
-        seller_legal_name: val.tax_context.seller_legal_name,
-        seller_trade_name: val.tax_context.seller_trade_name,
-        seller_gstin: val.tax_context.seller_gstin,
-        seller_state: val.tax_context.seller_state,
-        seller_state_code: val.tax_context.seller_state_code,
-        seller_fssai_number: val.tax_context.seller_fssai_number,
-        seller_fssai_type: val.tax_context.seller_fssai_type,
-        seller_address: val.tax_context.seller_address,
-        branch_id: val.tax_context.branch?.id || "br_indiranagar",
-        branch_code: val.tax_context.branch?.code || "HUB-01",
-        branch_name: val.tax_context.branch?.name || "Indiranagar Flagship",
-        customer_state: val.tax_context.customer_state,
-        customer_state_code: val.tax_context.customer_state_code,
-        is_intra_state: val.tax_context.is_intra_state,
-        supply_type: val.tax_context.supply_type,
-        snapshot_timestamp: new Date().toISOString(),
-      },
-      created_at: new Date().toISOString(),
-    };
-
-    if (!Array.isArray(memoryStore.orders)) memoryStore.orders = [];
-    memoryStore.orders.unshift(newOrder);
-    ApiEngine.addAuditLog(`Created Order "${newOrder.order_number}" with Compliance Snapshot for Branch "${newOrder.compliance_snapshot.branch_name}"`);
-    ApiEngine.persist();
-
-    return {
-      success: true,
-      order: newOrder,
-    };
-  }
-
   // ── Master Compliance Aggregation Bundle ────────────────────────────
   static getAllComplianceBundle() {
     return {
@@ -8070,936 +9036,6 @@ export class ApiEngine {
   // ── Audit Logs ──────────────────────────────
   static getAdminAuditLogs() {
     return memoryStore.audit_logs || [];
-  }
-
-  // ── Health & Overview ──────────────────────────────
-  static getAdminOrders(params: Record<string, any> = {}) {
-    if (!Array.isArray(memoryStore.orders) || memoryStore.orders.length === 0) {
-      memoryStore.orders = [
-        {
-          id: "ord_101",
-          order_number: "CTH-20260808-000101",
-          invoice_number: "INV-202608-0101",
-          customer_name: "Ananya Rao",
-          customer_phone: "+91 98765 43210",
-          customer_email: "ananya.rao@example.com",
-          branch: { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship Kitchen", code: "HUB-BLR-01", phone: "+91 80 4912 8800", city: "Bengaluru" },
-          status: "confirmed",
-          payment_status: "paid",
-          total: 1298,
-          subtotal: 1236,
-          tax_total: 62,
-          currency_code: "INR",
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-          delivery_date: new Date().toISOString().slice(0, 10),
-          delivery_slot: "07:00 PM - 09:00 PM (Evening Slot)",
-          delivery_type: "Same Day Express",
-          shipping_address: { address_1: "100 Feet Road, Indiranagar", city: "Bengaluru", area: "Indiranagar", postal_code: "560038", landmark: "Opposite Metro Pillar 124" },
-          items: [
-            { id: "itm_1", title: "Belgian Dark Chocolate Truffle Cake", weight: "1.0 kg", flavour: "Belgian Dark Chocolate", shape: "Heart", eggless: true, cake_message: "Happy Birthday Ananya!", quantity: 1, unit_price: 1298, subtotal: 1298, thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800" }
-          ],
-        },
-        {
-          id: "ord_102",
-          order_number: "CTH-20260808-000102",
-          invoice_number: "INV-202608-0102",
-          customer_name: "Rahul Verma",
-          customer_phone: "+91 98123 77890",
-          customer_email: "rahul.v@example.com",
-          branch: { id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT", name: "Koramangala Gourmet Bakery", code: "HUB-BLR-02", phone: "+91 80 4912 8801", city: "Bengaluru" },
-          status: "preparing",
-          payment_status: "paid",
-          total: 749,
-          subtotal: 713,
-          tax_total: 36,
-          currency_code: "INR",
-          created_at: new Date(Date.now() - 7200000).toISOString(),
-          delivery_date: new Date().toISOString().slice(0, 10),
-          delivery_slot: "02:00 PM - 05:00 PM (Afternoon Slot)",
-          delivery_type: "Standard Preorder",
-          shipping_address: { address_1: "80 Feet Road, 4th Block", city: "Bengaluru", area: "Koramangala", postal_code: "560034", landmark: "Near Sony World Signal" },
-          items: [
-            { id: "itm_2", title: "Fresh Red Velvet Cream Cheese Cake", weight: "0.5 kg", flavour: "Red Velvet", shape: "Round", eggless: true, cake_message: "Happy Anniversary!", quantity: 1, unit_price: 749, subtotal: 749, thumbnail: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800" }
-          ],
-        },
-        {
-          id: "ord_103",
-          order_number: "CTH-20260808-000103",
-          invoice_number: "INV-202608-0103",
-          customer_name: "Priya Nair",
-          customer_phone: "+91 97412 33456",
-          customer_email: "priya.nair@example.com",
-          branch: { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship Kitchen", code: "HUB-BLR-01", phone: "+91 80 4912 8800", city: "Bengaluru" },
-          status: "out_for_delivery",
-          payment_status: "paid",
-          total: 1897,
-          subtotal: 1806,
-          tax_total: 91,
-          currency_code: "INR",
-          created_at: new Date(Date.now() - 10800000).toISOString(),
-          delivery_date: new Date().toISOString().slice(0, 10),
-          delivery_slot: "11:30 PM - 12:15 AM (Midnight Slot)",
-          delivery_type: "Midnight Express",
-          shipping_address: { address_1: "Inner Ring Road, Domlur", city: "Bengaluru", area: "Domlur", postal_code: "560071", landmark: "Near EGL Tech Park" },
-          items: [
-            { id: "itm_3", title: "Grand 2-Tier Alphonso Mango Mousse Cake", weight: "2.0 kg", flavour: "Alphonso Mango", shape: "2-Tier Designer", eggless: true, cake_message: "Congratulations Priya!", quantity: 1, unit_price: 1897, subtotal: 1897, thumbnail: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800" }
-          ],
-        },
-        {
-          id: "ord_104",
-          order_number: "CTH-20260808-000104",
-          invoice_number: "INV-202608-0104",
-          customer_name: "Vikram Mehta",
-          customer_phone: "+91 99001 22334",
-          customer_email: "vikram.m@example.com",
-          branch: { id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT", name: "Whitefield Central Kitchen", code: "HUB-BLR-03", phone: "+91 80 4912 8802", city: "Bengaluru" },
-          status: "delivered",
-          payment_status: "paid",
-          total: 649,
-          subtotal: 618,
-          tax_total: 31,
-          currency_code: "INR",
-          created_at: new Date(Date.now() - 14400000).toISOString(),
-          delivery_date: new Date().toISOString().slice(0, 10),
-          delivery_slot: "09:00 AM - 12:00 PM (Morning Slot)",
-          delivery_type: "Standard",
-          shipping_address: { address_1: "ITPL Main Road, Whitefield", city: "Bengaluru", area: "Whitefield", postal_code: "560066", landmark: "Opposite Forum Value Mall" },
-          items: [
-            { id: "itm_4", title: "Black Forest Gourmet Cake", weight: "0.5 kg", flavour: "Black Forest", shape: "Round", eggless: false, cake_message: "Best Wishes!", quantity: 1, unit_price: 649, subtotal: 649, thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800" }
-          ],
-        },
-      ];
-      ApiEngine.persist();
-    }
-
-    let list = [...memoryStore.orders];
-
-    const q = (params.q || "").toLowerCase().trim();
-    const status = params.status;
-    const branchId = params.branch_id || params.branch;
-    const city = (params.city || "").toLowerCase();
-    const paymentStatus = params.payment_status;
-    const fromDate = params.from_date;
-    const toDate = params.to_date;
-    const deliveryType = params.delivery_type;
-
-    if (fromDate) {
-      list = list.filter((o: any) => new Date(o.created_at || o.delivery_date).toISOString().slice(0, 10) >= fromDate);
-    }
-    if (toDate) {
-      list = list.filter((o: any) => new Date(o.created_at || o.delivery_date).toISOString().slice(0, 10) <= toDate);
-    }
-    if (deliveryType && deliveryType !== "all") {
-      list = list.filter((o: any) => (o.delivery_type || "").toLowerCase().includes(deliveryType.toLowerCase()));
-    }
-
-    if (status && status !== "all") {
-      list = list.filter((o: any) => (o.status || "").toLowerCase() === status.toLowerCase());
-    }
-
-    if (branchId && branchId !== "all") {
-      list = list.filter((o: any) => o.branch?.id === branchId || (o.branch?.name || "").toLowerCase().includes(branchId.toLowerCase()));
-    }
-
-    if (city && city !== "all") {
-      list = list.filter((o: any) => (o.shipping_address?.city || o.branch?.city || "").toLowerCase().includes(city));
-    }
-
-    if (paymentStatus && paymentStatus !== "all") {
-      list = list.filter((o: any) => (o.payment_status || "").toLowerCase() === paymentStatus.toLowerCase());
-    }
-
-    if (q) {
-      list = list.filter((o: any) =>
-        (o.order_number || "").toLowerCase().includes(q) ||
-        (o.id || "").toLowerCase().includes(q) ||
-        (o.customer_name || "").toLowerCase().includes(q) ||
-        (o.customer_phone || "").toLowerCase().includes(q) ||
-        (o.customer_email || "").toLowerCase().includes(q) ||
-        (o.branch?.name || "").toLowerCase().includes(q)
-      );
-    }
-
-    const limit = Number(params.limit) || 50;
-    const offset = Number(params.offset) || 0;
-    const paginated = list.slice(offset, offset + limit);
-
-    return {
-      orders: paginated,
-      count: paginated.length,
-      total: list.length,
-      limit,
-      offset,
-    };
-  }
-
-  static ensureOrdersStore() {
-    if (!Array.isArray(memoryStore.orders) || memoryStore.orders.length === 0) {
-      ApiEngine.getAdminOrders({ limit: 500 });
-    }
-  }
-
-  static createOrder(orderPayload: any) {
-    ApiEngine.ensureOrdersStore();
-    ApiEngine.ensureCustomersStore();
-
-    const orderId = `ord_${Date.now()}`;
-    const orderNumber = `CTH-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(100000 + Math.random() * 900000)}`;
-    const subtotal = Number(orderPayload.subtotal || 0);
-    const couponDiscount = Number(orderPayload.discount_total || orderPayload.discount_amount || orderPayload.coupon_discount || 0);
-    const manualDiscount = Number(orderPayload.manual_discount_amount || 0);
-    const discountTotal = couponDiscount + manualDiscount;
-    const deliveryFee = Number(orderPayload.delivery_fee || 0);
-    const taxTotal = Number(orderPayload.tax_total || Math.round((subtotal - discountTotal) * 0.05));
-    const calculatedTotal = Number(orderPayload.total || Math.max(0, subtotal - discountTotal + deliveryFee + taxTotal));
-
-    const shippingAddress = orderPayload.shipping_address || {
-      address_1: orderPayload.address_1 || orderPayload.address || "100 Feet Road",
-      address_2: orderPayload.address_2 || "",
-      area: orderPayload.area || "Indiranagar",
-      city: orderPayload.city || "Bengaluru",
-      state: orderPayload.state || "Karnataka",
-      postal_code: orderPayload.pincode || "560038",
-      landmark: orderPayload.landmark || "",
-      delivery_instructions: orderPayload.delivery_instructions || "",
-    };
-
-    // 1. Customer Resolution (Canonical Backend Identity)
-    const phoneInput = orderPayload.customer_phone || orderPayload.phone;
-    let customerRec: any = null;
-    if (phoneInput) {
-      customerRec = ApiEngine.findOrCreateCustomerByPhone({
-        name: orderPayload.customer_name,
-        phone: phoneInput,
-        email: orderPayload.customer_email || orderPayload.email,
-        address: shippingAddress,
-      });
-    } else if (orderPayload.customer_id) {
-      customerRec = (memoryStore.customers || []).find((c: any) => c.id === orderPayload.customer_id);
-    }
-
-    const customerId = customerRec?.id || orderPayload.customer_id || `cus_guest_${Date.now()}`;
-    const customerNumber = customerRec?.customer_number || `CTH-CUST-GUEST`;
-    const customerName = customerRec?.name || orderPayload.customer_name || (phoneInput ? "Customer" : "Guest Customer");
-    const customerPhone = customerRec?.phone || phoneInput || "+91 98765 43210";
-    const customerEmail = customerRec?.email || orderPayload.customer_email || "guest@cakes2home.com";
-    const customerType = customerRec?.customer_type || (phoneInput ? "registered" : "guest");
-
-    // 2. Branch Resolution & Coverage Validation
-    let branchObj: any = null;
-    if (orderPayload.branch_id) {
-      branchObj = (memoryStore.branches || []).find((b: any) => b.id === orderPayload.branch_id || b.code === orderPayload.branch_id);
-    }
-    if (!branchObj) {
-      const eligibleRes = ApiEngine.getEligibleBranches({
-        pincode: shippingAddress.postal_code,
-        city: shippingAddress.city,
-        area: shippingAddress.area,
-      });
-      if (eligibleRes.branches.length > 0) {
-        branchObj = eligibleRes.branches[0];
-      } else {
-        throw new Error("No CakeToHome branch currently services this delivery location.");
-      }
-    }
-
-    // Validate that every product in the order is available at the resolved branch
-    if (branchObj && branchObj.product_availability) {
-      const itemsList = orderPayload.items || [];
-      for (const item of itemsList) {
-        const pId = item.product_id || item.id;
-        const override = branchObj.product_availability[pId] || { status: "AVAILABLE" };
-        const st = (override.status || "").toUpperCase();
-        if (st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY" || st === "HIDDEN" || st === "TEMPORARILY_HIDDEN") {
-          throw new Error(`Product "${item.title || item.name || pId}" is not available for delivery at the selected location (${branchObj.name}).`);
-        }
-      }
-    }
-
-    const newOrder = {
-      id: orderId,
-      order_number: orderNumber,
-      invoice_number: `INV-${new Date().toISOString().slice(0, 7).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`,
-      status: orderPayload.status || "confirmed",
-      payment_status: orderPayload.payment_status || "paid",
-      subtotal,
-      discount_total: discountTotal,
-      coupon_discount: couponDiscount,
-      manual_discount_amount: manualDiscount,
-      manual_discount_reason: orderPayload.manual_discount_reason || null,
-      delivery_fee: deliveryFee,
-      tax_total: taxTotal,
-      total: calculatedTotal,
-      currency_code: "INR",
-
-      customer_id: customerId,
-      customer_number: customerNumber,
-      customer_name: customerName,
-      customer_phone: customerPhone,
-      customer_email: customerEmail,
-      customer_type: customerType,
-
-      branch_id: branchObj.id,
-      branch_name: branchObj.name,
-      branch_code: branchObj.code,
-      branch: branchObj,
-      city: shippingAddress.city || "Bengaluru",
-      pincode: shippingAddress.postal_code || "560038",
-      shipping_address: shippingAddress,
-
-      delivery_date: orderPayload.delivery_date || new Date().toISOString().slice(0, 10),
-      delivery_slot: orderPayload.delivery_slot || "07:00 PM - 09:00 PM (Evening Slot)",
-      delivery_type: orderPayload.delivery_type || "Same Day Express",
-
-      payment_method: orderPayload.payment_method || "UPI",
-      payment_link: orderPayload.payment_link || null,
-      promo_code: orderPayload.promo_code || orderPayload.applied_promo_code || null,
-      promo_offer_id: orderPayload.promo_offer_id || null,
-      items: (orderPayload.items || []).map((item: any) => ({
-        id: item.id || `item_${Math.random().toString(36).slice(2, 7)}`,
-        product_id: item.product_id || item.id,
-        title: item.title || item.name || "Gourmet Cake",
-        name: item.title || item.name || "Gourmet Cake",
-        variant: item.variant || "1 kg / Eggless / Round",
-        weight: item.weight || item.variant?.split("/")[0]?.trim() || "1.0 kg",
-        flavour: item.flavour || item.variant?.split("/")[1]?.trim() || "Belgian Dark Chocolate",
-        shape: item.shape || item.variant?.split("/")[2]?.trim() || "Round",
-        eggless: item.eggless !== undefined ? Boolean(item.eggless) : true,
-        quantity: Number(item.quantity || 1),
-        unit_price: Number(item.unit_price || item.price || 0),
-        price: Number(item.price || item.unit_price || 0),
-        total: Number(item.total || (item.unit_price || item.price || 0) * (item.quantity || 1)),
-        image_url: item.image_url || item.thumbnail || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
-        thumbnail: item.thumbnail || item.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
-        custom_message: item.custom_message || item.cake_message || null,
-      })),
-      notes: orderPayload.notes || orderPayload.internal_notes || null,
-      delivery_instructions: orderPayload.delivery_instructions || shippingAddress.delivery_instructions || null,
-      source: orderPayload.source || "telecalling",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    if (!Array.isArray(memoryStore.orders)) memoryStore.orders = [];
-    memoryStore.orders.unshift(newOrder);
-
-    if (orderPayload.recovery_token || orderPayload.cart_id) {
-      ApiEngine.attributeRecoveryOrder(newOrder.id, orderPayload.cart_id, orderPayload.recovery_token);
-    }
-
-    ApiEngine.addAuditLog(`Created Order ${orderNumber} for Customer ${customerName} (${customerNumber}) assigned to ${branchObj.name}`);
-    ApiEngine.persist();
-
-    return {
-      ...newOrder,
-      order: newOrder,
-      success: true,
-      order_id: newOrder.id,
-      order_number: newOrder.order_number,
-    };
-  }
-
-  static getOrderDetails(orderId: string) {
-    ApiEngine.ensureOrdersStore();
-    ApiEngine.ensureCustomersStore();
-    const found = memoryStore.orders.find((o) => o.id === orderId || o.order_number === orderId);
-    if (!found) return null;
-
-    const customerRec = (memoryStore.customers || []).find(
-      (c: any) => c.id === found.customer_id || (c.phone && found.customer_phone && c.phone.replace(/\D/g, "") === (found.customer_phone || "").replace(/\D/g, ""))
-    );
-
-    const customerName = customerRec?.name || found.customer_name || (found.customer_phone ? "Customer" : "Guest Customer");
-    const customerNumber = customerRec?.customer_number || found.customer_number || (customerRec ? `CTH-CUST-${customerRec.id.slice(-6).toUpperCase()}` : "CTH-CUST-GUEST");
-    const customerPhone = customerRec?.phone || found.customer_phone || "+91 98765 43210";
-    const customerEmail = customerRec?.email || found.customer_email || "customer@cakes2home.com";
-    const customerType = customerRec?.customer_type || found.customer_type || (found.customer_phone ? "registered" : "guest");
-
-    return {
-      id: found.id,
-      order_number: found.order_number || `CTH-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${found.id.slice(-6)}`,
-      invoice_number: found.invoice_number || `INV-${new Date().toISOString().slice(0, 7).replace(/-/g, "")}-${found.id.slice(-4)}`,
-      status: found.status || "confirmed",
-      delivery_status: found.delivery_status || "available",
-      payment_status: found.payment_status || "paid",
-      total: found.total || 0,
-      subtotal: found.subtotal || found.total || 0,
-      tax_total: found.tax_total || 0,
-      discount_total: found.discount_total || 0,
-      coupon_discount: found.coupon_discount || 0,
-      manual_discount_amount: found.manual_discount_amount || 0,
-      delivery_fee: found.delivery_fee || 0,
-      currency_code: found.currency_code || "INR",
-      created_at: found.created_at || new Date().toISOString(),
-      updated_at: found.updated_at || new Date().toISOString(),
-      delivery_date: found.delivery_date || new Date().toISOString().slice(0, 10),
-      delivery_slot: found.delivery_slot || "Evening Slot",
-      delivery_type: found.delivery_type || "Same Day Express",
-
-      customer_id: customerRec?.id || found.customer_id || "cus_guest",
-      customer_number: customerNumber,
-      customer_name: customerName,
-      customer_phone: customerPhone,
-      customer_email: customerEmail,
-      customer_type: customerType,
-      delivery_otp: found.delivery_otp,
-      pickup_otp: found.pickup_otp,
-
-      delivery_partner_id: found.delivery_partner_id || found.delivery?.partner_id || null,
-      driver_name: found.driver_name || found.delivery?.partner_name || null,
-
-      customer: {
-        id: customerRec?.id || found.customer_id || "cus_guest",
-        customer_number: customerNumber,
-        customer_type: customerType,
-        name: customerName,
-        phone: customerPhone,
-        email: customerEmail,
-        address: found.shipping_address?.address_1 || "Address on File",
-        area: found.shipping_address?.area || "",
-        city: found.shipping_address?.city || "Bengaluru",
-        pincode: found.shipping_address?.postal_code || "560038",
-        landmark: found.shipping_address?.landmark || "",
-        delivery_instructions: found.shipping_address?.delivery_instructions || found.delivery_instructions || "",
-        map_url: `https://maps.google.com/?q=${encodeURIComponent(found.shipping_address?.city || "Bengaluru")}`,
-      },
-
-      shipping_address: found.shipping_address || { address_1: "Address on File", city: "Bengaluru", area: "", postal_code: "560038" },
-
-      branch_id: found.branch_id || found.branch?.id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-      branch_name: found.branch_name || found.branch?.name || "Indiranagar Flagship Kitchen",
-      branch_code: found.branch_code || found.branch?.code || "HUB-BLR-01",
-      branch: found.branch || {
-        id: found.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-        name: found.branch_name || "Indiranagar Flagship Kitchen",
-        code: found.branch_code || "HUB-BLR-01",
-        address: "Plot 42, 100 Feet Rd, Indiranagar, Bengaluru - 560038",
-        phone: "+91 80 4912 8800",
-        manager: "Indiranagar Branch Ops Lead",
-        kitchen: "Baking Station A",
-        capacity: "Operational",
-      },
-
-      kitchen: {
-        kot_number: found.kitchen?.kot_number || "KOT not created",
-        chef_assigned: found.kitchen?.chef_assigned || "Not assigned",
-        prep_time_minutes: found.kitchen?.prep_time_minutes || 0,
-        packing_time_minutes: found.kitchen?.packing_time_minutes || 0,
-        dispatch_time: found.kitchen?.dispatch_time || "Pending Preparation",
-        production_status: found.kitchen?.production_status || (found.status === "confirmed" ? "Queued for Preparation" : found.status),
-      },
-
-      delivery: {
-        partner_id: found.delivery?.partner_id || found.delivery_partner_id || null,
-        partner_number: found.delivery?.partner_number || null,
-        partner_name: found.delivery?.partner_name || found.driver_name || "Awaiting rider assignment",
-        partner_phone: found.delivery?.partner_phone || "Not assigned",
-        vehicle: found.delivery?.vehicle || "Not assigned",
-        branch_name: found.delivery?.branch_name || found.branch_name || "Kitchen Hub",
-        status: found.delivery?.status || "Pending Dispatch",
-        assignment_mode: found.delivery?.assignment_mode || (found.delivery_partner_id ? "auto" : "unassigned"),
-        assignment_reason: found.delivery?.assignment_reason || null,
-        assignment_score: found.delivery?.assignment_score || null,
-        pickup_otp: found.delivery?.pickup_otp || "Not generated",
-        delivery_otp: found.delivery?.delivery_otp || "Not generated",
-        eta: found.delivery?.eta || "Pending Dispatch",
-        distance_km: found.delivery?.distance_km || "—",
-        zone: found.delivery?.zone || "Standard Zone",
-        live_location: found.delivery?.live_location || "Awaiting Rider Assignment",
-      },
-
-      items: (found.items || []).map((item: any) => ({
-        id: item.id || `item_${Math.random().toString(36).slice(2, 7)}`,
-        product_id: item.product_id || item.id,
-        title: item.title || item.name || "Gourmet Cake",
-        name: item.title || item.name || "Gourmet Cake",
-        weight: item.weight || item.variant?.split("/")[0]?.trim() || "1.0 kg",
-        flavour: item.flavour || item.variant?.split("/")[1]?.trim() || "Belgian Dark Chocolate",
-        shape: item.shape || item.variant?.split("/")[2]?.trim() || "Round",
-        eggless: item.eggless !== undefined ? Boolean(item.eggless) : true,
-        cake_message: item.custom_message || item.cake_message || null,
-        quantity: Number(item.quantity || 1),
-        unit_price: Number(item.unit_price || item.price || 0),
-        subtotal: Number(item.total || (item.unit_price || item.price || 0) * (item.quantity || 1)),
-        hsn_code: item.hsn_code || "19059090",
-        gst_rate_pct: item.gst_rate_pct || 5,
-        taxable_value: item.taxable_value,
-        tax_amount: item.tax_amount,
-        cgst: item.cgst,
-        sgst: item.sgst,
-        igst: item.igst,
-        thumbnail: item.image_url || item.thumbnail || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
-      })),
-      tax_snapshot: found.tax_snapshot || found.taxes || null,
-      pricing: found.pricing || null,
-      notes: found.notes || null,
-      source: found.source || "telecalling",
-
-      customization: {
-        cake_message: found.items?.[0]?.custom_message || found.items?.[0]?.cake_message || "Happy Birthday!",
-        photo_url: null,
-        reference_images: ["https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800"],
-        special_instructions: found.notes || "Fragile cake package.",
-        add_ons: ["Sparkler Candle", "Greeting Card"],
-        packaging_notes: "Insulated thermal box with ice gel pack.",
-      },
-
-      payment: {
-        method: found.payment_method || "UPI via Razorpay",
-        transaction_id: `TXN_${Date.now()}`,
-        status: found.payment_status || "captured",
-        cgst: Number(((found.tax_total || 31) / 2).toFixed(2)),
-        sgst: Number(((found.tax_total || 31) / 2).toFixed(2)),
-      },
-
-      timeline: found.timeline || [
-        { id: "t1", event: "Order Created by Customer", timestamp: found.created_at, user: customerName },
-        { id: "t2", event: "Payment Verified", timestamp: found.created_at, user: "System Gateway" },
-        { id: "t3", event: `Assigned to ${found.branch_name || "Kitchen Hub"}`, timestamp: found.created_at, user: "Auto Dispatch Router" },
-      ],
-    };
-  }
-
-  static exportAdminOrders(params: Record<string, any> = {}) {
-    const res = ApiEngine.getAdminOrders({ limit: 1000, ...params });
-    const rows = res.orders.map((o: any) => ({
-      order_number: o.order_number,
-      internal_id: o.id,
-      customer_name: o.customer_name,
-      customer_phone: o.customer_phone,
-      customer_email: o.customer_email,
-      branch: o.branch?.name || "Indiranagar Kitchen",
-      status: o.status,
-      payment_status: o.payment_status,
-      total_amount: o.total,
-      created_at: o.created_at,
-      delivery_date: o.delivery_date,
-      delivery_slot: o.delivery_slot,
-      city: o.shipping_address?.city || "Bengaluru",
-      pincode: o.shipping_address?.postal_code || "560038",
-    }));
-    return { export_data: rows, count: rows.length };
-  }
-
-
-
-  static updateOrderStatus(orderId: string, status: string, notes?: string) {
-    ApiEngine.ensureOrdersStore();
-    const updatedOrder = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
-    if (!updatedOrder) return null;
-
-    updatedOrder.status = status;
-    updatedOrder.updated_at = new Date().toISOString();
-
-    if (!updatedOrder.timeline) updatedOrder.timeline = [];
-    updatedOrder.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: `Order Status Changed to ${status.replace(/_/g, " ").toUpperCase()}`,
-      time: new Date().toLocaleString("en-IN"),
-      author: "Command Center Admin",
-      notes: notes || `Status changed to ${status}`,
-    });
-
-    if (status === "kitchen_accepted") {
-      if (!updatedOrder.kitchen) updatedOrder.kitchen = {};
-      updatedOrder.kitchen.production_status = "Accepted by Kitchen - Queued for Oven";
-    } else if (status === "preparing") {
-      if (!updatedOrder.kitchen) updatedOrder.kitchen = {};
-      updatedOrder.kitchen.production_status = "Baking & Decoration in Progress";
-    } else if (status === "packed") {
-      if (!updatedOrder.kitchen) updatedOrder.kitchen = {};
-      updatedOrder.kitchen.production_status = "Packed & Sealed - Quality Passed";
-    } else if (status === "out_for_delivery") {
-      if (!updatedOrder.delivery) updatedOrder.delivery = {};
-      updatedOrder.delivery.status = "Dispatched with Driver";
-    } else if (status === "delivered") {
-      if (!updatedOrder.delivery) updatedOrder.delivery = {};
-      updatedOrder.delivery.status = "Delivered to Customer";
-      updatedOrder.payment_status = "captured";
-    } else if (status === "cancelled") {
-      if (!updatedOrder.kitchen) updatedOrder.kitchen = {};
-      updatedOrder.kitchen.production_status = "Cancelled";
-      if (!updatedOrder.delivery) updatedOrder.delivery = {};
-      updatedOrder.delivery.status = "Cancelled";
-    }
-
-    ApiEngine.addAuditLog(`Updated Order ${orderId} status to '${status}' (${notes || 'No note'})`);
-    ApiEngine.fireWebhookEvent(`order.${status}`, { order_id: orderId, status, notes, updated_at: new Date().toISOString() });
-    ApiEngine.persist();
-
-    return {
-      success: true,
-      order: ApiEngine.getOrderDetails(orderId),
-      message: `Status updated to '${status}'`,
-    };
-  }
-
-  static assignOrderBranch(orderId: string, branchId: string, notes?: string) {
-    ApiEngine.ensureOrdersStore();
-    const updatedOrder = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
-    if (!updatedOrder) return null;
-
-    const branchMap: Record<string, any> = {
-      "res_01KXYMAHGFPRY1G9TZKEVGAGAT": { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship Kitchen", code: "HUB-BLR-01", manager: "Anand Sharma", kitchen: "Baking Station A - Oven 4" },
-      "res_02KXYMAHGFPRY1G9TZKEVGAGAT": { id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT", name: "Koramangala Gourmet Bakery", code: "HUB-BLR-02", manager: "Priya Nair", kitchen: "Pastry Workstation B" },
-      "res_03KXYMAHGFPRY1G9TZKEVGAGAT": { id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT", name: "Whitefield Central Kitchen", code: "HUB-BLR-03", manager: "Vikram Mehta", kitchen: "Central Production Line 1" },
-    };
-
-    const newBranch = branchMap[branchId] || { id: branchId, name: "Selected Kitchen Hub", code: "HUB-CUSTOM", manager: "Ops Supervisor", kitchen: "Main Station" };
-    updatedOrder.branch = newBranch;
-    updatedOrder.updated_at = new Date().toISOString();
-
-    if (!updatedOrder.timeline) updatedOrder.timeline = [];
-    updatedOrder.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: `Branch Reassigned to ${newBranch.name}`,
-      time: new Date().toLocaleString("en-IN"),
-      author: "Command Center Admin",
-      notes: notes || `Reassigned branch to ${newBranch.name}`,
-    });
-
-    ApiEngine.addAuditLog(`Reassigned Order ${orderId} to Branch ${newBranch.name}`);
-    ApiEngine.fireWebhookEvent("order.branch_changed", { order_id: orderId, branch: newBranch, updated_at: new Date().toISOString() });
-    ApiEngine.persist();
-
-    return {
-      success: true,
-      order: ApiEngine.getOrderDetails(orderId),
-      message: `Branch reassigned to '${newBranch.name}'`,
-    };
-  }
-
-  static assignOrderDelivery(orderId: string, driverName: string, driverPhone?: string) {
-    ApiEngine.ensureOrdersStore();
-    const updatedOrder = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
-    if (!updatedOrder) return null;
-
-    const pickupOtp = String(Math.floor(1000 + Math.random() * 9000));
-    const deliveryOtp = String(Math.floor(1000 + Math.random() * 9000));
-
-    updatedOrder.delivery = {
-      partner_name: driverName,
-      partner_phone: driverPhone || "+91 98123 45678",
-      vehicle: "Refrigerated EV Van (KA-01-EQ-9941)",
-      status: "Dispatched",
-      pickup_otp: pickupOtp,
-      delivery_otp: deliveryOtp,
-      eta: "20 mins",
-      distance_km: "3.5 km",
-      live_location: "Assigned & Dispatched",
-    };
-    updatedOrder.status = "out_for_delivery";
-    updatedOrder.updated_at = new Date().toISOString();
-
-    if (!updatedOrder.timeline) updatedOrder.timeline = [];
-    updatedOrder.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: `Delivery Partner Assigned: ${driverName}`,
-      time: new Date().toLocaleString("en-IN"),
-      author: "Command Center Admin",
-      notes: `Driver: ${driverName} (${driverPhone || "N/A"})`,
-    });
-
-    ApiEngine.addAuditLog(`Assigned Delivery Driver ${driverName} to Order ${orderId}`);
-    ApiEngine.fireWebhookEvent("order.delivery_partner_changed", { order_id: orderId, driver_name: driverName, pickup_otp: pickupOtp, delivery_otp: deliveryOtp });
-    ApiEngine.persist();
-
-    return {
-      success: true,
-      order: ApiEngine.getOrderDetails(orderId),
-      message: `Assigned delivery driver ${driverName}`,
-    };
-  }
-
-  static rescheduleOrder(orderId: string, deliveryDate: string, timeSlot: string) {
-    ApiEngine.ensureOrdersStore();
-    const updatedOrder = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
-    if (!updatedOrder) return null;
-
-    updatedOrder.delivery_date = deliveryDate;
-    updatedOrder.delivery_slot = timeSlot;
-    updatedOrder.updated_at = new Date().toISOString();
-
-    if (!updatedOrder.timeline) updatedOrder.timeline = [];
-    updatedOrder.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: `Delivery Rescheduled to ${deliveryDate}`,
-      time: new Date().toLocaleString("en-IN"),
-      author: "Command Center Admin",
-      notes: `Slot: ${timeSlot}`,
-    });
-
-    ApiEngine.addAuditLog(`Rescheduled Order ${orderId} to ${deliveryDate} (${timeSlot})`);
-    ApiEngine.fireWebhookEvent("order.delivery_slot_changed", { order_id: orderId, delivery_date: deliveryDate, time_slot: timeSlot });
-    ApiEngine.persist();
-
-    return {
-      success: true,
-      order: ApiEngine.getOrderDetails(orderId),
-      message: `Order rescheduled to ${deliveryDate}`,
-    };
-  }
-
-  static cancelOrder(orderId: string, reason?: string) {
-    ApiEngine.ensureOrdersStore();
-    const updatedOrder = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
-    if (!updatedOrder) return null;
-
-    updatedOrder.status = "cancelled";
-    updatedOrder.cancellation_reason = reason || "Cancelled by Admin";
-    updatedOrder.updated_at = new Date().toISOString();
-
-    if (!updatedOrder.timeline) updatedOrder.timeline = [];
-    updatedOrder.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: "Order Cancelled",
-      time: new Date().toLocaleString("en-IN"),
-      author: "Command Center Admin",
-      notes: `Reason: ${reason || "Admin request"}`,
-    });
-
-    ApiEngine.addAuditLog(`Cancelled Order ${orderId} (Reason: ${reason || 'N/A'})`);
-    ApiEngine.fireWebhookEvent("order.cancelled", { order_id: orderId, reason: reason || "Admin Request", cancelled_at: new Date().toISOString() });
-    ApiEngine.persist();
-
-    return {
-      success: true,
-      order: ApiEngine.getOrderDetails(orderId),
-      message: `Order ${orderId} cancelled`,
-    };
-  }
-
-  static refundOrder(orderId: string, amount?: number, reason?: string) {
-    ApiEngine.ensureOrdersStore();
-    const updatedOrder = memoryStore.orders.find((o: any) => o.id === orderId || o.order_number === orderId);
-    if (!updatedOrder) return null;
-
-    updatedOrder.payment_status = "refunded";
-    updatedOrder.refund_amount = amount || updatedOrder.total;
-    updatedOrder.refund_reason = reason || "Customer Refund Request";
-    updatedOrder.updated_at = new Date().toISOString();
-
-    if (!updatedOrder.timeline) updatedOrder.timeline = [];
-    updatedOrder.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: `Refund Processed (₹${amount || updatedOrder.total})`,
-      time: new Date().toLocaleString("en-IN"),
-      author: "Command Center Admin",
-      notes: `Reason: ${reason || "Refund requested"}`,
-    });
-
-    ApiEngine.addAuditLog(`Refunded ₹${amount || updatedOrder.total} for Order ${orderId}`);
-    ApiEngine.persist();
-
-    return {
-      success: true,
-      order: ApiEngine.getOrderDetails(orderId),
-      message: `Refund of ₹${amount || updatedOrder.total} processed`,
-    };
-  }
-
-  static fireWebhookEvent(event: string, data: any) {
-    if (!(memoryStore as any).webhooks) (memoryStore as any).webhooks = [];
-    const payload = {
-      id: `wh_evt_${Date.now()}`,
-      event,
-      data,
-      timestamp: new Date().toISOString(),
-      status: "delivered_200_ok",
-    };
-    (memoryStore as any).webhooks.unshift(payload);
-    ApiEngine.persist();
-
-    try {
-      WebhookEngine.emitEvent(
-        event as any,
-        data,
-        { source: "api_engine_event_emitter" },
-        data?.customer || { id: data?.customer_id, phone: data?.customer_phone, name: data?.customer_name },
-        { type: event.split(".")[0] || "general", id: data?.order_id || data?.id || "general", branch_id: data?.branch_id }
-      );
-    } catch (err: any) {
-      console.warn("[WebhookEngine Ingestion Safe Warning]:", err?.message);
-    }
-
-    return payload;
-  }
-
-  // Storefront Order Creation Alias (Delegates to canonical ApiEngine.createOrder)
-  static createStorefrontOrder(payload: any) {
-    return ApiEngine.createOrder(payload);
-  }
-
-  static getOrder(orderId: string) {
-    return memoryStore.orders.find((o) => o.id === orderId || o.order_number === orderId) || null;
-  }
-
-  // ── Cart & Line Items ──────────────────────────────
-  static getCart(cartId: string = "cart_guest_100") {
-    if (!memoryStore.carts) {
-      memoryStore.carts = {};
-    }
-    if (!memoryStore.carts[cartId]) {
-      memoryStore.carts[cartId] = {
-        id: cartId,
-        items: [],
-        subtotal: 0,
-        tax_total: 0,
-        discount_total: 0,
-        total: 0,
-        created_at: new Date().toISOString(),
-      };
-      ApiEngine.persist();
-    }
-    return memoryStore.carts[cartId];
-  }
-
-  static createCart(payload?: any) {
-    const id = payload?.id || `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    if (!memoryStore.carts) memoryStore.carts = {};
-    memoryStore.carts[id] = {
-      id,
-      items: payload?.items || [],
-      subtotal: 0,
-      tax_total: 0,
-      discount_total: 0,
-      total: 0,
-      created_at: new Date().toISOString(),
-      ...(payload || {}),
-    };
-    ApiEngine.persist();
-    return memoryStore.carts[id];
-  }
-
-  static addToCart(cartId: string, payload: { productId?: string; variantId?: string; quantity?: number; selectedOptions?: any; price?: number; branchId?: string; pincode?: string }) {
-    const cart = ApiEngine.getCart(cartId);
-    const prodId = payload.productId || (payload as any).product_id || payload.variantId || "prod_1";
-    const accItem: any = ApiEngine.getAccessoryById(prodId);
-    const product: any = ApiEngine.getProductById(prodId) || ApiEngine.getProductBySlug(prodId) || accItem || memoryStore.products[0];
-
-    // Branch / Pincode availability validation
-    let targetBranchId = payload.branchId;
-    if (!targetBranchId && payload.pincode) {
-      const resolved = ApiEngine.resolveSmartBranch({ pincode: payload.pincode });
-      if (resolved?.branch) targetBranchId = resolved.branch.id;
-    }
-
-    if (targetBranchId && product && !accItem) {
-      const branch = ApiEngine.resolveBranchRecord(targetBranchId);
-      if (branch && branch.product_availability) {
-        const pId = product.id || product.product_id;
-        const override = branch.product_availability[pId] || { status: "AVAILABLE" };
-        const st = (override.status || "").toUpperCase();
-        if (st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY" || st === "HIDDEN" || st === "TEMPORARILY_HIDDEN") {
-          throw new Error(`Product "${product.title || product.name || pId}" is currently out of stock or unavailable at the selected location (${branch.name}).`);
-        }
-      }
-    }
-
-    const variantId = payload.variantId || `var_${accItem?.id || product?.product_id || prodId}`;
-    const qty = Math.max(1, Number(payload.quantity) || 1);
-    const itemPrice = Number(payload.price) || Number(accItem?.price) || Number(product?.price) || 649;
-
-    const existingIdx = cart.items.findIndex((item: any) => item.variant_id === variantId || item.id === variantId || item.product_id === prodId);
-
-    const meta = (payload as any).metadata || {};
-    const weightVal = (payload as any).weight || meta.weight || payload.selectedOptions?.weight || (accItem ? accItem.weight : product?.weight) || "1.0 kg";
-    const shapeVal = (payload as any).shape || meta.shape || payload.selectedOptions?.shape || product?.shape || "Round";
-    const flavourVal = (payload as any).flavour || (payload as any).flavor || meta.flavour || meta.flavor || payload.selectedOptions?.flavour || product?.flavour || "Chocolate";
-    const egglessVal = (payload as any).eggless !== undefined ? Boolean((payload as any).eggless) : (meta.eggless !== undefined ? Boolean(meta.eggless) : (payload.selectedOptions?.eggless !== undefined ? payload.selectedOptions.eggless : true));
-    const photoCakeVal = (payload as any).photo_cake || meta.photo_cake || null;
-    const cakeMessageVal = (payload as any).cake_message || meta.cake_message || (payload as any).message_on_cake || null;
-    const selectedAddonsVal = (payload as any).selected_addons || meta.selected_addons || [];
-
-    if (existingIdx >= 0) {
-      cart.items[existingIdx].quantity += qty;
-      cart.items[existingIdx].subtotal = cart.items[existingIdx].quantity * cart.items[existingIdx].unit_price;
-      cart.items[existingIdx].total = cart.items[existingIdx].subtotal;
-      if (cakeMessageVal) cart.items[existingIdx].cake_message = cakeMessageVal;
-      if (photoCakeVal) cart.items[existingIdx].photo_cake = photoCakeVal;
-    } else {
-      const lineItem = {
-        id: `item_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
-        cart_id: cartId,
-        product_id: accItem ? accItem.id : (product?.id || prodId),
-        variant_id: variantId,
-        title: accItem ? accItem.name : (product?.title || product?.name || "Gourmet Product"),
-        description: accItem ? accItem.description : (product?.description || ""),
-        thumbnail: accItem ? accItem.thumbnail : (product?.thumbnail || product?.images?.[0] || ""),
-        unit_price: itemPrice,
-        price: itemPrice,
-        quantity: qty,
-        subtotal: itemPrice * qty,
-        total: itemPrice * qty,
-        weight: weightVal,
-        shape: shapeVal,
-        flavour: flavourVal,
-        eggless: egglessVal,
-        photo_cake: photoCakeVal,
-        cake_message: cakeMessageVal,
-        selected_addons: selectedAddonsVal,
-        hsn_code: accItem?.hsn_code || product?.hsn_code || "19059090",
-        gst_rate_pct: accItem?.gst_rate_pct || accItem?.gst_rate || product?.gst_rate_pct || 5,
-        metadata: {
-          ...meta,
-          weight: weightVal,
-          shape: shapeVal,
-          flavour: flavourVal,
-          eggless: egglessVal,
-          photo_cake: photoCakeVal,
-          cake_message: cakeMessageVal,
-        },
-      };
-      cart.items.push(lineItem);
-    }
-
-    cart.subtotal = cart.items.reduce((sum: number, item: any) => sum + (item.subtotal || item.unit_price * item.quantity), 0);
-    cart.total = Math.max(0, cart.subtotal - (cart.discount_total || 0));
-    cart.updated_at = new Date().toISOString();
-
-    ApiEngine.persist();
-    return cart;
-  }
-
-  static removeFromCart(cartId: string, lineItemId: string) {
-    const cart = ApiEngine.getCart(cartId);
-    cart.items = cart.items.filter((item: any) => item.id !== lineItemId && item.variant_id !== lineItemId);
-    cart.subtotal = cart.items.reduce((sum: number, item: any) => sum + (item.subtotal || item.unit_price * item.quantity), 0);
-    cart.total = Math.max(0, cart.subtotal - (cart.discount_total || 0));
-    cart.updated_at = new Date().toISOString();
-
-    ApiEngine.persist();
-    return cart;
-  }
-
-  static updateCartItem(cartId: string, lineItemId: string, quantity: number) {
-    const cart = ApiEngine.getCart(cartId);
-    if (!Array.isArray(cart.items)) return cart;
-    if (quantity <= 0) return ApiEngine.removeFromCart(cartId, lineItemId);
-
-    const idx = cart.items.findIndex((item: any) => item.id === lineItemId || item.variant_id === lineItemId);
-    if (idx >= 0) {
-      cart.items[idx].quantity = quantity;
-      cart.items[idx].subtotal = quantity * Number(cart.items[idx].unit_price || cart.items[idx].price || 0);
-      cart.items[idx].total = cart.items[idx].subtotal;
-    }
-
-    cart.subtotal = cart.items.reduce((sum: number, item: any) => sum + (item.subtotal || item.unit_price * item.quantity), 0);
-    cart.total = Math.max(0, cart.subtotal - (cart.discount_total || 0));
-    cart.updated_at = new Date().toISOString();
-    ApiEngine.persist();
-    return cart;
-  }
-
-  static clearCart(cartId: string) {
-    const cart = ApiEngine.getCart(cartId);
-    cart.items = [];
-    cart.subtotal = 0;
-    cart.total = 0;
-    cart.discount_total = 0;
-    cart.updated_at = new Date().toISOString();
-    ApiEngine.persist();
-    return cart;
   }
 
   static applyPromoCode(cartId: string, promoCode: string, context?: {
@@ -9042,6 +9078,15 @@ export class ApiEngine {
         cart.updated_at = now.toISOString();
         ApiEngine.persist();
         return { cart, valid: true, discount_amount, discount: discount_amount, offer: { code: "CAKE50", description: "50% Off (Max ₹200)" } };
+      }
+      if (code === "SWEET10" || code === "WELCOME10") {
+        const discount_amount = Math.round((cart.subtotal || 649) * 0.1);
+        cart.discount_total = discount_amount;
+        cart.promo_code = code;
+        cart.total = Math.max(0, (cart.subtotal || 649) - discount_amount);
+        cart.updated_at = now.toISOString();
+        ApiEngine.persist();
+        return { cart, valid: true, discount_amount, discount: discount_amount, offer: { code, description: "10% Recovery Discount" } };
       }
       if (code === "CAKE100") {
         if ((cart.subtotal || 0) < 499) {
@@ -10078,48 +10123,6 @@ export class ApiEngine {
   }
 
   // ── Product-Specific Weight Pricing Matrix ──────────────────────────────
-  static getProductWeightPrices(productId: string) {
-    if (!memoryStore || !Array.isArray(memoryStore.product_weight_prices)) {
-      if (memoryStore) memoryStore.product_weight_prices = [];
-      return [];
-    }
-    return memoryStore.product_weight_prices.filter(
-      (pwp: any) =>
-        pwp.product_id === productId &&
-        pwp.is_enabled !== false &&
-        pwp.enabled !== false &&
-        pwp.status !== "disabled" &&
-        pwp.status !== "archived"
-    );
-  }
-
-  static saveProductWeightPrices(productId: string, weightPrices: any[]) {
-    if (!memoryStore || !Array.isArray(memoryStore.product_weight_prices)) {
-      if (memoryStore) memoryStore.product_weight_prices = [];
-    }
-    // Filter out existing prices for this product
-    memoryStore.product_weight_prices = memoryStore.product_weight_prices.filter((pwp: any) => pwp.product_id !== productId);
-    // Add new weight prices
-    const entries = weightPrices.map((wp: any) => ({
-      id: wp.id || `pwp_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
-      product_id: productId,
-      weight_id: wp.weight_id || wp.id || "opt_w_custom",
-      weight_name: wp.weight_name || wp.name || "0.5 kg",
-      selling_price: Number(wp.selling_price) || 0,
-      mrp: Number(wp.mrp) || Number(wp.selling_price) || 0,
-      cost_price: Number(wp.cost_price) || 0,
-      prep_time_minutes: Number(wp.prep_time_minutes) || 60,
-      is_enabled: wp.is_enabled ?? true,
-      created_at: wp.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }));
-    memoryStore.product_weight_prices.push(...entries);
-    ApiEngine.addAuditLog(`Updated Weight Pricing Matrix for product "${productId}"`);
-    ApiEngine.persist();
-    return entries;
-  }
-
-  // ── Enterprise Accessory & Cross-Sell Engine ──────────────────────────────
   static listAccessories(filters?: { category_id?: string; in_stock_only?: boolean; search?: string }) {
     if (!memoryStore || !Array.isArray(memoryStore.accessories)) {
       if (memoryStore) memoryStore.accessories = [...DEFAULT_ACCESSORIES];
@@ -10402,7 +10405,7 @@ export class ApiEngine {
   static listBranchZones(branchId: string): DeliveryZone[] {
     const branch = ApiEngine.getBranchById(branchId);
     if (!branch) return [];
-    return (branch.delivery_zones || []).sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    return (branch.delivery_zones || []).sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0));
   }
 
   static createBranchZone(branchId: string, zoneData: Partial<DeliveryZone>): DeliveryZone | null {
@@ -10607,13 +10610,6 @@ export class ApiEngine {
     return list;
   }
 
-  static resetStoreToCanonical() {
-    if (!memoryStore) memoryStore = {} as any;
-    memoryStore.branches = DEFAULT_BRANCHES.map((b) => normalizeBranchOperations(b));
-    ApiEngine.persist();
-    return memoryStore.branches;
-  }
-
   static getBranchOperationsDetail(branchId: string) {
     const branch = ApiEngine.getBranchById(branchId);
     if (!branch) return null;
@@ -10662,17 +10658,6 @@ export class ApiEngine {
     return normalizeBranchOperations(branch);
   }
 
-  static ensureOrdersStore() {
-    if (!memoryStore) memoryStore = {} as any;
-    if (!Array.isArray(memoryStore.orders)) memoryStore.orders = [];
-    if (!Array.isArray(memoryStore.partners)) {
-      memoryStore.partners = [
-        { id: "dlp_101", name: "Vikram Sethi", phone: "+91 98765 00001", role: "DELIVERY_PARTNER", status: "online", is_online: true },
-        { id: "dlp_102", name: "Suresh Gowda", phone: "+91 98765 00002", role: "DELIVERY_PARTNER", status: "online", is_online: true },
-      ];
-    }
-  }
-
   static listOrders(filters?: { branch_id?: string; customer_id?: string; status?: string }) {
     ApiEngine.ensureOrdersStore();
     let list = memoryStore.orders || [];
@@ -10688,11 +10673,6 @@ export class ApiEngine {
     return list;
   }
 
-  static getOrder(orderId: string) {
-    ApiEngine.ensureOrdersStore();
-    return (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId) || null;
-  }
-
   static listDeliveryPartners() {
     ApiEngine.ensureDeliveryPartnersStore();
     return memoryStore.delivery_partners || memoryStore.partners || [];
@@ -10704,17 +10684,6 @@ export class ApiEngine {
 
   static listAuditLogs() {
     return memoryStore.audit_logs || [];
-  }
-
-  static getHealth() {
-    return {
-      status: "operational",
-      uptime_seconds: process.uptime ? Math.floor(process.uptime()) : 3600,
-      timestamp: new Date().toISOString(),
-      database: "healthy",
-      branches_count: (memoryStore.branches || []).length,
-      products_count: (memoryStore.products || []).length,
-    };
   }
 
   static getBranchById(id: string) {
@@ -10733,7 +10702,7 @@ export class ApiEngine {
     
     const existing = idx >= 0 ? memoryStore.branches[idx] : null;
 
-    const branchObj: BranchItem = {
+    const branchObj: any = {
       id: branchId,
       status: data.status || existing?.status || "active",
       is_archived: Boolean(data.is_archived ?? existing?.is_archived ?? false),
@@ -11318,7 +11287,7 @@ export class ApiEngine {
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
     // 1. Overall Branch Status Check
-    if (branch.is_open === false || branch.operational_status === "closed" || branch.operational_status === "permanently_closed") {
+    if (branch.is_open === false || (branch.operational_status as string) === "closed" || branch.operational_status === "permanently_closed") {
       return {
         status: "CLOSED",
         message: `${branch.name} is currently closed and not accepting orders.`,
@@ -11439,7 +11408,8 @@ export class ApiEngine {
         start_time: "Now",
         end_time: "+45 Min",
         slot_type: "express",
-        extra_charge: rules.express_surcharge ?? 49,
+        extra_charge: rules.express_surcharge ?? 99,
+        extra_fee: rules.express_surcharge ?? 99,
         max_capacity: expressMax,
         booked_count: expressBooked,
         remaining_capacity: expressRemaining,
@@ -11513,7 +11483,8 @@ export class ApiEngine {
         start_time: "23:30",
         end_time: "00:05",
         slot_type: "midnight",
-        extra_charge: rules.midnight_surcharge ?? 79,
+        extra_charge: rules.midnight_surcharge ?? 199,
+        extra_fee: rules.midnight_surcharge ?? 199,
         max_capacity: midnightMax,
         booked_count: midnightBooked,
         remaining_capacity: midnightRemaining,
@@ -11542,6 +11513,7 @@ export class ApiEngine {
         end_time: "00:05",
         slot_type: "midnight",
         extra_charge: 199,
+        extra_fee: 199,
         max_capacity: 15,
         booked_count: 0,
         remaining_capacity: 15,
@@ -11549,6 +11521,11 @@ export class ApiEngine {
         status: "AVAILABLE",
       });
     }
+
+    slots.forEach((s: any) => {
+      if (s.extra_fee === undefined) s.extra_fee = s.extra_charge || 0;
+      if (s.extra_charge === undefined) s.extra_charge = s.extra_fee || 0;
+    });
 
     return Object.assign(slots, {
       status: "SUCCESS",
@@ -11840,14 +11817,14 @@ export class ApiEngine {
     };
 
     // Filter eligible partners based on order context requirements
-    const eligiblePartners = Object.entries(partnerConfigs)
-      .filter(([_, p]) => p.enabled && p.status === "live")
-      .filter(([_, p]) => !orderContext?.is_express || p.express_support)
-      .filter(([_, p]) => !orderContext?.is_midnight || p.midnight_support)
-      .filter(([_, p]) => !orderContext?.is_cod || p.cod_support)
-      .filter(([_, p]) => !orderContext?.is_large_cake || p.large_cake_support)
-      .filter(([_, p]) => !orderContext?.distance_km || orderContext.distance_km <= p.max_radius_km)
-      .filter(([_, p]) => p.current_load < p.max_concurrent);
+    const eligiblePartners = Object.entries(partnerConfigs as Record<string, any>)
+      .filter(([_, p]: [string, any]) => p.enabled && p.status === "live")
+      .filter(([_, p]: [string, any]) => !orderContext?.is_express || p.express_support)
+      .filter(([_, p]: [string, any]) => !orderContext?.is_midnight || p.midnight_support)
+      .filter(([_, p]: [string, any]) => !orderContext?.is_cod || p.cod_support)
+      .filter(([_, p]: [string, any]) => !orderContext?.is_large_cake || p.large_cake_support)
+      .filter(([_, p]: [string, any]) => !orderContext?.distance_km || orderContext.distance_km <= p.max_radius_km)
+      .filter(([_, p]: [string, any]) => p.current_load < p.max_concurrent);
 
     if (eligiblePartners.length === 0) {
       return {
@@ -12144,288 +12121,1160 @@ export class ApiEngine {
   }
 
   // ── Authentication Domain APIs ─────────────────────────────────────────────
-  static checkAccountByPhone(phone: string): { exists: boolean; role: string; account: any } {
-    if (!phone) return { exists: false, role: "CUSTOMER", account: null };
-    const cleanRaw = phone.trim().toLowerCase().replace(/\s+/g, "");
+  static checkAccountByPhone(phone: string): {
+    exists: boolean;
+    role: string;
+    user?: any;
+    branch_id?: string;
+    partner_id?: string;
+  } {
+    if (!phone) return { exists: false, role: "CUSTOMER" };
+    const raw = phone.trim().toLowerCase();
+    const cleanDigits = normalizePhone(raw);
 
-    // Demo keyword overrides (non-numeric)
-    if (cleanRaw === "driver" || cleanRaw === "dlp" || cleanRaw === "delivery") {
+    // 1. Explicit admin check
+    if (raw === "admin" || raw === "superadmin" || cleanDigits === "9999999999" || cleanDigits === "9876500000") {
+      return {
+        exists: true,
+        role: "SUPER_ADMIN",
+        user: { id: "admin_01", name: "Super Admin", role: "SUPER_ADMIN", phone: "+91 98765 00000" },
+      };
+    }
+
+    // 2. Standard test delivery partner fallback
+    if (cleanDigits === "9876500001") {
       return {
         exists: true,
         role: "DELIVERY_PARTNER",
-        account: {
-          id: "dlp_101",
-          user_id: "dlp_101",
-          partner_id: "dlp_101",
-          role: "DELIVERY_PARTNER",
-          name: "Vikram Sethi",
-          first_name: "Vikram",
-          last_name: "Sethi",
-          phone: "+91 98765 00001",
-          email: "vikram.sethi@cakes2home.com",
-          branch_id: "br_indiranagar",
-        },
+        partner_id: "dlp_01",
+        user: { id: "dlp_01", name: "Delivery Partner 1", role: "DELIVERY_PARTNER", phone: "+91 98765 00001", branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT" },
       };
     }
-    if (cleanRaw === "admin" || cleanRaw === "superadmin" || cleanRaw === "owner") {
-      return {
-        exists: true,
-        role: "SUPER_ADMIN",
-        account: {
-          id: "admin_01",
-          user_id: "admin_01",
-          role: "SUPER_ADMIN",
-          name: "Super Admin",
-          first_name: "Super",
-          last_name: "Admin",
-          phone: "+91 98765 00000",
-          email: "admin@cakes2home.com",
-        },
-      };
-    }
-    if (cleanRaw === "shop" || cleanRaw === "shpmgr" || cleanRaw === "manager" || cleanRaw === "branch") {
-      const b = ApiEngine.getBranchById("res_01KXYMAHGFPRY1G9TZKEVGAGAT") || ApiEngine.listBranches()[0];
-      const mgr = b?.manager_account || {};
+
+    // 2. Branch Manager check
+    const branchManager = ApiEngine.findBranchByManagerPhoneOrEmail(raw);
+    if (branchManager) {
       return {
         exists: true,
         role: "BRANCH_MANAGER",
-        account: {
-          id: mgr.id || "mgr_br_indiranagar",
-          user_id: mgr.id || "mgr_br_indiranagar",
-          shop_id: b?.id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-          branch_id: b?.id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-          role: "BRANCH_MANAGER",
-          name: mgr.name || "Rajesh Kumar",
-          first_name: (mgr.name || "Rajesh").split(" ")[0],
-          last_name: (mgr.name || "Kumar").split(" ").slice(1).join(" ") || "Kumar",
-          phone: mgr.phone || "+91 98765 00001",
-          email: mgr.email || "manager@cakes2home.com",
-          status: mgr.status || "active",
-        },
+        branch_id: branchManager.branch.id,
+        user: branchManager.manager,
       };
     }
 
-    const cleanDigits = phone.replace(/\D/g, "").slice(-10);
-
-    ApiEngine.ensureDeliveryPartnersStore();
-    const partners = ApiEngine.listDeliveryPartners() || [];
-    const branches = ApiEngine.listBranches() || [];
-    const customers = memoryStore.customers || [];
-    const users = memoryStore.users || [];
-
-    // 1. Check Super Admin
-    const usr = users.find((u: any) => (u.phone || "").replace(/\D/g, "").slice(-10) === cleanDigits);
-    if (usr) return { exists: true, role: usr.role || "SUPER_ADMIN", account: usr };
-    if (cleanDigits === "9876500000" || cleanDigits === "0000000000") {
-      return {
-        exists: true,
-        role: "SUPER_ADMIN",
-        account: {
-          id: "admin_01",
-          user_id: "admin_01",
-          role: "SUPER_ADMIN",
-          name: "Super Admin",
-          first_name: "Super",
-          last_name: "Admin",
-          phone: "+91 98765 00000",
-          email: "admin@cakes2home.com",
-        },
-      };
-    }
-
-    // 1b. Check Staff Profile Members
-    try {
-      const { StaffAccessControl } = require("./staff-access-control");
-      const staffList = StaffAccessControl.listStaffMembers();
-      const staffMatch = staffList.find(
-        (s: any) => (s.phone || "").replace(/\D/g, "").slice(-10) === cleanDigits
-      );
-      if (staffMatch) {
-        return {
-          exists: true,
-          role: staffMatch.role || "STAFF",
-          account: {
-            id: staffMatch.id,
-            user_id: staffMatch.user_id,
-            name: staffMatch.name,
-            first_name: staffMatch.name.split(" ")[0],
-            last_name: staffMatch.name.split(" ").slice(1).join(" ") || "Staff",
-            phone: staffMatch.phone,
-            email: staffMatch.email,
-            role: staffMatch.role || "STAFF",
-            profile_id: staffMatch.profile_id,
-            profile_ids: staffMatch.profile_ids || (staffMatch.profile_id ? [staffMatch.profile_id] : []),
-            profile_name: staffMatch.profile_name,
-            profile_names: staffMatch.profile_names || (staffMatch.profile_name ? [staffMatch.profile_name] : []),
-            effective_permissions: StaffAccessControl.getEffectivePermissions(staffMatch),
-            branch_id: staffMatch.branch_id,
-            branch_name: staffMatch.branch_name,
-            city: staffMatch.city,
-            status: staffMatch.status,
-          },
-        };
-      }
-    } catch {
-      // Safe fallback
-    }
-
-    // 2. Check Delivery Partner (exact 10-digit match)
-    const partner = partners.find((p: any) => (p.phone || "").replace(/\D/g, "").slice(-10) === cleanDigits);
+    // 3. Delivery Partner check
+    const partners = ApiEngine.getAdminDeliveryPartners();
+    const partner = Array.isArray(partners)
+      ? partners.find((p: any) => {
+          const pPhone = (p.phone || "").replace(/\D/g, "").slice(-10);
+          return cleanDigits && pPhone === cleanDigits;
+        })
+      : null;
     if (partner) {
       return {
         exists: true,
         role: "DELIVERY_PARTNER",
-        account: {
-          id: partner.id,
-          user_id: partner.id,
-          partner_id: partner.id,
-          role: "DELIVERY_PARTNER",
-          name: partner.full_name || partner.name || `${partner.first_name || ""} ${partner.last_name || ""}`.trim(),
-          first_name: partner.first_name || partner.name?.split(" ")[0] || "Delivery",
-          last_name: partner.last_name || partner.name?.split(" ")[1] || "Partner",
-          phone: partner.phone || phone,
-          email: partner.email || "",
-          status: partner.status || "active",
-          primary_branch_id: partner.primary_branch_id || partner.branch_id || partner.primary_branch_name,
-          branch_id: partner.primary_branch_id || partner.branch_id || partner.primary_branch_name,
-        },
-      };
-    }
-    if (cleanDigits === "9876500001" || cleanDigits === "9876500002") {
-      return {
-        exists: true,
-        role: "DELIVERY_PARTNER",
-        account: {
-          id: "dlp_101",
-          user_id: "dlp_101",
-          partner_id: "dlp_101",
-          role: "DELIVERY_PARTNER",
-          name: "Vikram Sethi",
-          first_name: "Vikram",
-          last_name: "Sethi",
-          phone: "+91 98765 00001",
-          email: "vikram.sethi@cakes2home.com",
-          branch_id: "br_indiranagar",
-        },
+        partner_id: partner.id,
+        user: partner,
       };
     }
 
-    // 3. Check Branch Manager
-    for (const b of branches) {
-      const mPhone = (b.manager_account?.phone || b.phone || "").replace(/\D/g, "").slice(-10);
-      if (mPhone && mPhone === cleanDigits) {
-        const mgr = b.manager_account || {};
-        return {
-          exists: true,
-          role: "BRANCH_MANAGER",
-          account: {
-            id: mgr.id || `mgr_${b.id}`,
-            user_id: mgr.id || `mgr_${b.id}`,
-            shop_id: b.id,
-            branch_id: b.id,
-            role: "BRANCH_MANAGER",
-            name: mgr.name || b.manager_name || "Branch Manager",
-            first_name: (mgr.name || b.manager_name || "Branch").split(" ")[0],
-            last_name: (mgr.name || b.manager_name || "Manager").split(" ").slice(1).join(" ") || "Manager",
-            phone: mgr.phone || b.phone,
-            email: mgr.email || b.email,
-            status: mgr.status || "active",
-          },
-        };
-      }
-    }
+    // 4. Customer check
+    ApiEngine.ensureCustomersStore();
+    const customers: CustomerRecord[] = memoryStore.customers || [];
+    const customer = customers.find(
+      (c) =>
+        (c.normalized_phone && c.normalized_phone === cleanDigits) ||
+        (c.phone && normalizePhone(c.phone) === cleanDigits) ||
+        (c.customer_uid && c.customer_uid === `cth_cus_${cleanDigits}`)
+    );
 
-    // 4. Check Customer
-    const cust = customers.find((c: any) => (c.phone || "").replace(/\D/g, "").slice(-10) === cleanDigits);
-    if (cust) {
-      const fullName = cust.name || `${cust.first_name || ""} ${cust.last_name || ""}`.trim() || `Customer ${cust.id.slice(-4)}`;
+    if (customer && !customer.merged_into_uid) {
       return {
         exists: true,
         role: "CUSTOMER",
-        account: {
-          id: cust.id,
-          user_id: cust.id,
-          customer_id: cust.id,
+        user: {
+          id: customer.id,
+          customer_uid: customer.customer_uid,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
           role: "CUSTOMER",
-          name: fullName,
-          first_name: cust.first_name || fullName.split(" ")[0] || "Customer",
-          last_name: cust.last_name || fullName.split(" ").slice(1).join(" ") || "User",
-          phone: cust.phone || phone,
-          email: cust.email,
         },
       };
     }
 
-    return { exists: false, role: "CUSTOMER", account: null };
-  }
-
-  static createCustomerAccount(input: { phone: string; name: string; email?: string }) {
-    const rawPhone = (input.phone || "").trim();
-    const cleanDigits = rawPhone.replace(/\D/g, "").slice(-10);
-    if (cleanDigits.length < 10) {
-      throw new Error("Please enter a valid 10-digit mobile number.");
-    }
-
-    // Verify existing account status
-    const accountCheck = ApiEngine.checkAccountByPhone(rawPhone);
-    if (accountCheck.exists && accountCheck.role !== "CUSTOMER") {
-      throw new Error(`This mobile number is registered as ${accountCheck.role}. Please use the corresponding login flow.`);
-    }
-
-    if (accountCheck.exists && accountCheck.role === "CUSTOMER" && accountCheck.account) {
-      const realCust = (memoryStore.customers || []).find((c: any) => (c.phone || "").replace(/\D/g, "").slice(-10) === cleanDigits);
-      if (realCust) {
-        if (input.name && input.name.trim() && !input.name.startsWith("Customer ")) {
-          realCust.name = input.name.trim();
-          const parts = input.name.trim().split(" ");
-          realCust.first_name = parts[0];
-          realCust.last_name = parts.slice(1).join(" ") || "User";
-          if (input.email) realCust.email = input.email;
-          ApiEngine.persist();
-        }
-        return realCust;
-      }
-      return accountCheck.account;
-    }
-
-    const newCustId = `cus_${cleanDigits}`;
-    const trimmedName = (input.name || "").trim() || `Customer ${cleanDigits.slice(-4)}`;
-    const nameParts = trimmedName.split(" ");
-    const firstName = nameParts[0] || "Customer";
-    const lastName = nameParts.slice(1).join(" ") || cleanDigits.slice(-4);
-    const formattedPhone = rawPhone.startsWith("+91") ? rawPhone : `+91 ${cleanDigits}`;
-    const email = input.email && input.email.trim() ? input.email.trim() : `customer_${cleanDigits}@cakes2home.com`;
-
-    const newCust = {
-      id: newCustId,
-      user_id: newCustId,
-      customer_id: newCustId,
+    return {
+      exists: false,
       role: "CUSTOMER",
-      name: trimmedName,
-      first_name: firstName,
-      last_name: lastName,
-      phone: formattedPhone,
-      email: email,
-      created_at: new Date().toISOString(),
     };
-
-    if (!memoryStore.customers) memoryStore.customers = [];
-    memoryStore.customers.push(newCust);
-    ApiEngine.persist();
-    return newCust;
   }
 
-  static requestOtp(phone: string) {
+  static requestAuthOtp(phone: string, method: string = "OTP_SMS", ip: string = "127.0.0.1", userAgent: string = "Web-Browser") {
+    const cleanPhone = normalizePhone(phone);
+    if (!cleanPhone && phone.trim().length < 3) {
+      throw new Error("Valid mobile number is required.");
+    }
     const check = ApiEngine.checkAccountByPhone(phone);
+    const displayPhone = formatDisplayPhone(cleanPhone);
+
+    // Record login activity
+    if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
+    memoryStore.login_events.unshift({
+      id: `log_${Date.now()}_req`,
+      identifier: phone,
+      phone: displayPhone,
+      normalized_phone: cleanPhone,
+      role: check.role,
+      user_id: check.user?.id || (check.role === "SUPER_ADMIN" ? "admin_01" : `cus_${cleanPhone}`),
+      user_name: check.user?.name || (check.role === "SUPER_ADMIN" ? "Super Admin" : "Guest"),
+      status: "OTP_SENT",
+      authentication_method: (method as any) || "OTP_SMS",
+      event_type: "OTP_REQUESTED",
+      ip_address: ip,
+      user_agent: userAgent,
+      created_at: new Date().toISOString(),
+    });
+
+    if (check.exists && check.user?.customer_uid) {
+      ApiEngine.recordCustomerActivity({
+        customer_uid: check.user.customer_uid,
+        event_type: "OTP_REQUESTED",
+        title: "Login OTP Requested",
+        description: `OTP requested for ${displayPhone} via ${method}.`,
+        source: "STOREFRONT",
+      });
+    }
+
     return {
       success: true,
-      message: check.exists ? `OTP sent successfully to ${phone}` : `Verification code sent to ${phone}`,
-      phone,
+      message: check.exists ? `OTP sent to ${displayPhone}` : `Verification code sent to ${displayPhone}`,
+      phone: displayPhone,
       otp: "123456",
       dev_otp: "123456",
       expiresIn: 300,
       account_exists: check.exists,
       role: check.role,
+    };
+  }
+
+  static requestOtp(phone: string) {
+    return ApiEngine.requestAuthOtp(phone);
+  }
+
+  static verifyAuthOtp(
+    phone: string,
+    code: string,
+    extra?: { name?: string; email?: string },
+    ip: string = "127.0.0.1",
+    userAgent: string = "Web-Browser"
+  ) {
+    const cleanPhone = normalizePhone(phone);
+    const displayPhone = formatDisplayPhone(cleanPhone);
+    const cleanCode = (code || "").replace(/\D/g, "");
+
+    if (cleanCode !== "123456" && cleanCode !== "000000") {
+      ApiEngine.fireWebhookEvent(
+        "customer.login.failed",
+        {
+          phone: displayPhone,
+          attempted_code_length: (code || "").length,
+          reason: "INVALID_OTP_CODE",
+          failed_at: new Date().toISOString(),
+        },
+        { ip, userAgent },
+        { phone: displayPhone }
+      );
+      throw new Error("Invalid verification code. Please enter 123456.");
+    }
+
+    const check = ApiEngine.checkAccountByPhone(phone);
+    const token = `cth_jwt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+    if (check.role === "SUPER_ADMIN") {
+      if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
+      memoryStore.login_events.unshift({
+        id: `log_${Date.now()}_admin`,
+        identifier: phone,
+        phone,
+        email: "admin@caketohome.com",
+        role: "SUPER_ADMIN",
+        user_id: "admin_01",
+        user_name: "Super Admin",
+        status: "SUCCESS",
+        authentication_method: "OTP_SMS",
+        event_type: "OTP_VERIFIED",
+        ip_address: ip,
+        user_agent: userAgent,
+        created_at: new Date().toISOString(),
+      });
+      return {
+        success: true,
+        token,
+        accessToken: token,
+        role: "SUPER_ADMIN",
+        user: { id: "admin_01", name: "Super Admin", role: "SUPER_ADMIN" },
+      };
+    }
+
+    if (check.role === "BRANCH_MANAGER") {
+      if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
+      memoryStore.login_events.unshift({
+        id: `log_${Date.now()}_mgr`,
+        identifier: phone,
+        phone,
+        email: (check.user as any)?.email || "manager@caketohome.com",
+        role: "BRANCH_MANAGER",
+        user_id: (check.user as any)?.id || check.branch_id || "mgr_01",
+        user_name: (check.user as any)?.name || "Branch Manager",
+        status: "SUCCESS",
+        authentication_method: "OTP_SMS",
+        event_type: "OTP_VERIFIED",
+        ip_address: ip,
+        user_agent: userAgent,
+        created_at: new Date().toISOString(),
+      });
+      return {
+        success: true,
+        token,
+        accessToken: token,
+        role: "BRANCH_MANAGER",
+        branch_id: check.branch_id,
+        user: check.user,
+      };
+    }
+
+    if (check.role === "DELIVERY_PARTNER") {
+      if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
+      memoryStore.login_events.unshift({
+        id: `log_${Date.now()}_partner`,
+        identifier: phone,
+        phone,
+        email: (check.user as any)?.email || "partner@caketohome.com",
+        role: "DELIVERY_PARTNER",
+        user_id: check.partner_id || "dlp_01",
+        user_name: (check.user as any)?.name || "Delivery Partner",
+        status: "SUCCESS",
+        authentication_method: "OTP_SMS",
+        event_type: "OTP_VERIFIED",
+        ip_address: ip,
+        user_agent: userAgent,
+        created_at: new Date().toISOString(),
+      });
+      return {
+        success: true,
+        token,
+        accessToken: token,
+        role: "DELIVERY_PARTNER",
+        partner_id: check.partner_id,
+        user: check.user,
+      };
+    }
+
+    // Customer flow
+    ApiEngine.ensureCustomersStore();
+    let customer = (memoryStore.customers as CustomerRecord[]).find(
+      (c) =>
+        (c.normalized_phone && c.normalized_phone === cleanPhone) ||
+        (c.phone && normalizePhone(c.phone) === cleanPhone) ||
+        (c.customer_uid && c.customer_uid === `cth_cus_${cleanPhone}`)
+    );
+
+    let isNewCustomer = false;
+
+    if (!customer) {
+      isNewCustomer = true;
+      const customerSeq = (memoryStore.customers?.length || 0) + 101;
+      const uid = `cth_cus_${cleanPhone}`;
+      const custNum = `CTH-CUST-${String(customerSeq).padStart(6, "0")}`;
+      const custName = extra?.name?.trim() || "Customer";
+      const custEmail = extra?.email?.trim() || "";
+
+      customer = {
+        id: `cus_${cleanPhone}`,
+        customer_uid: uid,
+        customer_number: custNum,
+        customer_type: "registered",
+        name: custName,
+        first_name: custName.split(" ")[0],
+        last_name: custName.split(" ").slice(1).join(" "),
+        phone: displayPhone,
+        normalized_phone: cleanPhone,
+        email: custEmail && !custEmail.includes("customer_") ? custEmail : "",
+        normalized_email: custEmail ? normalizeEmail(custEmail) : "",
+        lifecycle_stage: "NEW",
+        tier: "STANDARD",
+        is_vip: false,
+        orders_count: 0,
+        total_spend: 0,
+        aov: 0,
+        last_active_at: new Date().toISOString(),
+        last_login_at: new Date().toISOString(),
+        cart_status: "NO_CART",
+        branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+        branch_name: "Indiranagar Flagship Kitchen",
+        city_id: "city_bbr",
+        city_name: "Bengaluru",
+        delivery_pincode: "560038",
+        addresses: [],
+        notes: [],
+        tags: ["New Account", "Self Registered"],
+        loyalty: {
+          points_balance: 100,
+          points_earned: 100,
+          points_redeemed: 0,
+          tier: "STANDARD",
+          last_updated: new Date().toISOString(),
+        },
+        consent: {
+          whatsapp_status: "ELIGIBLE",
+          marketing_email: "SUBSCRIBED",
+          marketing_sms: "SUBSCRIBED",
+          marketing_whatsapp: "SUBSCRIBED",
+          transactional: "SUBSCRIBED",
+          updated_at: new Date().toISOString(),
+        },
+        acquisition_channel: "Direct Storefront",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      memoryStore.customers.unshift(customer);
+
+      ApiEngine.recordCustomerActivity({
+        customer_uid: uid,
+        event_type: "ACCOUNT_CREATED",
+        title: "Customer Account Created",
+        description: `Verified OTP for ${displayPhone} and created new account.`,
+        source: "STOREFRONT",
+      });
+
+      ApiEngine.fireWebhookEvent(
+        "customer.registered",
+        {
+          customer_id: customer.id,
+          customer_uid: customer.customer_uid,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+          city: customer.city_name,
+          tier: customer.tier,
+          registered_at: customer.created_at,
+        },
+        { source: "OTP_REGISTRATION" },
+        { customer_uid: customer.customer_uid, name: customer.name, phone: customer.phone, email: customer.email, city: customer.city_name },
+        { type: "customer", id: customer.id, city_id: customer.city_id, branch_id: customer.branch_id }
+      );
+    } else {
+      customer.last_login_at = new Date().toISOString();
+      customer.last_active_at = new Date().toISOString();
+      if (extra?.name && (!customer.name || customer.name === "Customer")) {
+        customer.name = extra.name;
+        customer.first_name = extra.name.split(" ")[0];
+        customer.last_name = extra.name.split(" ").slice(1).join(" ");
+      }
+      if (extra?.email && !customer.email) {
+        customer.email = extra.email;
+        customer.normalized_email = normalizeEmail(extra.email);
+      }
+    }
+
+    ApiEngine.recordCustomerActivity({
+      customer_uid: customer.customer_uid,
+      event_type: "LOGIN",
+      title: "Customer Logged In",
+      description: `Authenticated via mobile OTP on ${displayPhone}.`,
+      source: "STOREFRONT",
+    });
+
+    ApiEngine.fireWebhookEvent(
+      "customer.login.success",
+      {
+        customer_id: customer.id,
+        customer_uid: customer.customer_uid,
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email,
+        city: customer.city_name,
+        role: "CUSTOMER",
+        login_at: new Date().toISOString(),
+      },
+      { source: "STOREFRONT_OTP" },
+      { customer_uid: customer.customer_uid, name: customer.name, phone: customer.phone, email: customer.email, city: customer.city_name },
+      { type: "customer", id: customer.id, city_id: customer.city_id, branch_id: customer.branch_id }
+    );
+
+    ApiEngine.persist();
+
+    return {
+      success: true,
+      token,
+      accessToken: token,
+      role: "CUSTOMER",
+      customer_id: customer.id,
+      customer_uid: customer.customer_uid,
+      is_new_customer: isNewCustomer,
+      user: {
+        id: customer.id,
+        customer_id: customer.id,
+        customer_uid: customer.customer_uid,
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email,
+        role: "CUSTOMER",
+        tier: customer.tier,
+      },
+    };
+  }
+
+  static verifyOtp(phone: string, code: string, extra?: { name?: string; email?: string }) {
+    return ApiEngine.verifyAuthOtp(phone, code, extra);
+  }
+
+  static resolveUserAccount(query: { userId?: string; phone?: string; role?: string; customerUid?: string }) {
+    ApiEngine.ensureCustomersStore();
+    const cleanPhone = query.phone ? normalizePhone(query.phone) : "";
+
+    // Super Admin
+    if (query.role === "SUPER_ADMIN" || (!query.role && (query.userId === "admin_01" || cleanPhone === "9999999999" || cleanPhone === "9876500000"))) {
+      if (query.role && query.role !== "SUPER_ADMIN") return null;
+      return {
+        id: "admin_01",
+        customer_uid: "admin_01",
+        name: "Super Admin",
+        first_name: "Super",
+        last_name: "Admin",
+        email: "admin@cakes2home.com",
+        phone: "+91 98765 00000",
+        role: "SUPER_ADMIN",
+      };
+    }
+
+    // Branch Manager
+    if (query.role === "BRANCH_MANAGER" || query.role === "SHOP_MANAGER" || query.role === "SHOP" || query.role === "SHPMGR") {
+      if (cleanPhone === "9876500001" || query.userId === "usr_mgr_01") {
+        return {
+          id: "usr_mgr_01",
+          name: "Rajesh Kumar",
+          role: "BRANCH_MANAGER",
+          branch_id: "br_indiranagar",
+          branch_name: "Indiranagar Flagship Bakery",
+          phone: "+91 98765 00001",
+        };
+      }
+      const bRes = ApiEngine.findBranchByManagerPhoneOrEmail(query.phone || query.userId || "");
+      if (bRes) {
+        return {
+          ...bRes.manager,
+          role: "BRANCH_MANAGER",
+          branch_id: bRes.branch.id,
+          branch_name: bRes.branch.name,
+        };
+      }
+      return null;
+    }
+
+    // Delivery Partner
+    if (query.role === "DELIVERY_PARTNER" || query.role === "DLP") {
+      if (cleanPhone === "9876500001" || query.userId === "dlp_01" || query.userId === "dlp_101") {
+        return {
+          id: query.userId || "dlp_01",
+          name: "Delivery Partner 1",
+          role: "DELIVERY_PARTNER",
+          phone: "+91 98765 00001",
+          branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+        };
+      }
+      const partners = ApiEngine.getAdminDeliveryPartners();
+      const p = Array.isArray(partners)
+        ? partners.find((dp: any) => dp.id === query.userId || (cleanPhone && (dp.phone || "").replace(/\D/g, "").slice(-10) === cleanPhone))
+        : null;
+      if (p) return { ...p, role: "DELIVERY_PARTNER" };
+      return null;
+    }
+
+    // Explicitly rejected if query.role is not CUSTOMER or empty
+    if (query.role && query.role !== "CUSTOMER") {
+      return null;
+    }
+
+    // Customer
+    const customers: CustomerRecord[] = memoryStore.customers || [];
+    const customer = customers.find(
+      (c) =>
+        !c.merged_into_uid &&
+        ((query.customerUid && c.customer_uid === query.customerUid) ||
+          (query.userId && (c.id === query.userId || c.customer_uid === query.userId || c.account_id === query.userId)) ||
+          (cleanPhone && (c.normalized_phone === cleanPhone || normalizePhone(c.phone) === cleanPhone)))
+    );
+
+    if (customer) {
+      return {
+        id: customer.id,
+        customer_id: customer.id,
+        customer_uid: customer.customer_uid,
+        name: customer.name,
+        first_name: customer.first_name || customer.name.split(" ")[0],
+        last_name: customer.last_name || customer.name.split(" ").slice(1).join(" ") || "",
+        email: customer.email,
+        phone: customer.phone,
+        role: "CUSTOMER",
+        tier: customer.tier,
+        lifecycle_stage: customer.lifecycle_stage,
+        loyalty: customer.loyalty,
+        addresses: customer.addresses || [],
+        orders_count: customer.orders_count,
+        total_spend: customer.total_spend,
+        aov: customer.aov,
+      };
+    }
+
+    if (cleanPhone) {
+      return {
+        id: `cus_${cleanPhone}`,
+        customer_id: `cus_${cleanPhone}`,
+        customer_uid: `cth_cus_${cleanPhone}`,
+        name: "Customer",
+        first_name: "Customer",
+        last_name: "",
+        email: "",
+        phone: formatDisplayPhone(cleanPhone),
+        role: "CUSTOMER",
+        tier: "STANDARD",
+        lifecycle_stage: "NEW",
+        loyalty: { points: 0, balance: 0, pending_points: 0, lifetime_earned: 0, tier: "STANDARD" },
+        addresses: [],
+        orders_count: 0,
+        total_spend: 0,
+        aov: 0,
+      };
+    }
+
+    return null;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── CART & ABANDONED CART RECOVERY ENGINE ─────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  static ensureCartsStore() {
+    if (!memoryStore.carts || !Array.isArray(memoryStore.carts)) {
+      memoryStore.carts = [
+        {
+          id: "cart_ab_102",
+          customer_uid: "cth_cus_rahul_02",
+          customer_name: "Rahul Verma",
+          customer_phone: "+91 98765 43211",
+          customer_email: "rahul.verma@example.com",
+          branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          branch_name: "Indiranagar Flagship Kitchen",
+          city: "Bengaluru",
+          items: [
+            {
+              id: "item_ab_1",
+              product_id: "prod_01KXY_BELGIAN_TRUFFLE",
+              title: "Belgian Dark Chocolate Truffle Cake",
+              thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800",
+              unit_price: 1299,
+              quantity: 1,
+              total_price: 1299,
+              cake_message: "Happy Birthday Rahul!",
+            },
+            {
+              id: "item_ab_2",
+              product_id: "prod_candle_magic",
+              title: "Sparkler Birthday Candle Pack",
+              thumbnail: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800",
+              unit_price: 63,
+              quantity: 1,
+              total_price: 63,
+            },
+          ],
+          subtotal: 1362,
+          total: 1362,
+          currency_code: "inr",
+          status: "ACTIVE",
+          created_at: new Date(Date.now() - 1000 * 60 * 50).toISOString(),
+          updated_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+          last_activity_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+        },
+      ];
+    }
+
+    if (!memoryStore.abandoned_carts || !Array.isArray(memoryStore.abandoned_carts)) {
+      memoryStore.abandoned_carts = [
+        {
+          id: "cart_ab_102",
+          cart_id: "cart_ab_102",
+          customer_uid: "cth_cus_rahul_02",
+          customer_name: "Rahul Verma",
+          phone: "+91 98765 43211",
+          normalized_phone: "9876543211",
+          email: "rahul.verma@example.com",
+          branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          branch_name: "Indiranagar Flagship Kitchen",
+          city: "Bengaluru",
+          items: [
+            {
+              id: "item_ab_1",
+              product_id: "prod_01KXY_BELGIAN_TRUFFLE",
+              title: "Belgian Dark Chocolate Truffle Cake",
+              thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800",
+              unit_price: 1299,
+              quantity: 1,
+              total_price: 1299,
+              cake_message: "Happy Birthday Rahul!",
+            },
+          ],
+          cart_value: 1362,
+          currency_code: "INR",
+          status: "ABANDONED",
+          recovery_status: "RECOVERY_SENT",
+          whatsapp_status: "ELIGIBLE",
+          created_at: new Date(Date.now() - 1000 * 60 * 50).toISOString(),
+          last_activity_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+          abandoned_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+          last_contacted_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+          recovery_attempts_count: 1,
+        },
+      ];
+    }
+  }
+
+  static getCart(cartId?: string, customerUid?: string) {
+    ApiEngine.ensureCartsStore();
+    const carts: any[] = Array.isArray(memoryStore.carts) ? memoryStore.carts : (memoryStore.carts = []);
+
+    let cart = carts.find((c) => cartId && (c.id === cartId || c.cart_id === cartId));
+    if (!cart && customerUid) {
+      cart = carts.find((c) => c.customer_uid === customerUid && c.status === "ACTIVE");
+    }
+
+    if (!cart) {
+      const newCartId = cartId || `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      cart = {
+        id: newCartId,
+        customer_uid: customerUid || null,
+        items: [],
+        subtotal: 0,
+        total: 0,
+        currency_code: "inr",
+        status: "ACTIVE",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        last_activity_at: new Date().toISOString(),
+      };
+      memoryStore.carts.unshift(cart);
+      ApiEngine.persist();
+    } else if (customerUid && !cart.customer_uid) {
+      cart.customer_uid = customerUid;
+      cart.updated_at = new Date().toISOString();
+      ApiEngine.persist();
+    }
+
+    return cart;
+  }
+
+  static addToCart(cartId: string, item: any, customerUid?: string) {
+    ApiEngine.ensureCartsStore();
+    const cart = ApiEngine.getCart(cartId, customerUid);
+    if (!Array.isArray(cart.items)) cart.items = [];
+
+    const targetProdId = item.productId || item.product_id || item.id;
+    const targetBranchId = item.branchId || item.branch_id || cart.branch_id;
+    const targetPincode = item.pincode || cart.delivery_pincode;
+
+    if (targetProdId && (targetBranchId || targetPincode)) {
+      let bId = targetBranchId;
+      if (!bId && targetPincode) {
+        const smart = ApiEngine.resolveSmartBranch({ pincode: targetPincode });
+        if (smart?.branch) bId = smart.branch.id;
+      }
+      if (bId) {
+        const branch = ApiEngine.resolveBranchRecord(bId);
+        const override = branch?.product_availability?.[targetProdId];
+        const normStatus = (override?.status || "").toUpperCase();
+        if (normStatus === "OUT_OF_STOCK" || normStatus === "UNAVAILABLE" || normStatus === "OUT_TODAY" || normStatus === "HIDDEN") {
+          throw new Error(`Product is out of stock or unavailable for delivery at selected branch.`);
+        }
+      }
+    }
+
+    const existingItemIdx = cart.items.findIndex(
+      (i: any) => (i.product_id === (item.product_id || item.productId || item.id)) && i.variant_id === item.variant_id
+    );
+
+    if (existingItemIdx >= 0) {
+      cart.items[existingItemIdx].quantity += item.quantity || 1;
+      cart.items[existingItemIdx].total_price = cart.items[existingItemIdx].quantity * cart.items[existingItemIdx].unit_price;
+    } else {
+      const unitPrice = Number(item.unit_price || item.price || 0);
+      const qty = Number(item.quantity || 1);
+      const itemSubtotal = unitPrice * qty;
+      cart.items.push({
+        id: item.id || `item_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        product_id: item.product_id || item.productId || targetProdId,
+        variant_id: item.variant_id,
+        title: item.title || item.name || "Celebration Cake",
+        thumbnail: item.thumbnail || "",
+        unit_price: unitPrice,
+        price: unitPrice,
+        quantity: qty,
+        total_price: itemSubtotal,
+        subtotal: itemSubtotal,
+        weight: item.weight || "500g",
+        shape: item.shape || "Round",
+        flavour: item.flavour || "Classic",
+        cake_message: item.cake_message || null,
+        eggless: item.eggless ?? true,
+        sugar_free: item.sugar_free ?? false,
+        gluten_free: item.gluten_free ?? false,
+        vegan: item.vegan ?? false,
+        greeting_card_text: item.greeting_card_text || null,
+        selected_addons: item.selected_addons || [],
+        occasion: item.occasion || null,
+        special_instructions: item.special_instructions || null,
+      });
+    }
+
+    cart.subtotal = cart.items.reduce((sum: number, i: any) => sum + (Number(i.total_price || i.subtotal) || 0), 0);
+    cart.total = cart.subtotal;
+    cart.status = "ACTIVE";
+    cart.updated_at = new Date().toISOString();
+    cart.last_activity_at = new Date().toISOString();
+
+    if (customerUid || cart.customer_uid) {
+      const uid = customerUid || cart.customer_uid;
+      ApiEngine.ensureCustomersStore();
+      const cust = (memoryStore.customers as CustomerRecord[]).find((c) => c.customer_uid === uid);
+      if (cust) {
+        cust.cart_status = "ACTIVE_CART";
+        cust.last_active_at = new Date().toISOString();
+      }
+      ApiEngine.recordCustomerActivity({
+        customer_uid: uid,
+        event_type: "CART_ITEM_ADDED",
+        title: "Product Added to Cart",
+        description: `Added "${item.title || "Cake"}" (${item.quantity || 1}x) to shopping cart. Value: ₹${cart.subtotal}.`,
+        source: "STOREFRONT",
+        metadata: { cart_id: cart.id, subtotal: cart.subtotal },
+      });
+    }
+
+    ApiEngine.persist();
+    return cart;
+  }
+
+  static clearCart(cartId: string) {
+    ApiEngine.ensureCartsStore();
+    const carts: any[] = Array.isArray(memoryStore.carts) ? memoryStore.carts : (memoryStore.carts = []);
+    const cart = carts.find((c) => c.id === cartId);
+    if (cart) {
+      cart.items = [];
+      cart.subtotal = 0;
+      cart.total = 0;
+      cart.status = "CLEARED";
+      cart.updated_at = new Date().toISOString();
+      if (cart.customer_uid) {
+        const cust = (memoryStore.customers as CustomerRecord[]).find((c) => c.customer_uid === cart.customer_uid);
+        if (cust) {
+          cust.cart_status = "NO_CART";
+        }
+      }
+      ApiEngine.persist();
+      return cart;
+    }
+    return null;
+  }
+
+  static mergeGuestCartToCustomer(guestCartId: string, customerUid: string) {
+    ApiEngine.ensureCartsStore();
+    const carts: any[] = Array.isArray(memoryStore.carts) ? memoryStore.carts : (memoryStore.carts = []);
+    const guestCart = carts.find((c) => c.id === guestCartId);
+    let customerCart = carts.find((c) => c.customer_uid === customerUid && c.id !== guestCartId && c.status === "ACTIVE");
+
+    if (!guestCart || guestCart.items.length === 0) {
+      return customerCart || ApiEngine.getCart(undefined, customerUid);
+    }
+
+    if (!customerCart) {
+      guestCart.customer_uid = customerUid;
+      guestCart.updated_at = new Date().toISOString();
+      ApiEngine.persist();
+      return guestCart;
+    }
+
+    // Merge items
+    for (const gItem of guestCart.items) {
+      const matchIdx = customerCart.items.findIndex((ci: any) => ci.product_id === gItem.product_id);
+      if (matchIdx >= 0) {
+        customerCart.items[matchIdx].quantity += gItem.quantity;
+        customerCart.items[matchIdx].total_price = customerCart.items[matchIdx].quantity * customerCart.items[matchIdx].unit_price;
+      } else {
+        customerCart.items.push(gItem);
+      }
+    }
+
+    customerCart.subtotal = customerCart.items.reduce((sum: number, i: any) => sum + (Number(i.total_price) || 0), 0);
+    customerCart.total = customerCart.subtotal;
+    customerCart.updated_at = new Date().toISOString();
+    guestCart.status = "MERGED";
+    guestCart.items = [];
+
+    ApiEngine.recordCustomerActivity({
+      customer_uid: customerUid,
+      event_type: "CART_UPDATED",
+      title: "Guest Cart Merged",
+      description: `Merged ${guestCart.items.length} guest cart items into authenticated customer cart.`,
+      source: "STOREFRONT",
+      metadata: { cart_id: customerCart.id, subtotal: customerCart.subtotal },
+    });
+
+    ApiEngine.persist();
+    return customerCart;
+  }
+
+  static trackCartActivity(payload: {
+    cart_id: string;
+    customer_uid?: string;
+    customer_id?: string;
+    step?: string;
+    step_reached?: string;
+    items?: any[];
+    subtotal?: number;
+    total_amount?: number;
+    phone?: string;
+    customer_phone?: string;
+    email?: string;
+    customer_email?: string;
+    customer_name?: string;
+    city?: string;
+    pincode?: string;
+    branch_id?: string;
+  }) {
+    ApiEngine.ensureCartsStore();
+    const custUid = payload.customer_uid || payload.customer_id;
+    const cart = ApiEngine.getCart(payload.cart_id, custUid);
+    cart.cart_id = cart.id || payload.cart_id;
+
+    if (payload.items) cart.items = payload.items;
+    if (payload.subtotal !== undefined) cart.subtotal = payload.subtotal;
+    if (payload.total_amount !== undefined) cart.subtotal = payload.total_amount;
+    if (payload.phone || payload.customer_phone) cart.customer_phone = payload.phone || payload.customer_phone;
+    if (payload.email || payload.customer_email) cart.customer_email = payload.email || payload.customer_email;
+    if (payload.customer_name) cart.customer_name = payload.customer_name;
+    if (payload.branch_id) cart.branch_id = payload.branch_id;
+    if (payload.city) cart.city = payload.city;
+    if (payload.pincode) cart.delivery_pincode = payload.pincode;
+    cart.last_activity_at = new Date().toISOString();
+    cart.updated_at = new Date().toISOString();
+
+    const uid = payload.customer_uid || cart.customer_uid;
+    if (uid) {
+      ApiEngine.ensureCustomersStore();
+      const cust = (memoryStore.customers as CustomerRecord[]).find((c) => c.customer_uid === uid);
+      if (cust) {
+        cust.last_active_at = new Date().toISOString();
+        if (payload.step === "CHECKOUT_STARTED") {
+          cust.cart_status = "ACTIVE_CART";
+        }
+      }
+
+      if (payload.step) {
+        ApiEngine.recordCustomerActivity({
+          customer_uid: uid,
+          event_type: payload.step as any,
+          title: `Cart Funnel: ${payload.step.replace(/_/g, " ")}`,
+          description: `Customer reached ${payload.step} step in shopping checkout.`,
+          source: "STOREFRONT",
+          metadata: { cart_id: cart.id, subtotal: cart.subtotal },
+        });
+      }
+    }
+
+    ApiEngine.persist();
+    return cart;
+  }
+
+  static evaluateCartAbandonment(thresholdMinutes: number = 30) {
+    ApiEngine.ensureCartsStore();
+    const carts: any[] = Array.isArray(memoryStore.carts) ? memoryStore.carts : [];
+    const completedOrders: any[] = Array.isArray(memoryStore.orders) ? memoryStore.orders : [];
+    const now = Date.now();
+    const cutoffMs = thresholdMinutes * 60 * 1000;
+
+    const abandonedCarts: any[] = Array.isArray(memoryStore.abandoned_carts) ? memoryStore.abandoned_carts : (memoryStore.abandoned_carts = []);
+
+    for (const c of carts) {
+      if (c.items && c.items.length > 0 && c.status === "ACTIVE") {
+        const lastActMs = new Date(c.last_activity_at || c.updated_at || c.created_at).getTime();
+        if (thresholdMinutes === 0 || now - lastActMs >= cutoffMs) {
+          const hasOrder = completedOrders.some((o) => o.cart_id === c.id);
+          if (!hasOrder) {
+            const existingAbIdx = abandonedCarts.findIndex((ab: any) => ab.cart_id === c.id);
+            const abRecord = {
+              id: c.id,
+              cart_id: c.id,
+              customer_uid: c.customer_uid || (c.customer_phone ? `cth_cus_${normalizePhone(c.customer_phone)}` : null),
+              customer_name: c.customer_name || "Guest Customer",
+              phone: formatDisplayPhone(c.customer_phone || ""),
+              normalized_phone: normalizePhone(c.customer_phone || ""),
+              email: c.customer_email || "",
+              branch_id: c.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+              branch_name: c.branch_name || "Indiranagar Flagship Kitchen",
+              city: c.city || "Bengaluru",
+              items: c.items,
+              cart_value: c.subtotal || c.total || 0,
+              currency_code: "INR",
+              status: "ABANDONED",
+              recovery_status: existingAbIdx >= 0 ? abandonedCarts[existingAbIdx].recovery_status : "ELIGIBLE",
+              whatsapp_status: c.customer_phone ? "ELIGIBLE" : "NO_PHONE",
+              created_at: c.created_at,
+              last_activity_at: c.last_activity_at || c.updated_at,
+              abandoned_at: new Date(lastActMs + cutoffMs).toISOString(),
+              last_contacted_at: existingAbIdx >= 0 ? abandonedCarts[existingAbIdx].last_contacted_at : null,
+              recovery_attempts_count: existingAbIdx >= 0 ? abandonedCarts[existingAbIdx].recovery_attempts_count : 0,
+            };
+
+            c.status = "ABANDONED";
+            if (existingAbIdx >= 0) {
+              abandonedCarts[existingAbIdx] = { ...abandonedCarts[existingAbIdx], ...abRecord };
+            } else {
+              abandonedCarts.unshift(abRecord);
+              ApiEngine.fireWebhookEvent(
+                "cart.abandoned",
+                {
+                  cart_id: abRecord.cart_id,
+                  customer_uid: abRecord.customer_uid,
+                  customer_name: abRecord.customer_name,
+                  phone: abRecord.phone,
+                  cart_value: abRecord.cart_value,
+                  items: abRecord.items,
+                  branch_id: abRecord.branch_id,
+                  branch_name: abRecord.branch_name,
+                  city: abRecord.city,
+                  abandoned_at: abRecord.abandoned_at,
+                  recovery_status: abRecord.recovery_status,
+                },
+                { source: "CART_ABANDONMENT_SCAN" },
+                { customer_uid: abRecord.customer_uid, name: abRecord.customer_name, phone: abRecord.phone },
+                { type: "cart", id: abRecord.cart_id, branch_id: abRecord.branch_id }
+              );
+            }
+
+            if (c.customer_uid) {
+              const cust = (memoryStore.customers as CustomerRecord[]).find((cust) => cust.customer_uid === c.customer_uid);
+              if (cust) {
+                cust.cart_status = "ABANDONED_CART";
+              }
+            }
+          }
+        }
+      }
+    }
+
+    ApiEngine.persist();
+    const resultList = (memoryStore.abandoned_carts as any[]) || [];
+    return Object.assign(resultList, {
+      success: true,
+      evaluated_sessions: (memoryStore.carts as any[] || []).length,
+      abandoned_count: resultList.length,
+      carts: resultList,
+    });
+  }
+
+  static listAbandonedCarts(filters: any = {}) {
+    ApiEngine.ensureCartsStore();
+    ApiEngine.evaluateCartAbandonment(15);
+    const all = (memoryStore.abandoned_carts as any[]) || [];
+
+    let list = [...all];
+
+    const q = (filters.q || filters.search || "").trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (c: any) =>
+          (c.customer_name || "").toLowerCase().includes(q) ||
+          (c.phone || "").includes(q) ||
+          (c.email || "").toLowerCase().includes(q) ||
+          (c.cart_id || "").toLowerCase().includes(q)
+      );
+    }
+
+    if (filters.status && filters.status !== "all") {
+      list = list.filter((c: any) => c.status === filters.status || c.recovery_status === filters.status);
+    }
+
+    if (filters.branch_id && filters.branch_id !== "all") {
+      list = list.filter((c: any) => c.branch_id === filters.branch_id);
+    }
+
+    const totalCount = all.length;
+    const totalAbandonedValue = all.reduce((sum: number, c: any) => sum + (Number(c.cart_value) || 0), 0);
+    const eligibleRecoveryValue = all
+      .filter((c: any) => c.status === "ABANDONED" && c.recovery_status !== "RECOVERED")
+      .reduce((sum: number, c: any) => sum + (Number(c.cart_value) || 0), 0);
+    const recoveredList = all.filter((c: any) => c.status === "RECOVERED" || c.recovery_status === "RECOVERED");
+    const recoveredRevenue = recoveredList.reduce((sum: number, c: any) => sum + (Number(c.cart_value) || 0), 0);
+    const recoveryRate = totalCount > 0 ? Math.round((recoveredList.length / totalCount) * 100) : 0;
+    const reachableCount = all.filter((c: any) => c.phone && c.phone.length > 5).length;
+
+    return {
+      carts: list,
+      total: list.length,
+      summary: {
+        total_abandoned_count: totalCount,
+        total_abandoned_value: totalAbandonedValue,
+        eligible_recovery_value: eligibleRecoveryValue,
+        recovered_count: recoveredList.length,
+        recovered_revenue: recoveredRevenue,
+        recovery_rate_pct: recoveryRate,
+        whatsapp_reachable_count: reachableCount,
+      },
+      success: true,
+    };
+  }
+
+  static getAbandonedCartById(cartId: string) {
+    ApiEngine.ensureCartsStore();
+    const carts = (memoryStore.abandoned_carts as any[]) || [];
+    return carts.find((c: any) => c.cart_id === cartId || c.id === cartId) || null;
+  }
+
+  static generateCartRecoveryToken(cartId: string) {
+    const token = `recov_tok_${cartId}_${Date.now()}`;
+    if (!memoryStore.recovery_tokens || typeof memoryStore.recovery_tokens !== "object") (memoryStore as any).recovery_tokens = {};
+    (memoryStore as any).recovery_tokens[token] = {
+      cart_id: cartId,
+      created_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    };
+    const ab = ((memoryStore.abandoned_carts as any[]) || []).find((c: any) => c.cart_id === cartId || c.id === cartId);
+    if (ab) {
+      ab.recovery_token = token;
+    }
+    ApiEngine.persist();
+    return {
+      token,
+      recovery_url: `/cart/recover/${token}`,
+      expires_at: (memoryStore as any).recovery_tokens[token].expires_at,
+    };
+  }
+
+  static revalidateAndRestoreRecoveredCart(token: string) {
+    ApiEngine.ensureCartsStore();
+    const parts = token.split("_");
+    const cartId = parts[2] ? parts.slice(2, -1).join("_") || parts[2] : token;
+
+    let cart = (memoryStore.carts || []).find((c: any) => c.id === cartId) ||
+      ((memoryStore.abandoned_carts as any[]) || []).find((c: any) => c.cart_id === cartId || c.id === cartId);
+
+    if (!cart) {
+      throw new Error("Invalid or expired recovery link. Cart could not be located.");
+    }
+
+    // Revalidate live catalog pricing & availability
+    const liveProducts = ApiEngine.getProducts();
+    const revalidatedItems = (cart.items || []).map((item: any) => {
+      const match = liveProducts.find((p: any) => p.id === item.product_id);
+      const currentPrice = match ? match.price || match.unit_price || item.unit_price : item.unit_price;
+      return {
+        ...item,
+        unit_price: currentPrice,
+        total_price: currentPrice * item.quantity,
+      };
+    });
+
+    cart.items = revalidatedItems;
+    cart.subtotal = revalidatedItems.reduce((sum: number, i: any) => sum + (Number(i.total_price) || 0), 0);
+    cart.total = cart.subtotal;
+    cart.status = "RECOVERED_IN_PROGRESS";
+    cart.recovery_status = "RECOVERED";
+    cart.updated_at = new Date().toISOString();
+
+    const abIdx = ((memoryStore.abandoned_carts as any[]) || []).findIndex((ab: any) => ab.cart_id === cart.id || ab.id === cart.id);
+    if (abIdx >= 0 && memoryStore.abandoned_carts) {
+      (memoryStore.abandoned_carts as any[])[abIdx].recovery_status = "RECOVERED";
+    }
+
+    if (cart.customer_uid) {
+      ApiEngine.recordCustomerActivity({
+        customer_uid: cart.customer_uid,
+        event_type: "RECOVERY_LINK_CLICKED",
+        title: "Cart Recovery Link Opened",
+        description: `Customer opened cart recovery link. Revalidated items. Value: ₹${cart.subtotal}.`,
+        source: "STOREFRONT",
+      });
+    }
+
+    ApiEngine.persist();
+    return {
+      success: true,
+      cart,
+      restored_items: cart.items,
+      validation: {
+        products_available: true,
+        branch_serviceable: true,
+      },
+      message: "Cart recovered and live catalog prices revalidated.",
+    };
+  }
+
+  static sendCartRecoveryNotification(cartId: string, channel: string = "WHATSAPP", message?: string) {
+    ApiEngine.ensureCartsStore();
+    if (!Array.isArray(memoryStore.abandoned_carts)) memoryStore.abandoned_carts = [];
+    let abIdx = ((memoryStore.abandoned_carts as any[]) || []).findIndex((ab: any) => ab.cart_id === cartId || ab.id === cartId);
+    if (abIdx < 0) {
+      const liveCart = (memoryStore.carts as any[] || []).find((c: any) => c.id === cartId || c.cart_id === cartId);
+      if (liveCart) {
+        const abEntry = {
+          id: liveCart.id,
+          cart_id: liveCart.id,
+          customer_uid: liveCart.customer_uid,
+          customer_name: liveCart.customer_name || "Customer",
+          phone: formatDisplayPhone(liveCart.customer_phone || ""),
+          email: liveCart.customer_email || "",
+          cart_value: liveCart.subtotal || 649,
+          items: liveCart.items || [],
+          status: "ABANDONED",
+          recovery_status: "ELIGIBLE",
+          recovery_attempts_count: 0,
+          created_at: liveCart.created_at || new Date().toISOString(),
+          abandoned_at: new Date().toISOString(),
+        };
+        (memoryStore.abandoned_carts as any[]).unshift(abEntry);
+        abIdx = 0;
+      }
+    }
+    if (abIdx < 0) throw new Error("Abandoned cart not found.");
+
+    const cart = (memoryStore.abandoned_carts as any[])[abIdx];
+    cart.recovery_status = "RECOVERY_SENT";
+    cart.last_contacted_at = new Date().toISOString();
+    cart.recovery_attempts_count = (cart.recovery_attempts_count || 0) + 1;
+
+    const tokenObj = ApiEngine.generateCartRecoveryToken(cart.cart_id || cart.id);
+
+    if (cart.customer_uid) {
+      ApiEngine.recordCustomerActivity({
+        customer_uid: cart.customer_uid,
+        event_type: "RECOVERY_MESSAGE_SENT",
+        title: `Recovery Message Sent via ${channel}`,
+        description: message || `Sent cart recovery notification with discount for cart value ₹${cart.cart_value}.`,
+        source: "ADMIN_CRM",
+        staff_id: "admin_01",
+        staff_name: "Super Admin",
+        metadata: { cart_id: cart.cart_id, channel, recovery_url: tokenObj.recovery_url },
+      });
+    }
+
+    ApiEngine.persist();
+    return {
+      success: true,
+      channel,
+      cart_id: cart.cart_id,
+      recovery_token: tokenObj.token,
+      recovery_url: tokenObj.recovery_url,
+      message: `Recovery notification queued via ${channel}.`,
     };
   }
 
@@ -12557,342 +13406,6 @@ export class ApiEngine {
     ApiEngine.addBranchAuditLog(fromBranchId, "Transfer Manager Out", mgr.name, `Transferred to ${toB.name}`, "super_admin", "127.0.0.1", "Manager transferred");
     ApiEngine.addBranchAuditLog(toBranchId, "Transfer Manager In", "", mgr.name, "super_admin", "127.0.0.1", "Manager transferred in");
     ApiEngine.persist();
-    return toB.manager_account;
-  }
-
-  static resolveUserAccount(query: { userId?: string; phone?: string; email?: string; role?: string }): any {
-    const { userId, phone, email, role } = query || {};
-
-    const cleanPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
-    const cleanEmail = email ? email.trim().toLowerCase() : "";
-
-    ApiEngine.ensureDeliveryPartnersStore();
-
-    const partners = ApiEngine.listDeliveryPartners() || [];
-    const branches = ApiEngine.listBranches() || [];
-    const customers = memoryStore.customers || [];
-    const users = memoryStore.users || [];
-
-    // 1. Direct match by userId if provided
-    if (userId) {
-      // Check Delivery Partners
-      const partner = partners.find((p: any) => p.id === userId || p.user_id === userId || p.partner_number === userId);
-      if (partner) {
-        return {
-          id: partner.id,
-          user_id: partner.id,
-          partner_id: partner.id,
-          role: "DELIVERY_PARTNER",
-          name: partner.full_name || partner.name || `${partner.first_name || ""} ${partner.last_name || ""}`.trim(),
-          first_name: partner.first_name || partner.name?.split(" ")[0] || "Delivery",
-          last_name: partner.last_name || partner.name?.split(" ")[1] || "Partner",
-          phone: partner.phone || phone,
-          email: partner.email || email,
-        };
-      }
-      if (userId === "dlp_101" || userId === "dlp_102") {
-        return {
-          id: "dlp_101",
-          user_id: "dlp_101",
-          partner_id: "dlp_101",
-          role: "DELIVERY_PARTNER",
-          name: "Vikram Sethi",
-          first_name: "Vikram",
-          last_name: "Sethi",
-          phone: "+91 98765 00001",
-          email: "vikram.sethi@cakes2home.com",
-          branch_id: "br_indiranagar",
-        };
-      }
-
-      // Check Branch Managers
-      for (const b of branches) {
-        if (
-          b.id === userId ||
-          b.manager_user_id === userId ||
-          (b.manager_account && (b.manager_account.id === userId || b.manager_account.user_id === userId || b.id === userId)) ||
-          (userId && (userId.includes(b.id) || (b.id && userId.includes(b.id.replace("br_", "")))))
-        ) {
-          return {
-            id: b.manager_account?.id || `mgr_${b.id}`,
-            user_id: b.manager_account?.id || `mgr_${b.id}`,
-            shop_id: b.id,
-            branch_id: b.id,
-            role: "BRANCH_MANAGER",
-            name: b.manager_account?.name || b.manager_name || `${b.name} Manager`,
-            first_name: (b.manager_account?.name || b.manager_name || b.name || "Branch").split(" ")[0],
-            last_name: (b.manager_account?.name || b.manager_name || "Manager").split(" ").slice(1).join(" ") || "Manager",
-            phone: b.manager_account?.phone || b.phone || phone,
-            email: b.manager_account?.email || b.email || email,
-            branch_name: b.name,
-          };
-        }
-      }
-
-      // Check Customers
-      const cust = customers.find((c: any) => c.id === userId || c.user_id === userId);
-      if (cust) {
-        const fullName = cust.name || `${cust.first_name || ""} ${cust.last_name || ""}`.trim() || `Customer ${cust.id.slice(-4)}`;
-        return {
-          id: cust.id,
-          user_id: cust.id,
-          customer_id: cust.id,
-          role: "CUSTOMER",
-          name: fullName,
-          first_name: cust.first_name || fullName.split(" ")[0] || "Customer",
-          last_name: cust.last_name || fullName.split(" ").slice(1).join(" ") || "User",
-          phone: cust.phone || phone,
-          email: cust.email || email,
-        };
-      }
-
-      // Check Users (Admin / Super Admin)
-      const usr = users.find((u: any) => u.id === userId);
-      if (usr || userId === "admin_01") {
-        return {
-          id: usr?.id || "admin_01",
-          user_id: usr?.id || "admin_01",
-          role: usr?.role || "SUPER_ADMIN",
-          name: usr?.name || "Super Admin",
-          first_name: usr?.first_name || "Super",
-          last_name: usr?.last_name || "Admin",
-          phone: usr?.phone || phone || "+91 98765 00000",
-          email: usr?.email || email || "admin@cakes2home.com",
-        };
-      }
-    }
-
-    // 2. Match by canonical phone number if cleanPhone exists
-    if (cleanPhone) {
-      const targetRole = role ? role.toUpperCase() : null;
-
-      // If specific role is requested, search ONLY within that role's domain:
-      if (targetRole === "DELIVERY_PARTNER" || targetRole === "DLP") {
-        const partner = partners.find((p: any) => {
-          const pPhone = (p.phone || "").replace(/\D/g, "").slice(-10);
-          return pPhone === cleanPhone;
-        });
-        if (partner) {
-          return {
-            id: partner.id,
-            user_id: partner.id,
-            partner_id: partner.id,
-            role: "DELIVERY_PARTNER",
-            name: partner.full_name || partner.name || `${partner.first_name || ""} ${partner.last_name || ""}`.trim(),
-            first_name: partner.first_name || partner.name?.split(" ")[0] || "Delivery",
-            last_name: partner.last_name || partner.name?.split(" ")[1] || "Partner",
-            phone: partner.phone,
-            email: partner.email,
-            branch_id: partner.primary_branch_id || partner.primary_branch_name,
-          };
-        }
-        if (cleanPhone === "9876500001" || cleanPhone === "9876500002") {
-          return {
-            id: "dlp_101",
-            user_id: "dlp_101",
-            partner_id: "dlp_101",
-            role: "DELIVERY_PARTNER",
-            name: "Vikram Sethi",
-            first_name: "Vikram",
-            last_name: "Sethi",
-            phone: "+91 98765 00001",
-            email: "vikram.sethi@cakes2home.com",
-            branch_id: "br_indiranagar",
-          };
-        }
-        return null;
-      }
-
-      if (targetRole === "BRANCH_MANAGER" || targetRole === "SHOP_MANAGER" || targetRole === "SHOP") {
-        for (const b of branches) {
-          const mPhone = (b.manager_account?.phone || b.phone || "").replace(/\D/g, "").slice(-10);
-          if (mPhone === cleanPhone) {
-            const mgr = b.manager_account || {};
-            return {
-              id: mgr.id || `mgr_${b.id}`,
-              user_id: mgr.id || `mgr_${b.id}`,
-              shop_id: b.id,
-              branch_id: b.id,
-              role: "BRANCH_MANAGER",
-              name: mgr.name || b.manager_name || "Branch Manager",
-              first_name: (mgr.name || b.manager_name || "Branch").split(" ")[0],
-              last_name: (mgr.name || b.manager_name || "Manager").split(" ").slice(1).join(" ") || "Manager",
-              phone: mgr.phone || b.phone,
-              email: mgr.email || b.email,
-            };
-          }
-        }
-        if (cleanPhone === "9876500001" || cleanPhone === "9876500003" || cleanPhone === "9876500000") {
-          const b = branches[0] || { id: "br_indiranagar" };
-          return {
-            id: "mgr_br_indiranagar",
-            user_id: "mgr_br_indiranagar",
-            shop_id: b.id,
-            branch_id: b.id,
-            role: "BRANCH_MANAGER",
-            name: "Rajesh Kumar",
-            first_name: "Rajesh",
-            last_name: "Kumar",
-            phone: "+91 98765 00001",
-            email: "manager@cakes2home.com",
-          };
-        }
-        return null;
-      }
-
-      if (!targetRole || targetRole === "SUPER_ADMIN" || targetRole === "ADMIN") {
-        const usr = users.find((u: any) => {
-          const uPhone = (u.phone || "").replace(/\D/g, "").slice(-10);
-          return uPhone === cleanPhone;
-        });
-        if (usr) {
-          return {
-            id: usr.id,
-            user_id: usr.id,
-            role: usr.role || "SUPER_ADMIN",
-            name: usr.name || "Super Admin",
-            first_name: usr.first_name || "Super",
-            last_name: usr.last_name || "Admin",
-            phone: usr.phone,
-            email: usr.email,
-          };
-        }
-        if (cleanPhone === "9876500000" || cleanPhone === "0000000000") {
-          return {
-            id: "admin_01",
-            user_id: "admin_01",
-            role: "SUPER_ADMIN",
-            name: "Super Admin",
-            first_name: "Super",
-            last_name: "Admin",
-            phone: "+91 98765 00000",
-            email: "admin@cakes2home.com",
-          };
-        }
-        if (targetRole === "SUPER_ADMIN" || targetRole === "ADMIN") return null;
-      }
-
-      // Priority 1: Check Registered Customers
-      const cust = customers.find((c: any) => {
-        const cPhone = (c.phone || "").replace(/\D/g, "").slice(-10);
-        return cPhone === cleanPhone;
-      });
-      if (cust) {
-        const fullName = cust.name || `${cust.first_name || ""} ${cust.last_name || ""}`.trim() || `Customer ${cust.id.slice(-4)}`;
-        return {
-          id: cust.id,
-          user_id: cust.id,
-          customer_id: cust.id,
-          role: "CUSTOMER",
-          name: fullName,
-          first_name: cust.first_name || fullName.split(" ")[0] || "Customer",
-          last_name: cust.last_name || fullName.split(" ").slice(1).join(" ") || "User",
-          phone: cust.phone || phone,
-          email: cust.email || email,
-        };
-      }
-
-      // Priority 2: Check Delivery Partner (exact 10-digit match) only if no explicit customer role forced
-      if (!targetRole || targetRole !== "CUSTOMER") {
-        const partner = partners.find((p: any) => {
-          const pPhone = (p.phone || "").replace(/\D/g, "").slice(-10);
-          return pPhone === cleanPhone;
-        });
-        if (partner) {
-          return {
-            id: partner.id,
-            user_id: partner.id,
-            partner_id: partner.id,
-            role: "DELIVERY_PARTNER",
-            name: partner.full_name || partner.name || `${partner.first_name || ""} ${partner.last_name || ""}`.trim(),
-            first_name: partner.first_name || partner.name?.split(" ")[0] || "Delivery",
-            last_name: partner.last_name || partner.name?.split(" ")[1] || "Partner",
-            phone: partner.phone,
-            email: partner.email,
-            branch_id: partner.primary_branch_id || partner.primary_branch_name,
-          };
-        }
-        if (cleanPhone === "9876500001" || cleanPhone === "9876500002") {
-          return {
-            id: "dlp_101",
-            user_id: "dlp_101",
-            partner_id: "dlp_101",
-            role: "DELIVERY_PARTNER",
-            name: "Vikram Sethi",
-            first_name: "Vikram",
-            last_name: "Sethi",
-            phone: "+91 98765 00001",
-            email: "vikram.sethi@cakes2home.com",
-            branch_id: "br_indiranagar",
-          };
-        }
-
-        // Priority 3: Check Branch Manager
-        for (const b of branches) {
-          const mPhone = (b.manager_account?.phone || b.phone || "").replace(/\D/g, "").slice(-10);
-          if (mPhone === cleanPhone) {
-            const mgr = b.manager_account || {};
-            return {
-              id: mgr.id || `mgr_${b.id}`,
-              user_id: mgr.id || `mgr_${b.id}`,
-              shop_id: b.id,
-              branch_id: b.id,
-              role: "BRANCH_MANAGER",
-              name: mgr.name || b.manager_name || "Branch Manager",
-              first_name: (mgr.name || b.manager_name || "Branch").split(" ")[0],
-              last_name: (mgr.name || b.manager_name || "Manager").split(" ").slice(1).join(" ") || "Manager",
-              phone: mgr.phone || b.phone,
-              email: mgr.email || b.email,
-            };
-          }
-        }
-      }
-
-    }
-
-    return null;
-  }
-
-  static verifyOtp(phone: string, code: string, extra?: { name?: string; email?: string }) {
-    const cleanCode = (code || "").trim();
-    if (cleanCode !== "123456" && cleanCode !== "000000") {
-      throw new Error("Invalid OTP verification code. Please enter the valid 6-digit OTP.");
-    }
-
-    const check = ApiEngine.checkAccountByPhone(phone);
-    let userAccount = check.account;
-    const isNew = !check.exists;
-
-    if (isNew) {
-      if (extra && extra.name) {
-        userAccount = ApiEngine.createCustomerAccount({ phone, name: extra.name, email: extra.email });
-      } else {
-        userAccount = ApiEngine.createCustomerAccount({ phone, name: `Customer ${phone.replace(/\D/g, "").slice(-4)}` });
-      }
-    }
-
-    if (!userAccount) {
-      throw new Error("Unable to resolve user account for phone");
-    }
-
-    if (userAccount.status === "suspended" || userAccount.status === "inactive" || userAccount.status === "disabled") {
-      throw new Error("Account Suspended by Super Admin. Please contact operations.");
-    }
-
-    const role = userAccount.role || "CUSTOMER";
-    const roleKey = role.toLowerCase();
-    const token = `jwt_${roleKey}_${userAccount.id}_${Date.now()}`;
-
-    return {
-      success: true,
-      accessToken: token,
-      token,
-      role,
-      is_new_customer: isNew,
-      branch_id: userAccount.branch_id || userAccount.shop_id,
-      partner_id: userAccount.partner_id,
-      user: userAccount,
-    };
   }
 
   static listCityAreasPincodes() {
@@ -12982,8 +13495,8 @@ export class ApiEngine {
   }
 
   static movePincodeZone(pincode: string, targetBranchId: string, targetZoneId: string): PincodeZoneMapping {
-    const mappings = getDefaultPincodeMappings();
-    let m = mappings.find((item) => item.pincode === pincode);
+    const mappings = ApiEngine.listPincodeMappings();
+    let m = mappings.find((item: any) => item.pincode === pincode);
     const targetBranch = ApiEngine.getBranchById(targetBranchId) || ApiEngine.listBranches()[0];
     if (!m) {
       m = {
@@ -13082,7 +13595,7 @@ export class ApiEngine {
 
     // Step 3: Match zone by pincode first, then by index
     const selectedZone: DeliveryZone | undefined =
-      branchZones.find((z) => Array.isArray(z.pincodes) && z.pincodes.includes(pincode)) ||
+      branchZones.find((z: any) => Array.isArray(z.pincodes) && z.pincodes.includes(pincode)) ||
       branchZones[0];
     if (!selectedZone) {
       return { eligible: false, assigned_branch: { id: assignedBranch.id, name: assignedBranch.name }, delivery_charge: 0, reason: "No zone found for pincode" };
@@ -13156,7 +13669,7 @@ export class ApiEngine {
 
     const zones = Array.isArray(assignedBranch.delivery_zones) ? assignedBranch.delivery_zones : [];
     const zone: DeliveryZone | undefined =
-      zones.find((z) => Array.isArray(z.pincodes) && z.pincodes.includes(pincode)) ||
+      zones.find((z: any) => Array.isArray(z.pincodes) && z.pincodes.includes(pincode)) ||
       zones[0];
     if (!zone) {
       return { branch_code: assignedBranch.code, zone_name: "Unzoned", slots: [] };
@@ -13391,10 +13904,10 @@ export class ApiEngine {
       return {
         serviceable: true,
         badge: "✓ Deliverable to your pincode",
-        assigned_branch: evalResult.assigned_branch.name,
-        assigned_zone: evalResult.assigned_zone.name,
+        assigned_branch: evalResult.assigned_branch?.name || '',
+        assigned_zone: evalResult.assigned_zone?.name || '',
         earliest_delivery: "Today by 6:00 PM",
-        fee: evalResult.fee_breakdown.total_delivery_fee,
+        fee: evalResult.fee_breakdown?.total_delivery_fee || 0,
         express_available: true,
         midnight_available: true,
       };
@@ -13523,7 +14036,7 @@ export class ApiEngine {
       }
 
       // Match zone by pincode first, fallback to first zone
-      const zone: DeliveryZone = zones.find((z) => Array.isArray(z.pincodes) && z.pincodes.includes(pincode)) || zones[0];
+      const zone: DeliveryZone = zones.find((z: any) => Array.isArray(z.pincodes) && z.pincodes.includes(pincode)) || zones[0];
 
       if (!zone.enabled) {
         evaluatedCandidates.push({ branch_id: b.id, name: b.name, code: b.code, eligible: false, reason: `Zone "${zone.name}" is disabled`, total_score: 0 });
@@ -14148,389 +14661,6 @@ export class ApiEngine {
     if (!memoryStore.popup_campaigns) {
       memoryStore.popup_campaigns = [];
     }
-  }
-
-  static listPopupCampaigns(query: Record<string, any> = {}) {
-    ApiEngine.ensurePopupCampaignsStore();
-    let list = [...memoryStore.popup_campaigns];
-
-    if (query.status && query.status !== "all") {
-      list = list.filter((c: any) => c.status === query.status);
-    }
-    if (query.popup_type && query.popup_type !== "all") {
-      list = list.filter((c: any) => c.popup_type === query.popup_type);
-    }
-    if (query.q) {
-      const q = String(query.q).toLowerCase();
-      list = list.filter((c: any) =>
-        c.name?.toLowerCase().includes(q) ||
-        c.slug?.toLowerCase().includes(q) ||
-        c.description?.toLowerCase().includes(q) ||
-        c.current_version?.content?.headline?.toLowerCase().includes(q) ||
-        c.draft_version?.content?.headline?.toLowerCase().includes(q)
-      );
-    }
-
-    return list.sort((a: any, b: any) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime());
-  }
-
-  static getPopupCampaignById(id: string) {
-    ApiEngine.ensurePopupCampaignsStore();
-    return memoryStore.popup_campaigns.find((c: any) => c.id === id || c.slug === id) || null;
-  }
-
-  static createPopupCampaign(data: any) {
-    ApiEngine.ensurePopupCampaignsStore();
-    const id = data.id || `pop_${Date.now()}`;
-    const name = data.name || "New Popup Campaign";
-    const slug = data.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `popup-${Date.now()}`;
-    const now = new Date().toISOString();
-
-    const draftVersion = data.draft_version || {
-      id: `ver_${Date.now()}`,
-      popup_campaign_id: id,
-      version_number: 1,
-      content: data.content || {
-        templateId: data.templateId || "WELCOME_SIMPLE",
-        headline: data.headline || name,
-        description: data.description || "",
-        primaryButton: data.primaryButton || { label: "Continue", action: "CLOSE" },
-        secondaryButton: data.secondaryButton,
-        phoneConfig: data.phoneConfig || { enabled: false },
-      },
-      design: data.design || {
-        desktopLayout: "CENTER_MODAL",
-        tabletLayout: "CENTER_MODAL",
-        mobileLayout: "CENTER_MODAL",
-        borderRadius: 16,
-        accentColor: "#e11d48",
-      },
-      trigger: data.trigger || {
-        enabled_triggers: data.enabled_triggers || ["time_on_page"],
-        timeOnPageSeconds: data.timeOnPageSeconds || 3,
-      },
-      audience: data.audience || {
-        customerStatus: ["all"],
-        devices: ["desktop", "tablet", "mobile"],
-      },
-      frequency: data.frequency || {
-        scope: "session",
-        maxShows: 1,
-      },
-      schedule: data.schedule || {},
-      offer: data.offer || { type: "NONE" },
-      media: data.media || { source: "NO_IMAGE" },
-      rules: data.rules || [],
-      created_at: now,
-    };
-
-    const campaign = {
-      id,
-      name,
-      slug,
-      description: data.description || "",
-      popup_type: data.popup_type || "WELCOME",
-      status: data.status || "draft",
-      priority: Number(data.priority) || 100,
-      enabled: data.enabled !== false,
-      start_at: data.start_at || null,
-      end_at: data.end_at || null,
-      timezone: data.timezone || "Asia/Kolkata",
-      draft_version: draftVersion,
-      current_version: data.status === "published" ? draftVersion : (data.current_version || null),
-      created_at: now,
-      updated_at: now,
-      analytics: {
-        impressions: 0,
-        dismissals: 0,
-        clicks: 0,
-        conversions: 0,
-        ctr: 0,
-        conversion_rate: 0,
-        recovered_revenue: 0,
-      },
-    };
-
-    memoryStore.popup_campaigns.push(campaign);
-    ApiEngine.persist();
-    return campaign;
-  }
-
-  static updatePopupCampaign(id: string, data: any) {
-    ApiEngine.ensurePopupCampaignsStore();
-    const idx = memoryStore.popup_campaigns.findIndex((c: any) => c.id === id);
-    if (idx === -1) {
-      throw new Error(`Popup Campaign with ID "${id}" not found.`);
-    }
-
-    const existing = memoryStore.popup_campaigns[idx];
-    const now = new Date().toISOString();
-
-    const updated = {
-      ...existing,
-      ...data,
-      id: existing.id,
-      name: data.name !== undefined ? data.name : existing.name,
-      slug: data.slug !== undefined ? data.slug : existing.slug,
-      description: data.description !== undefined ? data.description : existing.description,
-      popup_type: data.popup_type !== undefined ? data.popup_type : existing.popup_type,
-      status: data.status !== undefined ? data.status : existing.status,
-      priority: data.priority !== undefined ? Number(data.priority) : existing.priority,
-      enabled: data.enabled !== undefined ? data.enabled : existing.enabled,
-      updated_at: now,
-    };
-
-    if (data.draft_version) {
-      updated.draft_version = {
-        ...(existing.draft_version || {}),
-        ...data.draft_version,
-      };
-    } else if (data.content || data.design || data.trigger || data.audience || data.frequency || data.offer || data.media || data.rules) {
-      const currentDraft = existing.draft_version || { id: `ver_${Date.now()}`, popup_campaign_id: id, version_number: 1 };
-      updated.draft_version = {
-        ...currentDraft,
-        content: data.content !== undefined ? data.content : currentDraft.content,
-        design: data.design !== undefined ? data.design : currentDraft.design,
-        trigger: data.trigger !== undefined ? data.trigger : currentDraft.trigger,
-        audience: data.audience !== undefined ? data.audience : currentDraft.audience,
-        frequency: data.frequency !== undefined ? data.frequency : currentDraft.frequency,
-        schedule: data.schedule !== undefined ? data.schedule : currentDraft.schedule,
-        offer: data.offer !== undefined ? data.offer : currentDraft.offer,
-        media: data.media !== undefined ? data.media : currentDraft.media,
-        rules: data.rules !== undefined ? data.rules : currentDraft.rules,
-      };
-    }
-
-    memoryStore.popup_campaigns[idx] = updated;
-    ApiEngine.persist();
-    return updated;
-  }
-
-  static publishPopupCampaign(id: string, versionData: any = {}) {
-    ApiEngine.ensurePopupCampaignsStore();
-    const campaign = ApiEngine.getPopupCampaignById(id);
-    if (!campaign) {
-      throw new Error(`Popup Campaign with ID "${id}" not found.`);
-    }
-
-    const now = new Date().toISOString();
-    const versionToPublish = {
-      ...(campaign.draft_version || {}),
-      ...(versionData.version || versionData),
-      published_at: now,
-    };
-
-    const updated = {
-      ...campaign,
-      status: "published",
-      enabled: true,
-      current_version: versionToPublish,
-      draft_version: versionToPublish,
-      updated_at: now,
-    };
-
-    const idx = memoryStore.popup_campaigns.findIndex((c: any) => c.id === id);
-    memoryStore.popup_campaigns[idx] = updated;
-    ApiEngine.persist();
-    return updated;
-  }
-
-  static pausePopupCampaign(id: string) {
-    return ApiEngine.updatePopupCampaign(id, { status: "paused", enabled: false });
-  }
-
-  static archivePopupCampaign(id: string) {
-    return ApiEngine.updatePopupCampaign(id, { status: "archived", enabled: false });
-  }
-
-  static duplicatePopupCampaign(id: string) {
-    const existing = ApiEngine.getPopupCampaignById(id);
-    if (!existing) throw new Error(`Popup Campaign "${id}" not found.`);
-
-    const newId = `pop_${Date.now()}`;
-    const clone = JSON.parse(JSON.stringify(existing));
-    clone.id = newId;
-    clone.name = `Copy of ${existing.name}`;
-    clone.slug = `${existing.slug}-copy-${Date.now().toString().slice(-4)}`;
-    clone.status = "draft";
-    clone.created_at = new Date().toISOString();
-    clone.updated_at = clone.created_at;
-    if (clone.draft_version) clone.draft_version.id = `ver_${Date.now()}`;
-    if (clone.current_version) clone.current_version.id = `ver_${Date.now()}`;
-
-    memoryStore.popup_campaigns.push(clone);
-    ApiEngine.persist();
-    return clone;
-  }
-
-  static deletePopupCampaign(id: string) {
-    ApiEngine.ensurePopupCampaignsStore();
-    const idx = memoryStore.popup_campaigns.findIndex((c: any) => c.id === id);
-    if (idx === -1) return false;
-    memoryStore.popup_campaigns.splice(idx, 1);
-    ApiEngine.persist();
-    return true;
-  }
-
-  static getPopupOptions() {
-    ApiEngine.ensurePopupCampaignsStore();
-    return {
-      customer_statuses: [
-        { label: "All Customers & Guests", value: "all" },
-        { label: "Guest (Not Logged In)", value: "guest" },
-        { label: "Logged In Customers", value: "logged_in" },
-        { label: "First-Time Customers", value: "new_customer" },
-        { label: "Repeat Customers", value: "returning_customer" },
-        { label: "VIP / Elite Members", value: "member" },
-      ],
-      devices: [
-        { label: "Desktop", value: "desktop" },
-        { label: "Tablet", value: "tablet" },
-        { label: "Mobile", value: "mobile" },
-      ],
-      popup_types: [
-        { label: "Welcome / First Visit", value: "WELCOME" },
-        { label: "Phone Login / Auth Modal", value: "LOGIN" },
-        { label: "Cart Exit Intent Recovery", value: "CART_EXIT" },
-        { label: "Product Page Exit Intent", value: "PRODUCT_EXIT" },
-        { label: "Abandoned Cart Notification", value: "ABANDONED_CART" },
-        { label: "Returning Customer Offer", value: "RETURNING" },
-        { label: "Flash Sale / Promotional", value: "PROMOTIONAL" },
-        { label: "VIP Member Exclusive", value: "MEMBER" },
-      ],
-      actions: [
-        { label: "Close Popup", value: "CLOSE" },
-        { label: "Mobile Phone Login (OTP)", value: "LOGIN_WITH_MOBILE" },
-        { label: "Apply Promo Coupon", value: "APPLY_COUPON" },
-        { label: "Open Cart Drawer", value: "OPEN_CART" },
-        { label: "Proceed to Checkout", value: "CHECKOUT" },
-        { label: "View Product", value: "VIEW_PRODUCT" },
-        { label: "View Category", value: "VIEW_CATEGORY" },
-        { label: "Custom URL Link", value: "CUSTOM_URL" },
-      ],
-      cities: (memoryStore.cities || []).map((c: any) => ({ label: c.name, value: c.id })),
-      branches: (memoryStore.branches || []).map((b: any) => ({ label: b.name, value: b.id })),
-      categories: (memoryStore.pim_categories || []).map((cat: any) => ({ label: cat.name, value: cat.id })),
-      products: (memoryStore.products || []).slice(0, 50).map((p: any) => ({ label: p.title || p.name, value: p.id || p.product_id })),
-      coupons: (memoryStore.offers || []).map((o: any) => ({ label: `${o.code} (${o.discount_value}% OFF)`, value: o.code, id: o.id })),
-    };
-  }
-
-  static getPopupAnalyticsSummary(query: Record<string, any> = {}) {
-    ApiEngine.ensurePopupCampaignsStore();
-    const campaigns = memoryStore.popup_campaigns || [];
-    let impressions = 0;
-    let dismissals = 0;
-    let clicks = 0;
-    let conversions = 0;
-    let recoveredRevenue = 0;
-
-    for (const c of campaigns) {
-      if (c.analytics) {
-        impressions += c.analytics.impressions || 0;
-        dismissals += c.analytics.dismissals || 0;
-        clicks += c.analytics.clicks || 0;
-        conversions += c.analytics.conversions || 0;
-        recoveredRevenue += c.analytics.recovered_revenue || 0;
-      }
-    }
-
-    const ctr = impressions > 0 ? Number(((clicks / impressions) * 100).toFixed(1)) : 0;
-    const conversionRate = impressions > 0 ? Number(((conversions / impressions) * 100).toFixed(1)) : 0;
-
-    return {
-      summary: {
-        total_campaigns: campaigns.length,
-        active_campaigns: campaigns.filter((c: any) => c.status === "published" && c.enabled).length,
-        impressions,
-        dismissals,
-        clicks,
-        conversions,
-        ctr,
-        conversion_rate: conversionRate,
-        recovered_revenue: recoveredRevenue,
-      },
-      success: true,
-    };
-  }
-
-  static getPublishedEngagementConfig(query: Record<string, any> = {}) {
-    ApiEngine.ensurePopupCampaignsStore();
-    const now = new Date();
-    const device = query.device || "desktop";
-    const cityId = query.city_id || query.cityId;
-
-    const published = (memoryStore.popup_campaigns || []).filter((c: any) => {
-      if (c.status !== "published" || !c.enabled) return false;
-      const ver = c.current_version;
-      if (!ver) return false;
-
-      // Schedule check
-      if (c.start_at && new Date(c.start_at).getTime() > now.getTime()) return false;
-      if (c.end_at && new Date(c.end_at).getTime() < now.getTime()) return false;
-
-      // Device check if version specifies
-      if (ver.audience?.devices && ver.audience.devices.length > 0 && !ver.audience.devices.includes(device)) {
-        return false;
-      }
-
-      // City check if version specifies
-      if (cityId && ver.audience?.cityIds && ver.audience.cityIds.length > 0 && !ver.audience.cityIds.includes(cityId)) {
-        return false;
-      }
-
-      return true;
-    });
-
-    return {
-      version: 1,
-      timestamp: now.toISOString(),
-      campaigns: published,
-    };
-  }
-
-  static recordEngagementImpression(data: any) {
-    ApiEngine.ensurePopupCampaignsStore();
-    const campaignId = data.campaign_id || data.campaignId;
-    const eventType = data.event_type || data.eventType || "shown";
-    if (!campaignId) return false;
-
-    const campaign = ApiEngine.getPopupCampaignById(campaignId);
-    if (!campaign) return false;
-
-    if (!campaign.analytics) {
-      campaign.analytics = { impressions: 0, dismissals: 0, clicks: 0, conversions: 0, ctr: 0, conversion_rate: 0, recovered_revenue: 0 };
-    }
-
-    if (eventType === "shown") {
-      campaign.analytics.impressions = (campaign.analytics.impressions || 0) + 1;
-    } else if (eventType === "dismissed") {
-      campaign.analytics.dismissals = (campaign.analytics.dismissals || 0) + 1;
-    }
-
-    ApiEngine.persist();
-    return true;
-  }
-
-  static recordEngagementConversion(data: any) {
-    ApiEngine.ensurePopupCampaignsStore();
-    const campaignId = data.campaign_id || data.campaignId;
-    const value = Number(data.recovered_revenue || data.value) || 0;
-    if (!campaignId) return false;
-
-    const campaign = ApiEngine.getPopupCampaignById(campaignId);
-    if (!campaign) return false;
-
-    if (!campaign.analytics) {
-      campaign.analytics = { impressions: 0, dismissals: 0, clicks: 0, conversions: 0, ctr: 0, conversion_rate: 0, recovered_revenue: 0 };
-    }
-
-    campaign.analytics.clicks = (campaign.analytics.clicks || 0) + 1;
-    campaign.analytics.conversions = (campaign.analytics.conversions || 0) + 1;
-    campaign.analytics.recovered_revenue = (campaign.analytics.recovered_revenue || 0) + value;
-
-    ApiEngine.persist();
-    return true;
   }
 
   static getSavedReports() {
@@ -15192,7 +15322,7 @@ export class ApiEngine {
     const details = ApiEngine.getBranchOrderDetails(orderId, branchId);
     if (!details.success || !details.order) return details;
 
-    const ord = details.order;
+    const ord: any = details.order;
     const kotNumber = `KOT-${ord.order_number}`;
 
     const kotPayload = {
@@ -15245,8 +15375,10 @@ export class ApiEngine {
     const details = ApiEngine.getBranchOrderDetails(orderId, branchId);
     if (!details.success || !details.order) return details;
 
-    const ord = details.order;
-    const invNumber = ord.invoice_number || `INV-${ord.order_number}`;
+    const ord: any = details.order;
+    const invNumber = ord.invoice_number && ord.invoice_number.startsWith("INV-")
+      ? ord.invoice_number
+      : (ord.invoice_number ? `INV-${ord.invoice_number.replace(/^CTH\//, "")}` : `INV-${ord.order_number}`);
     const snap = ord.compliance_snapshot || {};
     const bizProfile = ApiEngine.getBusinessProfile();
 
@@ -15296,7 +15428,14 @@ export class ApiEngine {
       },
     };
 
-    return { success: true, statusCode: 200, invoice: invoicePayload };
+    return {
+      success: true,
+      statusCode: 200,
+      invoice: invoicePayload,
+      seller_gstin: invoicePayload.seller_gstin,
+      invoice_number: invoicePayload.invoice_number,
+      is_intra_state: snap.is_intra_state !== false,
+    };
   }
 
   static getBranchProducts(branchId: string) {
@@ -15330,9 +15469,12 @@ export class ApiEngine {
     return { success: true, statusCode: 200, products, branch_id: branch.id, branch_name: branch.name };
   }
 
-  static updateBranchProductAvailability(branchId: string, productId: string, status: string, reason?: string) {
+  static updateBranchProductAvailability(branchId: string, productId: string, statusOrData: string | { status: string; reason?: string }, reasonArg?: string) {
     const branch = ApiEngine.resolveBranchRecord(branchId);
     if (!branch) return { success: false, statusCode: 404, error: "Branch not found" };
+
+    const status = typeof statusOrData === "object" ? statusOrData.status : statusOrData;
+    const reason = typeof statusOrData === "object" ? (statusOrData.reason || reasonArg) : reasonArg;
 
     if (!branch.product_availability) branch.product_availability = {};
     const normStatus = (status || "").toUpperCase();
@@ -15794,11 +15936,13 @@ export class ApiEngine {
 
     // 1. Cart Verification
     let cart = data.cart_id ? this.getCart(data.cart_id) : null;
-    if (!cart && Array.isArray((data as any).cart_items || (data as any).items)) {
+    if (!cart) {
       cart = {
         id: data.cart_id || `cart_temp_${Date.now()}`,
-        items: (data as any).cart_items || (data as any).items,
+        items: (data as any).cart_items || (data as any).items || [],
       };
+    } else if ((!Array.isArray(cart.items) || cart.items.length === 0) && Array.isArray((data as any).cart_items || (data as any).items)) {
+      cart.items = (data as any).cart_items || (data as any).items;
     }
 
     if (!cart || !Array.isArray(cart.items) || cart.items.length === 0) {
@@ -16041,7 +16185,9 @@ export class ApiEngine {
         discount: discountAmount,
         applied_coupon: appliedCoupon,
         delivery_fee: deliveryFee,
+        delivery_charge: deliveryFee,
         slot_surcharge: slotSurcharge,
+        slot_charge: slotSurcharge,
         taxable_value: Math.round(totalTaxableValue * 100) / 100,
         cgst: Math.round(totalCgst * 100) / 100,
         sgst: Math.round(totalSgst * 100) / 100,
@@ -16063,8 +16209,8 @@ export class ApiEngine {
         seller_gstin: taxContext.sellerGstin || "29AAAAA0000A1Z5",
         seller_state: taxContext.sellerState,
         seller_state_code: taxContext.sellerStateCode,
-        seller_fssai_number: taxContext.sellerFssaiNumber,
-        seller_fssai_type: taxContext.sellerFssaiType,
+        seller_fssai_number: taxContext.sellerFssai || taxContext.seller_fssai || "11223344556677",
+        seller_fssai_type: taxContext.sellerFssaiType || "STATE_LICENSE",
         seller_address: taxContext.sellerAddress,
         taxable_value: Math.round(totalTaxableValue * 100) / 100,
         cgst: Math.round(totalCgst * 100) / 100,
@@ -16081,6 +16227,186 @@ export class ApiEngine {
         estimated_minutes: branchRes?.etaminutes || 40,
       },
     };
+  }
+
+  static ensureOrdersStore() {
+    if (!memoryStore.orders || !Array.isArray(memoryStore.orders)) {
+      memoryStore.orders = [
+        {
+          id: "ord_101",
+          order_number: "CTH-20260808-000101",
+          invoice_number: "CTH/26-27/000101",
+          kot_number: "KOT-CTH-20260808-000101",
+          customer_id: "cus_01",
+          customer_uid: "cth_cus_ananya_01",
+          customer_name: "Ananya Rao",
+          customer_phone: "+91 98765 43210",
+          customer_email: "ananya.rao@example.com",
+          delivery_address: "100 Feet Road, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka",
+          pincode: "560038",
+          city: "Bengaluru",
+          state: "Karnataka",
+          branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          branch_name: "Indiranagar Flagship Kitchen",
+          branch_code: "HUB-BLR-01",
+          items: [
+            {
+              id: "item_101_1",
+              product_id: "prod_01KXY_BELGIAN_TRUFFLE",
+              variant_id: "var_101_1",
+              title: "Belgian Dark Chocolate Truffle Cake",
+              name: "Belgian Dark Chocolate Truffle Cake",
+              weight: "1.0 kg",
+              shape: "Round",
+              flavour: "Dutch Chocolate",
+              eggless: true,
+              quantity: 1,
+              unit_price: 1298,
+              subtotal: 1298,
+              total: 1298,
+              hsn_code: "19059090",
+              gst_rate_pct: 5,
+              thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800",
+              cake_message: "Happy Birthday Ananya!",
+            },
+          ],
+          subtotal: 1298,
+          total: 1298,
+          delivery_fee: 0,
+          tax_total: 62,
+          discount_total: 0,
+          status: "delivered",
+          delivery_status: "delivered",
+          payment_status: "paid",
+          payment_method: "Online UPI (Razorpay)",
+          delivery_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString().slice(0, 10),
+          delivery_slot: "Evening Slot (17:00 - 20:00)",
+          created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+          updated_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+        },
+      ];
+    }
+  }
+
+  static addOrder(order: any): any {
+    ApiEngine.ensureOrdersStore();
+    const newOrd = {
+      id: order.id || `ord_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      order_number: order.order_number || `CTH-ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`,
+      status: order.status || "CONFIRMED",
+      payment_status: order.payment_status || "PAID",
+      total: Number(order.total) || 0,
+      grand_total: Number(order.grand_total || order.total) || 0,
+      customer_uid: order.customer_uid,
+      customer_name: order.customer_name,
+      customer_phone: order.customer_phone,
+      items: order.items || [],
+      branch_id: order.branch_id,
+      branch_name: order.branch_name,
+      created_at: order.created_at || new Date().toISOString(),
+      ...order,
+    };
+    memoryStore.orders.unshift(newOrd);
+    saveStore(memoryStore);
+
+    ApiEngine.fireWebhookEvent(
+      "order.created",
+      {
+        order_id: newOrd.id,
+        order_number: newOrd.order_number,
+        customer_uid: newOrd.customer_uid,
+        customer_name: newOrd.customer_name,
+        customer_phone: newOrd.customer_phone,
+        total: newOrd.total,
+        grand_total: newOrd.grand_total,
+        status: newOrd.status,
+        payment_status: newOrd.payment_status,
+        items: newOrd.items,
+        branch_id: newOrd.branch_id,
+        branch_name: newOrd.branch_name,
+        created_at: newOrd.created_at,
+      },
+      { source: "ORDER_PERSISTENCE" },
+      { customer_uid: newOrd.customer_uid, name: newOrd.customer_name, phone: newOrd.customer_phone },
+      { type: "order", id: newOrd.id, branch_id: newOrd.branch_id }
+    );
+
+    return newOrd;
+  }
+
+  static getAdminOrders(filters: {
+    customer_id?: string;
+    customer_uid?: string;
+    customer_phone?: string;
+    phone?: string;
+    status?: string;
+    branch_id?: string;
+    city?: string;
+    limit?: number;
+    offset?: number;
+    q?: string;
+  } = {}) {
+    ApiEngine.ensureOrdersStore();
+    let orders: any[] = memoryStore.orders || [];
+
+    const uid = filters.customer_uid || filters.customer_id;
+    const phone = filters.customer_phone || filters.phone;
+    const cleanPhone = phone ? normalizePhone(phone) : "";
+
+    if (uid) {
+      orders = orders.filter((o) => o.customer_uid === uid || o.customer_id === uid);
+    } else if (cleanPhone) {
+      orders = orders.filter(
+        (o) =>
+          (o.customer_phone && normalizePhone(o.customer_phone) === cleanPhone) ||
+          (o.customer_uid && o.customer_uid === `cth_cus_${cleanPhone}`)
+      );
+    }
+
+    if (filters.status && filters.status !== "all") {
+      orders = orders.filter((o) => (o.status || "").toLowerCase() === filters.status?.toLowerCase());
+    }
+
+    if (filters.branch_id && filters.branch_id !== "all") {
+      orders = orders.filter((o) => o.branch_id === filters.branch_id);
+    }
+
+    if (filters.q) {
+      const q = filters.q.toLowerCase();
+      orders = orders.filter(
+        (o) =>
+          (o.order_number || "").toLowerCase().includes(q) ||
+          (o.customer_name || "").toLowerCase().includes(q) ||
+          (o.customer_phone || "").includes(q) ||
+          (o.id || "").toLowerCase().includes(q)
+      );
+    }
+
+    const total = orders.length;
+    const limit = filters.limit || 50;
+    const offset = filters.offset || 0;
+    const sliced = orders.slice(offset, offset + limit);
+
+    return {
+      orders: sliced,
+      total,
+      count: total,
+      success: true,
+    };
+  }
+
+  static getOrder(orderId: string) {
+    ApiEngine.ensureOrdersStore();
+    const orders: any[] = memoryStore.orders || [];
+    return orders.find((o) => o.id === orderId || o.order_number === orderId) || null;
+  }
+
+  static getOrderDetails(orderId: string) {
+    return ApiEngine.getOrder(orderId);
+  }
+
+  static getCustomerOrderHistory(customerUid: string, phone?: string) {
+    return ApiEngine.getAdminOrders({ customer_uid: customerUid, phone });
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -16119,7 +16445,7 @@ export class ApiEngine {
       cart_id: payload.cart_id,
       customer_id: payload.customer_id,
       address: payload.address || (payload as any).shipping_address,
-      pincode: payload.pincode || (payload as any).delivery_pincode || "560038",
+      pincode: payload.pincode || payload.address?.pincode || (payload as any).shipping_address?.pincode || (payload as any).delivery_pincode || "560038",
       delivery_date: payload.delivery_date,
       delivery_slot_id: payload.delivery_slot_id,
       delivery_type: payload.delivery_type,
@@ -16176,8 +16502,18 @@ export class ApiEngine {
       : `${payload.address?.first_name || "Gourmet"} ${payload.address?.last_name || "Customer"}`;
 
     const customerPhone = payload.address?.phone || payload.recipient_phone || "+91 98765 43210";
+    const cleanCustomerPhone = normalizePhone(customerPhone);
     const pickupOtp = String(Math.floor(1000 + Math.random() * 9000));
     const deliveryOtp = String(Math.floor(1000 + Math.random() * 9000));
+
+    // Resolve or create canonical customer profile
+    const canonicalCustomer = ApiEngine.findOrCreateCustomerByPhone({
+      phone: customerPhone,
+      name: customerName,
+      email: payload.address?.email,
+      address: payload.address,
+    });
+    const customerUid = canonicalCustomer?.customer_uid || `cth_cus_${cleanCustomerPhone}`;
 
     const newOrder = {
       id: orderId,
@@ -16185,7 +16521,8 @@ export class ApiEngine {
       order_number: orderNumber,
       invoice_number: invoiceNumber,
       kot_number: kotNumber,
-      customer_id: payload.customer_id || "cus_guest",
+      customer_id: canonicalCustomer?.id || payload.customer_id || "cus_guest",
+      customer_uid: customerUid,
       customer_name: customerName,
       customer_phone: customerPhone,
       customer_email: payload.address?.email || "customer@cakes2home.com",
@@ -16277,7 +16614,7 @@ export class ApiEngine {
           title: "Order Placed & Confirmed",
           time: new Date().toISOString(),
           author: "Customer",
-          notes: `Payment method: ${payload.payment_method.toUpperCase()}`,
+          notes: `Payment method: ${(payload.payment_method || "COD").toUpperCase()}`,
         },
         {
           id: `tl_${Date.now() + 1}`,
@@ -16293,6 +16630,48 @@ export class ApiEngine {
 
     if (!Array.isArray(memoryStore.orders)) memoryStore.orders = [];
     memoryStore.orders.unshift(newOrder);
+
+    // Update Customer CRM metrics
+    if (canonicalCustomer) {
+      const allCustOrders = memoryStore.orders.filter((o: any) => o.customer_uid === customerUid || o.customer_phone === customerPhone);
+      canonicalCustomer.orders_count = allCustOrders.length;
+      canonicalCustomer.total_spend = allCustOrders.reduce((acc: number, o: any) => acc + (Number(o.total) || 0), 0);
+      canonicalCustomer.aov = Math.round(canonicalCustomer.total_spend / canonicalCustomer.orders_count);
+      canonicalCustomer.last_order_at = new Date().toISOString();
+      if (!canonicalCustomer.first_order_at) canonicalCustomer.first_order_at = newOrder.created_at;
+      canonicalCustomer.lifecycle_stage = deriveLifecycleStage(canonicalCustomer, allCustOrders);
+      canonicalCustomer.tier = deriveCustomerTier(canonicalCustomer.total_spend, canonicalCustomer.orders_count, canonicalCustomer.is_vip);
+      canonicalCustomer.cart_status = "NO_CART";
+      canonicalCustomer.last_active_at = new Date().toISOString();
+    }
+
+    // Mark matching Abandoned Cart as RECOVERED
+    if (memoryStore.abandoned_carts) {
+      for (const ab of (memoryStore.abandoned_carts as any[])) {
+        if (
+          ab.cart_id === payload.cart_id ||
+          (customerUid && ab.customer_uid === customerUid) ||
+          (cleanCustomerPhone && ab.normalized_phone === cleanCustomerPhone)
+        ) {
+          ab.status = "RECOVERED";
+          ab.recovery_status = "RECOVERED";
+          ab.recovered_at = new Date().toISOString();
+          ab.recovered_order_id = newOrder.id;
+          ab.recovered_order_number = orderNumber;
+          ab.recovered_revenue = newOrder.total;
+        }
+      }
+    }
+
+    // Record Activity
+    ApiEngine.recordCustomerActivity({
+      customer_uid: customerUid,
+      event_type: "ORDER_PLACED",
+      title: `Order Placed: ${orderNumber}`,
+      description: `Successfully placed order for ₹${newOrder.total} (${newOrder.items.length} items).`,
+      source: "STOREFRONT",
+      metadata: { order_id: newOrder.id, order_number: orderNumber, total: newOrder.total },
+    });
 
     // Record Coupon usage
     if (validation.pricing.applied_coupon) {
@@ -16498,178 +16877,7 @@ export class ApiEngine {
     ApiEngine.persist();
   }
 
-  // ── Smart Auth OTP Handlers ───────────────────────────────────────────────
-  static requestAuthOtp(phone: string, method: string = "OTP_SMS", ip?: string, userAgent?: string) {
-    const cleanPhone = (phone || "").trim();
-    if (!cleanPhone || cleanPhone.length < 3) {
-      throw new Error("Invalid phone number or identifier");
-    }
-
-    const check = ApiEngine.checkAccountByPhone(cleanPhone);
-    const isNew = !check.exists;
-    const role = check?.role || "CUSTOMER";
-    const resolved = check?.account;
-
-    // Record login event
-    ApiEngine.recordLoginEvent({
-      identifier: cleanPhone,
-      role,
-      user_id: resolved?.id || null,
-      customer_id: resolved?.customer_id || (role === "CUSTOMER" ? resolved?.id : null),
-      authentication_method: method.includes("WHATSAPP") ? "OTP_WHATSAPP" : "OTP_SMS",
-      event_type: "OTP_REQUESTED",
-      status: "OTP_SENT",
-      ip_address: ip || "127.0.0.1",
-      user_agent: userAgent || "Web-Browser",
-      device_type: userAgent?.toLowerCase().includes("mobi") ? "mobile" : "desktop",
-    });
-
-    return {
-      success: true,
-      sent: true,
-      account_exists: !isNew,
-      role,
-      dev_otp: "123456",
-      message: `Verification code sent to ${cleanPhone}`,
-    };
-  }
-
-  static verifyAuthOtp(phone: string, otp: string, extra?: { name?: string; email?: string }, ip?: string, userAgent?: string) {
-    const cleanPhone = (phone || "").trim();
-    const cleanOtp = (otp || "").replace(/\D/g, "");
-
-    if (cleanOtp !== "123456" && cleanOtp.length !== 6) {
-      ApiEngine.recordLoginEvent({
-        identifier: cleanPhone,
-        role: "CUSTOMER",
-        authentication_method: "OTP_SMS",
-        event_type: "OTP_FAILED",
-        status: "FAILED",
-        failure_category: "INVALID_OTP",
-        ip_address: ip || "127.0.0.1",
-        user_agent: userAgent || "Web-Browser",
-        device_type: userAgent?.toLowerCase().includes("mobi") ? "mobile" : "desktop",
-      });
-
-      try {
-        WebhookEngine.emitEvent("customer.login.failed", {
-          phone: cleanPhone,
-          reason: "INVALID_OTP",
-          ip_address: ip || "127.0.0.1",
-          device_type: userAgent?.toLowerCase().includes("mobi") ? "mobile" : "desktop",
-        }, { source: "auth_otp_verification" });
-      } catch (e: any) {
-        console.warn("[Webhook safe warn]:", e?.message);
-      }
-
-      throw new Error("Invalid OTP code. Please enter the correct 6-digit code.");
-    }
-
-    const check = ApiEngine.checkAccountByPhone(cleanPhone);
-    let user = check.account;
-    let isNewCustomer = false;
-
-    if (!user || (!user.id && !user.user_id)) {
-      isNewCustomer = true;
-      const newCustId = `cus_${cleanPhone.replace(/\D/g, "").slice(-10) || Date.now()}`;
-      const fullName = extra?.name || "Valued Customer";
-      const newCust = {
-        id: newCustId,
-        user_id: newCustId,
-        customer_id: newCustId,
-        customer_number: `CTH-CUST-${Math.floor(100000 + Math.random() * 900000)}`,
-        customer_type: "registered",
-        name: fullName,
-        first_name: fullName.split(" ")[0],
-        last_name: fullName.split(" ").slice(1).join(" ") || "Customer",
-        email: extra?.email || `customer_${newCustId}@cakes2home.com`,
-        phone: cleanPhone,
-        role: "CUSTOMER",
-        total_orders: 0,
-        wallet_balance: 0,
-        is_vip: false,
-        created_at: new Date().toISOString(),
-      };
-      if (!Array.isArray(memoryStore.customers)) memoryStore.customers = [];
-      memoryStore.customers.push(newCust);
-      user = newCust;
-
-      try {
-        WebhookEngine.emitEvent("customer.registered", {
-          customer_id: newCust.id,
-          customer_number: newCust.customer_number,
-          name: newCust.name,
-          email: newCust.email,
-          phone: newCust.phone,
-          role: newCust.role,
-          created_at: newCust.created_at,
-        }, { source: "auth_otp_registration" }, {
-          id: newCust.id,
-          name: newCust.name,
-          phone: newCust.phone,
-          email: newCust.email,
-          role: newCust.role,
-        });
-      } catch (e: any) {
-        console.warn("[Webhook safe warn]:", e?.message);
-      }
-    }
-
-    const token = `jwt_${(user.role || "customer").toLowerCase()}_${user.id || "01"}_${Date.now()}`;
-
-    // Record login success event
-    ApiEngine.recordLoginEvent({
-      identifier: cleanPhone,
-      role: user.role || "CUSTOMER",
-      user_id: user.id || user.user_id,
-      user_name: user.name || extra?.name || "Customer",
-      customer_id: user.role === "CUSTOMER" ? (user.customer_id || user.id) : null,
-      authentication_method: "OTP_SMS",
-      event_type: "LOGIN_SUCCESS",
-      status: "SUCCESS",
-      failure_category: null,
-      ip_address: ip || "127.0.0.1",
-      user_agent: userAgent || "Web-Browser",
-      device_type: userAgent?.toLowerCase().includes("mobi") ? "mobile" : "desktop",
-    });
-
-    try {
-      WebhookEngine.emitEvent("customer.login.success", {
-        user_id: user.id || user.user_id,
-        customer_id: user.role === "CUSTOMER" ? (user.customer_id || user.id) : null,
-        name: user.name || extra?.name || "Customer",
-        phone: cleanPhone,
-        role: user.role || "CUSTOMER",
-        login_method: "OTP_SMS",
-        is_new_customer: isNewCustomer,
-        branch_id: user.branch_id || user.shop_id || null,
-        ip_address: ip || "127.0.0.1",
-        device_type: userAgent?.toLowerCase().includes("mobi") ? "mobile" : "desktop",
-      }, { source: "auth_otp_login" }, {
-        id: user.customer_id || user.id,
-        name: user.name || extra?.name,
-        phone: cleanPhone,
-        email: user.email || extra?.email,
-        role: user.role || "CUSTOMER",
-      });
-    } catch (e: any) {
-      console.warn("[Webhook safe warn]:", e?.message);
-    }
-
-    return {
-      success: true,
-      token,
-      accessToken: token,
-      role: user.role || "CUSTOMER",
-      detected_role: user.role || "CUSTOMER",
-      is_new_customer: isNewCustomer,
-      user,
-      customer_id: user.customer_id || user.id,
-      branch_id: user.branch_id || user.shop_id,
-      partner_id: user.partner_id,
-    };
-  }
-
+  // ── Coupon Validation ──────────────────────────────────────────────────
   static validateCoupon(code: string, cartTotal: number = 0, customerId?: string) {
     const cleanCode = (code || "").trim().toUpperCase();
     if (!cleanCode) {
@@ -16715,470 +16923,6 @@ export class ApiEngine {
       final_total: Math.max(0, cartTotal - discount),
       message: "Coupon applied successfully!",
     };
-  }
-
-  // ── Abandoned Cart Tracking & Recovery Engine ─────────────────────────────
-  static trackCartActivity(cartData: any) {
-    const cId = cartData?.cart_id || cartData?.id;
-    if (!cartData || !cId) return null;
-    if (!Array.isArray(memoryStore.abandoned_carts)) {
-      memoryStore.abandoned_carts = [...DEFAULT_ABANDONED_CARTS];
-    }
-
-    const existingIdx = memoryStore.abandoned_carts.findIndex((c) => c.cart_id === cId || c.id === cId);
-    const nowIso = new Date().toISOString();
-
-    const itemsList: AbandonedCartItem[] = (cartData.items || []).map((item: any) => ({
-      id: item.id || `item_${Math.random().toString(36).substring(2, 8)}`,
-      product_id: item.product_id || item.variant?.product_id || "prod_1",
-      product_name: item.title || item.name || item.product?.title || "Gourmet Cake",
-      variant_id: item.variant_id || item.variant?.id,
-      variant_name: item.variant?.title || item.variant_title,
-      quantity: Number(item.quantity) || 1,
-      unit_price: Number(item.unit_price || item.price || 0),
-      total_price: (Number(item.quantity) || 1) * Number(item.unit_price || item.price || 0),
-      thumbnail: item.thumbnail || item.product?.thumbnail,
-      cake_message: item.cake_message || item.custom_message,
-      eggless: Boolean(item.eggless),
-    }));
-
-    const subtotal = itemsList.reduce((sum, i) => sum + i.total_price, 0);
-    const discount = Number(cartData.discount_total || cartData.discount || 0);
-    const tax = Math.round((subtotal - discount) * 0.05 * 100) / 100;
-    const deliveryFee = Number(cartData.delivery_fee || 0);
-    const grandTotal = Math.max(0, subtotal - discount + tax + deliveryFee);
-
-    const branch = cartData.branch_id ? ApiEngine.resolveBranchRecord(cartData.branch_id) : (memoryStore.branches?.[0] || null);
-
-    const record: AbandonedCart = {
-      id: existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].id : `abcart_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      cart_id: cId,
-      customer_id: cartData.customer_id || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].customer_id : null),
-      customer_name: cartData.customer_name || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].customer_name : "Guest Customer"),
-      customer_phone: cartData.customer_phone || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].customer_phone : null),
-      customer_email: cartData.customer_email || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].customer_email : null),
-      guest_session_id: cartData.guest_session_id || null,
-      branch_id: branch?.id || "br_indiranagar",
-      branch_name: branch?.name || "Indiranagar Flagship Kitchen",
-      city_id: branch?.city_id || "city_bbr",
-      city_name: branch?.city || "Bengaluru",
-      delivery_pincode: cartData.pincode || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].delivery_pincode : "560038"),
-      delivery_zone_name: cartData.zone_name || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].delivery_zone_name : "Zone A"),
-      items: itemsList,
-      item_count: itemsList.reduce((c, i) => c + i.quantity, 0),
-      subtotal,
-      discount_total: discount,
-      tax_total: tax,
-      delivery_fee: deliveryFee,
-      grand_total: grandTotal,
-      status: cartData.status || (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].status : "ACTIVE"),
-      created_at: existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].created_at : nowIso,
-      updated_at: nowIso,
-      last_activity_at: nowIso,
-      abandoned_at: existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].abandoned_at : null,
-      checkout_started_at: cartData.checkout_started ? nowIso : (existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].checkout_started_at : null),
-      recovery_attempts_count: existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].recovery_attempts_count : 0,
-      last_recovery_channel: existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].last_recovery_channel : null,
-      last_contact_at: existingIdx >= 0 ? memoryStore.abandoned_carts[existingIdx].last_contact_at : null,
-      recovery_token: existingIdx >= 0 && memoryStore.abandoned_carts[existingIdx].recovery_token
-        ? memoryStore.abandoned_carts[existingIdx].recovery_token
-        : ApiEngine.generateCartRecoveryToken(cartData.cart_id || cartData.id).token,
-    };
-
-    if (existingIdx >= 0) {
-      memoryStore.abandoned_carts[existingIdx] = record;
-    } else {
-      memoryStore.abandoned_carts.unshift(record);
-    }
-
-    ApiEngine.persist();
-    return record;
-  }
-
-  static evaluateCartAbandonment(thresholdMinutes: number = 30) {
-    if (!Array.isArray(memoryStore.abandoned_carts)) {
-      memoryStore.abandoned_carts = [...DEFAULT_ABANDONED_CARTS];
-    }
-    const cutoffTime = thresholdMinutes <= 0 ? (Date.now() + 60000) : (Date.now() - thresholdMinutes * 60 * 1000);
-    let newlyAbandonedCount = 0;
-
-    memoryStore.abandoned_carts.forEach((cart) => {
-      if (cart.status === "ACTIVE" || cart.status === "CHECKOUT_STARTED") {
-        const lastActivity = new Date(cart.last_activity_at).getTime();
-        if (lastActivity <= cutoffTime && cart.items.length > 0) {
-          cart.status = "ABANDONED";
-          cart.abandoned_at = new Date().toISOString();
-          newlyAbandonedCount++;
-
-          try {
-            WebhookEngine.emitEvent(
-              "cart.abandoned",
-              {
-                cart_id: cart.cart_id,
-                customer_id: cart.customer_id,
-                customer_name: cart.customer_name,
-                customer_phone: cart.customer_phone,
-                customer_email: cart.customer_email,
-                guest_session_id: cart.guest_session_id,
-                cart_item_count: cart.item_count,
-                cart_value: cart.grand_total,
-                currency: "INR",
-                branch_id: cart.branch_id,
-                branch_name: cart.branch_name,
-                city_id: cart.city_id,
-                city_name: cart.city_name,
-                delivery_pincode: cart.delivery_pincode,
-                abandoned_at: cart.abandoned_at,
-                recovery_url: `/recover-cart?token=${cart.recovery_token}`,
-                items: (cart.items || []).map((i: any) => ({
-                  product_id: i.product_id,
-                  product_name: i.title || i.name,
-                  variant_id: i.variant_id,
-                  quantity: i.quantity,
-                  unit_price: i.unit_price,
-                  line_total: i.line_total,
-                  thumbnail: i.thumbnail,
-                })),
-              },
-              { source: "abandonment_evaluator" },
-              {
-                id: cart.customer_id,
-                name: cart.customer_name,
-                phone: cart.customer_phone,
-                email: cart.customer_email,
-              },
-              {
-                type: "cart",
-                id: cart.cart_id,
-                branch_id: cart.branch_id || undefined,
-                city_id: cart.city_id || undefined,
-              }
-            );
-          } catch (e: any) {
-            console.warn("[Webhook safe warn]:", e?.message);
-          }
-        }
-      }
-    });
-
-    if (newlyAbandonedCount > 0) {
-      ApiEngine.persist();
-    }
-
-    return {
-      success: true,
-      evaluated_count: memoryStore.abandoned_carts.length,
-      evaluated_sessions: memoryStore.abandoned_carts.length,
-      newly_abandoned_count: newlyAbandonedCount,
-      abandoned_count: newlyAbandonedCount,
-    };
-  }
-
-  static listAbandonedCarts(filters: {
-    startDate?: string;
-    endDate?: string;
-    preset?: string;
-    city_id?: string;
-    branch_id?: string;
-    customer?: string;
-    status?: string;
-    recovery_status?: string;
-    channel?: string;
-    search?: string;
-    page?: number;
-    pageSize?: number;
-  }) {
-    if (!Array.isArray(memoryStore.abandoned_carts)) {
-      memoryStore.abandoned_carts = [...DEFAULT_ABANDONED_CARTS];
-    }
-    const { start, end } = this.parseDateFilter(filters.preset, filters.startDate, filters.endDate);
-
-    let filtered = memoryStore.abandoned_carts.filter((cart) => {
-      const cartDate = new Date(cart.created_at || cart.last_activity_at);
-      if (cartDate < start || cartDate > end) return false;
-      if (filters.city_id && filters.city_id !== "ALL" && cart.city_id !== filters.city_id) return false;
-      if (filters.branch_id && filters.branch_id !== "ALL" && cart.branch_id !== filters.branch_id) return false;
-      if (filters.status && filters.status !== "ALL" && cart.status !== filters.status) return false;
-      if (filters.recovery_status && filters.recovery_status !== "ALL") {
-        if (filters.recovery_status === "RECOVERED" && cart.status !== "RECOVERED") return false;
-        if (filters.recovery_status === "PENDING" && cart.status !== "ABANDONED" && cart.status !== "RECOVERY_PENDING") return false;
-        if (filters.recovery_status === "SENT" && cart.status !== "RECOVERY_SENT") return false;
-      }
-      if (filters.channel && filters.channel !== "ALL" && cart.last_recovery_channel !== filters.channel) return false;
-      if (filters.search) {
-        const q = filters.search.toLowerCase();
-        const matchCust = (cart.customer_name || "").toLowerCase().includes(q) || (cart.customer_phone || "").includes(q);
-        const matchItem = cart.items.some((i) => i.product_name.toLowerCase().includes(q));
-        const matchBranch = (cart.branch_name || "").toLowerCase().includes(q);
-        if (!matchCust && !matchItem && !matchBranch) return false;
-      }
-      return true;
-    });
-
-    const page = Math.max(1, Number(filters.page) || 1);
-    const pageSize = Math.max(1, Math.min(100, Number(filters.pageSize) || 10));
-    const totalCount = filtered.length;
-    const totalPages = Math.ceil(totalCount / pageSize) || 1;
-    const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
-
-    // Summary calculation based on date-filtered set
-    const rangeCarts = memoryStore.abandoned_carts.filter((c) => {
-      const d = new Date(c.created_at || c.last_activity_at);
-      return d >= start && d <= end;
-    });
-
-    const activeAbandonedCarts = rangeCarts.filter((c) => c.status === "ABANDONED" || c.status === "RECOVERY_PENDING" || c.status === "RECOVERY_SENT").length;
-    const recoverableCarts = rangeCarts.filter((c) => c.status === "ABANDONED" && (c.customer_phone || c.customer_email)).length;
-    const recoveryAttempts = rangeCarts.reduce((acc, c) => acc + (c.recovery_attempts_count || 0), 0);
-    const recoveredCarts = rangeCarts.filter((c) => c.status === "RECOVERED").length;
-    const recoveryRevenue = rangeCarts.filter((c) => c.status === "RECOVERED").reduce((acc, c) => acc + c.grand_total, 0);
-    const recoveryRate = rangeCarts.length > 0 ? Math.round((recoveredCarts / Math.max(1, activeAbandonedCarts + recoveredCarts)) * 100) : 0;
-
-    return {
-      success: true,
-      carts: paginated,
-      pagination: {
-        page,
-        pageSize,
-        limit: pageSize,
-        total: totalCount,
-        totalCount,
-        totalPages,
-      },
-      summary: {
-        total_abandoned: rangeCarts.length,
-        totalAbandoned: rangeCarts.length,
-        active_abandoned: activeAbandonedCarts,
-        activeAbandonedCarts,
-        recoverable_count: recoverableCarts,
-        recoverableCarts,
-        recovery_attempts: recoveryAttempts,
-        recoveryAttempts,
-        recovered_count: recoveredCarts,
-        recoveredCarts,
-        recovered_revenue: recoveryRevenue,
-        recoveryRevenue,
-        recovery_rate_pct: recoveryRate,
-        recoveryRate,
-        dateRange: {
-          start: start.toISOString(),
-          end: end.toISOString(),
-          preset: filters.preset || "custom",
-        },
-      },
-    };
-  }
-
-  static getAbandonedCartById(cartId: string) {
-    if (!Array.isArray(memoryStore.abandoned_carts)) {
-      memoryStore.abandoned_carts = [...DEFAULT_ABANDONED_CARTS];
-    }
-    const cart = memoryStore.abandoned_carts.find((c) => c.cart_id === cartId || c.id === cartId);
-    if (!cart) return null;
-
-    // Attach recovery history
-    const attempts = (memoryStore.cart_recovery_attempts || []).filter((a) => a.cart_id === cart.cart_id || a.cart_id === cart.id);
-    return {
-      ...cart,
-      recovery_attempts: attempts,
-    };
-  }
-
-  static generateCartRecoveryToken(cartId: string): RecoveryToken {
-    if (!Array.isArray(memoryStore.recovery_tokens)) {
-      memoryStore.recovery_tokens = [];
-    }
-    const token = `rectok_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
-    const recToken: RecoveryToken = {
-      id: `tok_${Date.now()}`,
-      cart_id: cartId,
-      token,
-      token_hash: `sha_${Buffer.from(token).toString("base64")}`,
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date().toISOString(),
-    };
-    memoryStore.recovery_tokens.push(recToken);
-    ApiEngine.persist();
-    return recToken;
-  }
-
-  static sendCartRecoveryNotification(cartId: string, channel: string = "WHATSAPP", customMessage?: string) {
-    if (!Array.isArray(memoryStore.abandoned_carts)) {
-      memoryStore.abandoned_carts = [...DEFAULT_ABANDONED_CARTS];
-    }
-    if (!Array.isArray(memoryStore.cart_recovery_attempts)) {
-      memoryStore.cart_recovery_attempts = [...DEFAULT_RECOVERY_ATTEMPTS];
-    }
-
-    const cart = memoryStore.abandoned_carts.find((c) => c.cart_id === cartId || c.id === cartId);
-    if (!cart) {
-      throw new Error(`Cart with ID ${cartId} not found`);
-    }
-
-    const normalizedChannel = ((channel || "WHATSAPP").toUpperCase()) as "WHATSAPP" | "EMAIL" | "SMS";
-    const tokenObj = ApiEngine.generateCartRecoveryToken(cart.cart_id);
-    const recoveryUrl = `/cart/recover/${tokenObj.token}`;
-    const preview = customMessage || `Hi ${cart.customer_name || 'there'}! Your cake celebration cart (₹${cart.grand_total}) is reserved. Complete your order now with instant doorstep delivery!`;
-
-    const attempt: CartRecoveryAttempt = {
-      id: `att_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      cart_id: cart.cart_id,
-      customer_id: cart.customer_id,
-      customer_phone: cart.customer_phone,
-      customer_email: cart.customer_email,
-      channel: normalizedChannel,
-      status: "DELIVERED",
-      message_preview: preview,
-      recovery_token: tokenObj.token,
-      recovery_url: recoveryUrl,
-      sent_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-    };
-
-    memoryStore.cart_recovery_attempts.unshift(attempt);
-
-    // Update cart status
-    cart.status = "RECOVERY_SENT";
-    cart.recovery_attempts_count = (cart.recovery_attempts_count || 0) + 1;
-    cart.last_recovery_channel = normalizedChannel;
-    cart.last_contact_at = new Date().toISOString();
-    cart.updated_at = new Date().toISOString();
-
-    ApiEngine.addAuditLog(`Cart Recovery message dispatched via ${normalizedChannel} to ${cart.customer_name || cart.customer_phone} (Cart: ${cart.cart_id})`);
-    ApiEngine.persist();
-
-    return {
-      success: true,
-      channel: normalizedChannel,
-      recovery_url: recoveryUrl,
-      attempt,
-      cart,
-    };
-  }
-
-  static revalidateAndRestoreRecoveredCart(token: string) {
-    if (!Array.isArray(memoryStore.recovery_tokens)) {
-      memoryStore.recovery_tokens = [];
-    }
-    const tokenRecord = memoryStore.recovery_tokens.find((t) => t.token === token);
-    if (!tokenRecord) {
-      throw new Error("Invalid or expired cart recovery link.");
-    }
-    if (new Date(tokenRecord.expires_at).getTime() < Date.now()) {
-      throw new Error("This cart recovery link has expired.");
-    }
-
-    const cart = (memoryStore.abandoned_carts || []).find((c) => c.recovery_token === token || c.cart_id === tokenRecord.cart_id || c.id === tokenRecord.cart_id);
-    if (!cart) {
-      throw new Error("The associated cart session is no longer available.");
-    }
-
-    // Mark attempt clicked
-    const attempt = (memoryStore.cart_recovery_attempts || []).find((a) => a.recovery_token === token);
-    if (attempt) {
-      attempt.clicked_at = new Date().toISOString();
-    }
-
-    // Revalidate items against current live product catalog
-    const allProducts = Array.isArray(memoryStore.products) && memoryStore.products.length > 0 ? memoryStore.products : DEFAULT_PRODUCTS;
-    const validatedItems: AbandonedCartItem[] = [];
-
-    for (const item of (cart.items || [])) {
-      const prod = allProducts.find((p: any) => p.id === item.product_id || p.product_id === item.product_id);
-      if (prod) {
-        validatedItems.push({
-          ...item,
-          product_name: prod.title || prod.name || item.product_name,
-          unit_price: Number(prod.price || item.unit_price),
-          total_price: Number(item.quantity) * Number(prod.price || item.unit_price),
-          thumbnail: prod.thumbnail || item.thumbnail,
-        });
-      } else {
-        validatedItems.push({
-          ...item,
-          total_price: Number(item.quantity) * Number(item.unit_price),
-        });
-      }
-    }
-
-    if (validatedItems.length === 0) {
-      throw new Error("The items in your recovered cart are currently out of stock.");
-    }
-
-    const subtotal = validatedItems.reduce((acc, i) => acc + i.total_price, 0);
-    const discount = cart.discount_total || 0;
-    const tax = Math.round((subtotal - discount) * 0.05 * 100) / 100;
-    const deliveryFee = cart.delivery_fee || 0;
-    const grandTotal = Math.max(0, subtotal - discount + tax + deliveryFee);
-
-    cart.items = validatedItems;
-    cart.subtotal = subtotal;
-    cart.tax_total = tax;
-    cart.grand_total = grandTotal;
-    cart.last_activity_at = new Date().toISOString();
-    cart.updated_at = new Date().toISOString();
-
-    cart.status = "RECOVERED";
-    cart.recovered_at = new Date().toISOString();
-    cart.last_activity_at = new Date().toISOString();
-    cart.updated_at = new Date().toISOString();
-
-    ApiEngine.persist();
-
-    return {
-      success: true,
-      cart_id: cart.cart_id,
-      cart: {
-        id: cart.cart_id,
-        items: validatedItems,
-        subtotal,
-        discount_total: discount,
-        tax_total: tax,
-        delivery_fee: deliveryFee,
-        total: grandTotal,
-        customer_id: cart.customer_id,
-        customer_phone: cart.customer_phone,
-        branch_id: cart.branch_id,
-        city_id: cart.city_id,
-        pincode: cart.delivery_pincode,
-        status: "RECOVERED",
-        recovery_status: "RECOVERED",
-      },
-      validation: {
-        products_available: true,
-        branch_serviceable: true,
-        pricing_verified: true,
-      },
-      message: "Cart successfully restored and prices revalidated.",
-    };
-  }
-
-  static attributeRecoveryOrder(orderId: string, cartId: string, token?: string) {
-    if (!Array.isArray(memoryStore.abandoned_carts)) {
-      memoryStore.abandoned_carts = [...DEFAULT_ABANDONED_CARTS];
-    }
-    const cart = memoryStore.abandoned_carts.find((c) => c.cart_id === cartId || c.id === cartId);
-    if (cart) {
-      cart.status = "RECOVERED";
-      cart.recovered_at = new Date().toISOString();
-      cart.recovery_order_id = orderId;
-      cart.updated_at = new Date().toISOString();
-
-      if (token) {
-        const tokenRecord = (memoryStore.recovery_tokens || []).find((t) => t.token === token);
-        if (tokenRecord) {
-          tokenRecord.used_at = new Date().toISOString();
-        }
-        const attempt = (memoryStore.cart_recovery_attempts || []).find((a) => a.recovery_token === token);
-        if (attempt) {
-          attempt.recovered_at = new Date().toISOString();
-        }
-      }
-      ApiEngine.addAuditLog(`Recovered Cart ${cart.cart_id} converted to Order ${orderId} (Revenue: ₹${cart.grand_total})`);
-      ApiEngine.persist();
-      return { success: true, revenue_recovered: cart.grand_total, cart };
-    }
-    return { success: false, error: "Cart not found" };
   }
 
   static listEligibleMarketingPopups(ctx: any = {}) {
@@ -17234,17 +16978,17 @@ export class ApiEngine {
   }
 
   static getAbandonedCarts(filters: any = {}) {
-    const res = ApiEngine.listAbandonedCarts(filters);
+    const res: any = ApiEngine.listAbandonedCarts(filters);
     return {
       success: true,
       carts: res.carts || [],
-      pagination: res.pagination,
+      pagination: res.pagination || { total: res.total || 0 },
       metrics: {
-        total_abandoned: res.summary?.activeAbandonedCarts || 0,
+        total_abandoned: res.summary?.activeAbandonedCarts || res.summary?.total_abandoned_count || 0,
         total_abandoned_value: (res.carts || []).reduce((acc: number, c: any) => acc + (c.grand_total || c.subtotal || 0), 0),
-        recovered_count: res.summary?.recoveredCarts || 0,
-        recovered_revenue: res.summary?.recoveryRevenue || 0,
-        recovery_rate_pct: res.summary?.recoveryRate || 0,
+        recovered_count: res.summary?.recoveredCarts || res.summary?.recovered_count || 0,
+        recovered_revenue: res.summary?.recoveryRevenue || res.summary?.recovered_revenue || 0,
+        recovery_rate_pct: res.summary?.recoveryRate || res.summary?.recovery_rate_pct || 0,
       },
     };
   }
@@ -17332,10 +17076,13 @@ export class ApiEngine {
               minCartValue: 1,
             },
             frequency: {
+              mode: "once_per_session",
               scope: "session",
               maxShows: 1,
-              cooldownSeconds: 86400,
+              cooldownSeconds: 0,
               cartChangeRequired: true,
+              showToGuests: true,
+              showToAuthenticated: false,
             },
             schedule: {
               startAt: null,
@@ -17427,9 +17174,12 @@ export class ApiEngine {
               devices: ["mobile", "tablet", "desktop"],
             },
             frequency: {
-              scope: "session",
-              maxShows: 1,
-              cooldownSeconds: 86400,
+              mode: "every_page_load",
+              scope: "visitor",
+              maxShows: 10,
+              cooldownSeconds: 0,
+              showToGuests: true,
+              showToAuthenticated: false,
             },
             schedule: {
               startAt: null,
@@ -17495,9 +17245,12 @@ export class ApiEngine {
               devices: ["mobile", "tablet", "desktop"],
             },
             frequency: {
+              mode: "every_page_load",
               scope: "product",
-              maxShows: 1,
-              cooldownSeconds: 86400,
+              maxShows: 5,
+              cooldownSeconds: 0,
+              showToGuests: true,
+              showToAuthenticated: false,
             },
             schedule: {
               startAt: null,
@@ -17561,9 +17314,12 @@ export class ApiEngine {
               devices: ["mobile", "tablet", "desktop"],
             },
             frequency: {
+              mode: "every_page_load",
               scope: "session",
               maxShows: 5,
               cooldownSeconds: 0,
+              showToGuests: true,
+              showToAuthenticated: false,
             },
             schedule: {
               startAt: null,
@@ -17628,9 +17384,14 @@ export class ApiEngine {
               devices: ["mobile", "tablet", "desktop"],
             },
             frequency: {
+              mode: "cooldown",
               scope: "visitor",
               maxShows: 1,
               cooldownSeconds: 259200, // 3 days
+              cooldownValue: 3,
+              cooldownUnit: "days",
+              showToGuests: false,
+              showToAuthenticated: true,
             },
             schedule: {
               startAt: null,
@@ -17644,6 +17405,24 @@ export class ApiEngine {
           },
         },
       ];
+    }
+
+    // Ensure all popup campaigns in memory have modern frequency modes and non-permanent defaults
+    if (Array.isArray((memoryStore as any).popup_campaigns)) {
+      (memoryStore as any).popup_campaigns.forEach((camp: any) => {
+        const v = camp.current_version || camp.draft_version;
+        if (v && v.frequency) {
+          if (!v.frequency.mode) {
+            v.frequency.mode = camp.popup_type === "CART_EXIT" ? "once_per_session" : "every_page_load";
+          }
+          if (camp.id === "pop_welcome_first_order") {
+            v.frequency.mode = "every_page_load";
+            v.frequency.cooldownSeconds = 0;
+            v.frequency.showToGuests = true;
+            v.frequency.showToAuthenticated = false;
+          }
+        }
+      });
     }
     if (!Array.isArray((memoryStore as any).popup_impressions)) {
       (memoryStore as any).popup_impressions = [
@@ -18072,6 +17851,138 @@ export class ApiEngine {
         overall_conversion_rate: totalImpressions > 0 ? Math.round((totalConversions / totalImpressions) * 1000) / 10 : 0,
       },
     };
+  }
+
+  static refundOrder(orderId: string, amount?: number, reason?: string) {
+    ApiEngine.ensureOrdersStore();
+    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!order) return null;
+    order.payment_status = "refunded";
+    order.refund_amount = amount || order.total || order.subtotal || 0;
+    order.refund_reason = reason || "Customer requested refund";
+    order.updated_at = new Date().toISOString();
+    ApiEngine.addAuditLog(`Refunded order ${order.order_number} for amount ₹${order.refund_amount}`);
+    ApiEngine.persist();
+    return { success: true, order: ApiEngine.getOrder(order.id) };
+  }
+
+  static updateOrderStatus(orderId: string, status: string, notes?: string) {
+    ApiEngine.ensureOrdersStore();
+    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!order) return null;
+    order.status = status;
+    if (notes) order.notes = notes;
+    order.updated_at = new Date().toISOString();
+    ApiEngine.addAuditLog(`Updated order ${order.order_number} status to ${status}`);
+    ApiEngine.persist();
+    return { success: true, order: ApiEngine.getOrder(order.id) };
+  }
+
+  static assignOrderBranch(orderId: string, branchId: string, notes?: string) {
+    ApiEngine.ensureOrdersStore();
+    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!order) return null;
+    order.branch_id = branchId;
+    if (notes) order.notes = notes;
+    order.updated_at = new Date().toISOString();
+    ApiEngine.persist();
+    return { success: true, order };
+  }
+
+  static rescheduleOrder(orderId: string, deliveryDate: string, timeSlot?: string) {
+    ApiEngine.ensureOrdersStore();
+    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!order) return null;
+    order.delivery_date = deliveryDate;
+    if (timeSlot) order.delivery_slot = timeSlot;
+    order.updated_at = new Date().toISOString();
+    ApiEngine.persist();
+    return { success: true, order };
+  }
+
+  static cancelOrder(orderId: string, reason?: string) {
+    ApiEngine.ensureOrdersStore();
+    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+    if (!order) return null;
+    order.status = "cancelled";
+    order.cancellation_reason = reason || "Customer cancellation";
+    order.updated_at = new Date().toISOString();
+    ApiEngine.addAuditLog(`Cancelled order ${order.order_number}`);
+    ApiEngine.persist();
+    return { success: true, order };
+  }
+
+  static saveBranchZone(branchId: string, zoneData: any) {
+    return { branchId, zone: zoneData, success: true };
+  }
+
+  static saveCityAreaPincodes(data: any) {
+    return { area: data, success: true };
+  }
+
+  static updateCartItem(cartId: string, lineItemId: string, quantity: number) {
+    ApiEngine.ensureCartsStore();
+    const carts: any[] = Array.isArray(memoryStore.carts) ? memoryStore.carts : (memoryStore.carts = []);
+    const cart = carts.find((c) => c.id === cartId);
+    if (!cart) return null;
+    const item = (cart.items || []).find((i: any) => i.id === lineItemId);
+    if (item) {
+      if (quantity <= 0) {
+        cart.items = cart.items.filter((i: any) => i.id !== lineItemId);
+      } else {
+        item.quantity = quantity;
+        item.total_price = Number(item.unit_price || item.price || 0) * quantity;
+        item.subtotal = item.total_price;
+      }
+      cart.subtotal = cart.items.reduce((sum: number, i: any) => sum + (Number(i.total_price || i.subtotal) || 0), 0);
+      cart.total = cart.subtotal;
+      cart.updated_at = new Date().toISOString();
+      ApiEngine.persist();
+    }
+    return cart;
+  }
+
+  static deleteLineItem(cartId: string, lineItemId: string) {
+    return ApiEngine.updateCartItem(cartId, lineItemId, 0);
+  }
+
+  static createCart(params?: { id?: string; customer_uid?: string }) {
+    const id = params?.id || `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    return ApiEngine.getCart(id, params?.customer_uid);
+  }
+
+  static createOrder(payload: any) {
+    if (payload.pincode && Array.isArray(payload.items)) {
+      const smart = ApiEngine.resolveSmartBranch({ pincode: payload.pincode });
+      const branch = smart?.branch;
+      if (branch) {
+        for (const item of payload.items) {
+          const pId = item.productId || item.product_id || item.id;
+          const override = branch.product_availability?.[pId];
+          const norm = (override?.status || "").toUpperCase();
+          if (norm === "OUT_OF_STOCK" || norm === "UNAVAILABLE" || norm === "HIDDEN") {
+            throw new Error(`Item ${item.title || pId} is not available for delivery at selected branch (${branch.name}).`);
+          }
+        }
+      }
+    }
+    return ApiEngine.confirmCheckout(payload);
+  }
+
+  static exportAdminOrders(params?: any) {
+    return ApiEngine.getAdminOrders(params);
+  }
+
+  static createCustomerAccount(payload: any) {
+    return ApiEngine.verifyAuthOtp(payload.phone || "9876543210", "123456", { name: payload.name, email: payload.email });
+  }
+
+  static getAdminDeliveries(params?: any) {
+    return ApiEngine.getAdminOrders(params);
+  }
+
+  static sendWhatsAppRecoveryMessage(cartId: string, templateId?: string, payload?: any) {
+    return ApiEngine.sendCartRecoveryNotification(cartId, "WHATSAPP", payload?.message);
   }
 }
 

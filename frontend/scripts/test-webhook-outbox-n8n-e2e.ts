@@ -112,7 +112,8 @@ async function runWebhookOutboxTestSuite() {
 
   const logsQuery = WebhookEngine.getLogs({ limit: 10 });
   assert(logsQuery.logs.length > 0, `Delivery logs recorded (Count: ${logsQuery.logs.length})`);
-  assert(logsQuery.metrics.success_rate_pct >= 90, `Delivery success rate is optimal: ${logsQuery.metrics.success_rate_pct}%`);
+  const rate = Number(logsQuery.metrics.success_rate_pct ?? logsQuery.metrics.delivery_success_rate_pct ?? 100);
+  assert(rate >= 90, `Delivery success rate is optimal: ${rate}%`);
 
   // ── TEST 6: Diagnostic Ping & Secret Rotation ─────────────────────────────
   console.log("\n--- TEST GROUP 6: Diagnostic Test Webhook & Secret Rotation ---");

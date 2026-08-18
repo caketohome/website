@@ -784,6 +784,31 @@ class StaffAccessControlStore {
     });
   }
 
+  /**
+   * Retrieves active, authorized staff members who have telecaller outreach permissions
+   * (e.g. TELEMARKETING.CONTACT or TELEMARKETING.ASSIGN).
+   * Respects branch and city scope filters.
+   */
+  public getEligibleTelecallers(options: { city?: string; branch_id?: string } = {}): StaffMember[] {
+    const activeStaff = this.listStaffMembers().filter((s) => s.status === "ACTIVE");
+    return activeStaff.filter((s) => {
+      const hasTelePerm =
+        this.hasPermission(s, "TELEMARKETING", "CONTACT") ||
+        this.hasPermission(s, "TELEMARKETING", "ASSIGN");
+
+      if (!hasTelePerm) return false;
+
+      if (options.branch_id && s.branch_id && s.branch_id !== options.branch_id) {
+        return false;
+      }
+      if (options.city && s.city && s.city.toLowerCase() !== options.city.toLowerCase()) {
+        return false;
+      }
+
+      return true;
+    });
+  }
+
   public getStaffMember(idOrUserId: string): StaffMember | null {
     const staff = this.staffMembers.find((s) => s.id === idOrUserId || s.user_id === idOrUserId);
     if (!staff) return null;
@@ -1049,10 +1074,11 @@ class StaffAccessControlStore {
   }
 
   // ── AUDIT LOGGING ────────────────────────────────────────────────────────
-  public listAuditLogs(): PermissionAuditLog[] {
-    return [...this.auditLogs].sort(
+  public listAuditLogs(limit?: number): PermissionAuditLog[] {
+    const list = [...this.auditLogs].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
+    return limit ? list.slice(0, limit) : list;
   }
 
   private recordAudit(entry: Omit<PermissionAuditLog, "id" | "created_at">) {

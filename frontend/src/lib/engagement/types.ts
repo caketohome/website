@@ -138,28 +138,43 @@ export interface PopupAudienceConfig {
   maxCartValue?: number;
 }
 
+export type FrequencyMode =
+  | "every_page_load"
+  | "once_per_session"
+  | "cooldown"
+  | "once_per_day"
+  | "custom"
+  | "unlimited";
+
+export type CooldownUnit = "minutes" | "hours" | "days" | "seconds";
+
 export interface PopupFrequencyConfig {
+  mode?: FrequencyMode;
   scope?: "session" | "visitor" | "customer" | "product" | "cart";
   maxShows?: number;
   cooldownSeconds?: number;
+  cooldownValue?: number;
+  cooldownUnit?: CooldownUnit;
   sessionLimit?: number;
   visitorLimit?: number;
   customerLimit?: number;
   productLimit?: number;
   cartChangeRequired?: boolean;
   loginStateChangeRequired?: boolean;
+  showToGuests?: boolean;
+  showToAuthenticated?: boolean;
 }
 
 export interface PopupContentConfig {
   templateId?: "CUSTOM" | "LOGIN_OFFER" | "WELCOME_SIMPLE" | "ABANDONED_CART" | "EXIT_COUPON";
   eyebrow?: string;
   headline: string;
-  description: string;
+  description?: string;
   badge?: string;
   couponLabel?: string;
   couponText?: string;
   phoneConfig?: PopupPhoneConfig;
-  primaryButton: {
+  primaryButton?: {
     label: string;
     action:
       | "LOGIN_WITH_MOBILE"
@@ -244,16 +259,16 @@ export interface PopupVersionConfig {
   popup_campaign_id: string;
   version_number: number;
   content: PopupContentConfig;
-  design: PopupDesignConfig;
-  trigger: PopupTriggerConfig;
-  audience: PopupAudienceConfig;
-  frequency: PopupFrequencyConfig;
-  schedule: PopupScheduleConfig;
-  offer: PopupOfferConfig;
-  media: PopupMediaConfig;
-  rules: RuleGroup[];
+  design?: PopupDesignConfig;
+  trigger?: PopupTriggerConfig;
+  audience?: PopupAudienceConfig;
+  frequency?: PopupFrequencyConfig;
+  schedule?: PopupScheduleConfig;
+  offer?: PopupOfferConfig;
+  media?: PopupMediaConfig;
+  rules?: RuleGroup[];
   published_at?: string | null;
-  created_at: string;
+  created_at?: string;
 }
 
 export interface PopupCampaign {
@@ -262,12 +277,12 @@ export interface PopupCampaign {
   slug: string;
   description?: string;
   popup_type: PopupType;
-  status: CampaignStatus;
+  status?: CampaignStatus;
   priority: number;
   enabled: boolean;
   start_at?: string | null;
   end_at?: string | null;
-  timezone: string;
+  timezone?: string;
   current_version?: PopupVersionConfig;
   draft_version?: PopupVersionConfig;
   created_by?: string;
@@ -299,6 +314,7 @@ export interface EngagementContext {
     id: string;
     pageViews: number;
     timeOnSiteSeconds: number;
+    inactivitySeconds?: number;
     visitCount: number;
     deviceType: DeviceTarget;
   };
@@ -308,7 +324,9 @@ export interface EngagementContext {
     itemCount: number;
     total: number;
     changed: boolean;
-    items?: Array<{ id: string; title: string; thumbnail?: string; price: number; quantity: number }>;
+    categoryIds?: string[];
+    productIds?: string[];
+    items?: Array<{ id: string; title: string; thumbnail?: string; price: number; quantity: number; categoryId?: string }>;
   };
   product?: {
     id?: string;
@@ -323,6 +341,7 @@ export interface EngagementContext {
     pathname: string;
     exitIntent: boolean;
     backAttempt: boolean;
+    maxScrollDepth?: number;
   };
   wishlist?: {
     hasItem: boolean;
@@ -331,6 +350,7 @@ export interface EngagementContext {
   checkout?: {
     active: boolean;
   };
+  redirectUrl?: string;
 }
 
 export interface PopupImpressionRecord {

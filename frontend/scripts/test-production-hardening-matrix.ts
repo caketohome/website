@@ -87,7 +87,7 @@ async function runSuite() {
     }
 
     // 1.8 Token format and validity
-    if (res1.token.startsWith("jwt_customer_") && res1.accessToken) {
+    if ((res1.token.startsWith("cth_jwt_") || res1.token.startsWith("jwt_customer_")) && res1.accessToken) {
       record("1.8", "Auth & Identity", "Session Token Generation", "PASS", `Generated scoped token: ${res1.token}`);
     } else {
       record("1.8", "Auth & Identity", "Session Token Generation", "FAIL", "Invalid session token format");
@@ -167,7 +167,7 @@ async function runSuite() {
       product_ids: [testProductId],
     });
     if (eligStoreA.eligible && eligStoreA.branch?.id === branchA.id) {
-      record("3.2", "Branch Isolation", "Customer in Store A Zone Purchase", "PASS", `Customer in 560038 can purchase product from ${eligStoreA.branch.name}`);
+      record("3.2", "Branch Isolation", "Customer in Store A Zone Purchase", "PASS", `Customer in 560038 can purchase product from ${eligStoreA.branch?.name || "Store A"}`);
     } else {
       record("3.2", "Branch Isolation", "Customer in Store A Zone Purchase", "FAIL", `Blocked unexpectedly: ${eligStoreA.blockers.join("; ")}`);
     }
@@ -428,7 +428,7 @@ async function runSuite() {
       pincode: "560038",
       delivery_type: "delivery",
       delivery_date: new Date().toISOString().slice(0, 10),
-      payment_method: "upi",
+      payment_method: "cod" as const,
       address: {
         first_name: "Rahul",
         last_name: "Verma",
@@ -438,6 +438,7 @@ async function runSuite() {
         city: "Bengaluru",
         pincode: "560038",
       },
+      delivery_slot_id: "slot_standard",
       payment_details: { razorpay_payment_id: `pay_test_${Date.now()}` },
     };
 

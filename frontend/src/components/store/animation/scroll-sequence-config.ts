@@ -49,13 +49,13 @@ export interface ScrollSequenceConfig {
 }
 
 export const DEFAULT_SCROLL_SEQUENCE_CONFIG: ScrollSequenceConfig = {
-  baseUrl: "https://res.cloudinary.com/r0k56n3j/image/upload/v1786881616/frames1_",
-  frameCount: 39,
+  baseUrl: "https://res.cloudinary.com/r0k56n3j/image/upload/frames1_",
+  frameCount: 112,
   framePadding: 4,
   firstFrame: 1,
-  sectionHeight: "260vh",
-  mobileFrameCount: 39,
-  desktopFrameCount: 39,
+  sectionHeight: "240vh",
+  mobileFrameCount: 112,
+  desktopFrameCount: 112,
   easing: 0.18,
   pixelRatioLimit: 2,
   nativeWidth: 1920,
@@ -65,11 +65,11 @@ export const DEFAULT_SCROLL_SEQUENCE_CONFIG: ScrollSequenceConfig = {
   cloudinaryUploadBase: "https://res.cloudinary.com/r0k56n3j/image/upload/",
   cloudinaryTransformDesktop: "f_auto,q_auto",
   cloudinaryTransformMobile: "f_auto,q_auto,w_800",
-  assetVersion: "v1786881616",
+  assetVersion: "",
   filePrefix: "frames1_",
   fileExtension: ".jpg",
   brandPrimary: "#1D2F5D",
-  initialPreloadCount: 8,
+  initialPreloadCount: 15,
 };
 
 /**
@@ -92,9 +92,9 @@ export function resolveFrameUrl(
     ? config.cloudinaryTransformMobile
     : config.cloudinaryTransformDesktop;
 
-  // Format: https://res.cloudinary.com/r0k56n3j/image/upload/{transform}/{version}/{prefix}{0001}.jpg
+  // Format: https://res.cloudinary.com/r0k56n3j/image/upload/{transform}/frames1_0001.jpg
   if (transform) {
-    return `${config.cloudinaryUploadBase}${transform}/${config.assetVersion}/${config.filePrefix}${paddedIndex}${config.fileExtension}`;
+    return `${config.cloudinaryUploadBase}${transform}/${config.filePrefix}${paddedIndex}${config.fileExtension}`;
   }
 
   return `${config.baseUrl}${paddedIndex}${config.fileExtension}`;

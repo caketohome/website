@@ -2,7 +2,7 @@
 
 import { ShopDTO } from "@frontend/lib/types";
 import { Plus } from "@medusajs/icons";
-import { HttpTypes } from "@medusajs/types";
+import { HttpTypes } from "@frontend/lib/types";
 import { Button, Drawer, Text } from "@medusajs/ui";
 import { CreateProductForm } from "./create-product-form";
 

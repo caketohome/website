@@ -98,6 +98,7 @@ export function OtpLoginForm({ intentAction, redirectUrl, onSuccess, isModal, on
 
             const serverRole = (result.role || result.detected_role || "CUSTOMER").toUpperCase();
             const userId = result.user?.id || result.customer_id;
+            const customerUid = result.user?.customer_uid || result.customer_uid;
             const userPhone = result.user?.phone || currentPhone;
             const branchId = result.branch_id || result.user?.branch_id || result.user?.shop_id;
             const partnerId = result.partner_id || result.user?.partner_id;
@@ -115,12 +116,13 @@ export function OtpLoginForm({ intentAction, redirectUrl, onSuccess, isModal, on
             document.cookie = `_cth_role=${serverRole}; path=/;`;
             document.cookie = `_cth_jwt=${result.token}; path=/; SameSite=Lax;`;
             if (userId) document.cookie = `_cth_user_id=${userId}; path=/; SameSite=Lax;`;
+            if (customerUid) document.cookie = `_cth_customer_uid=${customerUid}; path=/; SameSite=Lax;`;
             if (userPhone) document.cookie = `_cth_phone=${userPhone}; path=/; SameSite=Lax;`;
             if (branchId) document.cookie = `_cth_branch_id=${branchId}; path=/; SameSite=Lax;`;
             if (partnerId) document.cookie = `_cth_partner_id=${partnerId}; path=/; SameSite=Lax;`;
 
             // Persist session cookies on server
-            await loginCustomer(result.token, serverRole, userId, userPhone, branchId, partnerId).catch(() => null);
+            await loginCustomer(result.token, serverRole, userId, userPhone, branchId, partnerId, customerUid).catch(() => null);
 
             setInfo("Authentication successful!");
 

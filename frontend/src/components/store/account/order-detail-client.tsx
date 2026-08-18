@@ -14,6 +14,7 @@ import {
     type OrderDetail,
     type TimelineEntry,
 } from "../../../lib/data/orders";
+import { apiClient } from "../../../lib/api-client";
 
 /**
  * Order detail client component — renders the full order lifecycle timeline,
@@ -67,7 +68,7 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
             for (const item of items) {
                 const prodId = item.product_id || item.id;
                 if (prodId) {
-                    await addToCartAction({
+                    await apiClient.addToCart({
                         product_id: prodId,
                         quantity: Number(item.quantity || 1),
                     }).catch(() => null);

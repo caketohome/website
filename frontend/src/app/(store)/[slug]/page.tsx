@@ -58,7 +58,7 @@ export default async function CmsPageRoute({
           h1={page.h1 || page.title}
           subheading={page.subheading}
           introContent={page.intro_content}
-          theme={page.theme}
+          theme={(page as any).theme}
         />
       ) : (
         <div className="max-w-3xl mx-auto w-full flex flex-col gap-6">

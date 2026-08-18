@@ -88,7 +88,7 @@ export default async function DeliveryCard({
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {items?.map((item) => (
+            {items?.map((item: any) => (
               <Table.Row key={delivery?.id?.slice(-4) + "_" + item.id}>
                 <Table.Cell className="text-wrap">{item.title}</Table.Cell>
                 <Table.Cell className="text-right">

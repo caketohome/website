@@ -41,9 +41,9 @@ async function runProductStoreAvailabilityMatrixTests() {
 
   // 2. Zero Global Product Mutation
   console.log("Test 2: Assert Zero Global Catalog Mutation...");
-  const adminProduct = ApiEngine.getAdminProducts().find((p: any) => p.id === targetProdId || p.product_id === targetProdId);
-  assert.strictEqual(adminProduct.price, originalPrice, "Global product price must not be modified");
-  assert.strictEqual(adminProduct.title, targetProduct.title, "Global product title must not be modified");
+  const adminProduct: any = ApiEngine.getAdminProducts().find((p: any) => p.id === targetProdId || p.product_id === targetProdId);
+  assert.strictEqual(adminProduct?.price, originalPrice, "Global product price must not be modified");
+  assert.strictEqual(adminProduct?.title, targetProduct.title, "Global product title must not be modified");
   console.log("✅ Test 2 PASSED: Global catalog record is completely untouched.\n");
 
   // 3. Multi-Store Isolation via Direct Branch ID
@@ -88,13 +88,13 @@ async function runProductStoreAvailabilityMatrixTests() {
 
   // 5. Product Detail By Slug / ID Pincode Resolution
   console.log("Test 5: Product Detail Availability Resolution...");
-  const detailA = ApiEngine.getProductById(targetProdId, undefined, pinA);
-  assert.strictEqual(detailA.branch_status, "AVAILABLE");
-  assert.strictEqual(detailA.is_out_of_stock_at_branch, false);
+  const detailA: any = ApiEngine.getProductById(targetProdId, undefined, pinA);
+  assert.strictEqual(detailA?.branch_status, "AVAILABLE");
+  assert.strictEqual(detailA?.is_out_of_stock_at_branch, false);
 
-  const detailB = ApiEngine.getProductById(targetProdId, undefined, pinB);
-  assert.strictEqual(detailB.branch_status, "OUT_OF_STOCK");
-  assert.strictEqual(detailB.is_out_of_stock_at_branch, true);
+  const detailB: any = ApiEngine.getProductById(targetProdId, undefined, pinB);
+  assert.strictEqual(detailB?.branch_status, "OUT_OF_STOCK");
+  assert.strictEqual(detailB?.is_out_of_stock_at_branch, true);
   console.log("✅ Test 5 PASSED: Product detail endpoints correctly resolve branch availability for customer location.\n");
 
   // 6. Add to Cart Validation
@@ -122,14 +122,14 @@ async function runProductStoreAvailabilityMatrixTests() {
   // 7. Order Placement & Checkout Validation
   console.log("Test 7: Checkout Order Placement Validation...");
   // Order placed for Store A pincode -> Succeeds
-  const orderA = ApiEngine.createOrder({
+  const orderA: any = ApiEngine.createOrder({
     customer_name: "Test Customer A",
     customer_phone: "9000000001",
     pincode: pinA,
     subtotal: 649,
     items: [{ id: targetProdId, title: targetProduct.title, quantity: 1, price: 649 }],
   });
-  assert.ok(orderA.id, "Order successfully created for Store A");
+  assert.ok(orderA?.order?.id || orderA?.id || orderA?.order_id || orderA?.order_number, "Order successfully created for Store A");
 
   // Order placed for Store B pincode -> Throws Error
   assert.throws(
@@ -153,9 +153,9 @@ async function runProductStoreAvailabilityMatrixTests() {
   // 8. Reversal & Reset Verification
   console.log("Test 8: Reversal & Reset Verification...");
   ApiEngine.updateBranchProductAvailability(branchB.id, targetProdId, { status: "AVAILABLE" });
-  const resetDetailB = ApiEngine.getProductById(targetProdId, undefined, pinB);
-  assert.strictEqual(resetDetailB.branch_status, "AVAILABLE");
-  assert.strictEqual(resetDetailB.is_out_of_stock_at_branch, false);
+  const resetDetailB: any = ApiEngine.getProductById(targetProdId, undefined, pinB);
+  assert.strictEqual(resetDetailB?.branch_status, "AVAILABLE");
+  assert.strictEqual(resetDetailB?.is_out_of_stock_at_branch, false);
 
   const resetCartResB = ApiEngine.addToCart(cartIdB, { productId: targetProdId, quantity: 1, pincode: pinB });
   assert.ok(resetCartResB.items.length > 0, "Item can now be added to cart after reset to AVAILABLE");

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, memo, useCallback } from "react";
 import { Container, Heading, Text, Badge, Input, Button, Label } from "@medusajs/ui";
-import { Search, RefreshCw, ShoppingCart, Send, ArrowUpRight, CheckCircle, Clock, AlertTriangle, MessageSquare, Mail, Copy, Check } from "lucide-react";
+import { Search, RefreshCw, ShoppingCart, Send, ArrowUpRight, CheckCircle, Clock, AlertTriangle, MessageSquare, Mail, Copy, Check, Download } from "lucide-react";
 import { TableSkeleton } from "./admin-skeletons";
 import { WidgetErrorBoundary } from "./error-boundary";
 
@@ -124,6 +124,20 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
               className="flex items-center gap-1.5 text-xs"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
+            </Button>
+            <Button
+              size="small"
+              variant="secondary"
+              onClick={() => {
+                const params = new URLSearchParams();
+                if (preset !== "all") params.set("preset", preset);
+                if (status !== "all") params.set("status", status);
+                if (search) params.set("search", search);
+                window.open(`/api/v1/admin/abandoned-carts/export?${params.toString()}`, "_blank");
+              }}
+              className="flex items-center gap-1.5 text-xs text-neutral-700 dark:text-neutral-300"
+            >
+              <Download className="w-3.5 h-3.5" /> Export CSV
             </Button>
           </div>
         </div>

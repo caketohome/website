@@ -8,7 +8,7 @@ import {
   Spinner,
   Trash,
 } from "@medusajs/icons";
-import { ProductDTO } from "@medusajs/types";
+import { ProductDTO } from "@frontend/lib/types";
 import { DropdownMenu, IconButton } from "@medusajs/ui";
 import { useState } from "react";
 

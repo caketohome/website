@@ -1,7 +1,6 @@
 "use client";
 
-import { ShopDTO } from "@frontend/lib/types";
-import { ProductDTO } from "@medusajs/types";
+import { ShopDTO, ProductDTO } from "@frontend/lib/types";
 import { Button, Heading } from "@medusajs/ui";
 import { RefObject, createRef, useEffect, useState } from "react";
 import DishCard from "./dish-card";

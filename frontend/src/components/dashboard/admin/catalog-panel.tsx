@@ -2,9 +2,10 @@
 
 import { useEffect, useState, memo, useCallback } from "react";
 import { Container, Heading, Text, Badge, Input, Button } from "@medusajs/ui";
+import dynamic from "next/dynamic";
 import { apiClient } from "@frontend/lib/api-client";
 import { Search, Plus, Cake, Trash2, Edit3, FolderTree, RefreshCw } from "lucide-react";
-import { PimEditorModal } from "./pim-editor-modal";
+const PimEditorModal = dynamic(() => import("./pim-editor-modal").then((mod) => mod.PimEditorModal), { ssr: false });
 import { CategoriesPanel } from "./categories-panel";
 import { OccasionsPanel } from "./occasions-panel";
 import { AccessoriesManagementPanel } from "./accessories-management-panel";

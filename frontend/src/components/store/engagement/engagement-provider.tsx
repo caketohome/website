@@ -8,6 +8,7 @@ import { PopupCampaign, EngagementContext, DeviceTarget, CustomerStatus } from "
 import { selectWinningPopup } from "@frontend/lib/engagement/popup-priority-engine";
 import { isFrequencyCapped, recordFrequencyDisplay } from "@frontend/lib/engagement/popup-frequency-manager";
 import { evaluateCampaignTriggers } from "@frontend/lib/engagement/popup-trigger-engine";
+import { hasClientAuthSession } from "@frontend/lib/auth-service";
 
 export type EngagementPopupType =
   | "AUTH_MODAL"
@@ -33,7 +34,7 @@ interface EngagementContextType {
   triggerEngagement: (type: EngagementPopupType, data?: any) => boolean;
   dismissEngagement: (type?: EngagementPopupType) => void;
   isSuppressed: (type: string) => boolean;
-  triggerCampaignCheck: (triggerHint?: string) => void;
+  triggerCampaignCheck: (triggerHint?: string, eventValue?: any) => void;
 }
 
 const EngagementContextState = createContext<EngagementContextType | null>(null);
@@ -51,38 +52,74 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
   const [activePopup, setActivePopup] = useState<EngagementPopupType | null>(null);
   const [activeCampaign, setActiveCampaign] = useState<PopupCampaign | null>(null);
   const [loginOptions, setLoginOptions] = useState<LoginModalOptions>({});
-  const [suppressedPopups, setSuppressedPopups] = useState<Set<string>>(new Set());
+  const [dismissedCampaignIds, setDismissedCampaignIds] = useState<Set<string>>(new Set());
 
   // Dynamic campaigns fetched from /api/v1/engagement/config
   const [publishedCampaigns, setPublishedCampaigns] = useState<PopupCampaign[]>([]);
   const [configLoaded, setConfigLoaded] = useState(false);
 
-  // Active runtime context
-  const [contextState, setContextState] = useState<EngagementContext>({
-    customer: { isLoggedIn: false, status: "guest" },
-    session: { id: "sess_guest", pageViews: 1, timeOnSiteSeconds: 0, visitCount: 1, deviceType: "desktop" },
-    cart: { hasItems: false, itemCount: 0, total: 0, changed: false, items: [] },
-    navigation: { pathname: "/", exitIntent: false, backAttempt: false },
-    checkout: { active: false },
-  });
-
+  // Authoritative runtime tracking refs
   const sessionStartTimeRef = useRef<number>(Date.now());
-  const evaluatedCampaignIdsRef = useRef<Set<string>>(new Set());
+  const lastActivityTimeRef = useRef<number>(Date.now());
+  const maxScrollDepthRef = useRef<number>(0);
+  const exitIntentRef = useRef<boolean>(false);
+  const backAttemptRef = useRef<boolean>(false);
+  const lastActivityThrottleRef = useRef<number>(0);
 
-  // Load suppression state from sessionStorage on mount
-  useEffect(() => {
-    console.log("[POPUP DEBUG] provider mounted");
-    try {
-      const stored = sessionStorage.getItem("_cth_suppressed_popups");
-      if (stored) {
-        setSuppressedPopups(new Set(JSON.parse(stored)));
-      }
-    } catch {
-      // Ignore storage errors in private browsing
-    }
+  // Determine authoritative authentication state
+  const checkAuthStatus = useCallback((): boolean => {
+    if (typeof document === "undefined") return false;
+    return hasClientAuthSession();
   }, []);
 
-  // Fetch published engagement campaigns safely
+  // Sync auth state on mount and register live reactive event listeners
+  useEffect(() => {
+    const updateAuth = () => {
+      const auth = checkAuthStatus();
+
+      // If user is logged in, immediately suppress and close any active visitor popups
+      if (auth) {
+        setActiveCampaign((curr) => {
+          if (!curr) return null;
+          const ver = curr.current_version || curr.draft_version;
+          const showToAuth = ver?.frequency?.showToAuthenticated === true;
+          const custStatuses = ver?.audience?.customerStatus || [];
+          const allowsAuth = custStatuses.some((s) => s === "logged_in" || s === "member" || s === "returning_customer");
+          if (!showToAuth && !allowsAuth) {
+            return null; // Close visitor popup immediately on login
+          }
+          return curr;
+        });
+      }
+    };
+
+    updateAuth();
+
+    // Listen to custom auth changes, storage events, and window focus
+    const handleAuthEvent = () => updateAuth();
+    const handleStorage = (e: StorageEvent) => {
+      if (
+        e.key === "_cth_jwt" ||
+        e.key === "_cth_role" ||
+        e.key === "cth_access_token" ||
+        e.key === "_cth_logout_event"
+      ) {
+        updateAuth();
+      }
+    };
+
+    window.addEventListener("cth_auth_changed", handleAuthEvent);
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("focus", handleAuthEvent);
+
+    return () => {
+      window.removeEventListener("cth_auth_changed", handleAuthEvent);
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("focus", handleAuthEvent);
+    };
+  }, [checkAuthStatus]);
+
+  // Fetch published engagement campaigns safely (fail-open)
   useEffect(() => {
     let cancelled = false;
     const fetchConfig = async () => {
@@ -99,12 +136,9 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
         if (!cancelled && res?.campaigns && Array.isArray(res.campaigns)) {
           setPublishedCampaigns(res.campaigns);
           setConfigLoaded(true);
-          console.log("[POPUP DEBUG] config loaded");
-          console.log(`[POPUP DEBUG] campaign count: ${res.campaigns.length}`);
         }
-      } catch (err: any) {
-        console.warn("[POPUP DEBUG] config load failed:", err.message);
-        // Safe fallback: if config API 500s or fails, storefront keeps functioning
+      } catch {
+        // Safe fallback: if config API fails, storefront keeps functioning smoothly
         if (!cancelled) {
           setPublishedCampaigns([]);
           setConfigLoaded(true);
@@ -118,71 +152,90 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
     };
   }, []);
 
-  // Gather active context on client
+  // Gather active runtime context
   const gatherActiveContext = useCallback((): EngagementContext => {
-    if (typeof window === "undefined") return contextState;
-
     const deviceType: DeviceTarget =
-      window.innerWidth < 768 ? "mobile" : window.innerWidth < 1024 ? "tablet" : "desktop";
+      typeof window !== "undefined"
+        ? window.innerWidth < 768
+          ? "mobile"
+          : window.innerWidth < 1024
+          ? "tablet"
+          : "desktop"
+        : "desktop";
 
-    // 1. Customer
-    let isLoggedIn = false;
-    let custStatus: CustomerStatus = "guest";
+    const isLoggedIn = typeof document !== "undefined" ? hasClientAuthSession() : false;
+    const custStatus: CustomerStatus = isLoggedIn ? "logged_in" : "guest";
     let custName: string | undefined;
     let custId: string | undefined;
-    let cityId = localStorage.getItem("selected_city_id") || undefined;
-    let branchId = localStorage.getItem("selected_branch_id") || undefined;
+    let cityId: string | undefined;
+    let branchId: string | undefined;
 
-    try {
-      const token = localStorage.getItem("cth_access_token") || localStorage.getItem("medusa_access_token");
-      const userStr = localStorage.getItem("cth_user") || localStorage.getItem("_cth_customer");
-      if (token || userStr) {
-        isLoggedIn = true;
-        custStatus = "logged_in";
-        if (userStr) {
-          const u = JSON.parse(userStr);
-          custName = u.name || u.first_name || "Valued Customer";
-          custId = u.id;
+    if (typeof window !== "undefined") {
+      cityId = localStorage.getItem("selected_city_id") || undefined;
+      branchId = localStorage.getItem("selected_branch_id") || undefined;
+
+      if (isLoggedIn) {
+        try {
+          const userStr = localStorage.getItem("cth_user") || localStorage.getItem("_cth_customer");
+          if (userStr) {
+            const u = JSON.parse(userStr);
+            custName = u.name || u.first_name || u.full_name || "Valued Customer";
+            custId = u.id;
+          }
+        } catch {
+          // Ignore
         }
       }
-    } catch {
-      // Ignore storage errors
     }
 
-    // 2. Cart
+    // Cart Context
     let hasItems = false;
     let itemCount = 0;
     let cartTotal = 0;
     let cartItems: any[] = [];
-    try {
-      const cartItemsStr = localStorage.getItem("medusa_cart_items") || localStorage.getItem("_cth_cart_items");
-      if (cartItemsStr) {
-        const parsed = JSON.parse(cartItemsStr);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          hasItems = true;
-          itemCount = parsed.reduce((sum: number, item: any) => sum + (Number(item.quantity) || 1), 0);
-          cartTotal = parsed.reduce(
-            (sum: number, item: any) => sum + (Number(item.price || item.unit_price || 0) * (Number(item.quantity) || 1)),
-            0
-          );
-          cartItems = parsed.map((it: any) => ({
-            id: it.id || it.product_id,
-            title: it.title || it.name,
-            thumbnail: it.thumbnail || it.image,
-            price: Number(it.price || it.unit_price || 0),
-            quantity: Number(it.quantity || 1),
-          }));
+    const cartCategoryIds: string[] = [];
+    const cartProductIds: string[] = [];
+
+    if (typeof window !== "undefined") {
+      try {
+        const cartItemsStr = localStorage.getItem("medusa_cart_items") || localStorage.getItem("_cth_cart_items");
+        if (cartItemsStr) {
+          const parsed = JSON.parse(cartItemsStr);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            hasItems = true;
+            itemCount = parsed.reduce((sum: number, item: any) => sum + (Number(item.quantity) || 1), 0);
+            cartTotal = parsed.reduce(
+              (sum: number, item: any) =>
+                sum + (Number(item.price || item.unit_price || 0) * (Number(item.quantity) || 1)),
+              0
+            );
+            cartItems = parsed.map((it: any) => {
+              const pId = it.id || it.product_id;
+              const catId = it.category_id || it.categoryId || it.category;
+              if (pId) cartProductIds.push(pId);
+              if (catId) cartCategoryIds.push(catId);
+              return {
+                id: pId,
+                title: it.title || it.name,
+                thumbnail: it.thumbnail || it.image,
+                price: Number(it.price || it.unit_price || 0),
+                quantity: Number(it.quantity || 1),
+                categoryId: catId,
+              };
+            });
+          }
         }
+      } catch {
+        // Ignore
       }
-    } catch {
-      // Ignore
     }
 
-    // 3. Navigation & Checkout
-    const pathname = window.location.pathname;
+    // Navigation & Time Context
+    const pathname = typeof window !== "undefined" ? window.location.pathname : "/";
     const isCheckout = pathname.includes("/checkout");
-
-    const timeOnSite = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
+    const now = Date.now();
+    const timeOnSite = Math.floor((now - sessionStartTimeRef.current) / 1000);
+    const inactivitySeconds = Math.floor((now - lastActivityTimeRef.current) / 1000);
 
     return {
       customer: {
@@ -194,9 +247,10 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
         branchId,
       },
       session: {
-        id: "sess_guest",
+        id: "sess_active",
         pageViews: 1,
         timeOnSiteSeconds: timeOnSite,
+        inactivitySeconds,
         visitCount: 1,
         deviceType,
       },
@@ -205,117 +259,149 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
         itemCount,
         total: cartTotal,
         changed: false,
+        categoryIds: Array.from(new Set(cartCategoryIds)),
+        productIds: Array.from(new Set(cartProductIds)),
         items: cartItems,
       },
       navigation: {
         pathname,
-        exitIntent: false,
-        backAttempt: false,
+        exitIntent: exitIntentRef.current,
+        backAttempt: backAttemptRef.current,
+        maxScrollDepth: maxScrollDepthRef.current,
       },
       checkout: {
         active: isCheckout,
       },
     };
-  }, [contextState]);
+  }, []);
 
   const isSuppressed = useCallback(
     (key: string): boolean => {
       if (key === "AUTH_MODAL") return false;
-      return suppressedPopups.has(key);
+      return dismissedCampaignIds.has(key);
     },
-    [suppressedPopups]
+    [dismissedCampaignIds]
   );
 
-  const dismissEngagement = useCallback((type?: EngagementPopupType) => {
-    if (activeCampaign) {
-      const campId = activeCampaign.id;
-      apiClient.recordEngagementImpression({
-        campaign_id: campId,
-        event_type: "dismissed",
-        page_url: window.location.pathname,
-      });
-      setSuppressedPopups((prev) => {
-        const next = new Set(prev);
-        next.add(campId);
-        try {
-          sessionStorage.setItem("_cth_suppressed_popups", JSON.stringify(Array.from(next)));
-        } catch {
-          // Ignore
-        }
-        return next;
-      });
-      setActiveCampaign(null);
-    }
+  const dismissEngagement = useCallback(
+    (type?: EngagementPopupType) => {
+      if (activeCampaign) {
+        const campId = activeCampaign.id;
+        apiClient.recordEngagementImpression({
+          campaign_id: campId,
+          event_type: "dismissed",
+          page_url: typeof window !== "undefined" ? window.location.pathname : "/",
+        });
 
-    if (type) {
-      setActivePopup((curr) => (curr === type ? null : curr));
-      setSuppressedPopups((prev) => {
-        const next = new Set(prev);
-        next.add(type);
-        try {
-          sessionStorage.setItem("_cth_suppressed_popups", JSON.stringify(Array.from(next)));
-        } catch {
-          // Ignore
-        }
-        return next;
-      });
-    } else {
-      setActivePopup(null);
-    }
-  }, [activeCampaign]);
+        setDismissedCampaignIds((prev) => {
+          const next = new Set(prev);
+          next.add(campId);
+          return next;
+        });
+
+        setActiveCampaign(null);
+      }
+
+      if (type) {
+        setActivePopup((curr) => (curr === type ? null : curr));
+        setDismissedCampaignIds((prev) => {
+          const next = new Set(prev);
+          next.add(type);
+          return next;
+        });
+      } else {
+        setActivePopup(null);
+      }
+    },
+    [activeCampaign]
+  );
 
   // Main campaign arbitration trigger
   const triggerCampaignCheck = useCallback(
-    (triggerHint?: string) => {
+    (triggerHint?: string, eventValue?: any) => {
       if (activeCampaign || activePopup) return; // Already showing a popup
 
-      console.log(`[POPUP DEBUG] trigger result: ${triggerHint || "manual"}`);
+      try {
+        const ctx = gatherActiveContext();
+        if (ctx.checkout?.active) return; // Never interrupt active checkout
 
-      const ctx = gatherActiveContext();
-      if (ctx.checkout?.active) return; // Do not interrupt checkout
+        // AUTHORITATIVE AUTHENTICATION RULE:
+        // If customer is logged in, suppress visitor popups unless explicitly configured
+        const isLoggedIn = Boolean(ctx.customer?.isLoggedIn);
 
-      // Filter eligible campaigns from config using evaluateCampaignTriggers
-      const eligible = publishedCampaigns.filter((c) => {
-        if (!c.enabled || c.status !== "published" || !c.current_version) {
-          return false;
-        }
-        if (isSuppressed(c.id)) {
-          return false;
-        }
-        const freqCapped = isFrequencyCapped(c, ctx);
-        console.log(`[POPUP DEBUG] frequency result: ${c.name} -> ${freqCapped ? "capped" : "passed"}`);
-        if (freqCapped) {
-          return false;
-        }
-
-        // Action-specific guards: do not fire specialized click-only popups on timer
-        if (triggerHint === "time_on_page" || triggerHint === "immediate" || triggerHint === "page_load") {
-          if (c.popup_type === "WISHLIST_AUTH" || (c.popup_type === "LOGIN" && !c.current_version.trigger?.timeOnPageSeconds && !c.current_version.trigger?.immediate)) {
+        // Filter eligible campaigns from config
+        const eligible = publishedCampaigns.filter((c) => {
+          if (!c.enabled || c.status !== "published") {
             return false;
           }
-        }
 
-        return evaluateCampaignTriggers(c, ctx, { type: triggerHint || "time_on_page" });
-      });
+          const version = c.current_version || c.draft_version;
+          if (!version) return false;
 
-      console.log(`[POPUP DEBUG] eligible campaigns: ${eligible.length}`);
+          // Logged-in suppression check:
+          if (isLoggedIn) {
+            const freq = version.frequency || {};
+            const audience = version.audience || {};
+            const explicitlyAllowsAuth =
+              freq.showToAuthenticated === true ||
+              (Array.isArray(audience.customerStatus) &&
+                audience.customerStatus.some(
+                  (s) => s === "logged_in" || s === "member" || s === "returning_customer"
+                ));
 
-      const winner = selectWinningPopup(eligible, ctx, isSuppressed);
-      console.log(`[POPUP DEBUG] winner: ${winner ? winner.name : "none"}`);
+            if (!explicitlyAllowsAuth) {
+              return false; // Suppressed for authenticated user
+            }
+          }
 
-      if (winner && !evaluatedCampaignIdsRef.current.has(winner.id)) {
-        evaluatedCampaignIdsRef.current.add(winner.id);
-        console.log(`[POPUP DEBUG] rendering popup: ${winner.name}`);
-        setActiveCampaign(winner);
-        recordFrequencyDisplay(winner.id, ctx);
-        apiClient.recordEngagementImpression({
-          campaign_id: winner.id,
-          version_id: winner.current_version?.id,
-          event_type: "shown",
-          page_url: window.location.pathname,
-          device_type: ctx.session?.deviceType || "desktop",
-          cart_value: ctx.cart?.total || 0,
+          // Check if dismissed in this immediate view
+          if (isSuppressed(c.id)) {
+            return false;
+          }
+
+          // Frequency check
+          if (isFrequencyCapped(c, ctx)) {
+            return false;
+          }
+
+          // Action-specific guards: do not fire specialized click-only popups on timer
+          if (triggerHint === "time_on_page" || triggerHint === "immediate" || triggerHint === "page_load") {
+            if (
+              c.popup_type === "WISHLIST_AUTH" ||
+              (c.popup_type === "LOGIN" &&
+                !version.trigger?.timeOnPageSeconds &&
+                !version.trigger?.immediate)
+            ) {
+              return false;
+            }
+          }
+
+          return evaluateCampaignTriggers(c, ctx, {
+            type: triggerHint || "time_on_page",
+            value: eventValue,
+          });
         });
+
+        const winner = selectWinningPopup(eligible, ctx, isSuppressed);
+
+        if (winner) {
+          setActiveCampaign(winner);
+          recordFrequencyDisplay(winner.id, ctx);
+          apiClient.recordEngagementImpression({
+            campaign_id: winner.id,
+            version_id: winner.current_version?.id,
+            event_type: "shown",
+            page_url: typeof window !== "undefined" ? window.location.pathname : "/",
+            device_type: ctx.session?.deviceType || "desktop",
+            cart_value: ctx.cart?.total || 0,
+          });
+
+          // Reset consumed single-shot flags
+          exitIntentRef.current = false;
+          backAttemptRef.current = false;
+        }
+      } catch {
+        // Fail-open: Never break storefront if an arbitration error occurs
       }
     },
     [activeCampaign, activePopup, publishedCampaigns, isSuppressed, gatherActiveContext]
@@ -330,7 +416,7 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
         const currentPriority = POPUP_PRIORITIES[activePopup] || 0;
         const newPriority = POPUP_PRIORITIES[type] || 0;
         if (newPriority <= currentPriority) {
-          return false; // Lower or equal priority popup rejected
+          return false;
         }
       }
 
@@ -354,25 +440,26 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
   // CTA Action dispatcher
   const handleCtaAction = useCallback(
     (action: string, meta?: any) => {
+      const ctx = gatherActiveContext();
       if (activeCampaign) {
         apiClient.recordEngagementImpression({
           campaign_id: activeCampaign.id,
           version_id: activeCampaign.current_version?.id,
           event_type: "cta_clicked",
-          page_url: window.location.pathname,
+          page_url: typeof window !== "undefined" ? window.location.pathname : "/",
         });
 
         apiClient.recordEngagementConversion({
           campaign_id: activeCampaign.id,
           conversion_type: action === "APPLY_COUPON" ? "COUPON_APPLIED" : action,
           coupon_code: meta?.couponCode,
-          revenue: contextState.cart?.total || 0,
+          revenue: ctx.cart?.total || 0,
         });
       }
 
       switch (action) {
         case "APPLY_COUPON":
-          if (meta?.couponCode) {
+          if (meta?.couponCode && typeof window !== "undefined") {
             try {
               localStorage.setItem("applied_discount_code", meta.couponCode);
               localStorage.setItem("_cth_pending_coupon", meta.couponCode);
@@ -385,12 +472,16 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
 
         case "OPEN_CART":
           dismissEngagement();
-          window.location.href = "/cart";
+          if (typeof window !== "undefined") {
+            window.location.href = "/cart";
+          }
           break;
 
         case "CHECKOUT":
           dismissEngagement();
-          window.location.href = "/checkout";
+          if (typeof window !== "undefined") {
+            window.location.href = "/checkout";
+          }
           break;
 
         case "LOGIN":
@@ -401,14 +492,14 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
 
         case "VIEW_PRODUCT":
           dismissEngagement();
-          if (meta?.productId) {
+          if (meta?.productId && typeof window !== "undefined") {
             window.location.href = `/product/${meta.productId}`;
           }
           break;
 
         case "CUSTOM_URL":
           dismissEngagement();
-          if (meta?.targetUrl) {
+          if (meta?.targetUrl && typeof window !== "undefined") {
             window.location.href = meta.targetUrl;
           }
           break;
@@ -419,16 +510,16 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
           break;
       }
     },
-    [activeCampaign, contextState.cart?.total, dismissEngagement, openLoginModal]
+    [activeCampaign, dismissEngagement, openLoginModal, gatherActiveContext]
   );
 
-  // Immediate / Page Load trigger detector
+  // 1. Immediate / Page Load trigger detector
   useEffect(() => {
     if (!configLoaded || publishedCampaigns.length === 0 || activeCampaign || activePopup) return;
     triggerCampaignCheck("immediate");
   }, [configLoaded, publishedCampaigns, activeCampaign, activePopup, triggerCampaignCheck]);
 
-  // Time-on-page timer detector
+  // 2. Continuous 1-Second Timer for Time-on-Page & Inactivity Checks
   useEffect(() => {
     if (!configLoaded || publishedCampaigns.length === 0 || activeCampaign || activePopup) return;
 
@@ -439,17 +530,40 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
     return () => clearInterval(interval);
   }, [configLoaded, publishedCampaigns, activeCampaign, activePopup, triggerCampaignCheck]);
 
-  // Global Exit Intent Detector
+  // 3. User Activity Sensor (Resets inactivity counter with throttling)
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    let hasTriggeredExit = false;
+    const resetInactivity = () => {
+      const now = Date.now();
+      if (now - lastActivityThrottleRef.current > 500) {
+        lastActivityThrottleRef.current = now;
+        lastActivityTimeRef.current = now;
+      }
+    };
+
+    window.addEventListener("pointermove", resetInactivity, { passive: true });
+    window.addEventListener("keydown", resetInactivity, { passive: true });
+    window.addEventListener("click", resetInactivity, { passive: true });
+    window.addEventListener("touchstart", resetInactivity, { passive: true });
+
+    return () => {
+      window.removeEventListener("pointermove", resetInactivity);
+      window.removeEventListener("keydown", resetInactivity);
+      window.removeEventListener("click", resetInactivity);
+      window.removeEventListener("touchstart", resetInactivity);
+    };
+  }, []);
+
+  // 4. Desktop Exit Intent Detector
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
     const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY <= 10 && !hasTriggeredExit) {
+      if (e.clientY <= 10 && !exitIntentRef.current) {
         const isCheckout = window.location.pathname.includes("/checkout");
         if (!isCheckout) {
-          hasTriggeredExit = true;
+          exitIntentRef.current = true;
           triggerCampaignCheck("exit_intent");
         }
       }
@@ -461,28 +575,68 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
     };
   }, [triggerCampaignCheck]);
 
-  // Scroll depth detector
+  // 5. Scroll Depth Sensor (Clamped 0 to 100%)
   useEffect(() => {
     if (typeof window === "undefined" || !configLoaded || publishedCampaigns.length === 0) return;
 
-    let scrollTriggered = false;
+    let ticking = false;
 
     const handleScroll = () => {
-      if (scrollTriggered || activeCampaign || activePopup) return;
-      const scrollY = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (docHeight > 0) {
-        const scrollPct = (scrollY / docHeight) * 100;
-        if (scrollPct >= 40) {
-          scrollTriggered = true;
-          triggerCampaignCheck("scroll_depth");
-        }
+      if (activeCampaign || activePopup) return;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+          if (docHeight > 0) {
+            const scrollPct = Math.min(100, Math.max(0, Math.round((scrollY / docHeight) * 100)));
+            if (scrollPct > maxScrollDepthRef.current) {
+              maxScrollDepthRef.current = scrollPct;
+              triggerCampaignCheck("scroll_depth", scrollPct);
+            }
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [configLoaded, publishedCampaigns, activeCampaign, activePopup, triggerCampaignCheck]);
+
+  // 6. Browser Back Navigation Sensor
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handlePopState = () => {
+      if (activeCampaign || activePopup) return;
+      backAttemptRef.current = true;
+      triggerCampaignCheck("back_navigation");
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [activeCampaign, activePopup, triggerCampaignCheck]);
+
+  // 7. Real Cart Update Listener
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleCartEvent = () => {
+      triggerCampaignCheck("cart_condition");
+    };
+
+    window.addEventListener("cth_cart_updated", handleCartEvent);
+    window.addEventListener("storage", (e) => {
+      if (e.key === "medusa_cart_items" || e.key === "_cth_cart_items") {
+        handleCartEvent();
+      }
+    });
+
+    return () => {
+      window.removeEventListener("cth_cart_updated", handleCartEvent);
+    };
+  }, [triggerCampaignCheck]);
 
   const activeContext = gatherActiveContext();
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { ShopDTO } from "@frontend/lib/types";
-import { HttpTypes, ProductCategoryDTO } from "@medusajs/types";
+import { HttpTypes, ProductCategoryDTO } from "@frontend/lib/types";
 import { CreateCategoryDrawer } from "./create-category-drawer";
 import { CreateProductDrawer } from "./create-product-drawer";
 

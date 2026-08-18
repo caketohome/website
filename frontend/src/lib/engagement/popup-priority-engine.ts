@@ -24,70 +24,151 @@ export const POPUP_TYPE_PRIORITY_BASE: Record<PopupType, number> = {
 };
 
 /**
- * Evaluates audience constraints (devices, customer status, cities, branches, categories, products, cart values).
+ * Explains audience matching result with detailed diagnostic reason for AST simulator.
  */
-export function matchesAudience(campaign: PopupCampaign, context: EngagementContext): boolean {
+export function explainAudienceMatch(
+  campaign: PopupCampaign,
+  context: EngagementContext
+): { matched: boolean; reason: string } {
   const version = campaign.current_version || campaign.draft_version;
-  if (!version || !version.audience) return true;
+  if (!version) return { matched: true, reason: "No version constraints" };
 
-  const { audience } = version;
+  const audience = version.audience || {};
+  const freq = version.frequency || {};
+  const isLoggedIn = Boolean(context.customer?.isLoggedIn);
 
-  // 1. Device match
+  // 1. Authoritative Authentication & Guest/Authenticated Rule
+  if (isLoggedIn) {
+    const explicitlyAllowsAuth =
+      freq.showToAuthenticated === true ||
+      (Array.isArray(audience.customerStatus) &&
+        audience.customerStatus.some((s) => s === "logged_in" || s === "member" || s === "returning_customer"));
+
+    if (!explicitlyAllowsAuth) {
+      return { matched: false, reason: "Blocked: Authenticated customer (Campaign targets logged-out guests only)" };
+    }
+
+    if (
+      audience.customerStatus &&
+      audience.customerStatus.length > 0 &&
+      !audience.customerStatus.includes("all") &&
+      !audience.customerStatus.includes("logged_in") &&
+      !audience.customerStatus.includes("member") &&
+      !audience.customerStatus.includes("returning_customer")
+    ) {
+      return {
+        matched: false,
+        reason: `Blocked: Customer status (${context.customer?.status || "logged_in"}) not in allowed statuses`,
+      };
+    }
+  } else {
+    // Not logged in (Guest)
+    if (freq.showToGuests === false) {
+      return { matched: false, reason: "Blocked: Guest visitor (Campaign configured for authenticated customers only)" };
+    }
+
+    if (
+      audience.customerStatus &&
+      audience.customerStatus.length > 0 &&
+      !audience.customerStatus.includes("all") &&
+      !audience.customerStatus.includes("guest") &&
+      !audience.customerStatus.includes("new_customer")
+    ) {
+      return { matched: false, reason: "Blocked: Guest visitor (Campaign requires logged-in customer)" };
+    }
+  }
+
+  // 2. Device match
   if (audience.devices && audience.devices.length > 0 && context.session?.deviceType) {
     if (!audience.devices.includes(context.session.deviceType)) {
-      return false;
+      return {
+        matched: false,
+        reason: `Blocked: Device mismatch (Current: ${context.session.deviceType}, Allowed: ${audience.devices.join(", ")})`,
+      };
     }
   }
 
-  // 2. Customer status match
+  // 3. Customer status match
   if (audience.customerStatus && audience.customerStatus.length > 0 && !audience.customerStatus.includes("all")) {
-    const custStatus = context.customer?.status || (context.customer?.isLoggedIn ? "logged_in" : "guest");
+    const custStatus = context.customer?.status || (isLoggedIn ? "logged_in" : "guest");
     if (!audience.customerStatus.includes(custStatus)) {
-      return false;
+      return {
+        matched: false,
+        reason: `Blocked: Customer status mismatch (Current: ${custStatus}, Allowed: ${audience.customerStatus.join(", ")})`,
+      };
     }
   }
 
-  // 3. City targeting
+  // 4. City targeting
   if (audience.cityIds && audience.cityIds.length > 0) {
     const customerCity = context.customer?.cityId;
     if (!customerCity || !audience.cityIds.includes(customerCity)) {
-      return false;
+      return { matched: false, reason: `Blocked: Customer city (${customerCity || "none"}) not in targeted cities` };
     }
   }
 
-  // 4. Branch targeting
+  // 5. Branch targeting
   if (audience.branchIds && audience.branchIds.length > 0) {
     const customerBranch = context.customer?.branchId;
     if (!customerBranch || !audience.branchIds.includes(customerBranch)) {
-      return false;
+      return { matched: false, reason: `Blocked: Customer branch (${customerBranch || "none"}) not in targeted branches` };
     }
   }
 
-  // 5. Category targeting
+  // 6. Category targeting
   if (audience.categoryIds && audience.categoryIds.length > 0) {
     const currentCategory = context.product?.categoryId;
-    if (!currentCategory || !audience.categoryIds.includes(currentCategory)) {
-      return false;
+    const cartCategories = context.cart?.categoryIds || [];
+    const hasCategory =
+      (currentCategory && audience.categoryIds.includes(currentCategory)) ||
+      cartCategories.some((cId) => audience.categoryIds!.includes(cId));
+    if (!hasCategory) {
+      return { matched: false, reason: "Blocked: Category does not match targeted categories" };
     }
   }
 
-  // 6. Product targeting
+  // 7. Product targeting
   if (audience.productIds && audience.productIds.length > 0) {
     const currentProduct = context.product?.id;
-    if (!currentProduct || !audience.productIds.includes(currentProduct)) {
-      return false;
+    const cartProducts = context.cart?.productIds || [];
+    const hasProduct =
+      (currentProduct && audience.productIds.includes(currentProduct)) ||
+      cartProducts.some((pId) => audience.productIds!.includes(pId));
+    if (!hasProduct) {
+      return { matched: false, reason: "Blocked: Product does not match targeted products" };
     }
   }
 
-  // 7. Cart Value range
-  if (typeof audience.minCartValue === "number") {
-    if ((context.cart?.total || 0) < audience.minCartValue) return false;
+  // 8. Cart Value range
+  if (typeof audience.minCartValue === "number" && (context.cart?.total || 0) < audience.minCartValue) {
+    return {
+      matched: false,
+      reason: `Blocked: Cart total (₹${context.cart?.total || 0}) below minimum ₹${audience.minCartValue}`,
+    };
   }
-  if (typeof audience.maxCartValue === "number") {
-    if ((context.cart?.total || 0) > audience.maxCartValue) return false;
+  if (typeof audience.maxCartValue === "number" && (context.cart?.total || 0) > audience.maxCartValue) {
+    return {
+      matched: false,
+      reason: `Blocked: Cart total (₹${context.cart?.total || 0}) exceeds maximum ₹${audience.maxCartValue}`,
+    };
   }
 
-  return true;
+  // 9. Rule Groups AST
+  if (version.rules && version.rules.length > 0) {
+    const rulesOk = evaluateAllRules(version.rules, context);
+    if (!rulesOk) {
+      return { matched: false, reason: "Blocked: Custom rule AST conditions not met" };
+    }
+  }
+
+  return { matched: true, reason: "Audience criteria satisfied" };
+}
+
+/**
+ * Evaluates audience constraints (devices, customer status, cities, branches, categories, products, cart values).
+ */
+export function matchesAudience(campaign: PopupCampaign, context: EngagementContext): boolean {
+  return explainAudienceMatch(campaign, context).matched;
 }
 
 /**
@@ -147,10 +228,6 @@ export function selectWinningPopup(
     }
 
     if (!matchesAudience(camp, context)) {
-      return false;
-    }
-
-    if (!evaluateAllRules(version.rules, context)) {
       return false;
     }
 

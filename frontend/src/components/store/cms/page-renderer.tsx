@@ -666,7 +666,7 @@ export function PageRenderer({
             case "brand_story": {
               const heading = config.heading || "Handcrafted with Pure Ingredients";
               const body = config.body || "At CakeToHome, our master bakers use only premium Belgian dark chocolate, Madagascar bourbon vanilla beans, and farm-fresh seasonal fruits.";
-              const imageUrl = config.image_url || "https://images.unsplash.com/photo-1558326957-c8a4929c09bd?auto=format&fit=crop&q=80&w=800";
+              const imageUrl = config.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
               const imageAlt = config.image_alt || heading;
               const ctaText = config.cta_text;
               const ctaUrl = config.cta_url || "/products";

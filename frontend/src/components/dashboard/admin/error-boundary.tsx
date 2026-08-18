@@ -7,6 +7,7 @@ import { AlertTriangle, RefreshCw } from "lucide-react";
 interface Props {
   children: ReactNode;
   moduleName?: string;
+  widgetName?: string;
   onRetry?: () => void;
   compact?: boolean;
 }

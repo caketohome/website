@@ -229,7 +229,7 @@ async function runPopupAutoTriggerAndLoginE2ESuite() {
   const renderedText = renderTemplate(
     "Hello {{customer_name}}, enjoy code {{coupon_code}} on your first order!",
     { customer: { isLoggedIn: true, name: "Pooja Hegde", status: "logged_in" } },
-    { couponCode: "SWEET150" }
+    { type: "COUPON", couponCode: "SWEET150" } as any
   );
   assert(
     renderedText === "Hello Pooja Hegde, enjoy code SWEET150 on your first order!",
@@ -293,10 +293,24 @@ async function runPopupAutoTriggerAndLoginE2ESuite() {
   // ---------------------------------------------------------------------------
   console.log("\n── [Pillar 5] Frequency Capping & Priority Conflict Arbitration ──");
 
+  const sessionFreqCampaign: PopupCampaign = {
+    ...welcomeCampaign,
+    id: "pop_sess_test",
+    current_version: {
+      ...welcomeCampaign.current_version!,
+      frequency: {
+        mode: "once_per_session",
+        scope: "session",
+        sessionLimit: 1,
+        maxShows: 1,
+      },
+    },
+  };
+
   // Record display
-  recordFrequencyDisplay("pop_welcome_first_order", contextThreeSecs);
-  const isCapped = isFrequencyCapped(welcomeCampaign, contextThreeSecs);
-  assert(isCapped === true, "P5.1", "Frequency capping prevents popup from displaying twice in same session");
+  recordFrequencyDisplay("pop_sess_test", contextThreeSecs);
+  const isCapped = isFrequencyCapped(sessionFreqCampaign, contextThreeSecs);
+  assert(isCapped === true, "P5.1", "Frequency capping prevents once-per-session popup from displaying twice in same session");
 
   // Priority arbitration between high and low priority candidates
   const lowPriorityCamp: PopupCampaign = {

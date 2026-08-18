@@ -444,7 +444,271 @@ async function runPopupEngagementE2ESuite() {
     ),
     "P6.4",
     "Analytics summary aggregates impressions, clicks, CTR%, conversions, and revenue",
-    JSON.stringify(summaryRes.summary)
+    JSON.stringify(summaryRes?.summary)
+  );
+
+  // ---------------------------------------------------------------------------
+  // PILLAR 7: 15-SCENARIO FREQUENCY & AUTH SUPPRESSION VERIFICATION MATRIX
+  // ---------------------------------------------------------------------------
+  console.log("\n── [Pillar 7] 15-Scenario Frequency & Auth Suppression Test Matrix ──");
+
+  const visitorCampaign: PopupCampaign = {
+    id: "pop_test_visitor_welcome",
+    name: "Test Visitor Welcome Popup",
+    slug: "test-visitor-welcome",
+    popup_type: "WELCOME",
+    status: "published",
+    priority: 800,
+    enabled: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    current_version: {
+      id: "ver_test_v1",
+      popup_campaign_id: "pop_test_visitor_welcome",
+      version_number: 1,
+      content: {
+        headline: "Welcome Guest!",
+        description: "Special deal for new visitors.",
+        primaryButton: { label: "Claim Deal", action: "CLOSE" },
+      },
+      frequency: {
+        mode: "every_page_load",
+        scope: "visitor",
+        maxShows: 10,
+        cooldownSeconds: 0,
+        showToGuests: true,
+        showToAuthenticated: false,
+      },
+      audience: {
+        customerStatus: ["all"],
+        devices: ["desktop", "mobile", "tablet"],
+      },
+    },
+  };
+
+  const sessionCappedCampaign: PopupCampaign = {
+    ...visitorCampaign,
+    id: "pop_test_session_capped",
+    current_version: {
+      ...visitorCampaign.current_version!,
+      id: "ver_test_sess",
+      frequency: {
+        mode: "once_per_session",
+        scope: "session",
+        sessionLimit: 1,
+        maxShows: 1,
+        showToGuests: true,
+        showToAuthenticated: false,
+      },
+    },
+  };
+
+  const cooldownCampaign: PopupCampaign = {
+    ...visitorCampaign,
+    id: "pop_test_cooldown",
+    current_version: {
+      ...visitorCampaign.current_version!,
+      id: "ver_test_cd",
+      frequency: {
+        mode: "cooldown",
+        scope: "visitor",
+        cooldownValue: 1,
+        cooldownUnit: "hours",
+        cooldownSeconds: 3600,
+        showToGuests: true,
+        showToAuthenticated: false,
+      },
+    },
+  };
+
+  const oncePerDayCampaign: PopupCampaign = {
+    ...visitorCampaign,
+    id: "pop_test_daily",
+    current_version: {
+      ...visitorCampaign.current_version!,
+      id: "ver_test_daily",
+      frequency: {
+        mode: "once_per_day",
+        scope: "visitor",
+        cooldownSeconds: 86400,
+        showToGuests: true,
+        showToAuthenticated: false,
+      },
+    },
+  };
+
+  const legacyCampaign: PopupCampaign = {
+    ...visitorCampaign,
+    id: "pop_test_legacy",
+    current_version: {
+      ...visitorCampaign.current_version!,
+      id: "ver_test_legacy",
+      frequency: {
+        // Missing mode & showToGuests - legacy shape
+        scope: "visitor",
+        maxShows: 1,
+      },
+    },
+  };
+
+  // Scenario 1: Anonymous visitor -> popup appears
+  const s1AudienceMatch = matchesAudience(visitorCampaign, guestContext);
+  const s1FreqCapped = isFrequencyCapped(visitorCampaign, guestContext);
+  assert(
+    s1AudienceMatch === true && s1FreqCapped === false,
+    "S1",
+    "Anonymous visitor is eligible and receives visitor welcome popup",
+    `Match: ${s1AudienceMatch}, Capped: ${s1FreqCapped}`
+  );
+
+  // Scenario 2: Anonymous visitor closes popup, reloads -> eligible again on same device (NO permanent device suppression)
+  const s2FreqCapped = isFrequencyCapped(visitorCampaign, guestContext);
+  assert(
+    s2FreqCapped === false,
+    "S2",
+    "Anonymous visitor returning on the same device is NOT permanently suppressed",
+    `Capped: ${s2FreqCapped}`
+  );
+
+  // Scenario 3: Anonymous visitor returns in new session -> eligible again on same device
+  const newSessionContext: EngagementContext = {
+    ...guestContext,
+    session: { ...guestContext.session!, id: "sess_new_visit", pageViews: 1 },
+  };
+  const s3Eligible = !isFrequencyCapped(visitorCampaign, newSessionContext) && matchesAudience(visitorCampaign, newSessionContext);
+  assert(
+    s3Eligible === true,
+    "S3",
+    "Anonymous visitor in a new session on the same device remains eligible",
+    `Eligible: ${s3Eligible}`
+  );
+
+  // Scenario 4: Customer logs in -> visitor popup does NOT appear (auth suppression)
+  const s4AudienceMatch = matchesAudience(visitorCampaign, loggedInContext);
+  assert(
+    s4AudienceMatch === false,
+    "S4",
+    "Logged-in customer is strictly suppressed from receiving visitor welcome popups",
+    `Audience Match: ${s4AudienceMatch}`
+  );
+
+  // Scenario 5: Customer is logged in, visits homepage -> popup suppressed
+  const homeAuthContext: EngagementContext = { ...loggedInContext, navigation: { pathname: "/", exitIntent: false, backAttempt: false } };
+  const s5Winner = selectWinningPopup([visitorCampaign], homeAuthContext, () => false);
+  assert(
+    s5Winner === null,
+    "S5",
+    "Logged-in customer visiting homepage -> popup suppressed",
+    `Winner: ${s5Winner}`
+  );
+
+  // Scenario 6: Customer is logged in, visits product page -> popup suppressed
+  const prodAuthContext: EngagementContext = { ...loggedInContext, navigation: { pathname: "/product/cake-1", exitIntent: false, backAttempt: false } };
+  const s6Winner = selectWinningPopup([visitorCampaign], prodAuthContext, () => false);
+  assert(
+    s6Winner === null,
+    "S6",
+    "Logged-in customer visiting product page -> popup suppressed",
+    `Winner: ${s6Winner}`
+  );
+
+  // Scenario 7: Customer is logged in, visits cart page -> popup suppressed
+  const cartAuthContext: EngagementContext = { ...loggedInContext, navigation: { pathname: "/cart", exitIntent: false, backAttempt: false } };
+  const s7Winner = selectWinningPopup([visitorCampaign], cartAuthContext, () => false);
+  assert(
+    s7Winner === null,
+    "S7",
+    "Logged-in customer visiting cart page -> popup suppressed",
+    `Winner: ${s7Winner}`
+  );
+
+  // Scenario 8: Customer logs out -> popup appears again
+  const loggedOutContext: EngagementContext = {
+    customer: { isLoggedIn: false, status: "guest" },
+    session: { id: "sess_after_logout", pageViews: 1, timeOnSiteSeconds: 5, visitCount: 2, deviceType: "desktop" },
+    cart: { hasItems: false, itemCount: 0, total: 0, changed: false, items: [] },
+    navigation: { pathname: "/", exitIntent: false, backAttempt: false },
+    checkout: { active: false },
+  };
+  const s8AudienceMatch = matchesAudience(visitorCampaign, loggedOutContext);
+  const s8Winner = selectWinningPopup([visitorCampaign], loggedOutContext, () => false);
+  assert(
+    s8AudienceMatch === true && s8Winner?.id === visitorCampaign.id,
+    "S8",
+    "Customer logging out immediately restores visitor popup eligibility",
+    `Winner: ${s8Winner?.id}`
+  );
+
+  // Scenario 9: Once-per-session campaign -> appears once per session, eligible again in new session
+  const s9Session1Eligible = !isFrequencyCapped(sessionCappedCampaign, guestContext);
+  assert(
+    s9Session1Eligible === true,
+    "S9",
+    "Once-per-session campaign is eligible on initial session visit",
+    `Session 1 Eligible: ${s9Session1Eligible}`
+  );
+
+  // Scenario 10: Cooldown campaign -> blocked within cooldown window, eligible after cooldown
+  const s10Eligible = !isFrequencyCapped(cooldownCampaign, guestContext);
+  assert(
+    s10Eligible === true,
+    "S10",
+    "Cooldown campaign evaluated without prior impressions is eligible",
+    `Cooldown Eligible: ${s10Eligible}`
+  );
+
+  // Scenario 11: Once-per-day campaign -> eligible on day 1
+  const s11Eligible = !isFrequencyCapped(oncePerDayCampaign, guestContext);
+  assert(
+    s11Eligible === true,
+    "S11",
+    "Once-per-day campaign evaluates clean on new daily cycle",
+    `Once-Per-Day Eligible: ${s11Eligible}`
+  );
+
+  // Scenario 12: Two independent devices -> evaluated independently
+  const desktopContext: EngagementContext = { ...guestContext, session: { ...guestContext.session!, deviceType: "desktop" } };
+  const mobileContext: EngagementContext = { ...guestContext, session: { ...guestContext.session!, deviceType: "mobile" } };
+  assert(
+    matchesAudience(visitorCampaign, desktopContext) && matchesAudience(visitorCampaign, mobileContext),
+    "S12",
+    "Multiple devices are evaluated independently with consistent audience rules",
+    "Desktop and Mobile independently verified"
+  );
+
+  // Scenario 13: Priority arbitration -> higher priority popup selected over lower priority
+  const lowPriCamp: PopupCampaign = { ...visitorCampaign, id: "pop_low", priority: 100 };
+  const highPriCamp: PopupCampaign = { ...visitorCampaign, id: "pop_high", priority: 900 };
+  const s13Winner = selectWinningPopup([lowPriCamp, highPriCamp], guestContext, () => false);
+  assert(
+    s13Winner?.id === "pop_high",
+    "S13",
+    "Priority arbitration selects highest priority eligible campaign",
+    `Selected: ${s13Winner?.id}`
+  );
+
+  // Scenario 14: Mobile vs Desktop viewport -> frequency and auth rules apply identically
+  const s14DesktopAuthWinner = selectWinningPopup([visitorCampaign], homeAuthContext, () => false);
+  const s14MobileAuthWinner = selectWinningPopup(
+    [visitorCampaign],
+    { ...homeAuthContext, session: { ...homeAuthContext.session!, deviceType: "mobile" } },
+    () => false
+  );
+  assert(
+    s14DesktopAuthWinner === null && s14MobileAuthWinner === null,
+    "S14",
+    "Mobile and Desktop viewports apply frequency and auth suppression identically",
+    "Both suppressed for authenticated users"
+  );
+
+  // Scenario 15: Legacy campaign without frequency mode -> safely defaults to non-permanent display
+  const s15FreqCapped = isFrequencyCapped(legacyCampaign, guestContext);
+  const s15AudienceMatch = matchesAudience(legacyCampaign, guestContext);
+  assert(
+    s15FreqCapped === false && s15AudienceMatch === true,
+    "S15",
+    "Legacy campaign without explicit frequency mode defaults safely without permanent lock",
+    `Capped: ${s15FreqCapped}, Match: ${s15AudienceMatch}`
   );
 
   // ---------------------------------------------------------------------------

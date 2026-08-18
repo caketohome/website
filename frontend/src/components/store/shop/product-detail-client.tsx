@@ -485,7 +485,7 @@ export default function ProductDetailClient({
                         {/* Structured Occasion Badges */}
                         <div className="flex items-center gap-2 flex-wrap pt-2">
                             <span className="text-xs font-semibold text-gray-500">Perfect for:</span>
-                            {productOccasions.map((occ) => (
+                            {productOccasions.map((occ: any) => (
                                 <Link
                                     key={occ.slug}
                                     href={`/occasions/${occ.slug}`}

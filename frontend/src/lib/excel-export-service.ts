@@ -52,6 +52,27 @@ export class ExcelExportService {
     }
   }
 
+  public static async generateGstWorkbookXlsx(data: any, filename?: string): Promise<any> {
+    return ExcelExportService.exportGstHsnSummary(data);
+  }
+
+  public static async exportGstSummary(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
+  public static async exportInvoiceRegister(data: any): Promise<any> { return ExcelExportService.exportGstDetailedRegister(data); }
+  public static async exportGstTransactions(data: any): Promise<any> { return ExcelExportService.exportGstDetailedRegister(data); }
+  public static async exportB2B(data: any): Promise<any> { return ExcelExportService.exportGstDetailedRegister(data); }
+  public static async exportB2C(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
+  public static async exportCreditNotes(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
+  public static async exportHsnSummary(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
+  public static async exportTaxSummary(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
+  public static async exportGstr1(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
+  public static async exportGstr3b(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
+  public static async exportValidationErrors(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
+  public static async exportSalesRevenue(data: any): Promise<any> { return ExcelExportService.exportDailySalesReport(data); }
+  public static async exportProductsProfitability(data: any): Promise<any> { return ExcelExportService.exportProductPerformance(data); }
+  public static async exportOrdersLifecycle(data: any): Promise<any> { return ExcelExportService.exportOrderRegister(data); }
+  public static async exportGeographicSales(data: any): Promise<any> { return ExcelExportService.exportCityPerformance(data); }
+  public static async exportExceptionReport(data: any): Promise<any> { return ExcelExportService.exportExceptionCenter(data); }
+
   public static formatBranchSubtitle(filters?: any): string {
     const bIds = filters?.branchIds;
     if (!bIds || bIds.length === 0 || bIds.includes("all")) {

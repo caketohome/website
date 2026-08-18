@@ -11,6 +11,29 @@ export interface HomepageSection {
   is_active?: boolean;
 }
 
+export interface CmsNavigationItem {
+  id?: string;
+  title?: string;
+  label?: string;
+  type?: "url" | "page" | "category" | "blog";
+  url?: string;
+  page_slug?: string;
+  category_slug?: string;
+  image?: string;
+  icon?: string;
+  badge?: string;
+  children?: CmsNavigationItem[];
+  schedule?: any;
+  permissions?: any;
+}
+
+export interface CmsNavigation {
+  id: string;
+  name: string;
+  location: string;
+  items: CmsNavigationItem[];
+}
+
 export interface CmsBanner {
   id: string;
   title?: string | null;

@@ -12,23 +12,23 @@ export interface ScrollFrameHeroProps {
 }
 
 export const FRAME_CONFIG = {
-  totalFrames: 39,
+  totalFrames: 112,
   firstFrame: 1,
-  lastFrame: 39,
-  scrollLengthVh: 260,
+  lastFrame: 112,
+  scrollLengthVh: 240,
   nativeWidth: 1920,
   nativeHeight: 1080,
   easing: 0.20,
 };
 
 /**
- * Resolves Cloudinary frame URL for frames1_0001.jpg through frames1_0039.jpg
+ * Resolves Cloudinary frame URL for frames1_0001.jpg through frames1_0112.jpg
  */
 export function getFrameUrl(frameNumber: number, isMobile = false): string {
   const clamped = Math.max(1, Math.min(FRAME_CONFIG.totalFrames, Math.round(frameNumber)));
   const padded = String(clamped).padStart(4, "0");
   const transform = isMobile ? "f_auto,q_auto,w_800" : "f_auto,q_auto";
-  return `https://res.cloudinary.com/r0k56n3j/image/upload/${transform}/v1786881616/frames1_${padded}.jpg`;
+  return `https://res.cloudinary.com/r0k56n3j/image/upload/${transform}/frames1_${padded}.jpg`;
 }
 
 export function ScrollFrameHero({
@@ -122,25 +122,64 @@ export function ScrollFrameHero({
   }, [drawFrame]);
 
   // ── 3. Optimized RAF Single Render Loop ──────────────────────────────────
+  const updateOverlays = useCallback((p: number) => {
+    // Update Progress Bar
+    if (progressBarRef.current) {
+      progressBarRef.current.style.transform = `scaleX(${p})`;
+    }
+
+    // Phase 1: Intro Overlay (0% -> 25%)
+    if (introOverlayRef.current) {
+      const op = p <= 0.22 ? Math.max(0, 1 - p / 0.20) : 0;
+      const ty = p * -60;
+      introOverlayRef.current.style.opacity = String(op);
+      introOverlayRef.current.style.transform = `translateY(${ty}px)`;
+      introOverlayRef.current.style.pointerEvents = op > 0.1 ? "auto" : "none";
+    }
+
+    // Phase 2: Craftsmanship Overlay (30% -> 60%)
+    if (craftOverlayRef.current) {
+      let op = 0;
+      if (p >= 0.28 && p <= 0.60) {
+        if (p < 0.38) op = (p - 0.28) / 0.10;
+        else if (p > 0.50) op = (0.60 - p) / 0.10;
+        else op = 1;
+      }
+      const ty = (p - 0.44) * -40;
+      craftOverlayRef.current.style.opacity = String(op);
+      craftOverlayRef.current.style.transform = `translateY(${ty}px)`;
+      craftOverlayRef.current.style.pointerEvents = op > 0.1 ? "auto" : "none";
+    }
+
+    // Phase 3: Delivery Fleet Overlay (65% -> 95%)
+    if (fleetOverlayRef.current) {
+      let op = 0;
+      if (p >= 0.63 && p <= 0.95) {
+        if (p < 0.73) op = (p - 0.63) / 0.10;
+        else if (p > 0.85) op = (0.95 - p) / 0.10;
+        else op = 1;
+      }
+      const ty = (p - 0.79) * -40;
+      fleetOverlayRef.current.style.opacity = String(op);
+      fleetOverlayRef.current.style.transform = `translateY(${ty}px)`;
+      fleetOverlayRef.current.style.pointerEvents = op > 0.1 ? "auto" : "none";
+    }
+  }, []);
+
   const startRenderLoop = useCallback(() => {
     if (isLoopRunningRef.current) return;
     isLoopRunningRef.current = true;
 
     const renderLoop = () => {
-      // Reduced motion bypass
-      if (prefersReducedMotionRef.current) {
-        currentFrameRef.current = 1;
-        drawFrame(1);
-        isLoopRunningRef.current = false;
-        return;
-      }
-
       // Smoothly interpolate towards target frame
-      const diff = targetFrameRef.current - currentFrameRef.current;
-      if (Math.abs(diff) > 0.005) {
+      const target = targetFrameRef.current;
+      const current = currentFrameRef.current;
+      const diff = target - current;
+
+      if (Math.abs(diff) > 0.05) {
         currentFrameRef.current += diff * FRAME_CONFIG.easing;
       } else {
-        currentFrameRef.current = targetFrameRef.current;
+        currentFrameRef.current = target;
       }
 
       const frameToDraw = Math.max(
@@ -148,56 +187,13 @@ export function ScrollFrameHero({
         Math.min(FRAME_CONFIG.totalFrames, Math.round(currentFrameRef.current))
       );
 
-      if (frameToDraw !== lastDrawnFrameRef.current) {
-        drawFrame(frameToDraw);
-      }
+      drawFrame(frameToDraw);
 
       const p = scrollProgressRef.current;
-
-      // Update Progress Bar
-      if (progressBarRef.current) {
-        progressBarRef.current.style.transform = `scaleX(${p})`;
-      }
-
-      // Phase 1: Intro Overlay (0% -> 25%)
-      if (introOverlayRef.current) {
-        const op = p <= 0.22 ? Math.max(0, 1 - p / 0.20) : 0;
-        const ty = p * -60;
-        introOverlayRef.current.style.opacity = String(op);
-        introOverlayRef.current.style.transform = `translateY(${ty}px)`;
-        introOverlayRef.current.style.pointerEvents = op > 0.1 ? "auto" : "none";
-      }
-
-      // Phase 2: Craftsmanship Overlay (30% -> 60%)
-      if (craftOverlayRef.current) {
-        let op = 0;
-        if (p >= 0.28 && p <= 0.60) {
-          if (p < 0.38) op = (p - 0.28) / 0.10;
-          else if (p > 0.50) op = (0.60 - p) / 0.10;
-          else op = 1;
-        }
-        const ty = (p - 0.44) * -40;
-        craftOverlayRef.current.style.opacity = String(op);
-        craftOverlayRef.current.style.transform = `translateY(${ty}px)`;
-        craftOverlayRef.current.style.pointerEvents = op > 0.1 ? "auto" : "none";
-      }
-
-      // Phase 3: Delivery Fleet Overlay (65% -> 95%)
-      if (fleetOverlayRef.current) {
-        let op = 0;
-        if (p >= 0.63 && p <= 0.95) {
-          if (p < 0.73) op = (p - 0.63) / 0.10;
-          else if (p > 0.85) op = (0.95 - p) / 0.10;
-          else op = 1;
-        }
-        const ty = (p - 0.79) * -40;
-        fleetOverlayRef.current.style.opacity = String(op);
-        fleetOverlayRef.current.style.transform = `translateY(${ty}px)`;
-        fleetOverlayRef.current.style.pointerEvents = op > 0.1 ? "auto" : "none";
-      }
+      updateOverlays(p);
 
       // Keep running if not settled, or idle when stationary
-      if (Math.abs(diff) > 0.005) {
+      if (Math.abs(targetFrameRef.current - currentFrameRef.current) > 0.05) {
         rafIdRef.current = requestAnimationFrame(renderLoop);
       } else {
         isLoopRunningRef.current = false;
@@ -205,14 +201,13 @@ export function ScrollFrameHero({
     };
 
     rafIdRef.current = requestAnimationFrame(renderLoop);
-  }, [drawFrame]);
+  }, [drawFrame, updateOverlays]);
 
   // ── 4. Initial Frame Load & Preload Pipeline ─────────────────────────────
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     isMobileRef.current = window.innerWidth < 768;
-    prefersReducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     resizeCanvas();
 
@@ -230,8 +225,8 @@ export function ScrollFrameHero({
     img1.src = getFrameUrl(1, isMobileRef.current);
     img1.onload = () => handleFrameLoaded(1, img1);
 
-    // 2. Preload nearby priority frames (2 through 10)
-    for (let f = 2; f <= Math.min(10, FRAME_CONFIG.totalFrames); f++) {
+    // 2. Preload nearby priority frames (2 through 15) immediately
+    for (let f = 2; f <= Math.min(15, FRAME_CONFIG.totalFrames); f++) {
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.decoding = "async";
@@ -239,16 +234,52 @@ export function ScrollFrameHero({
       img.onload = () => handleFrameLoaded(f, img);
     }
 
-    // 3. Preload remaining frames (11 through 39) asynchronously
-    const timer = setTimeout(() => {
-      for (let f = 11; f <= FRAME_CONFIG.totalFrames; f++) {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.decoding = "async";
-        img.src = getFrameUrl(f, isMobileRef.current);
-        img.onload = () => handleFrameLoaded(f, img);
+    // 3. Preload remaining frames (16 through 112) in progressive background chunks
+    let currentPreloadBatch = 16;
+    let timer: NodeJS.Timeout | null = null;
+
+    const loadNextBatch = () => {
+      if (currentPreloadBatch > FRAME_CONFIG.totalFrames) return;
+      const endBatch = Math.min(currentPreloadBatch + 12, FRAME_CONFIG.totalFrames);
+      for (let f = currentPreloadBatch; f <= endBatch; f++) {
+        if (!loadedFramesRef.current.has(f)) {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.decoding = "async";
+          img.src = getFrameUrl(f, isMobileRef.current);
+          img.onload = () => handleFrameLoaded(f, img);
+        }
       }
-    }, 50);
+      currentPreloadBatch = endBatch + 1;
+      if (currentPreloadBatch <= FRAME_CONFIG.totalFrames) {
+        timer = setTimeout(loadNextBatch, 40);
+      }
+    };
+
+    timer = setTimeout(loadNextBatch, 50);
+
+    // Preload priority window around target frame
+    const preloadAroundTarget = (target: number) => {
+      const center = Math.round(target);
+      for (let offset = 0; offset <= 8; offset++) {
+        const forward = center + offset;
+        const backward = center - offset;
+        if (forward <= FRAME_CONFIG.totalFrames && !loadedFramesRef.current.has(forward)) {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.decoding = "async";
+          img.src = getFrameUrl(forward, isMobileRef.current);
+          img.onload = () => handleFrameLoaded(forward, img);
+        }
+        if (backward >= 1 && backward !== forward && !loadedFramesRef.current.has(backward)) {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.decoding = "async";
+          img.src = getFrameUrl(backward, isMobileRef.current);
+          img.onload = () => handleFrameLoaded(backward, img);
+        }
+      }
+    };
 
     const ro = new ResizeObserver(() => resizeCanvas());
     if (stickyRef.current) {
@@ -264,10 +295,11 @@ export function ScrollFrameHero({
       getTargetFrame: () => targetFrameRef.current,
       getLoadedCount: () => loadedFramesRef.current.size,
       hasFrame: (f: number) => loadedFramesRef.current.has(f),
+      preloadAroundTarget,
     };
 
     return () => {
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
       ro.disconnect();
       window.removeEventListener("resize", resizeCanvas);
       if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
@@ -294,6 +326,19 @@ export function ScrollFrameHero({
       scrollProgressRef.current = progress;
       // Formula: frameIndex = Math.round(progress * (TOTAL_FRAMES - 1)) + 1
       targetFrameRef.current = 1 + progress * (FRAME_CONFIG.totalFrames - 1);
+      currentFrameRef.current = targetFrameRef.current;
+
+      const d = (window as any).__cakeToHomeDebug;
+      if (d && typeof d.preloadAroundTarget === "function") {
+        d.preloadAroundTarget(targetFrameRef.current);
+      }
+
+      const frameToDraw = Math.max(
+        1,
+        Math.min(FRAME_CONFIG.totalFrames, Math.round(targetFrameRef.current))
+      );
+      drawFrame(frameToDraw);
+      updateOverlays(progress);
 
       startRenderLoop();
     };
@@ -302,7 +347,7 @@ export function ScrollFrameHero({
     handleScroll();
 
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [startRenderLoop]);
+  }, [drawFrame, updateOverlays, startRenderLoop]);
 
   return (
     <section

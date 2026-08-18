@@ -140,7 +140,7 @@ async function runControlsAudit() {
   console.log("\n--- AUDIT 5: Storefront HTML Output & Image ALT Verification ---");
   const storefrontPage = await getCmsPage("audit-control-page");
   assert(!!storefrontPage, "Storefront resolves published page by slug");
-  assert(storefrontPage?.theme?.bg_color === "#fffaf0", "Storefront resolves published theme bg_color");
+  assert((storefrontPage as any)?.theme?.bg_color === "#fffaf0", "Storefront resolves published theme bg_color");
   assert(storefrontPage?.sections?.[0]?.config?.bg_image_alt === heroAltText, "Storefront resolves exact configured ALT text");
 
   // ── TEST 6: Section Deletion & Hiding ───────────────────────────────────────

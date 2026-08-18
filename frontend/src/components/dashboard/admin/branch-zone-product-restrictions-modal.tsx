@@ -206,7 +206,7 @@ export function BranchZoneProductRestrictionsModal({
               <>
                 <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                   <div>
-                    <Heading level="h4" className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-slate-100">
                       {selectedProduct.name || selectedProduct.title}
                     </Heading>
                     <Text className="text-xs text-slate-500">

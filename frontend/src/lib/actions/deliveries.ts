@@ -6,9 +6,10 @@ import { apiClient } from "../api-client";
 import { getCacheTag } from "../data/cookies";
 import { checkDeliveryAvailability, getDeliverySlots } from "../data/deliveries";
 
-export async function proceedDelivery(delivery: DeliveryDTO, delivery_partnerId: string) {
+export async function proceedDelivery(delivery: DeliveryDTO, delivery_partnerId?: string) {
   const { ApiEngine } = await import("../api-engine");
-  const res = ApiEngine.claimDeliveryJob(delivery.id, delivery_partnerId);
+  const partnerId = delivery_partnerId || delivery.delivery_partner_id || (delivery as any).delivery_partner?.id || "dlp_auto";
+  const res = ApiEngine.claimDeliveryJob(delivery.id, partnerId);
   revalidateTag("deliveries");
   return res;
 }

@@ -206,7 +206,7 @@ export function DeliverySimulator() {
 
           {/* Diagnostic Step-by-Step Trace */}
           <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
-            <Heading level="h4" className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+            <Heading level="h3" className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
               Decision Diagnostic Pipeline (10-Step Trace)
             </Heading>
             <div className="space-y-1.5">

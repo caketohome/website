@@ -165,8 +165,18 @@ async function runTests() {
   const confirmRes = ApiEngine.confirmCheckout({
     cart_id: cart3,
     pincode: "560038",
+    delivery_slot_id: "slot_standard",
+    delivery_date: new Date().toISOString().slice(0, 10),
     delivery_type: "delivery",
-    payment_method: "upi",
+    payment_method: "cod",
+    address: {
+      first_name: "Test",
+      last_name: "Customer",
+      phone: "+91 99999 88888",
+      line1: "100ft Rd",
+      city: "Bengaluru",
+      pincode: "560038",
+    },
   });
   assert(confirmRes.success === false, "confirmCheckout rejects order placement for restricted product");
 

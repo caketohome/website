@@ -49,7 +49,17 @@ import {
   MobileLayout,
   TabletLayout,
   PhonePurposeAction,
+  EngagementContext,
 } from "@frontend/lib/engagement/types";
+import {
+  evaluateCampaignTriggersDetailed,
+} from "@frontend/lib/engagement/popup-trigger-engine";
+import {
+  explainAudienceMatch,
+} from "@frontend/lib/engagement/popup-priority-engine";
+import {
+  explainFrequencyEligibility,
+} from "@frontend/lib/engagement/popup-frequency-manager";
 
 interface PopupEditorDrawerProps {
   isOpen: boolean;
@@ -163,9 +173,14 @@ export function PopupEditorDrawer({
   // Schedule & Frequency
   const [startAt, setStartAt] = useState("");
   const [endAt, setEndAt] = useState("");
+  const [frequencyMode, setFrequencyMode] = useState<any>("every_page_load");
   const [frequencyScope, setFrequencyScope] = useState<any>("session");
   const [maxShows, setMaxShows] = useState(1);
-  const [cooldownSeconds, setCooldownSeconds] = useState(86400);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const [cooldownValue, setCooldownValue] = useState<number>(1);
+  const [cooldownUnit, setCooldownUnit] = useState<"seconds" | "minutes" | "hours" | "days">("hours");
+  const [showToGuests, setShowToGuests] = useState(true);
+  const [showToAuthenticated, setShowToAuthenticated] = useState(false);
   const [cartChangeRequired, setCartChangeRequired] = useState(false);
   const [loginStateChangeRequired, setLoginStateChangeRequired] = useState(false);
 
@@ -174,7 +189,13 @@ export function PopupEditorDrawer({
   const [simPersona, setSimPersona] = useState<CustomerStatus>("guest");
   const [simVisitor, setSimVisitor] = useState<"first_visit" | "returning">("first_visit");
   const [simCart, setSimCart] = useState<"empty" | "has_items">("empty");
-  const [simTestFired, setSimTestFired] = useState(false);
+  const [simTime, setSimTime] = useState<number>(3);
+  const [simScroll, setSimScroll] = useState<number>(0);
+  const [simExitIntent, setSimExitIntent] = useState<boolean>(false);
+  const [simBackNav, setSimBackNav] = useState<boolean>(false);
+  const [simInactivity, setSimInactivity] = useState<number>(0);
+  const [simPage, setSimPage] = useState<string>("home");
+  const [simManualFired, setSimManualFired] = useState<boolean>(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -270,9 +291,14 @@ export function PopupEditorDrawer({
           setAccentColor(v.design?.accentColor || "#e11d48");
 
           // Frequency
+          setFrequencyMode(v.frequency?.mode || (v.frequency?.scope === "session" ? "once_per_session" : "every_page_load"));
           setFrequencyScope(v.frequency?.scope || "session");
           setMaxShows(v.frequency?.maxShows ?? 1);
-          setCooldownSeconds(v.frequency?.cooldownSeconds ?? 86400);
+          setCooldownSeconds(v.frequency?.cooldownSeconds ?? 0);
+          setCooldownValue(v.frequency?.cooldownValue ?? 1);
+          setCooldownUnit(v.frequency?.cooldownUnit || "hours");
+          setShowToGuests(v.frequency?.showToGuests !== false);
+          setShowToAuthenticated(Boolean(v.frequency?.showToAuthenticated));
           setCartChangeRequired(Boolean(v.frequency?.cartChangeRequired));
           setLoginStateChangeRequired(Boolean(v.frequency?.loginStateChangeRequired));
         }
@@ -386,8 +412,7 @@ export function PopupEditorDrawer({
   const toggleTriggerMode = (mode: string) => {
     setEnabledTriggers((prev) => {
       if (prev.includes(mode)) {
-        const next = prev.filter((m) => m !== mode);
-        return next.length === 0 ? ["time_on_page"] : next;
+        return prev.filter((m) => m !== mode);
       } else {
         return [...prev, mode];
       }
@@ -489,12 +514,26 @@ export function PopupEditorDrawer({
         accentColor,
       },
       frequency: {
+        mode: frequencyMode,
         scope: frequencyScope,
         maxShows: Number(maxShows) || 1,
-        cooldownSeconds: Number(cooldownSeconds) || 86400,
-        sessionLimit: frequencyScope === "session" ? Number(maxShows) || 1 : undefined,
+        cooldownSeconds:
+          frequencyMode === "once_per_day"
+            ? 86400
+            : frequencyMode === "cooldown" || frequencyMode === "custom"
+            ? cooldownUnit === "minutes"
+              ? Number(cooldownValue) * 60
+              : cooldownUnit === "hours"
+              ? Number(cooldownValue) * 3600
+              : Number(cooldownValue) * 86400
+            : 0,
+        cooldownValue: Number(cooldownValue) || 1,
+        cooldownUnit,
+        sessionLimit: frequencyMode === "once_per_session" ? Number(maxShows) || 1 : undefined,
         cartChangeRequired,
         loginStateChangeRequired,
+        showToGuests,
+        showToAuthenticated,
       },
       schedule: {
         startAt: startAt || null,
@@ -502,6 +541,87 @@ export function PopupEditorDrawer({
         timezone: "Asia/Kolkata",
       },
       rules: [],
+    };
+  };
+
+  const buildCurrentCampaignConfig = (): PopupCampaign => {
+    const payload = buildPayload("published");
+    return {
+      id: campaign?.id || "pop_sim_preview",
+      name: payload.name,
+      slug: payload.slug,
+      description: payload.description,
+      popup_type: payload.popup_type,
+      status: "published",
+      priority: payload.priority,
+      enabled: payload.enabled,
+      start_at: payload.start_at,
+      end_at: payload.end_at,
+      timezone: payload.timezone,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      current_version: {
+        id: "ver_sim_preview",
+        popup_campaign_id: campaign?.id || "pop_sim_preview",
+        version_number: 1,
+        created_at: new Date().toISOString(),
+        published_at: new Date().toISOString(),
+        content: payload.content,
+        trigger: payload.trigger,
+        audience: payload.audience,
+        frequency: payload.frequency,
+        schedule: payload.schedule,
+        offer: payload.offer,
+        rules: payload.rules,
+        media: payload.media,
+        design: payload.design,
+      },
+    };
+  };
+
+  const buildSimulatorContext = (): EngagementContext => {
+    const isLoggedIn = simPersona === "logged_in";
+    const hasCartItems = simCart === "has_items";
+    return {
+      customer: {
+        id: isLoggedIn ? "cust_sim_1" : undefined,
+        name: isLoggedIn ? "Ananya" : undefined,
+        isLoggedIn,
+        status: isLoggedIn ? "logged_in" : "guest",
+        cityId: selectedCityIds[0] || undefined,
+        branchId: selectedBranchIds[0] || undefined,
+      },
+      session: {
+        id: "sess_sim_1",
+        pageViews: 1,
+        timeOnSiteSeconds: Number(simTime) || 0,
+        inactivitySeconds: Number(simInactivity) || 0,
+        visitCount: simVisitor === "first_visit" ? 1 : 3,
+        deviceType: simDevice,
+      },
+      cart: {
+        hasItems: hasCartItems,
+        itemCount: hasCartItems ? 2 : 0,
+        total: hasCartItems ? 1200 : 0,
+        changed: false,
+        categoryIds: selectedCategoryIds,
+        productIds: selectedProductIds,
+        items: hasCartItems
+          ? [
+              { id: "prod_1", title: "Belgian Truffle Cake", price: 699, quantity: 1, categoryId: "cat_cakes" },
+              { id: "prod_2", title: "Red Velvet Cake", price: 501, quantity: 1, categoryId: "cat_cakes" },
+            ]
+          : [],
+      },
+      navigation: {
+        pathname: simPage === "home" ? "/" : `/${simPage}`,
+        exitIntent: simExitIntent,
+        backAttempt: simBackNav,
+        maxScrollDepth: Number(simScroll) || 0,
+      },
+      checkout: {
+        active: simPage === "checkout",
+      },
     };
   };
 
@@ -1596,46 +1716,99 @@ export function PopupEditorDrawer({
 
             {/* FREQUENCY TAB */}
             {activeTab === "frequency" && (
-              <div className="flex flex-col gap-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs font-semibold text-ui-fg-base mb-1 block">Frequency Scope</Label>
-                    <select
-                      value={frequencyScope}
-                      onChange={(e) => setFrequencyScope(e.target.value)}
-                      className="w-full h-8 px-2.5 text-xs rounded-md bg-ui-bg-field border border-ui-border-base focus:border-ui-border-interactive focus:outline-none"
-                    >
-                      <option value="session">Per Browsing Session</option>
-                      <option value="visitor">Per Unique Visitor</option>
-                      <option value="cart">Per Cart Session</option>
-                    </select>
-                  </div>
-                  <div>
-                    <Label className="text-xs font-semibold text-ui-fg-base mb-1 block">Max Shows Limit</Label>
-                    <Input
-                      type="number"
-                      value={maxShows}
-                      onChange={(e) => setMaxShows(Number(e.target.value))}
-                      placeholder="1"
-                      className="text-sm"
-                    />
+              <div className="flex flex-col gap-5">
+                {/* Frequency Mode Selector */}
+                <div className="flex flex-col gap-2">
+                  <Label className="text-xs font-semibold text-ui-fg-base block">Frequency Mode</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    {[
+                      { id: "every_page_load", label: "Every Page Load", desc: "Show on each eligible visit" },
+                      { id: "once_per_session", label: "Once Per Session", desc: "1 display per browser session" },
+                      { id: "once_per_day", label: "Once Per Day", desc: "24-hour interval" },
+                      { id: "cooldown", label: "Cooldown", desc: "Wait fixed duration" },
+                      { id: "custom", label: "Custom", desc: "Configurable interval" },
+                    ].map((mode) => (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        onClick={() => setFrequencyMode(mode.id as any)}
+                        className={`p-2.5 rounded-xl text-left border transition-all ${
+                          frequencyMode === mode.id
+                            ? "bg-rose-50 dark:bg-rose-950/40 border-rose-500 shadow-xs font-semibold text-rose-700 dark:text-rose-300 ring-1 ring-rose-500"
+                            : "bg-ui-bg-subtle border-ui-border-base text-ui-fg-subtle hover:border-ui-border-interactive"
+                        }`}
+                      >
+                        <span className="text-xs block font-bold">{mode.label}</span>
+                        <span className="text-[10px] text-ui-fg-muted block truncate">{mode.desc}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2">
-                  <Label className="text-xs font-semibold text-ui-fg-base block">Cooldown Interval (Seconds)</Label>
-                  <Input
-                    type="number"
-                    value={cooldownSeconds}
-                    onChange={(e) => setCooldownSeconds(Number(e.target.value))}
-                    placeholder="86400"
-                    className="text-sm"
-                  />
-                  <span className="text-[10px] text-ui-fg-muted">
-                    86400s = 24 hours cooldown before showing again to the same visitor.
-                  </span>
+                {/* Cooldown Settings if Cooldown / Custom */}
+                {(frequencyMode === "cooldown" || frequencyMode === "custom") && (
+                  <div className="p-3.5 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-3 animate-fade-in">
+                    <Label className="text-xs font-semibold text-ui-fg-base block">Cooldown Duration</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-[11px] text-ui-fg-subtle mb-1 block">Value</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={cooldownValue}
+                          onChange={(e) => setCooldownValue(Math.max(1, Number(e.target.value)))}
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[11px] text-ui-fg-subtle mb-1 block">Unit</Label>
+                        <select
+                          value={cooldownUnit}
+                          onChange={(e) => setCooldownUnit(e.target.value as any)}
+                          className="w-full h-8 px-2.5 text-xs rounded-md bg-ui-bg-field border border-ui-border-base focus:border-ui-border-interactive focus:outline-none"
+                        >
+                          <option value="minutes">Minutes</option>
+                          <option value="hours">Hours</option>
+                          <option value="days">Days</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Audience Eligibility Toggles */}
+                <div className="p-3.5 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-3">
+                  <span className="text-xs font-bold text-ui-fg-base">Customer & Visitor Eligibility</span>
+                  <div className="flex flex-col gap-2.5">
+                    <label className="flex items-center justify-between p-2 rounded-lg bg-ui-bg-base border border-ui-border-base cursor-pointer">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-semibold text-ui-fg-base">Show to logged-out visitors (Guests)</span>
+                        <span className="text-[10px] text-ui-fg-muted">Eligible for anonymous storefront guests</span>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={showToGuests}
+                        onChange={(e) => setShowToGuests(e.target.checked)}
+                        className="w-4 h-4 rounded border-ui-border-base text-rose-600 focus:ring-rose-500 cursor-pointer"
+                      />
+                    </label>
+
+                    <label className="flex items-center justify-between p-2 rounded-lg bg-ui-bg-base border border-ui-border-base cursor-pointer">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-semibold text-ui-fg-base">Show to authenticated customers (Logged-in)</span>
+                        <span className="text-[10px] text-ui-fg-muted">Default OFF — suppresses promotional visitor popups for signed-in accounts</span>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={showToAuthenticated}
+                        onChange={(e) => setShowToAuthenticated(e.target.checked)}
+                        className="w-4 h-4 rounded border-ui-border-base text-rose-600 focus:ring-rose-500 cursor-pointer"
+                      />
+                    </label>
+                  </div>
                 </div>
 
+                {/* Advanced Cart and State options */}
                 <div className="flex flex-col gap-2 pt-1">
                   <label className="flex items-center gap-2 cursor-pointer text-xs">
                     <input
@@ -1661,168 +1834,347 @@ export function PopupEditorDrawer({
           </div>
 
           {/* Right-Side Interactive AST Live Preview & Simulator */}
-          {showLivePreview && (
-            <div className="lg:col-span-5 flex flex-col gap-3">
-              {/* Simulator Controls Top Bar */}
-              <div className="p-3 bg-neutral-900 text-white rounded-xl shadow-md flex flex-col gap-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold flex items-center gap-1.5">
-                    <Eye className="w-3.5 h-3.5 text-rose-400" />
-                    Interactive AST Simulator
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSimTestFired(true);
-                      setTimeout(() => setSimTestFired(false), 2500);
-                    }}
-                    className="px-2.5 py-1 text-[11px] font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg flex items-center gap-1 transition-all"
-                  >
-                    <Play className="w-3 h-3 fill-current" />
-                    Trigger Now
-                  </button>
-                </div>
+          {showLivePreview && (() => {
+            const liveCampaign = buildCurrentCampaignConfig();
+            const liveSimContext = buildSimulatorContext();
+            const audienceEvaluation = explainAudienceMatch(liveCampaign, liveSimContext);
+            const frequencyEvaluation = explainFrequencyEligibility(liveCampaign, liveSimContext);
+            const triggerEvaluation = evaluateCampaignTriggersDetailed(
+              liveCampaign,
+              liveSimContext,
+              simManualFired ? { type: "manual_test" } : undefined
+            );
 
-                {/* Simulator device and persona toggles */}
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="flex bg-neutral-800 p-1 rounded-lg">
+            const isSimEligible =
+              audienceEvaluation.matched &&
+              frequencyEvaluation.eligible &&
+              (simManualFired || triggerEvaluation.isTriggered);
+
+            return (
+              <div className="lg:col-span-5 flex flex-col gap-3">
+                {/* Simulator Controls Top Bar */}
+                <div className="p-3 bg-neutral-900 text-white rounded-xl shadow-md flex flex-col gap-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold flex items-center gap-1.5">
+                      <Eye className="w-3.5 h-3.5 text-rose-400" />
+                      Interactive AST Simulator
+                    </span>
                     <button
                       type="button"
-                      onClick={() => setSimDevice("desktop")}
-                      className={`flex-1 py-1 rounded text-center font-semibold ${simDevice === "desktop" ? "bg-rose-600 text-white" : "text-neutral-400"}`}
+                      onClick={() => {
+                        setSimManualFired(true);
+                        setTimeout(() => setSimManualFired(false), 3000);
+                      }}
+                      className="px-2.5 py-1 text-[11px] font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg flex items-center gap-1 transition-all shadow-xs"
                     >
-                      Desktop
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSimDevice("mobile")}
-                      className={`flex-1 py-1 rounded text-center font-semibold ${simDevice === "mobile" ? "bg-rose-600 text-white" : "text-neutral-400"}`}
-                    >
-                      Mobile
+                      <Play className="w-3 h-3 fill-current" />
+                      Trigger Now
                     </button>
                   </div>
-                  <div className="flex bg-neutral-800 p-1 rounded-lg">
-                    <button
-                      type="button"
-                      onClick={() => setSimPersona("guest")}
-                      className={`flex-1 py-1 rounded text-center font-semibold ${simPersona === "guest" ? "bg-rose-600 text-white" : "text-neutral-400"}`}
-                    >
-                      Guest
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSimPersona("logged_in")}
-                      className={`flex-1 py-1 rounded text-center font-semibold ${simPersona === "logged_in" ? "bg-rose-600 text-white" : "text-neutral-400"}`}
-                    >
-                      Logged In
-                    </button>
-                  </div>
-                </div>
 
-                {simTestFired && (
-                  <div className="p-2 rounded bg-emerald-950/80 border border-emerald-500 text-emerald-300 text-[11px] flex items-center gap-1.5 animate-fade-in">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Trigger criteria met! Popup rendered successfully.</span>
-                  </div>
-                )}
-              </div>
+                  {/* Simulator Device & Persona Toggles */}
+                  <div className="grid grid-cols-2 gap-2 text-[11px]">
+                    <div className="flex bg-neutral-800 p-1 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => setSimDevice("desktop")}
+                        className={`flex-1 py-1 rounded text-center font-semibold transition-colors ${
+                          simDevice === "desktop" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
+                        }`}
+                      >
+                        Desktop
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSimDevice("mobile")}
+                        className={`flex-1 py-1 rounded text-center font-semibold transition-colors ${
+                          simDevice === "mobile" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
+                        }`}
+                      >
+                        Mobile
+                      </button>
+                    </div>
 
-              {/* Live Rendered Canvas Frame */}
-              <div
-                className={`w-full bg-neutral-100 dark:bg-neutral-950 rounded-2xl border border-neutral-300 dark:border-neutral-800 p-4 flex items-center justify-center min-h-[420px] transition-all overflow-hidden ${
-                  simDevice === "mobile" ? "max-w-[340px] mx-auto" : "w-full"
-                }`}
-              >
-                {/* Scaled Popup Simulation Box */}
-                <div
-                  style={{
-                    borderRadius: `${borderRadius}px`,
-                    borderColor: accentColor,
-                  }}
-                  className="w-full bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border overflow-hidden flex flex-col animate-scale-up"
-                >
-                  {/* Artwork Preview */}
-                  {mediaSource !== "NO_IMAGE" && (imageUrl || mobileImageUrl) && (
-                    <div className="w-full h-36 bg-neutral-200 relative overflow-hidden">
-                      <img
-                        src={(simDevice === "mobile" && mobileImageUrl) ? mobileImageUrl : imageUrl}
-                        alt="Preview Artwork"
-                        className="w-full h-full object-cover"
+                    <div className="flex bg-neutral-800 p-1 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => setSimPersona("guest")}
+                        className={`flex-1 py-1 rounded text-center font-semibold transition-colors ${
+                          simPersona === "guest" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
+                        }`}
+                      >
+                        Guest
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSimPersona("logged_in")}
+                        className={`flex-1 py-1 rounded text-center font-semibold transition-colors ${
+                          simPersona === "logged_in" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
+                        }`}
+                      >
+                        Logged In
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Simulator Cart, Visitor, & Page Controls */}
+                  <div className="grid grid-cols-3 gap-1.5 text-[10px]">
+                    <div className="flex bg-neutral-800 p-0.5 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => setSimCart("empty")}
+                        className={`flex-1 py-0.5 rounded text-center font-medium ${
+                          simCart === "empty" ? "bg-neutral-700 text-white" : "text-neutral-400"
+                        }`}
+                      >
+                        Cart: 0
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSimCart("has_items")}
+                        className={`flex-1 py-0.5 rounded text-center font-medium ${
+                          simCart === "has_items" ? "bg-neutral-700 text-white" : "text-neutral-400"
+                        }`}
+                      >
+                        Cart: ₹1.2k
+                      </button>
+                    </div>
+
+                    <div className="flex bg-neutral-800 p-0.5 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => setSimVisitor("first_visit")}
+                        className={`flex-1 py-0.5 rounded text-center font-medium ${
+                          simVisitor === "first_visit" ? "bg-neutral-700 text-white" : "text-neutral-400"
+                        }`}
+                      >
+                        1st Visit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSimVisitor("returning")}
+                        className={`flex-1 py-0.5 rounded text-center font-medium ${
+                          simVisitor === "returning" ? "bg-neutral-700 text-white" : "text-neutral-400"
+                        }`}
+                      >
+                        Repeat
+                      </button>
+                    </div>
+
+                    <select
+                      value={simPage}
+                      onChange={(e) => setSimPage(e.target.value)}
+                      className="bg-neutral-800 text-neutral-200 text-[10px] rounded-lg px-1.5 py-1 border border-neutral-700 focus:outline-none"
+                    >
+                      <option value="home">Page: Home (/)</option>
+                      <option value="products">Page: Products</option>
+                      <option value="categories">Page: Categories</option>
+                      <option value="cart">Page: Cart</option>
+                      <option value="checkout">Page: Checkout</option>
+                    </select>
+                  </div>
+
+                  {/* Fine-Tuning Slider Controls: Time & Scroll */}
+                  <div className="grid grid-cols-3 gap-2 pt-1 text-[10px] border-t border-neutral-800">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-neutral-400">Time: {simTime}s</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value={simTime}
+                        onChange={(e) => setSimTime(Number(e.target.value))}
+                        className="w-full h-1 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-rose-500"
                       />
-                      {badge && (
+                    </div>
+
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-neutral-400">Scroll: {simScroll}%</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        step="10"
+                        value={simScroll}
+                        onChange={(e) => setSimScroll(Number(e.target.value))}
+                        className="w-full h-1 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-rose-500"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                      <label className="flex items-center gap-1 cursor-pointer text-neutral-300">
+                        <input
+                          type="checkbox"
+                          checked={simExitIntent}
+                          onChange={(e) => setSimExitIntent(e.target.checked)}
+                          className="w-3 h-3 rounded accent-rose-600 cursor-pointer"
+                        />
+                        <span>Exit Intent</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Diagnostic Evaluation Status */}
+                  <div
+                    className={`p-2 rounded-lg text-[11px] flex flex-col gap-0.5 transition-all ${
+                      isSimEligible
+                        ? "bg-emerald-950/80 border border-emerald-500 text-emerald-300"
+                        : "bg-amber-950/80 border border-amber-500 text-amber-300"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-bold">
+                      {isSimEligible ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      ) : (
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                      )}
+                      <span>
+                        {isSimEligible ? "ELIGIBLE & RENDERED" : "NOT ELIGIBLE — SUPPRESSED"}
+                      </span>
+                    </div>
+                    <span className="text-[10px] opacity-90">
+                      {simManualFired
+                        ? "Manual Test Fired — Bypassing realtime trigger waiting."
+                        : !audienceEvaluation.matched
+                        ? audienceEvaluation.reason
+                        : !frequencyEvaluation.eligible
+                        ? frequencyEvaluation.reason
+                        : !triggerEvaluation.isTriggered
+                        ? triggerEvaluation.reason
+                        : `Satisfied: ${triggerEvaluation.matchedTriggers.join(", ")} (${triggerCombinator} Mode)`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Live Rendered Canvas Frame */}
+                <div
+                  className={`w-full bg-neutral-100 dark:bg-neutral-950 rounded-2xl border border-neutral-300 dark:border-neutral-800 p-4 flex items-center justify-center min-h-[420px] transition-all overflow-hidden relative ${
+                    simDevice === "mobile" ? "max-w-[340px] mx-auto" : "w-full"
+                  }`}
+                >
+                  {/* Scaled Popup Simulation Box */}
+                  <div
+                    style={{
+                      borderRadius: `${borderRadius}px`,
+                      borderColor: accentColor,
+                    }}
+                    className={`w-full bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border overflow-hidden flex flex-col animate-scale-up transition-opacity ${
+                      !isSimEligible ? "opacity-60" : "opacity-100"
+                    }`}
+                  >
+                    {/* Artwork Preview */}
+                    {mediaSource !== "NO_IMAGE" && (imageUrl || mobileImageUrl) && (
+                      <div className="w-full h-36 bg-neutral-200 relative overflow-hidden">
+                        <img
+                          src={simDevice === "mobile" && mobileImageUrl ? mobileImageUrl : imageUrl}
+                          alt="Preview Artwork"
+                          className="w-full h-full object-cover"
+                        />
+                        {badge && (
+                          <span
+                            style={{ backgroundColor: accentColor }}
+                            className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow-xs"
+                          >
+                            {badge}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Text Body */}
+                    <div className="p-4 flex flex-col gap-2.5">
+                      {eyebrow && (
                         <span
-                          style={{ backgroundColor: accentColor }}
-                          className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow-xs"
+                          style={{ color: accentColor }}
+                          className="text-[10px] uppercase font-bold tracking-wider"
                         >
-                          {badge}
+                          {eyebrow}
+                        </span>
+                      )}
+
+                      <h4 className="text-sm font-bold text-neutral-900 dark:text-white leading-tight">
+                        {headline
+                          .replace("{{customer_name}}", simPersona === "logged_in" ? "Ananya" : "Guest")
+                          .replace("{{coupon_code}}", couponCode)}
+                      </h4>
+
+                      {contentDesc && (
+                        <p className="text-[11px] text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                          {contentDesc}
+                        </p>
+                      )}
+
+                      {/* Offer Voucher Simulation */}
+                      {offerType === "COUPON" && couponCode && (
+                        <div className="p-2 rounded-lg bg-rose-50 border border-dashed border-rose-300 flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <Tag className="w-3.5 h-3.5 text-rose-600" />
+                            <span className="text-xs font-mono font-bold text-rose-700">{couponCode}</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-rose-600 uppercase">
+                            Apply at checkout
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Phone Input Simulation */}
+                      {phoneEnabled && (
+                        <div className="flex flex-col gap-1.5 pt-1">
+                          <span className="text-[10px] font-semibold text-neutral-600">
+                            {phonePlaceholder}
+                          </span>
+                          <div className="flex items-center rounded-lg border border-neutral-300 bg-neutral-50 overflow-hidden">
+                            <span className="px-2 py-1.5 text-[11px] font-bold text-neutral-600 bg-neutral-200">
+                              🇮🇳 +91
+                            </span>
+                            <span className="px-2 py-1.5 text-[11px] text-neutral-400">
+                              98765 43210
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Action Button Simulation */}
+                      <button
+                        type="button"
+                        style={{ backgroundColor: accentColor }}
+                        className="w-full py-2 px-3 rounded-lg text-white font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 mt-1"
+                      >
+                        <span>{phoneEnabled ? phoneButtonLabel : primaryLabel}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+
+                      {!phoneMandatory && (
+                        <span className="text-[10px] text-neutral-400 text-center cursor-pointer hover:underline">
+                          {phoneEnabled ? phoneGuestButtonLabel : secondaryLabel}
                         </span>
                       )}
                     </div>
-                  )}
-
-                  {/* Text Body */}
-                  <div className="p-4 flex flex-col gap-2.5">
-                    {eyebrow && (
-                      <span
-                        style={{ color: accentColor }}
-                        className="text-[10px] uppercase font-bold tracking-wider"
-                      >
-                        {eyebrow}
-                      </span>
-                    )}
-
-                    <h4 className="text-sm font-bold text-neutral-900 dark:text-white leading-tight">
-                      {headline.replace("{{customer_name}}", simPersona === "logged_in" ? "Ananya" : "Guest").replace("{{coupon_code}}", couponCode)}
-                    </h4>
-
-                    {contentDesc && (
-                      <p className="text-[11px] text-neutral-600 dark:text-neutral-300 leading-relaxed">
-                        {contentDesc}
-                      </p>
-                    )}
-
-                    {/* Offer Voucher Simulation */}
-                    {offerType === "COUPON" && couponCode && (
-                      <div className="p-2 rounded-lg bg-rose-50 border border-dashed border-rose-300 flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <Tag className="w-3.5 h-3.5 text-rose-600" />
-                          <span className="text-xs font-mono font-bold text-rose-700">{couponCode}</span>
-                        </div>
-                        <span className="text-[10px] font-bold text-rose-600 uppercase">Apply at checkout</span>
-                      </div>
-                    )}
-
-                    {/* Phone Input Simulation */}
-                    {phoneEnabled && (
-                      <div className="flex flex-col gap-1.5 pt-1">
-                        <span className="text-[10px] font-semibold text-neutral-600">{phonePlaceholder}</span>
-                        <div className="flex items-center rounded-lg border border-neutral-300 bg-neutral-50 overflow-hidden">
-                          <span className="px-2 py-1.5 text-[11px] font-bold text-neutral-600 bg-neutral-200">🇮🇳 +91</span>
-                          <span className="px-2 py-1.5 text-[11px] text-neutral-400">98765 43210</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Action Button Simulation */}
-                    <button
-                      type="button"
-                      style={{ backgroundColor: accentColor }}
-                      className="w-full py-2 px-3 rounded-lg text-white font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 mt-1"
-                    >
-                      <span>{phoneEnabled ? phoneButtonLabel : primaryLabel}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-
-                    {!phoneMandatory && (
-                      <span className="text-[10px] text-neutral-400 text-center cursor-pointer hover:underline">
-                        {phoneEnabled ? phoneGuestButtonLabel : secondaryLabel}
-                      </span>
-                    )}
                   </div>
+
+                  {!isSimEligible && (
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center p-4">
+                      <div className="p-3 bg-neutral-900/95 border border-amber-500/80 rounded-xl text-center shadow-2xl flex flex-col items-center gap-1.5 max-w-[280px]">
+                        <AlertCircle className="w-5 h-5 text-amber-400" />
+                        <span className="text-xs font-bold text-white">Simulation Suppressed</span>
+                        <span className="text-[10px] text-neutral-300 leading-tight">
+                          {!audienceEvaluation.matched
+                            ? audienceEvaluation.reason
+                            : !frequencyEvaluation.eligible
+                            ? frequencyEvaluation.reason
+                            : triggerEvaluation.reason}
+                        </span>
+                        <span className="text-[9px] text-rose-400 font-semibold mt-1">
+                          Click &quot;Trigger Now&quot; to test force-fire
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </div>
 

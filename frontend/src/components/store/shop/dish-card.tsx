@@ -1,6 +1,6 @@
 "use client";
 
-import { ProductDTO } from "@medusajs/types";
+import { ProductDTO } from "@frontend/lib/types";
 import { Heading, Text } from "@medusajs/ui";
 import { IconButton } from "@medusajs/ui";
 import { Plus } from "@medusajs/icons";

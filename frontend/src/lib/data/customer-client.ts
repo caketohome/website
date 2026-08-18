@@ -14,8 +14,14 @@ export interface OtpRequestResponse {
 
 export interface OtpVerifyResponse {
   customer_id: string;
+  customer_uid?: string;
   is_new_customer: boolean;
   token?: string;
+  role?: string;
+  detected_role?: string;
+  user?: any;
+  branch_id?: string;
+  partner_id?: string;
 }
 
 export async function requestOtp(phone: string): Promise<OtpRequestResponse> {

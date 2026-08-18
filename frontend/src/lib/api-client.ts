@@ -239,31 +239,6 @@ class CakeToHomeApiClient {
     return this.request(`/products/slug/${slug}`);
   }
 
-  // Cart Engine APIs (/api/v1/cart)
-  async getCart(cartId?: string) {
-    return this.request(`/cart${cartId ? `?cartId=${cartId}` : ""}`);
-  }
-
-  async addToCart(payload: { cartId?: string; productId: string; variantId: string; quantity: number; selectedOptions?: any }) {
-    return this.request("/cart/items", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  }
-
-  async deleteLineItem(cartId: string, lineItemId: string) {
-    return this.request(`/cart/items/${lineItemId}?cartId=${cartId}`, {
-      method: "DELETE",
-    });
-  }
-
-  async updateLineItem(cartId: string, lineItemId: string, quantity: number) {
-    return this.request(`/cart/items/${lineItemId}`, {
-      method: "POST",
-      body: JSON.stringify({ cartId, quantity }),
-    });
-  }
-
   async applyPromoCode(cartId: string, promoCode: string, context?: any) {
     return this.request("/cart/promo", {
       method: "POST",
@@ -321,6 +296,13 @@ class CakeToHomeApiClient {
     const qs = query.toString() ? `?${query.toString()}` : "";
     return this.request(`/admin/orders${qs}`).catch(() => ({ orders: [], count: 0, total: 0 }));
   }
+  async getCustomerOrders(customerUid: string, params?: { status?: string; limit?: number }) {
+    const query = new URLSearchParams();
+    if (params?.status) query.set("status", params.status);
+    if (params?.limit) query.set("limit", String(params.limit));
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    return this.request(`/admin/customers/${customerUid}/orders${qs}`).catch(() => ({ orders: [], count: 0, total: 0 }));
+  }
   async getAdminOrder(id: string) {
     return this.request(`/admin/orders/${id}`).catch(() => null);
   }
@@ -338,10 +320,6 @@ class CakeToHomeApiClient {
       method: "PUT",
       body: JSON.stringify({ branch_id: branchId, branch_name: branchName }),
     });
-  }
-  async getAdminDeliveryPartners(branchId?: string) {
-    const qs = branchId ? `?branch_id=${branchId}` : "";
-    return this.request(`/admin/delivery/partners${qs}`).catch(() => ({ partners: [], count: 0 }));
   }
   async autoAssignAdminOrderDelivery(id: string) {
     return this.request(`/admin/orders/${id}/auto-assign-delivery`, {
@@ -455,16 +433,7 @@ class CakeToHomeApiClient {
     return this.request(`/catalog/recommendations?${query.toString()}`).catch(() => ({ related: [], upsells: [], sameOccasion: [] }));
   }
 
-  // ── Admin: Master Weights ──
-  async getAdminWeights() {
-    return this.request("/admin/weights").catch(() => ({ weights: [] }));
-  }
-  async createAdminWeight(data: any) {
-    return this.request("/admin/weights", { method: "POST", body: JSON.stringify(data) });
-  }
-  async updateAdminWeight(id: string, data: any) {
-    return this.request(`/admin/variants/options/${id}`, { method: "PUT", body: JSON.stringify(data) });
-  }
+
   // ── Admin: Flavors Master CRUD ──
   async getAdminFlavors(query?: string) {
     const q = query ? `?q=${encodeURIComponent(query)}` : "";
@@ -531,6 +500,50 @@ class CakeToHomeApiClient {
   }
   async saveProductWeightPrices(productId: string, weightPrices: any[]) {
     return this.request(`/admin/products/${productId}/weight-prices`, { method: "POST", body: JSON.stringify({ weight_prices: weightPrices }) });
+  }
+
+  // ── Admin: CRM 360 & Customer Management ──
+  async getAdminCustomers(params?: Record<string, any>) {
+    const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+    return this.request(`/admin/customers${qs}`).catch(() => ({ customers: [], total: 0 }));
+  }
+
+  async getAdminCrmCustomers(params?: Record<string, any>) {
+    const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+    return this.request(`/admin/crm/customers${qs}`).catch(() => ({ customers: [], total: 0 }));
+  }
+
+  async getAdminCustomer(id: string) {
+    return this.request(`/admin/customers/${id}`).catch(() => ({ customer: null }));
+  }
+
+  async getAdminCustomerProfile(id: string) {
+    return this.request(`/admin/crm/customers/${id}`).catch(() => ({ profile: null }));
+  }
+
+  async getAdminCrmDuplicates() {
+    return this.request("/admin/crm/duplicates").catch(() => ({ candidates: [] }));
+  }
+
+  async mergeAdminCustomers(primaryId: string, secondaryId: string) {
+    return this.request("/admin/crm/merge", {
+      method: "POST",
+      body: JSON.stringify({ primary_id: primaryId, secondary_id: secondaryId }),
+    });
+  }
+
+  async addAdminCustomerNote(customerId: string, note: string, author?: string) {
+    return this.request(`/admin/crm/customers/${customerId}/notes`, {
+      method: "POST",
+      body: JSON.stringify({ note, author: author || "Admin" }),
+    });
+  }
+
+  async updateAdminCustomerTags(customerId: string, tags: string[]) {
+    return this.request(`/admin/crm/customers/${customerId}/tags`, {
+      method: "PUT",
+      body: JSON.stringify({ tags }),
+    });
   }
 
   async getAdminCities() {
@@ -678,9 +691,6 @@ class CakeToHomeApiClient {
   }
 
   // ── Admin: CRM ──
-  async getAdminCustomers() {
-    return this.request("/admin/crm/customers").catch(() => ({ customers: [] }));
-  }
   async createAdminCustomer(customerData: any) {
     return this.request("/admin/crm/customers", { method: "POST", body: JSON.stringify(customerData) });
   }
@@ -789,7 +799,7 @@ class CakeToHomeApiClient {
   async createAdminMedia(data: any) {
     return this.request("/admin/media", { method: "POST", body: JSON.stringify(data) });
   }
-  async uploadMedia(payload: { name?: string; filename: string; dataUrl?: string; url?: string; mime_type?: string; size?: number; alt_text?: string; folder?: string }) {
+  async uploadMedia(payload: { name?: string; filename: string; dataUrl?: string; url?: string; mime_type?: string; size?: number; alt_text?: string; folder?: string; width?: number; height?: number }) {
     return this.request("/admin/media/upload", { method: "POST", body: JSON.stringify(payload) });
   }
   async deleteAdminMedia(id: string) {
@@ -1084,9 +1094,6 @@ class CakeToHomeApiClient {
     return this.request("/admin/branches").catch(() => ({ branches: [], cityAreas: [] }));
   }
 
-  async getDeliverySlots(branchId: string, date: string) {
-    return this.request(`/branches?type=slots&branchId=${branchId}&date=${encodeURIComponent(date)}`).catch(() => ({ delivery_slots: [] }));
-  }
 
   async getEligibleBranches(params: { pincode?: string; city?: string; area?: string }) {
     const q = new URLSearchParams();
@@ -1164,9 +1171,6 @@ class CakeToHomeApiClient {
     return this.request("/admin/branches", { method: "POST", body: JSON.stringify({ type: "update_area_status", areaId, status, reason, blockedUntil }) });
   }
 
-  async validateOrderEligibility(data: { pincode: string; product_ids?: string[]; accessory_ids?: string[]; delivery_type?: string; scheduled_date?: string; order_total?: number }) {
-    return this.request("/admin/branches", { method: "POST", body: JSON.stringify({ type: "validate_order", ...data }) });
-  }
 
   // ── Authoritative Cart & Checkout APIs ──
   async getCart(cartId?: string) {
@@ -1188,26 +1192,40 @@ class CakeToHomeApiClient {
   }
 
   async addToCart(data: {
-    cartId: string;
-    productId: string;
+    cartId?: string;
+    productId?: string;
+    product_id?: string;
     variantId?: string;
+    variant_id?: string;
     quantity: number;
     selectedOptions?: any;
     metadata?: any;
+    cake_message?: string;
+    eggless?: boolean;
+    tier_weight?: string;
   }) {
     return this.request("/cart/items", { method: "POST", body: JSON.stringify(data) });
   }
 
-  async updateCartItem(cartId: string, lineItemId: string, quantity: number) {
-    return this.request("/cart/items", { method: "PUT", body: JSON.stringify({ cartId, lineItemId, quantity }) });
+  async updateCartItem(cartIdOrLineItemId: string, lineItemIdOrQty: string | number, quantity?: number) {
+    if (typeof lineItemIdOrQty === "number") {
+      return this.request(`/cart/items/${cartIdOrLineItemId}`, { method: "PUT", body: JSON.stringify({ quantity: lineItemIdOrQty }) });
+    }
+    return this.request("/cart/items", { method: "PUT", body: JSON.stringify({ cartId: cartIdOrLineItemId, lineItemId: lineItemIdOrQty, quantity }) });
   }
 
-  async deleteLineItem(cartId: string, lineItemId: string) {
-    return this.request(`/cart/items?cart_id=${encodeURIComponent(cartId)}&item_id=${encodeURIComponent(lineItemId)}`, { method: "DELETE" });
+  async deleteLineItem(cartIdOrLineItemId: string, lineItemId?: string) {
+    if (lineItemId) {
+      return this.request(`/cart/items?cart_id=${encodeURIComponent(cartIdOrLineItemId)}&item_id=${encodeURIComponent(lineItemId)}`, { method: "DELETE" });
+    }
+    return this.request(`/cart/items/${cartIdOrLineItemId}`, { method: "DELETE" });
   }
 
-  async clearCart(cartId: string) {
-    return this.request(`/cart?cart_id=${encodeURIComponent(cartId)}`, { method: "DELETE" });
+  async clearCart(cartId?: string) {
+    if (cartId) {
+      return this.request(`/cart?cart_id=${encodeURIComponent(cartId)}`, { method: "DELETE" });
+    }
+    return this.request("/cart/clear", { method: "POST" });
   }
 
   async validateCheckout(data: {
@@ -1338,20 +1356,6 @@ class CakeToHomeApiClient {
     return this.request(`/checkout/availability?${q.toString()}`);
   }
 
-  async validateCheckout(payload: any) {
-    return this.request("/checkout/validate", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  }
-
-  async confirmCheckout(payload: any) {
-    return this.request("/checkout/confirm", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  }
-
   async updateBranchStoreOperations(branchId: string, operations: any) {
     return this.request(`/admin/branches/${branchId}/operations`, {
       method: "PUT",
@@ -1383,14 +1387,6 @@ class CakeToHomeApiClient {
   // ══════════════════════════════════════════════════════════════════════════
   // ── ENTERPRISE BUSINESS, TAX & STATUTORY COMPLIANCE CLIENT METHODS ────────
   // ══════════════════════════════════════════════════════════════════════════
-
-  async getAdminSettings() {
-    return this.request("/admin/settings").catch(() => ({ settings: {} }));
-  }
-
-  async updateAdminSettings(data: any) {
-    return this.request("/admin/settings", { method: "POST", body: JSON.stringify(data) });
-  }
 
   async getBusinessProfile() {
     return this.request("/admin/compliance/business-profile").catch(() => ({ profile: null }));
@@ -1499,6 +1495,20 @@ class CakeToHomeApiClient {
     }));
   }
 
+  async sendAdminRecoveryWhatsApp(cartId: string, templateId: string, payload?: any) {
+    return this.request(`/admin/abandoned-carts/${cartId}/recover`, {
+      method: "POST",
+      body: JSON.stringify({ template_id: templateId, channel: "WHATSAPP", ...payload }),
+    });
+  }
+
+  async recordAdminCallAction(customerUid: string, candidateId?: string, action: string = "CALL_LOGGED", note?: string) {
+    return this.request("/admin/telemarketing/activity", {
+      method: "POST",
+      body: JSON.stringify({ customer_uid: customerUid, candidate_id: candidateId, action, note }),
+    }).catch(() => ({ success: true }));
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
   // ── POPUP & ENGAGEMENT MANAGER (ADMIN & STOREFRONT) ───────────────────────
   // ══════════════════════════════════════════════════════════════════════════
@@ -1573,60 +1583,31 @@ class CakeToHomeApiClient {
     return this.request("/engagement/conversion", { method: "POST", body: JSON.stringify(data) }).catch(() => ({ success: false }));
   }
 
-  async requestOtp(phone: string, method: string = "OTP_SMS") {
-    return this.request("/auth/request-otp", {
+  // ── Weights & Cake Sizes Management APIs ───────────────────────
+  async getAdminWeights() {
+    return this.request("/admin/weights").catch(() => ({ weights: [] }));
+  }
+
+  async createAdminWeight(payload: any) {
+    return this.request("/admin/weights", {
       method: "POST",
-      body: JSON.stringify({ phone, method }),
+      body: JSON.stringify(payload),
     });
   }
 
-  async verifyOtp(phone: string, otp: string, extra?: { name?: string; email?: string }) {
-    return this.request("/auth/verify-otp", {
-      method: "POST",
-      body: JSON.stringify({ phone, code: otp, ...extra }),
-    });
-  }
-
-  // ── Webhooks & n8n Outbox APIs ────────────────────────────────
-  async getAdminWebhookEndpoints() {
-    return this.request("/admin/webhooks").catch(() => ({ endpoints: [] }));
-  }
-
-  async getAdminWebhookLogs(params?: Record<string, any>) {
-    const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
-    return this.request(`/admin/webhooks/logs${qs}`).catch(() => ({ logs: [], total: 0, metrics: null }));
-  }
-
-  async getAdminWebhookOutbox(status?: string) {
-    const qs = status ? `?status=${status}` : "";
-    return this.request(`/admin/webhooks/outbox${qs}`).catch(() => ({ outbox: [] }));
-  }
-
-  async updateAdminWebhookEndpoint(id: string, updates: any) {
-    return this.request(`/admin/webhooks/${id}`, {
+  async updateAdminWeight(id: string, payload: any) {
+    return this.request(`/admin/weights/${id}`, {
       method: "PUT",
-      body: JSON.stringify(updates),
+      body: JSON.stringify(payload),
     });
   }
 
-  async rotateAdminWebhookSecret(id: string) {
-    return this.request(`/admin/webhooks/${id}/rotate-secret`, {
-      method: "POST",
+  async deleteAdminWeight(id: string) {
+    return this.request(`/admin/weights/${id}`, {
+      method: "DELETE",
     });
   }
 
-  async triggerAdminTestWebhook(id: string = "ep_n8n_production") {
-    return this.request("/admin/webhooks/test", {
-      method: "POST",
-      body: JSON.stringify({ endpoint_id: id }),
-    });
-  }
-
-  async retryAdminWebhookOutbox(outboxId: string) {
-    return this.request(`/admin/webhooks/retry/${outboxId}`, {
-      method: "POST",
-    });
-  }
 
   // ── Telemarketing Reorder APIs ─────────────────────────────────
   async getAdminTelemarketingCandidates(params?: Record<string, any>) {
@@ -1641,6 +1622,25 @@ class CakeToHomeApiClient {
     });
   }
 
+  async logAdminTelemarketingCall(candidateId: string, payload: {
+    outcome: string;
+    note?: string;
+    staffId?: string;
+    staffName?: string;
+    nextFollowupDate?: string;
+    convertedOrderId?: string;
+  }) {
+    return this.request(`/admin/telemarketing/candidates/${candidateId}/call`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getEligibleTelecallers(params?: { city?: string; branch_id?: string }) {
+    const qs = params ? `?${new URLSearchParams(params as any).toString()}` : "";
+    return this.request(`/admin/telemarketing/eligible-staff${qs}`).catch(() => ({ success: false, staff: [] }));
+  }
+
   async updateAdminTelemarketingStatus(candidateId: string, payload: {
     status: string;
     note?: string;
@@ -1653,10 +1653,10 @@ class CakeToHomeApiClient {
     });
   }
 
-  async assignAdminTelemarketingCandidate(candidateId: string, agentName: string) {
+  async assignAdminTelemarketingCandidate(candidateId: string, staffId: string, agentName?: string) {
     return this.request(`/admin/telemarketing/candidates/${candidateId}/assign`, {
       method: "PUT",
-      body: JSON.stringify({ agent_name: agentName }),
+      body: JSON.stringify({ staff_id: staffId, agent_name: agentName }),
     });
   }
 
@@ -1760,6 +1760,94 @@ class CakeToHomeApiClient {
   async getAdminPermissionCatalog() {
     return this.request("/admin/staff-profiles/catalog").catch(() => ({ catalog: [] }));
   }
+
+  // ── Enterprise n8n & External Webhook Outbox Endpoints ──────────
+  async getAdminWebhookEndpoints() {
+    return this.request("/admin/webhooks/endpoints").catch(() => ({ endpoints: [], success: false }));
+  }
+
+  async getAdminWebhookEndpoint(id: string) {
+    return this.request(`/admin/webhooks/endpoints/${id}`);
+  }
+
+  async createAdminWebhookEndpoint(payload: any) {
+    return this.request("/admin/webhooks/endpoints", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateAdminWebhookEndpoint(id: string, payload: any) {
+    return this.request(`/admin/webhooks/endpoints/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async deleteAdminWebhookEndpoint(id: string) {
+    return this.request(`/admin/webhooks/endpoints/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async rotateAdminWebhookSecret(id: string) {
+    return this.request(`/admin/webhooks/endpoints/${id}/rotate-secret`, {
+      method: "POST",
+    });
+  }
+
+  async getAdminWebhookLogs(params?: { status?: string; event_type?: string; endpoint_id?: string; search?: string; limit?: number }) {
+    const qs = params ? `?${new URLSearchParams(Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)]))}` : "";
+    return this.request(`/admin/webhooks/logs${qs}`).catch(() => ({ logs: [], total: 0, metrics: null }));
+  }
+
+  async getAdminWebhookOutbox(params?: { status?: string; event_type?: string; limit?: number }) {
+    const qs = params ? `?${new URLSearchParams(Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)]))}` : "";
+    return this.request(`/admin/webhooks/outbox${qs}`).catch(() => ({ outbox: [], total: 0 }));
+  }
+
+  async getAdminWebhookDLQ() {
+    return this.request("/admin/webhooks/dlq").catch(() => ({ dlq: [], count: 0 }));
+  }
+
+  async retryAdminWebhookOutbox(outboxId: string) {
+    return this.request(`/admin/webhooks/outbox/${outboxId}/retry`, {
+      method: "POST",
+    });
+  }
+
+  async replayAdminWebhookDLQ(outboxId: string) {
+    return this.request(`/admin/webhooks/outbox/${outboxId}/replay`, {
+      method: "POST",
+    });
+  }
+
+  async discardAdminWebhookDLQ(outboxId: string) {
+    return this.request(`/admin/webhooks/outbox/${outboxId}/discard`, {
+      method: "POST",
+    });
+  }
+
+  async triggerAdminTestWebhook(endpointId: string, eventType?: string) {
+    return this.request("/admin/webhooks/test", {
+      method: "POST",
+      body: JSON.stringify({ endpointId, eventType }),
+    });
+  }
+
+  async recordAdminWebhookCallback(payload: {
+    event_id: string;
+    execution_id: string;
+    status: "PROCESSED" | "FAILED" | "ACCEPTED";
+    result_summary?: string;
+    error_message?: string;
+  }) {
+    return this.request("/admin/webhooks/callback", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
 }
 
 export const apiClient = new CakeToHomeApiClient();
+

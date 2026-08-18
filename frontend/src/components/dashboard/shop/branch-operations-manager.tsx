@@ -74,7 +74,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
         setDashboard(dashRes);
         setSettingsForm({
           phone: dashRes.branch?.phone || "",
-          whatsapp: dashRes.branch?.whatsapp || "",
+          whatsapp: (dashRes.branch as any)?.whatsapp || "",
           preparation_buffer_mins: dashRes.branch?.preparation_buffer_mins || 15,
         });
       }

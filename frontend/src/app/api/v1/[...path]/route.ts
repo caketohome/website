@@ -3,7 +3,8 @@ import { ApiEngine } from "@frontend/lib/api-engine";
 import { WebhookEngine } from "@frontend/lib/webhook-engine";
 import { TelemarketingEngine } from "@frontend/lib/telemarketing-engine";
 import { TelemarketingExportService } from "@frontend/lib/telemarketing-export-service";
-import { StaffAccessControl } from "@frontend/lib/staff-access-control";
+import { StaffAccessControl, PERMISSION_CATALOG } from "@frontend/lib/staff-access-control";
+import { normalizePhone, SYSTEM_SEGMENTS } from "@frontend/lib/crm/crm-engine";
 
 const BACKEND_URL = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000";
 
@@ -146,12 +147,32 @@ const readCache = new Map<string, { data: any; status: number; timestamp: number
 const CACHE_TTL_MS = 3000; // 3 second cache for read-only store endpoints
 let backendDownUntil = 0;
 
+const MEDUSA_PROXY_ALLOWLIST = [
+  "health",
+  "admin/health",
+  "products",
+  "store/products",
+  "regions",
+  "store/regions",
+  "admin/products",
+  "admin/catalog/products",
+  "admin/orders",
+  "admin/delivery-partners",
+];
+
+function shouldProxyToMedusa(path: string): boolean {
+  return MEDUSA_PROXY_ALLOWLIST.some(
+    (prefix) => path === prefix || path.startsWith(`${prefix}/`)
+  );
+}
+
 async function forwardToPostgresBackend(method: string, path: string, body?: any, query?: string, reqHeaders?: Headers): Promise<NextResponse | null> {
-  if (Date.now() < backendDownUntil) {
+  // Only attempt proxy for core Medusa backend paths (catalog, regions, health)
+  if (!shouldProxyToMedusa(path)) {
     return null;
   }
 
-  if (path === "cart" || path.startsWith("cart/") || path === "store/cart" || path.startsWith("store/cart/")) {
+  if (Date.now() < backendDownUntil) {
     return null;
   }
 
@@ -235,7 +256,7 @@ async function forwardToPostgresBackend(method: string, path: string, body?: any
       console.log(`[Proxy Backend ${res.status}] Target ${targetUrl} returned HTTP ${res.status} (${res.statusText}). Falling back to ApiEngine.`);
     }
   } catch (err: any) {
-    backendDownUntil = Date.now() + 15000;
+    backendDownUntil = Date.now() + 60000;
     console.log(`[Proxy Fallback] Target ${targetUrl} unreachable (${err.message}). Using ApiEngine JSON fallback.`);
   }
   return null;
@@ -397,9 +418,10 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const orderRes = ApiEngine.confirmCheckout({
         cart_id: cartTestId,
         pincode: "560038",
+        delivery_slot_id: "slot_standard",
         delivery_type: "delivery",
         delivery_date: todayIso,
-        payment_method: "upi",
+        payment_method: "cod",
         address: { first_name: "Rahul", last_name: "Verma", phone: "+91 98765 43210", email: "rahul@example.com", line1: "100ft Rd", city: "Bengaluru", pincode: "560038" },
       });
 
@@ -578,10 +600,21 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     if (path === "orders" || path === "store/orders") {
+      const userCtx = resolveUserContext(req);
+      const customerUid = url.searchParams.get("customer_uid") || req.cookies.get("_cth_customer_uid")?.value;
+      const phone = url.searchParams.get("phone") || req.cookies.get("_cth_phone")?.value || userCtx.phone;
       const customerId = url.searchParams.get("customer_id") || req.cookies.get("_cth_user_id")?.value;
+
+      const isCustomerOnly = userCtx.role === "CUSTOMER" || (!userCtx.role && (customerUid || phone || customerId));
+
       const res = ApiEngine.getAdminOrders({
-        customer_id: customerId || undefined,
+        customer_uid: isCustomerOnly ? (customerUid || customerId) : (url.searchParams.get("customer_uid") || undefined),
+        phone: isCustomerOnly ? phone : (url.searchParams.get("phone") || undefined),
+        status: url.searchParams.get("status") || undefined,
+        branch_id: url.searchParams.get("branch_id") || undefined,
         limit: Number(url.searchParams.get("limit") || 50),
+        offset: Number(url.searchParams.get("offset") || 0),
+        q: url.searchParams.get("q") || undefined,
       });
       return jsonWithDataSource({ orders: res.orders || [], count: res.total || res.orders?.length || 0, success: true }, "json-fallback");
     }
@@ -920,7 +953,44 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const foundCus = ApiEngine.findOrCreateCustomerByPhone({ phone });
       return jsonWithDataSource({ customer: foundCus, found: Boolean(foundCus) }, "json-fallback");
     }
-    if (path === "admin/crm/customers" || path === "admin/customers") return jsonWithDataSource({ customers: ApiEngine.getAdminCustomers() }, "json-fallback");
+    // ── Enterprise CRM & Customer Lifecycle Endpoints (GET) ──
+    if (path === "admin/crm/customers/export" || path === "admin/customers/export") {
+      const csv = ApiEngine.exportCustomersCsv(Object.fromEntries(url.searchParams));
+      return new Response(csv, {
+        headers: {
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": `attachment; filename="customers_export_${Date.now()}.csv"`,
+        },
+      });
+    }
+    if (path === "admin/crm/analytics" || path === "admin/customers/analytics") {
+      return jsonWithDataSource({ summary: ApiEngine.getCrmAnalyticsSummary(Object.fromEntries(url.searchParams)), success: true }, "json-fallback");
+    }
+    if (path === "admin/crm/new-no-order" || path === "admin/customers/new-no-order") {
+      return jsonWithDataSource(ApiEngine.getNewAccountsNoPurchase(Object.fromEntries(url.searchParams)), "json-fallback");
+    }
+    if (path === "admin/crm/duplicates" || path === "admin/customers/duplicates") {
+      return jsonWithDataSource({ duplicates: ApiEngine.listCustomerDuplicates(), success: true }, "json-fallback");
+    }
+    if (path === "admin/crm/segments" || path === "admin/customers/segments") {
+      return jsonWithDataSource({ segments: SYSTEM_SEGMENTS, success: true }, "json-fallback");
+    }
+    if ((path.startsWith("admin/crm/customers/") || path.startsWith("admin/customers/")) && path.endsWith("/orders")) {
+      const custUid = path.replace("admin/crm/customers/", "").replace("admin/customers/", "").replace("/orders", "");
+      const qParams = Object.fromEntries(url.searchParams);
+      const res = ApiEngine.getCustomerOrderHistory(custUid, qParams.phone as string);
+      return jsonWithDataSource(res, "json-fallback");
+    }
+    if (path.startsWith("admin/crm/customers/") || path.startsWith("admin/customers/")) {
+      const customerId = path.replace("admin/crm/customers/", "").replace("admin/customers/", "");
+      const profile = ApiEngine.getCustomerProfile(customerId);
+      if (!profile) return jsonWithDataSource({ error: "Customer profile not found" }, "json-fallback", 404);
+      return jsonWithDataSource({ customer: profile, success: true }, "json-fallback");
+    }
+    if (path === "admin/crm/customers" || path === "admin/customers") {
+      const qParams = Object.fromEntries(url.searchParams);
+      return jsonWithDataSource(ApiEngine.listAdminCustomersDetailed(qParams), "json-fallback");
+    }
     if (path === "admin/marketing/seo" || path === "seo" || path === "admin/seo") return jsonWithDataSource(ApiEngine.getAdminSeoConfig(), "json-fallback");
     // ── Enterprise SEO Platform GET Endpoints ──
     if (path === "admin/seo/dashboard") return jsonWithDataSource(ApiEngine.getSeoDashboardSummary(), "json-fallback");
@@ -1060,7 +1130,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const permErr = verifyApiPermission(req, "WEBHOOKS", "VIEW");
       if (permErr) return permErr;
       const st = url.searchParams.get("status") || undefined;
-      return jsonWithDataSource({ outbox: WebhookEngine.getOutboxItems(st), success: true }, "json-fallback");
+      return jsonWithDataSource({ outbox: WebhookEngine.getOutboxItems(st ? { status: st as any } : undefined), success: true }, "json-fallback");
     }
 
     // ── Telemarketing Reorder & Reactivation Intelligence (GET) ──
@@ -1069,6 +1139,29 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       if (permErr) return permErr;
       const q = Object.fromEntries(url.searchParams);
       return jsonWithDataSource(TelemarketingEngine.listCandidates(q), "json-fallback");
+    }
+    if (path === "admin/telemarketing/eligible-staff" || path === "admin/outreach/eligible-staff") {
+      const permErr = verifyApiPermission(req, "TELEMARKETING", "VIEW");
+      if (permErr) return permErr;
+      const q = Object.fromEntries(url.searchParams);
+      const eligible = StaffAccessControl.getEligibleTelecallers({
+        city: q.city && q.city !== "all" ? q.city : undefined,
+        branch_id: (q.branch_id || q.branchId) && (q.branch_id !== "all" && q.branchId !== "all") ? (q.branch_id || q.branchId) : undefined,
+      });
+      const staffList = eligible.map((s) => ({
+        id: s.id,
+        user_id: s.user_id,
+        name: s.name,
+        email: s.email,
+        phone: s.phone,
+        role: s.role,
+        profile_names: s.profile_names,
+        profile_name: s.profile_name,
+        branch_id: s.branch_id,
+        branch_name: s.branch_name,
+        city: s.city,
+      }));
+      return jsonWithDataSource({ success: true, staff: staffList }, "json-fallback");
     }
     if (path === "admin/telemarketing/metrics") {
       const permErr = verifyApiPermission(req, "TELEMARKETING", "VIEW");
@@ -1098,6 +1191,74 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/cms/blocks") return jsonWithDataSource({ blocks: ApiEngine.getAdminCmsBlocks() }, "json-fallback");
     if (path === "admin/media") return jsonWithDataSource({ media: ApiEngine.getAdminMedia() }, "json-fallback");
     if (path === "admin/cms/image-alt-texts" || path === "image-alt-texts") return jsonWithDataSource(ApiEngine.getAdminImageAltTexts(), "json-fallback");
+
+    // ── Popup & Storefront Engagement System (GET) ──
+    if (path === "engagement/config" || path === "store/engagement/config") {
+      const q = Object.fromEntries(url.searchParams);
+      return jsonWithDataSource(ApiEngine.getPublishedEngagementConfig(q), "json-fallback");
+    }
+    if (path === "admin/popups" || path === "popups") {
+      const q = Object.fromEntries(url.searchParams);
+      return jsonWithDataSource({ campaigns: ApiEngine.listPopupCampaigns(q), success: true }, "json-fallback");
+    }
+    if (path === "admin/popups/options" || path === "popups/options") {
+      return jsonWithDataSource(ApiEngine.getPopupOptions(), "json-fallback");
+    }
+    if (path === "admin/popups/analytics/summary" || path === "popups/analytics/summary") {
+      const q = Object.fromEntries(url.searchParams);
+      return jsonWithDataSource(ApiEngine.getPopupAnalyticsSummary(q), "json-fallback");
+    }
+    if (path.startsWith("admin/popups/") || path.startsWith("popups/")) {
+      const popupId = path.replace("admin/popups/", "").replace("popups/", "");
+      const campaign = ApiEngine.getPopupCampaignById(popupId);
+      if (!campaign) return jsonWithDataSource({ error: "Popup campaign not found" }, "json-fallback", 404);
+      return jsonWithDataSource({ campaign, success: true }, "json-fallback");
+    }
+
+    // ── Enterprise n8n & Webhooks Outbox (GET) ──
+    if (path === "admin/webhooks/endpoints") {
+      const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
+      if (permErr) return permErr;
+      return jsonWithDataSource({ endpoints: WebhookEngine.getEndpoints(), success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/webhooks/endpoints/")) {
+      const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
+      if (permErr) return permErr;
+      const epId = path.replace("admin/webhooks/endpoints/", "");
+      const ep = WebhookEngine.getEndpoint(epId);
+      if (!ep) return jsonWithDataSource({ error: `Endpoint "${epId}" not found`, success: false }, "json-fallback", 404);
+      return jsonWithDataSource({ endpoint: ep, success: true }, "json-fallback");
+    }
+    if (path === "admin/webhooks/logs") {
+      const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
+      if (permErr) return permErr;
+      const q = Object.fromEntries(url.searchParams);
+      const res = WebhookEngine.getLogs({
+        event_type: q.event_type,
+        status: q.status,
+        endpoint_id: q.endpoint_id,
+        search: q.search,
+        limit: q.limit ? Number(q.limit) : 50,
+      });
+      return jsonWithDataSource({ ...res, success: true }, "json-fallback");
+    }
+    if (path === "admin/webhooks/outbox") {
+      const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
+      if (permErr) return permErr;
+      const q = Object.fromEntries(url.searchParams);
+      const outbox = WebhookEngine.getOutboxItems({
+        status: q.status,
+        event_type: q.event_type,
+        limit: q.limit ? Number(q.limit) : 100,
+      });
+      return jsonWithDataSource({ outbox, total: outbox.length, success: true }, "json-fallback");
+    }
+    if (path === "admin/webhooks/dlq") {
+      const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
+      if (permErr) return permErr;
+      const dlq = WebhookEngine.getDeadLetterQueue();
+      return jsonWithDataSource({ dlq, count: dlq.length, success: true }, "json-fallback");
+    }
 
     if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, message: `Admin path ${path} operational` }, "json-fallback");
 
@@ -1136,7 +1297,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "admin/orders" || path === "orders") {
-      const order = ApiEngine.createOrder(body);
+      const order = ApiEngine.addOrder(body);
       return jsonWithDataSource({ order, success: true }, "json-fallback", 201);
     }
 
@@ -1193,6 +1354,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           res.cookies.set("_cth_jwt", result.token, { path: "/", maxAge: 60 * 60 * 24 * 30 });
           res.cookies.set("_cth_role", result.role || "CUSTOMER", { path: "/", maxAge: 60 * 60 * 24 * 30 });
           res.cookies.set("_cth_user_id", result.customer_id || result.user?.id || "", { path: "/", maxAge: 60 * 60 * 24 * 30 });
+          if (result.customer_uid) {
+            res.cookies.set("_cth_customer_uid", result.customer_uid, { path: "/", maxAge: 60 * 60 * 24 * 30 });
+            // Merge existing guest cart if present
+            const guestCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
+            if (guestCartId) {
+              ApiEngine.mergeGuestCartToCustomer(guestCartId, result.customer_uid);
+            }
+          }
           res.cookies.set("_cth_phone", phone, { path: "/", maxAge: 60 * 60 * 24 * 30 });
           if (result.branch_id) res.cookies.set("_cth_branch_id", result.branch_id, { path: "/", maxAge: 60 * 60 * 24 * 30 });
           if (result.partner_id) res.cookies.set("_cth_partner_id", result.partner_id, { path: "/", maxAge: 60 * 60 * 24 * 30 });
@@ -1237,10 +1406,71 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
     }
 
+    if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/whatsapp")) {
+      const cartId = path.replace("admin/abandoned-carts/", "").replace("/whatsapp", "");
+      try {
+        const result = ApiEngine.sendWhatsAppRecoveryMessage(cartId, body.template, body.variables);
+        return jsonWithDataSource(result, "json-fallback");
+      } catch (err: any) {
+        return jsonWithDataSource({ error: err.message || "Failed to dispatch WhatsApp recovery" }, "json-fallback", 400);
+      }
+    }
+
+    if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/call")) {
+      const cartId = path.replace("admin/abandoned-carts/", "").replace("/call", "");
+      const result = ApiEngine.recordCallAction(body.customer_uid || cartId, cartId, undefined, body.outcome || "CALL_INITIATED");
+      return jsonWithDataSource(result, "json-fallback");
+    }
+
     if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/token")) {
       const cartId = path.replace("admin/abandoned-carts/", "").replace("/token", "");
       const tokenObj = ApiEngine.generateCartRecoveryToken(cartId);
       return jsonWithDataSource({ success: true, token: tokenObj }, "json-fallback");
+    }
+
+    // ── Orders Mutations (POST) ──
+    if (path === "admin/orders" || path === "orders") {
+      const order = ApiEngine.addOrder(body);
+      return jsonWithDataSource({ order, success: true }, "json-fallback", 201);
+    }
+
+    // ── Enterprise CRM Mutations (POST) ──
+    if (path === "admin/crm/customers" || path === "admin/customers") {
+      const customer = ApiEngine.createAdminCustomer(body);
+      return jsonWithDataSource({ customer, success: true }, "json-fallback", 201);
+    }
+
+    if (path === "admin/crm/merge" || path === "admin/customers/merge") {
+      try {
+        const result = ApiEngine.mergeCustomerRecords(body.primary_uid, body.duplicate_uid);
+        return jsonWithDataSource(result, "json-fallback");
+      } catch (err: any) {
+        return jsonWithDataSource({ error: err.message || "Merge failed", success: false }, "json-fallback", 400);
+      }
+    }
+
+    if (path.startsWith("admin/crm/customers/") && path.endsWith("/notes")) {
+      const customerId = path.replace("admin/crm/customers/", "").replace("/notes", "");
+      const note = ApiEngine.createCustomerNote(customerId, body);
+      return jsonWithDataSource({ note, success: true }, "json-fallback", 201);
+    }
+
+    if (path.startsWith("admin/crm/customers/") && path.endsWith("/tags")) {
+      const customerId = path.replace("admin/crm/customers/", "").replace("/tags", "");
+      const tags = ApiEngine.updateCustomerTags(customerId, body.tags || []);
+      return jsonWithDataSource({ tags, success: true }, "json-fallback");
+    }
+
+    if (path.startsWith("admin/crm/customers/") && path.endsWith("/call")) {
+      const customerId = path.replace("admin/crm/customers/", "").replace("/call", "");
+      const result = ApiEngine.recordCallAction(customerId, body.cart_id, undefined, body.outcome || "CALL_INITIATED");
+      return jsonWithDataSource(result, "json-fallback");
+    }
+
+    if (path.startsWith("admin/crm/customers/")) {
+      const customerId = path.replace("admin/crm/customers/", "");
+      const updated = ApiEngine.updateCustomerProfile(customerId, body);
+      return jsonWithDataSource({ customer: updated, success: true }, "json-fallback");
     }
 
     if (path === "orders/attribute-recovery" || path === "admin/orders/attribute-recovery") {
@@ -1260,6 +1490,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
     if (path === "checkout/confirm" || path === "store/checkout/confirm") {
       const result = ApiEngine.confirmCheckout(body);
+      if (result && (result.success || result.order)) {
+        const custUid = (result.order as any)?.customer_uid || (result as any).customer_uid || body.customer_id;
+        const ordId = (result.order as any)?.id || (result as any).order_id;
+        const ordTotal = Number((result.order as any)?.total || (result.order as any)?.grand_total || (result as any).total || 0);
+        if (custUid && ordId) {
+          TelemarketingEngine.matchAndAttributeCheckoutOrder(custUid, ordId, ordTotal);
+        }
+      }
       return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 201 : 400));
     }
 
@@ -1285,14 +1523,15 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "orders" || path === "admin/orders") {
-      const order = ApiEngine.createOrder(body);
+      const orderRes: any = ApiEngine.createOrder(body);
+      const createdOrder = orderRes?.order || orderRes;
       if (body.promo_offer_id || body.applied_promo_code) {
         ApiEngine.recordCouponRedemption(body.promo_offer_id || "off_50", {
           customer_id: body.customer_id,
           customer_phone: body.customer_phone || body.phone,
           customer_email: body.customer_email || body.email,
-          order_id: order?.id,
-          order_number: order?.order_number,
+          order_id: createdOrder?.id || createdOrder?.order_id,
+          order_number: createdOrder?.order_number,
           cart_id: body.cart_id,
           branch_id: body.branch_id,
           branch_name: body.branch_name,
@@ -1303,7 +1542,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           payment_method: body.payment_method || "UPI",
         });
       }
-      return jsonWithDataSource({ order }, "json-fallback");
+      return jsonWithDataSource({ order: createdOrder, success: true }, "json-fallback");
     }
 
     // Admin Persistent Mutations
@@ -1785,15 +2024,293 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path === "admin/telemarketing/evaluate") {
       const permErr = verifyApiPermission(req, "TELEMARKETING", "VIEW");
       if (permErr) return permErr;
-      const result = TelemarketingEngine.evaluateHistoricalOrders(undefined, body.currentDate);
+      const ordersRes = ApiEngine.getAdminOrders({ limit: 1000 });
+      const ordersList = ordersRes?.orders || [];
+      const result = TelemarketingEngine.evaluateHistoricalOrders(ordersList, body.currentDate || "2026-08-17");
       return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/telemarketing/candidates/") && path.endsWith("/call")) {
+      const permErr = verifyApiPermission(req, "TELEMARKETING", "CONTACT");
+      if (permErr) return permErr;
+      const candId = path.replace("admin/telemarketing/candidates/", "").replace("/call", "");
+      const cand = TelemarketingEngine.getCandidateById(candId);
+      if (!cand) {
+        return jsonWithDataSource({ error: `Opportunity "${candId}" not found`, success: false }, "json-fallback", 404);
+      }
+
+      let validatedStaffId = body.staffId || body.staff_id || null;
+      let validatedStaffName = body.staffName || body.agentName || "Staff Telecaller";
+
+      if (validatedStaffId) {
+        const staffObj = StaffAccessControl.getStaffMember(validatedStaffId);
+        if (!staffObj || staffObj.status !== "ACTIVE") {
+          return jsonWithDataSource({ error: "Invalid or inactive staff member ID", success: false }, "json-fallback", 400);
+        }
+        const hasContactPerm =
+          StaffAccessControl.hasPermission(staffObj, "TELEMARKETING", "CONTACT") ||
+          StaffAccessControl.hasPermission(staffObj, "TELEMARKETING", "ASSIGN");
+        if (!hasContactPerm) {
+          return jsonWithDataSource({ error: "Selected staff member does not have telecaller outreach permission", success: false }, "json-fallback", 403);
+        }
+        validatedStaffId = staffObj.id;
+        validatedStaffName = staffObj.name;
+      }
+
+      const outcome = ((body.outcome || body.status || "CALLED") as string).toUpperCase();
+      let convertedOrderId = body.convertedOrderId || body.converted_order_id || body.order_id || body.orderId || null;
+      let authoritativeRevenue = 0;
+
+      if (outcome === "ORDER_PLACED" || outcome === "CONVERTED") {
+        if (!convertedOrderId) {
+          return jsonWithDataSource({ error: "A valid customer order must be selected to mark outreach as Order Placed / Converted.", success: false }, "json-fallback", 400);
+        }
+
+        const order = ApiEngine.getOrder(convertedOrderId);
+        if (!order) {
+          return jsonWithDataSource({ error: `Order "${convertedOrderId}" not found in authoritative order system.`, success: false }, "json-fallback", 400);
+        }
+
+        // Validate Ownership
+        const candUid = cand.customer_uid;
+        const cleanCandPhone = normalizePhone(cand.customer_phone || "");
+        const orderUid = order.customer_uid || order.customer_id || "";
+        const cleanOrderPhone = normalizePhone(order.customer_phone || order.phone || "");
+
+        const isOwner =
+          (orderUid && candUid && orderUid === candUid) ||
+          (cleanCandPhone && cleanOrderPhone && cleanCandPhone === cleanOrderPhone) ||
+          (order.customer_uid && cand.customer_id && order.customer_uid === cand.customer_id);
+
+        if (!isOwner) {
+          return jsonWithDataSource({
+            error: `Security Error: Order #${order.order_number || order.id} belongs to a different customer and cannot be attributed to ${cand.customer_name}.`,
+            success: false,
+          }, "json-fallback", 400);
+        }
+
+        // Validate Eligibility
+        const ordStatus = (order.status || order.order_status || "").toLowerCase();
+        if (ordStatus === "cancelled" || ordStatus === "failed") {
+          return jsonWithDataSource({
+            error: `Cannot attribute cancelled or failed order #${order.order_number || order.id}.`,
+            success: false,
+          }, "json-fallback", 400);
+        }
+
+        // Prevent Double Attribution
+        const allCands = TelemarketingEngine.listCandidates().candidates;
+        const isDoubleAttributed = allCands.some(
+          (c) => c.id !== cand.id && (c.attributed_order_id === order.id || c.converted_order_id === order.id || (order.order_number && (c.attributed_order_id === order.order_number || c.converted_order_id === order.order_number)))
+        );
+        if (isDoubleAttributed) {
+          return jsonWithDataSource({
+            error: `Order #${order.order_number || order.id} has already been attributed to another outreach conversion. Duplicate revenue attribution is disallowed.`,
+            success: false,
+          }, "json-fallback", 400);
+        }
+
+        authoritativeRevenue = Number(order.total) || Number(order.grand_total) || Number(order.order_value) || 0;
+        TelemarketingEngine.recordAttributedOrder(candId, order.id, authoritativeRevenue);
+      }
+
+      const result = TelemarketingEngine.logCall({
+        candidateId: candId,
+        outcome: outcome,
+        note: body.note || body.callNote,
+        staffId: validatedStaffId,
+        staffName: validatedStaffName,
+        nextFollowupDate: body.nextFollowupDate || body.followupDate,
+      });
+
+      if (result.customer_uid) {
+        ApiEngine.recordCustomerActivity({
+          customer_uid: result.customer_uid,
+          event_type: outcome === "CONVERTED" || outcome === "ORDER_PLACED" ? "ORDER_PLACED" : "NOTE_ADDED",
+          title: outcome === "CONVERTED" || outcome === "ORDER_PLACED"
+            ? `Telemarketing Order Converted: ${convertedOrderId}`
+            : `Telemarketing Call Logged: ${result.contact_status}`,
+          description: body.note || `Call logged by ${validatedStaffName} with outcome ${result.contact_status}`,
+          source: "ADMIN_CRM",
+          metadata: {
+            opportunity_id: result.id,
+            outcome: result.contact_status,
+            order_id: convertedOrderId,
+            revenue: authoritativeRevenue,
+            staff_id: validatedStaffId,
+            staff_name: validatedStaffName,
+            next_followup_date: result.next_followup_date,
+          },
+        });
+      }
+
+      return jsonWithDataSource({ candidate: result, success: true }, "json-fallback");
     }
     if (path.startsWith("admin/telemarketing/candidates/") && path.endsWith("/convert")) {
       const permErr = verifyApiPermission(req, "TELEMARKETING", "CONVERT_ORDER");
       if (permErr) return permErr;
       const candId = path.replace("admin/telemarketing/candidates/", "").replace("/convert", "");
-      const result = TelemarketingEngine.recordAttributedOrder(candId, body.order_id, Number(body.revenue || 0));
+      const cand = TelemarketingEngine.getCandidateById(candId);
+      if (!cand) return jsonWithDataSource({ error: "Opportunity not found", success: false }, "json-fallback", 404);
+
+      const convertedOrderId = body.order_id || body.convertedOrderId || body.orderId;
+      if (!convertedOrderId) {
+        return jsonWithDataSource({ error: "order_id is required for conversion", success: false }, "json-fallback", 400);
+      }
+
+      const order = ApiEngine.getOrder(convertedOrderId);
+      if (!order) {
+        return jsonWithDataSource({ error: `Order "${convertedOrderId}" not found in authoritative order system.`, success: false }, "json-fallback", 400);
+      }
+
+      // Ownership check
+      const candUid = cand.customer_uid;
+      const cleanCandPhone = normalizePhone(cand.customer_phone || "");
+      const orderUid = order.customer_uid || order.customer_id || "";
+      const cleanOrderPhone = normalizePhone(order.customer_phone || order.phone || "");
+
+      const isOwner =
+        (orderUid && candUid && orderUid === candUid) ||
+        (cleanCandPhone && cleanOrderPhone && cleanCandPhone === cleanOrderPhone);
+
+      if (!isOwner) {
+        return jsonWithDataSource({
+          error: `Security Error: Order #${order.order_number || order.id} belongs to a different customer and cannot be attributed to ${cand.customer_name}.`,
+          success: false,
+        }, "json-fallback", 400);
+      }
+
+      // Status check
+      const ordStatus = (order.status || order.order_status || "").toLowerCase();
+      if (ordStatus === "cancelled" || ordStatus === "failed") {
+        return jsonWithDataSource({
+          error: `Cannot attribute cancelled or failed order #${order.order_number || order.id}.`,
+          success: false,
+        }, "json-fallback", 400);
+      }
+
+      // Prevent duplicate
+      const allCands = TelemarketingEngine.listCandidates().candidates;
+      const isDoubleAttributed = allCands.some(
+        (c) => c.id !== cand.id && (c.attributed_order_id === order.id || c.converted_order_id === order.id || (order.order_number && (c.attributed_order_id === order.order_number || c.converted_order_id === order.order_number)))
+      );
+      if (isDoubleAttributed) {
+        return jsonWithDataSource({
+          error: `Order #${order.order_number || order.id} has already been attributed to another outreach conversion. Duplicate revenue attribution is disallowed.`,
+          success: false,
+        }, "json-fallback", 400);
+      }
+
+      const authoritativeRevenue = Number(order.total) || Number(order.grand_total) || Number(order.order_value) || 0;
+      const result = TelemarketingEngine.recordAttributedOrder(candId, order.id, authoritativeRevenue);
+
+      ApiEngine.recordCustomerActivity({
+        customer_uid: cand.customer_uid,
+        event_type: "ORDER_PLACED",
+        title: `Outreach Conversion Recorded: ${order.order_number || order.id}`,
+        description: `Order #${order.order_number || order.id} (₹${authoritativeRevenue.toLocaleString("en-IN")}) attributed.`,
+        source: "ADMIN_CRM",
+        metadata: {
+          opportunity_id: cand.id,
+          order_id: order.id,
+          order_number: order.order_number,
+          revenue: authoritativeRevenue,
+        },
+      });
+
       return jsonWithDataSource({ candidate: result, success: true }, "json-fallback");
+    }
+
+    // ── Popup & Storefront Engagement System (POST) ──
+    if (path === "engagement/impression" || path === "store/engagement/impression") {
+      const result = ApiEngine.recordEngagementImpression(body);
+      return jsonWithDataSource(result, "json-fallback", 201);
+    }
+    if (path === "engagement/conversion" || path === "store/engagement/conversion") {
+      const result = ApiEngine.recordEngagementConversion(body);
+      return jsonWithDataSource(result, "json-fallback", 201);
+    }
+    if (path === "admin/popups" || path === "popups") {
+      const campaign = ApiEngine.createPopupCampaign(body);
+      return jsonWithDataSource({ campaign, success: true }, "json-fallback", 201);
+    }
+    if ((path.startsWith("admin/popups/") || path.startsWith("popups/")) && path.endsWith("/publish")) {
+      const popupId = path.replace("admin/popups/", "").replace("popups/", "").replace("/publish", "");
+      const campaign = ApiEngine.publishPopupCampaign(popupId);
+      return jsonWithDataSource({ campaign, success: true }, "json-fallback");
+    }
+    if ((path.startsWith("admin/popups/") || path.startsWith("popups/")) && path.endsWith("/pause")) {
+      const popupId = path.replace("admin/popups/", "").replace("popups/", "").replace("/pause", "");
+      const campaign = ApiEngine.pausePopupCampaign(popupId);
+      return jsonWithDataSource({ campaign, success: true }, "json-fallback");
+    }
+    if ((path.startsWith("admin/popups/") || path.startsWith("popups/")) && path.endsWith("/duplicate")) {
+      const popupId = path.replace("admin/popups/", "").replace("popups/", "").replace("/duplicate", "");
+      const campaign = ApiEngine.duplicatePopupCampaign(popupId);
+      return jsonWithDataSource({ campaign, success: true }, "json-fallback", 201);
+    }
+    if ((path.startsWith("admin/popups/") || path.startsWith("popups/")) && path.endsWith("/archive")) {
+      const popupId = path.replace("admin/popups/", "").replace("popups/", "").replace("/archive", "");
+      const campaign = ApiEngine.archivePopupCampaign(popupId);
+      return jsonWithDataSource({ campaign, success: true }, "json-fallback");
+    }
+
+    // ── Enterprise n8n & Webhook Mutations (POST) ──
+    if (path === "admin/webhooks/endpoints") {
+      const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
+      if (permErr) return permErr;
+      const endpoint = WebhookEngine.createEndpoint(body);
+      return jsonWithDataSource({ endpoint, success: true }, "json-fallback", 201);
+    }
+    if (path.startsWith("admin/webhooks/endpoints/") && path.endsWith("/rotate-secret")) {
+      const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
+      if (permErr) return permErr;
+      const epId = path.replace("admin/webhooks/endpoints/", "").replace("/rotate-secret", "");
+      const res = WebhookEngine.rotateSigningSecret(epId);
+      return jsonWithDataSource({ ...res, success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/webhooks/") && path.endsWith("/rotate-secret")) {
+      const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
+      if (permErr) return permErr;
+      const epId = path.replace("admin/webhooks/", "").replace("/rotate-secret", "");
+      const res = WebhookEngine.rotateSigningSecret(epId);
+      return jsonWithDataSource({ ...res, success: true }, "json-fallback");
+    }
+    if (path === "admin/webhooks/test") {
+      const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
+      if (permErr) return permErr;
+      const res = await WebhookEngine.testEndpoint(body.endpointId || "ep_n8n_production", body.eventType || "test.webhook.ping");
+      return jsonWithDataSource({ ...res, success: res.success }, "json-fallback");
+    }
+    if (path === "admin/webhooks/callback") {
+      const recorded = WebhookEngine.recordWorkflowCallback(
+        body.event_id,
+        body.execution_id,
+        body.status || "PROCESSED",
+        body.result_summary,
+        body.error_message
+      );
+      return jsonWithDataSource({ recorded, success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/webhooks/outbox/") && path.endsWith("/retry")) {
+      const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
+      if (permErr) return permErr;
+      const outboxId = path.replace("admin/webhooks/outbox/", "").replace("/retry", "");
+      const item = WebhookEngine.retryOutboxItem(outboxId);
+      return jsonWithDataSource({ item, success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/webhooks/outbox/") && path.endsWith("/replay")) {
+      const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
+      if (permErr) return permErr;
+      const outboxId = path.replace("admin/webhooks/outbox/", "").replace("/replay", "");
+      const item = WebhookEngine.replayEvent(outboxId);
+      return jsonWithDataSource({ item, success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/webhooks/outbox/") && path.endsWith("/discard")) {
+      const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
+      if (permErr) return permErr;
+      const outboxId = path.replace("admin/webhooks/outbox/", "").replace("/discard", "");
+      const item = WebhookEngine.discardOutboxItem(outboxId);
+      return jsonWithDataSource({ item, success: true }, "json-fallback");
     }
 
     if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "processed" }, "json-fallback");
@@ -2070,7 +2587,24 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       const permErr = verifyApiPermission(req, "TELEMARKETING", "ASSIGN");
       if (permErr) return permErr;
       const candId = path.replace("admin/telemarketing/candidates/", "").replace("/assign", "");
-      const result = TelemarketingEngine.assignCandidate(candId, body.agent_name || body.agentName || "Agent");
+      const staffId = body.staff_id || body.staffId;
+      if (!staffId) {
+        return jsonWithDataSource({ error: "staff_id is required for assignment", success: false }, "json-fallback", 400);
+      }
+
+      const staffObj = StaffAccessControl.getStaffMember(staffId);
+      if (!staffObj || staffObj.status !== "ACTIVE") {
+        return jsonWithDataSource({ error: "Invalid or inactive staff member ID", success: false }, "json-fallback", 400);
+      }
+
+      const hasAssignPerm =
+        StaffAccessControl.hasPermission(staffObj, "TELEMARKETING", "CONTACT") ||
+        StaffAccessControl.hasPermission(staffObj, "TELEMARKETING", "ASSIGN");
+      if (!hasAssignPerm) {
+        return jsonWithDataSource({ error: "Selected staff member does not have telecaller outreach permission", success: false }, "json-fallback", 403);
+      }
+
+      const result = TelemarketingEngine.assignCandidate(candId, staffObj.id, staffObj.name);
       return jsonWithDataSource({ candidate: result, success: true }, "json-fallback");
     }
 
@@ -2173,7 +2707,7 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
 
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deleteCmsPage(pageId) });
+      return jsonWithDataSource({ deleted: ApiEngine.deleteCmsPage(pageId) }, "json-fallback");
     }
 
     if (path.startsWith("admin/reports/saved/")) {
@@ -2184,6 +2718,22 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     if (path.startsWith("admin/popups/") || path.startsWith("popups/")) {
       const id = path.replace("admin/popups/", "").replace("popups/", "");
       return jsonWithDataSource({ deleted: ApiEngine.deletePopupCampaign(id), success: true }, "json-fallback");
+    }
+
+    // ── Enterprise n8n & Webhooks Outbox (DELETE) ──
+    if (path.startsWith("admin/webhooks/endpoints/")) {
+      const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
+      if (permErr) return permErr;
+      const epId = path.replace("admin/webhooks/endpoints/", "");
+      const deleted = WebhookEngine.deleteEndpoint(epId);
+      return jsonWithDataSource({ deleted, success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/webhooks/")) {
+      const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
+      if (permErr) return permErr;
+      const epId = path.replace("admin/webhooks/", "");
+      const deleted = WebhookEngine.deleteEndpoint(epId);
+      return jsonWithDataSource({ deleted, success: true }, "json-fallback");
     }
 
     if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "deleted" }, "json-fallback");

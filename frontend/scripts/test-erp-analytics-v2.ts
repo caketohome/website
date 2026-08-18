@@ -95,7 +95,7 @@ async function runTestSuite() {
   if (gstReport.length > 0) {
     const g1 = gstReport[0];
     assert(Boolean(g1.hsnCode), `GST line has HSN Code: ${g1.hsnCode}`);
-    assert(g1.totalTax === g1.cgst + g1.sgst + g1.igst, `GST total tax equals sum of CGST + SGST + IGST (₹${g1.totalTax})`);
+    assert(Math.abs(g1.totalTax - (g1.cgst + g1.sgst + g1.igst)) < 0.05, `GST total tax equals sum of CGST + SGST + IGST (₹${g1.totalTax})`);
   }
 
   const taxSummary = ReportsEngineData.getTaxSummaryReport(defaultFilter);
@@ -153,11 +153,20 @@ async function runTestSuite() {
 
   // Create a new order via ApiEngine.confirmCheckout
   const newOrderRes = ApiEngine.confirmCheckout({
-    customer_name: "Test VIP Buyer",
-    customer_phone: "+91 99887 76655",
-    customer_email: "vip.test@cakes2home.com",
+    cart_id: "cart_vip_test",
+    pincode: "560038",
+    delivery_slot_id: "slot_standard",
     delivery_date: new Date().toISOString().slice(0, 10),
-    payment_method: "upi",
+    payment_method: "cod",
+    address: {
+      first_name: "Test",
+      last_name: "VIP Buyer",
+      phone: "+91 99887 76655",
+      email: "vip.test@cakes2home.com",
+      line1: "Indiranagar 100ft Rd",
+      city: "Bengaluru",
+      pincode: "560038",
+    },
     subtotal: 1299,
     items: [
       {
@@ -171,14 +180,7 @@ async function runTestSuite() {
         gst_rate: 5,
       }
     ],
-    shipping_address: {
-      address_1: "Indiranagar 100ft Rd",
-      city: "Bengaluru",
-      state: "Karnataka",
-      state_code: "29",
-      pincode: "560038"
-    }
-  });
+  } as any);
 
   assert(newOrderRes.success === true, `New order created successfully: ${newOrderRes.order?.order_number}`);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { CartLineItemDTO } from "@medusajs/types";
+import { CartLineItemDTO } from "@frontend/lib/types";
 import { clx } from "@medusajs/ui";
 
 export function CartCounter({ cart }: { cart: any }) {

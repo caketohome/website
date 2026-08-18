@@ -59,8 +59,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     price: basePrice,
     rating: fetched?.rating || 4.9,
     review_count: fetched?.review_count || 128,
-    branch_status: fetched?.branch_status || "AVAILABLE",
-    is_out_of_stock_at_branch: fetched?.is_out_of_stock_at_branch || false,
+    branch_status: (fetched as any)?.branch_status || "AVAILABLE",
+    is_out_of_stock_at_branch: (fetched as any)?.is_out_of_stock_at_branch || false,
     variants: [
       {
         id: `var_${productId}`,

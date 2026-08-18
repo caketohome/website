@@ -1739,7 +1739,7 @@ export function PageConfigurator() {
                 <div className="flex flex-col gap-3">
                   <div className={`p-2.5 rounded-xl border flex items-center justify-between ${seoScore.score >= 80 ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"}`}>
                     <span className="text-xs font-bold">SEO Score: {seoScore.score}/100</span>
-                    <Badge color={seoScore.score >= 80 ? "green" : "amber"}>{seoScore.label}</Badge>
+                    <Badge color={seoScore.score >= 80 ? "green" : "orange"}>{seoScore.label}</Badge>
                   </div>
                   <Field label="Meta Title">
                     <Input

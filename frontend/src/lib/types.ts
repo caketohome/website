@@ -3,6 +3,16 @@ export type CartLineItemDTO = any;
 export type OrderDTO = any;
 export type OrderLineItemDTO = any;
 export type ProductDTO = any;
+export type ProductVariantDTO = any;
+export type ProductCategoryDTO = any;
+
+export namespace HttpTypes {
+  export type StoreProductCategory = any;
+  export type StoreCart = any;
+  export type StoreProduct = any;
+  export type StoreOrder = any;
+  export type StoreCustomer = any;
+}
 
 export enum DeliveryStatus {
   PENDING = "pending",
@@ -34,6 +44,8 @@ export interface ShopDTO {
 export interface ShopManagerDTO {
   id: string;
   shop_id: string;
+  branch_id?: string;
+  role?: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -110,16 +122,24 @@ export type DeliveryItemDTO = (CartLineItemDTO | OrderLineItemDTO) & {
 
 export interface DeliveryPartnerDTO {
   id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
+  partner_number?: string;
+  full_name?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
   avatar_url?: string;
-  created_at: Date;
-  updated_at: Date;
+  rating?: number;
+  total_deliveries?: number;
+  availability_status?: string;
+  primary_branch_name?: string;
+  current_active_orders?: number;
+  maximum_concurrent_orders?: number;
+  created_at?: Date | string;
+  updated_at?: Date | string;
 }
 
-export interface DeliveryPartnerDTO {
+export interface DeliveryClaimDTO {
   id: string;
   delivery_id: string;
   delivery_partner_id: string;

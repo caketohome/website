@@ -225,7 +225,7 @@ export function ProductsCatalogClient() {
 
           {/* Results State */}
           {error ? (
-            <ErrorComponent title="Failed to load catalog" message={error} reset={executeSearch} />
+            <ErrorComponent title="Failed to load catalog" message={error} onRetry={executeSearch} />
           ) : loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-8">
               {[1, 2, 3, 4, 5, 6].map((i) => (

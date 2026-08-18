@@ -73,18 +73,18 @@ async function runAll12AnalyticsReportsTestSuite() {
   console.log(`  ✅ PASS: All 12 report sections produced valid non-empty datasets!\n`);
 
   console.log("TEST 3: Triggering All 12 Report-Specific Excel Exports...");
-  await ExcelExportService.exportExecutiveSummary({ kpis, salesRegister: orders, filters });
-  await ExcelExportService.exportSalesRevenue({ salesRegister: orders, filters });
-  await ExcelExportService.exportProductsProfitability({ products, filters });
-  await ExcelExportService.exportOrdersLifecycle({ orders, filters });
-  await ExcelExportService.exportBranchPerformance({ branchPerformance: branchPerf, filters });
-  await ExcelExportService.exportHsnSummary({ hsnSummary: gstItems, filters });
-  await ExcelExportService.exportDeliveryFleet({ deliveryData, filters });
-  await ExcelExportService.exportCustomerAnalytics({ customerData, filters });
-  await ExcelExportService.exportPaymentsRefunds({ paymentData, filters });
-  await ExcelExportService.exportGeographicSales({ geoData, filters });
-  await ExcelExportService.exportCrossSellUpsell({ crossSellData, filters });
-  await ExcelExportService.exportExceptionReport({ exceptions, filters });
+  await ExcelExportService.exportExecutiveSummary({ kpis, salesRegister: orders, filters } as any);
+  await ExcelExportService.exportSalesRevenue({ salesRegister: orders, filters } as any);
+  await ExcelExportService.exportProductsProfitability({ products, filters } as any);
+  await ExcelExportService.exportOrdersLifecycle({ orders, filters } as any);
+  await ExcelExportService.exportBranchPerformance({ branchPerformance: branchPerf, filters } as any);
+  await ExcelExportService.exportHsnSummary({ hsnSummary: gstItems, filters } as any);
+  await ExcelExportService.exportDeliveryFleet({ deliveryData, filters } as any);
+  await ExcelExportService.exportCustomerAnalytics({ customerData, filters } as any);
+  await ExcelExportService.exportPaymentsRefunds({ paymentData, filters } as any);
+  await ExcelExportService.exportGeographicSales({ geoData, filters } as any);
+  await ExcelExportService.exportCrossSellUpsell({ crossSellData, filters } as any);
+  await ExcelExportService.exportExceptionReport({ exceptions, filters } as any);
 
   console.log(`  ✅ PASS: Generated all 12 report-specific Excel workbooks!\n`);
 

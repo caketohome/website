@@ -426,7 +426,7 @@ function ProductGrid({ products }: { products: SearchResult[] }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       {products.map((product) => {
-        const productHandle = product.handle || product.slug || product.product_id || product.id;
+        const productHandle = product.handle || (product as any).slug || product.product_id || (product as any).id;
         const productHref = `/products/${productHandle}`;
 
         return (
