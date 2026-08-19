@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { OrganizationJsonLd } from "@frontend/components/store/seo/json-ld";
+import { AuthProvider } from "@/providers/auth-provider";
 import { CustomerProvider } from "@frontend/providers/customer-provider";
 
 export const dynamic = "force-dynamic";
@@ -33,9 +34,11 @@ export default function RootLayout({
         <OrganizationJsonLd />
       </head>
       <body className={inter.className}>
-        <CustomerProvider>
-          {children}
-        </CustomerProvider>
+        <AuthProvider>
+          <CustomerProvider>
+            {children}
+          </CustomerProvider>
+        </AuthProvider>
         <script
           dangerouslySetInnerHTML={{
             __html: `

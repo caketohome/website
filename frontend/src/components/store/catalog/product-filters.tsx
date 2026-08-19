@@ -235,7 +235,6 @@ export function ProductFilters({
       <div className="flex flex-col gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
         <Label className="font-bold text-xs text-slate-900 dark:text-white">Dietary & Preferences</Label>
         {[
-          { key: "eggless" as const, label: "🌱 Eggless 100%" },
           { key: "sugar_free" as const, label: "🍯 Sugar-Free" },
           { key: "gluten_free" as const, label: "🌾 Gluten-Free" },
           { key: "vegan" as const, label: "🥑 Vegan" },
@@ -279,7 +278,6 @@ export function ActiveFilterChips({
   if (filters.category) chips.push({ key: "category", label: `Category: ${filters.category}` });
   if (filters.flavour) chips.push({ key: "flavour", label: `Flavour: ${filters.flavour}` });
   if (filters.weight) chips.push({ key: "weight", label: `Weight: ${filters.weight}` });
-  if (filters.eggless) chips.push({ key: "eggless", label: "Eggless" });
   if (filters.sugar_free) chips.push({ key: "sugar_free", label: "Sugar-Free" });
   if (filters.gluten_free) chips.push({ key: "gluten_free", label: "Gluten-Free" });
   if (filters.vegan) chips.push({ key: "vegan", label: "Vegan" });

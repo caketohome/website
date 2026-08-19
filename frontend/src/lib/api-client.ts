@@ -1170,7 +1170,6 @@ class CakeToHomeApiClient {
     selectedOptions?: any;
     metadata?: any;
     cake_message?: string;
-    eggless?: boolean;
     tier_weight?: string;
   }) {
     return this.request("/cart/items", { method: "POST", body: JSON.stringify(data) });

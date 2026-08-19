@@ -77,7 +77,6 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
   const [isFeatured, setIsFeatured] = useState(product?.is_featured ?? true);
   const [isBestseller, setIsBestseller] = useState(product?.is_bestseller ?? false);
   const [isNewArrival, setIsNewArrival] = useState(product?.is_new_arrival ?? false);
-  const [eggless, setEggless] = useState(product?.eggless ?? true);
   const [sugarFree, setSugarFree] = useState(product?.sugar_free ?? false);
   const [glutenFree, setGlutenFree] = useState(product?.gluten_free ?? false);
   const [vegan, setVegan] = useState(product?.vegan ?? false);
@@ -307,7 +306,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       const generatedDesc = `Indulge in our exquisite ${name}. Handcrafted daily by master pastry chefs using premium ingredients, silky ganache, and authentic cocoa. Perfect for ${occasion} celebrations and special moments!`;
       setDescription(generatedDesc);
       setShortDesc(`Fresh ${name} crafted for unforgettable ${occasion} memories.`);
-      setTags(`${name.toLowerCase().replace(/\s+/g, ", ")}, ${occasion.toLowerCase()}, gourmet, eggless`);
+      setTags(`${name.toLowerCase().replace(/\s+/g, ", ")}, ${occasion.toLowerCase()}, gourmet, handcrafted`);
       setSeoTitle(`Buy ${name} Online - Fast Same-Day Delivery | CakeToHome`);
       setSeoDescription(`Order ${name} online starting at ₹${sellingPrice}. Handcrafted fresh with same-day doorstep delivery.`);
       setSeoKeywords(`${name.toLowerCase()}, buy ${name} online, ${occasion} cake delivery`);
@@ -390,7 +389,6 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       is_featured: isFeatured,
       is_bestseller: isBestseller,
       is_new_arrival: isNewArrival,
-      eggless,
       sugar_free: sugarFree,
       gluten_free: glutenFree,
       vegan,
@@ -600,10 +598,6 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={isNewArrival} onChange={(e) => setIsNewArrival(e.target.checked)} className="rounded" />
                   <span>New Arrival</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={eggless} onChange={(e) => setEggless(e.target.checked)} className="rounded" />
-                  <span className="text-emerald-600 font-semibold">Eggless</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={sugarFree} onChange={(e) => setSugarFree(e.target.checked)} className="rounded" />

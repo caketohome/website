@@ -40,8 +40,7 @@ export default async function AccountPage() {
     },
     addresses: user.addresses || [],
     preferences: user.preferences || {
-      eggless_only: false,
-      favourite_flavour: "Dutch Chocolate",
+      favourite_flavour: "Belgian Dark Chocolate Truffle",
       whatsapp_notifications: true,
       sms_notifications: true,
       marketing_emails: true,

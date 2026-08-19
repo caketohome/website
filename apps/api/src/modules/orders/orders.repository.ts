@@ -139,7 +139,7 @@ export class OrderRepository {
         productTitle: i.productTitle,
         quantity: i.quantity,
         customMessage: i.customMessage,
-        isEggless: Boolean(i.selectedOptions?.includes("opt_eggless")),
+        is_artisan: Boolean(i.selectedOptions?.includes("opt_")),
       })),
       estimatedPreparationMinutes: 30,
       createdAt: new Date().toISOString(),

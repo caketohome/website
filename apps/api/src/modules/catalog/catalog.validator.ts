@@ -14,7 +14,7 @@ export function validateProductListingQuery(query: any) {
     limit,
     category_id: query.category_id ? String(query.category_id).trim() : undefined,
     search: query.search ? String(query.search).trim() : undefined,
-    is_eggless: query.is_eggless === "true" || query.is_eggless === "1",
+    is_artisan: query.is_artisan === "true" || query.is_artisan === "1",
   };
 }
 
@@ -32,7 +32,7 @@ export function validateSearchQuery(query: any): ProductSearchQuery {
   return {
     q,
     limit,
-    is_eggless: query.is_eggless === "true" || query.is_eggless === "1",
+    is_artisan: query.is_artisan === "true" || query.is_artisan === "1",
   };
 }
 
@@ -65,7 +65,7 @@ export function validateFilterQuery(query: any): ProductFilterQuery {
     category_id: query.category_id ? String(query.category_id).trim() : undefined,
     min_price,
     max_price,
-    is_eggless: query.is_eggless === "true" || query.is_eggless === "1" ? true : query.is_eggless === "false" ? false : undefined,
+    is_artisan: query.is_artisan === "true" || query.is_artisan === "1" ? true : query.is_artisan === "false" ? false : undefined,
     sort_by,
   };
 }

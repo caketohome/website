@@ -26,7 +26,7 @@ export class CartRepository {
             finalUnitPrice: 699.0,
           },
           customization: {
-            selectedOptionIds: ["opt_eggless"],
+            selectedOptionIds: ["opt_"],
             customMessage: "Happy Birthday Alex",
             accessories: [{ id: "acc_candles", name: "Sparkler Candles", price: 20.0 }],
           },
@@ -127,9 +127,9 @@ export class CartRepository {
     const rawCart = await this.getOrCreateCart(cartId);
 
     const basePrice = 899.0 * input.tiers;
-    const egglessSurcharge = input.isEggless ? 50.0 : 0.0;
+    const Surcharge = input.is_artisan ? 50.0 : 0.0;
     const accessoriesCost = (input.accessories || []).reduce((acc, a) => acc + (a.price || 0), 0);
-    const finalUnitPrice = basePrice + egglessSurcharge + accessoriesCost;
+    const finalUnitPrice = basePrice + Surcharge + accessoriesCost;
 
     const newItem: any = {
       id: `custom_cake_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
@@ -138,7 +138,7 @@ export class CartRepository {
       quantity: input.quantity,
       priceSnapshot: {
         basePrice,
-        optionsCost: egglessSurcharge,
+        optionsCost: Surcharge,
         accessoriesCost,
         finalUnitPrice,
       },
@@ -146,7 +146,7 @@ export class CartRepository {
         tiers: input.tiers,
         tierFlavors: input.tierFlavors,
         shape: input.shape,
-        selectedOptionIds: input.isEggless ? ["opt_eggless"] : [],
+        selectedOptionIds: input.is_artisan ? ["opt_"] : [],
         customMessage: input.customMessage,
         photoUrl: input.photoUrl,
         accessories: input.accessories,

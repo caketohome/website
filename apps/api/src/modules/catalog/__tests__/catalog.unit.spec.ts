@@ -19,9 +19,9 @@ describe("CatalogService Capability 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7 Unit Tests
     expect(result.meta.total).toBeGreaterThan(0);
   });
 
-  it("Capability 3.1: should filter products by eggless flag", async () => {
-    const result = await service.listProducts({ is_eggless: true });
-    expect(result.products.every((p) => p.is_eggless)).toBe(true);
+  it("Capability 3.1: should filter products by active status", async () => {
+    const result = await service.listProducts();
+    expect(result.products.every((p) => p.is_active !== false)).toBe(true);
   });
 
   it("Capability 3.2: should validate search query parameter length", () => {

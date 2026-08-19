@@ -41,7 +41,6 @@ export interface AbandonedCartItem {
   shape?: string;
   flavour?: string;
   cake_message?: string | null;
-  eggless?: boolean;
   selected_addons?: any[];
   special_instructions?: string | null;
 }

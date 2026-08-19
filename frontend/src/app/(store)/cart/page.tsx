@@ -85,11 +85,6 @@ export default async function CartPage() {
                         {item.weight}
                       </span>
                     )}
-                    {item.eggless && (
-                      <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md font-medium">
-                        🌱 Eggless
-                      </span>
-                    )}
                     {item.shape && (
                       <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md text-zinc-600 dark:text-zinc-400">
                         {item.shape}

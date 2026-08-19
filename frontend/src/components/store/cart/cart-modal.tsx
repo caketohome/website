@@ -88,7 +88,6 @@ function CartItem({ item }: { item: Record<string, any> }) {
 
   const thumbnail = item.thumbnail || item.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=200";
   const weight = item.weight || item.metadata?.weight || null;
-  const eggless = item.eggless || item.metadata?.eggless;
   const message = item.cake_message || item.metadata?.cake_message;
 
   return (
@@ -122,11 +121,6 @@ function CartItem({ item }: { item: Record<string, any> }) {
           {weight && (
             <span className="text-[10px] font-semibold bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-1.5 py-0.5 rounded">
               {weight}
-            </span>
-          )}
-          {eggless && (
-            <span className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded">
-              🌱 Eggless
             </span>
           )}
         </div>

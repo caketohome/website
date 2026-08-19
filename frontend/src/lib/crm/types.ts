@@ -150,7 +150,6 @@ export interface CustomerStatsDTO {
 }
 
 export interface CustomerPreferences {
-  eggless_only?: boolean;
   favourite_flavour?: string;
   whatsapp_notifications?: boolean;
   sms_notifications?: boolean;
@@ -555,7 +554,6 @@ export interface AbandonedCartRecord {
     quantity: number;
     total_price: number;
     thumbnail?: string;
-    eggless?: boolean;
     cake_message?: string;
   }>;
   subtotal: number;

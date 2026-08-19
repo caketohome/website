@@ -31,7 +31,7 @@ export interface DynamicProductDto {
   basePrice: string; // @db.Decimal(12,2)
   rating: number;
   reviewCount: number;
-  isEggless: boolean;
+  is_artisan: boolean;
   isBestseller: boolean;
   optionGroups: OptionGroupDto[];
 }
@@ -49,7 +49,7 @@ export class ProductsService {
       basePrice: "699.00",
       rating: 4.9,
       reviewCount: 128,
-      isEggless: true,
+      is_artisan: true,
       isBestseller: true,
       optionGroups: [
         {
@@ -61,7 +61,7 @@ export class ProductsService {
           displayOrder: 1,
           options: [
             { id: "opt_egg", name: "With Egg", priceModifier: "0.00", isAvailable: true },
-            { id: "opt_eggless", name: "100% Eggless", priceModifier: "50.00", isAvailable: true },
+            { id: "opt_", name: "100% artisan", priceModifier: "50.00", isAvailable: true },
           ],
         },
         {

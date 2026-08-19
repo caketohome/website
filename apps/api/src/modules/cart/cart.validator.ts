@@ -57,7 +57,7 @@ export function validateAddCustomCakeInput(body: any): AddCustomCakeInput {
     tiers,
     tierFlavors,
     shape: body.shape ? String(body.shape).trim() : "Round",
-    isEggless: Boolean(body.isEggless ?? true),
+    is_artisan: Boolean(body.is_artisan ?? true),
     customMessage,
     photoUrl: body.photoUrl ? String(body.photoUrl).trim() : undefined,
     accessories: Array.isArray(body.accessories) ? body.accessories : [],

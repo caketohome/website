@@ -11,7 +11,6 @@
       "price": 649,
       "rating": 4.9,
       "review_count": 142,
-      "eggless": true,
       "sugar_free": false,
       "gluten_free": false,
       "vegan": false,
@@ -30,7 +29,6 @@
       "price": 749,
       "rating": 4.8,
       "review_count": 98,
-      "eggless": true,
       "sugar_free": false,
       "gluten_free": false,
       "vegan": false,
@@ -49,7 +47,6 @@
       "price": 699,
       "rating": 4.9,
       "review_count": 76,
-      "eggless": true,
       "sugar_free": false,
       "gluten_free": false,
       "vegan": false,
@@ -68,7 +65,6 @@
       "price": 549,
       "rating": 4.7,
       "review_count": 210,
-      "eggless": true,
       "sugar_free": false,
       "gluten_free": false,
       "vegan": false,
@@ -87,7 +83,6 @@
       "price": 599,
       "rating": 4.8,
       "review_count": 115,
-      "eggless": true,
       "sugar_free": false,
       "gluten_free": false,
       "vegan": false,
@@ -4684,12 +4679,12 @@
       "customer_number": "CTH-CUST-000129",
       "customer_type": "registered",
       "customer_source": "STOREFRONT",
-      "name": "Alex R Ashok Senior",
+      "name": "Alex R Ashok",
       "first_name": "Alex",
-      "last_name": "R Ashok Senior",
+      "last_name": "R Ashok",
       "phone": "+91 97777 70844",
       "normalized_phone": "9777770844",
-      "email": "alex.senior@example.com",
+      "email": "alex.ashok@example.com",
       "normalized_email": "alex.senior@example.com",
       "whatsapp_number": "9777770844",
       "lifecycle_stage": "REPEAT_BUYER",
@@ -4751,13 +4746,12 @@
         "last_updated": "2026-08-19T15:51:10.856Z"
       },
       "created_at": "2026-08-19T15:51:10.856Z",
-      "updated_at": "2026-08-19T15:51:10.952Z",
+      "updated_at": "2026-08-19T17:14:13.118Z",
       "total_orders": 2,
       "total_revenue": 2149,
-      "full_name": "Alex R Ashok Senior",
+      "full_name": "Alex R Ashok",
       "date_of_birth": "1992-08-15",
       "preferences": {
-        "eggless_only": true,
         "favourite_flavour": "Red Velvet Cream Cheese",
         "whatsapp_notifications": true
       }
@@ -4841,7 +4835,6 @@
       "full_name": "Alex R Ashok Senior",
       "date_of_birth": "1992-08-15",
       "preferences": {
-        "eggless_only": true,
         "favourite_flavour": "Red Velvet Cream Cheese",
         "whatsapp_notifications": true
       }
@@ -4925,7 +4918,6 @@
       "full_name": "Alex R Ashok Senior",
       "date_of_birth": "1992-08-15",
       "preferences": {
-        "eggless_only": true,
         "favourite_flavour": "Red Velvet Cream Cheese",
         "whatsapp_notifications": true
       }
@@ -5009,7 +5001,6 @@
       "full_name": "Alex R Ashok Senior",
       "date_of_birth": "1992-08-15",
       "preferences": {
-        "eggless_only": true,
         "favourite_flavour": "Red Velvet Cream Cheese",
         "whatsapp_notifications": true
       }
@@ -5078,7 +5069,6 @@
       "full_name": "Alex R Ashok Senior",
       "date_of_birth": "1992-08-15",
       "preferences": {
-        "eggless_only": true,
         "favourite_flavour": "Red Velvet Cream Cheese",
         "whatsapp_notifications": true
       }
@@ -6436,7 +6426,7 @@
         "transactional": "SUBSCRIBED",
         "updated_at": "2026-08-19T08:59:06.509Z"
       },
-      "last_active_at": "2026-08-19T16:09:44.310Z",
+      "last_active_at": "2026-08-19T16:34:51.019Z",
       "orders_count": 3,
       "total_spend": 3095,
       "aov": 1032,
@@ -6453,7 +6443,7 @@
       "city_id": "Kochi",
       "city_name": "Kochi",
       "updated_at": "2026-08-19T14:37:14.360Z",
-      "last_login_at": "2026-08-19T16:09:44.310Z"
+      "last_login_at": "2026-08-19T16:34:51.019Z"
     },
     {
       "id": "cus_02",
@@ -7521,6 +7511,36 @@
   ],
   "login_events": [
     {
+      "id": "log_1787157286006_req",
+      "identifier": "9876543210",
+      "phone": "+91 98765 43210",
+      "normalized_phone": "9876543210",
+      "role": "CUSTOMER",
+      "user_id": "cus_01",
+      "user_name": "Ananya Rao",
+      "status": "OTP_SENT",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_REQUESTED",
+      "ip_address": "::1",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+      "created_at": "2026-08-19T16:34:46.006Z"
+    },
+    {
+      "id": "log_1787157168510_req",
+      "identifier": "9876543210",
+      "phone": "+91 98765 43210",
+      "normalized_phone": "9876543210",
+      "role": "CUSTOMER",
+      "user_id": "cus_01",
+      "user_name": "Ananya Rao",
+      "status": "OTP_SENT",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_REQUESTED",
+      "ip_address": "::1",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+      "created_at": "2026-08-19T16:32:48.514Z"
+    },
+    {
       "id": "log_1787155938984_req",
       "identifier": "9876543210",
       "phone": "+91 98765 43210",
@@ -7853,11 +7873,10 @@
           "unit_price": 649,
           "quantity": 1,
           "weight": "500g",
-          "custom_message": "Happy Birthday Rohan!",
-          "eggless": true
+          "custom_message": "Happy Birthday Rohan!"
         }
       ],
-      "items_json": "[{\"product_id\":\"prod_1\",\"title\":\"Belgian Dark Truffle Signature Cake\",\"unit_price\":649,\"quantity\":1,\"weight\":\"500g\",\"custom_message\":\"Happy Birthday Rohan!\",\"eggless\":true}]",
+      "items_json": "[{\"product_id\":\"prod_1\",\"title\":\"Belgian Dark Truffle Signature Cake\",\"unit_price\":649,\"quantity\":1,\"weight\":\"500g\",\"custom_message\":\"Happy Birthday Rohan!\"}]",
       "cart_value": 649,
       "currency": "INR",
       "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
@@ -7903,8 +7922,7 @@
           "unit_price": 649,
           "total_price": 649,
           "thumbnail": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400",
-          "cake_message": "Happy Birthday Rohan!",
-          "eggless": true
+          "cake_message": "Happy Birthday Rohan!"
         },
         {
           "id": "item_ab_2",
@@ -7950,8 +7968,7 @@
           "quantity": 2,
           "unit_price": 749,
           "total_price": 1498,
-          "thumbnail": "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=400",
-          "eggless": true
+          "thumbnail": "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=400"
         }
       ],
       "item_count": 2,
@@ -8185,7 +8202,7 @@
               },
               {
                 "q": "Can I customize the cake?",
-                "a": "Absolutely! Choose size (0.5–5 kg), flavor, eggless option, and add a custom message or photo."
+                "a": "Absolutely! Choose size (0.5–5 kg), flavor, and add a custom message or photo."
               },
               {
                 "q": "What is the minimum order value?",
@@ -8316,7 +8333,7 @@
                 },
                 {
                   "q": "Can I customize the cake?",
-                  "a": "Absolutely! Choose size (0.5–5 kg), flavor, eggless option, and add a custom message or photo."
+                  "a": "Absolutely! Choose size (0.5–5 kg), flavor, and add a custom message or photo."
                 },
                 {
                   "q": "What is the minimum order value?",
@@ -8354,10 +8371,10 @@
       "url_path": "/products",
       "breadcrumb_title": "All Cakes",
       "meta_title": "Order Fresh Cakes Online — Birthday, Wedding & Custom Cakes | CakeToHome",
-      "meta_description": "Browse 100+ fresh handcrafted cakes online. Birthday cakes, wedding cakes, photo cakes, eggless, and vegan options. Delivery across Bangalore in 2 hours.",
+      "meta_description": "Browse 100+ fresh handcrafted cakes online. Birthday cakes, wedding cakes, photo cakes, and vegan options. Delivery across Bangalore in 2 hours.",
       "robots_tag": "index, follow",
       "canonical_url": "https://cakes2home.com/products",
-      "keywords": "buy cakes online, birthday cake order, wedding cake bangalore, eggless cakes, photo cakes",
+      "keywords": "buy cakes online, birthday cake order, wedding cake bangalore, cakes, photo cakes",
       "og_title": "Order Fresh Cakes Online — CakeToHome",
       "og_description": "100+ artisanal cakes with same-day delivery across Bangalore.",
       "og_image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1200",
@@ -8569,7 +8586,7 @@
       "url_path": "/faq",
       "breadcrumb_title": "FAQ",
       "meta_title": "Frequently Asked Questions — Cake Delivery, Orders & More | CakeToHome",
-      "meta_description": "Find answers to your questions about cake delivery timings, customization options, payment, midnight delivery, eggless options and more at CakeToHome.",
+      "meta_description": "Find answers to your questions about cake delivery timings, customization options, payment, midnight deliverys and more at CakeToHome.",
       "robots_tag": "index, follow",
       "canonical_url": "https://cakes2home.com/faq",
       "structured_data_type": "FAQPage",
@@ -8608,8 +8625,8 @@
                 "a": "Absolutely! Choose from Belgian Chocolate, Red Velvet, Alphonso Mango, Lotus Biscoff and more. Add a personalized message during checkout."
               },
               {
-                "q": "Do you offer eggless cakes?",
-                "a": "Yes, all our cakes are available in eggless versions at no extra cost."
+                "q": "Do you offer cakes?",
+                "a": "Yes, all our cakes are available in versions at no extra cost."
               },
               {
                 "q": "What is your cancellation policy?",
@@ -8711,7 +8728,7 @@
       "url_path": "/birthday-cakes-bangalore",
       "breadcrumb_title": "Birthday Cakes",
       "meta_title": "Best Birthday Cakes in Bangalore — Same Day Delivery | CakeToHome",
-      "meta_description": "Order the best birthday cakes in Bangalore with same-day & midnight delivery. Customizable, eggless, and photo cakes from ₹399. Free delivery above ₹599.",
+      "meta_description": "Order the best birthday cakes in Bangalore with same-day & midnight delivery. Customizable, and photo cakes from ₹399. Free delivery above ₹599.",
       "robots_tag": "index, follow",
       "canonical_url": "https://cakes2home.com/birthday-cakes-bangalore",
       "keywords": "birthday cakes bangalore, birthday cake delivery, custom birthday cake, midnight birthday cake delivery",
@@ -9139,7 +9156,7 @@
           "order": 2,
           "config": {
             "heading": "What Our Customers Say",
-            "body": "⭐ \"The Belgian Dark Truffle was a masterpiece! Midnight delivery arrived at exactly 11:45 PM for my husband's 30th birthday.\" — Ananya S., Indiranagar\n\n⭐ \"Super soft eggless Red Velvet. Everyone at the party was asking where we ordered it from.\" — Rahul V., Koramangala\n\n⭐ \"Ordered in the afternoon and received at 5 PM for our anniversary. Outstanding packaging and taste.\" — Deepa K., HSR Layout"
+            "body": "⭐ \"The Belgian Dark Truffle was a masterpiece! Midnight delivery arrived at exactly 11:45 PM for my husband's 30th birthday.\" — Ananya S., Indiranagar\n\n⭐ \"Super soft Red Velvet. Everyone at the party was asking where we ordered it from.\" — Rahul V., Koramangala\n\n⭐ \"Ordered in the afternoon and received at 5 PM for our anniversary. Outstanding packaging and taste.\" — Deepa K., HSR Layout"
           }
         }
       ],
@@ -9195,7 +9212,7 @@
       "id": "pcat_03",
       "name": "Vegan & Health Cakes",
       "slug": "vegan-health-cakes",
-      "description": "Eggless, sugar-free, and gluten-free healthy cakes",
+      "description": "sugar-free, and gluten-free healthy cakes",
       "parent_id": null,
       "image_url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800",
       "banner_url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800",
@@ -10447,7 +10464,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Dutch Chocolate",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 649,
           "subtotal": 649,
@@ -10588,7 +10604,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -10726,7 +10741,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -10862,7 +10876,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Dutch Chocolate",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 649,
           "subtotal": 649,
@@ -11003,7 +11016,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -11141,7 +11153,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -11278,7 +11289,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -11414,7 +11424,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Dutch Chocolate",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 649,
           "subtotal": 649,
@@ -11554,7 +11563,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Dutch Chocolate",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 649,
           "subtotal": 649,
@@ -11694,7 +11702,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Dutch Chocolate",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 649,
           "subtotal": 649,
@@ -11835,7 +11842,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -11973,7 +11979,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -12110,7 +12115,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -12247,7 +12251,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -12384,7 +12387,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -12521,7 +12523,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -12658,7 +12659,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -12795,7 +12795,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -12932,7 +12931,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -13069,7 +13067,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -13206,7 +13203,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -13343,7 +13339,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 749,
           "subtotal": 749,
@@ -13489,7 +13484,6 @@
           "weight": "1.0 kg",
           "shape": "Round",
           "flavour": "Red Velvet Cream Cheese",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 799,
           "subtotal": 799,
@@ -13627,7 +13621,6 @@
           "weight": "1.0 kg",
           "shape": "Round",
           "flavour": "Belgian Chocolate",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 899,
           "subtotal": 899,
@@ -13773,7 +13766,6 @@
           "weight": "1.0 kg",
           "shape": "Round",
           "flavour": "Belgian Chocolate",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 899,
           "subtotal": 899,
@@ -13911,7 +13903,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -14082,7 +14073,6 @@
           "weight": "500g",
           "shape": "Round",
           "flavour": "Classic",
-          "eggless": true,
           "quantity": 1,
           "unit_price": 1299,
           "subtotal": 1299,
@@ -16163,34 +16153,17 @@
   ],
   "crm_communications": [],
   "customer_reminders": [],
-  "delivery_assignment_rules": {
-    "allow_cross_branch_fallback": false,
-    "require_working_hours": false,
-    "require_online_status": true,
-    "max_capacity_limit": 5,
-    "updated_at": "2026-08-19T16:06:16.307Z"
-  },
   "popup_impressions": [
     {
-      "id": "imp_1787155621915_952",
-      "popup_campaign_id": "pop_welcome_first_order",
-      "session_id": "guest_session",
-      "page_url": "/",
-      "cart_value": 0,
-      "device_type": "desktop",
-      "event_type": "dismissed",
-      "created_at": "2026-08-19T16:07:01.916Z"
-    },
-    {
-      "id": "imp_1787155581543_824",
-      "popup_campaign_id": "pop_welcome_first_order",
-      "popup_version_id": "ver_welcome_1",
+      "id": "imp_1787159011831_18",
+      "popup_campaign_id": "pop_returning_member",
+      "popup_version_id": "ver_ret_1",
       "session_id": "guest_session",
       "page_url": "/",
       "cart_value": 0,
       "device_type": "desktop",
       "event_type": "shown",
-      "created_at": "2026-08-19T16:06:21.543Z"
+      "created_at": "2026-08-19T17:03:31.831Z"
     },
     {
       "id": "imp_1",
@@ -16200,7 +16173,7 @@
       "cart_value": 849,
       "device_type": "desktop",
       "event_type": "shown",
-      "created_at": "2026-08-19T15:06:19.311Z"
+      "created_at": "2026-08-19T16:03:16.424Z"
     },
     {
       "id": "imp_2",
@@ -16210,7 +16183,7 @@
       "cart_value": 849,
       "device_type": "desktop",
       "event_type": "cta_clicked",
-      "created_at": "2026-08-19T15:07:59.311Z"
+      "created_at": "2026-08-19T16:04:56.424Z"
     },
     {
       "id": "imp_3",
@@ -16219,7 +16192,7 @@
       "page_url": "/",
       "device_type": "mobile",
       "event_type": "shown",
-      "created_at": "2026-08-19T14:06:19.311Z"
+      "created_at": "2026-08-19T15:03:16.424Z"
     }
   ],
   "popup_conversions": [
@@ -16230,45 +16203,7 @@
       "conversion_type": "PURCHASE",
       "order_id": "ord_sample_1",
       "revenue": 849,
-      "created_at": "2026-08-19T15:09:39.311Z"
-    }
-  ],
-  "customer_activity": [
-    {
-      "id": "act_1787155938984_29jo",
-      "customer_uid": "cth_cus_01",
-      "event_type": "OTP_REQUESTED",
-      "title": "Login OTP Requested",
-      "description": "OTP requested for +91 98765 43210 via OTP_SMS.",
-      "source": "STOREFRONT",
-      "timestamp": "2026-08-19T16:12:18.984Z"
-    },
-    {
-      "id": "act_1787155784310_s9pb",
-      "customer_uid": "cth_cus_01",
-      "event_type": "LOGIN",
-      "title": "Customer Logged In",
-      "description": "Authenticated via mobile OTP on +91 98765 43210.",
-      "source": "STOREFRONT",
-      "timestamp": "2026-08-19T16:09:44.310Z"
-    },
-    {
-      "id": "act_1787155783830_ihfm",
-      "customer_uid": "cth_cus_01",
-      "event_type": "OTP_REQUESTED",
-      "title": "Login OTP Requested",
-      "description": "OTP requested for +91 98765 43210 via OTP_SMS.",
-      "source": "STOREFRONT",
-      "timestamp": "2026-08-19T16:09:43.830Z"
-    },
-    {
-      "id": "act_1787155719781_tocf",
-      "customer_uid": "cth_cus_01",
-      "event_type": "OTP_REQUESTED",
-      "title": "Login OTP Requested",
-      "description": "OTP requested for +91 98765 43210 via OTP_SMS.",
-      "source": "STOREFRONT",
-      "timestamp": "2026-08-19T16:08:39.781Z"
+      "created_at": "2026-08-19T16:06:36.424Z"
     }
   ]
 }

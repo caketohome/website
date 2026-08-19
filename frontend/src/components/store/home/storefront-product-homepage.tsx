@@ -22,7 +22,6 @@ const SAMPLE_PRODUCTS: SearchResult[] = [
     price: 649,
     rating: 4.9,
     review_count: 142,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -39,7 +38,6 @@ const SAMPLE_PRODUCTS: SearchResult[] = [
     price: 749,
     rating: 4.8,
     review_count: 98,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -56,7 +54,6 @@ const SAMPLE_PRODUCTS: SearchResult[] = [
     price: 699,
     rating: 4.9,
     review_count: 76,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -73,7 +70,6 @@ const SAMPLE_PRODUCTS: SearchResult[] = [
     price: 549,
     rating: 4.7,
     review_count: 210,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -90,7 +86,6 @@ const SAMPLE_PRODUCTS: SearchResult[] = [
     price: 599,
     rating: 4.8,
     review_count: 115,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -107,7 +102,6 @@ const SAMPLE_PRODUCTS: SearchResult[] = [
     price: 249,
     rating: 4.9,
     review_count: 64,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -124,7 +118,6 @@ const SAMPLE_PRODUCTS: SearchResult[] = [
     price: 149,
     rating: 4.9,
     review_count: 52,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -141,7 +134,6 @@ const SAMPLE_PRODUCTS: SearchResult[] = [
     price: 499,
     rating: 4.9,
     review_count: 88,
-    eggless: true,
     sugar_free: false,
     gluten_free: true,
     vegan: false,
@@ -453,11 +445,6 @@ function ProductGrid({ products }: { products: SearchResult[] }) {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-4xl">🎂</div>
-              )}
-              {product.eggless && (
-                <div className="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm z-10">
-                  🌱 Eggless
-                </div>
               )}
               <div
                 onClick={handleWishlist}

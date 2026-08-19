@@ -94,8 +94,7 @@ export interface ProductItem {
   price: number;
   rating: number;
   review_count: number;
-  eggless: boolean;
-  sugar_free: boolean;
+    sugar_free: boolean;
   gluten_free: boolean;
   vegan: boolean;
   is_featured: boolean;
@@ -143,7 +142,6 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     price: 649,
     rating: 4.9,
     review_count: 142,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -162,7 +160,6 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     price: 749,
     rating: 4.8,
     review_count: 98,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -181,7 +178,6 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     price: 699,
     rating: 4.9,
     review_count: 76,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -200,7 +196,6 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     price: 549,
     rating: 4.7,
     review_count: 210,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -219,7 +214,6 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     price: 599,
     rating: 4.8,
     review_count: 115,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -1149,7 +1143,7 @@ const DEFAULT_CMS_PAGES = [
       { id: "sec_home_promo", type: "promotional_banner", name: "Monsoon Sale Banner", enabled: true, order: 4, config: { headline: "🎉 Monsoon Special — Flat 50% OFF", subheadline: "Use Code: CAKE50. Valid on all birthday & anniversary cakes above ₹299", cta_text: "Claim Offer", cta_url: "/products?promo=CAKE50", bg_color: "#fef3c7", text_color: "#92400e" } },
       { id: "sec_home_new", type: "product_grid", name: "New Arrivals", enabled: true, order: 5, config: { heading: "✨ New Arrivals", subheading: "Freshly added to the menu", mode: "new_arrivals", layout: "carousel", columns: 4, product_ids: [] } },
       { id: "sec_home_locations", type: "location_coverage", name: "Delivery Locations", enabled: true, order: 6, config: { heading: "📍 We Deliver Across Bangalore", subheading: "Same-day & 2-hour delivery slots available", show_map: false, show_pincodes: true } },
-      { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, eggless option, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Free delivery on orders above ₹599." } ] } },
+      { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Free delivery on orders above ₹599." } ] } },
     ],
     draft_config: { sections: [], banners: [], products_mode: "best_sellers", product_ids: [], category_ids: [] },
     published_config: {
@@ -1160,7 +1154,7 @@ const DEFAULT_CMS_PAGES = [
         { id: "sec_home_promo", type: "promotional_banner", name: "Monsoon Sale Banner", enabled: true, order: 4, config: { headline: "🎉 Monsoon Special — Flat 50% OFF", subheadline: "Use Code: CAKE50. Valid on all birthday & anniversary cakes above ₹299", cta_text: "Claim Offer", cta_url: "/products?promo=CAKE50", bg_color: "#fef3c7", text_color: "#92400e" } },
         { id: "sec_home_new", type: "product_grid", name: "New Arrivals", enabled: true, order: 5, config: { heading: "✨ New Arrivals", subheading: "Freshly added to the menu", mode: "new_arrivals", layout: "carousel", columns: 4, product_ids: [] } },
         { id: "sec_home_locations", type: "location_coverage", name: "Delivery Locations", enabled: true, order: 6, config: { heading: "📍 We Deliver Across Bangalore", subheading: "Same-day & 2-hour delivery slots available", show_map: false, show_pincodes: true } },
-        { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, eggless option, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Free delivery on orders above ₹599." } ] } },
+        { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Free delivery on orders above ₹599." } ] } },
       ],
       banners: [],
       announcement_bar: { enabled: true, text: "⚡ Monsoon Special — 50% OFF Up to ₹150 on All Cakes", cta_text: "Shop Now", cta_url: "/products", bg_color: "#e11d48" },
@@ -1184,7 +1178,7 @@ const DEFAULT_CMS_PAGES = [
     meta_description: "Browse 100+ fresh handcrafted cakes online. Birthday cakes, wedding cakes, photo cakes, eggless, and vegan options. Delivery across Bangalore in 2 hours.",
     robots_tag: "index, follow",
     canonical_url: "https://cakes2home.com/products",
-    keywords: "buy cakes online, birthday cake order, wedding cake bangalore, eggless cakes, photo cakes",
+    keywords: "buy cakes online, birthday cake order, wedding cake bangalore, gourmet cakes photo cakes",
     og_title: "Order Fresh Cakes Online — CakeToHome",
     og_description: "100+ artisanal cakes with same-day delivery across Bangalore.",
     og_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1200",
@@ -1284,7 +1278,7 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/faq",
     breadcrumb_title: "FAQ",
     meta_title: "Frequently Asked Questions — Cake Delivery, Orders & More | CakeToHome",
-    meta_description: "Find answers to your questions about cake delivery timings, customization options, payment, midnight delivery, eggless options and more at CakeToHome.",
+    meta_description: "Find answers to your questions about cake delivery timings, customization options, payment, midnight deliverys and more at CakeToHome.",
     robots_tag: "index, follow",
     canonical_url: "https://cakes2home.com/faq",
     structured_data_type: "FAQPage",
@@ -1295,7 +1289,7 @@ const DEFAULT_CMS_PAGES = [
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
     announcement_bar: { enabled: false, text: "", cta_text: "", cta_url: "", bg_color: "#e11d48" },
     sections: [
-      { id: "sec_faq_main", type: "faq", name: "FAQ Content", enabled: true, order: 1, config: { heading: "Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake flavor and message?", a: "Absolutely! Choose from Belgian Chocolate, Red Velvet, Alphonso Mango, Lotus Biscoff and more. Add a personalized message during checkout." }, { q: "Do you offer eggless cakes?", a: "Yes, all our cakes are available in eggless versions at no extra cost." }, { q: "What is your cancellation policy?", a: "Orders can be cancelled within 2 hours of placement for a full refund. After that, a 15% cancellation fee applies." } ] } },
+      { id: "sec_faq_main", type: "faq", name: "FAQ Content", enabled: true, order: 1, config: { heading: "Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake flavor and message?", a: "Absolutely! Choose from Belgian Chocolate, Red Velvet, Alphonso Mango, Lotus Biscoff and more. Add a personalized message during checkout." }, { q: "Do you offer gourmet cakes?", a: "Yes, all our cakes are available in eggless versions at no extra cost." }, { q: "What is your cancellation policy?", a: "Orders can be cancelled within 2 hours of placement for a full refund. After that, a 15% cancellation fee applies." } ] } },
     ],
     draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
     published_config: {},
@@ -1560,7 +1554,7 @@ const DEFAULT_CMS_PAGES = [
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
     sections: [
       { id: "sec_test_hero", type: "hero", name: "Reviews Hero", enabled: true, order: 1, config: { headline: "Loved by Over 50,000 Celebrations", subheadline: "Rated 4.9/5 across Bangalore for taste, freshness, and punctual delivery.", height: "medium" } },
-      { id: "sec_test_body", type: "brand_story", name: "Featured Reviews", enabled: true, order: 2, config: { heading: "What Our Customers Say", body: "⭐ \"The Belgian Dark Truffle was a masterpiece! Midnight delivery arrived at exactly 11:45 PM for my husband's 30th birthday.\" — Ananya S., Indiranagar\n\n⭐ \"Super soft eggless Red Velvet. Everyone at the party was asking where we ordered it from.\" — Rahul V., Koramangala\n\n⭐ \"Ordered in the afternoon and received at 5 PM for our anniversary. Outstanding packaging and taste.\" — Deepa K., HSR Layout" } },
+      { id: "sec_test_body", type: "brand_story", name: "Featured Reviews", enabled: true, order: 2, config: { heading: "What Our Customers Say", body: "⭐ \"The Belgian Dark Truffle was a masterpiece! Midnight delivery arrived at exactly 11:45 PM for my husband's 30th birthday.\" — Ananya S., Indiranagar\n\n⭐ \"Super soft artisan Red Velvet. Everyone at the party was asking where we ordered it from.\" — Rahul V., Koramangala\n\n⭐ \"Ordered in the afternoon and received at 5 PM for our anniversary. Outstanding packaging and taste.\" — Deepa K., HSR Layout" } },
     ],
     draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
     published_config: {},
@@ -1647,7 +1641,7 @@ export const DEFAULT_MEDIA = [
 const DEFAULT_PIM_CATEGORIES = [
   { id: "pcat_01", name: "Artisanal Cakes", slug: "artisanal-cakes", description: "Handcrafted gourmet celebration cakes", parent_id: null, image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", display_order: 1, status: "active", visibility: "public", seo_title: "Artisanal Cakes Online - CakeToHome", seo_description: "Order handcrafted artisanal cakes online with same-day delivery.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
   { id: "pcat_02", name: "Custom Photo Cakes", slug: "custom-photo-cakes", description: "Personalized edible print photo cakes for birthdays and anniversaries", parent_id: null, image_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", display_order: 2, status: "active", visibility: "public", seo_title: "Custom Photo Cakes - CakeToHome", seo_description: "Upload your favorite photos and get custom edible print cakes.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "pcat_03", name: "Vegan & Health Cakes", slug: "vegan-health-cakes", description: "Eggless, sugar-free, and gluten-free healthy cakes", parent_id: null, image_url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800", display_order: 3, status: "active", visibility: "public", seo_title: "Vegan & Healthy Cakes - CakeToHome", seo_description: "Delicious sugar-free and vegan cakes made with natural ingredients.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "pcat_03", name: "Vegan & Health Cakes", slug: "vegan-health-cakes", description: "Sugar-free and gluten-free healthy cakes", parent_id: null, image_url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800", display_order: 3, status: "active", visibility: "public", seo_title: "Vegan & Healthy Cakes - CakeToHome", seo_description: "Delicious sugar-free and vegan cakes made with natural ingredients.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
 ];
 
 const DEFAULT_VARIANT_OPTIONS = [
@@ -2779,8 +2773,7 @@ export interface AbandonedCartItem {
   total_price: number;
   thumbnail?: string;
   cake_message?: string;
-  eggless?: boolean;
-}
+  }
 
 export interface AbandonedCart {
   id: string;
@@ -2968,7 +2961,6 @@ const DEFAULT_ABANDONED_CARTS: AbandonedCart[] = [
         total_price: 649,
         thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400",
         cake_message: "Happy Birthday Rohan!",
-        eggless: true,
       },
       {
         id: "item_ab_2",
@@ -3015,7 +3007,6 @@ const DEFAULT_ABANDONED_CARTS: AbandonedCart[] = [
         unit_price: 749,
         total_price: 1498,
         thumbnail: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=400",
-        eggless: true,
       },
     ],
     item_count: 2,
@@ -3484,6 +3475,125 @@ export class ApiEngine {
 
   static getOrders(): any[] {
     return memoryStore.orders || [];
+  }
+
+  static resolveUserAccount(params: { userId?: string; phone?: string; role?: string; customerUid?: string }): any {
+    const { userId, phone, role, customerUid } = params;
+    const cleanPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
+    const store = memoryStore;
+
+    // Staff accounts
+    const normRole = (role || "").toUpperCase();
+    if (normRole === "SUPER_ADMIN" || normRole === "ADMIN" || (userId && userId.startsWith("admin_"))) {
+      return {
+        id: userId || "admin_01",
+        name: "Super Admin",
+        full_name: "Super Admin",
+        email: "admin@caketohome.com",
+        phone: phone || "+91 99999 00001",
+        role: "SUPER_ADMIN",
+      };
+    }
+    if (normRole === "BRANCH_MANAGER" || normRole === "SHOP_MANAGER" || normRole === "SHOP" || (userId && (userId.startsWith("shpmgr_") || userId.startsWith("mgr_")))) {
+      return {
+        id: userId || "shpmgr_01",
+        name: "Branch Manager",
+        full_name: "Branch Manager",
+        email: "manager@caketohome.com",
+        phone: phone || "+91 99999 00002",
+        role: "BRANCH_MANAGER",
+        branch_name: "Indiranagar Flagship Bakery",
+      };
+    }
+    if (normRole === "DELIVERY_PARTNER" || normRole === "DLP" || (userId && (userId.startsWith("dlp_") || userId.startsWith("driver_")))) {
+      return {
+        id: userId || "dlp_01",
+        name: "Delivery Partner",
+        full_name: "Delivery Partner",
+        email: "rider@caketohome.com",
+        phone: phone || "+91 99999 00003",
+        role: "DELIVERY_PARTNER",
+      };
+    }
+
+    // Customer accounts from store
+    const customers = store.customers || [];
+    const customer = customers.find((c: any) =>
+      (customerUid && (c.customer_uid === customerUid || c.id === customerUid)) ||
+      (userId && (c.id === userId || c.customer_uid === userId)) ||
+      (cleanPhone && (c.normalized_phone === cleanPhone || c.phone?.replace(/\D/g, "").slice(-10) === cleanPhone))
+    );
+
+    if (customer) {
+      return {
+        id: customer.id,
+        customer_uid: customer.customer_uid,
+        name: customer.full_name || customer.name || "Valued Customer",
+        full_name: customer.full_name || customer.name || "Valued Customer",
+        first_name: customer.first_name || customer.name?.split(" ")[0] || "Valued",
+        last_name: customer.last_name || customer.name?.split(" ").slice(1).join(" ") || "Customer",
+        email: customer.email || "",
+        phone: customer.phone || phone || "",
+        role: "CUSTOMER",
+        date_of_birth: customer.date_of_birth || null,
+        preferences: customer.preferences || {},
+        stats: {
+          orders: customer.orders_count || customer.total_orders || 0,
+          total_spent: customer.total_spend || customer.total_revenue || 0,
+        },
+        addresses: customer.addresses || [],
+        created_at: customer.created_at || new Date().toISOString(),
+      };
+    }
+
+    if (cleanPhone || customerUid || userId) {
+      const generatedPhone = phone || (cleanPhone ? `+91 ${cleanPhone.slice(0, 5)} ${cleanPhone.slice(5)}` : "");
+      return {
+        id: customerUid || userId || `cus_${cleanPhone || Date.now()}`,
+        customer_uid: customerUid || userId || `cth_cus_${cleanPhone || Date.now()}`,
+        name: "Valued Customer",
+        full_name: "Valued Customer",
+        first_name: "Valued",
+        last_name: "Customer",
+        email: "",
+        phone: generatedPhone,
+        normalized_phone: cleanPhone,
+        role: "CUSTOMER",
+        date_of_birth: null,
+        preferences: {
+          favourite_flavour: "Belgian Dark Chocolate Truffle",
+          whatsapp_notifications: true,
+          sms_notifications: true,
+          marketing_emails: true,
+        },
+        addresses: [],
+        orders_count: 0,
+        total_spend: 0,
+        created_at: new Date().toISOString(),
+      };
+    }
+
+    return null;
+  }
+
+  static getCustomerMe(params: any): any {
+    return ApiEngine.resolveUserAccount(params);
+  }
+
+  static updateCustomerProfile(uid: string, body: any): any {
+    const store = memoryStore;
+    const customers = store.customers || [];
+    const index = customers.findIndex((c: any) => c.customer_uid === uid || c.id === uid);
+    if (index >= 0) {
+      customers[index] = {
+        ...customers[index],
+        ...body,
+        updated_at: new Date().toISOString(),
+      };
+      saveStore(store);
+      return { success: true, customer: customers[index] };
+    }
+    return { success: false, error: "Customer not found" };
   }
 
   static fireWebhookEvent(
@@ -4009,7 +4119,6 @@ export class ApiEngine {
       price: Number(data.price) || 599,
       rating: 5.0,
       review_count: 1,
-      eggless: Boolean(data.eggless),
       sugar_free: Boolean(data.sugar_free),
       gluten_free: Boolean(data.gluten_free),
       vegan: Boolean(data.vegan),
@@ -4057,7 +4166,6 @@ export class ApiEngine {
         price: Number(data.price) || Number(data.selling_price) || 599,
         rating: 5.0,
         review_count: 1,
-        eggless: Boolean(data.eggless),
         sugar_free: Boolean(data.sugar_free),
         gluten_free: Boolean(data.gluten_free),
         vegan: Boolean(data.vegan),
@@ -13349,7 +13457,6 @@ export class ApiEngine {
         aov: stats.orders > 0 ? Math.round(stats.total_spent / stats.orders) : 0,
         date_of_birth: customer.date_of_birth || null,
         preferences: customer.preferences || {
-          eggless_only: false,
           favourite_flavour: "Chocolate",
           whatsapp_notifications: true,
           sms_notifications: true,
@@ -13385,7 +13492,6 @@ export class ApiEngine {
         total_spend: stats.total_spent || 0,
         aov: 0,
         preferences: {
-          eggless_only: false,
           favourite_flavour: "Chocolate",
           whatsapp_notifications: true,
           sms_notifications: true,
@@ -13526,7 +13632,6 @@ export class ApiEngine {
       stats,
       addresses: customer.addresses || [],
       preferences: customer.preferences || {
-        eggless_only: false,
         favourite_flavour: "Chocolate",
         whatsapp_notifications: true,
         sms_notifications: true,
@@ -13693,7 +13798,6 @@ export class ApiEngine {
         shape: item.shape || "Round",
         flavour: item.flavour || "Classic",
         cake_message: item.cake_message || null,
-        eggless: item.eggless ?? true,
         sugar_free: item.sugar_free ?? false,
         gluten_free: item.gluten_free ?? false,
         vegan: item.vegan ?? false,
@@ -16655,7 +16759,7 @@ export class ApiEngine {
           candle: order.candle || "Included (Gold Sparkler)",
           knife: order.knife || "Included (Cake Knife)",
           accessories: order.accessories || ["Gold Birthday Topper", "Greeting Card"],
-          special_instructions: order.special_instructions || order.notes || "Please keep refrigerated upon arrival. Eggless formulation verified.",
+          special_instructions: order.special_instructions || order.notes || "Please keep refrigerated upon arrival. Artisan bakery formulation verified.",
         },
         photo_cake: {
           is_photo_cake: isPhotoCake,
@@ -17876,7 +17980,6 @@ export class ApiEngine {
               weight: "1.0 kg",
               shape: "Round",
               flavour: "Dutch Chocolate",
-              eggless: true,
               quantity: 1,
               unit_price: 1298,
               subtotal: 1298,
@@ -18177,7 +18280,6 @@ export class ApiEngine {
         weight: item.weight || "1.0 kg",
         shape: item.shape || "Round",
         flavour: item.flavour || "Dutch Chocolate",
-        eggless: item.eggless !== undefined ? item.eggless : true,
         quantity: item.quantity,
         unit_price: item.unit_price,
         subtotal: item.subtotal,

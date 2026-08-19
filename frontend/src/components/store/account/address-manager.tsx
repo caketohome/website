@@ -14,37 +14,15 @@ import {
   Store,
   Sparkles,
   Phone,
-  User
 } from "lucide-react";
-import type { CustomerAddress } from "@frontend/lib/crm/types";
+import { useAddresses, type CustomerAddress } from "@/hooks/use-addresses";
 
 interface AddressManagerProps {
   initialAddresses?: any[];
 }
 
 export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
-  const [addresses, setAddresses] = useState<any[]>(
-    initialAddresses.length > 0
-      ? initialAddresses
-      : [
-          {
-            id: "addr_1",
-            type: "HOME",
-            label: "Home",
-            name: "Alex R Ashok",
-            phone: "+91 98765 43210",
-            address_1: "Villa 14, Palm Meadows, Whitefield",
-            address_2: "Near Forum Value Mall",
-            landmark: "Behind Columbia Asia Hospital",
-            city: "Bengaluru",
-            state: "Karnataka",
-            postal_code: "560066",
-            is_default: true,
-            branch_name: "Indiranagar Flagship Kitchen",
-          },
-        ]
-  );
-
+  const { addresses, loading, saving, saveAddress, deleteAddress } = useAddresses();
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -90,66 +68,34 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
     setShowModal(true);
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!address1.trim()) return;
 
-    if (editingId) {
-      setAddresses(
-        addresses.map((a) =>
-          a.id === editingId
-            ? {
-                ...a,
-                type,
-                label: type === "HOME" ? "Home" : type === "OFFICE" ? "Office" : "Other",
-                name: name || "Customer",
-                phone,
-                address_1: address1,
-                address_2: address2,
-                landmark,
-                city,
-                state,
-                postal_code: pincode,
-                is_default: isDefault,
-              }
-            : isDefault
-            ? { ...a, is_default: false }
-            : a
-        )
-      );
-    } else {
-      const newAddr = {
-        id: `addr_${Date.now()}`,
-        type,
-        label: type === "HOME" ? "Home" : type === "OFFICE" ? "Office" : "Other",
-        name: name || "Customer",
-        phone,
-        address_1: address1,
-        address_2: address2,
-        landmark,
-        city,
-        state,
-        postal_code: pincode,
-        is_default: isDefault || addresses.length === 0,
-        branch_name: "Indiranagar Flagship Kitchen",
-      };
-      setAddresses(isDefault ? [newAddr, ...addresses.map((a) => ({ ...a, is_default: false }))] : [...addresses, newAddr]);
-    }
+    await saveAddress({
+      id: editingId || undefined,
+      type,
+      label: type === "HOME" ? "Home" : type === "OFFICE" ? "Office" : "Other",
+      name: name || "Customer",
+      phone,
+      address_1: address1,
+      address_2: address2,
+      landmark,
+      city,
+      state,
+      postal_code: pincode,
+      is_default: isDefault,
+    });
 
     setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    setAddresses(addresses.filter((a) => a.id !== id));
+  const handleDelete = async (id: string) => {
+    await deleteAddress(id);
   };
 
-  const handleSetDefault = (id: string) => {
-    setAddresses(
-      addresses.map((a) => ({
-        ...a,
-        is_default: a.id === id,
-      }))
-    );
+  const handleSetDefault = async (id: string) => {
+    await saveAddress({ id, is_default: true });
   };
 
   const getTypeIcon = (t: string) => {

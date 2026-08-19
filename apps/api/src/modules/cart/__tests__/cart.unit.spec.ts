@@ -52,20 +52,20 @@ describe("CartService Capability 6.1 & 6.2 Unit Tests", () => {
     const valid = validateAddCustomCakeInput({
       tiers: 2,
       tierFlavors: ["Belgian Chocolate", "Red Velvet"],
-      isEggless: true,
+      is_artisan: true,
       customMessage: "Happy 25th Anniversary Mom & Dad",
       quantity: 1,
     });
     expect(valid.tiers).toBe(2);
-    expect(valid.isEggless).toBe(true);
+    expect(valid.is_artisan).toBe(true);
     expect(valid.customMessage).toBe("Happy 25th Anniversary Mom & Dad");
   });
 
-  it("Capability 6.2: should add 2-tier custom cake with eggless surcharge and accessories", async () => {
+  it("Capability 6.2: should add 2-tier custom cake with artisan surcharge and accessories", async () => {
     const cart = await service.addCustomCake("cart_custom_1", {
       tiers: 2,
       tierFlavors: ["Dark Truffle", "Hazelnut"],
-      isEggless: true,
+      is_artisan: true,
       customMessage: "Happy Birthday Alex",
       accessories: [{ id: "acc_topper", name: "Custom Name Topper", price: 150.0 }],
       quantity: 1,
@@ -76,7 +76,7 @@ describe("CartService Capability 6.1 & 6.2 Unit Tests", () => {
     expect(item.customization.tiers).toBe(2);
     expect(item.customization.tierFlavors).toEqual(["Dark Truffle", "Hazelnut"]);
     expect(item.priceSnapshot.basePrice).toBe(1798.0); // 899 * 2 tiers
-    expect(item.priceSnapshot.optionsCost).toBe(50.0); // Eggless surcharge
+    expect(item.priceSnapshot.optionsCost).toBe(50.0); // artisan surcharge
     expect(item.priceSnapshot.accessoriesCost).toBe(150.0);
     expect(item.priceSnapshot.finalUnitPrice).toBe(1998.0);
   });

@@ -100,7 +100,7 @@ describe("OrdersService Capability 7.1 & 7.2 Unit & Integration Tests", () => {
       pincode: "560038",
       deliveryAddress: { street: "Indiranagar", city: "Bengaluru", pincode: "560038", recipientName: "Chef", recipientPhone: "+919999988888" },
       deliverySlotId: "STANDARD",
-      cartItems: [{ productId: "prod_03", productTitle: "Red Velvet Cake", quantity: 1, unitPrice: 749.0, selectedOptions: ["opt_eggless"] }],
+      cartItems: [{ productId: "prod_03", productTitle: "Red Velvet Cake", quantity: 1, unitPrice: 749.0, selectedOptions: ["opt_premium_packaging"] }],
       paymentProvider: "RAZORPAY",
     });
 

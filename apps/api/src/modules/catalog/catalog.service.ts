@@ -43,7 +43,7 @@ export class CatalogService {
         applied_filters: {
           min_price: query.min_price || null,
           max_price: query.max_price || null,
-          is_eggless: query.is_eggless ?? null,
+          is_artisan: query.is_artisan ?? null,
           sort_by: query.sort_by || null,
         },
       },

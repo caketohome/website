@@ -185,11 +185,10 @@ export default function ProductDetailClient({
     }, [recommendedAccessories]);
 
     // Product-Specific Dietary Flags Check
-    const hasEggless = meta?.eggless === true || product?.eggless === true;
     const hasSugarFree = meta?.sugar_free === true || product?.sugar_free === true;
     const hasGlutenFree = meta?.gluten_free === true || product?.gluten_free === true;
     const hasVegan = meta?.vegan === true || product?.vegan === true;
-    const hasAnyDietaryOption = hasEggless || hasSugarFree || hasGlutenFree || hasVegan;
+    const hasAnyDietaryOption = hasSugarFree || hasGlutenFree || hasVegan;
 
     // Selected Option States
     const [selectedWeight, setSelectedWeight] = useState<any>(weightsList[0] || null);
@@ -199,7 +198,6 @@ export default function ProductDetailClient({
     const [selectedCream, setSelectedCream] = useState<any>(creamsList[0] || null);
 
     // Dietary Options State
-    const [isEggless, setIsEggless] = useState<boolean>(hasEggless);
     const [isSugarFree, setIsSugarFree] = useState<boolean>(false);
     const [isGlutenFree, setIsGlutenFree] = useState<boolean>(false);
     const [isVegan, setIsVegan] = useState<boolean>(false);
@@ -272,8 +270,7 @@ export default function ProductDetailClient({
         const flavourMod = activePimConfig.show_flavour && selectedFlavour ? Number(selectedFlavour.price_modifier || selectedFlavour.extra_price || 0) : 0;
 
         const dietaryMod = activePimConfig.show_dietary !== false && hasAnyDietaryOption
-            ? ((hasEggless && isEggless) ? 50 : 0) +
-              ((hasSugarFree && isSugarFree) ? 100 : 0) +
+            ? ((hasSugarFree && isSugarFree) ? 100 : 0) +
               ((hasGlutenFree && isGlutenFree) ? 100 : 0) +
               ((hasVegan && isVegan) ? 120 : 0)
             : 0;
@@ -292,8 +289,6 @@ export default function ProductDetailClient({
         selectedShape,
         selectedFlavour,
         hasAnyDietaryOption,
-        hasEggless,
-        isEggless,
         hasSugarFree,
         isSugarFree,
         hasGlutenFree,
@@ -382,7 +377,6 @@ export default function ProductDetailClient({
                 weight: activePimConfig.show_weight !== false && selectedWeight ? selectedWeight.name : null,
                 shape: activePimConfig.show_shape && selectedShape ? selectedShape.name : null,
                 flavour: activePimConfig.show_flavour && selectedFlavour ? selectedFlavour.name : null,
-                eggless: hasEggless ? isEggless : false,
                 sugar_free: hasSugarFree ? isSugarFree : false,
                 gluten_free: hasGlutenFree ? isGlutenFree : false,
                 vegan: hasVegan ? isVegan : false,
@@ -434,11 +428,6 @@ export default function ProductDetailClient({
                             priority
                             className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
-                        {hasEggless && isEggless && (
-                            <div className="absolute top-4 left-4 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-10">
-                                🌱 100% Eggless
-                            </div>
-                        )}
                         <Button
                             variant="transparent"
                             size="small"
@@ -640,12 +629,6 @@ export default function ProductDetailClient({
                         <div className="flex flex-col gap-3 border-t border-gray-100 pt-4 bg-gray-50/70 p-4 rounded-2xl border">
                             <Label className="font-bold text-xs text-gray-900">Dietary & Health Customizations</Label>
                             <div className="grid grid-cols-2 gap-3">
-                                {hasEggless && (
-                                    <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-gray-200">
-                                        <span className="text-xs font-semibold text-gray-800">Eggless (+₹50)</span>
-                                        <Switch checked={isEggless} onCheckedChange={setIsEggless} />
-                                    </div>
-                                )}
                                 {hasSugarFree && (
                                     <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-gray-200">
                                         <span className="text-xs font-semibold text-gray-800">Sugar-Free (+₹100)</span>

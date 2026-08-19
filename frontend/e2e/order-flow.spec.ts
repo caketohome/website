@@ -7,7 +7,7 @@ test.describe('CakeToHome Critical Bakery E-Commerce Order Flow', () => {
     await expect(page).toHaveTitle(/CakeToHome/i);
   });
 
-  test('2. Product catalog page displays cakes with eggless filters', async ({ page }) => {
+  test('2. Product catalog page displays cakes with dietary filters', async ({ page }) => {
     await page.goto('http://localhost:3000/products');
     const catalogHeader = page.locator('h1, h2').first();
     await expect(catalogHeader).toBeVisible();

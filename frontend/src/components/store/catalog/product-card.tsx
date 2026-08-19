@@ -20,7 +20,6 @@ export function ProductCard({ product }: { product: SearchResult }) {
     const [loading, setLoading] = useState(false);
 
     const dietary: string[] = [];
-    if (product.eggless) dietary.push("Eggless");
     if (product.sugar_free) dietary.push("Sugar-Free");
     if (product.gluten_free) dietary.push("Gluten-Free");
     if (product.vegan) dietary.push("Vegan");

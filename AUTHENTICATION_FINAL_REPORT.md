@@ -93,7 +93,7 @@
 ### 3.2 End-to-End Checkout Audit (`frontend/scripts/test-checkout-verification.ts`)
 | Audit Phase | Feature | Status | Verification Detail |
 |---|---|---|---|
-| **Phase 3 & 4** | Cart & Customization Persistence | PASS | Weight, shape, flavour, eggless, message persisted |
+| **Phase 3 & 4** | Cart & Customization Persistence | PASS | Weight, shape, flavour, artisan, message persisted |
 | **Phase 5** | Server-Side Pincode & Branch Resolution | PASS | 560038 -> Indiranagar, 560034 -> Koramangala |
 | **Phase 6** | Product x Branch Availability | PASS | Store out-of-stock blocks checkout with error |
 | **Phase 7 & 8** | Price Tampering & Recalculation | PASS | CAKE50 discount capped at ₹200 server-side |

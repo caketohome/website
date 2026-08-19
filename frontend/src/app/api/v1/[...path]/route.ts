@@ -234,7 +234,6 @@ async function forwardToPostgresBackend(method: string, path: string, body?: any
             price: numPrice,
             category: body.category || "Cakes",
             is_featured: body.is_featured !== undefined ? body.is_featured : true,
-            eggless: body.eggless !== undefined ? body.eggless : true,
             ...(body.metadata || {})
           }
         };

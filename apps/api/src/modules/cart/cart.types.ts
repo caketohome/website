@@ -69,7 +69,7 @@ export interface AddCustomCakeInput {
   tiers: number;
   tierFlavors: string[];
   shape?: string;
-  isEggless: boolean;
+  is_artisan: boolean;
   customMessage?: string;
   photoUrl?: string;
   accessories?: { id: string; name: string; price: number }[];

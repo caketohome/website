@@ -33,7 +33,6 @@ export function ProductsCatalogClient() {
     const maxP = searchParams.get("max_price");
     if (maxP) params.max_price = Number(maxP);
 
-    if (searchParams.get("eggless") === "true") params.eggless = true;
     if (searchParams.get("sugar_free") === "true") params.sugar_free = true;
     if (searchParams.get("gluten_free") === "true") params.gluten_free = true;
     if (searchParams.get("vegan") === "true") params.vegan = true;
@@ -66,7 +65,6 @@ export function ProductsCatalogClient() {
       if (newFilters.weight) p.set("weight", newFilters.weight);
       if (newFilters.min_price !== undefined) p.set("min_price", String(newFilters.min_price));
       if (newFilters.max_price !== undefined) p.set("max_price", String(newFilters.max_price));
-      if (newFilters.eggless) p.set("eggless", "true");
       if (newFilters.sugar_free) p.set("sugar_free", "true");
       if (newFilters.gluten_free) p.set("gluten_free", "true");
       if (newFilters.vegan) p.set("vegan", "true");
@@ -133,7 +131,6 @@ export function ProductsCatalogClient() {
     filters.flavour,
     filters.weight,
     filters.min_price !== undefined || filters.max_price !== undefined ? "price" : undefined,
-    filters.eggless,
     filters.sugar_free,
     filters.gluten_free,
     filters.vegan,

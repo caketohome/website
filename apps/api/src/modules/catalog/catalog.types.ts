@@ -3,14 +3,12 @@ export interface ProductListingQuery {
   limit?: number;
   category_id?: string;
   search?: string;
-  is_eggless?: boolean;
-}
+  is_}
 
 export interface ProductSearchQuery {
   q: string;
   limit?: number;
-  is_eggless?: boolean;
-}
+  is_}
 
 export interface ProductFilterQuery {
   page?: number;
@@ -18,8 +16,7 @@ export interface ProductFilterQuery {
   category_id?: string;
   min_price?: number;
   max_price?: number;
-  is_eggless?: boolean;
-  sort_by?: "price_asc" | "price_desc" | "newest";
+  is_  sort_by?: "price_asc" | "price_desc" | "newest";
 }
 
 export interface CreateReviewInput {
@@ -79,8 +76,7 @@ export interface ProductDTOv1 {
   status: string;
   price: number;
   currency_code: string;
-  is_eggless: boolean;
-  ingredients: string[];
+  is_  ingredients: string[];
   allergens: string[];
   shelf_life: string | null;
   storage_instructions: string | null;

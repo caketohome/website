@@ -1612,7 +1612,7 @@ export function PageConfigurator() {
                         </div>
                         <div className="flex items-center gap-2 text-ui-fg-base">
                           <Check className="w-4 h-4 text-emerald-600" />
-                          <span>Pure Eggless Dedicated Kitchen Lines</span>
+                          <span>Artisan Patisserie Standard Recipes</span>
                         </div>
                         <div className="flex items-center gap-2 text-ui-fg-base">
                           <Check className="w-4 h-4 text-emerald-600" />

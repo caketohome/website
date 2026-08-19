@@ -71,7 +71,6 @@ export default function ComparePage() {
     const rows: Array<{ label: string; render: (p: SearchResult) => React.ReactNode }> = [
         { label: "Price", render: (p) => (p.price ? `₹${p.price.toFixed(0)}` : "—") },
         { label: "Rating", render: (p) => (p.review_count > 0 ? `⭐ ${p.rating.toFixed(1)} (${p.review_count})` : "New") },
-        { label: "Eggless", render: (p) => (p.eggless ? "✅" : "—") },
         { label: "Sugar-Free", render: (p) => (p.sugar_free ? "✅" : "—") },
         { label: "Gluten-Free", render: (p) => (p.gluten_free ? "✅" : "—") },
         { label: "Vegan", render: (p) => (p.vegan ? "✅" : "—") },

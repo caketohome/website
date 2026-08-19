@@ -23,7 +23,6 @@ export interface KnowledgeDocument {
     product_id?: string;
     occasion_ids?: string[];
     price?: number;
-    eggless?: boolean;
     vegan?: boolean;
     sugar_free?: boolean;
     gluten_free?: boolean;
@@ -156,7 +155,6 @@ export class KnowledgeBase {
       source_type?: string;
       city_id?: string;
       category_id?: string;
-      eggless?: boolean;
       maxPrice?: number;
     },
     limit = 6
@@ -177,7 +175,6 @@ export class KnowledgeBase {
 
         // Apply metadata filters
         if (filters?.source_type && chunk.source_type !== filters.source_type) continue;
-        if (filters?.eggless !== undefined && chunk.metadata.eggless !== undefined && chunk.metadata.eggless !== filters.eggless) continue;
         if (filters?.maxPrice !== undefined && chunk.metadata.price && chunk.metadata.price > filters.maxPrice) continue;
 
         const current = scores.get(chunkId) || { score: 0, matchType: "semantic_token" };

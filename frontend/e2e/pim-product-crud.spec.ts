@@ -14,8 +14,7 @@ test.describe("Enterprise Product CRUD & PIM Pipeline (API & Storage Proof)", ()
         description: "Freshly baked artisan chocolate cake",
         price: 699,
         category: "Artisanal Cakes",
-        is_featured: true,
-        eggless: true
+        is_featured: true
       }
     });
 

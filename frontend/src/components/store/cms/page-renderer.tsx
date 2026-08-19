@@ -707,7 +707,7 @@ export function PageRenderer({
               const heading = config.heading || "Why CakeToHome is Bangalore's #1 Choice";
               const defaultFeatures = [
                 { icon: "Truck", title: "2-Hour Express Delivery", desc: "Fastest doorstep cake delivery across Bangalore" },
-                { icon: "Sparkles", title: "100% Eggless Options", desc: "All flavors available in pure vegetarian eggless variants" },
+                { icon: "Sparkles", title: "Artisan Quality", desc: "Premium gourmet cakes crafted with Belgian chocolate and fresh fruits" },
                 { icon: "Clock", title: "Midnight Delivery", desc: "Special midnight surprise slots (11:30 PM - 12:05 AM)" },
                 { icon: "ShieldCheck", title: "Artisanal Fresh Baking", desc: "Baked fresh after order placement with zero preservatives" },
               ];
@@ -753,7 +753,7 @@ export function PageRenderer({
               const defaultFaqs = [
                 { q: "Do you deliver cakes at midnight in Bangalore?", a: "Yes! We offer guaranteed midnight delivery slots (11:30 PM – 12:05 AM) across all areas in Bangalore for birthdays and anniversaries." },
                 { q: "Can I customize the cake size and flavour?", a: "Absolutely! You can choose sizes from 0.5 kg to 5.0 kg, select premium flavours (Belgian Chocolate, Red Velvet, Alphonso Mango, Lotus Biscoff), and add personal custom messages." },
-                { q: "Are eggless cake options available?", a: "Yes, all our handcrafted cakes are available in pure eggless versions at no extra charge." },
+                { q: "How fresh are CakeToHome cakes?", a: "Every single cake is baked fresh to order in our local kitchen hubs using premium ingredients with zero artificial preservatives." },
               ];
               const faqs = (config.faqs && config.faqs.length > 0) ? config.faqs : defaultFaqs;
 
@@ -1021,7 +1021,7 @@ export function PageRenderer({
               const heading = config.heading || "CakeToHome Safety & Quality Assurance";
               const badges = [
                 { icon: <ShieldCheck className="w-6 h-6 text-emerald-500" />, title: "FSSAI Certified Bakery", desc: "Lic. No. 11223334000123 — 100% compliant with food safety regulations." },
-                { icon: <Sparkles className="w-6 h-6 text-amber-500" />, title: "Pure Eggless Kitchens", desc: "Dedicated vegetarian prep lines with 100% pure vegetarian ingredients." },
+                { icon: <Sparkles className="w-6 h-6 text-amber-500" />, title: "Artisan Patisserie Standard", desc: "Master pastry chef recipes crafted with pure dairy butter and authentic chocolate." },
                 { icon: <Truck className="w-6 h-6 text-rose-500" />, title: "2-Hour Express Delivery", desc: "Temperature-controlled sanitized delivery boxes ensuring zero melting." },
                 { icon: <Award className="w-6 h-6 text-indigo-500" />, title: "Freshly Baked Guarantee", desc: "Baked fresh only upon order confirmation with premium ingredients." },
               ];

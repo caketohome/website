@@ -122,7 +122,6 @@ export class KnowledgeSyncService {
     if (!prodId) return;
 
     const dietary = [];
-    if (prod.eggless) dietary.push("100% Eggless");
     if (prod.vegan) dietary.push("Vegan");
     if (prod.sugar_free) dietary.push("Sugar-Free");
     if (prod.gluten_free) dietary.push("Gluten-Free");
@@ -149,7 +148,6 @@ GST: Included in displayed price (5% confectionery GST).
         product_id: prodId,
         handle: prod.handle || prodId,
         price: prod.price,
-        eggless: Boolean(prod.eggless),
         vegan: Boolean(prod.vegan),
         sugar_free: Boolean(prod.sugar_free),
         gluten_free: Boolean(prod.gluten_free),
@@ -405,19 +403,19 @@ Cancellation Policy:
 - Standard Catalog Cakes: Cancellation allowed up to 2 hours before delivery slot.
 - Orders in "OUT_FOR_DELIVERY" or "BAKING" state cannot be cancelled once freshly prepared.
 Refunds:
-- Approved refunds are credited to original payment method within 2-4 business days, or instantly as CakeToHome Wallet Credits with 5% bonus.
+- Approved refunds are credited to original payment method within 2-4 business days.
 Damaged / Quality Guarantee:
 - 100% replacement or refund guaranteed if cake is damaged in transit. Photo proof requested via WhatsApp support (+91 80 4567 8900).
         `.trim(),
       },
       {
-        id: "faq_eggless",
-        title: "100% Eggless & Dietary Options FAQ",
+        id: "faq_dietary",
+        title: "Dietary Options & Ingredients FAQ",
         content: `
-Eggless Cakes:
-- All CakeToHome signature recipes (Belgian Chocolate Truffle, Red Velvet, Black Forest, Butterscotch, Mango Mousse) are baked 100% eggless by default in dedicated vegetarian kitchen sections.
+Special Dietary Options:
 - Vegan and Sugar-Free cakes use organic almond milk and natural stevia/erythritol sweeteners.
 - Gluten-free options are baked with premium oat and almond flour.
+- All cakes are baked fresh with premium dairy butter, authentic chocolate, and fresh fruit purees.
         `.trim(),
       },
       {

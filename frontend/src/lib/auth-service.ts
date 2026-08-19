@@ -11,18 +11,30 @@
 export const AUTH_COOKIES = [
   "_cth_jwt",
   "_medusa_jwt",
+  "_cth_customer_uid",
+  "_cth_auth_token",
   "_cth_role",
   "_cth_user_id",
   "_cth_phone",
+  "_cth_customer_phone",
+  "_cth_email",
   "_cth_branch_id",
   "_cth_shop_id",
   "_cth_partner_id",
   "_cth_cart_id",
   "_medusa_cart_id",
+  "_cth_session_expiry",
+  "_cth_device_fp",
+  "admin_session",
+  "caketohome_customer_phone",
+  "caketohome_customer_name",
+  "cth_customer_uid",
 ] as const;
 
 export const AUTH_STORAGE_KEYS = [
   "_cth_jwt",
+  "_cth_customer_uid",
+  "_cth_auth_token",
   "_cth_role",
   "_cth_user",
   "_cth_phone",
@@ -32,6 +44,16 @@ export const AUTH_STORAGE_KEYS = [
   "_cth_partner_id",
   "cth_auth_user",
   "medusa_auth_token",
+  "cth_customer_profile",
+  "cth_selected_address",
+  "cth_cart_backup",
+  "_cth_token",
+  "token",
+  "user",
+  "active_session",
+  "admin_token",
+  "caketohome_customer_phone",
+  "caketohome_customer_name",
 ] as const;
 
 export interface AuthLogoutOptions {

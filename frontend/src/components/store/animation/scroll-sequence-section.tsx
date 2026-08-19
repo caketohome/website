@@ -285,7 +285,7 @@ export function ScrollSequenceSection({
               Baked freshly from scratch upon order using 100% natural ingredients, rich Belgian dark chocolate ganache, and signature silky mousses.
             </Text>
             <div className="pt-2 flex items-center gap-3 text-xs text-rose-200 font-medium">
-              <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> 100% Eggless Option</span>
+              <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Artisanal Craftsmanship</span>
               <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Zero Preservatives</span>
             </div>
           </div>

@@ -84,7 +84,7 @@ export default function LoginPage() {
                 <span className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px]">
                   <Check className="w-3 h-3" />
                 </span>
-                <span>Eggless Options</span>
+                <span>Handcrafted Daily</span>
               </div>
             </div>
           </div>

@@ -15,7 +15,6 @@ export interface SearchResult {
   price: number;
   rating: number;
   review_count: number;
-  eggless: boolean;
   sugar_free: boolean;
   gluten_free: boolean;
   vegan: boolean;
@@ -44,7 +43,6 @@ export interface SearchFilters {
   weight?: string;
   min_price?: number;
   max_price?: number;
-  eggless?: boolean;
   sugar_free?: boolean;
   gluten_free?: boolean;
   vegan?: boolean;
@@ -69,7 +67,6 @@ export interface CatalogFilterOptions {
 
 export interface ProductMeta {
   product_id: string;
-  eggless: boolean;
   is_bestseller: boolean;
 }
 
@@ -132,7 +129,6 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
       price: Math.max(1, Number(p.price || p.selling_price) || 599),
       rating: Number(p.rating) || 4.9,
       review_count: Number(p.review_count) || 12,
-      eggless: p.eggless !== undefined ? Boolean(p.eggless) : true,
       sugar_free: Boolean(p.sugar_free),
       gluten_free: Boolean(p.gluten_free),
       vegan: Boolean(p.vegan),
@@ -218,9 +214,6 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
     }
 
     // Dietary Switches
-    if (filters.eggless !== undefined) {
-      list = list.filter((p: any) => Boolean(p.eggless) === filters.eggless);
-    }
     if (filters.sugar_free !== undefined) {
       list = list.filter((p: any) => Boolean(p.sugar_free) === filters.sugar_free);
     }
@@ -345,7 +338,7 @@ export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
 }
 
 export async function getProductMeta(productId: string): Promise<ProductMeta> {
-  return { product_id: productId, eggless: true, is_bestseller: true };
+  return { product_id: productId, is_bestseller: true };
 }
 
 export async function listProductReviews(productId: string): Promise<any> {
@@ -400,7 +393,6 @@ export const DEFAULT_CATALOG_PRODUCTS: any[] = [
     price: 649,
     rating: 4.9,
     review_count: 142,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -419,7 +411,6 @@ export const DEFAULT_CATALOG_PRODUCTS: any[] = [
     price: 749,
     rating: 4.8,
     review_count: 98,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -438,7 +429,6 @@ export const DEFAULT_CATALOG_PRODUCTS: any[] = [
     price: 699,
     rating: 4.9,
     review_count: 76,
-    eggless: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,

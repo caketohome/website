@@ -13,7 +13,7 @@ export class CatalogMapper {
       status: raw.status || "published",
       price: typeof raw.price === "number" ? raw.price : raw.variants?.[0]?.prices?.[0]?.amount || 499,
       currency_code: raw.currency_code || "INR",
-      is_eggless: Boolean(meta.is_eggless ?? raw.is_eggless),
+      is_artisan: Boolean(meta.is_artisan ?? raw.is_artisan),
       ingredients: Array.isArray(meta.ingredients) ? meta.ingredients : [],
       allergens: Array.isArray(meta.allergens) ? meta.allergens : [],
       shelf_life: meta.shelf_life || "2 days at 4°C",

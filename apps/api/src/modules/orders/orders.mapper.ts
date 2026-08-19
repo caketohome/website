@@ -64,7 +64,7 @@ export class OrderMapper {
           productTitle: i.productTitle || i.product_title || "Handcrafted Cake",
           quantity: Number(i.quantity || 1),
           customMessage: i.customMessage || undefined,
-          isEggless: Boolean(i.isEggless ?? i.selectedOptions?.includes("opt_eggless")),
+          is_artisan: Boolean(i.is_artisan ?? i.selectedOptions?.includes("opt_")),
           specialInstructions: i.specialInstructions || undefined,
         }))
       : [];

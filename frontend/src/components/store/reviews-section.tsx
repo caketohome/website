@@ -33,7 +33,7 @@ export function ReviewsSection() {
       date: "4 days ago",
       verified: true,
       headline: "Best Red Velvet Cake in Bangalore hands down!",
-      comment: "The cream cheese frosting was heavenly. Eggless version was just as fluffy as regular cake. Will definitely order again!",
+      comment: "The cream cheese frosting was heavenly. The sponge was wonderfully moist and airy. Will definitely order again!",
       image: "❤️",
       helpful: 19,
     },
@@ -98,7 +98,7 @@ export function ReviewsSection() {
           <Badge color="green"> Moist & Fresh Sponge (99%)</Badge>
           <Badge color="green"> Punctual Midnight Delivery (97%)</Badge>
           <Badge color="green"> Premium Belgian Chocolate (98%)</Badge>
-          <Badge color="purple"> 100% Eggless Option (95%)</Badge>
+          <Badge color="purple"> Master Pastry Chef Quality (96%)</Badge>
         </div>
       </Container>
 

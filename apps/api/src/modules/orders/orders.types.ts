@@ -63,8 +63,7 @@ export interface KitchenTicketDTOv1 {
     productTitle: string;
     quantity: number;
     customMessage?: string;
-    isEggless?: boolean;
-    specialInstructions?: string;
+        specialInstructions?: string;
   }[];
   preparedBy?: string;
   estimatedPreparationMinutes: number;

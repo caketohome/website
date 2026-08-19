@@ -21,7 +21,7 @@ export class CatalogRepository {
       price: 699,
       currency_code: "INR",
       status: "published",
-      meta: { is_eggless: true, ingredients: ["Dark Chocolate", "Flour", "Cocoa", "Butter"] },
+      meta: { is_artisan: true, ingredients: ["Dark Chocolate", "Flour", "Cocoa", "Butter"] },
       created_at: "2026-01-01T00:00:00.000Z",
     },
     {
@@ -32,7 +32,7 @@ export class CatalogRepository {
       price: 599,
       currency_code: "INR",
       status: "published",
-      meta: { is_eggless: false, ingredients: ["Strawberries", "Cream", "Flour", "Eggs"] },
+      meta: { is_artisan: false, ingredients: ["Strawberries", "Cream", "Flour", "Eggs"] },
       created_at: "2026-01-05T00:00:00.000Z",
     },
     {
@@ -43,7 +43,7 @@ export class CatalogRepository {
       price: 749,
       currency_code: "INR",
       status: "published",
-      meta: { is_eggless: true, ingredients: ["Cocoa", "Cream Cheese", "Flour", "Butter"] },
+      meta: { is_artisan: true, ingredients: ["Cocoa", "Cream Cheese", "Flour", "Butter"] },
       created_at: "2026-01-10T00:00:00.000Z",
     },
   ];
@@ -51,7 +51,7 @@ export class CatalogRepository {
   private inMemoryCategories: any[] = [
     { id: "cat_01", name: "Custom Cakes", handle: "custom-cakes", description: "Bespoke handcrafted custom cakes for special celebrations." },
     { id: "cat_02", name: "Cupcakes & Mini Cakes", handle: "cupcakes", description: "Freshly baked gourmet cupcakes in assorted flavors." },
-    { id: "cat_03", name: "Eggless Delights", handle: "eggless", description: "100% vegetarian pure eggless cakes and pastries." },
+    { id: "cat_03", name: "artisan Delights", handle: "artisan", description: "100% vegetarian pure gourmet cakes and pastries." },
   ];
 
   private inMemoryReviews: ProductReviewDTO[] = [
@@ -87,7 +87,7 @@ export class CatalogRepository {
         price: 699,
         currency_code: "INR",
         status: "published",
-        meta: { is_eggless: true, ingredients: ["Dark Chocolate", "Flour", "Cocoa", "Butter"] },
+        meta: { is_artisan: true, ingredients: ["Dark Chocolate", "Flour", "Cocoa", "Butter"] },
       }),
       added_at: "2026-01-20T08:00:00.000Z",
     },
@@ -115,8 +115,8 @@ export class CatalogRepository {
     }
 
     let filtered = [...this.inMemoryProducts];
-    if (query.is_eggless) {
-      filtered = filtered.filter((p) => p.meta?.is_eggless);
+    if (query.is_artisan) {
+      filtered = filtered.filter((p) => p.meta?.is_artisan);
     }
     if (query.search) {
       const s = query.search.toLowerCase();
@@ -158,8 +158,8 @@ export class CatalogRepository {
       return matchesTitle || matchesDesc || matchesIngredient;
     });
 
-    if (query.is_eggless) {
-      filtered = filtered.filter((p) => p.meta?.is_eggless);
+    if (query.is_artisan) {
+      filtered = filtered.filter((p) => p.meta?.is_artisan);
     }
 
     const limited = filtered.slice(0, query.limit || 20);
@@ -197,8 +197,8 @@ export class CatalogRepository {
     }
 
     let filtered = [...this.inMemoryProducts];
-    if (query.is_eggless !== undefined) {
-      filtered = filtered.filter((p) => Boolean(p.meta?.is_eggless) === query.is_eggless);
+    if (query.is_artisan !== undefined) {
+      filtered = filtered.filter((p) => Boolean(p.meta?.is_artisan) === query.is_artisan);
     }
     if (query.min_price !== undefined) {
       filtered = filtered.filter((p) => p.price >= query.min_price!);

@@ -28,7 +28,6 @@ export interface SearchProductsParams {
   pincode?: string;
   minPrice?: number;
   maxPrice?: number;
-  eggless?: boolean;
   vegan?: boolean;
   sugarFree?: boolean;
   glutenFree?: boolean;
@@ -79,9 +78,6 @@ export class AiToolRegistry {
     }
 
     // Dietary Flags
-    if (params.eggless !== undefined) {
-      products = products.filter((p: any) => Boolean(p.eggless) === params.eggless);
-    }
     if (params.vegan) {
       products = products.filter((p: any) => Boolean(p.vegan));
     }
@@ -116,7 +112,6 @@ export class AiToolRegistry {
         rating: p.rating || 4.8,
         reviews: p.review_count || 50,
         thumbnail: p.thumbnail,
-        eggless: Boolean(p.eggless),
         vegan: Boolean(p.vegan),
         sugarFree: Boolean(p.sugar_free),
         glutenFree: Boolean(p.gluten_free),
@@ -153,7 +148,6 @@ export class AiToolRegistry {
         mrp: prod.price,
         rating: prod.rating || 4.8,
         thumbnail: prod.thumbnail,
-        eggless: Boolean(prod.eggless),
         vegan: Boolean(prod.vegan),
         sugarFree: Boolean(prod.sugar_free),
         glutenFree: Boolean(prod.gluten_free),

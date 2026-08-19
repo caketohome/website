@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
       ...occasionsRes.occasions.slice(0, 3).map((o) => `${o.icon || "🎂"} ${o.name} Cakes`),
       "🍫 Top Chocolate Cakes",
       "💰 Cakes Under ₹600",
-      "🍰 100% Eggless Cakes",
+      "🍓 Fresh Fruit Cakes",
       "🏷️ Active Coupons",
       "🛵 Check Delivery Time",
     ];

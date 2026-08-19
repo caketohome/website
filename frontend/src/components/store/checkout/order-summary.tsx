@@ -89,7 +89,6 @@ export function OrderSummary({
           const unitPrice = Number(item.unit_price || item.price || 0);
           const quantity = Number(item.quantity || 1);
           const weight = item.weight || item.metadata?.weight || null;
-          const eggless = item.eggless !== undefined ? item.eggless : item.metadata?.eggless;
           const message = item.cake_message || item.metadata?.cake_message;
 
           return (
@@ -123,11 +122,6 @@ export function OrderSummary({
                   {weight && (
                     <span className="text-[10px] font-medium bg-zinc-200/80 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 px-1.5 py-0.5 rounded-md">
                       {weight}
-                    </span>
-                  )}
-                  {eggless && (
-                    <span className="text-[10px] font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-900/30">
-                      🌱 Eggless
                     </span>
                   )}
                 </div>

@@ -111,7 +111,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
                 <div className="flex items-start gap-2.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-semibold text-white block">100% Eggless Pure Veg</span>
+                    <span className="font-semibold text-white block">Artisan Recipe Guarantee</span>
                     <span className="text-[11px] text-purple-200/70">Certified hygiene & food safety</span>
                   </div>
                 </div>

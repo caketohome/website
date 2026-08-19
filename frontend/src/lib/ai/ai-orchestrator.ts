@@ -2,7 +2,7 @@
  * CakeToHome AI Concierge Orchestrator
  * 
  * Intelligent multi-turn reasoning engine that:
- * - Maintains multi-turn context (occasion, budget, eggless, city, pincode)
+ * - Maintains multi-turn context (occasion, budget, flavour, city, pincode)
  * - Identifies user intents
  * - Executes relevant controlled tools from AiToolRegistry concurrently
  * - Queries KnowledgeBase RAG for policies, FAQs, and brand knowledge
@@ -24,7 +24,6 @@ export interface AiProductCard {
   rating: number;
   reviews?: number;
   thumbnail: string;
-  eggless: boolean;
   vegan?: boolean;
   sugarFree?: boolean;
   glutenFree?: boolean;
@@ -41,7 +40,7 @@ export interface AiOfferCard {
 }
 
 export interface AiAction {
-  type: "VIEW_PRODUCT" | "ADD_TO_CART" | "APPLY_COUPON" | "CHECK_PINCODE" | "VIEW_CART" | "TRACK_ORDER" | "SELECT_OCCASION";
+  type: "VIEW_PRODUCT" | "APPLY_COUPON" | "CHECK_PINCODE" | "VIEW_CART" | "TRACK_ORDER" | "SELECT_OCCASION";
   label: string;
   payload: Record<string, any>;
 }
@@ -68,7 +67,6 @@ export interface ConversationState {
   cartId?: string;
   occasion?: string;
   budget?: number;
-  eggless?: boolean;
   vegan?: boolean;
   sugarFree?: boolean;
   glutenFree?: boolean;
@@ -118,7 +116,7 @@ export class AiOrchestrator {
       "show", "me", "find", "i", "need", "do", "you", "have", "what", "is", "are",
       "available", "cakes", "cake", "give", "please", "for", "a", "an", "the",
       "in", "with", "best", "top", "of", "some", "something", "any", "under",
-      "below", "budget", "price", "eggless", "vegan", "sugarfree", "sugar-free",
+      "below", "budget", "price", "vegan", "sugarfree", "sugar-free",
       "gluten-free", "glutenfree", "birthday", "anniversary", "wedding", "fresh"
     ];
 
@@ -166,9 +164,6 @@ export class AiOrchestrator {
     }
 
     // Dietary
-    if (clean.includes("eggless") || clean.includes("without egg") || clean.includes("pure veg")) {
-      session.eggless = true;
-    }
     if (clean.includes("vegan")) {
       session.vegan = true;
     }
@@ -201,8 +196,6 @@ export class AiOrchestrator {
       intent = "DELIVERY_QUERY";
     } else if (clean.includes("coupon") || clean.includes("offer") || clean.includes("discount") || clean.includes("promo") || clean.includes("cake50")) {
       intent = "COUPON_QUERY";
-    } else if (clean.includes("add to cart") || clean.includes("add this") || clean.includes("buy this")) {
-      intent = "CART_ACTION";
     } else if (clean.includes("flower") || clean.includes("candle") || clean.includes("topper") || clean.includes("accessory") || clean.includes("teddy") || clean.includes("greeting card")) {
       intent = "CROSS_SELL";
     } else if (clean.includes("cancel") || clean.includes("refund") || clean.includes("return") || clean.includes("policy") || clean.includes("faq") || clean.includes("safe") || clean.includes("fssai") || clean.includes("how is it packed")) {
@@ -235,17 +228,17 @@ export class AiOrchestrator {
         }
       }
 
-      // Check if logged in customer has orders
       if (context?.isAuthenticated && context?.customerId) {
         toolsUsed.push("getCustomerOrders");
-        const custOrders = await AiToolRegistry.getCustomerOrders(context.customerId, true);
-        if (custOrders.orders && custOrders.orders.length > 0) {
-          const latest = custOrders.orders[0];
+        const ordersRes = await AiToolRegistry.getCustomerOrders(context.customerId);
+        if (ordersRes.orders && ordersRes.orders.length > 0) {
+          const latest = ordersRes.orders[0];
           return {
-            message: `📦 Your most recent order #${latest.orderId} (₹${latest.total}) is currently **${latest.status}**.`,
+            message: `📦 Your most recent order **#${latest.id}** (${latest.itemsSummary}) is **${latest.status}** with expected delivery on **${latest.deliverySlot}**.\n\nTotal: ₹${latest.totalAmount}`,
             actions: [
-              { type: "TRACK_ORDER", label: `Track Order #${latest.orderId}`, payload: { orderId: latest.orderId } },
+              { type: "TRACK_ORDER", label: "Track Live Order", payload: { orderId: latest.id } },
             ],
+            followUpQuestions: ["View full order history", "Reorder favourite cakes"],
             intent,
             toolsUsed,
           };
@@ -253,105 +246,55 @@ export class AiOrchestrator {
       }
 
       return {
-        message: "Please share your 6-digit Order ID (e.g. CTH-2026-8812) or log into your CakeToHome account to view real-time delivery status.",
-        followUpQuestions: ["Log in to view orders", "Contact WhatsApp Support"],
+        message: "Please provide your Order ID (e.g. *CTH-847291*) or log in to view your live tracking status.",
+        followUpQuestions: ["Track order CTH-", "Check delivery times in my area"],
         intent,
         toolsUsed,
       };
     }
 
-    // INTENT: DELIVERY / PINCODE CHECK
+    // INTENT: DELIVERY & PINCODE QUERY
     if (intent === "DELIVERY_QUERY") {
-      const pin = session.pincode || context?.pincode;
-      if (pin) {
-        toolsUsed.push("checkDeliveryAvailability");
-        const slotType = clean.includes("midnight") ? "midnight" : clean.includes("express") ? "express" : "standard";
-        const delRes = await AiToolRegistry.checkDeliveryAvailability({
-          pincode: pin,
-          requestedSlot: slotType,
-        });
+      toolsUsed.push("checkPincodeDelivery");
+      const targetPin = session.pincode || "560034";
+      const deliveryRes = await AiToolRegistry.checkPincodeDelivery(targetPin);
 
-        if (delRes.serviceable) {
-          return {
-            message: `⚡ **Pincode ${pin} (${delRes.city}) is 100% Serviceable!**\n\n- **Hub**: ${delRes.branch}\n- **Selected Slot**: ${delRes.slot}\n- **Delivery Fee**: ₹${delRes.deliveryFee} (Free on orders above ₹${delRes.freeDeliveryAbove})\n- **Packaging**: ${delRes.packaging}`,
-            delivery: delRes,
-            followUpQuestions: ["🎂 Show cakes available for delivery today", "🏷️ View active coupons for this area"],
-            actions: [{ type: "CHECK_PINCODE", label: "Change Delivery Pincode", payload: { currentPincode: pin } }],
-            intent,
-            toolsUsed,
-          };
-        } else {
-          return {
-            message: `📍 ${delRes.message || `Pincode ${pin} is currently outside our 45-minute express radius.`}`,
-            followUpQuestions: ["Try another Bangalore/Mumbai pincode", "Check store pickup options"],
-            intent,
-            toolsUsed,
-          };
-        }
-      }
-
-      return {
-        message: `🚚 We deliver handcrafted cakes across **${session.cityName || "Bengaluru & Mumbai"}** in under 2 hours! Please provide your 6-digit delivery pincode (e.g., 560034) to check real-time slot availability.`,
-        followUpQuestions: ["Koramangala 560034", "Indiranagar 560038", "Whitefield 560066", "Bandra 400050"],
-        intent,
-        toolsUsed,
-      };
-    }
-
-    // INTENT: COUPON / OFFER QUERY
-    if (intent === "COUPON_QUERY") {
-      toolsUsed.push("listOffers");
-      const offersRes = await AiToolRegistry.listOffers(session.cityName, session.cityId);
-      const activeOffers = offersRes.offers || [];
-
-      // Check if user specified a specific code like CAKE50
-      if (clean.includes("cake50")) {
-        toolsUsed.push("validateCoupon");
-        const valRes = await AiToolRegistry.validateCoupon("CAKE50", session.budget || 699);
+      if (deliveryRes.serviceable) {
         return {
-          message: `🎉 **Coupon Code CAKE50 is Active!**\n\nEnjoy **50% OFF up to ₹150** on all artisanal birthday & anniversary cakes above ₹299.`,
-          offers: activeOffers.slice(0, 3),
+          message: `🚀 **Great news!** We deliver fresh artisanal cakes to **${deliveryRes.pincode}** in **${deliveryRes.city}**.\n\n• **Express Delivery**: ~${deliveryRes.estimatedMinutes} minutes (Next available slot: ${deliveryRes.nextAvailableSlot})\n• **Midnight Delivery**: Available (11:00 PM – 11:59 PM)\n• **Fulfillment Kitchen**: ${deliveryRes.branchName}`,
+          delivery: deliveryRes,
           actions: [
-            { type: "APPLY_COUPON", label: "Apply Code CAKE50", payload: { code: "CAKE50" } },
+            { type: "CHECK_PINCODE", label: `Change Pincode (Currently ${targetPin})`, payload: { pincode: targetPin } },
           ],
-          followUpQuestions: ["🎂 Show eligible cakes for CAKE50", "🛵 Check delivery slots"],
+          followUpQuestions: ["Show bestselling chocolate cakes", "View birthday specials under ₹800", "Check active coupon codes"],
+          intent,
+          toolsUsed,
+        };
+      } else {
+        return {
+          message: `⚠️ Pincode **${targetPin}** is currently outside our direct kitchen express zone. We deliver to major pincodes across Bengaluru, Mumbai, Delhi-NCR, Hyderabad, and Chennai.`,
+          followUpQuestions: ["Check another pincode", "Browse available cities"],
           intent,
           toolsUsed,
         };
       }
-
-      return {
-        message: `🏷️ Here are the active verified coupons and offers available in **${session.cityName || "your city"}**:`,
-        offers: activeOffers.map((o) => ({
-          id: o.id,
-          code: o.code,
-          name: o.name,
-          description: o.description,
-          discountValue: o.discountValue,
-        })),
-        actions: activeOffers.map((o) => ({
-          type: "APPLY_COUPON",
-          label: `Apply ${o.code}`,
-          payload: { code: o.code },
-        })),
-        followUpQuestions: ["Show cakes above ₹299", "Check eggless options"],
-        intent,
-        toolsUsed,
-      };
     }
 
-    // INTENT: CROSS-SELL & ACCESSORIES
-    if (intent === "CROSS_SELL") {
-      toolsUsed.push("getCrossSellProducts");
-      const crossRes = await AiToolRegistry.getCrossSellProducts();
+    // INTENT: COUPONS & OFFERS
+    if (intent === "COUPON_QUERY") {
+      toolsUsed.push("getAvailableOffers");
+      const offersRes = await AiToolRegistry.getAvailableOffers(context?.cartId);
+      const offers = offersRes.offers || [];
+
       return {
-        message: "🎁 Complement your cake with our curated party add-ons and celebration pairings:",
-        actions: (crossRes.accessories || []).map((acc: any) => ({
-          type: "ADD_TO_CART",
-          label: `Add ${acc.name} (+₹${acc.price})`,
-          payload: { productId: acc.id, name: acc.name, price: acc.price },
+        message: `🏷️ Here are the active bakery promotions for your order today:`,
+        offers,
+        actions: offers.slice(0, 2).map((off: any) => ({
+          type: "APPLY_COUPON",
+          label: `Apply ${off.code} (${off.name})`,
+          payload: { code: off.code },
         })),
-        followUpQuestions: ["🎂 Return to cake selection", "🏷️ View active coupon codes"],
+        followUpQuestions: ["🎂 Show cakes eligible for CAKE50", "🛵 Check delivery slots"],
         intent,
         toolsUsed,
       };
@@ -377,7 +320,7 @@ export class AiOrchestrator {
       toolsUsed.push("getOccasions");
       const occasionsRes = await AiToolRegistry.getOccasions();
       return {
-        message: `👋 Welcome to **CakeToHome**! I'm your AI Bakery Concierge.\n\nTell me the celebration occasion, your budget (e.g. *under ₹800*), or whether you prefer *100% eggless* — I'll find the best freshly baked cakes in **${session.cityName || "your area"}**!`,
+        message: `👋 Welcome to **CakeToHome**! I'm your AI Bakery Concierge.\n\nTell me the celebration occasion, your budget (e.g. *under ₹800*), or favourite flavour — I'll find the best freshly baked cakes in **${session.cityName || "your area"}**!`,
         actions: (occasionsRes.occasions || []).slice(0, 4).map((occ: any) => ({
           type: "SELECT_OCCASION",
           label: `${occ.icon || "🎂"} ${occ.name}`,
@@ -398,7 +341,6 @@ export class AiOrchestrator {
         query: keywordQuery,
         occasionIds: session.occasion ? [session.occasion] : undefined,
         maxPrice: session.budget,
-        eggless: session.eggless,
         vegan: session.vegan,
         sugarFree: session.sugarFree,
         glutenFree: session.glutenFree,
@@ -412,12 +354,11 @@ export class AiOrchestrator {
 
     if (prods.length === 0) {
       AiAnalyticsService.logUnansweredQuery(userText, intent, session.cityId);
-      // Fallback: search without strict filters to give closest recommendations
       const fallbackSearch = await AiToolRegistry.searchProducts({ limit: 3 }, context);
       return {
-        message: `I couldn't find an exact match for "${userText}" within those strict criteria in ${session.cityName || "your city"}. Here are our top artisanal best-sellers baked fresh today:`,
+        message: `I couldn't find an exact match for "${userText}" within those criteria in ${session.cityName || "your city"}. Here are our top artisanal best-sellers baked fresh today:`,
         products: fallbackSearch.products,
-        followUpQuestions: ["Show all chocolate cakes", "View 100% eggless cakes", "Check budget under ₹800"],
+        followUpQuestions: ["Show all chocolate cakes", "View best sellers", "Check budget under ₹800"],
         intent,
         toolsUsed,
       };
@@ -430,8 +371,6 @@ export class AiOrchestrator {
       intro = `💖 **Artisanal Anniversary & Romantic Cakes** crafted with Belgian chocolate and fresh berries:`;
     } else if (session.budget) {
       intro = `💰 **Fresh Artisanal Cakes Under ₹${session.budget}** with same-day express delivery in **${session.cityName || "your area"}**:`;
-    } else if (session.eggless) {
-      intro = `🍰 **100% Pure Vegetarian Eggless Cakes** baked fresh in dedicated vegetarian bakery kitchens in **${session.cityName || "your area"}**:`;
     }
 
     // Log conversation telemetry
@@ -446,13 +385,8 @@ export class AiOrchestrator {
     return {
       message: intro,
       products: prods,
-      actions: prods.map((p) => ({
-        type: "ADD_TO_CART",
-        label: `Add ${p.name} (₹${p.price})`,
-        payload: { productId: p.productId, name: p.name, price: p.price },
-      })),
       followUpQuestions: [
-        session.eggless ? "🍰 Show with custom chocolate plaque" : "🍰 Make it 100% Eggless",
+        "🍫 View Belgian Dark Chocolate",
         "🏷️ Apply Coupon Code CAKE50",
         "🎁 Add Flowers & Birthday Card",
         "🌙 Check Midnight Delivery Slot",

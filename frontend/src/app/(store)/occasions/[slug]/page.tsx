@@ -68,11 +68,11 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
               </div>
               <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>100% Eggless Options</span>
+                <span>Freshness Guaranteed</span>
               </div>
               <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10">
                 <Award className="w-4 h-4 text-amber-400" />
-                <span>5-Star Freshness Guaranteed</span>
+                <span>5-Star Rated Confectionery</span>
               </div>
             </div>
           </div>
@@ -128,11 +128,6 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
                       alt={prod.title || prod.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    {prod.eggless && (
-                      <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full bg-emerald-500/90 text-white text-[10px] font-bold backdrop-blur-sm">
-                        🌿 100% Eggless
-                      </span>
-                    )}
                     <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md bg-purple-900/80 text-purple-200 text-[10px] font-bold backdrop-blur-sm flex items-center gap-1">
                       {occasion.icon} {occasion.name}
                     </span>
