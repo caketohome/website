@@ -448,14 +448,28 @@ export const DEFAULT_CATALOG_PRODUCTS: any[] = [
   },
 ];
 
-export async function listProducts(options?: { branchId?: string; pincode?: string }): Promise<any[]> {
-  if (typeof window === "undefined") {
+let _cachedApiEngine: any = null;
+async function getServerApiEngine(): Promise<any> {
+  if (typeof window !== "undefined") return null;
+  if (!_cachedApiEngine) {
     try {
-      const { ApiEngine } = await import("../api-engine");
-      const products = ApiEngine.getProducts(options?.branchId, options?.pincode);
+      const mod = await import("../api-engine");
+      _cachedApiEngine = mod.ApiEngine;
+    } catch {
+      return null;
+    }
+  }
+  return _cachedApiEngine;
+}
+
+export async function listProducts(options?: { branchId?: string; pincode?: string }): Promise<any[]> {
+  const engine = await getServerApiEngine();
+  if (engine) {
+    try {
+      const products = engine.getProducts(options?.branchId, options?.pincode);
       if (Array.isArray(products) && products.length > 0) return products;
     } catch {
-      // Fallback
+      // Fallback to apiClient
     }
   }
   try {
@@ -471,10 +485,10 @@ export async function listProducts(options?: { branchId?: string; pincode?: stri
 }
 
 export async function getProductById(id: string, pincode?: string): Promise<any | null> {
-  if (typeof window === "undefined") {
+  const engine = await getServerApiEngine();
+  if (engine) {
     try {
-      const { ApiEngine } = await import("../api-engine");
-      const product = ApiEngine.getProductById(id, undefined, pincode);
+      const product = engine.getProductById(id, undefined, pincode);
       if (product) return product;
     } catch {
       // Fallback
@@ -489,10 +503,10 @@ export async function getProductById(id: string, pincode?: string): Promise<any 
 }
 
 export async function getProductBySlug(slug: string, pincode?: string): Promise<any | null> {
-  if (typeof window === "undefined") {
+  const engine = await getServerApiEngine();
+  if (engine) {
     try {
-      const { ApiEngine } = await import("../api-engine");
-      const product = ApiEngine.getProductBySlug(slug, undefined, pincode) || ApiEngine.getProductById(slug, undefined, pincode);
+      const product = engine.getProductBySlug(slug, undefined, pincode) || engine.getProductById(slug, undefined, pincode);
       if (product) return product;
     } catch {
       // Fallback
@@ -507,10 +521,10 @@ export async function getProductBySlug(slug: string, pincode?: string): Promise<
 }
 
 export async function listPimCategories(): Promise<any[]> {
-  if (typeof window === "undefined") {
+  const engine = await getServerApiEngine();
+  if (engine) {
     try {
-      const { ApiEngine } = await import("../api-engine");
-      const categories = ApiEngine.listPimCategories();
+      const categories = engine.listPimCategories();
       if (Array.isArray(categories) && categories.length > 0) return categories;
     } catch {
       // Fallback
@@ -537,10 +551,10 @@ export async function listPimCategories(): Promise<any[]> {
 }
 
 export async function listOccasions(): Promise<any[]> {
-  if (typeof window === "undefined") {
+  const engine = await getServerApiEngine();
+  if (engine) {
     try {
-      const { ApiEngine } = await import("../api-engine");
-      const occasions = ApiEngine.listOccasions();
+      const occasions = engine.listOccasions();
       if (Array.isArray(occasions) && occasions.length > 0) return occasions;
     } catch {
       // Fallback

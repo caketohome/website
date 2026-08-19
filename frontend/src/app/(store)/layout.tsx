@@ -3,16 +3,27 @@ import { ProfileBadge } from "@frontend/components/common/profile-badge";
 import NavCart from "@frontend/components/store/cart/nav-cart";
 import { HeaderNavigation } from "@frontend/components/store/cms/navigation";
 import { DeliveryLocationHeader } from "@frontend/components/store/location/delivery-location-header";
-import { ExitIntentPopup } from "@frontend/components/store/marketing/exit-intent-popup";
 import { EngagementProvider } from "@frontend/components/store/engagement/engagement-provider";
-import { WhatsAppSupportButton } from "@frontend/components/store/whatsapp-support-button";
-import { AiChatAssistant } from "@frontend/components/store/ai-chat-assistant";
 import { retrieveUser } from "@frontend/lib/data/users";
 import { ShoppingBag } from "@medusajs/icons";
 import { IconButton, Text } from "@medusajs/ui";
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Suspense } from "react";
+
+const AiChatAssistant = dynamic(
+  () => import("@frontend/components/store/ai-chat-assistant").then((mod) => mod.AiChatAssistant),
+  { ssr: false }
+);
+const ExitIntentPopup = dynamic(
+  () => import("@frontend/components/store/marketing/exit-intent-popup").then((mod) => mod.ExitIntentPopup),
+  { ssr: false }
+);
+const WhatsAppSupportButton = dynamic(
+  () => import("@frontend/components/store/whatsapp-support-button").then((mod) => mod.WhatsAppSupportButton),
+  { ssr: false }
+);
 
 export const metadata: Metadata = {
   title: "CakeToHome",

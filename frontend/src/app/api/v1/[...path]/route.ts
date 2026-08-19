@@ -59,28 +59,36 @@ function jsonWithDataSource(data: any, source: "postgres" | "json-fallback", sta
   return res;
 }
 
+const EXACT_TARGET_PATH_MAP: Record<string, string> = {
+  "admin/health": "health",
+  "health": "health",
+  "products": "store/products",
+  "store/products": "store/products",
+  "regions": "store/regions",
+  "store/regions": "store/regions",
+  "admin/products": "admin/products",
+  "admin/catalog/products": "admin/products",
+  "admin/delivery-zones": "admin/delivery/zones",
+  "admin/delivery/zones": "admin/delivery/zones",
+  "admin/delivery-partners": "admin/delivery/partners",
+  "admin/delivery/partners": "admin/delivery/partners",
+  "admin/customers": "admin/crm/customers",
+  "admin/crm/customers": "admin/crm/customers",
+  "admin/orders": "admin/order-lifecycle",
+  "admin/order-lifecycle": "admin/order-lifecycle",
+  "admin/notifications/send": "admin/notifications/send",
+  "admin/reports/schedules": "admin/reports/schedules",
+  "admin/media": "admin/media",
+  "admin/security/ip-whitelist": "admin/security/ip-whitelist",
+  "admin/delivery": "admin/delivery",
+  "admin/delivery/assign": "admin/delivery/assign",
+  "store/payments/initiate": "store/payments/initiate",
+};
+
 function resolveTargetPath(path: string): string {
-  if (path === "admin/health" || path === "health") return "health";
-  if (path === "products" || path === "store/products") return "store/products";
-  if (path === "regions" || path === "store/regions") return "store/regions";
-  if (path === "admin/products" || path === "admin/catalog/products") return "admin/products";
+  const exact = EXACT_TARGET_PATH_MAP[path];
+  if (exact) return exact;
   if (path.startsWith("admin/catalog/products/")) return path.replace("admin/catalog/products/", "admin/products/");
-  if (path.startsWith("admin/products/")) return path;
-  if (path === "admin/delivery-zones" || path === "admin/delivery/zones") return "admin/delivery/zones";
-  if (path === "admin/delivery-partners" || path === "admin/delivery/partners") return "admin/delivery/partners";
-  if (path === "admin/customers" || path === "admin/crm/customers") return "admin/crm/customers";
-  if (path === "admin/orders" || path === "admin/order-lifecycle") return "admin/order-lifecycle";
-  if (path.startsWith("admin/orders/")) return path;
-  if (path.startsWith("admin/order-lifecycle/")) return path;
-  if (path === "admin/notifications/send") return "admin/notifications/send";
-  if (path === "admin/reports/schedules") return "admin/reports/schedules";
-  if (path === "admin/media") return "admin/media";
-  if (path === "admin/security/ip-whitelist") return "admin/security/ip-whitelist";
-  if (path === "admin/delivery") return "admin/delivery";
-  if (path === "admin/delivery/assign") return "admin/delivery/assign";
-  if (path === "store/payments/initiate") return "store/payments/initiate";
-  if (path.startsWith("admin/payments/")) return path;
-  if (path.startsWith("admin/order-lifecycle/")) return path;
   return path;
 }
 

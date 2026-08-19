@@ -4211,7 +4211,513 @@
       "product_availability": {},
       "accessory_inventory": {},
       "created_at": "2026-08-19T05:03:01.945Z",
-      "updated_at": "2026-08-19T05:03:02.057Z"
+      "updated_at": "2026-08-19T05:03:02.057Z",
+      "weekly_schedule": {
+        "Monday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Tuesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Wednesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Thursday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Friday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Saturday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Sunday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        }
+      },
+      "holidays": [],
+      "special_dates": [],
+      "temporary_closure": {
+        "is_paused": false,
+        "pause_until": null,
+        "reopen_time": null,
+        "reason": null,
+        "paused_at": null
+      },
+      "fulfillment_rules": {
+        "prep_time_mins": 30,
+        "dispatch_buffer_mins": 15,
+        "order_cutoff_mins": 30,
+        "max_advance_days": 14,
+        "same_day_allowed": true,
+        "next_day_allowed": true,
+        "express_enabled": true,
+        "express_prep_mins": 45,
+        "express_surcharge": 99,
+        "midnight_enabled": true,
+        "midnight_window": {
+          "start": "23:30",
+          "end": "00:05"
+        },
+        "midnight_surcharge": 199,
+        "slot_duration_mins": 60,
+        "slot_capacity": 50,
+        "pickup_slot_duration_mins": 60,
+        "pickup_slot_capacity": 25,
+        "allow_pickup": true,
+        "allow_delivery": true
+      }
+    },
+    {
+      "id": "br_test_hub_1787118519890",
+      "status": "active",
+      "is_archived": false,
+      "archived_at": null,
+      "code": "HUB-TEST-01",
+      "name": "HSR Layout Kitchen Hub (Expanded)",
+      "linked_store_id": "store_blr_01",
+      "linked_store_name": "CakeToHome Indiranagar Kitchen Hub",
+      "hierarchy": {
+        "region_id": "reg_south",
+        "state_id": "st_ka",
+        "city_id": "city_blr",
+        "zone_id": "zone_east"
+      },
+      "address": "100 Feet Rd, Bengaluru",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "pincode": "560102",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "google_map_url": "",
+      "phone": "+91 98888 12345",
+      "whatsapp": "+91 98888 12345",
+      "email": "vikram.manager@cakes2home.com",
+      "manager_name": "Vikram S. Malhotra",
+      "manager_user_id": "usr_9888812345",
+      "manager_account": {
+        "name": "Vikram S. Malhotra",
+        "phone": "+91 98888 12345",
+        "email": "vikram.manager@cakes2home.com",
+        "status": "active"
+      },
+      "branch_type": "main_hub",
+      "extended_status": "open",
+      "operating_hours": {
+        "Monday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Tuesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Wednesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Thursday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Friday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Saturday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Sunday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        }
+      },
+      "is_open": true,
+      "operational_status": "operational",
+      "max_orders_per_hour": 25,
+      "max_orders_per_day": 200,
+      "simultaneous_cakes_capacity": 15,
+      "current_hourly_load": 0,
+      "capacity_settings": {
+        "max_hourly_orders": 25,
+        "max_simultaneous_orders": 15,
+        "max_scheduled_orders": 50,
+        "max_express_orders": 20,
+        "max_midnight_orders": 15,
+        "busy_threshold": 80,
+        "emergency_stop": false,
+        "current_load": 0,
+        "auto_pause_enabled": true,
+        "is_auto_paused": false
+      },
+      "delivery_zones": [],
+      "deliverable_areas": [],
+      "product_availability": {},
+      "accessory_inventory": {},
+      "created_at": "2026-08-19T05:48:39.892Z",
+      "updated_at": "2026-08-19T05:48:40.090Z",
+      "weekly_schedule": {
+        "Monday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Tuesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Wednesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Thursday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Friday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Saturday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Sunday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        }
+      },
+      "holidays": [],
+      "special_dates": [],
+      "temporary_closure": {
+        "is_paused": false,
+        "pause_until": null,
+        "reopen_time": null,
+        "reason": null,
+        "paused_at": null
+      },
+      "fulfillment_rules": {
+        "prep_time_mins": 30,
+        "dispatch_buffer_mins": 15,
+        "order_cutoff_mins": 30,
+        "max_advance_days": 14,
+        "same_day_allowed": true,
+        "next_day_allowed": true,
+        "express_enabled": true,
+        "express_prep_mins": 45,
+        "express_surcharge": 99,
+        "midnight_enabled": true,
+        "midnight_window": {
+          "start": "23:30",
+          "end": "00:05"
+        },
+        "midnight_surcharge": 199,
+        "slot_duration_mins": 60,
+        "slot_capacity": 50,
+        "pickup_slot_duration_mins": 60,
+        "pickup_slot_capacity": 25,
+        "allow_pickup": true,
+        "allow_delivery": true
+      }
+    },
+    {
+      "id": "br_test_hub_1787118585624",
+      "status": "active",
+      "is_archived": false,
+      "archived_at": null,
+      "code": "HUB-TEST-01",
+      "name": "HSR Layout Kitchen Hub (Expanded)",
+      "linked_store_id": "store_blr_01",
+      "linked_store_name": "CakeToHome Indiranagar Kitchen Hub",
+      "hierarchy": {
+        "region_id": "reg_south",
+        "state_id": "st_ka",
+        "city_id": "city_blr",
+        "zone_id": "zone_east"
+      },
+      "address": "100 Feet Rd, Bengaluru",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "pincode": "560102",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "google_map_url": "",
+      "phone": "+91 98888 12345",
+      "whatsapp": "+91 98888 12345",
+      "email": "vikram.manager@cakes2home.com",
+      "manager_name": "Vikram S. Malhotra",
+      "manager_user_id": "usr_9888812345",
+      "manager_account": {
+        "name": "Vikram S. Malhotra",
+        "phone": "+91 98888 12345",
+        "email": "vikram.manager@cakes2home.com",
+        "status": "active"
+      },
+      "branch_type": "main_hub",
+      "extended_status": "open",
+      "operating_hours": {
+        "Monday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Tuesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Wednesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Thursday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Friday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Saturday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Sunday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        }
+      },
+      "is_open": true,
+      "operational_status": "operational",
+      "max_orders_per_hour": 25,
+      "max_orders_per_day": 200,
+      "simultaneous_cakes_capacity": 15,
+      "current_hourly_load": 0,
+      "capacity_settings": {
+        "max_hourly_orders": 25,
+        "max_simultaneous_orders": 15,
+        "max_scheduled_orders": 50,
+        "max_express_orders": 20,
+        "max_midnight_orders": 15,
+        "busy_threshold": 80,
+        "emergency_stop": false,
+        "current_load": 0,
+        "auto_pause_enabled": true,
+        "is_auto_paused": false
+      },
+      "delivery_zones": [],
+      "deliverable_areas": [],
+      "product_availability": {},
+      "accessory_inventory": {},
+      "created_at": "2026-08-19T05:49:45.626Z",
+      "updated_at": "2026-08-19T05:49:45.701Z",
+      "weekly_schedule": {
+        "Monday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Tuesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Wednesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Thursday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Friday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Saturday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Sunday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        }
+      },
+      "holidays": [],
+      "special_dates": [],
+      "temporary_closure": {
+        "is_paused": false,
+        "pause_until": null,
+        "reopen_time": null,
+        "reason": null,
+        "paused_at": null
+      },
+      "fulfillment_rules": {
+        "prep_time_mins": 30,
+        "dispatch_buffer_mins": 15,
+        "order_cutoff_mins": 30,
+        "max_advance_days": 14,
+        "same_day_allowed": true,
+        "next_day_allowed": true,
+        "express_enabled": true,
+        "express_prep_mins": 45,
+        "express_surcharge": 99,
+        "midnight_enabled": true,
+        "midnight_window": {
+          "start": "23:30",
+          "end": "00:05"
+        },
+        "midnight_surcharge": 199,
+        "slot_duration_mins": 60,
+        "slot_capacity": 50,
+        "pickup_slot_duration_mins": 60,
+        "pickup_slot_capacity": 25,
+        "allow_pickup": true,
+        "allow_delivery": true
+      }
     }
   ],
   "cities": [
@@ -4829,6 +5335,44 @@
   ],
   "offer_redemptions": [
     {
+      "id": "red_1787118589176",
+      "offer_id": "CAKE50",
+      "customer_id": "cus_1785518113834",
+      "customer_phone": "+91 98765 43210",
+      "customer_email": null,
+      "order_id": "ord_1787118589110_bcwh3",
+      "order_number": "CTH-20260819-374",
+      "cart_id": null,
+      "branch_id": "br_indiranagar",
+      "branch_name": "Indiranagar Flagship Bakery",
+      "city": null,
+      "pincode": "560038",
+      "discount_amount": 200,
+      "order_total": 1796,
+      "payment_method": "Cash on Delivery (COD)",
+      "order_status": "completed",
+      "created_at": "2026-08-19T05:49:49.176Z"
+    },
+    {
+      "id": "red_1787118524313",
+      "offer_id": "CAKE50",
+      "customer_id": "cus_1785518113834",
+      "customer_phone": "+91 98765 43210",
+      "customer_email": null,
+      "order_id": "ord_1787118524198_2mp9f",
+      "order_number": "CTH-20260819-369",
+      "cart_id": null,
+      "branch_id": "br_indiranagar",
+      "branch_name": "Indiranagar Flagship Bakery",
+      "city": null,
+      "pincode": "560038",
+      "discount_amount": 200,
+      "order_total": 1796,
+      "payment_method": "Cash on Delivery (COD)",
+      "order_status": "completed",
+      "created_at": "2026-08-19T05:48:44.313Z"
+    },
+    {
       "id": "red_1787115632630",
       "offer_id": "CAKE50",
       "customer_id": "cus_1785518113834",
@@ -5248,6 +5792,132 @@
   ],
   "customers": [
     {
+      "id": "cus_9112291387",
+      "customer_uid": "cth_cus_9112291387",
+      "customer_number": "CTH-CUST-000192",
+      "customer_type": "registered",
+      "name": "Vikram Malhotra",
+      "first_name": "Vikram",
+      "last_name": "Malhotra",
+      "phone": "+91 91122 91387",
+      "normalized_phone": "9112291387",
+      "email": "vikram.m@example.com",
+      "normalized_email": "vikram.m@example.com",
+      "lifecycle_stage": "FIRST_PURCHASE",
+      "tier": "STANDARD",
+      "is_vip": false,
+      "orders_count": 1,
+      "total_spend": 1348,
+      "aov": 1348,
+      "last_active_at": "2026-08-19T05:49:51.874Z",
+      "last_login_at": "2026-08-19T05:49:51.874Z",
+      "cart_status": "NO_CART",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "branch_name": "Indiranagar Flagship Kitchen",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "delivery_pincode": "560038",
+      "addresses": [
+        {
+          "first_name": "Vikram",
+          "last_name": "Malhotra",
+          "phone": "+91 91122 91387",
+          "line1": "Prestige Ozone, Whitefield",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "postal_code": "560066"
+        }
+      ],
+      "notes": [],
+      "tags": [
+        "New Account",
+        "Self Registered"
+      ],
+      "loyalty": {
+        "points_balance": 100,
+        "points_earned": 100,
+        "points_redeemed": 0,
+        "tier": "STANDARD",
+        "last_updated": "2026-08-19T05:49:51.392Z"
+      },
+      "consent": {
+        "whatsapp_status": "ELIGIBLE",
+        "marketing_email": "SUBSCRIBED",
+        "marketing_sms": "SUBSCRIBED",
+        "marketing_whatsapp": "SUBSCRIBED",
+        "transactional": "SUBSCRIBED",
+        "updated_at": "2026-08-19T05:49:51.392Z"
+      },
+      "acquisition_channel": "Direct Storefront",
+      "created_at": "2026-08-19T05:49:51.392Z",
+      "updated_at": "2026-08-19T05:49:51.392Z",
+      "last_order_at": "2026-08-19T05:49:51.633Z",
+      "first_order_at": "2026-08-19T05:49:51.632Z"
+    },
+    {
+      "id": "cus_9112226529",
+      "customer_uid": "cth_cus_9112226529",
+      "customer_number": "CTH-CUST-000191",
+      "customer_type": "registered",
+      "name": "Vikram Malhotra",
+      "first_name": "Vikram",
+      "last_name": "Malhotra",
+      "phone": "+91 91122 26529",
+      "normalized_phone": "9112226529",
+      "email": "vikram.m@example.com",
+      "normalized_email": "vikram.m@example.com",
+      "lifecycle_stage": "FIRST_PURCHASE",
+      "tier": "STANDARD",
+      "is_vip": false,
+      "orders_count": 1,
+      "total_spend": 1348,
+      "aov": 1348,
+      "last_active_at": "2026-08-19T05:48:46.956Z",
+      "last_login_at": "2026-08-19T05:48:46.956Z",
+      "cart_status": "NO_CART",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "branch_name": "Indiranagar Flagship Kitchen",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "delivery_pincode": "560038",
+      "addresses": [
+        {
+          "first_name": "Vikram",
+          "last_name": "Malhotra",
+          "phone": "+91 91122 26529",
+          "line1": "Prestige Ozone, Whitefield",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "postal_code": "560066"
+        }
+      ],
+      "notes": [],
+      "tags": [
+        "New Account",
+        "Self Registered"
+      ],
+      "loyalty": {
+        "points_balance": 100,
+        "points_earned": 100,
+        "points_redeemed": 0,
+        "tier": "STANDARD",
+        "last_updated": "2026-08-19T05:48:46.534Z"
+      },
+      "consent": {
+        "whatsapp_status": "ELIGIBLE",
+        "marketing_email": "SUBSCRIBED",
+        "marketing_sms": "SUBSCRIBED",
+        "marketing_whatsapp": "SUBSCRIBED",
+        "transactional": "SUBSCRIBED",
+        "updated_at": "2026-08-19T05:48:46.534Z"
+      },
+      "acquisition_channel": "Direct Storefront",
+      "created_at": "2026-08-19T05:48:46.534Z",
+      "updated_at": "2026-08-19T05:48:46.534Z",
+      "last_order_at": "2026-08-19T05:48:46.751Z",
+      "first_order_at": "2026-08-19T05:48:46.750Z"
+    },
+    {
       "id": "cus_9112238106",
       "customer_uid": "cth_cus_9112238106",
       "customer_number": "CTH-CUST-000190",
@@ -5322,13 +5992,13 @@
       "normalized_phone": "9666655555",
       "email": "karan@example.com",
       "normalized_email": "karan@example.com",
-      "lifecycle_stage": "REPEAT_BUYER",
-      "tier": "SILVER",
+      "lifecycle_stage": "LOYAL",
+      "tier": "GOLD",
       "is_vip": false,
-      "orders_count": 4,
-      "total_spend": 3788,
+      "orders_count": 6,
+      "total_spend": 5682,
       "aov": 947,
-      "last_active_at": "2026-08-19T05:03:03.030Z",
+      "last_active_at": "2026-08-19T05:49:46.395Z",
       "last_login_at": "2026-08-19T04:58:49.025Z",
       "cart_status": "NO_CART",
       "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
@@ -5370,7 +6040,7 @@
       "acquisition_channel": "Direct Storefront",
       "created_at": "2026-08-19T04:58:49.025Z",
       "updated_at": "2026-08-19T04:58:49.025Z",
-      "last_order_at": "2026-08-19T05:03:03.030Z",
+      "last_order_at": "2026-08-19T05:49:46.395Z",
       "first_order_at": "2026-08-19T04:58:49.103Z"
     },
     {
@@ -5385,13 +6055,13 @@
       "normalized_phone": "9777766666",
       "email": "rohan@example.com",
       "normalized_email": "rohan@example.com",
-      "lifecycle_stage": "REPEAT_BUYER",
-      "tier": "SILVER",
+      "lifecycle_stage": "LOYAL",
+      "tier": "GOLD",
       "is_vip": false,
-      "orders_count": 4,
-      "total_spend": 4188,
+      "orders_count": 6,
+      "total_spend": 6282,
       "aov": 1047,
-      "last_active_at": "2026-08-19T05:03:02.708Z",
+      "last_active_at": "2026-08-19T05:49:46.147Z",
       "last_login_at": "2026-08-19T04:58:48.675Z",
       "cart_status": "NO_CART",
       "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
@@ -5433,7 +6103,7 @@
       "acquisition_channel": "Direct Storefront",
       "created_at": "2026-08-19T04:58:48.675Z",
       "updated_at": "2026-08-19T04:58:48.675Z",
-      "last_order_at": "2026-08-19T05:03:02.708Z",
+      "last_order_at": "2026-08-19T05:49:46.147Z",
       "first_order_at": "2026-08-19T04:58:48.756Z"
     },
     {
@@ -7369,11 +8039,11 @@
         "transactional": "SUBSCRIBED",
         "updated_at": "2026-08-17T15:04:06.386Z"
       },
-      "last_active_at": "2026-08-19T05:03:02.371Z",
-      "orders_count": 98,
-      "total_spend": 109188,
-      "aov": 1114,
-      "last_order_at": "2026-08-19T05:03:02.371Z",
+      "last_active_at": "2026-08-19T05:49:49.143Z",
+      "orders_count": 102,
+      "total_spend": 114874,
+      "aov": 1126,
+      "last_order_at": "2026-08-19T05:49:49.143Z",
       "first_order_at": "2026-08-17T23:56:49.559Z",
       "cart_status": "NO_CART",
       "last_login_at": "2026-08-18T01:51:48.427Z"
@@ -20110,9 +20780,9 @@
       "full_name": "Sunil Rider",
       "partner_number": "CTH-DP-HSR01",
       "phone": "+91 98111 22334",
-      "primary_branch_id": "br_test_hub_1787115781942",
+      "primary_branch_id": "br_test_hub_1787118585624",
       "associated_branches": [
-        "br_test_hub_1787115781942"
+        "br_test_hub_1787118585624"
       ],
       "status": "active",
       "availability_status": "ONLINE",
@@ -20233,6 +20903,146 @@
     }
   ],
   "audit_logs": [
+    {
+      "id": "log_1787118591699",
+      "action": "New Order CTH-20260819-375 placed by Vikram Malhotra (₹1348) -> Assigned to Whitefield Tech Hub",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:49:51.699Z"
+    },
+    {
+      "id": "log_1787118589242",
+      "action": "New Order CTH-20260819-374 placed by Alex Johnson (₹1796) -> Assigned to Indiranagar Flagship Bakery",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:49:49.242Z"
+    },
+    {
+      "id": "log_1787118586762",
+      "action": "Customer Delivery OTP (4418) verified by Partner Sunil Rider. Order CTH-20260819-372 marked DELIVERED.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:49:46.762Z"
+    },
+    {
+      "id": "log_1787118586692",
+      "action": "Kitchen Pickup OTP (1982) verified by Partner Sunil Rider for Order CTH-20260819-372",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:49:46.692Z"
+    },
+    {
+      "id": "log_1787118586615",
+      "action": "Partner Sunil Rider (CTH-DP-HSR01) claimed Order CTH-20260819-372",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:49:46.615Z"
+    },
+    {
+      "id": "log_1787118586465",
+      "action": "New Order CTH-20260819-373 placed by Karan Mehta (₹947) -> Assigned to HSR Layout Kitchen Hub (Expanded)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:49:46.465Z"
+    },
+    {
+      "id": "log_1787118586220",
+      "action": "New Order CTH-20260819-372 placed by Rohan Kapoor (₹1047) -> Assigned to HSR Layout Kitchen Hub (Expanded)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:49:46.220Z"
+    },
+    {
+      "id": "log_1787118585964",
+      "action": "New Order CTH-20260819-371 placed by Ananya Sharma (₹1047) -> Assigned to HSR Layout Kitchen Hub (Expanded)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:49:45.964Z"
+    },
+    {
+      "id": "log_1787118585701",
+      "action": "Saved Branch \"HSR Layout Kitchen Hub (Expanded)\" (HUB-TEST-01)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:49:45.701Z"
+    },
+    {
+      "id": "log_1787118585626",
+      "action": "Saved Branch \"HSR Layout Kitchen Hub\" (HUB-TEST-01)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:49:45.626Z"
+    },
+    {
+      "id": "log_1787118526807",
+      "action": "New Order CTH-20260819-370 placed by Vikram Malhotra (₹1348) -> Assigned to Whitefield Tech Hub",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:48:46.807Z"
+    },
+    {
+      "id": "log_1787118524456",
+      "action": "New Order CTH-20260819-369 placed by Alex Johnson (₹1796) -> Assigned to Indiranagar Flagship Bakery",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:48:44.456Z"
+    },
+    {
+      "id": "log_1787118521358",
+      "action": "Customer Delivery OTP (5689) verified by Partner Sunil Rider. Order CTH-20260819-367 marked DELIVERED.",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:48:41.358Z"
+    },
+    {
+      "id": "log_1787118521286",
+      "action": "Kitchen Pickup OTP (9937) verified by Partner Sunil Rider for Order CTH-20260819-367",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:48:41.286Z"
+    },
+    {
+      "id": "log_1787118521210",
+      "action": "Partner Sunil Rider (CTH-DP-HSR01) claimed Order CTH-20260819-367",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:48:41.210Z"
+    },
+    {
+      "id": "log_1787118521062",
+      "action": "New Order CTH-20260819-368 placed by Karan Mehta (₹947) -> Assigned to HSR Layout Kitchen Hub (Expanded)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:48:41.062Z"
+    },
+    {
+      "id": "log_1787118520725",
+      "action": "New Order CTH-20260819-367 placed by Rohan Kapoor (₹1047) -> Assigned to HSR Layout Kitchen Hub (Expanded)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:48:40.726Z"
+    },
+    {
+      "id": "log_1787118520480",
+      "action": "New Order CTH-20260819-366 placed by Ananya Sharma (₹1047) -> Assigned to HSR Layout Kitchen Hub (Expanded)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:48:40.480Z"
+    },
+    {
+      "id": "log_1787118520090",
+      "action": "Saved Branch \"HSR Layout Kitchen Hub (Expanded)\" (HUB-TEST-01)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:48:40.090Z"
+    },
+    {
+      "id": "log_1787118519892",
+      "action": "Saved Branch \"HSR Layout Kitchen Hub\" (HUB-TEST-01)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T05:48:39.892Z"
+    },
     {
       "id": "log_1787115783521",
       "action": "Customer Delivery OTP (2222) verified by Partner Sunil Rider. Order CTH-20260819-364 marked DELIVERED.",
@@ -36035,6 +36845,36 @@
   ],
   "login_events": [
     {
+      "id": "log_1787118591390_req",
+      "identifier": "+91 91122 91387",
+      "phone": "+91 91122 91387",
+      "normalized_phone": "9112291387",
+      "role": "CUSTOMER",
+      "user_id": "cus_9112291387",
+      "user_name": "Guest",
+      "status": "OTP_SENT",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_REQUESTED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-19T05:49:51.390Z"
+    },
+    {
+      "id": "log_1787118526532_req",
+      "identifier": "+91 91122 26529",
+      "phone": "+91 91122 26529",
+      "normalized_phone": "9112226529",
+      "role": "CUSTOMER",
+      "user_id": "cus_9112226529",
+      "user_name": "Guest",
+      "status": "OTP_SENT",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_REQUESTED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-19T05:48:46.532Z"
+    },
+    {
       "id": "log_1787115638109_req",
       "identifier": "+91 91122 38106",
       "phone": "+91 91122 38106",
@@ -36397,7 +37237,7 @@
       "abandoned_at": "2026-08-18T12:26:06.237Z",
       "last_contacted_at": null,
       "recovery_attempts_count": 0,
-      "recovery_token": "recov_tok_cart_test_1787055066203_A_1787115638508"
+      "recovery_token": "recov_tok_cart_test_1787055066203_A_1787118591796"
     },
     {
       "id": "cart_test_1787055066203_B",
@@ -51094,6 +51934,1416 @@
     }
   ],
   "orders": [
+    {
+      "id": "ord_1787118591599_5eokz",
+      "cart_id": "cart_guest_1787118591495",
+      "order_number": "CTH-20260819-375",
+      "invoice_number": "CTH/26-27/000375",
+      "kot_number": "KOT-CTH-20260819-375",
+      "customer_id": "cus_9112291387",
+      "customer_uid": "cth_cus_9112291387",
+      "customer_name": "Vikram Malhotra",
+      "customer_phone": "+91 91122 91387",
+      "customer_email": "customer@cakes2home.com",
+      "delivery_address": "Prestige Ozone, Whitefield, , Bengaluru",
+      "landmark": "",
+      "pincode": "560066",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_whitefield",
+      "branch_name": "Whitefield Tech Hub",
+      "branch_code": "HUB-BLR-04",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "ITPL Main Rd, Whitefield",
+        "branch_id": "br_whitefield",
+        "branch_code": "HUB-BLR-04",
+        "branch_name": "Whitefield Tech Hub",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE"
+      },
+      "items": [
+        {
+          "id": "item_1787118591528_r824",
+          "product_id": "prod_01KXY_BELGIAN_TRUFFLE",
+          "title": "Belgian Dark Chocolate Truffle Cake",
+          "name": "Belgian Dark Chocolate Truffle Cake",
+          "weight": "500g",
+          "shape": "Round",
+          "flavour": "Classic",
+          "eggless": true,
+          "quantity": 1,
+          "unit_price": 1299,
+          "subtotal": 1299,
+          "total": 1299,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 1237.14,
+          "tax_amount": 61.86,
+          "cgst": 30.93,
+          "sgst": 30.93,
+          "igst": 0,
+          "thumbnail": "",
+          "cake_message": "Happy Anniversary!",
+          "selected_addons": []
+        }
+      ],
+      "pricing": {
+        "subtotal": 1299,
+        "discount": 0,
+        "applied_coupon": null,
+        "delivery_fee": 0,
+        "delivery_charge": 0,
+        "slot_surcharge": 49,
+        "slot_charge": 49,
+        "taxable_value": 1237.14,
+        "cgst": 30.93,
+        "sgst": 30.93,
+        "igst": 0,
+        "total_tax": 61.86,
+        "round_off": 0,
+        "grand_total": 1348,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 61.86,
+        "cgst": 30.93,
+        "sgst": 30.93,
+        "igst": 0,
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 1299,
+      "total": 1348,
+      "delivery_fee": 0,
+      "tax_total": 61.86,
+      "discount_total": 0,
+      "status": "confirmed",
+      "delivery_status": "shop_accepted",
+      "payment_status": "captured",
+      "payment_method": "Online UPI (Razorpay)",
+      "transaction_id": "pay_test_vikram_101",
+      "delivery_type": "delivery",
+      "delivery_date": "2026-08-19",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "6689",
+      "delivery_otp": "4367",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Anniversary!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787118591632",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-19T05:49:51.632Z",
+          "author": "Customer",
+          "notes": "Payment method: RAZORPAY"
+        },
+        {
+          "id": "tl_1787118591633",
+          "title": "Assigned to Kitchen: Whitefield Tech Hub",
+          "time": "2026-08-19T05:49:51.632Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260819-375"
+        }
+      ],
+      "created_at": "2026-08-19T05:49:51.632Z",
+      "updated_at": "2026-08-19T05:49:51.632Z"
+    },
+    {
+      "id": "ord_1787118589110_bcwh3",
+      "cart_id": "cart_test_1787118588932",
+      "order_number": "CTH-20260819-374",
+      "invoice_number": "CTH/26-27/000374",
+      "kot_number": "KOT-CTH-20260819-374",
+      "customer_id": "cus_1785518113834",
+      "customer_uid": "cth_cus_1785518113834",
+      "customer_name": "Alex Johnson",
+      "customer_phone": "+91 98765 43210",
+      "customer_email": "alex@example.com",
+      "delivery_address": "12th Main Road, Indiranagar, , Bengaluru",
+      "landmark": "",
+      "pincode": "560038",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_indiranagar",
+      "branch_name": "Indiranagar Flagship Bakery",
+      "branch_code": "HUB-BLR-01",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "branch_id": "br_indiranagar",
+        "branch_code": "HUB-BLR-01",
+        "branch_name": "Indiranagar Flagship Bakery",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE"
+      },
+      "items": [
+        {
+          "id": "item_1787118588969_gtea",
+          "product_id": "prod_1",
+          "title": "Belgian Chocolate Truffle Cake",
+          "name": "Belgian Chocolate Truffle Cake",
+          "weight": "1.5 kg",
+          "shape": "Heart Shaped",
+          "flavour": "Belgian Dark Ganache",
+          "eggless": true,
+          "quantity": 3,
+          "unit_price": 649,
+          "subtotal": 1947,
+          "total": 1947,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 1854.29,
+          "tax_amount": 92.71,
+          "cgst": 46.36,
+          "sgst": 46.36,
+          "igst": 0,
+          "thumbnail": "",
+          "cake_message": "Happy Birthday Alex!",
+          "selected_addons": [
+            "acc_1",
+            "acc_2"
+          ]
+        }
+      ],
+      "pricing": {
+        "subtotal": 1947,
+        "discount": 200,
+        "applied_coupon": {
+          "code": "CAKE50",
+          "description": "Get 50% discount up to ₹200 on all gourmet cakes.",
+          "discount": 200
+        },
+        "delivery_fee": 0,
+        "delivery_charge": 0,
+        "slot_surcharge": 49,
+        "slot_charge": 49,
+        "taxable_value": 1854.29,
+        "cgst": 46.36,
+        "sgst": 46.36,
+        "igst": 0,
+        "total_tax": 92.71,
+        "round_off": 0,
+        "grand_total": 1796,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 92.71,
+        "cgst": 46.36,
+        "sgst": 46.36,
+        "igst": 0,
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 1947,
+      "total": 1796,
+      "delivery_fee": 0,
+      "tax_total": 92.71,
+      "discount_total": 200,
+      "status": "confirmed",
+      "delivery_status": "shop_accepted",
+      "payment_status": "pending",
+      "payment_method": "Cash on Delivery (COD)",
+      "transaction_id": "TXN_1787118589143",
+      "delivery_type": "delivery",
+      "delivery_date": "2026-08-19",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "3939",
+      "delivery_otp": "3223",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Birthday Alex!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787118589143",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-19T05:49:49.143Z",
+          "author": "Customer",
+          "notes": "Payment method: COD"
+        },
+        {
+          "id": "tl_1787118589144",
+          "title": "Assigned to Kitchen: Indiranagar Flagship Bakery",
+          "time": "2026-08-19T05:49:49.143Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260819-374"
+        }
+      ],
+      "created_at": "2026-08-19T05:49:49.143Z",
+      "updated_at": "2026-08-19T05:49:49.143Z"
+    },
+    {
+      "id": "ord_1787118586361_sqovq",
+      "cart_id": "cart_c_1787118586292",
+      "order_number": "CTH-20260819-373",
+      "invoice_number": "CTH/26-27/000373",
+      "kot_number": "KOT-CTH-20260819-373",
+      "customer_id": "cus_9666655555",
+      "customer_uid": "cth_cus_9666655555",
+      "customer_name": "Karan Mehta",
+      "customer_phone": "+91 96666 55555",
+      "customer_email": "karan@example.com",
+      "delivery_address": "Sector 2, HSR Layout, , Bengaluru",
+      "landmark": "",
+      "pincode": "560102",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_test_hub_1787118585624",
+      "branch_name": "HSR Layout Kitchen Hub (Expanded)",
+      "branch_code": "HUB-TEST-01",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "100 Feet Rd, Bengaluru",
+        "branch_id": "br_test_hub_1787115423007",
+        "branch_code": "HUB-TEST-01",
+        "branch_name": "HSR Layout Kitchen Hub (Expanded)",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": false,
+        "supply_type": "INTER-STATE"
+      },
+      "items": [
+        {
+          "id": "item_1787118586326_0rtc",
+          "product_id": "prod_2",
+          "title": "Classic Red Velvet Cake",
+          "name": "Classic Red Velvet Cake",
+          "weight": "1.0 kg",
+          "shape": "Round",
+          "flavour": "Red Velvet Cream Cheese",
+          "eggless": true,
+          "quantity": 1,
+          "unit_price": 799,
+          "subtotal": 799,
+          "total": 799,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 760.95,
+          "tax_amount": 38.05,
+          "cgst": 0,
+          "sgst": 0,
+          "igst": 38.05,
+          "thumbnail": "",
+          "cake_message": "Happy Birthday Karan!",
+          "selected_addons": []
+        }
+      ],
+      "pricing": {
+        "subtotal": 799,
+        "discount": 0,
+        "applied_coupon": null,
+        "delivery_fee": 49,
+        "delivery_charge": 49,
+        "slot_surcharge": 99,
+        "slot_charge": 99,
+        "taxable_value": 760.95,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 38.05,
+        "total_tax": 38.05,
+        "round_off": 0,
+        "grand_total": 947,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 38.05,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 38.05,
+        "is_intra_state": false,
+        "supply_type": "INTER-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 799,
+      "total": 947,
+      "delivery_fee": 49,
+      "tax_total": 38.05,
+      "discount_total": 0,
+      "status": "confirmed",
+      "delivery_status": "shop_accepted",
+      "payment_status": "pending",
+      "payment_method": "Cash on Delivery (COD)",
+      "transaction_id": "TXN_1787118586395",
+      "delivery_type": "standard",
+      "delivery_date": "2026-08-19",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "1339",
+      "delivery_otp": "9172",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Birthday Karan!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787118586395",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-19T05:49:46.395Z",
+          "author": "Customer",
+          "notes": "Payment method: COD"
+        },
+        {
+          "id": "tl_1787118586396",
+          "title": "Assigned to Kitchen: HSR Layout Kitchen Hub (Expanded)",
+          "time": "2026-08-19T05:49:46.395Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260819-373"
+        }
+      ],
+      "created_at": "2026-08-19T05:49:46.395Z",
+      "updated_at": "2026-08-19T05:49:46.395Z"
+    },
+    {
+      "id": "ord_1787118586109_d5hgn",
+      "cart_id": "cart_b_1787118586037",
+      "order_number": "CTH-20260819-372",
+      "invoice_number": "CTH/26-27/000372",
+      "kot_number": "KOT-CTH-20260819-372",
+      "customer_id": "cus_9777766666",
+      "customer_uid": "cth_cus_9777766666",
+      "customer_name": "Rohan Kapoor",
+      "customer_phone": "+91 97777 66666",
+      "customer_email": "rohan@example.com",
+      "delivery_address": "5th Cross, HSR Layout, , Bengaluru",
+      "landmark": "",
+      "pincode": "560102",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_test_hub_1787118585624",
+      "branch_name": "HSR Layout Kitchen Hub (Expanded)",
+      "branch_code": "HUB-TEST-01",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "100 Feet Rd, Bengaluru",
+        "branch_id": "br_test_hub_1787115423007",
+        "branch_code": "HUB-TEST-01",
+        "branch_name": "HSR Layout Kitchen Hub (Expanded)",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": false,
+        "supply_type": "INTER-STATE"
+      },
+      "items": [
+        {
+          "id": "item_1787118586071_cnac",
+          "product_id": "prod_1",
+          "title": "Signature Belgian Truffle Cake",
+          "name": "Signature Belgian Truffle Cake",
+          "weight": "1.0 kg",
+          "shape": "Round",
+          "flavour": "Belgian Chocolate",
+          "eggless": true,
+          "quantity": 1,
+          "unit_price": 899,
+          "subtotal": 899,
+          "total": 899,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 856.19,
+          "tax_amount": 42.81,
+          "cgst": 0,
+          "sgst": 0,
+          "igst": 42.81,
+          "thumbnail": "",
+          "cake_message": "Happy Birthday Rohan!",
+          "selected_addons": []
+        }
+      ],
+      "pricing": {
+        "subtotal": 899,
+        "discount": 0,
+        "applied_coupon": null,
+        "delivery_fee": 49,
+        "delivery_charge": 49,
+        "slot_surcharge": 99,
+        "slot_charge": 99,
+        "taxable_value": 856.19,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 42.81,
+        "total_tax": 42.81,
+        "round_off": 0,
+        "grand_total": 1047,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 42.81,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 42.81,
+        "is_intra_state": false,
+        "supply_type": "INTER-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 899,
+      "total": 1047,
+      "delivery_fee": 49,
+      "tax_total": 42.81,
+      "discount_total": 0,
+      "status": "delivered",
+      "delivery_status": "delivered",
+      "payment_status": "captured",
+      "payment_method": "Online UPI (Razorpay)",
+      "transaction_id": "pay_test_captured_9991",
+      "delivery_type": "standard",
+      "delivery_date": "2026-08-19",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "1982",
+      "delivery_otp": "4418",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Birthday Rohan!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787118586146",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-19T05:49:46.146Z",
+          "author": "Customer",
+          "notes": "Payment method: RAZORPAY"
+        },
+        {
+          "id": "tl_1787118586148",
+          "title": "Assigned to Kitchen: HSR Layout Kitchen Hub (Expanded)",
+          "time": "2026-08-19T05:49:46.147Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260819-372"
+        }
+      ],
+      "created_at": "2026-08-19T05:49:46.147Z",
+      "updated_at": "2026-08-19T05:49:46.147Z",
+      "delivery_partner_id": "dlp_hsr_01",
+      "assigned_partner_id": "dlp_hsr_01",
+      "driver_name": "Sunil Rider",
+      "claimed_at": "2026-08-19T05:49:46.615Z",
+      "pickup_verified_at": "2026-08-19T05:49:46.692Z",
+      "pickup_verified_by": "dlp_hsr_01",
+      "delivery_otp_verified_at": "2026-08-19T05:49:46.762Z",
+      "delivered_at": "2026-08-19T05:49:46.762Z"
+    },
+    {
+      "id": "ord_1787118585853_o2s16",
+      "cart_id": "cart_a_1787118585774",
+      "order_number": "CTH-20260819-371",
+      "invoice_number": "CTH/26-27/000371",
+      "kot_number": "KOT-CTH-20260819-371",
+      "customer_id": "cus_1785518113834",
+      "customer_uid": "cth_cus_1785518113834",
+      "customer_name": "Ananya Sharma",
+      "customer_phone": "+91 98765 43210",
+      "customer_email": "ananya@example.com",
+      "delivery_address": "14th Main, HSR Layout Sector 4, , Bengaluru",
+      "landmark": "",
+      "pincode": "560102",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_test_hub_1787118585624",
+      "branch_name": "HSR Layout Kitchen Hub (Expanded)",
+      "branch_code": "HUB-TEST-01",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "100 Feet Rd, Bengaluru",
+        "branch_id": "br_test_hub_1787115423007",
+        "branch_code": "HUB-TEST-01",
+        "branch_name": "HSR Layout Kitchen Hub (Expanded)",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": false,
+        "supply_type": "INTER-STATE"
+      },
+      "items": [
+        {
+          "id": "item_1787118585810_8h8p",
+          "product_id": "prod_1",
+          "title": "Signature Belgian Truffle Cake",
+          "name": "Signature Belgian Truffle Cake",
+          "weight": "1.0 kg",
+          "shape": "Round",
+          "flavour": "Belgian Chocolate",
+          "eggless": true,
+          "quantity": 1,
+          "unit_price": 899,
+          "subtotal": 899,
+          "total": 899,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 856.19,
+          "tax_amount": 42.81,
+          "cgst": 0,
+          "sgst": 0,
+          "igst": 42.81,
+          "thumbnail": "",
+          "cake_message": "Happy Birthday Ananya!",
+          "selected_addons": []
+        }
+      ],
+      "pricing": {
+        "subtotal": 899,
+        "discount": 0,
+        "applied_coupon": null,
+        "delivery_fee": 49,
+        "delivery_charge": 49,
+        "slot_surcharge": 99,
+        "slot_charge": 99,
+        "taxable_value": 856.19,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 42.81,
+        "total_tax": 42.81,
+        "round_off": 0,
+        "grand_total": 1047,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 42.81,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 42.81,
+        "is_intra_state": false,
+        "supply_type": "INTER-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 899,
+      "total": 1047,
+      "delivery_fee": 49,
+      "tax_total": 42.81,
+      "discount_total": 0,
+      "status": "confirmed",
+      "delivery_status": "shop_accepted",
+      "payment_status": "pending",
+      "payment_method": "Online UPI (Razorpay)",
+      "transaction_id": "TXN_1787118585888",
+      "delivery_type": "standard",
+      "delivery_date": "2026-08-19",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "6293",
+      "delivery_otp": "1280",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Birthday Ananya!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787118585888",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-19T05:49:45.888Z",
+          "author": "Customer",
+          "notes": "Payment method: RAZORPAY"
+        },
+        {
+          "id": "tl_1787118585890",
+          "title": "Assigned to Kitchen: HSR Layout Kitchen Hub (Expanded)",
+          "time": "2026-08-19T05:49:45.889Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260819-371"
+        }
+      ],
+      "created_at": "2026-08-19T05:49:45.889Z",
+      "updated_at": "2026-08-19T05:49:45.889Z"
+    },
+    {
+      "id": "ord_1787118526721_0oz9y",
+      "cart_id": "cart_guest_1787118526633",
+      "order_number": "CTH-20260819-370",
+      "invoice_number": "CTH/26-27/000370",
+      "kot_number": "KOT-CTH-20260819-370",
+      "customer_id": "cus_9112226529",
+      "customer_uid": "cth_cus_9112226529",
+      "customer_name": "Vikram Malhotra",
+      "customer_phone": "+91 91122 26529",
+      "customer_email": "customer@cakes2home.com",
+      "delivery_address": "Prestige Ozone, Whitefield, , Bengaluru",
+      "landmark": "",
+      "pincode": "560066",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_whitefield",
+      "branch_name": "Whitefield Tech Hub",
+      "branch_code": "HUB-BLR-04",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "ITPL Main Rd, Whitefield",
+        "branch_id": "br_whitefield",
+        "branch_code": "HUB-BLR-04",
+        "branch_name": "Whitefield Tech Hub",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE"
+      },
+      "items": [
+        {
+          "id": "item_1787118526662_0tyf",
+          "product_id": "prod_01KXY_BELGIAN_TRUFFLE",
+          "title": "Belgian Dark Chocolate Truffle Cake",
+          "name": "Belgian Dark Chocolate Truffle Cake",
+          "weight": "500g",
+          "shape": "Round",
+          "flavour": "Classic",
+          "eggless": true,
+          "quantity": 1,
+          "unit_price": 1299,
+          "subtotal": 1299,
+          "total": 1299,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 1237.14,
+          "tax_amount": 61.86,
+          "cgst": 30.93,
+          "sgst": 30.93,
+          "igst": 0,
+          "thumbnail": "",
+          "cake_message": "Happy Anniversary!",
+          "selected_addons": []
+        }
+      ],
+      "pricing": {
+        "subtotal": 1299,
+        "discount": 0,
+        "applied_coupon": null,
+        "delivery_fee": 0,
+        "delivery_charge": 0,
+        "slot_surcharge": 49,
+        "slot_charge": 49,
+        "taxable_value": 1237.14,
+        "cgst": 30.93,
+        "sgst": 30.93,
+        "igst": 0,
+        "total_tax": 61.86,
+        "round_off": 0,
+        "grand_total": 1348,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 61.86,
+        "cgst": 30.93,
+        "sgst": 30.93,
+        "igst": 0,
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 1299,
+      "total": 1348,
+      "delivery_fee": 0,
+      "tax_total": 61.86,
+      "discount_total": 0,
+      "status": "confirmed",
+      "delivery_status": "shop_accepted",
+      "payment_status": "captured",
+      "payment_method": "Online UPI (Razorpay)",
+      "transaction_id": "pay_test_vikram_101",
+      "delivery_type": "delivery",
+      "delivery_date": "2026-08-19",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "8419",
+      "delivery_otp": "7898",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Anniversary!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787118526750",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-19T05:48:46.750Z",
+          "author": "Customer",
+          "notes": "Payment method: RAZORPAY"
+        },
+        {
+          "id": "tl_1787118526751",
+          "title": "Assigned to Kitchen: Whitefield Tech Hub",
+          "time": "2026-08-19T05:48:46.750Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260819-370"
+        }
+      ],
+      "created_at": "2026-08-19T05:48:46.750Z",
+      "updated_at": "2026-08-19T05:48:46.750Z"
+    },
+    {
+      "id": "ord_1787118524198_2mp9f",
+      "cart_id": "cart_test_1787118523843",
+      "order_number": "CTH-20260819-369",
+      "invoice_number": "CTH/26-27/000369",
+      "kot_number": "KOT-CTH-20260819-369",
+      "customer_id": "cus_1785518113834",
+      "customer_uid": "cth_cus_1785518113834",
+      "customer_name": "Alex Johnson",
+      "customer_phone": "+91 98765 43210",
+      "customer_email": "alex@example.com",
+      "delivery_address": "12th Main Road, Indiranagar, , Bengaluru",
+      "landmark": "",
+      "pincode": "560038",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_indiranagar",
+      "branch_name": "Indiranagar Flagship Bakery",
+      "branch_code": "HUB-BLR-01",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "branch_id": "br_indiranagar",
+        "branch_code": "HUB-BLR-01",
+        "branch_name": "Indiranagar Flagship Bakery",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE"
+      },
+      "items": [
+        {
+          "id": "item_1787118523915_8f4m",
+          "product_id": "prod_1",
+          "title": "Belgian Chocolate Truffle Cake",
+          "name": "Belgian Chocolate Truffle Cake",
+          "weight": "1.5 kg",
+          "shape": "Heart Shaped",
+          "flavour": "Belgian Dark Ganache",
+          "eggless": true,
+          "quantity": 3,
+          "unit_price": 649,
+          "subtotal": 1947,
+          "total": 1947,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 1854.29,
+          "tax_amount": 92.71,
+          "cgst": 46.36,
+          "sgst": 46.36,
+          "igst": 0,
+          "thumbnail": "",
+          "cake_message": "Happy Birthday Alex!",
+          "selected_addons": [
+            "acc_1",
+            "acc_2"
+          ]
+        }
+      ],
+      "pricing": {
+        "subtotal": 1947,
+        "discount": 200,
+        "applied_coupon": {
+          "code": "CAKE50",
+          "description": "Get 50% discount up to ₹200 on all gourmet cakes.",
+          "discount": 200
+        },
+        "delivery_fee": 0,
+        "delivery_charge": 0,
+        "slot_surcharge": 49,
+        "slot_charge": 49,
+        "taxable_value": 1854.29,
+        "cgst": 46.36,
+        "sgst": 46.36,
+        "igst": 0,
+        "total_tax": 92.71,
+        "round_off": 0,
+        "grand_total": 1796,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 92.71,
+        "cgst": 46.36,
+        "sgst": 46.36,
+        "igst": 0,
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 1947,
+      "total": 1796,
+      "delivery_fee": 0,
+      "tax_total": 92.71,
+      "discount_total": 200,
+      "status": "confirmed",
+      "delivery_status": "shop_accepted",
+      "payment_status": "pending",
+      "payment_method": "Cash on Delivery (COD)",
+      "transaction_id": "TXN_1787118524263",
+      "delivery_type": "delivery",
+      "delivery_date": "2026-08-19",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "6874",
+      "delivery_otp": "4501",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Birthday Alex!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787118524263",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-19T05:48:44.263Z",
+          "author": "Customer",
+          "notes": "Payment method: COD"
+        },
+        {
+          "id": "tl_1787118524264",
+          "title": "Assigned to Kitchen: Indiranagar Flagship Bakery",
+          "time": "2026-08-19T05:48:44.263Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260819-369"
+        }
+      ],
+      "created_at": "2026-08-19T05:48:44.263Z",
+      "updated_at": "2026-08-19T05:48:44.263Z"
+    },
+    {
+      "id": "ord_1787118520958_aw5xu",
+      "cart_id": "cart_c_1787118520888",
+      "order_number": "CTH-20260819-368",
+      "invoice_number": "CTH/26-27/000368",
+      "kot_number": "KOT-CTH-20260819-368",
+      "customer_id": "cus_9666655555",
+      "customer_uid": "cth_cus_9666655555",
+      "customer_name": "Karan Mehta",
+      "customer_phone": "+91 96666 55555",
+      "customer_email": "karan@example.com",
+      "delivery_address": "Sector 2, HSR Layout, , Bengaluru",
+      "landmark": "",
+      "pincode": "560102",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_test_hub_1787118519890",
+      "branch_name": "HSR Layout Kitchen Hub (Expanded)",
+      "branch_code": "HUB-TEST-01",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "100 Feet Rd, Bengaluru",
+        "branch_id": "br_test_hub_1787115423007",
+        "branch_code": "HUB-TEST-01",
+        "branch_name": "HSR Layout Kitchen Hub (Expanded)",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": false,
+        "supply_type": "INTER-STATE"
+      },
+      "items": [
+        {
+          "id": "item_1787118520924_x2sy",
+          "product_id": "prod_2",
+          "title": "Classic Red Velvet Cake",
+          "name": "Classic Red Velvet Cake",
+          "weight": "1.0 kg",
+          "shape": "Round",
+          "flavour": "Red Velvet Cream Cheese",
+          "eggless": true,
+          "quantity": 1,
+          "unit_price": 799,
+          "subtotal": 799,
+          "total": 799,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 760.95,
+          "tax_amount": 38.05,
+          "cgst": 0,
+          "sgst": 0,
+          "igst": 38.05,
+          "thumbnail": "",
+          "cake_message": "Happy Birthday Karan!",
+          "selected_addons": []
+        }
+      ],
+      "pricing": {
+        "subtotal": 799,
+        "discount": 0,
+        "applied_coupon": null,
+        "delivery_fee": 49,
+        "delivery_charge": 49,
+        "slot_surcharge": 99,
+        "slot_charge": 99,
+        "taxable_value": 760.95,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 38.05,
+        "total_tax": 38.05,
+        "round_off": 0,
+        "grand_total": 947,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 38.05,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 38.05,
+        "is_intra_state": false,
+        "supply_type": "INTER-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 799,
+      "total": 947,
+      "delivery_fee": 49,
+      "tax_total": 38.05,
+      "discount_total": 0,
+      "status": "confirmed",
+      "delivery_status": "shop_accepted",
+      "payment_status": "pending",
+      "payment_method": "Cash on Delivery (COD)",
+      "transaction_id": "TXN_1787118520993",
+      "delivery_type": "standard",
+      "delivery_date": "2026-08-19",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "5602",
+      "delivery_otp": "2391",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Birthday Karan!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787118520993",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-19T05:48:40.993Z",
+          "author": "Customer",
+          "notes": "Payment method: COD"
+        },
+        {
+          "id": "tl_1787118520994",
+          "title": "Assigned to Kitchen: HSR Layout Kitchen Hub (Expanded)",
+          "time": "2026-08-19T05:48:40.993Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260819-368"
+        }
+      ],
+      "created_at": "2026-08-19T05:48:40.993Z",
+      "updated_at": "2026-08-19T05:48:40.993Z"
+    },
+    {
+      "id": "ord_1787118520623_rwrd1",
+      "cart_id": "cart_b_1787118520550",
+      "order_number": "CTH-20260819-367",
+      "invoice_number": "CTH/26-27/000367",
+      "kot_number": "KOT-CTH-20260819-367",
+      "customer_id": "cus_9777766666",
+      "customer_uid": "cth_cus_9777766666",
+      "customer_name": "Rohan Kapoor",
+      "customer_phone": "+91 97777 66666",
+      "customer_email": "rohan@example.com",
+      "delivery_address": "5th Cross, HSR Layout, , Bengaluru",
+      "landmark": "",
+      "pincode": "560102",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_test_hub_1787118519890",
+      "branch_name": "HSR Layout Kitchen Hub (Expanded)",
+      "branch_code": "HUB-TEST-01",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "100 Feet Rd, Bengaluru",
+        "branch_id": "br_test_hub_1787115423007",
+        "branch_code": "HUB-TEST-01",
+        "branch_name": "HSR Layout Kitchen Hub (Expanded)",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": false,
+        "supply_type": "INTER-STATE"
+      },
+      "items": [
+        {
+          "id": "item_1787118520586_jm08",
+          "product_id": "prod_1",
+          "title": "Signature Belgian Truffle Cake",
+          "name": "Signature Belgian Truffle Cake",
+          "weight": "1.0 kg",
+          "shape": "Round",
+          "flavour": "Belgian Chocolate",
+          "eggless": true,
+          "quantity": 1,
+          "unit_price": 899,
+          "subtotal": 899,
+          "total": 899,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 856.19,
+          "tax_amount": 42.81,
+          "cgst": 0,
+          "sgst": 0,
+          "igst": 42.81,
+          "thumbnail": "",
+          "cake_message": "Happy Birthday Rohan!",
+          "selected_addons": []
+        }
+      ],
+      "pricing": {
+        "subtotal": 899,
+        "discount": 0,
+        "applied_coupon": null,
+        "delivery_fee": 49,
+        "delivery_charge": 49,
+        "slot_surcharge": 99,
+        "slot_charge": 99,
+        "taxable_value": 856.19,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 42.81,
+        "total_tax": 42.81,
+        "round_off": 0,
+        "grand_total": 1047,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 42.81,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 42.81,
+        "is_intra_state": false,
+        "supply_type": "INTER-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 899,
+      "total": 1047,
+      "delivery_fee": 49,
+      "tax_total": 42.81,
+      "discount_total": 0,
+      "status": "delivered",
+      "delivery_status": "delivered",
+      "payment_status": "captured",
+      "payment_method": "Online UPI (Razorpay)",
+      "transaction_id": "pay_test_captured_9991",
+      "delivery_type": "standard",
+      "delivery_date": "2026-08-19",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "9937",
+      "delivery_otp": "5689",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Birthday Rohan!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787118520657",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-19T05:48:40.657Z",
+          "author": "Customer",
+          "notes": "Payment method: RAZORPAY"
+        },
+        {
+          "id": "tl_1787118520658",
+          "title": "Assigned to Kitchen: HSR Layout Kitchen Hub (Expanded)",
+          "time": "2026-08-19T05:48:40.657Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260819-367"
+        }
+      ],
+      "created_at": "2026-08-19T05:48:40.657Z",
+      "updated_at": "2026-08-19T05:48:40.657Z",
+      "delivery_partner_id": "dlp_hsr_01",
+      "assigned_partner_id": "dlp_hsr_01",
+      "driver_name": "Sunil Rider",
+      "claimed_at": "2026-08-19T05:48:41.210Z",
+      "pickup_verified_at": "2026-08-19T05:48:41.286Z",
+      "pickup_verified_by": "dlp_hsr_01",
+      "delivery_otp_verified_at": "2026-08-19T05:48:41.358Z",
+      "delivered_at": "2026-08-19T05:48:41.358Z"
+    },
+    {
+      "id": "ord_1787118520237_p88qi",
+      "cart_id": "cart_a_1787118520162",
+      "order_number": "CTH-20260819-366",
+      "invoice_number": "CTH/26-27/000366",
+      "kot_number": "KOT-CTH-20260819-366",
+      "customer_id": "cus_1785518113834",
+      "customer_uid": "cth_cus_1785518113834",
+      "customer_name": "Ananya Sharma",
+      "customer_phone": "+91 98765 43210",
+      "customer_email": "ananya@example.com",
+      "delivery_address": "14th Main, HSR Layout Sector 4, , Bengaluru",
+      "landmark": "",
+      "pincode": "560102",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_test_hub_1787118519890",
+      "branch_name": "HSR Layout Kitchen Hub (Expanded)",
+      "branch_code": "HUB-TEST-01",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "100 Feet Rd, Bengaluru",
+        "branch_id": "br_test_hub_1787115423007",
+        "branch_code": "HUB-TEST-01",
+        "branch_name": "HSR Layout Kitchen Hub (Expanded)",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": false,
+        "supply_type": "INTER-STATE"
+      },
+      "items": [
+        {
+          "id": "item_1787118520196_jcty",
+          "product_id": "prod_1",
+          "title": "Signature Belgian Truffle Cake",
+          "name": "Signature Belgian Truffle Cake",
+          "weight": "1.0 kg",
+          "shape": "Round",
+          "flavour": "Belgian Chocolate",
+          "eggless": true,
+          "quantity": 1,
+          "unit_price": 899,
+          "subtotal": 899,
+          "total": 899,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 856.19,
+          "tax_amount": 42.81,
+          "cgst": 0,
+          "sgst": 0,
+          "igst": 42.81,
+          "thumbnail": "",
+          "cake_message": "Happy Birthday Ananya!",
+          "selected_addons": []
+        }
+      ],
+      "pricing": {
+        "subtotal": 899,
+        "discount": 0,
+        "applied_coupon": null,
+        "delivery_fee": 49,
+        "delivery_charge": 49,
+        "slot_surcharge": 99,
+        "slot_charge": 99,
+        "taxable_value": 856.19,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 42.81,
+        "total_tax": 42.81,
+        "round_off": 0,
+        "grand_total": 1047,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 42.81,
+        "cgst": 0,
+        "sgst": 0,
+        "igst": 42.81,
+        "is_intra_state": false,
+        "supply_type": "INTER-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 899,
+      "total": 1047,
+      "delivery_fee": 49,
+      "tax_total": 42.81,
+      "discount_total": 0,
+      "status": "confirmed",
+      "delivery_status": "shop_accepted",
+      "payment_status": "pending",
+      "payment_method": "Online UPI (Razorpay)",
+      "transaction_id": "TXN_1787118520409",
+      "delivery_type": "standard",
+      "delivery_date": "2026-08-19",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "4056",
+      "delivery_otp": "7990",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Birthday Ananya!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787118520409",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-19T05:48:40.409Z",
+          "author": "Customer",
+          "notes": "Payment method: RAZORPAY"
+        },
+        {
+          "id": "tl_1787118520410",
+          "title": "Assigned to Kitchen: HSR Layout Kitchen Hub (Expanded)",
+          "time": "2026-08-19T05:48:40.409Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260819-366"
+        }
+      ],
+      "created_at": "2026-08-19T05:48:40.409Z",
+      "updated_at": "2026-08-19T05:48:40.409Z"
+    },
     {
       "id": "ord_1787115782981_3znjb",
       "cart_id": "cart_c_1787115782891",
@@ -90317,6 +92567,134 @@
   ],
   "carts": [
     {
+      "id": "cart_guest_1787118591495",
+      "customer_uid": "cth_cus_9112291387",
+      "items": [],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "CLEARED",
+      "created_at": "2026-08-19T05:49:51.495Z",
+      "updated_at": "2026-08-19T05:49:51.665Z",
+      "last_activity_at": "2026-08-19T05:49:51.528Z"
+    },
+    {
+      "id": "cart_test_1787118588932",
+      "customer_uid": null,
+      "items": [],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "CLEARED",
+      "created_at": "2026-08-19T05:49:48.932Z",
+      "updated_at": "2026-08-19T05:49:49.207Z",
+      "last_activity_at": "2026-08-19T05:49:48.969Z",
+      "discount_total": 200,
+      "promo_code": "CAKE50",
+      "promo_offer_id": "off_50",
+      "promo_error": null
+    },
+    {
+      "id": "cart_c_1787118586292",
+      "customer_uid": null,
+      "items": [],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "CLEARED",
+      "created_at": "2026-08-19T05:49:46.292Z",
+      "updated_at": "2026-08-19T05:49:46.430Z",
+      "last_activity_at": "2026-08-19T05:49:46.326Z"
+    },
+    {
+      "id": "cart_b_1787118586037",
+      "customer_uid": null,
+      "items": [],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "CLEARED",
+      "created_at": "2026-08-19T05:49:46.037Z",
+      "updated_at": "2026-08-19T05:49:46.181Z",
+      "last_activity_at": "2026-08-19T05:49:46.071Z"
+    },
+    {
+      "id": "cart_a_1787118585774",
+      "customer_uid": null,
+      "items": [],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "CLEARED",
+      "created_at": "2026-08-19T05:49:45.774Z",
+      "updated_at": "2026-08-19T05:49:45.926Z",
+      "last_activity_at": "2026-08-19T05:49:45.810Z"
+    },
+    {
+      "id": "cart_guest_1787118526633",
+      "customer_uid": "cth_cus_9112226529",
+      "items": [],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "CLEARED",
+      "created_at": "2026-08-19T05:48:46.633Z",
+      "updated_at": "2026-08-19T05:48:46.778Z",
+      "last_activity_at": "2026-08-19T05:48:46.662Z"
+    },
+    {
+      "id": "cart_test_1787118523843",
+      "customer_uid": null,
+      "items": [],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "CLEARED",
+      "created_at": "2026-08-19T05:48:43.844Z",
+      "updated_at": "2026-08-19T05:48:44.349Z",
+      "last_activity_at": "2026-08-19T05:48:43.915Z",
+      "discount_total": 200,
+      "promo_code": "CAKE50",
+      "promo_offer_id": "off_50",
+      "promo_error": null
+    },
+    {
+      "id": "cart_c_1787118520888",
+      "customer_uid": null,
+      "items": [],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "CLEARED",
+      "created_at": "2026-08-19T05:48:40.888Z",
+      "updated_at": "2026-08-19T05:48:41.027Z",
+      "last_activity_at": "2026-08-19T05:48:40.924Z"
+    },
+    {
+      "id": "cart_b_1787118520550",
+      "customer_uid": null,
+      "items": [],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "CLEARED",
+      "created_at": "2026-08-19T05:48:40.550Z",
+      "updated_at": "2026-08-19T05:48:40.691Z",
+      "last_activity_at": "2026-08-19T05:48:40.586Z"
+    },
+    {
+      "id": "cart_a_1787118520162",
+      "customer_uid": null,
+      "items": [],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "CLEARED",
+      "created_at": "2026-08-19T05:48:40.162Z",
+      "updated_at": "2026-08-19T05:48:40.445Z",
+      "last_activity_at": "2026-08-19T05:48:40.196Z"
+    },
+    {
       "id": "cart_c_1787115782891",
       "customer_uid": null,
       "items": [],
@@ -90614,7 +92992,7 @@
       "currency_code": "inr",
       "status": "RECOVERED_IN_PROGRESS",
       "created_at": "2026-08-18T12:11:06.203Z",
-      "updated_at": "2026-08-19T05:00:38.540Z",
+      "updated_at": "2026-08-19T05:49:51.827Z",
       "last_activity_at": "2026-08-18T12:11:06.237Z",
       "recovery_status": "RECOVERED"
     },
@@ -99070,48 +101448,54 @@
       }
     }
   ],
+  "delivery_assignment_rules": {
+    "allow_cross_branch_fallback": false,
+    "require_working_hours": false,
+    "require_online_status": true,
+    "max_capacity_limit": 5,
+    "updated_at": "2026-08-19T05:49:51.383Z"
+  },
   "customer_activity": [
     {
-      "id": "act_1787115783030_crrb",
-      "customer_uid": "cth_cus_9666655555",
-      "event_type": "ORDER_PLACED",
-      "title": "Order Placed: CTH-20260819-365",
-      "description": "Successfully placed order for ₹947 (1 items).",
+      "id": "act_1787118591874_q17c",
+      "customer_uid": "cth_cus_9112291387",
+      "event_type": "LOGIN",
+      "title": "Customer Logged In",
+      "description": "Authenticated via mobile OTP on +91 91122 91387.",
       "source": "STOREFRONT",
-      "metadata": {
-        "order_id": "ord_1787115782981_3znjb",
-        "order_number": "CTH-20260819-365",
-        "total": 947
-      },
-      "timestamp": "2026-08-19T05:03:03.030Z"
+      "timestamp": "2026-08-19T05:49:51.874Z"
     },
     {
-      "id": "act_1787115782708_nrto",
-      "customer_uid": "cth_cus_9777766666",
+      "id": "act_1787118591633_guy1",
+      "customer_uid": "cth_cus_9112291387",
       "event_type": "ORDER_PLACED",
-      "title": "Order Placed: CTH-20260819-364",
-      "description": "Successfully placed order for ₹1047 (1 items).",
+      "title": "Order Placed: CTH-20260819-375",
+      "description": "Successfully placed order for ₹1348 (1 items).",
       "source": "STOREFRONT",
       "metadata": {
-        "order_id": "ord_1787115782660_qwp2b",
-        "order_number": "CTH-20260819-364",
-        "total": 1047
+        "order_id": "ord_1787118591599_5eokz",
+        "order_number": "CTH-20260819-375",
+        "total": 1348
       },
-      "timestamp": "2026-08-19T05:03:02.708Z"
+      "timestamp": "2026-08-19T05:49:51.633Z"
     },
     {
-      "id": "act_1787115782372_ee3p",
-      "customer_uid": "cth_cus_1785518113834",
-      "event_type": "ORDER_PLACED",
-      "title": "Order Placed: CTH-20260819-363",
-      "description": "Successfully placed order for ₹1047 (1 items).",
+      "id": "act_1787118591425_t6bn",
+      "customer_uid": "cth_cus_9112291387",
+      "event_type": "LOGIN",
+      "title": "Customer Logged In",
+      "description": "Authenticated via mobile OTP on +91 91122 91387.",
       "source": "STOREFRONT",
-      "metadata": {
-        "order_id": "ord_1787115782300_heybt",
-        "order_number": "CTH-20260819-363",
-        "total": 1047
-      },
-      "timestamp": "2026-08-19T05:03:02.372Z"
+      "timestamp": "2026-08-19T05:49:51.425Z"
+    },
+    {
+      "id": "act_1787118591392_31rs",
+      "customer_uid": "cth_cus_9112291387",
+      "event_type": "ACCOUNT_CREATED",
+      "title": "Customer Account Created",
+      "description": "Verified OTP for +91 91122 91387 and created new account.",
+      "source": "STOREFRONT",
+      "timestamp": "2026-08-19T05:49:51.392Z"
     },
     {
       "id": "act_01",
@@ -99126,7 +101510,7 @@
         "order_id": "ord_101",
         "amount": 1298
       },
-      "timestamp": "2026-08-19T04:03:02.371Z"
+      "timestamp": "2026-08-19T04:49:51.392Z"
     },
     {
       "id": "act_02",
@@ -99141,7 +101525,7 @@
         "cart_id": "cart_ab_102",
         "channel": "WHATSAPP"
       },
-      "timestamp": "2026-08-19T04:33:02.371Z"
+      "timestamp": "2026-08-19T05:19:51.392Z"
     },
     {
       "id": "act_03",
@@ -99150,14 +101534,7 @@
       "title": "New Customer Account Created",
       "description": "Verified Mobile OTP (+91 98765 43213) and initialized customer profile.",
       "source": "STOREFRONT",
-      "timestamp": "2026-08-19T03:03:02.371Z"
+      "timestamp": "2026-08-19T03:49:51.392Z"
     }
-  ],
-  "delivery_assignment_rules": {
-    "allow_cross_branch_fallback": false,
-    "require_working_hours": false,
-    "require_online_status": true,
-    "max_capacity_limit": 5,
-    "updated_at": "2026-08-19T05:03:03.259Z"
-  }
+  ]
 }

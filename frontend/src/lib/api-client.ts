@@ -15,6 +15,7 @@ export interface ApiResponse<T = any> {
 
 class CakeToHomeApiClient {
   private token: string | null = null;
+  private tokenChecked = false;
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -22,11 +23,13 @@ class CakeToHomeApiClient {
         || localStorage.getItem("cth_admin_token")
         || localStorage.getItem("admin_token")
         || localStorage.getItem("medusa_access_token");
+      this.tokenChecked = true;
     }
   }
 
   setToken(token: string) {
     this.token = token;
+    this.tokenChecked = true;
     if (typeof window !== "undefined") {
       localStorage.setItem("cth_access_token", token);
       localStorage.setItem("cth_admin_token", token);
@@ -35,6 +38,7 @@ class CakeToHomeApiClient {
 
   clearToken() {
     this.token = null;
+    this.tokenChecked = false;
     if (typeof window !== "undefined") {
       localStorage.removeItem("cth_access_token");
       localStorage.removeItem("cth_admin_token");
@@ -45,11 +49,13 @@ class CakeToHomeApiClient {
 
   private getToken(): string | null {
     if (this.token) return this.token;
+    if (this.tokenChecked) return null;
     if (typeof window !== "undefined") {
       const t = localStorage.getItem("cth_access_token")
         || localStorage.getItem("cth_admin_token")
         || localStorage.getItem("admin_token")
         || localStorage.getItem("medusa_access_token");
+      this.tokenChecked = true;
       if (t) {
         this.token = t;
         return t;
