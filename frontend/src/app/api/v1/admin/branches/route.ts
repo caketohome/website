@@ -138,21 +138,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ manager, success: true });
     }
 
+    const isNew = !data.id || !ApiEngine.getBranchById(data.id);
     const branch = ApiEngine.saveBranch(data);
-    return NextResponse.json({ branch, success: true });
+    return NextResponse.json({ branch, success: true, message: isNew ? "Branch created successfully" : "Branch saved successfully" }, { status: isNew ? 201 : 200 });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate") || err.message.includes("Role conflict"));
+    return NextResponse.json({ error: err.message || "Failed to process branch request", success: false }, { status: isConflict ? 409 : 400 });
   }
 }
 
 export async function PUT(req: NextRequest) {
   try {
     const data = await req.json();
-    if (!data.id) return NextResponse.json({ error: "Branch ID required" }, { status: 400 });
+    if (!data.id) return NextResponse.json({ error: "Branch ID required", success: false }, { status: 400 });
     const updated = ApiEngine.saveBranch(data);
-    return NextResponse.json({ branch: updated, success: true });
+    return NextResponse.json({ branch: updated, success: true, message: "Branch updated successfully" }, { status: 200 });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate") || err.message.includes("Role conflict"));
+    return NextResponse.json({ error: err.message || "Failed to update branch", success: false }, { status: isConflict ? 409 : 400 });
   }
 }
 
@@ -160,10 +163,10 @@ export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
-    if (!id) return NextResponse.json({ error: "Branch ID required" }, { status: 400 });
-    const deleted = ApiEngine.deleteBranch(id);
-    return NextResponse.json({ success: deleted });
+    if (!id) return NextResponse.json({ error: "Branch ID required", success: false }, { status: 400 });
+    const res = ApiEngine.archiveBranch(id);
+    return NextResponse.json({ ...res });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err.message || "Failed to delete branch", success: false }, { status: 400 });
   }
 }

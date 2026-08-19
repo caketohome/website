@@ -55,6 +55,8 @@ export const BranchesPanel = memo(function BranchesPanel() {
   const [managerEmail, setManagerEmail] = useState("manager@cakes2home.com");
 
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const fetchBranches = () => {
     setLoading(true);
@@ -74,7 +76,9 @@ export const BranchesPanel = memo(function BranchesPanel() {
 
   useEffect(() => {
     fetchBranches();
-    apiClient.getAdminCities().then((r: any) => setCitiesList(r?.cities || [])).catch(() => {});
+    apiClient.getCities().then((res: any) => {
+      setCitiesList(res?.cities || res || []);
+    }).catch(() => {});
   }, []);
 
   const handleConfirmArchive = async () => {
@@ -84,9 +88,10 @@ export const BranchesPanel = memo(function BranchesPanel() {
       const res: any = await apiClient.archiveAdminBranch(confirmArchiveBranch.id);
       if (res.error) throw new Error(res.error);
       setConfirmArchiveBranch(null);
+      setNotification({ message: `Store "${confirmArchiveBranch.name}" archived successfully.`, type: "success" });
       fetchBranches();
     } catch (err: any) {
-      alert(`Failed to archive store: ${err.message}`);
+      setNotification({ message: `Failed to archive store: ${err.message}`, type: "error" });
     } finally {
       setActionSubmitting(false);
     }
@@ -99,9 +104,10 @@ export const BranchesPanel = memo(function BranchesPanel() {
       const res: any = await apiClient.restoreAdminBranch(confirmRestoreBranch.id);
       if (res.error) throw new Error(res.error);
       setConfirmRestoreBranch(null);
+      setNotification({ message: `Store "${confirmRestoreBranch.name}" restored successfully.`, type: "success" });
       fetchBranches();
     } catch (err: any) {
-      alert(`Failed to restore store: ${err.message}`);
+      setNotification({ message: `Failed to restore store: ${err.message}`, type: "error" });
     } finally {
       setActionSubmitting(false);
     }
@@ -109,6 +115,7 @@ export const BranchesPanel = memo(function BranchesPanel() {
 
   const handleOpenCreate = () => {
     setEditingBranch(null);
+    setFormError(null);
     setName("");
     setCode(`HUB-BLR-${Math.floor(10 + Math.random() * 90)}`);
     setLinkedStoreId("");
@@ -130,6 +137,7 @@ export const BranchesPanel = memo(function BranchesPanel() {
 
   const handleOpenEdit = (b: any) => {
     setEditingBranch(b);
+    setFormError(null);
     setName(b.name || "");
     setCode(b.code || "");
     setLinkedStoreId(b.linked_store_id || "");
@@ -178,28 +186,40 @@ export const BranchesPanel = memo(function BranchesPanel() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    setFormError(null);
+
+    const trimmedName = name.trim();
+    const trimmedCode = code.trim();
+    if (!trimmedName) {
+      setFormError("Hub / Branch name is required.");
+      return;
+    }
+    if (!trimmedCode) {
+      setFormError("Hub / Branch code is required.");
+      return;
+    }
+
     setSubmitting(true);
 
     const payload = {
       id: editingBranch?.id,
-      code,
-      name,
+      code: trimmedCode,
+      name: trimmedName,
       branch_type: branchType,
       extended_status: extendedStatus,
       operational_status: extendedStatus === "open" ? "operational" : extendedStatus === "busy" ? "busy" : "temporarily_closed",
-      address,
-      city,
+      address: address.trim(),
+      city: city.trim(),
       city_id: cityId || undefined,
-      state,
-      pincode,
-      phone,
-      email,
-      manager_name: managerName,
+      state: state.trim(),
+      pincode: pincode.trim(),
+      phone: phone.trim(),
+      email: email.trim(),
+      manager_name: managerName.trim(),
       manager_account: {
-        name: managerName,
-        phone: managerPhone,
-        email: managerEmail,
+        name: managerName.trim(),
+        phone: managerPhone.trim(),
+        email: managerEmail.trim(),
         status: "active",
       },
       capacity_settings: editingBranch?.capacity_settings || {
@@ -221,13 +241,15 @@ export const BranchesPanel = memo(function BranchesPanel() {
     try {
       if (editingBranch?.id) {
         await apiClient.updateAdminBranch(editingBranch.id, payload);
+        setNotification({ message: `Fulfillment Hub "${trimmedName}" updated successfully.`, type: "success" });
       } else {
         await apiClient.createAdminBranch(payload);
+        setNotification({ message: `Fulfillment Hub "${trimmedName}" created successfully.`, type: "success" });
       }
       setShowModal(false);
       fetchBranches();
     } catch (err: any) {
-      alert(`Failed to save branch: ${err.message}`);
+      setFormError(err.message || "Failed to save fulfillment hub.");
     } finally {
       setSubmitting(false);
     }
@@ -281,6 +303,19 @@ export const BranchesPanel = memo(function BranchesPanel() {
             )}
           </div>
         </div>
+
+        {notification && (
+          <div
+            className={`p-3 rounded-xl text-xs flex items-center justify-between transition ${
+              notification.type === "success"
+                ? "bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300"
+                : "bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300"
+            }`}
+          >
+            <span>{notification.type === "success" ? "✅" : "⚠️"} {notification.message}</span>
+            <button onClick={() => setNotification(null)} className="text-xs font-bold hover:underline opacity-80">Dismiss</button>
+          </div>
+        )}
 
         {error && (
           <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center justify-between">
@@ -606,6 +641,13 @@ export const BranchesPanel = memo(function BranchesPanel() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
+              {formError && (
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-lg text-rose-800 dark:text-rose-300 flex items-center justify-between text-xs">
+                  <span>⚠️ {formError}</span>
+                  <button type="button" onClick={() => setFormError(null)} className="text-xs font-bold hover:underline opacity-80">Dismiss</button>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Hub Name *</Label>

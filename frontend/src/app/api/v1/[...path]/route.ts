@@ -1567,8 +1567,71 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const id = path.replace("admin/offers/", "").replace("/clone", "");
       return jsonWithDataSource({ offer: ApiEngine.cloneAdminOffer(id), success: true }, "json-fallback", 201);
     }
-    if (path === "admin/branches") {
-      return jsonWithDataSource({ branch: ApiEngine.createAdminBranch(body), success: true }, "json-fallback");
+    if (path === "admin/branches" || path === "branches") {
+      const permErr = verifyApiPermission(req, "BRANCHES", "EDIT");
+      if (permErr) return permErr;
+
+      if (body.type === "archive" || body.type === "archive_branch") {
+        const res = ApiEngine.archiveBranch(body.id || body.branchId);
+        return jsonWithDataSource(res, "json-fallback");
+      }
+      if (body.type === "restore" || body.type === "restore_branch") {
+        const res = ApiEngine.restoreBranch(body.id || body.branchId);
+        return jsonWithDataSource(res, "json-fallback");
+      }
+      if (body.type === "delivery_zone") {
+        const zone = ApiEngine.saveBranchZone(body.branchId, body.zoneData);
+        return jsonWithDataSource({ zone, success: true }, "json-fallback");
+      }
+      if (body.type === "delete_delivery_zone") {
+        const deleted = ApiEngine.deleteBranchZone(body.branchId, body.zoneId);
+        return jsonWithDataSource({ success: deleted }, "json-fallback");
+      }
+      if (body.type === "move_pincode_zone") {
+        const mapping = ApiEngine.movePincodeZone(body.pincode, body.targetBranchId, body.targetZoneId);
+        return jsonWithDataSource({ mapping, success: true }, "json-fallback");
+      }
+      if (body.type === "bulk_import_pincodes") {
+        const result = ApiEngine.bulkImportPincodes(body.mappingsList || []);
+        return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+      }
+      if (body.type === "product_delivery_rules") {
+        const product = ApiEngine.setProductDeliveryRules(body.productId, body.rules);
+        return jsonWithDataSource({ product, success: true }, "json-fallback");
+      }
+      if (body.type === "product_prep_time") {
+        const product = ApiEngine.setProductPrepTime(body.productId, Number(body.prepHours));
+        return jsonWithDataSource({ product, success: true }, "json-fallback");
+      }
+      if (body.type === "toggle_online") {
+        const updated = ApiEngine.setBranchOnlineOffline(body.branchId, body.isOnline);
+        return jsonWithDataSource({ branch: updated, success: true }, "json-fallback");
+      }
+      if (body.type === "pause_orders") {
+        const updated = ApiEngine.pauseBranchOrders(body.branchId, Number(body.durationMins));
+        return jsonWithDataSource({ branch: updated, success: true }, "json-fallback");
+      }
+      if (body.type === "link_store") {
+        const updated = ApiEngine.linkBranchToStore(body.branchId, body.storeId, body.storeName);
+        return jsonWithDataSource({ branch: updated, success: true }, "json-fallback");
+      }
+      if (body.type === "city_area") {
+        const area = ApiEngine.saveCityAreaPincodes(body);
+        return jsonWithDataSource({ area, success: true }, "json-fallback");
+      }
+
+      try {
+        const isNew = !body.id || !ApiEngine.getBranchById(body.id);
+        const branch = ApiEngine.saveBranch(body);
+        return jsonWithDataSource(
+          { branch, success: true, message: isNew ? "Branch created successfully" : "Branch saved successfully" },
+          "json-fallback",
+          isNew ? 201 : 200
+        );
+      } catch (err: any) {
+        const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate") || err.message.includes("Role conflict"));
+        return jsonWithDataSource({ error: err.message || "Failed to save branch", success: false }, "json-fallback", isConflict ? 409 : 400);
+      }
     }
     if (path === "admin/cities") {
       return jsonWithDataSource({ city: ApiEngine.createAdminCity(body), success: true }, "json-fallback");
@@ -2379,9 +2442,21 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       const id = path.replace("admin/branches/", "").replace("/operations", "");
       return jsonWithDataSource({ branch: ApiEngine.updateBranchStoreOperations(id, body), success: true }, "json-fallback");
     }
-    if (path.startsWith("admin/branches/")) {
-      const id = path.replace("admin/branches/", "");
-      return jsonWithDataSource({ branch: ApiEngine.updateAdminBranch(id, body), success: true }, "json-fallback");
+    if (path === "admin/branches" || path === "branches" || path.startsWith("admin/branches/")) {
+      const permErr = verifyApiPermission(req, "BRANCHES", "EDIT");
+      if (permErr) return permErr;
+
+      const targetId = path.startsWith("admin/branches/") ? path.replace("admin/branches/", "") : body.id;
+      if (!targetId && !body.id) {
+        return jsonWithDataSource({ error: "Branch ID is required for update", success: false }, "json-fallback", 400);
+      }
+      try {
+        const branch = ApiEngine.saveBranch({ ...body, id: targetId || body.id });
+        return jsonWithDataSource({ branch, success: true, message: "Branch updated successfully" }, "json-fallback", 200);
+      } catch (err: any) {
+        const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate") || err.message.includes("Role conflict"));
+        return jsonWithDataSource({ error: err.message || "Failed to update branch", success: false }, "json-fallback", isConflict ? 409 : 400);
+      }
     }
     if (path.startsWith("admin/cities/")) {
       const id = path.replace("admin/cities/", "");
@@ -2706,9 +2781,14 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       return jsonWithDataSource(res, "json-fallback");
     }
 
-    if (path.startsWith("admin/branches/")) {
-      const id = path.replace("admin/branches/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deleteAdminBranch(id), success: true }, "json-fallback");
+    if (path === "admin/branches" || path === "branches" || path.startsWith("admin/branches/")) {
+      const permErr = verifyApiPermission(req, "BRANCHES", "EDIT");
+      if (permErr) return permErr;
+      const url = new URL(req.url);
+      const id = path.startsWith("admin/branches/") ? path.replace("admin/branches/", "") : (url.searchParams.get("id") || body.id || body.branchId);
+      if (!id) return jsonWithDataSource({ error: "Branch ID required", success: false }, "json-fallback", 400);
+      const res = ApiEngine.archiveBranch(id);
+      return jsonWithDataSource(res, "json-fallback");
     }
 
     if (path.startsWith("admin/catalog/products/")) {

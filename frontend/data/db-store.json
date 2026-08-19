@@ -1335,7 +1335,874 @@
       "product_availability": {},
       "accessory_inventory": {},
       "created_at": "2026-08-19T09:14:58.941Z",
-      "updated_at": "2026-08-19T09:14:58.941Z"
+      "updated_at": "2026-08-19T09:14:58.941Z",
+      "weekly_schedule": {
+        "Monday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Tuesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Wednesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Thursday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Friday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Saturday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Sunday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        }
+      },
+      "holidays": [],
+      "special_dates": [],
+      "temporary_closure": {
+        "is_paused": false,
+        "pause_until": null,
+        "reopen_time": null,
+        "reason": null,
+        "paused_at": null
+      },
+      "fulfillment_rules": {
+        "prep_time_mins": 30,
+        "dispatch_buffer_mins": 15,
+        "order_cutoff_mins": 30,
+        "max_advance_days": 14,
+        "same_day_allowed": true,
+        "next_day_allowed": true,
+        "express_enabled": true,
+        "express_prep_mins": 45,
+        "express_surcharge": 99,
+        "midnight_enabled": true,
+        "midnight_window": {
+          "start": "23:30",
+          "end": "00:05"
+        },
+        "midnight_surcharge": 199,
+        "slot_duration_mins": 60,
+        "slot_capacity": 50,
+        "pickup_slot_duration_mins": 60,
+        "pickup_slot_capacity": 25,
+        "allow_pickup": true,
+        "allow_delivery": true
+      }
+    },
+    {
+      "id": "br_1787132620941",
+      "status": "active",
+      "is_archived": false,
+      "archived_at": null,
+      "code": "HUB-KOC-01",
+      "name": "Kochi Delivery Fulfillment Hub",
+      "linked_store_id": "store_blr_01",
+      "linked_store_name": "CakeToHome Indiranagar Kitchen Hub",
+      "hierarchy": {
+        "region_id": "reg_south",
+        "state_id": "st_ka",
+        "city_id": "city_blr",
+        "zone_id": "zone_east"
+      },
+      "address": "MG Road, Ernakulam",
+      "city": "Kochi",
+      "state": "Kerala",
+      "pincode": "682016",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "google_map_url": "",
+      "phone": "+91 98765 43210",
+      "whatsapp": "+91 98765 43210",
+      "email": "mathew@cakes2home.com",
+      "manager_name": "Mathew Thomas",
+      "manager_user_id": "usr_9876543210",
+      "manager_account": {
+        "name": "Mathew Thomas",
+        "phone": "+91 98765 43210",
+        "email": "mathew@cakes2home.com",
+        "status": "active"
+      },
+      "branch_type": "main_hub",
+      "extended_status": "open",
+      "operating_hours": {
+        "Monday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Tuesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Wednesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Thursday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Friday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Saturday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Sunday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        }
+      },
+      "is_open": true,
+      "operational_status": "operational",
+      "max_orders_per_hour": 25,
+      "max_orders_per_day": 200,
+      "simultaneous_cakes_capacity": 15,
+      "current_hourly_load": 0,
+      "capacity_settings": {
+        "max_hourly_orders": 25,
+        "max_simultaneous_orders": 15,
+        "max_scheduled_orders": 50,
+        "max_express_orders": 20,
+        "max_midnight_orders": 15,
+        "busy_threshold": 80,
+        "emergency_stop": false,
+        "current_load": 0,
+        "auto_pause_enabled": true,
+        "is_auto_paused": false
+      },
+      "delivery_zones": [],
+      "deliverable_areas": [],
+      "product_availability": {},
+      "accessory_inventory": {},
+      "created_at": "2026-08-19T09:43:40.942Z",
+      "updated_at": "2026-08-19T09:43:40.942Z",
+      "weekly_schedule": {
+        "Monday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Tuesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Wednesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Thursday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Friday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Saturday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Sunday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        }
+      },
+      "holidays": [],
+      "special_dates": [],
+      "temporary_closure": {
+        "is_paused": false,
+        "pause_until": null,
+        "reopen_time": null,
+        "reason": null,
+        "paused_at": null
+      },
+      "fulfillment_rules": {
+        "prep_time_mins": 30,
+        "dispatch_buffer_mins": 15,
+        "order_cutoff_mins": 30,
+        "max_advance_days": 14,
+        "same_day_allowed": true,
+        "next_day_allowed": true,
+        "express_enabled": true,
+        "express_prep_mins": 45,
+        "express_surcharge": 99,
+        "midnight_enabled": true,
+        "midnight_window": {
+          "start": "23:30",
+          "end": "00:05"
+        },
+        "midnight_surcharge": 199,
+        "slot_duration_mins": 60,
+        "slot_capacity": 50,
+        "pickup_slot_duration_mins": 60,
+        "pickup_slot_capacity": 25,
+        "allow_pickup": true,
+        "allow_delivery": true
+      }
+    },
+    {
+      "id": "br_1787132970740",
+      "status": "archived",
+      "is_archived": true,
+      "archived_at": "2026-08-19T09:49:30.752Z",
+      "code": "HUB-UNIT-0740",
+      "name": "Jayanagar Artisan Bakery Hub",
+      "linked_store_id": "store_blr_01",
+      "linked_store_name": "Jayanagar Artisan Bakery Hub Kitchen Hub",
+      "hierarchy": {
+        "region_id": "reg_south",
+        "state_id": "ka",
+        "city_id": "city_bbr",
+        "zone_id": "zone_city_bbr_central"
+      },
+      "address": "100 Feet Rd, Bengaluru",
+      "city": "Bengaluru",
+      "city_id": "city_bbr",
+      "state": "Karnataka",
+      "pincode": "560041",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "google_map_url": "",
+      "phone": "+91 98765 22334",
+      "whatsapp": "+91 98765 22334",
+      "email": "manager_br_1787132970740@cakes2home.com",
+      "manager_name": "Ananya Sharma",
+      "manager_user_id": "usr_9876522334",
+      "manager_account": {
+        "name": "Ananya Sharma",
+        "phone": "+91 98765 22334",
+        "email": "manager_br_1787132970740@cakes2home.com",
+        "status": "active"
+      },
+      "branch_type": "main_hub",
+      "extended_status": "open",
+      "operating_hours": {
+        "Monday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Tuesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Wednesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Thursday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Friday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Saturday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Sunday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        }
+      },
+      "is_open": true,
+      "operational_status": "operational",
+      "max_orders_per_hour": 25,
+      "max_orders_per_day": 200,
+      "simultaneous_cakes_capacity": 15,
+      "current_hourly_load": 0,
+      "capacity_settings": {
+        "max_hourly_orders": 25,
+        "max_simultaneous_orders": 15,
+        "max_scheduled_orders": 50,
+        "max_express_orders": 20,
+        "max_midnight_orders": 15,
+        "busy_threshold": 80,
+        "emergency_stop": false,
+        "current_load": 0,
+        "auto_pause_enabled": true,
+        "is_auto_paused": false
+      },
+      "delivery_zones": [
+        {
+          "id": "zone_br_1787132970740_primary",
+          "branch_id": "br_1787132970740",
+          "name": "Jayanagar Artisan Bakery Hub Primary Zone",
+          "min_km": 0,
+          "max_km": 15,
+          "base_fee": 49,
+          "pincodes": [
+            "560041"
+          ],
+          "areas": [
+            "Bengaluru"
+          ],
+          "enabled": true,
+          "express_allowed": true,
+          "midnight_allowed": true
+        }
+      ],
+      "deliverable_areas": [
+        "Bengaluru"
+      ],
+      "product_availability": {},
+      "accessory_inventory": {},
+      "created_at": "2026-08-19T09:49:30.742Z",
+      "updated_at": "2026-08-19T09:49:30.752Z",
+      "weekly_schedule": {
+        "Monday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Tuesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Wednesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Thursday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Friday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Saturday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Sunday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        }
+      },
+      "holidays": [],
+      "special_dates": [],
+      "temporary_closure": {
+        "is_paused": false,
+        "pause_until": null,
+        "reopen_time": null,
+        "reason": null,
+        "paused_at": null
+      },
+      "fulfillment_rules": {
+        "prep_time_mins": 30,
+        "dispatch_buffer_mins": 15,
+        "order_cutoff_mins": 30,
+        "max_advance_days": 14,
+        "same_day_allowed": true,
+        "next_day_allowed": true,
+        "express_enabled": true,
+        "express_prep_mins": 45,
+        "express_surcharge": 99,
+        "midnight_enabled": true,
+        "midnight_window": {
+          "start": "23:30",
+          "end": "00:05"
+        },
+        "midnight_surcharge": 199,
+        "slot_duration_mins": 60,
+        "slot_capacity": 50,
+        "pickup_slot_duration_mins": 60,
+        "pickup_slot_capacity": 25,
+        "allow_pickup": true,
+        "allow_delivery": true
+      }
+    },
+    {
+      "id": "br_1787133043002",
+      "status": "archived",
+      "is_archived": true,
+      "archived_at": "2026-08-19T09:50:43.013Z",
+      "code": "HUB-UNIT-3002",
+      "name": "Jayanagar Artisan Bakery Hub",
+      "linked_store_id": "store_blr_01",
+      "linked_store_name": "Jayanagar Artisan Bakery Hub Kitchen Hub",
+      "hierarchy": {
+        "region_id": "reg_south",
+        "state_id": "ka",
+        "city_id": "city_bbr",
+        "zone_id": "zone_city_bbr_central"
+      },
+      "address": "100 Feet Rd, Bengaluru",
+      "city": "Bengaluru",
+      "city_id": "city_bbr",
+      "state": "Karnataka",
+      "pincode": "560041",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "google_map_url": "",
+      "phone": "+91 98765 22334",
+      "whatsapp": "+91 98765 22334",
+      "email": "manager_br_1787133043002@cakes2home.com",
+      "manager_name": "Ananya Sharma",
+      "manager_user_id": "usr_9876522334",
+      "manager_account": {
+        "name": "Ananya Sharma",
+        "phone": "+91 98765 22334",
+        "email": "manager_br_1787133043002@cakes2home.com",
+        "status": "active"
+      },
+      "branch_type": "main_hub",
+      "extended_status": "open",
+      "operating_hours": {
+        "Monday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Tuesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Wednesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Thursday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Friday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Saturday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Sunday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        }
+      },
+      "is_open": true,
+      "operational_status": "operational",
+      "max_orders_per_hour": 25,
+      "max_orders_per_day": 200,
+      "simultaneous_cakes_capacity": 15,
+      "current_hourly_load": 0,
+      "capacity_settings": {
+        "max_hourly_orders": 25,
+        "max_simultaneous_orders": 15,
+        "max_scheduled_orders": 50,
+        "max_express_orders": 20,
+        "max_midnight_orders": 15,
+        "busy_threshold": 80,
+        "emergency_stop": false,
+        "current_load": 0,
+        "auto_pause_enabled": true,
+        "is_auto_paused": false
+      },
+      "delivery_zones": [
+        {
+          "id": "zone_br_1787133043002_primary",
+          "branch_id": "br_1787133043002",
+          "name": "Jayanagar Artisan Bakery Hub Primary Zone",
+          "min_km": 0,
+          "max_km": 15,
+          "base_fee": 49,
+          "pincodes": [
+            "560041"
+          ],
+          "areas": [
+            "Bengaluru"
+          ],
+          "enabled": true,
+          "express_allowed": true,
+          "midnight_allowed": true
+        }
+      ],
+      "deliverable_areas": [
+        "Bengaluru"
+      ],
+      "product_availability": {},
+      "accessory_inventory": {},
+      "created_at": "2026-08-19T09:50:43.003Z",
+      "updated_at": "2026-08-19T09:50:43.013Z",
+      "weekly_schedule": {
+        "Monday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Tuesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Wednesday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Thursday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:00"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Friday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Saturday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        },
+        "Sunday": {
+          "is_open": true,
+          "windows": [
+            {
+              "open": "09:00",
+              "close": "23:30"
+            }
+          ],
+          "cutoff_buffer_mins": 30
+        }
+      },
+      "holidays": [],
+      "special_dates": [],
+      "temporary_closure": {
+        "is_paused": false,
+        "pause_until": null,
+        "reopen_time": null,
+        "reason": null,
+        "paused_at": null
+      },
+      "fulfillment_rules": {
+        "prep_time_mins": 30,
+        "dispatch_buffer_mins": 15,
+        "order_cutoff_mins": 30,
+        "max_advance_days": 14,
+        "same_day_allowed": true,
+        "next_day_allowed": true,
+        "express_enabled": true,
+        "express_prep_mins": 45,
+        "express_surcharge": 99,
+        "midnight_enabled": true,
+        "midnight_window": {
+          "start": "23:30",
+          "end": "00:05"
+        },
+        "midnight_surcharge": 199,
+        "slot_duration_mins": 60,
+        "slot_capacity": 50,
+        "pickup_slot_duration_mins": 60,
+        "pickup_slot_capacity": 25,
+        "allow_pickup": true,
+        "allow_delivery": true
+      }
+    },
+    {
+      "id": "br_1787133067646",
+      "status": "archived",
+      "is_archived": true,
+      "archived_at": "2026-08-19T09:51:07.660Z",
+      "code": "HUB-UNIT-7645",
+      "name": "Jayanagar Artisan Bakery Hub",
+      "linked_store_id": "store_blr_01",
+      "linked_store_name": "Jayanagar Artisan Bakery Hub Kitchen Hub",
+      "hierarchy": {
+        "region_id": "reg_south",
+        "state_id": "ka",
+        "city_id": "city_bbr",
+        "zone_id": "zone_city_bbr_central"
+      },
+      "address": "100 Feet Rd, Bengaluru",
+      "city": "Bengaluru",
+      "city_id": "city_bbr",
+      "state": "Karnataka",
+      "pincode": "560041",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "google_map_url": "",
+      "phone": "+91 98765 22334",
+      "whatsapp": "+91 98765 22334",
+      "email": "manager_br_1787133067646@cakes2home.com",
+      "manager_name": "Ananya Sharma",
+      "manager_user_id": "usr_9876522334",
+      "manager_account": {
+        "name": "Ananya Sharma",
+        "phone": "+91 98765 22334",
+        "email": "manager_br_1787133067646@cakes2home.com",
+        "status": "active"
+      },
+      "branch_type": "main_hub",
+      "extended_status": "open",
+      "operating_hours": {
+        "Monday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Tuesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Wednesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Thursday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Friday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Saturday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Sunday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        }
+      },
+      "is_open": true,
+      "operational_status": "operational",
+      "max_orders_per_hour": 25,
+      "max_orders_per_day": 200,
+      "simultaneous_cakes_capacity": 15,
+      "current_hourly_load": 0,
+      "capacity_settings": {
+        "max_hourly_orders": 25,
+        "max_simultaneous_orders": 15,
+        "max_scheduled_orders": 50,
+        "max_express_orders": 20,
+        "max_midnight_orders": 15,
+        "busy_threshold": 80,
+        "emergency_stop": false,
+        "current_load": 0,
+        "auto_pause_enabled": true,
+        "is_auto_paused": false
+      },
+      "delivery_zones": [
+        {
+          "id": "zone_br_1787133067646_primary",
+          "branch_id": "br_1787133067646",
+          "name": "Jayanagar Artisan Bakery Hub Primary Zone",
+          "min_km": 0,
+          "max_km": 15,
+          "base_fee": 49,
+          "pincodes": [
+            "560041"
+          ],
+          "areas": [
+            "Bengaluru"
+          ],
+          "enabled": true,
+          "express_allowed": true,
+          "midnight_allowed": true
+        }
+      ],
+      "deliverable_areas": [
+        "Bengaluru"
+      ],
+      "product_availability": {},
+      "accessory_inventory": {},
+      "created_at": "2026-08-19T09:51:07.647Z",
+      "updated_at": "2026-08-19T09:51:07.660Z"
     }
   ],
   "cities": [
@@ -2152,6 +3019,76 @@
     }
   ],
   "audit_logs": [
+    {
+      "id": "log_1787133067660",
+      "action": "STORE_ARCHIVED: Store \"Jayanagar Artisan Bakery Hub\" (HUB-UNIT-7645) archived by Super Admin. Previous: ACTIVE → New: ARCHIVED",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T09:51:07.660Z"
+    },
+    {
+      "id": "log_1787133067652",
+      "action": "Saved Branch \"Jayanagar Artisan Bakery Hub\" (HUB-UNIT-7645)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T09:51:07.652Z"
+    },
+    {
+      "id": "log_1787133067647",
+      "action": "Configured FSSAI Compliance for Branch \"Jayanagar Artisan Bakery Hub\" (11223344556677)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T09:51:07.647Z"
+    },
+    {
+      "id": "log_1787133043013",
+      "action": "STORE_ARCHIVED: Store \"Jayanagar Artisan Bakery Hub\" (HUB-UNIT-3002) archived by Super Admin. Previous: ACTIVE → New: ARCHIVED",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T09:50:43.013Z"
+    },
+    {
+      "id": "log_1787133043008",
+      "action": "Saved Branch \"Jayanagar Artisan Bakery Hub\" (HUB-UNIT-3002)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T09:50:43.008Z"
+    },
+    {
+      "id": "log_1787133043004",
+      "action": "Configured FSSAI Compliance for Branch \"Jayanagar Artisan Bakery Hub\" (11223344556677)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T09:50:43.004Z"
+    },
+    {
+      "id": "log_1787132970752",
+      "action": "STORE_ARCHIVED: Store \"Jayanagar Artisan Bakery Hub\" (HUB-UNIT-0740) archived by Super Admin. Previous: ACTIVE → New: ARCHIVED",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T09:49:30.752Z"
+    },
+    {
+      "id": "log_1787132970748",
+      "action": "Saved Branch \"Jayanagar Artisan Bakery Hub\" (HUB-UNIT-0740)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T09:49:30.748Z"
+    },
+    {
+      "id": "log_1787132970742",
+      "action": "Configured FSSAI Compliance for Branch \"Jayanagar Artisan Bakery Hub\" (11223344556677)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T09:49:30.742Z"
+    },
+    {
+      "id": "log_1787132620942",
+      "action": "Saved Branch \"Kochi Delivery Fulfillment Hub\" (HUB-KOC-01)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T09:43:40.942Z"
+    },
     {
       "id": "log_1787130898941",
       "action": "Saved Branch \"baked kochi\" (HUB-BLR-64)",
@@ -5165,6 +6102,87 @@
     }
   ],
   "branch_compliance": [
+    {
+      "id": "comp_br_1787133067646",
+      "branch_id": "br_1787133067646",
+      "branch_name": "Jayanagar Artisan Bakery Hub",
+      "branch_code": "HUB-UNIT-7645",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "state": "Karnataka",
+      "state_code": "29",
+      "gst_registration_id": "gst_ka",
+      "fssai_number": "11223344556677",
+      "fssai_license_type": "STATE_LICENSE",
+      "fbo_name": "CakeToHome India Private Limited",
+      "business_activity": "Bakery / Food Preparation & Delivery",
+      "premise_name": "Jayanagar Artisan Bakery Hub",
+      "premise_address": "100 Feet Rd, Bengaluru",
+      "issue_date": "2026-08-19",
+      "expiry_date": "2027-08-19",
+      "status": "ACTIVE",
+      "verification_status": "UNVERIFIED",
+      "issuing_authority": "Food Safety and Standards Authority of India (FSSAI)",
+      "responsible_person": "Ananya Sharma",
+      "contact_number": "+91 98765 22334",
+      "last_verified_at": null,
+      "created_at": "2026-08-19T09:51:07.647Z",
+      "updated_at": "2026-08-19T09:51:07.647Z"
+    },
+    {
+      "id": "comp_br_1787133043002",
+      "branch_id": "br_1787133043002",
+      "branch_name": "Jayanagar Artisan Bakery Hub",
+      "branch_code": "HUB-UNIT-3002",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "state": "Karnataka",
+      "state_code": "29",
+      "gst_registration_id": "gst_ka",
+      "fssai_number": "11223344556677",
+      "fssai_license_type": "STATE_LICENSE",
+      "fbo_name": "CakeToHome India Private Limited",
+      "business_activity": "Bakery / Food Preparation & Delivery",
+      "premise_name": "Jayanagar Artisan Bakery Hub",
+      "premise_address": "100 Feet Rd, Bengaluru",
+      "issue_date": "2026-08-19",
+      "expiry_date": "2027-08-19",
+      "status": "ACTIVE",
+      "verification_status": "UNVERIFIED",
+      "issuing_authority": "Food Safety and Standards Authority of India (FSSAI)",
+      "responsible_person": "Ananya Sharma",
+      "contact_number": "+91 98765 22334",
+      "last_verified_at": null,
+      "created_at": "2026-08-19T09:50:43.003Z",
+      "updated_at": "2026-08-19T09:50:43.003Z"
+    },
+    {
+      "id": "comp_br_1787132970740",
+      "branch_id": "br_1787132970740",
+      "branch_name": "Jayanagar Artisan Bakery Hub",
+      "branch_code": "HUB-UNIT-0740",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "state": "Karnataka",
+      "state_code": "29",
+      "gst_registration_id": "gst_ka",
+      "fssai_number": "11223344556677",
+      "fssai_license_type": "STATE_LICENSE",
+      "fbo_name": "CakeToHome India Private Limited",
+      "business_activity": "Bakery / Food Preparation & Delivery",
+      "premise_name": "Jayanagar Artisan Bakery Hub",
+      "premise_address": "100 Feet Rd, Bengaluru",
+      "issue_date": "2026-08-19",
+      "expiry_date": "2027-08-19",
+      "status": "ACTIVE",
+      "verification_status": "UNVERIFIED",
+      "issuing_authority": "Food Safety and Standards Authority of India (FSSAI)",
+      "responsible_person": "Ananya Sharma",
+      "contact_number": "+91 98765 22334",
+      "last_verified_at": null,
+      "created_at": "2026-08-19T09:49:30.742Z",
+      "updated_at": "2026-08-19T09:49:30.742Z"
+    },
     {
       "id": "comp_indiranagar",
       "branch_id": "br_indiranagar",

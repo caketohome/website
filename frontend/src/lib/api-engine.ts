@@ -4109,48 +4109,20 @@ export class ApiEngine {
 
   // ── Branches, Cities, Regions ──────────────────────────────
   static getAdminBranches() {
-    return memoryStore.branches;
+    return ApiEngine.listBranches({ includeArchived: true });
   }
 
   static createAdminBranch(data: any) {
-    const bId = data.id || `br_${Date.now()}`;
-    const newBranch = {
-      id: bId,
-      name: data.name || "New Bakery Branch",
-      code: data.code || `HUB-${Math.floor(100 + Math.random() * 900)}`,
-      city: data.city || "Bangalore",
-      address: data.address || "100 Feet Rd, Indiranagar, Bengaluru",
-      phone: data.phone || "+91 98765 00000",
-      email: data.email || `branch_${Date.now()}@cakes2home.com`,
-      latitude: Number(data.latitude) || 12.9716,
-      longitude: Number(data.longitude) || 77.6412,
-      shop_id: data.shop_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-      manager: data.manager || `${data.name || "Branch"} Manager (${data.phone || "+91 98765 00000"})`,
-      is_open: data.is_open !== undefined ? Boolean(data.is_open) : true,
-      pincodes: data.pincodes || ["560038", "560008"],
-      created_at: new Date().toISOString(),
-    };
-    memoryStore.branches.unshift(newBranch);
-    ApiEngine.addAuditLog(`Created Bakery Branch "${newBranch.name}"`);
-    ApiEngine.persist();
-    return newBranch;
+    return ApiEngine.saveBranch(data);
   }
 
   static updateAdminBranch(id: string, data: any) {
-    const idx = memoryStore.branches.findIndex((b) => b.id === id);
-    if (idx < 0) throw new Error("Branch not found");
-    memoryStore.branches[idx] = { ...memoryStore.branches[idx], ...data };
-    ApiEngine.addAuditLog(`Updated Bakery Branch "${memoryStore.branches[idx].name}"`);
-    ApiEngine.persist();
-    return memoryStore.branches[idx];
+    return ApiEngine.saveBranch({ ...data, id });
   }
 
   static deleteAdminBranch(id: string) {
-    const branch = memoryStore.branches.find((b) => b.id === id);
-    memoryStore.branches = memoryStore.branches.filter((b) => b.id !== id);
-    if (branch) ApiEngine.addAuditLog(`Deleted Bakery Branch "${branch.name}"`);
-    ApiEngine.persist();
-    return true;
+    const res = ApiEngine.archiveBranch(id);
+    return res.success;
   }
 
   static getAdminCities() {
@@ -10754,14 +10726,73 @@ export class ApiEngine {
     }
     const branchId = data.id || `br_${Date.now()}`;
     const idx = memoryStore.branches.findIndex((b: any) => b.id === branchId);
-    
     const existing = idx >= 0 ? memoryStore.branches[idx] : null;
 
-    // Transactional Store Manager Identity Resolution & Profile Linking
+    // 1. Validation Contract
+    const branchName = (data.name || existing?.name || "").trim();
+    if (!branchName) {
+      throw new Error("Hub / Branch name is required.");
+    }
+
+    const branchCode = (data.code || existing?.code || "").trim().toUpperCase();
+    if (!branchCode) {
+      throw new Error("Hub / Branch code is required.");
+    }
+
+    // Check branch code uniqueness across active branches
+    const codeConflict = memoryStore.branches.find(
+      (b: any) =>
+        b.id !== branchId &&
+        b.code &&
+        b.code.toUpperCase() === branchCode &&
+        !b.is_archived &&
+        b.status !== "archived"
+    );
+    if (codeConflict) {
+      throw new Error(`Branch code "${branchCode}" already exists.`);
+    }
+
+    // 2. City & State Resolution
+    let resolvedCityId = data.city_id || existing?.city_id || "";
+    let resolvedCityName = (data.city || existing?.city || "").trim();
+    let resolvedState = (data.state || existing?.state || "").trim();
+
+    const allCities = ApiEngine.listCities(true);
+    if (resolvedCityId) {
+      const matchedCity = allCities.find((c: any) => c.id === resolvedCityId);
+      if (matchedCity) {
+        resolvedCityName = matchedCity.name;
+        resolvedState = matchedCity.state;
+      }
+    } else if (resolvedCityName) {
+      const matchedCity = allCities.find(
+        (c: any) =>
+          c.name.toLowerCase() === resolvedCityName.toLowerCase() ||
+          c.slug.toLowerCase() === resolvedCityName.toLowerCase()
+      );
+      if (matchedCity) {
+        resolvedCityId = matchedCity.id;
+        resolvedCityName = matchedCity.name;
+        resolvedState = matchedCity.state;
+      }
+    }
+
+    if (!resolvedCityName) {
+      resolvedCityName = "Bengaluru";
+      resolvedState = "Karnataka";
+      resolvedCityId = "city_bbr";
+    }
+
+    // 3. Pincode Validation
+    const cleanPin = (data.pincode || existing?.pincode || "560038").toString().trim().replace(/\D/g, "");
+    if (!cleanPin || cleanPin.length !== 6 || !/^[1-9][0-9]{5}$/.test(cleanPin)) {
+      throw new Error("Primary pincode must be a valid 6-digit Indian postal code.");
+    }
+
+    // 4. Transactional Store Manager Identity Resolution & Profile Linking
     const mgrName = (data.manager_name || data.manager_account?.name || existing?.manager_name || "Branch Manager").trim();
     const mgrPhone = (data.manager_account?.phone || data.phone || data.manager_phone || existing?.phone || "+91 98765 00001").trim();
     const mgrEmail = (data.manager_account?.email || data.email || data.manager_email || existing?.email || `manager_${branchId}@cakes2home.com`).trim();
-    const branchName = data.name || existing?.name || "New Delivery Hub";
 
     let staffMember = null;
     try {
@@ -10771,7 +10802,7 @@ export class ApiEngine {
         email: mgrEmail,
         branch_id: branchId,
         branch_name: branchName,
-        city: data.city || existing?.city || "Bengaluru",
+        city: resolvedCityName,
       });
     } catch (err: any) {
       if (err.message && err.message.includes("Role conflict")) {
@@ -10780,20 +10811,46 @@ export class ApiEngine {
       console.warn("Staff profile sync warning during saveBranch:", err.message);
     }
 
+    // 5. Delivery Zones Initialization
+    let deliveryZones = Array.isArray(data.delivery_zones) ? data.delivery_zones : (existing?.delivery_zones || []);
+    if (deliveryZones.length === 0) {
+      deliveryZones = [
+        {
+          id: `zone_${branchId}_primary`,
+          branch_id: branchId,
+          name: `${branchName} Primary Zone`,
+          min_km: 0,
+          max_km: 15,
+          base_fee: 49,
+          pincodes: [cleanPin],
+          areas: [resolvedCityName],
+          enabled: true,
+          express_allowed: true,
+          midnight_allowed: true,
+        },
+      ];
+    }
+
     const branchObj: any = {
       id: branchId,
       status: data.status || existing?.status || "active",
       is_archived: Boolean(data.is_archived ?? existing?.is_archived ?? false),
       archived_at: data.archived_at ?? existing?.archived_at ?? null,
-      code: data.code || existing?.code || `HUB-BLR-${Math.floor(10 + Math.random() * 90)}`,
+      code: branchCode,
       name: branchName,
       linked_store_id: data.linked_store_id || existing?.linked_store_id || "store_blr_01",
-      linked_store_name: data.linked_store_name || existing?.linked_store_name || "CakeToHome Indiranagar Kitchen Hub",
-      hierarchy: data.hierarchy || existing?.hierarchy || { region_id: "reg_south", state_id: "st_ka", city_id: "city_blr", zone_id: "zone_east" },
+      linked_store_name: data.linked_store_name || existing?.linked_store_name || `${branchName} Kitchen Hub`,
+      hierarchy: data.hierarchy || existing?.hierarchy || {
+        region_id: "reg_south",
+        state_id: resolvedState.toLowerCase().slice(0, 2),
+        city_id: resolvedCityId,
+        zone_id: `zone_${resolvedCityId}_central`,
+      },
       address: data.address || existing?.address || "100 Feet Rd, Bengaluru",
-      city: data.city || existing?.city || "Bengaluru",
-      state: data.state || existing?.state || "Karnataka",
-      pincode: data.pincode || existing?.pincode || "560038",
+      city: resolvedCityName,
+      city_id: resolvedCityId,
+      state: resolvedState,
+      pincode: cleanPin,
       latitude: Number(data.latitude) || existing?.latitude || 12.9716,
       longitude: Number(data.longitude) || existing?.longitude || 77.6412,
       google_map_url: data.google_map_url || existing?.google_map_url || "",
@@ -10837,10 +10894,9 @@ export class ApiEngine {
         auto_pause_enabled: data.capacity_settings?.auto_pause_enabled ?? true,
         is_auto_paused: Boolean(data.capacity_settings?.is_auto_paused),
       },
-      delivery_zones: Array.isArray(data.delivery_zones) ? data.delivery_zones : (existing?.delivery_zones || []),
-      deliverable_areas: Array.isArray(data.deliverable_areas) ? data.deliverable_areas : (existing?.deliverable_areas || []),
+      delivery_zones: deliveryZones,
+      deliverable_areas: Array.isArray(data.deliverable_areas) && data.deliverable_areas.length > 0 ? data.deliverable_areas : [resolvedCityName],
       product_availability: data.product_availability || existing?.product_availability || {},
-
       accessory_inventory: data.accessory_inventory || existing?.accessory_inventory || {},
       created_at: data.created_at || existing?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -10851,6 +10907,23 @@ export class ApiEngine {
     } else {
       memoryStore.branches.push(branchObj);
     }
+
+    // Auto-link initial compliance record
+    try {
+      ApiEngine.createBranchCompliance({
+        branch_id: branchId,
+        branch_name: branchName,
+        branch_code: branchCode,
+        city_id: resolvedCityId,
+        city_name: resolvedCityName,
+        state: resolvedState,
+        responsible_person: mgrName,
+        contact_number: mgrPhone,
+      });
+    } catch {
+      // Compliance auto-link optional fallback
+    }
+
     ApiEngine.addAuditLog(`Saved Branch "${branchObj.name}" (${branchObj.code})`);
     ApiEngine.persist();
     return branchObj;
