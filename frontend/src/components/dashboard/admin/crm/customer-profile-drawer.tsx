@@ -242,7 +242,7 @@ export function CustomerProfileDrawer({
                 )}
                 <span className="flex items-center gap-1 text-neutral-400">
                   <Clock className="w-3.5 h-3.5" />
-                  Active: {new Date(profile.last_active_at || profile.updated_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  Active: {new Date(profile.last_active_at || profile.updated_at).toLocaleString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
             </div>
@@ -499,7 +499,7 @@ export function CustomerProfileDrawer({
                               </Badge>
                             </div>
                             <span className="text-xs text-neutral-500">
-                              {new Date(ord.created_at).toLocaleDateString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                              {new Date(ord.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
                             </span>
                             <div className="flex items-center gap-2 mt-1">
                               {(ord.items || []).map((itm: any, idx: number) => (
@@ -575,7 +575,7 @@ export function CustomerProfileDrawer({
                           </div>
 
                           <div className="flex items-center justify-between pt-2 border-t border-amber-200/60 text-[11px] text-neutral-500">
-                            <span>Abandoned at: {new Date(cart.abandoned_at || cart.last_activity_at).toLocaleDateString("en-IN", { timeStyle: "short", dateStyle: "short" })}</span>
+                            <span>Abandoned at: {new Date(cart.abandoned_at || cart.last_activity_at).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })}</span>
                             <Button
                               size="small"
                               variant="secondary"
@@ -612,7 +612,7 @@ export function CustomerProfileDrawer({
                               {act.title}
                             </span>
                             <span className="text-[10px] text-neutral-400 font-mono">
-                              {new Date(act.timestamp).toLocaleDateString("en-IN", { dateStyle: "short", timeStyle: "short" })}
+                              {new Date(act.timestamp).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })}
                             </span>
                           </div>
                           {act.description && (
@@ -684,7 +684,7 @@ export function CustomerProfileDrawer({
                               <Badge color="purple" className="text-[10px]">{n.category || "GENERAL"}</Badge>
                             </div>
                             <span className="text-[10px] text-neutral-400">
-                              {new Date(n.created_at).toLocaleDateString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                              {new Date(n.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
                             </span>
                           </div>
                           <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed">

@@ -388,7 +388,9 @@
         }
       ],
       "created_at": "2026-08-19T08:55:40.347Z",
-      "updated_at": "2026-08-19T08:55:40.347Z"
+      "updated_at": "2026-08-19T08:55:40.347Z",
+      "is_archived": false,
+      "status": "active"
     },
     {
       "id": "br_koramangala",
@@ -683,7 +685,9 @@
         }
       ],
       "created_at": "2026-08-19T08:55:40.348Z",
-      "updated_at": "2026-08-19T08:55:40.348Z"
+      "updated_at": "2026-08-19T08:55:40.348Z",
+      "is_archived": false,
+      "status": "active"
     },
     {
       "id": "br_hsr",
@@ -939,7 +943,9 @@
         }
       ],
       "created_at": "2026-08-19T08:55:40.348Z",
-      "updated_at": "2026-08-19T08:55:40.348Z"
+      "updated_at": "2026-08-19T08:55:40.348Z",
+      "is_archived": false,
+      "status": "active"
     },
     {
       "id": "br_whitefield",
@@ -1230,7 +1236,9 @@
         }
       ],
       "created_at": "2026-08-19T08:55:40.348Z",
-      "updated_at": "2026-08-19T08:55:40.348Z"
+      "updated_at": "2026-08-19T08:55:40.348Z",
+      "is_archived": false,
+      "status": "active"
     }
   ],
   "cities": [
@@ -1616,6 +1624,69 @@
   ],
   "customers": [
     {
+      "id": "cus_9112246509",
+      "customer_uid": "cth_cus_9112246509",
+      "customer_number": "CTH-CUST-000104",
+      "customer_type": "registered",
+      "name": "Vikram Malhotra",
+      "first_name": "Vikram",
+      "last_name": "Malhotra",
+      "phone": "+91 91122 46509",
+      "normalized_phone": "9112246509",
+      "email": "vikram.m@example.com",
+      "normalized_email": "vikram.m@example.com",
+      "lifecycle_stage": "FIRST_PURCHASE",
+      "tier": "STANDARD",
+      "is_vip": false,
+      "orders_count": 1,
+      "total_spend": 1348,
+      "aov": 1348,
+      "last_active_at": "2026-08-19T08:59:06.567Z",
+      "last_login_at": "2026-08-19T08:59:06.567Z",
+      "cart_status": "NO_CART",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "branch_name": "Indiranagar Flagship Kitchen",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "delivery_pincode": "560038",
+      "addresses": [
+        {
+          "first_name": "Vikram",
+          "last_name": "Malhotra",
+          "phone": "+91 91122 46509",
+          "line1": "Prestige Ozone, Whitefield",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "postal_code": "560066"
+        }
+      ],
+      "notes": [],
+      "tags": [
+        "New Account",
+        "Self Registered"
+      ],
+      "loyalty": {
+        "points_balance": 100,
+        "points_earned": 100,
+        "points_redeemed": 0,
+        "tier": "STANDARD",
+        "last_updated": "2026-08-19T08:59:06.510Z"
+      },
+      "consent": {
+        "whatsapp_status": "ELIGIBLE",
+        "marketing_email": "SUBSCRIBED",
+        "marketing_sms": "SUBSCRIBED",
+        "marketing_whatsapp": "SUBSCRIBED",
+        "transactional": "SUBSCRIBED",
+        "updated_at": "2026-08-19T08:59:06.510Z"
+      },
+      "acquisition_channel": "Direct Storefront",
+      "created_at": "2026-08-19T08:59:06.510Z",
+      "updated_at": "2026-08-19T08:59:06.510Z",
+      "last_order_at": "2026-08-19T08:59:06.547Z",
+      "first_order_at": "2026-08-19T08:59:06.547Z"
+    },
+    {
       "id": "cus_01",
       "customer_number": "CTH-CUST-000101",
       "customer_type": "registered",
@@ -1624,7 +1695,30 @@
       "phone": "+91 98765 43210",
       "total_orders": 12,
       "wallet_balance": 450,
-      "is_vip": true
+      "is_vip": true,
+      "customer_uid": "cth_cus_01",
+      "normalized_phone": "9876543210",
+      "normalized_email": "ananya@example.com",
+      "lifecycle_stage": "LOYAL",
+      "tier": "VIP_PLATINUM",
+      "notes": [],
+      "tags": [],
+      "addresses": [],
+      "loyalty": {
+        "points_balance": 450,
+        "points_earned": 550,
+        "points_redeemed": 100,
+        "tier": "VIP_PLATINUM",
+        "last_updated": "2026-08-19T08:59:06.509Z"
+      },
+      "consent": {
+        "whatsapp_status": "ELIGIBLE",
+        "marketing_email": "SUBSCRIBED",
+        "marketing_sms": "SUBSCRIBED",
+        "marketing_whatsapp": "SUBSCRIBED",
+        "transactional": "SUBSCRIBED",
+        "updated_at": "2026-08-19T08:59:06.509Z"
+      }
     },
     {
       "id": "cus_02",
@@ -1635,7 +1729,30 @@
       "phone": "+91 98765 43211",
       "total_orders": 5,
       "wallet_balance": 150,
-      "is_vip": false
+      "is_vip": false,
+      "customer_uid": "cth_cus_02",
+      "normalized_phone": "9876543211",
+      "normalized_email": "rahul@example.com",
+      "lifecycle_stage": "NEW",
+      "tier": "GOLD",
+      "notes": [],
+      "tags": [],
+      "addresses": [],
+      "loyalty": {
+        "points_balance": 150,
+        "points_earned": 250,
+        "points_redeemed": 100,
+        "tier": "GOLD",
+        "last_updated": "2026-08-19T08:59:06.509Z"
+      },
+      "consent": {
+        "whatsapp_status": "ELIGIBLE",
+        "marketing_email": "SUBSCRIBED",
+        "marketing_sms": "SUBSCRIBED",
+        "marketing_whatsapp": "SUBSCRIBED",
+        "transactional": "SUBSCRIBED",
+        "updated_at": "2026-08-19T08:59:06.509Z"
+      }
     },
     {
       "id": "cus_03",
@@ -1646,7 +1763,30 @@
       "phone": "+91 98765 43212",
       "total_orders": 8,
       "wallet_balance": 300,
-      "is_vip": true
+      "is_vip": true,
+      "customer_uid": "cth_cus_03",
+      "normalized_phone": "9876543212",
+      "normalized_email": "priya@example.com",
+      "lifecycle_stage": "LOYAL",
+      "tier": "VIP_PLATINUM",
+      "notes": [],
+      "tags": [],
+      "addresses": [],
+      "loyalty": {
+        "points_balance": 300,
+        "points_earned": 400,
+        "points_redeemed": 100,
+        "tier": "VIP_PLATINUM",
+        "last_updated": "2026-08-19T08:59:06.509Z"
+      },
+      "consent": {
+        "whatsapp_status": "ELIGIBLE",
+        "marketing_email": "SUBSCRIBED",
+        "marketing_sms": "SUBSCRIBED",
+        "marketing_whatsapp": "SUBSCRIBED",
+        "transactional": "SUBSCRIBED",
+        "updated_at": "2026-08-19T08:59:06.509Z"
+      }
     }
   ],
   "deliveries": [
@@ -1676,7 +1816,35 @@
       "phone": "+91 99000 11111",
       "status": "active",
       "rating": 4.9,
-      "completed_trips": 142
+      "completed_trips": 142,
+      "partner_number": "CTH-DP-000001",
+      "full_name": "Ramesh Rider",
+      "primary_branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "primary_branch_name": "Indiranagar Flagship Kitchen",
+      "maximum_concurrent_orders": 5,
+      "coverage": {
+        "pincodes": [
+          "560038",
+          "560008",
+          "560071",
+          "560001",
+          "560051",
+          "560047"
+        ],
+        "cities": [
+          "Bengaluru"
+        ],
+        "areas": [
+          "Indiranagar",
+          "Domlur",
+          "HAL",
+          "MG Road",
+          "Shivajinagar",
+          "Austin Town / Victoria Layout"
+        ]
+      },
+      "current_active_orders": 0,
+      "availability_status": "ONLINE"
     },
     {
       "id": "dlp_02",
@@ -1686,7 +1854,35 @@
       "phone": "+91 99000 22222",
       "status": "active",
       "rating": 4.8,
-      "completed_trips": 98
+      "completed_trips": 98,
+      "partner_number": "CTH-DP-000002",
+      "full_name": "Mahesh Rider",
+      "primary_branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "primary_branch_name": "Indiranagar Flagship Kitchen",
+      "maximum_concurrent_orders": 5,
+      "coverage": {
+        "pincodes": [
+          "560038",
+          "560008",
+          "560071",
+          "560001",
+          "560051",
+          "560047"
+        ],
+        "cities": [
+          "Bengaluru"
+        ],
+        "areas": [
+          "Indiranagar",
+          "Domlur",
+          "HAL",
+          "MG Road",
+          "Shivajinagar",
+          "Austin Town / Victoria Layout"
+        ]
+      },
+      "current_active_orders": 0,
+      "availability_status": "ONLINE"
     }
   ],
   "settings": {
@@ -1697,338 +1893,6 @@
     "tax_rate_percent": 5,
     "free_delivery_threshold": 599,
     "is_maintenance_mode": false
-  },
-  "business_profile": {
-    "legal_name": "CakeToHome India Private Limited",
-    "trade_name": "CakeToHome",
-    "business_type": "PRIVATE_LIMITED",
-    "pan": "AAACC1234F",
-    "tan": "BLRC12345D",
-    "cin": "U15400KA2024PTC189001",
-    "registered_email": "compliance@cakes2home.com",
-    "registered_phone": "+91 80 4900 1234",
-    "website": "https://cakes2home.com",
-    "support_email": "support@cakes2home.com",
-    "support_phone": "+91 80 4900 1234",
-    "registered_address": {
-      "line1": "100 Feet Road, HAL 2nd Stage",
-      "line2": "Indiranagar",
-      "city": "Bengaluru",
-      "state": "Karnataka",
-      "state_code": "29",
-      "country": "India",
-      "country_code": "IN",
-      "pincode": "560038"
-    },
-    "primary_contact": {
-      "name": "Rajesh Kumar",
-      "phone": "+91 98765 00001",
-      "email": "rajesh@cakes2home.com",
-      "designation": "Managing Director"
-    },
-    "authorized_signatory": {
-      "name": "Rajesh Kumar",
-      "designation": "Authorized Signatory",
-      "email": "signatory@cakes2home.com",
-      "phone": "+91 98765 00001"
-    },
-    "logo_url": "/logo.png",
-    "status": "ACTIVE",
-    "updated_at": "2026-01-01T00:00:00Z"
-  },
-  "gst_registrations": [
-    {
-      "id": "gst_ka",
-      "gstin": "29AAAAA0000A1Z5",
-      "legal_name": "CakeToHome India Private Limited",
-      "trade_name": "CakeToHome Karnataka",
-      "registration_type": "REGULAR",
-      "state": "Karnataka",
-      "state_code": "29",
-      "effective_from": "2024-04-01",
-      "effective_to": null,
-      "status": "active",
-      "address": {
-        "line1": "100 Feet Rd, 12th Main, Indiranagar",
-        "city": "Bengaluru",
-        "state": "Karnataka",
-        "state_code": "29",
-        "pincode": "560038"
-      },
-      "verification_status": "VERIFIED",
-      "verification_source": "Manual",
-      "last_verified_at": "2026-01-15T10:00:00Z",
-      "verification_response": {
-        "reference_id": "REF-GST-KA-2026",
-        "provider": "GSTN-Portal",
-        "status": "Active",
-        "message": "Verified on GST Portal"
-      },
-      "created_at": "2024-04-01T00:00:00Z"
-    },
-    {
-      "id": "gst_kl",
-      "gstin": "32AAAAA0000A1Z2",
-      "legal_name": "CakeToHome India Private Limited",
-      "trade_name": "CakeToHome Kerala",
-      "registration_type": "REGULAR",
-      "state": "Kerala",
-      "state_code": "32",
-      "effective_from": "2025-01-01",
-      "effective_to": null,
-      "status": "active",
-      "address": {
-        "line1": "MG Road, Marine Drive",
-        "city": "Kochi",
-        "state": "Kerala",
-        "state_code": "32",
-        "pincode": "682016"
-      },
-      "verification_status": "VERIFIED",
-      "verification_source": "Manual",
-      "last_verified_at": "2026-01-15T10:00:00Z",
-      "verification_response": {
-        "reference_id": "REF-GST-KL-2026",
-        "provider": "GSTN-Portal",
-        "status": "Active",
-        "message": "Verified on GST Portal"
-      },
-      "created_at": "2025-01-01T00:00:00Z"
-    },
-    {
-      "id": "gst_tn",
-      "gstin": "33AAAAA0000A1Z1",
-      "legal_name": "CakeToHome India Private Limited",
-      "trade_name": "CakeToHome Tamil Nadu",
-      "registration_type": "REGULAR",
-      "state": "Tamil Nadu",
-      "state_code": "33",
-      "effective_from": "2025-06-01",
-      "effective_to": null,
-      "status": "active",
-      "address": {
-        "line1": "2nd Avenue, Anna Nagar",
-        "city": "Chennai",
-        "state": "Tamil Nadu",
-        "state_code": "33",
-        "pincode": "600040"
-      },
-      "verification_status": "VERIFIED",
-      "verification_source": "Manual",
-      "last_verified_at": "2026-01-15T10:00:00Z",
-      "verification_response": {
-        "reference_id": "REF-GST-TN-2026",
-        "provider": "GSTN-Portal",
-        "status": "Active",
-        "message": "Verified on GST Portal"
-      },
-      "created_at": "2025-06-01T00:00:00Z"
-    }
-  ],
-  "branch_compliance": [
-    {
-      "id": "comp_indiranagar",
-      "branch_id": "br_indiranagar",
-      "branch_name": "Indiranagar Flagship Bakery",
-      "branch_code": "HUB-BLR-01",
-      "city_id": "city_bbr",
-      "city_name": "Bengaluru",
-      "state": "Karnataka",
-      "state_code": "29",
-      "gst_registration_id": "gst_ka",
-      "fssai_number": "11223344556677",
-      "fssai_license_type": "STATE_LICENSE",
-      "fbo_name": "CakeToHome India Pvt Ltd",
-      "business_activity": "Bakery / Food Preparation & Delivery",
-      "premise_name": "Indiranagar Flagship Kitchen",
-      "premise_address": "100 Feet Rd, 12th Main, Indiranagar, Bengaluru - 560038",
-      "issue_date": "2024-05-10",
-      "expiry_date": "2028-05-09",
-      "status": "ACTIVE",
-      "verification_status": "VERIFIED",
-      "certificate_number": "FSSAI-KA-00142",
-      "issuing_authority": "Food Safety Authority of Karnataka",
-      "responsible_person": "Rajesh Kumar",
-      "contact_number": "+91 98765 00001",
-      "last_verified_at": "2026-01-10T00:00:00Z",
-      "created_at": "2024-05-10T00:00:00Z"
-    },
-    {
-      "id": "comp_koramangala",
-      "branch_id": "br_koramangala",
-      "branch_name": "Koramangala Central Hub",
-      "branch_code": "HUB-BLR-02",
-      "city_id": "city_bbr",
-      "city_name": "Bengaluru",
-      "state": "Karnataka",
-      "state_code": "29",
-      "gst_registration_id": "gst_ka",
-      "fssai_number": "11223344556688",
-      "fssai_license_type": "STATE_LICENSE",
-      "fbo_name": "CakeToHome India Pvt Ltd",
-      "business_activity": "Bakery / Food Preparation & Delivery",
-      "premise_name": "Koramangala Central Kitchen",
-      "premise_address": "80 Feet Rd, 4th Block, Koramangala, Bengaluru - 560034",
-      "issue_date": "2024-06-15",
-      "expiry_date": "2028-06-14",
-      "status": "ACTIVE",
-      "verification_status": "VERIFIED",
-      "certificate_number": "FSSAI-KA-00188",
-      "issuing_authority": "Food Safety Authority of Karnataka",
-      "responsible_person": "Anita Sharma",
-      "contact_number": "+91 98765 00002",
-      "last_verified_at": "2026-01-10T00:00:00Z",
-      "created_at": "2024-06-15T00:00:00Z"
-    },
-    {
-      "id": "comp_hsr",
-      "branch_id": "br_hsr",
-      "branch_name": "HSR Layout Kitchen",
-      "branch_code": "HUB-BLR-03",
-      "city_id": "city_bbr",
-      "city_name": "Bengaluru",
-      "state": "Karnataka",
-      "state_code": "29",
-      "gst_registration_id": "gst_ka",
-      "fssai_number": "11223344556699",
-      "fssai_license_type": "STATE_LICENSE",
-      "fbo_name": "CakeToHome India Pvt Ltd",
-      "business_activity": "Bakery / Food Preparation & Delivery",
-      "premise_name": "HSR Layout Kitchen",
-      "premise_address": "27th Main Rd, Sector 1, HSR Layout, Bengaluru - 560102",
-      "issue_date": "2023-09-10",
-      "expiry_date": "2026-09-15",
-      "status": "EXPIRING_30_DAYS",
-      "verification_status": "VERIFIED",
-      "certificate_number": "FSSAI-KA-00210",
-      "issuing_authority": "Food Safety Authority of Karnataka",
-      "responsible_person": "Suresh Menon",
-      "contact_number": "+91 98765 00003",
-      "last_verified_at": "2026-01-10T00:00:00Z",
-      "created_at": "2023-09-10T00:00:00Z"
-    },
-    {
-      "id": "comp_whitefield",
-      "branch_id": "br_whitefield",
-      "branch_name": "Whitefield Tech Hub",
-      "branch_code": "HUB-BLR-04",
-      "city_id": "city_bbr",
-      "city_name": "Bengaluru",
-      "state": "Karnataka",
-      "state_code": "29",
-      "gst_registration_id": "gst_ka",
-      "fssai_number": "11223344556700",
-      "fssai_license_type": "STATE_LICENSE",
-      "fbo_name": "CakeToHome India Pvt Ltd",
-      "business_activity": "Bakery / Food Preparation & Delivery",
-      "premise_name": "Whitefield Bakery Hub",
-      "premise_address": "ITPL Main Rd, Whitefield, Bengaluru - 560066",
-      "issue_date": "2024-08-01",
-      "expiry_date": "2028-07-31",
-      "status": "ACTIVE",
-      "verification_status": "VERIFIED",
-      "certificate_number": "FSSAI-KA-00305",
-      "issuing_authority": "Food Safety Authority of Karnataka",
-      "responsible_person": "Deepak Verma",
-      "contact_number": "+91 98765 00004",
-      "last_verified_at": "2026-01-10T00:00:00Z",
-      "created_at": "2024-08-01T00:00:00Z"
-    }
-  ],
-  "compliance_documents": [
-    {
-      "id": "doc_gst_ka",
-      "document_type": "GST_CERTIFICATE",
-      "entity_type": "gst_registration",
-      "entity_id": "gst_ka",
-      "file_url": "/docs/gst_karnataka_cert.pdf",
-      "file_name": "GST_Certificate_Karnataka_2024.pdf",
-      "file_size": 145000,
-      "mime_type": "application/pdf",
-      "uploaded_by": "Super Admin",
-      "uploaded_at": "2024-04-01T10:00:00Z",
-      "expiry_date": null,
-      "status": "valid"
-    },
-    {
-      "id": "doc_fssai_ind",
-      "document_type": "FSSAI_CERTIFICATE",
-      "entity_type": "branch",
-      "entity_id": "br_indiranagar",
-      "file_url": "/docs/fssai_indiranagar.pdf",
-      "file_name": "FSSAI_License_Indiranagar_2024.pdf",
-      "file_size": 210000,
-      "mime_type": "application/pdf",
-      "uploaded_by": "Branch Manager",
-      "uploaded_at": "2024-05-10T10:00:00Z",
-      "expiry_date": "2028-05-09",
-      "status": "valid"
-    },
-    {
-      "id": "doc_pan_co",
-      "document_type": "PAN",
-      "entity_type": "business",
-      "entity_id": "biz_global",
-      "file_url": "/docs/company_pan.pdf",
-      "file_name": "Company_PAN_Card.pdf",
-      "file_size": 98000,
-      "mime_type": "application/pdf",
-      "uploaded_by": "Super Admin",
-      "uploaded_at": "2024-01-15T10:00:00Z",
-      "expiry_date": null,
-      "status": "valid"
-    }
-  ],
-  "invoice_settings": {
-    "invoice_prefix": "CTH",
-    "invoice_number_format": "{PREFIX}/{FY}/{SEQ6}",
-    "next_invoice_number": 102,
-    "credit_note_prefix": "CN-CTH",
-    "debit_note_prefix": "DN-CTH",
-    "show_legal_name": true,
-    "show_gstin": true,
-    "show_registered_address": true,
-    "show_branch_address": true,
-    "show_fssai": true,
-    "invoice_footer": "Thank you for celebrating with CakeToHome! Freshly baked with premium ingredients.",
-    "terms_and_conditions": "1. Perishable confectionery goods. Consume within 24 hours of delivery.\n2. Subject to local jurisdiction.\n3. Goods once sold cannot be returned due to food safety & hygiene regulations.",
-    "authorized_signatory_title": "For CakeToHome India Pvt Ltd",
-    "logo_url": "/logo.png",
-    "updated_at": "2026-01-01T00:00:00Z"
-  },
-  "delivery_defaults": {
-    "free_delivery_threshold": 599,
-    "default_delivery_fee": 49,
-    "express_delivery_fee": 99,
-    "midnight_delivery_fee": 149,
-    "default_prep_time_mins": 30,
-    "default_slot_duration_mins": 60,
-    "updated_at": "2026-01-01T00:00:00Z"
-  },
-  "payment_settings": {
-    "supported_methods": [
-      "cod",
-      "razorpay",
-      "test_mode",
-      "wallet"
-    ],
-    "razorpay_key_id": "rzp_test_placeholder_key",
-    "cod_max_limit": 5000,
-    "cod_surcharge": 0,
-    "default_currency": "INR",
-    "updated_at": "2026-01-01T00:00:00Z"
-  },
-  "integration_settings": {
-    "gst_api_configured": false,
-    "gst_api_provider": "manual_sandbox",
-    "fssai_api_configured": false,
-    "fssai_api_provider": "manual_sandbox",
-    "sms_gateway": "configured",
-    "whatsapp_gateway": "configured",
-    "webhook_endpoints": [
-      "https://api.cakes2home.com/webhooks/compliance"
-    ],
-    "updated_at": "2026-01-01T00:00:00Z"
   },
   "seo_config": {
     "meta_title": "CakeToHome — Premium Gourmet Cakes Delivered in 2 Hours",
@@ -2078,6 +1942,13 @@
   ],
   "audit_logs": [
     {
+      "id": "log_1787129946552",
+      "action": "New Order CTH-20260819-101 placed by Vikram Malhotra (₹1348) -> Assigned to Whitefield Tech Hub",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T08:59:06.552Z"
+    },
+    {
       "id": "log_01",
       "action": "Super Admin Login",
       "user": "admin@cakes2home.com",
@@ -2093,6 +1964,21 @@
     }
   ],
   "login_events": [
+    {
+      "id": "log_1787129946509_req",
+      "identifier": "+91 91122 46509",
+      "phone": "+91 91122 46509",
+      "normalized_phone": "9112246509",
+      "role": "CUSTOMER",
+      "user_id": "cus_9112246509",
+      "user_name": "Guest",
+      "status": "OTP_SENT",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_REQUESTED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-19T08:59:06.509Z"
+    },
     {
       "id": "logevt_01",
       "user_id": "admin_01",
@@ -2219,36 +2105,49 @@
       "tax_total": 37.4,
       "delivery_fee": 0,
       "grand_total": 785.4,
-      "status": "ABANDONED",
+      "status": "RECOVERED_IN_PROGRESS",
       "created_at": "2026-08-19T07:25:40.348Z",
-      "updated_at": "2026-08-19T08:10:40.348Z",
+      "updated_at": "2026-08-19T08:59:06.564Z",
       "last_activity_at": "2026-08-19T08:10:40.348Z",
       "abandoned_at": "2026-08-19T08:40:40.348Z",
-      "recovery_attempts_count": 0
+      "recovery_attempts_count": 3,
+      "recovery_status": "RECOVERED",
+      "last_contacted_at": "2026-08-19T08:56:47.660Z",
+      "recovery_token": "recov_tok_cart_ab_101_1787129946561",
+      "total": 748
     },
     {
-      "id": "abcart_02",
+      "id": "cart_ab_102",
       "cart_id": "cart_ab_102",
       "customer_id": "cus_02",
       "customer_name": "Rahul Verma",
       "customer_phone": "+91 98765 43211",
       "customer_email": "rahul@example.com",
-      "branch_id": "br_koramangala",
-      "branch_name": "Koramangala Central Hub",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "branch_name": "Indiranagar Flagship Kitchen",
       "city_id": "city_bbr",
       "city_name": "Bengaluru",
       "delivery_pincode": "560034",
       "delivery_zone_name": "Zone A (Koramangala 4th Block)",
       "items": [
         {
-          "id": "item_ab_3",
-          "product_id": "prod_2",
-          "product_name": "Classic Red Velvet Cream Cheese Cake",
-          "quantity": 2,
-          "unit_price": 749,
-          "total_price": 1498,
-          "thumbnail": "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=400",
-          "eggless": true
+          "id": "item_ab_1",
+          "product_id": "prod_01KXY_BELGIAN_TRUFFLE",
+          "title": "Belgian Dark Chocolate Truffle Cake",
+          "thumbnail": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800",
+          "unit_price": 1299,
+          "quantity": 1,
+          "total_price": 1299,
+          "cake_message": "Happy Birthday Rahul!"
+        },
+        {
+          "id": "item_ab_2",
+          "product_id": "prod_candle_magic",
+          "title": "Sparkler Birthday Candle Pack",
+          "thumbnail": "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800",
+          "unit_price": 63,
+          "quantity": 1,
+          "total_price": 63
         }
       ],
       "item_count": 2,
@@ -2257,14 +2156,22 @@
       "tax_total": 64.9,
       "delivery_fee": 0,
       "grand_total": 1362.9,
-      "status": "RECOVERY_SENT",
-      "created_at": "2026-08-19T04:55:40.348Z",
+      "status": "ABANDONED",
+      "created_at": "2026-08-19T08:06:43.225Z",
       "updated_at": "2026-08-19T05:55:40.348Z",
-      "last_activity_at": "2026-08-19T05:55:40.348Z",
-      "abandoned_at": "2026-08-19T06:55:40.348Z",
+      "last_activity_at": "2026-08-19T08:11:43.225Z",
+      "abandoned_at": "2026-08-19T08:26:43.225Z",
       "recovery_attempts_count": 1,
       "last_recovery_channel": "WHATSAPP",
-      "last_contact_at": "2026-08-19T08:25:40.348Z"
+      "last_contact_at": "2026-08-19T08:25:40.348Z",
+      "customer_uid": "cth_cus_rahul_02",
+      "phone": "+91 98765 43211",
+      "normalized_phone": "9876543211",
+      "email": "rahul.verma@example.com",
+      "city": "Bengaluru",
+      "cart_value": 1362,
+      "currency_code": "INR",
+      "whatsapp_status": "ELIGIBLE"
     },
     {
       "id": "abcart_03",
@@ -4461,7 +4368,180 @@
   "product_occasions": [],
   "category_occasions": [],
   "accessory_occasions": [],
-  "orders": [],
+  "delivery_exceptions": [],
+  "delivery_rejections": [],
+  "delivery_partner_assignments": [],
+  "orders": [
+    {
+      "id": "ord_1787129946542_cg4kb",
+      "cart_id": "cart_guest_1787129946520",
+      "order_number": "CTH-20260819-101",
+      "invoice_number": "CTH/26-27/000101",
+      "kot_number": "KOT-CTH-20260819-101",
+      "customer_id": "cus_9112246509",
+      "customer_uid": "cth_cus_9112246509",
+      "customer_name": "Vikram Malhotra",
+      "customer_phone": "+91 91122 46509",
+      "customer_email": "customer@cakes2home.com",
+      "delivery_address": "Prestige Ozone, Whitefield, , Bengaluru",
+      "landmark": "",
+      "pincode": "560066",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_whitefield",
+      "branch_name": "Whitefield Tech Hub",
+      "branch_code": "HUB-BLR-04",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "ITPL Main Rd, Whitefield",
+        "branch_id": "br_whitefield",
+        "branch_code": "HUB-BLR-04",
+        "branch_name": "Whitefield Tech Hub",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE"
+      },
+      "items": [
+        {
+          "id": "item_1787129946525_26c1",
+          "product_id": "prod_01KXY_BELGIAN_TRUFFLE",
+          "title": "Belgian Dark Chocolate Truffle Cake",
+          "name": "Belgian Dark Chocolate Truffle Cake",
+          "weight": "500g",
+          "shape": "Round",
+          "flavour": "Classic",
+          "eggless": true,
+          "quantity": 1,
+          "unit_price": 1299,
+          "subtotal": 1299,
+          "total": 1299,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 1237.14,
+          "tax_amount": 61.86,
+          "cgst": 30.93,
+          "sgst": 30.93,
+          "igst": 0,
+          "thumbnail": "",
+          "cake_message": "Happy Anniversary!",
+          "selected_addons": []
+        }
+      ],
+      "pricing": {
+        "subtotal": 1299,
+        "discount": 0,
+        "applied_coupon": null,
+        "delivery_fee": 0,
+        "delivery_charge": 0,
+        "slot_surcharge": 49,
+        "slot_charge": 49,
+        "taxable_value": 1237.14,
+        "cgst": 30.93,
+        "sgst": 30.93,
+        "igst": 0,
+        "total_tax": 61.86,
+        "round_off": 0,
+        "grand_total": 1348,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 61.86,
+        "cgst": 30.93,
+        "sgst": 30.93,
+        "igst": 0,
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 1299,
+      "total": 1348,
+      "delivery_fee": 0,
+      "tax_total": 61.86,
+      "discount_total": 0,
+      "status": "confirmed",
+      "delivery_status": "shop_accepted",
+      "payment_status": "captured",
+      "payment_method": "Online UPI (Razorpay)",
+      "transaction_id": "pay_test_vikram_101",
+      "delivery_type": "delivery",
+      "delivery_date": "2026-08-19",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "3512",
+      "delivery_otp": "5997",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Anniversary!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787129946547",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-19T08:59:06.547Z",
+          "author": "Customer",
+          "notes": "Payment method: RAZORPAY"
+        },
+        {
+          "id": "tl_1787129946548",
+          "title": "Assigned to Kitchen: Whitefield Tech Hub",
+          "time": "2026-08-19T08:59:06.547Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260819-101"
+        }
+      ],
+      "created_at": "2026-08-19T08:59:06.547Z",
+      "updated_at": "2026-08-19T08:59:06.547Z"
+    }
+  ],
+  "carts": [
+    {
+      "id": "cart_guest_1787129946520",
+      "customer_uid": "cth_cus_9112246509",
+      "items": [],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "CLEARED",
+      "created_at": "2026-08-19T08:59:06.521Z",
+      "updated_at": "2026-08-19T08:59:06.549Z",
+      "last_activity_at": "2026-08-19T08:59:06.525Z"
+    },
+    {
+      "id": "cart_ab_102",
+      "customer_uid": "cth_cus_rahul_02",
+      "customer_name": "Rahul Verma",
+      "customer_phone": "+91 98765 43211",
+      "customer_email": "rahul.verma@example.com",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "branch_name": "Indiranagar Flagship Kitchen",
+      "city": "Bengaluru",
+      "subtotal": 1362,
+      "total": 1362,
+      "currency_code": "inr",
+      "status": "ABANDONED",
+      "created_at": "2026-08-19T08:06:43.225Z",
+      "updated_at": "2026-08-19T08:11:43.225Z",
+      "last_activity_at": "2026-08-19T08:11:43.225Z"
+    }
+  ],
   "media": [
     {
       "id": "med_hero_01",
@@ -4534,6 +4614,338 @@
       "created_at": "2026-07-01T10:00:00Z"
     }
   ],
+  "business_profile": {
+    "legal_name": "CakeToHome India Private Limited",
+    "trade_name": "CakeToHome",
+    "business_type": "PRIVATE_LIMITED",
+    "pan": "AAACC1234F",
+    "tan": "BLRC12345D",
+    "cin": "U15400KA2024PTC189001",
+    "registered_email": "compliance@cakes2home.com",
+    "registered_phone": "+91 80 4900 1234",
+    "website": "https://cakes2home.com",
+    "support_email": "support@cakes2home.com",
+    "support_phone": "+91 80 4900 1234",
+    "registered_address": {
+      "line1": "100 Feet Road, HAL 2nd Stage",
+      "line2": "Indiranagar",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "state_code": "29",
+      "country": "India",
+      "country_code": "IN",
+      "pincode": "560038"
+    },
+    "primary_contact": {
+      "name": "Rajesh Kumar",
+      "phone": "+91 98765 00001",
+      "email": "rajesh@cakes2home.com",
+      "designation": "Managing Director"
+    },
+    "authorized_signatory": {
+      "name": "Rajesh Kumar",
+      "designation": "Authorized Signatory",
+      "email": "signatory@cakes2home.com",
+      "phone": "+91 98765 00001"
+    },
+    "logo_url": "/logo.png",
+    "status": "ACTIVE",
+    "updated_at": "2026-01-01T00:00:00Z"
+  },
+  "gst_registrations": [
+    {
+      "id": "gst_ka",
+      "gstin": "29AAAAA0000A1Z5",
+      "legal_name": "CakeToHome India Private Limited",
+      "trade_name": "CakeToHome Karnataka",
+      "registration_type": "REGULAR",
+      "state": "Karnataka",
+      "state_code": "29",
+      "effective_from": "2024-04-01",
+      "effective_to": null,
+      "status": "active",
+      "address": {
+        "line1": "100 Feet Rd, 12th Main, Indiranagar",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "state_code": "29",
+        "pincode": "560038"
+      },
+      "verification_status": "VERIFIED",
+      "verification_source": "Manual",
+      "last_verified_at": "2026-01-15T10:00:00Z",
+      "verification_response": {
+        "reference_id": "REF-GST-KA-2026",
+        "provider": "GSTN-Portal",
+        "status": "Active",
+        "message": "Verified on GST Portal"
+      },
+      "created_at": "2024-04-01T00:00:00Z"
+    },
+    {
+      "id": "gst_kl",
+      "gstin": "32AAAAA0000A1Z2",
+      "legal_name": "CakeToHome India Private Limited",
+      "trade_name": "CakeToHome Kerala",
+      "registration_type": "REGULAR",
+      "state": "Kerala",
+      "state_code": "32",
+      "effective_from": "2025-01-01",
+      "effective_to": null,
+      "status": "active",
+      "address": {
+        "line1": "MG Road, Marine Drive",
+        "city": "Kochi",
+        "state": "Kerala",
+        "state_code": "32",
+        "pincode": "682016"
+      },
+      "verification_status": "VERIFIED",
+      "verification_source": "Manual",
+      "last_verified_at": "2026-01-15T10:00:00Z",
+      "verification_response": {
+        "reference_id": "REF-GST-KL-2026",
+        "provider": "GSTN-Portal",
+        "status": "Active",
+        "message": "Verified on GST Portal"
+      },
+      "created_at": "2025-01-01T00:00:00Z"
+    },
+    {
+      "id": "gst_tn",
+      "gstin": "33AAAAA0000A1Z1",
+      "legal_name": "CakeToHome India Private Limited",
+      "trade_name": "CakeToHome Tamil Nadu",
+      "registration_type": "REGULAR",
+      "state": "Tamil Nadu",
+      "state_code": "33",
+      "effective_from": "2025-06-01",
+      "effective_to": null,
+      "status": "active",
+      "address": {
+        "line1": "2nd Avenue, Anna Nagar",
+        "city": "Chennai",
+        "state": "Tamil Nadu",
+        "state_code": "33",
+        "pincode": "600040"
+      },
+      "verification_status": "VERIFIED",
+      "verification_source": "Manual",
+      "last_verified_at": "2026-01-15T10:00:00Z",
+      "verification_response": {
+        "reference_id": "REF-GST-TN-2026",
+        "provider": "GSTN-Portal",
+        "status": "Active",
+        "message": "Verified on GST Portal"
+      },
+      "created_at": "2025-06-01T00:00:00Z"
+    }
+  ],
+  "branch_compliance": [
+    {
+      "id": "comp_indiranagar",
+      "branch_id": "br_indiranagar",
+      "branch_name": "Indiranagar Flagship Bakery",
+      "branch_code": "HUB-BLR-01",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "state": "Karnataka",
+      "state_code": "29",
+      "gst_registration_id": "gst_ka",
+      "fssai_number": "11223344556677",
+      "fssai_license_type": "STATE_LICENSE",
+      "fbo_name": "CakeToHome India Pvt Ltd",
+      "business_activity": "Bakery / Food Preparation & Delivery",
+      "premise_name": "Indiranagar Flagship Kitchen",
+      "premise_address": "100 Feet Rd, 12th Main, Indiranagar, Bengaluru - 560038",
+      "issue_date": "2024-05-10",
+      "expiry_date": "2028-05-09",
+      "status": "ACTIVE",
+      "verification_status": "VERIFIED",
+      "certificate_number": "FSSAI-KA-00142",
+      "issuing_authority": "Food Safety Authority of Karnataka",
+      "responsible_person": "Rajesh Kumar",
+      "contact_number": "+91 98765 00001",
+      "last_verified_at": "2026-01-10T00:00:00Z",
+      "created_at": "2024-05-10T00:00:00Z"
+    },
+    {
+      "id": "comp_koramangala",
+      "branch_id": "br_koramangala",
+      "branch_name": "Koramangala Central Hub",
+      "branch_code": "HUB-BLR-02",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "state": "Karnataka",
+      "state_code": "29",
+      "gst_registration_id": "gst_ka",
+      "fssai_number": "11223344556688",
+      "fssai_license_type": "STATE_LICENSE",
+      "fbo_name": "CakeToHome India Pvt Ltd",
+      "business_activity": "Bakery / Food Preparation & Delivery",
+      "premise_name": "Koramangala Central Kitchen",
+      "premise_address": "80 Feet Rd, 4th Block, Koramangala, Bengaluru - 560034",
+      "issue_date": "2024-06-15",
+      "expiry_date": "2028-06-14",
+      "status": "ACTIVE",
+      "verification_status": "VERIFIED",
+      "certificate_number": "FSSAI-KA-00188",
+      "issuing_authority": "Food Safety Authority of Karnataka",
+      "responsible_person": "Anita Sharma",
+      "contact_number": "+91 98765 00002",
+      "last_verified_at": "2026-01-10T00:00:00Z",
+      "created_at": "2024-06-15T00:00:00Z"
+    },
+    {
+      "id": "comp_hsr",
+      "branch_id": "br_hsr",
+      "branch_name": "HSR Layout Kitchen",
+      "branch_code": "HUB-BLR-03",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "state": "Karnataka",
+      "state_code": "29",
+      "gst_registration_id": "gst_ka",
+      "fssai_number": "11223344556699",
+      "fssai_license_type": "STATE_LICENSE",
+      "fbo_name": "CakeToHome India Pvt Ltd",
+      "business_activity": "Bakery / Food Preparation & Delivery",
+      "premise_name": "HSR Layout Kitchen",
+      "premise_address": "27th Main Rd, Sector 1, HSR Layout, Bengaluru - 560102",
+      "issue_date": "2023-09-10",
+      "expiry_date": "2026-09-15",
+      "status": "EXPIRING_30_DAYS",
+      "verification_status": "VERIFIED",
+      "certificate_number": "FSSAI-KA-00210",
+      "issuing_authority": "Food Safety Authority of Karnataka",
+      "responsible_person": "Suresh Menon",
+      "contact_number": "+91 98765 00003",
+      "last_verified_at": "2026-01-10T00:00:00Z",
+      "created_at": "2023-09-10T00:00:00Z"
+    },
+    {
+      "id": "comp_whitefield",
+      "branch_id": "br_whitefield",
+      "branch_name": "Whitefield Tech Hub",
+      "branch_code": "HUB-BLR-04",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "state": "Karnataka",
+      "state_code": "29",
+      "gst_registration_id": "gst_ka",
+      "fssai_number": "11223344556700",
+      "fssai_license_type": "STATE_LICENSE",
+      "fbo_name": "CakeToHome India Pvt Ltd",
+      "business_activity": "Bakery / Food Preparation & Delivery",
+      "premise_name": "Whitefield Bakery Hub",
+      "premise_address": "ITPL Main Rd, Whitefield, Bengaluru - 560066",
+      "issue_date": "2024-08-01",
+      "expiry_date": "2028-07-31",
+      "status": "ACTIVE",
+      "verification_status": "VERIFIED",
+      "certificate_number": "FSSAI-KA-00305",
+      "issuing_authority": "Food Safety Authority of Karnataka",
+      "responsible_person": "Deepak Verma",
+      "contact_number": "+91 98765 00004",
+      "last_verified_at": "2026-01-10T00:00:00Z",
+      "created_at": "2024-08-01T00:00:00Z"
+    }
+  ],
+  "compliance_documents": [
+    {
+      "id": "doc_gst_ka",
+      "document_type": "GST_CERTIFICATE",
+      "entity_type": "gst_registration",
+      "entity_id": "gst_ka",
+      "file_url": "/docs/gst_karnataka_cert.pdf",
+      "file_name": "GST_Certificate_Karnataka_2024.pdf",
+      "file_size": 145000,
+      "mime_type": "application/pdf",
+      "uploaded_by": "Super Admin",
+      "uploaded_at": "2024-04-01T10:00:00Z",
+      "expiry_date": null,
+      "status": "valid"
+    },
+    {
+      "id": "doc_fssai_ind",
+      "document_type": "FSSAI_CERTIFICATE",
+      "entity_type": "branch",
+      "entity_id": "br_indiranagar",
+      "file_url": "/docs/fssai_indiranagar.pdf",
+      "file_name": "FSSAI_License_Indiranagar_2024.pdf",
+      "file_size": 210000,
+      "mime_type": "application/pdf",
+      "uploaded_by": "Branch Manager",
+      "uploaded_at": "2024-05-10T10:00:00Z",
+      "expiry_date": "2028-05-09",
+      "status": "valid"
+    },
+    {
+      "id": "doc_pan_co",
+      "document_type": "PAN",
+      "entity_type": "business",
+      "entity_id": "biz_global",
+      "file_url": "/docs/company_pan.pdf",
+      "file_name": "Company_PAN_Card.pdf",
+      "file_size": 98000,
+      "mime_type": "application/pdf",
+      "uploaded_by": "Super Admin",
+      "uploaded_at": "2024-01-15T10:00:00Z",
+      "expiry_date": null,
+      "status": "valid"
+    }
+  ],
+  "invoice_settings": {
+    "invoice_prefix": "CTH",
+    "invoice_number_format": "{PREFIX}/{FY}/{SEQ6}",
+    "next_invoice_number": 102,
+    "credit_note_prefix": "CN-CTH",
+    "debit_note_prefix": "DN-CTH",
+    "show_legal_name": true,
+    "show_gstin": true,
+    "show_registered_address": true,
+    "show_branch_address": true,
+    "show_fssai": true,
+    "invoice_footer": "Thank you for celebrating with CakeToHome! Freshly baked with premium ingredients.",
+    "terms_and_conditions": "1. Perishable confectionery goods. Consume within 24 hours of delivery.\n2. Subject to local jurisdiction.\n3. Goods once sold cannot be returned due to food safety & hygiene regulations.",
+    "authorized_signatory_title": "For CakeToHome India Pvt Ltd",
+    "logo_url": "/logo.png",
+    "updated_at": "2026-01-01T00:00:00Z"
+  },
+  "delivery_defaults": {
+    "free_delivery_threshold": 599,
+    "default_delivery_fee": 49,
+    "express_delivery_fee": 99,
+    "midnight_delivery_fee": 149,
+    "default_prep_time_mins": 30,
+    "default_slot_duration_mins": 60,
+    "updated_at": "2026-01-01T00:00:00Z"
+  },
+  "payment_settings": {
+    "supported_methods": [
+      "cod",
+      "razorpay",
+      "test_mode",
+      "wallet"
+    ],
+    "razorpay_key_id": "rzp_test_placeholder_key",
+    "cod_max_limit": 5000,
+    "cod_surcharge": 0,
+    "default_currency": "INR",
+    "updated_at": "2026-01-01T00:00:00Z"
+  },
+  "integration_settings": {
+    "gst_api_configured": false,
+    "gst_api_provider": "manual_sandbox",
+    "fssai_api_configured": false,
+    "fssai_api_provider": "manual_sandbox",
+    "sms_gateway": "configured",
+    "whatsapp_gateway": "configured",
+    "webhook_endpoints": [
+      "https://api.cakes2home.com/webhooks/compliance"
+    ],
+    "updated_at": "2026-01-01T00:00:00Z"
+  },
   "seo_pages": [],
   "seo_page_scores": [],
   "seo_keywords": [],
@@ -4558,5 +4970,95 @@
   "seo_social_cards": [],
   "seo_backlinks": [],
   "seo_reports": [],
-  "popup_campaigns": []
+  "product_delivery_restrictions": [],
+  "popup_campaigns": [],
+  "delivery_assignment_rules": {
+    "allow_cross_branch_fallback": false,
+    "require_working_hours": false,
+    "require_online_status": true,
+    "max_capacity_limit": 5,
+    "updated_at": "2026-08-19T08:59:06.507Z"
+  },
+  "customer_activity": [
+    {
+      "id": "act_1787129946567_s509",
+      "customer_uid": "cth_cus_9112246509",
+      "event_type": "LOGIN",
+      "title": "Customer Logged In",
+      "description": "Authenticated via mobile OTP on +91 91122 46509.",
+      "source": "STOREFRONT",
+      "timestamp": "2026-08-19T08:59:06.567Z"
+    },
+    {
+      "id": "act_1787129946547_dph0",
+      "customer_uid": "cth_cus_9112246509",
+      "event_type": "ORDER_PLACED",
+      "title": "Order Placed: CTH-20260819-101",
+      "description": "Successfully placed order for ₹1348 (1 items).",
+      "source": "STOREFRONT",
+      "metadata": {
+        "order_id": "ord_1787129946542_cg4kb",
+        "order_number": "CTH-20260819-101",
+        "total": 1348
+      },
+      "timestamp": "2026-08-19T08:59:06.547Z"
+    },
+    {
+      "id": "act_1787129946515_2wuo",
+      "customer_uid": "cth_cus_9112246509",
+      "event_type": "LOGIN",
+      "title": "Customer Logged In",
+      "description": "Authenticated via mobile OTP on +91 91122 46509.",
+      "source": "STOREFRONT",
+      "timestamp": "2026-08-19T08:59:06.515Z"
+    },
+    {
+      "id": "act_1787129946510_zo9n",
+      "customer_uid": "cth_cus_9112246509",
+      "event_type": "ACCOUNT_CREATED",
+      "title": "Customer Account Created",
+      "description": "Verified OTP for +91 91122 46509 and created new account.",
+      "source": "STOREFRONT",
+      "timestamp": "2026-08-19T08:59:06.510Z"
+    },
+    {
+      "id": "act_01",
+      "customer_uid": "cth_cus_ananya_01",
+      "event_type": "ORDER_PLACED",
+      "title": "Order Placed: Belgian Dark Chocolate Truffle Cake (1.0 kg)",
+      "description": "Order #CTH-20260808-000101 confirmed. Value: ₹1,298 via Razorpay Online UPI.",
+      "source": "STOREFRONT",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "city_id": "city_bbr",
+      "metadata": {
+        "order_id": "ord_101",
+        "amount": 1298
+      },
+      "timestamp": "2026-08-19T07:59:06.510Z"
+    },
+    {
+      "id": "act_02",
+      "customer_uid": "cth_cus_rahul_02",
+      "event_type": "RECOVERY_MESSAGE_SENT",
+      "title": "Abandoned Cart Recovery Sent via WhatsApp",
+      "description": "Sent template ABANDONED_CART_1 with 10% discount code SWEET10 for ₹1,362 cart.",
+      "source": "ADMIN_CRM",
+      "staff_id": "admin_01",
+      "staff_name": "Super Admin",
+      "metadata": {
+        "cart_id": "cart_ab_102",
+        "channel": "WHATSAPP"
+      },
+      "timestamp": "2026-08-19T08:29:06.510Z"
+    },
+    {
+      "id": "act_03",
+      "customer_uid": "cth_cus_kavita_04",
+      "event_type": "ACCOUNT_CREATED",
+      "title": "New Customer Account Created",
+      "description": "Verified Mobile OTP (+91 98765 43213) and initialized customer profile.",
+      "source": "STOREFRONT",
+      "timestamp": "2026-08-19T06:59:06.510Z"
+    }
+  ]
 }
