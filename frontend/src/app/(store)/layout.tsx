@@ -8,22 +8,9 @@ import { retrieveUser } from "@frontend/lib/data/users";
 import { ShoppingBag } from "@medusajs/icons";
 import { IconButton, Text } from "@medusajs/ui";
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Suspense } from "react";
-
-const AiChatAssistant = dynamic(
-  () => import("@frontend/components/store/ai-chat-assistant"),
-  { ssr: false }
-);
-const ExitIntentPopup = dynamic(
-  () => import("@frontend/components/store/marketing/exit-intent-popup"),
-  { ssr: false }
-);
-const WhatsAppSupportButton = dynamic(
-  () => import("@frontend/components/store/whatsapp-support-button"),
-  { ssr: false }
-);
+import { StorefrontFloatingWidgets } from "@frontend/components/store/storefront-floating-widgets";
 
 export const metadata: Metadata = {
   title: "CakeToHome",
@@ -70,15 +57,8 @@ export default async function RootLayout({
         {children}
       </main>
       <Footer />
-      {/* Floating Customer Help & AI Sommelier widgets */}
-      <Suspense fallback={null}>
-        <WhatsAppSupportButton />
-        <AiChatAssistant />
-      </Suspense>
-      {/* Exit-intent / marketing popups */}
-      <Suspense fallback={null}>
-        <ExitIntentPopup />
-      </Suspense>
+      {/* Floating Customer Help, AI Sommelier & Exit-intent widgets */}
+      <StorefrontFloatingWidgets />
     </EngagementProvider>
   );
 }

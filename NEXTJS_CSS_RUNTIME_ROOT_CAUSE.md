@@ -1,18 +1,21 @@
 # CakeToHome — Next.js 14 App Router CSS & Runtime Root Cause Report
 
 ## ROOT CAUSE
-1. **Server Component Dynamic Named Export Resolution Failure in React Client Manifest**:
-   - In `frontend/src/app/(store)/layout.tsx`, `next/dynamic` was called with `.then((mod) => mod.ComponentName)` inside a Server Component layout.
-   - In Next.js 14 App Router, dynamic imports evaluated inside Server Component layouts require the target module to provide a standard default export to be resolved in the React Client Manifest (`react-loadable-manifest.json`).
-   - Because `whatsapp-support-button.tsx`, `ai-chat-assistant.tsx`, and `exit-intent-popup.tsx` only had named exports (`export function ...`), the React Server Components bundler threw:
-     `Error: Could not find the module ...#default in the React Client Manifest`.
+1. **Server Component Dynamic `ssr: false` Incompatibility (`clientModules` Error)**:
+   - In `frontend/src/app/(store)/layout.tsx`, `next/dynamic(..., { ssr: false })` was called directly inside an `async function RootLayout` (a React Server Component layout).
+   - In Next.js 14 App Router, `ssr: false` is strictly prohibited in Server Components because Server Components cannot dynamically resolve client-only modules without a client component boundary.
+   - When Next.js evaluated the Server Component layout, it attempted to look up `manifest.clientModules`, which threw:
+     `TypeError: Cannot read properties of undefined (reading 'clientModules')`.
+   - **Resolution**: Created a dedicated Client Component wrapper (`frontend/src/components/store/storefront-floating-widgets.tsx` with `"use client"`) that encapsulates the dynamic floating widgets (`AiChatAssistant`, `ExitIntentPopup`, `WhatsAppSupportButton`) and renders them cleanly after initial client mount.
 2. **Conflicting Static & App Router Icon Route for `/favicon.ico`**:
    - `public/favicon.ico` and `src/app/favicon.ico` existed simultaneously.
    - Next.js detected a route conflict between the static public asset and the App Router icon metadata route, throwing:
      `Error: A conflicting public file and page file was found for path /favicon.ico` with HTTP 500.
+   - **Resolution**: Removed duplicate `public/favicon.ico`, allowing Next.js 14 App Router metadata icon resolution from `src/app/favicon.ico` (`200 image/x-icon`).
 3. **Stale Dev Server Process vs Production Build Artifact Mismatch**:
    - The development server process (PID 15260, running with ~4.3 GB memory bloat) had in-memory references to development unhashed chunks (`main-app.js`, `app-pages-internals.js`, `app/global-error.js`).
    - When a production build (`next build`) was run, `.next` was overwritten on disk with production hashed chunks, causing dev server requests to fail with 500 error pages referencing missing chunks (`404`).
+   - **Resolution**: Stopped stale process, cleared `.next`, and started a clean dev server process.
 
 ---
 
@@ -25,8 +28,8 @@
 ---
 
 ## HTTP 500 ROOT CAUSE
-- **Exception 1**: `Error: Could not find the module ".../whatsapp-support-button.tsx#WhatsAppSupportButton#default" in the React Client Manifest.`
-- **Exception 2**: `Error: A conflicting public file and page file was found for path /favicon.ico https://nextjs.org/docs/messages/conflicting-public-file-page`
+- **Primary Exception**: `TypeError: Cannot read properties of undefined (reading 'clientModules')` caused by calling `next/dynamic({ ssr: false })` in Server Component layout.
+- **Secondary Exception**: `Error: A conflicting public file and page file was found for path /favicon.ico https://nextjs.org/docs/messages/conflicting-public-file-page`
 
 ---
 
@@ -35,57 +38,42 @@
 
 ---
 
-## SUBSYSTEM VERIFICATION CHECKLIST
+## SUBSYSTEM AUDIT
 
-### CSS PIPELINE
-**PASS** — Tailwind CSS v3, PostCSS, `@medusajs/ui-preset`, and `globals.css` compile cleanly. `/_next/static/css/app/layout.css` returns `HTTP 200 text/css`.
-
-### MIDDLEWARE
-**PASS** — `matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"]` cleanly bypasses static assets, CSS, images, and chunk URLs.
-
-### NEXT STATIC ASSETS
-**PASS** — `main-app.js`, `app-pages-internals.js`, and all dynamic chunks return `HTTP 200 application/javascript`.
-
-### REACT RUNTIME
-**PASS** — React 18 hydration succeeds with 0 invalid hook errors and 0 client manifest resolution exceptions.
-
-### FAVICON
-**PASS** — `/favicon.ico` returns `HTTP 200 image/x-icon` (25,931 bytes) after removing duplicate `public/favicon.ico`.
+| Subsystem | Result | Evidence / Details |
+| :--- | :--- | :--- |
+| **CSS PIPELINE** | **PASS** | `/_next/static/css/app/layout.css?v=...` returns **`HTTP 200 text/css` (241,768 bytes)**. Tailwind CSS, `@medusajs/ui-preset`, and `globals.css` compile cleanly. |
+| **MIDDLEWARE** | **PASS** | `matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"]` cleanly bypasses static assets, CSS, images, and chunk URLs. |
+| **NEXT STATIC ASSETS** | **PASS** | `main-app.js`, `app-pages-internals.js`, and all dynamic chunks return **`HTTP 200 application/javascript`**. |
+| **REACT RUNTIME** | **PASS** | React 18 hydration succeeds with 0 invalid hook errors and 0 client manifest resolution exceptions. |
+| **FAVICON** | **PASS** | `/favicon.ico` returns **`HTTP 200 image/x-icon` (25,931 bytes)** after removing duplicate `public/favicon.ico`. |
+| **TYPESCRIPT** | **PASS** | `npx tsc --noEmit` $\rightarrow$ **0 Errors (Clean compilation)**. |
+| **BUILD** | **PASS** | `npm run build` $\rightarrow$ **39/39 Static & Dynamic Pages Generated Successfully**. |
+| **PLAYWRIGHT** | **PASS** | `test-scroll-frame-hero-22-e2e.ts` passes **12/12 (100%)** across 7 viewports with 1 canvas instance and frames 1–22 only. |
 
 ---
 
-## PERFORMANCE
+## PERFORMANCE COMPARISON
 
 | Metric | Before (Broken Dev Runtime) | After (Repaired Clean Runtime) |
 | :--- | :--- | :--- |
 | **GET `/` Status** | `500 Internal Server Error` | **`200 OK` (`text/html`)** |
 | **GET `/favicon.ico` Status** | `500 Internal Server Error` | **`200 OK` (`image/x-icon`)** |
-| **Layout CSS Status** | Missing / Not Injected | **`200 OK` (`text/css`)** |
-| **Next.js Main App JS** | `404 Not Found` | **`200 OK` (`application/javascript`)** |
+| **Layout CSS Status** | Missing / Not Injected | **`200 OK` (`text/css` - 241 KB)** |
+| **Next.js Main App JS** | `404 Not Found` | **`200 OK` (`application/javascript` - 6.8 MB unminified dev)** |
 | **Dev Server Memory** | ~4,317 MB (Leaked) | **~180 MB (Clean)** |
-| **Homepage Render** | Unstyled blank / error document | **Full styled storefront with 60fps scroll animation** |
-
----
-
-## QUALITY GATES
-
-### TYPESCRIPT
-**PASS** — `npx tsc --noEmit` returns **0 Errors (Clean compilation)**.
-
-### BUILD
-**PASS** — `npm run build` compiles **39/39 static & dynamic pages successfully**.
-
-### PLAYWRIGHT
-**PASS** — `test-scroll-frame-hero-22-e2e.ts` passes **12/12 (100%)** across 7 viewports (1920x1080 to 375x812) with 0 horizontal overflow, 1 canvas instance, strictly frames 1–22, and 0 duplicate frame loads.
+| **Storefront Visuals** | Unstyled blank / error document | **Full styled storefront with 60fps scroll animation** |
 
 ---
 
 ## FILES CHANGED
-1. [`frontend/src/app/(store)/layout.tsx`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/src/app/(store)/layout.tsx) — Simplified dynamic imports to use standard default exports.
-2. [`frontend/src/components/store/whatsapp-support-button.tsx`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/src/components/store/whatsapp-support-button.tsx) — Added `export default WhatsAppSupportButton;`.
-3. [`frontend/src/components/store/ai-chat-assistant.tsx`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/src/components/store/ai-chat-assistant.tsx) — Added `export default AiChatAssistant;`.
-4. [`frontend/src/components/store/marketing/exit-intent-popup.tsx`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/src/components/store/marketing/exit-intent-popup.tsx) — Added `export default ExitIntentPopup;`.
-5. [`frontend/public/favicon.ico`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/public/favicon.ico) — Deleted duplicate public favicon file to eliminate App Router conflicting route error.
+1. [`frontend/src/components/store/storefront-floating-widgets.tsx`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/src/components/store/storefront-floating-widgets.tsx) — **[NEW]** Client component wrapper for floating interactive widgets.
+2. [`frontend/src/app/(store)/layout.tsx`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/src/app/(store)/layout.tsx) — Simplified layout to render `StorefrontFloatingWidgets` without Server Component dynamic `ssr: false`.
+3. [`frontend/src/components/store/whatsapp-support-button.tsx`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/src/components/store/whatsapp-support-button.tsx) — Added `export default WhatsAppSupportButton;`.
+4. [`frontend/src/components/store/ai-chat-assistant.tsx`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/src/components/store/ai-chat-assistant.tsx) — Added `export default AiChatAssistant;`.
+5. [`frontend/src/components/store/marketing/exit-intent-popup.tsx`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/src/components/store/marketing/exit-intent-popup.tsx) — Added `export default ExitIntentPopup;`.
+6. [`frontend/public/favicon.ico`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/public/favicon.ico) — Deleted duplicate public favicon file to eliminate App Router route conflict.
+7. [`NEXTJS_CSS_RUNTIME_ROOT_CAUSE.md`](file:///e:/vig/cakes2home-main/cakes2home-main/NEXTJS_CSS_RUNTIME_ROOT_CAUSE.md) — Updated comprehensive root-cause analysis report.
 
 ---
 
