@@ -1239,6 +1239,103 @@
       "updated_at": "2026-08-19T08:55:40.348Z",
       "is_archived": false,
       "status": "active"
+    },
+    {
+      "id": "br_1787130898937",
+      "status": "active",
+      "is_archived": false,
+      "archived_at": null,
+      "code": "HUB-BLR-64",
+      "name": "baked kochi",
+      "linked_store_id": "store_blr_01",
+      "linked_store_name": "CakeToHome Indiranagar Kitchen Hub",
+      "hierarchy": {
+        "region_id": "reg_south",
+        "state_id": "st_ka",
+        "city_id": "city_blr",
+        "zone_id": "zone_east"
+      },
+      "address": "kochi kakaknadu kochii",
+      "city": "Kochi",
+      "state": "Kerala",
+      "pincode": "560038",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "google_map_url": "",
+      "phone": "+91 98765 00001",
+      "whatsapp": "+91 98765 00001",
+      "email": "manager@cakes2home.com",
+      "manager_name": "kannan",
+      "manager_user_id": "usr_mgr_01",
+      "manager_account": {
+        "name": "kannan",
+        "phone": "+91 98765 00001",
+        "email": "manager@cakes2home.com",
+        "status": "active"
+      },
+      "branch_type": "main_hub",
+      "extended_status": "open",
+      "operating_hours": {
+        "Monday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Tuesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Wednesday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Thursday": {
+          "open": "09:00",
+          "close": "23:00",
+          "is_open": true
+        },
+        "Friday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Saturday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        },
+        "Sunday": {
+          "open": "09:00",
+          "close": "23:30",
+          "is_open": true
+        }
+      },
+      "is_open": true,
+      "operational_status": "operational",
+      "max_orders_per_hour": 25,
+      "max_orders_per_day": 200,
+      "simultaneous_cakes_capacity": 15,
+      "current_hourly_load": 0,
+      "capacity_settings": {
+        "max_hourly_orders": 25,
+        "max_simultaneous_orders": 15,
+        "max_scheduled_orders": 50,
+        "max_express_orders": 20,
+        "max_midnight_orders": 15,
+        "busy_threshold": 80,
+        "emergency_stop": false,
+        "current_load": 0,
+        "auto_pause_enabled": true,
+        "is_auto_paused": false
+      },
+      "delivery_zones": [],
+      "deliverable_areas": [],
+      "product_availability": {},
+      "accessory_inventory": {},
+      "created_at": "2026-08-19T09:14:58.941Z",
+      "updated_at": "2026-08-19T09:14:58.941Z"
     }
   ],
   "cities": [
@@ -1624,6 +1721,120 @@
   ],
   "customers": [
     {
+      "id": "cus_9112247990",
+      "customer_uid": "cth_cus_9112247990",
+      "customer_number": "CTH-CUST-000106",
+      "customer_type": "registered",
+      "name": "Vikram Malhotra",
+      "first_name": "Vikram",
+      "last_name": "Malhotra",
+      "phone": "+91 91122 47990",
+      "normalized_phone": "9112247990",
+      "email": "vikram.m@example.com",
+      "normalized_email": "vikram.m@example.com",
+      "lifecycle_stage": "FIRST_PURCHASE",
+      "tier": "STANDARD",
+      "is_vip": false,
+      "orders_count": 1,
+      "total_spend": 1348,
+      "aov": 1348,
+      "last_active_at": "2026-08-19T09:12:28.050Z",
+      "last_login_at": "2026-08-19T09:12:28.050Z",
+      "cart_status": "NO_CART",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "branch_name": "Indiranagar Flagship Kitchen",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "delivery_pincode": "560038",
+      "addresses": [
+        {
+          "first_name": "Vikram",
+          "last_name": "Malhotra",
+          "phone": "+91 91122 47990",
+          "line1": "Prestige Ozone, Whitefield",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "postal_code": "560066"
+        }
+      ],
+      "notes": [],
+      "tags": [
+        "New Account",
+        "Self Registered"
+      ],
+      "loyalty": {
+        "points_balance": 100,
+        "points_earned": 100,
+        "points_redeemed": 0,
+        "tier": "STANDARD",
+        "last_updated": "2026-08-19T09:12:27.991Z"
+      },
+      "consent": {
+        "whatsapp_status": "ELIGIBLE",
+        "marketing_email": "SUBSCRIBED",
+        "marketing_sms": "SUBSCRIBED",
+        "marketing_whatsapp": "SUBSCRIBED",
+        "transactional": "SUBSCRIBED",
+        "updated_at": "2026-08-19T09:12:27.991Z"
+      },
+      "acquisition_channel": "Direct Storefront",
+      "created_at": "2026-08-19T09:12:27.991Z",
+      "updated_at": "2026-08-19T09:12:27.991Z",
+      "last_order_at": "2026-08-19T09:12:28.028Z",
+      "first_order_at": "2026-08-19T09:12:28.027Z"
+    },
+    {
+      "id": "cus_1911310463",
+      "customer_uid": "cth_cus_1911310463",
+      "customer_number": "CTH-CUST-000105",
+      "customer_type": "registered",
+      "name": "Aarav Mehta",
+      "first_name": "Aarav",
+      "last_name": "Mehta",
+      "phone": "+91 19113 10463",
+      "normalized_phone": "1911310463",
+      "email": "aarav_1310463@test.com",
+      "normalized_email": "aarav_1310463@test.com",
+      "lifecycle_stage": "NEW",
+      "tier": "STANDARD",
+      "is_vip": false,
+      "orders_count": 0,
+      "total_spend": 0,
+      "aov": 0,
+      "last_active_at": "2026-08-19T09:12:22.536Z",
+      "last_login_at": "2026-08-19T09:12:22.536Z",
+      "cart_status": "NO_CART",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "branch_name": "Indiranagar Flagship Kitchen",
+      "city_id": "city_bbr",
+      "city_name": "Bengaluru",
+      "delivery_pincode": "560038",
+      "addresses": [],
+      "notes": [],
+      "tags": [
+        "New Account",
+        "Self Registered"
+      ],
+      "loyalty": {
+        "points_balance": 100,
+        "points_earned": 100,
+        "points_redeemed": 0,
+        "tier": "STANDARD",
+        "last_updated": "2026-08-19T09:12:22.536Z"
+      },
+      "consent": {
+        "whatsapp_status": "ELIGIBLE",
+        "marketing_email": "SUBSCRIBED",
+        "marketing_sms": "SUBSCRIBED",
+        "marketing_whatsapp": "SUBSCRIBED",
+        "transactional": "SUBSCRIBED",
+        "updated_at": "2026-08-19T09:12:22.536Z"
+      },
+      "acquisition_channel": "Direct Storefront",
+      "created_at": "2026-08-19T09:12:22.536Z",
+      "updated_at": "2026-08-19T09:12:22.536Z"
+    },
+    {
       "id": "cus_9112246509",
       "customer_uid": "cth_cus_9112246509",
       "customer_number": "CTH-CUST-000104",
@@ -1942,6 +2153,20 @@
   ],
   "audit_logs": [
     {
+      "id": "log_1787130898941",
+      "action": "Saved Branch \"baked kochi\" (HUB-BLR-64)",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T09:14:58.941Z"
+    },
+    {
+      "id": "log_1787130748035",
+      "action": "New Order CTH-20260819-104 placed by Vikram Malhotra (₹1348) -> Assigned to Whitefield Tech Hub",
+      "user": "admin@cakes2home.com",
+      "ip": "127.0.0.1",
+      "timestamp": "2026-08-19T09:12:28.035Z"
+    },
+    {
       "id": "log_1787129946552",
       "action": "New Order CTH-20260819-101 placed by Vikram Malhotra (₹1348) -> Assigned to Whitefield Tech Hub",
       "user": "admin@cakes2home.com",
@@ -1964,6 +2189,21 @@
     }
   ],
   "login_events": [
+    {
+      "id": "log_1787130747991_req",
+      "identifier": "+91 91122 47990",
+      "phone": "+91 91122 47990",
+      "normalized_phone": "9112247990",
+      "role": "CUSTOMER",
+      "user_id": "cus_9112247990",
+      "user_name": "Guest",
+      "status": "OTP_SENT",
+      "authentication_method": "OTP_SMS",
+      "event_type": "OTP_REQUESTED",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Web-Browser",
+      "created_at": "2026-08-19T09:12:27.991Z"
+    },
     {
       "id": "log_1787129946509_req",
       "identifier": "+91 91122 46509",
@@ -2107,13 +2347,13 @@
       "grand_total": 785.4,
       "status": "RECOVERED_IN_PROGRESS",
       "created_at": "2026-08-19T07:25:40.348Z",
-      "updated_at": "2026-08-19T08:59:06.564Z",
+      "updated_at": "2026-08-19T09:12:28.046Z",
       "last_activity_at": "2026-08-19T08:10:40.348Z",
       "abandoned_at": "2026-08-19T08:40:40.348Z",
       "recovery_attempts_count": 3,
       "recovery_status": "RECOVERED",
       "last_contacted_at": "2026-08-19T08:56:47.660Z",
-      "recovery_token": "recov_tok_cart_ab_101_1787129946561",
+      "recovery_token": "recov_tok_cart_ab_101_1787130748043",
       "total": 748
     },
     {
@@ -4373,6 +4613,177 @@
   "delivery_partner_assignments": [],
   "orders": [
     {
+      "id": "ord_1787130748025_jvpuk",
+      "cart_id": "cart_guest_1787130748005",
+      "order_number": "CTH-20260819-104",
+      "invoice_number": "CTH/26-27/000104",
+      "kot_number": "KOT-CTH-20260819-104",
+      "customer_id": "cus_9112247990",
+      "customer_uid": "cth_cus_9112247990",
+      "customer_name": "Vikram Malhotra",
+      "customer_phone": "+91 91122 47990",
+      "customer_email": "customer@cakes2home.com",
+      "delivery_address": "Prestige Ozone, Whitefield, , Bengaluru",
+      "landmark": "",
+      "pincode": "560066",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "branch_id": "br_whitefield",
+      "branch_name": "Whitefield Tech Hub",
+      "branch_code": "HUB-BLR-04",
+      "compliance_snapshot": {
+        "seller_legal_name": "CakeToHome India Private Limited",
+        "seller_trade_name": "CakeToHome",
+        "seller_gstin": "29AAAAA0000A1Z5",
+        "seller_state": "Karnataka",
+        "seller_state_code": "29",
+        "seller_fssai_number": "11223344556677",
+        "seller_fssai_type": "STATE_LICENSE",
+        "seller_address": "ITPL Main Rd, Whitefield",
+        "branch_id": "br_whitefield",
+        "branch_code": "HUB-BLR-04",
+        "branch_name": "Whitefield Tech Hub",
+        "customer_state": "Karnataka",
+        "customer_state_code": "29",
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE"
+      },
+      "items": [
+        {
+          "id": "item_1787130748011_3gmw",
+          "product_id": "prod_01KXY_BELGIAN_TRUFFLE",
+          "title": "Belgian Dark Chocolate Truffle Cake",
+          "name": "Belgian Dark Chocolate Truffle Cake",
+          "weight": "500g",
+          "shape": "Round",
+          "flavour": "Classic",
+          "eggless": true,
+          "quantity": 1,
+          "unit_price": 1299,
+          "subtotal": 1299,
+          "total": 1299,
+          "hsn_code": "19059090",
+          "gst_rate_pct": 5,
+          "taxable_value": 1237.14,
+          "tax_amount": 61.86,
+          "cgst": 30.93,
+          "sgst": 30.93,
+          "igst": 0,
+          "thumbnail": "",
+          "cake_message": "Happy Anniversary!",
+          "selected_addons": []
+        }
+      ],
+      "pricing": {
+        "subtotal": 1299,
+        "discount": 0,
+        "applied_coupon": null,
+        "delivery_fee": 0,
+        "delivery_charge": 0,
+        "slot_surcharge": 49,
+        "slot_charge": 49,
+        "taxable_value": 1237.14,
+        "cgst": 30.93,
+        "sgst": 30.93,
+        "igst": 0,
+        "total_tax": 61.86,
+        "round_off": 0,
+        "grand_total": 1348,
+        "currency": "INR",
+        "currency_symbol": "₹"
+      },
+      "tax_snapshot": {
+        "total_tax": 61.86,
+        "cgst": 30.93,
+        "sgst": 30.93,
+        "igst": 0,
+        "is_intra_state": true,
+        "supply_type": "INTRA-STATE",
+        "hsn_code": "19059090"
+      },
+      "subtotal": 1299,
+      "total": 1348,
+      "delivery_fee": 0,
+      "tax_total": 61.86,
+      "discount_total": 0,
+      "status": "confirmed",
+      "delivery_status": "shop_accepted",
+      "payment_status": "captured",
+      "payment_method": "Online UPI (Razorpay)",
+      "transaction_id": "pay_test_vikram_101",
+      "delivery_type": "delivery",
+      "delivery_date": "2026-08-19",
+      "delivery_slot": "⚡ Express 45-Min Delivery (Priority Courier)",
+      "delivery_slot_id": "SLOT_EXPRESS_45MIN",
+      "priority": "EXPRESS",
+      "pickup_otp": "7627",
+      "delivery_otp": "5466",
+      "occasion": "Celebration",
+      "ordered_for_self": true,
+      "recipient_name": null,
+      "recipient_phone": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": false,
+      "is_surprise_delivery": false,
+      "special_instructions": null,
+      "custom_message": "Happy Anniversary!",
+      "kot_reprint_count": 1,
+      "timeline": [
+        {
+          "id": "tl_1787130748027",
+          "title": "Order Placed & Confirmed",
+          "time": "2026-08-19T09:12:28.027Z",
+          "author": "Customer",
+          "notes": "Payment method: RAZORPAY"
+        },
+        {
+          "id": "tl_1787130748028",
+          "title": "Assigned to Kitchen: Whitefield Tech Hub",
+          "time": "2026-08-19T09:12:28.027Z",
+          "author": "Automated Routing Engine",
+          "notes": "KOT generated: KOT-CTH-20260819-104"
+        }
+      ],
+      "created_at": "2026-08-19T09:12:28.027Z",
+      "updated_at": "2026-08-19T09:12:28.027Z"
+    },
+    {
+      "id": "ord_1787130742551_e940",
+      "order_number": "CTH-ORD-20260819-9296",
+      "status": "DELIVERED",
+      "payment_status": "PAID",
+      "total": 1250,
+      "grand_total": 1250,
+      "customer_uid": "cth_cus_9876543210",
+      "customer_name": "Priya Sharma",
+      "customer_phone": "+91 98765 43210",
+      "items": [],
+      "created_at": "2026-08-19T09:12:22.551Z"
+    },
+    {
+      "id": "ord_1787130742545_a3g4",
+      "order_number": "CTH-ORD-20260819-9955",
+      "status": "CONFIRMED",
+      "payment_status": "PAID",
+      "total": 899,
+      "grand_total": 899,
+      "customer_uid": "cth_cus_1911310463",
+      "customer_name": "Aarav Mehta",
+      "customer_phone": "+91 911310463",
+      "items": [
+        {
+          "id": "item_01",
+          "name": "Chocolate Truffle",
+          "price": 899,
+          "quantity": 1
+        }
+      ],
+      "created_at": "2026-08-19T09:12:22.545Z"
+    },
+    {
       "id": "ord_1787129946542_cg4kb",
       "cart_id": "cart_guest_1787129946520",
       "order_number": "CTH-20260819-101",
@@ -4512,6 +4923,18 @@
     }
   ],
   "carts": [
+    {
+      "id": "cart_guest_1787130748005",
+      "customer_uid": "cth_cus_9112247990",
+      "items": [],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "CLEARED",
+      "created_at": "2026-08-19T09:12:28.005Z",
+      "updated_at": "2026-08-19T09:12:28.032Z",
+      "last_activity_at": "2026-08-19T09:12:28.011Z"
+    },
     {
       "id": "cart_guest_1787129946520",
       "customer_uid": "cth_cus_9112246509",
@@ -4971,94 +5394,5 @@
   "seo_backlinks": [],
   "seo_reports": [],
   "product_delivery_restrictions": [],
-  "popup_campaigns": [],
-  "delivery_assignment_rules": {
-    "allow_cross_branch_fallback": false,
-    "require_working_hours": false,
-    "require_online_status": true,
-    "max_capacity_limit": 5,
-    "updated_at": "2026-08-19T08:59:06.507Z"
-  },
-  "customer_activity": [
-    {
-      "id": "act_1787129946567_s509",
-      "customer_uid": "cth_cus_9112246509",
-      "event_type": "LOGIN",
-      "title": "Customer Logged In",
-      "description": "Authenticated via mobile OTP on +91 91122 46509.",
-      "source": "STOREFRONT",
-      "timestamp": "2026-08-19T08:59:06.567Z"
-    },
-    {
-      "id": "act_1787129946547_dph0",
-      "customer_uid": "cth_cus_9112246509",
-      "event_type": "ORDER_PLACED",
-      "title": "Order Placed: CTH-20260819-101",
-      "description": "Successfully placed order for ₹1348 (1 items).",
-      "source": "STOREFRONT",
-      "metadata": {
-        "order_id": "ord_1787129946542_cg4kb",
-        "order_number": "CTH-20260819-101",
-        "total": 1348
-      },
-      "timestamp": "2026-08-19T08:59:06.547Z"
-    },
-    {
-      "id": "act_1787129946515_2wuo",
-      "customer_uid": "cth_cus_9112246509",
-      "event_type": "LOGIN",
-      "title": "Customer Logged In",
-      "description": "Authenticated via mobile OTP on +91 91122 46509.",
-      "source": "STOREFRONT",
-      "timestamp": "2026-08-19T08:59:06.515Z"
-    },
-    {
-      "id": "act_1787129946510_zo9n",
-      "customer_uid": "cth_cus_9112246509",
-      "event_type": "ACCOUNT_CREATED",
-      "title": "Customer Account Created",
-      "description": "Verified OTP for +91 91122 46509 and created new account.",
-      "source": "STOREFRONT",
-      "timestamp": "2026-08-19T08:59:06.510Z"
-    },
-    {
-      "id": "act_01",
-      "customer_uid": "cth_cus_ananya_01",
-      "event_type": "ORDER_PLACED",
-      "title": "Order Placed: Belgian Dark Chocolate Truffle Cake (1.0 kg)",
-      "description": "Order #CTH-20260808-000101 confirmed. Value: ₹1,298 via Razorpay Online UPI.",
-      "source": "STOREFRONT",
-      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-      "city_id": "city_bbr",
-      "metadata": {
-        "order_id": "ord_101",
-        "amount": 1298
-      },
-      "timestamp": "2026-08-19T07:59:06.510Z"
-    },
-    {
-      "id": "act_02",
-      "customer_uid": "cth_cus_rahul_02",
-      "event_type": "RECOVERY_MESSAGE_SENT",
-      "title": "Abandoned Cart Recovery Sent via WhatsApp",
-      "description": "Sent template ABANDONED_CART_1 with 10% discount code SWEET10 for ₹1,362 cart.",
-      "source": "ADMIN_CRM",
-      "staff_id": "admin_01",
-      "staff_name": "Super Admin",
-      "metadata": {
-        "cart_id": "cart_ab_102",
-        "channel": "WHATSAPP"
-      },
-      "timestamp": "2026-08-19T08:29:06.510Z"
-    },
-    {
-      "id": "act_03",
-      "customer_uid": "cth_cus_kavita_04",
-      "event_type": "ACCOUNT_CREATED",
-      "title": "New Customer Account Created",
-      "description": "Verified Mobile OTP (+91 98765 43213) and initialized customer profile.",
-      "source": "STOREFRONT",
-      "timestamp": "2026-08-19T06:59:06.510Z"
-    }
-  ]
+  "popup_campaigns": []
 }

@@ -1267,6 +1267,12 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const dlq = WebhookEngine.getDeadLetterQueue();
       return jsonWithDataSource({ dlq, count: dlq.length, success: true }, "json-fallback");
     }
+    if (path === "admin/webhooks/workflows") {
+      const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
+      if (permErr) return permErr;
+      const workflows = WebhookEngine.getWorkflowRegistry();
+      return jsonWithDataSource({ workflows, total: workflows.length, success: true }, "json-fallback");
+    }
 
     if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, message: `Admin path ${path} operational` }, "json-fallback");
 
@@ -2288,6 +2294,12 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       if (permErr) return permErr;
       const res = await WebhookEngine.testEndpoint(body.endpointId || "ep_n8n_production", body.eventType || "test.webhook.ping");
       return jsonWithDataSource({ ...res, success: res.success }, "json-fallback");
+    }
+    if (path === "admin/webhooks/diagnostics/suite") {
+      const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
+      if (permErr) return permErr;
+      const suiteResults = await WebhookEngine.runFullDiagnosticSuite(body.endpointId);
+      return jsonWithDataSource({ ...suiteResults, success: suiteResults.all_passed }, "json-fallback");
     }
     if (path === "admin/webhooks/callback") {
       const recorded = WebhookEngine.recordWorkflowCallback(

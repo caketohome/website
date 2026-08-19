@@ -1859,6 +1859,23 @@ class CakeToHomeApiClient {
       body: JSON.stringify(payload),
     });
   }
+
+  async getAdminWebhookWorkflows() {
+    return this.request("/admin/webhooks/workflows").catch(() => ({ workflows: [], total: 0, success: false }));
+  }
+
+  async runAdminWebhookDiagnosticSuite(endpointId?: string) {
+    return this.request("/admin/webhooks/diagnostics/suite", {
+      method: "POST",
+      body: JSON.stringify({ endpointId }),
+    }).catch(() => ({
+      passed_count: 0,
+      failed_count: 1,
+      total_count: 1,
+      all_passed: false,
+      results: [],
+    }));
+  }
 }
 
 export const apiClient = new CakeToHomeApiClient();

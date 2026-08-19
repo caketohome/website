@@ -22,7 +22,7 @@ const TABS = [
   { id: "popups", label: "Popup Manager", icon: Sparkles },
   { id: "seo", label: "SEO & Digital", icon: Globe },
   { id: "automation", label: "⚡ Messaging & Auto", icon: Zap },
-  { id: "webhooks", label: "🔌 n8n Webhooks", icon: Plug },
+  { id: "webhooks", label: "⚡ Event Gateway", icon: Plug },
   { id: "cms", label: "Content", icon: FileText },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "ai_concierge", label: "🤖 AI Concierge", icon: Sparkles },
