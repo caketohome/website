@@ -16,7 +16,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         return res.status(200).json({ product_ids: [] });
     }
 
-    const analyticsModule = req.scope.resolve(ANALYTICS_MODULE) as {
+    const analyticsModule = req.scope.resolve(ANALYTICS_MODULE) as unknown as {
         listAnalyticsEvents: (filters: Record<string, unknown>) => Promise<Record<string, unknown>[]>;
     };
 

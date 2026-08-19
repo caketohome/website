@@ -5890,6 +5890,14 @@ export class ApiEngine {
 
   // ── Delivery Partner Workflow & OTP Verification Engine ────────────
   static validateDeliveryStateTransition(currentStatus: string, targetStatus: string): { valid: boolean; reason?: string } {
+    const curKey = (currentStatus || "").toLowerCase();
+    const tarKey = (targetStatus || "").toLowerCase();
+
+    // Idempotent self-transition is always valid
+    if (curKey === tarKey) {
+      return { valid: true };
+    }
+
     const ALLOWED_TRANSITIONS: Record<string, string[]> = {
       "shop_accepted": ["pickup_claimed", "available", "REJECTED"],
       "available": ["pickup_claimed", "shop_accepted", "REJECTED"],
@@ -5908,8 +5916,6 @@ export class ApiEngine {
       "cancelled": [],
     };
 
-    const curKey = (currentStatus || "").toLowerCase();
-    const tarKey = (targetStatus || "").toLowerCase();
     const allowed = (ALLOWED_TRANSITIONS[curKey] || []).map((s) => s.toLowerCase());
 
     if (allowed.includes(tarKey)) {
@@ -5948,25 +5954,21 @@ export class ApiEngine {
         }
       }
     }
-    if (typeof partner.primary_branch_id === "string" && partner.primary_branch_id.trim().length > 0) {
+    if (partner.primary_branch_id) {
       branchSet.add(partner.primary_branch_id.trim());
     }
-    // Branch ID Alias mappings for Indiranagar & Koramangala
-    if (branchSet.has("res_01KXYMAHGFPRY1G9TZKEVGAGAT") || branchSet.has("br_indiranagar")) {
+    if (partner.branch_id) {
+      branchSet.add(partner.branch_id.trim());
+    }
+    if (branchSet.has("res_01KXYMAHGFPRY1G9TZKEVGAGAT") || branchSet.has("br_indiranagar") || branchSet.has("HUB-BLR-01")) {
       branchSet.add("res_01KXYMAHGFPRY1G9TZKEVGAGAT");
       branchSet.add("br_indiranagar");
       branchSet.add("HUB-BLR-01");
     }
-    if (branchSet.has("res_02KXYMAHGFPRY1G9TZKEVGAGAT") || branchSet.has("br_koramangala")) {
+    if (branchSet.has("res_02KXYMAHGFPRY1G9TZKEVGAGAT") || branchSet.has("br_koramangala") || branchSet.has("HUB-BLR-02")) {
       branchSet.add("res_02KXYMAHGFPRY1G9TZKEVGAGAT");
       branchSet.add("br_koramangala");
       branchSet.add("HUB-BLR-02");
-    }
-    // Fallback if set is still empty
-    if (branchSet.size === 0) {
-      branchSet.add("res_01KXYMAHGFPRY1G9TZKEVGAGAT");
-      branchSet.add("br_indiranagar");
-      branchSet.add("HUB-BLR-01");
     }
     return Array.from(branchSet);
   }
@@ -6005,6 +6007,10 @@ export class ApiEngine {
 
     const allOrders = memoryStore.orders || [];
     const authorizedOrders = allOrders.filter((o: any) => ApiEngine.canPartnerAccessOrder(partner, o));
+    const partnerJobs = authorizedOrders.map((o: any) => ApiEngine.getOrderDetails(o.id) || o);
+    const availableJobs = partnerJobs.filter((o: any) => !o.delivery_partner_id || o.delivery_status === "shop_accepted" || o.delivery_status === "available");
+    const activeJobs = partnerJobs.filter((o: any) => o.delivery_partner_id === partner.id && o.delivery_status !== "delivered" && o.status !== "delivered");
+    const completedJobs = partnerJobs.filter((o: any) => o.delivery_partner_id === partner.id && (o.delivery_status === "delivered" || o.status === "delivered"));
 
     return {
       success: true,
@@ -6016,7 +6022,10 @@ export class ApiEngine {
         primary_branch_id: partner.primary_branch_id,
         associated_branches: partner.associated_branches,
       },
-      jobs: authorizedOrders.map((o: any) => ApiEngine.getOrderDetails(o.id)),
+      jobs: partnerJobs,
+      available_jobs: availableJobs,
+      active_jobs: activeJobs,
+      completed_jobs: completedJobs,
       count: authorizedOrders.length,
     };
   }
@@ -6032,12 +6041,13 @@ export class ApiEngine {
 
     let partner = (memoryStore.delivery_partners || []).find((p: any) => p.id === partnerId || p.partner_number === partnerId) ||
                   (memoryStore.partners || []).find((p: any) => p.id === partnerId || p.partner_number === partnerId);
+
     if (!partner) {
       partner = {
         id: partnerId,
-        partner_number: `CTH-DP-${partnerId.slice(-6).toUpperCase()}`,
-        full_name: "Delivery Rider",
         name: "Delivery Rider",
+        full_name: "Delivery Rider",
+        partner_number: `DLP-${partnerId.slice(-4)}`,
         phone: "+91 98123 45678",
         primary_branch_id: order.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
         associated_branches: [order.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT"],
@@ -6062,7 +6072,19 @@ export class ApiEngine {
       return {
         success: false,
         statusCode: 403,
-        error: `Forbidden: Partner ${partner.full_name} is not assigned to order branch (${orderBranchId}). Access denied.`,
+        error: `Forbidden: Partner ${partner.full_name || partner.name} is not assigned to order branch (${orderBranchId}). Access denied.`,
+      };
+    }
+
+    // Idempotent Repeat Claim: If already claimed by this driver, return 200 OK cleanly
+    if (order.delivery_partner_id === partner.id && (order.delivery_status === "pickup_claimed" || order.status === "preparing")) {
+      return {
+        success: true,
+        statusCode: 200,
+        already_claimed: true,
+        message: "Job is already claimed by you.",
+        order,
+        partner,
       };
     }
 
@@ -10735,13 +10757,36 @@ export class ApiEngine {
     
     const existing = idx >= 0 ? memoryStore.branches[idx] : null;
 
+    // Transactional Store Manager Identity Resolution & Profile Linking
+    const mgrName = (data.manager_name || data.manager_account?.name || existing?.manager_name || "Branch Manager").trim();
+    const mgrPhone = (data.manager_account?.phone || data.phone || data.manager_phone || existing?.phone || "+91 98765 00001").trim();
+    const mgrEmail = (data.manager_account?.email || data.email || data.manager_email || existing?.email || `manager_${branchId}@cakes2home.com`).trim();
+    const branchName = data.name || existing?.name || "New Delivery Hub";
+
+    let staffMember = null;
+    try {
+      staffMember = StaffAccessControl.ensureBranchManagerProfile({
+        name: mgrName,
+        phone: mgrPhone,
+        email: mgrEmail,
+        branch_id: branchId,
+        branch_name: branchName,
+        city: data.city || existing?.city || "Bengaluru",
+      });
+    } catch (err: any) {
+      if (err.message && err.message.includes("Role conflict")) {
+        throw err;
+      }
+      console.warn("Staff profile sync warning during saveBranch:", err.message);
+    }
+
     const branchObj: any = {
       id: branchId,
       status: data.status || existing?.status || "active",
       is_archived: Boolean(data.is_archived ?? existing?.is_archived ?? false),
       archived_at: data.archived_at ?? existing?.archived_at ?? null,
       code: data.code || existing?.code || `HUB-BLR-${Math.floor(10 + Math.random() * 90)}`,
-      name: data.name || existing?.name || "New Delivery Hub",
+      name: branchName,
       linked_store_id: data.linked_store_id || existing?.linked_store_id || "store_blr_01",
       linked_store_name: data.linked_store_name || existing?.linked_store_name || "CakeToHome Indiranagar Kitchen Hub",
       hierarchy: data.hierarchy || existing?.hierarchy || { region_id: "reg_south", state_id: "st_ka", city_id: "city_blr", zone_id: "zone_east" },
@@ -10752,16 +10797,16 @@ export class ApiEngine {
       latitude: Number(data.latitude) || existing?.latitude || 12.9716,
       longitude: Number(data.longitude) || existing?.longitude || 77.6412,
       google_map_url: data.google_map_url || existing?.google_map_url || "",
-      phone: data.phone || existing?.phone || "+91 98765 00000",
-      whatsapp: data.whatsapp || data.phone || existing?.whatsapp || "+91 98765 00000",
-      email: data.email || existing?.email || `branch_${Date.now()}@cakes2home.com`,
-      manager_name: data.manager_name || existing?.manager_name || "Branch Manager",
-      manager_user_id: data.manager_user_id || existing?.manager_user_id || "usr_mgr_default",
-      manager_account: data.manager_account || existing?.manager_account || {
-        name: data.manager_name || "Branch Manager",
-        phone: data.phone || "+91 98765 00000",
-        email: data.email || `manager_${branchId}@cakes2home.com`,
-        status: "active",
+      phone: mgrPhone,
+      whatsapp: data.whatsapp || mgrPhone,
+      email: mgrEmail,
+      manager_name: staffMember ? staffMember.name : mgrName,
+      manager_user_id: staffMember ? staffMember.user_id : (data.manager_user_id || existing?.manager_user_id || "usr_mgr_default"),
+      manager_account: {
+        name: staffMember ? staffMember.name : mgrName,
+        phone: staffMember ? staffMember.phone : mgrPhone,
+        email: staffMember ? staffMember.email : mgrEmail,
+        status: staffMember ? staffMember.status.toLowerCase() : "active",
       },
       branch_type: data.branch_type || existing?.branch_type || "main_hub",
       extended_status: data.extended_status || existing?.extended_status || "open",
@@ -12622,11 +12667,7 @@ export class ApiEngine {
       ? StaffAccessControl.getStaffMemberByPhone(cleanPhone)
       : (query.userId ? StaffAccessControl.getStaffMember(query.userId) : null);
 
-    if (staffMember) {
-      if (query.role === "CUSTOMER") {
-        // Strict role isolation: Staff phone/account cannot be returned when querying for customer
-        return null;
-      }
+    if (staffMember && query.role !== "CUSTOMER") {
       const roleMatches = !query.role || query.role === staffMember.role ||
         (query.role === "STAFF" && staffMember.role === "STAFF") ||
         (query.role === "BRANCH_MANAGER" && staffMember.role === "BRANCH_MANAGER") ||
@@ -14954,6 +14995,24 @@ export class ApiEngine {
     return found || memoryStore.branches[0] || null;
   }
 
+  static isPaymentConfirmed(order: any): boolean {
+    if (!order) return false;
+    const pStatus = (order.payment_status || "").toLowerCase().trim();
+    const pMethod = (order.payment_method || "").toLowerCase().trim();
+
+    // Explicit successful online payment states
+    if (["captured", "confirmed", "paid", "completed", "payment_confirmed", "success"].includes(pStatus)) {
+      return true;
+    }
+
+    // Valid Cash on Delivery order
+    if (pMethod.includes("cod") || pMethod.includes("cash on delivery")) {
+      return pStatus !== "failed" && pStatus !== "cancelled" && pStatus !== "refunded" && pStatus !== "authorization_failed";
+    }
+
+    return false;
+  }
+
   static isOrderInBranch(order: any, branchId: string): boolean {
     const resolved = ApiEngine.resolveOrderBranchId(order);
     if (!resolved) return false;
@@ -14973,7 +15032,10 @@ export class ApiEngine {
     const branch = ApiEngine.resolveBranchRecord(branchId);
     if (!branch) return { success: false, error: "Branch not found", statusCode: 404 };
 
-    const branchOrders = (memoryStore.orders || []).filter((o: any) => ApiEngine.isOrderInBranch(o, branch.id));
+    // Strict Payment Confirmation Gate: Only payment-confirmed orders enter operational queue
+    const branchOrders = (memoryStore.orders || []).filter((o: any) =>
+      ApiEngine.isOrderInBranch(o, branch.id) && ApiEngine.isPaymentConfirmed(o)
+    );
     const now = new Date();
     const todayStr = now.toISOString().slice(0, 10);
 
@@ -15056,6 +15118,8 @@ export class ApiEngine {
         delivery_slot: o.delivery_slot || "2:00 PM - 4:00 PM",
         is_photo_cake: o.is_photo_cake || !!o.customization?.photo_url || o.items?.some((i: any) => (i.title || "").toLowerCase().includes("photo")),
         photo_url: o.photo_url || o.customization?.photo_url || null,
+        pickup_otp: o.pickup_otp || o.delivery?.pickup_otp || "1294",
+        delivery_otp: o.delivery_otp || "4819",
         created_at: o.created_at,
         is_delayed: o.is_delayed || false,
       })),
@@ -15068,7 +15132,10 @@ export class ApiEngine {
     const branch = ApiEngine.resolveBranchRecord(branchId);
     if (!branch) return { success: false, error: "Branch not found", orders: [], total: 0 };
 
-    let orders = (memoryStore.orders || []).filter((o: any) => ApiEngine.isOrderInBranch(o, branch.id));
+    // Strict Payment Confirmation Gate
+    let orders = (memoryStore.orders || []).filter((o: any) =>
+      ApiEngine.isOrderInBranch(o, branch.id) && ApiEngine.isPaymentConfirmed(o)
+    );
 
     // Status Filter
     const status = queryParams.status;
@@ -15143,6 +15210,8 @@ export class ApiEngine {
         is_delayed: o.is_delayed || false,
         delay_reason: o.delay_reason || null,
         new_eta: o.new_eta || null,
+        pickup_otp: o.pickup_otp || o.delivery?.pickup_otp || "1294",
+        delivery_otp: o.delivery_otp || "4819",
         is_on_hold: o.is_on_hold || false,
         hold_reason: o.hold_reason || null,
         kot_reprint_count: o.kot_reprint_count || 1,

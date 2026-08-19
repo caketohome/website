@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Bot, Send, X, Sparkles, ShoppingBag, Check, Zap, MapPin, Tag, Truck, RefreshCw, AlertCircle } from "lucide-react";
 import { Badge, Button, Text } from "@medusajs/ui";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { addToCart } from "@frontend/lib/actions/carts";
 

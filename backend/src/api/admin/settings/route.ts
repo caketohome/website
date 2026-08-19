@@ -17,7 +17,7 @@ const upsertSchema = zod.object({
  * List all settings, optionally filtered by group via ?group=xxx
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-    const settingsModule = req.scope.resolve(SETTINGS_MODULE);
+    const settingsModule = req.scope.resolve(SETTINGS_MODULE) as any;
     const group = req.query.group as string | undefined;
 
     if (group) {
@@ -43,7 +43,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
         );
     }
 
-    const settingsModule = req.scope.resolve(SETTINGS_MODULE);
+    const settingsModule = req.scope.resolve(SETTINGS_MODULE) as any;
     const { group, key, value, is_json, is_secret, description } = parsed.data;
 
     await settingsModule.upsertValue(group, key, value, {

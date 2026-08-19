@@ -18,7 +18,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     return MedusaError.Types.INVALID_DATA;
   }
 
-  const deliveryModuleService = req.scope.resolve(DELIVERY_MODULE);
+  const deliveryModuleService = req.scope.resolve(DELIVERY_MODULE) as any;
 
   const delivery_partnerId = req.params.id;
 
@@ -43,7 +43,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     return MedusaError.Types.INVALID_DATA;
   }
 
-  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY);
+  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY) as any;
 
   const delivery_partnerQuery = {
     entity: "delivery_partner",
@@ -67,7 +67,7 @@ export async function DELETE(req: MedusaRequest, res: MedusaResponse) {
     return MedusaError.Types.INVALID_DATA;
   }
 
-  const deliveryModuleService = req.scope.resolve(DELIVERY_MODULE);
+  const deliveryModuleService = req.scope.resolve(DELIVERY_MODULE) as any;
 
   await deliveryModuleService.deleteDeliveryPartners(delivery_partnerId);
 

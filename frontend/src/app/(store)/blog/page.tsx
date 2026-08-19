@@ -1,6 +1,6 @@
 import { getBlogPosts } from "@frontend/lib/data/cms";
 import { Heading, Text, Container } from "@medusajs/ui";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {

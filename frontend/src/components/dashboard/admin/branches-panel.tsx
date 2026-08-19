@@ -684,12 +684,16 @@ export const BranchesPanel = memo(function BranchesPanel() {
                 </div>
 
                 <div>
-                  <Label>Manager Phone</Label>
-                  <Input value={managerPhone} onChange={(e) => setManagerPhone(e.target.value)} />
+                  <Label>Manager Full Name *</Label>
+                  <Input value={managerName} onChange={(e) => setManagerName(e.target.value)} placeholder="e.g. Rajesh Kumar" required />
                 </div>
                 <div>
-                  <Label>Manager Email</Label>
-                  <Input value={managerEmail} onChange={(e) => setManagerEmail(e.target.value)} />
+                  <Label>Manager Phone *</Label>
+                  <Input value={managerPhone} onChange={(e) => setManagerPhone(e.target.value)} placeholder="+91 98765 00001" required />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>Manager Email *</Label>
+                  <Input value={managerEmail} onChange={(e) => setManagerEmail(e.target.value)} placeholder="manager@cakes2home.com" required />
                 </div>
               </div>
 

@@ -1,7 +1,7 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework";
 
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-  const deliveryModuleService = req.scope.resolve("deliveryModuleService");
+  const deliveryModuleService = req.scope.resolve("deliveryModuleService") as any;
   const slots = await deliveryModuleService.listDeliverySlots({}, {
     order: { start_time: "ASC" },
   });
@@ -14,7 +14,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     return res.status(400).json({ message: "branch_id, slot_name, start_time, and end_time are required" });
   }
 
-  const deliveryModuleService = req.scope.resolve("deliveryModuleService");
+  const deliveryModuleService = req.scope.resolve("deliveryModuleService") as any;
   const slot = await deliveryModuleService.createDeliverySlots({
     branch_id,
     slot_name,

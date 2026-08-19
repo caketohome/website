@@ -1,9 +1,9 @@
 import { MedusaService } from "@medusajs/utils";
 import { NotificationTemplate, NotificationLog } from "./models";
-import { SmsProvider } from "./providers/sms";
-import { WhatsAppProvider } from "./providers/whatsapp";
-import { EmailProvider } from "./providers/email";
-import { PushProvider } from "./providers/push";
+import { SmsProvider } from "./channels/sms";
+import { WhatsAppProvider } from "./channels/whatsapp";
+import { EmailProvider } from "./channels/email";
+import { PushProvider } from "./channels/push";
 import type {
     NotificationChannel,
     NotificationProvider,

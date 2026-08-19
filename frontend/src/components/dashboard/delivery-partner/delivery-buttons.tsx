@@ -28,30 +28,33 @@ export default function DeliveryPartnerDeliveryButtons({
   const [pickupOtpInput, setPickupOtpInput] = useState("");
   const [customerOtpInput, setCustomerOtpInput] = useState("");
   const [otpError, setOtpError] = useState("");
+  const [actionError, setActionError] = useState("");
 
   const [exceptionType, setExceptionType] = useState("CUSTOMER_NOT_AVAILABLE");
   const [exceptionDesc, setExceptionDesc] = useState("");
   const [exceptionSuccess, setExceptionSuccess] = useState(false);
 
   const handleProceedDelivery = async () => {
+    setActionError("");
     setProceedIsLoading(true);
     const res = await proceedDelivery(delivery, delivery_partner.id);
     setProceedIsLoading(false);
-    if (res && res.success) {
+    if (res && (res.success || res.already_claimed)) {
       window.location.reload();
     } else {
-      alert(res?.error || "Unable to claim job.");
+      setActionError(res?.error || "Unable to claim job.");
     }
   };
 
   const handleDeclineDelivery = async () => {
+    setActionError("");
     setDeclineIsLoading(true);
     const res = await passDelivery(delivery.id, delivery_partner.id);
     setDeclineIsLoading(false);
     if (res && res.success) {
       window.location.reload();
     } else {
-      alert(res?.error || "Unable to decline job.");
+      setActionError(res?.error || "Unable to decline job.");
     }
   };
 
@@ -118,18 +121,24 @@ export default function DeliveryPartnerDeliveryButtons({
   };
 
   return (
-    <div className="flex items-center gap-2 flex-wrap justify-end">
-      {/* ── AVAILABLE JOBS ────────────────────────────────────────── */}
-      {delivery.delivery_status === DeliveryStatus.SHOP_ACCEPTED && (
-        <>
-          <Button variant="transparent" size="small" onClick={handleDeclineDelivery} isLoading={declineIsLoading}>
-            Decline
-          </Button>
-          <Button variant="primary" size="small" onClick={handleProceedDelivery} isLoading={proceedIsLoading} className="bg-rose-600 hover:bg-rose-700 text-white">
-            Claim Job
-          </Button>
-        </>
+    <div className="flex flex-col items-end gap-1.5">
+      {actionError && (
+        <span className="text-[11px] font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 px-2 py-0.5 rounded">
+          ⚠️ {actionError}
+        </span>
       )}
+      <div className="flex items-center gap-2 flex-wrap justify-end">
+        {/* ── AVAILABLE JOBS ────────────────────────────────────────── */}
+        {delivery.delivery_status === DeliveryStatus.SHOP_ACCEPTED && (
+          <>
+            <Button variant="transparent" size="small" onClick={handleDeclineDelivery} isLoading={declineIsLoading}>
+              Decline
+            </Button>
+            <Button variant="primary" size="small" onClick={handleProceedDelivery} isLoading={proceedIsLoading} className="bg-rose-600 hover:bg-rose-700 text-white">
+              Claim Job
+            </Button>
+          </>
+        )}
 
       {/* ── READY FOR PICKUP ───────────────────────────────────────── */}
       {delivery.delivery_status === DeliveryStatus.READY_FOR_PICKUP && (
@@ -165,6 +174,7 @@ export default function DeliveryPartnerDeliveryButtons({
           </Button>
         </>
       )}
+      </div>
 
       {/* ── PICKUP OTP MODAL ────────────────────────────────────────── */}
       {showPickupModal && (

@@ -3,7 +3,7 @@
 import { signup } from "@frontend/lib/actions";
 import { ShopDTO } from "@frontend/lib/types";
 import { Badge, Button, Input, Label, Select } from "@medusajs/ui";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 

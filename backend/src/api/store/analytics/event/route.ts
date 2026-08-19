@@ -6,7 +6,7 @@ import { ANALYTICS_MODULE } from "../../../../modules/analytics";
  * Public storefront event ingestion (visitors, add_to_cart, checkout_started, search, etc.)
  */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
-    const analyticsModule = req.scope.resolve(ANALYTICS_MODULE);
+    const analyticsModule = req.scope.resolve(ANALYTICS_MODULE) as any;
 
     const body = req.body as {
         event_type: string;

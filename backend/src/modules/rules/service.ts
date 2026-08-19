@@ -772,6 +772,8 @@ class RulesModuleService extends (MedusaService({
                 ip_address: ip || "127.0.0.1",
             },
         ]);
+    }
+
     async recordRedemption(data: { offer_id: string; customer_id?: string; order_id?: string; discount_amount?: number; cashback_amount?: number }): Promise<any> {
         const redemptions = await this.createOfferRedemptions([
             {

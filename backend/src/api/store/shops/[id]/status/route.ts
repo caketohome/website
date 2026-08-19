@@ -10,7 +10,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const { id } = req.params;
   const { is_open } = schema.parse(req.body);
 
-  const shopService = req.scope.resolve(SHOP_MODULE);
+  const shopService = req.scope.resolve(SHOP_MODULE) as any;
 
   try {
     const shop = await shopService.updateShops({

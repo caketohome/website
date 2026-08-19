@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ViewTransitions } from "next-view-transitions";
 import { OrganizationJsonLd } from "@frontend/components/store/seo/json-ld";
 
 export const dynamic = "force-dynamic";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  fallback: ["system-ui", "-apple-system", "BlinkMacSystemFont", "'Segoe UI'", "Roboto", "sans-serif"],
+  adjustFontFallback: false,
+});
 
 export const metadata: Metadata = {
   title: "CakeToHome",
@@ -28,9 +32,7 @@ export default function RootLayout({
         <OrganizationJsonLd />
       </head>
       <body className={inter.className}>
-        <ViewTransitions>
-          {children}
-        </ViewTransitions>
+        {children}
         <script
           dangerouslySetInnerHTML={{
             __html: `

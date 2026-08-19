@@ -6,7 +6,7 @@ import { AUDIT_MODULE } from "../../../modules/audit";
  * List audit logs with optional filters: actor_id, entity, entity_id, action.
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-    const auditModule = req.scope.resolve(AUDIT_MODULE);
+    const auditModule = req.scope.resolve(AUDIT_MODULE) as any;
 
     const filters: Record<string, unknown> = {};
     if (req.query.actor_id) filters.actor_id = req.query.actor_id;

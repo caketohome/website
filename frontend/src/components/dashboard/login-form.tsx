@@ -2,7 +2,7 @@
 
 import { login } from "@frontend/lib/actions";
 import { Badge, Button, Input, Label, Select } from "@medusajs/ui";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import { useFormState, useFormStatus } from "react-dom";
 
 function Submit() {

@@ -387,3 +387,179 @@ export async function resumeSubscription(id: string): Promise<any> {
 export async function cancelSubscription(id: string): Promise<any> {
   return { id, status: "CANCELLED" };
 }
+
+export const DEFAULT_CATALOG_PRODUCTS: any[] = [
+  {
+    product_id: "prod_1",
+    id: "prod_1",
+    title: "Belgian Chocolate Truffle Cake",
+    name: "Belgian Chocolate Truffle Cake",
+    description: "Rich, velvety Belgian dark chocolate layers frosted with silky ganache.",
+    thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
+    handle: "belgian-chocolate-truffle-cake",
+    price: 649,
+    rating: 4.9,
+    review_count: 142,
+    eggless: true,
+    sugar_free: false,
+    gluten_free: false,
+    vegan: false,
+    is_featured: true,
+    is_bestseller: true,
+    is_new_arrival: false,
+  },
+  {
+    product_id: "prod_2",
+    id: "prod_2",
+    title: "Classic Red Velvet Cream Cheese Cake",
+    name: "Classic Red Velvet Cream Cheese Cake",
+    description: "Moist red velvet sponge layers filled with signature cream cheese frosting.",
+    thumbnail: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800",
+    handle: "classic-red-velvet-cake",
+    price: 749,
+    rating: 4.8,
+    review_count: 98,
+    eggless: true,
+    sugar_free: false,
+    gluten_free: false,
+    vegan: false,
+    is_featured: true,
+    is_bestseller: true,
+    is_new_arrival: false,
+  },
+  {
+    product_id: "prod_3",
+    id: "prod_3",
+    title: "Fresh Alphonso Mango Mousse Cake",
+    name: "Fresh Alphonso Mango Mousse Cake",
+    description: "Seasonal Alphonso mango pulp whipped into light, airy mousse layers.",
+    thumbnail: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800",
+    handle: "mango-mousse-cake",
+    price: 699,
+    rating: 4.9,
+    review_count: 76,
+    eggless: true,
+    sugar_free: false,
+    gluten_free: false,
+    vegan: false,
+    is_featured: true,
+    is_bestseller: false,
+    is_new_arrival: true,
+  },
+];
+
+export async function listProducts(options?: { branchId?: string; pincode?: string }): Promise<any[]> {
+  if (typeof window === "undefined") {
+    try {
+      const { ApiEngine } = await import("../api-engine");
+      const products = ApiEngine.getProducts(options?.branchId, options?.pincode);
+      if (Array.isArray(products) && products.length > 0) return products;
+    } catch {
+      // Fallback
+    }
+  }
+  try {
+    const res: any = await apiClient.getProducts(options);
+    const rawList = res?.products || res?.results || res?.data;
+    if (Array.isArray(rawList) && rawList.length > 0) {
+      return rawList;
+    }
+    return DEFAULT_CATALOG_PRODUCTS;
+  } catch {
+    return DEFAULT_CATALOG_PRODUCTS;
+  }
+}
+
+export async function getProductById(id: string, pincode?: string): Promise<any | null> {
+  if (typeof window === "undefined") {
+    try {
+      const { ApiEngine } = await import("../api-engine");
+      const product = ApiEngine.getProductById(id, undefined, pincode);
+      if (product) return product;
+    } catch {
+      // Fallback
+    }
+  }
+  try {
+    const res: any = await (apiClient as any).getProduct?.(id, { pincode });
+    return res?.product || res || DEFAULT_CATALOG_PRODUCTS.find((p) => p.id === id || p.product_id === id) || null;
+  } catch {
+    return DEFAULT_CATALOG_PRODUCTS.find((p) => p.id === id || p.product_id === id) || null;
+  }
+}
+
+export async function getProductBySlug(slug: string, pincode?: string): Promise<any | null> {
+  if (typeof window === "undefined") {
+    try {
+      const { ApiEngine } = await import("../api-engine");
+      const product = ApiEngine.getProductBySlug(slug, undefined, pincode) || ApiEngine.getProductById(slug, undefined, pincode);
+      if (product) return product;
+    } catch {
+      // Fallback
+    }
+  }
+  try {
+    const res: any = await (apiClient as any).getProduct?.(slug, { pincode });
+    return res?.product || res || DEFAULT_CATALOG_PRODUCTS.find((p) => p.handle === slug || p.slug === slug || p.id === slug) || null;
+  } catch {
+    return DEFAULT_CATALOG_PRODUCTS.find((p) => p.handle === slug || p.slug === slug || p.id === slug) || null;
+  }
+}
+
+export async function listPimCategories(): Promise<any[]> {
+  if (typeof window === "undefined") {
+    try {
+      const { ApiEngine } = await import("../api-engine");
+      const categories = ApiEngine.listPimCategories();
+      if (Array.isArray(categories) && categories.length > 0) return categories;
+    } catch {
+      // Fallback
+    }
+  }
+  try {
+    const res: any = await (apiClient as any).getCategories?.();
+    const list = res?.categories || res?.data;
+    if (Array.isArray(list) && list.length > 0) return list;
+    return [
+      { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587" },
+      { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", image: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c" },
+      { id: "cat_fruit", name: "Fresh Fruit Cakes", slug: "fruit-cakes", image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136" },
+      { id: "cat_cheesecake", name: "Cheesecakes", slug: "cheesecakes", image: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad" },
+    ];
+  } catch {
+    return [
+      { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587" },
+      { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", image: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c" },
+      { id: "cat_fruit", name: "Fresh Fruit Cakes", slug: "fruit-cakes", image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136" },
+      { id: "cat_cheesecake", name: "Cheesecakes", slug: "cheesecakes", image: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad" },
+    ];
+  }
+}
+
+export async function listOccasions(): Promise<any[]> {
+  if (typeof window === "undefined") {
+    try {
+      const { ApiEngine } = await import("../api-engine");
+      const occasions = ApiEngine.listOccasions();
+      if (Array.isArray(occasions) && occasions.length > 0) return occasions;
+    } catch {
+      // Fallback
+    }
+  }
+  try {
+    const res: any = await apiClient.getOccasions();
+    const list = res?.occasions || res?.data;
+    if (Array.isArray(list) && list.length > 0) return list;
+    return [
+      { id: "occ_birthday", title: "Birthday", slug: "birthday", image: "https://images.unsplash.com/photo-1558636508-e0db3814bd1d" },
+      { id: "occ_anniversary", title: "Anniversary", slug: "anniversary", image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc" },
+      { id: "occ_midnight", title: "Midnight Surprise", slug: "midnight", image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d" },
+    ];
+  } catch {
+    return [
+      { id: "occ_birthday", title: "Birthday", slug: "birthday", image: "https://images.unsplash.com/photo-1558636508-e0db3814bd1d" },
+      { id: "occ_anniversary", title: "Anniversary", slug: "anniversary", image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc" },
+      { id: "occ_midnight", title: "Midnight Surprise", slug: "midnight", image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d" },
+    ];
+  }
+}

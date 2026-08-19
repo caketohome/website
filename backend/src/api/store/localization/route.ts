@@ -7,7 +7,7 @@ import { LOCALIZATION_MODULE } from "../../../modules/localization";
  * for the requested language (?language_code=xx).
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-    const locModule = req.scope.resolve(LOCALIZATION_MODULE);
+    const locModule = req.scope.resolve(LOCALIZATION_MODULE) as any;
 
     const languages = await locModule.getEnabledLanguages();
     const currencies = await locModule.getEnabledCurrencies();

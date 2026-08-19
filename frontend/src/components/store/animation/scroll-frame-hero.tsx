@@ -12,23 +12,65 @@ export interface ScrollFrameHeroProps {
 }
 
 export const FRAME_CONFIG = {
-  totalFrames: 112,
+  totalFrames: 22,
   firstFrame: 1,
-  lastFrame: 112,
-  scrollLengthVh: 240,
+  lastFrame: 22,
+  scrollLengthVh: 280, // Extended scroll length for smooth ~25% slower cinematic playback
   nativeWidth: 1920,
   nativeHeight: 1080,
-  easing: 0.20,
+  easing: 0.14, // Moderately smoother & slower interpolation (approx 25-30% slower than 0.20)
 };
 
 /**
- * Resolves Cloudinary frame URL for frames1_0001.jpg through frames1_0112.jpg
+ * Resolves Cloudinary frame URL for frames1_0001.jpg through frames1_0022.jpg
  */
 export function getFrameUrl(frameNumber: number, isMobile = false): string {
   const clamped = Math.max(1, Math.min(FRAME_CONFIG.totalFrames, Math.round(frameNumber)));
   const padded = String(clamped).padStart(4, "0");
   const transform = isMobile ? "f_auto,q_auto,w_800" : "f_auto,q_auto";
   return `https://res.cloudinary.com/r0k56n3j/image/upload/${transform}/frames1_${padded}.jpg`;
+}
+
+// Module-level singleton frame cache & in-flight tracker
+// Guarantees zero duplicate network requests across React re-mounts, StrictMode, or navigation
+const GLOBAL_FRAME_CACHE = new Map<number, HTMLImageElement>();
+const IN_FLIGHT_REQUESTS = new Set<number>();
+
+function loadSingleFrame(
+  frameIdx: number,
+  isMobile: boolean,
+  onLoaded?: (frameIdx: number, imgElem: HTMLImageElement) => void
+) {
+  const clamped = Math.max(1, Math.min(FRAME_CONFIG.totalFrames, Math.round(frameIdx)));
+
+  // If already cached in memory, notify immediately
+  const existing = GLOBAL_FRAME_CACHE.get(clamped);
+  if (existing && existing.complete && existing.naturalWidth > 0) {
+    if (onLoaded) onLoaded(clamped, existing);
+    return;
+  }
+
+  // If request is already in-flight, avoid duplicate instantiation
+  if (IN_FLIGHT_REQUESTS.has(clamped)) {
+    return;
+  }
+
+  IN_FLIGHT_REQUESTS.add(clamped);
+
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.decoding = "async";
+  img.src = getFrameUrl(clamped, isMobile);
+
+  img.onload = () => {
+    IN_FLIGHT_REQUESTS.delete(clamped);
+    GLOBAL_FRAME_CACHE.set(clamped, img);
+    if (onLoaded) onLoaded(clamped, img);
+  };
+
+  img.onerror = () => {
+    IN_FLIGHT_REQUESTS.delete(clamped);
+  };
 }
 
 export function ScrollFrameHero({
@@ -50,9 +92,7 @@ export function ScrollFrameHero({
   const targetFrameRef = useRef<number>(1);
   const lastDrawnFrameRef = useRef<number>(-1);
   const scrollProgressRef = useRef<number>(0);
-  const loadedFramesRef = useRef<Map<number, HTMLImageElement>>(new Map());
   const isMobileRef = useRef<boolean>(false);
-  const prefersReducedMotionRef = useRef<boolean>(false);
   const rafIdRef = useRef<number | null>(null);
   const isLoopRunningRef = useRef<boolean>(false);
 
@@ -64,17 +104,17 @@ export function ScrollFrameHero({
     if (!ctx) return;
 
     const clamped = Math.max(1, Math.min(FRAME_CONFIG.totalFrames, Math.round(frameNumber)));
-    let img = loadedFramesRef.current.get(clamped);
+    let img = GLOBAL_FRAME_CACHE.get(clamped);
 
     // Fallback: If target frame not loaded yet, find closest available loaded frame
     if (!img || !img.complete || img.naturalWidth === 0) {
-      const loadedKeys = Array.from(loadedFramesRef.current.keys()).filter((k) => {
-        const item = loadedFramesRef.current.get(k);
+      const loadedKeys = Array.from(GLOBAL_FRAME_CACHE.keys()).filter((k) => {
+        const item = GLOBAL_FRAME_CACHE.get(k);
         return item && item.complete && item.naturalWidth > 0;
       });
       if (loadedKeys.length > 0) {
         loadedKeys.sort((a, b) => Math.abs(a - clamped) - Math.abs(b - clamped));
-        img = loadedFramesRef.current.get(loadedKeys[0]);
+        img = GLOBAL_FRAME_CACHE.get(loadedKeys[0]);
       }
     }
 
@@ -171,7 +211,7 @@ export function ScrollFrameHero({
     isLoopRunningRef.current = true;
 
     const renderLoop = () => {
-      // Smoothly interpolate towards target frame
+      // Smoothly interpolate towards target frame with controlled easing
       const target = targetFrameRef.current;
       const current = currentFrameRef.current;
       const diff = target - current;
@@ -203,7 +243,7 @@ export function ScrollFrameHero({
     rafIdRef.current = requestAnimationFrame(renderLoop);
   }, [drawFrame, updateOverlays]);
 
-  // ── 4. Initial Frame Load & Preload Pipeline ─────────────────────────────
+  // ── 4. Initial Frame Load & Controlled 22-Frame Preload Pipeline ─────────
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -211,75 +251,30 @@ export function ScrollFrameHero({
 
     resizeCanvas();
 
-    const handleFrameLoaded = (frameIdx: number, imgElem: HTMLImageElement) => {
-      loadedFramesRef.current.set(frameIdx, imgElem);
+    const handleFrameLoaded = (frameIdx: number) => {
       const cur = Math.round(currentFrameRef.current);
       if (cur === frameIdx || lastDrawnFrameRef.current === -1) {
         drawFrame(cur);
       }
     };
 
-    // 1. Load Frame 0001 immediately (Priority 1)
-    const img1 = new Image();
-    img1.crossOrigin = "anonymous";
-    img1.src = getFrameUrl(1, isMobileRef.current);
-    img1.onload = () => handleFrameLoaded(1, img1);
+    // 1. Load Frame 1 immediately (Priority 1)
+    loadSingleFrame(1, isMobileRef.current, handleFrameLoaded);
 
-    // 2. Preload nearby priority frames (2 through 15) immediately
-    for (let f = 2; f <= Math.min(15, FRAME_CONFIG.totalFrames); f++) {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.decoding = "async";
-      img.src = getFrameUrl(f, isMobileRef.current);
-      img.onload = () => handleFrameLoaded(f, img);
-    }
-
-    // 3. Preload remaining frames (16 through 112) in progressive background chunks
-    let currentPreloadBatch = 16;
+    // 2. Preload remaining frames (2 through 22) in one clean sequential queue
     let timer: NodeJS.Timeout | null = null;
+    let nextFrame = 2;
 
-    const loadNextBatch = () => {
-      if (currentPreloadBatch > FRAME_CONFIG.totalFrames) return;
-      const endBatch = Math.min(currentPreloadBatch + 12, FRAME_CONFIG.totalFrames);
-      for (let f = currentPreloadBatch; f <= endBatch; f++) {
-        if (!loadedFramesRef.current.has(f)) {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          img.decoding = "async";
-          img.src = getFrameUrl(f, isMobileRef.current);
-          img.onload = () => handleFrameLoaded(f, img);
-        }
-      }
-      currentPreloadBatch = endBatch + 1;
-      if (currentPreloadBatch <= FRAME_CONFIG.totalFrames) {
-        timer = setTimeout(loadNextBatch, 40);
+    const loadNextFrame = () => {
+      if (nextFrame > FRAME_CONFIG.totalFrames) return;
+      loadSingleFrame(nextFrame, isMobileRef.current, handleFrameLoaded);
+      nextFrame++;
+      if (nextFrame <= FRAME_CONFIG.totalFrames) {
+        timer = setTimeout(loadNextFrame, 25);
       }
     };
 
-    timer = setTimeout(loadNextBatch, 50);
-
-    // Preload priority window around target frame
-    const preloadAroundTarget = (target: number) => {
-      const center = Math.round(target);
-      for (let offset = 0; offset <= 8; offset++) {
-        const forward = center + offset;
-        const backward = center - offset;
-        if (forward <= FRAME_CONFIG.totalFrames && !loadedFramesRef.current.has(forward)) {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          img.decoding = "async";
-          img.src = getFrameUrl(forward, isMobileRef.current);
-          img.onload = () => handleFrameLoaded(forward, img);
-        }
-        if (backward >= 1 && backward !== forward && !loadedFramesRef.current.has(backward)) {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          img.decoding = "async";
-          img.src = getFrameUrl(backward, isMobileRef.current);
-          img.onload = () => handleFrameLoaded(backward, img);
-        }
-      }
-    };
+    timer = setTimeout(loadNextFrame, 40);
 
     const ro = new ResizeObserver(() => resizeCanvas());
     if (stickyRef.current) {
@@ -288,26 +283,15 @@ export function ScrollFrameHero({
 
     window.addEventListener("resize", resizeCanvas, { passive: true });
 
-    // Expose dev helpers for verification
-    (window as any).__cakeToHomeDebug = {
-      drawFrame,
-      getCurrentFrame: () => currentFrameRef.current,
-      getTargetFrame: () => targetFrameRef.current,
-      getLoadedCount: () => loadedFramesRef.current.size,
-      hasFrame: (f: number) => loadedFramesRef.current.has(f),
-      preloadAroundTarget,
-    };
-
     return () => {
       if (timer) clearTimeout(timer);
       ro.disconnect();
       window.removeEventListener("resize", resizeCanvas);
       if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
-      delete (window as any).__cakeToHomeDebug;
     };
   }, [drawFrame, resizeCanvas]);
 
-  // ── 5. Scroll Listener (Tied to Section Bounds) ─────────────────────────
+  // ── 5. Scroll Listener (Tied strictly to Section Bounds) ─────────────────
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -324,14 +308,9 @@ export function ScrollFrameHero({
       const progress = Math.max(0, Math.min(1, scrolled / totalScrollable));
 
       scrollProgressRef.current = progress;
-      // Formula: frameIndex = Math.round(progress * (TOTAL_FRAMES - 1)) + 1
+      // Formula: targetFrame = 1 + progress * (22 - 1)
       targetFrameRef.current = 1 + progress * (FRAME_CONFIG.totalFrames - 1);
       currentFrameRef.current = targetFrameRef.current;
-
-      const d = (window as any).__cakeToHomeDebug;
-      if (d && typeof d.preloadAroundTarget === "function") {
-        d.preloadAroundTarget(targetFrameRef.current);
-      }
 
       const frameToDraw = Math.max(
         1,

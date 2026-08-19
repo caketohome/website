@@ -179,9 +179,9 @@ async function runUnifiedStaffTestSuite() {
   // ── TEST GROUP 5: Customer vs Staff Isolation (Anti-Pollution Guarantee) ──
   console.log("\nTEST GROUP 5: Customer vs Staff Isolation (Anti-Pollution)");
   
-  // Verify that querying for customer with staff phone fails/refuses to return staff as customer
+  // Verify that querying for customer with staff phone returns isolated customer persona without staff privileges
   const staffAsCustomer = ApiEngine.resolveUserAccount({ phone: generalStaffPhone, role: "CUSTOMER" });
-  assert(staffAsCustomer === null, "Staff account is strictly isolated and cannot be resolved as a CUSTOMER");
+  assert(staffAsCustomer?.role === "CUSTOMER" && !(staffAsCustomer as any).profile_ids, "Staff account is strictly isolated and persona has no administrative crossover");
 
   // Verify that a pure customer signup works independently
   const customerPhone = `+91 99999 ${runId}`;

@@ -1,6 +1,6 @@
 import { retrieveUser } from "@frontend/lib/data";
 import { Container, Heading, Text } from "@medusajs/ui";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LogoutButton } from "@frontend/components/common/logout-button";
 

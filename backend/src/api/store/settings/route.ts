@@ -7,7 +7,7 @@ import { SETTINGS_MODULE } from "../../../modules/settings";
  * Supports ?group=xxx to fetch a single group.
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-    const settingsModule = req.scope.resolve(SETTINGS_MODULE);
+    const settingsModule = req.scope.resolve(SETTINGS_MODULE) as any;
     const group = req.query.group as string | undefined;
 
     if (group) {

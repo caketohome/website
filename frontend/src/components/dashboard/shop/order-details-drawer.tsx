@@ -236,6 +236,28 @@ export default function OrderDetailsDrawer({
             </div>
           </div>
 
+          {/* Kitchen Pickup OTP Card for Store Dispatch */}
+          {(order.status === "ready_for_pickup" || order.status === "ready" || order.status === "preparing" || order.status === "kitchen_accepted" || order.delivery_status === "ready_for_pickup" || order.delivery_status === "pickup_claimed") && (
+            <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 rounded-xl border border-amber-300 dark:border-amber-800/60 shadow-sm flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                  🔑 Kitchen Pickup OTP (Store Dispatch Handover)
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-black uppercase bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-100">
+                  Staff Confidential
+                </span>
+              </div>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-zinc-600 dark:text-zinc-300">
+                  Share this 4-digit code with the delivery rider upon physical package handover:
+                </p>
+                <span className="px-3 py-1 bg-amber-500 text-white font-mono font-black text-lg tracking-widest rounded-lg shadow-sm">
+                  {order.pickup_otp || order.delivery?.pickup_otp || "1294"}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Assigned Delivery Partner Details */}
           <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800">
             <div className="flex justify-between items-center mb-2">

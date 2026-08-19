@@ -1,6 +1,6 @@
 import { getPublicCampaign } from "@frontend/lib/data/marketing";
 import { Heading, Text, Container, Badge } from "@medusajs/ui";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 

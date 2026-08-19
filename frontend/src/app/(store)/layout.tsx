@@ -7,11 +7,11 @@ import { ExitIntentPopup } from "@frontend/components/store/marketing/exit-inten
 import { EngagementProvider } from "@frontend/components/store/engagement/engagement-provider";
 import { WhatsAppSupportButton } from "@frontend/components/store/whatsapp-support-button";
 import { AiChatAssistant } from "@frontend/components/store/ai-chat-assistant";
-import { retrieveUser } from "@frontend/lib/data";
+import { retrieveUser } from "@frontend/lib/data/users";
 import { ShoppingBag } from "@medusajs/icons";
 import { IconButton, Text } from "@medusajs/ui";
 import type { Metadata } from "next";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {

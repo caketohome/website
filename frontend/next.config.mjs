@@ -8,7 +8,23 @@ const nextConfig = {
   },
   transpilePackages: ["@medusajs/ui"],
   experimental: {
-    webpackBuildWorker: false,
+    optimizePackageImports: [
+      "@medusajs/ui",
+      "lucide-react",
+      "@medusajs/icons",
+    ],
+  },
+  webpack: (config) => {
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: [
+        "**/node_modules/**",
+        "**/.git/**",
+        "**/data/db-store.json",
+        "**/backend/**",
+      ],
+    };
+    return config;
   },
   images: {
     remotePatterns: [

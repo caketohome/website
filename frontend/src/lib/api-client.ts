@@ -148,10 +148,14 @@ class CakeToHomeApiClient {
       : `http://localhost:3000/api/v1${cleanEndpoint}`;
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
       const response = await fetch(primaryUrl, {
         ...options,
         headers,
+        signal: options.signal || controller.signal,
       });
+      clearTimeout(timeoutId);
 
       const duration = Date.now() - startTime;
 

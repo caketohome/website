@@ -59,7 +59,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     return MedusaError.Types.NOT_FOUND, "Shop not found";
   }
 
-  const remoteQuery = req.scope.resolve(ContainerRegistrationKeys.REMOTE_QUERY);
+  const remoteQuery = req.scope.resolve(ContainerRegistrationKeys.REMOTE_QUERY) as any;
 
   const shopAdminsQuery = remoteQueryObjectFromString({
     entryPoint: "shop_manager",
@@ -82,7 +82,7 @@ export async function DELETE(req: MedusaRequest, res: MedusaResponse) {
     return MedusaError.Types.INVALID_DATA;
   }
 
-  const shopModuleService = req.scope.resolve(SHOP_MODULE);
+  const shopModuleService = req.scope.resolve(SHOP_MODULE) as any;
 
   await shopModuleService.deleteShopManagers(adminId);
 

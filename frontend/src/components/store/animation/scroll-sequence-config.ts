@@ -50,13 +50,13 @@ export interface ScrollSequenceConfig {
 
 export const DEFAULT_SCROLL_SEQUENCE_CONFIG: ScrollSequenceConfig = {
   baseUrl: "https://res.cloudinary.com/r0k56n3j/image/upload/frames1_",
-  frameCount: 112,
+  frameCount: 22,
   framePadding: 4,
   firstFrame: 1,
-  sectionHeight: "240vh",
-  mobileFrameCount: 112,
-  desktopFrameCount: 112,
-  easing: 0.18,
+  sectionHeight: "280vh",
+  mobileFrameCount: 22,
+  desktopFrameCount: 22,
+  easing: 0.14,
   pixelRatioLimit: 2,
   nativeWidth: 1920,
   nativeHeight: 1080,
@@ -69,7 +69,7 @@ export const DEFAULT_SCROLL_SEQUENCE_CONFIG: ScrollSequenceConfig = {
   filePrefix: "frames1_",
   fileExtension: ".jpg",
   brandPrimary: "#1D2F5D",
-  initialPreloadCount: 15,
+  initialPreloadCount: 22,
 };
 
 /**

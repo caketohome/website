@@ -1,7 +1,7 @@
 import { StorefrontProductHomepage } from "../../components/store/home/storefront-product-homepage";
 import { PageRenderer } from "../../components/store/cms/page-renderer";
 import { getHomepage } from "../../lib/data/cms";
-import { ApiEngine } from "../../lib/api-engine";
+import { listProducts, listPimCategories, listOccasions } from "../../lib/data/catalog";
 import { SeoMetadataBuilder } from "../../lib/seo/metadata-builder";
 import type { Metadata } from "next";
 
@@ -20,13 +20,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Home() {
   const cms = await getHomepage().catch(() => ({ page: null, sections: [], banners: [] }));
-  const allProducts = ApiEngine.getProducts();
-  const allCategories = ApiEngine.listPimCategories();
+  const [allProducts, allCategories, occasions] = await Promise.all([
+    listProducts(),
+    listPimCategories(),
+    listOccasions(),
+  ]);
 
   const sections = cms?.sections ?? [];
   const banners = cms?.banners ?? [];
   const announcementBar = "announcementBar" in cms ? cms.announcementBar : undefined;
-  const occasions = ApiEngine.listOccasions();
 
   return (
     <div className="flex flex-col gap-12">

@@ -1,5 +1,5 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework";
-import { CATALOG_MODULE } from "../../../../../modules/catalog";
+import { CATALOG_MODULE } from "../../../../../../modules/catalog";
 
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const catalogModule = req.scope.resolve(CATALOG_MODULE) as any;

@@ -6,7 +6,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     return res.status(400).json({ message: "Pincode query parameter is required" });
   }
 
-  const deliveryModuleService = req.scope.resolve("deliveryModuleService");
+  const deliveryModuleService = req.scope.resolve("deliveryModuleService") as any;
   const zones = await deliveryModuleService.listDeliveryZones({ pincode });
 
   if (zones.length === 0) {

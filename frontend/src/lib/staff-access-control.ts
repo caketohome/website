@@ -968,6 +968,63 @@ class StaffAccessControlStore {
     return this.createStaffMember(input, actorId, actorName);
   }
 
+  public ensureBranchManagerProfile(
+    input: {
+      name: string;
+      phone: string;
+      email: string;
+      branch_id: string;
+      branch_name: string;
+      city?: string;
+    },
+    actorId: string = "admin_01",
+    actorName: string = "Super Admin"
+  ): StaffMember {
+    const cleanPhone = (input.phone || "").replace(/\D/g, "").slice(-10);
+    const existing = this.getStaffMemberByPhone(cleanPhone) || this.getStaffMemberByEmail(input.email);
+
+    // If existing account has conflicting role (e.g. active DELIVERY_PARTNER with no manager capabilities)
+    if (existing && existing.role === "DELIVERY_PARTNER") {
+      throw new Error(`Role conflict: Account with phone ${input.phone} is already registered as a DELIVERY_PARTNER. Incompatible role transition.`);
+    }
+
+    const branchOpsProfile = this.profiles.find((p) => p.id === "prof_branch_ops" || p.name === "Branch Operations");
+    const profileId = branchOpsProfile ? branchOpsProfile.id : "prof_branch_ops";
+
+    if (existing) {
+      const updatePayload: any = {
+        name: input.name || existing.name,
+        email: input.email || existing.email,
+        branch_id: input.branch_id,
+        branch_name: input.branch_name,
+        role: "BRANCH_MANAGER",
+        status: "ACTIVE",
+        city: input.city || existing.city || "Bengaluru",
+      };
+      const existingProfiles = existing.profile_ids || (existing.profile_id ? [existing.profile_id] : []);
+      if (!existingProfiles.includes(profileId)) {
+        updatePayload.profile_ids = [...existingProfiles, profileId];
+      }
+      return this.updateStaffMember(existing.id, updatePayload, actorId, actorName);
+    }
+
+    return this.createStaffMember(
+      {
+        name: input.name,
+        phone: input.phone,
+        email: input.email,
+        role: "BRANCH_MANAGER",
+        profile_ids: [profileId],
+        branch_id: input.branch_id,
+        branch_name: input.branch_name,
+        city: input.city || "Bengaluru",
+        status: "ACTIVE",
+      },
+      actorId,
+      actorName
+    );
+  }
+
   public getStaffJunctionAssignments(staffId: string): StaffAccessProfileAssignment[] {
     return this.profileAssignments.filter((a) => a.staff_id === staffId);
   }

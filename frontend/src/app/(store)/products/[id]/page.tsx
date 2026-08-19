@@ -1,14 +1,14 @@
 import { cookies } from "next/headers";
 import ProductDetailClient from "../../../../components/store/shop/product-detail-client";
 import { ProductJsonLd } from "../../../../components/store/seo/json-ld";
-import { ApiEngine } from "../../../../lib/api-engine";
+import { getProductById, getProductBySlug } from "../../../../lib/data/catalog";
 import { SeoMetadataBuilder } from "../../../../lib/seo/metadata-builder";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> | { id: string } }): Promise<Metadata> {
   const resolvedParams = await Promise.resolve(params);
   const targetId = resolvedParams.id;
-  const fetched = ApiEngine.getProductById(targetId) || ApiEngine.getProductBySlug(targetId);
+  const fetched = (await getProductById(targetId)) || (await getProductBySlug(targetId));
   const title = fetched?.title || fetched?.name || "Gourmet Cake";
   const rawDesc = fetched?.description || "Decadent handcrafted cake made with rich ingredients and fresh toppings.";
   const desc = `Order ${title} online from CakeToHome Bangalore. ${rawDesc} Freshly baked with same-day and midnight delivery available.`;
@@ -29,7 +29,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const resolvedParams = await Promise.resolve(params);
   const targetId = resolvedParams.id;
   const pincodeCookie = cookies().get("delivery_pincode")?.value;
-  const fetched = ApiEngine.getProductById(targetId, undefined, pincodeCookie) || ApiEngine.getProductBySlug(targetId, undefined, pincodeCookie);
+  const fetched = (await getProductById(targetId, pincodeCookie)) || (await getProductBySlug(targetId, pincodeCookie));
 
   const productId = fetched?.id || fetched?.product_id || targetId;
   const productTitle = fetched?.title || fetched?.name || "Gourmet Bakery Product";

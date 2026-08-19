@@ -1,6 +1,6 @@
 import { CountdownTimer } from "./countdown-timer";
 import { PromotionBadge } from "./promotion-badges";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 
 /**
  * Offer Landing Banner — Phase 9.2 storefront component.

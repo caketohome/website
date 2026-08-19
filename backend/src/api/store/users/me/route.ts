@@ -15,13 +15,13 @@ export const GET = async (
   };
 
   if (actor_type === "shop") {
-    const service = req.scope.resolve(SHOP_MODULE);
+    const service = req.scope.resolve(SHOP_MODULE) as any;
     const user = await service.retrieveShopManager(user_id);
     return res.json({ user });
   }
 
   if (actor_type === "delivery_partner") {
-    const service = req.scope.resolve(DELIVERY_MODULE);
+    const service = req.scope.resolve(DELIVERY_MODULE) as any;
     const user = await service.retrieveDeliveryPartner(user_id);
     return res.json({ user });
   }

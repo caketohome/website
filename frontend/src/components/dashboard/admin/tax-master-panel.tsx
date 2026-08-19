@@ -3,7 +3,7 @@
 import { useState, memo } from "react";
 import { Container, Heading, Text, Button, Input, Badge, Label } from "@medusajs/ui";
 import { Plus, Percent, CheckCircle, AlertCircle, Edit3, Copy, Power, HelpCircle, RefreshCw, FileText, Search, ShieldCheck } from "lucide-react";
-import { TaxMasterService, TaxConfigurationRecord } from "@backend/src/services/tax-engine";
+import { TaxMasterService, TaxConfigurationRecord } from "@frontend/lib/tax-master";
 import { WidgetErrorBoundary } from "./error-boundary";
 
 export const TaxMasterPanel = memo(function TaxMasterPanel() {

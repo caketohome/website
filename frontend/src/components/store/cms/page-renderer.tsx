@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Heading, Text, Badge, Button } from "@medusajs/ui";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import {
   ChevronDown, ChevronUp, Star, Sparkles, Clock, ShieldCheck,
   MapPin, CheckCircle2, ArrowRight, Heart, ShoppingBag, Truck,

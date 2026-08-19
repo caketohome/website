@@ -1,5 +1,5 @@
 import { Container, Heading, Text, Button } from "@medusajs/ui";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 
 export default function NotFound() {
     return (

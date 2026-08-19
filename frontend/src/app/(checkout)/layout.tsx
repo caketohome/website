@@ -3,7 +3,7 @@ import { ProfileBadge } from "@frontend/components/common/profile-badge";
 import { retrieveUser } from "@frontend/lib/data";
 import { Text } from "@medusajs/ui";
 import type { Metadata } from "next";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "CakeToHome",

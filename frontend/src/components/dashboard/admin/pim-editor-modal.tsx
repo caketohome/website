@@ -6,7 +6,7 @@ import { apiClient } from "@frontend/lib/api-client";
 import { CategorySelectDropdown } from "./category-select-dropdown";
 import { OccasionSelector } from "./occasion-selector";
 import { compressImageToWebP } from "@frontend/lib/util/image-compressor";
-import { TaxMasterService } from "@backend/src/services/tax-engine";
+import { TaxMasterService } from "@frontend/lib/tax-master";
 import {
   Sparkles, Cake, Tag, DollarSign, Layers, ShoppingBag, Image as ImageIcon,
   Truck, Globe, CheckCircle, AlertCircle, Plus, Trash2, Sliders, Wand2, Upload, ArrowUp, ArrowDown, RefreshCw, X

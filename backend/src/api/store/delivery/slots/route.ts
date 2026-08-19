@@ -8,7 +8,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     return res.status(400).json({ message: "branch_id and date query parameters are required" });
   }
 
-  const deliveryModuleService = req.scope.resolve("deliveryModuleService");
+  const deliveryModuleService = req.scope.resolve("deliveryModuleService") as any;
   
   // Retrieve all configured slots for the branch
   const slots = await deliveryModuleService.listDeliverySlots({ branch_id });

@@ -64,6 +64,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
     const branchName = meta.branch_name || meta.branch || "Indiranagar Flagship Kitchen";
     const branchCode = meta.branch_code || "HUB-BLR-01";
+    const chefAssigned = meta.chef_assigned || "Master Pastry Chef";
 
     const items = (o.items || meta.items || []).map((item: any) => ({
       id: item.id || `item_${Date.now()}`,

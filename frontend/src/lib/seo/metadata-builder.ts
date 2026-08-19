@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { ApiEngine } from "@frontend/lib/api-engine";
 
 const PRODUCTION_DOMAIN = process.env.NEXT_PUBLIC_BASE_URL || "https://cakes2home.com";
 
@@ -11,14 +10,21 @@ export interface MetadataOptions {
   fallbackDescription?: string;
   fallbackImage?: string;
   isPrivate?: boolean;
+  seoRecord?: {
+    meta_title?: string;
+    meta_description?: string;
+    canonical_url?: string;
+    og_image?: string;
+    robots_directive?: string;
+    url?: string;
+  };
 }
 
 export class SeoMetadataBuilder {
-
   /**
    * Central server-side Next.js Metadata generator
    * 
-   * Reads persistent SEO record from ApiEngine or builds realistic content-based defaults.
+   * Builds realistic content-based defaults and OpenGraph tags.
    * Enforces absolute HTTPS canonical URLs, OpenGraph, Twitter Cards, and proper robots directives.
    * Strictly sanitizes any localhost references, base64 data URIs, or broken image URLs.
    */
@@ -31,6 +37,7 @@ export class SeoMetadataBuilder {
       fallbackDescription,
       fallbackImage,
       isPrivate = false,
+      seoRecord,
     } = options;
 
     // Private routes (cart, checkout, login, admin, search) MUST return noindex, nofollow, nocache
@@ -47,25 +54,16 @@ export class SeoMetadataBuilder {
       };
     }
 
-    // Attempt to load existing SEO page record from persistent store
-    const seoPages = (ApiEngine as any).getSeoPages ? ApiEngine.getSeoPages() : [];
-    const existing = seoPages.find(
-      (p: any) =>
-        (entityId && p.entity_id === entityId) ||
-        (slug && (p.slug === slug || p.url === `/${slug}` || p.url === `/products/${slug}` || p.url === `/categories/${slug}`))
-    );
-
-    const globalConfig = (ApiEngine as any).getAdminSeoConfig ? ApiEngine.getAdminSeoConfig() : {};
+    const existing = seoRecord;
 
     // Determine Meta Title
-    const rawTitle = existing?.meta_title || fallbackTitle || globalConfig.meta_title || "Online Cakes & Cake Delivery in Bangalore | CakeToHome";
+    const rawTitle = existing?.meta_title || fallbackTitle || "Online Cakes & Cake Delivery in Bangalore | CakeToHome";
     const title = rawTitle.includes("CakeToHome") ? rawTitle : `${rawTitle} | CakeToHome`;
 
     // Determine Meta Description
     const description =
       existing?.meta_description ||
       fallbackDescription ||
-      globalConfig.meta_description ||
       "Order fresh handcrafted artisanal cakes online with same-day and midnight delivery. Premium birthday, wedding, and celebration cakes from CakeToHome.";
 
     // Determine Absolute Canonical URL & Sanitize Domain
@@ -76,7 +74,7 @@ export class SeoMetadataBuilder {
     }
 
     // Determine Social Sharing Image & Sanitize Image URL
-    const rawImage = existing?.og_image || fallbackImage || globalConfig.og_image || `${PRODUCTION_DOMAIN}/images/default-og-cake.jpg`;
+    const rawImage = existing?.og_image || fallbackImage || `${PRODUCTION_DOMAIN}/images/default-og-cake.jpg`;
     let imageUrl = rawImage;
     if (imageUrl.includes("localhost") || imageUrl.includes("127.0.0.1")) {
       imageUrl = imageUrl.replace(/http:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, PRODUCTION_DOMAIN);

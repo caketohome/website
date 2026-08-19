@@ -1,5 +1,5 @@
 import { getCmsPage } from "@frontend/lib/data/cms";
-import { ApiEngine } from "@frontend/lib/api-engine";
+import { listProducts, listPimCategories, listOccasions } from "@frontend/lib/data/catalog";
 import { PageRenderer } from "@frontend/components/store/cms/page-renderer";
 import { BreadcrumbJsonLd } from "@frontend/components/store/seo/json-ld";
 import { SeoMetadataBuilder } from "@frontend/lib/seo/metadata-builder";
@@ -31,9 +31,11 @@ export default async function CmsPageRoute({
   const page = await getCmsPage(params.slug);
   if (!page) notFound();
 
-  const allProducts = ApiEngine.getProducts();
-  const allCategories = ApiEngine.listPimCategories();
-  const occasions = ApiEngine.listOccasions();
+  const [allProducts, allCategories, occasions] = await Promise.all([
+    listProducts(),
+    listPimCategories(),
+    listOccasions(),
+  ]);
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://cakes2home.com";
   const pageUrl = `${baseUrl}/${params.slug}`;
 
@@ -58,18 +60,15 @@ export default async function CmsPageRoute({
           h1={page.h1 || page.title}
           subheading={page.subheading}
           introContent={page.intro_content}
-          theme={(page as any).theme}
         />
       ) : (
-        <div className="max-w-3xl mx-auto w-full flex flex-col gap-6">
-          <h1 className="text-3xl font-extrabold text-ui-fg-base">{page.h1 || page.title}</h1>
+        <div className="prose dark:prose-invert max-w-none">
+          <h1 className="text-3xl font-bold">{page.h1 || page.title}</h1>
           {page.subheading && (
-            <p className="text-ui-fg-subtle text-lg">{page.subheading}</p>
+            <p className="text-lg text-muted-foreground">{page.subheading}</p>
           )}
           {page.intro_content && (
-            <div className="prose max-w-none text-ui-fg-muted whitespace-pre-line leading-relaxed">
-              {page.intro_content}
-            </div>
+            <div className="mt-4">{page.intro_content}</div>
           )}
         </div>
       )}

@@ -11,7 +11,7 @@ module.exports = defineConfig({
     databaseUrl: process.env.DATABASE_URL,
     databaseDriverOptions: {
       connection: {
-        ssl: false,
+        ssl: process.env.DATABASE_URL?.includes("supabase") ? { rejectUnauthorized: false } : false,
       },
       pool: {
         min: 2,
