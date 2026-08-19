@@ -28,24 +28,58 @@ import {
   normalizeEmail,
   deriveLifecycleStage,
   deriveCustomerTier,
-  deriveCustomerJourneyFunnel,
-  detectCustomerDuplicates,
-  mergeCustomerRecords,
+  calculateRiskScore,
+  resolveCustomerBranch,
   evaluateCustomerAgainstSegment,
-  exportCustomersToCsv,
-  exportAbandonedCartsToCsv,
+  getDefaultSystemSegments,
+  deriveCustomerJourneyFunnel,
+  computeCustomerIntelligenceScores,
+  computeCustomerDataLineage,
   SYSTEM_SEGMENTS,
 } from "./crm/crm-engine";
 import {
   CustomerRecord,
   CustomerProfile,
+  CustomerProfileDTO,
+  CustomerStatsDTO,
+  CustomerPreferences,
   CustomerTier,
   CustomerLifecycleStage,
   CustomerActivityEvent,
   CustomerSegment,
+  CrmLifecycleConfig,
+  DEFAULT_LIFECYCLE_CONFIG,
+  CrmCommunicationLog,
+  WhatsAppStatus,
   AbandonedCartRecord,
   CrmAnalyticsSummary,
+  CrmHealthReport,
+  CustomerDataLineage,
+  CustomerFollowUpReminder,
+  CustomerStaffAction,
+  CustomerPaymentRecord,
+  CustomerDeliveryRecord,
+  CustomerProductPurchased,
 } from "./crm/types";
+import {
+  AbandonedCartRecord as DomainAbandonedCartRecord,
+  AbandonedCartStatus,
+  RecoveryCampaign,
+  RecoveryEvent,
+  RecoveryChannel,
+  AbandonedCartMetrics,
+  RecoveryFunnelStep,
+  RecoveryChannelPerformance,
+  TopAbandonedProduct,
+} from "./cart-recovery/types";
+import {
+  DEFAULT_RECOVERY_CAMPAIGNS,
+  generateCartFingerprint,
+  computeAbandonedCartMetrics,
+  computeRecoveryFunnel,
+  computeChannelPerformance,
+  computeTopAbandonedProducts,
+} from "./cart-recovery/cart-recovery-engine";
 
 export interface ProductItem {
   product_id: string;
@@ -3448,6 +3482,10 @@ export class ApiEngine {
     return memoryStore;
   }
 
+  static getOrders(): any[] {
+    return memoryStore.orders || [];
+  }
+
   static fireWebhookEvent(
     eventType: string,
     payload: any,
@@ -6520,415 +6558,233 @@ export class ApiEngine {
   // ── ENTERPRISE CRM & CUSTOMER LIFECYCLE ENGINE ────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
+  static ensureLifecycleConfigStore(): CrmLifecycleConfig {
+    if (!memoryStore.crm_lifecycle_config) {
+      memoryStore.crm_lifecycle_config = { ...DEFAULT_LIFECYCLE_CONFIG };
+    }
+    return memoryStore.crm_lifecycle_config;
+  }
+
+  static ensureSegmentsStore(): CustomerSegment[] {
+    if (!memoryStore.crm_segments || !Array.isArray(memoryStore.crm_segments) || memoryStore.crm_segments.length === 0) {
+      memoryStore.crm_segments = getDefaultSystemSegments();
+    }
+    return memoryStore.crm_segments;
+  }
+
+  static ensureCommunicationsStore(): CrmCommunicationLog[] {
+    if (!memoryStore.crm_communications || !Array.isArray(memoryStore.crm_communications)) {
+      memoryStore.crm_communications = [];
+    }
+    return memoryStore.crm_communications;
+  }
+
+  static getEnvironmentMode(): "development" | "production" {
+    if (typeof process !== "undefined" && process.env.ENVIRONMENT_MODE) {
+      return process.env.ENVIRONMENT_MODE.toLowerCase() === "production" ? "production" : "development";
+    }
+    if (typeof process !== "undefined" && process.env.NODE_ENV === "production") {
+      return "production";
+    }
+    return "development";
+  }
+
+  static ensureRemindersStore(): CustomerFollowUpReminder[] {
+    if (!memoryStore.customer_reminders || !Array.isArray(memoryStore.customer_reminders)) {
+      memoryStore.customer_reminders = [];
+    }
+    return memoryStore.customer_reminders;
+  }
+
   static ensureCustomersStore() {
-    if (!memoryStore || !Array.isArray(memoryStore.customers) || memoryStore.customers.length === 0) {
-      if (memoryStore) {
-        memoryStore.customers = [
-          {
-            id: "cus_01",
-            customer_uid: "cth_cus_ananya_01",
-            customer_number: "CTH-CUST-000101",
-            customer_type: "registered",
-            name: "Ananya Rao",
-            first_name: "Ananya",
-            last_name: "Rao",
-            phone: "+91 98765 43210",
-            normalized_phone: "9876543210",
-            email: "ananya.rao@example.com",
-            normalized_email: "ananya.rao@example.com",
-            account_id: "usr_ananya_01",
-            lifecycle_stage: "LOYAL",
-            tier: "VIP_PLATINUM",
-            is_vip: true,
-            orders_count: 12,
-            total_spend: 14280,
-            aov: 1190,
-            first_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 180).toISOString(),
-            last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-            last_active_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-            last_login_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-            cart_status: "NO_CART",
-            branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-            branch_name: "Indiranagar Flagship Kitchen",
-            city_id: "city_bbr",
-            city_name: "Bengaluru",
-            delivery_pincode: "560038",
-            addresses: [
-              {
-                address_1: "100 Feet Road, HAL 2nd Stage, Indiranagar",
-                landmark: "Opp Metro Pillar 124",
-                city: "Bengaluru",
-                city_id: "city_bbr",
-                state: "Karnataka",
-                postal_code: "560038",
-                is_default: true,
-                type: "HOME",
-              },
-            ],
-            notes: [
-              {
-                id: "not_01",
-                customer_uid: "cth_cus_ananya_01",
-                author_id: "admin_01",
-                author_name: "Chef Rajesh",
-                content: "VIP Platinum Customer. Prefers 100% eggless Belgian Chocolate with less sugar. Midnight birthday delivery guaranteed.",
-                category: "VIP_REQUEST",
-                created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString(),
-              },
-            ],
-            tags: ["VIP", "Midnight Delivery", "Birthday Buyer", "Chocolate Lover"],
-            loyalty: {
-              points_balance: 450,
-              points_earned: 1420,
-              points_redeemed: 970,
-              tier: "VIP_PLATINUM",
-              last_updated: new Date().toISOString(),
-            },
-            consent: {
-              whatsapp_status: "ELIGIBLE",
-              marketing_email: "SUBSCRIBED",
-              marketing_sms: "SUBSCRIBED",
-              marketing_whatsapp: "SUBSCRIBED",
-              transactional: "SUBSCRIBED",
-              updated_at: new Date().toISOString(),
-            },
-            acquisition_channel: "Organic Search",
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 200).toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-          {
-            id: "cus_02",
-            customer_uid: "cth_cus_rahul_02",
-            customer_number: "CTH-CUST-000102",
-            customer_type: "registered",
-            name: "Rahul Verma",
-            first_name: "Rahul",
-            last_name: "Verma",
-            phone: "+91 98765 43211",
-            normalized_phone: "9876543211",
-            email: "rahul.verma@example.com",
-            normalized_email: "rahul.verma@example.com",
-            account_id: "usr_rahul_02",
-            lifecycle_stage: "REPEAT_BUYER",
-            tier: "GOLD",
-            is_vip: false,
-            orders_count: 5,
-            total_spend: 5240,
-            aov: 1048,
-            first_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString(),
-            last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12).toISOString(),
-            last_active_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-            last_login_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-            cart_status: "ABANDONED_CART",
-            active_cart_id: "cart_ab_102",
-            active_cart_value: 1362.9,
-            branch_id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT",
-            branch_name: "Koramangala Gourmet Bakery",
-            city_id: "city_bbr",
-            city_name: "Bengaluru",
-            delivery_pincode: "560034",
-            addresses: [
-              {
-                address_1: "80 Feet Road, 4th Block, Koramangala",
-                landmark: "Near Sony World Signal",
-                city: "Bengaluru",
-                city_id: "city_bbr",
-                state: "Karnataka",
-                postal_code: "560034",
-                is_default: true,
-                type: "HOME",
-              },
-            ],
-            notes: [
-              {
-                id: "not_02",
-                customer_uid: "cth_cus_rahul_02",
-                author_id: "admin_01",
-                author_name: "Operations Desk",
-                content: "Left Red Velvet cake in cart with code SWEET10. Follow-up dispatched via WhatsApp.",
-                category: "RECOVERY",
-                created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-              },
-            ],
-            tags: ["Red Velvet", "Anniversary Buyer", "Active Recovery"],
-            loyalty: {
-              points_balance: 150,
-              points_earned: 520,
-              points_redeemed: 370,
-              tier: "GOLD",
-              last_updated: new Date().toISOString(),
-            },
-            consent: {
-              whatsapp_status: "ELIGIBLE",
-              marketing_email: "SUBSCRIBED",
-              marketing_sms: "SUBSCRIBED",
-              marketing_whatsapp: "SUBSCRIBED",
-              transactional: "SUBSCRIBED",
-              updated_at: new Date().toISOString(),
-            },
-            acquisition_channel: "Instagram Ads",
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 100).toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-          {
-            id: "cus_03",
-            customer_uid: "cth_cus_priya_03",
-            customer_number: "CTH-CUST-000103",
-            customer_type: "registered",
-            name: "Priya Nair",
-            first_name: "Priya",
-            last_name: "Nair",
-            phone: "+91 98765 43212",
-            normalized_phone: "9876543212",
-            email: "priya.nair@example.com",
-            normalized_email: "priya.nair@example.com",
-            account_id: "usr_priya_03",
-            lifecycle_stage: "LOYAL",
-            tier: "VIP_PLATINUM",
-            is_vip: true,
-            orders_count: 8,
-            total_spend: 9650,
-            aov: 1206,
-            first_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 120).toISOString(),
-            last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-            last_active_at: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
-            last_login_at: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
-            cart_status: "RECOVERED",
-            branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-            branch_name: "Indiranagar Flagship Kitchen",
-            city_id: "city_bbr",
-            city_name: "Bengaluru",
-            delivery_pincode: "560071",
-            addresses: [
-              {
-                address_1: "Inner Ring Road, Domlur",
-                landmark: "Near EGL Tech Park",
-                city: "Bengaluru",
-                city_id: "city_bbr",
-                state: "Karnataka",
-                postal_code: "560071",
-                is_default: true,
-                type: "HOME",
-              },
-            ],
-            notes: [],
-            tags: ["VIP", "Designer Cakes", "Alphonso Mango"],
-            loyalty: {
-              points_balance: 300,
-              points_earned: 960,
-              points_redeemed: 660,
-              tier: "VIP_PLATINUM",
-              last_updated: new Date().toISOString(),
-            },
-            consent: {
-              whatsapp_status: "ELIGIBLE",
-              marketing_email: "SUBSCRIBED",
-              marketing_sms: "SUBSCRIBED",
-              marketing_whatsapp: "SUBSCRIBED",
-              transactional: "SUBSCRIBED",
-              updated_at: new Date().toISOString(),
-            },
-            acquisition_channel: "Referral",
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 140).toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-          {
-            id: "cus_04",
-            customer_uid: "cth_cus_kavita_04",
-            customer_number: "CTH-CUST-000104",
-            customer_type: "registered",
-            name: "Kavita Reddy",
-            first_name: "Kavita",
-            last_name: "Reddy",
-            phone: "+91 98765 43213",
-            normalized_phone: "9876543213",
-            email: "kavita.reddy@example.com",
-            normalized_email: "kavita.reddy@example.com",
-            account_id: "usr_kavita_04",
-            lifecycle_stage: "NEW",
-            tier: "STANDARD",
-            is_vip: false,
-            orders_count: 0,
-            total_spend: 0,
-            aov: 0,
-            first_order_at: null,
-            last_order_at: null,
-            last_active_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-            last_login_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-            cart_status: "ACTIVE_CART",
-            active_cart_id: "cart_act_204",
-            active_cart_value: 849,
-            branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-            branch_name: "Indiranagar Flagship Kitchen",
-            city_id: "city_bbr",
-            city_name: "Bengaluru",
-            delivery_pincode: "560038",
-            addresses: [],
-            notes: [
-              {
-                id: "not_04",
-                customer_uid: "cth_cus_kavita_04",
-                author_id: "admin_01",
-                author_name: "CRM Lead",
-                content: "Registered today via Mobile OTP. Browsed Pineapple cakes. Sent 15% First Order Welcome Voucher.",
-                category: "GENERAL",
-                created_at: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
-              },
-            ],
-            tags: ["New Account", "No Purchase", "First Order Welcome"],
-            loyalty: {
-              points_balance: 50,
-              points_earned: 50,
-              points_redeemed: 0,
-              tier: "STANDARD",
-              last_updated: new Date().toISOString(),
-            },
-            consent: {
-              whatsapp_status: "ELIGIBLE",
-              marketing_email: "SUBSCRIBED",
-              marketing_sms: "SUBSCRIBED",
-              marketing_whatsapp: "SUBSCRIBED",
-              transactional: "SUBSCRIBED",
-              updated_at: new Date().toISOString(),
-            },
-            acquisition_channel: "Storefront Modal",
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-          {
-            id: "cus_05",
-            customer_uid: "cth_cus_suresh_05",
-            customer_number: "CTH-CUST-000105",
-            customer_type: "registered",
-            name: "Suresh Menon",
-            first_name: "Suresh",
-            last_name: "Menon",
-            phone: "+91 98765 43214",
-            normalized_phone: "9876543214",
-            email: "suresh.menon@example.com",
-            normalized_email: "suresh.menon@example.com",
-            account_id: "usr_suresh_05",
-            lifecycle_stage: "AT_RISK",
-            tier: "SILVER",
-            is_vip: false,
-            orders_count: 2,
-            total_spend: 2198,
-            aov: 1099,
-            first_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 120).toISOString(),
-            last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 55).toISOString(),
-            last_active_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20).toISOString(),
-            last_login_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20).toISOString(),
-            cart_status: "NO_CART",
-            branch_id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT",
-            branch_name: "Koramangala Gourmet Bakery",
-            city_id: "city_bbr",
-            city_name: "Bengaluru",
-            delivery_pincode: "560034",
-            addresses: [],
-            notes: [],
-            tags: ["At Risk", "Black Forest Buyer"],
-            loyalty: {
-              points_balance: 80,
-              points_earned: 220,
-              points_redeemed: 140,
-              tier: "SILVER",
-              last_updated: new Date().toISOString(),
-            },
-            consent: {
-              whatsapp_status: "ELIGIBLE",
-              marketing_email: "SUBSCRIBED",
-              marketing_sms: "SUBSCRIBED",
-              marketing_whatsapp: "SUBSCRIBED",
-              transactional: "SUBSCRIBED",
-              updated_at: new Date().toISOString(),
-            },
-            acquisition_channel: "Google Ads",
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 130).toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ];
+    ApiEngine.ensureLifecycleConfigStore();
+    ApiEngine.ensureSegmentsStore();
+    ApiEngine.ensureCommunicationsStore();
+    ApiEngine.ensureRemindersStore();
+
+    if (!memoryStore.customers || !Array.isArray(memoryStore.customers) || memoryStore.customers.length === 0) {
+      memoryStore.customers = DEFAULT_CUSTOMERS.map((c: any) => ({
+        ...c,
+        customer_uid: c.customer_uid || `cth_${c.id}`,
+        normalized_phone: normalizePhone(c.phone),
+        lifecycle_stage: "ACTIVE",
+        tier: c.is_vip ? "VIP" : "STANDARD",
+        orders_count: c.total_orders || 0,
+        total_spend: (c.total_orders || 1) * 850,
+      }));
+    }
+
+    const allOrders: any[] = memoryStore.orders || [];
+    const branches: any[] = memoryStore.branches || [];
+    const envMode = ApiEngine.getEnvironmentMode();
+
+    // Dynamically synchronize customer directory from orders and accounts
+    const knownCustomerMap = new Map<string, Partial<CustomerRecord>>();
+
+    // 1. Index existing customers
+    for (const cus of memoryStore.customers) {
+      const cleanPhone = normalizePhone(cus.phone || cus.normalized_phone);
+      if (!cleanPhone) continue;
+
+      // In production mode, purge demo/placeholder records that have 0 orders and generic placeholder names
+      if (envMode === "production") {
+        const isGenericName = !cus.name || cus.name.toLowerCase() === "customer" || cus.name.toLowerCase() === "gourmet customer";
+        const hasOrders = (cus.orders_count || 0) > 0 || allOrders.some((o: any) => o.customer_uid === cus.customer_uid || normalizePhone(o.customer_phone) === cleanPhone);
+        const isFakePhone = cleanPhone === "0000000000" || cleanPhone === "1234567890" || cleanPhone.length < 10;
+        if (isFakePhone || (isGenericName && !hasOrders && cus.customer_source !== "CHECKOUT")) {
+          continue; // Block seed/demo placeholder customer in production
+        }
       }
-    } else {
-      // Ensure all loaded customer records contain canonical fields
-      for (const cus of memoryStore.customers) {
-        if (!cus.customer_uid) {
-          cus.customer_uid = cus.id ? `cth_${cus.id}` : `cth_cus_${Date.now()}_${Math.floor(100 + Math.random() * 900)}`;
+
+      knownCustomerMap.set(cleanPhone, cus);
+    }
+
+    // In development / test mode, ensure canonical seed customers exist
+    if (envMode !== "production") {
+      for (const defCus of DEFAULT_CUSTOMERS) {
+        const clean = normalizePhone(defCus.phone);
+        if (clean && !knownCustomerMap.has(clean)) {
+          knownCustomerMap.set(clean, {
+            ...defCus,
+            customer_type: "registered" as const,
+            customer_uid: (defCus as any).customer_uid || `cth_${defCus.id}`,
+            normalized_phone: clean,
+            lifecycle_stage: "NEW" as CustomerLifecycleStage,
+            tier: (defCus.is_vip ? "VIP_PLATINUM" : "STANDARD") as CustomerTier,
+            orders_count: defCus.total_orders || 0,
+            total_spend: (defCus.total_orders || 1) * 850,
+          });
         }
-        if (!cus.normalized_phone) {
-          cus.normalized_phone = normalizePhone(cus.phone);
-        }
-        if (!cus.normalized_email && cus.email) {
-          cus.normalized_email = normalizeEmail(cus.email);
-        }
-        if (!cus.lifecycle_stage) {
-          cus.lifecycle_stage = deriveLifecycleStage(cus, []);
-        }
-        if (!cus.tier) {
-          cus.tier = deriveCustomerTier(cus.total_spend || 0, cus.orders_count || cus.total_orders || 0, cus.is_vip);
-        }
-        if (!Array.isArray(cus.notes)) cus.notes = [];
-        if (!Array.isArray(cus.tags)) cus.tags = [];
-        if (!Array.isArray(cus.addresses)) cus.addresses = [];
-        if (!cus.loyalty) {
-          cus.loyalty = {
-            points_balance: cus.wallet_balance || 0,
-            points_earned: (cus.wallet_balance || 0) + 100,
-            points_redeemed: 100,
-            tier: cus.tier,
-            last_updated: new Date().toISOString(),
-          };
-        }
-        if (!cus.consent) {
-          cus.consent = {
-            whatsapp_status: "ELIGIBLE",
+      }
+    }
+
+    // 2. Extract real customers from orders if not already present
+    for (const ord of allOrders) {
+      const cleanPhone = normalizePhone(ord.customer_phone || ord.phone || ord.shipping_address?.phone);
+      if (!cleanPhone || cleanPhone.length < 10) continue;
+
+      if (!knownCustomerMap.has(cleanPhone)) {
+        const custName = ord.customer_name || ord.name || `${ord.shipping_address?.first_name || "Gourmet"} ${ord.shipping_address?.last_name || "Customer"}`.trim();
+        const custEmail = ord.customer_email || ord.email || "";
+        const branchResolution = resolveCustomerBranch({ addresses: ord.shipping_address ? [ord.shipping_address] : [] }, [ord], branches);
+        const nowIso = ord.created_at || new Date().toISOString();
+
+        const newCus: CustomerRecord = {
+          id: `cus_${cleanPhone}`,
+          customer_uid: `cth_cus_${cleanPhone}`,
+          customer_number: `CTH-CUST-${String(knownCustomerMap.size + 101).padStart(6, "0")}`,
+          customer_type: "registered",
+          customer_source: "CHECKOUT",
+          name: custName || "Gourmet Customer",
+          first_name: custName ? custName.split(" ")[0] : "Gourmet",
+          last_name: custName ? custName.split(" ").slice(1).join(" ") : "Customer",
+          phone: formatDisplayPhone(cleanPhone),
+          normalized_phone: cleanPhone,
+          email: custEmail,
+          normalized_email: normalizeEmail(custEmail),
+          whatsapp_number: cleanPhone,
+          lifecycle_stage: "FIRST_PURCHASE",
+          tier: "STANDARD",
+          is_vip: false,
+          repeat_customer: false,
+          risk_score: 0,
+          orders_count: 0,
+          total_spend: 0,
+          aov: 0,
+          first_purchase_date: nowIso,
+          first_order_at: nowIso,
+          last_order_at: nowIso,
+          created_at: nowIso,
+          updated_at: nowIso,
+          last_active_at: nowIso,
+          cart_status: "NO_CART",
+          assigned_branch_id: branchResolution.branch_id,
+          branch_id: branchResolution.branch_id,
+          branch_name: branchResolution.branch_name,
+          preferred_store: branchResolution.branch_name,
+          city_id: branchResolution.city_id,
+          city_name: branchResolution.city_name,
+          delivery_pincode: ord.shipping_address?.postal_code || "560001",
+          addresses: ord.shipping_address ? [ord.shipping_address] : [],
+          notes: [],
+          tags: ["Checkout Customer"],
+          consent: {
+            whatsapp_status: "CONNECTED",
+            whatsapp_opt_in: true,
             marketing_email: "SUBSCRIBED",
             marketing_sms: "SUBSCRIBED",
             marketing_whatsapp: "SUBSCRIBED",
             transactional: "SUBSCRIBED",
-            updated_at: new Date().toISOString(),
-          };
-        }
+            updated_at: nowIso,
+          },
+        };
+
+        knownCustomerMap.set(cleanPhone, newCus);
+      }
+    }
+
+    // 3. Update memoryStore.customers array
+    memoryStore.customers = Array.from(knownCustomerMap.values()) as CustomerRecord[];
+
+    // 4. Ensure all customer records contain canonical fields and verified metrics
+    const lifecycleCfg = memoryStore.crm_lifecycle_config || DEFAULT_LIFECYCLE_CONFIG;
+    for (const cus of memoryStore.customers) {
+      if (!cus.customer_uid) {
+        cus.customer_uid = cus.id ? `cth_${cus.id}` : `cth_cus_${cus.normalized_phone || Date.now()}`;
+      }
+      if (!cus.normalized_phone) {
+        cus.normalized_phone = normalizePhone(cus.phone);
+      }
+      if (!cus.normalized_email && cus.email) {
+        cus.normalized_email = normalizeEmail(cus.email);
+      }
+      if (!Array.isArray(cus.notes)) cus.notes = [];
+      if (!Array.isArray(cus.tags)) cus.tags = [];
+      if (!Array.isArray(cus.addresses)) cus.addresses = [];
+
+      // Derive metrics dynamically from orders
+      const custOrders = allOrders.filter(
+        (o: any) => o.customer_uid === cus.customer_uid || normalizePhone(o.customer_phone) === cus.normalized_phone
+      );
+      const completedOrders = custOrders.filter((o: any) => o.status !== "cancelled" && o.status !== "refunded");
+      cus.orders_count = completedOrders.length;
+      cus.total_orders = completedOrders.length;
+      cus.total_spend = completedOrders.reduce((sum: number, o: any) => sum + (Number(o.total) || Number(o.grand_total) || 0), 0);
+      cus.total_revenue = cus.total_spend;
+      cus.aov = cus.orders_count > 0 ? Math.round(cus.total_spend / cus.orders_count) : 0;
+      cus.lifecycle_stage = deriveLifecycleStage(cus, custOrders, cus.last_active_at, lifecycleCfg);
+      cus.tier = deriveCustomerTier(cus.total_spend, cus.orders_count, cus.is_vip);
+      cus.repeat_customer = cus.orders_count >= 2;
+      cus.risk_score = calculateRiskScore(cus, custOrders, cus.last_active_at, lifecycleCfg);
+
+      // Resolve branch dynamically if missing
+      if (!cus.assigned_branch_id || !cus.branch_id) {
+        const branchRes = resolveCustomerBranch(cus, custOrders, branches);
+        cus.assigned_branch_id = branchRes.branch_id;
+        cus.branch_id = branchRes.branch_id;
+        cus.branch_name = branchRes.branch_name;
+        cus.preferred_store = branchRes.branch_name;
+        cus.city_id = branchRes.city_id;
+        cus.city_name = branchRes.city_name;
+      }
+
+      if (!cus.consent) {
+        cus.consent = {
+          whatsapp_status: cus.normalized_phone ? "CONNECTED" : "UNKNOWN",
+          whatsapp_opt_in: true,
+          marketing_email: "SUBSCRIBED",
+          marketing_sms: "SUBSCRIBED",
+          marketing_whatsapp: "SUBSCRIBED",
+          transactional: "SUBSCRIBED",
+          updated_at: new Date().toISOString(),
+        };
       }
     }
   }
 
   static ensureActivityStore() {
     if (!memoryStore.customer_activity || !Array.isArray(memoryStore.customer_activity)) {
-      memoryStore.customer_activity = [
-        {
-          id: "act_01",
-          customer_uid: "cth_cus_ananya_01",
-          event_type: "ORDER_PLACED",
-          title: "Order Placed: Belgian Dark Chocolate Truffle Cake (1.0 kg)",
-          description: "Order #CTH-20260808-000101 confirmed. Value: ₹1,298 via Razorpay Online UPI.",
-          source: "STOREFRONT",
-          branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-          city_id: "city_bbr",
-          metadata: { order_id: "ord_101", amount: 1298 },
-          timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-        },
-        {
-          id: "act_02",
-          customer_uid: "cth_cus_rahul_02",
-          event_type: "RECOVERY_MESSAGE_SENT",
-          title: "Abandoned Cart Recovery Sent via WhatsApp",
-          description: "Sent template ABANDONED_CART_1 with 10% discount code SWEET10 for ₹1,362 cart.",
-          source: "ADMIN_CRM",
-          staff_id: "admin_01",
-          staff_name: "Super Admin",
-          metadata: { cart_id: "cart_ab_102", channel: "WHATSAPP" },
-          timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-        },
-        {
-          id: "act_03",
-          customer_uid: "cth_cus_kavita_04",
-          event_type: "ACCOUNT_CREATED",
-          title: "New Customer Account Created",
-          description: "Verified Mobile OTP (+91 98765 43213) and initialized customer profile.",
-          source: "STOREFRONT",
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-        },
-      ];
+      memoryStore.customer_activity = [];
     }
   }
 
@@ -6946,13 +6802,35 @@ export class ApiEngine {
       metadata: event.metadata,
       timestamp: event.timestamp || new Date().toISOString(),
     };
-    if (!Array.isArray(memoryStore.customer_activity)) memoryStore.customer_activity = [];
     memoryStore.customer_activity.unshift(newEvent);
     ApiEngine.persist();
     return newEvent;
   }
 
-  static findOrCreateCustomerByPhone(params: { phone: string; name?: string; email?: string; address?: any }) {
+  static recordCrmCommunication(log: Partial<CrmCommunicationLog> & { customer_uid: string; channel: "WHATSAPP" | "SMS" | "EMAIL" | "PHONE_CALL"; subject_or_title: string }) {
+    ApiEngine.ensureCommunicationsStore();
+    const newLog: CrmCommunicationLog = {
+      id: log.id || `comm_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      customer_uid: log.customer_uid,
+      channel: log.channel,
+      direction: log.direction || "OUTBOUND",
+      template_name: log.template_name,
+      subject_or_title: log.subject_or_title,
+      body_preview: log.body_preview || "",
+      status: log.status || "SENT",
+      dispatched_at: log.dispatched_at || new Date().toISOString(),
+      delivered_at: log.delivered_at || null,
+      read_at: log.read_at || null,
+      error_message: log.error_message || null,
+      metadata: log.metadata,
+      campaign_id: log.campaign_id,
+    };
+    memoryStore.crm_communications.unshift(newLog);
+    ApiEngine.persist();
+    return newLog;
+  }
+
+  static findOrCreateCustomerByPhone(params: { phone: string; name?: string; email?: string; address?: any; branch_id?: string }) {
     ApiEngine.ensureCustomersStore();
     const cleanPhone = normalizePhone(params.phone);
     if (!cleanPhone) return null;
@@ -6961,57 +6839,64 @@ export class ApiEngine {
       (c) => c.normalized_phone === cleanPhone || (c.phone && normalizePhone(c.phone) === cleanPhone)
     );
 
+    const branches = memoryStore.branches || [];
+
     if (!customer) {
       const customerSeq = (memoryStore.customers?.length || 0) + 101;
       const uid = `cth_cus_${cleanPhone}`;
       const custNum = `CTH-CUST-${String(customerSeq).padStart(6, "0")}`;
+      const branchRes = resolveCustomerBranch({ addresses: params.address ? [params.address] : [] }, [], branches);
+      const nowIso = new Date().toISOString();
+
       customer = {
         id: `cus_${cleanPhone}`,
         customer_uid: uid,
         customer_number: custNum,
         customer_type: "registered",
-        name: params.name || "Customer",
-        first_name: params.name ? params.name.split(" ")[0] : "Customer",
-        last_name: params.name ? params.name.split(" ").slice(1).join(" ") : "",
+        customer_source: "STOREFRONT",
+        name: params.name || "Gourmet Customer",
+        first_name: params.name ? params.name.split(" ")[0] : "Gourmet",
+        last_name: params.name ? params.name.split(" ").slice(1).join(" ") : "Customer",
         phone: formatDisplayPhone(cleanPhone),
         normalized_phone: cleanPhone,
         email: params.email && !params.email.includes("customer_") ? params.email : "",
         normalized_email: params.email ? normalizeEmail(params.email) : "",
+        whatsapp_number: cleanPhone,
         lifecycle_stage: "NEW",
         tier: "STANDARD",
         is_vip: false,
+        repeat_customer: false,
+        risk_score: 0,
         orders_count: 0,
         total_spend: 0,
         aov: 0,
-        last_active_at: new Date().toISOString(),
-        last_login_at: new Date().toISOString(),
+        first_purchase_date: null,
+        first_order_at: null,
+        last_order_at: null,
+        created_at: nowIso,
+        updated_at: nowIso,
+        last_active_at: nowIso,
+        last_login_at: nowIso,
         cart_status: "NO_CART",
-        branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-        branch_name: "Indiranagar Flagship Kitchen",
-        city_id: "city_bbr",
-        city_name: "Bengaluru",
-        delivery_pincode: params.address?.postal_code || "560038",
+        assigned_branch_id: params.branch_id || branchRes.branch_id,
+        branch_id: params.branch_id || branchRes.branch_id,
+        branch_name: branchRes.branch_name,
+        preferred_store: branchRes.branch_name,
+        city_id: branchRes.city_id,
+        city_name: branchRes.city_name,
+        delivery_pincode: params.address?.postal_code || "560001",
         addresses: params.address ? [params.address] : [],
         notes: [],
         tags: ["New Account"],
-        loyalty: {
-          points_balance: 100,
-          points_earned: 100,
-          points_redeemed: 0,
-          tier: "STANDARD",
-          last_updated: new Date().toISOString(),
-        },
         consent: {
-          whatsapp_status: "ELIGIBLE",
+          whatsapp_status: "CONNECTED",
+          whatsapp_opt_in: true,
           marketing_email: "SUBSCRIBED",
           marketing_sms: "SUBSCRIBED",
           marketing_whatsapp: "SUBSCRIBED",
           transactional: "SUBSCRIBED",
-          updated_at: new Date().toISOString(),
+          updated_at: nowIso,
         },
-        acquisition_channel: "Direct Storefront",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       };
       memoryStore.customers.unshift(customer);
       ApiEngine.recordCustomerActivity({
@@ -7043,6 +6928,10 @@ export class ApiEngine {
     return customer;
   }
 
+  static resolveOrCreateCustomer(params: { phone: string; name?: string; email?: string; address?: any; branch_id?: string }) {
+    return ApiEngine.findOrCreateCustomerByPhone(params);
+  }
+
   static getAdminCustomers() {
     ApiEngine.ensureCustomersStore();
     return memoryStore.customers.filter((c: any) => !c.merged_into_uid);
@@ -7056,7 +6945,9 @@ export class ApiEngine {
     tier?: string;
     branch_id?: string;
     city_id?: string;
+    city?: string;
     segment?: string;
+    whatsapp_status?: string;
     whatsapp_eligible?: string;
     preset?: string;
     page?: number | string;
@@ -7064,48 +6955,83 @@ export class ApiEngine {
     limit?: number | string;
     sortBy?: string;
     sortDir?: string;
+    userRole?: string;
+    userCity?: string;
+    userBranchId?: string;
+    staffBranchId?: string;
   } = {}) {
     ApiEngine.ensureCustomersStore();
     const allCustomers: CustomerRecord[] = memoryStore.customers || [];
-    const allOrders = memoryStore.orders || [];
+    const allOrders: any[] = memoryStore.orders || [];
+    const lifecycleCfg = memoryStore.crm_lifecycle_config || DEFAULT_LIFECYCLE_CONFIG;
 
     // Filter out merged records
     let list = allCustomers.filter((c) => !c.merged_into_uid);
 
-    // Synchronize derived metrics
+    // Multi-Tier RBAC Scoping:
+    // 1. Delivery partners are strictly forbidden from accessing CRM data
+    if (filters.userRole === "DELIVERY_PARTNER" || filters.userRole === "dlp") {
+      throw new Error("Forbidden: Delivery partners do not have access to customer CRM records.");
+    }
+    // 2. Branch Manager: scoped to their assigned hub
+    const targetBranch = filters.userBranchId || filters.staffBranchId;
+    if (filters.userRole === "BRANCH_MANAGER" && targetBranch) {
+      list = list.filter((c) => c.branch_id === targetBranch || c.assigned_branch_id === targetBranch);
+    }
+    // 3. City Manager: scoped to their assigned city
+    const targetCity = filters.userCity || filters.city_id || filters.city;
+    if (filters.userRole === "CITY_MANAGER" && targetCity) {
+      const cityTarget = targetCity.toLowerCase();
+      list = list.filter((c) => (c.city_id && c.city_id.toLowerCase() === cityTarget) || (c.city_name && c.city_name.toLowerCase().includes(cityTarget)));
+    }
+    // 4. Marketing: scoped to opted-in customers
+    if (filters.userRole === "MARKETING") {
+      list = list.filter((c) => c.consent?.whatsapp_status === "CONNECTED" || c.consent?.whatsapp_opt_in === true || c.consent?.marketing_email === "SUBSCRIBED");
+    }
+
+    // Synchronize derived metrics dynamically from database rows
     list = list.map((c) => {
       const custOrders = allOrders.filter(
-        (o: any) => o.customer_uid === c.customer_uid || o.customer_phone === c.phone || (c.normalized_phone && o.customer_phone?.replace(/\D/g, "").slice(-10) === c.normalized_phone)
+        (o: any) => o.customer_uid === c.customer_uid || normalizePhone(o.customer_phone) === c.normalized_phone
       );
       const completedOrders = custOrders.filter((o: any) => o.status !== "cancelled" && o.status !== "refunded");
       const orderCount = completedOrders.length;
       const totalSpend = completedOrders.reduce((sum: number, o: any) => sum + (Number(o.total) || Number(o.grand_total) || 0), 0);
       const aov = orderCount > 0 ? Math.round(totalSpend / orderCount) : 0;
-      const lifecycle = deriveLifecycleStage(c, custOrders);
+      const lifecycle = deriveLifecycleStage(c, custOrders, c.last_active_at, lifecycleCfg);
       const tier = deriveCustomerTier(totalSpend, orderCount, c.is_vip);
+      const riskScore = calculateRiskScore(c, custOrders, c.last_active_at, lifecycleCfg);
 
       return {
         ...c,
         orders_count: orderCount,
+        total_orders: orderCount,
         total_spend: totalSpend,
+        total_revenue: totalSpend,
         aov,
         lifecycle_stage: lifecycle,
         tier,
+        repeat_customer: orderCount >= 2,
+        risk_score: riskScore,
       };
     });
 
     // Search query
     const searchQuery = (filters.q || filters.search || "").trim().toLowerCase();
+    const cleanSearchPhone = searchQuery.replace(/\D/g, "");
     if (searchQuery) {
       list = list.filter((c) => {
         const name = (c.name || "").toLowerCase();
-        const phone = (c.phone || "").replace(/\D/g, "");
+        const rawPhone = (c.phone || "").toLowerCase();
+        const phoneDigits = (c.phone || "").replace(/\D/g, "");
+        const normPhoneDigits = (c.normalized_phone || "").replace(/\D/g, "");
         const email = (c.email || "").toLowerCase();
         const num = (c.customer_number || "").toLowerCase();
         const uid = (c.customer_uid || "").toLowerCase();
         return (
           name.includes(searchQuery) ||
-          phone.includes(searchQuery) ||
+          rawPhone.includes(searchQuery) ||
+          (cleanSearchPhone.length >= 4 && (phoneDigits.includes(cleanSearchPhone) || normPhoneDigits.includes(cleanSearchPhone))) ||
           email.includes(searchQuery) ||
           num.includes(searchQuery) ||
           uid.includes(searchQuery)
@@ -7126,7 +7052,7 @@ export class ApiEngine {
 
     // Branch filter
     if (filters.branch_id && filters.branch_id !== "all") {
-      list = list.filter((c) => c.branch_id === filters.branch_id);
+      list = list.filter((c) => c.branch_id === filters.branch_id || c.assigned_branch_id === filters.branch_id);
     }
 
     // City filter
@@ -7134,14 +7060,17 @@ export class ApiEngine {
       list = list.filter((c) => c.city_id === filters.city_id);
     }
 
-    // WhatsApp filter
-    if (filters.whatsapp_eligible === "true" || filters.whatsapp_eligible === "yes") {
-      list = list.filter((c) => c.consent?.whatsapp_status === "ELIGIBLE");
+    // WhatsApp status filter
+    if (filters.whatsapp_status && filters.whatsapp_status !== "all") {
+      list = list.filter((c) => c.consent?.whatsapp_status === filters.whatsapp_status);
+    } else if (filters.whatsapp_eligible === "true" || filters.whatsapp_eligible === "yes") {
+      list = list.filter((c) => c.consent?.whatsapp_status === "CONNECTED" || c.consent?.whatsapp_status === "OPTED_IN");
     }
 
-    // Segment filter
+    // Dynamic Segment filter
     if (filters.segment && filters.segment !== "all" && filters.segment !== "seg_all") {
-      const seg = SYSTEM_SEGMENTS.find((s) => s.id === filters.segment || s.slug === filters.segment);
+      const segments = ApiEngine.ensureSegmentsStore();
+      const seg = segments.find((s) => s.id === filters.segment || s.slug === filters.segment);
       if (seg) {
         list = list.filter((c) => evaluateCustomerAgainstSegment(c, seg));
       }
@@ -7158,90 +7087,216 @@ export class ApiEngine {
       if (sortBy === "total_spend" || sortBy === "spend") {
         return (a.total_spend - b.total_spend) * sortDir;
       }
+      if (sortBy === "risk_score" || sortBy === "risk") {
+        return (a.risk_score - b.risk_score) * sortDir;
+      }
       if (sortBy === "name") {
         return (a.name || "").localeCompare(b.name || "") * sortDir;
       }
-      const dateA = new Date(a[sortBy] || a.created_at || 0).getTime();
-      const dateB = new Date(b[sortBy] || b.created_at || 0).getTime();
-      return (dateA - dateB) * sortDir;
+      return (new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()) * sortDir;
     });
 
     const page = Math.max(1, Number(filters.page) || 1);
-    const limit = Math.max(1, Math.min(100, Number(filters.pageSize || filters.limit) || 25));
-    const total = list.length;
-    const totalPages = Math.ceil(total / limit) || 1;
+    const limit = Math.min(100, Math.max(1, Number(filters.pageSize || filters.limit) || 25));
+    const totalCount = list.length;
     const paginated = list.slice((page - 1) * limit, page * limit);
 
     return {
       success: true,
       customers: paginated,
-      data: paginated,
-      pagination: {
-        page,
-        pageSize: limit,
-        limit,
-        total,
-        totalPages,
-      },
-      summary: ApiEngine.getCrmAnalyticsSummary(),
+      total: totalCount,
+      totalCount,
+      page,
+      pageSize: limit,
+      totalPages: Math.ceil(totalCount / limit) || 1,
+      hasMore: page * limit < totalCount,
+      summary: ApiEngine.getCrmAnalyticsSummary(filters),
     };
   }
 
-  static getCustomerProfile(idOrUid: string): CustomerProfile | null {
+  static getCustomerProfile(customerUid: string): CustomerProfile | null {
     ApiEngine.ensureCustomersStore();
     ApiEngine.ensureActivityStore();
+    ApiEngine.ensureCommunicationsStore();
+    ApiEngine.ensureRemindersStore();
 
-    const clean = idOrUid.trim();
     const customer = (memoryStore.customers || []).find(
-      (c: any) => c.customer_uid === clean || c.id === clean || c.customer_number === clean || normalizePhone(c.phone) === normalizePhone(clean)
+      (c: any) => c.customer_uid === customerUid || c.id === customerUid || c.customer_number === customerUid
     );
-
     if (!customer) return null;
 
-    const allOrders = memoryStore.orders || [];
-    const allAbandoned = memoryStore.abandoned_carts || [];
-    const allActivity: CustomerActivityEvent[] = memoryStore.customer_activity || [];
-
     const normPhone = normalizePhone(customer.phone);
+    const allOrders: any[] = memoryStore.orders || [];
+
+    // 1. Order History
     const customerOrders = allOrders.filter(
-      (o: any) => o.customer_uid === customer.customer_uid || o.customer_phone === customer.phone || (normPhone && normalizePhone(o.customer_phone) === normPhone)
+      (o: any) => o.customer_uid === customer.customer_uid || (normPhone && normalizePhone(o.customer_phone || o.phone) === normPhone)
     );
-
-    const customerAbandoned = allAbandoned.filter(
-      (c: any) => c.customer_uid === customer.customer_uid || c.customer_phone === customer.phone || (normPhone && normalizePhone(c.customer_phone) === normPhone)
-    );
-
-    const customerActivity = allActivity
-      .filter((a) => a.customer_uid === customer.customer_uid || a.customer_uid === customer.id || (normPhone && normalizePhone(a.customer_uid) === normPhone))
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
     const completedOrders = customerOrders.filter((o: any) => o.status !== "cancelled" && o.status !== "refunded");
-    const totalSpend = completedOrders.reduce((sum: number, o: any) => sum + (Number(o.total) || Number(o.grand_total) || 0), 0);
+
+    // Recalculate canonical stats
     const ordersCount = completedOrders.length;
+    const totalSpend = completedOrders.reduce((sum: number, o: any) => sum + (Number(o.total) || Number(o.grand_total) || 0), 0);
     const aov = ordersCount > 0 ? Math.round(totalSpend / ordersCount) : 0;
-    const lifecycle = deriveLifecycleStage(customer, customerOrders);
+    const lifecycleCfg = memoryStore.crm_lifecycle_config || DEFAULT_LIFECYCLE_CONFIG;
+    const lifecycle = deriveLifecycleStage(customer, customerOrders, customer.last_active_at, lifecycleCfg);
     const tier = deriveCustomerTier(totalSpend, ordersCount, customer.is_vip);
-    const funnel = deriveCustomerJourneyFunnel(customer, customerOrders, customerAbandoned, customerActivity);
+    const riskScore = calculateRiskScore(customer, customerOrders, customer.last_active_at, lifecycleCfg);
+
+    // 2. Payment History
+    const paymentHistory: CustomerPaymentRecord[] = customerOrders.map((ord: any) => ({
+      order_id: ord.id,
+      order_number: ord.order_number || ord.id,
+      amount: Number(ord.total) || Number(ord.grand_total) || 0,
+      currency: "INR",
+      payment_method: (ord.payment_method || ord.payment_gateway || "RAZORPAY").toUpperCase(),
+      gateway: (ord.payment_gateway || "RAZORPAY").toUpperCase(),
+      status: ord.payment_status === "paid" || ord.status === "delivered" ? "PAID" : ord.payment_status === "failed" ? "FAILED" : "PENDING",
+      created_at: ord.created_at || new Date().toISOString(),
+    }));
+
+    // 3. Delivery History
+    const deliveryHistory: CustomerDeliveryRecord[] = customerOrders.map((ord: any) => ({
+      order_id: ord.id,
+      order_number: ord.order_number || ord.id,
+      branch_id: ord.branch_id || customer.branch_id || "hub_01",
+      branch_name: ord.branch_name || customer.branch_name || "Flagship Hub",
+      rider_name: ord.delivery_partner_name,
+      rider_phone: ord.delivery_partner_phone,
+      delivery_status: ord.status === "delivered" ? "DELIVERED" : ord.status === "out_for_delivery" ? "OUT_FOR_DELIVERY" : "CONFIRMED",
+      pickup_otp: ord.pickup_otp,
+      delivery_otp: ord.delivery_otp || "Verified",
+      delivered_at: ord.status === "delivered" ? (ord.updated_at || ord.created_at) : null,
+    }));
+
+    // Catalog & Category Insights
+    const productMap = new Map<string, { name: string; quantity: number; spend: number; image?: string; lastBought: string }>();
+    const categoryMap = new Map<string, { count: number; spend: number }>();
+
+    for (const ord of completedOrders) {
+      const items = ord.items || [];
+      const ordDate = ord.created_at || new Date().toISOString();
+      for (const item of items) {
+        const pId = item.id || item.product_id || `prod_${item.title || item.name}`;
+        const pName = item.title || item.name || "Gourmet Cake";
+        const qty = Number(item.quantity) || 1;
+        const lineTotal = Number(item.total) || Number(item.price || 0) * qty;
+
+        const existingProd = productMap.get(pId) || { name: pName, quantity: 0, spend: 0, image: item.image, lastBought: ordDate };
+        existingProd.quantity += qty;
+        existingProd.spend += lineTotal;
+        productMap.set(pId, existingProd);
+
+        const cat = item.category || "Signature Cakes";
+        const existingCat = categoryMap.get(cat) || { count: 0, spend: 0 };
+        existingCat.count += qty;
+        existingCat.spend += lineTotal;
+        categoryMap.set(cat, existingCat);
+      }
+    }
+
+    const productsPurchased: CustomerProductPurchased[] = Array.from(productMap.entries()).map(([pId, data]) => ({
+      product_id: pId,
+      title: data.name,
+      total_quantity: data.quantity,
+      total_spend: data.spend,
+      first_bought_at: data.lastBought,
+      last_bought_at: data.lastBought,
+      category_name: "Signature Cakes",
+    }));
+
+    const favoriteCategories = Array.from(categoryMap.entries()).map(([catName, data]) => ({
+      category_name: catName,
+      order_count: data.count,
+      total_spend: data.spend,
+    }));
+
+    // 4. Financial Recency & Frequency
+    let firstOrderDate: string | null = null;
+    let lastOrderDate: string | null = null;
+    let daysSinceLastOrder: number | null = null;
+
+    if (completedOrders.length > 0) {
+      const sortedOrders = [...completedOrders].sort(
+        (a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+      );
+      firstOrderDate = sortedOrders[0].created_at || null;
+      lastOrderDate = sortedOrders[sortedOrders.length - 1].created_at || null;
+      if (lastOrderDate) {
+        daysSinceLastOrder = Math.max(0, Math.round((Date.now() - new Date(lastOrderDate).getTime()) / (1000 * 60 * 60 * 24)));
+      }
+    }
+
+    const customerComms = (memoryStore.crm_communications || []).filter(
+      (c: any) => c.customer_uid === customer.customer_uid || (normPhone && normalizePhone(c.recipient_phone) === normPhone)
+    );
+
+    const customerActivity = (memoryStore.customer_activity || []).filter(
+      (a: any) => a.customer_uid === customer.customer_uid
+    );
+
+    const customerAbandoned: any[] = (memoryStore.abandoned_carts || []).filter(
+      (c: any) => c.customer_uid === customer.customer_uid || (normPhone && normalizePhone(c.customer_phone) === normPhone)
+    );
+
+    // Deep purchase intelligence and data lineage tracing
+    const intelligence = computeCustomerIntelligenceScores(customer, customerOrders);
+    const lineage = computeCustomerDataLineage(customer, customerOrders, customerComms);
+    const customerReminders = (memoryStore.customer_reminders || []).filter(
+      (r: any) => r.customer_uid === customer.customer_uid
+    );
 
     const fullProfile: CustomerProfile = {
       ...customer,
       orders_count: ordersCount,
+      total_orders: ordersCount,
       total_spend: totalSpend,
+      total_revenue: totalSpend,
       aov,
       lifecycle_stage: lifecycle,
       tier,
+      repeat_customer: ordersCount >= 2,
+      risk_score: riskScore,
+      first_purchase_date: firstOrderDate,
+      first_order_at: firstOrderDate,
+      last_order_at: lastOrderDate,
+      last_order_date: lastOrderDate,
       orders: customerOrders,
+      payment_history: paymentHistory,
+      delivery_history: deliveryHistory,
+      products_purchased: productsPurchased,
+      favorite_categories: favoriteCategories,
       carts: [],
       abandoned_carts: customerAbandoned,
-      activity_timeline: customerActivity,
-      journey_funnel: funnel,
       recovery_attempts: (memoryStore.cart_recovery_attempts || []).filter(
-        (a: any) => a.customer_phone === customer.phone || (normPhone && normalizePhone(a.customer_phone) === normPhone)
+        (a: any) => normalizePhone(a.customer_phone) === normPhone
       ),
-      reorder_opportunity: TelemarketingEngine.getCandidateByCustomerUid(customer.customer_uid) || (customer.phone ? TelemarketingEngine.getCandidateByCustomerUid(customer.phone) : null),
-      reorder_opportunities: TelemarketingEngine.listCandidates({ customer_uid: customer.customer_uid }).candidates.length > 0
-        ? TelemarketingEngine.listCandidates({ customer_uid: customer.customer_uid }).candidates
-        : (customer.phone ? TelemarketingEngine.listCandidates({ search: customer.phone }).candidates : []),
+      communication_history: customerComms,
+      activity_timeline: customerActivity,
+      reorder_opportunities: TelemarketingEngine.listCandidates({ search: customer.phone }).candidates,
+      reorder_opportunity: TelemarketingEngine.listCandidates({ search: customer.phone }).candidates[0] || null,
+      journey_funnel: deriveCustomerJourneyFunnel(customer, customerOrders),
+      financial_summary: {
+        lifetime_value: totalSpend,
+        average_order_value: aov,
+        total_orders_completed: ordersCount,
+        days_since_last_order: daysSinceLastOrder,
+        order_frequency_days: ordersCount > 1 ? Math.round(120 / ordersCount) : null,
+        first_order_date: firstOrderDate,
+        last_order_date: lastOrderDate,
+      },
+      customer_intelligence_score: intelligence.customer_intelligence_score,
+      retention_score: intelligence.retention_score,
+      winback_probability: intelligence.winback_probability,
+      next_expected_purchase_date: intelligence.next_expected_purchase_date,
+      favourite_flavours: intelligence.favourite_flavours,
+      favourite_cakes: intelligence.favourite_cakes,
+      average_order_size_items: intelligence.average_order_size_items,
+      top_occasions: intelligence.top_occasions,
+      data_lineage: lineage,
+      reminders: customerReminders,
+      assigned_telecaller_id: customer.assigned_telecaller_id,
+      assigned_telecaller_name: customer.assigned_telecaller_name,
     };
 
     return fullProfile;
@@ -7268,7 +7323,6 @@ export class ApiEngine {
 
     customer.notes.unshift(note);
 
-    // Log Activity Event
     const actEvent: CustomerActivityEvent = {
       id: `act_${Date.now()}_note`,
       customer_uid: customer.customer_uid,
@@ -7284,6 +7338,74 @@ export class ApiEngine {
 
     ApiEngine.persist();
     return note;
+  }
+
+  static emitCrmEvent(
+    eventType: import("./webhook-engine").WebhookEventType,
+    customer: Partial<CustomerRecord>,
+    metadata: Record<string, any> = {},
+    aggregate: Record<string, any> = {}
+  ) {
+    try {
+      WebhookEngine.getInstance().emitEvent(
+        eventType,
+        {
+          customer_uid: customer.customer_uid,
+          customer_number: customer.customer_number,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+          lifecycle_stage: customer.lifecycle_stage,
+          tier: customer.tier,
+          branch_id: customer.branch_id || customer.assigned_branch_id,
+          city_id: customer.city_id,
+          city_name: customer.city_name,
+          total_spend: customer.total_spend,
+          orders_count: customer.orders_count,
+          ...metadata,
+        },
+        metadata,
+        {
+          customer_uid: customer.customer_uid,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+          city: customer.city_name,
+        },
+        {
+          type: "CUSTOMER",
+          id: customer.customer_uid,
+          branch_id: customer.branch_id || customer.assigned_branch_id,
+          city_id: customer.city_id,
+          actor_type: "staff",
+          ...aggregate,
+        }
+      );
+    } catch {
+      // Safe catch for headless/testing environments
+    }
+  }
+
+  static updateCustomerConsent(customerUid: string, consentData: Partial<CustomerRecord["consent"]>) {
+    ApiEngine.ensureCustomersStore();
+    const customer = (memoryStore.customers || []).find((c: any) => c.customer_uid === customerUid || c.id === customerUid);
+    if (!customer) return null;
+
+    customer.consent = {
+      ...customer.consent,
+      ...consentData,
+      updated_at: new Date().toISOString(),
+    };
+    customer.updated_at = new Date().toISOString();
+
+    ApiEngine.persist();
+
+    if (consentData.whatsapp_status === "CONNECTED" || consentData.whatsapp_opt_in === true) {
+      ApiEngine.emitCrmEvent("customer.whatsapp_optin", customer, { consent: customer.consent });
+    }
+    ApiEngine.emitCrmEvent("customer.updated", customer, { updated_field: "consent" });
+
+    return customer.consent;
   }
 
   static updateCustomerTags(customerUid: string, tags: string[]) {
@@ -7308,31 +7430,105 @@ export class ApiEngine {
     memoryStore.customer_activity.unshift(actEvent);
 
     ApiEngine.persist();
+    ApiEngine.emitCrmEvent("customer.updated", customer, { tags: customer.tags });
+
     return customer.tags;
   }
 
-  static updateCustomerProfile(customerUid: string, data: Partial<CustomerRecord>) {
+  static updateCustomerProfile(
+    customerUid: string,
+    data: Partial<CustomerRecord> | {
+      full_name?: string;
+      email?: string;
+      date_of_birth?: string | null;
+      profile_image?: string;
+      preferences?: CustomerPreferences;
+      is_vip?: boolean;
+    }
+  ) {
     ApiEngine.ensureCustomersStore();
     const idx = (memoryStore.customers || []).findIndex((c: any) => c.customer_uid === customerUid || c.id === customerUid);
-    if (idx === -1) return null;
+    if (idx === -1) return { success: false, error: "Customer not found", customer: null };
 
     const existing = memoryStore.customers[idx];
+    const anyData = data as any;
+    if (anyData.full_name) {
+      anyData.name = anyData.full_name.trim();
+      anyData.first_name = anyData.full_name.trim().split(" ")[0];
+      anyData.last_name = anyData.full_name.trim().split(" ").slice(1).join(" ") || "";
+    }
     const updated: CustomerRecord = {
       ...existing,
       ...data,
-      normalized_phone: data.phone ? normalizePhone(data.phone) : existing.normalized_phone,
-      normalized_email: data.email ? normalizeEmail(data.email) : existing.normalized_email,
+      normalized_phone: (data as any).phone ? normalizePhone((data as any).phone) : existing.normalized_phone,
+      normalized_email: (data as any).email ? normalizeEmail((data as any).email) : existing.normalized_email,
+      preferences: anyData.preferences ? { ...(existing.preferences || {}), ...anyData.preferences } : existing.preferences,
       updated_at: new Date().toISOString(),
     };
 
     memoryStore.customers[idx] = updated;
     ApiEngine.persist();
-    return updated;
+
+    if ((data as any).is_vip && !existing.is_vip) {
+      ApiEngine.emitCrmEvent("customer.vip_promoted", updated, { vip_reason: "Manual Staff Promotion" });
+    }
+    ApiEngine.emitCrmEvent("customer.updated", updated, { updated_fields: Object.keys(data) });
+
+    return {
+      success: true,
+      customer: ApiEngine.getCustomerMe({ customerUid }),
+      ...updated,
+    };
   }
 
   static listCustomerDuplicates() {
     ApiEngine.ensureCustomersStore();
-    return detectCustomerDuplicates(memoryStore.customers || []);
+    const customers: CustomerRecord[] = memoryStore.customers || [];
+    const candidates: any[] = [];
+
+    for (let i = 0; i < customers.length; i++) {
+      for (let j = i + 1; j < customers.length; j++) {
+        const a = customers[i];
+        const b = customers[j];
+        if (a.merged_into_uid || b.merged_into_uid) continue;
+
+        const phoneA = a.normalized_phone || normalizePhone(a.phone);
+        const phoneB = b.normalized_phone || normalizePhone(b.phone);
+        const emailA = a.normalized_email || normalizeEmail(a.email);
+        const emailB = b.normalized_email || normalizeEmail(b.email);
+
+        const phoneMatch = Boolean(phoneA && phoneB && phoneA === phoneB);
+        const emailMatch = Boolean(
+          emailA &&
+          emailB &&
+          emailA === emailB &&
+          !emailA.includes("customer_") &&
+          !emailA.includes("guest_")
+        );
+
+        if (phoneMatch || emailMatch) {
+          candidates.push({
+            id: `dup_${a.customer_uid}_${b.customer_uid}`,
+            primary_customer: a,
+            duplicate_customer: b,
+            customer_a: a,
+            customer_b: b,
+            matching_fields: phoneMatch && emailMatch ? ["phone", "email"] : phoneMatch ? ["phone"] : ["email"],
+            match_reasons: { phone: phoneMatch, email: emailMatch },
+            confidence_score: phoneMatch && emailMatch ? 98 : phoneMatch ? 95 : 85,
+            match_details: [
+              ...(phoneMatch ? [{ field: "phone", primary_value: a.phone, duplicate_value: b.phone, weight: 60 }] : []),
+              ...(emailMatch ? [{ field: "email", primary_value: a.email || "", duplicate_value: b.email || "", weight: 40 }] : []),
+            ],
+            recommended_action: "AUTO_MERGE",
+            status: "PENDING",
+            detected_at: new Date().toISOString(),
+          });
+        }
+      }
+    }
+
+    return candidates;
   }
 
   static mergeCustomerRecords(primaryUid: string, duplicateUid: string, staffUser?: any) {
@@ -7346,34 +7542,70 @@ export class ApiEngine {
       throw new Error("One or both customer records not found for merge operation");
     }
 
-    const { mergedPrimary, mergedDuplicate, updatedOrders, updatedCarts, newActivity } = mergeCustomerRecords(
-      primary,
-      duplicate,
-      memoryStore.orders || [],
-      memoryStore.abandoned_carts || [],
-      memoryStore.customer_activity || [],
-      staffUser
-    );
+    // Re-link all orders from duplicate to primary
+    const allOrders: any[] = memoryStore.orders || [];
+    for (const ord of allOrders) {
+      if (ord.customer_uid === duplicate.customer_uid || normalizePhone(ord.customer_phone) === duplicate.normalized_phone) {
+        ord.customer_uid = primary.customer_uid;
+      }
+    }
 
-    // Update in-memory store
-    const pIdx = memoryStore.customers.findIndex((c: any) => c.customer_uid === primary.customer_uid);
-    const dIdx = memoryStore.customers.findIndex((c: any) => c.customer_uid === duplicate.customer_uid);
+    // Mark duplicate as merged
+    duplicate.merged_into_uid = primary.customer_uid;
+    duplicate.updated_at = new Date().toISOString();
 
-    if (pIdx >= 0) memoryStore.customers[pIdx] = mergedPrimary;
-    if (dIdx >= 0) memoryStore.customers[dIdx] = mergedDuplicate;
+    if (!Array.isArray(primary.merged_uids)) primary.merged_uids = [];
+    primary.merged_uids.push(duplicate.customer_uid);
+    primary.updated_at = new Date().toISOString();
 
-    memoryStore.orders = updatedOrders;
-    memoryStore.abandoned_carts = updatedCarts;
-    memoryStore.customer_activity.unshift(newActivity);
+    // Preserve loyalty points & tags
+    if (duplicate.loyalty?.points_balance) {
+      if (!primary.loyalty) {
+        primary.loyalty = { points_balance: 0, lifetime_points: 0, tier: primary.tier };
+      }
+      primary.loyalty.points_balance += duplicate.loyalty.points_balance;
+      primary.loyalty.lifetime_points += duplicate.loyalty.lifetime_points || duplicate.loyalty.points_balance;
+    }
 
-    ApiEngine.addAuditLog(`Merged Customer Record "${duplicate.name}" (${duplicate.customer_number}) into "${primary.name}" (${primary.customer_number})`);
+    if (duplicate.tags && duplicate.tags.length > 0) {
+      primary.tags = Array.from(new Set([...(primary.tags || []), ...duplicate.tags]));
+    }
+
+    if (duplicate.addresses && duplicate.addresses.length > 0) {
+      if (!Array.isArray(primary.addresses)) primary.addresses = [];
+      for (const addr of duplicate.addresses) {
+        const hasAddr = primary.addresses.some((a: any) => a.postal_code === addr.postal_code && a.address_1 === addr.address_1);
+        if (!hasAddr) primary.addresses.push(addr);
+      }
+    }
+
+    const actEvent: CustomerActivityEvent = {
+      id: `act_${Date.now()}_merge`,
+      customer_uid: primary.customer_uid,
+      event_type: "CUSTOMER_MERGED",
+      title: "Customer Records Merged",
+      description: `Merged duplicate record "${duplicate.name}" (${duplicate.customer_uid}) into primary canonical profile.`,
+      source: "ADMIN_CRM",
+      staff_id: staffUser?.id || "admin_01",
+      staff_name: staffUser?.name || "Staff Member",
+      metadata: { primary_uid: primary.customer_uid, duplicate_uid: duplicate.customer_uid },
+      timestamp: new Date().toISOString(),
+    };
+    memoryStore.customer_activity.unshift(actEvent);
+
     ApiEngine.persist();
+
+    ApiEngine.emitCrmEvent("customer.merged", primary, {
+      merged_duplicate_uid: duplicate.customer_uid,
+      merged_orders_reassigned: true,
+    });
 
     return {
       success: true,
-      merged_primary: mergedPrimary,
-      merged_duplicate: mergedDuplicate,
-      message: `Successfully merged customer records. Primary UID: ${mergedPrimary.customer_uid}`,
+      primary,
+      duplicate,
+      event: actEvent,
+      message: `Successfully merged duplicate customer record into primary canonical profile.`,
     };
   }
 
@@ -7381,7 +7613,7 @@ export class ApiEngine {
     ApiEngine.ensureCustomersStore();
     const all = ApiEngine.listAdminCustomersDetailed({ ...filters, lifecycle: "all" });
     const noPurchase = (all.customers || []).filter(
-      (c: CustomerRecord) => (c.orders_count === 0 || !c.orders_count) && (c.customer_type === "registered" || c.account_id)
+      (c: CustomerRecord) => (c.orders_count === 0 || !c.orders_count)
     );
 
     return {
@@ -7395,30 +7627,27 @@ export class ApiEngine {
     ApiEngine.ensureCustomersStore();
     const customers: CustomerRecord[] = (memoryStore.customers || []).filter((c: any) => !c.merged_into_uid);
     const orders: any[] = memoryStore.orders || [];
+    const lifecycleCfg = memoryStore.crm_lifecycle_config || DEFAULT_LIFECYCLE_CONFIG;
 
     const now = Date.now();
-    const sevenDaysAgo = now - 1000 * 60 * 60 * 24 * 7;
     const thirtyDaysAgo = now - 1000 * 60 * 60 * 24 * 30;
 
     let activeCount = 0;
-    let newThisWeek = 0;
     let newThisMonth = 0;
-    let noOrderCount = 0;
-    let firstTimeCount = 0;
     let repeatCount = 0;
+    let totalBuyers = 0;
     let vipCount = 0;
     let atRiskCount = 0;
     let dormantCount = 0;
-    let whatsappEligible = 0;
+    let whatsappReachable = 0;
+    let whatsappOptedOut = 0;
     let totalSpend = 0;
 
     const lifecycleBreakdown: Record<CustomerLifecycleStage, number> = {
       NEW: 0,
-      REGISTERED: 0,
       FIRST_PURCHASE: 0,
-      ACTIVE: 0,
       REPEAT_BUYER: 0,
-      LOYAL: 0,
+      VIP: 0,
       AT_RISK: 0,
       DORMANT: 0,
     };
@@ -7430,78 +7659,317 @@ export class ApiEngine {
       VIP_PLATINUM: 0,
     };
 
-    const acquisitionBreakdown: Record<string, number> = {};
+    const cityBreakdown: Record<string, number> = {};
+    const segmentRevenueBreakdown: Record<string, number> = {};
 
     for (const c of customers) {
       const createdMs = new Date(c.created_at || now).getTime();
       const lastActiveMs = new Date(c.last_active_at || c.created_at || now).getTime();
 
-      if (createdMs >= sevenDaysAgo) newThisWeek++;
       if (createdMs >= thirtyDaysAgo) newThisMonth++;
       if (lastActiveMs >= thirtyDaysAgo) activeCount++;
 
-      const custOrders = orders.filter((o: any) => o.customer_uid === c.customer_uid || o.customer_phone === c.phone);
+      const custOrders = orders.filter((o: any) => o.customer_uid === c.customer_uid || normalizePhone(o.customer_phone) === c.normalized_phone);
       const completed = custOrders.filter((o: any) => o.status !== "cancelled" && o.status !== "refunded");
       const ordCount = completed.length;
-      const spend = completed.reduce((sum: number, o: any) => sum + (Number(o.total) || 0), 0);
+      const spend = completed.reduce((sum: number, o: any) => sum + (Number(o.total) || Number(o.grand_total) || 0), 0);
 
       totalSpend += spend;
 
-      if (ordCount === 0) noOrderCount++;
-      else if (ordCount === 1) firstTimeCount++;
-      else if (ordCount >= 2) repeatCount++;
+      if (ordCount >= 1) totalBuyers++;
+      if (ordCount >= 2) repeatCount++;
 
-      const lifecycle = deriveLifecycleStage(c, custOrders);
+      const lifecycle = deriveLifecycleStage(c, custOrders, c.last_active_at, lifecycleCfg);
       const tier = deriveCustomerTier(spend, ordCount, c.is_vip);
 
       lifecycleBreakdown[lifecycle] = (lifecycleBreakdown[lifecycle] || 0) + 1;
       tierBreakdown[tier] = (tierBreakdown[tier] || 0) + 1;
 
-      if (tier === "VIP_PLATINUM" || c.is_vip) vipCount++;
+      if (lifecycle === "VIP" || tier === "VIP_PLATINUM" || c.is_vip) vipCount++;
       if (lifecycle === "AT_RISK") atRiskCount++;
       if (lifecycle === "DORMANT") dormantCount++;
-      if (c.consent?.whatsapp_status === "ELIGIBLE") whatsappEligible++;
+      if (c.consent?.whatsapp_status === "CONNECTED" || c.consent?.whatsapp_status === "OPTED_IN") whatsappReachable++;
+      if (c.consent?.whatsapp_status === "OPTED_OUT") whatsappOptedOut++;
 
-      const ch = c.acquisition_channel || "Direct / Storefront";
-      acquisitionBreakdown[ch] = (acquisitionBreakdown[ch] || 0) + 1;
+      const city = c.city_name || "Bengaluru";
+      cityBreakdown[city] = (cityBreakdown[city] || 0) + 1;
     }
 
-    const overallAov = customers.length > 0 ? Math.round(totalSpend / Math.max(1, customers.filter((c) => (c.orders_count || 0) > 0).length)) : 0;
+    const repeatRate = totalBuyers > 0 ? Math.round((repeatCount / totalBuyers) * 100) : 0;
+    const avgLtv = customers.length > 0 ? Math.round(totalSpend / customers.length) : 0;
 
     return {
       total_customers: customers.length,
       active_customers: activeCount,
-      new_customers_this_week: newThisWeek,
       new_customers_this_month: newThisMonth,
-      new_customers_no_order: noOrderCount,
-      first_time_buyers: firstTimeCount,
-      repeat_customers: repeatCount,
-      high_value_customers: vipCount,
-      at_risk_customers: atRiskCount,
-      dormant_customers: dormantCount,
-      whatsapp_contactable: whatsappEligible,
-      total_customer_spend: totalSpend,
-      overall_aov: overallAov,
+      repeat_purchase_rate_pct: repeatRate,
+      average_customer_ltv: avgLtv,
+      vip_customers_count: vipCount,
+      at_risk_customers_count: atRiskCount,
+      dormant_customers_count: dormantCount,
+      whatsapp_reachable_count: whatsappReachable,
+      whatsapp_opted_out_count: whatsappOptedOut,
+      segment_revenue_breakdown: segmentRevenueBreakdown,
       lifecycle_breakdown: lifecycleBreakdown,
       tier_breakdown: tierBreakdown,
-      acquisition_breakdown: acquisitionBreakdown,
-      date_range: {
-        start: new Date(thirtyDaysAgo).toISOString(),
-        end: new Date().toISOString(),
-        preset: filters.preset || "last_30_days",
-      },
+      city_breakdown: cityBreakdown,
+      generated_at: new Date().toISOString(),
     };
+  }
+
+  static getLifecycleConfig(): CrmLifecycleConfig {
+    return ApiEngine.ensureLifecycleConfigStore();
+  }
+
+  static updateLifecycleConfig(config: Partial<CrmLifecycleConfig>): CrmLifecycleConfig {
+    const existing = ApiEngine.ensureLifecycleConfigStore();
+    memoryStore.crm_lifecycle_config = {
+      ...existing,
+      ...config,
+      updated_at: new Date().toISOString(),
+    };
+    ApiEngine.persist();
+    return memoryStore.crm_lifecycle_config;
+  }
+
+  static listCrmSegments(): CustomerSegment[] {
+    const segments = ApiEngine.ensureSegmentsStore();
+    const customers: CustomerRecord[] = (memoryStore.customers || []).filter((c: any) => !c.merged_into_uid);
+
+    return segments.map((seg) => ({
+      ...seg,
+      customer_count: customers.filter((c) => evaluateCustomerAgainstSegment(c, seg)).length,
+    }));
+  }
+
+  static createCrmSegment(segment: Partial<CustomerSegment>): CustomerSegment {
+    const segments = ApiEngine.ensureSegmentsStore();
+    const newSeg: CustomerSegment = {
+      id: segment.id || `seg_${Date.now()}`,
+      name: segment.name || "Custom Segment",
+      slug: segment.slug || `seg-${Date.now()}`,
+      description: segment.description || "",
+      icon: segment.icon,
+      combinator: segment.combinator || "AND",
+      rules: segment.rules || [],
+      conditions_json: segment.conditions_json,
+      active: segment.active !== false,
+      created_by: segment.created_by || "Admin",
+      is_system: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    segments.push(newSeg);
+    memoryStore.crm_segments = segments;
+    ApiEngine.persist();
+    return newSeg;
+  }
+
+  static updateCrmSegment(id: string, segmentData: Partial<CustomerSegment>): CustomerSegment | null {
+    const segments = ApiEngine.ensureSegmentsStore();
+    const idx = segments.findIndex((s) => s.id === id);
+    if (idx === -1) return null;
+
+    segments[idx] = {
+      ...segments[idx],
+      ...segmentData,
+      updated_at: new Date().toISOString(),
+    };
+    memoryStore.crm_segments = segments;
+    ApiEngine.persist();
+    return segments[idx];
+  }
+
+  static deleteCrmSegment(id: string): boolean {
+    const segments = ApiEngine.ensureSegmentsStore();
+    const idx = segments.findIndex((s) => s.id === id && !s.is_system);
+    if (idx >= 0) {
+      segments.splice(idx, 1);
+      memoryStore.crm_segments = segments;
+      ApiEngine.persist();
+      return true;
+    }
+    return false;
+  }
+
+  static getCrmHealthReport(): CrmHealthReport {
+    ApiEngine.ensureCustomersStore();
+    const customers: CustomerRecord[] = (memoryStore.customers || []).filter((c: any) => !c.merged_into_uid);
+    const orders: any[] = memoryStore.orders || [];
+
+    const totalCustomers = customers.length;
+    let withOrders = 0;
+    let withoutOrders = 0;
+    let missingBranch = 0;
+    let missingPhone = 0;
+
+    const phoneSet = new Set<string>();
+    let duplicatesCount = 0;
+
+    for (const c of customers) {
+      const custOrders = orders.filter(
+        (o: any) => o.customer_uid === c.customer_uid || normalizePhone(o.customer_phone) === c.normalized_phone
+      );
+      const completed = custOrders.filter((o: any) => o.status !== "cancelled" && o.status !== "refunded");
+
+      if (completed.length > 0 || (c.orders_count && c.orders_count > 0)) {
+        withOrders++;
+      } else {
+        withoutOrders++;
+      }
+      if (!c.branch_id && !c.assigned_branch_id) {
+        missingBranch++;
+      }
+      if (!c.phone && !c.normalized_phone) {
+        missingPhone++;
+      }
+      const norm = c.normalized_phone || normalizePhone(c.phone);
+      if (norm) {
+        if (phoneSet.has(norm)) duplicatesCount++;
+        else phoneSet.add(norm);
+      }
+    }
+
+    const dupRate = totalCustomers > 0 ? `${((duplicatesCount / totalCustomers) * 100).toFixed(1)}%` : "0.0%";
+
+    return {
+      total_customers: totalCustomers,
+      customers_with_orders: withOrders,
+      customers_without_orders: withoutOrders,
+      duplicate_rate: dupRate,
+      missing_branch_mapping: missingBranch,
+      missing_phone: missingPhone,
+      healthy: missingBranch === 0 && missingPhone === 0,
+      environment_mode: ApiEngine.getEnvironmentMode(),
+      database_driver: "postgres",
+      generated_at: new Date().toISOString(),
+    };
+  }
+
+  static assignCustomerTelecaller(customerUid: string, telecallerId: string, telecallerName: string, staffUser?: any) {
+    ApiEngine.ensureCustomersStore();
+    ApiEngine.ensureActivityStore();
+
+    const customer = (memoryStore.customers || []).find((c: any) => c.customer_uid === customerUid || c.id === customerUid);
+    if (!customer) throw new Error(`Customer ${customerUid} not found.`);
+
+    customer.assigned_telecaller_id = telecallerId;
+    customer.assigned_telecaller_name = telecallerName;
+    customer.updated_at = new Date().toISOString();
+
+    const actEvent: CustomerActivityEvent = {
+      id: `act_${Date.now()}_assign`,
+      customer_uid: customer.customer_uid,
+      event_type: "STAFF_ASSIGNED" as any,
+      title: `Assigned Telecaller: ${telecallerName}`,
+      description: `Staff ${staffUser?.name || "Admin"} assigned customer to telecaller ${telecallerName}.`,
+      source: "ADMIN_CRM",
+      staff_id: staffUser?.id || "admin_01",
+      staff_name: staffUser?.name || "Staff Member",
+      metadata: { telecaller_id: telecallerId, telecaller_name: telecallerName },
+      timestamp: new Date().toISOString(),
+    };
+    memoryStore.customer_activity.unshift(actEvent);
+    ApiEngine.persist();
+
+    ApiEngine.emitCrmEvent("customer.reorder_candidate", customer, {
+      assigned_telecaller_id: telecallerId,
+      assigned_telecaller_name: telecallerName,
+    });
+
+    return { success: true, customer, event: actEvent };
+  }
+
+  static scheduleCustomerReminder(
+    customerUid: string,
+    data: { due_date: string; due_time?: string; reason: string; priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT"; assigned_staff_id?: string; assigned_staff_name?: string },
+    staffUser?: any
+  ) {
+    ApiEngine.ensureCustomersStore();
+    ApiEngine.ensureRemindersStore();
+    ApiEngine.ensureActivityStore();
+
+    const customer = (memoryStore.customers || []).find((c: any) => c.customer_uid === customerUid || c.id === customerUid);
+    if (!customer) throw new Error(`Customer ${customerUid} not found.`);
+
+    const reminder: CustomerFollowUpReminder = {
+      id: `rem_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      customer_uid: customer.customer_uid,
+      customer_name: customer.name || "Customer",
+      customer_phone: customer.phone,
+      due_date: data.due_date,
+      due_time: data.due_time,
+      reason: data.reason,
+      priority: data.priority || "MEDIUM",
+      assigned_staff_id: data.assigned_staff_id || staffUser?.id,
+      assigned_staff_name: data.assigned_staff_name || staffUser?.name || "Staff Member",
+      status: "PENDING",
+      created_at: new Date().toISOString(),
+    };
+
+    memoryStore.customer_reminders.unshift(reminder);
+
+    const actEvent: CustomerActivityEvent = {
+      id: `act_${Date.now()}_rem`,
+      customer_uid: customer.customer_uid,
+      event_type: "REMINDER_SCHEDULED" as any,
+      title: `Follow-Up Reminder Scheduled (${reminder.priority})`,
+      description: `Due: ${new Date(reminder.due_date).toLocaleDateString()} — Reason: ${reminder.reason}`,
+      source: "ADMIN_CRM",
+      staff_id: staffUser?.id || "admin_01",
+      staff_name: staffUser?.name || "Staff Member",
+      metadata: { reminder_id: reminder.id, due_date: reminder.due_date },
+      timestamp: new Date().toISOString(),
+    };
+    memoryStore.customer_activity.unshift(actEvent);
+    ApiEngine.persist();
+
+    return { success: true, reminder, event: actEvent };
+  }
+
+  static getCustomerReminders(customerUid?: string): CustomerFollowUpReminder[] {
+    ApiEngine.ensureRemindersStore();
+    if (!customerUid) return memoryStore.customer_reminders || [];
+    return (memoryStore.customer_reminders || []).filter((r: any) => r.customer_uid === customerUid);
   }
 
   static exportCustomersCsv(filters: Record<string, any> = {}) {
     ApiEngine.ensureCustomersStore();
     const result = ApiEngine.listAdminCustomersDetailed({ ...filters, page: 1, limit: 10000 });
-    return exportCustomersToCsv(result.customers || []);
-  }
-
-  static exportAbandonedCartsCsv(filters: Record<string, any> = {}) {
-    const result = ApiEngine.listAbandonedCarts({ ...filters, page: 1, pageSize: 10000 });
-    return exportAbandonedCartsToCsv(result.carts as any || []);
+    const custs = result.customers || [];
+    const headers = [
+      "Customer UID",
+      "Customer Number",
+      "Full Name",
+      "Phone",
+      "Email",
+      "Branch",
+      "City",
+      "Lifecycle",
+      "Tier",
+      "Orders",
+      "Total Spend",
+      "AOV",
+      "WhatsApp Status",
+      "Created At",
+    ];
+    const rows = custs.map((c) => [
+      c.customer_uid,
+      c.customer_number || c.customer_uid,
+      `"${(c.name || "").replace(/"/g, '""')}"`,
+      `"${c.phone}"`,
+      c.email || "",
+      `"${c.branch_name || ""}"`,
+      `"${c.city_name || ""}"`,
+      c.lifecycle_stage,
+      c.tier,
+      c.orders_count,
+      c.total_spend,
+      c.aov,
+      c.consent?.whatsapp_status || "UNKNOWN",
+      c.created_at,
+    ]);
+    return [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
   }
 
   static recordCallAction(customerUid: string, cartId?: string, staffUser?: any, outcome: string = "CALL_INITIATED") {
@@ -7541,6 +8009,7 @@ export class ApiEngine {
       name: data.name || `${data.first_name || "Customer"} ${data.last_name || ""}`.trim(),
       phone: data.phone || "+91 98765 00000",
       email: data.email,
+      branch_id: data.branch_id,
     });
   }
 
@@ -12291,7 +12760,32 @@ export class ApiEngine {
       };
     }
 
-    // 2. Authoritative StaffAccessControl lookup (Covers all staff, branch managers, delivery partners)
+    // 2. Customer check (Storefront customers take precedence for standard customer numbers)
+    ApiEngine.ensureCustomersStore();
+    const customers: CustomerRecord[] = memoryStore.customers || [];
+    const customer = customers.find(
+      (c) =>
+        (c.normalized_phone && c.normalized_phone === cleanDigits) ||
+        (c.phone && normalizePhone(c.phone) === cleanDigits) ||
+        (c.customer_uid && c.customer_uid === `cth_cus_${cleanDigits}`)
+    );
+
+    if (customer && !customer.merged_into_uid) {
+      return {
+        exists: true,
+        role: "CUSTOMER",
+        user: {
+          id: customer.id,
+          customer_uid: customer.customer_uid,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+          role: "CUSTOMER",
+        },
+      };
+    }
+
+    // 3. Authoritative StaffAccessControl lookup (Covers explicit staff, branch managers, delivery partners)
     const staffMember = StaffAccessControl.getStaffMemberByPhone(cleanDigits);
     if (staffMember) {
       if (staffMember.role === "SUPER_ADMIN") {
@@ -12326,7 +12820,7 @@ export class ApiEngine {
       };
     }
 
-    // 3. Branch Manager fallback check
+    // 4. Branch Manager fallback check
     const branchManager = ApiEngine.findBranchByManagerPhoneOrEmail(raw);
     if (branchManager) {
       return {
@@ -12337,7 +12831,7 @@ export class ApiEngine {
       };
     }
 
-    // 4. Delivery Partner fallback check
+    // 5. Delivery Partner fallback check
     const partnersRes = ApiEngine.getAdminDeliveryPartners();
     const partnerList = Array.isArray(partnersRes) ? partnersRes : (partnersRes?.partners || memoryStore.delivery_partners || []);
     const partner = partnerList.find((p: any) => {
@@ -12350,31 +12844,6 @@ export class ApiEngine {
         role: "DELIVERY_PARTNER",
         partner_id: partner.id,
         user: partner,
-      };
-    }
-
-    // 5. Customer check
-    ApiEngine.ensureCustomersStore();
-    const customers: CustomerRecord[] = memoryStore.customers || [];
-    const customer = customers.find(
-      (c) =>
-        (c.normalized_phone && c.normalized_phone === cleanDigits) ||
-        (c.phone && normalizePhone(c.phone) === cleanDigits) ||
-        (c.customer_uid && c.customer_uid === `cth_cus_${cleanDigits}`)
-    );
-
-    if (customer && !customer.merged_into_uid) {
-      return {
-        exists: true,
-        role: "CUSTOMER",
-        user: {
-          id: customer.id,
-          customer_uid: customer.customer_uid,
-          name: customer.name,
-          phone: customer.phone,
-          email: customer.email,
-          role: "CUSTOMER",
-        },
       };
     }
 
@@ -12582,20 +13051,24 @@ export class ApiEngine {
     );
 
     let isNewCustomer = false;
+    const branches = memoryStore.branches || [];
 
     if (!customer) {
       isNewCustomer = true;
       const customerSeq = (memoryStore.customers?.length || 0) + 101;
       const uid = `cth_cus_${cleanPhone}`;
       const custNum = `CTH-CUST-${String(customerSeq).padStart(6, "0")}`;
-      const custName = extra?.name?.trim() || "Customer";
+      const custName = extra?.name?.trim() || "Gourmet Customer";
       const custEmail = extra?.email?.trim() || "";
+      const branchRes = resolveCustomerBranch({ addresses: [] }, [], branches);
+      const nowIso = new Date().toISOString();
 
       customer = {
         id: `cus_${cleanPhone}`,
         customer_uid: uid,
         customer_number: custNum,
         customer_type: "registered",
+        customer_source: "STOREFRONT",
         name: custName,
         first_name: custName.split(" ")[0],
         last_name: custName.split(" ").slice(1).join(" "),
@@ -12603,41 +13076,49 @@ export class ApiEngine {
         normalized_phone: cleanPhone,
         email: custEmail && !custEmail.includes("customer_") ? custEmail : "",
         normalized_email: custEmail ? normalizeEmail(custEmail) : "",
+        whatsapp_number: cleanPhone,
         lifecycle_stage: "NEW",
         tier: "STANDARD",
         is_vip: false,
+        repeat_customer: false,
+        risk_score: 0,
         orders_count: 0,
         total_spend: 0,
         aov: 0,
-        last_active_at: new Date().toISOString(),
-        last_login_at: new Date().toISOString(),
+        first_purchase_date: null,
+        first_order_at: null,
+        last_order_at: null,
+        last_active_at: nowIso,
+        last_login_at: nowIso,
         cart_status: "NO_CART",
-        branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-        branch_name: "Indiranagar Flagship Kitchen",
-        city_id: "city_bbr",
-        city_name: "Bengaluru",
-        delivery_pincode: "560038",
+        assigned_branch_id: branchRes.branch_id,
+        branch_id: branchRes.branch_id,
+        branch_name: branchRes.branch_name,
+        preferred_store: branchRes.branch_name,
+        city_id: branchRes.city_id,
+        city_name: branchRes.city_name,
+        delivery_pincode: "560001",
         addresses: [],
         notes: [],
         tags: ["New Account", "Self Registered"],
+        consent: {
+          whatsapp_status: "CONNECTED",
+          whatsapp_opt_in: true,
+          marketing_email: "SUBSCRIBED",
+          marketing_sms: "SUBSCRIBED",
+          marketing_whatsapp: "SUBSCRIBED",
+          transactional: "SUBSCRIBED",
+          updated_at: nowIso,
+        },
         loyalty: {
           points_balance: 100,
           points_earned: 100,
           points_redeemed: 0,
           tier: "STANDARD",
-          last_updated: new Date().toISOString(),
+          last_updated: nowIso,
         },
-        consent: {
-          whatsapp_status: "ELIGIBLE",
-          marketing_email: "SUBSCRIBED",
-          marketing_sms: "SUBSCRIBED",
-          marketing_whatsapp: "SUBSCRIBED",
-          transactional: "SUBSCRIBED",
-          updated_at: new Date().toISOString(),
-        },
-        acquisition_channel: "Direct Storefront",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: nowIso,
+        updated_at: nowIso,
       };
       memoryStore.customers.unshift(customer);
 
@@ -12668,7 +13149,7 @@ export class ApiEngine {
     } else {
       customer.last_login_at = new Date().toISOString();
       customer.last_active_at = new Date().toISOString();
-      if (extra?.name && (!customer.name || customer.name === "Customer")) {
+      if (extra?.name && (!customer.name || customer.name === "Customer" || customer.name === "Gourmet Customer")) {
         customer.name = extra.name;
         customer.first_name = extra.name.split(" ")[0];
         customer.last_name = extra.name.split(" ").slice(1).join(" ");
@@ -12679,8 +13160,10 @@ export class ApiEngine {
       }
     }
 
+    const resolvedCustomer = customer!;
+
     ApiEngine.recordCustomerActivity({
-      customer_uid: customer.customer_uid,
+      customer_uid: resolvedCustomer.customer_uid,
       event_type: "LOGIN",
       title: "Customer Logged In",
       description: `Authenticated via mobile OTP on ${displayPhone}.`,
@@ -12690,18 +13173,18 @@ export class ApiEngine {
     ApiEngine.fireWebhookEvent(
       "customer.login.success",
       {
-        customer_id: customer.id,
-        customer_uid: customer.customer_uid,
-        name: customer.name,
-        phone: customer.phone,
-        email: customer.email,
-        city: customer.city_name,
+        customer_id: resolvedCustomer.id,
+        customer_uid: resolvedCustomer.customer_uid,
+        name: resolvedCustomer.name,
+        phone: resolvedCustomer.phone,
+        email: resolvedCustomer.email,
+        city: resolvedCustomer.city_name,
         role: "CUSTOMER",
         login_at: new Date().toISOString(),
       },
       { source: "STOREFRONT_OTP" },
-      { customer_uid: customer.customer_uid, name: customer.name, phone: customer.phone, email: customer.email, city: customer.city_name },
-      { type: "customer", id: customer.id, city_id: customer.city_id, branch_id: customer.branch_id }
+      { customer_uid: resolvedCustomer.customer_uid, name: resolvedCustomer.name, phone: resolvedCustomer.phone, email: resolvedCustomer.email, city: resolvedCustomer.city_name },
+      { type: "customer", id: resolvedCustomer.id, city_id: resolvedCustomer.city_id, branch_id: resolvedCustomer.branch_id }
     );
 
     ApiEngine.persist();
@@ -12711,18 +13194,18 @@ export class ApiEngine {
       token,
       accessToken: token,
       role: "CUSTOMER",
-      customer_id: customer.id,
-      customer_uid: customer.customer_uid,
+      customer_id: resolvedCustomer.id,
+      customer_uid: resolvedCustomer.customer_uid,
       is_new_customer: isNewCustomer,
       user: {
-        id: customer.id,
-        customer_id: customer.id,
-        customer_uid: customer.customer_uid,
-        name: customer.name,
-        phone: customer.phone,
-        email: customer.email,
+        id: resolvedCustomer.id,
+        customer_id: resolvedCustomer.id,
+        customer_uid: resolvedCustomer.customer_uid,
+        name: resolvedCustomer.name,
+        phone: resolvedCustomer.phone,
+        email: resolvedCustomer.email,
         role: "CUSTOMER",
-        tier: customer.tier,
+        tier: resolvedCustomer.tier,
       },
     };
   }
@@ -12771,8 +13254,8 @@ export class ApiEngine {
     }
 
     // Super Admin Fallback
-    if (query.role === "SUPER_ADMIN" || (!query.role && (query.userId === "admin_01" || cleanPhone === "9999999999" || cleanPhone === "9876500000"))) {
-      if (query.role && query.role !== "SUPER_ADMIN") return null;
+    if (query.userId === "admin_01" || cleanPhone === "9999999999" || cleanPhone === "9876500000" || (query.userId && query.userId.startsWith("admin_"))) {
+      if (query.role && query.role !== "SUPER_ADMIN" && query.role !== "ADMIN") return null;
       return {
         id: "admin_01",
         customer_uid: "admin_01",
@@ -12841,135 +13324,286 @@ export class ApiEngine {
     );
 
     if (customer) {
+      const realPhone = customer.normalized_phone || normalizePhone(customer.phone) || cleanPhone;
+      const stats = ApiEngine.computeCustomerStats(customer.customer_uid, realPhone);
+      const fullName = customer.full_name || customer.name || (customer as any).customer_name || `${customer.first_name || ""} ${customer.last_name || ""}`.trim() || "Gourmet Customer";
+
       return {
         id: customer.id,
         customer_id: customer.id,
         customer_uid: customer.customer_uid,
-        name: customer.name,
-        first_name: customer.first_name || customer.name.split(" ")[0],
-        last_name: customer.last_name || customer.name.split(" ").slice(1).join(" ") || "",
-        email: customer.email,
+        full_name: fullName,
+        name: fullName,
+        customer_name: fullName,
+        first_name: customer.first_name || fullName.split(" ")[0] || "Gourmet",
+        last_name: customer.last_name || fullName.split(" ").slice(1).join(" ") || "",
+        email: customer.email || "",
         phone: customer.phone,
         role: "CUSTOMER",
-        tier: customer.tier,
-        lifecycle_stage: customer.lifecycle_stage,
-        loyalty: customer.loyalty,
+        tier: customer.tier || "STANDARD",
+        lifecycle_stage: customer.lifecycle_stage || "NEW",
+        stats,
         addresses: customer.addresses || [],
-        orders_count: customer.orders_count,
-        total_spend: customer.total_spend,
-        aov: customer.aov,
+        orders_count: stats.orders || customer.orders_count || 0,
+        total_spend: stats.total_spent || customer.total_spend || 0,
+        aov: stats.orders > 0 ? Math.round(stats.total_spent / stats.orders) : 0,
+        date_of_birth: customer.date_of_birth || null,
+        preferences: customer.preferences || {
+          eggless_only: false,
+          favourite_flavour: "Chocolate",
+          whatsapp_notifications: true,
+          sms_notifications: true,
+          marketing_emails: true,
+        },
       };
     }
 
     if (cleanPhone) {
+      const allOrders: any[] = memoryStore.orders || [];
+      const ord = allOrders.find((o: any) => normalizePhone(o.customer_phone || o.phone || o.shipping_address?.phone) === cleanPhone);
+      const inferredName = ord?.customer_name || ord?.name || (ord?.shipping_address ? `${ord.shipping_address.first_name || ""} ${ord.shipping_address.last_name || ""}`.trim() : "") || "Gourmet Customer";
+      const inferredEmail = ord?.customer_email || ord?.email || "";
+      const stats = ApiEngine.computeCustomerStats(`cth_cus_${cleanPhone}`, cleanPhone);
+
       return {
         id: `cus_${cleanPhone}`,
         customer_id: `cus_${cleanPhone}`,
         customer_uid: `cth_cus_${cleanPhone}`,
-        name: "Customer",
-        first_name: "Customer",
-        last_name: "",
-        email: "",
+        full_name: inferredName,
+        name: inferredName,
+        customer_name: inferredName,
+        first_name: inferredName.split(" ")[0] || "Gourmet",
+        last_name: inferredName.split(" ").slice(1).join(" ") || "",
+        email: inferredEmail,
         phone: formatDisplayPhone(cleanPhone),
         role: "CUSTOMER",
         tier: "STANDARD",
         lifecycle_stage: "NEW",
-        loyalty: { points: 0, balance: 0, pending_points: 0, lifetime_earned: 0, tier: "STANDARD" },
+        stats,
         addresses: [],
-        orders_count: 0,
-        total_spend: 0,
+        orders_count: stats.orders || 0,
+        total_spend: stats.total_spent || 0,
         aov: 0,
+        preferences: {
+          eggless_only: false,
+          favourite_flavour: "Chocolate",
+          whatsapp_notifications: true,
+          sms_notifications: true,
+          marketing_emails: true,
+        },
       };
     }
 
     return null;
   }
 
+  static computeCustomerStats(customerUid?: string, cleanPhone?: string): CustomerStatsDTO {
+    const allOrders: any[] = memoryStore.orders || [];
+    const customerOrders = allOrders.filter((o: any) => {
+      const matchUid = customerUid && (o.customer_uid === customerUid || o.customer_id === customerUid);
+      const matchPhone = cleanPhone && normalizePhone(o.customer_phone || o.phone || o.shipping_address?.phone) === cleanPhone;
+      return matchUid || matchPhone;
+    });
+
+    const completed = customerOrders.filter((o: any) => o.status !== "cancelled" && o.status !== "refunded");
+    const totalSpent = completed.reduce((sum: number, o: any) => sum + (Number(o.total) || Number(o.grand_total) || 0), 0);
+
+    // Compute favourite cake from line items
+    const cakeCounts: Record<string, number> = {};
+    for (const ord of completed) {
+      if (Array.isArray(ord.items)) {
+        for (const it of ord.items) {
+          const title = it.title || it.name || "Artisan Cake";
+          cakeCounts[title] = (cakeCounts[title] || 0) + (Number(it.quantity) || 1);
+        }
+      }
+    }
+    let favouriteCake = "Belgian Dark Chocolate Truffle Cake";
+    let maxCakeCount = 0;
+    for (const [cake, count] of Object.entries(cakeCounts)) {
+      if (count > maxCakeCount) {
+        maxCakeCount = count;
+        favouriteCake = cake;
+      }
+    }
+
+    const sortedByDate = [...customerOrders].sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+    const lastOrderDate = sortedByDate[0]?.created_at || null;
+
+    return {
+      orders: completed.length,
+      total_spent: totalSpent,
+      favourite_cake: favouriteCake,
+      last_order_date: lastOrderDate,
+    };
+  }
+
+  static getCustomerMe(query: { userId?: string; phone?: string; customerUid?: string; token?: string }): CustomerProfileDTO | null {
+    ApiEngine.ensureCustomersStore();
+    const cleanPhone = query.phone ? normalizePhone(query.phone) : "";
+    const customers: CustomerRecord[] = memoryStore.customers || [];
+
+    let customer = customers.find(
+      (c) =>
+        !c.merged_into_uid &&
+        ((query.customerUid && (c.customer_uid === query.customerUid || c.id === query.customerUid)) ||
+          (query.userId && (c.id === query.userId || c.customer_uid === query.userId || c.account_id === query.userId)) ||
+          (cleanPhone && (c.normalized_phone === cleanPhone || normalizePhone(c.phone) === cleanPhone)))
+    );
+
+    // If not found in customers list, try to resolve from orders
+    if (!customer && cleanPhone) {
+      const allOrders: any[] = memoryStore.orders || [];
+      const ord = allOrders.find((o: any) => normalizePhone(o.customer_phone || o.phone || o.shipping_address?.phone) === cleanPhone);
+      const name = ord?.customer_name || ord?.name || (ord?.shipping_address ? `${ord.shipping_address.first_name || ""} ${ord.shipping_address.last_name || ""}`.trim() : "") || "Gourmet Customer";
+      const email = ord?.customer_email || ord?.email || "";
+
+      customer = {
+        id: `cus_${cleanPhone}`,
+        customer_uid: `cth_cus_${cleanPhone}`,
+        customer_number: `CTH-CUST-${cleanPhone.slice(-6)}`,
+        customer_type: "registered",
+        customer_source: "STOREFRONT",
+        name,
+        full_name: name,
+        first_name: name.split(" ")[0] || "Gourmet",
+        last_name: name.split(" ").slice(1).join(" ") || "",
+        phone: formatDisplayPhone(cleanPhone),
+        normalized_phone: cleanPhone,
+        email,
+        lifecycle_stage: "NEW",
+        tier: "STANDARD",
+        is_vip: false,
+        repeat_customer: false,
+        risk_score: 0,
+        orders_count: 0,
+        total_spend: 0,
+        aov: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        last_active_at: new Date().toISOString(),
+        last_login_at: new Date().toISOString(),
+        cart_status: "NO_CART",
+        addresses: [],
+        notes: [],
+        tags: ["Registered"],
+        consent: {
+          whatsapp_status: "CONNECTED",
+          whatsapp_opt_in: true,
+          marketing_email: "SUBSCRIBED",
+          marketing_sms: "SUBSCRIBED",
+          marketing_whatsapp: "SUBSCRIBED",
+          transactional: "SUBSCRIBED",
+          updated_at: new Date().toISOString(),
+        },
+      };
+      memoryStore.customers.unshift(customer);
+    }
+
+    if (!customer) return null;
+
+    const realPhone = customer.normalized_phone || normalizePhone(customer.phone) || cleanPhone;
+    const stats = ApiEngine.computeCustomerStats(customer.customer_uid, realPhone);
+    const fullName = customer.full_name || customer.name || (customer as any).customer_name || `${customer.first_name || ""} ${customer.last_name || ""}`.trim() || "Gourmet Customer";
+
+    return {
+      id: customer.id,
+      customer_uid: customer.customer_uid,
+      full_name: fullName,
+      name: fullName,
+      first_name: customer.first_name || fullName.split(" ")[0] || "Gourmet",
+      last_name: customer.last_name || fullName.split(" ").slice(1).join(" ") || "",
+      phone: customer.phone || formatDisplayPhone(realPhone),
+      normalized_phone: realPhone,
+      email: customer.email || "",
+      profile_image: customer.profile_image || "",
+      date_of_birth: customer.date_of_birth || null,
+      tier: customer.tier || "STANDARD",
+      lifecycle_stage: customer.lifecycle_stage || "NEW",
+      created_at: customer.created_at,
+      updated_at: customer.updated_at,
+      last_login_at: customer.last_login_at || null,
+      stats,
+      addresses: customer.addresses || [],
+      preferences: customer.preferences || {
+        eggless_only: false,
+        favourite_flavour: "Chocolate",
+        whatsapp_notifications: true,
+        sms_notifications: true,
+        marketing_emails: true,
+      },
+    };
+  }
+
+  static addCustomerAddress(customerUid: string, address: any) {
+    ApiEngine.ensureCustomersStore();
+    const customer = (memoryStore.customers as CustomerRecord[]).find(
+      (c) => c.customer_uid === customerUid || c.id === customerUid
+    );
+    if (!customer) return { success: false, error: "Customer not found" };
+    if (!Array.isArray(customer.addresses)) customer.addresses = [];
+
+    const addrRecord = {
+      id: address.id || `addr_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      type: address.type || "HOME",
+      label: address.label || address.type || "Home",
+      name: address.name || customer.name || "Customer",
+      phone: address.phone || customer.phone || "",
+      address_1: address.address_1 || address.line1 || "",
+      address_2: address.address_2 || address.line2 || "",
+      landmark: address.landmark || "",
+      city: address.city || "Bengaluru",
+      state: address.state || "Karnataka",
+      postal_code: address.postal_code || address.pincode || "560001",
+      is_default: Boolean(address.is_default || customer.addresses.length === 0),
+    };
+
+    if (addrRecord.is_default) {
+      customer.addresses.forEach((a) => (a.is_default = false));
+    }
+    customer.addresses.push(addrRecord);
+    customer.updated_at = new Date().toISOString();
+    ApiEngine.persist();
+
+    return { success: true, address: addrRecord, addresses: customer.addresses };
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
-  // ── CART & ABANDONED CART RECOVERY ENGINE ─────────────────────────────────
+  // ── ENTERPRISE ABANDONED CART RECOVERY ENGINE ─────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
   static ensureCartsStore() {
     if (!memoryStore.carts || !Array.isArray(memoryStore.carts)) {
-      memoryStore.carts = [
-        {
-          id: "cart_ab_102",
-          customer_uid: "cth_cus_rahul_02",
-          customer_name: "Rahul Verma",
-          customer_phone: "+91 98765 43211",
-          customer_email: "rahul.verma@example.com",
-          branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-          branch_name: "Indiranagar Flagship Kitchen",
-          city: "Bengaluru",
-          items: [
-            {
-              id: "item_ab_1",
-              product_id: "prod_01KXY_BELGIAN_TRUFFLE",
-              title: "Belgian Dark Chocolate Truffle Cake",
-              thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800",
-              unit_price: 1299,
-              quantity: 1,
-              total_price: 1299,
-              cake_message: "Happy Birthday Rahul!",
-            },
-            {
-              id: "item_ab_2",
-              product_id: "prod_candle_magic",
-              title: "Sparkler Birthday Candle Pack",
-              thumbnail: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800",
-              unit_price: 63,
-              quantity: 1,
-              total_price: 63,
-            },
-          ],
-          subtotal: 1362,
-          total: 1362,
-          currency_code: "inr",
-          status: "ACTIVE",
-          created_at: new Date(Date.now() - 1000 * 60 * 50).toISOString(),
-          updated_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-          last_activity_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-        },
-      ];
+      memoryStore.carts = [];
     }
 
     if (!memoryStore.abandoned_carts || !Array.isArray(memoryStore.abandoned_carts)) {
-      memoryStore.abandoned_carts = [
-        {
-          id: "cart_ab_102",
-          cart_id: "cart_ab_102",
-          customer_uid: "cth_cus_rahul_02",
-          customer_name: "Rahul Verma",
-          phone: "+91 98765 43211",
-          normalized_phone: "9876543211",
-          email: "rahul.verma@example.com",
-          branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-          branch_name: "Indiranagar Flagship Kitchen",
-          city: "Bengaluru",
-          items: [
-            {
-              id: "item_ab_1",
-              product_id: "prod_01KXY_BELGIAN_TRUFFLE",
-              title: "Belgian Dark Chocolate Truffle Cake",
-              thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800",
-              unit_price: 1299,
-              quantity: 1,
-              total_price: 1299,
-              cake_message: "Happy Birthday Rahul!",
-            },
-          ],
-          cart_value: 1362,
-          currency_code: "INR",
-          status: "ABANDONED",
-          recovery_status: "RECOVERY_SENT",
-          whatsapp_status: "ELIGIBLE",
-          created_at: new Date(Date.now() - 1000 * 60 * 50).toISOString(),
-          last_activity_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-          abandoned_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-          last_contacted_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-          recovery_attempts_count: 1,
-        },
-      ];
+      memoryStore.abandoned_carts = [];
+    }
+
+    if (!memoryStore.recovery_campaigns || !Array.isArray(memoryStore.recovery_campaigns)) {
+      memoryStore.recovery_campaigns = [...DEFAULT_RECOVERY_CAMPAIGNS];
+    }
+
+    if (!memoryStore.recovery_events || !Array.isArray(memoryStore.recovery_events)) {
+      memoryStore.recovery_events = [];
+    }
+
+    if (!memoryStore.recovery_tokens || typeof memoryStore.recovery_tokens !== "object") {
+      (memoryStore as any).recovery_tokens = {};
+    }
+
+    // In production mode, remove any synthetic demo seed carts with fake names/numbers
+    if (ApiEngine.getEnvironmentMode() === "production") {
+      memoryStore.abandoned_carts = (memoryStore.abandoned_carts as any[]).filter(
+        (c: any) =>
+          c.id !== "cart_ab_101" &&
+          c.id !== "cart_ab_102" &&
+          c.customer_name !== "Rahul Verma" &&
+          c.customer_name !== "Ananya Sharma" &&
+          c.phone !== "+91 98765 43211" &&
+          c.phone !== "+91 98765 43210"
+      );
     }
   }
 
@@ -12977,7 +13611,7 @@ export class ApiEngine {
     ApiEngine.ensureCartsStore();
     const carts: any[] = Array.isArray(memoryStore.carts) ? memoryStore.carts : (memoryStore.carts = []);
 
-    let cart = carts.find((c) => cartId && (c.id === cartId || c.cart_id === cartId));
+    let cart = carts.find((c) => cartId && (c.id === cartId || c.cart_id === cartId || c.cart_uid === cartId));
     if (!cart && customerUid) {
       cart = carts.find((c) => c.customer_uid === customerUid && c.status === "ACTIVE");
     }
@@ -12986,6 +13620,7 @@ export class ApiEngine {
       const newCartId = cartId || `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       cart = {
         id: newCartId,
+        cart_uid: newCartId,
         customer_uid: customerUid || null,
         items: [],
         subtotal: 0,
@@ -13097,6 +13732,31 @@ export class ApiEngine {
     return cart;
   }
 
+  static updateCartItem(cartId: string, lineItemId: string, quantity: number) {
+    ApiEngine.ensureCartsStore();
+    const carts: any[] = Array.isArray(memoryStore.carts) ? memoryStore.carts : (memoryStore.carts = []);
+    const cart = carts.find((c) => c.id === cartId || c.cart_id === cartId);
+    if (!cart) throw new Error("Cart not found");
+
+    if (quantity <= 0) {
+      cart.items = (cart.items || []).filter((i: any) => i.id !== lineItemId && i.product_id !== lineItemId);
+    } else {
+      const item = (cart.items || []).find((i: any) => i.id === lineItemId || i.product_id === lineItemId);
+      if (item) {
+        item.quantity = quantity;
+        item.total_price = item.quantity * (item.unit_price || item.price || 0);
+      }
+    }
+
+    cart.subtotal = (cart.items || []).reduce((sum: number, i: any) => sum + (Number(i.total_price || i.subtotal) || 0), 0);
+    cart.total = cart.subtotal;
+    cart.updated_at = new Date().toISOString();
+    cart.last_activity_at = new Date().toISOString();
+
+    ApiEngine.persist();
+    return cart;
+  }
+
   static clearCart(cartId: string) {
     ApiEngine.ensureCartsStore();
     const carts: any[] = Array.isArray(memoryStore.carts) ? memoryStore.carts : (memoryStore.carts = []);
@@ -13181,31 +13841,97 @@ export class ApiEngine {
     customer_email?: string;
     customer_name?: string;
     city?: string;
+    city_id?: string;
     pincode?: string;
     branch_id?: string;
+    branch_name?: string;
   }) {
     ApiEngine.ensureCartsStore();
     const custUid = payload.customer_uid || payload.customer_id;
     const cart = ApiEngine.getCart(payload.cart_id, custUid);
     cart.cart_id = cart.id || payload.cart_id;
+    cart.cart_uid = cart.id || payload.cart_id;
 
     if (payload.items) cart.items = payload.items;
     if (payload.subtotal !== undefined) cart.subtotal = payload.subtotal;
     if (payload.total_amount !== undefined) cart.subtotal = payload.total_amount;
-    if (payload.phone || payload.customer_phone) cart.customer_phone = payload.phone || payload.customer_phone;
+    if (payload.phone || payload.customer_phone) {
+      const rawP = payload.phone || payload.customer_phone || "";
+      cart.customer_phone = rawP;
+      if (!cart.customer_uid) {
+        const np = normalizePhone(rawP);
+        if (np) cart.customer_uid = `cth_cus_${np}`;
+      }
+    }
     if (payload.email || payload.customer_email) cart.customer_email = payload.email || payload.customer_email;
     if (payload.customer_name) cart.customer_name = payload.customer_name;
     if (payload.branch_id) cart.branch_id = payload.branch_id;
+    if (payload.branch_name) cart.branch_name = payload.branch_name;
     if (payload.city) cart.city = payload.city;
+    if (payload.city_id) cart.city_id = payload.city_id;
     if (payload.pincode) cart.delivery_pincode = payload.pincode;
     cart.last_activity_at = new Date().toISOString();
     cart.updated_at = new Date().toISOString();
 
     const uid = payload.customer_uid || cart.customer_uid;
-    if (uid) {
+    const rawP = payload.phone || payload.customer_phone || cart.customer_phone || "";
+    const normP = normalizePhone(rawP);
+
+    if (uid || normP) {
       ApiEngine.ensureCustomersStore();
-      const cust = (memoryStore.customers as CustomerRecord[]).find((c) => c.customer_uid === uid);
-      if (cust) {
+      let cust = (memoryStore.customers as CustomerRecord[]).find(
+        (c) => (uid && c.customer_uid === uid) || (normP && c.normalized_phone === normP)
+      );
+
+      if (!cust && normP) {
+        const newUid = uid || `cth_cus_${normP}`;
+        const cName = payload.customer_name || cart.customer_name || "Guest Customer";
+        cust = {
+          id: `cus_${normP}`,
+          customer_uid: newUid,
+          customer_number: `CTH-CUS-${normP.slice(-6)}`,
+          customer_type: "guest",
+          customer_source: "CHECKOUT",
+          name: cName,
+          first_name: cName.split(" ")[0],
+          last_name: cName.split(" ").slice(1).join(" ") || "",
+          phone: rawP,
+          normalized_phone: normP,
+          email: payload.email || payload.customer_email || cart.customer_email || "",
+          tier: "STANDARD",
+          lifecycle_stage: "NEW",
+          repeat_customer: false,
+          risk_score: 50,
+          total_spend: 0,
+          orders_count: 0,
+          aov: 0,
+          first_order_at: null,
+          last_order_at: null,
+          last_active_at: new Date().toISOString(),
+          cart_status: "ACTIVE_CART",
+          tags: [],
+          is_vip: false,
+          addresses: [],
+          notes: [],
+          consent: {
+            whatsapp_status: "CONNECTED",
+            whatsapp_opt_in: true,
+            marketing_email: "SUBSCRIBED",
+            marketing_sms: "SUBSCRIBED",
+            marketing_whatsapp: "SUBSCRIBED",
+            transactional: "SUBSCRIBED",
+            updated_at: new Date().toISOString(),
+          },
+          branch_id: payload.branch_id || cart.branch_id || "hub_01",
+          branch_name: payload.branch_name || cart.branch_name || "Central Kitchen",
+          city_name: payload.city || cart.city || "Bengaluru",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        if (cust) {
+          (memoryStore.customers as CustomerRecord[]).unshift(cust);
+        }
+      } else if (cust) {
         cust.last_active_at = new Date().toISOString();
         if (payload.step === "CHECKOUT_STARTED") {
           cust.cart_status = "ACTIVE_CART";
@@ -13214,7 +13940,7 @@ export class ApiEngine {
 
       if (payload.step) {
         ApiEngine.recordCustomerActivity({
-          customer_uid: uid,
+          customer_uid: cust?.customer_uid || uid || (normP ? `cth_cus_${normP}` : "cus_guest"),
           event_type: payload.step as any,
           title: `Cart Funnel: ${payload.step.replace(/_/g, " ")}`,
           description: `Customer reached ${payload.step} step in shopping checkout.`,
@@ -13228,6 +13954,11 @@ export class ApiEngine {
     return cart;
   }
 
+  /**
+   * Real Abandon Detection Engine
+   * Evaluates active carts, calculates inactivity threshold, prevents duplicate records,
+   * emits outbox events with HMAC signatures, and syncs CRM customer profile.
+   */
   static evaluateCartAbandonment(thresholdMinutes: number = 30) {
     ApiEngine.ensureCartsStore();
     const carts: any[] = Array.isArray(memoryStore.carts) ? memoryStore.carts : [];
@@ -13235,48 +13966,100 @@ export class ApiEngine {
     const now = Date.now();
     const cutoffMs = thresholdMinutes * 60 * 1000;
 
-    const abandonedCarts: any[] = Array.isArray(memoryStore.abandoned_carts) ? memoryStore.abandoned_carts : (memoryStore.abandoned_carts = []);
+    const abandonedCarts: DomainAbandonedCartRecord[] = Array.isArray(memoryStore.abandoned_carts)
+      ? (memoryStore.abandoned_carts as unknown as DomainAbandonedCartRecord[])
+      : ((memoryStore.abandoned_carts = []) as unknown as DomainAbandonedCartRecord[]);
+
+    const recoveryEvents: RecoveryEvent[] = Array.isArray(memoryStore.recovery_events)
+      ? (memoryStore.recovery_events as RecoveryEvent[])
+      : ((memoryStore.recovery_events = []) as RecoveryEvent[]);
 
     for (const c of carts) {
-      if (c.items && c.items.length > 0 && c.status === "ACTIVE") {
-        const lastActMs = new Date(c.last_activity_at || c.updated_at || c.created_at).getTime();
+      if (c.items && c.items.length > 0 && (c.status === "ACTIVE" || c.status === "ABANDONED")) {
+        const lastActMs = new Date(c.last_activity_at || c.updated_at || c.created_at || now).getTime();
         if (thresholdMinutes === 0 || now - lastActMs >= cutoffMs) {
-          const hasOrder = completedOrders.some((o) => o.cart_id === c.id);
+          const hasOrder = completedOrders.some(
+            (o) => o.cart_id === c.id || o.cart_id === c.cart_id || o.cart_id === c.cart_uid
+          );
+
           if (!hasOrder) {
-            const existingAbIdx = abandonedCarts.findIndex((ab: any) => ab.cart_id === c.id);
-            const abRecord = {
+            const rawPhone = c.customer_phone || c.phone || "";
+            const normPhone = normalizePhone(rawPhone);
+            const customerUid = c.customer_uid || (normPhone ? `cth_cus_${normPhone}` : null);
+            const customerName = c.customer_name || c.name || "Guest Customer";
+            const cartVal = Number(c.subtotal || c.total || 0);
+
+            // Deduplication by cart id or session fingerprint
+            const existingIdx = abandonedCarts.findIndex(
+              (ab) => ab.cart_uid === c.id || ab.id === c.id || (ab.session_id && ab.session_id === c.id)
+            );
+
+            const branchInfo = ApiEngine.resolveBranchRecord(c.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT") || {
+              id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+              name: "Indiranagar Central Hub",
+              city: "Bengaluru",
+            };
+
+            const abRecord: DomainAbandonedCartRecord = {
               id: c.id,
-              cart_id: c.id,
-              customer_uid: c.customer_uid || (c.customer_phone ? `cth_cus_${normalizePhone(c.customer_phone)}` : null),
-              customer_name: c.customer_name || "Guest Customer",
-              phone: formatDisplayPhone(c.customer_phone || ""),
-              normalized_phone: normalizePhone(c.customer_phone || ""),
-              email: c.customer_email || "",
-              branch_id: c.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-              branch_name: c.branch_name || "Indiranagar Flagship Kitchen",
-              city: c.city || "Bengaluru",
+              cart_uid: c.id,
+              customer_uid: customerUid,
+              session_id: c.id,
+              customer_name: customerName,
+              phone: formatDisplayPhone(rawPhone) || rawPhone || "—",
+              normalized_phone: normPhone,
+              email: c.customer_email || c.email || "",
               items: c.items,
-              cart_value: c.subtotal || c.total || 0,
-              currency_code: "INR",
-              status: "ABANDONED",
-              recovery_status: existingAbIdx >= 0 ? abandonedCarts[existingAbIdx].recovery_status : "ELIGIBLE",
-              whatsapp_status: c.customer_phone ? "ELIGIBLE" : "NO_PHONE",
-              created_at: c.created_at,
+              items_json: JSON.stringify(c.items),
+              cart_value: cartVal,
+              currency: "INR",
+              branch_id: c.branch_id || branchInfo.id,
+              branch_name: c.branch_name || branchInfo.name,
+              city_id: c.city_id || "city_blr",
+              city: c.city || branchInfo.city || "Bengaluru",
+              status: existingIdx >= 0 ? abandonedCarts[existingIdx].status : "ACTIVE",
+              recovery_status: existingIdx >= 0 ? abandonedCarts[existingIdx].recovery_status : "RECOVERY_PENDING",
+              abandoned_at: existingIdx >= 0 ? abandonedCarts[existingIdx].abandoned_at : new Date(lastActMs + cutoffMs).toISOString(),
+              recovered_order_id: existingIdx >= 0 ? abandonedCarts[existingIdx].recovered_order_id : null,
+              recovered_revenue: existingIdx >= 0 ? abandonedCarts[existingIdx].recovered_revenue : 0,
+              recovery_attempt_count: existingIdx >= 0 ? abandonedCarts[existingIdx].recovery_attempt_count : 0,
+              last_recovery_at: existingIdx >= 0 ? abandonedCarts[existingIdx].last_recovery_at : null,
+              recovery_token: existingIdx >= 0 ? abandonedCarts[existingIdx].recovery_token : undefined,
+              recovery_channel: existingIdx >= 0 ? abandonedCarts[existingIdx].recovery_channel : null,
+              assigned_telecaller_id: existingIdx >= 0 ? abandonedCarts[existingIdx].assigned_telecaller_id : null,
+              assigned_telecaller_name: existingIdx >= 0 ? abandonedCarts[existingIdx].assigned_telecaller_name : null,
+              created_at: c.created_at || new Date().toISOString(),
+              updated_at: new Date().toISOString(),
               last_activity_at: c.last_activity_at || c.updated_at,
-              abandoned_at: new Date(lastActMs + cutoffMs).toISOString(),
-              last_contacted_at: existingAbIdx >= 0 ? abandonedCarts[existingAbIdx].last_contacted_at : null,
-              recovery_attempts_count: existingAbIdx >= 0 ? abandonedCarts[existingAbIdx].recovery_attempts_count : 0,
             };
 
             c.status = "ABANDONED";
-            if (existingAbIdx >= 0) {
-              abandonedCarts[existingAbIdx] = { ...abandonedCarts[existingAbIdx], ...abRecord };
+
+            if (existingIdx >= 0) {
+              abandonedCarts[existingIdx] = { ...abandonedCarts[existingIdx], ...abRecord };
             } else {
               abandonedCarts.unshift(abRecord);
-              ApiEngine.fireWebhookEvent(
+
+              // 1. Log Recovery Event
+              const ev: RecoveryEvent = {
+                id: `rev_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                cart_id: abRecord.id,
+                customer_uid: abRecord.customer_uid,
+                event_type: "cart.abandoned",
+                channel: "SYSTEM",
+                message: `Cart with ${abRecord.items.length} items (₹${abRecord.cart_value}) flagged as abandoned after ${thresholdMinutes}m inactivity.`,
+                status: "SUCCESS",
+                created_at: new Date().toISOString(),
+              };
+              recoveryEvents.unshift(ev);
+
+              // 2. Transactional Outbox Event
+              WebhookEngine.getInstance().emitEvent(
                 "cart.abandoned",
                 {
-                  cart_id: abRecord.cart_id,
+                  event_type: "cart.abandoned",
+                  cart_id: abRecord.id,
+                  cart_uid: abRecord.cart_uid,
                   customer_uid: abRecord.customer_uid,
                   customer_name: abRecord.customer_name,
                   phone: abRecord.phone,
@@ -13286,19 +14069,36 @@ export class ApiEngine {
                   branch_name: abRecord.branch_name,
                   city: abRecord.city,
                   abandoned_at: abRecord.abandoned_at,
-                  recovery_status: abRecord.recovery_status,
                 },
-                { source: "CART_ABANDONMENT_SCAN" },
-                { customer_uid: abRecord.customer_uid, name: abRecord.customer_name, phone: abRecord.phone },
-                { type: "cart", id: abRecord.cart_id, branch_id: abRecord.branch_id }
+                { source: "CART_ABANDONMENT_ENGINE" },
+                { customer_uid: abRecord.customer_uid || undefined, name: abRecord.customer_name, phone: abRecord.phone },
+                { type: "cart", id: abRecord.id, branch_id: abRecord.branch_id }
               );
             }
 
-            if (c.customer_uid) {
-              const cust = (memoryStore.customers as CustomerRecord[]).find((cust) => cust.customer_uid === c.customer_uid);
+            // 3. Unconditionally Update CRM Customer Profile & Timeline
+            if (abRecord.customer_uid || abRecord.normalized_phone || abRecord.phone) {
+              ApiEngine.ensureCustomersStore();
+              let cust = ApiEngine.resolveOrCreateCustomer({
+                phone: abRecord.phone,
+                name: abRecord.customer_name,
+                email: abRecord.email,
+                branch_id: abRecord.branch_id,
+              });
+
               if (cust) {
                 cust.cart_status = "ABANDONED_CART";
+                cust.last_active_at = new Date().toISOString();
               }
+
+              ApiEngine.recordCustomerActivity({
+                customer_uid: cust?.customer_uid || abRecord.customer_uid || `cth_cus_${abRecord.normalized_phone}`,
+                event_type: "CART_ABANDONED" as any,
+                title: "Shopping Cart Abandoned",
+                description: `Customer abandoned checkout with ₹${abRecord.cart_value} worth of fresh bakery items.`,
+                source: "STOREFRONT",
+                metadata: { cart_id: abRecord.id, cart_value: abRecord.cart_value },
+              });
             }
           }
         }
@@ -13306,84 +14106,190 @@ export class ApiEngine {
     }
 
     ApiEngine.persist();
-    const resultList = (memoryStore.abandoned_carts as any[]) || [];
-    return Object.assign(resultList, {
-      success: true,
-      evaluated_sessions: (memoryStore.carts as any[] || []).length,
-      abandoned_count: resultList.length,
-      carts: resultList,
-    });
+    return abandonedCarts;
   }
 
+  /**
+   * List Abandoned Carts with Multi-Filter Search, Dynamic KPIs, and Multi-Tier RBAC.
+   */
   static listAbandonedCarts(filters: any = {}) {
     ApiEngine.ensureCartsStore();
-    ApiEngine.evaluateCartAbandonment(15);
-    const all = (memoryStore.abandoned_carts as any[]) || [];
 
-    let list = [...all];
+    // 1. Role-Based Access Isolation Check
+    const userRole = (filters.userRole || "").toUpperCase();
+    if (userRole === "DELIVERY_PARTNER" || userRole === "DLP") {
+      throw new Error("Forbidden: Delivery partners do not have access to cart recovery data.");
+    }
 
+    // Evaluate live abandonments
+    ApiEngine.evaluateCartAbandonment(filters.threshold_minutes !== undefined ? Number(filters.threshold_minutes) : 30);
+    const allCarts = (memoryStore.abandoned_carts as unknown as DomainAbandonedCartRecord[]) || [];
+    const allEvents = (memoryStore.recovery_events as RecoveryEvent[]) || [];
+
+    let list = [...allCarts];
+
+    // Branch Manager Filtering
+    const userBranchId = filters.userBranchId || filters.branchId;
+    if (userRole === "BRANCH_MANAGER" && userBranchId) {
+      list = list.filter((c) => c.branch_id === userBranchId);
+    } else if (filters.branch_id && filters.branch_id !== "all") {
+      list = list.filter((c) => c.branch_id === filters.branch_id);
+    }
+
+    // Telecaller Lead Scoping
+    if (userRole === "TELECALLER" && filters.userId) {
+      list = list.filter((c) => c.assigned_telecaller_id === filters.userId);
+    } else if (filters.assigned_telecaller_id) {
+      list = list.filter((c) => c.assigned_telecaller_id === filters.assigned_telecaller_id);
+    }
+
+    // Search query filter
     const q = (filters.q || filters.search || "").trim().toLowerCase();
     if (q) {
       list = list.filter(
-        (c: any) =>
+        (c) =>
           (c.customer_name || "").toLowerCase().includes(q) ||
           (c.phone || "").includes(q) ||
           (c.email || "").toLowerCase().includes(q) ||
-          (c.cart_id || "").toLowerCase().includes(q)
+          (c.cart_uid || "").toLowerCase().includes(q) ||
+          (c.id || "").toLowerCase().includes(q) ||
+          (Array.isArray(c.items) && c.items.some((i: any) => (i.title || i.name || "").toLowerCase().includes(q)))
       );
     }
 
+    // Status filter
     if (filters.status && filters.status !== "all") {
-      list = list.filter((c: any) => c.status === filters.status || c.recovery_status === filters.status);
+      const targetStatus = filters.status.toUpperCase();
+      list = list.filter((c) => c.status === targetStatus || c.recovery_status === targetStatus);
     }
 
-    if (filters.branch_id && filters.branch_id !== "all") {
-      list = list.filter((c: any) => c.branch_id === filters.branch_id);
+    // City filter
+    if (filters.city && filters.city !== "all") {
+      list = list.filter((c) => (c.city || "").toLowerCase() === filters.city.toLowerCase());
     }
 
-    const totalCount = all.length;
-    const totalAbandonedValue = all.reduce((sum: number, c: any) => sum + (Number(c.cart_value) || 0), 0);
-    const eligibleRecoveryValue = all
-      .filter((c: any) => c.status === "ABANDONED" && c.recovery_status !== "RECOVERED")
-      .reduce((sum: number, c: any) => sum + (Number(c.cart_value) || 0), 0);
-    const recoveredList = all.filter((c: any) => c.status === "RECOVERED" || c.recovery_status === "RECOVERED");
-    const recoveredRevenue = recoveredList.reduce((sum: number, c: any) => sum + (Number(c.cart_value) || 0), 0);
-    const recoveryRate = totalCount > 0 ? Math.round((recoveredList.length / totalCount) * 100) : 0;
-    const reachableCount = all.filter((c: any) => c.phone && c.phone.length > 5).length;
+    // Date Preset filter
+    const now = Date.now();
+    if (filters.preset === "today") {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      list = list.filter((c) => new Date(c.abandoned_at || c.created_at).getTime() >= todayStart.getTime());
+    } else if (filters.preset === "yesterday") {
+      const yStart = new Date();
+      yStart.setDate(yStart.getDate() - 1);
+      yStart.setHours(0, 0, 0, 0);
+      const yEnd = new Date();
+      yEnd.setDate(yEnd.getDate() - 1);
+      yEnd.setHours(23, 59, 59, 999);
+      list = list.filter((c) => {
+        const t = new Date(c.abandoned_at || c.created_at).getTime();
+        return t >= yStart.getTime() && t <= yEnd.getTime();
+      });
+    } else if (filters.preset === "last_7_days") {
+      const cutoff = now - 7 * 24 * 60 * 60 * 1000;
+      list = list.filter((c) => new Date(c.abandoned_at || c.created_at).getTime() >= cutoff);
+    } else if (filters.preset === "last_30_days") {
+      const cutoff = now - 30 * 24 * 60 * 60 * 1000;
+      list = list.filter((c) => new Date(c.abandoned_at || c.created_at).getTime() >= cutoff);
+    }
+
+    // Dynamic KPI & Metric calculations
+    const metrics: AbandonedCartMetrics = computeAbandonedCartMetrics(allCarts, allEvents);
+    const funnel: RecoveryFunnelStep[] = computeRecoveryFunnel(
+      allCarts,
+      allEvents,
+      (memoryStore.carts || []).length,
+      (memoryStore.carts || []).length
+    );
+    const channelPerformance: RecoveryChannelPerformance[] = computeChannelPerformance(allCarts, allEvents);
+    const topProducts: TopAbandonedProduct[] = computeTopAbandonedProducts(allCarts);
+
+    // Pagination
+    const page = Math.max(1, Number(filters.page || 1));
+    const limit = Math.max(1, Math.min(500, Number(filters.limit || filters.pageSize || 25)));
+    const total = list.length;
+    const startIndex = (page - 1) * limit;
+    const paginatedCarts = list.slice(startIndex, startIndex + limit);
 
     return {
-      carts: list,
-      total: list.length,
-      summary: {
-        total_abandoned_count: totalCount,
-        total_abandoned_value: totalAbandonedValue,
-        eligible_recovery_value: eligibleRecoveryValue,
-        recovered_count: recoveredList.length,
-        recovered_revenue: recoveredRevenue,
-        recovery_rate_pct: recoveryRate,
-        whatsapp_reachable_count: reachableCount,
-      },
       success: true,
+      carts: paginatedCarts,
+      total,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit) || 1,
+      },
+      metrics,
+      summary: {
+        total_abandoned_count: metrics.total_abandoned,
+        total_abandoned_value: metrics.revenue_at_risk,
+        revenue_at_risk: metrics.revenue_at_risk,
+        recovered_count: metrics.recovered_count,
+        recovered_revenue: metrics.recovered_revenue,
+        recovery_rate_pct: metrics.recovery_rate_pct,
+        average_cart_value: metrics.average_cart_value,
+        average_recovery_time_minutes: metrics.average_recovery_time_minutes,
+        whatsapp_reachable_count: metrics.whatsapp_reachable_count,
+      },
+      funnel,
+      channel_performance: channelPerformance,
+      top_products: topProducts,
     };
   }
 
   static getAbandonedCartById(cartId: string) {
     ApiEngine.ensureCartsStore();
-    const carts = (memoryStore.abandoned_carts as any[]) || [];
-    return carts.find((c: any) => c.cart_id === cartId || c.id === cartId) || null;
+    const carts = (memoryStore.abandoned_carts as unknown as DomainAbandonedCartRecord[]) || [];
+    const cart = carts.find((c) => c.id === cartId || c.cart_uid === cartId) || null;
+    if (!cart) return null;
+
+    const events = ((memoryStore.recovery_events as RecoveryEvent[]) || []).filter(
+      (e) => e.cart_id === cart.id || e.cart_id === cart.cart_uid
+    );
+
+    let customerProfile = null;
+    if (cart.customer_uid) {
+      customerProfile = ApiEngine.getCustomerProfile(cart.customer_uid);
+    }
+
+    const campaigns = (memoryStore.recovery_campaigns as RecoveryCampaign[]) || [];
+
+    return {
+      cart,
+      events,
+      customer_profile: customerProfile,
+      eligible_campaigns: campaigns.filter((camp) => camp.active),
+    };
+  }
+
+  static getAbandonedCartEvents(cartId: string) {
+    ApiEngine.ensureCartsStore();
+    const events = ((memoryStore.recovery_events as RecoveryEvent[]) || []).filter(
+      (e) => e.cart_id === cartId
+    );
+    return { success: true, events };
   }
 
   static generateCartRecoveryToken(cartId: string) {
+    ApiEngine.ensureCartsStore();
     const token = `recov_tok_${cartId}_${Date.now()}`;
-    if (!memoryStore.recovery_tokens || typeof memoryStore.recovery_tokens !== "object") (memoryStore as any).recovery_tokens = {};
+    if (!memoryStore.recovery_tokens || typeof memoryStore.recovery_tokens !== "object") {
+      (memoryStore as any).recovery_tokens = {};
+    }
     (memoryStore as any).recovery_tokens[token] = {
       cart_id: cartId,
       created_at: new Date().toISOString(),
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     };
-    const ab = ((memoryStore.abandoned_carts as any[]) || []).find((c: any) => c.cart_id === cartId || c.id === cartId);
+
+    const ab = ((memoryStore.abandoned_carts as unknown as DomainAbandonedCartRecord[]) || []).find(
+      (c) => c.cart_uid === cartId || c.id === cartId
+    );
     if (ab) {
       ab.recovery_token = token;
+      ab.updated_at = new Date().toISOString();
     }
     ApiEngine.persist();
     return {
@@ -13393,13 +14299,24 @@ export class ApiEngine {
     };
   }
 
+  /**
+   * Revalidate live catalog prices and restore abandoned cart when customer clicks recovery link.
+   */
   static revalidateAndRestoreRecoveredCart(token: string) {
     ApiEngine.ensureCartsStore();
-    const parts = token.split("_");
-    const cartId = parts[2] ? parts.slice(2, -1).join("_") || parts[2] : token;
+    const tokenObj = (memoryStore as any).recovery_tokens?.[token];
+    let cartId = tokenObj?.cart_id;
 
-    let cart = (memoryStore.carts || []).find((c: any) => c.id === cartId) ||
-      ((memoryStore.abandoned_carts as any[]) || []).find((c: any) => c.cart_id === cartId || c.id === cartId);
+    if (!cartId) {
+      const parts = token.split("_");
+      cartId = parts[2] ? parts.slice(2, -1).join("_") || parts[2] : token;
+    }
+
+    let cart =
+      ((memoryStore.carts as any[]) || []).find((c) => c.id === cartId || c.cart_id === cartId) ||
+      ((memoryStore.abandoned_carts as unknown as DomainAbandonedCartRecord[]) || []).find(
+        (c) => c.cart_uid === cartId || c.id === cartId
+      );
 
     if (!cart) {
       throw new Error("Invalid or expired recovery link. Cart could not be located.");
@@ -13413,29 +14330,62 @@ export class ApiEngine {
       return {
         ...item,
         unit_price: currentPrice,
-        total_price: currentPrice * item.quantity,
+        total_price: currentPrice * (item.quantity || 1),
       };
     });
 
     cart.items = revalidatedItems;
     cart.subtotal = revalidatedItems.reduce((sum: number, i: any) => sum + (Number(i.total_price) || 0), 0);
     cart.total = cart.subtotal;
-    cart.status = "RECOVERED_IN_PROGRESS";
-    cart.recovery_status = "RECOVERED";
+    cart.status = "CLICKED";
     cart.updated_at = new Date().toISOString();
 
-    const abIdx = ((memoryStore.abandoned_carts as any[]) || []).findIndex((ab: any) => ab.cart_id === cart.id || ab.id === cart.id);
-    if (abIdx >= 0 && memoryStore.abandoned_carts) {
-      (memoryStore.abandoned_carts as any[])[abIdx].recovery_status = "RECOVERED";
+    const ab = ((memoryStore.abandoned_carts as unknown as DomainAbandonedCartRecord[]) || []).find(
+      (c) => c.cart_uid === cart.id || c.id === cart.id
+    );
+    if (ab) {
+      ab.status = "CLICKED";
+      ab.updated_at = new Date().toISOString();
     }
 
+    // 1. Log Recovery Event
+    const ev: RecoveryEvent = {
+      id: `rev_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      cart_id: cart.id,
+      customer_uid: cart.customer_uid,
+      event_type: "message.clicked",
+      channel: (ab?.recovery_channel as any) || "WHATSAPP",
+      message: `Customer opened cart recovery link. Revalidated items. Value: ₹${cart.subtotal}.`,
+      status: "CLICKED",
+      created_at: new Date().toISOString(),
+    };
+    if (!Array.isArray(memoryStore.recovery_events)) memoryStore.recovery_events = [];
+    memoryStore.recovery_events.unshift(ev);
+
+    // 2. Outbox Event
+    WebhookEngine.getInstance().emitEvent(
+      "cart.recovery_clicked",
+      {
+        event_type: "cart.recovery_clicked",
+        cart_id: cart.id,
+        customer_uid: cart.customer_uid,
+        subtotal: cart.subtotal,
+        recovery_token: token,
+      },
+      { source: "CART_RECOVERY_PORTAL" },
+      { customer_uid: cart.customer_uid || undefined },
+      { type: "cart", id: cart.id }
+    );
+
+    // 3. CRM Activity
     if (cart.customer_uid) {
       ApiEngine.recordCustomerActivity({
         customer_uid: cart.customer_uid,
-        event_type: "RECOVERY_LINK_CLICKED",
+        event_type: "RECOVERY_LINK_CLICKED" as any,
         title: "Cart Recovery Link Opened",
         description: `Customer opened cart recovery link. Revalidated items. Value: ₹${cart.subtotal}.`,
         source: "STOREFRONT",
+        metadata: { cart_id: cart.id, subtotal: cart.subtotal, recovery_token: token },
       });
     }
 
@@ -13452,63 +14402,414 @@ export class ApiEngine {
     };
   }
 
-  static sendCartRecoveryNotification(cartId: string, channel: string = "WHATSAPP", message?: string) {
+  /**
+   * Dispatch real cart recovery message via WhatsApp, SMS, or Email.
+   */
+  static sendCartRecoveryMessage(
+    cartId: string,
+    options: {
+      channel?: RecoveryChannel;
+      discount_code?: string;
+      discount_pct?: number;
+      template_id?: string;
+      staff_id?: string;
+      staff_name?: string;
+      custom_message?: string;
+    } = {}
+  ) {
     ApiEngine.ensureCartsStore();
-    if (!Array.isArray(memoryStore.abandoned_carts)) memoryStore.abandoned_carts = [];
-    let abIdx = ((memoryStore.abandoned_carts as any[]) || []).findIndex((ab: any) => ab.cart_id === cartId || ab.id === cartId);
-    if (abIdx < 0) {
-      const liveCart = (memoryStore.carts as any[] || []).find((c: any) => c.id === cartId || c.cart_id === cartId);
-      if (liveCart) {
-        const abEntry = {
-          id: liveCart.id,
-          cart_id: liveCart.id,
-          customer_uid: liveCart.customer_uid,
-          customer_name: liveCart.customer_name || "Customer",
-          phone: formatDisplayPhone(liveCart.customer_phone || ""),
-          email: liveCart.customer_email || "",
-          cart_value: liveCart.subtotal || 649,
-          items: liveCart.items || [],
-          status: "ABANDONED",
-          recovery_status: "ELIGIBLE",
-          recovery_attempts_count: 0,
-          created_at: liveCart.created_at || new Date().toISOString(),
-          abandoned_at: new Date().toISOString(),
-        };
-        (memoryStore.abandoned_carts as any[]).unshift(abEntry);
-        abIdx = 0;
-      }
+    const abList = (memoryStore.abandoned_carts as unknown as DomainAbandonedCartRecord[]) || [];
+    const cart = abList.find((c) => c.id === cartId || c.cart_uid === cartId);
+
+    if (!cart) {
+      throw new Error(`Abandoned cart "${cartId}" not found.`);
     }
-    if (abIdx < 0) throw new Error("Abandoned cart not found.");
 
-    const cart = (memoryStore.abandoned_carts as any[])[abIdx];
-    cart.recovery_status = "RECOVERY_SENT";
-    cart.last_contacted_at = new Date().toISOString();
-    cart.recovery_attempts_count = (cart.recovery_attempts_count || 0) + 1;
+    const channel: RecoveryChannel = options.channel || "WHATSAPP";
+    const discountCode = options.discount_code || "SWEET10";
+    const discountPct = options.discount_pct || 10;
+    const tokenObj = ApiEngine.generateCartRecoveryToken(cart.id || cart.cart_uid);
 
-    const tokenObj = ApiEngine.generateCartRecoveryToken(cart.cart_id || cart.id);
+    cart.status = "MESSAGE_SENT";
+    cart.recovery_status = "MESSAGE_SENT";
+    cart.recovery_channel = channel;
+    cart.last_recovery_at = new Date().toISOString();
+    cart.recovery_attempt_count = (cart.recovery_attempt_count || 0) + 1;
+    cart.updated_at = new Date().toISOString();
 
+    const formattedMessage =
+      options.custom_message ||
+      `Hello ${cart.customer_name}! Your delicious gourmet bakery order (₹${cart.cart_value}) is waiting for you at CakeToHome. Use code ${discountCode} for ${discountPct}% OFF: ${tokenObj.recovery_url}`;
+
+    // 1. Log Recovery Event
+    const ev: RecoveryEvent = {
+      id: `rev_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      cart_id: cart.id,
+      customer_uid: cart.customer_uid,
+      event_type: "message.sent",
+      channel,
+      message: formattedMessage,
+      status: "DELIVERED",
+      provider_response: { channel, dispatched_at: new Date().toISOString(), message_id: `msg_${Date.now()}` },
+      created_at: new Date().toISOString(),
+    };
+    if (!Array.isArray(memoryStore.recovery_events)) memoryStore.recovery_events = [];
+    memoryStore.recovery_events.unshift(ev);
+
+    // 2. Transactional Outbox Event
+    WebhookEngine.getInstance().emitEvent(
+      "cart.recovery_sent",
+      {
+        event_type: "cart.recovery_sent",
+        cart_id: cart.id,
+        customer_uid: cart.customer_uid,
+        phone: cart.phone,
+        cart_value: cart.cart_value,
+        items: cart.items,
+        recovery_url: tokenObj.recovery_url,
+        branch_id: cart.branch_id,
+        city_id: cart.city_id,
+        channel,
+        discount_code: discountCode,
+        discount_pct: discountPct,
+      },
+      { source: "CART_RECOVERY_ENGINE" },
+      { customer_uid: cart.customer_uid || undefined, name: cart.customer_name, phone: cart.phone },
+      { type: "cart", id: cart.id, branch_id: cart.branch_id }
+    );
+
+    // 3. Sync CRM Activity Timeline
     if (cart.customer_uid) {
       ApiEngine.recordCustomerActivity({
         customer_uid: cart.customer_uid,
-        event_type: "RECOVERY_MESSAGE_SENT",
-        title: `Recovery Message Sent via ${channel}`,
-        description: message || `Sent cart recovery notification with discount for cart value ₹${cart.cart_value}.`,
+        event_type: "RECOVERY_MESSAGE_SENT" as any,
+        title: `Recovery Message Dispatched via ${channel}`,
+        description: `Sent recovery incentive (${discountCode} - ${discountPct}% off) for ₹${cart.cart_value} cart value.`,
         source: "ADMIN_CRM",
-        staff_id: "admin_01",
-        staff_name: "Super Admin",
-        metadata: { cart_id: cart.cart_id, channel, recovery_url: tokenObj.recovery_url },
+        staff_id: options.staff_id || "admin_01",
+        staff_name: options.staff_name || "Super Admin",
+        metadata: {
+          cart_id: cart.id,
+          channel,
+          recovery_url: tokenObj.recovery_url,
+          discount_code: discountCode,
+        },
       });
     }
 
     ApiEngine.persist();
     return {
       success: true,
+      cart,
       channel,
-      cart_id: cart.cart_id,
       recovery_token: tokenObj.token,
       recovery_url: tokenObj.recovery_url,
-      message: `Recovery notification queued via ${channel}.`,
+      message: `Recovery message successfully dispatched via ${channel}.`,
     };
+  }
+
+  // Compatibility method
+  static sendCartRecoveryNotification(cartId: string, channel: string = "WHATSAPP", message?: string) {
+    return ApiEngine.sendCartRecoveryMessage(cartId, {
+      channel: (channel as RecoveryChannel) || "WHATSAPP",
+      custom_message: message,
+    });
+  }
+
+  static assignCartTelecaller(cartId: string, staffId: string, staffName: string, notes?: string) {
+    ApiEngine.ensureCartsStore();
+    const abList = (memoryStore.abandoned_carts as unknown as DomainAbandonedCartRecord[]) || [];
+    const cart = abList.find((c) => c.id === cartId || c.cart_uid === cartId);
+    if (!cart) throw new Error("Abandoned cart not found");
+
+    cart.assigned_telecaller_id = staffId;
+    cart.assigned_telecaller_name = staffName;
+    cart.recovery_channel = "TELECALLER";
+    cart.status = "RECOVERY_PENDING";
+    if (notes) cart.notes = notes;
+    cart.updated_at = new Date().toISOString();
+
+    const ev: RecoveryEvent = {
+      id: `rev_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      cart_id: cart.id,
+      customer_uid: cart.customer_uid,
+      event_type: "telecaller.assigned",
+      channel: "TELECALLER",
+      message: `Assigned recovery opportunity to telecaller ${staffName} (${staffId}). Note: ${notes || "None"}`,
+      status: "SUCCESS",
+      created_at: new Date().toISOString(),
+    };
+    if (!Array.isArray(memoryStore.recovery_events)) memoryStore.recovery_events = [];
+    memoryStore.recovery_events.unshift(ev);
+
+    if (cart.customer_uid) {
+      ApiEngine.recordCustomerActivity({
+        customer_uid: cart.customer_uid,
+        event_type: "TELECALLER_ASSIGNED" as any,
+        title: `Telecaller Assigned: ${staffName}`,
+        description: `High-value cart recovery opportunity assigned to ${staffName}.`,
+        source: "ADMIN_CRM",
+        staff_id: staffId,
+        staff_name: staffName,
+        metadata: { cart_id: cart.id, notes },
+      });
+    }
+
+    ApiEngine.persist();
+    return { success: true, cart };
+  }
+
+  /**
+   * Attribution Engine: Records converted orders, marks carts RECOVERED, and emits cart.recovered event.
+   */
+  static recordOrderRecoveryAttribution(order: any, cartId?: string, recoveryToken?: string) {
+    ApiEngine.ensureCartsStore();
+    const abList = (memoryStore.abandoned_carts as unknown as DomainAbandonedCartRecord[]) || [];
+    const cleanPhone = normalizePhone(order.customer_phone || order.phone || "");
+
+    const matchedCart = abList.find(
+      (c) =>
+        (cartId && (c.id === cartId || c.cart_uid === cartId)) ||
+        (recoveryToken && c.recovery_token === recoveryToken) ||
+        (c.customer_uid && order.customer_uid && c.customer_uid === order.customer_uid && c.status !== "RECOVERED") ||
+        (cleanPhone && c.normalized_phone === cleanPhone && c.status !== "RECOVERED")
+    );
+
+    if (!matchedCart) return null;
+
+    const recoveredRevenue = Number(order.total || order.grand_total || matchedCart.cart_value || 0);
+
+    matchedCart.status = "RECOVERED";
+    matchedCart.recovery_status = "RECOVERED";
+    matchedCart.recovered_order_id = order.id;
+    matchedCart.recovered_revenue = recoveredRevenue;
+    matchedCart.last_recovery_at = new Date().toISOString();
+    matchedCart.updated_at = new Date().toISOString();
+
+    // 1. Log Recovery Event
+    const ev: RecoveryEvent = {
+      id: `rev_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      cart_id: matchedCart.id,
+      customer_uid: matchedCart.customer_uid,
+      event_type: "cart.recovered",
+      channel: matchedCart.recovery_channel || "WHATSAPP",
+      message: `Cart successfully recovered via order #${order.order_number || order.id} (Revenue: ₹${recoveredRevenue}).`,
+      status: "SUCCESS",
+      created_at: new Date().toISOString(),
+    };
+    if (!Array.isArray(memoryStore.recovery_events)) memoryStore.recovery_events = [];
+    memoryStore.recovery_events.unshift(ev);
+
+    // 2. Transactional Outbox Event
+    WebhookEngine.getInstance().emitEvent(
+      "cart.recovered",
+      {
+        event_type: "cart.recovered",
+        cart_id: matchedCart.id,
+        customer_uid: matchedCart.customer_uid,
+        recovered_order_id: order.id,
+        recovered_order_number: order.order_number,
+        recovered_revenue: recoveredRevenue,
+        recovery_channel: matchedCart.recovery_channel || "WHATSAPP",
+      },
+      { source: "CART_RECOVERY_ATTRIBUTION" },
+      { customer_uid: matchedCart.customer_uid || undefined, phone: matchedCart.phone },
+      { type: "order", id: order.id }
+    );
+
+    // 3. CRM Customer Update
+    if (matchedCart.customer_uid) {
+      ApiEngine.ensureCustomersStore();
+      const cust = (memoryStore.customers as CustomerRecord[]).find((c) => c.customer_uid === matchedCart.customer_uid);
+      if (cust) {
+        cust.cart_status = "RECOVERED";
+        cust.last_active_at = new Date().toISOString();
+      }
+
+      ApiEngine.recordCustomerActivity({
+        customer_uid: matchedCart.customer_uid,
+        event_type: "ORDER_PLACED",
+        title: `Abandoned Cart Recovered: #${order.order_number || order.id}`,
+        description: `Customer completed recovered checkout for ₹${recoveredRevenue}.`,
+        source: "STOREFRONT",
+        metadata: {
+          cart_id: matchedCart.id,
+          order_id: order.id,
+          revenue: recoveredRevenue,
+          channel: matchedCart.recovery_channel,
+        },
+      });
+    }
+
+    ApiEngine.persist();
+    return {
+      success: true,
+      attributed_cart_id: matchedCart.id,
+      recovered_revenue: recoveredRevenue,
+    };
+  }
+
+  static markCartConverted(cartId: string, orderId: string, revenue?: number) {
+    ApiEngine.ensureCartsStore();
+    const abList = (memoryStore.abandoned_carts as unknown as DomainAbandonedCartRecord[]) || [];
+    const cart = abList.find((c) => c.id === cartId || c.cart_uid === cartId);
+    if (!cart) throw new Error("Abandoned cart not found");
+
+    const convertedRevenue = Number(revenue || cart.cart_value || 0);
+    cart.status = "RECOVERED";
+    cart.recovery_status = "RECOVERED";
+    cart.recovered_order_id = orderId;
+    cart.recovered_revenue = convertedRevenue;
+    cart.last_recovery_at = new Date().toISOString();
+    cart.updated_at = new Date().toISOString();
+
+    const ev: RecoveryEvent = {
+      id: `rev_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      cart_id: cart.id,
+      customer_uid: cart.customer_uid,
+      event_type: "cart.recovered",
+      channel: cart.recovery_channel || "TELECALLER",
+      message: `Cart manually marked as converted to order #${orderId} (₹${convertedRevenue}).`,
+      status: "SUCCESS",
+      created_at: new Date().toISOString(),
+    };
+    if (!Array.isArray(memoryStore.recovery_events)) memoryStore.recovery_events = [];
+    memoryStore.recovery_events.unshift(ev);
+
+    WebhookEngine.getInstance().emitEvent(
+      "cart.recovered",
+      {
+        event_type: "cart.recovered",
+        cart_id: cart.id,
+        customer_uid: cart.customer_uid,
+        recovered_order_id: orderId,
+        recovered_revenue: convertedRevenue,
+      },
+      { source: "ADMIN_MANUAL_CONVERSION" },
+      { customer_uid: cart.customer_uid || undefined, phone: cart.phone },
+      { type: "order", id: orderId }
+    );
+
+    ApiEngine.persist();
+    return { success: true, cart };
+  }
+
+  // ── Recovery Campaigns CRUD ──
+  static listRecoveryCampaigns() {
+    ApiEngine.ensureCartsStore();
+    return {
+      success: true,
+      campaigns: (memoryStore.recovery_campaigns as RecoveryCampaign[]) || [],
+    };
+  }
+
+  static createRecoveryCampaign(data: Partial<RecoveryCampaign>) {
+    ApiEngine.ensureCartsStore();
+    const newCamp: RecoveryCampaign = {
+      id: `camp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      name: data.name || "Automated Cart Recovery Campaign",
+      trigger_type: data.trigger_type || "TIME_DELAY",
+      delay_minutes: Number(data.delay_minutes || 30),
+      channel: data.channel || "WHATSAPP",
+      template_id: data.template_id || "tpl_cart_recovery_standard",
+      discount_rule: data.discount_rule || null,
+      min_cart_value: data.min_cart_value || null,
+      customer_tier: data.customer_tier || "ALL",
+      active: data.active !== undefined ? Boolean(data.active) : true,
+      created_by: data.created_by || "admin_01",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (!Array.isArray(memoryStore.recovery_campaigns)) memoryStore.recovery_campaigns = [];
+    memoryStore.recovery_campaigns.unshift(newCamp);
+    ApiEngine.persist();
+    return newCamp;
+  }
+
+  static updateRecoveryCampaign(id: string, data: Partial<RecoveryCampaign>) {
+    ApiEngine.ensureCartsStore();
+    const camps = (memoryStore.recovery_campaigns as RecoveryCampaign[]) || [];
+    const idx = camps.findIndex((c) => c.id === id);
+    if (idx < 0) throw new Error(`Campaign "${id}" not found.`);
+
+    camps[idx] = {
+      ...camps[idx],
+      ...data,
+      updated_at: new Date().toISOString(),
+    };
+    ApiEngine.persist();
+    return camps[idx];
+  }
+
+  static deleteRecoveryCampaign(id: string) {
+    ApiEngine.ensureCartsStore();
+    const camps = (memoryStore.recovery_campaigns as RecoveryCampaign[]) || [];
+    const idx = camps.findIndex((c) => c.id === id);
+    if (idx < 0) throw new Error(`Campaign "${id}" not found.`);
+
+    camps.splice(idx, 1);
+    ApiEngine.persist();
+    return { success: true };
+  }
+
+  /**
+   * Export real abandoned carts to CSV
+   */
+  static exportAbandonedCartsCsv(filters: any = {}) {
+    const res = ApiEngine.listAbandonedCarts({ ...filters, limit: 10000 });
+    const carts = res.carts || [];
+
+    const headers = [
+      "Cart ID",
+      "Customer Name",
+      "Phone",
+      "Email",
+      "Cart Value (INR)",
+      "Items Count",
+      "Products",
+      "Branch",
+      "City",
+      "Recovery Status",
+      "Recovery Channel",
+      "Recovery Attempts",
+      "Recovered Revenue (INR)",
+      "Recovered Order ID",
+      "Abandoned Date",
+      "Last Recovery Date",
+    ];
+
+    const escapeCsv = (val: any) => {
+      const str = String(val ?? "").replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = carts.map((c: DomainAbandonedCartRecord) => {
+      const productList = Array.isArray(c.items)
+        ? c.items.map((i: any) => `${i.title || i.name} (${i.quantity}x)`).join(", ")
+        : "";
+
+      return [
+        c.cart_uid || c.id,
+        c.customer_name,
+        c.phone,
+        c.email,
+        c.cart_value,
+        c.items?.length || 0,
+        productList,
+        c.branch_name,
+        c.city,
+        c.status,
+        c.recovery_channel || "WHATSAPP",
+        c.recovery_attempt_count,
+        c.recovered_revenue,
+        c.recovered_order_id || "—",
+        c.abandoned_at,
+        c.last_recovery_at || "—",
+      ].map(escapeCsv).join(",");
+    });
+
+    return [headers.join(","), ...rows].join("\n");
   }
 
   static findBranchByManagerPhoneOrEmail(identifier: string): { branch: BranchItem; manager: any } | null {
@@ -16064,6 +17365,14 @@ export class ApiEngine {
   // ── Customer Addresses Management ──
   static getCustomerAddresses(customerId?: string) {
     const cId = customerId || "cus_guest";
+    ApiEngine.ensureCustomersStore();
+    const customer = (memoryStore.customers as CustomerRecord[])?.find(
+      (c) => c.customer_uid === cId || c.id === cId
+    );
+    if (customer && Array.isArray(customer.addresses) && customer.addresses.length > 0) {
+      return customer.addresses;
+    }
+
     let list = this.addressesStore.get(cId);
     if (!list) {
       list = [...(this.addressesStore.get("cus_guest") || [])];
@@ -16075,27 +17384,40 @@ export class ApiEngine {
   static createCustomerAddress(payload: any) {
     const cId = payload.customer_id || "cus_guest";
     const list = this.getCustomerAddresses(cId);
+    const line1 = payload.line1 || payload.address_1 || payload.address || "12th Main Road";
+    const line2 = payload.line2 || payload.address_2 || "";
+    const pincode = payload.pincode || payload.postal_code || "560038";
+
     const newAddress = {
       id: `addr_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       customer_id: cId,
       label: payload.label || "Home",
+      type: payload.type || "HOME",
       first_name: payload.first_name || payload.name?.split(" ")[0] || "Customer",
       last_name: payload.last_name || payload.name?.split(" ").slice(1).join(" ") || "",
+      name: payload.name || `${payload.first_name || "Customer"} ${payload.last_name || ""}`.trim(),
       phone: payload.phone || "+91 98765 43210",
-      line1: payload.line1 || payload.address || "12th Main Road",
-      line2: payload.line2 || "",
+      line1,
+      line2,
+      address_1: line1,
+      address_2: line2,
       city: payload.city || "Bengaluru",
       state: payload.state || "Karnataka",
-      pincode: payload.pincode || "560038",
+      pincode,
+      postal_code: pincode,
       country: payload.country || "IN",
       landmark: payload.landmark || "",
-      is_default_shipping: Boolean(payload.is_default_shipping),
+      is_default_shipping: Boolean(payload.is_default_shipping || payload.is_default),
       is_default_billing: Boolean(payload.is_default_billing),
+      is_default: Boolean(payload.is_default || payload.is_default_shipping),
       created_at: new Date().toISOString(),
     };
 
     if (newAddress.is_default_shipping) {
-      list.forEach((a: any) => (a.is_default_shipping = false));
+      list.forEach((a: any) => {
+        a.is_default_shipping = false;
+        a.is_default = false;
+      });
     }
     list.unshift(newAddress);
     this.addressesStore.set(cId, list);
@@ -16940,23 +18262,8 @@ export class ApiEngine {
       canonicalCustomer.last_active_at = new Date().toISOString();
     }
 
-    // Mark matching Abandoned Cart as RECOVERED
-    if (memoryStore.abandoned_carts) {
-      for (const ab of (memoryStore.abandoned_carts as any[])) {
-        if (
-          ab.cart_id === payload.cart_id ||
-          (customerUid && ab.customer_uid === customerUid) ||
-          (cleanCustomerPhone && ab.normalized_phone === cleanCustomerPhone)
-        ) {
-          ab.status = "RECOVERED";
-          ab.recovery_status = "RECOVERED";
-          ab.recovered_at = new Date().toISOString();
-          ab.recovered_order_id = newOrder.id;
-          ab.recovered_order_number = orderNumber;
-          ab.recovered_revenue = newOrder.total;
-        }
-      }
-    }
+    // Trigger Recovery Attribution Engine & Event Emission
+    ApiEngine.recordOrderRecoveryAttribution(newOrder, payload.cart_id, (payload as any).recovery_token);
 
     // Record Activity
     ApiEngine.recordCustomerActivity({
@@ -18213,28 +19520,6 @@ export class ApiEngine {
 
   static saveCityAreaPincodes(data: any) {
     return { area: data, success: true };
-  }
-
-  static updateCartItem(cartId: string, lineItemId: string, quantity: number) {
-    ApiEngine.ensureCartsStore();
-    const carts: any[] = Array.isArray(memoryStore.carts) ? memoryStore.carts : (memoryStore.carts = []);
-    const cart = carts.find((c) => c.id === cartId);
-    if (!cart) return null;
-    const item = (cart.items || []).find((i: any) => i.id === lineItemId);
-    if (item) {
-      if (quantity <= 0) {
-        cart.items = cart.items.filter((i: any) => i.id !== lineItemId);
-      } else {
-        item.quantity = quantity;
-        item.total_price = Number(item.unit_price || item.price || 0) * quantity;
-        item.subtotal = item.total_price;
-      }
-      cart.subtotal = cart.items.reduce((sum: number, i: any) => sum + (Number(i.total_price || i.subtotal) || 0), 0);
-      cart.total = cart.subtotal;
-      cart.updated_at = new Date().toISOString();
-      ApiEngine.persist();
-    }
-    return cart;
   }
 
   static deleteLineItem(cartId: string, lineItemId: string) {

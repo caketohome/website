@@ -146,6 +146,7 @@ export async function verifyOtp(phone: string, otp: string, extra?: { name?: str
 
     return {
       customer_id: res.user?.customer_id || res.user?.id || res.customer_id || `cus_${phone.replace(/\D/g, "").slice(-10)}`,
+      customer_uid: res.user?.customer_uid || res.customer_uid || `cth_cus_${phone.replace(/\D/g, "").slice(-10)}`,
       is_new_customer: res.is_new_customer ?? false,
       token,
       detected_role: res.role || detected.role,
@@ -161,6 +162,7 @@ export async function verifyOtp(phone: string, otp: string, extra?: { name?: str
     // Development fallback only
     return {
       customer_id: `cus_${phone.replace(/\D/g, "").slice(-10)}`,
+      customer_uid: `cth_cus_${phone.replace(/\D/g, "").slice(-10)}`,
       is_new_customer: false,
       token: "mock_jwt_token_for_dev",
       detected_role: detected.role,
@@ -168,28 +170,14 @@ export async function verifyOtp(phone: string, otp: string, extra?: { name?: str
   }
 }
 
-export async function getWalletBalance(): Promise<{
-  wallet: { balance: number; currency_code: string };
-  transactions: Array<{ id: string; amount: number; type: string; created_at: string; description: string }>;
-}> {
-  return {
-    wallet: { balance: 50000, currency_code: "INR" },
-    transactions: [
-      { id: "tx_1", amount: 50000, type: "credit", created_at: new Date().toISOString(), description: "Welcome bonus credit" }
-    ],
-  };
-}
-
-export async function validateGiftCard(code: string): Promise<{ valid: boolean; amount?: number; message?: string }> {
-  if (code && code.trim().length > 3) {
-    return { valid: true, amount: 25000, message: "Valid voucher for ₹250" };
+export async function fetchCurrentCustomer(): Promise<any> {
+  try {
+    const res = await apiClient.get("/customer/me");
+    if (res?.success && res?.customer) {
+      return res.customer;
+    }
+    return null;
+  } catch {
+    return null;
   }
-  return { valid: false, message: "Invalid gift card code" };
-}
-
-export async function redeemGiftCard(code: string): Promise<{ success: boolean; new_balance?: number; message?: string }> {
-  if (code && code.trim().length > 3) {
-    return { success: true, new_balance: 75000, message: "Gift card redeemed successfully! ₹250 added to wallet." };
-  }
-  return { success: false, message: "Could not redeem gift card" };
 }

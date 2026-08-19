@@ -1,19 +1,19 @@
-import { listAddresses } from "@frontend/lib/data/customer-server";
+import { retrieveUser } from "@frontend/lib/data";
 import { AddressManager } from "@frontend/components/store/account/address-manager";
-import { Heading } from "@medusajs/ui";
+import { redirect } from "next/navigation";
+
+export const metadata = {
+  title: "Delivery Addresses | CakeToHome",
+  description: "Manage your saved delivery addresses and kitchen hub locations.",
+};
 
 export default async function AddressesPage() {
-    let addresses: Awaited<ReturnType<typeof listAddresses>> = [];
-    try {
-        addresses = await listAddresses();
-    } catch {
-        addresses = [];
-    }
+  const user = await retrieveUser();
+  if (!user) {
+    redirect("/login");
+  }
 
-    return (
-        <div className="flex flex-col gap-4">
-            <Heading level="h2">Saved Addresses</Heading>
-            <AddressManager addresses={addresses} />
-        </div>
-    );
+  const initialAddresses = user.addresses || [];
+
+  return <AddressManager initialAddresses={initialAddresses} />;
 }

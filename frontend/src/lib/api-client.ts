@@ -513,48 +513,7 @@ class CakeToHomeApiClient {
   }
 
   // ── Admin: CRM 360 & Customer Management ──
-  async getAdminCustomers(params?: Record<string, any>) {
-    const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
-    return this.request(`/admin/customers${qs}`).catch(() => ({ customers: [], total: 0 }));
-  }
-
-  async getAdminCrmCustomers(params?: Record<string, any>) {
-    const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
-    return this.request(`/admin/crm/customers${qs}`).catch(() => ({ customers: [], total: 0 }));
-  }
-
-  async getAdminCustomer(id: string) {
-    return this.request(`/admin/customers/${id}`).catch(() => ({ customer: null }));
-  }
-
-  async getAdminCustomerProfile(id: string) {
-    return this.request(`/admin/crm/customers/${id}`).catch(() => ({ profile: null }));
-  }
-
-  async getAdminCrmDuplicates() {
-    return this.request("/admin/crm/duplicates").catch(() => ({ candidates: [] }));
-  }
-
-  async mergeAdminCustomers(primaryId: string, secondaryId: string) {
-    return this.request("/admin/crm/merge", {
-      method: "POST",
-      body: JSON.stringify({ primary_id: primaryId, secondary_id: secondaryId }),
-    });
-  }
-
-  async addAdminCustomerNote(customerId: string, note: string, author?: string) {
-    return this.request(`/admin/crm/customers/${customerId}/notes`, {
-      method: "POST",
-      body: JSON.stringify({ note, author: author || "Admin" }),
-    });
-  }
-
-  async updateAdminCustomerTags(customerId: string, tags: string[]) {
-    return this.request(`/admin/crm/customers/${customerId}/tags`, {
-      method: "PUT",
-      body: JSON.stringify({ tags }),
-    });
-  }
+  // (Full typed methods provided in Enterprise CRM section below)
 
   async getAdminCities() {
     return this.request("/admin/cities").catch(() => ({ cities: [] }));
@@ -1875,6 +1834,237 @@ class CakeToHomeApiClient {
       all_passed: false,
       results: [],
     }));
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── ENTERPRISE CRM & CUSTOMER 360 API CLIENT METHODS ─────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async getAdminCustomers(params: Record<string, any> = {}) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+    ).toString();
+    return this.request(`/admin/crm/customers${qs ? `?${qs}` : ""}`);
+  }
+
+  async getCustomerProfile(idOrUid: string) {
+    return this.request(`/admin/crm/customers/${idOrUid}`);
+  }
+
+  async getCrmAnalytics(params: Record<string, any> = {}) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+    ).toString();
+    return this.request(`/admin/crm/analytics${qs ? `?${qs}` : ""}`);
+  }
+
+  async getCrmHealth() {
+    return this.request("/analytics/crm/health");
+  }
+
+  async getCrmLifecycleConfig() {
+    return this.request("/admin/crm/lifecycle/rules");
+  }
+
+  async updateCrmLifecycleConfig(config: Record<string, any>) {
+    return this.request("/admin/crm/lifecycle/rules", {
+      method: "POST",
+      body: JSON.stringify(config),
+    });
+  }
+
+  async getCrmSegments() {
+    return this.request("/admin/crm/segments");
+  }
+
+  async createCrmSegment(segment: Record<string, any>) {
+    return this.request("/admin/crm/segments", {
+      method: "POST",
+      body: JSON.stringify(segment),
+    });
+  }
+
+  async updateCrmSegment(id: string, segment: Record<string, any>) {
+    return this.request(`/admin/crm/segments/${id}`, {
+      method: "POST",
+      body: JSON.stringify(segment),
+    });
+  }
+
+  async deleteCrmSegment(id: string) {
+    return this.request(`/admin/crm/segments/${id}/delete`, {
+      method: "POST",
+    });
+  }
+
+  async assignCustomerTelecaller(customerId: string, telecallerId: string, telecallerName: string) {
+    return this.request(`/admin/crm/customers/${customerId}/assign`, {
+      method: "POST",
+      body: JSON.stringify({ telecaller_id: telecallerId, telecaller_name: telecallerName }),
+    });
+  }
+
+  async scheduleCustomerReminder(
+    customerId: string,
+    data: { due_date: string; due_time?: string; reason: string; priority?: string; assigned_staff_id?: string; assigned_staff_name?: string }
+  ) {
+    return this.request(`/admin/crm/customers/${customerId}/reminders`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getCustomerReminders(customerId?: string) {
+    const url = customerId ? `/admin/crm/customers/${customerId}/reminders` : "/admin/crm/reminders";
+    return this.request(url);
+  }
+
+  async updateCustomerConsent(customerId: string, consent: Record<string, any>) {
+    return this.request(`/admin/crm/customers/${customerId}/consent`, {
+      method: "POST",
+      body: JSON.stringify(consent),
+    });
+  }
+
+  async updateCustomerTags(customerId: string, tags: string[]) {
+    return this.request(`/admin/crm/customers/${customerId}/tags`, {
+      method: "POST",
+      body: JSON.stringify({ tags }),
+    });
+  }
+
+  async createCustomerNote(customerId: string, content: string, category: string = "GENERAL") {
+    return this.request(`/admin/crm/customers/${customerId}/notes`, {
+      method: "POST",
+      body: JSON.stringify({ content, category }),
+    });
+  }
+
+  async getAdminCrmDuplicates() {
+    return this.request("/admin/crm/duplicates").catch(() => ({ candidates: [] }));
+  }
+
+  async mergeAdminCustomers(primaryId: string, secondaryId: string) {
+    return this.request("/admin/crm/merge", {
+      method: "POST",
+      body: JSON.stringify({ primary_uid: primaryId, duplicate_uid: secondaryId }),
+    });
+  }
+
+  async mergeCustomerRecords(primaryUid: string, duplicateUid: string) {
+    return this.request("/admin/crm/merge", {
+      method: "POST",
+      body: JSON.stringify({ primary_uid: primaryUid, duplicate_uid: duplicateUid }),
+    });
+  }
+
+  async exportCustomersCsv(params: Record<string, any> = {}) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+    ).toString();
+    return fetch(`/api/v1/admin/crm/customers/export${qs ? `?${qs}` : ""}`).then((r) => r.text());
+  }
+
+  // ── Abandoned Cart Recovery Engine ──
+  async getAdminAbandonedCarts(params: Record<string, any> = {}) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+    ).toString();
+    return this.request(`/admin/abandoned-carts${qs ? `?${qs}` : ""}`).catch(() => ({
+      carts: [],
+      total: 0,
+      metrics: {
+        total_abandoned: 0,
+        active_abandoned: 0,
+        revenue_at_risk: 0,
+        recovered_count: 0,
+        recovered_revenue: 0,
+        lost_revenue: 0,
+        recovery_rate_pct: 0,
+        average_cart_value: 0,
+        average_recovery_time_minutes: 0,
+        whatsapp_reachable_count: 0,
+      },
+      funnel: [],
+      channel_performance: [],
+      top_products: [],
+    }));
+  }
+
+  async getAbandonedCartById(cartId: string) {
+    return this.request(`/admin/abandoned-carts/${cartId}`);
+  }
+
+  async getAbandonedCartEvents(cartId: string) {
+    return this.request(`/admin/abandoned-carts/${cartId}/events`);
+  }
+
+  async evaluateCartAbandonment(thresholdMinutes: number = 30) {
+    return this.request("/admin/abandoned-carts/evaluate", {
+      method: "POST",
+      body: JSON.stringify({ threshold_minutes: thresholdMinutes }),
+    });
+  }
+
+  async sendCartRecoveryMessage(
+    cartId: string,
+    options: {
+      channel?: string;
+      discount_code?: string;
+      discount_pct?: number;
+      template_id?: string;
+      custom_message?: string;
+    } = {}
+  ) {
+    return this.request(`/admin/abandoned-carts/${cartId}/send-recovery`, {
+      method: "POST",
+      body: JSON.stringify(options),
+    });
+  }
+
+  async assignCartTelecaller(cartId: string, staffId: string, staffName: string, notes?: string) {
+    return this.request(`/admin/abandoned-carts/${cartId}/assign-telecaller`, {
+      method: "POST",
+      body: JSON.stringify({ staff_id: staffId, staff_name: staffName, notes }),
+    });
+  }
+
+  async markCartConverted(cartId: string, orderId: string, revenue?: number) {
+    return this.request(`/admin/abandoned-carts/${cartId}/mark-converted`, {
+      method: "POST",
+      body: JSON.stringify({ order_id: orderId, revenue }),
+    });
+  }
+
+  async getRecoveryCampaigns() {
+    return this.request("/admin/abandoned-carts/campaigns").catch(() => ({ campaigns: [] }));
+  }
+
+  async createRecoveryCampaign(data: any) {
+    return this.request("/admin/abandoned-carts/campaigns", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateRecoveryCampaign(id: string, data: any) {
+    return this.request(`/admin/abandoned-carts/campaigns/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteRecoveryCampaign(id: string) {
+    return this.request(`/admin/abandoned-carts/campaigns/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async exportAbandonedCartsCsv(params: Record<string, any> = {}) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+    ).toString();
+    return fetch(`/api/v1/admin/abandoned-carts/export${qs ? `?${qs}` : ""}`).then((r) => r.text());
   }
 }
 

@@ -527,8 +527,8 @@ export class AiToolRegistry {
     if (!isAuthenticated || !customerId) {
       return { authenticated: false, message: "Please log in to access your saved profile and addresses." };
     }
-    const customers = ApiEngine.listCustomers ? ApiEngine.listCustomers() : [];
-    const customer = customers.find((c: any) => c.id === customerId);
+    const customers = ApiEngine.getAdminCustomers();
+    const customer = customers.find((c: any) => c.id === customerId || c.customer_uid === customerId);
     if (!customer) return { authenticated: false, message: "Customer account not found." };
 
     return {

@@ -5,10 +5,10 @@ export const metadata: Metadata = {
   description: "Sign in to your CakeToHome account",
 };
 
-export default function RootLayout({
+export default function LoginLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <div className="justify-center mx-auto max-w-96">{children}</div>;
+  return <div className="w-full flex-1 flex flex-col">{children}</div>;
 }

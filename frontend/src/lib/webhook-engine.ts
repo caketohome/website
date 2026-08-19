@@ -22,6 +22,8 @@ export type WebhookEventType =
   | "cart.item.added"
   | "cart.item.removed"
   | "cart.abandoned"
+  | "cart.recovery_sent"
+  | "cart.recovery_clicked"
   | "cart.recovered"
   // CHECKOUT
   | "checkout.started"
@@ -49,6 +51,14 @@ export type WebhookEventType =
   | "recovery.message.clicked"
   | "recovery.converted"
   // REORDER / CRM
+  | "customer.created"
+  | "customer.updated"
+  | "customer.merged"
+  | "customer.vip_promoted"
+  | "customer.at_risk"
+  | "customer.reorder_candidate"
+  | "customer.birthday_upcoming"
+  | "customer.whatsapp_optin"
   | "customer.reorder_candidate.created"
   | "customer.reorder_candidate.updated"
   | "customer.reorder_converted"
@@ -1373,6 +1383,19 @@ export class WebhookEngineStore {
     item.last_error = "Manually discarded by administrator.";
     return item;
   }
+
+  public getOutbox(query: { status?: string; eventType?: string; event_type?: string; limit?: number } = {}): WebhookOutboxItem[] {
+    return this.getOutboxItems({
+      status: query.status,
+      event_type: query.event_type || query.eventType,
+      limit: query.limit,
+    });
+  }
+
+  public getInstance(): WebhookEngineStore {
+    return this;
+  }
 }
 
 export const WebhookEngine = new WebhookEngineStore();
+(WebhookEngine as any).getInstance = () => WebhookEngine;

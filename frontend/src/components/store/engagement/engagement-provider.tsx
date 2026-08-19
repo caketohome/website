@@ -323,7 +323,13 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
 
       try {
         const ctx = gatherActiveContext();
-        if (ctx.checkout?.active) return; // Never interrupt active checkout
+        if (
+          ctx.checkout?.active ||
+          ctx.navigation?.pathname === "/login" ||
+          ctx.navigation?.pathname?.startsWith("/account")
+        ) {
+          return; // Never interrupt login, account hub or active checkout
+        }
 
         // AUTHORITATIVE AUTHENTICATION RULE:
         // If customer is logged in, suppress visitor popups unless explicitly configured

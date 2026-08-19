@@ -2,35 +2,79 @@
 
 import { useEffect, useState, memo, useCallback } from "react";
 import { Container, Heading, Text, Badge, Input, Button, Label } from "@medusajs/ui";
-import { Search, RefreshCw, ShoppingCart, Send, ArrowUpRight, CheckCircle, Clock, AlertTriangle, MessageSquare, Mail, Copy, Check, Download } from "lucide-react";
+import {
+  Search,
+  RefreshCw,
+  ShoppingCart,
+  Send,
+  ArrowUpRight,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  MessageSquare,
+  Mail,
+  Copy,
+  Check,
+  Download,
+  PhoneCall,
+  Zap,
+  Filter,
+  TrendingUp,
+  Percent,
+  Package,
+  Layers,
+  Sparkles,
+  ChevronRight,
+  DollarSign,
+  BarChart3,
+} from "lucide-react";
 import { TableSkeleton } from "./admin-skeletons";
 import { WidgetErrorBoundary } from "./error-boundary";
+import { RecoveryJourneyDrawer } from "./abandoned-cart/recovery-journey-drawer";
+import { CampaignBuilderModal } from "./abandoned-cart/campaign-builder-modal";
+import {
+  AbandonedCartRecord,
+  AbandonedCartMetrics,
+  RecoveryFunnelStep,
+  RecoveryChannelPerformance,
+  TopAbandonedProduct,
+} from "@/lib/cart-recovery/types";
 
 export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
-  const [carts, setCarts] = useState<any[]>([]);
-  const [metrics, setMetrics] = useState<any>({
+  const [activeTab, setActiveTab] = useState<"carts" | "channels" | "products">("carts");
+  const [carts, setCarts] = useState<AbandonedCartRecord[]>([]);
+  const [metrics, setMetrics] = useState<AbandonedCartMetrics>({
     total_abandoned: 0,
-    total_abandoned_value: 0,
+    active_abandoned: 0,
+    revenue_at_risk: 0,
     recovered_count: 0,
     recovered_revenue: 0,
+    lost_revenue: 0,
     recovery_rate_pct: 0,
+    average_cart_value: 0,
+    average_recovery_time_minutes: 0,
+    whatsapp_reachable_count: 0,
   });
+  const [funnel, setFunnel] = useState<RecoveryFunnelStep[]>([]);
+  const [channels, setChannels] = useState<RecoveryChannelPerformance[]>([]);
+  const [topProducts, setTopProducts] = useState<TopAbandonedProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [evaluating, setEvaluating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Filters
   const [preset, setPreset] = useState("all");
   const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
+  const [city, setCity] = useState("all");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
   const [total, setTotal] = useState(0);
 
-  // Detail Modal / Drawer State
-  const [selectedCart, setSelectedCart] = useState<any | null>(null);
-  const [sendingRecovery, setSendingRecovery] = useState(false);
-  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
-  const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  // Detail Drawer & Automation Modal State
+  const [selectedCart, setSelectedCart] = useState<AbandonedCartRecord | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
 
   const fetchAbandonedCarts = useCallback(() => {
     setLoading(true);
@@ -38,6 +82,7 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
     const params = new URLSearchParams();
     if (preset !== "all") params.set("preset", preset);
     if (status !== "all") params.set("status", status);
+    if (city !== "all") params.set("city", city);
     if (search) params.set("search", search);
     params.set("page", String(page));
     params.set("limit", String(limit));
@@ -50,6 +95,9 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
       .then((data) => {
         setCarts(data.carts || []);
         if (data.metrics) setMetrics(data.metrics);
+        if (data.funnel) setFunnel(data.funnel);
+        if (data.channel_performance) setChannels(data.channel_performance);
+        if (data.top_products) setTopProducts(data.top_products);
         if (data.pagination) setTotal(data.pagination.total);
       })
       .catch((err) => {
@@ -58,45 +106,43 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
         setCarts([]);
       })
       .finally(() => setLoading(false));
-  }, [preset, status, search, page, limit]);
+  }, [preset, status, city, search, page, limit]);
 
   useEffect(() => {
     fetchAbandonedCarts();
   }, [fetchAbandonedCarts]);
 
-  const handleSendRecovery = async (cartId: string, channel: "whatsapp" | "sms" | "email" = "whatsapp") => {
-    setSendingRecovery(true);
-    setActionSuccess(null);
+  const handleEvaluateNow = async () => {
+    setEvaluating(true);
     try {
-      const res = await fetch(`/api/v1/admin/abandoned-carts/${cartId}/send-recovery`, {
+      await fetch("/api/v1/admin/abandoned-carts/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channel, discount_code: "SWEET10", discount_pct: 10 }),
+        body: JSON.stringify({ threshold_minutes: 0 }),
       });
-      const data = await res.json();
-      if (data.success) {
-        setActionSuccess(`Recovery message successfully dispatched via ${channel.toUpperCase()}!`);
-        fetchAbandonedCarts();
-      } else {
-        setError(data.error || "Failed to dispatch recovery message.");
-      }
-    } catch (err: any) {
-      setError(err.message || "Failed to dispatch recovery message.");
+      fetchAbandonedCarts();
+    } catch (err) {
+      console.error("Evaluation error:", err);
     } finally {
-      setSendingRecovery(false);
+      setEvaluating(false);
     }
   };
 
-  const handleCopyRecoveryUrl = (cart: any) => {
-    const recoveryUrl = `${window.location.origin}/cart/recover/${cart.recovery_token || "sample_token"}`;
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(recoveryUrl);
-      setCopiedToken(cart.id);
-      setTimeout(() => setCopiedToken(null), 3000);
-    }
+  const handleOpenCartJourney = (cart: AbandonedCartRecord) => {
+    setSelectedCart(cart);
+    setIsDrawerOpen(true);
   };
 
   const totalPages = Math.ceil(total / limit) || 1;
+
+  const getRelativeTime = (dateStr: string) => {
+    const ms = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(ms / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  };
 
   return (
     <WidgetErrorBoundary>
@@ -105,25 +151,35 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <Heading level="h2" className="text-xl font-bold">
+              <Heading level="h2" className="text-xl font-bold text-neutral-900 dark:text-white">
                 Abandoned Cart Recovery Engine
               </Heading>
               <Badge color="orange" className="text-xs">
-                Revenue Protection
+                Revenue Intelligence
               </Badge>
             </div>
-            <Text className="text-ui-fg-subtle text-sm">
-              Detect dropped checkouts, dispatch automated recovery incentives, and track revenue attribution.
+            <Text className="text-neutral-500 dark:text-neutral-400 text-sm mt-0.5">
+              Live dropped checkout detection, omnichannel automated incentives, and authoritative revenue attribution.
             </Text>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button
               size="small"
               variant="secondary"
-              onClick={fetchAbandonedCarts}
-              className="flex items-center gap-1.5 text-xs"
+              onClick={() => setIsCampaignModalOpen(true)}
+              className="flex items-center gap-1.5 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
+              <Zap className="w-3.5 h-3.5 text-amber-600" /> Automated Workflows
+            </Button>
+            <Button
+              size="small"
+              variant="secondary"
+              onClick={handleEvaluateNow}
+              disabled={evaluating}
+              className="flex items-center gap-1.5 text-xs text-neutral-700 dark:text-neutral-300"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${evaluating ? "animate-spin" : ""}`} />
+              {evaluating ? "Scanning..." : "Scan Carts"}
             </Button>
             <Button
               size="small"
@@ -132,6 +188,7 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
                 const params = new URLSearchParams();
                 if (preset !== "all") params.set("preset", preset);
                 if (status !== "all") params.set("status", status);
+                if (city !== "all") params.set("city", city);
                 if (search) params.set("search", search);
                 window.open(`/api/v1/admin/abandoned-carts/export?${params.toString()}`, "_blank");
               }}
@@ -142,367 +199,525 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
           </div>
         </div>
 
-        {/* Metric KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-neutral-900 border border-amber-200 dark:border-amber-900/60 rounded-xl p-4 shadow-xs">
-            <div className="flex items-center justify-between text-neutral-500 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-                Abandoned Carts
-              </span>
-              <ShoppingCart className="w-4 h-4 text-amber-500" />
+        {/* Dynamic Metric KPI Ribbon */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="bg-white dark:bg-neutral-900 border border-amber-200 dark:border-amber-900/60 rounded-xl p-3.5 shadow-xs">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 block mb-1">
+              Revenue At Risk
+            </span>
+            <div className="text-xl font-bold text-neutral-900 dark:text-white">
+              ₹{Number(metrics.revenue_at_risk || 0).toLocaleString("en-IN")}
             </div>
-            <div className="text-2xl font-bold text-amber-900 dark:text-amber-300">
-              {metrics.total_abandoned || 0}
-            </div>
-            <div className="text-xs text-amber-700/70 mt-1">₹{metrics.total_abandoned_value?.toLocaleString("en-IN") || 0} at stake</div>
+            <span className="text-[11px] text-neutral-400 mt-1 block">
+              {metrics.active_abandoned || 0} active carts
+            </span>
           </div>
 
-          <div className="bg-white dark:bg-neutral-900 border border-emerald-200 dark:border-emerald-900/60 rounded-xl p-4 shadow-xs">
-            <div className="flex items-center justify-between text-neutral-500 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                Recovered Revenue
-              </span>
-              <CheckCircle className="w-4 h-4 text-emerald-500" />
+          <div className="bg-white dark:bg-neutral-900 border border-emerald-200 dark:border-emerald-900/60 rounded-xl p-3.5 shadow-xs">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block mb-1">
+              Recovered Revenue
+            </span>
+            <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+              ₹{Number(metrics.recovered_revenue || 0).toLocaleString("en-IN")}
             </div>
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-              ₹{metrics.recovered_revenue?.toLocaleString("en-IN") || 0}
-            </div>
-            <div className="text-xs text-emerald-600/70 mt-1">{metrics.recovered_count || 0} converted checkouts</div>
+            <span className="text-[11px] text-neutral-400 mt-1 block">
+              {metrics.recovered_count || 0} converted orders
+            </span>
           </div>
 
-          <div className="bg-white dark:bg-neutral-900 border border-blue-200 dark:border-blue-900/60 rounded-xl p-4 shadow-xs">
-            <div className="flex items-center justify-between text-neutral-500 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400">
-                Recovery Rate
-              </span>
-              <ArrowUpRight className="w-4 h-4 text-blue-500" />
-            </div>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+          <div className="bg-white dark:bg-neutral-900 border border-blue-200 dark:border-blue-900/60 rounded-xl p-3.5 shadow-xs">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 block mb-1">
+              Recovery Rate
+            </span>
+            <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
               {metrics.recovery_rate_pct || 0}%
             </div>
-            <div className="text-xs text-blue-600/70 mt-1">Target benchmark: &gt;18%</div>
+            <span className="text-[11px] text-neutral-400 mt-1 block">
+              Omnichannel conversion
+            </span>
           </div>
 
-          <div className="bg-white dark:bg-neutral-900 border border-purple-200 dark:border-purple-900/60 rounded-xl p-4 shadow-xs">
-            <div className="flex items-center justify-between text-neutral-500 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-purple-700 dark:text-purple-400">
-                Avg Cart Value
-              </span>
-              <ShoppingCart className="w-4 h-4 text-purple-500" />
+          <div className="bg-white dark:bg-neutral-900 border border-rose-200 dark:border-rose-900/60 rounded-xl p-3.5 shadow-xs">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400 block mb-1">
+              Lost Revenue
+            </span>
+            <div className="text-xl font-bold text-rose-600 dark:text-rose-400">
+              ₹{Number(metrics.lost_revenue || 0).toLocaleString("en-IN")}
             </div>
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-              ₹{metrics.total_abandoned > 0 ? Math.round(metrics.total_abandoned_value / metrics.total_abandoned) : 749}
+            <span className="text-[11px] text-neutral-400 mt-1 block">
+              Expired & failed
+            </span>
+          </div>
+
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-3.5 shadow-xs">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 block mb-1">
+              Avg Cart Value
+            </span>
+            <div className="text-xl font-bold text-neutral-900 dark:text-white">
+              ₹{Number(metrics.average_cart_value || 0).toLocaleString("en-IN")}
             </div>
-            <div className="text-xs text-purple-600/70 mt-1">Multi-item gourmet baskets</div>
+            <span className="text-[11px] text-neutral-400 mt-1 block">
+              Per dropped checkout
+            </span>
+          </div>
+
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-3.5 shadow-xs">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 block mb-1">
+              Avg Recovery Time
+            </span>
+            <div className="text-xl font-bold text-neutral-900 dark:text-white">
+              {metrics.average_recovery_time_minutes || 0}m
+            </div>
+            <span className="text-[11px] text-neutral-400 mt-1 block">
+              Time to conversion
+            </span>
           </div>
         </div>
 
-        {/* Filter Controls Bar */}
-        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-xs">
-          <div className="flex flex-wrap items-center gap-2 flex-1">
-            {/* Search */}
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-              <input
-                type="text"
-                placeholder="Search customer, phone, cake title, cart ID..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full pl-9 pr-3 py-1.5 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-rose-500 text-neutral-900 dark:text-white"
-              />
+        {/* Omnichannel Recovery Funnel Visualizer */}
+        {funnel.length > 0 && (
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-4 shadow-xs">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
+                <TrendingUp className="w-3.5 h-3.5 text-primary-600" /> Recovery Funnel Progression
+              </h3>
+              <span className="text-xs text-neutral-400">Real-time checkout drop-off analysis</span>
             </div>
-
-            {/* Date Range Preset */}
-            <select
-              value={preset}
-              onChange={(e) => {
-                setPreset(e.target.value);
-                setPage(1);
-              }}
-              className="py-1.5 px-3 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-800 dark:text-neutral-200 focus:outline-none"
-            >
-              <option value="all">All Time</option>
-              <option value="today">Today</option>
-              <option value="yesterday">Yesterday</option>
-              <option value="last_7_days">Last 7 Days</option>
-              <option value="last_30_days">Last 30 Days</option>
-              <option value="this_month">This Month</option>
-            </select>
-
-            {/* Status Filter */}
-            <select
-              value={status}
-              onChange={(e) => {
-                setStatus(e.target.value);
-                setPage(1);
-              }}
-              className="py-1.5 px-3 text-xs bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-800 dark:text-neutral-200 focus:outline-none"
-            >
-              <option value="all">All Statuses</option>
-              <option value="ABANDONED">Abandoned (Action Needed)</option>
-              <option value="RECOVERY_SENT">Recovery Sent</option>
-              <option value="RECOVERED">Recovered (Paid)</option>
-              <option value="EXPIRED">Expired</option>
-            </select>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              {funnel.map((step, idx) => (
+                <div
+                  key={step.step}
+                  className="bg-neutral-50 dark:bg-neutral-800/60 p-2.5 rounded-lg border border-neutral-200 dark:border-neutral-700/60 relative"
+                >
+                  <div className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
+                    {step.step.replace(/_/g, " ")}
+                  </div>
+                  <div className="text-base font-bold text-neutral-900 dark:text-white mt-0.5">
+                    {(Number(step.count) || 0).toLocaleString("en-IN")}
+                  </div>
+                  <div className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 mt-0.5">
+                    ₹{(Number(step.value) || 0).toLocaleString("en-IN")}
+                  </div>
+                  {idx > 0 && (
+                    <span className="text-[10px] text-neutral-400 block mt-1">
+                      {step.conversion_rate_pct ?? step.percentage ?? 0}% of total
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
+        )}
+
+        {/* Navigation Tabs */}
+        <div className="flex items-center gap-2 border-b border-neutral-200 dark:border-neutral-800 pb-2">
+          <button
+            onClick={() => setActiveTab("carts")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+              activeTab === "carts"
+                ? "bg-amber-600 text-white"
+                : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            }`}
+          >
+            <ShoppingCart className="w-3.5 h-3.5" /> Abandoned Carts ({total})
+          </button>
+          <button
+            onClick={() => setActiveTab("channels")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+              activeTab === "channels"
+                ? "bg-amber-600 text-white"
+                : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5" /> Channel Performance
+          </button>
+          <button
+            onClick={() => setActiveTab("products")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+              activeTab === "products"
+                ? "bg-amber-600 text-white"
+                : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            }`}
+          >
+            <Package className="w-3.5 h-3.5" /> Top Abandoned Cakes
+          </button>
         </div>
 
-        {/* Table View */}
-        {loading ? (
-          <TableSkeleton rows={8} />
-        ) : error ? (
-          <div className="p-8 text-center bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-xl text-rose-700 dark:text-rose-300">
-            <p className="font-semibold">{error}</p>
-            <Button size="small" variant="secondary" onClick={fetchAbandonedCarts} className="mt-3">
-              Retry
-            </Button>
+        {/* Tab 1: Abandoned Carts Table View */}
+        {activeTab === "carts" && (
+          <div className="space-y-4">
+            {/* Filter Bar */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div className="lg:col-span-2">
+                <Input
+                  size="small"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Search customer, phone, cake, or cart ID..."
+                  className="text-xs"
+                />
+              </div>
+
+              <div>
+                <select
+                  value={status}
+                  onChange={(e) => {
+                    setStatus(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full p-2 text-xs border border-neutral-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white"
+                >
+                  <option value="all">All Recovery Statuses</option>
+                  <option value="ACTIVE">Active / Pending</option>
+                  <option value="MESSAGE_SENT">Message Dispatched</option>
+                  <option value="CLICKED">Link Clicked</option>
+                  <option value="RECOVERED">Recovered (Paid)</option>
+                  <option value="EXPIRED">Expired</option>
+                </select>
+              </div>
+
+              <div>
+                <select
+                  value={preset}
+                  onChange={(e) => {
+                    setPreset(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full p-2 text-xs border border-neutral-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white"
+                >
+                  <option value="all">All Time History</option>
+                  <option value="today">Today</option>
+                  <option value="yesterday">Yesterday</option>
+                  <option value="last_7_days">Last 7 Days</option>
+                  <option value="last_30_days">Last 30 Days</option>
+                </select>
+              </div>
+
+              <div>
+                <select
+                  value={city}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full p-2 text-xs border border-neutral-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white"
+                >
+                  <option value="all">All Hub Cities</option>
+                  <option value="Bengaluru">Bengaluru</option>
+                  <option value="Mumbai">Mumbai</option>
+                  <option value="Delhi NCR">Delhi NCR</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Table Container */}
+            <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-xs">
+              {loading ? (
+                <div className="p-6">
+                  <TableSkeleton rows={6} />
+                </div>
+              ) : carts.length === 0 ? (
+                <div className="p-12 text-center space-y-3">
+                  <ShoppingCart className="w-10 h-10 text-neutral-300 dark:text-neutral-700 mx-auto" />
+                  <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+                    No Abandoned Carts Found
+                  </h4>
+                  <p className="text-xs text-neutral-400 max-w-sm mx-auto">
+                    {search || status !== "all" || preset !== "all"
+                      ? "No carts match the current filter criteria."
+                      : "Zero checkouts have been abandoned. All customer sessions converted or carts are clear."}
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-neutral-50 dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800 text-neutral-500 font-semibold uppercase tracking-wider">
+                      <tr>
+                        <th className="py-3 px-4">Customer</th>
+                        <th className="py-3 px-4">Phone / WhatsApp</th>
+                        <th className="py-3 px-4">Cart Items</th>
+                        <th className="py-3 px-4">Cart Value</th>
+                        <th className="py-3 px-4">Branch</th>
+                        <th className="py-3 px-4">Abandoned</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                      {carts.map((cart) => {
+                        const items = cart.items || [];
+                        const firstItem = items[0];
+                        return (
+                          <tr
+                            key={cart.id}
+                            className="hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 transition-colors"
+                          >
+                            <td className="py-3.5 px-4">
+                              <div className="font-semibold text-neutral-900 dark:text-white">
+                                {cart.customer_name || "Guest Customer"}
+                              </div>
+                              <div className="text-[11px] text-neutral-400 font-mono">
+                                {cart.cart_uid || cart.id}
+                              </div>
+                            </td>
+
+                            <td className="py-3.5 px-4 font-mono text-neutral-700 dark:text-neutral-300">
+                              {cart.phone || "—"}
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-2">
+                                {firstItem?.thumbnail ? (
+                                  <img
+                                    src={firstItem.thumbnail}
+                                    alt={firstItem.title || "Cake"}
+                                    className="w-7 h-7 rounded-md object-cover border border-neutral-200 dark:border-neutral-700"
+                                  />
+                                ) : (
+                                  <Package className="w-5 h-5 text-neutral-400" />
+                                )}
+                                <div>
+                                  <span className="font-medium text-neutral-800 dark:text-neutral-200 line-clamp-1">
+                                    {firstItem?.title || firstItem?.name || "Celebration Cake"}
+                                  </span>
+                                  {items.length > 1 && (
+                                    <span className="text-[10px] text-neutral-400">
+                                      +{items.length - 1} more items
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <span className="font-bold text-neutral-900 dark:text-white">
+                                ₹{Number(cart.cart_value || 0).toLocaleString("en-IN")}
+                              </span>
+                              {cart.recovered_revenue ? (
+                                <span className="block text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                                  Recov: ₹{cart.recovered_revenue.toLocaleString("en-IN")}
+                                </span>
+                              ) : null}
+                            </td>
+
+                            <td className="py-3.5 px-4 text-neutral-600 dark:text-neutral-400">
+                              <div>{cart.branch_name || "Central Kitchen"}</div>
+                              <div className="text-[10px] text-neutral-400">{cart.city || "Bengaluru"}</div>
+                            </td>
+
+                            <td className="py-3.5 px-4 text-neutral-500">
+                              <div>{getRelativeTime(cart.abandoned_at || cart.created_at)}</div>
+                              <div className="text-[10px] text-neutral-400">
+                                {new Date(cart.abandoned_at || cart.created_at).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </div>
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <Badge
+                                color={
+                                  cart.status === "RECOVERED"
+                                    ? "green"
+                                    : cart.status === "MESSAGE_SENT"
+                                    ? "blue"
+                                    : cart.status === "CLICKED"
+                                    ? "purple"
+                                    : "orange"
+                                }
+                                className="text-[10px]"
+                              >
+                                {cart.status}
+                              </Badge>
+                              {cart.recovery_channel && (
+                                <span className="block text-[10px] text-neutral-400 mt-0.5">
+                                  via {cart.recovery_channel}
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="py-3.5 px-4 text-right">
+                              <Button
+                                size="small"
+                                variant="secondary"
+                                onClick={() => handleOpenCartJourney(cart)}
+                                className="text-xs bg-white dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                              >
+                                View Journey <ChevronRight className="w-3 h-3 ml-0.5" />
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Pagination Bar */}
+              {!loading && carts.length > 0 && (
+                <div className="p-3.5 bg-neutral-50 dark:bg-neutral-950 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between text-xs text-neutral-500">
+                  <span>
+                    Showing {Math.min((page - 1) * limit + 1, total)} - {Math.min(page * limit, total)} of{" "}
+                    {total} abandoned carts
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="small"
+                      variant="secondary"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                      className="text-xs"
+                    >
+                      Previous
+                    </Button>
+                    <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+                      Page {page} of {totalPages}
+                    </span>
+                    <Button
+                      size="small"
+                      variant="secondary"
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page >= totalPages}
+                      className="text-xs"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        ) : carts.length === 0 ? (
-          <div className="p-12 text-center bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl">
-            <ShoppingCart className="w-10 h-10 text-neutral-400 mx-auto mb-3" />
-            <h3 className="text-base font-semibold text-neutral-800 dark:text-neutral-200">No Abandoned Carts Found</h3>
-            <p className="text-sm text-neutral-500 mt-1">All checkouts are healthy or no carts match current filter.</p>
+        )}
+
+        {/* Tab 2: Channel Performance Analytics */}
+        {activeTab === "channels" && (
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-xs p-6 space-y-4">
+            <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-amber-500" /> Omnichannel Recovery Attribution Breakdown
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {channels.map((ch) => (
+                <div
+                  key={ch.channel}
+                  className="p-4 bg-neutral-50 dark:bg-neutral-800/60 rounded-xl border border-neutral-200 dark:border-neutral-700/60 space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-sm text-neutral-900 dark:text-white capitalize">
+                      {ch.channel}
+                    </span>
+                    <Badge color="blue" className="text-[10px]">
+                      {ch.conversion_rate_pct ?? ch.recovery_rate_pct ?? 0}% Conv
+                    </Badge>
+                  </div>
+                  <div className="text-xs text-neutral-500 space-y-1">
+                    <div className="flex justify-between">
+                      <span>Messages Dispatched:</span>
+                      <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                        {ch.messages_sent ?? ch.sent_count ?? 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Delivered / Seen:</span>
+                      <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                        {ch.delivered_count ?? ch.messages_sent ?? 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Links Clicked:</span>
+                      <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                        {ch.clicks ?? ch.clicked_count ?? 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Orders Recovered:</span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                        {ch.recovered_orders ?? ch.recovered_count ?? 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-t border-neutral-200 dark:border-neutral-700 pt-1 font-bold text-neutral-900 dark:text-white">
+                      <span>Attributed Revenue:</span>
+                      <span className="text-emerald-600 dark:text-emerald-400">
+                        ₹{(Number(ch.recovered_revenue) || 0).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        ) : (
+        )}
+
+        {/* Tab 3: Top Abandoned Cakes */}
+        {activeTab === "products" && (
           <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-xs">
+            <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                <Package className="w-4 h-4 text-amber-500" /> High-Drop Bakery Products
+              </h3>
+              <span className="text-xs text-neutral-400">Aggregated dropped cake items & lost revenue</span>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-neutral-50 dark:bg-neutral-800/60 border-b border-neutral-200 dark:border-neutral-800 text-neutral-500 uppercase font-semibold">
+                <thead className="bg-neutral-50 dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800 text-neutral-500 font-semibold uppercase tracking-wider">
                   <tr>
-                    <th className="py-3 px-4">Abandoned At</th>
-                    <th className="py-3 px-4">Customer</th>
-                    <th className="py-3 px-4">Items in Cart</th>
-                    <th className="py-3 px-4">Value</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Recovery Sent</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
+                    <th className="py-3 px-4">Product</th>
+                    <th className="py-3 px-4">Unit Price</th>
+                    <th className="py-3 px-4">Times Abandoned</th>
+                    <th className="py-3 px-4">Times Recovered</th>
+                    <th className="py-3 px-4">Revenue At Risk</th>
+                    <th className="py-3 px-4">Recovery Rate</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                  {carts.map((cart) => {
-                    const isRecovered = cart.status === "RECOVERED";
-                    const isSent = cart.status === "RECOVERY_SENT";
-                    return (
-                      <tr key={cart.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                        <td className="py-3 px-4 whitespace-nowrap text-neutral-500">
-                          <div>{new Date(cart.last_activity_at || cart.abandoned_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
-                          <div className="text-[10px] text-neutral-400">{new Date(cart.last_activity_at || cart.abandoned_at).toLocaleDateString()}</div>
-                        </td>
-
-                        <td className="py-3 px-4 font-medium text-neutral-900 dark:text-white">
-                          <div>{cart.customer_name || "Guest Customer"}</div>
-                          <div className="text-[11px] font-mono text-neutral-500">{cart.customer_phone || cart.customer_email || "—"}</div>
-                        </td>
-
-                        <td className="py-3 px-4 text-neutral-700 dark:text-neutral-300">
-                          <div className="font-semibold text-neutral-900 dark:text-white truncate max-w-[200px]">
-                            {cart.items?.[0]?.title || cart.items?.[0]?.name || "Gourmet Cake"}
-                          </div>
-                          {cart.items?.length > 1 && (
-                            <div className="text-[11px] text-neutral-400">+{cart.items.length - 1} more items</div>
-                          )}
-                        </td>
-
-                        <td className="py-3 px-4 font-bold text-neutral-900 dark:text-white whitespace-nowrap">
-                          ₹{(cart.subtotal || 699).toLocaleString("en-IN")}
-                        </td>
-
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          {isRecovered ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
-                              <CheckCircle className="w-3 h-3" /> RECOVERED
-                            </span>
-                          ) : isSent ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">
-                              <Send className="w-3 h-3" /> RECOVERY SENT
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300">
-                              <Clock className="w-3 h-3" /> ABANDONED
-                            </span>
-                          )}
-                        </td>
-
-                        <td className="py-3 px-4 text-neutral-500 text-[11px]">
-                          {cart.recovery_attempts && cart.recovery_attempts.length > 0 ? (
-                            <span>{cart.recovery_attempts.length}x ({cart.recovery_attempts[cart.recovery_attempts.length - 1].channel})</span>
-                          ) : (
-                            <span className="text-neutral-400">Not sent yet</span>
-                          )}
-                        </td>
-
-                        <td className="py-3 px-4 text-right whitespace-nowrap">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {!isRecovered && (
-                              <button
-                                type="button"
-                                onClick={() => handleSendRecovery(cart.id, "whatsapp")}
-                                className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:hover:bg-emerald-900 dark:text-emerald-300 transition-colors"
-                                title="Send WhatsApp Recovery"
-                              >
-                                <MessageSquare className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-
-                            <button
-                              type="button"
-                              onClick={() => handleCopyRecoveryUrl(cart)}
-                              className="p-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-300 transition-colors"
-                              title="Copy Direct Recovery URL"
-                            >
-                              {copiedToken === cart.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => setSelectedCart(cart)}
-                              className="px-2 py-1 rounded-lg text-xs font-medium bg-neutral-100 hover:bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-200 transition-colors"
-                            >
-                              Inspect
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {topProducts.map((p) => (
+                    <tr key={p.product_id} className="hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40">
+                      <td className="py-3.5 px-4 font-semibold text-neutral-900 dark:text-white">
+                        {p.title}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-neutral-700 dark:text-neutral-300">
+                        ₹{(Number(p.unit_price) || 0).toLocaleString("en-IN")}
+                      </td>
+                      <td className="py-3.5 px-4 text-amber-600 font-semibold">
+                        {p.abandoned_count ?? 0} checkouts
+                      </td>
+                      <td className="py-3.5 px-4 text-emerald-600 font-semibold">
+                        {p.recovered_count ?? 0} orders
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-neutral-900 dark:text-white">
+                        ₹{(Number(p.revenue_at_risk ?? p.total_lost_revenue) || 0).toLocaleString("en-IN")}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <Badge color={(p.recovery_rate_pct ?? 0) >= 20 ? "green" : "orange"} className="text-[10px]">
+                          {p.recovery_rate_pct ?? 0}%
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
-
-            {/* Pagination */}
-            <div className="p-3 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/30 flex items-center justify-between text-xs text-neutral-500">
-              <div>
-                Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} carts
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="small"
-                  variant="secondary"
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  Previous
-                </Button>
-                <span className="font-medium">
-                  Page {page} of {totalPages}
-                </span>
-                <Button
-                  size="small"
-                  variant="secondary"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
           </div>
         )}
 
-        {/* Inspect & Recovery Modal */}
-        {selectedCart && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
-            onClick={() => setSelectedCart(null)}
-            role="dialog"
-            aria-modal="true"
-          >
-            <div
-              className="relative w-full max-w-lg bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-5 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/50 dark:bg-neutral-800/50">
-                <div>
-                  <h3 className="font-bold text-base text-neutral-900 dark:text-white">Cart Inspection & Direct Dispatch</h3>
-                  <p className="text-xs text-neutral-500">Cart ID: {selectedCart.id}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedCart(null)}
-                  className="rounded-full p-1 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
-                >
-                  ✕
-                </button>
-              </div>
+        {/* Customer Recovery Journey Drawer */}
+        <RecoveryJourneyDrawer
+          cart={selectedCart}
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
+          onRefresh={fetchAbandonedCarts}
+        />
 
-              <div className="p-5 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
-                {/* Customer Details */}
-                <div className="bg-neutral-50 dark:bg-neutral-800/50 p-3 rounded-xl flex items-center justify-between text-xs">
-                  <div>
-                    <span className="text-neutral-400 block">Customer</span>
-                    <strong className="text-neutral-900 dark:text-white">{selectedCart.customer_name || "Guest Customer"}</strong>
-                    <div className="font-mono text-neutral-500">{selectedCart.customer_phone || selectedCart.customer_email || "No direct phone"}</div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-neutral-400 block">Delivery City</span>
-                    <strong className="text-neutral-900 dark:text-white">{selectedCart.delivery_city || "Bengaluru"}</strong>
-                  </div>
-                </div>
-
-                {/* Items in Cart */}
-                <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-2">Items in Cart</h4>
-                  <div className="flex flex-col gap-2">
-                    {(selectedCart.items || []).map((item: any, idx: number) => (
-                      <div key={idx} className="flex items-center justify-between p-2.5 rounded-lg border border-neutral-100 dark:border-neutral-800 text-xs">
-                        <div>
-                          <div className="font-medium text-neutral-900 dark:text-white">{item.title || item.name}</div>
-                          <div className="text-neutral-400 text-[11px]">Qty: {item.quantity || 1} • {item.weight || "1 kg"}</div>
-                          {item.cake_message && (
-                            <div className="text-amber-600 text-[11px]">Message: &quot;{item.cake_message}&quot;</div>
-                          )}
-                        </div>
-                        <div className="font-bold text-neutral-900 dark:text-white">
-                          ₹{((item.unit_price || item.price || 599) * (item.quantity || 1)).toLocaleString("en-IN")}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Action Dispatch */}
-                {actionSuccess && (
-                  <div className="p-3 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs rounded-xl">
-                    {actionSuccess}
-                  </div>
-                )}
-
-                <div className="pt-2 flex flex-col gap-2">
-                  <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Dispatch Instant Recovery Message:</span>
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button
-                      size="small"
-                      disabled={sendingRecovery}
-                      onClick={() => handleSendRecovery(selectedCart.id, "whatsapp")}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs flex items-center justify-center gap-1.5"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5" /> WhatsApp
-                    </Button>
-                    <Button
-                      size="small"
-                      disabled={sendingRecovery}
-                      onClick={() => handleSendRecovery(selectedCart.id, "sms")}
-                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs flex items-center justify-center gap-1.5"
-                    >
-                      <Send className="w-3.5 h-3.5" /> SMS
-                    </Button>
-                    <Button
-                      size="small"
-                      disabled={sendingRecovery}
-                      onClick={() => handleSendRecovery(selectedCart.id, "email")}
-                      className="bg-purple-600 hover:bg-purple-700 text-white text-xs flex items-center justify-center gap-1.5"
-                    >
-                      <Mail className="w-3.5 h-3.5" /> Email
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Campaign Workflows Modal */}
+        <CampaignBuilderModal
+          isOpen={isCampaignModalOpen}
+          onClose={() => setIsCampaignModalOpen(false)}
+          onRefresh={fetchAbandonedCarts}
+        />
       </div>
     </WidgetErrorBoundary>
   );

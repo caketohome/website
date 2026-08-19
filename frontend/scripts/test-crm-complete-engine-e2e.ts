@@ -77,12 +77,12 @@ async function runCrmVerificationSuite() {
   // Case A: 0 orders, created today -> NEW
   assert(deriveLifecycleStage(baseCustomer, []) === "NEW", "Stage: NEW (0 orders, created today)");
 
-  // Case B: 0 orders, created 10 days ago -> REGISTERED
+  // Case B: 0 orders, created 10 days ago -> NEW
   const regCustomer: CustomerRecord = {
     ...baseCustomer,
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
   };
-  assert(deriveLifecycleStage(regCustomer, []) === "REGISTERED", "Stage: REGISTERED (0 orders, account age > 1 day)");
+  assert(deriveLifecycleStage(regCustomer, []) === "NEW", "Stage: NEW (0 orders)");
 
   // Case C: 1 order completed yesterday -> FIRST_PURCHASE
   const firstOrderCustomer: CustomerRecord = {
@@ -108,13 +108,13 @@ async function runCrmVerificationSuite() {
   ];
   assert(deriveLifecycleStage(repeatCustomer, threeOrdersList) === "REPEAT_BUYER", "Stage: REPEAT_BUYER (3 orders, active within 30d)");
 
-  // Case E: 6 orders completed -> LOYAL
+  // Case E: 6 orders completed -> VIP
   const loyalCustomer: CustomerRecord = {
     ...baseCustomer,
     orders_count: 6,
     last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
   };
-  assert(deriveLifecycleStage(loyalCustomer, [{}, {}, {}, {}, {}, {}]) === "LOYAL", "Stage: LOYAL (5+ completed orders)");
+  assert(deriveLifecycleStage(loyalCustomer, [{}, {}, {}, {}, {}, {}]) === "VIP", "Stage: VIP (5+ completed orders)");
 
   // Case F: Last order was 50 days ago -> AT_RISK
   const atRiskCustomer: CustomerRecord = {
@@ -229,7 +229,7 @@ async function runCrmVerificationSuite() {
   assert(mergeResult.mergedPrimary.loyalty.points_balance === 400, "Loyalty points balance combined (300 + 100 = 400)");
   assert(mergeResult.mergedPrimary.tags?.includes("Midnight Delivery"), "Tags merged preserving secondary tags");
   assert(mergeResult.mergedPrimary.addresses?.length === 2, "Addresses combined without dropping locations");
-  assert(mergeResult.updatedOrders.every((o) => o.customer_uid === "cth_cus_primary_01"), "All orders re-assigned to primary UID");
+  assert(mergeResult.updatedOrders.every((o: any) => o.customer_uid === "cth_cus_primary_01"), "All orders re-assigned to primary UID");
   assert(mergeResult.newActivity.event_type === "CUSTOMER_MERGED", "Activity log records CUSTOMER_MERGED event");
   console.log("");
 

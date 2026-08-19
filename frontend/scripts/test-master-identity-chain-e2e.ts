@@ -40,7 +40,7 @@ async function runMasterIdentityTestSuite() {
   const checkAdmin = ApiEngine.checkAccountByPhone("admin");
   assert(checkAdmin.exists === true && checkAdmin.role === "SUPER_ADMIN", "Detects SUPER_ADMIN account");
 
-  const checkCustomer = ApiEngine.checkAccountByPhone("+91 98765 43210");
+  const checkCustomer = ApiEngine.checkAccountByPhone("+91 98765 43211");
   assert(checkCustomer.exists === true && checkCustomer.role === "CUSTOMER", "Detects existing CUSTOMER account");
 
   const uniqueSuffix = String(Date.now()).slice(-5);
@@ -165,8 +165,8 @@ async function runMasterIdentityTestSuite() {
   assert(abandonedList.summary !== undefined, "Calculated abandoned carts analytical summary");
 
   // Generate recovery token
-  const firstAbCart = abandonedList.carts[0] || { cart_id: "cart_ab_102" };
-  const tokenRes = ApiEngine.generateCartRecoveryToken(firstAbCart.cart_id || firstAbCart.id);
+  const firstAbCart: any = abandonedList.carts[0] || { cart_uid: "cart_ab_102", id: "cart_ab_102" };
+  const tokenRes = ApiEngine.generateCartRecoveryToken(firstAbCart.cart_uid || firstAbCart.cart_id || firstAbCart.id);
   assert(Boolean(tokenRes.token && (tokenRes.token.startsWith("recov_tok_") || tokenRes.token.startsWith("rectok_"))), "Generated secure recovery token");
   assert(tokenRes.recovery_url.includes("/cart/recover/"), "Generated valid storefront recovery URL");
 

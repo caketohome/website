@@ -82,7 +82,6 @@ const ROLE_CONFIGS = {
       { label: "My Profile", href: "/account", icon: User },
       { label: "My Orders", href: "/account/orders", icon: ShoppingBag },
       { label: "Saved Addresses", href: "/account/addresses", icon: MapPin },
-      { label: "Wallet & Credits", href: "/account/wallet", icon: CreditCard },
     ],
   },
 } as const;
@@ -116,16 +115,17 @@ function getNormalizedRole(user?: ProfileUserDTO | null): AuthRole {
 }
 
 function getUserDisplayName(user: ProfileUserDTO | null, role: AuthRole): string {
-  if (!user) return "Guest";
+  if (!user) return "";
   if (user.full_name) return user.full_name;
   if (user.name) return user.name;
+  if ((user as any).customer_name) return (user as any).customer_name;
   const parts = [user.first_name, user.last_name].filter(Boolean);
   if (parts.length > 0) return parts.join(" ");
   switch (role) {
     case "SUPER_ADMIN": return "Super Admin";
     case "BRANCH_MANAGER": return "Branch Manager";
     case "DELIVERY_PARTNER": return "Delivery Partner";
-    default: return "Valued Customer";
+    default: return user.phone || user.email || "";
   }
 }
 
