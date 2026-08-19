@@ -168,3 +168,6 @@ export function ExitIntentPopup() {
 
     return null;
 }
+
+export default ExitIntentPopup;
+

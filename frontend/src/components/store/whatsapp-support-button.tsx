@@ -53,3 +53,6 @@ export function WhatsAppSupportButton() {
     </div>
   );
 }
+
+export default WhatsAppSupportButton;
+

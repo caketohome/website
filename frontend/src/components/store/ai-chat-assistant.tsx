@@ -553,3 +553,6 @@ export function AiChatAssistant() {
     </>
   );
 }
+
+export default AiChatAssistant;
+
