@@ -593,11 +593,11 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                 <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t font-medium">
                   <div className="p-2 bg-emerald-50 dark:bg-emerald-950/40 rounded-lg border border-emerald-200">
                     <span className="text-[10px] text-emerald-700 font-bold block uppercase">Pickup OTP</span>
-                    <span className="font-mono text-base font-extrabold text-emerald-800">{order.delivery?.pickup_otp || "Not generated"}</span>
+                    <span className="font-mono text-base font-extrabold text-emerald-800">{order.delivery?.pickup_otp || order.pickup_otp || "Not generated"}</span>
                   </div>
                   <div className="p-2 bg-blue-50 dark:bg-blue-950/40 rounded-lg border border-blue-200">
                     <span className="text-[10px] text-blue-700 font-bold block uppercase">Delivery OTP</span>
-                    <span className="font-mono text-base font-extrabold text-blue-800">{order.delivery?.delivery_otp || "Not generated"}</span>
+                    <span className="font-mono text-base font-extrabold text-blue-800">{order.delivery?.delivery_otp || order.delivery_otp || "Not generated"}</span>
                   </div>
                 </div>
 

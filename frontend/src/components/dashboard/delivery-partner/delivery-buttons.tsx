@@ -66,14 +66,14 @@ export default function DeliveryPartnerDeliveryButtons({
     const res = await verifyPickupOtp(delivery.id, pickupOtpInput, delivery_partner.id);
     setProceedIsLoading(false);
 
-    if (!res.success) {
-      setOtpError(res.error || "Invalid Pickup OTP code");
+    if (res && (res.success || res.already_verified)) {
+      setShowPickupModal(false);
+      setPickupOtpInput("");
+      window.location.reload();
       return;
     }
 
-    setShowPickupModal(false);
-    setPickupOtpInput("");
-    window.location.reload();
+    setOtpError(res?.error || "Invalid Pickup OTP code");
   };
 
   const handleVerifyCustomerOtp = async (e: React.FormEvent) => {
@@ -84,14 +84,14 @@ export default function DeliveryPartnerDeliveryButtons({
     const res = await verifyCustomerOtp(delivery.id, customerOtpInput, delivery_partner.id);
     setProceedIsLoading(false);
 
-    if (!res.success) {
-      setOtpError(res.error || "Invalid Customer OTP code");
+    if (res && (res.success || res.already_verified)) {
+      setShowCustomerOtpModal(false);
+      setCustomerOtpInput("");
+      window.location.reload();
       return;
     }
 
-    setShowCustomerOtpModal(false);
-    setCustomerOtpInput("");
-    window.location.reload();
+    setOtpError(res?.error || "Invalid Customer OTP code");
   };
 
   const handleReportException = async (e: React.FormEvent) => {

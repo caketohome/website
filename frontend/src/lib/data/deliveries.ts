@@ -4,6 +4,7 @@
  */
 
 import { DeliveryDTO } from "../types";
+import { ApiEngine } from "../api-engine";
 
 export interface PincodeZone {
   pincode: string;
@@ -46,11 +47,11 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
       allDeliveries = (delRes as any)?.deliveries || [];
       allOrders = (ordRes as any)?.orders || [];
     } else {
-      const { ApiEngine } = await import("../api-engine");
       ApiEngine.ensureDeliveryPartnersStore();
       ApiEngine.ensureOrdersStore();
-      allDeliveries = ApiEngine.getAdminDeliveryPartners()?.partners || [];
-      allOrders = ApiEngine.getAdminOrders()?.orders || [];
+      const store = ApiEngine.getStore();
+      allDeliveries = store.delivery_partners || [];
+      allOrders = store.orders || [];
       if (targetPartnerId) {
         partnerObj = (allDeliveries || []).find(
           (p: any) => p.id === targetPartnerId || p.partner_number === targetPartnerId || p.phone === targetPartnerId
@@ -64,29 +65,7 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
 
   // ── SERVER-SIDE BRANCH & PARTNER ISOLATION FILTERING (FAIL CLOSED) ──
   if (partnerObj) {
-    const partnerBranchIds = (partnerObj.associated_branches || []).map((b: any) => (typeof b === "string" ? b : (b.branch_id || b.id)));
-    if (partnerObj.primary_branch_id) partnerBranchIds.push(partnerObj.primary_branch_id);
-
-    allOrders = allOrders.filter((o: any) => {
-      const orderBranchId = o.branch_id || o.branch?.id || o.kitchen_hub_id || o.fulfillment_hub_id || null;
-
-      // 1. Fail closed: Orders with no valid branch relationship are NEVER visible to Delivery Partners
-      if (!orderBranchId) {
-        return false;
-      }
-
-      // 2. Branch Security Authorization Check: Order MUST belong to partner's assigned branches
-      if (partnerBranchIds.length === 0 || !partnerBranchIds.includes(orderBranchId)) {
-        return false;
-      }
-
-      // 3. Partner Assignment Ownership: Unassigned OR assigned to THIS partner
-      if (o.delivery_partner_id && o.delivery_partner_id !== partnerObj.id) {
-        return false;
-      }
-
-      return true;
-    });
+    allOrders = allOrders.filter((o: any) => ApiEngine.canPartnerAccessOrder(partnerObj, o));
   }
 
   const partnerId = filter?.delivery_partner_id || filter?.partner_id || "dlp_101";
@@ -94,15 +73,19 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
   const mapped: DeliveryDTO[] = allOrders.map((o: any, idx: number) => {
     const matchedDel = allDeliveries.find((d: any) => d.id === o.id || d.order_number === o.id) || {};
 
-    let status = o.delivery_status || "shop_accepted";
-    if (o.status === "delivered" || o.status === "completed") {
+    let status = (o.delivery_status || "shop_accepted").toLowerCase();
+    const orderStatus = (o.status || "").toLowerCase();
+
+    if (status === "delivered" || orderStatus === "delivered" || orderStatus === "completed") {
       status = "delivered";
-    } else if (o.status === "out_for_delivery") {
+    } else if (status === "in_transit" || orderStatus === "out_for_delivery") {
       status = "in_transit";
-    } else if (o.status === "ready_for_pickup" || o.status === "packed") {
+    } else if (status === "ready_for_pickup" || orderStatus === "packed" || orderStatus === "ready_for_pickup") {
       status = "ready_for_pickup";
-    } else if (o.status === "claimed" || o.status === "preparing") {
+    } else if (status === "pickup_claimed" || status === "shop_preparing" || orderStatus === "preparing" || orderStatus === "claimed") {
       status = "pickup_claimed";
+    } else if (status === "shop_accepted" || status === "available" || orderStatus === "confirmed" || orderStatus === "pending") {
+      status = "shop_accepted";
     }
 
     const items = o.items || o.cart?.items || [];
@@ -156,8 +139,8 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
       recipient_landmark: typeof o.landmark === "string" ? o.landmark : "Opp. To Metro Station",
       delivery_instructions: typeof o.delivery_instructions === "string" ? o.delivery_instructions : "Handle with extreme care — Multi-tier Designer Birthday Cake.",
       gift_message: typeof o.gift_message === "string" ? o.gift_message : "Happy Celebration!",
-      delivery_otp: typeof o.delivery_otp === "string" ? o.delivery_otp : "4819",
-      pickup_otp: typeof o.pickup_otp === "string" ? o.pickup_otp : "1294",
+      delivery_otp: typeof o.delivery_otp === "string" ? o.delivery_otp : (o.delivery?.delivery_otp || "4819"),
+      pickup_otp: typeof o.pickup_otp === "string" ? o.pickup_otp : (o.delivery?.pickup_otp || "1294"),
       order: {
         id: o.id,
         items,

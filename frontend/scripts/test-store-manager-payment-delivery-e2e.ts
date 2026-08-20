@@ -64,7 +64,7 @@ async function runComprehensiveWorkflowTests() {
   // 1.1 Create new branch with explicit manager credentials
   const savedBranch = ApiEngine.saveBranch({
     id: testBranchId,
-    code: "HUB-TEST-01",
+    code: `HUB-TEST-${Date.now().toString().slice(-4)}`,
     name: "HSR Layout Kitchen Hub",
     city: "Bengaluru",
     pincode: "560102",
@@ -143,7 +143,7 @@ async function runComprehensiveWorkflowTests() {
   const updatedManagerName = "Vikram S. Malhotra";
   const updatedBranch = ApiEngine.saveBranch({
     id: testBranchId,
-    code: "HUB-TEST-01",
+    code: savedBranch.code,
     name: "HSR Layout Kitchen Hub (Expanded)",
     city: "Bengaluru",
     pincode: "560102",
