@@ -4,7 +4,6 @@
  */
 
 import { DeliveryDTO } from "../types";
-import { ApiEngine } from "../api-engine";
 
 export interface PincodeZone {
   pincode: string;
@@ -47,6 +46,7 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
       allDeliveries = (delRes as any)?.deliveries || [];
       allOrders = (ordRes as any)?.orders || [];
     } else {
+      const { ApiEngine } = await import("../api-engine");
       ApiEngine.ensureDeliveryPartnersStore();
       ApiEngine.ensureOrdersStore();
       const store = ApiEngine.getStore();
@@ -57,15 +57,13 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
           (p: any) => p.id === targetPartnerId || p.partner_number === targetPartnerId || p.phone === targetPartnerId
         );
       }
+      if (partnerObj) {
+        allOrders = allOrders.filter((o: any) => ApiEngine.canPartnerAccessOrder(partnerObj, o));
+      }
     }
   } catch (e) {
     allDeliveries = [];
     allOrders = [];
-  }
-
-  // ── SERVER-SIDE BRANCH & PARTNER ISOLATION FILTERING (FAIL CLOSED) ──
-  if (partnerObj) {
-    allOrders = allOrders.filter((o: any) => ApiEngine.canPartnerAccessOrder(partnerObj, o));
   }
 
   const partnerId = filter?.delivery_partner_id || filter?.partner_id || "dlp_101";
