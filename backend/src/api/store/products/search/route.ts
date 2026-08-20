@@ -14,7 +14,7 @@ import { ANALYTICS_MODULE } from "../../../../modules/analytics";
  *   shop_id       — filter by shop
  *   min_price     — minimum price
  *   max_price     — maximum price
- *   eggless, sugar_free, gluten_free, vegan — dietary filters
+ *   artisan, sugar_free, gluten_free, vegan — dietary filters
  *   is_featured, is_bestseller, is_new_arrival — merchandising filters
  *   sort          — relevance | price_asc | price_desc | newest | rating
  *   limit, offset — pagination
@@ -54,7 +54,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     if (maxPrice) filters.max_price = Number(maxPrice);
 
     for (const flag of [
-        "eggless",
+        "artisan",
         "sugar_free",
         "gluten_free",
         "vegan",

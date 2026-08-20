@@ -658,7 +658,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <p className="font-bold text-sm text-slate-900 dark:text-white">{item.title}</p>
-                          <Badge color={item.eggless ? "green" : "red"} className="text-[9px]">{item.eggless ? "Eggless" : "With Egg"}</Badge>
+                          <Badge color={item.artisan ? "green" : "red"} className="text-[9px]">{item.artisan ? "artisan" : "With Egg"}</Badge>
                         </div>
                         <p className="text-xs text-slate-500 font-medium">
                           Size: <strong className="text-slate-800 dark:text-slate-200">{item.weight}</strong> &bull; Flavor: <strong className="text-slate-800 dark:text-slate-200">{item.flavour}</strong> &bull; Shape: <strong className="text-slate-800 dark:text-slate-200">{item.shape}</strong>

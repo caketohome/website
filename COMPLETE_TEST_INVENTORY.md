@@ -51,7 +51,7 @@ Total Test & Verification Files: 195+
 
 | # | File Path | Framework | Category | Scope | Trusted Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `frontend/e2e/order-flow.spec.ts` | `@playwright/test` | Browser E2E | Homepage load, catalog eggless filter, pincode check, admin login, coupon stacking. | **TRUSTED** |
+| 1 | `frontend/e2e/order-flow.spec.ts` | `@playwright/test` | Browser E2E | Homepage load, catalog artisan filter, pincode check, admin login, coupon stacking. | **TRUSTED** |
 | 2 | `frontend/e2e/admin-crud-postgres.spec.ts` | `@playwright/test` | Browser E2E | Super Admin dashboard CRUD, catalog updates, branch management. | **TRUSTED** |
 | 3 | `frontend/e2e/pim-product-crud.spec.ts` | `@playwright/test` | Browser E2E | PIM product creation, variant weight/pricing updates. | **TRUSTED** |
 | 4 | `frontend/e2e/pim-categories.spec.ts` | `@playwright/test` | Browser E2E | Category creation, slug generation, hierarchy management. | **TRUSTED** |
@@ -86,7 +86,7 @@ Total Test & Verification Files: 195+
 | 21 | `analytics` | `expense-franchise.unit.spec.ts` | Unit | Branch revenue share, franchise fee calculation. |
 | 22 | `analytics` | `phase10.unit.spec.ts` | Unit | Hourly order volume distribution, peak kitchen demand. |
 | 23 | `analytics` | `phase11.unit.spec.ts` | Unit | Delivery rider performance, on-time delivery percentages. |
-| 24 | `catalog` | `catalog.unit.spec.ts` | Unit | Product catalog hierarchy, variants, dietary tags (eggless). |
+| 24 | `catalog` | `catalog.unit.spec.ts` | Unit | Product catalog hierarchy, variants, dietary tags (artisan). |
 | 25 | `cms` | `cms.unit.spec.ts` | Unit | CMS page sections, banner configuration, announcement bar. |
 | 26 | `seo` | `seo.unit.spec.ts` | Unit | Meta title/description generation, OpenGraph tags, sitemap. |
 | 27 | `security` | `phase15.unit.spec.ts` | Unit | RBAC permission evaluation, IP whitelisting, audit logging. |

@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 export interface ProductMetaEntry {
     id: string;
     product_id: string;
-    eggless: boolean;
+    artisan: boolean;
     sugar_free: boolean;
     gluten_free: boolean;
     vegan: boolean;

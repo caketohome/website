@@ -363,7 +363,7 @@ async function runCmsTestSuite() {
 
   const sampleFaqs = [
     { q: "Do you offer 2-hour delivery in Bangalore?", a: "Yes, 2-hour express delivery is available across all Bangalore zones." },
-    { q: "Are pure eggless cakes available?", a: "Yes, all cakes are baked with 100% vegetarian ingredients." },
+    { q: "Are pure artisan cakes available?", a: "Yes, all cakes are baked with 100% vegetarian ingredients." },
   ];
   const faqSchema = {
     "@context": "https://schema.org",

@@ -73,7 +73,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       weight: item.weight || meta.weight || "1.0 kg",
       flavour: item.flavour || meta.flavour || "Belgian Dark Chocolate",
       shape: item.shape || meta.shape || "Heart",
-      eggless: item.eggless ?? meta.eggless ?? true,
+      artisan: item.artisan ?? meta.artisan ?? true,
       cake_message: item.cake_message || meta.cake_message || "Happy Birthday!",
       photo_url: item.photo_url || meta.photo_url || null,
       quantity: item.quantity || 1,

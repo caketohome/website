@@ -6,7 +6,7 @@
 
 export interface ProductMetaInput {
     product_id: string;
-    eggless?: boolean;
+    artisan?: boolean;
     sugar_free?: boolean;
     gluten_free?: boolean;
     vegan?: boolean;
@@ -115,7 +115,7 @@ export interface SearchFilters {
     shop_id?: string;
     min_price?: number;
     max_price?: number;
-    eggless?: boolean;
+    artisan?: boolean;
     sugar_free?: boolean;
     gluten_free?: boolean;
     vegan?: boolean;
@@ -136,7 +136,7 @@ export interface SearchResult {
     price: number | null;
     rating: number;
     review_count: number;
-    eggless: boolean;
+    artisan: boolean;
     sugar_free: boolean;
     gluten_free: boolean;
     vegan: boolean;

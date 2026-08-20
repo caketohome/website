@@ -73,7 +73,7 @@ async function seed() {
         description: 'Decadent dark chocolate truffle cake topped with chocolate glaze',
         price: 599.00,
         categoryId: category.id,
-        isEggless: true,
+        is_artisan: true,
         isBestseller: true,
       },
     });

@@ -46,12 +46,12 @@ async function runAiConciergeTests() {
     const bdayMentioned = bdayRes.message.toLowerCase().includes("birthday");
     report.occasion_intelligence = bdayMentioned && (bdayRes.products || []).length > 0 ? "PASS" : "FAIL";
 
-    // ── 5. Dietary Intelligence (100% Eggless) ──────────────────────────────
-    console.log("\n5. Testing Dietary Intelligence ('Show eggless cakes')...");
-    const egglessRes = await AiOrchestrator.processMessage("Show eggless cakes", "test_session_4");
-    const allEggless = (egglessRes.products || []).every((p) => p.eggless === true);
-    console.log(`   All Products Eggless: ${allEggless} (${egglessRes.products?.length} products)`);
-    report.dietary_intelligence = allEggless && (egglessRes.products || []).length > 0 ? "PASS" : "FAIL";
+    // ── 5. Dietary Intelligence (100% artisan) ──────────────────────────────
+    console.log("\n5. Testing Dietary Intelligence ('Show artisan cakes')...");
+    const Res = await AiOrchestrator.processMessage("Show artisan cakes", "test_session_4");
+    const all= (Res.products || []).every((p) => p.artisan === true);
+    console.log(`   All Products artisan: ${all} (${Res.products?.length} products)`);
+    report.dietary_intelligence = all&& (Res.products || []).length > 0 ? "PASS" : "FAIL";
 
     // ── 6. Delivery & Pincode Matrix Check ──────────────────────────────────
     console.log("\n6. Testing Delivery Engine for Pincode 560034 (Koramangala)...");

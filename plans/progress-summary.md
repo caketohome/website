@@ -17,7 +17,7 @@
 - **Luxury Dessert Brand Account Dashboard (`/account`)**:
   - **Header Card**: Luxury ambient glow, initials avatar, customer name, formatted phone, email, VIP tier pill, and edit toggle.
   - **4 Stat Cards**: Total Orders, Total Spent (₹), Favourite Cake (e.g. Belgian Dark Chocolate Truffle Cake), Last Order Date.
-  - **4 Interactive Tabs**: Personal Profile (Full Name, Phone, Email, Birthday), Taste & Dietary Preferences (100% Eggless filter toggle, Favourite flavour dropdown), Communication Channels (WhatsApp tracking, SMS, Baker's specials), Security & Sessions (Passwordless OTP status, active session device).
+  - **4 Interactive Tabs**: Personal Profile (Full Name, Phone, Email, Birthday), Taste & Dietary Preferences (100% artisan filter toggle, Favourite flavour dropdown), Communication Channels (WhatsApp tracking, SMS, Baker's specials), Security & Sessions (Passwordless OTP status, active session device).
 - **Order Experience & Address Management Rebuild (`/account/orders`, `/account/addresses`)**:
   - **Order History**: Card view with cake thumbnail, order number, timestamp, kitchen branch tag, live status pills (`Confirmed`, `Preparing in Kitchen`, `Out for Delivery`, `Delivered`), Live Tracking link, and 1-Click Reorder button.
   - **Address Book**: Home/Office/Other pill selector, recipient name, phone, full address, pincode, landmark, default delivery toggle, and visual branch routing indicator.
@@ -60,7 +60,7 @@
 - **Zero TypeScript Diagnostic Errors**: `npx tsc --noEmit` exited with Code 0 across all 400+ application files and test suites.
 - **Production Build Verification**: Next.js 14.1.4 production build (`npm run build`) completed successfully with 100% static & dynamic route compilation (39/39 routes optimized).
 - **Core Engine Hardening & Synchronization**:
-  - `ApiEngine`: Authoritative checkout validation with fallback pincode resolution, statutory 5% GST calculation across intra/inter-state tax regimes, dynamic coupon verification (`SWEET10`, `WELCOME10`, `CAKE50`, `CAKE100`), full customization persistence (weight, shape, flavour, eggless, cake message, custom instructions), and audit event logging.
+  - `ApiEngine`: Authoritative checkout validation with fallback pincode resolution, statutory 5% GST calculation across intra/inter-state tax regimes, dynamic coupon verification (`SWEET10`, `WELCOME10`, `CAKE50`, `CAKE100`), full customization persistence (weight, shape, flavour, artisan, cake message, custom instructions), and audit event logging.
   - `WebhookEngine`: Transactional outbox with HMAC-SHA256 signing, timing-safe verification, sensitive field sanitization, versioned envelopes (`version: 1`, `source: "caketohome"`), and retry/DLQ processing.
   - `TelemarketingEngine`: 5-signal deterministic scoring (0–100), automated annual anniversary candidate evaluation, deduplication, live RBAC staff assignment, and conversion attribution.
   - `ReportsEngineData`: 16 multi-sheet automated enterprise Excel export workbooks, real-time live order ingestion, and GST HSN / intra-state tax summaries.

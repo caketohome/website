@@ -105,7 +105,7 @@ class CatalogModuleService extends (MedusaService({
 
         const data = {
             product_id: input.product_id,
-            eggless: input.eggless ?? false,
+            artisan: input.artisan ?? false,
             sugar_free: input.sugar_free ?? false,
             gluten_free: input.gluten_free ?? false,
             vegan: input.vegan ?? false,
@@ -170,7 +170,7 @@ class CatalogModuleService extends (MedusaService({
         }
 
         const data: Record<string, unknown> = {};
-        if (input.eggless !== undefined) data.eggless = input.eggless;
+        if (input.artisan !== undefined) data.artisan = input.artisan;
         if (input.sugar_free !== undefined) data.sugar_free = input.sugar_free;
         if (input.gluten_free !== undefined) data.gluten_free = input.gluten_free;
         if (input.vegan !== undefined) data.vegan = input.vegan;
@@ -595,7 +595,7 @@ class CatalogModuleService extends (MedusaService({
         // Apply dietary + merchandising filters.
         let filtered = published;
         const dietaryKeys: Array<keyof SearchFilters> = [
-            "eggless",
+            "artisan",
             "sugar_free",
             "gluten_free",
             "vegan",
@@ -633,7 +633,7 @@ class CatalogModuleService extends (MedusaService({
                 price,
                 rating: aggregate.average_rating,
                 review_count: aggregate.total_reviews,
-                eggless: (meta.eggless as boolean) ?? false,
+                artisan: (meta.artisan as boolean) ?? false,
                 sugar_free: (meta.sugar_free as boolean) ?? false,
                 gluten_free: (meta.gluten_free as boolean) ?? false,
                 vegan: (meta.vegan as boolean) ?? false,

@@ -126,7 +126,7 @@ e:\vig\cakes2home-main\cakes2home-main/
 ### Core Relational Entities
 1. **Users & Customers (`customers`)**: `id`, `phone`, `email`, `first_name`, `last_name`, `role`, `wallet_balance`, `loyalty_points`.
 2. **Shops & Bakery Branches (`shops`)**: `id`, `name`, `city`, `address`, `phone`, `is_open`, `lat`, `lng`.
-3. **Products & Cake Options (`products`, `cake_options`)**: `id`, `title`, `slug`, `price`, `category`, `description`, `eggless_available`, `sizes_kg`.
+3. **Products & Cake Options (`products`, `cake_options`)**: `id`, `title`, `slug`, `price`, `category`, `description`, `_available`, `sizes_kg`.
 4. **Inventory & 5-Field Math (`inventory_levels`)**: `physical_qty`, `reserved_qty`, `damaged_qty`, `available_qty` (`physical - reserved - damaged`).
 5. **Orders (`orders`)**: `id`, `order_number` (`CTH-YYYYMMDD-XXXXXX`), `customer_id`, `shop_id`, `delivery_status`, `payment_status`, `total_amount`.
 6. **Delivery Jobs & Fleet (`delivery_jobs`)**: `id`, `order_id`, `delivery_partner_id`, `status` (`CLAIMED`, `PICKED_UP`, `DELIVERED`), `delivery_fee`.
@@ -158,7 +158,7 @@ e:\vig\cakes2home-main\cakes2home-main/
 ### Key Pages & Capabilities
 - **Homepage (`/`)**: Hero carousel, category cards, branch selector, live CRO badges.
 - **Product Catalog (`/products`)**: Filter by category, search bar, sort by price, 3-state availability badge.
-- **Product Detail Page (PDP)**: Eggless toggle, size kg selector, custom name piping text, delivery slot picker.
+- **Product Detail Page (PDP)**: artisan toggle, size kg selector, custom name piping text, delivery slot picker.
 - **Cart Drawer**: Live order item updates, promo coupon code input, breakdown summary.
 - **Checkout Form (`/checkout`)**: Delivery address form, recipient gifting toggle, Razorpay/COD payment.
 - **Customer Account Portal (`/account`)**: Orders timeline, saved addresses, wallet ledger, loyalty points, referral share links.

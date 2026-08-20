@@ -9,7 +9,7 @@ import { model } from "@medusajs/utils";
  * product catalog is never modified — only extended.
  *
  * Fields:
- *   - eggless, sugar_free, gluten_free, vegan — dietary flags (filterable)
+ *   - artisan, sugar_free, gluten_free, vegan — dietary flags (filterable)
  *   - ingredients, allergens, nutritional_info, shelf_life, storage_instructions
  *   - fssai_license — FSSAI compliance display
  *   - video_url — product video (uploaded via Media Module M10)
@@ -25,7 +25,7 @@ export const ProductMeta = model.define("product_meta", {
         .primaryKey(),
     // Soft link to Medusa core product (prod_...). One row per product.
     product_id: model.text().searchable(),
-    eggless: model.boolean().default(false),
+    artisan: model.boolean().default(false),
     sugar_free: model.boolean().default(false),
     gluten_free: model.boolean().default(false),
     vegan: model.boolean().default(false),

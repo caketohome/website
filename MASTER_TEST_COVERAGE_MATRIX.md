@@ -23,7 +23,7 @@ This matrix maps every business and technical domain across CakeToHome to its co
 | **STAFF** | Disabled Staff Rejection | `test-unified-staff-roles-e2e.ts` | Inactive staff rejected with 403 Forbidden | Integration | 4 | Yes | Yes | No | None | **TRUSTED** | **TESTED** | Complete coverage |
 | **STORE** | Branch CRUD & Geofencing | `branch.unit.spec.ts`, `test-multicity-e2e.ts` | Operational hours, radius, pincodes | Unit / E2E | 8 | Yes | Yes | No | None | **TRUSTED** | **TESTED** | Complete coverage |
 | **STORE** | Multi-City Routing | `test-multicity-e2e.ts` | Bangalore, Delhi, Mumbai routing | E2E | 6 | Yes | Yes | No | None | **TRUSTED** | **PARTIALLY TESTED** | Bangalore fully tested; Delhi/Mumbai partially simulated |
-| **CATALOG** | Product Customization | `test-checkout-verification.ts` | Eggless, weight (kg), shape, message, card | E2E | 10 | Yes | Yes | No | None | **TRUSTED** | **TESTED** | Complete coverage |
+| **CATALOG** | Product Customization | `test-checkout-verification.ts` | artisan, weight (kg), shape, message, card | E2E | 10 | Yes | Yes | No | None | **TRUSTED** | **TESTED** | Complete coverage |
 | **CATALOG** | Delivery Lead Time & Cutoff | `test-product-delivery-restrictions.ts` | 4-hr prep window, midnight delivery gate | Integration | 8 | Yes | Yes | No | None | **TRUSTED** | **TESTED** | Complete coverage |
 | **CATALOG** | PIM Category Hierarchy | `pim-categories.spec.ts` | Category CRUD, slugs, parent mapping | Browser | 6 | Yes | Yes | Yes (Playwright) | None | **TRUSTED** | **TESTED** | Complete coverage |
 | **CHECKOUT** | Price Tampering Gate | `test-checkout-verification.ts` | Server-side price recalculation against catalog | E2E | 5 | Yes | Yes | No | None | **TRUSTED** | **TESTED** | Complete coverage |

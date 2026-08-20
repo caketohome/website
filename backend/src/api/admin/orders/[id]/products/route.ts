@@ -23,7 +23,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       weight: item.weight || meta.weight || "1.0 kg",
       flavour: item.flavour || meta.flavour || "Belgian Dark Chocolate",
       shape: item.shape || meta.shape || "Heart",
-      eggless: item.eggless ?? true,
+      artisan: item.artisan ?? true,
       cake_message: item.cake_message || meta.cake_message || "Happy Birthday!",
       quantity: item.quantity || 1,
       unit_price: item.unit_price || 649,

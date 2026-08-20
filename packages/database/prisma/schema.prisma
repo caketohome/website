@@ -261,7 +261,7 @@ model Product {
   reviewCount  Int                  @default(0)
   thumbnail    String?
   images       String[]
-  isEggless    Boolean              @default(true)
+  is_artisan    Boolean              @default(true)
   isBestseller Boolean              @default(false)
   isFeatured   Boolean              @default(false)
   categoryId   String

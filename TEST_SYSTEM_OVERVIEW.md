@@ -69,7 +69,7 @@ Total Test & Verification Files: 195+
    - Test file: [`frontend/scripts/test-store-manager-payment-delivery-e2e.ts`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/scripts/test-store-manager-payment-delivery-e2e.ts) (Phases 11–27).
 
 5. **Cart, Checkout, Customization & GST**:
-   - Cake customization persistence (weight in kg, shape, eggless, cake message, greeting card text, add-ons).
+   - Cake customization persistence (weight in kg, shape, artisan, cake message, greeting card text, add-ons).
    - Server-side price recalculation preventing client-side price tampering.
    - Statutory GST calculation (HSN 19059090: 9% CGST + 9% SGST = 18%).
    - Delivery slot capacity gating and cutoff time enforcement.

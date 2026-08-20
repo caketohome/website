@@ -53,7 +53,7 @@ export function VisualPageBuilder() {
       title: "❓ Frequently Asked Questions",
       items: [
         { q: "Do you deliver cakes at midnight?", a: "Yes! We offer midnight delivery slots between 11:30 PM and 12:05 AM across Bangalore." },
-        { q: "Can I customize the cake message and flavor?", a: "Absolutly! You can select size (0.5kg, 1kg, 2kg), eggless option, flavor, and add a custom name message during checkout." },
+        { q: "Can I customize the cake message and flavor?", a: "Absolutly! You can select size (0.5kg, 1kg, 2kg), artisan option, flavor, and add a custom name message during checkout." },
       ],
     },
   ]);

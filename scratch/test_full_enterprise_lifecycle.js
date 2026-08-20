@@ -54,7 +54,7 @@ if (!fs.existsSync(SCREENSHOT_DIR)) {
     results.push({
       role: "1. Customer Storefront",
       url: "http://localhost:3000/products/classic-chocolate-truffle-cake",
-      actions: "Resolved PIN 560001, selected eggless cake customization, added item to cart & opened checkout",
+      actions: "Resolved PIN 560001, selected artisan cake customization, added item to cart & opened checkout",
       status: "✅ PASS",
       screenshot: ss1
     });

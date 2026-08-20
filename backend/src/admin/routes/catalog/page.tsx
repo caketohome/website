@@ -144,10 +144,10 @@ function ProductMetaTab() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center justify-between">
-                        <Label>Eggless</Label>
+                        <Label>artisan</Label>
                         <Switch
-                            checked={!!form.eggless}
-                            onCheckedChange={(v) => setForm({ ...form, eggless: v })}
+                            checked={!!form.artisan}
+                            onCheckedChange={(v) => setForm({ ...form, artisan: v })}
                         />
                     </div>
                     <div className="flex items-center justify-between">
@@ -281,7 +281,7 @@ function ProductMetaTab() {
                                 <div className="flex flex-col gap-1">
                                     <Text className="text-xs font-mono">{m.product_id}</Text>
                                     <div className="flex gap-1 flex-wrap">
-                                        {m.eggless && <Badge size="small" color="green">Eggless</Badge>}
+                                        {m.artisan && <Badge size="small" color="green">artisan</Badge>}
                                         {m.sugar_free && <Badge size="small" color="blue">Sugar-Free</Badge>}
                                         {m.gluten_free && <Badge size="small" color="orange">Gluten-Free</Badge>}
                                         {m.vegan && <Badge size="small" color="purple">Vegan</Badge>}

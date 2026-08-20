@@ -36,7 +36,7 @@ async function runCheckoutVerification() {
     weight: "1.5 kg",
     shape: "Heart Shaped",
     flavour: "Belgian Dark Ganache",
-    eggless: true,
+    artisan: true,
     sugar_free: false,
     gluten_free: false,
     vegan: false,
@@ -54,7 +54,7 @@ async function runCheckoutVerification() {
   assert(lineItem.weight === "1.5 kg", "Weight customization persisted");
   assert(lineItem.shape === "Heart Shaped", "Shape customization persisted");
   assert(lineItem.flavour === "Belgian Dark Ganache", "Flavour customization persisted");
-  assert(lineItem.eggless === true, "Eggless status persisted");
+  assert(lineItem.artisan === true, "artisan status persisted");
   assert(lineItem.cake_message === "Happy Birthday Alex!", "Cake message persisted");
   assert(lineItem.subtotal === 649 * 2, `Line item subtotal ₹${lineItem.subtotal} matches expected ₹1298`);
 

@@ -6,7 +6,7 @@
 - [x] Phone SMS OTP authentication & login (`/login`)
 - [x] Customer account profile, addresses, and login history
 - [x] Product catalog browse, category filters, and full-text search
-- [x] Custom cake builder (eggless, shapes, custom text, photo upload)
+- [x] Custom cake builder (artisan, shapes, custom text, photo upload)
 - [x] Pincode serviceability check & delivery fee calculation
 - [x] Hourly delivery slot grid & midnight surcharge handling
 - [x] Shopping cart, coupon discounts, and checkout flow

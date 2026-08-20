@@ -4,7 +4,7 @@ import zod from "zod";
 
 const upsertSchema = zod.object({
     product_id: zod.string().min(1),
-    eggless: zod.boolean().optional(),
+    artisan: zod.boolean().optional(),
     sugar_free: zod.boolean().optional(),
     gluten_free: zod.boolean().optional(),
     vegan: zod.boolean().optional(),

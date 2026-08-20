@@ -46,7 +46,7 @@ async function testCartPipeline() {
     variantId: 'var_prod_1_1kg',
     quantity: 2,
     price: 649,
-    selectedOptions: { weight: '1.0 kg', eggless: true }
+    selectedOptions: { weight: '1.0 kg', artisan: true }
   });
   console.log("Status:", addRes.status, "Updated Cart:", JSON.stringify(addRes.data, null, 2));
 

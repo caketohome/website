@@ -172,23 +172,23 @@ describe("CatalogModuleService — Product Meta", () => {
         const { service, mocks } = createMockService();
         const result = await service.upsertProductMeta({
             product_id: "prod_1",
-            eggless: true,
+            artisan: true,
             ingredients: "Flour, sugar",
         });
 
         expect(result.product_id).toBe("prod_1");
-        expect(result.eggless).toBe(true);
+        expect(result.artisan).toBe(true);
         expect(mocks.createProductMetas).toHaveBeenCalledTimes(1);
     });
 
     it("upsertProductMeta updates an existing meta record", async () => {
         const { service, mocks } = createMockService([
-            { id: "pmt_1", product_id: "prod_1", eggless: false, sugar_free: false },
+            { id: "pmt_1", product_id: "prod_1", artisan: false, sugar_free: false },
         ]);
 
         await service.upsertProductMeta({
             product_id: "prod_1",
-            eggless: true,
+            artisan: true,
         });
 
         expect(mocks.updateProductMetas).toHaveBeenCalledTimes(1);
@@ -198,7 +198,7 @@ describe("CatalogModuleService — Product Meta", () => {
     it("updateProductMeta upserts when no existing record", async () => {
         const { service, mocks } = createMockService();
 
-        await service.updateProductMeta("prod_2", { eggless: true });
+        await service.updateProductMeta("prod_2", { artisan: true });
 
         expect(mocks.createProductMetas).toHaveBeenCalledTimes(1);
     });
@@ -208,7 +208,7 @@ describe("CatalogModuleService — Product Meta", () => {
             {
                 id: "pmt_1",
                 product_id: "prod_1",
-                eggless: false,
+                artisan: false,
                 sugar_free: false,
                 gluten_free: false,
                 vegan: false,

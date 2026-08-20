@@ -74,7 +74,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   const meta = {
     product_id: productId,
-    eggless: fetched?.eggless === true,
+    artisan: fetched?.artisan === true,
     sugar_free: fetched?.sugar_free === true,
     gluten_free: fetched?.gluten_free === true,
     vegan: fetched?.vegan === true,

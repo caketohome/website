@@ -142,7 +142,7 @@ Part of Settings Module. `feature_flag` — key, enabled, scope. Every major mod
 |---|---|
 | Shape Selection | ✅ |
 | Theme Selection | ✅ |
-| Egg/Eggless | ✅ |
+| Egg/artisan | ✅ |
 | Sugar-Free | ✅ |
 | Candles | ✅ |
 | Greeting Cards | ✅ |
@@ -476,7 +476,7 @@ Part of Settings Module. `feature_flag` — key, enabled, scope. Every major mod
 - [x] Global Product Catalog page + per-shop catalog
 - [x] Global category browse + filter
 - [x] Product Search (PostgreSQL full-text `tsvector` on product; `GET /store/products/search?q=`)
-- [x] Smart Filters (price, category, dietary, variant attributes, egg/eggless, sugar-free)
+- [x] Smart Filters (price, category, dietary, variant attributes, egg/artisan, sugar-free)
 - [x] Product Detail page with variant selection
 - [x] `product_review` model (product_id, customer_id, rating, title, body, images, status, reply); API + UI + moderation
 - [x] Product Comparison (description-only; cookie-stored set)
@@ -503,7 +503,7 @@ Part of Settings Module. `feature_flag` — key, enabled, scope. Every major mod
   - [x] Storefront "Save for Later" shelf layout utilizing local storage / cart metadata (Milestone 4.1)
   - [x] Cart promotions/coupons validation API wiring (Milestone 4.1)
 - **Cake Customization & Uploads**
-  - [x] Cake Customization selectors on PDP: shape, eggless, premium packaging, candles, greeting card (Milestone 4.2)
+  - [x] Cake Customization selectors on PDP: shape, artisan, premium packaging, candles, greeting card (Milestone 4.2)
   - [x] Custom message input on cake (max 30 chars, stored in metadata) (Milestone 4.2)
   - [x] Cake option model (`cake_option` model: product_id, option_type, values JSON, price_delta) (Milestone 4.2)
   - [x] Photo Cake custom image upload (PDP upload widget → M10 Media manager → line item metadata) (Milestone 4.2)

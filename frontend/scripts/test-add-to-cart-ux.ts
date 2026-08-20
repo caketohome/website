@@ -31,7 +31,7 @@ async function runTests() {
     weight: "1.0 kg",
     shape: "Round",
     flavour: "Chocolate",
-    eggless: true,
+    artisan: true,
     cake_message: null, // empty message
   };
   const res1 = ApiEngine.addToCart(cart1Id, payload1);
@@ -61,7 +61,7 @@ async function runTests() {
     weight: "1.0 kg",
     shape: "Round",
     flavour: "Chocolate",
-    eggless: true,
+    artisan: true,
     cake_message: "Happy Birthday Alex",
   };
   const res2 = ApiEngine.addToCart(cart2Id, payload2);
@@ -97,21 +97,21 @@ async function runTests() {
   assert(res4.items[0].photo_cake === "https://images.unsplash.com/photo-1578985545062-69928b1d9587", "TEST 4: Photo URL customization persisted");
   assert(res4.items[0].cake_message === "Happy Anniversary Mom & Dad", "TEST 4: Custom message along with photo persisted");
 
-  // TEST 5: Eggless enabled -> Add to Cart -> eggless customization remains intact
-  console.log("\n--- TEST 5: Eggless Customization Intact ---");
+  // TEST 5: artisan enabled -> Add to Cart -> artisan customization remains intact
+  console.log("\n--- TEST 5: artisan Customization Intact ---");
   const cart5Id = `cart_test5_${Date.now()}`;
   ApiEngine.createCart({ id: cart5Id });
   const payload5 = {
     productId: "prod_1",
-    variantId: "var_prod_1_eggless",
+    variantId: "var_prod_1_",
     title: "Belgian Chocolate Truffle Cake",
     price: 699,
     quantity: 1,
-    eggless: true,
+    artisan: true,
   };
   const res5 = ApiEngine.addToCart(cart5Id, payload5);
   assert(res5.items.length === 1, "TEST 5: Exactly 1 item in cart");
-  assert(res5.items[0].eggless === true, "TEST 5: Eggless flag persisted as true");
+  assert(res5.items[0].artisan === true, "TEST 5: artisan flag persisted as true");
 
   // TEST 6: Quantity = 2 -> Add to Cart -> one cart line with quantity 2 -> NOT two separate line additions
   console.log("\n--- TEST 6: Single Line Item with Quantity 2 ---");

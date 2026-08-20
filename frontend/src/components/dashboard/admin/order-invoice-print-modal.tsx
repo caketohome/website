@@ -140,7 +140,7 @@ export function OrderInvoicePrintModal({ order, onClose }: OrderInvoicePrintModa
                       <td className="p-2.5 text-center">{idx + 1}</td>
                       <td className="p-2.5">
                         <p className="font-bold text-slate-900 dark:text-white">{item.title}</p>
-                        <p className="text-[10px] text-slate-500">{item.weight || "1.0 kg"} &bull; {item.flavour || "Chocolate"} &bull; {item.eggless ? "Eggless" : "With Egg"}</p>
+                        <p className="text-[10px] text-slate-500">{item.weight || "1.0 kg"} &bull; {item.flavour || "Chocolate"} &bull; {item.artisan ? "artisan" : "With Egg"}</p>
                       </td>
                       <td className="p-2.5 text-center font-mono text-[11px]">{item.hsn_code || "19059090"}</td>
                       <td className="p-2.5 text-center font-bold">PCS</td>
@@ -164,7 +164,7 @@ export function OrderInvoicePrintModal({ order, onClose }: OrderInvoicePrintModa
                   <td className="p-2.5 text-center">1</td>
                   <td className="p-2.5">
                     <p className="font-bold text-slate-900 dark:text-white">Belgian Chocolate Truffle Cake</p>
-                    <p className="text-[10px] text-slate-500">1.0 kg &bull; Gourmet Dark Chocolate &bull; Eggless</p>
+                    <p className="text-[10px] text-slate-500">1.0 kg &bull; Gourmet Dark Chocolate &bull; artisan</p>
                   </td>
                   <td className="p-2.5 text-center font-mono text-[11px]">19059090</td>
                   <td className="p-2.5 text-center font-bold">PCS</td>

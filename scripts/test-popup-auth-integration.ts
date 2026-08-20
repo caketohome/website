@@ -148,7 +148,7 @@ async function runPopupAuthIntegrationTests() {
   const updatedCart = ApiEngine.addToCart(guestCart.id, {
     productId: "prod_1",
     quantity: 2,
-    selectedOptions: { eggless: true },
+    selectedOptions: { artisan: true },
   });
   assert(updatedCart.items?.length > 0, "Cart has items before login");
 

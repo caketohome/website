@@ -74,7 +74,7 @@ flowchart TD
   - `CustomerRecord`, `CustomerActivityLog`, `CustomerNoteRecord`, `CustomerAddressRecord`
 
 ### 3. Catalog, PIM & Multi-Branch Inventory (`CATALOG_INVENTORY`)
-- **Domain Responsibilities**: Cake and dessert catalog, slug routing, weight pricing tiers (0.5kg, 1kg, 2kg, etc.), flavor customization, add-ons/accessories, eggless/dietary filters, branch-level stock overrides, and lead-time constraints.
+- **Domain Responsibilities**: Cake and dessert catalog, slug routing, weight pricing tiers (0.5kg, 1kg, 2kg, etc.), flavor customization, add-ons/accessories, artisan/dietary filters, branch-level stock overrides, and lead-time constraints.
 - **Canonical Files**:
   - `src/lib/api-engine.ts`
   - `src/lib/data/products.ts`

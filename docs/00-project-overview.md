@@ -51,7 +51,7 @@
 +-----------------+ +-------------------+ +---------------+ +------------------+
 ```
 
-1. **Storefront (Customer Interface)**: High-converting, mobile-first ordering app with SMS OTP login, custom cake builder (eggless, shapes, messages, photo uploads), pincode serviceability checks, and hourly delivery slot booking.
+1. **Storefront (Customer Interface)**: High-converting, mobile-first ordering app with SMS OTP login, custom cake builder (artisan, shapes, messages, photo uploads), pincode serviceability checks, and hourly delivery slot booking.
 2. **Bakery Shop (Branch / Owner Interface)**: Real-time Kitchen Display System (KDS) order pipeline and 3-state inventory matrix (Available, Out of Stock, Hidden).
 3. **Delivery Fleet (Driver / Logistics Interface)**: Pincode-grouped dispatch board, claimable delivery jobs, route navigation, and delivery status updates.
 4. **Super Admin (Platform Owner Interface)**: Executive command center for branch administration, dynamic homepage CMS, promotional rules engine, security audit logs, and AI catalog assist.

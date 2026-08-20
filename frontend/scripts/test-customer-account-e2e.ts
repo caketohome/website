@@ -158,7 +158,7 @@ async function runCustomerAccountTestSuite() {
     email: "alex.senior@example.com",
     date_of_birth: "1992-08-15",
     preferences: {
-      eggless_only: true,
+      artisan_only: true,
       favourite_flavour: "Red Velvet Cream Cheese",
       whatsapp_notifications: true,
     },
@@ -168,7 +168,7 @@ async function runCustomerAccountTestSuite() {
   assert(updateRes.customer?.full_name === "Alex R Ashok Senior", "5.2: Full name updated in customer store");
   assert(updateRes.customer?.email === "alex.senior@example.com", "5.3: Email updated in customer store");
   assert(updateRes.customer?.date_of_birth === "1992-08-15", "5.4: Date of birth updated for birthday surprise program");
-  assert(updateRes.customer?.preferences?.eggless_only === true, "5.5: 100% Eggless dietary preference saved");
+  assert(updateRes.customer?.preferences?.artisan_only === true, "5.5: 100% artisan dietary preference saved");
   assert(updateRes.customer?.preferences?.favourite_flavour === "Red Velvet Cream Cheese", "5.6: Favourite flavour preference saved");
 
   // ════════════════════════════════════════════════════════════════════════════

@@ -32,7 +32,7 @@
 
 ### 1.1 Products Catalog Page (/products)
 - **Expected**: Full product grid with images, prices, filters, sorting
-- **Actual**: 26 products displayed with filters (Eggless, Sugar-Free, Gluten-Free, Vegan), sorting, price range
+- **Actual**: 26 products displayed with filters (artisan, Sugar-Free, Gluten-Free, Vegan), sorting, price range
 - **Status**: ✅ PASS
 
 ### 1.2 Product Details & Add to Cart
@@ -42,7 +42,7 @@
 
 ### 1.3 Shopping Cart (/cart)
 - **Expected**: Cart with item details, subtotal, "Proceed to Checkout" button
-- **Actual**: "Your Shopping Cart (1 item)" showing Classic Chocolate Truffle Cake ₹500, 0.5 kg, Eggless, Round. Message "Happy Birthday" visible. Subtotal ₹500. "Proceed to Checkout →" button present.
+- **Actual**: "Your Shopping Cart (1 item)" showing Classic Chocolate Truffle Cake ₹500, 0.5 kg, artisan, Round. Message "Happy Birthday" visible. Subtotal ₹500. "Proceed to Checkout →" button present.
 - **Status**: ✅ PASS
 
 ### 1.4 Checkout Step 1 — Contact & Delivery Address
@@ -82,7 +82,7 @@
   - Delivery Schedule: 2026-08-13, 04:00 PM - 05:00 PM
   - Payment Mode: **Online** — **Captured** ✅
   - Delivery Destination: Contact 9876543210
-  - Items: Classic Chocolate Truffle Cake ₹500, 1 × ₹500, 0.5 kg, Eggless
+  - Items: Classic Chocolate Truffle Cake ₹500, 1 × ₹500, 0.5 kg, artisan
   - Payment Summary: Subtotal ₹500, Delivery FREE, GST ₹23.81, **Total Paid ₹500**
 - **Status**: ✅ PASS
 

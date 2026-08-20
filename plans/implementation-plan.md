@@ -44,7 +44,7 @@ Phase 0 to Phase 17 are fully complete and verified.
 
 # Phase 4 Implementation Plan — Cart, Checkout, Cake Customization & Delivery Scheduling
 
-This phase introduces a highly flexible storefront ordering workflow, allowing customer customization of cakes (shape, eggless, premium wrapping, text message, photo cake upload), branch selection (delivery vs. pickup), scheduled delivery slots, and postal code serviceable coverage verification with dynamic zone delivery charges.
+This phase introduces a highly flexible storefront ordering workflow, allowing customer customization of cakes (shape, artisan, premium wrapping, text message, photo cake upload), branch selection (delivery vs. pickup), scheduled delivery slots, and postal code serviceable coverage verification with dynamic zone delivery charges.
 
 ## Phase 4 Roadmap & Milestones
 
@@ -57,14 +57,14 @@ This phase introduces a highly flexible storefront ordering workflow, allowing c
   - `POST /store/carts/:id/promotions` (Request: `{ code: string }`, Response: `{ promotion: any, discount: number }`)
 
 ### Milestone 4.2 — Cake Customization Engine
-- **Goal:** Implement shape/eggless/packaging selectors on the storefront PDP, calculating price deltas dynamically on line items.
+- **Goal:** Implement shape/artisan/packaging selectors on the storefront PDP, calculating price deltas dynamically on line items.
 - **New Features:** 
-  - Add backend `cake_option` model defining shape, packaging, eggless upgrades, and their positive/negative price differentials (INR).
+  - Add backend `cake_option` model defining shape, packaging, artisan upgrades, and their positive/negative price differentials (INR).
   - PDP pricing logic that adjusts product prices locally before cart addition.
 - **Database Schema (`cake_option`):**
   - `id`: string (primary key)
   - `product_id`: string (foreign key to product)
-  - `option_type`: string (`shape`, `eggless`, `packaging`, etc.)
+  - `option_type`: string (`shape`, `artisan`, `packaging`, etc.)
   - `values`: jsonb (e.g., `["Round", "Square", "Heart"]`)
   - `price_delta`: number (in INR)
 

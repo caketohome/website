@@ -1175,7 +1175,7 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/products",
     breadcrumb_title: "All Cakes",
     meta_title: "Order Fresh Cakes Online — Birthday, Wedding & Custom Cakes | CakeToHome",
-    meta_description: "Browse 100+ fresh handcrafted cakes online. Birthday cakes, wedding cakes, photo cakes, eggless, and vegan options. Delivery across Bangalore in 2 hours.",
+    meta_description: "Browse 100+ fresh handcrafted cakes online. Birthday cakes, wedding cakes, photo cakes, artisan, and vegan options. Delivery across Bangalore in 2 hours.",
     robots_tag: "index, follow",
     canonical_url: "https://cakes2home.com/products",
     keywords: "buy cakes online, birthday cake order, wedding cake bangalore, gourmet cakes photo cakes",
@@ -1289,7 +1289,7 @@ const DEFAULT_CMS_PAGES = [
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
     announcement_bar: { enabled: false, text: "", cta_text: "", cta_url: "", bg_color: "#e11d48" },
     sections: [
-      { id: "sec_faq_main", type: "faq", name: "FAQ Content", enabled: true, order: 1, config: { heading: "Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake flavor and message?", a: "Absolutely! Choose from Belgian Chocolate, Red Velvet, Alphonso Mango, Lotus Biscoff and more. Add a personalized message during checkout." }, { q: "Do you offer gourmet cakes?", a: "Yes, all our cakes are available in eggless versions at no extra cost." }, { q: "What is your cancellation policy?", a: "Orders can be cancelled within 2 hours of placement for a full refund. After that, a 15% cancellation fee applies." } ] } },
+      { id: "sec_faq_main", type: "faq", name: "FAQ Content", enabled: true, order: 1, config: { heading: "Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake flavor and message?", a: "Absolutely! Choose from Belgian Chocolate, Red Velvet, Alphonso Mango, Lotus Biscoff and more. Add a personalized message during checkout." }, { q: "Do you offer gourmet cakes?", a: "Yes, all our cakes are available in artisan versions at no extra cost." }, { q: "What is your cancellation policy?", a: "Orders can be cancelled within 2 hours of placement for a full refund. After that, a 15% cancellation fee applies." } ] } },
     ],
     draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
     published_config: {},
@@ -1360,7 +1360,7 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/birthday-cakes-bangalore",
     breadcrumb_title: "Birthday Cakes",
     meta_title: "Best Birthday Cakes in Bangalore — Same Day Delivery | CakeToHome",
-    meta_description: "Order the best birthday cakes in Bangalore with same-day & midnight delivery. Customizable, eggless, and photo cakes from ₹399. Free delivery above ₹599.",
+    meta_description: "Order the best birthday cakes in Bangalore with same-day & midnight delivery. Customizable, artisan, and photo cakes from ₹399. Free delivery above ₹599.",
     robots_tag: "index, follow",
     canonical_url: "https://cakes2home.com/birthday-cakes-bangalore",
     keywords: "birthday cakes bangalore, birthday cake delivery, custom birthday cake, midnight birthday cake delivery",
@@ -9852,7 +9852,7 @@ export class ApiEngine {
       flavors: ["Belgian Truffle", "Red Velvet", "Alphonso Mango Mousse", "Black Forest", "Butterscotch Crunch"],
       tiers: [1, 2, 3],
       sizes: ["0.5 kg", "1.0 kg", "1.5 kg", "2.0 kg"],
-      dietary: ["Eggless", "Sugar-Free", "Gluten-Free", "Vegan"],
+      dietary: ["artisan", "Sugar-Free", "Gluten-Free", "Vegan"],
     };
   }
 
