@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState, memo, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { Container, Heading, Text, StatusBadge, Badge, Input, Button } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
 import {
   Search, Eye, RefreshCw, Download, Printer, Filter, CheckSquare, Square,
-  SlidersHorizontal, ChevronLeft, ChevronRight, Store, Truck, Phone, FileText, Plus
+  SlidersHorizontal, ChevronLeft, ChevronRight, Store, Truck, Phone, FileText, Plus, X
 } from "lucide-react";
 import { TableSkeleton } from "./admin-skeletons";
 import { WidgetErrorBoundary } from "./error-boundary";
@@ -13,23 +14,57 @@ import { OrderDetailsDrawer } from "./order-details-drawer";
 import { CreateOrderDrawer } from "./create-order-drawer";
 
 export const OrdersPanel = memo(function OrdersPanel() {
+  const searchParams = useSearchParams();
+
   const [orders, setOrders] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [branchFilter, setBranchFilter] = useState("all");
-  const [cityFilter, setCityFilter] = useState("all");
-  const [paymentFilter, setPaymentFilter] = useState("all");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-  const [datePreset, setDatePreset] = useState("all");
-  const [deliveryTypeFilter, setDeliveryTypeFilter] = useState("all");
+  const [branches, setBranches] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
+
+  // Initial Filter State from URL
+  const [search, setSearch] = useState(searchParams?.get("q") || searchParams?.get("search") || "");
+  const [statusFilter, setStatusFilter] = useState(searchParams?.get("status") || "all");
+  const [branchFilter, setBranchFilter] = useState(searchParams?.get("branch_id") || searchParams?.get("branch") || "all");
+  const [cityFilter, setCityFilter] = useState(searchParams?.get("city") || searchParams?.get("city_id") || "all");
+  const [paymentFilter, setPaymentFilter] = useState(searchParams?.get("payment_status") || searchParams?.get("paymentStatus") || "all");
+  const [fromDate, setFromDate] = useState(searchParams?.get("from_date") || "");
+  const [toDate, setToDate] = useState(searchParams?.get("to_date") || "");
+  const [datePreset, setDatePreset] = useState(searchParams?.get("date_preset") || searchParams?.get("datePreset") || "all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateOrderOpen, setIsCreateOrderOpen] = useState(false);
 
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(Number(searchParams?.get("page")) || 1);
   const limit = 25;
+
+  // Load Active Branches and Cities
+  useEffect(() => {
+    apiClient.getAdminBranches().then((res: any) => {
+      const list = res?.branches || (Array.isArray(res) ? res : []);
+      if (Array.isArray(list) && list.length > 0) setBranches(list);
+    });
+    apiClient.getAdminCities().then((res: any) => {
+      const list = res?.cities || (Array.isArray(res) ? res : []);
+      if (Array.isArray(list) && list.length > 0) setCities(list);
+    });
+  }, []);
+
+  // Synchronize URL with active filter state
+  const syncUrl = useCallback((updates: Record<string, string | number>) => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", "orders");
+    
+    Object.entries(updates).forEach(([key, val]) => {
+      if (!val || val === "all" || (key === "page" && Number(val) === 1)) {
+        url.searchParams.delete(key);
+      } else {
+        url.searchParams.set(key, String(val));
+      }
+    });
+
+    window.history.replaceState(null, "", url.toString());
+  }, []);
 
   const handleDatePresetChange = (preset: string) => {
     setDatePreset(preset);
@@ -37,42 +72,92 @@ export const OrdersPanel = memo(function OrdersPanel() {
     const now = new Date();
     const formatDate = (d: Date) => d.toISOString().slice(0, 10);
 
-    if (preset === "all") { setFromDate(""); setToDate(""); return; }
-    if (preset === "today") { setFromDate(formatDate(now)); setToDate(formatDate(now)); return; }
-    if (preset === "yesterday") {
+    let nextFrom = "";
+    let nextTo = "";
+
+    if (preset === "all") {
+      nextFrom = "";
+      nextTo = "";
+    } else if (preset === "today") {
+      nextFrom = formatDate(now);
+      nextTo = formatDate(now);
+    } else if (preset === "yesterday") {
       const y = new Date(now); y.setDate(y.getDate() - 1);
-      setFromDate(formatDate(y)); setToDate(formatDate(y)); return;
-    }
-    if (preset === "last_7_days") {
+      nextFrom = formatDate(y);
+      nextTo = formatDate(y);
+    } else if (preset === "last_7_days") {
       const d = new Date(now); d.setDate(d.getDate() - 6);
-      setFromDate(formatDate(d)); setToDate(formatDate(now)); return;
-    }
-    if (preset === "last_30_days") {
+      nextFrom = formatDate(d);
+      nextTo = formatDate(now);
+    } else if (preset === "last_30_days") {
       const d = new Date(now); d.setDate(d.getDate() - 29);
-      setFromDate(formatDate(d)); setToDate(formatDate(now)); return;
-    }
-    if (preset === "last_90_days") {
+      nextFrom = formatDate(d);
+      nextTo = formatDate(now);
+    } else if (preset === "last_90_days") {
       const d = new Date(now); d.setDate(d.getDate() - 89);
-      setFromDate(formatDate(d)); setToDate(formatDate(now)); return;
-    }
-    if (preset === "this_month") {
+      nextFrom = formatDate(d);
+      nextTo = formatDate(now);
+    } else if (preset === "this_month") {
       const d = new Date(now.getFullYear(), now.getMonth(), 1);
-      setFromDate(formatDate(d)); setToDate(formatDate(now)); return;
-    }
-    if (preset === "last_month") {
+      nextFrom = formatDate(d);
+      nextTo = formatDate(now);
+    } else if (preset === "last_month") {
       const d1 = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const d2 = new Date(now.getFullYear(), now.getMonth(), 0);
-      setFromDate(formatDate(d1)); setToDate(formatDate(d2)); return;
-    }
-    if (preset === "this_year") {
+      nextFrom = formatDate(d1);
+      nextTo = formatDate(d2);
+    } else if (preset === "this_year") {
       const d = new Date(now.getFullYear(), 0, 1);
-      setFromDate(formatDate(d)); setToDate(formatDate(now)); return;
-    }
-    if (preset === "financial_year") {
+      nextFrom = formatDate(d);
+      nextTo = formatDate(now);
+    } else if (preset === "financial_year") {
       const fyStart = now.getMonth() >= 3 ? new Date(now.getFullYear(), 3, 1) : new Date(now.getFullYear() - 1, 3, 1);
-      setFromDate(formatDate(fyStart)); setToDate(formatDate(now)); return;
+      nextFrom = formatDate(fyStart);
+      nextTo = formatDate(now);
     }
+
+    setFromDate(nextFrom);
+    setToDate(nextTo);
+    syncUrl({
+      date_preset: preset,
+      from_date: nextFrom,
+      to_date: nextTo,
+      page: 1,
+    });
   };
+
+  const handleClearAllFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+    setBranchFilter("all");
+    setCityFilter("all");
+    setPaymentFilter("all");
+    setDatePreset("all");
+    setFromDate("");
+    setToDate("");
+    setPage(1);
+    syncUrl({
+      q: "",
+      status: "all",
+      branch_id: "all",
+      city: "all",
+      payment_status: "all",
+      date_preset: "all",
+      from_date: "",
+      to_date: "",
+      page: 1,
+    });
+  };
+
+  const hasActiveFilters =
+    search !== "" ||
+    statusFilter !== "all" ||
+    branchFilter !== "all" ||
+    cityFilter !== "all" ||
+    paymentFilter !== "all" ||
+    datePreset !== "all" ||
+    fromDate !== "" ||
+    toDate !== "";
 
   // Selected Order Drawer State
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -81,7 +166,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [bulkStatus, setBulkStatus] = useState("");
 
-  // Column Visibility State
+  // Column Visibility State (Completely decoupled from domain filters)
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
     order_number: true,
@@ -107,6 +192,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
         branch_id: branchFilter,
         city: cityFilter,
         payment_status: paymentFilter,
+        date_preset: datePreset,
         from_date: fromDate,
         to_date: toDate,
         limit,
@@ -115,7 +201,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
       .then((r: any) => {
         const list = r?.orders || r?.data || [];
         setOrders(Array.isArray(list) ? list : []);
-        setTotalCount(r?.total || list.length || 0);
+        setTotalCount(r?.total ?? r?.count ?? (Array.isArray(list) ? list.length : 0));
       })
       .catch((err) => {
         console.error("[Orders Command Center Error] Failed to fetch orders:", err);
@@ -123,7 +209,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
         setOrders([]);
       })
       .finally(() => setLoading(false));
-  }, [page, search, statusFilter, branchFilter, cityFilter, paymentFilter, fromDate, toDate]);
+  }, [page, search, statusFilter, branchFilter, cityFilter, paymentFilter, datePreset, fromDate, toDate]);
 
   useEffect(() => {
     fetchOrders();
@@ -257,8 +343,14 @@ export const OrdersPanel = memo(function OrdersPanel() {
             <Input
               placeholder="Search order #, customer, phone..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearch(val);
+                setPage(1);
+                syncUrl({ q: val, page: 1 });
+              }}
               className="pl-9 text-xs"
+              data-testid="orders-search-input"
             />
           </div>
 
@@ -277,32 +369,75 @@ export const OrdersPanel = memo(function OrdersPanel() {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap text-xs">
+            {/* Branch Hub Selector */}
             <select
               value={branchFilter}
-              onChange={(e) => { setBranchFilter(e.target.value); setPage(1); }}
-              className="p-2 border rounded-xl bg-white dark:bg-slate-800 font-semibold text-xs"
+              onChange={(e) => {
+                const val = e.target.value;
+                setBranchFilter(val);
+                setPage(1);
+                syncUrl({ branch_id: val, page: 1 });
+              }}
+              className="p-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs"
+              data-testid="branch-filter"
             >
               <option value="all">All Branch Hubs</option>
-              <option value="res_01KXYMAHGFPRY1G9TZKEVGAGAT">Indiranagar Flagship</option>
-              <option value="res_02KXYMAHGFPRY1G9TZKEVGAGAT">Koramangala Gourmet</option>
-              <option value="res_03KXYMAHGFPRY1G9TZKEVGAGAT">Whitefield Central</option>
+              {branches.length > 0 ? (
+                branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))
+              ) : (
+                <>
+                  <option value="br_indiranagar">Indiranagar Flagship</option>
+                  <option value="br_koramangala">Koramangala Gourmet</option>
+                  <option value="br_whitefield">Whitefield Central</option>
+                  <option value="br_hsr">HSR Layout Kitchen</option>
+                </>
+              )}
             </select>
 
+            {/* City Selector */}
             <select
               value={cityFilter}
-              onChange={(e) => { setCityFilter(e.target.value); setPage(1); }}
-              className="p-2 border rounded-xl bg-white dark:bg-slate-800 font-semibold text-xs"
+              onChange={(e) => {
+                const val = e.target.value;
+                setCityFilter(val);
+                setPage(1);
+                syncUrl({ city: val, page: 1 });
+              }}
+              className="p-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs"
+              data-testid="city-filter"
             >
               <option value="all">All Cities</option>
-              <option value="bengaluru">Bengaluru</option>
-              <option value="mumbai">Mumbai</option>
-              <option value="delhi">Delhi NCR</option>
+              {cities.length > 0 ? (
+                cities.map((c) => (
+                  <option key={c.id || c.slug} value={c.slug || c.name.toLowerCase()}>
+                    {c.name}
+                  </option>
+                ))
+              ) : (
+                <>
+                  <option value="bengaluru">Bengaluru</option>
+                  <option value="mumbai">Mumbai</option>
+                  <option value="delhi">Delhi NCR</option>
+                  <option value="kochi">Kochi</option>
+                </>
+              )}
             </select>
 
+            {/* Payment Status Selector */}
             <select
               value={paymentFilter}
-              onChange={(e) => { setPaymentFilter(e.target.value); setPage(1); }}
-              className="p-2 border rounded-xl bg-white dark:bg-slate-800 font-semibold text-xs"
+              onChange={(e) => {
+                const val = e.target.value;
+                setPaymentFilter(val);
+                setPage(1);
+                syncUrl({ payment_status: val, page: 1 });
+              }}
+              className="p-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs"
+              data-testid="payment-filter"
             >
               <option value="all">All Payment Statuses</option>
               <option value="paid">Paid / Captured</option>
@@ -315,6 +450,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
               value={datePreset}
               onChange={(e) => handleDatePresetChange(e.target.value)}
               className="p-2 border rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200 font-extrabold text-xs"
+              data-testid="date-preset-filter"
             >
               <option value="all">📅 All Time (Any Date)</option>
               <option value="today">Today</option>
@@ -333,17 +469,57 @@ export const OrdersPanel = memo(function OrdersPanel() {
             {datePreset === "custom" && (
               <div className="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-950/40 p-1 rounded-xl border border-purple-200">
                 <span className="text-[10px] font-bold text-purple-700 dark:text-purple-300">From:</span>
-                <Input type="date" value={fromDate} onChange={(e) => { setFromDate(e.target.value); setPage(1); }} className="h-7 text-xs w-32" />
+                <Input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setFromDate(val);
+                    setPage(1);
+                    syncUrl({ from_date: val, page: 1 });
+                  }}
+                  className="h-7 text-xs w-32"
+                  data-testid="from-date-input"
+                />
                 <span className="text-[10px] font-bold text-purple-700 dark:text-purple-300">To:</span>
-                <Input type="date" value={toDate} onChange={(e) => { setToDate(e.target.value); setPage(1); }} className="h-7 text-xs w-32" />
+                <Input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setToDate(val);
+                    setPage(1);
+                    syncUrl({ to_date: val, page: 1 });
+                  }}
+                  className="h-7 text-xs w-32"
+                  data-testid="to-date-input"
+                />
                 <button
                   type="button"
-                  onClick={() => { setFromDate(""); setToDate(""); setDatePreset("all"); }}
+                  onClick={() => {
+                    setFromDate("");
+                    setToDate("");
+                    setDatePreset("all");
+                    syncUrl({ date_preset: "all", from_date: "", to_date: "", page: 1 });
+                  }}
                   className="text-[10px] text-slate-500 hover:text-slate-700 font-bold px-1"
                 >
                   Reset
                 </button>
               </div>
+            )}
+
+            {/* Clear All Filters Button */}
+            {hasActiveFilters && (
+              <Button
+                size="small"
+                variant="secondary"
+                onClick={handleClearAllFilters}
+                className="flex items-center gap-1 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+                data-testid="clear-filters-button"
+              >
+                <X className="w-3.5 h-3.5" /> Clear Filters
+              </Button>
             )}
           </div>
         </div>
@@ -400,13 +576,23 @@ export const OrdersPanel = memo(function OrdersPanel() {
         {loading ? (
           <TableSkeleton rows={8} cols={7} />
         ) : orders.length === 0 ? (
-          <Container className="p-12 text-center flex flex-col gap-2 items-center">
+          <Container className="p-12 text-center flex flex-col gap-2 items-center border rounded-2xl bg-white dark:bg-slate-900" data-testid="orders-empty-state">
             <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-950/40 flex items-center justify-center text-2xl">🎂</div>
-            <Text className="font-bold text-slate-700 dark:text-slate-200">No orders found matching filter criteria.</Text>
-            <Text className="text-xs text-slate-500">Orders placed by customers will appear here in real-time.</Text>
-            <Button size="small" variant="secondary" onClick={fetchOrders} className="mt-2 text-xs">
-              <RefreshCw className="w-3 h-3 mr-1" /> Retry Loading Orders
-            </Button>
+            <Text className="font-bold text-slate-700 dark:text-slate-200">
+              {hasActiveFilters ? "No orders found matching the active filter combination." : "No orders found in the database."}
+            </Text>
+            <Text className="text-xs text-slate-500">
+              {hasActiveFilters ? "Try broadening or resetting your active filter selections." : "New customer orders will appear here automatically."}
+            </Text>
+            {hasActiveFilters ? (
+              <Button size="small" variant="secondary" onClick={handleClearAllFilters} className="mt-2 text-xs text-rose-600 border-rose-200" data-testid="empty-clear-filters">
+                <X className="w-3 h-3 mr-1" /> Reset All Filters
+              </Button>
+            ) : (
+              <Button size="small" variant="secondary" onClick={fetchOrders} className="mt-2 text-xs">
+                <RefreshCw className="w-3 h-3 mr-1" /> Retry Loading Orders
+              </Button>
+            )}
           </Container>
         ) : (
           <Container className="p-0 overflow-hidden border rounded-2xl shadow-sm">

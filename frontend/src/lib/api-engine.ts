@@ -95,12 +95,21 @@ export interface ProductItem {
   price: number;
   rating: number;
   review_count: number;
-    sugar_free: boolean;
+  sugar_free: boolean;
   gluten_free: boolean;
   vegan: boolean;
   is_featured: boolean;
   is_bestseller: boolean;
   is_new_arrival: boolean;
+
+  // ── Category & Taxonomy Properties ──
+  category?: string;
+  category_slug?: string;
+  primary_category_id?: string;
+  category_ids?: string[];
+  categories?: Array<{ id: string; name: string; slug: string; description?: string }>;
+  flavour?: string;
+  weight?: string;
   
   // ── Enterprise Delivery Rules & Preparation Times ──
   is_deliverable?: boolean;
@@ -149,6 +158,16 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     is_featured: true,
     is_bestseller: true,
     is_new_arrival: false,
+    flavour: "Chocolate",
+    weight: "1 kg",
+    primary_category_id: "cat_chocolate",
+    category: "Chocolate Cakes",
+    category_slug: "chocolate-cakes",
+    category_ids: ["cat_chocolate", "cat_bestsellers"],
+    categories: [
+      { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", description: "Rich, decadent Belgian chocolate, fudge, and truffle cakes." },
+      { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", description: "Bangalore's most-ordered gourmet celebratory cakes." },
+    ],
   },
   {
     product_id: "prod_2",
@@ -167,6 +186,17 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     is_featured: true,
     is_bestseller: true,
     is_new_arrival: false,
+    flavour: "Red Velvet",
+    weight: "1 kg",
+    primary_category_id: "cat_red_velvet",
+    category: "Red Velvet Cakes",
+    category_slug: "red-velvet-cakes",
+    category_ids: ["cat_red_velvet", "cat_cheesecakes", "cat_bestsellers"],
+    categories: [
+      { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", description: "Classic crimson velvet layers with rich cream cheese frosting." },
+      { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", description: "Baked New York cheesecakes and chef-crafted artisanal creations." },
+      { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", description: "Bangalore's most-ordered gourmet celebratory cakes." },
+    ],
   },
   {
     product_id: "prod_3",
@@ -174,7 +204,7 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     title: "Fresh Alphonso Mango Mousse Cake",
     name: "Fresh Alphonso Mango Mousse Cake",
     description: "Seasonal Alphonso mango pulp whipped into light, airy mousse layers.",
-    thumbnail: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800",
+    thumbnail: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800",
     handle: "mango-mousse-cake",
     price: 699,
     rating: 4.9,
@@ -185,6 +215,15 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     is_featured: true,
     is_bestseller: false,
     is_new_arrival: true,
+    flavour: "Mango",
+    weight: "1 kg",
+    primary_category_id: "cat_fruit_mousse",
+    category: "Fruit & Mousse Cakes",
+    category_slug: "fruit-mousse-cakes",
+    category_ids: ["cat_fruit_mousse"],
+    categories: [
+      { id: "cat_fruit_mousse", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes", description: "Fresh seasonal Alphonso mango, berries, and airy mousse layers." },
+    ],
   },
   {
     product_id: "prod_4",
@@ -203,6 +242,17 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     is_featured: false,
     is_bestseller: true,
     is_new_arrival: false,
+    flavour: "Black Forest",
+    weight: "1 kg",
+    primary_category_id: "cat_black_forest",
+    category: "Black Forest Cakes",
+    category_slug: "black-forest-cakes",
+    category_ids: ["cat_black_forest", "cat_chocolate", "cat_bestsellers"],
+    categories: [
+      { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes", description: "Traditional German gateau with cherries and chocolate shavings." },
+      { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", description: "Rich, decadent Belgian chocolate, fudge, and truffle cakes." },
+      { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", description: "Bangalore's most-ordered gourmet celebratory cakes." },
+    ],
   },
   {
     product_id: "prod_5",
@@ -221,6 +271,15 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     is_featured: true,
     is_bestseller: false,
     is_new_arrival: false,
+    flavour: "Butterscotch",
+    weight: "1 kg",
+    primary_category_id: "cat_butterscotch",
+    category: "Butterscotch & Caramel Cakes",
+    category_slug: "butterscotch-caramel-cakes",
+    category_ids: ["cat_butterscotch"],
+    categories: [
+      { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes", description: "Crunchy praline, butterscotch chips, and salted golden caramel." },
+    ],
   },
 ];
 
@@ -1640,9 +1699,13 @@ export const DEFAULT_MEDIA = [
 ];
 
 const DEFAULT_PIM_CATEGORIES = [
-  { id: "pcat_01", name: "Artisanal Cakes", slug: "artisanal-cakes", description: "Handcrafted gourmet celebration cakes", parent_id: null, image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", display_order: 1, status: "active", visibility: "public", seo_title: "Artisanal Cakes Online - CakeToHome", seo_description: "Order handcrafted artisanal cakes online with same-day delivery.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "pcat_02", name: "Custom Photo Cakes", slug: "custom-photo-cakes", description: "Personalized edible print photo cakes for birthdays and anniversaries", parent_id: null, image_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", display_order: 2, status: "active", visibility: "public", seo_title: "Custom Photo Cakes - CakeToHome", seo_description: "Upload your favorite photos and get custom edible print cakes.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "pcat_03", name: "Vegan & Health Cakes", slug: "vegan-health-cakes", description: "Sugar-free and gluten-free healthy cakes", parent_id: null, image_url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800", display_order: 3, status: "active", visibility: "public", seo_title: "Vegan & Healthy Cakes - CakeToHome", seo_description: "Delicious sugar-free and vegan cakes made with natural ingredients.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", description: "Rich, decadent Belgian chocolate, fudge, and truffle cakes.", parent_id: null, image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", display_order: 1, status: "active", is_active: true, visibility: "public", seo_title: "Chocolate Cakes Online - CakeToHome", seo_description: "Order handcrafted chocolate cakes online with same-day delivery.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", description: "Classic crimson velvet layers with rich cream cheese frosting.", parent_id: null, image_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", display_order: 2, status: "active", is_active: true, visibility: "public", seo_title: "Red Velvet Cakes - CakeToHome", seo_description: "Premium handcrafted red velvet cakes with cream cheese frosting.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_fruit_mousse", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes", description: "Fresh seasonal Alphonso mango, berries, and airy mousse layers.", parent_id: null, image_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800", display_order: 3, status: "active", is_active: true, visibility: "public", seo_title: "Fruit & Mousse Cakes - CakeToHome", seo_description: "Exotic fresh fruit and mango mousse cakes delivered fresh in Bangalore.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes", description: "Traditional German gateau with cherries and chocolate shavings.", parent_id: null, image_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=800", display_order: 4, status: "active", is_active: true, visibility: "public", seo_title: "Black Forest Cakes - CakeToHome", seo_description: "Authentic Black Forest gateaux with fresh cherries and whipped cream.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes", description: "Crunchy praline, butterscotch chips, and salted golden caramel.", parent_id: null, image_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=800", display_order: 5, status: "active", is_active: true, visibility: "public", seo_title: "Butterscotch Cakes - CakeToHome", seo_description: "Rich butterscotch and crunchy praline caramel cakes.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", description: "Baked New York cheesecakes and chef-crafted artisanal creations.", parent_id: null, image_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", display_order: 6, status: "active", is_active: true, visibility: "public", seo_title: "Cheesecakes - CakeToHome", seo_description: "Authentic New York baked cheesecakes with fruit coulis and artisanal toppings.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", description: "Bangalore's most-ordered gourmet celebratory cakes.", parent_id: null, image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", display_order: 7, status: "active", is_active: true, visibility: "public", seo_title: "Best Seller Cakes - CakeToHome", seo_description: "Top rated bestselling celebration cakes in Bangalore.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
 ];
 
 const DEFAULT_VARIANT_OPTIONS = [
@@ -3814,8 +3877,12 @@ export class ApiEngine {
     ApiEngine.persist();
   }
 
-  static listProducts() {
-    return memoryStore?.products || [];
+  static listProducts(paramsOrBranchId?: any, pincodeParam?: string) {
+    return ApiEngine.getProducts(paramsOrBranchId, pincodeParam);
+  }
+
+  static listCategories(includeInactive: boolean = false) {
+    return ApiEngine.getCategories(includeInactive);
   }
 
 
@@ -4072,50 +4139,323 @@ export class ApiEngine {
     };
   }
 
-  // ── Products & Catalog ──────────────────────────────
-  static getProducts(branchId?: string, pincode?: string) {
+  // ── Categories & Taxonomy System ──────────────────────────────
+  static getCategories(includeInactive: boolean = false) {
+    const rawCategories = (memoryStore.categories || memoryStore.pim_categories || DEFAULT_PIM_CATEGORIES) as any[];
     const products = memoryStore.products || [];
-    let targetBranchId = branchId;
 
-    if (!targetBranchId && pincode) {
-      const resolved = ApiEngine.resolveSmartBranch({ pincode });
+    const activeList = includeInactive
+      ? rawCategories
+      : rawCategories.filter((c: any) => c.status !== "inactive" && c.is_active !== false && c.visibility !== "hidden");
+
+    return activeList.map((cat: any) => {
+      const catId = (cat.id || "").toLowerCase();
+      const catSlug = (cat.slug || "").toLowerCase();
+      const catName = (cat.name || "").toLowerCase();
+
+      const count = products.filter((p: any) => {
+        if (Array.isArray(p.category_ids) && p.category_ids.some((id: string) => id.toLowerCase() === catId || id.toLowerCase() === catSlug)) {
+          return true;
+        }
+        if (Array.isArray(p.categories) && p.categories.some((c: any) => c.id?.toLowerCase() === catId || c.slug?.toLowerCase() === catSlug || c.name?.toLowerCase() === catName)) {
+          return true;
+        }
+        if ((p.primary_category_id || "").toLowerCase() === catId) return true;
+        if ((p.category_slug || "").toLowerCase() === catSlug) return true;
+        if ((p.category || "").toLowerCase() === catName) return true;
+        const pTitle = (p.title || p.name || "").toLowerCase();
+        if (catSlug.includes("chocolate") && pTitle.includes("chocolate")) return true;
+        if (catSlug.includes("red-velvet") && pTitle.includes("red velvet")) return true;
+        if (catSlug.includes("fruit") && (pTitle.includes("fruit") || pTitle.includes("mango"))) return true;
+        if (catSlug.includes("black-forest") && pTitle.includes("black forest")) return true;
+        if (catSlug.includes("butterscotch") && pTitle.includes("butterscotch")) return true;
+        if (catSlug.includes("cheesecakes") && (pTitle.includes("cheese") || pTitle.includes("red velvet"))) return true;
+        if (catSlug.includes("bestseller") && p.is_bestseller) return true;
+        return false;
+      }).length;
+
+      return {
+        ...cat,
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        is_active: cat.is_active !== false && cat.status !== "inactive",
+        product_count: count,
+      };
+    });
+  }
+
+  static getCategoryById(id: string) {
+    const cats = ApiEngine.getCategories(true);
+    return cats.find((c: any) => c.id === id || c.slug === id) || null;
+  }
+
+  static getCategoryBySlug(slug: string) {
+    const cats = ApiEngine.getCategories(true);
+    return cats.find((c: any) => c.slug === slug || c.id === slug || c.name.toLowerCase() === slug.toLowerCase()) || null;
+  }
+
+  static createCategory(data: any) {
+    const slug = data.slug || data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const id = data.id || `cat_${slug.replace(/-/g, "_")}`;
+    const newCat = {
+      id,
+      name: data.name,
+      slug,
+      description: data.description || "",
+      parent_id: data.parent_id || null,
+      image_url: data.image_url || null,
+      banner_url: data.banner_url || null,
+      display_order: Number(data.display_order) || 99,
+      status: data.status || "active",
+      is_active: data.status !== "inactive" && data.is_active !== false,
+      visibility: data.visibility || "public",
+      seo_title: data.seo_title || `${data.name} - CakeToHome`,
+      seo_description: data.seo_description || `Order delicious ${data.name} online from CakeToHome Bangalore.`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (!Array.isArray(memoryStore.categories)) memoryStore.categories = [];
+    if (!Array.isArray(memoryStore.pim_categories)) memoryStore.pim_categories = [];
+    memoryStore.categories.push(newCat);
+    memoryStore.pim_categories.push(newCat);
+    ApiEngine.persist();
+    return newCat;
+  }
+
+  static updateCategory(id: string, data: any) {
+    const cats = (memoryStore.categories || memoryStore.pim_categories || []) as any[];
+    const cat = cats.find((c: any) => c.id === id || c.slug === id);
+    if (cat) {
+      Object.assign(cat, data, { updated_at: new Date().toISOString() });
+      if (data.status) cat.is_active = data.status !== "inactive";
+      ApiEngine.persist();
+      return cat;
+    }
+    return null;
+  }
+
+  static deleteCategory(id: string) {
+    const cats = (memoryStore.categories || memoryStore.pim_categories || []) as any[];
+    const idx = cats.findIndex((c: any) => c.id === id || c.slug === id);
+    if (idx !== -1) {
+      // Soft-deactivate if products depend on it
+      cats[idx].status = "inactive";
+      cats[idx].is_active = false;
+      ApiEngine.persist();
+      return { success: true, deactivated: true };
+    }
+    return { success: false, error: "Category not found" };
+  }
+
+  static enrichProductWithCategories(p: any) {
+    if (!p) return p;
+    const categories = ApiEngine.getCategories(true);
+    let productCats: any[] = [];
+    if (Array.isArray(p.categories) && p.categories.length > 0) {
+      productCats = p.categories;
+    } else if (Array.isArray(p.category_ids) && p.category_ids.length > 0) {
+      productCats = p.category_ids
+        .map((catId: string) => categories.find((c: any) => c.id === catId || c.slug === catId))
+        .filter(Boolean);
+    } else if (p.primary_category_id || p.category) {
+      const target = p.primary_category_id || p.category;
+      const found = categories.find((c: any) => c.id === target || c.name.toLowerCase() === String(target).toLowerCase() || c.slug === String(target).toLowerCase());
+      if (found) productCats = [found];
+    }
+
+    if (productCats.length === 0) {
+      const pTitle = (p.title || p.name || "").toLowerCase();
+      if (pTitle.includes("chocolate")) {
+        const c = categories.find((cat: any) => cat.slug === "chocolate-cakes");
+        if (c) productCats.push(c);
+      } else if (pTitle.includes("red velvet")) {
+        const c = categories.find((cat: any) => cat.slug === "red-velvet-cakes");
+        if (c) productCats.push(c);
+      } else if (pTitle.includes("mango") || pTitle.includes("fruit")) {
+        const c = categories.find((cat: any) => cat.slug === "fruit-mousse-cakes");
+        if (c) productCats.push(c);
+      } else if (pTitle.includes("black forest")) {
+        const c = categories.find((cat: any) => cat.slug === "black-forest-cakes");
+        if (c) productCats.push(c);
+      } else if (pTitle.includes("butterscotch") || pTitle.includes("caramel")) {
+        const c = categories.find((cat: any) => cat.slug === "butterscotch-caramel-cakes");
+        if (c) productCats.push(c);
+      }
+      if (productCats.length === 0 && categories.length > 0) {
+        productCats = [categories[0]];
+      }
+    }
+
+    const primaryCat = productCats[0] || { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes" };
+    return {
+      ...p,
+      thumbnail: p.thumbnail === "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800"
+        ? "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800"
+        : p.thumbnail,
+      primary_category_id: p.primary_category_id || primaryCat.id,
+      category: p.category || primaryCat.name,
+      category_slug: p.category_slug || primaryCat.slug,
+      category_ids: productCats.map((c: any) => c.id),
+      categories: productCats.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        description: c.description || "",
+      })),
+      flavour: p.flavour || (p.title?.toLowerCase().includes("red velvet") ? "Red Velvet" : (p.title?.toLowerCase().includes("mango") ? "Mango" : (p.title?.toLowerCase().includes("black forest") ? "Black Forest" : (p.title?.toLowerCase().includes("butterscotch") ? "Butterscotch" : "Chocolate")))),
+      weight: p.weight || "1 kg",
+    };
+  }
+
+  // ── Products & Catalog ──────────────────────────────
+  static getProducts(paramsOrBranchId?: any, pincodeParam?: string) {
+    let products = (memoryStore.products || []).map((p: any) => ApiEngine.enrichProductWithCategories(p));
+    
+    let targetBranchId: string | undefined;
+    let targetPincode: string | undefined;
+    let categoryFilter: string | undefined;
+    let flavourFilter: string | undefined;
+    let weightFilter: string | undefined;
+    let minPriceFilter: number | undefined;
+    let maxPriceFilter: number | undefined;
+    let qFilter: string | undefined;
+    let sortFilter: string | undefined;
+
+    if (typeof paramsOrBranchId === "object" && paramsOrBranchId !== null) {
+      targetBranchId = paramsOrBranchId.branchId || paramsOrBranchId.branch_id;
+      targetPincode = paramsOrBranchId.pincode;
+      categoryFilter = paramsOrBranchId.category || paramsOrBranchId.category_id;
+      if (Array.isArray(categoryFilter)) categoryFilter = categoryFilter[0];
+      flavourFilter = paramsOrBranchId.flavour;
+      weightFilter = paramsOrBranchId.weight;
+      minPriceFilter = paramsOrBranchId.min_price !== undefined ? Number(paramsOrBranchId.min_price) : undefined;
+      maxPriceFilter = paramsOrBranchId.max_price !== undefined ? Number(paramsOrBranchId.max_price) : undefined;
+      qFilter = paramsOrBranchId.q;
+      sortFilter = paramsOrBranchId.sort;
+    } else {
+      targetBranchId = paramsOrBranchId;
+      targetPincode = pincodeParam;
+    }
+
+    if (!targetBranchId && targetPincode) {
+      const resolved = ApiEngine.resolveSmartBranch({ pincode: targetPincode });
       if (resolved?.branch) targetBranchId = resolved.branch.id;
     }
 
-    if (!targetBranchId) return products;
+    if (targetBranchId) {
+      const branch = ApiEngine.resolveBranchRecord(targetBranchId);
+      if (branch) {
+        const branchOverrides = branch.product_availability || {};
+        products = products
+          .filter((p: any) => {
+            const id = p.id || p.product_id;
+            const override = branchOverrides[id] || { status: "AVAILABLE" };
+            const st = (override.status || "").toUpperCase();
+            return st !== "HIDDEN" && st !== "TEMPORARILY_HIDDEN";
+          })
+          .map((p: any) => {
+            const id = p.id || p.product_id;
+            const override = branchOverrides[id] || { status: "AVAILABLE" };
+            const st = (override.status || "").toUpperCase();
+            const isOos = st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY";
 
-    const branch = ApiEngine.resolveBranchRecord(targetBranchId);
-    if (!branch) return products;
+            return {
+              ...p,
+              branch_status: isOos ? "OUT_OF_STOCK" : "AVAILABLE",
+              is_out_of_stock_at_branch: isOos,
+            };
+          });
+      }
+    }
 
-    const branchOverrides = branch.product_availability || {};
-    return products
-      .filter((p: any) => {
-        const id = p.id || p.product_id;
-        const override = branchOverrides[id] || { status: "AVAILABLE" };
-        const st = (override.status || "").toUpperCase();
-        return st !== "HIDDEN" && st !== "TEMPORARILY_HIDDEN";
-      })
-      .map((p: any) => {
-        const id = p.id || p.product_id;
-        const override = branchOverrides[id] || { status: "AVAILABLE" };
-        const st = (override.status || "").toUpperCase();
-        const isOos = st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY";
+    // Filter by category
+    if (categoryFilter && categoryFilter !== "all" && categoryFilter !== "All Categories") {
+      const catLower = categoryFilter.toLowerCase().trim();
+      products = products.filter((p: any) => {
+        const pCatSlug = (p.category_slug || "").toLowerCase();
+        const pCatName = (p.category || "").toLowerCase();
+        const pPrimId = (p.primary_category_id || "").toLowerCase();
+        const hasMatchingCat = Array.isArray(p.categories) && p.categories.some((c: any) =>
+          c.slug?.toLowerCase() === catLower || c.id?.toLowerCase() === catLower || c.name?.toLowerCase() === catLower
+        );
+        const hasMatchingId = Array.isArray(p.category_ids) && p.category_ids.some((id: string) => id.toLowerCase() === catLower);
 
-        return {
-          ...p,
-          branch_status: isOos ? "OUT_OF_STOCK" : "AVAILABLE",
-          is_out_of_stock_at_branch: isOos,
-        };
+        return (
+          hasMatchingCat ||
+          hasMatchingId ||
+          pCatSlug === catLower ||
+          pCatName === catLower ||
+          pPrimId === catLower ||
+          pCatSlug.includes(catLower) ||
+          catLower.includes(pCatSlug)
+        );
       });
+    }
+
+    // Filter by flavour
+    if (flavourFilter && flavourFilter.toLowerCase() !== "all") {
+      const flavLower = flavourFilter.toLowerCase();
+      products = products.filter((p: any) => {
+        const pFlav = (p.flavour || "").toLowerCase();
+        const pTitle = (p.title || p.name || "").toLowerCase();
+        return pFlav.includes(flavLower) || pTitle.includes(flavLower) || flavLower.includes(pFlav);
+      });
+    }
+
+    // Filter by weight
+    if (weightFilter && weightFilter.toLowerCase() !== "all") {
+      const wLower = weightFilter.toLowerCase();
+      products = products.filter((p: any) => {
+        const pWeight = (p.weight || "").toLowerCase();
+        return pWeight.includes(wLower) || wLower.includes(pWeight);
+      });
+    }
+
+    // Filter by price
+    if (minPriceFilter !== undefined && !isNaN(minPriceFilter)) {
+      products = products.filter((p: any) => (p.price || 0) >= minPriceFilter);
+    }
+    if (maxPriceFilter !== undefined && !isNaN(maxPriceFilter)) {
+      products = products.filter((p: any) => (p.price || 0) <= maxPriceFilter);
+    }
+
+    // Filter by search query
+    if (qFilter && qFilter.trim()) {
+      const qLower = qFilter.trim().toLowerCase();
+      products = products.filter((p: any) => {
+        const text = [p.title, p.name, p.description, p.category, p.flavour, p.weight].filter(Boolean).join(" ").toLowerCase();
+        return text.includes(qLower);
+      });
+    }
+
+    // Sort
+    if (sortFilter) {
+      if (sortFilter === "price_asc") {
+        products.sort((a: any, b: any) => (a.price || 0) - (b.price || 0));
+      } else if (sortFilter === "price_desc") {
+        products.sort((a: any, b: any) => (b.price || 0) - (a.price || 0));
+      } else if (sortFilter === "rating") {
+        products.sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0));
+      } else if (sortFilter === "newest") {
+        products.sort((a: any, b: any) => (b.is_new_arrival ? 1 : 0) - (a.is_new_arrival ? 1 : 0));
+      } else if (sortFilter === "bestseller") {
+        products.sort((a: any, b: any) => (b.is_bestseller ? 1 : 0) - (a.is_bestseller ? 1 : 0));
+      }
+    }
+
+    return products;
   }
 
   static getAdminProducts() {
-    return memoryStore.products;
+    return (memoryStore.products || []).map((p: any) => ApiEngine.enrichProductWithCategories(p));
   }
 
   static getProductById(id: string, branchId?: string, pincode?: string) {
-    const product = memoryStore.products.find((p) => p.id === id || p.product_id === id) || null;
-    if (!product) return null;
+    const rawProduct = memoryStore.products.find((p) => p.id === id || p.product_id === id) || null;
+    if (!rawProduct) return null;
+    const product = ApiEngine.enrichProductWithCategories(rawProduct);
 
     let targetBranchId = branchId;
     if (!targetBranchId && pincode) {
@@ -4143,8 +4483,9 @@ export class ApiEngine {
   }
 
   static getProductBySlug(slug: string, branchId?: string, pincode?: string) {
-    const product = memoryStore.products.find((p) => p.handle === slug || p.product_id === slug || p.id === slug) || null;
-    if (!product) return null;
+    const rawProduct = memoryStore.products.find((p) => p.handle === slug || p.product_id === slug || p.id === slug) || null;
+    if (!rawProduct) return null;
+    const product = ApiEngine.enrichProductWithCategories(rawProduct);
 
     let targetBranchId = branchId;
     if (!targetBranchId && pincode) {
@@ -18013,15 +18354,33 @@ export class ApiEngine {
     customer_phone?: string;
     phone?: string;
     status?: string;
+    order_status?: string;
     branch_id?: string;
+    branch?: string;
     city?: string;
+    city_id?: string;
+    payment_status?: string;
+    paymentStatus?: string;
+    from_date?: string;
+    to_date?: string;
+    date_preset?: string;
+    datePreset?: string;
     limit?: number;
     offset?: number;
     q?: string;
+    search?: string;
+    role?: string;
+    user_branch_id?: string;
   } = {}) {
     ApiEngine.ensureOrdersStore();
     let orders: any[] = memoryStore.orders || [];
 
+    // RBAC Scope Enforcement
+    if (filters.role === "BRANCH_MANAGER" && filters.user_branch_id) {
+      filters.branch_id = filters.user_branch_id;
+    }
+
+    // 1. Customer UID / Phone Scoping
     const uid = filters.customer_uid || filters.customer_id;
     const phone = filters.customer_phone || filters.phone;
     const cleanPhone = phone ? normalizePhone(phone) : "";
@@ -18036,34 +18395,256 @@ export class ApiEngine {
       );
     }
 
-    if (filters.status && filters.status !== "all") {
-      orders = orders.filter((o) => (o.status || "").toLowerCase() === filters.status?.toLowerCase());
+    // 2. Order Status Filter
+    const statusVal = (filters.status || filters.order_status || "").trim().toLowerCase();
+    if (statusVal && statusVal !== "all") {
+      orders = orders.filter((o) => (o.status || "").toLowerCase() === statusVal);
     }
 
-    if (filters.branch_id && filters.branch_id !== "all") {
-      orders = orders.filter((o) => o.branch_id === filters.branch_id);
+    // 3. Payment Status Filter
+    const paymentVal = (filters.payment_status || filters.paymentStatus || "").trim().toLowerCase();
+    if (paymentVal && paymentVal !== "all") {
+      if (paymentVal === "paid" || paymentVal === "captured") {
+        orders = orders.filter((o) => {
+          const ps = (o.payment_status || "").toLowerCase();
+          return (
+            ps === "paid" ||
+            ps === "captured" ||
+            ps === "success" ||
+            o.status === "delivered" ||
+            o.status === "completed" ||
+            (Array.isArray(o.timeline) && o.timeline.some((tl: any) => tl.title?.toLowerCase().includes("payment captured")))
+          );
+        });
+      } else if (paymentVal === "pending" || paymentVal === "unpaid") {
+        orders = orders.filter((o) => {
+          const ps = (o.payment_status || "").toLowerCase();
+          return (
+            ps === "pending" ||
+            ps === "payment_pending" ||
+            ps === "unpaid" ||
+            (o.status || "").toLowerCase() === "payment_pending"
+          );
+        });
+      } else if (paymentVal === "refunded" || paymentVal === "refund") {
+        orders = orders.filter((o) => {
+          const ps = (o.payment_status || "").toLowerCase();
+          return (
+            ps === "refunded" ||
+            ps === "partially_refunded" ||
+            ps === "refund_initiated" ||
+            (o.status || "").toLowerCase() === "refunded"
+          );
+        });
+      } else {
+        orders = orders.filter((o) => (o.payment_status || "").toLowerCase() === paymentVal);
+      }
     }
 
-    if (filters.q) {
-      const q = filters.q.toLowerCase();
+    // 4. Branch Filter (ID, Code, Name, or Canonical Aliases)
+    const branchVal = (filters.branch_id || filters.branch || "").trim();
+    if (branchVal && branchVal !== "all") {
+      const lowerBranch = branchVal.toLowerCase();
+      orders = orders.filter((o) => {
+        if (o.branch_id === branchVal || (o.branch_id && o.branch_id.toLowerCase() === lowerBranch)) return true;
+        if (o.branch_code && o.branch_code.toLowerCase() === lowerBranch) return true;
+        if (o.branch_name && o.branch_name.toLowerCase().includes(lowerBranch)) return true;
+
+        // Canonical alias mappings (e.g. res_01... <-> br_indiranagar <-> Indiranagar)
+        if (
+          (branchVal === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" || lowerBranch.includes("indiranagar") || lowerBranch === "br_indiranagar" || lowerBranch === "hub-blr-01") &&
+          (o.branch_id === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" || (o.branch_id && o.branch_id.includes("indiranagar")) || (o.branch_name && o.branch_name.toLowerCase().includes("indiranagar")))
+        ) {
+          return true;
+        }
+        if (
+          (branchVal === "res_02KXYMAHGFPRY1G9TZKEVGAGAT" || lowerBranch.includes("koramangala") || lowerBranch === "br_koramangala" || lowerBranch === "hub-blr-02") &&
+          (o.branch_id === "res_02KXYMAHGFPRY1G9TZKEVGAGAT" || (o.branch_id && o.branch_id.includes("koramangala")) || (o.branch_name && o.branch_name.toLowerCase().includes("koramangala")))
+        ) {
+          return true;
+        }
+        if (
+          (branchVal === "res_03KXYMAHGFPRY1G9TZKEVGAGAT" || lowerBranch.includes("whitefield") || lowerBranch === "br_whitefield" || lowerBranch === "hub-blr-04") &&
+          (o.branch_id === "res_03KXYMAHGFPRY1G9TZKEVGAGAT" || (o.branch_id && o.branch_id.includes("whitefield")) || (o.branch_name && o.branch_name.toLowerCase().includes("whitefield")))
+        ) {
+          return true;
+        }
+        if (
+          (lowerBranch.includes("hsr") || lowerBranch === "br_hsr" || lowerBranch === "hub-blr-03") &&
+          ((o.branch_id && o.branch_id.includes("hsr")) || (o.branch_name && o.branch_name.toLowerCase().includes("hsr")))
+        ) {
+          return true;
+        }
+        return false;
+      });
+    }
+
+    // 5. City Filter (Bengaluru, Mumbai, Delhi NCR, Kochi)
+    const cityVal = (filters.city || filters.city_id || "").trim().toLowerCase();
+    if (cityVal && cityVal !== "all") {
+      let targetCity = cityVal;
+      if (targetCity === "city_bbr" || targetCity === "city_blr" || targetCity === "bangalore") targetCity = "bengaluru";
+      if (targetCity === "city_bom" || targetCity === "bombay") targetCity = "mumbai";
+      if (targetCity === "city_del" || targetCity === "delhi-ncr" || targetCity === "delhi_ncr") targetCity = "delhi";
+      if (targetCity === "city_koc" || targetCity === "cochin") targetCity = "kochi";
+
+      orders = orders.filter((o) => {
+        const orderCity = (o.city || "").toLowerCase();
+        const orderCityId = (o.city_id || "").toLowerCase();
+        const address = (o.delivery_address || "").toLowerCase();
+        const branchName = (o.branch_name || "").toLowerCase();
+        const branchId = (o.branch_id || "").toLowerCase();
+
+        if (orderCity.includes(targetCity) || orderCityId.includes(targetCity)) return true;
+        if (address.includes(targetCity)) return true;
+
+        if (targetCity === "bengaluru") {
+          return (
+            orderCity.includes("bengaluru") ||
+            orderCity.includes("bangalore") ||
+            address.includes("bengaluru") ||
+            address.includes("bangalore") ||
+            branchName.includes("indiranagar") ||
+            branchName.includes("koramangala") ||
+            branchName.includes("whitefield") ||
+            branchName.includes("hsr") ||
+            branchName.includes("jayanagar") ||
+            branchId.includes("indiranagar") ||
+            branchId.includes("koramangala") ||
+            branchId.includes("whitefield") ||
+            branchId.includes("hsr") ||
+            branchId.includes("res_01") ||
+            branchId.includes("res_02") ||
+            branchId.includes("res_03")
+          );
+        }
+        if (targetCity === "kochi") {
+          return (
+            orderCity.includes("kochi") ||
+            address.includes("kochi") ||
+            branchName.includes("kochi") ||
+            branchId.includes("1787130898937") ||
+            branchId.includes("1787132620941")
+          );
+        }
+        if (targetCity === "mumbai") {
+          return orderCity.includes("mumbai") || address.includes("mumbai") || branchName.includes("mumbai");
+        }
+        if (targetCity === "delhi") {
+          return orderCity.includes("delhi") || address.includes("delhi") || branchName.includes("delhi");
+        }
+        return false;
+      });
+    }
+
+    // 6. Date Range & Semantic Presets (Authoritative field: order.created_at)
+    let startTimestamp: number | null = null;
+    let endTimestamp: number | null = null;
+
+    const preset = (filters.date_preset || filters.datePreset || "").trim().toLowerCase();
+    const now = new Date();
+
+    if (preset && preset !== "all") {
+      if (preset === "today") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      } else if (preset === "yesterday") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59, 999);
+        startTimestamp = start.getTime();
+        endTimestamp = end.getTime();
+      } else if (preset === "last_7_days") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      } else if (preset === "last_30_days") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      } else if (preset === "last_90_days") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 89, 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      } else if (preset === "this_month") {
+        const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      } else if (preset === "last_month") {
+        const start = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+        startTimestamp = start.getTime();
+        endTimestamp = end.getTime();
+      } else if (preset === "this_year") {
+        const start = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      } else if (preset === "financial_year") {
+        // Indian Financial Year: April 1 -> March 31
+        const startYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+        const start = new Date(startYear, 3, 1, 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      }
+    }
+
+    if (filters.from_date) {
+      const parsedFrom = new Date(filters.from_date);
+      if (!isNaN(parsedFrom.getTime())) {
+        parsedFrom.setHours(0, 0, 0, 0);
+        startTimestamp = parsedFrom.getTime();
+      }
+    }
+    if (filters.to_date) {
+      const parsedTo = new Date(filters.to_date);
+      if (!isNaN(parsedTo.getTime())) {
+        parsedTo.setHours(23, 59, 59, 999);
+        endTimestamp = parsedTo.getTime();
+      }
+    }
+
+    if (startTimestamp !== null || endTimestamp !== null) {
+      orders = orders.filter((o) => {
+        const orderDateStr = o.created_at || o.order_date || o.delivery_date;
+        if (!orderDateStr) return false;
+        const orderTime = new Date(orderDateStr).getTime();
+        if (isNaN(orderTime)) return false;
+        if (startTimestamp !== null && orderTime < startTimestamp) return false;
+        if (endTimestamp !== null && orderTime > endTimestamp) return false;
+        return true;
+      });
+    }
+
+    // 7. Search Query (q or search)
+    const searchQuery = (filters.q || filters.search || "").trim().toLowerCase();
+    if (searchQuery) {
       orders = orders.filter(
         (o) =>
-          (o.order_number || "").toLowerCase().includes(q) ||
-          (o.customer_name || "").toLowerCase().includes(q) ||
-          (o.customer_phone || "").includes(q) ||
-          (o.id || "").toLowerCase().includes(q)
+          (o.order_number || "").toLowerCase().includes(searchQuery) ||
+          (o.customer_name || "").toLowerCase().includes(searchQuery) ||
+          (o.customer_phone || "").includes(searchQuery) ||
+          (o.customer_email || "").toLowerCase().includes(searchQuery) ||
+          (o.delivery_address || "").toLowerCase().includes(searchQuery) ||
+          (o.branch_name || "").toLowerCase().includes(searchQuery) ||
+          (o.id || "").toLowerCase().includes(searchQuery)
       );
     }
 
+    // 8. Pagination (Executed strictly after full domain filter evaluation)
     const total = orders.length;
-    const limit = filters.limit || 50;
-    const offset = filters.offset || 0;
+    const limit = Number(filters.limit) || 25;
+    const offset = Number(filters.offset) || 0;
     const sliced = orders.slice(offset, offset + limit);
+    const totalPages = Math.ceil(total / limit) || 1;
+    const page = Math.floor(offset / limit) + 1;
 
     return {
       orders: sliced,
       total,
       count: total,
+      page,
+      limit,
+      totalPages,
       success: true,
     };
   }
@@ -19629,7 +20210,25 @@ export class ApiEngine {
   }
 
   static exportAdminOrders(params?: any) {
-    return ApiEngine.getAdminOrders(params);
+    const res = ApiEngine.getAdminOrders({ limit: 100000, ...params });
+    const export_data = (res.orders || []).map((o: any) => ({
+      "Order Number": o.order_number || o.id,
+      "Customer Name": o.customer_name || "",
+      "Customer Phone": o.customer_phone || "",
+      "Branch": o.branch_name || o.branch_id || "",
+      "City": o.city || "",
+      "Status": o.status || "",
+      "Payment Status": o.payment_status || "",
+      "Total Amount": o.total || o.grand_total || 0,
+      "Created At": o.created_at || "",
+      "Delivery Date": o.delivery_date || "",
+    }));
+    return {
+      orders: res.orders,
+      total: res.total,
+      export_data,
+      success: true,
+    };
   }
 
   static createCustomerAccount(payload: any) {

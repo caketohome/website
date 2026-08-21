@@ -460,7 +460,15 @@ export default function ProductDetailClient({
                 {/* Dynamic PIM Configuration Panel */}
                 <div className="md:w-1/2 flex flex-col gap-5">
                     <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            {product.category && (
+                                <Link
+                                    href={`/products?category=${product.category_slug || product.category.toLowerCase().replace(/\s+/g, "-")}`}
+                                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition"
+                                >
+                                    🍰 {product.category}
+                                </Link>
+                            )}
                             {meta?.is_bestseller && <Badge color="orange">Bestseller</Badge>}
                             {meta?.is_featured && <Badge color="purple">Featured Cake</Badge>}
                             <span className="text-xs text-gray-500 font-semibold">Freshly Baked On Order</span>

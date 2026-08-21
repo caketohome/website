@@ -7,6 +7,80 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.12: Global Profile Dropdown, Menu Action & Centralized Auth Logout Repair (100% Verified)
+- **Root-Cause Discovery & Elimination Across All Roles**:
+  - **Missing Backend User Identity Resolver (`resolveUserAccount`)**: `GET /api/auth/me` and `retrieveUser()` relied on `ApiEngine.resolveUserAccount` which was missing from `api-engine.ts`, throwing 500 errors and returning null user identity during server hydration. Implemented canonical `resolveUserAccount(userId, role, phone)` resolving `SUPER_ADMIN`, `BRANCH_MANAGER`, `DELIVERY_PARTNER`, and `CUSTOMER` with accurate roles, names, branches, and permissions.
+  - **Hydration State Flicker & Unauthenticated Flash**: `AuthProvider` initialized `currentUser` as `null` instead of `undefined`. During client hydration, `ProfileBadge` saw `currentUser !== undefined` and immediately discarded the SSR-resolved `initialUser`, causing a flash of unauthenticated state (`<Link href="/login">`) that slammed the menu shut while the user was moving their mouse. Refactored `AuthProvider` and `ProfileBadge` to preserve `initialUser` during client hydration.
+  - **Outside-Click Timing & Next.js Client Navigation Race**: `ProfileMenu` previously used premature mousedown listeners and unmounted `<Link>` synchronously on `onClick`, cancelling browser navigation mid-event. Refactored `ProfileMenu` with a unified interactive boundary (`menuRef.current?.contains(target) || dropdownRef.current?.contains(target) || triggerRef.current?.contains(target)`), deferred outside click listener registration via microtask tick, programmatic `handleNavigate` with `router.push(href)`, double-click protected `handleLogoutClick`, and full keyboard navigation (`Escape`, `ArrowDown`, `ArrowUp`).
+  - **Non-Unique React Keys**: Fixed non-unique keys in Delivery Partner links within `ROLE_CONFIGS`.
+  - **Central Authoritative Logout Service (`authLogout`)**: Implemented complete logout pipeline: server session invalidation (`POST /api/auth/logout`), exhaustive cookie purge across all paths (`/`, `/dashboard`, `/account`, etc.), local & session storage cleanup, cross-tab `BroadcastChannel` synchronization, and redirect to role-specific entry points.
+- **Empirical Automated Multi-Role E2E Verification (`scripts/test-global-profile-menu-e2e.ts`)**:
+  - **28 / 28 ASSERTIONS PASSED (100% SUCCESS)** across Playwright Chromium real-browser testing covering:
+    - Super Admin: Trigger render, role display, dropdown open, diagonal mouse movement stability, menuitem visibility, navigation to `/dashboard`.
+    - Branch Manager: Dropdown open, Shop Dashboard link, Menu & Items link, Live Branch Orders link, navigation to `/dashboard/shop`.
+    - Delivery Partner: Dropdown open, Partner Portal link, navigation to `/dashboard/delivery-partner`.
+    - Customer: Dropdown open, My Profile link, My Orders link, Saved Addresses link, navigation to `/account` and `/account/orders`.
+    - Accessibility & Interaction: `role="menu"`, `aria-expanded="true"`, Escape key dismissal & focus return, outside click dismissal.
+    - Logout Execution: Logout button activation, complete auth cookie purge, clean redirect to login entry point, and replacement of profile menu with public login button.
+    - Stability: Rapid open/close cycles with zero stuck states.
+- **Zero TypeScript Regressions**: `npx tsc --noEmit` verified with 0 errors across the entire codebase.
+
+### Milestone 9.11: Enterprise Order Command Center Filter Engine Repair — Payment, Branch, City & Date Multi-Parameter Query Engine (100% Verified)
+- **Root-Cause Discovery & Elimination**:
+  - **Payment Status Parameter Ignored**: `ApiEngine.getAdminOrders` had no logic checking `payment_status`. Requests for `paid`, `pending`, and `refunded` returned the entire unsegmented dataset. Fixed with authoritative matching across `order.payment_status` (`paid`/`captured`, `pending`/`payment_pending`, `refunded`/`partially_refunded`) and order lifecycle states.
+  - **Branch Hub Mock ID Mismatch**: Admin panel previously sent mock IDs (`res_01...`) that did not match canonical branch IDs (`br_indiranagar`, `br_whitefield`, `br_koramangala`, `br_hsr`). Fixed by adding canonical branch ID resolution across IDs, names, codes (`HUB-BLR-01`), and aliases, plus dynamically populating branch options from `/api/v1/admin/branches`.
+  - **City Filter Parameter Missing**: The `city` parameter was completely ignored by the query engine. Implemented hierarchical city resolution matching across `order.city`, branch city, and delivery address (`bengaluru`, `mumbai`, `delhi-ncr`, `kochi`).
+  - **Date Presets & Range Calculation Engine**: Implemented exact `order.created_at` timestamp range filtering for all 11 date presets (`today`, `yesterday`, `last_7_days`, `last_30_days`, `last_90_days`, `this_month`, `last_month`, `this_year`, `financial_year` [Indian FY 1 April - 31 March], `custom`) and `from_date`/`to_date` bounds.
+  - **Filtering Before Pagination**: Enforced that domain query filtering executes strictly *before* pagination slicing, correctly calculating `total`, `totalPages`, `page`, and `pageSize`.
+  - **Proxy Fallback & Client Resilience**: Updated Next.js API route fallback map for `admin/orders` $\leftrightarrow$ `admin/order-lifecycle`, improved client fetch timeout to 15s to support Next.js compilation, and connected bidirectional URL query parameter synchronization with `window.history.replaceState`.
+  - **Empty State & Clear Filters**: Added dynamic "Clear Filters" button with badge when filters are active, and interactive "Reset All Filters" CTA in empty states.
+- **Empirical Automated E2E Verification**:
+  - `scripts/test-order-filter-engine-e2e.ts`: **25 / 25 ASSERTIONS PASSED (100% SUCCESS)** across baseline, payment, branch, city, 11 date presets, search combo, pagination, zero-result handling, CSV export, RBAC branch scoping, live updates, and HTTP 200 API verification.
+  - `scripts/test-order-filter-browser-e2e.ts` (Playwright Chromium): **12 / 12 ASSERTIONS PASSED (100% SUCCESS)** verifying real browser dropdown selections, badges, table rows, URL sync, clear filters, and reload hydration.
+  - `npx tsc --noEmit`: **0 TypeScript Diagnostic Errors**.
+
+### Milestone 9.10: Products Filter UI & Product Grid Final Fix — Zero Skeleton SSR, Neutral Clean Styling & Full E2E Verification (100% Verified)
+- **Root-Cause Discovery & Elimination**:
+  - **Grid Stuck in Skeletons**: `ProductsPage` previously rendered `<ProductsCatalogClient />` without passing initial SSR data. `ProductsCatalogClient` initialized with `loading: true` and depended entirely on client-side server actions which could hang on hydration mismatch, slow networks, or transitions. Fixed by prefetching initial products and filter options during SSR in `ProductsPage` and passing them as props (`initialProducts`, `initialCount`, `initialFilters`, `initialFilterOptions`) so products render immediately on first paint (`loading: false`).
+  - **Violet/Purple Decorative Segmentation Removed**: Audited filter UI to eliminate any purple/violet segmented controls or pill bars. Enforced CakeToHome standard clean neutral design system (`border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200`) using standard `<select>` category selector with live product counts.
+  - **Non-Functional Dietary Filter Audit & Purge**: Audit confirmed that active cakes in `db-store.json` do not have `sugar_free`, `gluten_free`, or `vegan` properties set to true. Removed the non-functional Dietary & Preferences section entirely from the filter sidebar, active chips, and client state so customers never encounter dead filters.
+  - **High-Performance Filter State & URL Synchronization**: Direct client transition synchronization with `window.history.replaceState` and deduplicated searches. Navigating to `/products?category=chocolate-cakes` updates URL, product grid (2 cakes), and active filter chips seamlessly. Refreshing preserves filters; clearing filters restores all 5 products immediately.
+  - **Image Validation**: All 5 catalog product thumbnails verified returning HTTP 200 with high-res assets and robust `onError` fallbacks.
+- **Empirical Automated E2E Verification**:
+  - `scripts/test-product-filter-ui-e2e.ts` (Playwright Chromium): **20 / 20 ASSERTIONS PASSED (100% SUCCESS)** across Desktop (1280x800), Tablet (768x1024), and Mobile (390x844).
+  - `scripts/test-product-category-filter-e2e.ts`: **20 / 20 ASSERTIONS PASSED (100% SUCCESS)**.
+  - `scripts/test-product-catalog-browser-e2e.ts`: **12 / 12 ASSERTIONS PASSED (100% SUCCESS)**.
+  - `scripts/test-global-navigation-integrity-e2e.ts`: **20 / 20 ASSERTIONS PASSED (100% SUCCESS)**.
+  - `npx tsc --noEmit`: **0 TypeScript Diagnostic Errors**.
+- **Root-Cause Discovery & Elimination**:
+  - **Category Model Disconnect**: The Storefront Cake Category filter was failing to filter products because products lacked an authoritative category relation at the database, API, and catalog layer.
+  - **Broken Alphonso Mango Cake Image**: Unsplash image ID `photo-1535141192574-5d4897c13136` for `prod_3` returned HTTP 404. Replaced across database and codebases with verified high-res gourmet mango mousse cake asset `photo-1588195538326-c5b1e9f80a1b` (HTTP 200 OK) and added graceful `onError` fallback handling.
+- **Unified 7-Category Canonical Taxonomy**:
+  - `cat_chocolate`: *Chocolate Cakes* (`chocolate-cakes`) [2 products]
+  - `cat_red_velvet`: *Red Velvet Cakes* (`red-velvet-cakes`) [1 product]
+  - `cat_fruit_mousse`: *Fruit & Mousse Cakes* (`fruit-mousse-cakes`) [1 product]
+  - `cat_black_forest`: *Black Forest Cakes* (`black-forest-cakes`) [1 product]
+  - `cat_butterscotch`: *Butterscotch & Caramel Cakes* (`butterscotch-caramel-cakes`) [1 product]
+  - `cat_cheesecakes`: *Cheesecakes & Artisanal* (`cheesecakes`) [1 product]
+  - `cat_bestsellers`: *Best Sellers* (`bestsellers`) [3 products]
+- **Multi-Tier Fullstack Implementation**:
+  - **Database & Storage**: Updated `frontend/data/db-store.json` with canonical `categories`, `pim_categories`, `product_categories` join relationships, and updated all 5 active products with `primary_category_id`, `category`, `category_slug`, `category_ids`, `categories`, `flavour`, and `weight`.
+  - **ApiEngine**: Added `getCategories(includeInactive)` with dynamic `product_count` aggregation, `enrichProductWithCategories()`, and enhanced `getProducts(params)` multi-parameter query filtering.
+  - **REST API Endpoints**: Added `GET /api/v1/categories`, `GET /api/v1/categories/[slug]`, and `GET /api/v1/products` query handling.
+  - **Data Layer & Server Fallback**: `searchProducts()` and `getCatalogFilterOptions()` in `frontend/src/lib/data/catalog.ts` dynamically query canonical categories and execute server-side category matching against slugs, IDs, and names.
+  - **Frontend UI & Mobile Drawer**: Dynamic category select dropdown renders live counts (e.g., `Chocolate Cakes (2)`), binds directly to URL `?category=chocolate-cakes`, renders formatted active chips, and syncs across desktop sidebar and mobile filter drawer.
+  - **Product Details & Cards**: Clickable category badges navigate to filtered catalog views (`/products?category=...`).
+  - **AI Concierge Tools**: `AiToolRegistry.searchProducts` and `AiToolRegistry.getCategories` query the canonical category taxonomy with zero hallucinations.
+- **Empirical Automated E2E Verification**:
+  - `scripts/test-product-category-filter-e2e.ts`: **20 / 20 ASSERTIONS PASSED (100% SUCCESS)**.
+  - `scripts/test-product-catalog-browser-e2e.ts` (Playwright Chromium): **12 / 12 ASSERTIONS PASSED (100% SUCCESS)**.
+  - `npx tsc --noEmit`: **0 TypeScript Diagnostic Errors**.
+
+### Milestone 9.8: Removal of Deprecated Global Cross-Panel Navigation Links (100% Verified)
+- **Clean Architectural Purge**: Completely removed deprecated cross-panel navigation links (🏪 *Shop Manager*, 🍰 *Menu & Items*, 🛵 *Delivery Partner*, 👤 *Customer Portal*) from the global shared layout in `frontend/src/app/dashboard/layout.tsx`.
+- **Role-Scoped Profile Menu Integrity**: Enforced strict role-based navigation and authentication isolation within `frontend/src/components/layout/profile-menu.tsx`.
+- **Automated Verification**: `scripts/test-global-navigation-integrity-e2e.ts` passed **20 / 20 Playwright browser assertions (100% SUCCESS)** across desktop, tablet, and mobile viewports.
+
 ### Milestone 9.7: Canonical Order Data Mismatch & Fake Delivery Job Repair (100% Verified)
 - **Root-Cause Discovery & Elimination**:
   - **Truncated Fake Short IDs**: `DeliveryCard` in `frontend/src/components/dashboard/delivery-card.tsx` was executing `<Heading>Order {delivery?.id?.slice(-4)}</Heading>` instead of displaying the canonical `order.order_number`. For `ord_indiranagar_1787300782580`, `.slice(-4)` rendered `"Order 2580"`; for `ord_1787304178784_b94y`, it rendered `"Order b94y"`. Replaced with canonical `Order #{delivery.order?.display_number || delivery.order?.order_number || delivery.order_number}` and explicit reference badge `Ref: {delivery.order_id || delivery.id}`.

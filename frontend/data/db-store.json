@@ -16,7 +16,28 @@
       "vegan": false,
       "is_featured": true,
       "is_bestseller": true,
-      "is_new_arrival": false
+      "is_new_arrival": false,
+      "flavour": "Chocolate",
+      "weight": "1 kg",
+      "primary_category_id": "cat_chocolate",
+      "category": "Chocolate Cakes",
+      "category_slug": "chocolate-cakes",
+      "category_ids": [
+        "cat_chocolate",
+        "cat_bestsellers"
+      ],
+      "categories": [
+        {
+          "id": "cat_chocolate",
+          "name": "Chocolate Cakes",
+          "slug": "chocolate-cakes"
+        },
+        {
+          "id": "cat_bestsellers",
+          "name": "Best Sellers",
+          "slug": "bestsellers"
+        }
+      ]
     },
     {
       "product_id": "prod_2",
@@ -34,7 +55,34 @@
       "vegan": false,
       "is_featured": true,
       "is_bestseller": true,
-      "is_new_arrival": false
+      "is_new_arrival": false,
+      "flavour": "Red Velvet",
+      "weight": "1 kg",
+      "primary_category_id": "cat_red_velvet",
+      "category": "Red Velvet Cakes",
+      "category_slug": "red-velvet-cakes",
+      "category_ids": [
+        "cat_red_velvet",
+        "cat_cheesecakes",
+        "cat_bestsellers"
+      ],
+      "categories": [
+        {
+          "id": "cat_red_velvet",
+          "name": "Red Velvet Cakes",
+          "slug": "red-velvet-cakes"
+        },
+        {
+          "id": "cat_cheesecakes",
+          "name": "Cheesecakes & Artisanal",
+          "slug": "cheesecakes"
+        },
+        {
+          "id": "cat_bestsellers",
+          "name": "Best Sellers",
+          "slug": "bestsellers"
+        }
+      ]
     },
     {
       "product_id": "prod_3",
@@ -42,7 +90,7 @@
       "title": "Fresh Alphonso Mango Mousse Cake",
       "name": "Fresh Alphonso Mango Mousse Cake",
       "description": "Seasonal Alphonso mango pulp whipped into light, airy mousse layers.",
-      "thumbnail": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800",
+      "thumbnail": "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800",
       "handle": "mango-mousse-cake",
       "price": 699,
       "rating": 4.9,
@@ -52,7 +100,22 @@
       "vegan": false,
       "is_featured": true,
       "is_bestseller": false,
-      "is_new_arrival": true
+      "is_new_arrival": true,
+      "flavour": "Mango",
+      "weight": "1 kg",
+      "primary_category_id": "cat_fruit_mousse",
+      "category": "Fruit & Mousse Cakes",
+      "category_slug": "fruit-mousse-cakes",
+      "category_ids": [
+        "cat_fruit_mousse"
+      ],
+      "categories": [
+        {
+          "id": "cat_fruit_mousse",
+          "name": "Fruit & Mousse Cakes",
+          "slug": "fruit-mousse-cakes"
+        }
+      ]
     },
     {
       "product_id": "prod_4",
@@ -70,7 +133,34 @@
       "vegan": false,
       "is_featured": false,
       "is_bestseller": true,
-      "is_new_arrival": false
+      "is_new_arrival": false,
+      "flavour": "Black Forest",
+      "weight": "1 kg",
+      "primary_category_id": "cat_black_forest",
+      "category": "Black Forest Cakes",
+      "category_slug": "black-forest-cakes",
+      "category_ids": [
+        "cat_black_forest",
+        "cat_chocolate",
+        "cat_bestsellers"
+      ],
+      "categories": [
+        {
+          "id": "cat_black_forest",
+          "name": "Black Forest Cakes",
+          "slug": "black-forest-cakes"
+        },
+        {
+          "id": "cat_chocolate",
+          "name": "Chocolate Cakes",
+          "slug": "chocolate-cakes"
+        },
+        {
+          "id": "cat_bestsellers",
+          "name": "Best Sellers",
+          "slug": "bestsellers"
+        }
+      ]
     },
     {
       "product_id": "prod_5",
@@ -88,7 +178,22 @@
       "vegan": false,
       "is_featured": true,
       "is_bestseller": false,
-      "is_new_arrival": false
+      "is_new_arrival": false,
+      "flavour": "Butterscotch",
+      "weight": "1 kg",
+      "primary_category_id": "cat_butterscotch",
+      "category": "Butterscotch & Caramel Cakes",
+      "category_slug": "butterscotch-caramel-cakes",
+      "category_ids": [
+        "cat_butterscotch"
+      ],
+      "categories": [
+        {
+          "id": "cat_butterscotch",
+          "name": "Butterscotch & Caramel Cakes",
+          "slug": "butterscotch-caramel-cakes"
+        }
+      ]
     }
   ],
   "branches": [
@@ -22504,52 +22609,127 @@
   ],
   "pim_categories": [
     {
-      "id": "pcat_01",
-      "name": "Artisanal Cakes",
-      "slug": "artisanal-cakes",
-      "description": "Handcrafted gourmet celebration cakes",
+      "id": "cat_chocolate",
+      "name": "Chocolate Cakes",
+      "slug": "chocolate-cakes",
+      "description": "Rich, decadent Belgian chocolate, fudge, and truffle cakes.",
       "parent_id": null,
       "image_url": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
       "banner_url": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
       "display_order": 1,
       "status": "active",
+      "is_active": true,
       "visibility": "public",
-      "seo_title": "Artisanal Cakes Online - CakeToHome",
-      "seo_description": "Order handcrafted artisanal cakes online with same-day delivery.",
+      "seo_title": "Chocolate Cakes Online - CakeToHome",
+      "seo_description": "Order handcrafted chocolate cakes online with same-day delivery.",
       "branch_ids": [
         "res_01KXYMAHGFPRY1G9TZKEVGAGAT"
       ]
     },
     {
-      "id": "pcat_02",
-      "name": "Custom Photo Cakes",
-      "slug": "custom-photo-cakes",
-      "description": "Personalized edible print photo cakes for birthdays and anniversaries",
+      "id": "cat_red_velvet",
+      "name": "Red Velvet Cakes",
+      "slug": "red-velvet-cakes",
+      "description": "Classic crimson velvet layers with rich cream cheese frosting.",
       "parent_id": null,
       "image_url": "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800",
       "banner_url": "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800",
       "display_order": 2,
       "status": "active",
+      "is_active": true,
       "visibility": "public",
-      "seo_title": "Custom Photo Cakes - CakeToHome",
-      "seo_description": "Upload your favorite photos and get custom edible print cakes.",
+      "seo_title": "Red Velvet Cakes - CakeToHome",
+      "seo_description": "Premium handcrafted red velvet cakes with cream cheese frosting.",
       "branch_ids": [
         "res_01KXYMAHGFPRY1G9TZKEVGAGAT"
       ]
     },
     {
-      "id": "pcat_03",
-      "name": "Vegan & Health Cakes",
-      "slug": "vegan-health-cakes",
-      "description": "sugar-free, and gluten-free healthy cakes",
+      "id": "cat_fruit_mousse",
+      "name": "Fruit & Mousse Cakes",
+      "slug": "fruit-mousse-cakes",
+      "description": "Fresh seasonal Alphonso mango, berries, and airy mousse layers.",
       "parent_id": null,
-      "image_url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800",
-      "banner_url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800",
+      "image_url": "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800",
+      "banner_url": "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800",
       "display_order": 3,
       "status": "active",
+      "is_active": true,
       "visibility": "public",
-      "seo_title": "Vegan & Healthy Cakes - CakeToHome",
-      "seo_description": "Delicious sugar-free and vegan cakes made with natural ingredients.",
+      "seo_title": "Fruit & Mousse Cakes - CakeToHome",
+      "seo_description": "Exotic fresh fruit and mango mousse cakes delivered fresh in Bangalore.",
+      "branch_ids": [
+        "res_01KXYMAHGFPRY1G9TZKEVGAGAT"
+      ]
+    },
+    {
+      "id": "cat_black_forest",
+      "name": "Black Forest Cakes",
+      "slug": "black-forest-cakes",
+      "description": "Traditional German gateau with cherries and chocolate shavings.",
+      "parent_id": null,
+      "image_url": "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=800",
+      "banner_url": "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=800",
+      "display_order": 4,
+      "status": "active",
+      "is_active": true,
+      "visibility": "public",
+      "seo_title": "Black Forest Cakes - CakeToHome",
+      "seo_description": "Authentic Black Forest gateaux with fresh cherries and whipped cream.",
+      "branch_ids": [
+        "res_01KXYMAHGFPRY1G9TZKEVGAGAT"
+      ]
+    },
+    {
+      "id": "cat_butterscotch",
+      "name": "Butterscotch & Caramel Cakes",
+      "slug": "butterscotch-caramel-cakes",
+      "description": "Crunchy praline, butterscotch chips, and salted golden caramel.",
+      "parent_id": null,
+      "image_url": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=800",
+      "banner_url": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=800",
+      "display_order": 5,
+      "status": "active",
+      "is_active": true,
+      "visibility": "public",
+      "seo_title": "Butterscotch Cakes - CakeToHome",
+      "seo_description": "Rich butterscotch and crunchy praline caramel cakes.",
+      "branch_ids": [
+        "res_01KXYMAHGFPRY1G9TZKEVGAGAT"
+      ]
+    },
+    {
+      "id": "cat_cheesecakes",
+      "name": "Cheesecakes & Artisanal",
+      "slug": "cheesecakes",
+      "description": "Baked New York cheesecakes and chef-crafted artisanal creations.",
+      "parent_id": null,
+      "image_url": "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800",
+      "banner_url": "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800",
+      "display_order": 6,
+      "status": "active",
+      "is_active": true,
+      "visibility": "public",
+      "seo_title": "Cheesecakes - CakeToHome",
+      "seo_description": "Authentic New York baked cheesecakes with fruit coulis and artisanal toppings.",
+      "branch_ids": [
+        "res_01KXYMAHGFPRY1G9TZKEVGAGAT"
+      ]
+    },
+    {
+      "id": "cat_bestsellers",
+      "name": "Best Sellers",
+      "slug": "bestsellers",
+      "description": "Bangalore most-ordered gourmet celebratory cakes.",
+      "parent_id": null,
+      "image_url": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
+      "banner_url": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
+      "display_order": 7,
+      "status": "active",
+      "is_active": true,
+      "visibility": "public",
+      "seo_title": "Best Seller Cakes - CakeToHome",
+      "seo_description": "Top rated bestselling celebration cakes in Bangalore.",
       "branch_ids": [
         "res_01KXYMAHGFPRY1G9TZKEVGAGAT"
       ]
@@ -23631,6 +23811,43 @@
     }
   ],
   "orders": [
+    {
+      "id": "ord_test_live_update_1787320108708",
+      "order_number": "CTH-LIVE-001",
+      "status": "payment_pending",
+      "payment_status": "pending",
+      "total": 999,
+      "grand_total": 999,
+      "items": [],
+      "branch_id": "br_indiranagar",
+      "created_at": "2026-08-21T13:48:28.708Z"
+    },
+    {
+      "id": "ord_test_live_update_1787317725922",
+      "order_number": "CTH-LIVE-001",
+      "status": "payment_pending",
+      "payment_status": "pending",
+      "total": 999,
+      "grand_total": 999,
+      "items": [],
+      "branch_id": "br_indiranagar",
+      "created_at": "2026-08-21T13:08:45.922Z"
+    },
+    {
+      "id": "ord_test_refunded_9999",
+      "order_number": "CTH-REF-9999",
+      "status": "refunded",
+      "payment_status": "refunded",
+      "total": 1499,
+      "grand_total": 1499,
+      "customer_name": "Refund Tester",
+      "customer_phone": "+91 98888 77777",
+      "items": [],
+      "branch_id": "br_indiranagar",
+      "branch_name": "Indiranagar Flagship Kitchen",
+      "created_at": "2026-08-19T13:08:45.869Z",
+      "city": "Bengaluru"
+    },
     {
       "id": "ord_cross_panel_paid_1787313007246",
       "order_number": "CTH-CRX-7246",
@@ -36701,383 +36918,5 @@
         }
       }
     }
-  ],
-  "crm_lifecycle_config": {
-    "at_risk_days_threshold": 45,
-    "dormant_days_threshold": 90,
-    "vip_min_spend": 5000,
-    "vip_min_orders": 5,
-    "repeat_buyer_min_orders": 2,
-    "new_customer_max_days": 7,
-    "updated_at": "2026-08-01T00:00:00.000Z"
-  },
-  "crm_segments": [
-    {
-      "id": "seg_all",
-      "name": "All Active Customers",
-      "slug": "all-customers",
-      "description": "Full directory of registered and guest customers across all branches.",
-      "combinator": "AND",
-      "rules": [],
-      "is_system": true,
-      "created_at": "2026-08-01T00:00:00.000Z"
-    },
-    {
-      "id": "seg_new_no_order",
-      "name": "🌱 New Registered — No Purchase",
-      "slug": "new-registered-no-purchase",
-      "description": "Self-registered accounts with zero completed orders ready for welcome discounts.",
-      "combinator": "AND",
-      "rules": [
-        {
-          "field": "orders_count",
-          "operator": "equals",
-          "value": 0
-        }
-      ],
-      "is_system": true,
-      "created_at": "2026-08-01T00:00:00.000Z"
-    },
-    {
-      "id": "seg_vip",
-      "name": "👑 VIP & High LTV Customers",
-      "slug": "vip-customers",
-      "description": "High-value patrons with ₹5,000+ spend or VIP Platinum classification.",
-      "combinator": "OR",
-      "rules": [
-        {
-          "field": "lifecycle_stage",
-          "operator": "equals",
-          "value": "VIP"
-        },
-        {
-          "field": "total_spend",
-          "operator": "greater_than",
-          "value": 5000
-        },
-        {
-          "field": "tier",
-          "operator": "equals",
-          "value": "VIP_PLATINUM"
-        }
-      ],
-      "is_system": true,
-      "created_at": "2026-08-01T00:00:00.000Z"
-    },
-    {
-      "id": "seg_repeat_buyers",
-      "name": "🔁 Repeat Buyers (2+ Orders)",
-      "slug": "repeat-buyers",
-      "description": "Engaged customers who have completed multiple cake orders.",
-      "combinator": "AND",
-      "rules": [
-        {
-          "field": "orders_count",
-          "operator": "greater_than",
-          "value": 2
-        }
-      ],
-      "is_system": true,
-      "created_at": "2026-08-01T00:00:00.000Z"
-    },
-    {
-      "id": "seg_first_purchase",
-      "name": "🌟 First-Time Buyers (Nurture)",
-      "slug": "first-purchase",
-      "description": "New buyers with exactly 1 completed purchase ready for second-order outreach.",
-      "combinator": "AND",
-      "rules": [
-        {
-          "field": "lifecycle_stage",
-          "operator": "equals",
-          "value": "FIRST_PURCHASE"
-        }
-      ],
-      "is_system": true,
-      "created_at": "2026-08-01T00:00:00.000Z"
-    },
-    {
-      "id": "seg_at_risk",
-      "name": "⚠️ At-Risk Inactive Patrons",
-      "slug": "at-risk",
-      "description": "Previously active buyers with zero orders in the past 45-90 days.",
-      "combinator": "AND",
-      "rules": [
-        {
-          "field": "lifecycle_stage",
-          "operator": "equals",
-          "value": "AT_RISK"
-        }
-      ],
-      "is_system": true,
-      "created_at": "2026-08-01T00:00:00.000Z"
-    },
-    {
-      "id": "seg_whatsapp_active",
-      "name": "💬 WhatsApp Connected & Opted-In",
-      "slug": "whatsapp-connected",
-      "description": "Verified mobile numbers with active WhatsApp opt-in for promotional broadcasts.",
-      "combinator": "AND",
-      "rules": [
-        {
-          "field": "whatsapp_status",
-          "operator": "equals",
-          "value": "CONNECTED"
-        }
-      ],
-      "is_system": true,
-      "created_at": "2026-08-01T00:00:00.000Z"
-    },
-    {
-      "id": "seg_cart_abandonment",
-      "name": "🛒 Cart Abandonment Leads",
-      "slug": "cart-abandonment",
-      "description": "Shoppers who added cake items to cart but did not finalize checkout.",
-      "combinator": "AND",
-      "rules": [
-        {
-          "field": "cart_status",
-          "operator": "equals",
-          "value": "ABANDONED_CART"
-        }
-      ],
-      "is_system": true,
-      "created_at": "2026-08-01T00:00:00.000Z"
-    }
-  ],
-  "crm_communications": [],
-  "customer_reminders": [],
-  "customer_activity": [
-    {
-      "id": "act_1787313772620_7x4v",
-      "customer_uid": "cus_9123413476",
-      "event_type": "RECOVERY_MESSAGE_SENT",
-      "title": "Recovery Message Dispatched via whatsapp",
-      "description": "Sent recovery incentive (SWEET10 - 10% off) for ₹649 cart value.",
-      "source": "ADMIN_CRM",
-      "staff_id": "admin_01",
-      "staff_name": "Super Admin",
-      "metadata": {
-        "cart_id": "cart_abandon_test_1787303613524",
-        "channel": "whatsapp",
-        "recovery_url": "/cart/recover/recov_tok_cart_abandon_test_1787303613524_1787313772603",
-        "discount_code": "SWEET10"
-      },
-      "timestamp": "2026-08-21T12:02:52.620Z"
-    },
-    {
-      "id": "act_1787313772573_4q0q",
-      "customer_uid": "cus_9123413476",
-      "event_type": "RECOVERY_LINK_CLICKED",
-      "title": "Cart Recovery Link Opened",
-      "description": "Customer opened cart recovery link. Revalidated items. Value: ₹0.",
-      "source": "STOREFRONT",
-      "metadata": {
-        "cart_id": "cart_abandon_test_1787303613524",
-        "subtotal": 0,
-        "recovery_token": "recov_tok_cart_abandon_test_1787303613524_1787313694255"
-      },
-      "timestamp": "2026-08-21T12:02:52.573Z"
-    },
-    {
-      "id": "act_1787313772471_u73a",
-      "customer_uid": "cth_cus_9999888877",
-      "event_type": "LOGIN",
-      "title": "Customer Logged In",
-      "description": "Authenticated via mobile OTP on +91 99998 88877.",
-      "source": "STOREFRONT",
-      "timestamp": "2026-08-21T12:02:52.471Z"
-    },
-    {
-      "id": "act_1787313772428_el2a",
-      "customer_uid": "cth_cus_9999888877",
-      "event_type": "OTP_REQUESTED",
-      "title": "Login OTP Requested",
-      "description": "OTP requested for +91 99998 88877 via OTP_SMS.",
-      "source": "STOREFRONT",
-      "timestamp": "2026-08-21T12:02:52.428Z"
-    }
-  ],
-  "outbox_events": [
-    {
-      "id": "outbox_1787313772665_15atzxn",
-      "event_id": "evt_1787313772665_v9iwxd5",
-      "event_type": "recovery.converted",
-      "payload": {
-        "cart_id": "cart_abandon_test_1787303613524",
-        "order_id": "ORD-REC-999",
-        "customer_uid": "cus_9123413476",
-        "revenue": 649,
-        "channel": "WHATSAPP",
-        "converted_at": "2026-08-21T12:02:52.650Z"
-      },
-      "metadata": {
-        "source": "RECOVERY_CAMPAIGN"
-      },
-      "created_at": "2026-08-21T12:02:52.665Z"
-    },
-    {
-      "id": "outbox_1787313772664_q2ry3vh",
-      "event_id": "evt_1787313772664_uqfj1f3",
-      "event_type": "cart.recovered",
-      "payload": {
-        "cart_id": "cart_abandon_test_1787303613524",
-        "customer_uid": "cus_9123413476",
-        "recovered_order_id": "ORD-REC-999",
-        "recovered_revenue": 649,
-        "recovered_at": "2026-08-21T12:02:52.650Z"
-      },
-      "metadata": {
-        "source": "CART_RECOVERY_ATTRIBUTION"
-      },
-      "created_at": "2026-08-21T12:02:52.665Z"
-    },
-    {
-      "id": "outbox_1787313772484_qgilicb",
-      "event_id": "evt_1787313772484_lu35evm",
-      "event_type": "customer.login.success",
-      "payload": {
-        "customer_id": "cus_9999888877",
-        "customer_uid": "cth_cus_9999888877",
-        "name": "Aarav Mehta",
-        "phone": "+91 99998 88877",
-        "email": "aarav@example.com",
-        "city": "Bengaluru",
-        "role": "CUSTOMER",
-        "login_at": "2026-08-21T12:02:52.484Z"
-      },
-      "metadata": {
-        "source": "STOREFRONT_OTP"
-      },
-      "created_at": "2026-08-21T12:02:52.485Z"
-    }
-  ],
-  "recovery_campaigns": [
-    {
-      "id": "camp_ab_30m_whatsapp",
-      "name": "Abandoned Cart 30m WhatsApp Reminder",
-      "trigger_type": "TIME_DELAY",
-      "delay_minutes": 30,
-      "channel": "WHATSAPP",
-      "template_id": "tpl_cart_recovery_gentle_reminder",
-      "discount_rule": {
-        "code": "SWEET10",
-        "discount_pct": 10,
-        "max_discount": 200
-      },
-      "min_cart_value": null,
-      "customer_tier": "ALL",
-      "active": true,
-      "created_by": "system",
-      "created_at": "2026-07-22T12:02:52.372Z",
-      "updated_at": "2026-08-21T12:02:52.372Z"
-    },
-    {
-      "id": "camp_ab_6h_reminder",
-      "name": "6-Hour Follow-Up Reminder",
-      "trigger_type": "TIME_DELAY",
-      "delay_minutes": 360,
-      "channel": "WHATSAPP",
-      "template_id": "tpl_cart_recovery_fresh_bake_held",
-      "discount_rule": {
-        "code": "SWEET10",
-        "discount_pct": 10,
-        "max_discount": 250
-      },
-      "min_cart_value": null,
-      "customer_tier": "ALL",
-      "active": true,
-      "created_by": "system",
-      "created_at": "2026-07-22T12:02:52.372Z",
-      "updated_at": "2026-08-21T12:02:52.372Z"
-    },
-    {
-      "id": "camp_ab_24h_final_offer",
-      "name": "24-Hour Final Incentive Offer",
-      "trigger_type": "TIME_DELAY",
-      "delay_minutes": 1440,
-      "channel": "WHATSAPP",
-      "template_id": "tpl_cart_recovery_final_discount",
-      "discount_rule": {
-        "code": "CAKE15",
-        "discount_pct": 15,
-        "max_discount": 300
-      },
-      "min_cart_value": null,
-      "customer_tier": "ALL",
-      "active": true,
-      "created_by": "system",
-      "created_at": "2026-07-22T12:02:52.372Z",
-      "updated_at": "2026-08-21T12:02:52.372Z"
-    },
-    {
-      "id": "camp_ab_high_value_telecaller",
-      "name": "High Value (> ₹2,000) Telecaller Assignment",
-      "trigger_type": "CART_VALUE",
-      "delay_minutes": 15,
-      "channel": "TELECALLER",
-      "template_id": "tpl_telecaller_priority_recovery",
-      "discount_rule": {
-        "code": "VIPCARE",
-        "discount_pct": 15,
-        "max_discount": 500
-      },
-      "min_cart_value": 2000,
-      "customer_tier": "ALL",
-      "active": true,
-      "created_by": "system",
-      "created_at": "2026-07-22T12:02:52.372Z",
-      "updated_at": "2026-08-21T12:02:52.372Z"
-    },
-    {
-      "id": "camp_ab_vip_concierge",
-      "name": "VIP Tier Instant Personal Care",
-      "trigger_type": "CUSTOMER_TIER",
-      "delay_minutes": 10,
-      "channel": "WHATSAPP",
-      "template_id": "tpl_vip_priority_concierge",
-      "discount_rule": {
-        "code": "VIPEXCLUSIVE",
-        "discount_pct": 20,
-        "max_discount": 1000
-      },
-      "min_cart_value": null,
-      "customer_tier": "VIP",
-      "active": true,
-      "created_by": "system",
-      "created_at": "2026-07-22T12:02:52.372Z",
-      "updated_at": "2026-08-21T12:02:52.372Z"
-    }
-  ],
-  "recovery_events": [
-    {
-      "id": "rev_1787313772619_viur",
-      "cart_id": "cart_abandon_test_1787303613524",
-      "customer_uid": "cus_9123413476",
-      "event_type": "message.sent",
-      "channel": "whatsapp",
-      "message": "SWEET10",
-      "status": "DELIVERED",
-      "provider_response": {
-        "channel": "whatsapp",
-        "dispatched_at": "2026-08-21T12:02:52.619Z",
-        "message_id": "msg_1787313772619"
-      },
-      "created_at": "2026-08-21T12:02:52.619Z"
-    },
-    {
-      "id": "rev_1787313772573_rm0b",
-      "cart_id": "cart_abandon_test_1787303613524",
-      "customer_uid": "cus_9123413476",
-      "event_type": "message.clicked",
-      "channel": "whatsapp",
-      "message": "Customer opened cart recovery link. Revalidated items. Value: ₹0.",
-      "status": "CLICKED",
-      "created_at": "2026-08-21T12:02:52.573Z"
-    }
-  ],
-  "abandoned_cart_metrics": {
-    "recovered_count": 1,
-    "recovered_revenue": 1168.2
-  }
+  ]
 }

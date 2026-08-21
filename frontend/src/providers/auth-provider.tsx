@@ -45,7 +45,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(true);
   const inFlightPromiseRef = useRef<Promise<AuthUser | null> | null>(null);
   const router = useRouter();
@@ -158,8 +158,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        currentUser,
-        user: currentUser,
+        currentUser: currentUser ?? null,
+        user: currentUser ?? null,
         loading,
         isAuthenticated: Boolean(currentUser),
         login,

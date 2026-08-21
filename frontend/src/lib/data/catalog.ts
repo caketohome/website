@@ -4,6 +4,14 @@
  */
 
 import { apiClient } from "../api-client";
+import { ApiEngine } from "../api-engine";
+
+export interface CategoryOption {
+  id: string;
+  name: string;
+  slug: string;
+  product_count?: number;
+}
 
 export interface SearchResult {
   product_id: string;
@@ -22,6 +30,10 @@ export interface SearchResult {
   is_bestseller: boolean;
   is_new_arrival: boolean;
   category?: string;
+  category_slug?: string;
+  primary_category_id?: string;
+  category_ids?: string[];
+  categories?: Array<{ id: string; name: string; slug: string; description?: string }>;
   flavour?: string;
   weight?: string;
   branch_status?: string;
@@ -58,7 +70,7 @@ export interface SearchFilters {
 }
 
 export interface CatalogFilterOptions {
-  categories: string[];
+  categories: CategoryOption[];
   flavours: string[];
   weights: string[];
   minPrice: number;
@@ -116,15 +128,54 @@ export interface Subscription {
 
 export async function searchProducts(filters: SearchFilters = {}): Promise<SearchResponse> {
   try {
-    const res: any = await apiClient.getProducts({ branchId: filters.shop_id });
-    const rawList: any[] = res?.products || res?.results || res?.data || [];
+    let rawList: any[] = [];
+    try {
+      rawList = ApiEngine.getProducts({
+        branchId: filters.shop_id,
+        pincode: filters.pincode,
+        category: filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id),
+        flavour: filters.flavour,
+        weight: filters.weight,
+        min_price: filters.min_price,
+        max_price: filters.max_price,
+        q: filters.q,
+        sort: filters.sort,
+      });
+    } catch {
+      rawList = [];
+    }
 
-    let list = rawList.map((p: any) => ({
+    if (!rawList || rawList.length === 0) {
+      if (typeof window !== "undefined") {
+        try {
+          const res: any = await apiClient.getProducts({
+            branchId: filters.shop_id,
+            pincode: filters.pincode,
+            category: filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id),
+            flavour: filters.flavour,
+            weight: filters.weight,
+            min_price: filters.min_price,
+            max_price: filters.max_price,
+            q: filters.q,
+            sort: filters.sort,
+          });
+          rawList = res?.products || res?.results || res?.data || [];
+        } catch {}
+      }
+    }
+
+    if (!rawList || rawList.length === 0) {
+      rawList = DEFAULT_CATALOG_PRODUCTS;
+    }
+
+    let list: SearchResult[] = rawList.map((p: any) => ({
       product_id: p.id || p.product_id,
       variant_id: p.variant_id || `var_${p.id}`,
       title: p.title || p.name || "Gourmet Cake",
       description: p.description || p.short_description || "Freshly baked cake.",
-      thumbnail: p.thumbnail || p.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
+      thumbnail: p.thumbnail === "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800"
+        ? "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800"
+        : (p.thumbnail || p.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587"),
       handle: p.handle || p.slug || "cake",
       price: Math.max(1, Number(p.price || p.selling_price) || 599),
       rating: Number(p.rating) || 4.9,
@@ -137,10 +188,13 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
       is_new_arrival: Boolean(p.is_new_arrival),
       branch_status: p.branch_status || "AVAILABLE",
       is_out_of_stock_at_branch: Boolean(p.is_out_of_stock_at_branch),
-      category: p.category || p.primary_category_id || "Artisanal Cakes",
+      primary_category_id: p.primary_category_id,
+      category: p.category || (p.categories && p.categories[0]?.name) || "Chocolate Cakes",
+      category_slug: p.category_slug || (p.categories && p.categories[0]?.slug) || "chocolate-cakes",
+      category_ids: p.category_ids || [],
+      categories: p.categories || [],
       flavour: p.flavour || p.flavour_name || p.cake_base || "Chocolate",
       weight: p.weight || "1 kg",
-      tags: p.tags || [],
     }));
 
     // Filter out seed/test products created by automated tests unless explicitly requested
@@ -173,14 +227,28 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
       });
     }
 
-    // Category Filter
+    // Category Filter (supports slug, id, name)
     if (filters.category || filters.category_id) {
-      const catVal = (filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id) || "").toLowerCase();
-      if (catVal && catVal !== "all") {
+      const catVal = (filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id) || "").toLowerCase().trim();
+      if (catVal && catVal !== "all" && catVal !== "all categories") {
         list = list.filter((p: any) => {
-          const pCat = (p.category || "").toLowerCase();
-          const pTitle = (p.title || "").toLowerCase();
-          return pCat.includes(catVal) || pTitle.includes(catVal) || catVal.includes(pCat);
+          const pCatSlug = (p.category_slug || "").toLowerCase();
+          const pCatName = (p.category || "").toLowerCase();
+          const pPrimId = (p.primary_category_id || "").toLowerCase();
+          const hasMatchingCat = Array.isArray(p.categories) && p.categories.some((c: any) =>
+            c.slug?.toLowerCase() === catVal || c.id?.toLowerCase() === catVal || c.name?.toLowerCase() === catVal
+          );
+          const hasMatchingId = Array.isArray(p.category_ids) && p.category_ids.some((id: string) => id.toLowerCase() === catVal);
+
+          return (
+            hasMatchingCat ||
+            hasMatchingId ||
+            pCatSlug === catVal ||
+            pCatName === catVal ||
+            pPrimId === catVal ||
+            pCatSlug.includes(catVal) ||
+            catVal.includes(pCatSlug)
+          );
         });
       }
     }
@@ -262,9 +330,38 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
 
 export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
   try {
-    const res: any = await apiClient.getProducts();
-    const rawList: any[] = res?.products || res?.results || res?.data || [];
+    let categoriesList: CategoryOption[] = [];
+    let rawList: any[] = [];
 
+    try {
+      const cats = ApiEngine.getCategories();
+      categoriesList = cats.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        product_count: typeof c.product_count === "number" ? c.product_count : 0,
+      }));
+      rawList = ApiEngine.getProducts();
+    } catch {
+      categoriesList = [];
+      rawList = [];
+    }
+
+    if (categoriesList.length === 0 && typeof window !== "undefined") {
+      const [catRes, prodRes]: [any, any] = await Promise.all([
+        apiClient.getCategories().catch(() => null),
+        apiClient.getProducts().catch(() => null),
+      ]);
+
+      categoriesList = (catRes?.categories || catRes?.results || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        product_count: typeof c.product_count === "number" ? c.product_count : 0,
+      }));
+
+      rawList = prodRes?.products || prodRes?.results || prodRes?.data || [];
+    }
     const validProducts = rawList.filter((p: any) => {
       const titleLower = (p.title || p.name || "").toLowerCase();
       return (
@@ -276,42 +373,14 @@ export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
       );
     });
 
-    const categoriesSet = new Set<string>();
     const flavoursSet = new Set<string>();
     const weightsSet = new Set<string>();
     let minPrice = Infinity;
     let maxPrice = -Infinity;
 
-    // Preset fallbacks
-    const defaultCategories = [
-      "Chocolate Cakes",
-      "Red Velvet Cakes",
-      "Fruit Cakes",
-      "Black Forest Cakes",
-      "Butterscotch Cakes",
-      "Cheesecakes",
-      "Artisanal Cakes",
-      "Pastries & Sweets",
-    ];
-    defaultCategories.forEach((c) => categoriesSet.add(c));
-
-    const defaultFlavours = [
-      "Chocolate",
-      "Red Velvet",
-      "Mango",
-      "Black Forest",
-      "Butterscotch",
-      "Vanilla",
-      "Fruit",
-    ];
-    defaultFlavours.forEach((f) => flavoursSet.add(f));
-
-    const defaultWeights = ["0.5 kg", "1 kg", "1.5 kg", "2 kg", "2.5 kg", "3 kg+"];
-    defaultWeights.forEach((w) => weightsSet.add(w));
-
     validProducts.forEach((p: any) => {
-      if (p.category) categoriesSet.add(p.category);
       if (p.flavour) flavoursSet.add(p.flavour);
+      if (p.weight) weightsSet.add(p.weight);
       const pPrice = Number(p.price || p.selling_price || 0);
       if (pPrice > 0) {
         if (pPrice < minPrice) minPrice = pPrice;
@@ -319,20 +388,39 @@ export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
       }
     });
 
+    ["Chocolate", "Red Velvet", "Mango", "Black Forest", "Butterscotch"].forEach((f) => flavoursSet.add(f));
+    ["0.5 kg", "1 kg", "1.5 kg", "2 kg"].forEach((w) => weightsSet.add(w));
+
     return {
-      categories: Array.from(categoriesSet),
+      categories: categoriesList.length > 0 ? categoriesList : [
+        { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", product_count: 2 },
+        { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", product_count: 1 },
+        { id: "cat_fruit_mousse", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes", product_count: 1 },
+        { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes", product_count: 1 },
+        { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes", product_count: 1 },
+        { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", product_count: 1 },
+        { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", product_count: 3 },
+      ],
       flavours: Array.from(flavoursSet),
       weights: Array.from(weightsSet),
-      minPrice: isFinite(minPrice) ? minPrice : 300,
-      maxPrice: isFinite(maxPrice) ? maxPrice : 3000,
+      minPrice: isFinite(minPrice) ? minPrice : 500,
+      maxPrice: isFinite(maxPrice) ? maxPrice : 800,
     };
   } catch {
     return {
-      categories: ["Chocolate Cakes", "Red Velvet Cakes", "Fruit Cakes", "Black Forest Cakes", "Butterscotch Cakes"],
+      categories: [
+        { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", product_count: 2 },
+        { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", product_count: 1 },
+        { id: "cat_fruit_mousse", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes", product_count: 1 },
+        { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes", product_count: 1 },
+        { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes", product_count: 1 },
+        { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", product_count: 1 },
+        { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", product_count: 3 },
+      ],
       flavours: ["Chocolate", "Red Velvet", "Mango", "Black Forest", "Butterscotch"],
       weights: ["0.5 kg", "1 kg", "1.5 kg", "2 kg"],
-      minPrice: 300,
-      maxPrice: 3000,
+      minPrice: 500,
+      maxPrice: 800,
     };
   }
 }
@@ -424,7 +512,7 @@ export const DEFAULT_CATALOG_PRODUCTS: any[] = [
     title: "Fresh Alphonso Mango Mousse Cake",
     name: "Fresh Alphonso Mango Mousse Cake",
     description: "Seasonal Alphonso mango pulp whipped into light, airy mousse layers.",
-    thumbnail: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800",
+    thumbnail: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800",
     handle: "mango-mousse-cake",
     price: 699,
     rating: 4.9,

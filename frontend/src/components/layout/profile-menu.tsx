@@ -134,6 +134,8 @@ function getUserInitials(user: ProfileUserDTO | null, fullName: string): string 
   return (fullName[0] || "U").toUpperCase();
 }
 
+import { useRouter } from "next/navigation";
+
 export const ProfileMenu = memo(function ProfileMenu({
   user = null,
   isLoading = false,
@@ -145,6 +147,7 @@ export const ProfileMenu = memo(function ProfileMenu({
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const normalizedRole = getNormalizedRole(user);
   const roleConfig = ROLE_CONFIGS[normalizedRole];
@@ -162,16 +165,32 @@ export const ProfileMenu = memo(function ProfileMenu({
     setIsOpen(false);
   }, []);
 
+  // Programmatic, race-free router navigation handler
+  const handleNavigate = useCallback((href: string, e: React.MouseEvent) => {
+    // Preserve default modifier key behaviors (open in new tab, etc.)
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+      return;
+    }
+    e.preventDefault();
+    closeMenu();
+    router.push(href);
+  }, [closeMenu, router]);
+
   // Robust Outside-Click, Touch & Keyboard Accessibility Handlers
   useEffect(() => {
     if (!isOpen) return;
 
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node | null;
-      if (!target) return;
-      // If the target is no longer connected to document (e.g. unmounted on click), ignore it
-      if (!target.isConnected) return;
-      if (menuRef.current && !menuRef.current.contains(target)) {
+      if (!target || !target.isConnected) return;
+
+      // Ensure the interactive region (Trigger + Dropdown + Root) is recognized as one
+      const isInside =
+        (menuRef.current && menuRef.current.contains(target)) ||
+        (dropdownRef.current && dropdownRef.current.contains(target)) ||
+        (triggerRef.current && triggerRef.current.contains(target));
+
+      if (!isInside) {
         closeMenu();
       }
     };
@@ -204,12 +223,16 @@ export const ProfileMenu = memo(function ProfileMenu({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside, { passive: true });
+    // Arm outside-click listeners in next tick to ensure the opening event finishes cleanly
+    const timer = setTimeout(() => {
+      document.addEventListener("click", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside, { passive: true });
+    }, 0);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      clearTimeout(timer);
+      document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("touchstart", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
@@ -272,7 +295,8 @@ export const ProfileMenu = memo(function ProfileMenu({
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-label="User profile and account settings menu"
-        className={`flex items-center gap-2.5 p-1.5 md:px-3 md:py-1.5 rounded-xl transition-colors duration-100 border select-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 ${
+        data-testid="profile-menu-trigger"
+        className={`flex items-center gap-2.5 p-1.5 md:px-3 md:py-1.5 rounded-xl transition-colors duration-100 border select-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 cursor-pointer ${
           isOpen
             ? "bg-white/20 border-white/30 ring-2 ring-white/20 text-white"
             : "bg-white/10 hover:bg-white/15 border-white/10 text-white/90 hover:text-white"
@@ -311,6 +335,7 @@ export const ProfileMenu = memo(function ProfileMenu({
           role="menu"
           aria-orientation="vertical"
           tabIndex={-1}
+          data-testid="profile-menu-dropdown"
         >
           {/* Header Section with User Identity */}
           <div className="p-3 bg-neutral-50 dark:bg-neutral-800/60 rounded-xl mb-1 border border-neutral-100 dark:border-neutral-800">
@@ -351,10 +376,11 @@ export const ProfileMenu = memo(function ProfileMenu({
                 key={item.href}
                 href={item.href}
                 prefetch={false}
-                onClick={closeMenu}
-                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors focus:outline-none focus:bg-neutral-100 dark:focus:bg-neutral-800"
+                onClick={(e) => handleNavigate(item.href, e)}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors focus:outline-none focus:bg-neutral-100 dark:focus:bg-neutral-800 cursor-pointer"
                 role="menuitem"
                 tabIndex={0}
+                data-testid={`profile-menu-item-${item.label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
               >
                 <item.icon className="w-4 h-4 text-neutral-500 dark:text-neutral-400 shrink-0" />
                 <span>{item.label}</span>
@@ -370,9 +396,10 @@ export const ProfileMenu = memo(function ProfileMenu({
               type="button"
               onClick={handleLogoutClick}
               disabled={isLoggingOut}
-              className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors group focus:outline-none focus:bg-rose-50 dark:focus:bg-rose-950/40 disabled:opacity-50"
+              className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors group focus:outline-none focus:bg-rose-50 dark:focus:bg-rose-950/40 disabled:opacity-50 cursor-pointer"
               role="menuitem"
               tabIndex={0}
+              data-testid="profile-menu-logout-button"
             >
               <div className="flex items-center gap-2.5">
                 {isLoggingOut ? (

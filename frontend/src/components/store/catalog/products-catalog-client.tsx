@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useTransition } from "react";
+import { useState, useEffect, useCallback, useTransition, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Heading, Text, Input, Button, Badge } from "@medusajs/ui";
 import { searchProductsAction, getCatalogFilterOptionsAction } from "@frontend/lib/actions/catalog";
@@ -8,16 +8,28 @@ import type { SearchFilters, SearchResult, CatalogFilterOptions } from "@fronten
 import { ProductFilters, ActiveFilterChips, MobileFilterDrawer } from "@frontend/components/store/catalog/product-filters";
 import { ProductCard } from "@frontend/components/store/catalog/product-card";
 import { ErrorComponent } from "@frontend/components/common/error-component";
-import { SlidersHorizontal, Search, Cake, MapPin, RefreshCw, X } from "lucide-react";
+import { SlidersHorizontal, Search, Cake, MapPin, X } from "lucide-react";
 
-export function ProductsCatalogClient() {
+interface ProductsCatalogClientProps {
+  initialProducts?: SearchResult[];
+  initialCount?: number;
+  initialFilters?: SearchFilters;
+  initialFilterOptions?: CatalogFilterOptions;
+}
+
+export function ProductsCatalogClient({
+  initialProducts = [],
+  initialCount = 0,
+  initialFilters = {},
+  initialFilterOptions,
+}: ProductsCatalogClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Parse filters from URL
+  // Parse filters from URL, falling back to initialFilters
   const [filters, setFilters] = useState<SearchFilters>(() => {
-    const params: SearchFilters = {};
+    const params: SearchFilters = { ...initialFilters };
     const cat = searchParams.get("category");
     if (cat) params.category = cat;
 
@@ -33,10 +45,6 @@ export function ProductsCatalogClient() {
     const maxP = searchParams.get("max_price");
     if (maxP) params.max_price = Number(maxP);
 
-    if (searchParams.get("sugar_free") === "true") params.sugar_free = true;
-    if (searchParams.get("gluten_free") === "true") params.gluten_free = true;
-    if (searchParams.get("vegan") === "true") params.vegan = true;
-
     const sort = searchParams.get("sort");
     if (sort) params.sort = sort as SearchFilters["sort"];
 
@@ -46,32 +54,35 @@ export function ProductsCatalogClient() {
     return params;
   });
 
-  const [qInput, setQInput] = useState(searchParams.get("q") || "");
-  const [filterOptions, setFilterOptions] = useState<CatalogFilterOptions | undefined>(undefined);
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [qInput, setQInput] = useState(searchParams.get("q") || initialFilters.q || "");
+  const [filterOptions, setFilterOptions] = useState<CatalogFilterOptions | undefined>(initialFilterOptions);
+  const [results, setResults] = useState<SearchResult[]>(initialProducts);
+  const [count, setCount] = useState<number>(initialCount || initialProducts.length);
+  const [loading, setLoading] = useState<boolean>(initialProducts.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [, startTransition] = useTransition();
+
+  const isFirstMount = useRef(true);
+  const latestSearchId = useRef(0);
 
   // Sync state to URL
   const updateUrl = useCallback(
     (newFilters: SearchFilters) => {
       const p = new URLSearchParams();
       if (newFilters.q) p.set("q", newFilters.q);
-      if (newFilters.category) p.set("category", newFilters.category);
-      if (newFilters.flavour) p.set("flavour", newFilters.flavour);
-      if (newFilters.weight) p.set("weight", newFilters.weight);
+      if (newFilters.category && newFilters.category !== "all") p.set("category", newFilters.category);
+      if (newFilters.flavour && newFilters.flavour !== "all") p.set("flavour", newFilters.flavour);
+      if (newFilters.weight && newFilters.weight !== "all") p.set("weight", newFilters.weight);
       if (newFilters.min_price !== undefined) p.set("min_price", String(newFilters.min_price));
       if (newFilters.max_price !== undefined) p.set("max_price", String(newFilters.max_price));
-      if (newFilters.sugar_free) p.set("sugar_free", "true");
-      if (newFilters.gluten_free) p.set("gluten_free", "true");
-      if (newFilters.vegan) p.set("vegan", "true");
       if (newFilters.sort) p.set("sort", newFilters.sort);
 
       const queryString = p.toString();
       const targetUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      if (typeof window !== "undefined") {
+        window.history.replaceState(null, "", targetUrl);
+      }
       startTransition(() => {
         router.replace(targetUrl, { scroll: false });
       });
@@ -79,38 +90,55 @@ export function ProductsCatalogClient() {
     [pathname, router]
   );
 
-  // Fetch filter options on mount
+  // Fetch filter options if not provided via SSR
   useEffect(() => {
-    getCatalogFilterOptionsAction()
-      .then((opts) => setFilterOptions(opts))
-      .catch(() => null);
-  }, []);
+    if (!filterOptions || !filterOptions.categories || filterOptions.categories.length === 0) {
+      getCatalogFilterOptionsAction()
+        .then((opts) => {
+          if (opts) setFilterOptions(opts);
+        })
+        .catch(() => null);
+    }
+  }, [filterOptions]);
 
-  // Execute catalog search
-  const executeSearch = useCallback(async () => {
+  // Execute catalog search on filter change
+  const executeSearch = useCallback(async (currentFilters: SearchFilters) => {
+    const searchId = ++latestSearchId.current;
     setLoading(true);
     setError(null);
     try {
-      const res = await searchProductsAction({ ...filters, limit: 48 });
-      setResults(res?.results || []);
-      setCount(res?.count || 0);
+      const res = await searchProductsAction({ ...currentFilters, limit: 48 });
+      if (searchId === latestSearchId.current) {
+        setResults(res?.results || []);
+        setCount(res?.count || 0);
+      }
     } catch (err: any) {
       console.error("[Catalog Search Error]:", err);
-      setError("Failed to load catalog products.");
-      setResults([]);
-      setCount(0);
+      if (searchId === latestSearchId.current) {
+        setError("Failed to load catalog products. Please try again.");
+        setResults([]);
+        setCount(0);
+      }
     } finally {
+      if (searchId === latestSearchId.current) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  // Sync state when SSR props update
+  useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) {
+      setResults(initialProducts);
+      setCount(initialCount || initialProducts.length);
       setLoading(false);
     }
-  }, [filters]);
-
-  useEffect(() => {
-    executeSearch();
-  }, [executeSearch]);
+  }, [initialProducts, initialCount]);
 
   const handleFilterChange = (nextFilters: SearchFilters) => {
     setFilters(nextFilters);
     updateUrl(nextFilters);
+    executeSearch(nextFilters);
   };
 
   // Debounced search input
@@ -120,24 +148,32 @@ export function ProductsCatalogClient() {
         const next = { ...filters, q: qInput.trim() || undefined };
         setFilters(next);
         updateUrl(next);
+        executeSearch(next);
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [qInput, filters, updateUrl]);
+  }, [qInput, filters, updateUrl, executeSearch]);
 
-  // Compute active filter count
+  // Compute active filter count (excluding default/empty values)
   const activeCount = [
-    filters.category,
-    filters.flavour,
-    filters.weight,
+    filters.category && filters.category !== "all" ? "category" : undefined,
+    filters.flavour && filters.flavour !== "all" ? "flavour" : undefined,
+    filters.weight && filters.weight !== "all" ? "weight" : undefined,
     filters.min_price !== undefined || filters.max_price !== undefined ? "price" : undefined,
-    filters.sugar_free,
-    filters.gluten_free,
-    filters.vegan,
+    filters.q ? "q" : undefined,
   ].filter(Boolean).length;
 
+  const [isHydrated, setIsHydrated] = useState(false);
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full px-4 md:px-8 py-8 font-sans">
+    <div
+      data-testid="products-catalog-root"
+      data-hydrated={isHydrated ? "true" : "false"}
+      className="flex flex-col gap-6 max-w-7xl mx-auto w-full px-4 md:px-8 py-8 font-sans"
+    >
       {/* Top Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
         <div>
@@ -162,6 +198,7 @@ export function ProductsCatalogClient() {
             />
             {qInput && (
               <button
+                type="button"
                 onClick={() => setQInput("")}
                 className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
               >
@@ -170,19 +207,20 @@ export function ProductsCatalogClient() {
             )}
           </div>
 
-          <Button
-            variant="secondary"
+          <button
+            type="button"
+            data-testid="mobile-filter-button"
             onClick={() => setMobileDrawerOpen(true)}
-            className="md:hidden flex items-center gap-1.5 h-10 px-4 rounded-xl text-xs font-bold shrink-0 border-slate-200 dark:border-slate-800"
+            className="md:hidden flex items-center gap-1.5 h-10 px-4 rounded-xl text-xs font-bold shrink-0 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 hover:bg-slate-50 transition shadow-sm"
           >
             <SlidersHorizontal className="w-4 h-4 text-rose-600" />
             <span>Filters</span>
             {activeCount > 0 && (
-              <Badge color="red" className="text-[10px] px-1.5 py-0.5 rounded-full ml-0.5">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full ml-0.5 bg-rose-600 text-white font-bold">
                 {activeCount}
-              </Badge>
+              </span>
             )}
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -195,7 +233,7 @@ export function ProductsCatalogClient() {
               <SlidersHorizontal className="w-4 h-4 text-rose-600" /> Filters
             </span>
             {activeCount > 0 && (
-              <Badge color="purple" className="text-[10px] px-2 py-0.5 rounded-full font-bold">
+              <Badge color="grey" className="text-[10px] px-2 py-0.5 rounded-full font-bold">
                 {activeCount} Active
               </Badge>
             )}
@@ -222,9 +260,9 @@ export function ProductsCatalogClient() {
 
           {/* Results State */}
           {error ? (
-            <ErrorComponent title="Failed to load catalog" message={error} onRetry={executeSearch} />
+            <ErrorComponent title="Failed to load catalog" message={error} onRetry={() => executeSearch(filters)} />
           ) : loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-4">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
               ))}

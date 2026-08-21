@@ -74,6 +74,9 @@ export function ProductCard({ product }: { product: SearchResult }) {
                         alt={product.title}
                         loading="lazy"
                         className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                        onError={(e) => {
+                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
+                        }}
                     />
                 ) : (
                     <div className="flex h-full w-full items-center justify-center text-ui-fg-subtle">
@@ -99,6 +102,29 @@ export function ProductCard({ product }: { product: SearchResult }) {
                     </IconButton>
                 </div>
             </div>
+
+            {/* Category & Flavour Meta */}
+            {(product.category || product.flavour) && (
+                <div className="flex items-center justify-between gap-1 text-[11px]">
+                    {product.category && (
+                        <span
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                const catSlug = product.category_slug || product.category?.toLowerCase().replace(/\s+/g, "-");
+                                router.push(`/products?category=${catSlug}`);
+                            }}
+                            className="font-semibold tracking-wide text-rose-600 dark:text-rose-400 hover:underline cursor-pointer truncate max-w-[70%]"
+                        >
+                            {product.category}
+                        </span>
+                    )}
+                    {product.flavour && (
+                        <span className="text-slate-400 dark:text-slate-500 truncate ml-auto">
+                            {product.flavour}
+                        </span>
+                    )}
+                </div>
+            )}
 
             <Heading level="h3" className="text-sm font-medium line-clamp-2">
                 {product.title}

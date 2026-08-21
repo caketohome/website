@@ -544,11 +544,32 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ success: true, user, customer: user }, "json-fallback");
     }
 
+    if (path === "categories" || path === "products/categories" || path === "store/categories") {
+      const includeInactive = url.searchParams.get("include_inactive") === "true";
+      const categories = ApiEngine.getCategories(includeInactive);
+      return jsonWithDataSource({ categories, results: categories, count: categories.length, success: true }, "json-fallback");
+    }
+
+    if (path.startsWith("categories/")) {
+      const slugOrId = path.replace("categories/", "").replace("store/categories/", "");
+      const category = ApiEngine.getCategoryBySlug(slugOrId) || ApiEngine.getCategoryById(slugOrId);
+      if (!category) return jsonWithDataSource({ error: "Category not found", success: false }, "json-fallback", 404);
+      return jsonWithDataSource({ category, success: true }, "json-fallback");
+    }
+
     if (path === "products") {
       const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
       const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || undefined;
-      const products = ApiEngine.getProducts(branchId, pincode);
-      return jsonWithDataSource({ products, results: products }, "json-fallback");
+      const category = url.searchParams.get("category") || url.searchParams.get("category_id") || undefined;
+      const flavour = url.searchParams.get("flavour") || undefined;
+      const weight = url.searchParams.get("weight") || undefined;
+      const min_price = url.searchParams.get("min_price") ? Number(url.searchParams.get("min_price")) : undefined;
+      const max_price = url.searchParams.get("max_price") ? Number(url.searchParams.get("max_price")) : undefined;
+      const q = url.searchParams.get("q") || undefined;
+      const sort = url.searchParams.get("sort") || undefined;
+
+      const products = ApiEngine.getProducts({ branchId, pincode, category, flavour, weight, min_price, max_price, q, sort });
+      return jsonWithDataSource({ products, results: products, count: products.length, success: true }, "json-fallback");
     }
 
     if (path.startsWith("products/slug/")) {
@@ -688,7 +709,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     // Admin Controls & Marketing Subroutes
-    if (path === "admin/orders/export") return jsonWithDataSource(ApiEngine.exportAdminOrders(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/orders/export" || path === "admin/order-lifecycle/export") return jsonWithDataSource(ApiEngine.exportAdminOrders(Object.fromEntries(url.searchParams)), "json-fallback");
     if (path.startsWith("admin/delivery/partners/") && path.endsWith("/effective-coverage")) {
       const partnerId = path.replace("admin/delivery/partners/", "").replace("/effective-coverage", "");
       return jsonWithDataSource(ApiEngine.getPartnerEffectiveCoverage(partnerId), "json-fallback");
@@ -821,7 +842,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
     if (path === "admin/delivery/eligible-partners") return jsonWithDataSource(ApiEngine.getEligibleDeliveryPartners(Object.fromEntries(url.searchParams)), "json-fallback");
     if (path === "admin/delivery/assignment-rules") return jsonWithDataSource({ rules: ApiEngine.getDeliveryAssignmentRules(), success: true }, "json-fallback");
-    if (path === "admin/orders") {
+    if (path === "admin/orders" || path === "admin/order-lifecycle" || path === "order-lifecycle") {
       const qParams = Object.fromEntries(url.searchParams);
       if (qParams.id || qParams.order_id) {
         const targetId = (qParams.id || qParams.order_id) as string;
@@ -830,8 +851,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
       return jsonWithDataSource(ApiEngine.getAdminOrders(qParams), "json-fallback");
     }
-    if (path.startsWith("admin/orders/")) {
-      const parts = path.replace("admin/orders/", "").split("/");
+    if (path.startsWith("admin/orders/") || path.startsWith("admin/order-lifecycle/")) {
+      const parts = path.replace("admin/orders/", "").replace("admin/order-lifecycle/", "").split("/");
       const orderId = parts[0];
       const subAction = parts[1];
       if (subAction === "auto-assign-delivery") {

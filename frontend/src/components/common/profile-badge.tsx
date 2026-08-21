@@ -20,8 +20,8 @@ export const ProfileBadge = memo(function ProfileBadge({
   const { currentUser, loading: authLoading } = useAuth();
 
   // If client-side auth state is resolved, use currentUser; otherwise fall back to initialUser
-  const activeUser = currentUser !== undefined ? currentUser : initialUser;
-  const effectiveLoading = isLoading || (authLoading && !initialUser);
+  const activeUser = currentUser !== undefined ? (currentUser ?? initialUser) : initialUser;
+  const effectiveLoading = isLoading || (authLoading && !initialUser && currentUser === undefined);
 
   return (
     <ProfileMenu
