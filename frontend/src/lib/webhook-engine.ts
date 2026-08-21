@@ -35,15 +35,29 @@ export type WebhookEventType =
   | "order.confirmed"
   | "order.preparing"
   | "order.ready"
+  | "order.ready_for_pickup"
+  | "order.claimed"
+  | "order.picked_up"
   | "order.out_for_delivery"
   | "order.delivered"
   | "order.cancelled"
+  | "order.status_changed"
+  | "order.rider_assigned"
+  | "order.delivery_partner_changed"
   | "order.refund.processed"
+  // BRANCH
+  | "branch.order_accepted"
+  | "branch.order_rejected"
+  | "customer.order_delayed"
   // DELIVERY
   | "delivery.assigned"
   | "delivery.picked_up"
+  | "delivery.pickup_confirmed"
+  | "delivery.out_for_delivery"
+  | "delivery.exception_reported"
   | "delivery.failed"
   | "delivery.delivered"
+  | "delivery.delivered_confirmed"
   // RECOVERY
   | "recovery.link.created"
   | "recovery.link.opened"
@@ -369,10 +383,25 @@ const DEFAULT_ENDPOINTS: WebhookEndpoint[] = [
       "order.created",
       "order.paid",
       "order.confirmed",
+      "order.preparing",
       "order.ready",
+      "order.ready_for_pickup",
+      "order.claimed",
+      "order.picked_up",
       "order.out_for_delivery",
       "order.delivered",
       "order.cancelled",
+      "order.status_changed",
+      "order.rider_assigned",
+      "order.delivery_partner_changed",
+      "branch.order_accepted",
+      "branch.order_rejected",
+      "customer.order_delayed",
+      "delivery.assigned",
+      "delivery.picked_up",
+      "delivery.pickup_confirmed",
+      "delivery.out_for_delivery",
+      "delivery.delivered",
       "customer.reorder_candidate.created",
       "customer.reorder_converted",
       "recovery.link.created",

@@ -6,13 +6,20 @@ import { authLogout, clearClientAuthCookies, clearClientAuthStorage, broadcastMu
 
 export interface AuthUser {
   id: string;
-  customer_uid: string;
+  customer_uid?: string;
   name: string;
   first_name: string;
   last_name?: string;
   email: string;
   phone: string;
   role: string;
+  branch_id?: string | null;
+  branch_name?: string | null;
+  delivery_partner_id?: string | null;
+  partner_number?: string | null;
+  profile_ids?: string[];
+  profile_names?: string[];
+  permissions?: string[];
   date_of_birth?: string | null;
   created_at?: string;
 }

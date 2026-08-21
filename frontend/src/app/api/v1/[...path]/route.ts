@@ -447,16 +447,16 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const claim2 = ApiEngine.claimDeliveryJob(ord.id, "dlp_102");
       suiteResults.push({ id: "9.2", name: "Concurrent Claim Conflict Guard (409 Conflict)", status: (!claim2.success && claim2.statusCode === 409) ? "PASS" : "FAIL" });
 
-      const wrongPickup = ApiEngine.verifyPickupOtpBackend(ord.id, "0000", "dlp_101");
+      const wrongPickup = await ApiEngine.verifyPickupOtpBackend(ord.id, "0000", "dlp_101");
       suiteResults.push({ id: "9.3", name: "Invalid Pickup OTP Rejection (400 Bad Request)", status: (!wrongPickup.success && wrongPickup.statusCode === 400) ? "PASS" : "FAIL" });
 
-      const rightPickup = ApiEngine.verifyPickupOtpBackend(ord.id, ord.pickup_otp, "dlp_101");
-      suiteResults.push({ id: "9.4", name: "Valid Pickup OTP Verification (Out for Delivery)", status: (rightPickup.success && rightPickup.order.delivery_status === "out_for_delivery") ? "PASS" : "FAIL" });
+      const rightPickup = await ApiEngine.verifyPickupOtpBackend(ord.id, ord.pickup_otp, "dlp_101");
+      suiteResults.push({ id: "9.4", name: "Valid Pickup OTP Verification (Out for Delivery)", status: (rightPickup.success && (rightPickup.order.status === "out_for_delivery" || rightPickup.order.delivery_status === "in_transit")) ? "PASS" : "FAIL" });
 
-      const wrongCust = ApiEngine.verifyCustomerOtpBackend(ord.id, "0000", "dlp_101");
+      const wrongCust = await ApiEngine.verifyCustomerOtpBackend(ord.id, "0000", "dlp_101");
       suiteResults.push({ id: "9.5", name: "Invalid Customer OTP Rejection (400 Bad Request)", status: (!wrongCust.success && wrongCust.statusCode === 400) ? "PASS" : "FAIL" });
 
-      const rightCust = ApiEngine.verifyCustomerOtpBackend(ord.id, ord.delivery_otp, "dlp_101");
+      const rightCust = await ApiEngine.verifyCustomerOtpBackend(ord.id, ord.delivery_otp, "dlp_101");
       suiteResults.push({ id: "9.6", name: "Valid Customer OTP Fulfilled (Status: Delivered)", status: (rightCust.success && rightCust.order.status === "delivered") ? "PASS" : "FAIL" });
 
       // ── Domain 10: Branch Manager Control Center ──
@@ -1812,12 +1812,12 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/pickup-otp/verify")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/pickup-otp/verify", "");
-      const result = ApiEngine.verifyPickupOtpBackend(orderId, body.otp || body.pickup_otp, body.partner_id || "dlp_101");
+      const result = await ApiEngine.verifyPickupOtpBackend(orderId, body.otp || body.pickup_otp, body.partner_id || "dlp_101");
       return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/delivery-otp/verify")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/delivery-otp/verify", "");
-      const result = ApiEngine.verifyCustomerOtpBackend(orderId, body.otp || body.delivery_otp, body.partner_id || "dlp_101");
+      const result = await ApiEngine.verifyCustomerOtpBackend(orderId, body.otp || body.delivery_otp, body.partner_id || "dlp_101");
       return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/exception")) {

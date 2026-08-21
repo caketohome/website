@@ -28,20 +28,6 @@ export default async function RootLayout({
           >
             🎂 CakeToHome
           </Link>
-          <div className="hidden lg:flex items-center gap-5 text-xs font-semibold">
-            <Link href="/dashboard/shop" className="hover:underline text-amber-300 hover:text-amber-200 transition-colors flex items-center gap-1">
-              🏪 Shop Manager
-            </Link>
-            <Link href="/dashboard/shop/menu" className="hover:underline text-amber-300 hover:text-amber-200 transition-colors flex items-center gap-1">
-              🍰 Menu & Items
-            </Link>
-            <Link href="/dashboard/delivery-partner" className="hover:underline text-amber-300 hover:text-amber-200 transition-colors flex items-center gap-1">
-              🛵 Delivery Partner
-            </Link>
-            <Link href="/account" className="hover:underline text-emerald-300 hover:text-emerald-200 transition-colors flex items-center gap-1">
-              👤 Customer Portal
-            </Link>
-          </div>
         </div>
         <div className="flex gap-3 items-center">
           <ProfileBadge user={user} />

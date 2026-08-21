@@ -35,17 +35,33 @@ export async function pickUpDelivery(deliveryId: string): Promise<any> {
 }
 
 export async function verifyPickupOtp(deliveryId: string, otpInput: string, partnerId: string): Promise<any> {
-  const { ApiEngine } = await import("../api-engine");
-  const res = ApiEngine.verifyPickupOtpBackend(deliveryId, otpInput, partnerId);
-  revalidateTag("deliveries");
-  return res;
+  try {
+    const { ApiEngine } = await import("../api-engine");
+    const res = await ApiEngine.verifyPickupOtpBackend(deliveryId, otpInput, partnerId);
+    try {
+      revalidateTag("deliveries");
+    } catch {
+      // Safe no-op outside static context
+    }
+    return res;
+  } catch (err: any) {
+    return { success: false, statusCode: 500, error: err.message || "Failed to verify pickup OTP" };
+  }
 }
 
 export async function verifyCustomerOtp(deliveryId: string, otpInput: string, partnerId: string): Promise<any> {
-  const { ApiEngine } = await import("../api-engine");
-  const res = ApiEngine.verifyCustomerOtpBackend(deliveryId, otpInput, partnerId);
-  revalidateTag("deliveries");
-  return res;
+  try {
+    const { ApiEngine } = await import("../api-engine");
+    const res = await ApiEngine.verifyCustomerOtpBackend(deliveryId, otpInput, partnerId);
+    try {
+      revalidateTag("deliveries");
+    } catch {
+      // Safe no-op outside static context
+    }
+    return res;
+  } catch (err: any) {
+    return { success: false, statusCode: 500, error: err.message || "Failed to verify customer OTP" };
+  }
 }
 
 export async function reportDeliveryException(deliveryId: string, partnerId: string, type: string, description: string): Promise<any> {

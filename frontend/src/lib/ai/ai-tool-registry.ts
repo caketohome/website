@@ -244,6 +244,21 @@ export class AiToolRegistry {
     };
   }
 
+  public static async checkPincodeDelivery(pincode: string) {
+    const delivery = ApiEngine.resolveDeliveryContext(pincode);
+    return {
+      serviceable: delivery.serviceable,
+      pincode: delivery.pincode,
+      city: delivery.cityName,
+      branchName: delivery.storeName,
+      estimatedMinutes: delivery.etaMinutes || 45,
+      nextAvailableSlot: "45-Minute Hyperlocal Express",
+      expressAvailable: delivery.expressAvailable,
+      midnightAvailable: delivery.midnightAvailable,
+      deliveryFee: delivery.deliveryFee,
+    };
+  }
+
   /**
    * 8. checkDeliveryAvailability
    */
@@ -432,6 +447,10 @@ export class AiToolRegistry {
     };
   }
 
+  public static async getAvailableOffers(cartId?: string) {
+    return this.listOffers();
+  }
+
   /**
    * 15. validateCoupon
    */
@@ -550,10 +569,14 @@ export class AiToolRegistry {
     return {
       authenticated: true,
       orders: customerOrders.slice(0, 5).map((o: any) => ({
+        id: o.id || o.display_id,
         orderId: o.id || o.display_id,
         status: o.status || o.fulfillment_status,
         total: o.total,
+        totalAmount: o.total || o.grand_total || 0,
         createdAt: o.created_at,
+        deliverySlot: o.delivery_slot || "Standard Delivery Window",
+        itemsSummary: (o.items || []).map((i: any) => i.title || i.name).join(", ") || "Signature Bakery Selection",
         itemCount: (o.items || []).length,
       })),
     };

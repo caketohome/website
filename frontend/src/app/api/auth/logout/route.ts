@@ -35,6 +35,18 @@ export async function POST(req: NextRequest) {
     { status: 200 }
   );
 
+  const cookiePaths = [
+    "/",
+    "/dashboard",
+    "/account",
+    "/dashboard/shop",
+    "/dashboard/delivery-partner",
+    "/dashboard/admin",
+    "/admin",
+    "/branch-manager",
+    "/delivery-partner",
+  ];
+
   // Expire cookies via next/headers
   AUTH_COOKIE_NAMES.forEach((name) => {
     try {
@@ -44,14 +56,16 @@ export async function POST(req: NextRequest) {
     }
   });
 
-  // Explicitly set expired Set-Cookie headers on response for maximum browser compatibility
+  // Explicitly set expired Set-Cookie headers on response across all paths for maximum browser compatibility
   AUTH_COOKIE_NAMES.forEach((name) => {
-    response.cookies.set(name, "", {
-      path: "/",
-      maxAge: 0,
-      expires: new Date(0),
-      httpOnly: false,
-      sameSite: "lax",
+    cookiePaths.forEach((path) => {
+      response.cookies.set(name, "", {
+        path,
+        maxAge: 0,
+        expires: new Date(0),
+        httpOnly: false,
+        sameSite: "lax",
+      });
     });
   });
 

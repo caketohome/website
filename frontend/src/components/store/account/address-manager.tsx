@@ -142,7 +142,7 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-xl bg-neutral-800 flex items-center justify-center">
-                    {getTypeIcon(addr.type)}
+                    {getTypeIcon(addr.type || "home")}
                   </div>
                   <span className="text-xs font-bold uppercase tracking-wider text-white">
                     {addr.label || addr.type || "Home"}
@@ -164,20 +164,20 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
 
               {/* Full Address */}
               <div className="text-xs text-neutral-300 space-y-0.5 leading-relaxed">
-                <p>{addr.address_1 || addr.line1}</p>
+                <p>{addr.address_1 || (addr as any).line1 || ""}</p>
                 {addr.address_2 && <p className="text-neutral-400">{addr.address_2}</p>}
                 {addr.landmark && (
                   <p className="text-neutral-400 italic">Landmark: {addr.landmark}</p>
                 )}
                 <p className="font-semibold text-neutral-200">
-                  {addr.city || "Bengaluru"}, {addr.state || "Karnataka"} – {addr.postal_code || addr.pincode}
+                  {addr.city || "Bengaluru"}, {addr.state || "Karnataka"} – {addr.postal_code || (addr as any).pincode || ""}
                 </p>
               </div>
 
               {/* Branch Connection Indicator */}
               <div className="pt-2 border-t border-neutral-800/80 flex items-center gap-1.5 text-[11px] text-amber-400/90 font-medium">
                 <Store className="w-3.5 h-3.5" />
-                <span>Routed to: {addr.branch_name || "Indiranagar Hub Kitchen"}</span>
+                <span>Routed to: {(addr as any).branch_name || "Indiranagar Hub Kitchen"}</span>
               </div>
             </div>
 

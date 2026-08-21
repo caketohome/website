@@ -658,6 +658,18 @@ class CakeToHomeApiClient {
   async updateAdminDeliveryStatus(id: string, status: string) {
     return this.request(`/admin/delivery/jobs/${id}`, { method: "PUT", body: JSON.stringify({ status }) });
   }
+  async verifyPickupOtp(orderId: string, otp: string, partnerId: string) {
+    return this.request(`/delivery-partner/jobs/${orderId}/pickup-otp/verify`, {
+      method: "POST",
+      body: JSON.stringify({ otp, pickup_otp: otp, partner_id: partnerId }),
+    });
+  }
+  async verifyCustomerOtp(orderId: string, otp: string, partnerId: string) {
+    return this.request(`/delivery-partner/jobs/${orderId}/delivery-otp/verify`, {
+      method: "POST",
+      body: JSON.stringify({ otp, delivery_otp: otp, partner_id: partnerId }),
+    });
+  }
 
   // ── Admin: CRM ──
   async createAdminCustomer(customerData: any) {

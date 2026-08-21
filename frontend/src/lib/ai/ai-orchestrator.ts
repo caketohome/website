@@ -27,6 +27,8 @@ export interface AiProductCard {
   vegan?: boolean;
   sugarFree?: boolean;
   glutenFree?: boolean;
+  artisan?: boolean;
+  isEggless?: boolean;
   isDeliverable: boolean;
   minPrepHours?: number;
 }

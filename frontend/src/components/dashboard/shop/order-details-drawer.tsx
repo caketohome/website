@@ -237,7 +237,7 @@ export default function OrderDetailsDrawer({
           </div>
 
           {/* Kitchen Pickup OTP Card for Store Dispatch */}
-          {(order.status === "ready_for_pickup" || order.status === "ready" || order.status === "preparing" || order.status === "kitchen_accepted" || order.delivery_status === "ready_for_pickup" || order.delivery_status === "pickup_claimed") && !order.pickup_verified_at && order.status !== "out_for_delivery" && order.delivery_status !== "in_transit" && (
+          {(order.status === "ready_for_pickup" || order.status === "packed" || order.status === "ready" || order.status === "preparing" || order.status === "kitchen_accepted" || order.delivery_status === "ready_for_pickup" || order.delivery_status === "pickup_claimed") && !order.pickup_verified_at && order.status !== "out_for_delivery" && order.delivery_status !== "in_transit" && (
             <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 rounded-xl border border-amber-300 dark:border-amber-800/60 shadow-sm flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1.5">

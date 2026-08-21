@@ -10,6 +10,7 @@ interface LogoutButtonProps {
   variant?: "primary" | "secondary" | "transparent" | "danger";
   size?: "small" | "base" | "large";
   fullWidth?: boolean;
+  redirectUrl?: string;
 }
 
 export function LogoutButton({
@@ -17,6 +18,7 @@ export function LogoutButton({
   variant = "secondary",
   size = "base",
   fullWidth = false,
+  redirectUrl,
 }: LogoutButtonProps) {
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +26,7 @@ export function LogoutButton({
     if (loading) return;
     setLoading(true);
     try {
-      await authLogout({ redirectUrl: "/login", reason: "user_initiated" });
+      await authLogout({ redirectUrl, reason: "user_initiated" });
     } finally {
       setLoading(false);
     }

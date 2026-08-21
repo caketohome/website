@@ -150,10 +150,12 @@ export interface CustomerStatsDTO {
 }
 
 export interface CustomerPreferences {
+  artisan_only?: boolean;
   favourite_flavour?: string;
   whatsapp_notifications?: boolean;
   sms_notifications?: boolean;
   marketing_emails?: boolean;
+  [key: string]: any;
 }
 
 export interface CustomerProfileDTO {

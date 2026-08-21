@@ -1,4 +1,5 @@
 import AccountBadge from "@frontend/components/dashboard/account-badge";
+import { LogoutButton } from "@frontend/components/common/logout-button";
 import DeliveryColumn from "@frontend/components/dashboard/delivery-column";
 import RealtimeClient from "@frontend/components/dashboard/realtime-client";
 import {
@@ -64,8 +65,12 @@ export default async function DeliveryPartnerDashboardPage() {
           <RealtimeClient delivery_partnerId={delivery_partner.id} />
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto justify-end flex-wrap">
+        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full md:w-auto justify-end flex-wrap">
           <AccountBadge data={delivery_partner} type="delivery_partner" />
+          <LogoutButton
+            redirectUrl="/dashboard/delivery-partner/login"
+            className="bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50 shadow-sm"
+          />
         </div>
       </div>
 

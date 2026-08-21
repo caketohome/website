@@ -22,7 +22,7 @@ export default async function CompletedGrid({
         .filter((d) => statusFilters?.includes(d.delivery_status))
         .sort(
           (a, b) =>
-            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+            new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
         )
         .map((delivery) => (
           <DeliveryCard

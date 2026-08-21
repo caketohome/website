@@ -20,10 +20,15 @@ export default async function DeliveryCard({
 
   return (
     <Container className="flex flex-col gap-6 p-4 shadow-elevation-card-rest hover:shadow-elevation-card-hover w-full">
-      <div className="flex justify-between gap-2 flex-wrap">
-        <Heading className="text-large font-bold">
-          Order {delivery?.id?.slice(-4)}
-        </Heading>
+      <div className="flex justify-between gap-2 flex-wrap items-start">
+        <div className="flex flex-col gap-0.5">
+          <Heading className="text-large font-bold flex items-center gap-1.5 text-ui-fg-base">
+            Order #{delivery.order?.display_number || delivery.order?.order_number || (delivery as any).order_number || delivery.order_id || delivery.id}
+          </Heading>
+          <span className="font-mono text-[10px] text-ui-fg-muted font-normal">
+            Ref: {delivery.order_id || delivery.id}
+          </span>
+        </div>
         {type === "delivery_partner" && <DeliveryPartnerDeliveryStatusBadge delivery={delivery} />}
         {type === "shop" && (
           <ShopDeliveryStatusBadge delivery={delivery} />
@@ -31,33 +36,41 @@ export default async function DeliveryCard({
       </div>
       {/* Recipient Details & Delivery Notes */}
       {(() => {
-        const recipientName = typeof delivery.recipient_name === "string" && delivery.recipient_name
-          ? delivery.recipient_name
+        const recipientName = typeof delivery.recipient_name === "string" && delivery.recipient_name.trim()
+          ? delivery.recipient_name.trim()
           : typeof delivery.order?.shipping_address?.first_name === "string"
             ? `${delivery.order.shipping_address.first_name} ${delivery.order.shipping_address.last_name || ""}`.trim()
-            : "Customer";
+            : typeof delivery.order?.customer_name === "string" && delivery.order.customer_name.trim()
+              ? delivery.order.customer_name.trim()
+              : "Customer";
 
-        const recipientPhone = typeof delivery.recipient_phone === "string" && delivery.recipient_phone
-          ? delivery.recipient_phone
+        const recipientPhone = typeof delivery.recipient_phone === "string" && delivery.recipient_phone.trim()
+          ? delivery.recipient_phone.trim()
           : typeof delivery.order?.shipping_address?.phone === "string"
-            ? delivery.order.shipping_address.phone
-            : "+91 98765 43210";
+            ? delivery.order.shipping_address.phone.trim()
+            : typeof delivery.order?.customer_phone === "string" && delivery.order.customer_phone.trim()
+              ? delivery.order.customer_phone.trim()
+              : "";
 
-        const recipientAddress = typeof delivery.recipient_address === "string" && delivery.recipient_address
-          ? delivery.recipient_address
+        const recipientAddress = typeof delivery.recipient_address === "string" && delivery.recipient_address.trim()
+          ? delivery.recipient_address.trim()
           : typeof delivery.order?.shipping_address?.address_1 === "string"
-            ? delivery.order.shipping_address.address_1
-            : "Delivery Location";
+            ? delivery.order.shipping_address.address_1.trim()
+            : typeof delivery.order?.delivery_address === "string" && delivery.order.delivery_address.trim()
+              ? delivery.order.delivery_address.trim()
+              : "Delivery Location";
 
-        const recipientPincode = typeof delivery.recipient_pincode === "string" && delivery.recipient_pincode
-          ? delivery.recipient_pincode
+        const recipientPincode = typeof delivery.recipient_pincode === "string" && delivery.recipient_pincode.trim()
+          ? delivery.recipient_pincode.trim()
           : typeof delivery.order?.shipping_address?.postal_code === "string"
-            ? delivery.order.shipping_address.postal_code
-            : "560038";
+            ? delivery.order.shipping_address.postal_code.trim()
+            : typeof delivery.order?.pincode === "string" && delivery.order.pincode.trim()
+              ? delivery.order.pincode.trim()
+              : "";
 
-        const landmark = typeof delivery.recipient_landmark === "string" ? delivery.recipient_landmark : null;
-        const instructions = typeof delivery.delivery_instructions === "string" ? delivery.delivery_instructions : null;
-        const giftMsg = typeof delivery.gift_message === "string" ? delivery.gift_message : null;
+        const landmark = typeof delivery.recipient_landmark === "string" && delivery.recipient_landmark.trim() ? delivery.recipient_landmark.trim() : null;
+        const instructions = typeof delivery.delivery_instructions === "string" && delivery.delivery_instructions.trim() ? delivery.delivery_instructions.trim() : null;
+        const giftMsg = typeof delivery.gift_message === "string" && delivery.gift_message.trim() ? delivery.gift_message.trim() : null;
         const hasDeliveryOtp = Boolean(delivery.delivery_otp);
 
         return (
@@ -65,8 +78,8 @@ export default async function DeliveryCard({
             <span className="font-semibold text-rose-600 dark:text-rose-400">
               👤 Recipient: {recipientName}
             </span>
-            <span>📞 Phone: {recipientPhone}</span>
-            <span>📍 Address: {recipientAddress} ({recipientPincode})</span>
+            {recipientPhone && <span>📞 Phone: {recipientPhone}</span>}
+            <span>📍 Address: {recipientAddress}{recipientPincode ? ` (${recipientPincode})` : ""}</span>
             {landmark && <span>🏠 Landmark: {landmark}</span>}
             {instructions && <span className="italic text-ui-fg-muted">💬 Note: &quot;{instructions}&quot;</span>}
             {giftMsg && <span className="font-medium text-purple-600 dark:text-purple-400">🎁 Gift Card Message Included</span>}
@@ -88,9 +101,9 @@ export default async function DeliveryCard({
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {items?.map((item: any) => (
-              <Table.Row key={delivery?.id?.slice(-4) + "_" + item.id}>
-                <Table.Cell className="text-wrap">{item.title}</Table.Cell>
+            {items?.map((item: any, idx: number) => (
+              <Table.Row key={`${delivery?.id || 'del'}_${item.id || idx}`}>
+                <Table.Cell className="text-wrap">{item.title || item.name || "Artisan Cake"}</Table.Cell>
                 <Table.Cell className="text-right">
                   {item.quantity as number}
                 </Table.Cell>

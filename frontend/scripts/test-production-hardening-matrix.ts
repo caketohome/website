@@ -497,7 +497,7 @@ async function runSuite() {
     }
 
     // 9.3 Wrong Pickup OTP Rejection
-    const wrongPickup = ApiEngine.verifyPickupOtpBackend(createdOrderId, "0000", partnerId);
+    const wrongPickup = await ApiEngine.verifyPickupOtpBackend(createdOrderId, "0000", partnerId);
     if (!wrongPickup.success && wrongPickup.statusCode === 400) {
       record("9.3", "Delivery Workflow", "Invalid Pickup OTP Rejection", "PASS", `Wrong Pickup OTP rejected: '${wrongPickup.error}'`);
     } else {
@@ -505,7 +505,7 @@ async function runSuite() {
     }
 
     // 9.4 Correct Pickup OTP Verification
-    const correctPickup = ApiEngine.verifyPickupOtpBackend(createdOrderId, pickupOtp, partnerId);
+    const correctPickup = await ApiEngine.verifyPickupOtpBackend(createdOrderId, pickupOtp, partnerId);
     if (correctPickup.success && (correctPickup.order.delivery_status === "in_transit" || correctPickup.order.delivery_status === "out_for_delivery")) {
       record("9.4", "Delivery Workflow", "Valid Pickup OTP Verification", "PASS", `Pickup verified! Order transitioned to '${correctPickup.order.delivery_status}'`);
     } else {
@@ -513,7 +513,7 @@ async function runSuite() {
     }
 
     // 9.5 Wrong Customer OTP Rejection
-    const wrongCustomerOtp = ApiEngine.verifyCustomerOtpBackend(createdOrderId, "9999", partnerId);
+    const wrongCustomerOtp = await ApiEngine.verifyCustomerOtpBackend(createdOrderId, "9999", partnerId);
     if (!wrongCustomerOtp.success && wrongCustomerOtp.statusCode === 400) {
       record("9.5", "Delivery Workflow", "Invalid Customer OTP Rejection", "PASS", `Wrong Customer OTP rejected: '${wrongCustomerOtp.error}'`);
     } else {
@@ -521,7 +521,7 @@ async function runSuite() {
     }
 
     // 9.6 Correct Customer OTP Verification -> DELIVERED
-    const correctCustomerOtp = ApiEngine.verifyCustomerOtpBackend(createdOrderId, deliveryOtp, partnerId);
+    const correctCustomerOtp = await ApiEngine.verifyCustomerOtpBackend(createdOrderId, deliveryOtp, partnerId);
     if (correctCustomerOtp.success && correctCustomerOtp.order.status === "delivered") {
       record("9.6", "Delivery Workflow", "Valid Customer OTP Delivery Fulfilment", "PASS", `Delivery verified! Order successfully marked as 'delivered'`);
     } else {

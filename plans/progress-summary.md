@@ -7,6 +7,64 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.7: Canonical Order Data Mismatch & Fake Delivery Job Repair (100% Verified)
+- **Root-Cause Discovery & Elimination**:
+  - **Truncated Fake Short IDs**: `DeliveryCard` in `frontend/src/components/dashboard/delivery-card.tsx` was executing `<Heading>Order {delivery?.id?.slice(-4)}</Heading>` instead of displaying the canonical `order.order_number`. For `ord_indiranagar_1787300782580`, `.slice(-4)` rendered `"Order 2580"`; for `ord_1787304178784_b94y`, it rendered `"Order b94y"`. Replaced with canonical `Order #{delivery.order?.display_number || delivery.order?.order_number || delivery.order_number}` and explicit reference badge `Ref: {delivery.order_id || delivery.id}`.
+  - **Mock Data Fallbacks Purged**: Stripped out hardcoded fallback strings (`"Ananya Rao"`, `"Flat 402, Signature Towers..."`, etc.) from `frontend/src/lib/data/deliveries.ts`.
+  - **Authoritative Identity Joins**: Relational joins across all surfaces (Admin Order Command Center, Branch Manager Kitchen Hub, Delivery Partner Workspace, and Customer Storefront Tracking) now strictly use authoritative `orders.id` (`ord_...`) internally while displaying `orders.order_number`.
+  - **Payment Gate Enforcement**: Delivery jobs are strictly restricted to confirmed/paid orders (`payment_status: "paid" | "captured"` or progressed kitchen states). Unpaid orders (`payment_status: "pending" | "payment_pending" | "failed"`) are strictly excluded from rider queues.
+  - **Server-Side Branch Scoping**: Riders and Branch Managers are fail-closed to their authorized kitchen branches (e.g. Indiranagar, Whitefield, Koramangala).
+- **Master Cross-Panel Integrity E2E Test Suite (`scripts/test-order-cross-panel-integrity-e2e.ts`)**:
+  - Phase 1: Super Admin Command Center Verification (Canonical ID & Order Number match).
+  - Phase 2: Branch Manager Kitchen Hub Scoping & Branch Isolation.
+  - Phase 3: Delivery Partner Queue & Payment Gate (Unpaid Order Excluded).
+  - Phase 4: Playwright Real Browser UI Rendering (Zero broken `"Order b94y"` short IDs).
+  - Phase 5: Atomic Pickup OTP Verification & Dispatch (`READY_FOR_PICKUP` $\rightarrow$ `OUT_FOR_DELIVERY`).
+  - Phase 6: Cross-Panel Real-Time State Synchronization across all 4 surfaces.
+  - Phase 7: Customer Handover Delivery OTP Verification & Completion (`OUT_FOR_DELIVERY` $\rightarrow$ `DELIVERED`).
+  - Phase 8: Final 4-Surface Reconciliation Check (`DELIVERED`).
+  - **Results**: 25 / 25 ASSERTIONS PASSED (100% SUCCESS).
+- **Zero TypeScript Regressions**: `npx tsc --noEmit` verified with 0 errors across the entire codebase.
+
+### Milestone 9.6: Pickup OTP Verification to Out for Delivery & Global Profile Menu / Logout Resolution
+- **Kitchen Pickup OTP Verification Repair (`OrderLifecycleService.verifyPickupAndStartDelivery`)**:
+  - Root-caused state machine disconnect where kitchen pickup verification was failing due to client/server state mismatch, lack of client-side endpoint invocation, and state transition gate restrictions on `"packed"`.
+  - Implemented authoritative 15-step transaction: rider auth $\rightarrow$ branch check $\rightarrow$ payment check $\rightarrow$ atomic row lock $\rightarrow$ OTP validation & single-use consumption $\rightarrow$ `order.status = "out_for_delivery"` $\rightarrow$ `order.delivery_status = "in_transit"` $\rightarrow$ `delivery_job.status = "in_transit"` $\rightarrow$ `delivery_job.pickup_verified_at = now` $\rightarrow$ audit log record (`PICKUP_CONFIRMED`) $\rightarrow$ transactional outbox event (`order.out_for_delivery`) $\rightarrow$ commit.
+  - Added REST endpoint `POST /api/v1/delivery-partner/jobs/:id/pickup-otp/verify` in `ApiClient`, `deliveries.ts`, and `delivery-buttons.tsx`.
+  - Added full idempotency: Duplicate submissions return `200 OK` (`already_verified: true`) without throwing illegal transition errors.
+  - Verified multi-panel synchronization across Delivery Partner (In Transit), Super Admin Order Command Center (Out for Delivery), Branch Manager (Out for Delivery), and Customer Storefront Tracking.
+- **Global Profile Menu & Logout Interaction Permanent Fix (`ProfileMenu`)**:
+  - Resolved micro-interaction gap where moving cursor from avatar trigger towards dropdown caused menu to prematurely close.
+  - Added pointer bridging layer (`before:absolute before:-top-3 before:left-0 before:right-0 before:h-3`), connection check in outside click listener (`if (!target.isConnected) return`), and full keyboard/escape/focus management.
+- **Master Automated Test Suite Execution**:
+  - `scripts/test-pickup-otp-to-out-for-delivery-e2e.ts`: 16 / 16 PASSED (100% SUCCESS).
+  - `scripts/test-global-profile-menu-logout-e2e.ts`: 17 / 17 PASSED (100% SUCCESS).
+  - `npx tsc --noEmit`: 100% Clean Pass (0 errors).
+
+### Milestone 9.5: Master Order Lifecycle, Identity, Auth, Branch Manager, Delivery Partner & OTP Architecture Repair
+- **Canonical Authoritative Order Lifecycle Service (`frontend/src/lib/order-lifecycle-service.ts`)**:
+  - Implemented the single authoritative state machine governing all 10 order lifecycle states (`pending_payment`, `confirmed`, `kitchen_accepted`, `preparing`, `packed`/`ready_for_pickup`, `out_for_delivery`/`in_transit`, `delivered`, `cancelled`, `refunded`, `failed`) and delivery lifecycle states (`unassigned`, `claimed`, `picked_up`, `in_transit`, `arrived`, `delivered`, `failed`, `returned`).
+  - **Payment Gate**: Enforces that unpaid orders (`pending_payment`, `failed`) cannot enter kitchen queues or undergo operational lifecycle mutations.
+  - **Server-Side Branch Isolation**: Fail-closed gate guarantees branch managers can only view and mutate orders matching their assigned `branch_id`.
+  - **Two-Phase Security OTP Engine**:
+    - **Pickup OTP**: Single-use 4-digit code generated upon order reaching `PACKED` / `READY_FOR_PICKUP`. Visible exclusively to Kitchen Manager & Super Admin. Never leaked to customer. Consumed atomically upon rider verification (`pickup_verified_at`).
+    - **Delivery OTP**: 4-digit numeric code visible to customer for doorstep handover. Rider must submit code to complete fulfillment to `DELIVERED`.
+    - **Idempotency & Replay Protection**: Double-clicks and network retries return `200 OK` (`already_verified: true`) without redundant state transitions or duplicate webhooks.
+  - **Transactional Outbox & Audit Trail**: Every lifecycle mutation synchronously appends HMAC-SHA256 signed domain events to `WebhookEngine` outbox and persists immutable audit log entries.
+  - **Fleet Workload Synchronization**: Active delivery driver capacity dynamically decrements upon fulfillment.
+- **Unified Identity Resolution & Universal Logout (`frontend/src/lib/auth-service.ts` & `frontend/src/lib/api-engine.ts`)**:
+  - Unified `resolveUserAccount` across all application modules to prevent shadowed declarations and ensure role-scoped isolation.
+  - Universal logout purges all cookies across root and sub-paths (`cth_auth_token`, `cth_session_token`, `cth_user_role`, `cth_user_id`, etc.) and localStorage/sessionStorage across all browser tabs.
+  - Server-side session revocation ensures `resolveUserAccount({})` returns `null` (zero credential leakage).
+- **Automated Master Test Verification**:
+  - `scripts/test-master-order-lifecycle-e2e.ts`: 36 / 36 PASSED (100% SUCCESS).
+  - `scripts/test-master-identity-delivery-logout-e2e.ts`: 30 / 30 PASSED (100% SUCCESS).
+  - `scripts/test-smart-login-cart-recovery-e2e.ts`: 32 / 32 PASSED (100% SUCCESS).
+  - `scripts/test-staff-profiles-permissions-e2e.ts`: 11 / 11 Pillars PASSED (100% SUCCESS).
+- **Production Build & Type Check Gate**:
+  - `npx tsc --noEmit`: 100% Clean Pass (0 errors).
+  - `npm run build`: 100% Success (39 / 39 routes generated and optimized).
+
 ### Milestone 9.4: Customer Experience, Authentication & Account System Complete Rebuild
 - **Root-Cause Customer Identity Mapping & Zero Generic Fallback**: Fixed customer name loading post-login. Eliminated generic `"Customer"` fallbacks by introducing multi-tiered resolution (canonical `memoryStore.customers` $\rightarrow$ normalized mobile lookup $\rightarrow$ historic order trace `memoryStore.orders`), ensuring real customer names (e.g., `"Alex R Ashok"`) load authoritatively across headers, badges, profiles, and API payloads.
 - **Standardized Identity API Contract (`/api/customer/me`)**:
@@ -72,6 +130,8 @@
 
 | Test Suite | Coverage | Status | Passed / Total |
 | :--- | :--- | :--- | :--- |
+| `scripts/test-master-order-lifecycle-e2e.ts` | 36 Master Lifecycle Gates: Super Admin, Hub Provisioning, Isolation, Payment Gate, State Machine, Two-Phase OTP, Idempotency, Outbox, Universal Logout | ✅ PASSED | 36 / 36 |
+| `scripts/test-master-identity-delivery-logout-e2e.ts` | 30 Identity & Delivery Gates: Manager Auto-Provisioning, Rider Fleet Mapping, Pickup OTP Handover, Delivery OTP Fulfillment, Session Revocation | ✅ PASSED | 30 / 30 |
 | `scripts/test-customer-account-e2e.ts` | 8 Customer Experience Gates: Auth, Real Identity Mapping, Standardized /api/customer/me, Order Stats & Favourite Cake, Mutations, Addresses, Zero Wallet, Security | ✅ PASSED | 53 / 53 |
 | `scripts/test-abandoned-cart-engine-e2e.ts` | 11 Abandoned Cart Gates: Schema, Detection, Search/Pagination, KPIs, Outbox, Restoration, Attribution, RBAC, CSV | ✅ PASSED | 65 / 65 |
 | `scripts/crm-production-integrity-test.ts` | 10 CRM Production Gates: Seed Block, Identity, Lineage, Segments, RBAC, Outbox | ✅ PASSED | 34 / 34 |

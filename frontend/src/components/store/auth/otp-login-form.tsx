@@ -317,7 +317,7 @@ export function OtpLoginForm({
                   maxLength={1}
                   value={digit}
                   onChange={(e) => handleDigitChange(idx, e.target.value)}
-                  onKeyDown={(e) => handleDigitKeyDown(idx, e.target.value ? e : e)}
+                  onKeyDown={(e) => handleDigitKeyDown(idx, e)}
                   className="w-full aspect-square bg-neutral-950 border border-neutral-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl text-center text-lg font-mono font-bold text-white transition-all select-none"
                   autoFocus={idx === 0}
                 />
