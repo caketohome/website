@@ -11,6 +11,7 @@ import { type SearchResult } from "@frontend/lib/data/catalog-client";
 import { addToCart } from "@frontend/lib/actions/carts";
 import { ErrorComponent } from "@frontend/components/common/error-component";
 import { ScrollFrameHero } from "@frontend/components/store/animation/scroll-frame-hero";
+import { useFavorites } from "@/providers/favorites-provider";
 
 const SAMPLE_PRODUCTS: SearchResult[] = [
   {
@@ -391,6 +392,7 @@ export function StorefrontProductHomepage() {
 
 function ProductGrid({ products }: { products: SearchResult[] }) {
   const router = useRouter();
+  const { isFavorited, toggleFavorite } = useFavorites();
   const [addingMap, setAddingMap] = useState<Record<string, boolean>>({});
   const [errorMap, setErrorMap] = useState<Record<string, string | null>>({});
 
@@ -410,9 +412,10 @@ function ProductGrid({ products }: { products: SearchResult[] }) {
     }
   };
 
-  const handleWishlist = (e: React.MouseEvent) => {
+  const handleWishlist = async (e: React.MouseEvent, product: SearchResult) => {
     e.stopPropagation();
     e.preventDefault();
+    await toggleFavorite(product.product_id, { title: product.title, handle: product.handle || undefined });
   };
 
   return (
@@ -420,6 +423,7 @@ function ProductGrid({ products }: { products: SearchResult[] }) {
       {products.map((product) => {
         const productHandle = product.handle || (product as any).slug || product.product_id || (product as any).id;
         const productHref = `/products/${productHandle}`;
+        const wished = isFavorited(product.product_id);
 
         return (
           <div
@@ -447,10 +451,15 @@ function ProductGrid({ products }: { products: SearchResult[] }) {
                 <div className="w-full h-full flex items-center justify-center text-4xl">🎂</div>
               )}
               <div
-                onClick={handleWishlist}
-                className="absolute top-3 right-3 bg-white/80 backdrop-blur-md p-1.5 rounded-full shadow-sm text-gray-700 hover:text-rose-600 cursor-pointer transition z-10"
+                onClick={(e) => handleWishlist(e, product)}
+                className={`absolute top-3 right-3 backdrop-blur-md p-1.5 rounded-full shadow-sm cursor-pointer transition z-10 ${
+                  wished
+                    ? "bg-rose-50 text-rose-600 border border-rose-200"
+                    : "bg-white/80 text-gray-700 hover:text-rose-600 hover:bg-white"
+                }`}
+                title={wished ? "Remove from Favorites" : "Add to Favorites"}
               >
-                <Heart className="w-4 h-4" />
+                <Heart className="w-4 h-4" fill={wished ? "currentColor" : "none"} />
               </div>
             </Link>
 

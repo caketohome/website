@@ -550,6 +550,36 @@ class CakeToHomeApiClient {
     return this.request(`/admin/products/${productId}/weight-prices`, { method: "POST", body: JSON.stringify({ weight_prices: weightPrices }) });
   }
 
+  // ── Customer Favorites / Wishlist API ──
+  async getCustomerFavorites() {
+    return this.request<{ success: boolean; favorites: any[]; favorite_ids: string[]; count: number }>("/customer/favorites").catch(() => ({
+      success: true,
+      favorites: [],
+      favorite_ids: [],
+      count: 0,
+    }));
+  }
+
+  async addCustomerFavorite(productId: string) {
+    return this.request<{ success: boolean; favorite?: any; is_favorited: boolean; error?: string }>(`/customer/favorites/${productId}`, {
+      method: "POST",
+    });
+  }
+
+  async removeCustomerFavorite(productId: string) {
+    return this.request<{ success: boolean; is_favorited: boolean; product_id: string }>(`/customer/favorites/${productId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async checkCustomerFavorite(productId: string) {
+    return this.request<{ success: boolean; is_favorited: boolean; product_id: string }>(`/customer/favorites/check/${productId}`).catch(() => ({
+      success: true,
+      is_favorited: false,
+      product_id: productId,
+    }));
+  }
+
   // ── Admin: CRM 360 & Customer Management ──
   // (Full typed methods provided in Enterprise CRM section below)
 

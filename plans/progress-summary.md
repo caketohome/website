@@ -7,6 +7,42 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.15: Customer Favorites / Wishlist Complete Database, API & Storefront Implementation (100% Verified)
+- **Root-Cause Discovery & Complete Engineering Across the Stack**:
+  - **Eliminated Mock / Disconnected Heart Toggles**: Previously, clicking heart icons was either a no-op or local temporary state that was lost on page navigation, ignored authenticated customer identity, and had no database persistence.
+  - **Authoritative Database & Identity Foundation**:
+    - Modeled `CustomerFavoriteRecord` (`{ id, customer_uid, product_id, created_at }`) in `frontend/src/lib/api-engine.ts` with permanent disk persistence in `db-store.json`.
+    - Enforced canonical `customer_uid` scoping derived strictly from authenticated session cookies (`_cth_customer_uid`, `_cth_user_id`, `_cth_phone`, `_cth_role`) via `ApiEngine.resolveUserAccount`.
+    - Enforced strict database unique constraint: `UNIQUE(customer_uid, product_id)` ensuring complete idempotence and zero duplicate rows.
+    - Added comprehensive validation guards: fail-closed HTTP 401 Unauthorized for unauthenticated callers, HTTP 400 Bad Request for empty product IDs, and HTTP 404 Not Found for non-existent products.
+  - **Enterprise Webhook Event Gateway**:
+    - Dispatched transactional webhook events: `wishlist.item.added` and `wishlist.item.removed` on every state change for marketing and CRM automations.
+  - **Complete REST API Endpoints in `frontend/src/app/api/v1/[...path]/route.ts`**:
+    - `GET /api/v1/customer/favorites` $\rightarrow$ returns enriched favorites list, ID array, and count.
+    - `GET /api/v1/customer/favorites/check/:productId` $\rightarrow$ checks product favorited state.
+    - `POST /api/v1/customer/favorites/:productId` $\rightarrow$ adds product to customer favorites with 401 auth protection.
+    - `DELETE /api/v1/customer/favorites/:productId` $\rightarrow$ removes product with 401 auth protection.
+  - **Zero N+1 Query Client-Side State Architecture**:
+    - Created `FavoritesProvider` and `useFavorites()` hook in `frontend/src/providers/favorites-provider.tsx`.
+    - Loads all customer favorite IDs once into a fast `Set<string>`, eliminating N+1 network requests per product card.
+    - Implemented optimistic UI updates: 0ms instant visual toggle on click with automated rollback on network failure.
+    - Full customer session synchronization: instantly purges state on logout, automatically refetches on login.
+    - Guest handling: prompts customer to sign in to save favorites and redirects preserving the return path.
+  - **Storefront & Account UI Integration**:
+    - Connected `ProductCard` (catalog, category pages, search results) to `useFavorites()`.
+    - Connected `ProductDetailClient` (`/products/[id]`) with bi-directional synchronization to catalog product cards.
+    - Connected Storefront Homepage product grid (`storefront-product-homepage.tsx`).
+    - Created `NavFavorites` header icon (`frontend/src/components/store/favorites/nav-favorites.tsx`) with dynamic badge counter in `(store)/layout.tsx`.
+    - Upgraded Customer Account Wishlist page (`/account/wishlist`) and `WishlistManager` with live database items, weights, category badges, "Add to Cart", "View Cake", and branded empty state.
+    - Added "My Favorites" to sidebar navigation in `frontend/src/app/account/layout.tsx`.
+    - Integrated `favorite_products` and `favorites_count` into CRM 360 profile (`getCustomerProfile`) and `getCustomerMe`.
+- **Empirical Automated E2E Verification (`frontend/scripts/test-favorites-e2e.ts`)**:
+  - **43 / 43 ASSERTIONS PASSED (100% SUCCESS)** covering initial empty state, auth guards (401/400/404), canonical creation, unique constraints, multi-item persistence, multi-customer session isolation (0% leakage), idempotent removal, and CRM 360 customer profile integration.
+- **Full Regression Test Suites**:
+  - `frontend/scripts/test-branch-manager.ts`: **53 / 53 ASSERTIONS PASSED (100% SUCCESS)**.
+  - `frontend/scripts/test-pim-weight-matrix-e2e.ts`: **24 / 24 ASSERTIONS PASSED (100% SUCCESS)**.
+- **Zero TypeScript Regressions**: `npx tsc --noEmit` verified with 0 errors across the entire codebase.
+
 ### Milestone 9.14: PIM Product Weight Option & Pricing Matrix Complete Multi-Tier Repair (100% Verified)
 - **Root-Cause Discovery & Elimination Across PIM & Pricing Stack**:
   - **"Add Weight Option" Only Worked Once Bug**: `handleAddCustomWeight` cleared state inputs (`setNewWeightName("")`, `setNewWeightPrice("")`), causing subsequent clicks on `[+ Add Weight Option]` to fail the empty guard check silently. Replaced with intelligent auto-suggestion (`getNextSuggestedWeight`) that dynamically pre-populates the next standard ladder tier (`0.5 kg` $\rightarrow$ `0.75 kg` $\rightarrow$ `1 kg` $\rightarrow$ `1.5 kg` $\rightarrow$ `2 kg` $\rightarrow$ `2.5 kg` $\rightarrow$ `3 kg` $\rightarrow$ `4 kg`), enabling continuous 1-click rapid multi-additions.

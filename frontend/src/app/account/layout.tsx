@@ -1,12 +1,13 @@
 import { retrieveUser } from "@frontend/lib/data";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { User, ShoppingBag, MapPin, LogOut, Sparkles, ChevronRight } from "lucide-react";
+import { User, ShoppingBag, MapPin, Heart, LogOut, Sparkles, ChevronRight } from "lucide-react";
 import { LogoutButton } from "@frontend/components/common/logout-button";
 
 const navItems = [
   { href: "/account", label: "Personal Profile", description: "Identity, Preferences & Security", icon: User },
   { href: "/account/orders", label: "Order History", description: "Active tracking & past receipts", icon: ShoppingBag },
+  { href: "/account/wishlist", label: "My Favorites", description: "Saved celebratory cakes & flavours", icon: Heart },
   { href: "/account/addresses", label: "Saved Addresses", description: "Home, Office & delivery hubs", icon: MapPin },
 ];
 

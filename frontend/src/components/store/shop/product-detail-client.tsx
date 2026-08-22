@@ -2,10 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Heading, Text, Button, Input, Switch, Badge, Textarea, Label } from "@medusajs/ui";
-import {
-    addToWishlistAction,
-    removeFromWishlistAction,
-} from "@frontend/lib/actions";
+import { useFavorites } from "@/providers/favorites-provider";
 import type { ProductReview } from "@frontend/lib/data/catalog";
 import { addToCart } from "@frontend/lib/actions/carts";
 import { retrieveBranchInventory } from "@frontend/lib/data/branches";
@@ -57,7 +54,9 @@ export default function ProductDetailClient({
     pimConfig = {},
 }: ProductDetailProps) {
     const router = useRouter();
-    const [isWishlisted, setIsWishlisted] = useState(isWishlistedInitial);
+    const { isFavorited, toggleFavorite } = useFavorites();
+    const prodId = product.id || product.product_id;
+    const isWishlisted = isFavorited(prodId);
     const [wishlistLoading, setWishlistLoading] = useState(false);
     const [cartLoading, setCartLoading] = useState(false);
     const isSubmittingRef = useRef(false);
@@ -311,13 +310,7 @@ export default function ProductDetailClient({
     const handleWishlistToggle = async () => {
         setWishlistLoading(true);
         try {
-            if (isWishlisted) {
-                await removeFromWishlistAction(product.id);
-                setIsWishlisted(false);
-            } else {
-                await addToWishlistAction(product.id);
-                setIsWishlisted(true);
-            }
+            await toggleFavorite(prodId, { title: product.title, handle: product.handle });
         } catch (e) {
             console.error("Failed to toggle wishlist", e);
         } finally {

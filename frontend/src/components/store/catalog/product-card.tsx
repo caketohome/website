@@ -1,7 +1,7 @@
 "use client";
 
 import type { SearchResult } from "@frontend/lib/data/catalog";
-import { addToWishlistAction, removeFromWishlistAction } from "@frontend/lib/actions";
+import { useFavorites } from "@/providers/favorites-provider";
 import { trackProductView } from "@frontend/lib/data/analytics";
 import { Heading, Text, Badge, IconButton } from "@medusajs/ui";
 import { Heart } from "@medusajs/icons";
@@ -11,12 +11,14 @@ import { useRouter } from "next/navigation";
 /**
  * Product card — reusable storefront product tile.
  *
- * Renders a search/catalog result with dietary badges, rating, price, and a
- * wishlist toggle. Clicking the card navigates to the product detail page.
+ * Renders a search/catalog result with dietary badges, rating, price, and an
+ * authoritative favorites/wishlist toggle. Clicking the card navigates to the product detail page.
  */
 export function ProductCard({ product }: { product: SearchResult }) {
     const router = useRouter();
-    const [wished, setWished] = useState(false);
+    const { isFavorited, toggleFavorite } = useFavorites();
+    const prodId = product.product_id || (product as any).id;
+    const wished = isFavorited(prodId);
     const [loading, setLoading] = useState(false);
 
     const dietary: string[] = [];
@@ -29,19 +31,11 @@ export function ProductCard({ product }: { product: SearchResult }) {
     if (product.is_new_arrival) merchandising.push("New");
     if (product.is_featured) merchandising.push("Featured");
 
-    async function toggleWishlist(e: React.MouseEvent) {
+    async function handleToggleWishlist(e: React.MouseEvent) {
         e.stopPropagation();
         setLoading(true);
         try {
-            if (wished) {
-                await removeFromWishlistAction(product.product_id);
-                setWished(false);
-            } else {
-                await addToWishlistAction(product.product_id);
-                setWished(true);
-            }
-        } catch {
-            // best-effort
+            await toggleFavorite(prodId, { title: product.title, handle: product.handle || undefined });
         } finally {
             setLoading(false);
         }
@@ -94,11 +88,13 @@ export function ProductCard({ product }: { product: SearchResult }) {
                     <IconButton
                         variant={wished ? "primary" : "transparent"}
                         size="small"
-                        onClick={toggleWishlist}
+                        onClick={handleToggleWishlist}
                         disabled={loading}
-                        aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+                        aria-label={wished ? "Remove from Favorites" : "Add to Favorites"}
+                        title={wished ? "Remove from Favorites" : "Add to Favorites"}
+                        className={wished ? "text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100" : "bg-white/80 backdrop-blur hover:bg-white text-gray-700"}
                     >
-                        <Heart fill={wished ? "currentColor" : "none"} />
+                        <Heart fill={wished ? "currentColor" : "none"} className={wished ? "text-rose-600 w-4 h-4" : "w-4 h-4 text-gray-700"} />
                     </IconButton>
                 </div>
             </div>

@@ -107,6 +107,21 @@ export interface WishlistItem {
   id: string;
   product_id: string;
   created_at?: string;
+  title?: string;
+  name?: string;
+  thumbnail?: string | null;
+  price?: number | null;
+  selling_price?: number | null;
+  mrp?: number | null;
+  rating?: number;
+  review_count?: number;
+  category?: string;
+  category_slug?: string;
+  weight?: string;
+  weight_prices?: any[];
+  is_available?: boolean;
+  variant_id?: string;
+  shop_id?: string;
 }
 
 export interface StockNotification {
@@ -437,16 +452,67 @@ export async function submitReview(productId: string, input: any): Promise<any> 
   return { review: { id: "rev_101", product_id: productId, rating: input.rating } };
 }
 
+export async function getAuthenticatedCustomerUid(): Promise<string | null> {
+  try {
+    const { cookies } = await import("next/headers");
+    const cookieStore = cookies();
+    const cookieCustomerUid = cookieStore.get("_cth_customer_uid")?.value;
+    const cookieUserId = cookieStore.get("_cth_user_id")?.value;
+    const cookiePhone = cookieStore.get("_cth_phone")?.value;
+    const cookieRole = cookieStore.get("_cth_role")?.value;
+
+    const resolved = ApiEngine.resolveUserAccount({
+      customerUid: cookieCustomerUid,
+      userId: cookieUserId,
+      phone: cookiePhone,
+      role: cookieRole,
+    });
+
+    return resolved?.customer_uid || resolved?.id || cookieCustomerUid || null;
+  } catch {
+    return null;
+  }
+}
+
 export async function listWishlist(): Promise<WishlistItem[]> {
-  return [];
+  const customerUid = await getAuthenticatedCustomerUid();
+  if (!customerUid) return [];
+  const favs = ApiEngine.getCustomerFavorites(customerUid);
+  return favs.map((f: any) => ({
+    id: f.id,
+    product_id: f.product_id,
+    title: f.title || f.name,
+    name: f.title || f.name,
+    thumbnail: f.thumbnail,
+    price: f.price || f.selling_price,
+    selling_price: f.selling_price || f.price,
+    mrp: f.mrp,
+    rating: f.rating,
+    review_count: f.review_count,
+    category: f.category,
+    category_slug: f.category_slug,
+    weight: f.weight,
+    variant_id: f.weight_prices?.[0]?.weight_id || `wp_${f.product_id}_default`,
+    weight_prices: f.weight_prices || [],
+    is_available: f.is_available !== false,
+    created_at: f.created_at,
+  }));
 }
 
 export async function addToWishlist(productId: string): Promise<any> {
-  return { id: `wish_${Date.now()}`, product_id: productId };
+  const customerUid = await getAuthenticatedCustomerUid();
+  if (!customerUid) {
+    return { success: false, error: "UNAUTHORIZED", message: "Please log in to save cakes to your Favorites.", statusCode: 401 };
+  }
+  return ApiEngine.addCustomerFavorite(customerUid, productId);
 }
 
 export async function removeFromWishlist(productId: string): Promise<any> {
-  return { success: true, product_id: productId };
+  const customerUid = await getAuthenticatedCustomerUid();
+  if (!customerUid) {
+    return { success: false, error: "UNAUTHORIZED", message: "Please log in to manage your Favorites.", statusCode: 401 };
+  }
+  return ApiEngine.removeCustomerFavorite(customerUid, productId);
 }
 
 export async function createStockNotification(input: any): Promise<any> {

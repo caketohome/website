@@ -31,6 +31,27 @@ function resolveUserContext(req: NextRequest) {
   };
 }
 
+function resolveCustomerUidFromReq(req: NextRequest): string | null {
+  const cookieCustomerUid = req.cookies.get("_cth_customer_uid")?.value;
+  const cookieUserId = req.cookies.get("_cth_user_id")?.value;
+  const cookiePhone = req.cookies.get("_cth_phone")?.value;
+  const cookieRole = req.cookies.get("_cth_role")?.value;
+  const headerUid = req.headers.get("x-customer-uid") || req.headers.get("x-user-id");
+
+  if (!cookieCustomerUid && !cookieUserId && !cookiePhone && !headerUid) {
+    return null;
+  }
+
+  const resolved = ApiEngine.resolveUserAccount({
+    customerUid: cookieCustomerUid || headerUid || undefined,
+    userId: cookieUserId || headerUid || undefined,
+    phone: cookiePhone || undefined,
+    role: cookieRole || undefined,
+  });
+
+  return resolved?.customer_uid || resolved?.id || cookieCustomerUid || headerUid || null;
+}
+
 function verifyApiPermission(req: NextRequest, module: string, action: string = "VIEW"): NextResponse | null {
   const userCtx = resolveUserContext(req);
   if (!userCtx.userId && !userCtx.role) {
@@ -560,6 +581,23 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
 
       return jsonWithDataSource({ success: true, user, customer: user }, "json-fallback");
+    }
+
+    // ── Customer Favorites / Wishlist (GET) ──
+    if (path === "customer/favorites" || path === "customer/wishlist" || path === "store/favorites" || path === "store/wishlist") {
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource({ success: true, favorites: [], favorite_ids: [], count: 0, is_guest: true }, "json-fallback");
+      }
+      const favorites = ApiEngine.getCustomerFavorites(customerUid);
+      const favoriteIds = ApiEngine.getCustomerFavoriteIds(customerUid);
+      return jsonWithDataSource({ success: true, favorites, favorite_ids: favoriteIds, count: favorites.length, customer_uid: customerUid }, "json-fallback");
+    }
+    if (path.startsWith("customer/favorites/check/") || path.startsWith("customer/wishlist/check/") || path.startsWith("store/favorites/check/") || path.startsWith("store/wishlist/check/")) {
+      const productId = path.split("/").pop() || "";
+      const customerUid = resolveCustomerUidFromReq(req);
+      const isFavorited = customerUid ? ApiEngine.isProductFavorited(customerUid, productId) : false;
+      return jsonWithDataSource({ success: true, is_favorited: isFavorited, product_id: productId }, "json-fallback");
     }
 
     if (path === "categories" || path === "products/categories" || path === "store/categories") {
@@ -1391,6 +1429,38 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
   try {
     const path = getPath(req, context);
     const body = await req.json().catch(() => ({}));
+
+    // ── Customer Favorites / Wishlist (POST) ──
+    if (
+      path.startsWith("customer/favorites/") ||
+      path.startsWith("customer/wishlist/") ||
+      path.startsWith("store/favorites/") ||
+      path.startsWith("store/wishlist/") ||
+      path === "customer/favorites" ||
+      path === "customer/wishlist" ||
+      path === "store/favorites" ||
+      path === "store/wishlist"
+    ) {
+      let productId = path.split("/").pop() || "";
+      if (productId === "favorites" || productId === "wishlist") {
+        productId = body.product_id || body.productId || "";
+      }
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: "UNAUTHORIZED",
+            message: "Please log in to save cakes to your Favorites.",
+            statusCode: 401,
+          },
+          "json-fallback",
+          401
+        );
+      }
+      const result = ApiEngine.addCustomerFavorite(customerUid, productId);
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+    }
 
     if (path === "cart" || path === "store/cart" || path === "cart/items" || path === "store/cart/items") {
       const cartId = body.cartId || body.cart_id || req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value || `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -2957,6 +3027,39 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     if (backendRes) return backendRes;
 
     // 2. Fallback Route: Disk-Backed ApiEngine
+    // ── Customer Favorites / Wishlist (DELETE) ──
+    if (
+      path.startsWith("customer/favorites/") ||
+      path.startsWith("customer/wishlist/") ||
+      path.startsWith("store/favorites/") ||
+      path.startsWith("store/wishlist/") ||
+      path === "customer/favorites" ||
+      path === "customer/wishlist" ||
+      path === "store/favorites" ||
+      path === "store/wishlist"
+    ) {
+      let productId = path.split("/").pop() || "";
+      if (productId === "favorites" || productId === "wishlist") {
+        const url = new URL(req.url);
+        productId = url.searchParams.get("product_id") || url.searchParams.get("productId") || body.product_id || body.productId || "";
+      }
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: "UNAUTHORIZED",
+            message: "Please log in to manage your Favorites.",
+            statusCode: 401,
+          },
+          "json-fallback",
+          401
+        );
+      }
+      const result = ApiEngine.removeCustomerFavorite(customerUid, productId);
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+    }
+
     if (path.startsWith("admin/popups/") || path.startsWith("popups/")) {
       const id = path.replace("admin/popups/", "").replace("popups/", "");
       return jsonWithDataSource({ deleted: ApiEngine.deletePopupCampaign(id), success: true }, "json-fallback");

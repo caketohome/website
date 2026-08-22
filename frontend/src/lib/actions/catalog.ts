@@ -6,6 +6,7 @@ import {
   cancelSubscription,
   addToWishlist,
   removeFromWishlist,
+  listWishlist,
   submitReview,
   createStockNotification,
   createSubscription,
@@ -23,6 +24,10 @@ export async function resumeSubscriptionAction(id: string) {
 
 export async function cancelSubscriptionAction(id: string) {
   return cancelSubscription(id);
+}
+
+export async function listWishlistAction() {
+  return listWishlist();
 }
 
 export async function addToWishlistAction(productId: string) {

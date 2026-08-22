@@ -3235,7 +3235,15 @@ interface StoreData {
   chart_preferences?: any;
   report_audit_logs?: any[];
   product_delivery_restrictions?: ProductDeliveryRestriction[];
+  customer_favorites?: CustomerFavoriteRecord[];
   [key: string]: any;
+}
+
+export interface CustomerFavoriteRecord {
+  id: string;
+  customer_uid: string;
+  product_id: string;
+  created_at: string;
 }
 
 function getStoreFilePath(): string {
@@ -3416,6 +3424,7 @@ function loadStore(): StoreData {
         seo_reports: parsed.seo_reports || [],
         product_delivery_restrictions: parsed.product_delivery_restrictions || [],
         popup_campaigns: parsed.popup_campaigns || [],
+        customer_favorites: parsed.customer_favorites || [],
       };
     } catch (err) {
       console.error("Failed to read db-store.json, initializing default store:", err);
@@ -3493,6 +3502,7 @@ function loadStore(): StoreData {
     seo_backlinks: [],
     seo_reports: [],
     popup_campaigns: [],
+    customer_favorites: [],
   };
 
   saveStore(initial);
@@ -3543,6 +3553,171 @@ export class ApiEngine {
   static getOrders(): any[] {
     ApiEngine.ensureOrdersStore();
     return memoryStore.orders || [];
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── CUSTOMER FAVORITES / WISHLIST AUTHORITATIVE ENGINE ─────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  static ensureFavoritesStore(): CustomerFavoriteRecord[] {
+    if (!memoryStore.customer_favorites) {
+      memoryStore.customer_favorites = [];
+    }
+    return memoryStore.customer_favorites;
+  }
+
+  static addCustomerFavorite(customerUid: string, productId: string): { success: boolean; favorite?: CustomerFavoriteRecord; error?: string; is_favorited: boolean; statusCode?: number } {
+    if (!customerUid) {
+      return { success: false, error: "Authentication required", is_favorited: false, statusCode: 401 };
+    }
+    if (!productId) {
+      return { success: false, error: "Product ID is required", is_favorited: false, statusCode: 400 };
+    }
+
+    const favStore = ApiEngine.ensureFavoritesStore();
+    const cleanUid = String(customerUid).trim();
+    const cleanProdId = String(productId).trim();
+
+    // Verify product exists in catalog
+    const product = (memoryStore.products || []).find((p: any) => p.id === cleanProdId || p.product_id === cleanProdId);
+    if (!product) {
+      return { success: false, error: "Product not found", is_favorited: false, statusCode: 404 };
+    }
+
+    // Check unique constraint: UNIQUE(customer_uid, product_id)
+    const existing = favStore.find(
+      (f: any) => f.customer_uid === cleanUid && f.product_id === cleanProdId
+    );
+
+    if (existing) {
+      // Idempotent success: return existing record
+      return { success: true, favorite: existing, is_favorited: true, statusCode: 200 };
+    }
+
+    const newFavorite: CustomerFavoriteRecord = {
+      id: `fav_${cleanUid.replace(/[^a-zA-Z0-9_-]/g, "_")}_${cleanProdId}`,
+      customer_uid: cleanUid,
+      product_id: cleanProdId,
+      created_at: new Date().toISOString(),
+    };
+
+    favStore.unshift(newFavorite);
+    saveStore(memoryStore);
+
+    // Publish transactional webhook event
+    ApiEngine.fireWebhookEvent(
+      "wishlist.item.added",
+      {
+        favorite_id: newFavorite.id,
+        customer_uid: cleanUid,
+        product_id: cleanProdId,
+        title: product.title || product.name,
+        thumbnail: product.thumbnail,
+        price: product.price || (product as any).selling_price,
+        created_at: newFavorite.created_at,
+      },
+      { source: "CUSTOMER_WISHLIST" },
+      { customer_uid: cleanUid },
+      { type: "product", id: cleanProdId }
+    );
+
+    return { success: true, favorite: newFavorite, is_favorited: true, statusCode: 201 };
+  }
+
+  static removeCustomerFavorite(customerUid: string, productId: string): { success: boolean; is_favorited: boolean; product_id: string; statusCode?: number } {
+    if (!customerUid) {
+      return { success: false, is_favorited: false, product_id: productId, statusCode: 401 };
+    }
+
+    const favStore = ApiEngine.ensureFavoritesStore();
+    const cleanUid = String(customerUid).trim();
+    const cleanProdId = String(productId).trim();
+
+    const beforeCount = favStore.length;
+    memoryStore.customer_favorites = favStore.filter(
+      (f: any) => !(f.customer_uid === cleanUid && f.product_id === cleanProdId)
+    );
+
+    if (memoryStore.customer_favorites.length !== beforeCount) {
+      saveStore(memoryStore);
+
+      ApiEngine.fireWebhookEvent(
+        "wishlist.item.removed",
+        {
+          customer_uid: cleanUid,
+          product_id: cleanProdId,
+          removed_at: new Date().toISOString(),
+        },
+        { source: "CUSTOMER_WISHLIST" },
+        { customer_uid: cleanUid },
+        { type: "product", id: cleanProdId }
+      );
+    }
+
+    return { success: true, is_favorited: false, product_id: cleanProdId, statusCode: 200 };
+  }
+
+  static getCustomerFavorites(customerUid: string): any[] {
+    if (!customerUid) return [];
+    const favStore = ApiEngine.ensureFavoritesStore();
+    const cleanUid = String(customerUid).trim();
+
+    const customerFavs = favStore.filter((f: any) => f.customer_uid === cleanUid);
+    const enrichedList: any[] = [];
+
+    for (const fav of customerFavs) {
+      const product = (memoryStore.products || []).find((p: any) => p.id === fav.product_id || p.product_id === fav.product_id);
+      if (!product) continue; // Safely skip deleted/archived products
+
+      // Enrich with categories and weight prices
+      const enrichedProd = ApiEngine.enrichProductWithCategories(product);
+
+      enrichedList.push({
+        id: fav.id,
+        favorite_id: fav.id,
+        customer_uid: fav.customer_uid,
+        product_id: fav.product_id,
+        created_at: fav.created_at,
+        is_favorited: true,
+        product: enrichedProd,
+        // Flat convenience fields for UI components
+        title: enrichedProd.title || enrichedProd.name,
+        name: enrichedProd.title || enrichedProd.name,
+        thumbnail: enrichedProd.thumbnail,
+        handle: enrichedProd.handle || enrichedProd.product_id,
+        price: enrichedProd.price || enrichedProd.selling_price,
+        selling_price: enrichedProd.selling_price || enrichedProd.price,
+        mrp: enrichedProd.mrp || Math.round((enrichedProd.price || 599) * 1.25),
+        rating: enrichedProd.rating || 4.8,
+        review_count: enrichedProd.review_count || 0,
+        category: enrichedProd.category,
+        category_slug: enrichedProd.category_slug,
+        weight: enrichedProd.weight || "1 kg",
+        weight_prices: enrichedProd.weight_prices || [],
+        is_available: enrichedProd.is_deliverable !== false,
+      });
+    }
+
+    return enrichedList;
+  }
+
+  static getCustomerFavoriteIds(customerUid: string): string[] {
+    if (!customerUid) return [];
+    const favStore = ApiEngine.ensureFavoritesStore();
+    const cleanUid = String(customerUid).trim();
+    return favStore
+      .filter((f: any) => f.customer_uid === cleanUid)
+      .map((f: any) => f.product_id);
+  }
+
+  static isProductFavorited(customerUid: string, productId: string): boolean {
+    if (!customerUid || !productId) return false;
+    const favStore = ApiEngine.ensureFavoritesStore();
+    const cleanUid = String(customerUid).trim();
+    const cleanProdId = String(productId).trim();
+    return favStore.some(
+      (f: any) => f.customer_uid === cleanUid && f.product_id === cleanProdId
+    );
   }
 
   static resolveUserAccount(params: { userId?: string; phone?: string; role?: string; customerUid?: string }): any {
@@ -7913,6 +8088,8 @@ export class ApiEngine {
       delivery_history: deliveryHistory,
       products_purchased: productsPurchased,
       favorite_categories: favoriteCategories,
+      favorite_products: ApiEngine.getCustomerFavorites(customer.customer_uid),
+      favorites_count: (ApiEngine.getCustomerFavorites(customer.customer_uid)).length,
       carts: [],
       abandoned_carts: customerAbandoned,
       recovery_attempts: (memoryStore.cart_recovery_attempts || []).filter(
@@ -13996,6 +14173,8 @@ export class ApiEngine {
         sms_notifications: true,
         marketing_emails: true,
       },
+      favorite_products: ApiEngine.getCustomerFavorites(customer.customer_uid),
+      favorites_count: (ApiEngine.getCustomerFavorites(customer.customer_uid)).length,
     };
   }
 
