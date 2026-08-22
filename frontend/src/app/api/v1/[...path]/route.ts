@@ -555,6 +555,83 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
     }
 
+    // ── Canonical Products Catalog & Search Endpoints (GET) ──
+    if (
+      path === "products" ||
+      path === "store/products" ||
+      path === "products/search" ||
+      path === "store/products/search"
+    ) {
+      const q = url.searchParams.get("q") || undefined;
+      const category = url.searchParams.get("category") || url.searchParams.get("category_id") || undefined;
+      const flavour = url.searchParams.get("flavour") || undefined;
+      const weight = url.searchParams.get("weight") || undefined;
+      const branchId = url.searchParams.get("branchId") || url.searchParams.get("shop_id") || url.searchParams.get("branch_id") || undefined;
+      const pincode = url.searchParams.get("pincode") || undefined;
+      const minPrice = url.searchParams.get("min_price") ? Number(url.searchParams.get("min_price")) : undefined;
+      const maxPrice = url.searchParams.get("max_price") ? Number(url.searchParams.get("max_price")) : undefined;
+      const sort = url.searchParams.get("sort") || undefined;
+      const limit = url.searchParams.get("limit") ? Number(url.searchParams.get("limit")) : 48;
+      const offset = url.searchParams.get("offset") ? Number(url.searchParams.get("offset")) : 0;
+      const includeTestProducts = url.searchParams.get("include_test_products") === "true";
+
+      let rawProducts = ApiEngine.getProducts({
+        q,
+        category,
+        flavour,
+        weight,
+        branchId,
+        pincode,
+        min_price: minPrice,
+        max_price: maxPrice,
+        sort,
+      });
+
+      if (!includeTestProducts) {
+        rawProducts = rawProducts.filter((p: any) => {
+          const t = (p.title || p.name || "").toLowerCase();
+          return (
+            !t.startsWith("api test") &&
+            !t.startsWith("test cake") &&
+            !t.startsWith("e2e special") &&
+            !t.startsWith("empirical cake") &&
+            !t.startsWith("header verification")
+          );
+        });
+      }
+
+      const paged = rawProducts.slice(offset, offset + limit);
+
+      return jsonWithDataSource(
+        {
+          success: true,
+          products: paged,
+          results: paged,
+          count: rawProducts.length,
+          total: rawProducts.length,
+          limit,
+          offset,
+        },
+        "json-fallback"
+      );
+    }
+
+    if (
+      (path.startsWith("products/") || path.startsWith("store/products/")) &&
+      !path.includes("/reviews") &&
+      !path.includes("/weight-prices") &&
+      !path.includes("/meta") &&
+      !path.includes("/cake-options") &&
+      !path.endsWith("/search")
+    ) {
+      const idOrSlug = path.replace("products/", "").replace("store/products/", "");
+      const product = ApiEngine.getProductById(idOrSlug) || (ApiEngine.getProducts() || []).find((p: any) => p.slug === idOrSlug || p.handle === idOrSlug);
+      if (!product) {
+        return jsonWithDataSource({ success: false, error: "Product not found" }, "json-fallback", 404);
+      }
+      return jsonWithDataSource({ success: true, product }, "json-fallback");
+    }
+
     if (path === "customer/me" || path === "customer/profile" || path === "auth/me" || path === "users/me" || path === "store/users/me") {
       const cookieCustomerUid = req.cookies.get("_cth_customer_uid")?.value;
       const cookieUserId = req.cookies.get("_cth_user_id")?.value;

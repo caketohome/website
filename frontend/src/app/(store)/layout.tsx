@@ -2,6 +2,7 @@ import Footer from "@frontend/components/common/footer";
 import { ProfileBadge } from "@frontend/components/common/profile-badge";
 import NavCart from "@frontend/components/store/cart/nav-cart";
 import { NavFavorites } from "@frontend/components/store/favorites/nav-favorites";
+import { NavSearch } from "@frontend/components/store/search/nav-search";
 import { HeaderNavigation } from "@frontend/components/store/cms/navigation";
 import { DeliveryLocationHeader } from "@frontend/components/store/location/delivery-location-header";
 import { EngagementProvider } from "@frontend/components/store/engagement/engagement-provider";
@@ -42,6 +43,7 @@ export default async function RootLayout({
           </Suspense>
         </div>
         <div className="flex gap-1.5 sm:gap-2 items-center shrink-0">
+          <NavSearch />
           <NavFavorites />
           <Suspense
             fallback={

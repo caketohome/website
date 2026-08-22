@@ -7,6 +7,24 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.17: Responsive Home Page Header Search with Live Debounced Catalog Query (100% Verified)
+- **Eliminated Missing Search Button on Storefront Header**:
+  - Implemented responsive `<NavSearch />` in `frontend/src/components/store/search/nav-search.tsx` and integrated it directly into the customer-facing main navigation header (`frontend/src/app/(store)/layout.tsx`).
+  - Accessible on Desktop and Mobile viewports with `aria-label="Search products"`, keyboard shortcuts (`⌘K` / `Ctrl+K`), and luxury styling adhering to the CakeToHome design system.
+- **Debounced Live Search & Lightweight Client Architecture**:
+  - 250ms debounced input with `requestIdRef` cancellation tracking to avoid race conditions during rapid typing.
+  - Zero monolithic backend imports into client bundles; calls server action `searchProductsAction({ q, limit: 6 })` and REST API endpoints.
+  - Interactive live results modal displaying real-time cake thumbnails, title matching, category badge, flavour tags, and starting price (`₹`).
+  - Keyboard navigation support (`ArrowDown` / `ArrowUp` to navigate matching results, `Enter` to select or view all results on `/search?q=...`, `Escape` to close).
+  - Robust states: empty search suggestions (`Chocolate Truffle`, `Red Velvet`, `Mango Mousse`, `Black Forest`, `Butterscotch`, `Cheesecake`), loading spinner (`"Searching our gourmet ovens..."`), graceful no-results feedback (`"No cakes found for ..."`), and network error handling.
+- **REST Endpoints & Canonical Catalog Routing**:
+  - Added REST endpoint handlers in `frontend/src/app/api/v1/[...path]/route.ts` for `GET /api/v1/products`, `GET /api/v1/products/search`, and `GET /api/v1/products/:id`.
+- **Complete Verification**:
+  - `test-home-search-e2e.ts`: 36/36 PASSED (100%).
+  - `home-search.spec.ts`: Playwright E2E browser test created.
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: 39/39 static and dynamic routes compiled successfully.
+
 ### Milestone 9.16: Verified Product Review & Rating System with Canonical Identity, Order Verification & CRM 360 (100% Verified)
 - **Eliminated Fake Review Widgets & Mock Data**:
   - Completely replaced hardcoded `4.9` ratings and static `128` review counts with real database-backed review computation derived strictly from authentic customer reviews.

@@ -1,6 +1,44 @@
 {
   "products": [
     {
+      "product_id": "prod_1787393512023",
+      "id": "prod_1787393512023",
+      "title": "Artisanal Belgian Black Forest Gateau",
+      "name": "Artisanal Belgian Black Forest Gateau",
+      "description": "Freshly baked cake.",
+      "thumbnail": "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
+      "handle": "artisanal-belgian-black-forest-gateau",
+      "price": 499,
+      "rating": 5,
+      "review_count": 1,
+      "sugar_free": false,
+      "gluten_free": false,
+      "vegan": false,
+      "is_featured": false,
+      "is_bestseller": false,
+      "is_new_arrival": true,
+      "occasion": "Birthday",
+      "occasion_ids": [
+        "occ_birthday"
+      ],
+      "selling_price": 499,
+      "cost_price": 320,
+      "mrp": 849,
+      "category": "Chocolate Cakes",
+      "variants_json": {
+        "weights": [
+          "0.5 kg",
+          "1 kg",
+          "1.5 kg",
+          "2 kg",
+          "2.5 kg",
+          "3 kg",
+          "4 kg"
+        ]
+      },
+      "weight": "0.5 kg"
+    },
+    {
       "product_id": "prod_1787392137331",
       "id": "prod_1787392137331",
       "title": "Artisanal Belgian Black Forest Gateau",
@@ -1083,6 +1121,11 @@
           "status": "AVAILABLE",
           "reason": "Updated by Branch Operations",
           "available_again_time": "2026-08-22T09:48:51.097Z"
+        },
+        "prod_1787392137331": {
+          "status": "AVAILABLE",
+          "reason": "Updated by Branch Operations",
+          "available_again_time": "2026-08-22T10:11:50.046Z"
         }
       },
       "audit_logs": [
@@ -16423,7 +16466,7 @@
         "marketing_sms": "SUBSCRIBED",
         "marketing_whatsapp": "SUBSCRIBED",
         "transactional": "SUBSCRIBED",
-        "updated_at": "2026-08-22T09:44:53.175Z"
+        "updated_at": "2026-08-22T10:11:46.163Z"
       }
     },
     {
@@ -16459,7 +16502,7 @@
         "marketing_sms": "SUBSCRIBED",
         "marketing_whatsapp": "SUBSCRIBED",
         "transactional": "SUBSCRIBED",
-        "updated_at": "2026-08-22T09:44:53.175Z"
+        "updated_at": "2026-08-22T10:11:46.163Z"
       }
     }
   ],
@@ -18203,6 +18246,125 @@
     }
   ],
   "audit_logs": [
+    {
+      "id": "audit_1787393512084_g7pv8",
+      "message": "Saved 7 Weight Prices for Product (prod_1787393512023)",
+      "text": "Saved 7 Weight Prices for Product (prod_1787393512023)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:52.084Z"
+    },
+    {
+      "id": "audit_1787393512069_dystd",
+      "message": "Saved 6 Weight Prices for Product (prod_1787393512023)",
+      "text": "Saved 6 Weight Prices for Product (prod_1787393512023)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:52.069Z"
+    },
+    {
+      "id": "audit_1787393512053_wphf6",
+      "message": "Saved 7 Weight Prices for Product (prod_1787393512023)",
+      "text": "Saved 7 Weight Prices for Product (prod_1787393512023)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:52.053Z"
+    },
+    {
+      "id": "audit_1787393512040_obg5m",
+      "message": "Saved 7 Weight Prices for Product (prod_1787393512023)",
+      "text": "Saved 7 Weight Prices for Product (prod_1787393512023)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:52.040Z"
+    },
+    {
+      "id": "audit_1787393512023_fe8ah",
+      "message": "Created Product \"Artisanal Belgian Black Forest Gateau\"",
+      "text": "Created Product \"Artisanal Belgian Black Forest Gateau\"",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:52.023Z"
+    },
+    {
+      "id": "audit_1787393510162_0czl4",
+      "message": "Branch Manager (Indiranagar Flagship Bakery) updated Operational Settings (Hours, Contact, Buffer: 25m)",
+      "text": "Branch Manager (Indiranagar Flagship Bakery) updated Operational Settings (Hours, Contact, Buffer: 25m)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:50.162Z"
+    },
+    {
+      "id": "audit_1787393510143_a5xd0",
+      "message": "Branch Manager (Indiranagar Flagship Bakery) updated Branch Status to 'OPEN' (Reason: N/A)",
+      "text": "Branch Manager (Indiranagar Flagship Bakery) updated Branch Status to 'OPEN' (Reason: N/A)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:50.143Z"
+    },
+    {
+      "id": "audit_1787393510118_wd4ok",
+      "message": "Branch Manager (Indiranagar Flagship Bakery) updated Branch Status to 'PAUSED' (Reason: Kitchen deep sanitization)",
+      "text": "Branch Manager (Indiranagar Flagship Bakery) updated Branch Status to 'PAUSED' (Reason: Kitchen deep sanitization)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:50.118Z"
+    },
+    {
+      "id": "audit_1787393510095_3rm4n",
+      "message": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 50 (Threshold: 10)",
+      "text": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 50 (Threshold: 10)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:50.095Z"
+    },
+    {
+      "id": "audit_1787393510070_oe0xn",
+      "message": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 2 (Threshold: 5)",
+      "text": "Branch Manager (Indiranagar Flagship Bakery) updated Stock for Item acc_01 to 2 (Threshold: 5)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:50.070Z"
+    },
+    {
+      "id": "audit_1787393510046_mje5j",
+      "message": "Branch Operations (Indiranagar Flagship Bakery) updated Product prod_1787392137331 availability to 'AVAILABLE' (No reason)",
+      "text": "Branch Operations (Indiranagar Flagship Bakery) updated Product prod_1787392137331 availability to 'AVAILABLE' (No reason)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:50.046Z"
+    },
+    {
+      "id": "audit_1787393510025_3chqb",
+      "message": "Branch Operations (Indiranagar Flagship Bakery) updated Product prod_1787392137331 availability to 'OUT_OF_STOCK' (Fresh strawberries unavailable today)",
+      "text": "Branch Operations (Indiranagar Flagship Bakery) updated Product prod_1787392137331 availability to 'OUT_OF_STOCK' (Fresh strawberries unavailable today)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:50.025Z"
+    },
+    {
+      "id": "audit_1787393510006_8kgpe",
+      "message": "Branch Manager (Indiranagar Flagship Bakery) reprinted KOT for Order CTH-CRX-7246 (Reprint #10)",
+      "text": "Branch Manager (Indiranagar Flagship Bakery) reprinted KOT for Order CTH-CRX-7246 (Reprint #10)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:50.006Z"
+    },
+    {
+      "id": "audit_1787393509988_xe0pl",
+      "message": "Branch Manager (Indiranagar Flagship Bakery) assigned Order CTH-CRX-7246 to Rider Vikram Rathore 00779",
+      "text": "Branch Manager (Indiranagar Flagship Bakery) assigned Order CTH-CRX-7246 to Rider Vikram Rathore 00779",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:49.988Z"
+    },
+    {
+      "id": "audit_1787393509961_la73j",
+      "message": "Order CTH-CRX-7246 transitioned from KITCHEN_ACCEPTED to READY_FOR_PICKUP by Ananya Desai 00779 (system)",
+      "text": "Order CTH-CRX-7246 transitioned from KITCHEN_ACCEPTED to READY_FOR_PICKUP by Ananya Desai 00779 (system)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:49.961Z"
+    },
+    {
+      "id": "audit_1787393509946_45eec",
+      "message": "Branch Manager (Indiranagar Flagship Bakery) marked Order CTH-CRX-7246 delayed: Artisanal hand-piped roses in progress (New ETA: +30 mins)",
+      "text": "Branch Manager (Indiranagar Flagship Bakery) marked Order CTH-CRX-7246 delayed: Artisanal hand-piped roses in progress (New ETA: +30 mins)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:49.946Z"
+    },
+    {
+      "id": "audit_1787393509931_a3t9z",
+      "message": "Order CTH-CRX-7246 transitioned from CONFIRMED to KITCHEN_ACCEPTED by Ananya Desai 00779 (system)",
+      "text": "Order CTH-CRX-7246 transitioned from CONFIRMED to KITCHEN_ACCEPTED by Ananya Desai 00779 (system)",
+      "metadata": null,
+      "timestamp": "2026-08-22T10:11:49.931Z"
+    },
     {
       "id": "audit_1787392137468_ox5jm",
       "message": "Saved 7 Weight Prices for Product (prod_1787392137331)",
@@ -21583,125 +21745,6 @@
       "text": "Kitchen Pickup OTP (2488) verified by Partner Sunil Rider for Order CTH-20260820-154. Order is now OUT_FOR_DELIVERY.",
       "metadata": null,
       "timestamp": "2026-08-20T16:00:21.233Z"
-    },
-    {
-      "id": "audit_1787241621233_mirds",
-      "message": "Failed Kitchen Pickup OTP attempt for Order CTH-20260820-154 by Partner Sunil Rider",
-      "text": "Failed Kitchen Pickup OTP attempt for Order CTH-20260820-154 by Partner Sunil Rider",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:21.233Z"
-    },
-    {
-      "id": "audit_1787241621225_ue1jv",
-      "message": "Partner Sunil Rider (CTH-DP-HSR01) claimed Order CTH-20260820-154",
-      "text": "Partner Sunil Rider (CTH-DP-HSR01) claimed Order CTH-20260820-154",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:21.225Z"
-    },
-    {
-      "id": "audit_1787241621201_4clcp",
-      "message": "New Order CTH-20260820-155 placed by Karan Mehta (₹848) -> Assigned to HSR Layout Kitchen",
-      "text": "New Order CTH-20260820-155 placed by Karan Mehta (₹848) -> Assigned to HSR Layout Kitchen",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:21.201Z"
-    },
-    {
-      "id": "audit_1787241621162_bvxxu",
-      "message": "New Order CTH-20260820-154 placed by Rohan Kapoor (₹948) -> Assigned to HSR Layout Kitchen",
-      "text": "New Order CTH-20260820-154 placed by Rohan Kapoor (₹948) -> Assigned to HSR Layout Kitchen",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:21.162Z"
-    },
-    {
-      "id": "audit_1787241621119_z565l",
-      "message": "New Order CTH-20260820-153 placed by Ananya Sharma (₹948) -> Assigned to HSR Layout Kitchen",
-      "text": "New Order CTH-20260820-153 placed by Ananya Sharma (₹948) -> Assigned to HSR Layout Kitchen",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:21.119Z"
-    },
-    {
-      "id": "audit_1787241621068_f0c2e",
-      "message": "Saved Branch \"HSR Layout Kitchen Hub (Expanded)\" (HUB-TEST-1040)",
-      "text": "Saved Branch \"HSR Layout Kitchen Hub (Expanded)\" (HUB-TEST-1040)",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:21.068Z"
-    },
-    {
-      "id": "audit_1787241621062_x3ubt",
-      "message": "Configured FSSAI Compliance for Branch \"HSR Layout Kitchen Hub (Expanded)\" (11223344556677)",
-      "text": "Configured FSSAI Compliance for Branch \"HSR Layout Kitchen Hub (Expanded)\" (11223344556677)",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:21.062Z"
-    },
-    {
-      "id": "audit_1787241621049_yhgkm",
-      "message": "Saved Branch \"HSR Layout Kitchen Hub\" (HUB-TEST-1040)",
-      "text": "Saved Branch \"HSR Layout Kitchen Hub\" (HUB-TEST-1040)",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:21.049Z"
-    },
-    {
-      "id": "audit_1787241621042_ryugl",
-      "message": "Configured FSSAI Compliance for Branch \"HSR Layout Kitchen Hub\" (11223344556677)",
-      "text": "Configured FSSAI Compliance for Branch \"HSR Layout Kitchen Hub\" (11223344556677)",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:21.042Z"
-    },
-    {
-      "id": "audit_1787241615313_8mrn2",
-      "message": "Customer Delivery OTP (9942) verified by Partner Ramesh Kumar. Order CTH-TEST-22 marked DELIVERED.",
-      "text": "Customer Delivery OTP (9942) verified by Partner Ramesh Kumar. Order CTH-TEST-22 marked DELIVERED.",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:15.313Z"
-    },
-    {
-      "id": "audit_1787241615306_h9ef6",
-      "message": "Kitchen Pickup OTP (7721) verified by Partner Ramesh Kumar for Order CTH-TEST-22. Order is now OUT_FOR_DELIVERY.",
-      "text": "Kitchen Pickup OTP (7721) verified by Partner Ramesh Kumar for Order CTH-TEST-22. Order is now OUT_FOR_DELIVERY.",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:15.306Z"
-    },
-    {
-      "id": "audit_1787241615298_5h100",
-      "message": "Partner Ramesh Kumar (DLP-8801) claimed Order CTH-TEST-22",
-      "text": "Partner Ramesh Kumar (DLP-8801) claimed Order CTH-TEST-22",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:15.298Z"
-    },
-    {
-      "id": "audit_1787241615291_942vu",
-      "message": "Branch Manager (Indiranagar Flagship Bakery) marked Order CTH-TEST-22 Ready for Pickup",
-      "text": "Branch Manager (Indiranagar Flagship Bakery) marked Order CTH-TEST-22 Ready for Pickup",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:15.291Z"
-    },
-    {
-      "id": "audit_1787241615282_3lj42",
-      "message": "Kitchen Pickup OTP (7721) verified by Partner Ramesh Kumar for Order CTH-TEST-15. Order is now OUT_FOR_DELIVERY.",
-      "text": "Kitchen Pickup OTP (7721) verified by Partner Ramesh Kumar for Order CTH-TEST-15. Order is now OUT_FOR_DELIVERY.",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:15.282Z"
-    },
-    {
-      "id": "audit_1787241615274_u3l1v",
-      "message": "Kitchen Pickup OTP (7721) verified by Partner Ramesh Kumar for Order CTH-TEST-08. Order is now OUT_FOR_DELIVERY.",
-      "text": "Kitchen Pickup OTP (7721) verified by Partner Ramesh Kumar for Order CTH-TEST-08. Order is now OUT_FOR_DELIVERY.",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:15.274Z"
-    },
-    {
-      "id": "audit_1787241615263_gw80j",
-      "message": "Kitchen Pickup OTP (7721) verified by Partner Ramesh Kumar for Order CTH-TEST-03. Order is now OUT_FOR_DELIVERY.",
-      "text": "Kitchen Pickup OTP (7721) verified by Partner Ramesh Kumar for Order CTH-TEST-03. Order is now OUT_FOR_DELIVERY.",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:15.263Z"
-    },
-    {
-      "id": "audit_1787241615262_s4pat",
-      "message": "Failed Kitchen Pickup OTP attempt for Order CTH-TEST-02 by Partner Ramesh Kumar",
-      "text": "Failed Kitchen Pickup OTP attempt for Order CTH-TEST-02 by Partner Ramesh Kumar",
-      "metadata": null,
-      "timestamp": "2026-08-20T16:00:15.262Z"
     }
   ],
   "login_events": [
@@ -24388,6 +24431,118 @@
       "is_enabled": true,
       "sort_order": 7,
       "updated_at": "2026-08-22T09:48:57.468Z"
+    },
+    {
+      "id": "wp_prod_1787393512023_500",
+      "weight_id": "wp_prod_1787393512023_500",
+      "product_id": "prod_1787393512023",
+      "weight_name": "0.5 kg",
+      "weight_value": 0.5,
+      "weight_unit": "kg",
+      "normalized_grams": 500,
+      "selling_price": 499,
+      "mrp": 649,
+      "cost_price": 250,
+      "prep_time_minutes": 60,
+      "is_enabled": true,
+      "sort_order": 1,
+      "updated_at": "2026-08-22T10:11:52.084Z"
+    },
+    {
+      "id": "wp_prod_1787393512023_1000",
+      "weight_id": "wp_prod_1787393512023_1000",
+      "product_id": "prod_1787393512023",
+      "weight_name": "1 kg",
+      "weight_value": 1,
+      "weight_unit": "kg",
+      "normalized_grams": 1000,
+      "selling_price": 749,
+      "mrp": 949,
+      "cost_price": 375,
+      "prep_time_minutes": 60,
+      "is_enabled": true,
+      "sort_order": 2,
+      "updated_at": "2026-08-22T10:11:52.084Z"
+    },
+    {
+      "id": "wp_prod_1787393512023_1500",
+      "weight_id": "wp_prod_1787393512023_1500",
+      "product_id": "prod_1787393512023",
+      "weight_name": "1.5 kg",
+      "weight_value": 1.5,
+      "weight_unit": "kg",
+      "normalized_grams": 1500,
+      "selling_price": 1099,
+      "mrp": 1399,
+      "cost_price": 550,
+      "prep_time_minutes": 120,
+      "is_enabled": true,
+      "sort_order": 3,
+      "updated_at": "2026-08-22T10:11:52.084Z"
+    },
+    {
+      "id": "wp_prod_1787393512023_2000",
+      "weight_id": "wp_prod_1787393512023_2000",
+      "product_id": "prod_1787393512023",
+      "weight_name": "2 kg",
+      "weight_value": 2,
+      "weight_unit": "kg",
+      "normalized_grams": 2000,
+      "selling_price": 1399,
+      "mrp": 1749,
+      "cost_price": 700,
+      "prep_time_minutes": 120,
+      "is_enabled": true,
+      "sort_order": 4,
+      "updated_at": "2026-08-22T10:11:52.084Z"
+    },
+    {
+      "id": "wp_prod_1787393512023_2500",
+      "weight_id": "wp_prod_1787393512023_2500",
+      "product_id": "prod_1787393512023",
+      "weight_name": "2.5 kg",
+      "weight_value": 2.5,
+      "weight_unit": "kg",
+      "normalized_grams": 2500,
+      "selling_price": 1699,
+      "mrp": 2099,
+      "cost_price": 850,
+      "prep_time_minutes": 180,
+      "is_enabled": true,
+      "sort_order": 5,
+      "updated_at": "2026-08-22T10:11:52.084Z"
+    },
+    {
+      "id": "wp_prod_1787393512023_3000",
+      "weight_id": "wp_prod_1787393512023_3000",
+      "product_id": "prod_1787393512023",
+      "weight_name": "3 kg",
+      "weight_value": 3,
+      "weight_unit": "kg",
+      "normalized_grams": 3000,
+      "selling_price": 1999,
+      "mrp": 2499,
+      "cost_price": 1000,
+      "prep_time_minutes": 180,
+      "is_enabled": true,
+      "sort_order": 6,
+      "updated_at": "2026-08-22T10:11:52.084Z"
+    },
+    {
+      "id": "wp_prod_1787393512023_4000",
+      "weight_id": "wp_prod_1787393512023_4000",
+      "product_id": "prod_1787393512023",
+      "weight_name": "4 kg",
+      "weight_value": 4,
+      "weight_unit": "kg",
+      "normalized_grams": 4000,
+      "selling_price": 2599,
+      "mrp": 3199,
+      "cost_price": 1300,
+      "prep_time_minutes": 240,
+      "is_enabled": true,
+      "sort_order": 7,
+      "updated_at": "2026-08-22T10:11:52.084Z"
     }
   ],
   "accessories": [
@@ -25135,6 +25290,11 @@
       "product_id": "prod_1787392137331",
       "occasion_id": "occ_birthday",
       "created_at": "2026-08-22T09:48:57.331Z"
+    },
+    {
+      "product_id": "prod_1787393512023",
+      "occasion_id": "occ_birthday",
+      "created_at": "2026-08-22T10:11:52.023Z"
     }
   ],
   "category_occasions": [],
@@ -25329,6 +25489,38 @@
         }
       ],
       "timeline": [
+        {
+          "id": "tl_1787393509988",
+          "title": "Assigned to Delivery Partner Vikram Rathore 00779",
+          "time": "2026-08-22T10:11:49.988Z",
+          "author": "Ananya Desai 00779",
+          "notes": "Driver Phone: +91 99000 00779"
+        },
+        {
+          "id": "tl_1787393509961_j52k",
+          "title": "Cake Baked & Packed — Ready for Pickup",
+          "time": "2026-08-22T10:11:49.961Z",
+          "author": "Ananya Desai 00779",
+          "notes": "Cake packed and ready. Pickup OTP: 7821",
+          "is_customer_visible": true,
+          "metadata": null
+        },
+        {
+          "id": "tl_1787393509946",
+          "title": "Order Delayed — New ETA: +30 mins",
+          "time": "2026-08-22T10:11:49.946Z",
+          "author": "Ananya Desai 00779",
+          "notes": "Reason: Artisanal hand-piped roses in progress"
+        },
+        {
+          "id": "tl_1787393509931_sqh3",
+          "title": "Order Accepted by Branch Kitchen",
+          "time": "2026-08-22T10:11:49.931Z",
+          "author": "Ananya Desai 00779",
+          "notes": "Queued for baking oven station 1",
+          "is_customer_visible": true,
+          "metadata": null
+        },
         {
           "id": "tl_1787392131022",
           "title": "Assigned to Delivery Partner Vikram Rathore 00779",
@@ -25561,7 +25753,7 @@
         }
       ],
       "created_at": "2026-08-21T11:50:07.246Z",
-      "updated_at": "2026-08-22T09:48:51.022Z",
+      "updated_at": "2026-08-22T10:11:49.988Z",
       "pickup_verified_at": "2026-08-21T11:50:14.682Z",
       "pickup_verified_by": "dlp_01",
       "dispatched_at": "2026-08-21T11:50:14.682Z",
@@ -25585,10 +25777,10 @@
       "delay_reason": "Artisanal hand-piped roses in progress",
       "original_eta": "Original Slot",
       "new_eta": "+30 mins",
-      "delayed_at": "2026-08-22T09:48:50.970Z",
-      "kot_reprint_count": 9,
-      "accepted_at": "2026-08-22T09:48:50.950Z",
-      "ready_at": "2026-08-22T09:48:50.991Z"
+      "delayed_at": "2026-08-22T10:11:49.946Z",
+      "kot_reprint_count": 10,
+      "accepted_at": "2026-08-22T10:11:49.931Z",
+      "ready_at": "2026-08-22T10:11:49.961Z"
     },
     {
       "id": "ord_cross_panel_unpaid_1787313007246",
@@ -35383,8 +35575,8 @@
       "customer_phone": "9879998811",
       "status": "DELIVERED",
       "delivery_status": "delivered",
-      "created_at": "2026-08-20T09:44:52.886Z",
-      "delivered_at": "2026-08-21T09:44:52.886Z",
+      "created_at": "2026-08-20T10:11:46.059Z",
+      "delivered_at": "2026-08-21T10:11:46.059Z",
       "total": 799,
       "items": [
         {
@@ -35406,8 +35598,8 @@
       "customer_phone": "9879998822",
       "status": "DELIVERED",
       "delivery_status": "delivered",
-      "created_at": "2026-08-21T09:44:52.886Z",
-      "delivered_at": "2026-08-22T09:44:52.886Z",
+      "created_at": "2026-08-21T10:11:46.059Z",
+      "delivered_at": "2026-08-22T10:11:46.059Z",
       "total": 799,
       "items": [
         {
@@ -35429,7 +35621,7 @@
       "customer_phone": "9879998811",
       "status": "PREPARING",
       "delivery_status": "shop_preparing",
-      "created_at": "2026-08-22T09:44:52.886Z",
+      "created_at": "2026-08-22T10:11:46.059Z",
       "total": 799,
       "items": [
         {
