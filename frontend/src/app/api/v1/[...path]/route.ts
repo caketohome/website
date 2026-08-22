@@ -628,6 +628,61 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ products, results: products, count: products.length, success: true }, "json-fallback");
     }
 
+    // ── Product Reviews & Ratings (GET) ──
+    if (
+      (path.startsWith("products/") && path.endsWith("/reviews")) ||
+      (path.startsWith("store/products/") && path.endsWith("/reviews"))
+    ) {
+      const parts = path.split("/");
+      const productId = parts[parts.length - 2];
+      const page = Number(url.searchParams.get("page")) || 1;
+      const pageSize = Number(url.searchParams.get("pageSize") || url.searchParams.get("page_size") || url.searchParams.get("limit")) || 10;
+      const sort = (url.searchParams.get("sort") || "recent") as any;
+      const ratingFilter = url.searchParams.get("rating") ? Number(url.searchParams.get("rating")) : undefined;
+      const verifiedOnly = url.searchParams.get("verified_only") === "true";
+      const status = url.searchParams.get("status") || "APPROVED";
+
+      const result = ApiEngine.getProductReviews(productId, {
+        page,
+        pageSize,
+        sort,
+        ratingFilter,
+        verifiedOnly,
+        status,
+      });
+
+      return jsonWithDataSource({ success: true, ...result }, "json-fallback");
+    }
+
+    if (path === "customer/reviews/eligible" || path === "store/customer/reviews/eligible") {
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "json-fallback", 401);
+      }
+      const eligible = ApiEngine.getCustomerEligibleReviews(customerUid);
+      return jsonWithDataSource({ success: true, eligible_items: eligible, count: eligible.length }, "json-fallback");
+    }
+
+    if (path === "customer/reviews" || path === "store/customer/reviews") {
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "json-fallback", 401);
+      }
+      const reviews = ApiEngine.getCustomerReviews(customerUid);
+      return jsonWithDataSource({ success: true, reviews, count: reviews.length }, "json-fallback");
+    }
+
+    if (path === "admin/reviews") {
+      const page = Number(url.searchParams.get("page")) || 1;
+      const pageSize = Number(url.searchParams.get("pageSize")) || 20;
+      const status = url.searchParams.get("status") || "ALL";
+      const productId = url.searchParams.get("productId") || undefined;
+      const search = url.searchParams.get("search") || undefined;
+
+      const result = ApiEngine.getAdminReviews({ page, pageSize, status, productId, search });
+      return jsonWithDataSource({ success: true, ...result }, "json-fallback");
+    }
+
     if (path.startsWith("products/slug/")) {
       const slug = path.replace("products/slug/", "");
       const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
@@ -1460,6 +1515,45 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
       const result = ApiEngine.addCustomerFavorite(customerUid, productId);
       return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+    }
+
+    // ── Product Reviews Submission (POST) ──
+    if (
+      path === "customer/reviews" ||
+      path === "customer/reviews/submit" ||
+      path === "store/customer/reviews" ||
+      path === "reviews" ||
+      (path.startsWith("products/") && path.endsWith("/reviews")) ||
+      (path.startsWith("store/products/") && path.endsWith("/reviews"))
+    ) {
+      let productId = body.productId || body.product_id;
+      if (!productId && path.startsWith("products/")) {
+        const parts = path.split("/");
+        productId = parts[parts.length - 2];
+      }
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: "UNAUTHORIZED",
+            message: "Please log in to submit a verified cake review.",
+            statusCode: 401,
+          },
+          "json-fallback",
+          401
+        );
+      }
+
+      const result = ApiEngine.submitProductReview(customerUid, {
+        productId: productId || "",
+        orderId: body.orderId || body.order_id,
+        rating: body.rating,
+        title: body.title,
+        reviewText: body.reviewText || body.review_text || body.body || body.comment || "",
+      });
+
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 201 : 400));
     }
 
     if (path === "cart" || path === "store/cart" || path === "cart/items" || path === "store/cart/items") {
@@ -2710,6 +2804,33 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     if (backendRes) return backendRes;
 
     // 2. Fallback Route: Disk-Backed ApiEngine
+    // ── Customer Review Edit (PUT / PATCH) ──
+    if (path.startsWith("customer/reviews/") || path.startsWith("store/customer/reviews/")) {
+      const reviewId = path.split("/").pop() || "";
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "json-fallback", 401);
+      }
+      const result = ApiEngine.updateProductReview(customerUid, reviewId, {
+        rating: body.rating,
+        title: body.title,
+        reviewText: body.reviewText || body.review_text || body.body || body.comment,
+      });
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+    }
+
+    // ── Admin Review Moderation (PUT / PATCH) ──
+    if (path.startsWith("admin/reviews/")) {
+      const parts = path.replace("admin/reviews/", "").split("/");
+      const reviewId = parts[0];
+      const action = (body.action || "APPROVE").toUpperCase() as any;
+      const result = ApiEngine.moderateReview(reviewId, action, {
+        adminName: body.adminName || body.admin_name,
+        adminResponse: body.adminResponse || body.admin_response || body.reply,
+      });
+      return jsonWithDataSource(result, "json-fallback", result.success ? 200 : 404);
+    }
+
     // Cart Item Update
     if (path === "cart/items") {
       const cartId = body.cartId || req.cookies.get("_cth_cart_id")?.value || "cart_guest_100";
@@ -3060,6 +3181,26 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
     }
 
+    // ── Customer Review Deletion (DELETE) ──
+    if (path.startsWith("customer/reviews/") || path.startsWith("store/customer/reviews/")) {
+      const reviewId = path.split("/").pop() || "";
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: "UNAUTHORIZED",
+            message: "Please log in to manage your reviews.",
+            statusCode: 401,
+          },
+          "json-fallback",
+          401
+        );
+      }
+      const result = ApiEngine.deleteProductReview(customerUid, reviewId);
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+    }
+
     if (path.startsWith("admin/popups/") || path.startsWith("popups/")) {
       const id = path.replace("admin/popups/", "").replace("popups/", "");
       return jsonWithDataSource({ deleted: ApiEngine.deletePopupCampaign(id), success: true }, "json-fallback");
@@ -3203,6 +3344,33 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
     if (backendRes) return backendRes;
 
     // 2. Fallback Route: Disk-Backed ApiEngine
+    // ── Customer Review Edit (PATCH) ──
+    if (path.startsWith("customer/reviews/") || path.startsWith("store/customer/reviews/")) {
+      const reviewId = path.split("/").pop() || "";
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "json-fallback", 401);
+      }
+      const result = ApiEngine.updateProductReview(customerUid, reviewId, {
+        rating: body.rating,
+        title: body.title,
+        reviewText: body.reviewText || body.review_text || body.body || body.comment,
+      });
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+    }
+
+    // ── Admin Review Moderation (PATCH) ──
+    if (path.startsWith("admin/reviews/")) {
+      const parts = path.replace("admin/reviews/", "").split("/");
+      const reviewId = parts[0];
+      const action = (body.action || "APPROVE").toUpperCase() as any;
+      const result = ApiEngine.moderateReview(reviewId, action, {
+        adminName: body.adminName || body.admin_name,
+        adminResponse: body.adminResponse || body.admin_response || body.reply,
+      });
+      return jsonWithDataSource(result, "json-fallback", result.success ? 200 : 404);
+    }
+
     if (path.startsWith("manager/")) {
       const mgrAuth: any = resolveManagerSession(req);
       if (mgrAuth.error) {

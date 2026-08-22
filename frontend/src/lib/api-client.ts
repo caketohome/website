@@ -2145,6 +2145,59 @@ class CakeToHomeApiClient {
     ).toString();
     return fetch(`/api/v1/admin/abandoned-carts/export${qs ? `?${qs}` : ""}`).then((r) => r.text());
   }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── PRODUCT REVIEWS & RATINGS ──────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async getProductReviews(productId: string, params: { page?: number; pageSize?: number; sort?: string; rating?: number; verified_only?: boolean; status?: string } = {}) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+    ).toString();
+    return this.request(`/products/${productId}/reviews${qs ? `?${qs}` : ""}`);
+  }
+
+  async getCustomerEligibleReviews() {
+    return this.request("/customer/reviews/eligible");
+  }
+
+  async getCustomerReviews() {
+    return this.request("/customer/reviews");
+  }
+
+  async submitProductReview(productId: string, data: { orderId?: string; rating: number; title: string; reviewText: string }) {
+    return this.request(`/customer/reviews`, {
+      method: "POST",
+      body: JSON.stringify({ productId, ...data }),
+    });
+  }
+
+  async updateProductReview(reviewId: string, data: { rating?: number; title?: string; reviewText?: string }) {
+    return this.request(`/customer/reviews/${reviewId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteProductReview(reviewId: string) {
+    return this.request(`/customer/reviews/${reviewId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getAdminReviews(params: { page?: number; pageSize?: number; status?: string; productId?: string; search?: string } = {}) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+    ).toString();
+    return this.request(`/admin/reviews${qs ? `?${qs}` : ""}`);
+  }
+
+  async moderateReview(reviewId: string, action: "APPROVE" | "REJECT" | "HIDE" | "RESPOND", data?: { adminName?: string; adminResponse?: string }) {
+    return this.request(`/admin/reviews/${reviewId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ action, ...data }),
+    });
+  }
 }
 
 export const apiClient = new CakeToHomeApiClient();

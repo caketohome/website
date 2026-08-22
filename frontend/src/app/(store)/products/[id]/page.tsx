@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import ProductDetailClient from "../../../../components/store/shop/product-detail-client";
 import { ProductJsonLd } from "../../../../components/store/seo/json-ld";
-import { getProductById, getProductBySlug } from "../../../../lib/data/catalog";
+import { getProductById, getProductBySlug, listProductReviews } from "../../../../lib/data/catalog";
 import { SeoMetadataBuilder } from "../../../../lib/seo/metadata-builder";
 import type { Metadata } from "next";
 
@@ -92,10 +92,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     fssai_license: "FSSAI Lic. No. 11223999000142",
   };
 
-  const reviews: any[] = [];
-  const reviewCount = fetched?.review_count || 128;
-  const averageRating = fetched?.rating || 4.9;
-  const ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 128 };
+  const reviewsData = await listProductReviews(productId);
+  const reviews = reviewsData?.reviews || [];
+  const reviewCount = reviewsData?.aggregate?.total_reviews ?? (fetched as any)?.review_count ?? 0;
+  const averageRating = reviewsData?.aggregate?.average_rating ?? (fetched as any)?.rating ?? 0;
+  const ratingDistribution = reviewsData?.aggregate?.rating_distribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   const isWishlistedInitial = false;
   const shopId = "br_koramangala";
   const variantId = `var_${productId}`;

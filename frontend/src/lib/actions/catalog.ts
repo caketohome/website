@@ -7,6 +7,7 @@ import {
   addToWishlist,
   removeFromWishlist,
   listWishlist,
+  listProductReviews,
   submitReview,
   createStockNotification,
   createSubscription,
@@ -38,12 +39,22 @@ export async function removeFromWishlistAction(productId: string) {
   return removeFromWishlist(productId);
 }
 
+export async function listProductReviewsAction(
+  productId: string,
+  options?: { page?: number; pageSize?: number; sort?: "recent" | "highest" | "lowest" | "helpful"; ratingFilter?: number; verifiedOnly?: boolean }
+) {
+  return listProductReviews(productId, options);
+}
+
 export async function submitReviewAction(
   productId: string,
   input: {
+    orderId?: string;
     rating: number;
-    title?: string;
+    title: string;
+    reviewText?: string;
     body?: string;
+    comment?: string;
     images?: string[];
   }
 ) {

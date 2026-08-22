@@ -7,6 +7,57 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.16: Verified Product Review & Rating System with Canonical Identity, Order Verification & CRM 360 (100% Verified)
+- **Eliminated Fake Review Widgets & Mock Data**:
+  - Completely replaced hardcoded `4.9` ratings and static `128` review counts with real database-backed review computation derived strictly from authentic customer reviews.
+  - Implemented real rating distribution breakdown (`1★`, `2★`, `3★`, `4★`, `5★`) dynamically calculated from published records.
+  - For products with zero reviews, correctly displays *"No reviews yet — Be the first to review this cake!"* (0.0 average rating, 0 review count).
+- **Authoritative Data Model & Canonical Identity (`customer_uid`)**:
+  - Modeled `ProductReviewRecord` (`{ id, product_id, customer_uid, customer_name, order_id, order_item_id, rating, title, review_text, status, is_verified_purchase, purchased_variant, admin_response, created_at, published_at, updated_at }`) in `frontend/src/lib/api-engine.ts` with disk persistence in `db-store.json`.
+  - Canonical `customer_uid` is resolved strictly server-side from authenticated session cookies (`_cth_customer_uid`, `_cth_user_id`, `_cth_phone`) via `ApiEngine.resolveUserAccount`.
+  - Enforced strict database unique constraint: `UNIQUE(customer_uid, order_id, product_id)` preventing duplicate reviews and double-submissions.
+- **Strict Verified Purchase & Delivery Validation Gate**:
+  - Reviews can only be submitted if the customer has an authentic order in `DELIVERED` status containing the target product item.
+  - Fail-closed security validation guards:
+    - HTTP 401 Unauthorized for unauthenticated requests.
+    - HTTP 400 Bad Request for missing product ID, empty headline, empty review text, or rating outside range [1, 5].
+    - HTTP 404 Not Found for non-existent products.
+    - HTTP 403 Forbidden for customers who have never purchased the cake or whose orders are still pending/in preparation/cancelled.
+    - HTTP 409 Conflict for duplicate review submissions for the same delivered order.
+- **Privacy-Safe Public Responses**:
+  - Public reviews API sanitizes customer data, displaying formatted initialed names (e.g. `"Alex R."` or `"Verified Customer"`), completely stripping private `customer_uid`, `phone`, and `email` from public responses.
+- **Enterprise Webhook & Transactional Outbox Events**:
+  - Automatically emits signed domain events `review.created` and `review.updated` through `WebhookEngine` for marketing and notification automations.
+- **Complete REST API Endpoints in `frontend/src/app/api/v1/[...path]/route.ts`**:
+  - `GET /api/v1/products/:productId/reviews` $\rightarrow$ returns paginated reviews, sort options (recent/highest/lowest), star rating filter, verified only toggle, and live aggregate stats (`average_rating`, `total_reviews`, `rating_distribution`).
+  - `GET /api/v1/customer/reviews/eligible` $\rightarrow$ returns all delivered cake items eligible for verified review with `has_reviewed` state.
+  - `GET /api/v1/customer/reviews` $\rightarrow$ returns customer's authored reviews.
+  - `POST /api/v1/customer/reviews` $\rightarrow$ submits verified purchase review.
+  - `PATCH /api/v1/customer/reviews/:reviewId` $\rightarrow$ customer edits own review with IDOR ownership validation.
+  - `DELETE /api/v1/customer/reviews/:reviewId` $\rightarrow$ customer deletes own review with IDOR ownership validation.
+  - `GET /api/v1/admin/reviews` $\rightarrow$ admin review directory with pagination, search, status filter.
+  - `PATCH /api/v1/admin/reviews/:reviewId` $\rightarrow$ admin review moderation (`APPROVE`, `REJECT`, `HIDE`, `RESPOND` with official bakery chef responses).
+- **Storefront & UI Surfaces**:
+  - **`ProductReviewsSection` (`frontend/src/components/store/shop/product-reviews-section.tsx`)**:
+    - Real calculated average score, total verified count, and interactive 5-star distribution bar chart.
+    - Filtering by star rating (5★ to 1★), sort dropdown (Most Recent, Highest, Lowest).
+    - Verified purchase badge (`✓ Verified Purchase`), date, customer avatar initials, cake size variant, and official Bakery Chef response box.
+    - Interactive "Write a Review" modal with interactive star picker, headline, and experience details.
+    - Ineligible/guest visitor notice prompting authentication or purchase requirement.
+  - **Product Detail Page Integration**:
+    - Embedded in `product-detail-client.tsx` and updated `products/[id]/page.tsx` with live `listProductReviews` server data.
+  - **Customer Account Order History (`/account/orders`)**:
+    - Delivered orders show `"★ Write a Review"` on unreviewed items and `"★ Reviewed (N★)"` on reviewed items.
+  - **CRM Customer 360 Drawer (`customer-profile-drawer.tsx`)**:
+    - Displays customer's verified review history, ratings, and feedback in the Overview tab.
+- **Empirical Automated Master Test Verification (`frontend/scripts/test-product-reviews-e2e.ts`)**:
+  - **64 / 64 ASSERTIONS PASSED (100% SUCCESS)** covering initial empty state, auth guards, verified purchase validation, unique constraints, multi-review recalculation, privacy safety, IDOR protection, admin moderation & responses, CRM 360 sync, and clean teardown.
+- **Full Regression Test Suites**:
+  - `frontend/scripts/test-favorites-e2e.ts`: **43 / 43 ASSERTIONS PASSED (100% SUCCESS)**.
+  - `frontend/scripts/test-branch-manager.ts`: **53 / 53 ASSERTIONS PASSED (100% SUCCESS)**.
+  - `frontend/scripts/test-pim-weight-matrix-e2e.ts`: **24 / 24 ASSERTIONS PASSED (100% SUCCESS)**.
+- **Zero TypeScript Regressions**: `npx tsc --noEmit` verified with 0 errors across the entire codebase.
+
 ### Milestone 9.15: Customer Favorites / Wishlist Complete Database, API & Storefront Implementation (100% Verified)
 - **Root-Cause Discovery & Complete Engineering Across the Stack**:
   - **Eliminated Mock / Disconnected Heart Toggles**: Previously, clicking heart icons was either a no-op or local temporary state that was lost on page navigation, ignored authenticated customer identity, and had no database persistence.
@@ -279,6 +330,10 @@
 
 | Test Suite | Coverage | Status | Passed / Total |
 | :--- | :--- | :--- | :--- |
+| `scripts/test-product-reviews-e2e.ts` | 11 Review Pillars: Canonical customer_uid, Verified Delivery Gate, Unique Constraints, Dynamic Math Rating Recalculation, Privacy Safety, IDOR Security, Admin Responses, CRM 360 | ✅ PASSED | 64 / 64 |
+| `scripts/test-favorites-e2e.ts` | 9 Favorites Pillars: Customer UID Scoping, Idempotence, N+1 Optimization, Multi-Customer Isolation, Optimistic UI, Outbox Webhooks, CRM 360 | ✅ PASSED | 43 / 43 |
+| `scripts/test-branch-manager.ts` | 15 Branch Operations Pillars: Canonical Resolution, 10 KPIs, KOT Reprint, GST Invoices, Rider Assignment, Pausing, Availability | ✅ PASSED | 53 / 53 |
+| `scripts/test-pim-weight-matrix-e2e.ts` | 8 PIM Weight Matrix Pillars: Unit Normalization, Auto-Ladder Tier Suggestion, Gram Sorting, Multi-Weight Synchronization | ✅ PASSED | 24 / 24 |
 | `scripts/test-master-order-lifecycle-e2e.ts` | 36 Master Lifecycle Gates: Super Admin, Hub Provisioning, Isolation, Payment Gate, State Machine, Two-Phase OTP, Idempotency, Outbox, Universal Logout | ✅ PASSED | 36 / 36 |
 | `scripts/test-master-identity-delivery-logout-e2e.ts` | 30 Identity & Delivery Gates: Manager Auto-Provisioning, Rider Fleet Mapping, Pickup OTP Handover, Delivery OTP Fulfillment, Session Revocation | ✅ PASSED | 30 / 30 |
 | `scripts/test-customer-account-e2e.ts` | 8 Customer Experience Gates: Auth, Real Identity Mapping, Standardized /api/customer/me, Order Stats & Favourite Cake, Mutations, Addresses, Zero Wallet, Security | ✅ PASSED | 53 / 53 |

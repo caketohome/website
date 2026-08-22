@@ -444,12 +444,28 @@ export async function getProductMeta(productId: string): Promise<ProductMeta> {
   return { product_id: productId, is_bestseller: true };
 }
 
-export async function listProductReviews(productId: string): Promise<any> {
-  return { reviews: [], count: 0, aggregate: { product_id: productId, average_rating: 4.9, total_reviews: 128 } };
+export async function listProductReviews(
+  productId: string,
+  options?: { page?: number; pageSize?: number; sort?: "recent" | "highest" | "lowest" | "helpful"; ratingFilter?: number; verifiedOnly?: boolean }
+): Promise<any> {
+  return ApiEngine.getProductReviews(productId, options);
 }
 
-export async function submitReview(productId: string, input: any): Promise<any> {
-  return { review: { id: "rev_101", product_id: productId, rating: input.rating } };
+export async function submitReview(
+  productId: string,
+  input: { orderId?: string; rating: number; title: string; reviewText?: string; body?: string; comment?: string }
+): Promise<any> {
+  const customerUid = await getAuthenticatedCustomerUid();
+  if (!customerUid) {
+    return { success: false, error: "Authentication required to submit review", statusCode: 401 };
+  }
+  return ApiEngine.submitProductReview(customerUid, {
+    productId,
+    orderId: input.orderId,
+    rating: input.rating,
+    title: input.title,
+    reviewText: input.reviewText || input.body || input.comment || "",
+  });
 }
 
 export async function getAuthenticatedCustomerUid(): Promise<string | null> {

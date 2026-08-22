@@ -180,6 +180,9 @@ export interface CustomerProfileDTO {
   preferences?: CustomerPreferences;
   favorite_products?: any[];
   favorites_count?: number;
+  reviews_written?: any[];
+  reviews_count?: number;
+  average_rating_given?: number;
 }
 
 // ── 5. Real Communication & Interaction Log ─────────────────────────────────
@@ -304,6 +307,9 @@ export interface CustomerProfile extends CustomerRecord {
   favorite_categories: CustomerFavoriteCategory[];
   favorite_products?: any[];
   favorites_count?: number;
+  reviews_written?: any[];
+  reviews_count?: number;
+  average_rating_given?: number;
 
   // 3. Cart & Recovery
   carts: any[];

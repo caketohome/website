@@ -9,6 +9,7 @@ import { retrieveBranchInventory } from "@frontend/lib/data/branches";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ProductReviewsSection } from "./product-reviews-section";
 import { apiClient } from "@frontend/lib/api-client";
 
 // Custom SVG Icons
@@ -851,6 +852,16 @@ export default function ProductDetailClient({
                     </div>
                 </div>
             </div>
+
+            {/* Verified Customer Reviews Section */}
+            <ProductReviewsSection
+                productId={product?.id || product?.product_id}
+                productTitle={product?.title || product?.name || "Gourmet Cake"}
+                initialReviews={initialReviews as any}
+                initialAverage={averageRating}
+                initialCount={reviewCount}
+                initialDistribution={ratingDistribution as any}
+            />
         </div>
     );
 }

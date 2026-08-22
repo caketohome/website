@@ -3236,6 +3236,7 @@ interface StoreData {
   report_audit_logs?: any[];
   product_delivery_restrictions?: ProductDeliveryRestriction[];
   customer_favorites?: CustomerFavoriteRecord[];
+  product_reviews?: ProductReviewRecord[];
   [key: string]: any;
 }
 
@@ -3244,6 +3245,30 @@ export interface CustomerFavoriteRecord {
   customer_uid: string;
   product_id: string;
   created_at: string;
+}
+
+export interface ProductReviewRecord {
+  id: string;
+  product_id: string;
+  customer_uid: string;
+  customer_name: string;
+  order_id: string;
+  order_item_id?: string;
+  rating: number; // 1 to 5
+  title: string;
+  review_text: string;
+  purchased_variant?: string | null;
+  is_verified_purchase: boolean;
+  status: "APPROVED" | "PENDING" | "REJECTED" | "HIDDEN";
+  admin_response?: {
+    author: string;
+    message: string;
+    responded_at: string;
+  } | null;
+  helpful_votes?: number;
+  created_at: string;
+  updated_at: string;
+  published_at?: string | null;
 }
 
 function getStoreFilePath(): string {
@@ -3425,6 +3450,7 @@ function loadStore(): StoreData {
         product_delivery_restrictions: parsed.product_delivery_restrictions || [],
         popup_campaigns: parsed.popup_campaigns || [],
         customer_favorites: parsed.customer_favorites || [],
+        product_reviews: parsed.product_reviews || [],
       };
     } catch (err) {
       console.error("Failed to read db-store.json, initializing default store:", err);
@@ -3503,6 +3529,7 @@ function loadStore(): StoreData {
     seo_reports: [],
     popup_campaigns: [],
     customer_favorites: [],
+    product_reviews: [],
   };
 
   saveStore(initial);
@@ -3718,6 +3745,579 @@ export class ApiEngine {
     return favStore.some(
       (f: any) => f.customer_uid === cleanUid && f.product_id === cleanProdId
     );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── PRODUCT REVIEWS & RATINGS AUTHORITATIVE ENGINE ─────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  static ensureReviewsStore(): ProductReviewRecord[] {
+    if (!memoryStore.product_reviews) {
+      memoryStore.product_reviews = [];
+    }
+    return memoryStore.product_reviews;
+  }
+
+  static getCustomerEligibleReviews(customerUid: string): any[] {
+    if (!customerUid) return [];
+    ApiEngine.ensureReviewsStore();
+    ApiEngine.ensureOrdersStore();
+
+    const cleanUid = String(customerUid).trim();
+    const allOrders = memoryStore.orders || [];
+    const customer = (memoryStore.customers || []).find((c: any) => c.customer_uid === cleanUid || c.id === cleanUid);
+    const cleanPhone = customer?.normalized_phone || (customer?.phone ? customer.phone.replace(/\D/g, "").slice(-10) : "");
+
+    // 1. Find all delivered/completed orders belonging to this customer
+    const deliveredOrders = allOrders.filter((o: any) => {
+      const matchUid = (o.customer_uid === cleanUid || o.customer_id === cleanUid);
+      const matchPhone = cleanPhone && ((o.customer_phone || o.phone || o.shipping_address?.phone || "").replace(/\D/g, "").slice(-10) === cleanPhone);
+      const isDelivered = (o.status || "").toUpperCase() === "DELIVERED" || (o.delivery_status || "").toUpperCase() === "DELIVERED";
+      return (matchUid || matchPhone) && isDelivered;
+    });
+
+    const reviews = memoryStore.product_reviews || [];
+    const eligibleItems: any[] = [];
+
+    for (const ord of deliveredOrders) {
+      const items = Array.isArray(ord.items) ? ord.items : [];
+      for (const item of items) {
+        const prodId = String(item.product_id || item.id || "").trim();
+        if (!prodId) continue;
+
+        const existingReview = reviews.find(
+          (r) => r.customer_uid === cleanUid && r.order_id === ord.id && (r.product_id === prodId || r.product_id === `prod_${prodId}`)
+        );
+
+        const product = (memoryStore.products || []).find((p: any) => p.id === prodId || p.product_id === prodId);
+
+        eligibleItems.push({
+          order_id: ord.id,
+          order_number: ord.order_number || ord.id,
+          order_placed_at: ord.created_at || ord.placed_at,
+          order_delivered_at: ord.delivered_at || ord.updated_at,
+          product_id: prodId,
+          order_item_id: item.item_id || item.id,
+          product_title: item.title || item.name || product?.title || product?.name || "Celebration Cake",
+          product_thumbnail: item.thumbnail || product?.thumbnail,
+          purchased_variant: item.variant_name || item.weight || product?.weight || "1 kg",
+          purchased_price: item.unit_price || item.price,
+          has_reviewed: Boolean(existingReview),
+          existing_review: existingReview || null,
+        });
+      }
+    }
+
+    return eligibleItems;
+  }
+
+  static checkReviewEligibility(
+    customerUid: string,
+    productId: string,
+    orderId?: string
+  ): { eligible: boolean; order?: any; orderItem?: any; existingReview?: ProductReviewRecord; reason?: string } {
+    if (!customerUid) {
+      return { eligible: false, reason: "Authentication required" };
+    }
+    if (!productId) {
+      return { eligible: false, reason: "Product ID is required" };
+    }
+
+    const cleanUid = String(customerUid).trim();
+    const cleanProdId = String(productId).trim();
+    const reviews = ApiEngine.ensureReviewsStore();
+    const allOrders = memoryStore.orders || [];
+    const customer = (memoryStore.customers || []).find((c: any) => c.customer_uid === cleanUid || c.id === cleanUid);
+    const cleanPhone = customer?.normalized_phone || (customer?.phone ? customer.phone.replace(/\D/g, "").slice(-10) : "");
+
+    // Find delivered orders for this customer containing this product
+    const eligibleOrders = allOrders.filter((o: any) => {
+      const matchUid = (o.customer_uid === cleanUid || o.customer_id === cleanUid);
+      const matchPhone = cleanPhone && ((o.customer_phone || o.phone || o.shipping_address?.phone || "").replace(/\D/g, "").slice(-10) === cleanPhone);
+      const isDelivered = (o.status || "").toUpperCase() === "DELIVERED" || (o.delivery_status || "").toUpperCase() === "DELIVERED";
+      const matchOrderId = !orderId || o.id === orderId || o.order_number === orderId;
+      const hasProduct = Array.isArray(o.items) && o.items.some((it: any) => (it.product_id === cleanProdId || it.id === cleanProdId));
+      return (matchUid || matchPhone) && isDelivered && matchOrderId && hasProduct;
+    });
+
+    if (eligibleOrders.length === 0) {
+      return {
+        eligible: false,
+        reason: "You can only submit a verified review for cakes you have purchased and received.",
+      };
+    }
+
+    const targetOrder = eligibleOrders[0];
+    const targetItem = targetOrder.items.find((it: any) => (it.product_id === cleanProdId || it.id === cleanProdId));
+
+    // Check if already reviewed for this order
+    const existing = reviews.find(
+      (r) => r.customer_uid === cleanUid && r.order_id === targetOrder.id && (r.product_id === cleanProdId || r.product_id === `prod_${cleanProdId}`)
+    );
+
+    if (existing) {
+      return {
+        eligible: false,
+        order: targetOrder,
+        orderItem: targetItem,
+        existingReview: existing,
+        reason: "You have already reviewed this cake for this order.",
+      };
+    }
+
+    return {
+      eligible: true,
+      order: targetOrder,
+      orderItem: targetItem,
+    };
+  }
+
+  static submitProductReview(
+    customerUid: string,
+    params: {
+      productId: string;
+      orderId?: string;
+      rating: number;
+      title: string;
+      reviewText: string;
+    }
+  ): { success: boolean; review?: ProductReviewRecord; error?: string; statusCode?: number } {
+    if (!customerUid) {
+      return { success: false, error: "Authentication required", statusCode: 401 };
+    }
+    const { productId, orderId, rating, title, reviewText } = params;
+
+    if (!productId) {
+      return { success: false, error: "Product ID is required", statusCode: 400 };
+    }
+
+    const numRating = Number(rating);
+    if (isNaN(numRating) || numRating < 1 || numRating > 5 || !Number.isInteger(numRating)) {
+      return { success: false, error: "Rating must be an integer between 1 and 5", statusCode: 400 };
+    }
+
+    const cleanTitle = String(title || "").trim();
+    if (!cleanTitle) {
+      return { success: false, error: "Review title is required", statusCode: 400 };
+    }
+    if (cleanTitle.length > 120) {
+      return { success: false, error: "Review title cannot exceed 120 characters", statusCode: 400 };
+    }
+
+    const cleanText = String(reviewText || "").trim();
+    if (!cleanText) {
+      return { success: false, error: "Review text cannot be empty", statusCode: 400 };
+    }
+    if (cleanText.length > 2000) {
+      return { success: false, error: "Review text cannot exceed 2000 characters", statusCode: 400 };
+    }
+
+    const cleanUid = String(customerUid).trim();
+    const cleanProdId = String(productId).trim();
+
+    // Verify product exists in catalog
+    const product = (memoryStore.products || []).find((p: any) => p.id === cleanProdId || p.product_id === cleanProdId);
+    if (!product) {
+      return { success: false, error: "Product not found", statusCode: 404 };
+    }
+
+    // Verify customer purchase eligibility
+    const eligibility = ApiEngine.checkReviewEligibility(cleanUid, cleanProdId, orderId);
+    if (!eligibility.eligible) {
+      if (eligibility.existingReview) {
+        return { success: false, error: eligibility.reason || "Review already submitted for this purchase", statusCode: 409 };
+      }
+      return { success: false, error: eligibility.reason || "Verified purchase required to review", statusCode: 403 };
+    }
+
+    const targetOrder = eligibility.order;
+    const targetItem = eligibility.orderItem;
+
+    // Resolve customer display name (e.g. "Alex R." or "Verified Customer")
+    const customer = (memoryStore.customers || []).find((c: any) => c.customer_uid === cleanUid || c.id === cleanUid);
+    let displayName = "Verified Customer";
+    if (customer) {
+      const first = customer.first_name || (customer.name || customer.full_name || "").split(" ")[0] || "Customer";
+      const last = customer.last_name || (customer.name || customer.full_name || "").split(" ").slice(1).join(" ") || "";
+      displayName = last ? `${first} ${last[0]}.` : first;
+    } else if (targetOrder.customer_name) {
+      const parts = targetOrder.customer_name.trim().split(" ");
+      displayName = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : parts[0];
+    }
+
+    const reviews = ApiEngine.ensureReviewsStore();
+    const now = new Date().toISOString();
+
+    const newReview: ProductReviewRecord = {
+      id: `rev_${cleanUid.replace(/[^a-zA-Z0-9_-]/g, "_")}_${cleanProdId}_${targetOrder.id}`,
+      product_id: cleanProdId,
+      customer_uid: cleanUid,
+      customer_name: displayName,
+      order_id: targetOrder.id,
+      order_item_id: targetItem?.item_id || targetItem?.id,
+      rating: numRating,
+      title: cleanTitle,
+      review_text: cleanText,
+      purchased_variant: targetItem?.variant_name || targetItem?.weight || product.weight || "1 kg",
+      is_verified_purchase: true,
+      status: "APPROVED",
+      admin_response: null,
+      helpful_votes: 0,
+      created_at: now,
+      updated_at: now,
+      published_at: now,
+    };
+
+    reviews.unshift(newReview);
+    saveStore(memoryStore);
+
+    // Emit transactional webhook event
+    ApiEngine.fireWebhookEvent(
+      "review.created",
+      {
+        review_id: newReview.id,
+        product_id: cleanProdId,
+        customer_uid: cleanUid,
+        rating: newReview.rating,
+        title: newReview.title,
+        order_id: targetOrder.id,
+        created_at: newReview.created_at,
+      },
+      { source: "STOREFRONT_REVIEW" },
+      { customer_uid: cleanUid },
+      { type: "product", id: cleanProdId }
+    );
+
+    return { success: true, review: newReview, statusCode: 201 };
+  }
+
+  static updateProductReview(
+    customerUid: string,
+    reviewId: string,
+    params: {
+      rating?: number;
+      title?: string;
+      reviewText?: string;
+    }
+  ): { success: boolean; review?: ProductReviewRecord; error?: string; statusCode?: number } {
+    if (!customerUid) {
+      return { success: false, error: "Authentication required", statusCode: 401 };
+    }
+    if (!reviewId) {
+      return { success: false, error: "Review ID is required", statusCode: 400 };
+    }
+
+    const reviews = ApiEngine.ensureReviewsStore();
+    const cleanUid = String(customerUid).trim();
+    const cleanRevId = String(reviewId).trim();
+
+    const review = reviews.find((r) => r.id === cleanRevId);
+    if (!review) {
+      return { success: false, error: "Review not found", statusCode: 404 };
+    }
+
+    // Ownership check (IDOR protection)
+    if (review.customer_uid !== cleanUid) {
+      return { success: false, error: "Forbidden: You do not own this review", statusCode: 403 };
+    }
+
+    if (params.rating !== undefined) {
+      const numRating = Number(params.rating);
+      if (isNaN(numRating) || numRating < 1 || numRating > 5 || !Number.isInteger(numRating)) {
+        return { success: false, error: "Rating must be an integer between 1 and 5", statusCode: 400 };
+      }
+      review.rating = numRating;
+    }
+
+    if (params.title !== undefined) {
+      const cleanTitle = String(params.title).trim();
+      if (!cleanTitle) {
+        return { success: false, error: "Review title cannot be empty", statusCode: 400 };
+      }
+      if (cleanTitle.length > 120) {
+        return { success: false, error: "Review title cannot exceed 120 characters", statusCode: 400 };
+      }
+      review.title = cleanTitle;
+    }
+
+    if (params.reviewText !== undefined) {
+      const cleanText = String(params.reviewText).trim();
+      if (!cleanText) {
+        return { success: false, error: "Review text cannot be empty", statusCode: 400 };
+      }
+      if (cleanText.length > 2000) {
+        return { success: false, error: "Review text cannot exceed 2000 characters", statusCode: 400 };
+      }
+      review.review_text = cleanText;
+    }
+
+    review.updated_at = new Date().toISOString();
+    saveStore(memoryStore);
+
+    ApiEngine.fireWebhookEvent(
+      "review.updated",
+      {
+        review_id: review.id,
+        product_id: review.product_id,
+        customer_uid: cleanUid,
+        rating: review.rating,
+        updated_at: review.updated_at,
+      },
+      { source: "STOREFRONT_REVIEW" },
+      { customer_uid: cleanUid },
+      { type: "product", id: review.product_id }
+    );
+
+    return { success: true, review, statusCode: 200 };
+  }
+
+  static deleteProductReview(
+    customerUid: string,
+    reviewId: string
+  ): { success: boolean; error?: string; statusCode?: number } {
+    if (!customerUid) {
+      return { success: false, error: "Authentication required", statusCode: 401 };
+    }
+    if (!reviewId) {
+      return { success: false, error: "Review ID is required", statusCode: 400 };
+    }
+
+    const reviews = ApiEngine.ensureReviewsStore();
+    const cleanUid = String(customerUid).trim();
+    const cleanRevId = String(reviewId).trim();
+
+    const reviewIndex = reviews.findIndex((r) => r.id === cleanRevId);
+    if (reviewIndex === -1) {
+      return { success: false, error: "Review not found", statusCode: 404 };
+    }
+
+    const review = reviews[reviewIndex];
+    if (review.customer_uid !== cleanUid) {
+      return { success: false, error: "Forbidden: You do not own this review", statusCode: 403 };
+    }
+
+    reviews.splice(reviewIndex, 1);
+    saveStore(memoryStore);
+
+    return { success: true, statusCode: 200 };
+  }
+
+  static getProductRatingAggregate(productId: string): {
+    product_id: string;
+    average_rating: number;
+    total_reviews: number;
+    rating_distribution: { 1: number; 2: number; 3: number; 4: number; 5: number };
+  } {
+    const cleanProdId = String(productId || "").trim();
+    const reviews = ApiEngine.ensureReviewsStore();
+
+    const published = reviews.filter(
+      (r) => (r.product_id === cleanProdId || r.product_id === `prod_${cleanProdId}`) && (r.status === "APPROVED" || !r.status)
+    );
+
+    const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let totalScore = 0;
+
+    for (const rev of published) {
+      const r = Math.min(5, Math.max(1, Math.round(rev.rating || 5)));
+      dist[r as 1 | 2 | 3 | 4 | 5]++;
+      totalScore += rev.rating;
+    }
+
+    const total = published.length;
+    const avg = total > 0 ? Number((totalScore / total).toFixed(1)) : 0;
+
+    return {
+      product_id: cleanProdId,
+      average_rating: avg,
+      total_reviews: total,
+      rating_distribution: dist,
+    };
+  }
+
+  static getProductReviews(
+    productId: string,
+    options: {
+      page?: number;
+      pageSize?: number;
+      sort?: "recent" | "highest" | "lowest" | "helpful";
+      ratingFilter?: number;
+      verifiedOnly?: boolean;
+      status?: string;
+    } = {}
+  ): {
+    product_id: string;
+    reviews: any[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    aggregate: {
+      product_id: string;
+      average_rating: number;
+      total_reviews: number;
+      rating_distribution: { 1: number; 2: number; 3: number; 4: number; 5: number };
+    };
+  } {
+    const cleanProdId = String(productId || "").trim();
+    const reviews = ApiEngine.ensureReviewsStore();
+    const aggregate = ApiEngine.getProductRatingAggregate(cleanProdId);
+
+    // Filter by product and approval status
+    const targetStatus = options.status || "APPROVED";
+    let filtered = reviews.filter((r) => {
+      const matchProd = r.product_id === cleanProdId || r.product_id === `prod_${cleanProdId}`;
+      const matchStatus = targetStatus === "ALL" ? true : (r.status === targetStatus || !r.status);
+      const matchRating = !options.ratingFilter || r.rating === Number(options.ratingFilter);
+      const matchVerified = options.verifiedOnly ? r.is_verified_purchase === true : true;
+      return matchProd && matchStatus && matchRating && matchVerified;
+    });
+
+    // Sorting
+    const sort = options.sort || "recent";
+    filtered.sort((a, b) => {
+      if (sort === "highest") return b.rating - a.rating;
+      if (sort === "lowest") return a.rating - b.rating;
+      if (sort === "helpful") return (b.helpful_votes || 0) - (a.helpful_votes || 0);
+      // default: recent
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    // Pagination
+    const page = Math.max(1, Number(options.page) || 1);
+    const pageSize = Math.max(1, Math.min(50, Number(options.pageSize) || 10));
+    const total = filtered.length;
+    const totalPages = Math.ceil(total / pageSize) || 1;
+    const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+    // Privacy-safe sanitized review cards (hide private customer_uid)
+    const sanitized = paginated.map((r) => ({
+      id: r.id,
+      product_id: r.product_id,
+      rating: r.rating,
+      title: r.title,
+      review_text: r.review_text,
+      comment: r.review_text,
+      body: r.review_text,
+      author_name: r.customer_name,
+      customer_name: r.customer_name,
+      purchased_variant: r.purchased_variant,
+      is_verified_purchase: r.is_verified_purchase,
+      verified_purchase: r.is_verified_purchase,
+      admin_response: r.admin_response || null,
+      reply: r.admin_response?.message || null,
+      helpful_votes: r.helpful_votes || 0,
+      created_at: r.created_at,
+      published_at: r.published_at,
+    }));
+
+    return {
+      product_id: cleanProdId,
+      reviews: sanitized,
+      total,
+      page,
+      pageSize,
+      totalPages,
+      aggregate,
+    };
+  }
+
+  static getCustomerReviews(customerUid: string): ProductReviewRecord[] {
+    if (!customerUid) return [];
+    const reviews = ApiEngine.ensureReviewsStore();
+    const cleanUid = String(customerUid).trim();
+    return reviews.filter((r) => r.customer_uid === cleanUid);
+  }
+
+  static getAdminReviews(options: {
+    page?: number;
+    pageSize?: number;
+    status?: string;
+    productId?: string;
+    search?: string;
+  } = {}): {
+    reviews: ProductReviewRecord[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    pending_count: number;
+    approved_count: number;
+    rejected_count: number;
+  } {
+    const reviews = ApiEngine.ensureReviewsStore();
+    let filtered = [...reviews];
+
+    if (options.status && options.status !== "ALL") {
+      filtered = filtered.filter((r) => r.status === options.status);
+    }
+    if (options.productId) {
+      filtered = filtered.filter((r) => r.product_id === options.productId);
+    }
+    if (options.search) {
+      const q = options.search.toLowerCase();
+      filtered = filtered.filter(
+        (r) =>
+          r.title.toLowerCase().includes(q) ||
+          r.review_text.toLowerCase().includes(q) ||
+          r.customer_name.toLowerCase().includes(q) ||
+          r.product_id.toLowerCase().includes(q)
+      );
+    }
+
+    filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const page = Math.max(1, Number(options.page) || 1);
+    const pageSize = Math.max(1, Math.min(100, Number(options.pageSize) || 20));
+    const total = filtered.length;
+    const totalPages = Math.ceil(total / pageSize) || 1;
+    const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+    return {
+      reviews: paginated,
+      total,
+      page,
+      pageSize,
+      totalPages,
+      pending_count: reviews.filter((r) => r.status === "PENDING").length,
+      approved_count: reviews.filter((r) => r.status === "APPROVED").length,
+      rejected_count: reviews.filter((r) => r.status === "REJECTED" || r.status === "HIDDEN").length,
+    };
+  }
+
+  static moderateReview(
+    reviewId: string,
+    action: "APPROVE" | "REJECT" | "HIDE" | "RESPOND",
+    params?: { adminName?: string; adminResponse?: string }
+  ): { success: boolean; review?: ProductReviewRecord; error?: string } {
+    const reviews = ApiEngine.ensureReviewsStore();
+    const cleanRevId = String(reviewId).trim();
+    const review = reviews.find((r) => r.id === cleanRevId);
+
+    if (!review) {
+      return { success: false, error: "Review not found" };
+    }
+
+    const now = new Date().toISOString();
+    if (action === "APPROVE") {
+      review.status = "APPROVED";
+      review.published_at = now;
+    } else if (action === "REJECT") {
+      review.status = "REJECTED";
+    } else if (action === "HIDE") {
+      review.status = "HIDDEN";
+    } else if (action === "RESPOND" && params?.adminResponse) {
+      review.admin_response = {
+        author: params.adminName || "CakeToHome Bakery Chef",
+        message: params.adminResponse.trim(),
+        responded_at: now,
+      };
+    }
+
+    review.updated_at = now;
+    saveStore(memoryStore);
+
+    return { success: true, review };
   }
 
   static resolveUserAccount(params: { userId?: string; phone?: string; role?: string; customerUid?: string }): any {
@@ -4468,6 +5068,8 @@ export class ApiEngine {
     const prodId = p.id || p.product_id;
     const weightPrices = ApiEngine.getProductWeightPrices(prodId);
     const enabledWeights = weightPrices.filter((wp: any) => wp.is_enabled);
+    const ratingAggregate = ApiEngine.getProductRatingAggregate(prodId);
+    const hasPublishedReviews = ratingAggregate.total_reviews > 0;
 
     return {
       ...p,
@@ -4488,6 +5090,9 @@ export class ApiEngine {
       weight: p.weight || (enabledWeights[0]?.weight_name || "1 kg"),
       weight_prices: weightPrices,
       weights: enabledWeights.map((wp: any) => wp.weight_name),
+      rating: hasPublishedReviews ? ratingAggregate.average_rating : (p.rating ?? 0),
+      review_count: hasPublishedReviews ? ratingAggregate.total_reviews : (p.review_count ?? 0),
+      rating_distribution: ratingAggregate.rating_distribution,
     };
   }
 
@@ -8116,11 +8721,15 @@ export class ApiEngine {
       favourite_flavours: intelligence.favourite_flavours,
       favourite_cakes: intelligence.favourite_cakes,
       average_order_size_items: intelligence.average_order_size_items,
-      top_occasions: intelligence.top_occasions,
       data_lineage: lineage,
       reminders: customerReminders,
       assigned_telecaller_id: customer.assigned_telecaller_id,
       assigned_telecaller_name: customer.assigned_telecaller_name,
+      reviews_written: ApiEngine.getCustomerReviews(customer.customer_uid),
+      reviews_count: ApiEngine.getCustomerReviews(customer.customer_uid).length,
+      average_rating_given: ApiEngine.getCustomerReviews(customer.customer_uid).length > 0
+        ? Number((ApiEngine.getCustomerReviews(customer.customer_uid).reduce((sum, r) => sum + r.rating, 0) / ApiEngine.getCustomerReviews(customer.customer_uid).length).toFixed(1))
+        : 0,
     };
 
     return fullProfile;
@@ -14175,6 +14784,11 @@ export class ApiEngine {
       },
       favorite_products: ApiEngine.getCustomerFavorites(customer.customer_uid),
       favorites_count: (ApiEngine.getCustomerFavorites(customer.customer_uid)).length,
+      reviews_written: ApiEngine.getCustomerReviews(customer.customer_uid),
+      reviews_count: ApiEngine.getCustomerReviews(customer.customer_uid).length,
+      average_rating_given: ApiEngine.getCustomerReviews(customer.customer_uid).length > 0
+        ? Number((ApiEngine.getCustomerReviews(customer.customer_uid).reduce((sum, r) => sum + r.rating, 0) / ApiEngine.getCustomerReviews(customer.customer_uid).length).toFixed(1))
+        : 0,
     };
   }
 

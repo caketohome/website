@@ -14,7 +14,8 @@ import {
   Sparkles,
   MapPin,
   Calendar,
-  ExternalLink
+  ExternalLink,
+  Star
 } from "lucide-react";
 
 export const metadata = {
@@ -27,6 +28,8 @@ export default async function AccountOrdersPage() {
   if (!user) {
     redirect("/login");
   }
+
+  const customerReviews = user.customer_uid ? ApiEngine.getCustomerReviews(user.customer_uid) : [];
 
   const cleanPhone = user.normalized_phone || (user.phone ? user.phone.replace(/\D/g, "").slice(-10) : "");
   const allOrders = ApiEngine.getOrders();
@@ -128,6 +131,11 @@ export default async function AccountOrdersPage() {
                   minute: "2-digit"
                 })
               : "Recent";
+            const isDelivered = (ord.status || ord.delivery_status || "").toLowerCase() === "delivered";
+            const firstItemProdId = firstItem.product_id || firstItem.id;
+            const existingReview = customerReviews.find(
+              (r: any) => r.order_id === ord.id && (r.product_id === firstItemProdId || r.product_id === `prod_${firstItemProdId}`)
+            );
 
             return (
               <div
@@ -187,7 +195,27 @@ export default async function AccountOrdersPage() {
                       ₹{orderTotal.toLocaleString("en-IN")}
                     </p>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {isDelivered && firstItemProdId && (
+                        existingReview ? (
+                          <Link
+                            href={`/products/${firstItemProdId}#customer-reviews-section`}
+                            className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                          >
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            Reviewed ({existingReview.rating}★)
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/products/${firstItemProdId}#customer-reviews-section`}
+                            className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-rose-600/20 active:scale-95"
+                          >
+                            <Star className="w-3.5 h-3.5 fill-white text-white" />
+                            Write a Review
+                          </Link>
+                        )
+                      )}
+
                       <Link
                         href={`/track?order_id=${ord.id || ord.order_number}`}
                         className="px-3.5 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
