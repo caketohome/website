@@ -32,6 +32,7 @@
 | **`telemarketing_candidate`**| `id` (text) | `customer_uid`, `priority`, `score`, `opportunity_type`, `contact_status`, `assigned_staff_id`, `attributed_order_id` | `idx_telemarketing_priority_status`, `idx_telemarketing_customer_uid`, `idx_telemarketing_assigned` | `ACTIVE` | Outreach intelligence opportunities. |
 | **`staff_access_profile`** | `id` (text) | `name`, `code` (unique), `is_system`, `permissions`, `created_at` | `idx_staff_access_profile_code` | `ACTIVE` | RBAC role definitions. |
 | **`staff_user`** | `id` (text) | `email`, `phone`, `profile_ids`, `branch_id`, `status` | `idx_staff_user_email`, `idx_staff_user_phone` | `ACTIVE` | Admin and kitchen staff profiles. |
+| **`product_reviews`** | `id` (varchar) | `product_id`, `customer_uid`, `order_id`, `order_item_id`, `rating`, `title`, `review_text`, `status`, `is_verified_purchase`, `purchased_variant`, `admin_response` | `uq_product_reviews_customer_order_product`, `idx_product_reviews_product_status`, `idx_product_reviews_customer_uid`, `idx_product_reviews_order_id` | `ACTIVE` | Authoritative verified customer review entity. Enforces 1 review per customer per purchased product per delivered order. |
 | **`crm_legacy_leads`** | `id` (text) | `raw_phone`, `old_source`, `dump_date` | `none` | `LEGACY` | Old telemarketing dump prior to v3.0 rebuild. |
 | **`temp_import_dump`** | `id` (text) | `csv_line`, `status` | `none` | `SAFE_TO_REMOVE` | Temporary bulk import staging table from legacy migration. |
 

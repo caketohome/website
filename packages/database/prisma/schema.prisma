@@ -535,20 +535,32 @@ model Wishlist {
 }
 
 model Review {
-  id         String    @id @default(cuid())
-  productId  String
-  product    Product   @relation(fields: [productId], references: [id])
-  customerId String
-  customer   Customer  @relation(fields: [customerId], references: [id])
-  rating     Int
-  title      String?
-  body       String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  deletedAt  DateTime?
+  id                  String    @id @default(cuid())
+  productId           String
+  product             Product   @relation(fields: [productId], references: [id])
+  customerId          String?
+  customer            Customer? @relation(fields: [customerId], references: [id])
+  customerUid         String?
+  customerName        String?
+  orderId             String?
+  orderItemId         String?
+  rating              Int
+  title               String?
+  body                String?
+  reviewText          String?
+  status              String    @default("APPROVED")
+  isVerifiedPurchase  Boolean   @default(false)
+  purchasedVariant    String?
+  adminResponse       Json?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  publishedAt         DateTime?
+  deletedAt           DateTime?
 
-  @@index([productId])
-  @@index([customerId])
+  @@unique([customerUid, orderId, productId])
+  @@index([productId, status])
+  @@index([customerUid])
+  @@index([orderId])
 }
 
 model AuditLog {

@@ -104,17 +104,24 @@ export const ProductReview = model.define("product_review", {
             prefix: "prev",
         })
         .primaryKey(),
-    product_id: model.text(),
+    product_id: model.text().searchable(),
     customer_id: model.text().nullable(),
+    customer_uid: model.text().nullable().searchable(),
+    order_id: model.text().nullable(),
+    order_item_id: model.text().nullable(),
     customer_name: model.text().nullable(),
     rating: model.number(),
     title: model.text().nullable(),
     body: model.text().nullable(),
+    review_text: model.text().nullable(),
     images: model.text().nullable(),
-    status: model.text().default("pending"),
+    status: model.text().default("approved"),
     reply: model.text().nullable(),
     replied_at: model.dateTime().nullable(),
+    admin_response: model.text().nullable(),
+    is_verified_purchase: model.boolean().default(false),
     verified_purchase: model.boolean().default(false),
+    purchased_variant: model.text().nullable(),
 });
 
 /**

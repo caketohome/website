@@ -330,6 +330,7 @@
 
 | Test Suite | Coverage | Status | Passed / Total |
 | :--- | :--- | :--- | :--- |
+| `backend/test_product_reviews_db.js` | Direct PostgreSQL Supabase verification: Schema, Column types, UNIQUE constraint (code 23505), SQL aggregate math, Clean cleanup | ✅ PASSED | 15 / 15 |
 | `scripts/test-product-reviews-e2e.ts` | 11 Review Pillars: Canonical customer_uid, Verified Delivery Gate, Unique Constraints, Dynamic Math Rating Recalculation, Privacy Safety, IDOR Security, Admin Responses, CRM 360 | ✅ PASSED | 64 / 64 |
 | `scripts/test-favorites-e2e.ts` | 9 Favorites Pillars: Customer UID Scoping, Idempotence, N+1 Optimization, Multi-Customer Isolation, Optimistic UI, Outbox Webhooks, CRM 360 | ✅ PASSED | 43 / 43 |
 | `scripts/test-branch-manager.ts` | 15 Branch Operations Pillars: Canonical Resolution, 10 KPIs, KOT Reprint, GST Invoices, Rider Assignment, Pausing, Availability | ✅ PASSED | 53 / 53 |
