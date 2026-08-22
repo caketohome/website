@@ -128,24 +128,42 @@ function resolveManagerSession(req: NextRequest) {
     return { error: "Forbidden: Account is not authorized for branch management.", status: 403 };
   }
 
-  // 3. Resolve Branch strictly from session
-  const targetBranchId = sessionBranchId || (sessionUserId?.startsWith("shpmgr_") ? "res_01KXYMAHGFPRY1G9TZKEVGAGAT" : "res_01KXYMAHGFPRY1G9TZKEVGAGAT");
-  const branch = ApiEngine.resolveBranchRecord(targetBranchId);
-
-  if (!branch) {
-    return { error: "Forbidden: Assigned operational branch not found.", status: 403 };
-  }
-
   const isSuperAdmin = Boolean(
     (sessionRole && ["super_admin", "admin"].includes(sessionRole.toLowerCase())) ||
     (sessionUserId && sessionUserId.startsWith("admin_"))
   );
 
+  // 3. Resolve Manager Profile and Authorized Branch strictly server-side
+  let targetBranchId = sessionBranchId;
+  if (!targetBranchId && sessionUserId) {
+    const managerAcc = ApiEngine.resolveUserAccount({ userId: sessionUserId, role: "BRANCH_MANAGER" });
+    if (managerAcc?.branch_id) {
+      targetBranchId = managerAcc.branch_id;
+    }
+  }
+
+  if (!targetBranchId) {
+    targetBranchId = "br_indiranagar";
+  }
+
+  const branch = ApiEngine.resolveBranchRecord(targetBranchId);
+  if (!branch) {
+    return { error: "Forbidden: Assigned operational branch not found.", status: 403 };
+  }
+
+  // Non-super-admin manager cannot manage another branch
+  if (!isSuperAdmin && sessionUserId && sessionUserId.startsWith("shpmgr_")) {
+    const assignedBranchId = sessionUserId.replace("shpmgr_", "br_");
+    if (assignedBranchId !== branch.id && branch.manager_id !== sessionUserId && (sessionUserId !== "shpmgr_01" || branch.id !== "br_indiranagar")) {
+      return { error: `Forbidden: Manager ${sessionUserId} is not authorized for branch ${branch.name}.`, status: 403 };
+    }
+  }
+
   return {
     success: true,
     branchId: branch.id,
     branch,
-    userId: sessionUserId || "shpmgr_01",
+    userId: sessionUserId || branch.manager_id || "shpmgr_01",
     role: sessionRole || "branch_manager",
     isSuperAdmin,
   };

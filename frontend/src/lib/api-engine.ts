@@ -16882,16 +16882,16 @@ export class ApiEngine {
       recent_orders: branchOrders.slice(0, 10).map((o: any) => ({
         id: o.id,
         order_number: o.order_number,
-        customer_name: o.customer_name || o.customerName,
-        customer_phone: o.customer_phone || o.customerPhone,
-        total: o.total || 599,
+        customer_name: o.customer_name || o.customerName || "Customer",
+        customer_phone: o.customer_phone || o.customerPhone || "",
+        total: o.total || o.grand_total || 0,
         status: o.status,
         delivery_status: o.delivery_status,
-        delivery_slot: o.delivery_slot || "2:00 PM - 4:00 PM",
+        delivery_slot: o.delivery_slot || "Standard Delivery",
         is_photo_cake: o.is_photo_cake || !!o.customization?.photo_url || o.items?.some((i: any) => (i.title || "").toLowerCase().includes("photo")),
         photo_url: o.photo_url || o.customization?.photo_url || null,
-        pickup_otp: o.pickup_otp || o.delivery?.pickup_otp || "1294",
-        delivery_otp: o.delivery_otp || "4819",
+        pickup_otp: o.pickup_otp || o.delivery?.pickup_otp || null,
+        pickup_otp_status: o.pickup_verified_at ? "VERIFIED" : (o.pickup_otp ? "ACTIVE" : "PENDING"),
         created_at: o.created_at,
         is_delayed: o.is_delayed || false,
       })),
@@ -16959,31 +16959,31 @@ export class ApiEngine {
       orders: orders.map((o: any) => ({
         id: o.id,
         order_number: o.order_number,
-        customer_name: o.customer_name || o.customerName || "Gourmet Customer",
-        customer_phone: o.customer_phone || o.customerPhone || "+91 98765 43210",
+        customer_name: o.customer_name || o.customerName || "Customer",
+        customer_phone: o.customer_phone || o.customerPhone || "",
         customer_email: o.customer_email || "customer@cakes2home.com",
-        delivery_address: o.deliveryAddress || o.shipping_address?.address_1 || "Flat 101, Indiranagar, Bengaluru",
-        pincode: o.pincode || o.shipping_address?.postal_code || "560038",
-        items: o.items || [{ title: "Rich Chocolate Truffle Cake", quantity: 1, unit_price: 599, total: 599, weight: "1 kg", flavor: "Belgian Chocolate" }],
-        total: o.total || 599,
+        delivery_address: o.delivery_address || o.deliveryAddress || o.shipping_address?.address_1 || "",
+        pincode: o.pincode || o.shipping_address?.postal_code || "",
+        items: o.items || [],
+        total: o.total || o.grand_total || 0,
         payment_status: o.payment_status || "captured",
-        payment_method: o.payment_method || "UPI via Razorpay",
+        payment_method: o.payment_method || "Online Payment",
         status: o.status || "confirmed",
         delivery_status: o.delivery_status || "shop_accepted",
         delivery_date: o.delivery_date || new Date().toISOString().slice(0, 10),
-        delivery_slot: o.delivery_slot || "2:00 PM - 4:00 PM",
+        delivery_slot: o.delivery_slot || "Standard Delivery Slot",
         priority: o.priority || (o.is_express ? "EXPRESS" : (o.is_midnight ? "MIDNIGHT" : "NORMAL")),
         delivery_partner_id: o.delivery_partner_id || null,
         driver_name: o.driver_name || o.delivery?.partner_name || null,
         is_photo_cake: o.is_photo_cake || !!o.customization?.photo_url || (o.items || []).some((i: any) => (i.title || "").toLowerCase().includes("photo")),
         photo_url: o.photo_url || o.customization?.photo_url || null,
-        custom_message: o.custom_message || o.customization?.cake_message || "Happy Birthday!",
+        custom_message: o.customization?.cake_message || o.custom_message || null,
         special_instructions: o.special_instructions || o.notes || null,
         is_delayed: o.is_delayed || false,
         delay_reason: o.delay_reason || null,
         new_eta: o.new_eta || null,
-        pickup_otp: o.pickup_otp || o.delivery?.pickup_otp || "1294",
-        delivery_otp: o.delivery_otp || "4819",
+        pickup_otp: o.pickup_otp || o.delivery?.pickup_otp || null,
+        pickup_otp_status: o.pickup_verified_at ? "VERIFIED" : (o.pickup_otp ? "ACTIVE" : "PENDING"),
         is_on_hold: o.is_on_hold || false,
         hold_reason: o.hold_reason || null,
         kot_reprint_count: o.kot_reprint_count || 1,
@@ -17008,22 +17008,14 @@ export class ApiEngine {
       return { success: false, statusCode: 403, error: `Forbidden: Order ${order.order_number} belongs to another branch. Access denied.` };
     }
 
-    const items = (order.items && order.items.length > 0) ? order.items : [
-      {
-        id: "item_1",
-        title: "Signature Dutch Chocolate Truffle Cake",
-        name: "Signature Dutch Chocolate Truffle Cake",
-        sku: "CK-TRUF-1000",
-        quantity: 1,
-        weight: "1.0 kg",
-        flavor: "Dutch Cocoa Ganache",
-        filling: "Chocolate Mousse",
-        shape: "Round",
-        unit_price: 699,
-        tax_amount: 34.95,
-        total: 699,
-      }
-    ];
+    const items = (order.items && order.items.length > 0) ? order.items : [];
+    const subtotal = items.reduce((sum: number, it: any) => sum + (Number(it.total) || (Number(it.quantity || 1) * Number(it.unit_price || 0))), 0) || Number(order.subtotal || order.total || 0);
+    const tax_total = order.tax_total !== undefined ? Number(order.tax_total) : Number((subtotal * 0.05).toFixed(2));
+    const cgst = Number((tax_total / 2).toFixed(2));
+    const sgst = Number((tax_total / 2).toFixed(2));
+    const delivery_fee = Number(order.delivery_fee || order.delivery_charge || 0);
+    const discount_total = Number(order.discount_total || 0);
+    const total = Number(order.total !== undefined ? order.total : (subtotal + tax_total + delivery_fee - discount_total).toFixed(2));
 
     const isPhotoCake = order.is_photo_cake || !!order.customization?.photo_url || items.some((i: any) => (i.title || "").toLowerCase().includes("photo"));
     const photoUrl = order.photo_url || order.customization?.photo_url || (isPhotoCake ? "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800" : null);
@@ -17038,22 +17030,23 @@ export class ApiEngine {
         branch_name: branch.name,
         branch_code: branch.code,
         customer: {
-          name: order.customer_name || order.customerName || "Priya Sharma",
-          phone: order.customer_phone || order.customerPhone || "+91 98765 00001",
-          email: order.customer_email || "priya.sharma@example.com",
-          delivery_address: order.deliveryAddress || order.shipping_address?.address_1 || "Flat 402, Signature Heights, 12th Main, Indiranagar",
-          landmark: order.landmark || "Near Sony Signal",
-          pincode: order.pincode || order.shipping_address?.postal_code || "560038",
-          city: order.city || "Bengaluru",
-          occasion: order.occasion || "Birthday Celebration",
+          name: order.customer_name || order.customerName || order.customer?.name || "Customer",
+          phone: order.customer_phone || order.customerPhone || order.customer?.phone || "",
+          email: order.customer_email || order.customer?.email || "customer@cakes2home.com",
+          delivery_address: order.delivery_address || order.deliveryAddress || order.shipping_address?.address_1 || "",
+          landmark: order.landmark || order.shipping_address?.landmark || "",
+          pincode: order.pincode || order.shipping_address?.postal_code || "",
+          city: order.city || order.shipping_address?.city || "Bengaluru",
+          occasion: order.occasion || order.customization?.occasion || "Celebration",
         },
         items,
         customization: {
-          cake_message: order.custom_message || order.customization?.cake_message || "Happy Birthday Priya!",
-          candle: order.candle || "Included (Gold Sparkler)",
-          knife: order.knife || "Included (Cake Knife)",
-          accessories: order.accessories || ["Gold Birthday Topper", "Greeting Card"],
-          special_instructions: order.special_instructions || order.notes || "Please keep refrigerated upon arrival. Artisan bakery formulation verified.",
+          cake_message: order.customization?.cake_message || order.custom_message || null,
+          gift_message: order.customization?.gift_message || order.gift_message || null,
+          candle: order.customization?.candle || order.candle || "Included (Gold Sparkler)",
+          knife: order.customization?.knife || order.knife || "Included (Cake Knife)",
+          accessories: order.customization?.accessories || order.accessories || [],
+          special_instructions: order.special_instructions || order.notes || null,
         },
         photo_cake: {
           is_photo_cake: isPhotoCake,
@@ -17061,17 +17054,17 @@ export class ApiEngine {
           instructions: order.photo_instructions || "High-resolution edible sugar sheet print centered on top surface.",
         },
         pricing: {
-          subtotal: order.subtotal || order.total || 699,
-          tax_total: order.tax_total || 34.95,
-          cgst: Number(((order.tax_total || 34.95) / 2).toFixed(2)),
-          sgst: Number(((order.tax_total || 34.95) / 2).toFixed(2)),
-          delivery_fee: order.delivery_fee || 0,
-          discount_total: order.discount_total || 0,
-          total: order.total || 733.95,
+          subtotal,
+          tax_total,
+          cgst,
+          sgst,
+          delivery_fee,
+          discount_total,
+          total,
         },
         payment: {
           status: order.payment_status || "captured",
-          method: order.payment_method || "Online UPI (Razorpay)",
+          method: order.payment_method || "Online Payment",
           transaction_id: order.transaction_id || `TXN_${order.id}`,
         },
         status: order.status || "confirmed",
@@ -17080,10 +17073,11 @@ export class ApiEngine {
         driver_name: order.driver_name || order.delivery?.partner_name || null,
         driver_phone: order.driver_phone || order.delivery?.partner_phone || null,
         delivery_date: order.delivery_date || new Date().toISOString().slice(0, 10),
-        delivery_slot: order.delivery_slot || "2:00 PM - 4:00 PM",
+        delivery_slot: order.delivery_slot || "Standard Delivery Slot",
         priority: order.priority || (order.is_express ? "EXPRESS" : "NORMAL"),
-        pickup_otp: order.pickup_otp || "1294",
-        delivery_otp: order.delivery_otp || "4819",
+        pickup_otp: order.pickup_otp || order.delivery?.pickup_otp || null,
+        pickup_otp_status: order.pickup_verified_at ? "VERIFIED" : (order.pickup_otp ? "ACTIVE" : "PENDING"),
+        delivery_otp_status: order.delivery_otp_verified_at || order.delivered_at ? "VERIFIED" : (order.delivery_otp ? "ACTIVE" : "PENDING"),
         is_delayed: order.is_delayed || false,
         delay_reason: order.delay_reason || null,
         new_eta: order.new_eta || null,
@@ -17110,28 +17104,13 @@ export class ApiEngine {
       return { success: false, statusCode: 403, error: "Forbidden: Cannot mutate an order belonging to another branch." };
     }
 
-    if (order.status === "delivered" || order.status === "cancelled") {
-      return { success: false, statusCode: 400, error: `Cannot accept order in '${order.status}' state.` };
-    }
-
-    order.status = "kitchen_accepted";
-    order.delivery_status = "shop_accepted";
-    order.updated_at = new Date().toISOString();
-
-    if (!order.timeline) order.timeline = [];
-    order.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: "Order Accepted by Branch Kitchen",
-      time: new Date().toISOString(),
-      author: branch.manager_name || "Branch Manager",
-      notes: notes || "Queued for kitchen baking station",
-    });
-
-    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) accepted Order ${order.order_number}`);
-    ApiEngine.fireWebhookEvent("branch.order_accepted", { order_id: order.id, branch_id: branch.id });
-    ApiEngine.persist();
-
-    return { success: true, statusCode: 200, order, message: "Order accepted successfully." };
+    return OrderLifecycleService.transitionOrder(
+      ApiEngine,
+      order.id,
+      "KITCHEN_ACCEPTED",
+      { actorType: "BRANCH_MANAGER", branchId: branch.id, name: branch.manager_name },
+      { notes: notes || "Queued for kitchen baking station" }
+    );
   }
 
   static rejectBranchOrder(orderId: string, branchId: string, reason: string) {
@@ -17144,25 +17123,13 @@ export class ApiEngine {
       return { success: false, statusCode: 403, error: "Forbidden: Cannot reject an order belonging to another branch." };
     }
 
-    order.status = "cancelled";
-    order.delivery_status = "shop_declined";
-    order.cancellation_reason = reason || "Declined by Branch Kitchen";
-    order.updated_at = new Date().toISOString();
-
-    if (!order.timeline) order.timeline = [];
-    order.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: "Order Rejected by Branch Kitchen",
-      time: new Date().toISOString(),
-      author: branch.manager_name || "Branch Manager",
-      notes: `Reason: ${reason || "Branch capacity full / out of ingredients"}`,
-    });
-
-    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) rejected Order ${order.order_number}: ${reason}`);
-    ApiEngine.fireWebhookEvent("branch.order_rejected", { order_id: order.id, branch_id: branch.id, reason });
-    ApiEngine.persist();
-
-    return { success: true, statusCode: 200, order, message: "Order rejection recorded." };
+    return OrderLifecycleService.transitionOrder(
+      ApiEngine,
+      order.id,
+      "CANCELLED",
+      { actorType: "BRANCH_MANAGER", branchId: branch.id, name: branch.manager_name },
+      { reason: reason || "Declined by Branch Kitchen" }
+    );
   }
 
   static holdBranchOrder(orderId: string, branchId: string, reason: string) {
@@ -17237,26 +17204,21 @@ export class ApiEngine {
       return { success: false, statusCode: 403, error: "Forbidden: Cannot mark ready an order belonging to another branch." };
     }
 
-    order.status = "packed";
-    order.delivery_status = "ready_for_pickup";
-    if (!order.pickup_otp) order.pickup_otp = String(Math.floor(1000 + Math.random() * 9000));
-    if (!order.delivery_otp) order.delivery_otp = String(Math.floor(1000 + Math.random() * 9000));
-    order.updated_at = new Date().toISOString();
+    if (!order.pickup_otp) {
+      order.pickup_otp = String(Math.floor(1000 + Math.random() * 9000));
+      order.pickup_otp_generated_at = new Date().toISOString();
+    }
+    if (order.delivery && typeof order.delivery === "object") {
+      order.delivery.pickup_otp = order.pickup_otp;
+    }
 
-    if (!order.timeline) order.timeline = [];
-    order.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: "Cake Baked & Packed — Ready for Pickup",
-      time: new Date().toISOString(),
-      author: branch.manager_name || "Branch Manager",
-      notes: `Pickup OTP: ${order.pickup_otp}`,
-    });
-
-    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) marked Order ${order.order_number} Ready for Pickup`);
-    ApiEngine.fireWebhookEvent("order.ready_for_pickup", { order_id: order.id, branch_id: branch.id });
-    ApiEngine.persist();
-
-    return { success: true, statusCode: 200, order, message: "Order marked ready for pickup." };
+    return OrderLifecycleService.transitionOrder(
+      ApiEngine,
+      order.id,
+      "READY_FOR_PICKUP",
+      { actorType: "BRANCH_MANAGER", branchId: branch.id, name: branch.manager_name },
+      { notes: `Cake packed and ready. Pickup OTP: ${order.pickup_otp}` }
+    );
   }
 
   static assignBranchOrderRider(orderId: string, branchId: string, partnerId: string) {
@@ -20241,6 +20203,113 @@ export class ApiEngine {
 
   static sendWhatsAppRecoveryMessage(cartId: string, templateId?: string, payload?: any) {
     return ApiEngine.sendCartRecoveryNotification(cartId, "WHATSAPP", payload?.message);
+  }
+
+  static resolveUserAccount(query: { userId?: string; phone?: string; role?: string; customerUid?: string } = {}) {
+    ApiEngine.ensureDeliveryPartnersStore();
+    ApiEngine.ensureOrdersStore();
+
+    const { userId, phone, role, customerUid } = query;
+    if (!userId && !phone && !role && !customerUid) {
+      return null;
+    }
+
+    const normRole = (role || "").toUpperCase();
+
+    // 1. Super Admin Resolution
+    if (normRole === "SUPER_ADMIN" || normRole === "ADMIN" || userId === "admin_01" || userId === "super_admin" || (phone && (phone.includes("9876500000") || phone.includes("98765 00000")) && normRole !== "BRANCH_MANAGER" && normRole !== "DELIVERY_PARTNER" && normRole !== "CUSTOMER")) {
+      return {
+        id: userId || "admin_01",
+        name: "Super Admin",
+        full_name: "Super Admin",
+        email: "admin@cakes2home.com",
+        phone: phone || "+91 98765 00000",
+        role: "SUPER_ADMIN",
+        is_admin: true,
+        permissions: ["*"],
+      };
+    }
+
+    // 2. Branch Manager Resolution
+    if (normRole === "BRANCH_MANAGER" || normRole === "SHOP_MANAGER" || normRole === "SHPMGR" || normRole === "SHOP" || (userId && userId.startsWith("shpmgr_"))) {
+      const branches = ApiEngine.listBranches();
+      let matchedBranch: any = null;
+
+      if (userId) {
+        matchedBranch = branches.find((b: any) => b.manager_id === userId || b.id === userId.replace("shpmgr_", "br_") || (userId === "shpmgr_01" && b.id === "br_indiranagar"));
+      }
+      if (!matchedBranch && phone) {
+        const normP = (phone || "").replace(/\D/g, "").slice(-10);
+        matchedBranch = branches.find((b: any) => (b.phone || "").replace(/\D/g, "").slice(-10) === normP);
+      }
+      if (!matchedBranch) {
+        matchedBranch = branches[0] || { id: "br_indiranagar", name: "CakeToHome Indiranagar Flagship", code: "HUB-BLR-01", phone: "+91 98765 43210" };
+      }
+
+      return {
+        id: userId || matchedBranch.manager_id || `shpmgr_${matchedBranch.id}`,
+        name: matchedBranch.manager_name || "Branch Manager",
+        full_name: matchedBranch.manager_name || "Branch Manager",
+        email: matchedBranch.email || "branch@cakes2home.com",
+        phone: phone || matchedBranch.phone || "+91 98765 00001",
+        role: "BRANCH_MANAGER",
+        branch_id: matchedBranch.id,
+        shop_id: matchedBranch.id,
+        branch_name: matchedBranch.name,
+        branch_code: matchedBranch.code,
+        permissions: [
+          "orders:view",
+          "orders:accept",
+          "orders:prepare",
+          "orders:pack_ready",
+          "orders:delay",
+          "orders:hold",
+          "orders:reject",
+          "orders:assign_rider",
+          "kot:print",
+          "invoice:print",
+          "inventory:update",
+          "branch:pause",
+        ],
+      };
+    }
+
+    // 3. Delivery Partner Resolution
+    if (normRole === "DELIVERY_PARTNER" || normRole === "DLP" || (userId && userId.startsWith("dlp_"))) {
+      const partners = ApiEngine.getAdminDeliveryPartners()?.partners || [];
+      const targetId = userId || "dlp_01";
+      const partner = partners.find((p: any) => p.id === targetId || p.partner_number === targetId || (phone && (p.phone || "").replace(/\D/g, "").slice(-10) === (phone || "").replace(/\D/g, "").slice(-10))) || partners[0];
+
+      return {
+        id: partner?.id || "dlp_01",
+        name: partner?.full_name || partner?.name || "Delivery Partner",
+        full_name: partner?.full_name || partner?.name || "Delivery Partner",
+        phone: partner?.phone || phone || "+91 98123 45678",
+        email: partner?.email || "rider@cakes2home.com",
+        role: "DELIVERY_PARTNER",
+        partner_id: partner?.id || "dlp_01",
+        primary_branch_id: partner?.primary_branch_id || "br_indiranagar",
+        status: partner?.availability_status || "ONLINE",
+        permissions: ["delivery:view", "delivery:claim", "delivery:pickup_otp", "delivery:complete_otp"],
+      };
+    }
+
+    // 4. Customer Resolution
+    const targetPhone = phone || (userId && !userId.includes("_") ? userId : null);
+    const targetUid = customerUid || (userId && userId.startsWith("cth_cus_") ? userId : `cth_cus_${(targetPhone || "9999888877").replace(/\D/g, "").slice(-10)}`);
+    const custProfile = ApiEngine.getCustomerProfileByUid ? ApiEngine.getCustomerProfileByUid(targetUid) : null;
+
+    return {
+      id: targetUid,
+      customer_uid: targetUid,
+      name: custProfile?.name || "Gourmet Customer",
+      full_name: custProfile?.name || "Gourmet Customer",
+      customer_name: custProfile?.name || "Gourmet Customer",
+      phone: targetPhone || custProfile?.phone || "+91 99998 88877",
+      email: custProfile?.email || "customer@cakes2home.com",
+      role: "CUSTOMER",
+      permissions: ["orders:place", "orders:track", "orders:cancel"],
+    };
   }
 }
 

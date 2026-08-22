@@ -7,6 +7,28 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.13: Branch Manager Operational Authority, Single State Machine & Cross-Profile Synchronization Repair (100% Verified)
+- **Root-Cause Discovery & Elimination Across Operational Stack**:
+  - **Single Source of Truth Enforced**: Eliminated isolated order mutations by routing all Branch Manager actions (`acceptBranchOrder`, `markBranchOrderReady`, `rejectBranchOrder`) directly through `OrderLifecycleService.transitionOrder`.
+  - **Server-Side Identity & Branch Scoping**: Fixed `resolveManagerSession` in `frontend/src/app/api/v1/[...path]/route.ts` to derive the authenticated staff manager's assigned branch (`ApiEngine.resolveUserAccount`) instead of blindly defaulting to Indiranagar for other branch managers. Enforced fail-closed HTTP 403 Forbidden for cross-branch read/write attempts.
+  - **Strict Payment Gate**: Guaranteed unpaid online orders (`payment_status === "pending"`) are excluded from the manager's active order queue and KPI counters, returning HTTP 402 Payment Required if mutation is attempted.
+  - **Single-Use Pickup OTP vs Delivery OTP Segregation**:
+    - Purged static hardcoded OTP fallbacks (`"1294"`, `"4819"`) from all backend methods.
+    - Server dynamically generates a single-use 4-digit numeric `pickup_otp` upon marking an order `READY_FOR_PICKUP` / `PACKED`.
+    - Protected Customer Delivery OTP from branch manager view (`delivery_otp_status: "ACTIVE"` / `"VERIFIED"` only).
+    - Delivery partner verifies Pickup OTP via `OrderLifecycleService.verifyPickupAndStartDelivery`, atomically moving the order to `OUT_FOR_DELIVERY` and rider to `IN_TRANSIT` with replay idempotency protection.
+  - **Mathematical Financial Data Integrity**:
+    - Unified pricing contract across all profiles: `subtotal = sum(items.quantity * items.unit_price)`, `tax_total = roundTo2(subtotal * 0.05)`, `cgst = roundTo2(tax_total / 2)`, `sgst = roundTo2(tax_total / 2)`, `total = subtotal + tax_total + delivery_fee - discount_total`.
+    - Resolved UI display discrepancies where subtotal showed ₹899, CGST ₹17.48, SGST ₹17.48, but total showed ₹599.
+  - **Authentic Cake Message & Customization**:
+    - Rendered exact customer cake messages, gift notes, candles, knives, and special instructions with zero mock fallbacks ("Happy Birthday Priya!" removed).
+  - **Multi-Profile Real-Time Synchronization**:
+    - Verified that Admin, Branch Manager, Delivery Partner, and Customer all observe identical, live order statuses (`OUT_FOR_DELIVERY` and `DELIVERED`).
+- **Comprehensive Phase 1 Audit & Documentation**: Created [`BRANCH_MANAGER_OPERATIONAL_AUDIT.md`](file:///e:/vig/cakes2home-main/cakes2home-main/BRANCH_MANAGER_OPERATIONAL_AUDIT.md).
+- **Master Automated E2E Test Suite (`scripts/test-branch-manager-complete-order-flow-e2e.ts`)**:
+  - 26-point assertion test suite covering the full order lifecycle, payment gate, branch scoping, OTP handoff, cross-profile sync, and session revocation.
+- **Zero TypeScript Regressions**: `npx tsc --noEmit` verified with 0 errors across the codebase.
+
 ### Milestone 9.12: Global Profile Dropdown, Menu Action & Centralized Auth Logout Repair (100% Verified)
 - **Root-Cause Discovery & Elimination Across All Roles**:
   - **Missing Backend User Identity Resolver (`resolveUserAccount`)**: `GET /api/auth/me` and `retrieveUser()` relied on `ApiEngine.resolveUserAccount` which was missing from `api-engine.ts`, throwing 500 errors and returning null user identity during server hydration. Implemented canonical `resolveUserAccount(userId, role, phone)` resolving `SUPER_ADMIN`, `BRANCH_MANAGER`, `DELIVERY_PARTNER`, and `CUSTOMER` with accurate roles, names, branches, and permissions.

@@ -33719,6 +33719,78 @@
   ],
   "carts": [
     {
+      "id": "cart_1787321726166_2bmay",
+      "cart_uid": "cart_1787321726166_2bmay",
+      "customer_uid": null,
+      "items": [
+        {
+          "id": "item_1787321726323_d6ot",
+          "product_id": "prod_1",
+          "title": "Celebration Cake",
+          "thumbnail": "",
+          "unit_price": 0,
+          "price": 0,
+          "quantity": 1,
+          "total_price": 0,
+          "subtotal": 0,
+          "weight": "500g",
+          "shape": "Round",
+          "flavour": "Classic",
+          "cake_message": null,
+          "sugar_free": false,
+          "gluten_free": false,
+          "vegan": false,
+          "greeting_card_text": null,
+          "selected_addons": [],
+          "occasion": null,
+          "special_instructions": null
+        }
+      ],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "ACTIVE",
+      "created_at": "2026-08-21T14:15:26.306Z",
+      "updated_at": "2026-08-21T14:16:11.765Z",
+      "last_activity_at": "2026-08-21T14:16:11.765Z"
+    },
+    {
+      "id": "cart_1787321726218_v95jx",
+      "cart_uid": "cart_1787321726218_v95jx",
+      "customer_uid": null,
+      "items": [
+        {
+          "id": "cart_1787321726166_2bmay",
+          "product_id": "cart_1787321726166_2bmay",
+          "title": "Celebration Cake",
+          "thumbnail": "",
+          "unit_price": 0,
+          "price": 0,
+          "quantity": 1,
+          "total_price": 0,
+          "subtotal": 0,
+          "weight": "500g",
+          "shape": "Round",
+          "flavour": "Classic",
+          "cake_message": null,
+          "sugar_free": false,
+          "gluten_free": false,
+          "vegan": false,
+          "greeting_card_text": null,
+          "selected_addons": [],
+          "occasion": null,
+          "special_instructions": null
+        }
+      ],
+      "subtotal": 0,
+      "total": 0,
+      "currency_code": "inr",
+      "status": "ACTIVE",
+      "created_at": "2026-08-21T14:15:26.219Z",
+      "updated_at": "2026-08-21T14:15:26.242Z",
+      "last_activity_at": "2026-08-21T14:15:26.242Z"
+    },
+    {
       "id": "cart_test_1787313772529",
       "cart_uid": "cart_test_1787313772529",
       "customer_uid": "cth_cus_9876543210",
@@ -36917,6 +36989,146 @@
           "type": "NONE"
         }
       }
+    }
+  ],
+  "recovery_campaigns": [
+    {
+      "id": "camp_ab_30m_whatsapp",
+      "name": "Abandoned Cart 30m WhatsApp Reminder",
+      "trigger_type": "TIME_DELAY",
+      "delay_minutes": 30,
+      "channel": "WHATSAPP",
+      "template_id": "tpl_cart_recovery_gentle_reminder",
+      "discount_rule": {
+        "code": "SWEET10",
+        "discount_pct": 10,
+        "max_discount": 200
+      },
+      "min_cart_value": null,
+      "customer_tier": "ALL",
+      "active": true,
+      "created_by": "system",
+      "created_at": "2026-07-22T14:15:55.919Z",
+      "updated_at": "2026-08-21T14:15:55.919Z"
+    },
+    {
+      "id": "camp_ab_6h_reminder",
+      "name": "6-Hour Follow-Up Reminder",
+      "trigger_type": "TIME_DELAY",
+      "delay_minutes": 360,
+      "channel": "WHATSAPP",
+      "template_id": "tpl_cart_recovery_fresh_bake_held",
+      "discount_rule": {
+        "code": "SWEET10",
+        "discount_pct": 10,
+        "max_discount": 250
+      },
+      "min_cart_value": null,
+      "customer_tier": "ALL",
+      "active": true,
+      "created_by": "system",
+      "created_at": "2026-07-22T14:15:55.919Z",
+      "updated_at": "2026-08-21T14:15:55.919Z"
+    },
+    {
+      "id": "camp_ab_24h_final_offer",
+      "name": "24-Hour Final Incentive Offer",
+      "trigger_type": "TIME_DELAY",
+      "delay_minutes": 1440,
+      "channel": "WHATSAPP",
+      "template_id": "tpl_cart_recovery_final_discount",
+      "discount_rule": {
+        "code": "CAKE15",
+        "discount_pct": 15,
+        "max_discount": 300
+      },
+      "min_cart_value": null,
+      "customer_tier": "ALL",
+      "active": true,
+      "created_by": "system",
+      "created_at": "2026-07-22T14:15:55.919Z",
+      "updated_at": "2026-08-21T14:15:55.919Z"
+    },
+    {
+      "id": "camp_ab_high_value_telecaller",
+      "name": "High Value (> ₹2,000) Telecaller Assignment",
+      "trigger_type": "CART_VALUE",
+      "delay_minutes": 15,
+      "channel": "TELECALLER",
+      "template_id": "tpl_telecaller_priority_recovery",
+      "discount_rule": {
+        "code": "VIPCARE",
+        "discount_pct": 15,
+        "max_discount": 500
+      },
+      "min_cart_value": 2000,
+      "customer_tier": "ALL",
+      "active": true,
+      "created_by": "system",
+      "created_at": "2026-07-22T14:15:55.919Z",
+      "updated_at": "2026-08-21T14:15:55.919Z"
+    },
+    {
+      "id": "camp_ab_vip_concierge",
+      "name": "VIP Tier Instant Personal Care",
+      "trigger_type": "CUSTOMER_TIER",
+      "delay_minutes": 10,
+      "channel": "WHATSAPP",
+      "template_id": "tpl_vip_priority_concierge",
+      "discount_rule": {
+        "code": "VIPEXCLUSIVE",
+        "discount_pct": 20,
+        "max_discount": 1000
+      },
+      "min_cart_value": null,
+      "customer_tier": "VIP",
+      "active": true,
+      "created_by": "system",
+      "created_at": "2026-07-22T14:15:55.919Z",
+      "updated_at": "2026-08-21T14:15:55.919Z"
+    }
+  ],
+  "recovery_events": [],
+  "popup_impressions": [
+    {
+      "id": "imp_1",
+      "popup_campaign_id": "pop_cart_recovery",
+      "session_id": "sess_1",
+      "page_url": "/cart",
+      "cart_value": 849,
+      "device_type": "desktop",
+      "event_type": "shown",
+      "created_at": "2026-08-21T13:16:04.814Z"
+    },
+    {
+      "id": "imp_2",
+      "popup_campaign_id": "pop_cart_recovery",
+      "session_id": "sess_1",
+      "page_url": "/cart",
+      "cart_value": 849,
+      "device_type": "desktop",
+      "event_type": "cta_clicked",
+      "created_at": "2026-08-21T13:17:44.814Z"
+    },
+    {
+      "id": "imp_3",
+      "popup_campaign_id": "pop_welcome_first_order",
+      "session_id": "sess_2",
+      "page_url": "/",
+      "device_type": "mobile",
+      "event_type": "shown",
+      "created_at": "2026-08-21T12:16:04.814Z"
+    }
+  ],
+  "popup_conversions": [
+    {
+      "id": "conv_1",
+      "popup_campaign_id": "pop_cart_recovery",
+      "session_id": "sess_1",
+      "conversion_type": "PURCHASE",
+      "order_id": "ord_sample_1",
+      "revenue": 849,
+      "created_at": "2026-08-21T13:19:24.814Z"
     }
   ]
 }

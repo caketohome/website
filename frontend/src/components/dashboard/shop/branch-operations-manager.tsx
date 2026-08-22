@@ -580,6 +580,18 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                           Rider: <b className="text-zinc-900 dark:text-white">{ord.driver_name || "Unassigned"}</b>
                         </p>
                       </div>
+
+                      {/* Quick Pickup OTP Display */}
+                      {ord.pickup_otp && (
+                        <div className="mt-2.5 p-2 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800/40 flex items-center justify-between text-xs">
+                          <span className="font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                            🔑 Pickup OTP:
+                          </span>
+                          <span className="font-mono font-black text-xs px-2.5 py-0.5 bg-amber-500 text-white rounded-lg shadow-sm tracking-wider">
+                            {ord.pickup_otp}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Action Buttons */}

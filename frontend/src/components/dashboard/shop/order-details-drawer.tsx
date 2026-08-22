@@ -174,9 +174,17 @@ export default function OrderDetailsDrawer({
               <div className="p-3 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                 <p className="text-xs text-zinc-500">Custom Inscription on Cake:</p>
                 <p className="font-bold text-rose-600 dark:text-rose-400 italic text-base mt-0.5">
-                  &ldquo;{order.custom_message || order.customization?.cake_message || "Happy Celebration!"}&rdquo;
+                  &ldquo;{order.customization?.cake_message || order.custom_message || "None (Standard Cake)"}&rdquo;
                 </p>
               </div>
+              {order.customization?.gift_message && (
+                <div className="p-3 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                  <p className="text-xs text-zinc-500">Gift Card Message:</p>
+                  <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 italic mt-0.5">
+                    &ldquo;{order.customization.gift_message}&rdquo;
+                  </p>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="p-2.5 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
                   <span className="text-zinc-500">Candle Included:</span>
@@ -205,11 +213,11 @@ export default function OrderDetailsDrawer({
                   <div>
                     <h4 className="font-semibold text-sm text-zinc-900 dark:text-white">{item.title || item.name}</h4>
                     <p className="text-xs text-zinc-500">
-                      Qty: {item.quantity || 1} • Weight: {item.weight || "1.0 kg"} • Flavor: {item.flavor || "Dutch Truffle"}
+                      Qty: {item.quantity || 1} • Weight: {item.weight || "1.0 kg"} • Flavor: {item.flavor || "Standard"}
                     </p>
                   </div>
                   <span className="font-bold text-sm text-zinc-900 dark:text-white">
-                    ₹{item.total || item.unit_price || 599}
+                    ₹{item.total || (Number(item.quantity || 1) * Number(item.unit_price || 0)) || order.total || 0}
                   </span>
                 </div>
               ))}
@@ -219,42 +227,67 @@ export default function OrderDetailsDrawer({
           {/* Pricing & GST Breakdown */}
           <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 text-sm space-y-2">
             <div className="flex justify-between text-zinc-600 dark:text-zinc-400 text-xs">
-              <span>Subtotal:</span>
-              <span>₹{order.pricing?.subtotal || order.total || 599}</span>
+              <span>Item Subtotal:</span>
+              <span>₹{order.pricing?.subtotal || order.subtotal || order.total || 0}</span>
             </div>
             <div className="flex justify-between text-zinc-600 dark:text-zinc-400 text-xs">
               <span>CGST (2.5%):</span>
-              <span>₹{order.pricing?.cgst || "14.95"}</span>
+              <span>₹{order.pricing?.cgst || "0.00"}</span>
             </div>
             <div className="flex justify-between text-zinc-600 dark:text-zinc-400 text-xs">
               <span>SGST (2.5%):</span>
-              <span>₹{order.pricing?.sgst || "14.95"}</span>
+              <span>₹{order.pricing?.sgst || "0.00"}</span>
             </div>
+            {(order.pricing?.delivery_fee || order.delivery_fee) ? (
+              <div className="flex justify-between text-zinc-600 dark:text-zinc-400 text-xs">
+                <span>Delivery Fee:</span>
+                <span>₹{order.pricing?.delivery_fee || order.delivery_fee}</span>
+              </div>
+            ) : null}
+            {(order.pricing?.discount_total || order.discount_total) ? (
+              <div className="flex justify-between text-emerald-600 dark:text-emerald-400 text-xs">
+                <span>Discount:</span>
+                <span>-₹{order.pricing?.discount_total || order.discount_total}</span>
+              </div>
+            ) : null}
             <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800 flex justify-between font-bold text-zinc-900 dark:text-white text-base">
               <span>Total Amount:</span>
-              <span className="text-rose-600 dark:text-rose-400">₹{order.total || 599}</span>
+              <span className="text-rose-600 dark:text-rose-400">₹{order.pricing?.total || order.total || 0}</span>
             </div>
           </div>
 
           {/* Kitchen Pickup OTP Card for Store Dispatch */}
-          {(order.status === "ready_for_pickup" || order.status === "packed" || order.status === "ready" || order.status === "preparing" || order.status === "kitchen_accepted" || order.delivery_status === "ready_for_pickup" || order.delivery_status === "pickup_claimed") && !order.pickup_verified_at && order.status !== "out_for_delivery" && order.delivery_status !== "in_transit" && (
+          {order.pickup_otp ? (
             <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 rounded-xl border border-amber-300 dark:border-amber-800/60 shadow-sm flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
                   🔑 Kitchen Pickup OTP (Store Dispatch Handover)
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-black uppercase bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-100">
-                  Staff Confidential
+                <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-black uppercase ${
+                  order.pickup_verified_at || order.status === "out_for_delivery" || order.delivery_status === "in_transit"
+                    ? "bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-100"
+                    : "bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-100"
+                }`}>
+                  {order.pickup_verified_at || order.status === "out_for_delivery" || order.delivery_status === "in_transit"
+                    ? "✓ Verified by Rider"
+                    : "Staff Confidential"}
                 </span>
               </div>
               <div className="flex items-center justify-between mt-1">
                 <p className="text-xs text-zinc-600 dark:text-zinc-300">
-                  Share this 4-digit code with the delivery rider upon physical package handover:
+                  {order.pickup_verified_at || order.status === "out_for_delivery" || order.delivery_status === "in_transit"
+                    ? "Handover complete. Order is currently in transit to customer."
+                    : "Share this 4-digit code with the delivery rider upon physical package handover:"}
                 </p>
                 <span className="px-3 py-1 bg-amber-500 text-white font-mono font-black text-lg tracking-widest rounded-lg shadow-sm">
-                  {order.pickup_otp || order.delivery?.pickup_otp || "1294"}
+                  {order.pickup_otp}
                 </span>
               </div>
+            </div>
+          ) : (
+            <div className="p-3 bg-zinc-50 dark:bg-zinc-950/50 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 flex items-center justify-between">
+              <span>🔑 Kitchen Pickup OTP:</span>
+              <span className="font-semibold text-zinc-600 dark:text-zinc-400">Generated upon &ldquo;Mark Ready for Pickup&rdquo;</span>
             </div>
           )}
 
