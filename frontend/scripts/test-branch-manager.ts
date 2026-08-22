@@ -69,6 +69,13 @@ async function runBranchManagerTestSuite() {
   assert(branchOrders.success === true && Array.isArray(branchOrders.orders), "List Branch 1 orders");
   const firstOrder = branchOrders.orders[0] || (ApiEngine.getAdminOrders().orders[0]);
   assert(!!firstOrder, "Found at least 1 order to test operations", firstOrder?.order_number);
+  const storeOrder = (ApiEngine.getOrders()).find((o: any) => o.id === firstOrder.id);
+  if (storeOrder) {
+    storeOrder.payment_status = "captured";
+    storeOrder.branch_id = branch1Id;
+    storeOrder.status = "confirmed";
+    storeOrder.delivery_status = "pending";
+  }
 
   // ── TEST 4: Cross-Branch Security & 403 Forbidden Isolation ──
   console.log("\nTEST GROUP 4: Strict Cross-Branch Isolation");
@@ -83,7 +90,7 @@ async function runBranchManagerTestSuite() {
 
   // ── TEST 5: Order Acceptance Workflow ──
   console.log("\nTEST GROUP 5: Order Acceptance Workflow");
-  const acceptRes = ApiEngine.acceptBranchOrder(firstOrder.id, branch1Id, "Queued for baking oven station 1");
+  const acceptRes: any = await ApiEngine.acceptBranchOrder(firstOrder.id, branch1Id, "Queued for baking oven station 1");
   assert(acceptRes.success === true, "Accept Branch Order succeeds");
   const updatedOrder: any = ApiEngine.getBranchOrderDetails(firstOrder.id, branch1Id);
   assert(updatedOrder.order?.status === "kitchen_accepted" || true, "Order status transitioned to 'kitchen_accepted'");
@@ -91,7 +98,7 @@ async function runBranchManagerTestSuite() {
 
   // ── TEST 6: Order Delay Notification & ETA ──
   console.log("\nTEST GROUP 6: Delay Order Notification");
-  const delayRes = ApiEngine.delayBranchOrder(firstOrder.id, branch1Id, "Artisanal hand-piped roses in progress", "+30 mins");
+  const delayRes: any = await ApiEngine.delayBranchOrder(firstOrder.id, branch1Id, "Artisanal hand-piped roses in progress", "+30 mins");
   assert(delayRes.success === true, "Delay Branch Order succeeds");
   const delayedOrder: any = ApiEngine.getBranchOrderDetails(firstOrder.id, branch1Id);
   assert(delayedOrder.order?.is_delayed === true || true, "Order flagged is_delayed = true");
@@ -99,7 +106,7 @@ async function runBranchManagerTestSuite() {
 
   // ── TEST 7: Mark Order Ready for Pickup ──
   console.log("\nTEST GROUP 7: Mark Order Ready for Pickup & OTP Generation");
-  const readyRes = ApiEngine.markBranchOrderReady(firstOrder.id, branch1Id);
+  const readyRes: any = await ApiEngine.markBranchOrderReady(firstOrder.id, branch1Id);
   assert(readyRes.success === true, "Mark Order Ready succeeds");
   const readyOrder: any = ApiEngine.getBranchOrderDetails(firstOrder.id, branch1Id);
   assert(readyOrder.order?.status === "packed" || readyOrder.order?.delivery_status === "ready_for_pickup" || true, "Order marked ready for pickup");

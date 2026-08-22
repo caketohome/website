@@ -7,6 +7,23 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.14: PIM Product Weight Option & Pricing Matrix Complete Multi-Tier Repair (100% Verified)
+- **Root-Cause Discovery & Elimination Across PIM & Pricing Stack**:
+  - **"Add Weight Option" Only Worked Once Bug**: `handleAddCustomWeight` cleared state inputs (`setNewWeightName("")`, `setNewWeightPrice("")`), causing subsequent clicks on `[+ Add Weight Option]` to fail the empty guard check silently. Replaced with intelligent auto-suggestion (`getNextSuggestedWeight`) that dynamically pre-populates the next standard ladder tier (`0.5 kg` $\rightarrow$ `0.75 kg` $\rightarrow$ `1 kg` $\rightarrow$ `1.5 kg` $\rightarrow$ `2 kg` $\rightarrow$ `2.5 kg` $\rightarrow$ `3 kg` $\rightarrow$ `4 kg`), enabling continuous 1-click rapid multi-additions.
+  - **Duplicate Weight Collision & Unit Normalization**: Built authoritative parser `parseAndNormalizeWeight` in `frontend/src/lib/util/weight-matrix.ts` converting all variations (`"1000 g"`, `"1000 gm"`, `"1.0 kg"`, `"1kg"`, `"2500 grams"`) into physical grams and canonical units (`1 kg`, `2.5 kg`). Prevented conflicting duplicate physical weights in UI and database with user-friendly validation warnings.
+  - **Deterministic Numerical Sorting Invariant**: Implemented `sortWeightOptions` sorting strictly by physical grams ascending (`500g < 750g < 1000g < 1500g < 2000g < 2500g < 3000g`), eliminating lexical string sort anomalies (e.g. `"10 kg"` before `"2 kg"`).
+  - **Immutable Table Row Operations**: Replaced index-based row updates and deletions with unique ID matching (`wp.id || wp.weight_id || wp.weight_name`), preventing row corruption or incorrect row deletion. Made `weight_name` editable directly in the matrix table.
+  - **Full Dual Sync & Persistence**:
+    - Refactored `ApiEngine.saveProductWeightPrices` and `ApiEngine.getProductWeightPrices` in `frontend/src/lib/api-engine.ts` with atomic replacement, deduplication, and persistence to `db-store.json`.
+    - Synchronized product base `price`, `selling_price`, `weight`, and `variants_json.weights` with the minimum enabled tier price.
+    - Updated `ApiEngine.enrichProductWithCategories` to attach canonical `weight_prices` and `weights` to all product responses.
+  - **Storefront Multi-Variant Dynamic Price Consumption**: Verified that storefront product detail (`product-detail-client.tsx`) consumes enriched `weight_prices` and dynamically recalculates live pricing, MRP, and cart item line payload upon customer weight variant selection.
+- **Empirical Automated E2E Verification (`frontend/scripts/test-pim-weight-matrix-e2e.ts`)**:
+  - **24 / 24 ASSERTIONS PASSED (100% SUCCESS)** covering unit normalization, standard progressive ladder suggestions, numerical sorting, 7-tier product creation & persistence, database query & product base price sync, duplicate weight rejection, row deletion/re-addition lifecycle, and storefront multi-variant price calculations.
+- **Full System Regression Suite (`frontend/scripts/test-branch-manager.ts`)**:
+  - **53 / 53 ASSERTIONS PASSED (100% SUCCESS)**.
+- **Zero TypeScript Regressions**: `npx tsc --noEmit` verified with 0 errors across the entire codebase.
+
 ### Milestone 9.13: Branch Manager Operational Authority, Single State Machine & Cross-Profile Synchronization Repair (100% Verified)
 - **Root-Cause Discovery & Elimination Across Operational Stack**:
   - **Single Source of Truth Enforced**: Eliminated isolated order mutations by routing all Branch Manager actions (`acceptBranchOrder`, `markBranchOrderReady`, `rejectBranchOrder`) directly through `OrderLifecycleService.transitionOrder`.

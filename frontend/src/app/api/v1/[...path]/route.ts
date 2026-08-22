@@ -1892,33 +1892,33 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
       if (path.startsWith("manager/orders/") && path.endsWith("/accept")) {
         const orderId = path.replace("manager/orders/", "").replace("/accept", "");
-        const result = ApiEngine.acceptBranchOrder(orderId, branchId, body.notes);
+        const result: any = await ApiEngine.acceptBranchOrder(orderId, branchId, body.notes);
         return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/reject")) {
         const orderId = path.replace("manager/orders/", "").replace("/reject", "");
-        const result = ApiEngine.rejectBranchOrder(orderId, branchId, body.reason);
+        const result: any = await ApiEngine.rejectBranchOrder(orderId, branchId, body.reason);
         return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/hold")) {
         const orderId = path.replace("manager/orders/", "").replace("/hold", "");
-        const result = ApiEngine.holdBranchOrder(orderId, branchId, body.reason);
+        const result: any = await ApiEngine.holdBranchOrder(orderId, branchId, body.reason);
         return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/delay")) {
         const orderId = path.replace("manager/orders/", "").replace("/delay", "");
-        const result = ApiEngine.delayBranchOrder(orderId, branchId, body.reason, body.new_eta || body.newEta);
+        const result: any = await ApiEngine.delayBranchOrder(orderId, branchId, body.reason, body.new_eta || body.newEta);
         return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/ready")) {
         const orderId = path.replace("manager/orders/", "").replace("/ready", "");
-        const result = ApiEngine.markBranchOrderReady(orderId, branchId);
+        const result: any = await ApiEngine.markBranchOrderReady(orderId, branchId);
         return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && (path.endsWith("/assign-rider") || path.endsWith("/reassign-rider"))) {
         const orderId = path.replace("manager/orders/", "").replace("/assign-rider", "").replace("/reassign-rider", "");
         const riderId = body.partner_id || body.delivery_partner_id || body.riderId || body.partnerId;
-        const result = ApiEngine.assignBranchOrderRider(orderId, branchId, riderId);
+        const result: any = await ApiEngine.assignBranchOrderRider(orderId, branchId, riderId);
         return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/kot/reprint")) {

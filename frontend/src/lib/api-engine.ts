@@ -23,6 +23,7 @@ import { WebhookEngine } from "./webhook-engine";
 import { TelemarketingEngine } from "./telemarketing-engine";
 import { StaffAccessControl } from "./staff-access-control";
 import { OrderLifecycleService, OrderLifecycleState, DeliveryLifecycleState, ActorContext } from "./order-lifecycle-service";
+import { parseAndNormalizeWeight, sortWeightOptions, createDefaultWeightMatrix, ProductWeightOption } from "./util/weight-matrix";
 import {
   normalizePhone,
   formatDisplayPhone,
@@ -4289,6 +4290,10 @@ export class ApiEngine {
     }
 
     const primaryCat = productCats[0] || { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes" };
+    const prodId = p.id || p.product_id;
+    const weightPrices = ApiEngine.getProductWeightPrices(prodId);
+    const enabledWeights = weightPrices.filter((wp: any) => wp.is_enabled);
+
     return {
       ...p,
       thumbnail: p.thumbnail === "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800"
@@ -4305,7 +4310,9 @@ export class ApiEngine {
         description: c.description || "",
       })),
       flavour: p.flavour || (p.title?.toLowerCase().includes("red velvet") ? "Red Velvet" : (p.title?.toLowerCase().includes("mango") ? "Mango" : (p.title?.toLowerCase().includes("black forest") ? "Black Forest" : (p.title?.toLowerCase().includes("butterscotch") ? "Butterscotch" : "Chocolate")))),
-      weight: p.weight || "1 kg",
+      weight: p.weight || (enabledWeights[0]?.weight_name || "1 kg"),
+      weight_prices: weightPrices,
+      weights: enabledWeights.map((wp: any) => wp.weight_name),
     };
   }
 
@@ -4664,35 +4671,93 @@ export class ApiEngine {
 
   static saveProductWeightPrices(productId: string, weightPrices: any[]) {
     if (!memoryStore.product_weight_prices) memoryStore.product_weight_prices = [];
-    memoryStore.product_weight_prices = memoryStore.product_weight_prices.filter((item: any) => item.product_id !== productId);
-    if (Array.isArray(weightPrices) && weightPrices.length > 0) {
-      const records = weightPrices.map((wp: any) => ({
+
+    const incoming = Array.isArray(weightPrices) ? weightPrices : [];
+    const seenGrams = new Set<number>();
+    const validRecords: any[] = [];
+
+    for (let i = 0; i < incoming.length; i++) {
+      const wp = incoming[i];
+      if (!wp) continue;
+      const parsed = parseAndNormalizeWeight(wp.weight_name || wp.name || `${wp.weight_value || 1} ${wp.weight_unit || "kg"}`);
+      
+      // Deduplicate by normalized physical grams
+      if (seenGrams.has(parsed.normalized_grams)) {
+        continue;
+      }
+      seenGrams.add(parsed.normalized_grams);
+
+      const sellPrice = Math.max(1, Number(wp.selling_price || wp.price) || 599);
+      const mrpVal = Math.max(sellPrice, Number(wp.mrp) || Math.round(sellPrice * 1.25));
+      const costVal = Math.max(1, Number(wp.cost_price) || Math.round(sellPrice * 0.45));
+      const prepTime = Math.max(15, Number(wp.prep_time_minutes) || (parsed.normalized_grams > 1000 ? 120 : 60));
+      const isEnabled = wp.is_enabled !== undefined ? Boolean(wp.is_enabled) : (wp.enabled !== undefined ? Boolean(wp.enabled) : true);
+
+      validRecords.push({
+        id: wp.id && !String(wp.id).startsWith("w_custom_") ? String(wp.id) : `wp_${productId}_${parsed.normalized_grams}`,
+        weight_id: wp.weight_id || wp.id || `wp_${productId}_${parsed.normalized_grams}`,
         product_id: productId,
-        weight_name: wp.weight_name || "1.0 kg",
-        selling_price: Math.max(1, Number(wp.selling_price) || 599),
-        mrp: Math.max(1, Number(wp.mrp) || 799),
-        cost_price: Math.max(1, Number(wp.cost_price) || 350),
-        prep_time_minutes: Number(wp.prep_time_minutes) || 60,
-        is_enabled: wp.is_enabled !== undefined ? Boolean(wp.is_enabled) : true,
-      }));
-      memoryStore.product_weight_prices.push(...records);
+        weight_name: parsed.weight_name,
+        weight_value: parsed.weight_value,
+        weight_unit: parsed.weight_unit,
+        normalized_grams: parsed.normalized_grams,
+        selling_price: sellPrice,
+        mrp: mrpVal,
+        cost_price: costVal,
+        prep_time_minutes: prepTime,
+        is_enabled: isEnabled,
+        sort_order: i + 1,
+        updated_at: new Date().toISOString(),
+      });
+    }
+
+    // Deterministic sorting by physical weight (ascending)
+    const sortedRecords = sortWeightOptions(validRecords);
+    sortedRecords.forEach((r, idx) => {
+      r.sort_order = idx + 1;
+    });
+
+    // Atomic replace in memory store
+    memoryStore.product_weight_prices = memoryStore.product_weight_prices.filter((item: any) => item.product_id !== productId);
+    if (sortedRecords.length > 0) {
+      memoryStore.product_weight_prices.push(...sortedRecords);
 
       // Synchronize product price with lowest enabled selling price
-      const enabledPrices = records.filter(r => r.is_enabled).map(r => r.selling_price);
+      const enabledPrices = sortedRecords.filter((r) => r.is_enabled).map((r) => r.selling_price);
       if (enabledPrices.length > 0) {
         const minPrice = Math.min(...enabledPrices);
-        const prod = memoryStore.products.find(p => p.id === productId || p.product_id === productId);
-        if (prod) prod.price = minPrice;
+        const prod = memoryStore.products.find((p) => p.id === productId || p.product_id === productId) as any;
+        if (prod) {
+          prod.price = minPrice;
+          prod.selling_price = minPrice;
+          if (!prod.variants_json) prod.variants_json = {};
+          prod.variants_json.weights = sortedRecords.filter((r) => r.is_enabled).map((r) => r.weight_name);
+          prod.weight = sortedRecords[0].weight_name;
+        }
       }
     }
-    ApiEngine.addAuditLog(`Saved Weight Prices for Product (${productId})`);
+
+    ApiEngine.addAuditLog(`Saved ${sortedRecords.length} Weight Prices for Product (${productId})`);
     ApiEngine.persist();
-    return memoryStore.product_weight_prices.filter((item: any) => item.product_id === productId);
+    return sortedRecords;
   }
 
   static getProductWeightPrices(productId: string) {
-    if (!memoryStore.product_weight_prices) return [];
-    return memoryStore.product_weight_prices.filter((item: any) => item.product_id === productId);
+    if (!memoryStore.product_weight_prices) memoryStore.product_weight_prices = [];
+    let records = memoryStore.product_weight_prices.filter((item: any) => item.product_id === productId);
+
+    if (records.length === 0) {
+      const prod = memoryStore.products?.find((p) => p.id === productId || p.product_id === productId);
+      if (prod) {
+        const defaultMatrix = createDefaultWeightMatrix(productId, prod.price || 649);
+        memoryStore.product_weight_prices.push(...defaultMatrix);
+        ApiEngine.persist();
+        return defaultMatrix;
+      }
+      return [];
+    }
+
+    return sortWeightOptions(records);
   }
 
   static deleteAdminProduct(id: string) {
@@ -20203,113 +20268,6 @@ export class ApiEngine {
 
   static sendWhatsAppRecoveryMessage(cartId: string, templateId?: string, payload?: any) {
     return ApiEngine.sendCartRecoveryNotification(cartId, "WHATSAPP", payload?.message);
-  }
-
-  static resolveUserAccount(query: { userId?: string; phone?: string; role?: string; customerUid?: string } = {}) {
-    ApiEngine.ensureDeliveryPartnersStore();
-    ApiEngine.ensureOrdersStore();
-
-    const { userId, phone, role, customerUid } = query;
-    if (!userId && !phone && !role && !customerUid) {
-      return null;
-    }
-
-    const normRole = (role || "").toUpperCase();
-
-    // 1. Super Admin Resolution
-    if (normRole === "SUPER_ADMIN" || normRole === "ADMIN" || userId === "admin_01" || userId === "super_admin" || (phone && (phone.includes("9876500000") || phone.includes("98765 00000")) && normRole !== "BRANCH_MANAGER" && normRole !== "DELIVERY_PARTNER" && normRole !== "CUSTOMER")) {
-      return {
-        id: userId || "admin_01",
-        name: "Super Admin",
-        full_name: "Super Admin",
-        email: "admin@cakes2home.com",
-        phone: phone || "+91 98765 00000",
-        role: "SUPER_ADMIN",
-        is_admin: true,
-        permissions: ["*"],
-      };
-    }
-
-    // 2. Branch Manager Resolution
-    if (normRole === "BRANCH_MANAGER" || normRole === "SHOP_MANAGER" || normRole === "SHPMGR" || normRole === "SHOP" || (userId && userId.startsWith("shpmgr_"))) {
-      const branches = ApiEngine.listBranches();
-      let matchedBranch: any = null;
-
-      if (userId) {
-        matchedBranch = branches.find((b: any) => b.manager_id === userId || b.id === userId.replace("shpmgr_", "br_") || (userId === "shpmgr_01" && b.id === "br_indiranagar"));
-      }
-      if (!matchedBranch && phone) {
-        const normP = (phone || "").replace(/\D/g, "").slice(-10);
-        matchedBranch = branches.find((b: any) => (b.phone || "").replace(/\D/g, "").slice(-10) === normP);
-      }
-      if (!matchedBranch) {
-        matchedBranch = branches[0] || { id: "br_indiranagar", name: "CakeToHome Indiranagar Flagship", code: "HUB-BLR-01", phone: "+91 98765 43210" };
-      }
-
-      return {
-        id: userId || matchedBranch.manager_id || `shpmgr_${matchedBranch.id}`,
-        name: matchedBranch.manager_name || "Branch Manager",
-        full_name: matchedBranch.manager_name || "Branch Manager",
-        email: matchedBranch.email || "branch@cakes2home.com",
-        phone: phone || matchedBranch.phone || "+91 98765 00001",
-        role: "BRANCH_MANAGER",
-        branch_id: matchedBranch.id,
-        shop_id: matchedBranch.id,
-        branch_name: matchedBranch.name,
-        branch_code: matchedBranch.code,
-        permissions: [
-          "orders:view",
-          "orders:accept",
-          "orders:prepare",
-          "orders:pack_ready",
-          "orders:delay",
-          "orders:hold",
-          "orders:reject",
-          "orders:assign_rider",
-          "kot:print",
-          "invoice:print",
-          "inventory:update",
-          "branch:pause",
-        ],
-      };
-    }
-
-    // 3. Delivery Partner Resolution
-    if (normRole === "DELIVERY_PARTNER" || normRole === "DLP" || (userId && userId.startsWith("dlp_"))) {
-      const partners = ApiEngine.getAdminDeliveryPartners()?.partners || [];
-      const targetId = userId || "dlp_01";
-      const partner = partners.find((p: any) => p.id === targetId || p.partner_number === targetId || (phone && (p.phone || "").replace(/\D/g, "").slice(-10) === (phone || "").replace(/\D/g, "").slice(-10))) || partners[0];
-
-      return {
-        id: partner?.id || "dlp_01",
-        name: partner?.full_name || partner?.name || "Delivery Partner",
-        full_name: partner?.full_name || partner?.name || "Delivery Partner",
-        phone: partner?.phone || phone || "+91 98123 45678",
-        email: partner?.email || "rider@cakes2home.com",
-        role: "DELIVERY_PARTNER",
-        partner_id: partner?.id || "dlp_01",
-        primary_branch_id: partner?.primary_branch_id || "br_indiranagar",
-        status: partner?.availability_status || "ONLINE",
-        permissions: ["delivery:view", "delivery:claim", "delivery:pickup_otp", "delivery:complete_otp"],
-      };
-    }
-
-    // 4. Customer Resolution
-    const targetPhone = phone || (userId && !userId.includes("_") ? userId : null);
-    const targetUid = customerUid || (userId && userId.startsWith("cth_cus_") ? userId : `cth_cus_${(targetPhone || "9999888877").replace(/\D/g, "").slice(-10)}`);
-    const custProfile = ApiEngine.getCustomerProfileByUid ? ApiEngine.getCustomerProfileByUid(targetUid) : null;
-
-    return {
-      id: targetUid,
-      customer_uid: targetUid,
-      name: custProfile?.name || "Gourmet Customer",
-      full_name: custProfile?.name || "Gourmet Customer",
-      customer_name: custProfile?.name || "Gourmet Customer",
-      phone: targetPhone || custProfile?.phone || "+91 99998 88877",
-      email: custProfile?.email || "customer@cakes2home.com",
-      role: "CUSTOMER",
-      permissions: ["orders:place", "orders:track", "orders:cancel"],
-    };
   }
 }
 
