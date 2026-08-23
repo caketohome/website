@@ -25,7 +25,7 @@ export default async function ProductsPage({
   const min_price = typeof params.min_price === "string" ? Number(params.min_price) : undefined;
   const max_price = typeof params.max_price === "string" ? Number(params.max_price) : undefined;
   const sort = typeof params.sort === "string" ? (params.sort as any) : undefined;
-  const q = typeof params.q === "string" ? params.q : undefined;
+  const q = typeof params.search === "string" ? params.search : typeof params.q === "string" ? params.q : undefined;
 
   const initialFilters = {
     category,

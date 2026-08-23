@@ -10,6 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ProductReviewsSection } from "./product-reviews-section";
+import { ProductFulfillmentBadge } from "./product-fulfillment-badge";
 import { apiClient } from "@frontend/lib/api-client";
 
 // Custom SVG Icons
@@ -487,6 +488,9 @@ export default function ProductDetailClient({
                                 </Link>
                             ))}
                         </div>
+
+                        {/* Real-time Order Cutoff & Fulfillment Eligibility Badge */}
+                        <ProductFulfillmentBadge productId={prodId} branchId={shopId} showDetails={true} className="mt-3" />
                     </div>
 
                     <Text className="text-gray-600 text-sm leading-relaxed">{product.description}</Text>

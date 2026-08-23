@@ -5,8 +5,7 @@ import { NOTIFICATION_MODULE } from "../../../../modules/notification";
  * POST /admin/notifications/send
  * Send a raw notification (admin test / campaign).
  */
-export async function POST(req: MedusaRequest, res: MedusaResponse) {
-    const notificationModule = req.scope.resolve(NOTIFICATION_MODULE);
+    const notificationModule = req.scope.resolve<any>(NOTIFICATION_MODULE);
 
     const body = req.body as {
         channel: "sms" | "whatsapp" | "email" | "push";

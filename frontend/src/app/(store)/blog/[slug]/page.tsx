@@ -2,8 +2,9 @@ import { getCmsPage } from "@frontend/lib/data/cms";
 import { trackBlogRead } from "@frontend/lib/data/analytics";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@frontend/components/store/seo/json-ld";
 import { notFound } from "next/navigation";
-import { Container, Text } from "@medusajs/ui";
 import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
     params,
@@ -57,7 +58,7 @@ export default async function BlogPostPage({
                     { name: post.title, url: postUrl },
                 ]}
             />
-            <Container className="p-0 overflow-hidden">
+            <div className="p-0 overflow-hidden rounded-2xl">
                 {post.featured_image && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -66,12 +67,12 @@ export default async function BlogPostPage({
                         className="w-full h-64 object-cover"
                     />
                 )}
-            </Container>
+            </div>
             <h1 className="text-3xl font-semibold">{post.title}</h1>
-            <Text className="text-ui-fg-subtle text-sm">
+            <p className="text-slate-500 text-sm">
                 By {post.author ?? "CakeToHome"}
                 {post.reading_time ? ` · ${post.reading_time} min read` : ""}
-            </Text>
+            </p>
             {post.excerpt && (
                 <p className="text-ui-fg-subtle text-lg">{post.excerpt}</p>
             )}

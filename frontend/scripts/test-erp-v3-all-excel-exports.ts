@@ -58,7 +58,7 @@ async function runExcelExportAcceptanceAudit() {
   const results: ExportValidationResult[] = [];
 
   // Helper to inspect workbook from captured buffer
-  async function inspectWorkbook(generateFn: () => Promise<void>, reportName: string): Promise<ExportValidationResult> {
+  async function inspectWorkbook(generateFn: () => Promise<any>, reportName: string): Promise<ExportValidationResult> {
     const originalTrigger = ExcelExportService.triggerBrowserDownload;
     let capturedBuffer: ArrayBuffer | null = null;
     let capturedFilename = "";

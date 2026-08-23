@@ -7,6 +7,8 @@ import {
   Truck, Building2, CheckCircle2, Sparkles, Phone, Star
 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 interface CityPageProps {
   params: Promise<{ slug: string }>;
 }

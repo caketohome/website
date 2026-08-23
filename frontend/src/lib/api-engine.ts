@@ -3343,7 +3343,7 @@ function deduplicateStoreProducts(rawProducts: any[]): ProductItem[] {
         category: p.category || existing.category || "Chocolate Cakes",
         category_slug: p.category_slug || existing.category_slug || "chocolate-cakes",
         primary_category_id: p.primary_category_id || existing.primary_category_id || "cat_chocolate",
-        category_ids: Array.from(new Set([...(existing.category_ids || []), ...(p.category_ids || [])])),
+    category_ids: Array.from(new Set([...(existing.category_ids || []), ...(p.category_ids || [])])),
         categories: (existing.categories && existing.categories.length > 0) ? existing.categories : (p.categories || []),
         flavour: p.flavour || existing.flavour || "Chocolate",
         variants_json: {
@@ -3373,9 +3373,46 @@ function deduplicateStoreProducts(rawProducts: any[]): ProductItem[] {
 function loadStore(): StoreData {
   const filePath = getStoreFilePath();
   if (fs.existsSync(filePath)) {
+    let parsed: any = null;
     try {
       const content = fs.readFileSync(filePath, "utf-8");
-      const parsed = JSON.parse(content);
+      parsed = JSON.parse(content);
+    } catch (err) {
+      console.error("Failed to read db-store.json directly. Attempting automatic recovery from .bak backup...", err);
+      const bakPath = `${filePath}.bak`;
+      const corruptBackupPath = `${filePath}.corrupt-backup`;
+      let recovered = false;
+
+      // Try .bak first
+      if (fs.existsSync(bakPath)) {
+        try {
+          const bakRaw = fs.readFileSync(bakPath, "utf-8");
+          parsed = JSON.parse(bakRaw);
+          console.log("✅ Successfully recovered store state from db-store.json.bak");
+          recovered = true;
+        } catch {
+          // try corrupt-backup
+        }
+      }
+
+      // Try .corrupt-backup if needed
+      if (!recovered && fs.existsSync(corruptBackupPath)) {
+        try {
+          const cbRaw = fs.readFileSync(corruptBackupPath, "utf-8");
+          parsed = JSON.parse(cbRaw);
+          console.log("✅ Successfully recovered store state from db-store.json.corrupt-backup");
+          recovered = true;
+        } catch {
+          // ignore
+        }
+      }
+
+      if (!recovered) {
+        console.error("❌ Critical: Could not parse db-store.json or any backup. Initializing default store with safety backup.");
+      }
+    }
+
+    if (parsed) {
       const cleanRaw = (parsed.branches && parsed.branches.length > 0)
         ? parsed.branches.filter((b: any) => !b.name?.toLowerCase().includes("playwright") && !b.id?.toLowerCase().includes("playwright"))
         : [...DEFAULT_BRANCHES];
@@ -3411,19 +3448,31 @@ function loadStore(): StoreData {
         }
       });
 
+      // Synchronize CMS pages
       const cmsPagesList = (parsed.cms_pages && parsed.cms_pages.length > 0) ? parsed.cms_pages : [...DEFAULT_CMS_PAGES];
       DEFAULT_CMS_PAGES.forEach((def) => {
         const existingIdx = cmsPagesList.findIndex((p: any) => p.id === def.id || p.slug === def.slug);
         if (existingIdx >= 0) {
-          if ((!cmsPagesList[existingIdx].published_config || Object.keys(cmsPagesList[existingIdx].published_config).length === 0) && def.published_config) {
-            cmsPagesList[existingIdx].published_config = def.published_config;
-          }
-          if ((!cmsPagesList[existingIdx].sections || cmsPagesList[existingIdx].sections.length === 0) && def.sections) {
-            cmsPagesList[existingIdx].sections = def.sections;
-          }
-          if (def.announcement_bar && !cmsPagesList[existingIdx].announcement_bar) {
-            cmsPagesList[existingIdx].announcement_bar = def.announcement_bar;
-          }
+          cmsPagesList[existingIdx] = {
+            ...def,
+            ...cmsPagesList[existingIdx],
+            id: cmsPagesList[existingIdx].id || def.id,
+            title: cmsPagesList[existingIdx].title || def.title,
+            slug: cmsPagesList[existingIdx].slug || def.slug,
+            page_type: cmsPagesList[existingIdx].page_type || def.page_type,
+            status: cmsPagesList[existingIdx].status || def.status,
+            meta_title: cmsPagesList[existingIdx].meta_title || def.meta_title,
+            meta_description: cmsPagesList[existingIdx].meta_description || def.meta_description,
+            sections: (cmsPagesList[existingIdx].sections && cmsPagesList[existingIdx].sections.length > 0)
+              ? cmsPagesList[existingIdx].sections
+              : def.sections,
+            draft_config: cmsPagesList[existingIdx].draft_config || def.draft_config,
+            published_config: cmsPagesList[existingIdx].published_config || def.published_config,
+            version_history: cmsPagesList[existingIdx].version_history || def.version_history || [],
+            created_at: cmsPagesList[existingIdx].created_at || def.created_at,
+            updated_at: cmsPagesList[existingIdx].updated_at || def.updated_at,
+            published_at: cmsPagesList[existingIdx].published_at || def.published_at,
+          };
         } else {
           cmsPagesList.push(def);
         }
@@ -3535,8 +3584,6 @@ function loadStore(): StoreData {
         customer_favorites: parsed.customer_favorites || [],
         product_reviews: parsed.product_reviews || [],
       };
-    } catch (err) {
-      console.error("Failed to read db-store.json, initializing default store:", err);
     }
   }
 
@@ -3639,7 +3686,24 @@ function safeJsonStringify(obj: any, space = 2): string {
 function saveStore(data: StoreData): void {
   try {
     const filePath = getStoreFilePath();
-    fs.writeFileSync(filePath, safeJsonStringify(data, 2), "utf-8");
+    const json = safeJsonStringify(data, 2);
+    const tmpPath = `${filePath}.tmp`;
+    const bakPath = `${filePath}.bak`;
+
+    // 1. Write to temporary file first
+    fs.writeFileSync(tmpPath, json, "utf-8");
+
+    // 2. Safely rotate existing store to .bak if it exists
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.copyFileSync(filePath, bakPath);
+      } catch {
+        // ignore backup copy error
+      }
+    }
+
+    // 3. Atomic rename from tmpPath to filePath
+    fs.renameSync(tmpPath, filePath);
   } catch (err) {
     console.error("Failed to write db-store.json:", err);
   }
@@ -15239,7 +15303,7 @@ export class ApiEngine {
         last_activity_at: new Date().toISOString(),
       };
       memoryStore.carts.unshift(cart);
-      ApiEngine.persist();
+      // Keep in memory; persist when items are modified
     } else if (customerUid && !cart.customer_uid) {
       cart.customer_uid = customerUid;
       cart.updated_at = new Date().toISOString();

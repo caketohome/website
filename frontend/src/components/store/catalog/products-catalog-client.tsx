@@ -48,13 +48,13 @@ export function ProductsCatalogClient({
     const sort = searchParams.get("sort");
     if (sort) params.sort = sort as SearchFilters["sort"];
 
-    const q = searchParams.get("q");
+    const q = searchParams.get("search") || searchParams.get("q");
     if (q) params.q = q;
 
     return params;
   });
 
-  const [qInput, setQInput] = useState(searchParams.get("q") || initialFilters.q || "");
+  const [qInput, setQInput] = useState(searchParams.get("search") || searchParams.get("q") || initialFilters.q || "");
   const [filterOptions, setFilterOptions] = useState<CatalogFilterOptions | undefined>(initialFilterOptions);
   const [results, setResults] = useState<SearchResult[]>(initialProducts);
   const [count, setCount] = useState<number>(initialCount || initialProducts.length);
@@ -134,6 +134,25 @@ export function ProductsCatalogClient({
       setLoading(false);
     }
   }, [initialProducts, initialCount]);
+
+  // Sync state when URL searchParams update (e.g. header search navigation)
+  useEffect(() => {
+    const qParam = searchParams.get("search") || searchParams.get("q") || undefined;
+    const catParam = searchParams.get("category") || undefined;
+    const currentQ = filters.q || undefined;
+    const currentCat = filters.category === "all" ? undefined : filters.category;
+
+    if (qParam !== currentQ || (catParam && catParam !== currentCat)) {
+      const next = {
+        ...filters,
+        q: qParam,
+        category: catParam || (filters.category !== "all" ? filters.category : undefined),
+      };
+      setFilters(next);
+      setQInput(qParam || "");
+      executeSearch(next);
+    }
+  }, [searchParams, executeSearch]);
 
   const handleFilterChange = (nextFilters: SearchFilters) => {
     setFilters(nextFilters);

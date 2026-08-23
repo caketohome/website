@@ -106,7 +106,7 @@ export const ProductReview = model.define("product_review", {
         .primaryKey(),
     product_id: model.text().searchable(),
     customer_id: model.text().nullable(),
-    customer_uid: model.text().nullable().searchable(),
+    customer_uid: model.text().searchable().nullable(),
     order_id: model.text().nullable(),
     order_item_id: model.text().nullable(),
     customer_name: model.text().nullable(),

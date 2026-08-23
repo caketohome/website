@@ -1,6 +1,8 @@
 import { clientResolveQRCode } from "@frontend/lib/data/marketing-toolkit-client";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 /**
  * QR Code redirect — Phase 9.2 storefront route.
  *

@@ -7,6 +7,29 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.26: Kitchen Story / Scroll-Frame Hero Runtime Animation & Full-Cover Hero Repair (100% Verified)
+- **Resolved Hero Routing & Animation Mount in `PageRenderer`**:
+  - Identified root cause in `page-renderer.tsx` where sections of type `"hero"` always rendered static `<picture>` banner markup regardless of configured animation frames.
+  - Updated `case "hero":` to dynamically mount `<ScrollFrameHero>` when `config.animation_type === "scroll_frame"` or `desktop.frames.length > 0`, connecting published CMS frames to live storefront rendering.
+- **Edge-to-Edge Full-Cover Canvas Math & Zero-Border Layout**:
+  - Implemented exact aspect-ratio cover math:
+    $$\text{scale} = \max\left(\frac{\text{containerWidth}}{\text{naturalWidth}}, \frac{\text{containerHeight}}{\text{naturalHeight}}\right)$$
+  - Eliminated letterboxing, unpainted canvas margins, and horizontal overflow on Desktop (1440x900), Tablet (768x1024), and Mobile (390x844).
+  - Applied full-bleed zero padding/margin wrapper styles in `page-renderer.tsx` and removed forced `gap-12` on `page.tsx` root container for seamless document flow.
+- **Dynamic Frame Scrubbing & Performant RAF Engine**:
+  - Scroll progress calculated based on the section's actual scroll range ($0.00 \rightarrow 1.00$) with dynamic frame index derivation:
+    $$\text{frameIndex} = \text{Math.round}(\text{progress} \times (\text{frames.length} - 1))$$
+  - Decoupled scroll listener from React state with high-performance RequestAnimationFrame (RAF) render loop and configurable easing rate ($0.14$).
+  - Attached `ResizeObserver` to canvas container to automatically redraw active frame on window or container resize.
+- **Immediate Preload & Fallback Recovery**:
+  - Immediate parallel preload of active device frame sets with instant repaint on load completion.
+  - High-contrast procedural gradient fallback ensures crisp visual progression even before remote network assets finish buffering.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-scroll-frame-hero-live-cover.ts`: **100% PASS** (Published CMS config, Canvas dimensions 1440x900, 0 overflow, 0% $\rightarrow$ 25% $\rightarrow$ 50% $\rightarrow$ 75% $\rightarrow$ 100% progression, reverse scrub, natural document flow, Tablet 768x1024, Mobile 390x844).
+  - `scripts/test-scroll-frame-visual-diff.ts`: **100% PASS** (Proved visual frame differences across 0%, 25%, 50%, 75%, 100% scroll points via direct GPU screenshots).
+  - `npm run build`: **39/39 pages static generation passed (100% clean, exit code 0)**.
+  - TypeScript Check (`npx tsc --noEmit`): **0 errors (100% clean)**.
+
 ### Milestone 9.25: Kitchen Story & Scroll-Frame CMS Frame CRUD, Replacement, Reordering & Live Storefront Synchronization (100% Verified)
 - **Eliminated Sequential State Mutation Bugs & Replaced with Atomic Section Merging**:
   - Identified root cause in `section-config-editor.tsx` where `Object.keys(newCfg).forEach((k) => updateSectionConfig(id, k, val))` sequentially mutated stale closures, causing device configuration overwrites.

@@ -2198,6 +2198,13 @@ class CakeToHomeApiClient {
       body: JSON.stringify({ action, ...data }),
     });
   }
+
+  async searchProducts(params: Record<string, any> = {}) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+    ).toString();
+    return this.request(`/products/search${qs ? `?${qs}` : ""}`);
+  }
 }
 
 export const apiClient = new CakeToHomeApiClient();

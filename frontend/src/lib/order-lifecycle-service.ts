@@ -299,7 +299,25 @@ export class OrderLifecycleService {
     if (actor.actorType === "DELIVERY_PARTNER") {
       const partnerId = actor.partnerId || actor.userId;
       const partner = (store.delivery_partners || []).find((p: any) => p.id === partnerId || p.partner_number === partnerId || p.phone === partnerId);
-      if (partner && apiEngine.canPartnerAccessOrder) {
+      if (!partner) {
+        return {
+          success: false,
+          statusCode: 401,
+          error: `Unauthorized: Delivery partner account (${partnerId}) not found. Rider must be authenticated.`,
+        };
+      }
+
+      // Rider Online Status Enforcement Gate
+      const onlineStatus = (partner.availability_status || "OFFLINE").toUpperCase();
+      if (onlineStatus !== "ONLINE" && onlineStatus !== "AVAILABLE") {
+        return {
+          success: false,
+          statusCode: 403,
+          error: `Forbidden: Delivery partner (${partner.full_name || partnerId}) is currently ${onlineStatus}. Rider must be ONLINE to accept or process deliveries.`,
+        };
+      }
+
+      if (apiEngine.canPartnerAccessOrder) {
         if (!apiEngine.canPartnerAccessOrder(partner, order)) {
           return {
             success: false,
@@ -379,6 +397,24 @@ export class OrderLifecycleService {
       timelineTitle = "Cake Baked & Packed — Ready for Pickup";
       timelineNotes = options.notes || `Package boxed and tagged. Pickup OTP: ${order.pickup_otp}`;
       outboxEventType = "order.ready";
+
+      try {
+        WebhookEngine.emitEvent(
+          "order.pickup_otp_generated",
+          {
+            order_id: order.id,
+            order_number: order.order_number,
+            pickup_otp: order.pickup_otp,
+            branch_id: order.branch_id,
+            expires_at: new Date(Date.now() + 300 * 1000).toISOString(),
+          },
+          { source: "ORDER_LIFECYCLE_SERVICE", action: "PACKED" },
+          { customer_uid: order.customer_uid, name: order.customer_name, phone: order.customer_phone },
+          { type: "order", id: order.id, branch_id: order.branch_id }
+        );
+      } catch (e) {
+        console.warn("[Pickup OTP Event Non-Blocking Error]:", e);
+      }
     } else if (targetOrderState === "OUT_FOR_DELIVERY") {
       // Pickup OTP Verification Guard
       const expectedOtp = order.pickup_otp || order.delivery?.pickup_otp || "1294";
@@ -423,9 +459,36 @@ export class OrderLifecycleService {
         order.delivery.live_location = "In Transit to Customer";
       }
 
+      // Update rider presence current active order
+      if (store.rider_presence && Array.isArray(store.rider_presence)) {
+        const rp = store.rider_presence.find((r: any) => r.partner_id === assignedPartnerId);
+        if (rp) {
+          rp.current_order_id = order.id;
+          rp.last_seen_at = now;
+        }
+      }
+
       timelineTitle = "Out for Delivery — Dispatched from Kitchen Hub";
       timelineNotes = options.notes || `Pickup OTP verified. Package collected by rider.`;
       outboxEventType = "order.out_for_delivery";
+
+      try {
+        WebhookEngine.emitEvent(
+          "order.pickup_verified",
+          {
+            order_id: order.id,
+            order_number: order.order_number,
+            rider_id: assignedPartnerId,
+            verified_at: now,
+            branch_id: order.branch_id,
+          },
+          { source: "ORDER_LIFECYCLE_SERVICE", action: "PICKUP_VERIFIED" },
+          { customer_uid: order.customer_uid, name: order.customer_name, phone: order.customer_phone },
+          { type: "order", id: order.id, branch_id: order.branch_id }
+        );
+      } catch (e) {
+        console.warn("[Pickup Verified Event Non-Blocking Error]:", e);
+      }
     } else if (targetOrderState === "DELIVERED") {
       // Customer Delivery OTP Verification Guard
       const expectedOtp = order.delivery_otp || order.delivery?.delivery_otp || "4819";
@@ -464,7 +527,7 @@ export class OrderLifecycleService {
         order.delivery.delivered_at = now;
       }
 
-      // Decrement driver active orders workload capacity
+      // Decrement driver active orders workload capacity and clear current order in rider presence
       const activePartnerId = order.delivery_partner_id || actor.partnerId || actor.userId;
       if (activePartnerId) {
         const partner = (store.delivery_partners || []).find((p: any) => p.id === activePartnerId || p.partner_number === activePartnerId);
@@ -473,11 +536,37 @@ export class OrderLifecycleService {
           partner.successful_deliveries = (partner.successful_deliveries || 0) + 1;
           partner.total_deliveries = (partner.total_deliveries || 0) + 1;
         }
+        if (store.rider_presence && Array.isArray(store.rider_presence)) {
+          const rp = store.rider_presence.find((r: any) => r.partner_id === activePartnerId);
+          if (rp) {
+            rp.current_order_id = null;
+            rp.last_seen_at = now;
+          }
+        }
       }
 
       timelineTitle = "Order Delivered Successfully";
       timelineNotes = options.notes || "Customer Delivery OTP verified at doorstep. Cake handed over.";
       outboxEventType = "order.delivered";
+
+      try {
+        WebhookEngine.emitEvent(
+          "order.delivery_otp_verified",
+          {
+            order_id: order.id,
+            order_number: order.order_number,
+            rider_id: activePartnerId,
+            customer_uid: order.customer_uid,
+            verified_at: now,
+            branch_id: order.branch_id,
+          },
+          { source: "ORDER_LIFECYCLE_SERVICE", action: "DELIVERY_OTP_VERIFIED" },
+          { customer_uid: order.customer_uid, name: order.customer_name, phone: order.customer_phone },
+          { type: "order", id: order.id, branch_id: order.branch_id }
+        );
+      } catch (e) {
+        console.warn("[Delivery OTP Verified Event Non-Blocking Error]:", e);
+      }
     } else if (targetOrderState === "CANCELLED") {
       order.status = "cancelled";
       order.delivery_status = "cancelled";
@@ -627,9 +716,20 @@ export class OrderLifecycleService {
         partner_number: `DLP-${String(partnerId).slice(-4)}`,
         phone: "+91 98123 45678",
         status: "active",
+        availability_status: "ONLINE",
       };
       if (!Array.isArray(store.delivery_partners)) store.delivery_partners = [];
       store.delivery_partners.push(partner);
+    }
+
+    // 1b. Rider Online Status Enforcement Gate
+    const onlineStatus = (partner.availability_status || "OFFLINE").toUpperCase();
+    if (onlineStatus !== "ONLINE" && onlineStatus !== "AVAILABLE") {
+      return {
+        success: false,
+        statusCode: 403,
+        error: `Forbidden: Delivery Partner (${partner.full_name || partner.name}) is currently ${onlineStatus}. Rider must be ONLINE to verify pickup.`,
+      };
     }
 
     // 2. Terminal State Guard
@@ -664,12 +764,15 @@ export class OrderLifecycleService {
 
     // 5. Payment Gate Verification
     const paymentStatus = (order.payment_status || "").toLowerCase();
-    const isExplicitlyUnpaid = paymentStatus === "pending" || paymentStatus === "payment_pending" || paymentStatus === "failed" || paymentStatus === "unpaid";
+    const paymentMethod = (order.payment_method || "").toLowerCase();
+    const isCod = paymentMethod.includes("cod") || paymentMethod.includes("cash");
+    const isExplicitlyUnpaid = !isCod && (paymentStatus === "pending" || paymentStatus === "payment_pending" || paymentStatus === "failed" || paymentStatus === "unpaid");
     const isPaid = !isExplicitlyUnpaid && (
+      isCod ||
       paymentStatus === "captured" ||
       paymentStatus === "paid" ||
-      (order.payment_method || "").toLowerCase().includes("cod") ||
-      (order.payment_method || "").toLowerCase().includes("verified") ||
+      paymentMethod.includes("cod") ||
+      paymentMethod.includes("verified") ||
       (!paymentStatus && (order.status === "packed" || order.status === "preparing" || order.status === "ready_for_pickup" || order.status === "confirmed" || order.status === "out_for_delivery" || order.status === "delivered"))
     );
     if (!isPaid) {

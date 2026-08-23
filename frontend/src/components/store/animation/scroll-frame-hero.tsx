@@ -2,8 +2,8 @@
 
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import Link from "next/link";
-import { Heading, Text, Badge, Button } from "@medusajs/ui";
-import { Sparkles, ArrowRight, ShieldCheck, Clock, Layers } from "lucide-react";
+import { Heading, Text, Button } from "@medusajs/ui";
+import { Sparkles, ArrowRight, ShieldCheck } from "lucide-react";
 
 export interface AnimationFrameItem {
   id: string;
@@ -211,6 +211,7 @@ export function ScrollFrameAnimation({
     fleet_cta_url: flatProps.fleetCtaUrl,
   };
   const sectionRef = useRef<HTMLElement | null>(null);
+  const stickyRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const introOverlayRef = useRef<HTMLDivElement | null>(null);
   const craftOverlayRef = useRef<HTMLDivElement | null>(null);
@@ -225,6 +226,7 @@ export function ScrollFrameAnimation({
   // High-Frequency mutable animation state (zero React state on scroll ticks)
   const currentFrameIdxRef = useRef<number>(0);
   const targetFrameIdxRef = useRef<number>(0);
+  const currentProgressRef = useRef<number>(0);
   const lastDrawnFrameRef = useRef<number>(-1);
   const rafIdRef = useRef<number | null>(null);
   const isLoopRunningRef = useRef<boolean>(false);
@@ -317,50 +319,12 @@ export function ScrollFrameAnimation({
 
   const posterImage = activeDeviceConfig.poster_image || config.poster_image || config.bg_image || (frames.length > 0 ? frames[0].url : "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400");
 
-  // ── 3. Frame Preloading Strategy ──────────────────────────────────────────
-  useEffect(() => {
-    if (frames.length === 0) return;
-
-    // Step 1: Preload poster / 1st frame immediately
-    preloadSingleImage(frames[0].optimized_url || frames[0].url, () => {
-      setLoadedCount((c) => Math.max(c, 1));
-      drawCanvasFrame(0);
-    });
-
-    // Step 2: Progressive stream of remaining frames when section enters viewport
-    const sectionEl = sectionRef.current;
-    if (!sectionEl || typeof IntersectionObserver === "undefined") {
-      frames.forEach((f) => preloadSingleImage(f.optimized_url || f.url));
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          // Preload rest progressively in sequence
-          frames.slice(1).forEach((frame, idx) => {
-            setTimeout(() => {
-              preloadSingleImage(frame.optimized_url || frame.url, () => {
-                setLoadedCount((c) => c + 1);
-              });
-            }, idx * 20);
-          });
-          observer.disconnect();
-        }
-      },
-      { rootMargin: "300px" }
-    );
-
-    observer.observe(sectionEl);
-    return () => observer.disconnect();
-  }, [frames]);
-
-  // ── 4. Canvas Draw Routine (Cover Math + DPR Scaling) ─────────────────────
+  // ── 3. Canvas Draw Routine (Full Cover Math + DPR Scaling) ────────────────
   const drawCanvasFrame = useCallback(
     (frameIndex: number) => {
       const canvas = canvasRef.current;
       if (!canvas || frames.length === 0) return;
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d", { alpha: false });
       if (!ctx) return;
 
       const clamped = Math.max(0, Math.min(frames.length - 1, Math.round(frameIndex)));
@@ -382,38 +346,44 @@ export function ScrollFrameAnimation({
         }
       }
 
-      if (!img || !img.complete || img.naturalWidth === 0) return;
-
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const canvasWidth = canvas.clientWidth;
-      const canvasHeight = canvas.clientHeight;
+      const containerWidth = canvas.clientWidth || window.innerWidth;
+      const containerHeight = canvas.clientHeight || window.innerHeight;
 
-      if (canvas.width !== canvasWidth * dpr || canvas.height !== canvasHeight * dpr) {
-        canvas.width = canvasWidth * dpr;
-        canvas.height = canvasHeight * dpr;
+      const bufferWidth = Math.floor(containerWidth * dpr);
+      const bufferHeight = Math.floor(containerHeight * dpr);
+
+      if (canvas.width !== bufferWidth || canvas.height !== bufferHeight) {
+        canvas.width = bufferWidth;
+        canvas.height = bufferHeight;
       }
 
       ctx.save();
       ctx.scale(dpr, dpr);
 
-      // Object-fit: cover math
-      const imgRatio = img.naturalWidth / img.naturalHeight;
-      const canvasRatio = canvasWidth / canvasHeight;
-
-      let drawWidth = canvasWidth;
-      let drawHeight = canvasHeight;
-      let offsetX = 0;
-      let offsetY = 0;
-
-      if (canvasRatio > imgRatio) {
-        drawHeight = canvasWidth / imgRatio;
-        offsetY = (canvasHeight - drawHeight) / 2;
-      } else {
-        drawWidth = canvasHeight * imgRatio;
-        offsetX = (canvasWidth - drawWidth) / 2;
+      if (!img || !img.complete || img.naturalWidth === 0) {
+        // High-contrast procedural frame fallback while remote asset buffers
+        const grad = ctx.createLinearGradient(0, 0, containerWidth, containerHeight);
+        const hue = (clamped * 24 + 340) % 360;
+        grad.addColorStop(0, `hsl(${hue}, 50%, 14%)`);
+        grad.addColorStop(0.5, `hsl(${(hue + 30) % 360}, 60%, 8%)`);
+        grad.addColorStop(1, `hsl(${hue}, 45%, 5%)`);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, containerWidth, containerHeight);
+        ctx.restore();
+        lastDrawnFrameRef.current = clamped;
+        return;
       }
 
-      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+      // Exact aspect-ratio cover math
+      const scale = Math.max(containerWidth / img.naturalWidth, containerHeight / img.naturalHeight);
+      const drawWidth = img.naturalWidth * scale;
+      const drawHeight = img.naturalHeight * scale;
+      const offsetX = (containerWidth - drawWidth) / 2;
+      const offsetY = (containerHeight - drawHeight) / 2;
+
+      ctx.fillStyle = "#0c0a09"; // stone-950 base
+      ctx.fillRect(0, 0, containerWidth, containerHeight);
       ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
       ctx.restore();
 
@@ -421,6 +391,42 @@ export function ScrollFrameAnimation({
     },
     [frames]
   );
+
+  // ── 4. Frame Preloading Strategy ──────────────────────────────────────────
+  useEffect(() => {
+    if (frames.length === 0) return;
+
+    // Immediately trigger preload for all frames in the active device set
+    frames.forEach((frame, idx) => {
+      preloadSingleImage(frame.optimized_url || frame.url, () => {
+        setLoadedCount((c) => c + 1);
+        const currentTarget = Math.round(currentFrameIdxRef.current);
+        if (currentTarget === idx || lastDrawnFrameRef.current < 0) {
+          drawCanvasFrame(currentTarget);
+        }
+      });
+    });
+
+    // Draw initial frame immediately
+    drawCanvasFrame(0);
+  }, [frames, drawCanvasFrame]);
+
+  // ── 4b. ResizeObserver to keep canvas full-cover on container resize ───────
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      if (lastDrawnFrameRef.current >= 0) {
+        drawCanvasFrame(lastDrawnFrameRef.current);
+      } else {
+        drawCanvasFrame(0);
+      }
+    });
+
+    resizeObserver.observe(canvas);
+    return () => resizeObserver.disconnect();
+  }, [drawCanvasFrame]);
 
   // ── 5. Overlay Interpolation (Intro -> Craft Story -> Fleet Guarantee) ───
   const updateOverlays = useCallback((progress: number) => {
@@ -524,11 +530,15 @@ export function ScrollFrameAnimation({
       if (!section) return;
 
       const rect = section.getBoundingClientRect();
-      const totalScrollable = rect.height - window.innerHeight;
+      const viewportHeight = window.innerHeight;
+      const totalScrollable = rect.height - viewportHeight;
+
       if (totalScrollable <= 0) return;
 
       const currentScroll = -rect.top;
       const progress = Math.max(0, Math.min(1, currentScroll / totalScrollable));
+
+      currentProgressRef.current = progress;
 
       if (isScrub) {
         targetFrameIdxRef.current = progress * (totalFrames - 1);
@@ -570,7 +580,7 @@ export function ScrollFrameAnimation({
       <section
         id={sectionId}
         ref={sectionRef}
-        className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl border border-ui-border-base min-h-[420px] sm:min-h-[500px] flex items-center justify-center text-white"
+        className="relative w-full overflow-hidden border-b border-ui-border-base min-h-[420px] sm:min-h-[500px] flex items-center justify-center text-white"
         style={{
           backgroundImage: `url(${posterImage})`,
           backgroundSize: "cover",
@@ -629,16 +639,17 @@ export function ScrollFrameAnimation({
     );
   }
 
-  // ── 10. Dynamic Scroll-Frame Sticky Section ───────────────────────────────
+  // ── 10. Dynamic Scroll-Frame Full-Cover Sticky Section ────────────────────
   return (
     <section
       id={sectionId}
       ref={sectionRef}
-      className="scroll-frame-section relative w-full"
+      className="scroll-frame-section relative w-full overflow-visible"
       style={{ height: `${scrollLengthVh}vh` }}
     >
       <div
-        className="scroll-frame-sticky sticky top-0 h-screen w-full overflow-hidden bg-stone-950 flex items-center justify-center select-none"
+        ref={stickyRef}
+        className="scroll-frame-sticky sticky top-0 h-screen sm:h-[100svh] w-full overflow-hidden bg-stone-950 flex items-center justify-center select-none"
       >
         {/* Hardware-Accelerated Canvas */}
         <canvas
@@ -770,4 +781,3 @@ export function ScrollFrameAnimation({
 }
 
 export const ScrollFrameHero = ScrollFrameAnimation;
-

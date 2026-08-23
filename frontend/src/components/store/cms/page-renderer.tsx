@@ -387,11 +387,12 @@ export function PageRenderer({
         const dtMarTop = desktopConfig.marginTop ?? config.marginTop ?? tbMarTop;
         const dtMarBot = desktopConfig.marginBottom ?? config.marginBottom ?? tbMarBot;
 
+        const isHeroOrStory = section.type === "hero" || section.type === "kitchen_story" || section.type === "scroll_frame";
         const isPromo = section.type === "promotional_banner" || section.type === "promo";
         const bgColor = isPromo
           ? (config.section_bg_color || "transparent")
           : (config.section_bg_color || config.background?.color || config.bg_color || "transparent");
-        const borderRadius = config.background?.borderRadius || "0px";
+        const borderRadius = isHeroOrStory ? "0px" : (config.background?.borderRadius || "0px");
 
         const wrapperStyle = (
           <style
@@ -399,29 +400,30 @@ export function PageRenderer({
               __html: `
             .sec-wrap-${sectionKey} {
               display: ${showOnMobile ? "block" : "none"};
-              padding-top: ${mbPadTop}px;
-              padding-bottom: ${mbPadBot}px;
-              margin-top: ${mbMarTop}px;
-              margin-bottom: ${mbMarBot}px;
+              padding-top: ${isHeroOrStory ? 0 : mbPadTop}px;
+              padding-bottom: ${isHeroOrStory ? 0 : mbPadBot}px;
+              margin-top: ${isHeroOrStory ? 0 : mbMarTop}px;
+              margin-bottom: ${isHeroOrStory ? 0 : mbMarBot}px;
               background-color: ${bgColor};
               border-radius: ${borderRadius};
+              width: 100%;
             }
             @media (min-width: 640px) and (max-width: 1023px) {
               .sec-wrap-${sectionKey} {
                 display: ${showOnTablet ? "block" : "none"};
-                padding-top: ${tbPadTop}px;
-                padding-bottom: ${tbPadBot}px;
-                margin-top: ${tbMarTop}px;
-                margin-bottom: ${tbMarBot}px;
+                padding-top: ${isHeroOrStory ? 0 : tbPadTop}px;
+                padding-bottom: ${isHeroOrStory ? 0 : tbPadBot}px;
+                margin-top: ${isHeroOrStory ? 0 : tbMarTop}px;
+                margin-bottom: ${isHeroOrStory ? 0 : tbMarBot}px;
               }
             }
             @media (min-width: 1024px) {
               .sec-wrap-${sectionKey} {
                 display: ${showOnDesktop ? "block" : "none"};
-                padding-top: ${dtPadTop}px;
-                padding-bottom: ${dtPadBot}px;
-                margin-top: ${dtMarTop}px;
-                margin-bottom: ${dtMarBot}px;
+                padding-top: ${isHeroOrStory ? 0 : dtPadTop}px;
+                padding-bottom: ${isHeroOrStory ? 0 : dtPadBot}px;
+                margin-top: ${isHeroOrStory ? 0 : dtMarTop}px;
+                margin-bottom: ${isHeroOrStory ? 0 : dtMarBot}px;
               }
             }
           `,

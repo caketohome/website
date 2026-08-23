@@ -160,7 +160,7 @@ async function runControlsAudit() {
   // ── TEST 7: Clean Unpublish Resolution ─────────────────────────────────────
   console.log("\n--- AUDIT 7: Clean Unpublish Resolution ---");
   ApiEngine.unpublishCmsPage(auditPage.id);
-  const unpublishedStorefront = await getCmsPage("audit-control-page");
+  const unpublishedStorefront = await getCmsPage("audit-control-page", "en", true);
   assert(unpublishedStorefront?.status === "draft", "Unpublished page reverts to DRAFT status");
 
   // ── SUMMARY REPORT ──────────────────────────────────────────────────────────
