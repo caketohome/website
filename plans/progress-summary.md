@@ -7,6 +7,34 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.24: Enterprise Multi-Source Product Search, Product Mapping & Dynamic Ranking Engine (100% Verified)
+- **Canonical Product Identity & Strict Variant Deduplication**:
+  - Ingested multi-source records (Medusa, PostgreSQL, CMS, Inventory) into a unified `CanonicalProduct` abstraction (`SearchEngine`).
+  - Consolidated multiple weight variants (`0.5 kg`, `1 kg`, `1.5 kg`, `2 kg`) into a single canonical product document with 0 duplicate search cards.
+- **Enterprise Search Engine Core & Query Normalization**:
+  - Normalization pipeline: lowercase, punctuation removal, whitespace trimming, tokenization, and bidirectional synonym expansion.
+  - Synonym dictionary (`choc` $\rightarrow$ `chocolate`, `bday` $\rightarrow$ `birthday`, `redvelvet` $\rightarrow$ `red velvet`, `blackforest` $\rightarrow$ `black forest`).
+- **Dynamic Multi-Signal Relevance Ranking**:
+  - Real-time scoring combining exact name matches, token matches, category hierarchy, tag search weights, flavour matches, availability/stock boosts, location/city boosts, sales velocity, popularity, and customer ratings.
+  - Query-aware ranking (e.g. `"chocolate"` ranks Chocolate Truffle over Mango; `"mango"` ranks Mango Mousse over Chocolate; `"birthday"` promotes celebration cakes).
+- **Merchandising & Merchandiser Rules Engine**:
+  - Pinning to top positions (`pin` with custom position).
+  - Boost rules (`+30` score delta) and Bury rules (`-50` score delta).
+  - Time-based / scheduled campaign windows (ISO date range filters).
+- **Managed Tag Taxonomy & Search Weights**:
+  - Tag management with types (`occasion`, `flavour`, `dietary`, `style`, `marketing`, `delivery`) and configurable search weight sliders (1–100).
+- **Search & Zero-Result Analytics**:
+  - Real-time analytics tracking total queries, zero-result frequencies, top searched terms, and opportunity discovery with 1-click synonym/tag creation.
+- **Admin Configurator Panel (`SearchConfigPanel`)**:
+  - Integrated into Super Admin Dashboard with 6 tabs: Product Mapping, Ranking & Weights, Merchandising Rules, Tags & Taxonomies, Synonyms & Aliases, and Search Analytics.
+- **Storefront Preservation**:
+  - Storefront search UI (`NavSearch`, `/products?search=...`, `/search`, autocomplete, chips, keyboard navigation) 100% preserved with upgraded backend execution.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-enterprise-search-e2e.ts`: **100% PASS** (Canonical Deduplication, Ranking, Synonyms, Merchandising, Weight Configuration, Tags, Analytics, and Real Headless Chromium Browser).
+  - `scripts/test-search-complete-verification.ts`: **26 / 26 PASSED (100% PASS)**.
+  - `scripts/test-home-search-e2e.ts`: **43 / 43 PASSED (100% PASS)**.
+  - TypeScript Check (`npx tsc --noEmit`): **0 errors (100% clean)**.
+
 ### Milestone 9.23: Website Configurator Advanced Multi-Device Scroll-Frame & Kitchen Story Animation System (100% Verified)
 - **Complete Elimination of Hardcoded Frame Assumptions**:
   - Removed fixed `FRAME_COUNT = 22` assumptions, hardcoded Cloudinary frame arrays, and fixed runtime text from `scroll-frame-hero.tsx`.

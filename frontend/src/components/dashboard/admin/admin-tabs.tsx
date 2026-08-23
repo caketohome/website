@@ -5,14 +5,16 @@ import { Text } from "@medusajs/ui";
 import {
   ShoppingCart, Package, Building2, Truck,
   Users, Megaphone, Sparkles, FileText, BarChart3, Bell, Settings, Globe, Zap, Percent, ShieldCheck, KeyRound,
-  PhoneCall, Plug
+  PhoneCall, Plug, Clock, Search
 } from "lucide-react";
 
 const TABS = [
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "catalog", label: "Catalog", icon: Package },
+  { id: "search_engine", label: "🔍 Search & Mapping", icon: Search },
   { id: "branches", label: "Branches", icon: Building2 },
   { id: "delivery", label: "Delivery", icon: Truck },
+  { id: "fulfillment", label: "🕒 Operations & Cutoff", icon: Clock },
   { id: "tax_master", label: "Tax Master", icon: Percent },
   { id: "abandoned_carts", label: "Cart Recovery", icon: ShoppingCart },
   { id: "telemarketing", label: "📞 Reorder Outreach", icon: PhoneCall },

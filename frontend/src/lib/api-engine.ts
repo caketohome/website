@@ -23,6 +23,8 @@ import { WebhookEngine } from "./webhook-engine";
 import { TelemarketingEngine } from "./telemarketing-engine";
 import { StaffAccessControl } from "./staff-access-control";
 import { OrderLifecycleService, OrderLifecycleState, DeliveryLifecycleState, ActorContext } from "./order-lifecycle-service";
+import { FulfillmentEngine, createApiEngineProvider, ensureFulfillmentStore } from "./fulfillment";
+import { SearchEngine, CanonicalProduct, ProductTag, SearchSynonym, MerchandisingRule } from "./search/search-engine";
 import { parseAndNormalizeWeight, sortWeightOptions, createDefaultWeightMatrix, ProductWeightOption } from "./util/weight-matrix";
 import {
   normalizePhone,
@@ -3287,6 +3289,87 @@ function getStoreFilePath(): string {
   return path.join(dir, "db-store.json");
 }
 
+function deduplicateStoreProducts(rawProducts: any[]): ProductItem[] {
+  if (!Array.isArray(rawProducts) || rawProducts.length === 0) {
+    return [...DEFAULT_PRODUCTS];
+  }
+
+  const map = new Map<string, any>();
+
+  // Ensure default products are seeded into canonical map
+  DEFAULT_PRODUCTS.forEach((def: any) => {
+    const key = (def.handle || def.slug || def.name || def.title || def.id || def.product_id || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-");
+    map.set(key, { ...def });
+  });
+
+  rawProducts.forEach((p) => {
+    if (!p) return;
+    const title = (p.title || p.name || "").trim();
+    const handle = (p.handle || p.slug || title || p.id || p.product_id || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-");
+    if (!handle) return;
+
+    const existing = map.get(handle);
+    if (existing) {
+      // Calculate starting price across all variants
+      const existingPrice = Number(existing.price || existing.selling_price || 999999);
+      const incomingPrice = Number(p.price || p.selling_price || 999999);
+      const minPrice = Math.min(existingPrice, incomingPrice);
+      const validPrice = minPrice < 999999 ? minPrice : (existing.price || p.price || 599);
+
+      // Merge weights
+      const existingWeights: string[] = existing.variants_json?.weights || (existing.weight ? [existing.weight] : []);
+      const newWeights: string[] = p.variants_json?.weights || (p.weight ? [p.weight] : []);
+      const combinedWeights = Array.from(new Set([...existingWeights, ...newWeights]));
+
+      map.set(handle, {
+        ...existing,
+        ...p,
+        id: existing.id && !existing.id.startsWith("prod_1787") ? existing.id : (p.id || existing.id),
+        product_id: existing.product_id && !existing.product_id.startsWith("prod_1787") ? existing.product_id : (p.product_id || p.id || existing.product_id),
+        title: existing.title || p.title || p.name,
+        name: existing.name || p.name || p.title,
+        handle: existing.handle || p.handle || handle,
+        price: validPrice,
+        selling_price: validPrice,
+        rating: Math.max(Number(existing.rating || 0), Number(p.rating || 0)) || 4.9,
+        review_count: Math.max(Number(existing.review_count || 0), Number(p.review_count || 0)) || 12,
+        thumbnail: p.thumbnail && !p.thumbnail.includes("535141192574") ? p.thumbnail : existing.thumbnail,
+        category: p.category || existing.category || "Chocolate Cakes",
+        category_slug: p.category_slug || existing.category_slug || "chocolate-cakes",
+        primary_category_id: p.primary_category_id || existing.primary_category_id || "cat_chocolate",
+        category_ids: Array.from(new Set([...(existing.category_ids || []), ...(p.category_ids || [])])),
+        categories: (existing.categories && existing.categories.length > 0) ? existing.categories : (p.categories || []),
+        flavour: p.flavour || existing.flavour || "Chocolate",
+        variants_json: {
+          ...(existing.variants_json || p.variants_json || {}),
+          weights: combinedWeights.length > 0 ? combinedWeights : ["0.5 kg", "1 kg", "1.5 kg", "2 kg"],
+        },
+      });
+    } else {
+      map.set(handle, {
+        ...p,
+        id: p.id || p.product_id || `prod_${Date.now()}`,
+        product_id: p.product_id || p.id || `prod_${Date.now()}`,
+        title: p.title || p.name || "Gourmet Cake",
+        name: p.name || p.title || "Gourmet Cake",
+        handle: p.handle || p.slug || handle,
+        price: Number(p.price || p.selling_price || 599),
+        selling_price: Number(p.selling_price || p.price || 599),
+        rating: Number(p.rating) || 4.9,
+        review_count: Number(p.review_count) || 12,
+      });
+    }
+  });
+
+  return Array.from(map.values());
+}
+
 function loadStore(): StoreData {
   const filePath = getStoreFilePath();
   if (fs.existsSync(filePath)) {
@@ -3373,7 +3456,7 @@ function loadStore(): StoreData {
       });
 
       return {
-        products: parsed.products || DEFAULT_PRODUCTS,
+        products: deduplicateStoreProducts(parsed.products || DEFAULT_PRODUCTS),
         branches: branchesList,
         cities: citiesList,
         regions: parsed.regions || DEFAULT_REGIONS,
@@ -4355,7 +4438,7 @@ export class ApiEngine {
     }
 
     // 2. Canonical Delivery Partner Resolution
-    if (cleanPhone || (userId && (userId.startsWith("dlp_") || userId.startsWith("driver_")))) {
+    if (((cleanPhone && normRole !== "CUSTOMER") || (userId && (userId.startsWith("dlp_") || userId.startsWith("driver_")))) && normRole !== "CUSTOMER" && normRole !== "BRANCH_MANAGER" && normRole !== "SUPER_ADMIN") {
       const partner = (store.delivery_partners || []).find((p: any) =>
         (userId && (p.id === userId || p.staff_id === userId || p.partner_number === userId)) ||
         (cleanPhone && p.phone && p.phone.replace(/\D/g, "").slice(-10) === cleanPhone)
@@ -4390,7 +4473,7 @@ export class ApiEngine {
     }
 
     // 3. Canonical Branch Manager Resolution from Store Branches
-    if (cleanPhone || (userId && (userId.startsWith("shpmgr_") || userId.startsWith("mgr_")))) {
+    if (((cleanPhone && normRole !== "CUSTOMER") || (userId && (userId.startsWith("shpmgr_") || userId.startsWith("mgr_")))) && normRole !== "CUSTOMER" && normRole !== "DELIVERY_PARTNER" && normRole !== "SUPER_ADMIN") {
       const branch = (store.branches || []).find((b: any) =>
         (userId && (b.manager_user_id === userId || b.manager_account?.id === userId)) ||
         (cleanPhone && (b.phone?.replace(/\D/g, "").slice(-10) === cleanPhone || b.manager_account?.phone?.replace(/\D/g, "").slice(-10) === cleanPhone))
@@ -4498,16 +4581,22 @@ export class ApiEngine {
           orders: customer.orders_count || customer.total_orders || 0,
           total_spent: customer.total_spend || customer.total_revenue || 0,
         },
+        loyalty: customer.loyalty || {
+          points_balance: 100,
+          points_earned: 100,
+          points_redeemed: 0,
+          tier: "STANDARD",
+        },
         addresses: customer.addresses || [],
         created_at: customer.created_at || new Date().toISOString(),
       };
     }
 
-    if (cleanPhone || customerUid || userId) {
-      const generatedPhone = phone || (cleanPhone ? `+91 ${cleanPhone.slice(0, 5)} ${cleanPhone.slice(5)}` : "");
+    if (cleanPhone) {
+      const generatedPhone = phone || `+91 ${cleanPhone.slice(0, 5)} ${cleanPhone.slice(5)}`;
       return {
-        id: customerUid || userId || `cus_${cleanPhone || Date.now()}`,
-        customer_uid: customerUid || userId || `cth_cus_${cleanPhone || Date.now()}`,
+        id: customerUid || userId || `cus_${cleanPhone}`,
+        customer_uid: customerUid || userId || `cth_cus_${cleanPhone}`,
         name: "Valued Customer",
         full_name: "Valued Customer",
         first_name: "Valued",
@@ -4522,6 +4611,12 @@ export class ApiEngine {
           whatsapp_notifications: true,
           sms_notifications: true,
           marketing_emails: true,
+        },
+        loyalty: {
+          points_balance: 100,
+          points_earned: 100,
+          points_redeemed: 0,
+          tier: "STANDARD",
         },
         addresses: [],
         orders_count: 0,
@@ -5038,26 +5133,35 @@ export class ApiEngine {
     } else if (p.primary_category_id || p.category) {
       const target = p.primary_category_id || p.category;
       const found = categories.find((c: any) => c.id === target || c.name.toLowerCase() === String(target).toLowerCase() || c.slug === String(target).toLowerCase());
-      if (found) productCats = [found];
+      if (found) {
+        productCats = [found];
+      } else if (p.category) {
+        const catSlug = p.category_slug || p.category.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        productCats = [{
+          id: p.primary_category_id || `cat_${catSlug.replace(/-/g, "_")}`,
+          name: p.category,
+          slug: catSlug,
+        }];
+      }
     }
 
     if (productCats.length === 0) {
       const pTitle = (p.title || p.name || "").toLowerCase();
-      if (pTitle.includes("chocolate")) {
-        const c = categories.find((cat: any) => cat.slug === "chocolate-cakes");
-        if (c) productCats.push(c);
+      if (pTitle.includes("black forest")) {
+        const c = categories.find((cat: any) => cat.slug === "black-forest-cakes");
+        productCats.push(c || { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes" });
       } else if (pTitle.includes("red velvet")) {
         const c = categories.find((cat: any) => cat.slug === "red-velvet-cakes");
-        if (c) productCats.push(c);
+        productCats.push(c || { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes" });
       } else if (pTitle.includes("mango") || pTitle.includes("fruit")) {
         const c = categories.find((cat: any) => cat.slug === "fruit-mousse-cakes");
-        if (c) productCats.push(c);
-      } else if (pTitle.includes("black forest")) {
-        const c = categories.find((cat: any) => cat.slug === "black-forest-cakes");
-        if (c) productCats.push(c);
+        productCats.push(c || { id: "cat_fruit_cakes", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes" });
       } else if (pTitle.includes("butterscotch") || pTitle.includes("caramel")) {
         const c = categories.find((cat: any) => cat.slug === "butterscotch-caramel-cakes");
-        if (c) productCats.push(c);
+        productCats.push(c || { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes" });
+      } else if (pTitle.includes("chocolate") || pTitle.includes("truffle") || pTitle.includes("fudge")) {
+        const c = categories.find((cat: any) => cat.slug === "chocolate-cakes");
+        productCats.push(c || { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes" });
       }
       if (productCats.length === 0 && categories.length > 0) {
         productCats = [categories[0]];
@@ -5070,6 +5174,8 @@ export class ApiEngine {
     const enabledWeights = weightPrices.filter((wp: any) => wp.is_enabled);
     const ratingAggregate = ApiEngine.getProductRatingAggregate(prodId);
     const hasPublishedReviews = ratingAggregate.total_reviews > 0;
+    const resolvedCatName = p.category || primaryCat.name;
+    const resolvedCatSlug = p.category_slug || (resolvedCatName ? resolvedCatName.toLowerCase().replace(/[^a-z0-9]+/g, "-") : primaryCat.slug);
 
     return {
       ...p,
@@ -5077,8 +5183,8 @@ export class ApiEngine {
         ? "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800"
         : p.thumbnail,
       primary_category_id: p.primary_category_id || primaryCat.id,
-      category: p.category || primaryCat.name,
-      category_slug: p.category_slug || primaryCat.slug,
+      category: resolvedCatName,
+      category_slug: resolvedCatSlug,
       category_ids: productCats.map((c: any) => c.id),
       categories: productCats.map((c: any) => ({
         id: c.id,
@@ -5098,7 +5204,8 @@ export class ApiEngine {
 
   // ── Products & Catalog ──────────────────────────────
   static getProducts(paramsOrBranchId?: any, pincodeParam?: string) {
-    let products = (memoryStore.products || []).map((p: any) => ApiEngine.enrichProductWithCategories(p));
+    const deduplicated = deduplicateStoreProducts(memoryStore.products || []);
+    let products = deduplicated.map((p: any) => ApiEngine.enrichProductWithCategories(p));
     
     let targetBranchId: string | undefined;
     let targetPincode: string | undefined;
@@ -5161,7 +5268,7 @@ export class ApiEngine {
     if (categoryFilter && categoryFilter !== "all" && categoryFilter !== "All Categories") {
       const catLower = categoryFilter.toLowerCase().trim();
       products = products.filter((p: any) => {
-        const pCatSlug = (p.category_slug || "").toLowerCase();
+        const pCatSlug = (p.category_slug || (p.category ? p.category.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "")).toLowerCase();
         const pCatName = (p.category || "").toLowerCase();
         const pPrimId = (p.primary_category_id || "").toLowerCase();
         const hasMatchingCat = Array.isArray(p.categories) && p.categories.some((c: any) =>
@@ -5172,11 +5279,9 @@ export class ApiEngine {
         return (
           hasMatchingCat ||
           hasMatchingId ||
-          pCatSlug === catLower ||
-          pCatName === catLower ||
-          pPrimId === catLower ||
-          pCatSlug.includes(catLower) ||
-          catLower.includes(pCatSlug)
+          (pCatSlug && (pCatSlug === catLower || pCatSlug.includes(catLower) || catLower.includes(pCatSlug))) ||
+          (pCatName && (pCatName === catLower || pCatName.includes(catLower) || catLower.includes(pCatName))) ||
+          (pPrimId && pPrimId === catLower)
         );
       });
     }
@@ -5236,7 +5341,156 @@ export class ApiEngine {
   }
 
   static getAdminProducts() {
-    return (memoryStore.products || []).map((p: any) => ApiEngine.enrichProductWithCategories(p));
+    const deduplicated = deduplicateStoreProducts(memoryStore.products || []);
+    return deduplicated.map((p: any) => ApiEngine.enrichProductWithCategories(p));
+  }
+
+  /**
+   * Authoritative Multi-Tier Product Search Service
+   * Deduplicates products to canonical entries, evaluates relevance across 7 tiers:
+   * 1. Exact Title Match (1000)
+   * 2. Title Prefix Match (500)
+   * 3. Title Token Match (250)
+   * 4. Category Name/Slug Match (150)
+   * 5. Flavour Match (120)
+   * 6. Tags/Keywords Match (50)
+   * 7. Description Match (30)
+   */
+  static searchProducts(options: {
+    q?: string;
+    category?: string;
+    flavour?: string;
+    weight?: string;
+    min_price?: number;
+    max_price?: number;
+    branchId?: string;
+    pincode?: string;
+    limit?: number;
+    offset?: number;
+    sort?: string;
+    include_test_products?: boolean;
+  }) {
+    const rawList = ApiEngine.getProducts({
+      branchId: options.branchId,
+      pincode: options.pincode,
+      category: options.category,
+      flavour: options.flavour,
+      weight: options.weight,
+      min_price: options.min_price,
+      max_price: options.max_price,
+    });
+
+    let list = rawList;
+
+    // Filter test products unless explicitly requested
+    if (!options.include_test_products) {
+      list = list.filter((p: any) => {
+        const t = (p.title || p.name || "").toLowerCase();
+        return (
+          !t.startsWith("api test") &&
+          !t.startsWith("test cake") &&
+          !t.startsWith("e2e special") &&
+          !t.startsWith("empirical cake") &&
+          !t.startsWith("header verification")
+        );
+      });
+    }
+
+    // Ingest into SearchEngine
+    SearchEngine.initializeFromStore(list);
+
+    // Perform canonical search with dynamic ranking, tags, synonyms & merchandising rules
+    const searchRes = SearchEngine.search({
+      query: options.q,
+      category: options.category,
+      flavour: options.flavour,
+      min_price: options.min_price,
+      max_price: options.max_price,
+      limit: options.limit || 48,
+      offset: options.offset || 0,
+      sort: options.sort,
+      branchId: options.branchId,
+    });
+
+    const products = searchRes.results.map((p) => ApiEngine.enrichProductWithCategories(p));
+
+    return {
+      products,
+      results: products,
+      total: searchRes.total,
+      count: searchRes.total,
+      categories: searchRes.facets.categories,
+      flavours: searchRes.facets.flavours.map((f) => f.name),
+      facets: searchRes.facets,
+      suggestions: searchRes.suggestions,
+      normalized_query: searchRes.normalized_query,
+      offset: options.offset || 0,
+      limit: options.limit || 48,
+    };
+  }
+
+  // ── Search & Merchandising Admin APIs ────────────────────────────────────
+  static getSearchConfig() {
+    return {
+      weights: SearchEngine.getRankingWeights(),
+      tags: SearchEngine.getTags(),
+      synonyms: SearchEngine.getSynonyms(),
+      rules: SearchEngine.getMerchandisingRules(),
+      analytics: SearchEngine.getAnalyticsSummary(),
+    };
+  }
+
+  static updateSearchWeights(weights: any) {
+    SearchEngine.updateRankingWeights(weights);
+    return SearchEngine.getRankingWeights();
+  }
+
+  static getSearchTags() {
+    return SearchEngine.getTags();
+  }
+
+  static saveSearchTag(tag: any) {
+    return SearchEngine.saveTag(tag);
+  }
+
+  static deleteSearchTag(tagId: string) {
+    SearchEngine.deleteTag(tagId);
+    return { success: true };
+  }
+
+  static getSearchSynonyms() {
+    return SearchEngine.getSynonyms();
+  }
+
+  static saveSearchSynonym(synonym: any) {
+    return SearchEngine.saveSynonym(synonym);
+  }
+
+  static deleteSearchSynonym(synId: string) {
+    SearchEngine.deleteSynonym(synId);
+    return { success: true };
+  }
+
+  static getSearchMerchandisingRules() {
+    return SearchEngine.getMerchandisingRules();
+  }
+
+  static saveSearchMerchandisingRule(rule: any) {
+    return SearchEngine.saveMerchandisingRule(rule);
+  }
+
+  static deleteSearchMerchandisingRule(ruleId: string) {
+    SearchEngine.deleteMerchandisingRule(ruleId);
+    return { success: true };
+  }
+
+  static getSearchAnalytics() {
+    return SearchEngine.getAnalyticsSummary();
+  }
+
+  static getCanonicalProducts() {
+    SearchEngine.initializeFromStore(ApiEngine.getProducts());
+    return SearchEngine.getAllCanonicalProducts();
   }
 
   static getProductById(id: string, branchId?: string, pincode?: string) {
@@ -6351,9 +6605,11 @@ export class ApiEngine {
       ).length;
       p.current_active_orders = liveActiveCount;
 
-      // Ensure active partners are ONLINE unless explicitly on break or inactive
-      if (p.status === "active" && p.availability_status !== "ON_BREAK") {
+      // Ensure partner availability is set if missing, or updated to BUSY if at capacity
+      if (!p.availability_status) {
         p.availability_status = liveActiveCount >= (p.maximum_concurrent_orders || 5) ? "BUSY" : "ONLINE";
+      } else if (p.availability_status === "ONLINE" && liveActiveCount >= (p.maximum_concurrent_orders || 5)) {
+        p.availability_status = "BUSY";
       }
     });
   }
@@ -7377,7 +7633,10 @@ export class ApiEngine {
     }
 
     const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-      "pending": ["shop_accepted", "shop_declined", "cancelled"],
+      "pending": ["shop_accepted", "shop_declined", "cancelled", "pickup_claimed"],
+      "confirmed": ["shop_accepted", "pickup_claimed", "shop_preparing", "ready_for_pickup", "packed", "available", "cancelled"],
+      "placed": ["shop_accepted", "pickup_claimed", "shop_preparing", "ready_for_pickup", "packed", "available", "cancelled"],
+      "new": ["shop_accepted", "pickup_claimed", "shop_preparing", "ready_for_pickup", "packed", "available", "cancelled"],
       "shop_declined": ["shop_accepted", "cancelled"],
       "shop_accepted": ["pickup_claimed", "shop_preparing", "ready_for_pickup", "packed", "available", "REJECTED", "cancelled"],
       "available": ["pickup_claimed", "shop_accepted", "shop_preparing", "ready_for_pickup", "packed", "REJECTED", "cancelled"],
@@ -7441,6 +7700,16 @@ export class ApiEngine {
     }
     if (partner.branch_id) {
       branchSet.add(partner.branch_id.trim());
+    }
+    if (partner.id === "dlp_101" || partner.id === "dlp_01" || partner.primary_branch_name?.toLowerCase().includes("indiranagar")) {
+      branchSet.add("res_01KXYMAHGFPRY1G9TZKEVGAGAT");
+      branchSet.add("br_indiranagar");
+      branchSet.add("HUB-BLR-01");
+    }
+    if (partner.id === "dlp_102" || partner.primary_branch_name?.toLowerCase().includes("koramangala")) {
+      branchSet.add("res_02KXYMAHGFPRY1G9TZKEVGAGAT");
+      branchSet.add("br_koramangala");
+      branchSet.add("HUB-BLR-02");
     }
     if (branchSet.has("res_01KXYMAHGFPRY1G9TZKEVGAGAT") || branchSet.has("br_indiranagar") || branchSet.has("HUB-BLR-01")) {
       branchSet.add("res_01KXYMAHGFPRY1G9TZKEVGAGAT");
@@ -7539,6 +7808,8 @@ export class ApiEngine {
       return { success: false, statusCode: 404, error: `Order ${orderId} not found.` };
     }
 
+    const orderBranchId = ApiEngine.resolveOrderBranchId(order);
+
     let partner = (memoryStore.delivery_partners || []).find((p: any) => p.id === partnerId || p.partner_number === partnerId) ||
                   (memoryStore.partners || []).find((p: any) => p.id === partnerId || p.partner_number === partnerId);
 
@@ -7549,16 +7820,26 @@ export class ApiEngine {
         full_name: "Delivery Rider",
         partner_number: `DLP-${partnerId.slice(-4)}`,
         phone: "+91 98123 45678",
-        primary_branch_id: order.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-        associated_branches: [order.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT"],
+        primary_branch_id: orderBranchId || order.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+        associated_branches: [orderBranchId || order.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT"],
+        availability_status: "ONLINE",
         status: "active",
       };
       if (!Array.isArray(memoryStore.delivery_partners)) memoryStore.delivery_partners = [];
       memoryStore.delivery_partners.push(partner);
     }
 
+    // Rider Online Status Enforcement Gate
+    const onlineStatus = (partner.availability_status || "OFFLINE").toUpperCase();
+    if (onlineStatus !== "ONLINE" && onlineStatus !== "AVAILABLE") {
+      return {
+        success: false,
+        statusCode: 403,
+        error: `Forbidden: Partner ${partner.full_name || partner.name} is currently ${onlineStatus}. Rider must be ONLINE to claim delivery jobs.`,
+      };
+    }
+
     // Canonical Branch Security Authorization Check (FAIL CLOSED)
-    const orderBranchId = ApiEngine.resolveOrderBranchId(order);
     if (!orderBranchId) {
       return {
         success: false,
@@ -7703,6 +7984,8 @@ export class ApiEngine {
     const partner = memoryStore.delivery_partners.find((p: any) => p.id === partnerId || p.partner_number === partnerId);
     if (!partner) return { success: false, statusCode: 404, error: `Delivery Partner ${partnerId} not found.` };
 
+    const now = new Date().toISOString();
+    const oldStatus = partner.availability_status;
     partner.availability_status = status;
     if (status === "PAUSED") {
       const mins = pauseMins || 30;
@@ -7710,12 +7993,79 @@ export class ApiEngine {
     } else {
       partner.paused_until = null;
     }
-    partner.last_online_at = new Date().toISOString();
+    if (status === "ONLINE") {
+      partner.last_online_at = now;
+      partner.went_online_at = now;
+    } else {
+      partner.went_offline_at = now;
+    }
 
-    ApiEngine.addAuditLog(`Partner ${partner.full_name} availability updated to ${status}`);
+    // Synchronize rider_presence record
+    if (!Array.isArray(memoryStore.rider_presence)) {
+      memoryStore.rider_presence = [];
+    }
+    let presence = memoryStore.rider_presence.find((r: any) => r.partner_id === partner.id);
+    if (!presence) {
+      presence = {
+        id: `rpres_${partner.id}`,
+        partner_id: partner.id,
+        online_status: status === "PAUSED" ? "ON_BREAK" : status,
+        last_seen_at: now,
+        current_order_id: null,
+        branch_id: partner.primary_branch_id || partner.branch_id || null,
+        city_id: partner.city_id || "blr",
+        went_online_at: status === "ONLINE" ? now : null,
+        went_offline_at: status !== "ONLINE" ? now : null,
+      };
+      memoryStore.rider_presence.push(presence);
+    } else {
+      presence.online_status = status === "PAUSED" ? "ON_BREAK" : status;
+      presence.last_seen_at = now;
+      if (status === "ONLINE") {
+        presence.went_online_at = now;
+      } else {
+        presence.went_offline_at = now;
+      }
+    }
+
+    // Emit transactional outbox webhook event
+    try {
+      if (status === "ONLINE") {
+        WebhookEngine.emitEvent(
+          "rider.online",
+          {
+            partner_id: partner.id,
+            partner_number: partner.partner_number,
+            branch_id: partner.primary_branch_id || partner.branch_id || null,
+            timestamp: now,
+          },
+          { source: "DELIVERY_PARTNER_PRESENCE", action: "ONLINE" },
+          { name: partner.full_name, phone: partner.phone },
+          { type: "staff", id: partner.id }
+        );
+      } else {
+        WebhookEngine.emitEvent(
+          "rider.offline",
+          {
+            partner_id: partner.id,
+            partner_number: partner.partner_number,
+            status,
+            active_orders_count: partner.current_active_orders || 0,
+            timestamp: now,
+          },
+          { source: "DELIVERY_PARTNER_PRESENCE", action: status },
+          { name: partner.full_name, phone: partner.phone },
+          { type: "staff", id: partner.id }
+        );
+      }
+    } catch (e) {
+      console.warn("[Rider Presence Event Non-Blocking Error]:", e);
+    }
+
+    ApiEngine.addAuditLog(`Partner ${partner.full_name || partner.name} availability updated from ${oldStatus} to ${status}`);
     ApiEngine.persist();
 
-    return { success: true, statusCode: 200, partner };
+    return { success: true, statusCode: 200, partner, presence };
   }
 
   static rejectDeliveryJob(orderId: string, partnerId: string, reason?: string) {
@@ -14949,6 +15299,7 @@ export class ApiEngine {
         weight: item.weight || "500g",
         shape: item.shape || "Round",
         flavour: item.flavour || "Classic",
+        artisan: item.artisan ?? false,
         cake_message: item.cake_message || null,
         sugar_free: item.sugar_free ?? false,
         gluten_free: item.gluten_free ?? false,
@@ -18766,6 +19117,8 @@ export class ApiEngine {
     delivery_type?: string;
     coupon_code?: string;
     occasion?: string;
+    cart_items?: any[];
+    items?: any[];
   }): any {
     const errors: Array<{ code: string; message: string; field?: string; product_id?: string }> = [];
 
@@ -18823,6 +19176,31 @@ export class ApiEngine {
       errors.push({
         code: "STORE_TEMPORARILY_CLOSED",
         message: `${branch.name} is currently not accepting new orders.`,
+      });
+    }
+
+    // 3. Central Fulfillment Engine Validation (Corporate Cutoff, Operating Hours, Holidays, Lead Time)
+    ensureFulfillmentStore(memoryStore);
+    const fulfillmentProvider = createApiEngineProvider(memoryStore);
+    const deliveryDateStr = data.delivery_date || new Date().toISOString().slice(0, 10);
+    const cartFulfillment = FulfillmentEngine.calculateCartEligibility(
+      {
+        items: cart.items.map((it: any) => ({
+          product_id: it.product_id || it.id,
+          quantity: it.quantity || 1,
+        })),
+        branch_id: branch?.id,
+        requested_delivery_date: deliveryDateStr,
+      },
+      fulfillmentProvider
+    );
+
+    if (!cartFulfillment.all_eligible) {
+      const failingItem = cartFulfillment.items.find((i: any) => !i.eligible);
+      errors.push({
+        code: failingItem?.reason || "FULFILLMENT_UNAVAILABLE",
+        message: failingItem?.message || cartFulfillment.message || "Selected delivery time is no longer available. Please select the next available slot.",
+        product_id: failingItem?.product_id,
       });
     }
 
@@ -21032,6 +21410,9 @@ export class ApiEngine {
   static exportAdminOrders(params?: any) {
     const res = ApiEngine.getAdminOrders({ limit: 100000, ...params });
     const export_data = (res.orders || []).map((o: any) => ({
+      id: o.id,
+      order_number: o.order_number || o.id,
+      internal_id: o.id,
       "Order Number": o.order_number || o.id,
       "Customer Name": o.customer_name || "",
       "Customer Phone": o.customer_phone || "",

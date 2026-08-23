@@ -5,6 +5,8 @@ import { TelemarketingEngine } from "@frontend/lib/telemarketing-engine";
 import { TelemarketingExportService } from "@frontend/lib/telemarketing-export-service";
 import { StaffAccessControl, PERMISSION_CATALOG } from "@frontend/lib/staff-access-control";
 import { normalizePhone, SYSTEM_SEGMENTS } from "@frontend/lib/crm/crm-engine";
+import { FulfillmentEngine, DeliverySlotGenerator, DEFAULT_SLOT_CONFIG } from "@frontend/lib/fulfillment";
+import { createApiEngineProvider, ensureFulfillmentStore, generateOtp, verifyOtp, getActiveOtp } from "@frontend/lib/fulfillment/api-engine-provider";
 
 const BACKEND_URL = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000";
 
@@ -575,7 +577,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const offset = url.searchParams.get("offset") ? Number(url.searchParams.get("offset")) : 0;
       const includeTestProducts = url.searchParams.get("include_test_products") === "true";
 
-      let rawProducts = ApiEngine.getProducts({
+      const searchResult = ApiEngine.searchProducts({
         q,
         category,
         flavour,
@@ -585,35 +587,47 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         min_price: minPrice,
         max_price: maxPrice,
         sort,
+        limit,
+        offset,
+        include_test_products: includeTestProducts,
       });
-
-      if (!includeTestProducts) {
-        rawProducts = rawProducts.filter((p: any) => {
-          const t = (p.title || p.name || "").toLowerCase();
-          return (
-            !t.startsWith("api test") &&
-            !t.startsWith("test cake") &&
-            !t.startsWith("e2e special") &&
-            !t.startsWith("empirical cake") &&
-            !t.startsWith("header verification")
-          );
-        });
-      }
-
-      const paged = rawProducts.slice(offset, offset + limit);
 
       return jsonWithDataSource(
         {
           success: true,
-          products: paged,
-          results: paged,
-          count: rawProducts.length,
-          total: rawProducts.length,
+          products: searchResult.products,
+          results: searchResult.results,
+          count: searchResult.total,
+          total: searchResult.total,
+          categories: searchResult.categories,
+          flavours: searchResult.flavours,
+          facets: searchResult.facets,
+          suggestions: searchResult.suggestions,
           limit,
           offset,
         },
         "json-fallback"
       );
+    }
+
+    // ── Search & Merchandising Engine Endpoints (GET) ──
+    if (path === "search/config") {
+      return jsonWithDataSource({ success: true, config: ApiEngine.getSearchConfig() }, "json-fallback");
+    }
+    if (path === "search/tags") {
+      return jsonWithDataSource({ success: true, tags: ApiEngine.getSearchTags() }, "json-fallback");
+    }
+    if (path === "search/synonyms") {
+      return jsonWithDataSource({ success: true, synonyms: ApiEngine.getSearchSynonyms() }, "json-fallback");
+    }
+    if (path === "search/rules" || path === "search/merchandising-rules") {
+      return jsonWithDataSource({ success: true, rules: ApiEngine.getSearchMerchandisingRules() }, "json-fallback");
+    }
+    if (path === "search/analytics") {
+      return jsonWithDataSource({ success: true, analytics: ApiEngine.getSearchAnalytics() }, "json-fallback");
+    }
+    if (path === "search/canonical-products") {
+      return jsonWithDataSource({ success: true, products: ApiEngine.getCanonicalProducts() }, "json-fallback");
     }
 
     if (
@@ -824,6 +838,83 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         coupon_code: url.searchParams.get("coupon_code") || undefined,
       });
       return jsonWithDataSource(result, "json-fallback");
+    }
+
+    // ── Centralized Fulfillment Engine Endpoints (GET) ──
+    if (path === "fulfillment/check" || path === "store/fulfillment/check" || path === "fulfillment/availability" || path === "store/fulfillment/availability") {
+      const store = ApiEngine.getStore();
+      const provider = createApiEngineProvider(store);
+      const result = FulfillmentEngine.calculateOrderAvailability(
+        {
+          product_id: url.searchParams.get("product_id") || "prod_default",
+          branch_id: url.searchParams.get("branch_id") || undefined,
+          city_id: url.searchParams.get("city_id") || undefined,
+          requested_delivery_date: url.searchParams.get("date") || undefined,
+          requested_delivery_time: url.searchParams.get("time") || undefined,
+        },
+        provider
+      );
+      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+    }
+
+    if (path === "fulfillment/operating-hours" || path === "admin/fulfillment/operating-hours") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      const entityType = url.searchParams.get("entity_type") || "organization";
+      const entityId = url.searchParams.get("entity_id") || "global";
+      const provider = createApiEngineProvider(store);
+      const hours = provider.getOperatingHours(entityType, entityId);
+      return jsonWithDataSource({ operating_hours: hours, count: hours.length, success: true }, "json-fallback");
+    }
+
+    if (path === "fulfillment/holidays" || path === "admin/fulfillment/holidays") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      const provider = createApiEngineProvider(store);
+      const holidays = provider.getHolidays();
+      return jsonWithDataSource({ holidays, count: holidays.length, success: true }, "json-fallback");
+    }
+
+    if (path === "fulfillment/slots" || path === "store/fulfillment/slots") {
+      const store = ApiEngine.getStore();
+      const provider = createApiEngineProvider(store);
+      const globalConfig = provider.getGlobalConfig();
+      const productId = url.searchParams.get("product_id") || null;
+      const branchId = url.searchParams.get("branch_id") || null;
+      let effectivePrepMinutes = globalConfig.default_preparation_time_minutes;
+      let deliveryBufferMinutes = globalConfig.default_delivery_buffer_minutes;
+
+      if (productId) {
+        const effConfig = FulfillmentEngine.resolveEffectiveConfig(
+          productId, branchId, globalConfig, provider
+        );
+        effectivePrepMinutes = effConfig.preparation_time_minutes
+          + (effConfig.preparation_delay_enabled ? effConfig.preparation_delay_minutes : 0);
+        deliveryBufferMinutes = effConfig.delivery_buffer_minutes;
+      }
+
+      const daysAhead = Number(url.searchParams.get("days") || DEFAULT_SLOT_CONFIG.days_ahead);
+      const slots = DeliverySlotGenerator.generateSlots(
+        branchId,
+        effectivePrepMinutes,
+        deliveryBufferMinutes,
+        provider,
+        { ...DEFAULT_SLOT_CONFIG, days_ahead: daysAhead }
+      );
+      return jsonWithDataSource({ slots, count: slots.length, success: true }, "json-fallback");
+    }
+
+    if (path === "fulfillment/config" || path === "admin/fulfillment/config") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      return jsonWithDataSource({
+        config: store.fulfillment_config,
+        operating_hours: store.operating_hours || [],
+        holidays: store.holidays || [],
+        product_rules_count: (store.product_fulfillment_rules || []).length,
+        rider_presence_count: (store.rider_presence || []).length,
+        success: true,
+      }, "json-fallback");
     }
 
     if (path === "orders" || path === "store/orders") {
@@ -1903,6 +1994,200 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource(result, "json-fallback");
     }
 
+    // ── Centralized Fulfillment Engine Endpoints (POST) ──
+    if (path === "fulfillment/check" || path === "store/fulfillment/check" || path === "fulfillment/availability" || path === "store/fulfillment/availability") {
+      const store = ApiEngine.getStore();
+      const provider = createApiEngineProvider(store);
+      const result = FulfillmentEngine.calculateOrderAvailability(
+        {
+          product_id: body.product_id || (body.items && body.items[0]?.product_id) || "prod_default",
+          items: body.items,
+          productItems: body.productItems,
+          branch_id: body.branch_id,
+          city_id: body.city_id,
+          requested_delivery_date: body.date || body.requested_delivery_date || body.requestedDate,
+          requested_delivery_time: body.time || body.requested_delivery_time || body.requestedTime,
+          current_datetime: body.current_datetime || body.currentBusinessTime,
+        },
+        provider
+      );
+      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+    }
+
+    if (path === "fulfillment/cart-check" || path === "store/fulfillment/cart-check" || path === "fulfillment/cart-availability" || path === "store/fulfillment/cart-availability") {
+      const store = ApiEngine.getStore();
+      const provider = createApiEngineProvider(store);
+      const result = FulfillmentEngine.calculateCartEligibility(
+        {
+          items: (body.items || body.productItems || []).map((item: any) => ({
+            product_id: item.product_id || item.id,
+            quantity: item.quantity || 1,
+          })),
+          branch_id: body.branch_id,
+          city_id: body.city_id,
+          requested_delivery_date: body.date || body.requested_delivery_date || body.requestedDate,
+          requested_delivery_time: body.time || body.requested_delivery_time || body.requestedTime,
+          current_datetime: body.current_datetime || body.currentBusinessTime,
+        },
+        provider
+      );
+
+      // Also generate delivery slots based on the strictest item
+      const globalConfig = provider.getGlobalConfig();
+      const slots = DeliverySlotGenerator.generateSlots(
+        body.branch_id || null,
+        result.effective_preparation_minutes,
+        globalConfig.default_delivery_buffer_minutes,
+        provider
+      );
+      result.delivery_slots = slots;
+
+      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+    }
+
+    if (path === "fulfillment/otp/generate" || path === "admin/fulfillment/otp/generate") {
+      const store = ApiEngine.getStore();
+      if (!body.order_id) {
+        return jsonWithDataSource({ success: false, message: "order_id is required" }, "json-fallback", 400);
+      }
+      const otpType = body.otp_type === "pickup" ? "pickup" : "delivery";
+      const code = generateOtp(store, body.order_id, otpType);
+      ApiEngine.persist();
+      return jsonWithDataSource({
+        success: true,
+        otp_type: otpType,
+        order_id: body.order_id,
+        message: `OTP generated for ${otpType} verification.`,
+        // Code is returned for dev/demo but should be sent via SMS/WhatsApp in production
+        code,
+        expires_in_seconds: 300,
+      }, "json-fallback");
+    }
+
+    if (path === "fulfillment/otp/verify" || path === "admin/fulfillment/otp/verify") {
+      const store = ApiEngine.getStore();
+      if (!body.order_id || !body.code) {
+        return jsonWithDataSource({ success: false, message: "order_id and code are required" }, "json-fallback", 400);
+      }
+      const otpType = body.otp_type === "pickup" ? "pickup" : "delivery";
+      const verifiedBy = body.verified_by || body.rider_id || "system";
+      const result = verifyOtp(store, body.order_id, otpType, body.code, verifiedBy);
+      ApiEngine.persist();
+      return jsonWithDataSource({
+        success: result.valid,
+        verified: result.valid,
+        message: result.reason,
+        otp_type: otpType,
+        order_id: body.order_id,
+      }, "json-fallback", result.valid ? 200 : 400);
+    }
+
+    if (path === "admin/fulfillment/config" || path === "fulfillment/config") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      // Merge incoming config with existing
+      store.fulfillment_config = {
+        ...store.fulfillment_config,
+        ...body,
+        updated_at: new Date().toISOString(),
+      };
+      ApiEngine.persist();
+      return jsonWithDataSource({ config: store.fulfillment_config, success: true }, "json-fallback");
+    }
+
+    if (path === "admin/fulfillment/product-rules" || path === "fulfillment/product-rules") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      if (!body.product_id) {
+        return jsonWithDataSource({ success: false, message: "product_id is required" }, "json-fallback", 400);
+      }
+      const idx = store.product_fulfillment_rules.findIndex(
+        (r: any) => r.product_id === body.product_id
+      );
+      const ruleObj: any = {
+        id: body.id || `pfr_${body.product_id}`,
+        product_id: body.product_id,
+        instant_delivery_enabled: body.instant_delivery_enabled ?? true,
+        same_day_delivery_enabled: body.same_day_delivery_enabled ?? true,
+        pre_order_enabled: body.pre_order_enabled ?? false,
+        minimum_lead_time_minutes: body.minimum_lead_time_minutes ?? 0,
+        minimum_lead_time_days: body.minimum_lead_time_days ?? 0,
+        order_cutoff_time: body.order_cutoff_time ?? null,
+        preparation_time_minutes: body.preparation_time_minutes ?? 60,
+        preparation_delay_enabled: body.preparation_delay_enabled ?? false,
+        preparation_delay_minutes: body.preparation_delay_minutes ?? 0,
+        delivery_buffer_minutes: body.delivery_buffer_minutes ?? 30,
+        custom_delivery_rules: body.custom_delivery_rules ?? null,
+        updated_at: new Date().toISOString(),
+      };
+      if (idx >= 0) {
+        store.product_fulfillment_rules[idx] = ruleObj;
+      } else {
+        ruleObj.created_at = new Date().toISOString();
+        store.product_fulfillment_rules.push(ruleObj);
+      }
+      ApiEngine.persist();
+      return jsonWithDataSource({ rules: ruleObj, success: true }, "json-fallback");
+    }
+
+    if (path === "admin/fulfillment/operating-hours" || path === "fulfillment/operating-hours") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      if (!body.entity_type || !body.entity_id || body.day_of_week == null) {
+        return jsonWithDataSource({ success: false, message: "entity_type, entity_id, and day_of_week are required" }, "json-fallback", 400);
+      }
+      const idx = store.operating_hours.findIndex(
+        (h: any) => h.entity_type === body.entity_type && h.entity_id === body.entity_id && h.day_of_week === body.day_of_week
+      );
+      const hourObj = {
+        id: body.id || `oph_${body.entity_type}_${body.entity_id}_${body.day_of_week}`,
+        entity_type: body.entity_type,
+        entity_id: body.entity_id,
+        day_of_week: body.day_of_week,
+        is_open: body.is_open !== false,
+        opening_time: body.opening_time || "09:00",
+        closing_time: body.closing_time || "22:00",
+        last_order_time: body.last_order_time || null,
+        timezone: body.timezone || "Asia/Kolkata",
+      };
+      if (idx >= 0) {
+        store.operating_hours[idx] = hourObj;
+      } else {
+        store.operating_hours.push(hourObj);
+      }
+      ApiEngine.persist();
+      return jsonWithDataSource({ operating_hours: hourObj, success: true }, "json-fallback");
+    }
+
+    if (path === "admin/fulfillment/holidays" || path === "fulfillment/holidays") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      if (!body.date || !body.name) {
+        return jsonWithDataSource({ success: false, message: "date and name are required" }, "json-fallback", 400);
+      }
+      const holiday = {
+        id: body.id || `hol_${body.entity_type || "organization"}_${body.date}`,
+        entity_type: body.entity_type || "organization",
+        entity_id: body.entity_id || "global",
+        date: body.date,
+        name: body.name,
+        is_full_day: body.is_full_day !== false,
+        opening_time: body.opening_time || null,
+        closing_time: body.closing_time || null,
+      };
+      // Check if holiday already exists for this entity+date
+      const existIdx = store.holidays.findIndex(
+        (h: any) => h.entity_type === holiday.entity_type && h.entity_id === holiday.entity_id && h.date === holiday.date
+      );
+      if (existIdx >= 0) {
+        store.holidays[existIdx] = holiday;
+      } else {
+        store.holidays.push(holiday);
+      }
+      ApiEngine.persist();
+      return jsonWithDataSource({ holiday, success: true }, "json-fallback");
+    }
+
     if (path === "checkout/validate" || path === "store/checkout/validate") {
       const result = ApiEngine.validateCheckout(body);
       return jsonWithDataSource(result, "json-fallback", result.valid ? 200 : 400);
@@ -2382,6 +2667,17 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
     // CMS Configurator
     if (path === "cms/pages") return jsonWithDataSource({ page: ApiEngine.createCmsPage(body) }, "json-fallback");
+
+    // ── Search & Merchandising Engine Endpoints (POST) ──
+    if (path === "search/tags") {
+      return jsonWithDataSource({ success: true, tag: ApiEngine.saveSearchTag(body) }, "json-fallback");
+    }
+    if (path === "search/synonyms") {
+      return jsonWithDataSource({ success: true, synonym: ApiEngine.saveSearchSynonym(body) }, "json-fallback");
+    }
+    if (path === "search/rules" || path === "search/merchandising-rules") {
+      return jsonWithDataSource({ success: true, rule: ApiEngine.saveSearchMerchandisingRule(body) }, "json-fallback");
+    }
     if (path.startsWith("cms/pages/") && path.endsWith("/duplicate")) {
       const pageId = path.replace("cms/pages/", "").replace("/duplicate", "");
       return jsonWithDataSource({ page: ApiEngine.duplicateCmsPage(pageId) }, "json-fallback");
@@ -3079,6 +3375,23 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       }
     }
 
+    // ── Search & Merchandising Engine Endpoints (PUT) ──
+    if (path === "search/config" || path === "search/weights") {
+      return jsonWithDataSource({ success: true, weights: ApiEngine.updateSearchWeights(body) }, "json-fallback");
+    }
+    if (path.startsWith("search/tags/")) {
+      const tagId = path.replace("search/tags/", "");
+      return jsonWithDataSource({ success: true, tag: ApiEngine.saveSearchTag({ ...body, tag_id: tagId }) }, "json-fallback");
+    }
+    if (path.startsWith("search/synonyms/")) {
+      const synId = path.replace("search/synonyms/", "");
+      return jsonWithDataSource({ success: true, synonym: ApiEngine.saveSearchSynonym({ ...body, id: synId }) }, "json-fallback");
+    }
+    if (path.startsWith("search/rules/")) {
+      const ruleId = path.replace("search/rules/", "");
+      return jsonWithDataSource({ success: true, rule: ApiEngine.saveSearchMerchandisingRule({ ...body, id: ruleId }) }, "json-fallback");
+    }
+
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
       return jsonWithDataSource({ page: ApiEngine.updateCmsPage(pageId, body) }, "json-fallback");
@@ -3345,6 +3658,20 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     if (path.startsWith("admin/catalog/products/")) {
       const id = path.replace("admin/catalog/products/", "");
       return jsonWithDataSource({ deleted: ApiEngine.deleteAdminProduct(id), success: true }, "json-fallback");
+    }
+
+    // ── Search & Merchandising Engine Endpoints (DELETE) ──
+    if (path.startsWith("search/tags/")) {
+      const tagId = path.replace("search/tags/", "");
+      return jsonWithDataSource(ApiEngine.deleteSearchTag(tagId), "json-fallback");
+    }
+    if (path.startsWith("search/synonyms/")) {
+      const synId = path.replace("search/synonyms/", "");
+      return jsonWithDataSource(ApiEngine.deleteSearchSynonym(synId), "json-fallback");
+    }
+    if (path.startsWith("search/rules/")) {
+      const ruleId = path.replace("search/rules/", "");
+      return jsonWithDataSource(ApiEngine.deleteSearchMerchandisingRule(ruleId), "json-fallback");
     }
 
     if (path.startsWith("admin/abandoned-carts/campaigns/")) {

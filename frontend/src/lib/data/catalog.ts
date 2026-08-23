@@ -45,6 +45,10 @@ export interface SearchResponse {
   count: number;
   offset: number;
   limit: number;
+  categories?: CategoryOption[];
+  flavours?: string[];
+  facets?: any;
+  suggestions?: string[];
 }
 
 export interface SearchFilters {
@@ -143,49 +147,25 @@ export interface Subscription {
 
 export async function searchProducts(filters: SearchFilters = {}): Promise<SearchResponse> {
   try {
-    let rawList: any[] = [];
-    try {
-      rawList = ApiEngine.getProducts({
-        branchId: filters.shop_id,
-        pincode: filters.pincode,
-        category: filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id),
-        flavour: filters.flavour,
-        weight: filters.weight,
-        min_price: filters.min_price,
-        max_price: filters.max_price,
-        q: filters.q,
-        sort: filters.sort,
-      });
-    } catch {
-      rawList = [];
-    }
+    const categoryVal = filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id);
+    const searchRes = ApiEngine.searchProducts({
+      q: filters.q,
+      category: categoryVal,
+      flavour: filters.flavour,
+      weight: filters.weight,
+      min_price: filters.min_price,
+      max_price: filters.max_price,
+      branchId: filters.shop_id,
+      pincode: filters.pincode,
+      limit: filters.limit || 48,
+      offset: filters.offset || 0,
+      sort: filters.sort,
+      include_test_products: filters.include_test_products,
+    });
 
-    if (!rawList || rawList.length === 0) {
-      if (typeof window !== "undefined") {
-        try {
-          const res: any = await apiClient.getProducts({
-            branchId: filters.shop_id,
-            pincode: filters.pincode,
-            category: filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id),
-            flavour: filters.flavour,
-            weight: filters.weight,
-            min_price: filters.min_price,
-            max_price: filters.max_price,
-            q: filters.q,
-            sort: filters.sort,
-          });
-          rawList = res?.products || res?.results || res?.data || [];
-        } catch {}
-      }
-    }
-
-    if (!rawList || rawList.length === 0) {
-      rawList = DEFAULT_CATALOG_PRODUCTS;
-    }
-
-    let list: SearchResult[] = rawList.map((p: any) => ({
+    let mappedResults: SearchResult[] = searchRes.products.map((p: any) => ({
       product_id: p.id || p.product_id,
-      variant_id: p.variant_id || `var_${p.id}`,
+      variant_id: p.variant_id || `var_${p.id || p.product_id}`,
       title: p.title || p.name || "Gourmet Cake",
       description: p.description || p.short_description || "Freshly baked cake.",
       thumbnail: p.thumbnail === "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800"
@@ -205,140 +185,36 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
       is_out_of_stock_at_branch: Boolean(p.is_out_of_stock_at_branch),
       primary_category_id: p.primary_category_id,
       category: p.category || (p.categories && p.categories[0]?.name) || "Chocolate Cakes",
-      category_slug: p.category_slug || (p.categories && p.categories[0]?.slug) || "chocolate-cakes",
+      category_slug: p.category_slug || (p.category ? p.category.toLowerCase().replace(/[^a-z0-9]+/g, "-") : (p.categories && p.categories[0]?.slug) || "chocolate-cakes"),
       category_ids: p.category_ids || [],
       categories: p.categories || [],
       flavour: p.flavour || p.flavour_name || p.cake_base || "Chocolate",
       weight: p.weight || "1 kg",
     }));
 
-    // Filter out seed/test products created by automated tests unless explicitly requested
-    if (!filters.include_test_products) {
-      list = list.filter((p: any) => {
-        const titleLower = (p.title || p.name || "").toLowerCase();
-        return (
-          !titleLower.startsWith("api test") &&
-          !titleLower.startsWith("test cake") &&
-          !titleLower.startsWith("e2e special") &&
-          !titleLower.startsWith("empirical cake") &&
-          !titleLower.startsWith("header verification")
-        );
-      });
-    }
-
-    // Branch availability filter
-    list = list.filter((p: any) => {
-      if (p.is_out_of_stock_at_branch) return false;
-      const st = (p.branch_status || "").toUpperCase();
-      return st !== "OUT_OF_STOCK" && st !== "HIDDEN" && st !== "RESTRICTED";
-    });
-
-    // Search query filter
-    if (filters.q && filters.q.trim()) {
-      const q = filters.q.trim().toLowerCase();
-      list = list.filter((p: any) => {
-        const text = [p.title, p.description, p.category, p.flavour, p.weight].filter(Boolean).join(" ").toLowerCase();
-        return text.includes(q);
-      });
-    }
-
-    // Category Filter (supports slug, id, name)
-    if (filters.category || filters.category_id) {
-      const catVal = (filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id) || "").toLowerCase().trim();
-      if (catVal && catVal !== "all" && catVal !== "all categories") {
-        list = list.filter((p: any) => {
-          const pCatSlug = (p.category_slug || "").toLowerCase();
-          const pCatName = (p.category || "").toLowerCase();
-          const pPrimId = (p.primary_category_id || "").toLowerCase();
-          const hasMatchingCat = Array.isArray(p.categories) && p.categories.some((c: any) =>
-            c.slug?.toLowerCase() === catVal || c.id?.toLowerCase() === catVal || c.name?.toLowerCase() === catVal
-          );
-          const hasMatchingId = Array.isArray(p.category_ids) && p.category_ids.some((id: string) => id.toLowerCase() === catVal);
-
-          return (
-            hasMatchingCat ||
-            hasMatchingId ||
-            pCatSlug === catVal ||
-            pCatName === catVal ||
-            pPrimId === catVal ||
-            pCatSlug.includes(catVal) ||
-            catVal.includes(pCatSlug)
-          );
-        });
-      }
-    }
-
-    // Flavour Filter
-    if (filters.flavour && filters.flavour.toLowerCase() !== "all") {
-      const flavLower = filters.flavour.toLowerCase();
-      list = list.filter((p: any) => {
-        const pTitle = (p.title || "").toLowerCase();
-        const pDesc = (p.description || "").toLowerCase();
-        const pFlav = (p.flavour || "").toLowerCase();
-        return pTitle.includes(flavLower) || pDesc.includes(flavLower) || pFlav.includes(flavLower);
-      });
-    }
-
-    // Weight Filter
-    if (filters.weight && filters.weight.toLowerCase() !== "all") {
-      const wLower = filters.weight.toLowerCase();
-      list = list.filter((p: any) => {
-        const text = [p.title, p.weight, p.description].filter(Boolean).join(" ").toLowerCase();
-        return text.includes(wLower) || wLower.includes((p.weight || "").toLowerCase());
-      });
-    }
-
-    // Price Range Filter
-    if (typeof filters.min_price === "number") {
-      list = list.filter((p: any) => p.price >= (filters.min_price as number));
-    }
-    if (typeof filters.max_price === "number") {
-      list = list.filter((p: any) => p.price <= (filters.max_price as number));
-    }
-
     // Dietary Switches
     if (filters.sugar_free !== undefined) {
-      list = list.filter((p: any) => Boolean(p.sugar_free) === filters.sugar_free);
+      mappedResults = mappedResults.filter((p) => Boolean(p.sugar_free) === filters.sugar_free);
     }
     if (filters.gluten_free !== undefined) {
-      list = list.filter((p: any) => Boolean(p.gluten_free) === filters.gluten_free);
+      mappedResults = mappedResults.filter((p) => Boolean(p.gluten_free) === filters.gluten_free);
     }
     if (filters.vegan !== undefined) {
-      list = list.filter((p: any) => Boolean(p.vegan) === filters.vegan);
+      mappedResults = mappedResults.filter((p) => Boolean(p.vegan) === filters.vegan);
     }
 
-    // Merchandising Flags
-    if (filters.is_featured) {
-      list = list.filter((p: any) => Boolean(p.is_featured));
-    }
-    if (filters.is_bestseller) {
-      list = list.filter((p: any) => Boolean(p.is_bestseller));
-    }
-    if (filters.is_new_arrival) {
-      list = list.filter((p: any) => Boolean(p.is_new_arrival));
-    }
-
-    // Sorting Logic
-    if (filters.sort) {
-      if (filters.sort === "price_asc") {
-        list.sort((a: any, b: any) => (a.price || 0) - (b.price || 0));
-      } else if (filters.sort === "price_desc") {
-        list.sort((a: any, b: any) => (b.price || 0) - (a.price || 0));
-      } else if (filters.sort === "rating") {
-        list.sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0));
-      } else if (filters.sort === "newest") {
-        list.sort((a: any, b: any) => (b.is_new_arrival ? 1 : 0) - (a.is_new_arrival ? 1 : 0));
-      } else if (filters.sort === "bestseller") {
-        list.sort((a: any, b: any) => (b.is_bestseller ? 1 : 0) - (a.is_bestseller ? 1 : 0));
-      }
-    }
-
-    const limit = filters.limit || 48;
-    const offset = filters.offset || 0;
-    const sliced = list.slice(offset, offset + limit);
-
-    return { results: sliced, count: list.length, offset, limit };
-  } catch {
+    return {
+      results: mappedResults,
+      count: searchRes.total,
+      offset: searchRes.offset,
+      limit: searchRes.limit,
+      categories: searchRes.categories,
+      flavours: searchRes.flavours,
+      facets: searchRes.facets,
+      suggestions: searchRes.suggestions,
+    };
+  } catch (err) {
+    console.error("[searchProducts Data Layer Error]", err);
     return { results: [], count: 0, offset: 0, limit: 20 };
   }
 }

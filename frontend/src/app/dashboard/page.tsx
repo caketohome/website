@@ -113,12 +113,22 @@ const SettingsPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/settings-panel"),
   "SettingsPanel"
 );
+const FulfillmentConfigPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/fulfillment-config-panel"),
+  "FulfillmentConfigPanel"
+);
+const SearchConfigPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/search-config-panel").then((mod) => ({ default: mod.SearchConfigPanel })),
+  "SearchConfigPanel"
+);
 
 const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   orders: OrdersPanel,
   catalog: CatalogPanel,
+  search_engine: SearchConfigPanel,
   branches: BranchesPanel,
   delivery: DeliveryPanel,
+  fulfillment: FulfillmentConfigPanel,
   tax_master: TaxMasterPanel,
   abandoned_carts: AbandonedCartPanel,
   telemarketing: TelemarketingPanel,
