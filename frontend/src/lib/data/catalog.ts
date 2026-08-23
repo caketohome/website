@@ -4,6 +4,14 @@
  */
 
 import { apiClient } from "../api-client";
+import { ApiEngine } from "../api-engine";
+
+export interface CategoryOption {
+  id: string;
+  name: string;
+  slug: string;
+  product_count?: number;
+}
 
 export interface SearchResult {
   product_id: string;
@@ -22,6 +30,10 @@ export interface SearchResult {
   is_bestseller: boolean;
   is_new_arrival: boolean;
   category?: string;
+  category_slug?: string;
+  primary_category_id?: string;
+  category_ids?: string[];
+  categories?: Array<{ id: string; name: string; slug: string; description?: string }>;
   flavour?: string;
   weight?: string;
   branch_status?: string;
@@ -33,6 +45,10 @@ export interface SearchResponse {
   count: number;
   offset: number;
   limit: number;
+  categories?: CategoryOption[];
+  flavours?: string[];
+  facets?: any;
+  suggestions?: string[];
 }
 
 export interface SearchFilters {
@@ -58,7 +74,7 @@ export interface SearchFilters {
 }
 
 export interface CatalogFilterOptions {
-  categories: string[];
+  categories: CategoryOption[];
   flavours: string[];
   weights: string[];
   minPrice: number;
@@ -95,6 +111,21 @@ export interface WishlistItem {
   id: string;
   product_id: string;
   created_at?: string;
+  title?: string;
+  name?: string;
+  thumbnail?: string | null;
+  price?: number | null;
+  selling_price?: number | null;
+  mrp?: number | null;
+  rating?: number;
+  review_count?: number;
+  category?: string;
+  category_slug?: string;
+  weight?: string;
+  weight_prices?: any[];
+  is_available?: boolean;
+  variant_id?: string;
+  shop_id?: string;
 }
 
 export interface StockNotification {
@@ -116,15 +147,30 @@ export interface Subscription {
 
 export async function searchProducts(filters: SearchFilters = {}): Promise<SearchResponse> {
   try {
-    const res: any = await apiClient.getProducts({ branchId: filters.shop_id });
-    const rawList: any[] = res?.products || res?.results || res?.data || [];
+    const categoryVal = filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id);
+    const searchRes = ApiEngine.searchProducts({
+      q: filters.q,
+      category: categoryVal,
+      flavour: filters.flavour,
+      weight: filters.weight,
+      min_price: filters.min_price,
+      max_price: filters.max_price,
+      branchId: filters.shop_id,
+      pincode: filters.pincode,
+      limit: filters.limit || 48,
+      offset: filters.offset || 0,
+      sort: filters.sort,
+      include_test_products: filters.include_test_products,
+    });
 
-    let list = rawList.map((p: any) => ({
+    let mappedResults: SearchResult[] = searchRes.products.map((p: any) => ({
       product_id: p.id || p.product_id,
-      variant_id: p.variant_id || `var_${p.id}`,
+      variant_id: p.variant_id || `var_${p.id || p.product_id}`,
       title: p.title || p.name || "Gourmet Cake",
       description: p.description || p.short_description || "Freshly baked cake.",
-      thumbnail: p.thumbnail || p.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
+      thumbnail: p.thumbnail === "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800"
+        ? "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800"
+        : (p.thumbnail || p.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587"),
       handle: p.handle || p.slug || "cake",
       price: Math.max(1, Number(p.price || p.selling_price) || 599),
       rating: Number(p.rating) || 4.9,
@@ -137,134 +183,76 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
       is_new_arrival: Boolean(p.is_new_arrival),
       branch_status: p.branch_status || "AVAILABLE",
       is_out_of_stock_at_branch: Boolean(p.is_out_of_stock_at_branch),
-      category: p.category || p.primary_category_id || "Artisanal Cakes",
+      primary_category_id: p.primary_category_id,
+      category: p.category || (p.categories && p.categories[0]?.name) || "Chocolate Cakes",
+      category_slug: p.category_slug || (p.category ? p.category.toLowerCase().replace(/[^a-z0-9]+/g, "-") : (p.categories && p.categories[0]?.slug) || "chocolate-cakes"),
+      category_ids: p.category_ids || [],
+      categories: p.categories || [],
       flavour: p.flavour || p.flavour_name || p.cake_base || "Chocolate",
       weight: p.weight || "1 kg",
-      tags: p.tags || [],
     }));
-
-    // Filter out seed/test products created by automated tests unless explicitly requested
-    if (!filters.include_test_products) {
-      list = list.filter((p: any) => {
-        const titleLower = (p.title || p.name || "").toLowerCase();
-        return (
-          !titleLower.startsWith("api test") &&
-          !titleLower.startsWith("test cake") &&
-          !titleLower.startsWith("e2e special") &&
-          !titleLower.startsWith("empirical cake") &&
-          !titleLower.startsWith("header verification")
-        );
-      });
-    }
-
-    // Branch availability filter
-    list = list.filter((p: any) => {
-      if (p.is_out_of_stock_at_branch) return false;
-      const st = (p.branch_status || "").toUpperCase();
-      return st !== "OUT_OF_STOCK" && st !== "HIDDEN" && st !== "RESTRICTED";
-    });
-
-    // Search query filter
-    if (filters.q && filters.q.trim()) {
-      const q = filters.q.trim().toLowerCase();
-      list = list.filter((p: any) => {
-        const text = [p.title, p.description, p.category, p.flavour, p.weight].filter(Boolean).join(" ").toLowerCase();
-        return text.includes(q);
-      });
-    }
-
-    // Category Filter
-    if (filters.category || filters.category_id) {
-      const catVal = (filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id) || "").toLowerCase();
-      if (catVal && catVal !== "all") {
-        list = list.filter((p: any) => {
-          const pCat = (p.category || "").toLowerCase();
-          const pTitle = (p.title || "").toLowerCase();
-          return pCat.includes(catVal) || pTitle.includes(catVal) || catVal.includes(pCat);
-        });
-      }
-    }
-
-    // Flavour Filter
-    if (filters.flavour && filters.flavour.toLowerCase() !== "all") {
-      const flavLower = filters.flavour.toLowerCase();
-      list = list.filter((p: any) => {
-        const pTitle = (p.title || "").toLowerCase();
-        const pDesc = (p.description || "").toLowerCase();
-        const pFlav = (p.flavour || "").toLowerCase();
-        return pTitle.includes(flavLower) || pDesc.includes(flavLower) || pFlav.includes(flavLower);
-      });
-    }
-
-    // Weight Filter
-    if (filters.weight && filters.weight.toLowerCase() !== "all") {
-      const wLower = filters.weight.toLowerCase();
-      list = list.filter((p: any) => {
-        const text = [p.title, p.weight, p.description].filter(Boolean).join(" ").toLowerCase();
-        return text.includes(wLower) || wLower.includes((p.weight || "").toLowerCase());
-      });
-    }
-
-    // Price Range Filter
-    if (typeof filters.min_price === "number") {
-      list = list.filter((p: any) => p.price >= (filters.min_price as number));
-    }
-    if (typeof filters.max_price === "number") {
-      list = list.filter((p: any) => p.price <= (filters.max_price as number));
-    }
 
     // Dietary Switches
     if (filters.sugar_free !== undefined) {
-      list = list.filter((p: any) => Boolean(p.sugar_free) === filters.sugar_free);
+      mappedResults = mappedResults.filter((p) => Boolean(p.sugar_free) === filters.sugar_free);
     }
     if (filters.gluten_free !== undefined) {
-      list = list.filter((p: any) => Boolean(p.gluten_free) === filters.gluten_free);
+      mappedResults = mappedResults.filter((p) => Boolean(p.gluten_free) === filters.gluten_free);
     }
     if (filters.vegan !== undefined) {
-      list = list.filter((p: any) => Boolean(p.vegan) === filters.vegan);
+      mappedResults = mappedResults.filter((p) => Boolean(p.vegan) === filters.vegan);
     }
 
-    // Merchandising Flags
-    if (filters.is_featured) {
-      list = list.filter((p: any) => Boolean(p.is_featured));
-    }
-    if (filters.is_bestseller) {
-      list = list.filter((p: any) => Boolean(p.is_bestseller));
-    }
-    if (filters.is_new_arrival) {
-      list = list.filter((p: any) => Boolean(p.is_new_arrival));
-    }
-
-    // Sorting Logic
-    if (filters.sort) {
-      if (filters.sort === "price_asc") {
-        list.sort((a: any, b: any) => (a.price || 0) - (b.price || 0));
-      } else if (filters.sort === "price_desc") {
-        list.sort((a: any, b: any) => (b.price || 0) - (a.price || 0));
-      } else if (filters.sort === "rating") {
-        list.sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0));
-      } else if (filters.sort === "newest") {
-        list.sort((a: any, b: any) => (b.is_new_arrival ? 1 : 0) - (a.is_new_arrival ? 1 : 0));
-      } else if (filters.sort === "bestseller") {
-        list.sort((a: any, b: any) => (b.is_bestseller ? 1 : 0) - (a.is_bestseller ? 1 : 0));
-      }
-    }
-
-    const limit = filters.limit || 48;
-    const offset = filters.offset || 0;
-    const sliced = list.slice(offset, offset + limit);
-
-    return { results: sliced, count: list.length, offset, limit };
-  } catch {
+    return {
+      results: mappedResults,
+      count: searchRes.total,
+      offset: searchRes.offset,
+      limit: searchRes.limit,
+      categories: searchRes.categories,
+      flavours: searchRes.flavours,
+      facets: searchRes.facets,
+      suggestions: searchRes.suggestions,
+    };
+  } catch (err) {
+    console.error("[searchProducts Data Layer Error]", err);
     return { results: [], count: 0, offset: 0, limit: 20 };
   }
 }
 
 export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
   try {
-    const res: any = await apiClient.getProducts();
-    const rawList: any[] = res?.products || res?.results || res?.data || [];
+    let categoriesList: CategoryOption[] = [];
+    let rawList: any[] = [];
 
+    try {
+      const cats = ApiEngine.getCategories();
+      categoriesList = cats.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        product_count: typeof c.product_count === "number" ? c.product_count : 0,
+      }));
+      rawList = ApiEngine.getProducts();
+    } catch {
+      categoriesList = [];
+      rawList = [];
+    }
+
+    if (categoriesList.length === 0 && typeof window !== "undefined") {
+      const [catRes, prodRes]: [any, any] = await Promise.all([
+        apiClient.getCategories().catch(() => null),
+        apiClient.getProducts().catch(() => null),
+      ]);
+
+      categoriesList = (catRes?.categories || catRes?.results || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        product_count: typeof c.product_count === "number" ? c.product_count : 0,
+      }));
+
+      rawList = prodRes?.products || prodRes?.results || prodRes?.data || [];
+    }
     const validProducts = rawList.filter((p: any) => {
       const titleLower = (p.title || p.name || "").toLowerCase();
       return (
@@ -276,42 +264,14 @@ export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
       );
     });
 
-    const categoriesSet = new Set<string>();
     const flavoursSet = new Set<string>();
     const weightsSet = new Set<string>();
     let minPrice = Infinity;
     let maxPrice = -Infinity;
 
-    // Preset fallbacks
-    const defaultCategories = [
-      "Chocolate Cakes",
-      "Red Velvet Cakes",
-      "Fruit Cakes",
-      "Black Forest Cakes",
-      "Butterscotch Cakes",
-      "Cheesecakes",
-      "Artisanal Cakes",
-      "Pastries & Sweets",
-    ];
-    defaultCategories.forEach((c) => categoriesSet.add(c));
-
-    const defaultFlavours = [
-      "Chocolate",
-      "Red Velvet",
-      "Mango",
-      "Black Forest",
-      "Butterscotch",
-      "Vanilla",
-      "Fruit",
-    ];
-    defaultFlavours.forEach((f) => flavoursSet.add(f));
-
-    const defaultWeights = ["0.5 kg", "1 kg", "1.5 kg", "2 kg", "2.5 kg", "3 kg+"];
-    defaultWeights.forEach((w) => weightsSet.add(w));
-
     validProducts.forEach((p: any) => {
-      if (p.category) categoriesSet.add(p.category);
       if (p.flavour) flavoursSet.add(p.flavour);
+      if (p.weight) weightsSet.add(p.weight);
       const pPrice = Number(p.price || p.selling_price || 0);
       if (pPrice > 0) {
         if (pPrice < minPrice) minPrice = pPrice;
@@ -319,20 +279,39 @@ export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
       }
     });
 
+    ["Chocolate", "Red Velvet", "Mango", "Black Forest", "Butterscotch"].forEach((f) => flavoursSet.add(f));
+    ["0.5 kg", "1 kg", "1.5 kg", "2 kg"].forEach((w) => weightsSet.add(w));
+
     return {
-      categories: Array.from(categoriesSet),
+      categories: categoriesList.length > 0 ? categoriesList : [
+        { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", product_count: 2 },
+        { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", product_count: 1 },
+        { id: "cat_fruit_mousse", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes", product_count: 1 },
+        { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes", product_count: 1 },
+        { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes", product_count: 1 },
+        { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", product_count: 1 },
+        { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", product_count: 3 },
+      ],
       flavours: Array.from(flavoursSet),
       weights: Array.from(weightsSet),
-      minPrice: isFinite(minPrice) ? minPrice : 300,
-      maxPrice: isFinite(maxPrice) ? maxPrice : 3000,
+      minPrice: isFinite(minPrice) ? minPrice : 500,
+      maxPrice: isFinite(maxPrice) ? maxPrice : 800,
     };
   } catch {
     return {
-      categories: ["Chocolate Cakes", "Red Velvet Cakes", "Fruit Cakes", "Black Forest Cakes", "Butterscotch Cakes"],
+      categories: [
+        { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", product_count: 2 },
+        { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", product_count: 1 },
+        { id: "cat_fruit_mousse", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes", product_count: 1 },
+        { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes", product_count: 1 },
+        { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes", product_count: 1 },
+        { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", product_count: 1 },
+        { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", product_count: 3 },
+      ],
       flavours: ["Chocolate", "Red Velvet", "Mango", "Black Forest", "Butterscotch"],
       weights: ["0.5 kg", "1 kg", "1.5 kg", "2 kg"],
-      minPrice: 300,
-      maxPrice: 3000,
+      minPrice: 500,
+      maxPrice: 800,
     };
   }
 }
@@ -341,24 +320,91 @@ export async function getProductMeta(productId: string): Promise<ProductMeta> {
   return { product_id: productId, is_bestseller: true };
 }
 
-export async function listProductReviews(productId: string): Promise<any> {
-  return { reviews: [], count: 0, aggregate: { product_id: productId, average_rating: 4.9, total_reviews: 128 } };
+export async function listProductReviews(
+  productId: string,
+  options?: { page?: number; pageSize?: number; sort?: "recent" | "highest" | "lowest" | "helpful"; ratingFilter?: number; verifiedOnly?: boolean }
+): Promise<any> {
+  return ApiEngine.getProductReviews(productId, options);
 }
 
-export async function submitReview(productId: string, input: any): Promise<any> {
-  return { review: { id: "rev_101", product_id: productId, rating: input.rating } };
+export async function submitReview(
+  productId: string,
+  input: { orderId?: string; rating: number; title: string; reviewText?: string; body?: string; comment?: string }
+): Promise<any> {
+  const customerUid = await getAuthenticatedCustomerUid();
+  if (!customerUid) {
+    return { success: false, error: "Authentication required to submit review", statusCode: 401 };
+  }
+  return ApiEngine.submitProductReview(customerUid, {
+    productId,
+    orderId: input.orderId,
+    rating: input.rating,
+    title: input.title,
+    reviewText: input.reviewText || input.body || input.comment || "",
+  });
+}
+
+export async function getAuthenticatedCustomerUid(): Promise<string | null> {
+  try {
+    const { cookies } = await import("next/headers");
+    const cookieStore = cookies();
+    const cookieCustomerUid = cookieStore.get("_cth_customer_uid")?.value;
+    const cookieUserId = cookieStore.get("_cth_user_id")?.value;
+    const cookiePhone = cookieStore.get("_cth_phone")?.value;
+    const cookieRole = cookieStore.get("_cth_role")?.value;
+
+    const resolved = ApiEngine.resolveUserAccount({
+      customerUid: cookieCustomerUid,
+      userId: cookieUserId,
+      phone: cookiePhone,
+      role: cookieRole,
+    });
+
+    return resolved?.customer_uid || resolved?.id || cookieCustomerUid || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function listWishlist(): Promise<WishlistItem[]> {
-  return [];
+  const customerUid = await getAuthenticatedCustomerUid();
+  if (!customerUid) return [];
+  const favs = ApiEngine.getCustomerFavorites(customerUid);
+  return favs.map((f: any) => ({
+    id: f.id,
+    product_id: f.product_id,
+    title: f.title || f.name,
+    name: f.title || f.name,
+    thumbnail: f.thumbnail,
+    price: f.price || f.selling_price,
+    selling_price: f.selling_price || f.price,
+    mrp: f.mrp,
+    rating: f.rating,
+    review_count: f.review_count,
+    category: f.category,
+    category_slug: f.category_slug,
+    weight: f.weight,
+    variant_id: f.weight_prices?.[0]?.weight_id || `wp_${f.product_id}_default`,
+    weight_prices: f.weight_prices || [],
+    is_available: f.is_available !== false,
+    created_at: f.created_at,
+  }));
 }
 
 export async function addToWishlist(productId: string): Promise<any> {
-  return { id: `wish_${Date.now()}`, product_id: productId };
+  const customerUid = await getAuthenticatedCustomerUid();
+  if (!customerUid) {
+    return { success: false, error: "UNAUTHORIZED", message: "Please log in to save cakes to your Favorites.", statusCode: 401 };
+  }
+  return ApiEngine.addCustomerFavorite(customerUid, productId);
 }
 
 export async function removeFromWishlist(productId: string): Promise<any> {
-  return { success: true, product_id: productId };
+  const customerUid = await getAuthenticatedCustomerUid();
+  if (!customerUid) {
+    return { success: false, error: "UNAUTHORIZED", message: "Please log in to manage your Favorites.", statusCode: 401 };
+  }
+  return ApiEngine.removeCustomerFavorite(customerUid, productId);
 }
 
 export async function createStockNotification(input: any): Promise<any> {
@@ -424,7 +470,7 @@ export const DEFAULT_CATALOG_PRODUCTS: any[] = [
     title: "Fresh Alphonso Mango Mousse Cake",
     name: "Fresh Alphonso Mango Mousse Cake",
     description: "Seasonal Alphonso mango pulp whipped into light, airy mousse layers.",
-    thumbnail: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800",
+    thumbnail: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800",
     handle: "mango-mousse-cake",
     price: 699,
     rating: 4.9,

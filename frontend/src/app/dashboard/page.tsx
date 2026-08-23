@@ -1,82 +1,134 @@
 "use client";
 
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
+import dynamic from "next/dynamic";
 import { Heading, Text } from "@medusajs/ui";
 import { AdminTabs, type AdminTabId } from "@frontend/components/dashboard/admin/admin-tabs";
 import { DashboardPanelSkeleton } from "@frontend/components/dashboard/admin/dashboard-skeleton";
 import { DashboardErrorBoundary } from "@frontend/components/dashboard/admin/error-boundary";
 
 // ---------------------------------------------------------------------------
-// Lazy-load every admin panel via React.lazy with Suspense fallback.
-// Only the active panel is loaded on demand when selected.
+// Resilient dynamic loader for admin panels with automatic retry on chunk error
 // ---------------------------------------------------------------------------
 
-const OrdersPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/orders-panel").then((mod) => ({ default: mod.OrdersPanel }))
+function createDynamicPanel(
+  importFn: () => Promise<{ [key: string]: any }>,
+  exportKey: string
+) {
+  return dynamic(
+    () =>
+      importFn()
+        .then((mod) => mod[exportKey] || mod.default)
+        .catch((error) => {
+          console.warn(`[Dynamic Chunk Load Retry for ${exportKey}]:`, error);
+          // Wait 300ms and retry dynamic import
+          return new Promise((resolve) => setTimeout(resolve, 300))
+            .then(() => importFn())
+            .then((mod) => mod[exportKey] || mod.default);
+        }),
+    {
+      loading: () => <DashboardPanelSkeleton />,
+      ssr: false,
+    }
+  );
+}
+
+const OrdersPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/orders-panel"),
+  "OrdersPanel"
 );
-const CatalogPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/catalog-panel").then((mod) => ({ default: mod.CatalogPanel }))
+const CatalogPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/catalog-panel"),
+  "CatalogPanel"
 );
-const BranchesPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/branches-panel").then((mod) => ({ default: mod.BranchesPanel }))
+const BranchesPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/branches-panel"),
+  "BranchesPanel"
 );
-const DeliveryPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/delivery-panel").then((mod) => ({ default: mod.DeliveryPanel }))
+const DeliveryPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/delivery-panel"),
+  "DeliveryPanel"
 );
-const TaxMasterPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/tax-master-panel").then((mod) => ({ default: mod.TaxMasterPanel }))
+const TaxMasterPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/tax-master-panel"),
+  "TaxMasterPanel"
 );
-const AbandonedCartPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/abandoned-cart-panel").then((mod) => ({ default: mod.AbandonedCartPanel }))
+const AbandonedCartPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/abandoned-cart-panel"),
+  "AbandonedCartPanel"
 );
-const TelemarketingPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/telemarketing-panel").then((mod) => ({ default: mod.TelemarketingPanel }))
+const TelemarketingPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/telemarketing-panel"),
+  "TelemarketingPanel"
 );
-const CrmPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/crm-panel").then((mod) => ({ default: mod.CrmPanel }))
+const CrmPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/crm-panel"),
+  "CrmPanel"
 );
-const LoginActivityPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/login-activity-panel").then((mod) => ({ default: mod.LoginActivityPanel }))
+const LoginActivityPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/login-activity-panel"),
+  "LoginActivityPanel"
 );
-const MarketingPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/marketing-panel").then((mod) => ({ default: mod.MarketingPanel }))
+const MarketingPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/marketing-panel"),
+  "MarketingPanel"
 );
-const PopupsPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/popups-panel").then((mod) => ({ default: mod.PopupsPanel }))
+const PopupsPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/popups-panel"),
+  "PopupsPanel"
 );
-const SeoPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/seo-panel").then((mod) => ({ default: mod.SeoPanel }))
+const SeoPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/seo-panel"),
+  "SeoPanel"
 );
-const MarketingAutomationPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/marketing-automation-panel").then((mod) => ({ default: mod.MarketingAutomationPanel }))
+const MarketingAutomationPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/marketing-automation-panel"),
+  "MarketingAutomationPanel"
 );
-const WebhooksPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/webhooks-panel").then((mod) => ({ default: mod.WebhooksPanel }))
+const WebhooksPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/webhooks-panel"),
+  "WebhooksPanel"
 );
-const CmsPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/cms-panel").then((mod) => ({ default: mod.CmsPanel }))
+const CmsPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/cms-panel"),
+  "CmsPanel"
 );
-const AnalyticsPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/analytics-panel").then((mod) => ({ default: mod.AnalyticsPanel }))
+const AnalyticsPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/analytics-panel"),
+  "AnalyticsPanel"
 );
-const AiConciergePanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/ai-concierge-panel").then((mod) => ({ default: mod.AiConciergePanel }))
+const AiConciergePanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/ai-concierge-panel"),
+  "AiConciergePanel"
 );
-const NotificationsPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/notifications-panel").then((mod) => ({ default: mod.NotificationsPanel }))
+const NotificationsPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/notifications-panel"),
+  "NotificationsPanel"
 );
-const StaffProfilesPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/staff-profiles-panel").then((mod) => ({ default: mod.StaffProfilesPanel }))
+const StaffProfilesPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/staff-profiles-panel"),
+  "StaffProfilesPanel"
 );
-const SettingsPanel = lazy(() =>
-  import("@frontend/components/dashboard/admin/settings-panel").then((mod) => ({ default: mod.SettingsPanel }))
+const SettingsPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/settings-panel"),
+  "SettingsPanel"
+);
+const FulfillmentConfigPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/fulfillment-config-panel"),
+  "FulfillmentConfigPanel"
+);
+const SearchConfigPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/search-config-panel").then((mod) => ({ default: mod.SearchConfigPanel })),
+  "SearchConfigPanel"
 );
 
 const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   orders: OrdersPanel,
   catalog: CatalogPanel,
+  search_engine: SearchConfigPanel,
   branches: BranchesPanel,
   delivery: DeliveryPanel,
+  fulfillment: FulfillmentConfigPanel,
   tax_master: TaxMasterPanel,
   abandoned_carts: AbandonedCartPanel,
   telemarketing: TelemarketingPanel,

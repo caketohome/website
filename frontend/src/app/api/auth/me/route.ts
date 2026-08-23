@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       return response;
     }
 
-    const { ApiEngine } = await import("@frontend/lib/api-engine");
+    const { ApiEngine } = await import("@/lib/api-engine");
     const user = ApiEngine.resolveUserAccount({ userId, phone, role, customerUid }) || (await retrieveUser());
 
     if (!user) {
@@ -63,7 +63,14 @@ export async function GET(req: NextRequest) {
             name: user.name || `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Valued Customer",
             email: user.email || "",
             phone: user.phone || "",
-            role: user.role || "customer",
+            role: (user.role || "CUSTOMER").toUpperCase(),
+            branch_id: user.branch_id || user.primary_branch_id || null,
+            branch_name: user.branch_name || user.primary_branch_name || null,
+            delivery_partner_id: user.delivery_partner_id || null,
+            partner_number: user.partner_number || null,
+            profile_ids: user.profile_ids || [],
+            profile_names: user.profile_names || [],
+            permissions: user.permissions || [],
             date_of_birth: user.date_of_birth || user.dob || null,
             created_at: user.created_at || new Date().toISOString(),
           },

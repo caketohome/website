@@ -64,6 +64,10 @@ export class DashboardErrorBoundary extends Component<Props, State> {
         );
       }
 
+      const isChunkError =
+        this.state.error?.name === "ChunkLoadError" ||
+        (this.state.error?.message && (this.state.error.message.includes("Loading chunk") || this.state.error.message.includes("ChunkLoadError")));
+
       return (
         <Container className="p-6 border-2 border-rose-500/30 bg-rose-50/20 dark:bg-rose-950/20 my-4 flex flex-col gap-4">
           <div className="flex items-center gap-3">
@@ -72,10 +76,12 @@ export class DashboardErrorBoundary extends Component<Props, State> {
             </div>
             <div>
               <Heading level="h3" className="text-base font-semibold text-rose-700 dark:text-rose-300">
-                Dashboard Module Error: {this.props.moduleName || "Module Render Exception"}
+                {isChunkError ? "Module Update / Asset Refresh Required" : `Dashboard Module Error: ${this.props.moduleName || "Module Render Exception"}`}
               </Heading>
               <Text className="text-xs text-ui-fg-subtle">
-                A non-fatal error occurred while rendering this dashboard panel. Other modules remain fully functional.
+                {isChunkError
+                  ? "A new version of this dashboard module is available. Click 'Reload Module' to refresh the latest bundle."
+                  : "A non-fatal error occurred while rendering this dashboard panel. Other modules remain fully functional."}
               </Text>
             </div>
           </div>
@@ -88,7 +94,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
 
           <div className="flex items-center gap-3">
             <Button size="small" onClick={this.handleReset} className="bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1.5">
-              <RefreshCw className="w-3.5 h-3.5" /> Retry Module
+              <RefreshCw className="w-3.5 h-3.5" /> Reload Module
             </Button>
             <Button size="small" variant="secondary" onClick={() => window.location.reload()}>
               Reload Dashboard

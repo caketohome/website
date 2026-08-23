@@ -31,7 +31,7 @@ export default async function Home() {
   const announcementBar = "announcementBar" in cms ? cms.announcementBar : undefined;
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-0 w-full overflow-x-hidden">
       {/* Dynamic Published CMS Page Sections */}
       {sections.length > 0 ? (
         <PageRenderer

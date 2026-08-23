@@ -1,8 +1,10 @@
 import { getPublicCampaign } from "@frontend/lib/data/marketing";
 import { Heading, Text, Container, Badge } from "@medusajs/ui";
 import Link from "next/link";
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
 
 interface PageProps {
     params: { id: string };

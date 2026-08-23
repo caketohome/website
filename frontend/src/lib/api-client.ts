@@ -155,7 +155,7 @@ class CakeToHomeApiClient {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
       const response = await fetch(primaryUrl, {
         ...options,
         headers,
@@ -236,11 +236,37 @@ class CakeToHomeApiClient {
     });
   }
 
-  // Products & Catalog APIs (/api/v1/products)
-  async getProducts(params?: { branchId?: string; pincode?: string }) {
+  // Products & Catalog APIs (/api/v1/products, /api/v1/categories)
+  async getCategories(params?: { include_inactive?: boolean }) {
+    const q = new URLSearchParams();
+    if (params?.include_inactive) q.set("include_inactive", "true");
+    const queryString = q.toString() ? `?${q.toString()}` : "";
+    return this.request(`/categories${queryString}`);
+  }
+
+  async getProducts(params?: {
+    branchId?: string;
+    pincode?: string;
+    category?: string;
+    category_id?: string;
+    flavour?: string;
+    weight?: string;
+    min_price?: number;
+    max_price?: number;
+    q?: string;
+    sort?: string;
+  }) {
     const q = new URLSearchParams();
     if (params?.branchId) q.set("branchId", params.branchId);
     if (params?.pincode) q.set("pincode", params.pincode);
+    if (params?.category) q.set("category", params.category);
+    if (params?.category_id) q.set("category_id", params.category_id);
+    if (params?.flavour) q.set("flavour", params.flavour);
+    if (params?.weight) q.set("weight", params.weight);
+    if (params?.min_price !== undefined) q.set("min_price", String(params.min_price));
+    if (params?.max_price !== undefined) q.set("max_price", String(params.max_price));
+    if (params?.q) q.set("q", params.q);
+    if (params?.sort) q.set("sort", params.sort);
     const queryString = q.toString() ? `?${q.toString()}` : "";
     return this.request(`/products${queryString}`);
   }
@@ -292,19 +318,31 @@ class CakeToHomeApiClient {
   }
 
   // ── Admin: Orders Command Center ──
-  async getAdminOrders(params?: { q?: string; status?: string; branch_id?: string; city?: string; payment_status?: string; from_date?: string; to_date?: string; limit?: number; offset?: number }) {
+  async getAdminOrders(params?: {
+    q?: string;
+    status?: string;
+    branch_id?: string;
+    city?: string;
+    payment_status?: string;
+    date_preset?: string;
+    from_date?: string;
+    to_date?: string;
+    limit?: number;
+    offset?: number;
+  }) {
     const query = new URLSearchParams();
     if (params?.q) query.set("q", params.q);
     if (params?.status) query.set("status", params.status);
     if (params?.branch_id) query.set("branch_id", params.branch_id);
     if (params?.city) query.set("city", params.city);
     if (params?.payment_status) query.set("payment_status", params.payment_status);
+    if (params?.date_preset) query.set("date_preset", params.date_preset);
     if (params?.from_date) query.set("from_date", params.from_date);
     if (params?.to_date) query.set("to_date", params.to_date);
     if (params?.limit) query.set("limit", String(params.limit));
     if (params?.offset) query.set("offset", String(params.offset));
     const qs = query.toString() ? `?${query.toString()}` : "";
-    return this.request(`/admin/orders${qs}`).catch(() => ({ orders: [], count: 0, total: 0 }));
+    return this.request(`/admin/orders${qs}`);
   }
   async getCustomerOrders(customerUid: string, params?: { status?: string; limit?: number }) {
     const query = new URLSearchParams();
@@ -512,6 +550,36 @@ class CakeToHomeApiClient {
     return this.request(`/admin/products/${productId}/weight-prices`, { method: "POST", body: JSON.stringify({ weight_prices: weightPrices }) });
   }
 
+  // ── Customer Favorites / Wishlist API ──
+  async getCustomerFavorites() {
+    return this.request<{ success: boolean; favorites: any[]; favorite_ids: string[]; count: number }>("/customer/favorites").catch(() => ({
+      success: true,
+      favorites: [],
+      favorite_ids: [],
+      count: 0,
+    }));
+  }
+
+  async addCustomerFavorite(productId: string) {
+    return this.request<{ success: boolean; favorite?: any; is_favorited: boolean; error?: string }>(`/customer/favorites/${productId}`, {
+      method: "POST",
+    });
+  }
+
+  async removeCustomerFavorite(productId: string) {
+    return this.request<{ success: boolean; is_favorited: boolean; product_id: string }>(`/customer/favorites/${productId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async checkCustomerFavorite(productId: string) {
+    return this.request<{ success: boolean; is_favorited: boolean; product_id: string }>(`/customer/favorites/check/${productId}`).catch(() => ({
+      success: true,
+      is_favorited: false,
+      product_id: productId,
+    }));
+  }
+
   // ── Admin: CRM 360 & Customer Management ──
   // (Full typed methods provided in Enterprise CRM section below)
 
@@ -657,6 +725,18 @@ class CakeToHomeApiClient {
   }
   async updateAdminDeliveryStatus(id: string, status: string) {
     return this.request(`/admin/delivery/jobs/${id}`, { method: "PUT", body: JSON.stringify({ status }) });
+  }
+  async verifyPickupOtp(orderId: string, otp: string, partnerId: string) {
+    return this.request(`/delivery-partner/jobs/${orderId}/pickup-otp/verify`, {
+      method: "POST",
+      body: JSON.stringify({ otp, pickup_otp: otp, partner_id: partnerId }),
+    });
+  }
+  async verifyCustomerOtp(orderId: string, otp: string, partnerId: string) {
+    return this.request(`/delivery-partner/jobs/${orderId}/delivery-otp/verify`, {
+      method: "POST",
+      body: JSON.stringify({ otp, delivery_otp: otp, partner_id: partnerId }),
+    });
   }
 
   // ── Admin: CRM ──
@@ -2064,6 +2144,66 @@ class CakeToHomeApiClient {
       Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
     ).toString();
     return fetch(`/api/v1/admin/abandoned-carts/export${qs ? `?${qs}` : ""}`).then((r) => r.text());
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── PRODUCT REVIEWS & RATINGS ──────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async getProductReviews(productId: string, params: { page?: number; pageSize?: number; sort?: string; rating?: number; verified_only?: boolean; status?: string } = {}) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+    ).toString();
+    return this.request(`/products/${productId}/reviews${qs ? `?${qs}` : ""}`);
+  }
+
+  async getCustomerEligibleReviews() {
+    return this.request("/customer/reviews/eligible");
+  }
+
+  async getCustomerReviews() {
+    return this.request("/customer/reviews");
+  }
+
+  async submitProductReview(productId: string, data: { orderId?: string; rating: number; title: string; reviewText: string }) {
+    return this.request(`/customer/reviews`, {
+      method: "POST",
+      body: JSON.stringify({ productId, ...data }),
+    });
+  }
+
+  async updateProductReview(reviewId: string, data: { rating?: number; title?: string; reviewText?: string }) {
+    return this.request(`/customer/reviews/${reviewId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteProductReview(reviewId: string) {
+    return this.request(`/customer/reviews/${reviewId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getAdminReviews(params: { page?: number; pageSize?: number; status?: string; productId?: string; search?: string } = {}) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+    ).toString();
+    return this.request(`/admin/reviews${qs ? `?${qs}` : ""}`);
+  }
+
+  async moderateReview(reviewId: string, action: "APPROVE" | "REJECT" | "HIDE" | "RESPOND", data?: { adminName?: string; adminResponse?: string }) {
+    return this.request(`/admin/reviews/${reviewId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ action, ...data }),
+    });
+  }
+
+  async searchProducts(params: Record<string, any> = {}) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+    ).toString();
+    return this.request(`/products/search${qs ? `?${qs}` : ""}`);
   }
 }
 

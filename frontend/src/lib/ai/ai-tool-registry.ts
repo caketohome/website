@@ -55,6 +55,21 @@ export class AiToolRegistry {
       );
     }
 
+    // Category Filter
+    if (params.categoryId && params.categoryId.trim().length > 0) {
+      const catLower = params.categoryId.toLowerCase().trim();
+      products = products.filter((p: any) => {
+        const pCatSlug = (p.category_slug || "").toLowerCase();
+        const pCatName = (p.category || "").toLowerCase();
+        const pPrimId = (p.primary_category_id || "").toLowerCase();
+        const hasMatchingCat = Array.isArray(p.categories) && p.categories.some((c: any) =>
+          c.slug?.toLowerCase() === catLower || c.id?.toLowerCase() === catLower || c.name?.toLowerCase() === catLower
+        );
+        const hasMatchingId = Array.isArray(p.category_ids) && p.category_ids.some((id: string) => id.toLowerCase() === catLower);
+        return hasMatchingCat || hasMatchingId || pCatSlug === catLower || pCatName === catLower || pPrimId === catLower;
+      });
+    }
+
     // Occasions Filter
     if (params.occasionIds && params.occasionIds.length > 0) {
       const occClean = params.occasionIds.map((o) => o.toLowerCase());
@@ -163,14 +178,17 @@ export class AiToolRegistry {
   /**
    * 3. getCategories
    */
-  public static async getCategories() {
-    const categories = ApiEngine.listPimCategories ? ApiEngine.listPimCategories() : [];
+  public static async getCategories(includeInactive: boolean = false) {
+    const categories = ApiEngine.getCategories(includeInactive);
     return {
+      totalCategories: categories.length,
       categories: categories.map((c: any) => ({
         id: c.id,
         name: c.name || c.title,
         slug: c.slug,
         description: c.description,
+        productCount: c.product_count,
+        isActive: c.is_active !== false,
       })),
     };
   }
@@ -241,6 +259,21 @@ export class AiToolRegistry {
       expressAvailable: delivery.expressAvailable,
       midnightAvailable: delivery.midnightAvailable,
       blockedReason: delivery.blockedReason,
+    };
+  }
+
+  public static async checkPincodeDelivery(pincode: string) {
+    const delivery = ApiEngine.resolveDeliveryContext(pincode);
+    return {
+      serviceable: delivery.serviceable,
+      pincode: delivery.pincode,
+      city: delivery.cityName,
+      branchName: delivery.storeName,
+      estimatedMinutes: delivery.etaMinutes || 45,
+      nextAvailableSlot: "45-Minute Hyperlocal Express",
+      expressAvailable: delivery.expressAvailable,
+      midnightAvailable: delivery.midnightAvailable,
+      deliveryFee: delivery.deliveryFee,
     };
   }
 
@@ -432,6 +465,10 @@ export class AiToolRegistry {
     };
   }
 
+  public static async getAvailableOffers(cartId?: string) {
+    return this.listOffers();
+  }
+
   /**
    * 15. validateCoupon
    */
@@ -550,10 +587,14 @@ export class AiToolRegistry {
     return {
       authenticated: true,
       orders: customerOrders.slice(0, 5).map((o: any) => ({
+        id: o.id || o.display_id,
         orderId: o.id || o.display_id,
         status: o.status || o.fulfillment_status,
         total: o.total,
+        totalAmount: o.total || o.grand_total || 0,
         createdAt: o.created_at,
+        deliverySlot: o.delivery_slot || "Standard Delivery Window",
+        itemsSummary: (o.items || []).map((i: any) => i.title || i.name).join(", ") || "Signature Bakery Selection",
         itemCount: (o.items || []).length,
       })),
     };

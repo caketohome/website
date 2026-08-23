@@ -1,12 +1,12 @@
 import Footer from "@frontend/components/common/footer";
 import { ProfileBadge } from "@frontend/components/common/profile-badge";
 import NavCart from "@frontend/components/store/cart/nav-cart";
+import { NavFavorites } from "@frontend/components/store/favorites/nav-favorites";
+import { NavSearch } from "@frontend/components/store/search/nav-search";
 import { HeaderNavigation } from "@frontend/components/store/cms/navigation";
 import { DeliveryLocationHeader } from "@frontend/components/store/location/delivery-location-header";
 import { EngagementProvider } from "@frontend/components/store/engagement/engagement-provider";
 import { retrieveUser } from "@frontend/lib/data/users";
-import { ShoppingBag } from "@medusajs/icons";
-import { IconButton, Text } from "@medusajs/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -26,8 +26,9 @@ export default async function RootLayout({
 
   return (
     <EngagementProvider>
-      <nav className="flex px-3 sm:px-6 md:px-10 h-16 bg-[#111111] text-white justify-between items-center sticky top-0 z-50 border-b border-white/10 shadow-[0_4px_18px_rgba(0,0,0,0.25)] w-full max-w-full">
-        <div className="flex gap-2 sm:gap-6 items-center shrink min-w-0">
+      <nav className="flex px-3 sm:px-6 md:px-10 h-16 bg-[#111111] text-white justify-between items-center sticky top-0 z-50 border-b border-white/10 shadow-[0_4px_18px_rgba(0,0,0,0.25)] w-full max-w-full gap-2 sm:gap-4">
+        {/* Brand & Location & CMS Links */}
+        <div className="flex gap-2 sm:gap-4 lg:gap-6 items-center shrink-0 min-w-0">
           <Link
             href="/"
             className="flex gap-1.5 sm:gap-2 items-center text-sm sm:text-xl font-bold text-white hover:text-white transition-colors opacity-100 shrink-0"
@@ -40,12 +41,20 @@ export default async function RootLayout({
             <HeaderNavigation />
           </Suspense>
         </div>
+
+        {/* Embedded Header Search */}
+        <div className="flex-1 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mx-1 sm:mx-2 min-w-0">
+          <NavSearch />
+        </div>
+
+        {/* Right Actions: Favorites, Cart, Profile */}
         <div className="flex gap-1.5 sm:gap-2 items-center shrink-0">
+          <NavFavorites />
           <Suspense
             fallback={
-              <IconButton variant="transparent">
-                <ShoppingBag />
-              </IconButton>
+              <div className="p-2 text-white/70">
+                <span className="text-xl">🛍️</span>
+              </div>
             }
           >
             <NavCart />

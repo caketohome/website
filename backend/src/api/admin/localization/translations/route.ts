@@ -1,11 +1,12 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework";
 import { LOCALIZATION_MODULE } from "../../../../modules/localization";
+import LocalizationModuleService from "../../../../modules/localization/service";
 
 /**
  * GET /admin/localization/translations?language_code=xx
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-    const locModule = req.scope.resolve(LOCALIZATION_MODULE) as any;
+    const locModule = req.scope.resolve<LocalizationModuleService>(LOCALIZATION_MODULE);
     const languageCode = req.query.language_code as string;
 
     if (!languageCode) {
@@ -22,7 +23,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
  * POST /admin/localization/translations
  */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
-    const locModule = req.scope.resolve(LOCALIZATION_MODULE) as any;
+    const locModule = req.scope.resolve<LocalizationModuleService>(LOCALIZATION_MODULE);
 
     const body = req.body as {
         language_code: string;

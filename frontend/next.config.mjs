@@ -7,13 +7,6 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   transpilePackages: ["@medusajs/ui"],
-  experimental: {
-    optimizePackageImports: [
-      "@medusajs/ui",
-      "lucide-react",
-      "@medusajs/icons",
-    ],
-  },
   webpack: (config) => {
     config.watchOptions = {
       ...config.watchOptions,

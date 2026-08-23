@@ -482,7 +482,7 @@ async function runComprehensiveWorkflowTests() {
   orderB.delivery_status = "ready_for_pickup";
 
   // 6.2 Invalid Kitchen Pickup OTP -> 400 Bad Request
-  const invalidPickupOtpRes = ApiEngine.verifyPickupOtpBackend(orderB.id, "0000", partnerA.id);
+  const invalidPickupOtpRes = await ApiEngine.verifyPickupOtpBackend(orderB.id, "0000", partnerA.id);
   record(
     23,
     "6.1",
@@ -492,7 +492,7 @@ async function runComprehensiveWorkflowTests() {
   );
 
   // 6.3 Valid Kitchen Pickup OTP -> Transitions to IN_TRANSIT / OUT_FOR_DELIVERY
-  const validPickupOtpRes = ApiEngine.verifyPickupOtpBackend(orderB.id, orderB.pickup_otp, partnerA.id);
+  const validPickupOtpRes = await ApiEngine.verifyPickupOtpBackend(orderB.id, orderB.pickup_otp, partnerA.id);
   record(
     24,
     "6.2",
@@ -509,7 +509,7 @@ async function runComprehensiveWorkflowTests() {
   console.log("\n--- DOMAIN 7: CUSTOMER DELIVERY OTP VERIFICATION ---");
 
   // 7.1 Invalid Customer Delivery OTP -> 400 Bad Request
-  const invalidCustOtpRes = ApiEngine.verifyCustomerOtpBackend(orderB.id, "9999", partnerA.id);
+  const invalidCustOtpRes = await ApiEngine.verifyCustomerOtpBackend(orderB.id, "9999", partnerA.id);
   record(
     27,
     "7.1",
@@ -519,7 +519,7 @@ async function runComprehensiveWorkflowTests() {
   );
 
   // 7.2 Valid Customer Delivery OTP -> Transitions to DELIVERED
-  const validCustOtpRes = ApiEngine.verifyCustomerOtpBackend(orderB.id, orderB.delivery_otp, partnerA.id);
+  const validCustOtpRes = await ApiEngine.verifyCustomerOtpBackend(orderB.id, orderB.delivery_otp, partnerA.id);
   record(
     28,
     "7.2",

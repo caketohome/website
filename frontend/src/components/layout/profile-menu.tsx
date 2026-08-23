@@ -14,8 +14,6 @@ import {
   MapPin,
   Clock,
   Layers,
-  AlertTriangle,
-  CreditCard,
 } from "lucide-react";
 
 export type AuthRole = "SUPER_ADMIN" | "BRANCH_MANAGER" | "DELIVERY_PARTNER" | "CUSTOMER";
@@ -136,6 +134,8 @@ function getUserInitials(user: ProfileUserDTO | null, fullName: string): string 
   return (fullName[0] || "U").toUpperCase();
 }
 
+import { useRouter } from "next/navigation";
+
 export const ProfileMenu = memo(function ProfileMenu({
   user = null,
   isLoading = false,
@@ -144,55 +144,110 @@ export const ProfileMenu = memo(function ProfileMenu({
 }: ProfileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const normalizedRole = getNormalizedRole(user);
   const roleConfig = ROLE_CONFIGS[normalizedRole];
   const fullName = getUserDisplayName(user, normalizedRole);
   const initials = getUserInitials(user, fullName);
 
-  const toggleOpen = useCallback(() => {
+  const toggleOpen = useCallback((e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     setIsOpen(prev => !prev);
-    setShowConfirm(false);
   }, []);
 
   const closeMenu = useCallback(() => {
     setIsOpen(false);
-    setShowConfirm(false);
   }, []);
 
-  // Click Outside & Escape Key Handlers (Attached strictly while open)
+  // Programmatic, race-free router navigation handler
+  const handleNavigate = useCallback((href: string, e: React.MouseEvent) => {
+    // Preserve default modifier key behaviors (open in new tab, etc.)
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+      return;
+    }
+    e.preventDefault();
+    closeMenu();
+    router.push(href);
+  }, [closeMenu, router]);
+
+  // Robust Outside-Click, Touch & Keyboard Accessibility Handlers
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (!target || !target.isConnected) return;
+
+      // Ensure the interactive region (Trigger + Dropdown + Root) is recognized as one
+      const isInside =
+        (menuRef.current && menuRef.current.contains(target)) ||
+        (dropdownRef.current && dropdownRef.current.contains(target)) ||
+        (triggerRef.current && triggerRef.current.contains(target));
+
+      if (!isInside) {
         closeMenu();
       }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        event.preventDefault();
         closeMenu();
+        triggerRef.current?.focus();
+        return;
+      }
+
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        const focusableElements = dropdownRef.current?.querySelectorAll<HTMLElement>(
+          'a[role="menuitem"], button[role="menuitem"]'
+        );
+        if (!focusableElements || focusableElements.length === 0) return;
+
+        const items = Array.from(focusableElements);
+        const activeIndex = items.indexOf(document.activeElement as HTMLElement);
+
+        let nextIndex = 0;
+        if (event.key === "ArrowDown") {
+          nextIndex = activeIndex >= items.length - 1 ? 0 : activeIndex + 1;
+        } else {
+          nextIndex = activeIndex <= 0 ? items.length - 1 : activeIndex - 1;
+        }
+        items[nextIndex]?.focus();
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    // Arm outside-click listeners in next tick to ensure the opening event finishes cleanly
+    const timer = setTimeout(() => {
+      document.addEventListener("click", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside, { passive: true });
+    }, 0);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      clearTimeout(timer);
+      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, closeMenu]);
 
   // Central Logout Trigger with Double-Click Protection
-  const handleLogoutClick = useCallback(async () => {
+  const handleLogoutClick = useCallback(async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (isLoggingOut) return;
     setIsLoggingOut(true);
     try {
-      await authLogout({ redirectUrl: "/login", reason: "user_initiated" });
+      await authLogout({ reason: "user_initiated" });
     } finally {
       setIsLoggingOut(false);
       closeMenu();
@@ -234,12 +289,14 @@ export const ProfileMenu = memo(function ProfileMenu({
     <div className={`relative inline-block text-left ${className}`} ref={menuRef}>
       {/* Trigger Button */}
       <button
+        ref={triggerRef}
         type="button"
         onClick={toggleOpen}
         aria-expanded={isOpen}
-        aria-haspopup="true"
+        aria-haspopup="menu"
         aria-label="User profile and account settings menu"
-        className={`flex items-center gap-2.5 p-1.5 md:px-3 md:py-1.5 rounded-xl transition-colors duration-100 border select-none ${
+        data-testid="profile-menu-trigger"
+        className={`flex items-center gap-2.5 p-1.5 md:px-3 md:py-1.5 rounded-xl transition-colors duration-100 border select-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 cursor-pointer ${
           isOpen
             ? "bg-white/20 border-white/30 ring-2 ring-white/20 text-white"
             : "bg-white/10 hover:bg-white/15 border-white/10 text-white/90 hover:text-white"
@@ -267,15 +324,18 @@ export const ProfileMenu = memo(function ProfileMenu({
         />
       </button>
 
-      {/* Dropdown Popover */}
+      {/* Dropdown Popover with pointer-events safe bridging */}
       {isOpen && (
         <div
-          className="absolute right-0 top-full mt-2 w-72 sm:w-80 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 p-2 z-[9999] text-neutral-900 dark:text-neutral-100 shadow-2xl transition-all duration-100 ease-out origin-top-right transform"
+          ref={dropdownRef}
+          className="absolute right-0 top-full mt-2 w-72 sm:w-80 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 p-2 z-[9999] text-neutral-900 dark:text-neutral-100 shadow-2xl transition-all duration-100 ease-out origin-top-right transform before:content-[''] before:absolute before:-top-3 before:left-0 before:right-0 before:h-3"
           style={{
             boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
           }}
           role="menu"
           aria-orientation="vertical"
+          tabIndex={-1}
+          data-testid="profile-menu-dropdown"
         >
           {/* Header Section with User Identity */}
           <div className="p-3 bg-neutral-50 dark:bg-neutral-800/60 rounded-xl mb-1 border border-neutral-100 dark:border-neutral-800">
@@ -316,9 +376,11 @@ export const ProfileMenu = memo(function ProfileMenu({
                 key={item.href}
                 href={item.href}
                 prefetch={false}
-                onClick={closeMenu}
-                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                onClick={(e) => handleNavigate(item.href, e)}
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors focus:outline-none focus:bg-neutral-100 dark:focus:bg-neutral-800 cursor-pointer"
                 role="menuitem"
+                tabIndex={0}
+                data-testid={`profile-menu-item-${item.label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
               >
                 <item.icon className="w-4 h-4 text-neutral-500 dark:text-neutral-400 shrink-0" />
                 <span>{item.label}</span>
@@ -328,58 +390,27 @@ export const ProfileMenu = memo(function ProfileMenu({
 
           <div className="my-1 border-t border-neutral-100 dark:border-neutral-800" />
 
-          {/* Logout Action Area */}
+          {/* Direct, Instant-Action Logout */}
           <div className="p-1">
-            {!showConfirm ? (
-              <button
-                type="button"
-                onClick={() => setShowConfirm(true)}
-                disabled={isLoggingOut}
-                className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors group"
-                role="menuitem"
-              >
-                <div className="flex items-center gap-2.5">
-                  <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-                  <span>Logout</span>
-                </div>
-                <span className="text-[10px] text-neutral-400 group-hover:text-rose-500 font-normal">Sign out</span>
-              </button>
-            ) : (
-              <div className="p-2 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/60 rounded-xl flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-rose-700 dark:text-rose-300">
-                  <AlertTriangle className="w-4 h-4 shrink-0" />
-                  <span className="text-xs font-semibold">Are you sure you want to logout?</span>
-                </div>
-                <div className="flex items-center gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirm(false)}
-                    disabled={isLoggingOut}
-                    className="flex-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleLogoutClick}
-                    disabled={isLoggingOut}
-                    className="flex-1 px-2.5 py-1.5 text-xs font-bold rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
-                  >
-                    {isLoggingOut ? (
-                      <>
-                        <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Logging out...</span>
-                      </>
-                    ) : (
-                      <>
-                        <LogOut className="w-3.5 h-3.5" />
-                        <span>Logout</span>
-                      </>
-                    )}
-                  </button>
-                </div>
+            <button
+              type="button"
+              onClick={handleLogoutClick}
+              disabled={isLoggingOut}
+              className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors group focus:outline-none focus:bg-rose-50 dark:focus:bg-rose-950/40 disabled:opacity-50 cursor-pointer"
+              role="menuitem"
+              tabIndex={0}
+              data-testid="profile-menu-logout-button"
+            >
+              <div className="flex items-center gap-2.5">
+                {isLoggingOut ? (
+                  <span className="w-4 h-4 border-2 border-rose-600 dark:border-rose-400 border-t-transparent rounded-full animate-spin shrink-0" />
+                ) : (
+                  <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform shrink-0" />
+                )}
+                <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
               </div>
-            )}
+              <span className="text-[10px] text-neutral-400 group-hover:text-rose-500 font-normal">Sign out</span>
+            </button>
           </div>
         </div>
       )}

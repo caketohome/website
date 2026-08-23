@@ -4,6 +4,7 @@ import "./globals.css";
 import { OrganizationJsonLd } from "@frontend/components/store/seo/json-ld";
 import { AuthProvider } from "@/providers/auth-provider";
 import { CustomerProvider } from "@frontend/providers/customer-provider";
+import { FavoritesProvider } from "@/providers/favorites-provider";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <CustomerProvider>
-            {children}
+            <FavoritesProvider>
+              {children}
+            </FavoritesProvider>
           </CustomerProvider>
         </AuthProvider>
         <script

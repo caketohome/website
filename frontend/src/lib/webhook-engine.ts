@@ -35,15 +35,41 @@ export type WebhookEventType =
   | "order.confirmed"
   | "order.preparing"
   | "order.ready"
+  | "order.ready_for_pickup"
+  | "order.claimed"
+  | "order.picked_up"
   | "order.out_for_delivery"
   | "order.delivered"
   | "order.cancelled"
+  | "order.status_changed"
+  | "order.rider_assigned"
+  | "order.delivery_partner_changed"
   | "order.refund.processed"
+  | "order.pickup_otp_generated"
+  | "order.pickup_verified"
+  | "order.delivery_otp_verified"
+  // RIDER
+  | "rider.login"
+  | "rider.logout"
+  | "rider.online"
+  | "rider.offline"
+  // FULFILLMENT
+  | "product.availability.updated"
+  | "branch.hours.updated"
+  | "operations.hours.updated"
+  // BRANCH
+  | "branch.order_accepted"
+  | "branch.order_rejected"
+  | "customer.order_delayed"
   // DELIVERY
   | "delivery.assigned"
   | "delivery.picked_up"
+  | "delivery.pickup_confirmed"
+  | "delivery.out_for_delivery"
+  | "delivery.exception_reported"
   | "delivery.failed"
   | "delivery.delivered"
+  | "delivery.delivered_confirmed"
   // RECOVERY
   | "recovery.link.created"
   | "recovery.link.opened"
@@ -77,7 +103,7 @@ export type WebhookEventType =
 export interface WebhookEventDefinition {
   type: WebhookEventType;
   label: string;
-  category: "AUTH" | "PROFILE" | "CART" | "CHECKOUT" | "ORDER" | "DELIVERY" | "RECOVERY" | "REORDER_CRM" | "WISHLIST" | "MARKETING" | "SYSTEM";
+  category: "AUTH" | "PROFILE" | "CART" | "CHECKOUT" | "ORDER" | "DELIVERY" | "RIDER" | "FULFILLMENT" | "RECOVERY" | "REORDER_CRM" | "WISHLIST" | "MARKETING" | "SYSTEM";
   description: string;
   sample_payload_summary: string;
 }
@@ -112,10 +138,24 @@ export const ALL_WEBHOOK_EVENT_TYPES: WebhookEventDefinition[] = [
   { type: "order.confirmed", label: "Order Confirmed by Bakery", category: "ORDER", description: "Triggered when kitchen hub accepts production order.", sample_payload_summary: "{ order_id, branch_id, confirmed_at, eta_minutes }" },
   { type: "order.preparing", label: "Order In Kitchen Baking", category: "ORDER", description: "Triggered when bakery begins cake preparation.", sample_payload_summary: "{ order_id, branch_id, baker_staff_id }" },
   { type: "order.ready", label: "Order Ready for Pickup", category: "ORDER", description: "Triggered when cake baking and packaging is complete.", sample_payload_summary: "{ order_id, branch_id, kot_number, ready_at }" },
+  { type: "order.pickup_otp_generated", label: "Pickup OTP Generated", category: "ORDER", description: "Triggered when order is ready for pickup and OTP is minted for kitchen handover.", sample_payload_summary: "{ order_id, pickup_otp, branch_id, expires_at }" },
+  { type: "order.pickup_verified", label: "Kitchen Pickup OTP Verified", category: "ORDER", description: "Triggered when rider verifies kitchen OTP and transitions order to OUT_FOR_DELIVERY.", sample_payload_summary: "{ order_id, rider_id, verified_at, branch_id }" },
   { type: "order.out_for_delivery", label: "Order Out for Delivery", category: "ORDER", description: "Triggered when rider picks up cake with verification OTP.", sample_payload_summary: "{ order_id, rider_id, rider_phone, tracking_url }" },
+  { type: "order.delivery_otp_verified", label: "Customer Delivery OTP Verified", category: "ORDER", description: "Triggered when customer verifies doorstep OTP for successful delivery.", sample_payload_summary: "{ order_id, rider_id, customer_uid, verified_at }" },
   { type: "order.delivered", label: "Order Delivered to Customer", category: "ORDER", description: "Triggered when customer accepts delivery with OTP confirmation.", sample_payload_summary: "{ order_id, delivered_at, customer_uid, satisfaction_rating }" },
   { type: "order.cancelled", label: "Order Cancelled", category: "ORDER", description: "Triggered if customer or admin cancels an order.", sample_payload_summary: "{ order_id, reason, cancelled_by, refund_status }" },
   { type: "order.refund.processed", label: "Refund Processed", category: "ORDER", description: "Triggered when refund is successfully credited to customer.", sample_payload_summary: "{ order_id, refund_id, amount, status }" },
+
+  // RIDER
+  { type: "rider.login", label: "Delivery Partner Logged In", category: "RIDER", description: "Triggered when delivery partner authenticates.", sample_payload_summary: "{ partner_id, phone, branch_id, session_id }" },
+  { type: "rider.logout", label: "Delivery Partner Logged Out", category: "RIDER", description: "Triggered when delivery partner logs out (forces offline status).", sample_payload_summary: "{ partner_id, logged_out_at }" },
+  { type: "rider.online", label: "Rider Went Online", category: "RIDER", description: "Triggered when authenticated rider sets status to ONLINE.", sample_payload_summary: "{ partner_id, branch_id, city_id, timestamp }" },
+  { type: "rider.offline", label: "Rider Went Offline", category: "RIDER", description: "Triggered when rider switches to OFFLINE or ON_BREAK.", sample_payload_summary: "{ partner_id, reason, active_orders_count }" },
+
+  // FULFILLMENT
+  { type: "product.availability.updated", label: "Product Fulfillment Rules Updated", category: "FULFILLMENT", description: "Triggered when lead time, prep time, or delivery rules change for a product.", sample_payload_summary: "{ product_id, preparation_time_minutes, instant_delivery_enabled }" },
+  { type: "branch.hours.updated", label: "Branch Operating Hours Updated", category: "FULFILLMENT", description: "Triggered when branch opening/closing times or holiday schedules change.", sample_payload_summary: "{ branch_id, day_of_week, opening_time, closing_time, is_open }" },
+  { type: "operations.hours.updated", label: "Global Operations Config Updated", category: "FULFILLMENT", description: "Triggered when organization-level cutoff, prep delay, or operating hours change.", sample_payload_summary: "{ business_timezone, global_order_cutoff_time, global_preparation_delay_minutes }" },
 
   // DELIVERY
   { type: "delivery.assigned", label: "Delivery Rider Assigned", category: "DELIVERY", description: "Triggered when logistics assign rider to order.", sample_payload_summary: "{ order_id, rider_id, rider_name, eta }" },
@@ -369,10 +409,25 @@ const DEFAULT_ENDPOINTS: WebhookEndpoint[] = [
       "order.created",
       "order.paid",
       "order.confirmed",
+      "order.preparing",
       "order.ready",
+      "order.ready_for_pickup",
+      "order.claimed",
+      "order.picked_up",
       "order.out_for_delivery",
       "order.delivered",
       "order.cancelled",
+      "order.status_changed",
+      "order.rider_assigned",
+      "order.delivery_partner_changed",
+      "branch.order_accepted",
+      "branch.order_rejected",
+      "customer.order_delayed",
+      "delivery.assigned",
+      "delivery.picked_up",
+      "delivery.pickup_confirmed",
+      "delivery.out_for_delivery",
+      "delivery.delivered",
       "customer.reorder_candidate.created",
       "customer.reorder_converted",
       "recovery.link.created",

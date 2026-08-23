@@ -527,6 +527,48 @@ export function CustomerProfileDrawer({
                       </div>
                     )}
                   </div>
+
+                  {/* Customer Product Reviews */}
+                  <div className="flex flex-col gap-3">
+                    <Heading level="h3" className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
+                      Verified Product Reviews ({profile.reviews_count || profile.reviews_written?.length || 0})
+                    </Heading>
+
+                    {(!profile.reviews_written || profile.reviews_written.length === 0) ? (
+                      <div className="p-4 text-center border border-dashed rounded-xl border-neutral-300 dark:border-neutral-700">
+                        <Text className="text-neutral-500 text-xs">Customer has not submitted any product reviews yet.</Text>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {profile.reviews_written.map((rev: any) => (
+                          <div
+                            key={rev.id}
+                            className="p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex flex-col gap-1.5 text-xs"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-neutral-900 dark:text-white">
+                                {rev.rating}★ {rev.title}
+                              </span>
+                              <span className="text-[11px] text-neutral-400">
+                                {new Date(rev.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                              </span>
+                            </div>
+                            <p className="text-neutral-600 dark:text-neutral-300 text-[11px]">
+                              {rev.review_text}
+                            </p>
+                            <div className="flex items-center gap-2 pt-1 text-[10px] text-neutral-400">
+                              <span>Product: {rev.product_id}</span>
+                              <span>•</span>
+                              <span>Order: #{rev.order_id}</span>
+                              {rev.is_verified_purchase && (
+                                <span className="text-emerald-600 font-bold">✓ Verified Purchase</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 

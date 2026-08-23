@@ -8,3 +8,4 @@ export { DriverWallet } from "./driver-wallet";
 export { DriverTransaction } from "./driver-transaction";
 export { DriverAttendance } from "./driver-attendance";
 export { DriverLocation } from "./driver-location";
+export { RiderPresence } from "./rider-presence";

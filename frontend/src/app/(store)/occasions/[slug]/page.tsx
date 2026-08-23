@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { ApiEngine } from "@frontend/lib/api-engine";
 import { Sparkles, ArrowRight, ShieldCheck, Clock, Award, Cake, ShoppingCart } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 interface OccasionPageProps {
   params: Promise<{ slug: string }>;
 }

@@ -2,16 +2,15 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Heading, Text, Button, Input, Switch, Badge, Textarea, Label } from "@medusajs/ui";
-import {
-    addToWishlistAction,
-    removeFromWishlistAction,
-} from "@frontend/lib/actions";
+import { useFavorites } from "@/providers/favorites-provider";
 import type { ProductReview } from "@frontend/lib/data/catalog";
 import { addToCart } from "@frontend/lib/actions/carts";
 import { retrieveBranchInventory } from "@frontend/lib/data/branches";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ProductReviewsSection } from "./product-reviews-section";
+import { ProductFulfillmentBadge } from "./product-fulfillment-badge";
 import { apiClient } from "@frontend/lib/api-client";
 
 // Custom SVG Icons
@@ -57,7 +56,9 @@ export default function ProductDetailClient({
     pimConfig = {},
 }: ProductDetailProps) {
     const router = useRouter();
-    const [isWishlisted, setIsWishlisted] = useState(isWishlistedInitial);
+    const { isFavorited, toggleFavorite } = useFavorites();
+    const prodId = product.id || product.product_id;
+    const isWishlisted = isFavorited(prodId);
     const [wishlistLoading, setWishlistLoading] = useState(false);
     const [cartLoading, setCartLoading] = useState(false);
     const isSubmittingRef = useRef(false);
@@ -311,13 +312,7 @@ export default function ProductDetailClient({
     const handleWishlistToggle = async () => {
         setWishlistLoading(true);
         try {
-            if (isWishlisted) {
-                await removeFromWishlistAction(product.id);
-                setIsWishlisted(false);
-            } else {
-                await addToWishlistAction(product.id);
-                setIsWishlisted(true);
-            }
+            await toggleFavorite(prodId, { title: product.title, handle: product.handle });
         } catch (e) {
             console.error("Failed to toggle wishlist", e);
         } finally {
@@ -460,7 +455,15 @@ export default function ProductDetailClient({
                 {/* Dynamic PIM Configuration Panel */}
                 <div className="md:w-1/2 flex flex-col gap-5">
                     <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            {product.category && (
+                                <Link
+                                    href={`/products?category=${product.category_slug || product.category.toLowerCase().replace(/\s+/g, "-")}`}
+                                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition"
+                                >
+                                    🍰 {product.category}
+                                </Link>
+                            )}
                             {meta?.is_bestseller && <Badge color="orange">Bestseller</Badge>}
                             {meta?.is_featured && <Badge color="purple">Featured Cake</Badge>}
                             <span className="text-xs text-gray-500 font-semibold">Freshly Baked On Order</span>
@@ -485,6 +488,9 @@ export default function ProductDetailClient({
                                 </Link>
                             ))}
                         </div>
+
+                        {/* Real-time Order Cutoff & Fulfillment Eligibility Badge */}
+                        <ProductFulfillmentBadge productId={prodId} branchId={shopId} showDetails={true} className="mt-3" />
                     </div>
 
                     <Text className="text-gray-600 text-sm leading-relaxed">{product.description}</Text>
@@ -850,6 +856,16 @@ export default function ProductDetailClient({
                     </div>
                 </div>
             </div>
+
+            {/* Verified Customer Reviews Section */}
+            <ProductReviewsSection
+                productId={product?.id || product?.product_id}
+                productTitle={product?.title || product?.name || "Gourmet Cake"}
+                initialReviews={initialReviews as any}
+                initialAverage={averageRating}
+                initialCount={reviewCount}
+                initialDistribution={ratingDistribution as any}
+            />
         </div>
     );
 }

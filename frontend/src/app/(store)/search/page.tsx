@@ -20,7 +20,7 @@ export default function SearchPage() {
 
 function SearchPageContent() {
     const searchParams = useSearchParams();
-    const initialQ = searchParams.get("q") ?? "";
+    const initialQ = searchParams.get("search") ?? searchParams.get("q") ?? "";
     const [q, setQ] = useState(initialQ);
     const [filters, setFilters] = useState<SearchFilters>({});
     const [results, setResults] = useState<SearchResult[]>([]);

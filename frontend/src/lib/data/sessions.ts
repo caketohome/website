@@ -5,7 +5,6 @@
 import { jwtVerify } from "jose";
 import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
-import "server-only";
 
 const jwtSecret = process.env.JWT_SECRET || "supersecret";
 

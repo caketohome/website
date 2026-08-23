@@ -1,11 +1,12 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework";
 import { LOCALIZATION_MODULE } from "../../../../modules/localization";
+import LocalizationModuleService from "../../../../modules/localization/service";
 
 /**
  * GET /admin/localization/languages
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-    const locModule = req.scope.resolve(LOCALIZATION_MODULE);
+    const locModule = req.scope.resolve<LocalizationModuleService>(LOCALIZATION_MODULE);
     const languages = await locModule.listLanguages({});
     return res.status(200).json({ languages });
 }
@@ -14,7 +15,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
  * POST /admin/localization/languages
  */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
-    const locModule = req.scope.resolve(LOCALIZATION_MODULE);
+    const locModule = req.scope.resolve<LocalizationModuleService>(LOCALIZATION_MODULE);
 
     const body = req.body as {
         code: string;

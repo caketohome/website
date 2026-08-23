@@ -4,10 +4,9 @@ import { useState } from "react";
 import {
   passDelivery,
   proceedDelivery,
-  verifyPickupOtp,
-  verifyCustomerOtp,
   reportDeliveryException,
 } from "@frontend/lib/actions";
+import { apiClient } from "@frontend/lib/api-client";
 import { DeliveryDTO, DeliveryStatus, DeliveryPartnerDTO } from "@frontend/lib/types";
 import { Button, Input, Label } from "@medusajs/ui";
 import { Phone, Key, AlertTriangle, CheckCircle, Navigation, ShieldAlert, Truck } from "lucide-react";
@@ -30,7 +29,7 @@ export default function DeliveryPartnerDeliveryButtons({
   const [otpError, setOtpError] = useState("");
   const [actionError, setActionError] = useState("");
 
-  const [exceptionType, setExceptionType] = useState("CUSTOMER_NOT_AVAILABLE");
+  const [exceptionType, setExceptionType] = useState("ADDRESS_NOT_FOUND");
   const [exceptionDesc, setExceptionDesc] = useState("");
   const [exceptionSuccess, setExceptionSuccess] = useState(false);
 
@@ -39,11 +38,11 @@ export default function DeliveryPartnerDeliveryButtons({
     setProceedIsLoading(true);
     const res = await proceedDelivery(delivery, delivery_partner.id);
     setProceedIsLoading(false);
-    if (res && (res.success || res.already_claimed)) {
-      window.location.reload();
-    } else {
-      setActionError(res?.error || "Unable to claim job.");
+    if (res && res.success === false) {
+      setActionError(res.error || "Failed to accept delivery job");
+      return;
     }
+    window.location.reload();
   };
 
   const handleDeclineDelivery = async () => {
@@ -51,11 +50,11 @@ export default function DeliveryPartnerDeliveryButtons({
     setDeclineIsLoading(true);
     const res = await passDelivery(delivery.id, delivery_partner.id);
     setDeclineIsLoading(false);
-    if (res && res.success) {
-      window.location.reload();
-    } else {
-      setActionError(res?.error || "Unable to decline job.");
+    if (res && res.success === false) {
+      setActionError(res.error || "Failed to decline delivery job");
+      return;
     }
+    window.location.reload();
   };
 
   const handleVerifyPickupOtp = async (e: React.FormEvent) => {
@@ -63,17 +62,23 @@ export default function DeliveryPartnerDeliveryButtons({
     setOtpError("");
     setProceedIsLoading(true);
 
-    const res = await verifyPickupOtp(delivery.id, pickupOtpInput, delivery_partner.id);
-    setProceedIsLoading(false);
+    const targetOrderId = (delivery as any).order_id || delivery.id;
+    try {
+      const res = await apiClient.verifyPickupOtp(targetOrderId, pickupOtpInput, delivery_partner.id);
+      setProceedIsLoading(false);
 
-    if (res && (res.success || res.already_verified)) {
-      setShowPickupModal(false);
-      setPickupOtpInput("");
-      window.location.reload();
-      return;
+      if (res && (res.success || res.already_verified)) {
+        setShowPickupModal(false);
+        setPickupOtpInput("");
+        window.location.reload();
+        return;
+      }
+
+      setOtpError(res?.error || "Invalid Kitchen Pickup OTP code. Verification failed.");
+    } catch (err: any) {
+      setProceedIsLoading(false);
+      setOtpError(err?.message || "Invalid Kitchen Pickup OTP code. Verification failed.");
     }
-
-    setOtpError(res?.error || "Invalid Pickup OTP code");
   };
 
   const handleVerifyCustomerOtp = async (e: React.FormEvent) => {
@@ -81,17 +86,23 @@ export default function DeliveryPartnerDeliveryButtons({
     setOtpError("");
     setProceedIsLoading(true);
 
-    const res = await verifyCustomerOtp(delivery.id, customerOtpInput, delivery_partner.id);
-    setProceedIsLoading(false);
+    const targetOrderId = (delivery as any).order_id || delivery.id;
+    try {
+      const res = await apiClient.verifyCustomerOtp(targetOrderId, customerOtpInput, delivery_partner.id);
+      setProceedIsLoading(false);
 
-    if (res && (res.success || res.already_verified)) {
-      setShowCustomerOtpModal(false);
-      setCustomerOtpInput("");
-      window.location.reload();
-      return;
+      if (res && (res.success || res.already_verified)) {
+        setShowCustomerOtpModal(false);
+        setCustomerOtpInput("");
+        window.location.reload();
+        return;
+      }
+
+      setOtpError(res?.error || "Invalid Customer Delivery OTP code. Verification failed.");
+    } catch (err: any) {
+      setProceedIsLoading(false);
+      setOtpError(err?.message || "Invalid Customer Delivery OTP code. Verification failed.");
     }
-
-    setOtpError(res?.error || "Invalid Customer OTP code");
   };
 
   const handleReportException = async (e: React.FormEvent) => {

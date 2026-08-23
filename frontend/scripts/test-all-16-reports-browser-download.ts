@@ -63,7 +63,7 @@ async function runBrowserExcelExportsAudit() {
   const page = await context.newPage();
 
   // Test definitions
-  const testCases: { name: string; generate: () => Promise<void>; expectedSheets: string[] }[] = [
+  const testCases: { name: string; generate: () => Promise<any>; expectedSheets: string[] }[] = [
     {
       name: "01_Executive_Summary",
       generate: () => ExcelExportService.exportExecutiveSummary({

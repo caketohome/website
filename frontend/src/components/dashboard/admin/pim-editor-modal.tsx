@@ -8,6 +8,13 @@ import { OccasionSelector } from "./occasion-selector";
 import { compressImageToWebP } from "@frontend/lib/util/image-compressor";
 import { TaxMasterService } from "@frontend/lib/tax-master";
 import {
+  parseAndNormalizeWeight,
+  sortWeightOptions,
+  getNextSuggestedWeight,
+  createDefaultWeightMatrix,
+  ProductWeightOption,
+} from "@frontend/lib/util/weight-matrix";
+import {
   Sparkles, Cake, Tag, DollarSign, Layers, ShoppingBag, Image as ImageIcon,
   Truck, Globe, CheckCircle, AlertCircle, Plus, Trash2, Sliders, Wand2, Upload, ArrowUp, ArrowDown, RefreshCw, X
 } from "lucide-react";
@@ -156,27 +163,63 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
   const [seoKeywords, setSeoKeywords] = useState("cake delivery, fresh cakes, birthday cake online");
   const [aiPrompting, setAiPrompting] = useState(false);
 
-  // Dynamic Product Weight Creator
+  // Dynamic Product Weight Creator (Supports Continuous 1-Click Multi-Additions)
   const handleAddCustomWeight = () => {
-    if (!newWeightName.trim()) return;
-    const priceNum = parseFloat(newWeightPrice) || 500;
-    const newEntry = {
-      weight_id: `w_custom_${Date.now()}`,
-      weight_name: newWeightName.trim(),
+    const inputName = newWeightName.trim();
+    const nextSugg = getNextSuggestedWeight(weightPrices);
+    const targetName = inputName || nextSugg.name;
+    const parsed = parseAndNormalizeWeight(targetName);
+
+    // Duplicate physical weight check
+    const duplicate = weightPrices.some(
+      (wp) => (wp.normalized_grams || parseAndNormalizeWeight(wp.weight_name || "").normalized_grams) === parsed.normalized_grams
+    );
+    if (duplicate) {
+      setErrorMsg(`Weight size "${parsed.weight_name}" already exists in the pricing matrix.`);
+      setTimeout(() => setErrorMsg(null), 3000);
+      return;
+    }
+
+    const priceNum = Math.max(1, parseFloat(newWeightPrice) || nextSugg.price || 550);
+    const newEntry: ProductWeightOption = {
+      id: `w_custom_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      weight_id: `w_custom_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      product_id: product?.id,
+      weight_name: parsed.weight_name,
+      weight_value: parsed.weight_value,
+      weight_unit: parsed.weight_unit,
+      normalized_grams: parsed.normalized_grams,
       selling_price: priceNum,
-      mrp: Math.round(priceNum * 1.2),
-      cost_price: Math.round(priceNum * 0.5),
-      prep_time_minutes: 60,
+      mrp: Math.round(priceNum * 1.25),
+      cost_price: Math.round(priceNum * 0.45),
+      prep_time_minutes: parsed.normalized_grams > 1000 ? 120 : 60,
       is_enabled: true,
+      sort_order: weightPrices.length + 1,
     };
-    setWeightPrices((prev) => [...prev, newEntry]);
-    setSelectedWeights((prev) => [...new Set([...prev, newWeightName.trim()])]);
-    setNewWeightName("");
-    setNewWeightPrice("");
+
+    const updated = sortWeightOptions([...weightPrices, newEntry]);
+    setWeightPrices(updated);
+    setSelectedWeights((prev) => [...new Set([...prev, parsed.weight_name])]);
+
+    // Pre-populate the NEXT standard weight size for continuous rapid additions
+    const subsequent = getNextSuggestedWeight(updated);
+    setNewWeightName(subsequent.name);
+    setNewWeightPrice(String(subsequent.price));
+    setErrorMsg(null);
   };
 
-  const handleDeleteWeightRow = (idx: number) => {
-    setWeightPrices((prev) => prev.filter((_, i) => i !== idx));
+  const handleDeleteWeightRow = (idOrWeightName: string) => {
+    setWeightPrices((prev) => {
+      const updated = prev.filter(
+        (wp) => (wp.id || wp.weight_id || wp.weight_name) !== idOrWeightName
+      );
+      if (updated.length > 0) {
+        const nextSugg = getNextSuggestedWeight(updated);
+        setNewWeightName(nextSugg.name);
+        setNewWeightPrice(String(nextSugg.price));
+      }
+      return updated;
+    });
   };
 
   // Canvas WebP Image Compression Uploader
@@ -205,7 +248,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Product-Specific Weight Pricing Matrix State (Zero Hardcoding)
-  const [weightPrices, setWeightPrices] = useState<any[]>([]);
+  const [weightPrices, setWeightPrices] = useState<ProductWeightOption[]>([]);
   const [activeSelectedWeight, setActiveSelectedWeight] = useState("");
 
   // Master Database Flavors and Shapes
@@ -239,7 +282,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       apiClient.getAdminShapes().catch(() => ({ shapes: [] })),
       product?.id ? apiClient.getProductFlavorMappings(product.id).catch(() => ({ flavor_mappings: [] })) : Promise.resolve({ flavor_mappings: [] }),
       product?.id ? apiClient.getProductShapeMappings(product.id).catch(() => ({ shape_mappings: [] })) : Promise.resolve({ shape_mappings: [] }),
-      product?.id ? apiClient.getProductWeightPrices(product.id).catch(() => ({ weight_prices: [] })) : Promise.resolve({ weight_prices: [] })
+      product?.id ? apiClient.getProductWeightPrices(product.id).catch(() => ({ weight_prices: [] })) : Promise.resolve({ weight_prices: [] }),
     ]).then(([resFlv, resShp, resFlvMaps, resShpMaps, resPrices]: any[]) => {
       const dbFlavors = resFlv?.flavors || [];
       const dbShapes = resShp?.shapes || [];
@@ -261,10 +304,17 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
         setSelectedShapes(dbShapes.map((s: any) => s.name));
       }
 
-      const savedPrices = resPrices?.weight_prices || [];
-      setWeightPrices(savedPrices);
-      if (savedPrices.length > 0) {
-        setActiveSelectedWeight(savedPrices[0].weight_name);
+      const rawPrices = resPrices?.weight_prices;
+      const initialPrices = Array.isArray(rawPrices) && rawPrices.length > 0
+        ? rawPrices
+        : createDefaultWeightMatrix(product?.id || "prod_new", Number(product?.price) || 649);
+      const sortedPrices = sortWeightOptions(initialPrices);
+      setWeightPrices(sortedPrices);
+      if (sortedPrices.length > 0) {
+        setActiveSelectedWeight(sortedPrices[0].weight_name);
+        const nextSugg = getNextSuggestedWeight(sortedPrices);
+        setNewWeightName(nextSugg.name);
+        setNewWeightPrice(String(nextSugg.price));
       }
     }).finally(() => setMasterDataLoading(false));
   };
@@ -423,13 +473,16 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
 
     try {
       let targetProdId = product?.id;
+      const sortedToSave = sortWeightOptions(weightPrices);
       if (product?.id) {
         await apiClient.updateAdminProduct(product.id, payload);
-        await apiClient.saveProductWeightPrices(product.id, weightPrices);
+        const savedRes: any = await apiClient.saveProductWeightPrices(product.id, sortedToSave);
+        if (Array.isArray(savedRes?.weight_prices)) setWeightPrices(savedRes.weight_prices);
       } else {
         const res: any = await apiClient.createAdminProduct(payload);
         targetProdId = res?.product?.id || `prod_${Date.now()}`;
-        await apiClient.saveProductWeightPrices(targetProdId, weightPrices);
+        const savedRes: any = await apiClient.saveProductWeightPrices(targetProdId, sortedToSave);
+        if (Array.isArray(savedRes?.weight_prices)) setWeightPrices(savedRes.weight_prices);
       }
 
       if (targetProdId) {
@@ -695,85 +748,135 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
-                    {weightPrices.map((wp, idx) => (
-                      <tr key={wp.weight_id || idx} className={wp.is_enabled ? "bg-white dark:bg-slate-900" : "bg-slate-100 dark:bg-slate-800 text-slate-400"}>
-                        <td className="p-3">
-                          <input
-                            type="checkbox"
-                            checked={wp.is_enabled}
-                            onChange={(e) => {
-                              const updated = [...weightPrices];
-                              updated[idx].is_enabled = e.target.checked;
-                              setWeightPrices(updated);
-                            }}
-                            className="w-4 h-4 rounded text-purple-600"
-                          />
-                        </td>
-                        <td className="p-3 font-bold text-purple-600">{wp.weight_name}</td>
-                        <td className="p-3">
-                          <Input
-                            type="number"
-                            value={wp.selling_price}
-                            disabled={!wp.is_enabled}
-                            onChange={(e) => {
-                              const updated = [...weightPrices];
-                              updated[idx].selling_price = parseFloat(e.target.value) || 0;
-                              setWeightPrices(updated);
-                            }}
-                            className="w-28 h-8 text-xs font-semibold text-emerald-600"
-                          />
-                        </td>
-                        <td className="p-3">
-                          <Input
-                            type="number"
-                            value={wp.mrp}
-                            disabled={!wp.is_enabled}
-                            onChange={(e) => {
-                              const updated = [...weightPrices];
-                              updated[idx].mrp = parseFloat(e.target.value) || 0;
-                              setWeightPrices(updated);
-                            }}
-                            className="w-28 h-8 text-xs"
-                          />
-                        </td>
-                        <td className="p-3">
-                          <Input
-                            type="number"
-                            value={wp.cost_price}
-                            disabled={!wp.is_enabled}
-                            onChange={(e) => {
-                              const updated = [...weightPrices];
-                              updated[idx].cost_price = parseFloat(e.target.value) || 0;
-                              setWeightPrices(updated);
-                            }}
-                            className="w-28 h-8 text-xs"
-                          />
-                        </td>
-                        <td className="p-3">
-                          <Input
-                            type="number"
-                            value={wp.prep_time_minutes}
-                            disabled={!wp.is_enabled}
-                            onChange={(e) => {
-                              const updated = [...weightPrices];
-                              updated[idx].prep_time_minutes = parseInt(e.target.value, 10) || 60;
-                              setWeightPrices(updated);
-                            }}
-                            className="w-24 h-8 text-xs"
-                          />
-                        </td>
-                        <td className="p-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteWeightRow(idx)}
-                            className="p-1 text-gray-400 hover:text-rose-600 transition-colors"
-                            title="Remove weight option"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {weightPrices.map((wp, idx) => {
+                      const rowKey = wp.id || wp.weight_id || `row_${wp.weight_name}_${idx}`;
+                      return (
+                        <tr key={rowKey} className={wp.is_enabled ? "bg-white dark:bg-slate-900" : "bg-slate-100 dark:bg-slate-800 text-slate-400"}>
+                          <td className="p-3">
+                            <input
+                              type="checkbox"
+                              checked={wp.is_enabled}
+                              onChange={(e) => {
+                                setWeightPrices((prev) =>
+                                  prev.map((item) =>
+                                    (item.id || item.weight_id || item.weight_name) === (wp.id || wp.weight_id || wp.weight_name)
+                                      ? { ...item, is_enabled: e.target.checked }
+                                      : item
+                                  )
+                                );
+                              }}
+                              className="w-4 h-4 rounded text-purple-600"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <Input
+                              value={wp.weight_name}
+                              disabled={!wp.is_enabled}
+                              onChange={(e) => {
+                                const newName = e.target.value;
+                                const parsed = parseAndNormalizeWeight(newName);
+                                setWeightPrices((prev) =>
+                                  prev.map((item) =>
+                                    (item.id || item.weight_id || item.weight_name) === (wp.id || wp.weight_id || wp.weight_name)
+                                      ? {
+                                          ...item,
+                                          weight_name: newName,
+                                          weight_value: parsed.weight_value,
+                                          weight_unit: parsed.weight_unit,
+                                          normalized_grams: parsed.normalized_grams,
+                                        }
+                                      : item
+                                  )
+                                );
+                              }}
+                              className="w-28 h-8 text-xs font-bold text-purple-600 bg-transparent border-slate-200 dark:border-slate-700"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <Input
+                              type="number"
+                              value={wp.selling_price}
+                              disabled={!wp.is_enabled}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value) || 0;
+                                setWeightPrices((prev) =>
+                                  prev.map((item) =>
+                                    (item.id || item.weight_id || item.weight_name) === (wp.id || wp.weight_id || wp.weight_name)
+                                      ? { ...item, selling_price: val, mrp: Math.max(item.mrp || 0, Math.round(val * 1.25)) }
+                                      : item
+                                  )
+                                );
+                              }}
+                              className="w-28 h-8 text-xs font-semibold text-emerald-600"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <Input
+                              type="number"
+                              value={wp.mrp}
+                              disabled={!wp.is_enabled}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value) || 0;
+                                setWeightPrices((prev) =>
+                                  prev.map((item) =>
+                                    (item.id || item.weight_id || item.weight_name) === (wp.id || wp.weight_id || wp.weight_name)
+                                      ? { ...item, mrp: val }
+                                      : item
+                                  )
+                                );
+                              }}
+                              className="w-28 h-8 text-xs"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <Input
+                              type="number"
+                              value={wp.cost_price}
+                              disabled={!wp.is_enabled}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value) || 0;
+                                setWeightPrices((prev) =>
+                                  prev.map((item) =>
+                                    (item.id || item.weight_id || item.weight_name) === (wp.id || wp.weight_id || wp.weight_name)
+                                      ? { ...item, cost_price: val }
+                                      : item
+                                  )
+                                );
+                              }}
+                              className="w-28 h-8 text-xs"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <Input
+                              type="number"
+                              value={wp.prep_time_minutes}
+                              disabled={!wp.is_enabled}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value, 10) || 60;
+                                setWeightPrices((prev) =>
+                                  prev.map((item) =>
+                                    (item.id || item.weight_id || item.weight_name) === (wp.id || wp.weight_id || wp.weight_name)
+                                      ? { ...item, prep_time_minutes: val }
+                                      : item
+                                  )
+                                );
+                              }}
+                              className="w-24 h-8 text-xs"
+                            />
+                          </td>
+                          <td className="p-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteWeightRow(wp.id || wp.weight_id || wp.weight_name)}
+                              className="p-1 text-gray-400 hover:text-rose-600 transition-colors"
+                              title="Remove weight option"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

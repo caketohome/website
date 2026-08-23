@@ -52,26 +52,463 @@ export class ExcelExportService {
     }
   }
 
-  public static async generateGstWorkbookXlsx(data: any, filename?: string): Promise<any> {
-    return ExcelExportService.exportGstHsnSummary(data);
+  public static async generateGstWorkbookXlsx(data: any, filename?: string): Promise<ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook();
+    const periodStr = `${data.filters?.customStartDate || "01/08/2026"} TO ${data.filters?.customEndDate || "10/08/2026"}`;
+
+    // 01 Executive Summary
+    ExcelExportService.buildSheetExecutiveSummary(workbook, data, periodStr, "01 Executive Summary");
+
+    // 02 Invoice Register
+    ExcelExportService.buildSheetInvoiceRegister(workbook, data, periodStr, "02 Invoice Register");
+
+    // 03 GST Transactions
+    ExcelExportService.buildSheetGstTransactions(workbook, data, periodStr, "03 GST Transactions");
+
+    // 04 B2B Sales
+    ExcelExportService.buildSheetB2BSales(workbook, data, periodStr, "04 B2B Sales");
+
+    // 05 B2C Sales
+    ExcelExportService.buildSheetB2CSales(workbook, data, periodStr, "05 B2C Sales");
+
+    // 06 Credit Notes
+    ExcelExportService.buildSheetCreditNotes(workbook, data, periodStr, "06 Credit Notes");
+
+    // 07 HSN Summary
+    ExcelExportService.buildSheetHsnSummary(workbook, data, periodStr, "07 HSN Summary");
+
+    // 08 Tax Summary
+    ExcelExportService.buildSheetTaxSummary(workbook, data, periodStr, "08 Tax Summary");
+
+    // 09 GSTR-1
+    ExcelExportService.buildSheetGstr1(workbook, data, periodStr, "09 GSTR-1");
+
+    // 10 GSTR-3B
+    ExcelExportService.buildSheetGstr3b(workbook, data, periodStr, "10 GSTR-3B");
+
+    // 11 Validation Errors
+    ExcelExportService.buildSheetValidationErrors(workbook, data, periodStr, "11 Validation Errors");
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    ExcelExportService.triggerBrowserDownload(buffer as ArrayBuffer, filename || "CakeToHome_GST_Complete_Master_Workbook");
+    return buffer as ArrayBuffer;
   }
 
-  public static async exportGstSummary(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
-  public static async exportInvoiceRegister(data: any): Promise<any> { return ExcelExportService.exportGstDetailedRegister(data); }
-  public static async exportGstTransactions(data: any): Promise<any> { return ExcelExportService.exportGstDetailedRegister(data); }
-  public static async exportB2B(data: any): Promise<any> { return ExcelExportService.exportGstDetailedRegister(data); }
-  public static async exportB2C(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
-  public static async exportCreditNotes(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
-  public static async exportHsnSummary(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
-  public static async exportTaxSummary(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
-  public static async exportGstr1(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
-  public static async exportGstr3b(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
-  public static async exportValidationErrors(data: any): Promise<any> { return ExcelExportService.exportGstHsnSummary(data); }
-  public static async exportSalesRevenue(data: any): Promise<any> { return ExcelExportService.exportDailySalesReport(data); }
-  public static async exportProductsProfitability(data: any): Promise<any> { return ExcelExportService.exportProductPerformance(data); }
-  public static async exportOrdersLifecycle(data: any): Promise<any> { return ExcelExportService.exportOrderRegister(data); }
-  public static async exportGeographicSales(data: any): Promise<any> { return ExcelExportService.exportCityPerformance(data); }
-  public static async exportExceptionReport(data: any): Promise<any> { return ExcelExportService.exportExceptionCenter(data); }
+  // ── Standalone 11 GST Export Methods ──
+  public static async exportGstSummary(data: any, filename?: string): Promise<ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook();
+    const periodStr = `${data.filters?.customStartDate || "01/08/2026"} TO ${data.filters?.customEndDate || "10/08/2026"}`;
+    ExcelExportService.buildSheetExecutiveSummary(workbook, data, periodStr, "GST Summary");
+    const buffer = await workbook.xlsx.writeBuffer();
+    ExcelExportService.triggerBrowserDownload(buffer as ArrayBuffer, filename || "CakeToHome_GST_Summary_Report");
+    return buffer as ArrayBuffer;
+  }
+
+  public static async exportInvoiceRegister(data: any, filename?: string): Promise<ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook();
+    const periodStr = `${data.filters?.customStartDate || "01/08/2026"} TO ${data.filters?.customEndDate || "10/08/2026"}`;
+    ExcelExportService.buildSheetInvoiceRegister(workbook, data, periodStr, "Invoice Register");
+    const buffer = await workbook.xlsx.writeBuffer();
+    ExcelExportService.triggerBrowserDownload(buffer as ArrayBuffer, filename || "CakeToHome_Invoice_Register");
+    return buffer as ArrayBuffer;
+  }
+
+  public static async exportGstTransactions(data: any, filename?: string): Promise<ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook();
+    const periodStr = `${data.filters?.customStartDate || "01/08/2026"} TO ${data.filters?.customEndDate || "10/08/2026"}`;
+    ExcelExportService.buildSheetGstTransactions(workbook, data, periodStr, "GST Transactions");
+    const buffer = await workbook.xlsx.writeBuffer();
+    ExcelExportService.triggerBrowserDownload(buffer as ArrayBuffer, filename || "CakeToHome_GST_Transactions");
+    return buffer as ArrayBuffer;
+  }
+
+  public static async exportB2B(data: any, filename?: string): Promise<ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook();
+    const periodStr = `${data.filters?.customStartDate || "01/08/2026"} TO ${data.filters?.customEndDate || "10/08/2026"}`;
+    ExcelExportService.buildSheetB2BSales(workbook, data, periodStr, "B2B Sales");
+    const buffer = await workbook.xlsx.writeBuffer();
+    ExcelExportService.triggerBrowserDownload(buffer as ArrayBuffer, filename || "CakeToHome_B2B_Sales");
+    return buffer as ArrayBuffer;
+  }
+
+  public static async exportB2C(data: any, filename?: string): Promise<ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook();
+    const periodStr = `${data.filters?.customStartDate || "01/08/2026"} TO ${data.filters?.customEndDate || "10/08/2026"}`;
+    ExcelExportService.buildSheetB2CSales(workbook, data, periodStr, "B2C Sales");
+    const buffer = await workbook.xlsx.writeBuffer();
+    ExcelExportService.triggerBrowserDownload(buffer as ArrayBuffer, filename || "CakeToHome_B2C_Sales");
+    return buffer as ArrayBuffer;
+  }
+
+  public static async exportCreditNotes(data: any, filename?: string): Promise<ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook();
+    const periodStr = `${data.filters?.customStartDate || "01/08/2026"} TO ${data.filters?.customEndDate || "10/08/2026"}`;
+    ExcelExportService.buildSheetCreditNotes(workbook, data, periodStr, "Credit Notes");
+    const buffer = await workbook.xlsx.writeBuffer();
+    ExcelExportService.triggerBrowserDownload(buffer as ArrayBuffer, filename || "CakeToHome_Credit_Notes");
+    return buffer as ArrayBuffer;
+  }
+
+  public static async exportHsnSummary(data: any, filename?: string): Promise<ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook();
+    const periodStr = `${data.filters?.customStartDate || "01/08/2026"} TO ${data.filters?.customEndDate || "10/08/2026"}`;
+    ExcelExportService.buildSheetHsnSummary(workbook, data, periodStr, "HSN Summary");
+    const buffer = await workbook.xlsx.writeBuffer();
+    ExcelExportService.triggerBrowserDownload(buffer as ArrayBuffer, filename || "CakeToHome_HSN_Summary_Report");
+    return buffer as ArrayBuffer;
+  }
+
+  public static async exportTaxSummary(data: any, filename?: string): Promise<ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook();
+    const periodStr = `${data.filters?.customStartDate || "01/08/2026"} TO ${data.filters?.customEndDate || "10/08/2026"}`;
+    ExcelExportService.buildSheetTaxSummary(workbook, data, periodStr, "Tax Summary");
+    const buffer = await workbook.xlsx.writeBuffer();
+    ExcelExportService.triggerBrowserDownload(buffer as ArrayBuffer, filename || "CakeToHome_Tax_Summary");
+    return buffer as ArrayBuffer;
+  }
+
+  public static async exportGstr1(data: any, filename?: string): Promise<ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook();
+    const periodStr = `${data.filters?.customStartDate || "01/08/2026"} TO ${data.filters?.customEndDate || "10/08/2026"}`;
+    ExcelExportService.buildSheetGstr1(workbook, data, periodStr, "GSTR-1");
+    const buffer = await workbook.xlsx.writeBuffer();
+    ExcelExportService.triggerBrowserDownload(buffer as ArrayBuffer, filename || "CakeToHome_GSTR1_Report");
+    return buffer as ArrayBuffer;
+  }
+
+  public static async exportGstr3b(data: any, filename?: string): Promise<ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook();
+    const periodStr = `${data.filters?.customStartDate || "01/08/2026"} TO ${data.filters?.customEndDate || "10/08/2026"}`;
+    ExcelExportService.buildSheetGstr3b(workbook, data, periodStr, "GSTR-3B");
+    const buffer = await workbook.xlsx.writeBuffer();
+    ExcelExportService.triggerBrowserDownload(buffer as ArrayBuffer, filename || "CakeToHome_GSTR3B_Report");
+    return buffer as ArrayBuffer;
+  }
+
+  public static async exportValidationErrors(data: any, filename?: string): Promise<ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook();
+    const periodStr = `${data.filters?.customStartDate || "01/08/2026"} TO ${data.filters?.customEndDate || "10/08/2026"}`;
+    ExcelExportService.buildSheetValidationErrors(workbook, data, periodStr, "Validation Errors");
+    const buffer = await workbook.xlsx.writeBuffer();
+    ExcelExportService.triggerBrowserDownload(buffer as ArrayBuffer, filename || "CakeToHome_Validation_Errors");
+    return buffer as ArrayBuffer;
+  }
+
+  // ── Standalone Analytics Reports Export Aliases ──
+  public static async exportSalesRevenue(data: any, filename?: string): Promise<any> {
+    return ExcelExportService.exportInvoiceRegister(data, filename);
+  }
+
+  public static async exportProductsProfitability(data: any, filename?: string): Promise<void> {
+    return ExcelExportService.exportProductPerformance(data, filename);
+  }
+
+  public static async exportOrdersLifecycle(data: any, filename?: string): Promise<void> {
+    return ExcelExportService.exportOrderRegister(data, filename);
+  }
+
+  public static async exportGeographicSales(data: any, filename?: string): Promise<void> {
+    return ExcelExportService.exportCityPerformance(data, filename);
+  }
+
+  public static async exportExceptionReport(data: any, filename?: string): Promise<void> {
+    return ExcelExportService.exportExceptionCenter(data, filename);
+  }
+
+  // ── Sheet Builders for 11-Worksheet GST Engine ──
+  private static buildSheetExecutiveSummary(workbook: ExcelJS.Workbook, data: any, periodStr: string, sheetName: string): void {
+    const s1 = workbook.addWorksheet(sheetName);
+    s1.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    s1.mergeCells("A1:K1");
+    s1.getCell("A1").value = "CAKETOHOME GST & TAX SUMMARY REPORT";
+    s1.getCell("A1").font = { size: 16, bold: true, color: { argb: "FF991B1B" } };
+    s1.mergeCells("A2:K2");
+    s1.getCell("A2").value = `Executive Summary | Period: ${periodStr} | ${this.formatBranchSubtitle(data.filters)}`;
+    s1.getCell("A2").font = { size: 11, italic: true, color: { argb: "FF475569" } };
+    s1.getCell("A4").value = "GSTIN:";
+    s1.getCell("B4").value = resolvePrimaryGstin();
+    s1.getCell("D4").value = "Generated At:";
+    s1.getCell("E4").value = new Date().toLocaleString("en-IN");
+    ["A4", "D4"].forEach((ref) => { s1.getCell(ref).font = { bold: true }; });
+
+    s1.getRow(6).values = ["Metric", "Current Value", "Previous Value", "Growth %"];
+    s1.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s1.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r1 = 7;
+    (data.kpis || []).forEach((kpi: any) => {
+      s1.getRow(r1).values = [kpi.label, kpi.currentValue, kpi.previousValue || 0, (kpi.growthPct || 0) / 100];
+      s1.getCell(`B${r1}`).numFmt = "₹#,##0.00";
+      s1.getCell(`C${r1}`).numFmt = "₹#,##0.00";
+      s1.getCell(`D${r1}`).numFmt = "0.00%";
+      r1++;
+    });
+    s1.columns = [{ width: 30 }, { width: 20 }, { width: 20 }, { width: 16 }];
+  }
+
+  private static buildSheetInvoiceRegister(workbook: ExcelJS.Workbook, data: any, periodStr: string, sheetName: string): void {
+    const s2 = workbook.addWorksheet(sheetName);
+    s2.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s2, "INVOICE AUDIT REGISTER", periodStr, data.filters, 12);
+    s2.getRow(6).values = ["Invoice No", "Date", "Order No", "Customer", "GSTIN", "Branch", "POS", "Taxable Amt", "CGST", "SGST", "IGST", "Total Value"];
+    s2.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s2.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r2 = 7;
+    (data.invoiceRegister || []).forEach((inv: any) => {
+      s2.getRow(r2).values = [inv.invoiceNumber, inv.invoiceDate, inv.orderNumber, inv.customerName, inv.customerGstin, inv.branchName, inv.placeOfSupply, inv.taxableAmount, inv.cgst, inv.sgst, inv.igst, inv.totalValue];
+      s2.getCell(`H${r2}`).numFmt = "₹#,##0.00";
+      s2.getCell(`I${r2}`).numFmt = "₹#,##0.00";
+      s2.getCell(`J${r2}`).numFmt = "₹#,##0.00";
+      s2.getCell(`K${r2}`).numFmt = "₹#,##0.00";
+      s2.getCell(`L${r2}`).numFmt = "₹#,##0.00";
+      r2++;
+    });
+    s2.columns = [{ width: 20 }, { width: 14 }, { width: 16 }, { width: 24 }, { width: 18 }, { width: 24 }, { width: 18 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 16 }];
+  }
+
+  private static buildSheetGstTransactions(workbook: ExcelJS.Workbook, data: any, periodStr: string, sheetName: string): void {
+    const s3 = workbook.addWorksheet(sheetName);
+    s3.views = [{ state: "frozen", xSplit: 0, ySplit: 1, showGridLines: true }];
+    const s3Headers = [
+      "Invoice Date", "Invoice No", "Order No", "Customer Name", "Customer Phone",
+      "Customer GSTIN", "Customer Type", "Place of Supply", "State", "Branch Name",
+      "Branch GSTIN", "Product Name", "SKU", "HSN Code", "Quantity",
+      "UOM", "Unit Price", "Gross Amount", "Taxable Value", "GST Rate %",
+      "CGST Rate %", "CGST", "SGST Rate %", "SGST", "IGST Rate %",
+      "IGST", "Total Tax", "Total Value", "Payment Method", "Payment Status", "Order Status"
+    ];
+    s3.getRow(1).values = s3Headers;
+    s3.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s3.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+
+    let r3 = 2;
+    const sales = data.salesRegister || [];
+    sales.forEach((s: any) => {
+      s3.getRow(r3).values = [
+        s.invoiceDate, s.invoiceNumber, s.orderNumber, s.customerName, s.customerPhone,
+        s.customerGstin || "URP", s.customerGstin && s.customerGstin !== "URP" ? "B2B" : "B2C", s.placeOfSupply, s.state || "Karnataka", s.branchName,
+        s.branchGstin || "29AAAAA0000A1Z5", s.productName, s.sku || "CK-TRUF", s.hsnCode || "19059090", s.quantity || 1,
+        s.uom || "PCS", s.unitPrice || 0, s.grossAmount || 0, s.taxableValue || 0, (s.gstRatePct || 18) / 100,
+        (s.cgstRatePct || 9) / 100, s.cgst || 0, (s.sgstRatePct || 9) / 100, s.sgst || 0, (s.igstRatePct || 0) / 100,
+        s.igst || 0, s.totalTax || 0, s.totalValue || 0, s.paymentMethod || "UPI / Razorpay", s.paymentStatus || "Paid", s.orderStatus || "Delivered"
+      ];
+      s3.getCell(`Q${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`R${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`S${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`T${r3}`).numFmt = "0.00%";
+      s3.getCell(`U${r3}`).numFmt = "0.00%";
+      s3.getCell(`V${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`W${r3}`).numFmt = "0.00%";
+      s3.getCell(`X${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`Y${r3}`).numFmt = "0.00%";
+      s3.getCell(`Z${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`AA${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`AB${r3}`).numFmt = "₹#,##0.00";
+      r3++;
+    });
+
+    if (sales.length > 0) {
+      const totRow = s3.getRow(r3);
+      totRow.values = [
+        "TOTAL", "", "", "", "", "", "", "", "", "", "", "", "", "",
+        { formula: `SUM(O2:O${r3 - 1})` }, "", "", { formula: `SUM(R2:R${r3 - 1})` },
+        { formula: `SUM(S2:S${r3 - 1})` }, "", "", { formula: `SUM(V2:V${r3 - 1})` },
+        "", { formula: `SUM(X2:X${r3 - 1})` }, "", { formula: `SUM(Z2:Z${r3 - 1})` },
+        { formula: `SUM(AA2:AA${r3 - 1})` }, { formula: `SUM(AB2:AB${r3 - 1})` }
+      ];
+      totRow.font = { bold: true };
+      totRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+      s3.getCell(`S${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`V${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`X${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`Z${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`AA${r3}`).numFmt = "₹#,##0.00";
+      s3.getCell(`AB${r3}`).numFmt = "₹#,##0.00";
+    }
+  }
+
+  private static buildSheetB2BSales(workbook: ExcelJS.Workbook, data: any, periodStr: string, sheetName: string): void {
+    const s4 = workbook.addWorksheet(sheetName);
+    s4.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s4, "B2B TAXABLE SUPPLIES (GSTIN REGISTERED)", periodStr, data.filters, 11);
+    s4.getRow(6).values = ["Invoice No", "Date", "Customer / Trade Name", "GSTIN", "Place of Supply", "Branch", "Taxable Amt", "CGST", "SGST", "IGST", "Total Invoice"];
+    s4.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s4.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r4 = 7;
+    const b2bList = (data.salesRegister || []).filter((s: any) => s.customerGstin && s.customerGstin !== "URP");
+    b2bList.forEach((b: any) => {
+      s4.getRow(r4).values = [b.invoiceNumber, b.invoiceDate, b.customerName, b.customerGstin, b.placeOfSupply, b.branchName, b.taxableValue, b.cgst, b.sgst, b.igst, b.totalValue];
+      s4.getCell(`G${r4}`).numFmt = "₹#,##0.00";
+      s4.getCell(`H${r4}`).numFmt = "₹#,##0.00";
+      s4.getCell(`I${r4}`).numFmt = "₹#,##0.00";
+      s4.getCell(`J${r4}`).numFmt = "₹#,##0.00";
+      s4.getCell(`K${r4}`).numFmt = "₹#,##0.00";
+      r4++;
+    });
+    s4.columns = [{ width: 20 }, { width: 14 }, { width: 28 }, { width: 18 }, { width: 18 }, { width: 24 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 16 }];
+  }
+
+  private static buildSheetB2CSales(workbook: ExcelJS.Workbook, data: any, periodStr: string, sheetName: string): void {
+    const s5 = workbook.addWorksheet(sheetName);
+    s5.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s5, "B2C CONSUMER SUPPLIES (UNREGISTERED)", periodStr, data.filters, 10);
+    s5.getRow(6).values = ["Invoice No", "Date", "Customer Name", "Phone", "Place of Supply", "Branch", "Taxable Amt", "CGST", "SGST", "Total Value"];
+    s5.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s5.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r5 = 7;
+    const b2cList = (data.salesRegister || []).filter((s: any) => !s.customerGstin || s.customerGstin === "URP");
+    b2cList.forEach((b: any) => {
+      s5.getRow(r5).values = [b.invoiceNumber, b.invoiceDate, b.customerName, b.customerPhone, b.placeOfSupply, b.branchName, b.taxableValue, b.cgst, b.sgst, b.totalValue];
+      s5.getCell(`G${r5}`).numFmt = "₹#,##0.00";
+      s5.getCell(`H${r5}`).numFmt = "₹#,##0.00";
+      s5.getCell(`I${r5}`).numFmt = "₹#,##0.00";
+      s5.getCell(`J${r5}`).numFmt = "₹#,##0.00";
+      r5++;
+    });
+    s5.columns = [{ width: 20 }, { width: 14 }, { width: 24 }, { width: 16 }, { width: 18 }, { width: 24 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 16 }];
+  }
+
+  private static buildSheetCreditNotes(workbook: ExcelJS.Workbook, data: any, periodStr: string, sheetName: string): void {
+    const s6 = workbook.addWorksheet(sheetName);
+    s6.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s6, "CREDIT / DEBIT NOTES & REFUNDS REGISTER", periodStr, data.filters, 9);
+    s6.getRow(6).values = ["Credit Note No", "Date", "Original Invoice", "Customer Name", "Reason", "Taxable Amt", "CGST", "SGST", "Total Refund"];
+    s6.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s6.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r6 = 7;
+    (data.creditNotes || []).forEach((cn: any) => {
+      s6.getRow(r6).values = [cn.cnNumber, cn.cnDate, cn.origInvoice, cn.customerName, cn.reason, cn.taxable, cn.cgst, cn.sgst, cn.totalRefund];
+      s6.getCell(`F${r6}`).numFmt = "₹#,##0.00";
+      s6.getCell(`G${r6}`).numFmt = "₹#,##0.00";
+      s6.getCell(`H${r6}`).numFmt = "₹#,##0.00";
+      s6.getCell(`I${r6}`).numFmt = "₹#,##0.00";
+      r6++;
+    });
+    s6.columns = [{ width: 24 }, { width: 14 }, { width: 20 }, { width: 24 }, { width: 20 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 16 }];
+  }
+
+  private static buildSheetHsnSummary(workbook: ExcelJS.Workbook, data: any, periodStr: string, sheetName: string): void {
+    const s7 = workbook.addWorksheet(sheetName);
+    s7.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s7, "STATUTORY HSN SUMMARY REPORT", periodStr, data.filters, 11);
+    s7.getRow(6).values = ["HSN Code", "Description", "UQC", "Total Qty", "GST %", "Taxable Value", "CGST", "SGST", "IGST", "Total Tax", "Total Value"];
+    s7.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s7.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r7 = 7;
+    (data.hsnSummary || []).forEach((h: any) => {
+      s7.getRow(r7).values = [h.hsnCode, h.description, h.uom || "NOS", h.quantity, (h.gstRatePct || 18) / 100, h.taxableValue, h.cgst, h.sgst, h.igst, h.totalTax, h.totalValue];
+      s7.getCell(`D${r7}`).numFmt = "#,##0.000";
+      s7.getCell(`E${r7}`).numFmt = "0.00%";
+      s7.getCell(`F${r7}`).numFmt = "₹#,##0.00";
+      s7.getCell(`G${r7}`).numFmt = "₹#,##0.00";
+      s7.getCell(`H${r7}`).numFmt = "₹#,##0.00";
+      s7.getCell(`I${r7}`).numFmt = "₹#,##0.00";
+      s7.getCell(`J${r7}`).numFmt = "₹#,##0.00";
+      s7.getCell(`K${r7}`).numFmt = "₹#,##0.00";
+      r7++;
+    });
+    s7.columns = [{ width: 16 }, { width: 34 }, { width: 14 }, { width: 14 }, { width: 12 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 16 }, { width: 16 }];
+  }
+
+  private static buildSheetTaxSummary(workbook: ExcelJS.Workbook, data: any, periodStr: string, sheetName: string): void {
+    const s8 = workbook.addWorksheet(sheetName);
+    s8.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s8, "TAX RATE DISTRIBUTION SUMMARY", periodStr, data.filters, 6);
+    s8.getRow(6).values = ["GST Rate Slab", "Taxable Sales", "CGST Collected", "SGST Collected", "IGST Collected", "Total Tax Collected"];
+    s8.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s8.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    const rates = [0, 5, 12, 18, 28];
+    let r8 = 7;
+    rates.forEach((rate) => {
+      const items = (data.salesRegister || []).filter((s: any) => Number(s.gstRatePct) === rate);
+      const taxable = items.reduce((acc: number, cur: any) => acc + (Number(cur.taxableValue) || 0), 0);
+      const cgst = items.reduce((acc: number, cur: any) => acc + (Number(cur.cgst) || 0), 0);
+      const sgst = items.reduce((acc: number, cur: any) => acc + (Number(cur.sgst) || 0), 0);
+      const igst = items.reduce((acc: number, cur: any) => acc + (Number(cur.igst) || 0), 0);
+      const totalTax = cgst + sgst + igst;
+      s8.getRow(r8).values = [`${rate}% Slab`, taxable, cgst, sgst, igst, totalTax];
+      s8.getCell(`B${r8}`).numFmt = "₹#,##0.00";
+      s8.getCell(`C${r8}`).numFmt = "₹#,##0.00";
+      s8.getCell(`D${r8}`).numFmt = "₹#,##0.00";
+      s8.getCell(`E${r8}`).numFmt = "₹#,##0.00";
+      s8.getCell(`F${r8}`).numFmt = "₹#,##0.00";
+      r8++;
+    });
+    s8.columns = [{ width: 18 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 22 }];
+  }
+
+  private static buildSheetGstr1(workbook: ExcelJS.Workbook, data: any, periodStr: string, sheetName: string): void {
+    const s9 = workbook.addWorksheet(sheetName);
+    s9.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s9, "GSTR-1 STATUTORY OUTWARD RETURN SUMMARY", periodStr, data.filters, 7);
+    s9.getRow(6).values = ["GSTR-1 Table", "Description", "Invoices / Records", "Taxable Value", "CGST", "SGST", "IGST"];
+    s9.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s9.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    const b2bCount = (data.salesRegister || []).filter((s: any) => s.customerGstin && s.customerGstin !== "URP").length;
+    const b2cCount = (data.salesRegister || []).filter((s: any) => !s.customerGstin || s.customerGstin === "URP").length;
+    const cnCount = (data.creditNotes || []).length;
+    const hsnCount = (data.hsnSummary || []).length;
+
+    const gstr1Rows = [
+      ["Table 4A, 4B", "B2B Taxable Invoices", b2bCount, 0, 0, 0, 0],
+      ["Table 7", "B2C (Small) Outward Supplies", b2cCount, 0, 0, 0, 0],
+      ["Table 9B", "Credit / Debit Notes (Registered & Unregistered)", cnCount, 0, 0, 0, 0],
+      ["Table 12", "HSN Summary of Outward Supplies", hsnCount, 0, 0, 0, 0],
+    ];
+    let r9 = 7;
+    gstr1Rows.forEach((row) => {
+      s9.getRow(r9).values = row;
+      s9.getCell(`D${r9}`).numFmt = "₹#,##0.00";
+      s9.getCell(`E${r9}`).numFmt = "₹#,##0.00";
+      s9.getCell(`F${r9}`).numFmt = "₹#,##0.00";
+      s9.getCell(`G${r9}`).numFmt = "₹#,##0.00";
+      r9++;
+    });
+    s9.columns = [{ width: 18 }, { width: 42 }, { width: 20 }, { width: 18 }, { width: 14 }, { width: 14 }, { width: 14 }];
+  }
+
+  private static buildSheetGstr3b(workbook: ExcelJS.Workbook, data: any, periodStr: string, sheetName: string): void {
+    const s10 = workbook.addWorksheet(sheetName);
+    s10.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s10, "GSTR-3B MONTHLY SUMMARY RETURN COMPUTATION", periodStr, data.filters, 6);
+    s10.getRow(6).values = ["Table Section", "Supply Nature", "Total Taxable Value", "Integrated Tax", "Central Tax", "State/UT Tax"];
+    s10.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s10.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    const totalTaxable = (data.salesRegister || []).reduce((acc: number, c: any) => acc + (Number(c.taxableValue) || 0), 0);
+    const totalCgst = (data.salesRegister || []).reduce((acc: number, c: any) => acc + (Number(c.cgst) || 0), 0);
+    const totalSgst = (data.salesRegister || []).reduce((acc: number, c: any) => acc + (Number(c.sgst) || 0), 0);
+    const totalIgst = (data.salesRegister || []).reduce((acc: number, c: any) => acc + (Number(c.igst) || 0), 0);
+    s10.getRow(7).values = ["3.1(a)", "Outward Taxable Supplies (Other than zero rated)", totalTaxable, totalIgst, totalCgst, totalSgst];
+    s10.getRow(8).values = ["3.1(b)", "Outward Taxable Supplies (Zero rated)", 0, 0, 0, 0];
+    s10.getRow(9).values = ["3.1(c)", "Other Outward Supplies (Nil rated, exempt)", 0, 0, 0, 0];
+    s10.getRow(10).values = ["4.A", "Eligible Input Tax Credit (ITC Available)", 0, 0, 0, 0];
+    for (let rowIdx = 7; rowIdx <= 10; rowIdx++) {
+      s10.getCell(`C${rowIdx}`).numFmt = "₹#,##0.00";
+      s10.getCell(`D${rowIdx}`).numFmt = "₹#,##0.00";
+      s10.getCell(`E${rowIdx}`).numFmt = "₹#,##0.00";
+      s10.getCell(`F${rowIdx}`).numFmt = "₹#,##0.00";
+    }
+    s10.columns = [{ width: 16 }, { width: 44 }, { width: 22 }, { width: 18 }, { width: 18 }, { width: 18 }];
+  }
+
+  private static buildSheetValidationErrors(workbook: ExcelJS.Workbook, data: any, periodStr: string, sheetName: string): void {
+    const s11 = workbook.addWorksheet(sheetName);
+    s11.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
+    this.styleWorksheetHeader(s11, "GST DATA QUALITY & RECONCILIATION AUDIT", periodStr, data.filters, 5);
+    s11.getRow(6).values = ["Error / Warning ID", "Description / Anomaly", "Severity", "Action Required", "Status"];
+    s11.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s11.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+    let r11 = 7;
+    const warnings = data.dataQualityWarnings || [];
+    if (warnings.length === 0) {
+      s11.getRow(7).values = ["AUDIT_OK", "No validation errors found across active invoices and product masters.", "LOW", "None", "PASS"];
+    } else {
+      warnings.forEach((w: any) => {
+        s11.getRow(r11).values = [w.id || `ERR_${r11}`, w.title || w.description || "Warning", "MEDIUM", "Review in Product / Invoice Master", "OPEN"];
+        r11++;
+      });
+    }
+    s11.columns = [{ width: 20 }, { width: 50 }, { width: 14 }, { width: 34 }, { width: 14 }];
+  }
 
   public static formatBranchSubtitle(filters?: any): string {
     const bIds = filters?.branchIds;

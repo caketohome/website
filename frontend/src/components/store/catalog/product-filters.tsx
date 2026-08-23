@@ -1,9 +1,9 @@
 "use client";
 
 import type { SearchFilters, CatalogFilterOptions } from "@frontend/lib/data/catalog";
-import { Badge, Button, Input, Switch, Label } from "@medusajs/ui";
+import { Button, Input, Label } from "@medusajs/ui";
 import { useState, useEffect } from "react";
-import { Filter, X, Check, SlidersHorizontal, ArrowUpDown } from "lucide-react";
+import { X, Check, SlidersHorizontal, ArrowUpDown } from "lucide-react";
 
 const SORT_OPTIONS: Array<{ value: NonNullable<SearchFilters["sort"]>; label: string }> = [
   { value: "relevance", label: "Relevance" },
@@ -40,10 +40,6 @@ export function ProductFilters({
     setMaxPrice(filters.max_price?.toString() ?? "");
   }, [filters.min_price, filters.max_price]);
 
-  function toggleDietary(key: keyof SearchFilters, value: boolean) {
-    onChange({ ...filters, [key]: value || undefined });
-  }
-
   function applyCustomPrice() {
     onChange({
       ...filters,
@@ -52,14 +48,26 @@ export function ProductFilters({
     });
   }
 
-  const categories = options?.categories || [
-    "All Cakes",
-    "Chocolate Cakes",
-    "Red Velvet Cakes",
-    "Fruit Cakes",
-    "Black Forest Cakes",
-    "Butterscotch Cakes",
-    "Cheesecakes",
+  const categoriesList = (options?.categories || []).map((c: any) => {
+    if (typeof c === "string") {
+      return { id: c, name: c, slug: c.toLowerCase().replace(/\s+/g, "-"), count: undefined };
+    }
+    return {
+      id: c.id || c.slug,
+      name: c.name || c.title || c.slug,
+      slug: c.slug || c.id,
+      count: c.product_count,
+    };
+  });
+
+  const finalCategories = categoriesList.length > 0 ? categoriesList : [
+    { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", count: 2 },
+    { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", count: 1 },
+    { id: "cat_fruit_mousse", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes", count: 1 },
+    { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes", count: 1 },
+    { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes", count: 1 },
+    { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", count: 1 },
+    { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", count: 3 },
   ];
 
   const flavours = options?.flavours || [
@@ -75,14 +83,15 @@ export function ProductFilters({
   const weights = options?.weights || ["0.5 kg", "1 kg", "1.5 kg", "2 kg", "2.5 kg", "3 kg+"];
 
   return (
-    <div className="flex flex-col gap-6 text-xs text-slate-800 dark:text-slate-200">
+    <div className="flex flex-col gap-6 text-xs text-slate-800 dark:text-slate-200 font-sans">
       {/* Sort By */}
       <div className="flex flex-col gap-2">
         <Label className="font-bold text-xs flex items-center gap-1.5 text-slate-900 dark:text-white">
           <ArrowUpDown className="w-3.5 h-3.5 text-rose-600" /> Sort By
         </Label>
         <select
-          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500/20"
+          data-testid="sort-select"
+          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500/20 cursor-pointer"
           value={filters.sort ?? "relevance"}
           onChange={(e) => onChange({ ...filters, sort: e.target.value as any })}
         >
@@ -94,18 +103,19 @@ export function ProductFilters({
         </select>
       </div>
 
-      {/* Category Filter */}
+      {/* Cake Category */}
       <div className="flex flex-col gap-2">
         <Label className="font-bold text-xs text-slate-900 dark:text-white">Cake Category</Label>
         <select
-          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500/20"
+          data-testid="category-select"
+          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500/20 cursor-pointer"
           value={filters.category ?? "all"}
           onChange={(e) => onChange({ ...filters, category: e.target.value === "all" ? undefined : e.target.value })}
         >
           <option value="all">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
+          {finalCategories.map((cat) => (
+            <option key={cat.id || cat.slug} value={cat.slug}>
+              {cat.name}{typeof cat.count === "number" && cat.count > 0 ? ` (${cat.count})` : ""}
             </option>
           ))}
         </select>
@@ -231,24 +241,6 @@ export function ProductFilters({
         </div>
       </div>
 
-      {/* Dietary & Preference Switches */}
-      <div className="flex flex-col gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-        <Label className="font-bold text-xs text-slate-900 dark:text-white">Dietary & Preferences</Label>
-        {[
-          { key: "sugar_free" as const, label: "🍯 Sugar-Free" },
-          { key: "gluten_free" as const, label: "🌾 Gluten-Free" },
-          { key: "vegan" as const, label: "🥑 Vegan" },
-        ].map((t) => (
-          <div key={t.key} className="flex items-center justify-between text-xs">
-            <span className="font-medium text-slate-700 dark:text-slate-300">{t.label}</span>
-            <Switch
-              checked={Boolean(filters[t.key])}
-              onCheckedChange={(v) => toggleDietary(t.key, v)}
-            />
-          </div>
-        ))}
-      </div>
-
       {/* Clear All Button */}
       <Button
         variant="transparent"
@@ -275,27 +267,38 @@ export function ActiveFilterChips({
   const chips: Array<{ key: keyof SearchFilters; label: string }> = [];
 
   if (filters.q) chips.push({ key: "q", label: `Search: "${filters.q}"` });
-  if (filters.category) chips.push({ key: "category", label: `Category: ${filters.category}` });
-  if (filters.flavour) chips.push({ key: "flavour", label: `Flavour: ${filters.flavour}` });
-  if (filters.weight) chips.push({ key: "weight", label: `Weight: ${filters.weight}` });
-  if (filters.sugar_free) chips.push({ key: "sugar_free", label: "Sugar-Free" });
-  if (filters.gluten_free) chips.push({ key: "gluten_free", label: "Gluten-Free" });
-  if (filters.vegan) chips.push({ key: "vegan", label: "Vegan" });
+  if (filters.category && filters.category !== "all") {
+    const formattedCat = filters.category
+      .replace(/^(cat_|pcat_)/, "")
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+    chips.push({ key: "category", label: `Category: ${formattedCat}` });
+  }
+  if (filters.flavour && filters.flavour !== "all") chips.push({ key: "flavour", label: `Flavour: ${filters.flavour}` });
+  if (filters.weight && filters.weight !== "all") chips.push({ key: "weight", label: `Weight: ${filters.weight}` });
   if (filters.min_price !== undefined || filters.max_price !== undefined) {
-    const minStr = filters.min_price !== undefined ? `₹${filters.min_price}` : "₹0";
-    const maxStr = filters.max_price !== undefined ? `₹${filters.max_price}` : "Any";
-    chips.push({ key: "min_price", label: `Price: ${minStr} – ${maxStr}` });
+    if (filters.min_price !== undefined && filters.max_price !== undefined) {
+      chips.push({ key: "min_price", label: `Price: ₹${filters.min_price} – ₹${filters.max_price}` });
+    } else if (filters.min_price !== undefined) {
+      chips.push({ key: "min_price", label: `Price: ₹${filters.min_price}+` });
+    } else if (filters.max_price !== undefined) {
+      chips.push({ key: "max_price", label: `Price: Under ₹${filters.max_price}` });
+    }
   }
 
   if (chips.length === 0) return null;
 
-  const removeChip = (key: keyof SearchFilters) => {
+  function removeChip(key: keyof SearchFilters) {
+    const updated = { ...filters };
     if (key === "min_price" || key === "max_price") {
-      onChange({ ...filters, min_price: undefined, max_price: undefined });
+      delete updated.min_price;
+      delete updated.max_price;
     } else {
-      onChange({ ...filters, [key]: undefined });
+      delete updated[key];
     }
-  };
+    onChange(updated);
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-2 py-2">
@@ -303,6 +306,7 @@ export function ActiveFilterChips({
       {chips.map((c) => (
         <button
           key={c.key}
+          type="button"
           onClick={() => removeChip(c.key)}
           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-medium hover:bg-rose-100 transition"
         >
@@ -311,6 +315,7 @@ export function ActiveFilterChips({
         </button>
       ))}
       <button
+        type="button"
         onClick={() => onChange({})}
         className="text-xs font-bold text-slate-500 hover:text-rose-600 underline ml-2"
       >
@@ -341,7 +346,7 @@ export function MobileFilterDrawer({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fadeIn">
+    <div data-testid="mobile-filter-drawer" className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-sm bg-white dark:bg-slate-900 h-full flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-850">
@@ -349,12 +354,12 @@ export function MobileFilterDrawer({
             <SlidersHorizontal className="w-4 h-4 text-rose-600" />
             <span className="font-bold text-sm text-slate-900 dark:text-white">Filter Cakes</span>
             {activeCount > 0 && (
-              <Badge color="red" className="text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-600 text-white">
                 {activeCount}
-              </Badge>
+              </span>
             )}
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+          <button type="button" onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-600">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -370,7 +375,7 @@ export function MobileFilterDrawer({
             Clear All
           </Button>
           <Button onClick={onClose} className="flex-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold">
-            Apply Filters ({activeCount})
+            Apply Filters {activeCount > 0 ? `(${activeCount})` : ""}
           </Button>
         </div>
       </div>

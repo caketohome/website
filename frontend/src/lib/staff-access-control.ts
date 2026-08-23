@@ -692,6 +692,7 @@ class StaffAccessControlStore {
     const TAB_PERMISSION_MAP: Record<string, { module: string; action: string }> = {
       orders: { module: "ORDERS", action: "VIEW" },
       catalog: { module: "PRODUCTS", action: "VIEW" },
+      search_engine: { module: "PRODUCTS", action: "VIEW" },
       branches: { module: "BRANCHES", action: "VIEW" },
       delivery: { module: "DELIVERY", action: "VIEW" },
       tax_master: { module: "TAX_MASTER", action: "VIEW" },
@@ -708,6 +709,7 @@ class StaffAccessControlStore {
       analytics: { module: "ANALYTICS", action: "VIEW" },
       notifications: { module: "NOTIFICATIONS", action: "VIEW" },
       settings: { module: "SETTINGS", action: "VIEW" },
+      fulfillment: { module: "BRANCHES", action: "VIEW" },
       staff_profiles: { module: "STAFF_MANAGEMENT", action: "VIEW" },
     };
 

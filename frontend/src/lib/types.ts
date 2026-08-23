@@ -83,19 +83,60 @@ export interface CreateAdminInviteDTO {
   email?: string;
 }
 
+export interface OrderOperationalDTO {
+  order_id: string;
+  display_order_number: string;
+  order_number: string;
+  customer_uid?: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email?: string;
+  branch_id: string;
+  branch_name?: string;
+  delivery_partner_id?: string | null;
+  delivery_partner_name?: string | null;
+  delivery_partner_phone?: string | null;
+  payment_status: string;
+  payment_method?: string;
+  order_status: string;
+  delivery_status: DeliveryStatus | string;
+  pickup_otp?: string;
+  delivery_otp?: string;
+  pickup_verified_at?: string | null;
+  delivered_at?: string | null;
+  total_amount: number;
+  delivery_address: string;
+  pincode: string;
+  city: string;
+  landmark?: string;
+  delivery_instructions?: string;
+  gift_message?: string;
+  delivery_date?: string | null;
+  delivery_slot?: string | null;
+  items: any[];
+  timeline?: any[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface DeliveryDTO {
   id: string;
-  transaction_id: string;
-  delivery_partner_id?: string;
-  cart: CartDTO;
+  order_id?: string;
+  display_order_number?: string;
+  order_number?: string;
+  customer_uid?: string;
+  transaction_id?: string;
+  delivery_partner_id?: string | null;
+  cart?: CartDTO;
   order?: OrderDTO;
-  shop: ShopDTO;
-  delivered_at?: Date;
+  shop?: ShopDTO;
+  delivered_at?: Date | string;
   delivery_status: DeliveryStatus;
-  created_at: Date;
-  updated_at: Date;
-  eta?: Date;
-  items: DeliveryItemDTO[];
+  status?: string;
+  created_at?: Date | string;
+  updated_at?: Date | string;
+  eta?: Date | string;
+  items?: DeliveryItemDTO[];
   ordered_for_self?: boolean;
   recipient_name?: string;
   recipient_phone?: string;
@@ -111,9 +152,10 @@ export interface DeliveryDTO {
   hide_invoice?: boolean;
   occasion?: string;
   is_surprise_delivery?: boolean;
-  scheduled_delivery_at?: Date;
+  scheduled_delivery_at?: Date | string;
   scheduled_slot?: string;
   delivery_otp?: string;
+  pickup_otp?: string;
 }
 
 export type DeliveryItemDTO = (CartLineItemDTO | OrderLineItemDTO) & {

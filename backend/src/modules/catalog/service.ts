@@ -233,13 +233,19 @@ class CatalogModuleService extends (MedusaService({
             {
                 product_id: input.product_id,
                 customer_id: input.customer_id ?? null,
+                customer_uid: input.customer_uid ?? null,
+                order_id: input.order_id ?? null,
+                order_item_id: input.order_item_id ?? null,
                 customer_name: input.customer_name ?? null,
                 rating: input.rating,
                 title: input.title ?? null,
-                body: input.body ?? null,
+                body: input.body ?? input.review_text ?? null,
+                review_text: input.review_text ?? input.body ?? null,
                 images: stringifyJson(input.images),
-                status: "pending",
-                verified_purchase: input.verified_purchase ?? false,
+                status: "approved",
+                is_verified_purchase: input.is_verified_purchase ?? input.verified_purchase ?? false,
+                verified_purchase: input.is_verified_purchase ?? input.verified_purchase ?? false,
+                purchased_variant: input.purchased_variant ?? null,
             },
         ])) as unknown as Record<string, unknown>[];
 
@@ -248,13 +254,15 @@ class CatalogModuleService extends (MedusaService({
 
     async listReviews(opts: {
         productId?: string;
+        customerUid?: string;
         status?: string;
         limit?: number;
         offset?: number;
     } = {}) {
         const filters: Record<string, unknown> = {};
         if (opts.productId) filters.product_id = opts.productId;
-        if (opts.status) filters.status = opts.status;
+        if (opts.customerUid) filters.customer_uid = opts.customerUid;
+        if (opts.status && opts.status !== "ALL") filters.status = opts.status;
 
         const reviews = (await this.listProductReviews(
             filters
@@ -283,6 +291,14 @@ class CatalogModuleService extends (MedusaService({
         const data: Record<string, unknown> = { status: input.status };
         if (input.reply !== undefined) {
             data.reply = input.reply;
+            data.replied_at = new Date();
+        }
+        if (input.admin_response !== undefined) {
+            data.admin_response = stringifyJson({
+                author: input.admin_name || "CakeToHome Bakery Chef",
+                message: input.admin_response,
+                responded_at: new Date().toISOString(),
+            });
             data.replied_at = new Date();
         }
         await this.updateProductReviews({

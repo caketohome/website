@@ -150,10 +150,12 @@ export interface CustomerStatsDTO {
 }
 
 export interface CustomerPreferences {
+  artisan_only?: boolean;
   favourite_flavour?: string;
   whatsapp_notifications?: boolean;
   sms_notifications?: boolean;
   marketing_emails?: boolean;
+  [key: string]: any;
 }
 
 export interface CustomerProfileDTO {
@@ -176,6 +178,11 @@ export interface CustomerProfileDTO {
   stats: CustomerStatsDTO;
   addresses: CustomerAddress[];
   preferences?: CustomerPreferences;
+  favorite_products?: any[];
+  favorites_count?: number;
+  reviews_written?: any[];
+  reviews_count?: number;
+  average_rating_given?: number;
 }
 
 // ── 5. Real Communication & Interaction Log ─────────────────────────────────
@@ -298,6 +305,11 @@ export interface CustomerProfile extends CustomerRecord {
   // 2. Purchased Catalog Insights
   products_purchased: CustomerProductPurchased[];
   favorite_categories: CustomerFavoriteCategory[];
+  favorite_products?: any[];
+  favorites_count?: number;
+  reviews_written?: any[];
+  reviews_count?: number;
+  average_rating_given?: number;
 
   // 3. Cart & Recovery
   carts: any[];

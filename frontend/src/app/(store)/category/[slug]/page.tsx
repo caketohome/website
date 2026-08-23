@@ -3,6 +3,8 @@ import { CollectionPageJsonLd, BreadcrumbJsonLd } from "../../../../components/s
 import { SeoMetadataBuilder } from "../../../../lib/seo/metadata-builder";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> | { slug: string } }): Promise<Metadata> {
   const resolvedParams = await Promise.resolve(params);
   const slug = resolvedParams.slug;

@@ -22,6 +22,10 @@ import { SeoRbacGuard, UserRole } from "./auth/seo-rbac-guard";
 import { WebhookEngine } from "./webhook-engine";
 import { TelemarketingEngine } from "./telemarketing-engine";
 import { StaffAccessControl } from "./staff-access-control";
+import { OrderLifecycleService, OrderLifecycleState, DeliveryLifecycleState, ActorContext } from "./order-lifecycle-service";
+import { FulfillmentEngine, createApiEngineProvider, ensureFulfillmentStore } from "./fulfillment";
+import { SearchEngine, CanonicalProduct, ProductTag, SearchSynonym, MerchandisingRule } from "./search/search-engine";
+import { parseAndNormalizeWeight, sortWeightOptions, createDefaultWeightMatrix, ProductWeightOption } from "./util/weight-matrix";
 import {
   normalizePhone,
   formatDisplayPhone,
@@ -94,12 +98,21 @@ export interface ProductItem {
   price: number;
   rating: number;
   review_count: number;
-    sugar_free: boolean;
+  sugar_free: boolean;
   gluten_free: boolean;
   vegan: boolean;
   is_featured: boolean;
   is_bestseller: boolean;
   is_new_arrival: boolean;
+
+  // ── Category & Taxonomy Properties ──
+  category?: string;
+  category_slug?: string;
+  primary_category_id?: string;
+  category_ids?: string[];
+  categories?: Array<{ id: string; name: string; slug: string; description?: string }>;
+  flavour?: string;
+  weight?: string;
   
   // ── Enterprise Delivery Rules & Preparation Times ──
   is_deliverable?: boolean;
@@ -148,6 +161,16 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     is_featured: true,
     is_bestseller: true,
     is_new_arrival: false,
+    flavour: "Chocolate",
+    weight: "1 kg",
+    primary_category_id: "cat_chocolate",
+    category: "Chocolate Cakes",
+    category_slug: "chocolate-cakes",
+    category_ids: ["cat_chocolate", "cat_bestsellers"],
+    categories: [
+      { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", description: "Rich, decadent Belgian chocolate, fudge, and truffle cakes." },
+      { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", description: "Bangalore's most-ordered gourmet celebratory cakes." },
+    ],
   },
   {
     product_id: "prod_2",
@@ -166,6 +189,17 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     is_featured: true,
     is_bestseller: true,
     is_new_arrival: false,
+    flavour: "Red Velvet",
+    weight: "1 kg",
+    primary_category_id: "cat_red_velvet",
+    category: "Red Velvet Cakes",
+    category_slug: "red-velvet-cakes",
+    category_ids: ["cat_red_velvet", "cat_cheesecakes", "cat_bestsellers"],
+    categories: [
+      { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", description: "Classic crimson velvet layers with rich cream cheese frosting." },
+      { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", description: "Baked New York cheesecakes and chef-crafted artisanal creations." },
+      { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", description: "Bangalore's most-ordered gourmet celebratory cakes." },
+    ],
   },
   {
     product_id: "prod_3",
@@ -173,7 +207,7 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     title: "Fresh Alphonso Mango Mousse Cake",
     name: "Fresh Alphonso Mango Mousse Cake",
     description: "Seasonal Alphonso mango pulp whipped into light, airy mousse layers.",
-    thumbnail: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800",
+    thumbnail: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800",
     handle: "mango-mousse-cake",
     price: 699,
     rating: 4.9,
@@ -184,6 +218,15 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     is_featured: true,
     is_bestseller: false,
     is_new_arrival: true,
+    flavour: "Mango",
+    weight: "1 kg",
+    primary_category_id: "cat_fruit_mousse",
+    category: "Fruit & Mousse Cakes",
+    category_slug: "fruit-mousse-cakes",
+    category_ids: ["cat_fruit_mousse"],
+    categories: [
+      { id: "cat_fruit_mousse", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes", description: "Fresh seasonal Alphonso mango, berries, and airy mousse layers." },
+    ],
   },
   {
     product_id: "prod_4",
@@ -202,6 +245,17 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     is_featured: false,
     is_bestseller: true,
     is_new_arrival: false,
+    flavour: "Black Forest",
+    weight: "1 kg",
+    primary_category_id: "cat_black_forest",
+    category: "Black Forest Cakes",
+    category_slug: "black-forest-cakes",
+    category_ids: ["cat_black_forest", "cat_chocolate", "cat_bestsellers"],
+    categories: [
+      { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes", description: "Traditional German gateau with cherries and chocolate shavings." },
+      { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", description: "Rich, decadent Belgian chocolate, fudge, and truffle cakes." },
+      { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", description: "Bangalore's most-ordered gourmet celebratory cakes." },
+    ],
   },
   {
     product_id: "prod_5",
@@ -220,6 +274,15 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     is_featured: true,
     is_bestseller: false,
     is_new_arrival: false,
+    flavour: "Butterscotch",
+    weight: "1 kg",
+    primary_category_id: "cat_butterscotch",
+    category: "Butterscotch & Caramel Cakes",
+    category_slug: "butterscotch-caramel-cakes",
+    category_ids: ["cat_butterscotch"],
+    categories: [
+      { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes", description: "Crunchy praline, butterscotch chips, and salted golden caramel." },
+    ],
   },
 ];
 
@@ -1639,9 +1702,13 @@ export const DEFAULT_MEDIA = [
 ];
 
 const DEFAULT_PIM_CATEGORIES = [
-  { id: "pcat_01", name: "Artisanal Cakes", slug: "artisanal-cakes", description: "Handcrafted gourmet celebration cakes", parent_id: null, image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", display_order: 1, status: "active", visibility: "public", seo_title: "Artisanal Cakes Online - CakeToHome", seo_description: "Order handcrafted artisanal cakes online with same-day delivery.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "pcat_02", name: "Custom Photo Cakes", slug: "custom-photo-cakes", description: "Personalized edible print photo cakes for birthdays and anniversaries", parent_id: null, image_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", display_order: 2, status: "active", visibility: "public", seo_title: "Custom Photo Cakes - CakeToHome", seo_description: "Upload your favorite photos and get custom edible print cakes.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "pcat_03", name: "Vegan & Health Cakes", slug: "vegan-health-cakes", description: "Sugar-free and gluten-free healthy cakes", parent_id: null, image_url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800", display_order: 3, status: "active", visibility: "public", seo_title: "Vegan & Healthy Cakes - CakeToHome", seo_description: "Delicious sugar-free and vegan cakes made with natural ingredients.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", description: "Rich, decadent Belgian chocolate, fudge, and truffle cakes.", parent_id: null, image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", display_order: 1, status: "active", is_active: true, visibility: "public", seo_title: "Chocolate Cakes Online - CakeToHome", seo_description: "Order handcrafted chocolate cakes online with same-day delivery.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", description: "Classic crimson velvet layers with rich cream cheese frosting.", parent_id: null, image_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", display_order: 2, status: "active", is_active: true, visibility: "public", seo_title: "Red Velvet Cakes - CakeToHome", seo_description: "Premium handcrafted red velvet cakes with cream cheese frosting.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_fruit_mousse", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes", description: "Fresh seasonal Alphonso mango, berries, and airy mousse layers.", parent_id: null, image_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800", display_order: 3, status: "active", is_active: true, visibility: "public", seo_title: "Fruit & Mousse Cakes - CakeToHome", seo_description: "Exotic fresh fruit and mango mousse cakes delivered fresh in Bangalore.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes", description: "Traditional German gateau with cherries and chocolate shavings.", parent_id: null, image_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=800", display_order: 4, status: "active", is_active: true, visibility: "public", seo_title: "Black Forest Cakes - CakeToHome", seo_description: "Authentic Black Forest gateaux with fresh cherries and whipped cream.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes", description: "Crunchy praline, butterscotch chips, and salted golden caramel.", parent_id: null, image_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=800", display_order: 5, status: "active", is_active: true, visibility: "public", seo_title: "Butterscotch Cakes - CakeToHome", seo_description: "Rich butterscotch and crunchy praline caramel cakes.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", description: "Baked New York cheesecakes and chef-crafted artisanal creations.", parent_id: null, image_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", display_order: 6, status: "active", is_active: true, visibility: "public", seo_title: "Cheesecakes - CakeToHome", seo_description: "Authentic New York baked cheesecakes with fruit coulis and artisanal toppings.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", description: "Bangalore's most-ordered gourmet celebratory cakes.", parent_id: null, image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", display_order: 7, status: "active", is_active: true, visibility: "public", seo_title: "Best Seller Cakes - CakeToHome", seo_description: "Top rated bestselling celebration cakes in Bangalore.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
 ];
 
 const DEFAULT_VARIANT_OPTIONS = [
@@ -3170,7 +3237,40 @@ interface StoreData {
   chart_preferences?: any;
   report_audit_logs?: any[];
   product_delivery_restrictions?: ProductDeliveryRestriction[];
+  customer_favorites?: CustomerFavoriteRecord[];
+  product_reviews?: ProductReviewRecord[];
   [key: string]: any;
+}
+
+export interface CustomerFavoriteRecord {
+  id: string;
+  customer_uid: string;
+  product_id: string;
+  created_at: string;
+}
+
+export interface ProductReviewRecord {
+  id: string;
+  product_id: string;
+  customer_uid: string;
+  customer_name: string;
+  order_id: string;
+  order_item_id?: string;
+  rating: number; // 1 to 5
+  title: string;
+  review_text: string;
+  purchased_variant?: string | null;
+  is_verified_purchase: boolean;
+  status: "APPROVED" | "PENDING" | "REJECTED" | "HIDDEN";
+  admin_response?: {
+    author: string;
+    message: string;
+    responded_at: string;
+  } | null;
+  helpful_votes?: number;
+  created_at: string;
+  updated_at: string;
+  published_at?: string | null;
 }
 
 function getStoreFilePath(): string {
@@ -3189,12 +3289,130 @@ function getStoreFilePath(): string {
   return path.join(dir, "db-store.json");
 }
 
+function deduplicateStoreProducts(rawProducts: any[]): ProductItem[] {
+  if (!Array.isArray(rawProducts) || rawProducts.length === 0) {
+    return [...DEFAULT_PRODUCTS];
+  }
+
+  const map = new Map<string, any>();
+
+  // Ensure default products are seeded into canonical map
+  DEFAULT_PRODUCTS.forEach((def: any) => {
+    const key = (def.handle || def.slug || def.name || def.title || def.id || def.product_id || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-");
+    map.set(key, { ...def });
+  });
+
+  rawProducts.forEach((p) => {
+    if (!p) return;
+    const title = (p.title || p.name || "").trim();
+    const handle = (p.handle || p.slug || title || p.id || p.product_id || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-");
+    if (!handle) return;
+
+    const existing = map.get(handle);
+    if (existing) {
+      // Calculate starting price across all variants
+      const existingPrice = Number(existing.price || existing.selling_price || 999999);
+      const incomingPrice = Number(p.price || p.selling_price || 999999);
+      const minPrice = Math.min(existingPrice, incomingPrice);
+      const validPrice = minPrice < 999999 ? minPrice : (existing.price || p.price || 599);
+
+      // Merge weights
+      const existingWeights: string[] = existing.variants_json?.weights || (existing.weight ? [existing.weight] : []);
+      const newWeights: string[] = p.variants_json?.weights || (p.weight ? [p.weight] : []);
+      const combinedWeights = Array.from(new Set([...existingWeights, ...newWeights]));
+
+      map.set(handle, {
+        ...existing,
+        ...p,
+        id: existing.id && !existing.id.startsWith("prod_1787") ? existing.id : (p.id || existing.id),
+        product_id: existing.product_id && !existing.product_id.startsWith("prod_1787") ? existing.product_id : (p.product_id || p.id || existing.product_id),
+        title: existing.title || p.title || p.name,
+        name: existing.name || p.name || p.title,
+        handle: existing.handle || p.handle || handle,
+        price: validPrice,
+        selling_price: validPrice,
+        rating: Math.max(Number(existing.rating || 0), Number(p.rating || 0)) || 4.9,
+        review_count: Math.max(Number(existing.review_count || 0), Number(p.review_count || 0)) || 12,
+        thumbnail: p.thumbnail && !p.thumbnail.includes("535141192574") ? p.thumbnail : existing.thumbnail,
+        category: p.category || existing.category || "Chocolate Cakes",
+        category_slug: p.category_slug || existing.category_slug || "chocolate-cakes",
+        primary_category_id: p.primary_category_id || existing.primary_category_id || "cat_chocolate",
+    category_ids: Array.from(new Set([...(existing.category_ids || []), ...(p.category_ids || [])])),
+        categories: (existing.categories && existing.categories.length > 0) ? existing.categories : (p.categories || []),
+        flavour: p.flavour || existing.flavour || "Chocolate",
+        variants_json: {
+          ...(existing.variants_json || p.variants_json || {}),
+          weights: combinedWeights.length > 0 ? combinedWeights : ["0.5 kg", "1 kg", "1.5 kg", "2 kg"],
+        },
+      });
+    } else {
+      map.set(handle, {
+        ...p,
+        id: p.id || p.product_id || `prod_${Date.now()}`,
+        product_id: p.product_id || p.id || `prod_${Date.now()}`,
+        title: p.title || p.name || "Gourmet Cake",
+        name: p.name || p.title || "Gourmet Cake",
+        handle: p.handle || p.slug || handle,
+        price: Number(p.price || p.selling_price || 599),
+        selling_price: Number(p.selling_price || p.price || 599),
+        rating: Number(p.rating) || 4.9,
+        review_count: Number(p.review_count) || 12,
+      });
+    }
+  });
+
+  return Array.from(map.values());
+}
+
 function loadStore(): StoreData {
   const filePath = getStoreFilePath();
   if (fs.existsSync(filePath)) {
+    let parsed: any = null;
     try {
       const content = fs.readFileSync(filePath, "utf-8");
-      const parsed = JSON.parse(content);
+      parsed = JSON.parse(content);
+    } catch (err) {
+      console.error("Failed to read db-store.json directly. Attempting automatic recovery from .bak backup...", err);
+      const bakPath = `${filePath}.bak`;
+      const corruptBackupPath = `${filePath}.corrupt-backup`;
+      let recovered = false;
+
+      // Try .bak first
+      if (fs.existsSync(bakPath)) {
+        try {
+          const bakRaw = fs.readFileSync(bakPath, "utf-8");
+          parsed = JSON.parse(bakRaw);
+          console.log("✅ Successfully recovered store state from db-store.json.bak");
+          recovered = true;
+        } catch {
+          // try corrupt-backup
+        }
+      }
+
+      // Try .corrupt-backup if needed
+      if (!recovered && fs.existsSync(corruptBackupPath)) {
+        try {
+          const cbRaw = fs.readFileSync(corruptBackupPath, "utf-8");
+          parsed = JSON.parse(cbRaw);
+          console.log("✅ Successfully recovered store state from db-store.json.corrupt-backup");
+          recovered = true;
+        } catch {
+          // ignore
+        }
+      }
+
+      if (!recovered) {
+        console.error("❌ Critical: Could not parse db-store.json or any backup. Initializing default store with safety backup.");
+      }
+    }
+
+    if (parsed) {
       const cleanRaw = (parsed.branches && parsed.branches.length > 0)
         ? parsed.branches.filter((b: any) => !b.name?.toLowerCase().includes("playwright") && !b.id?.toLowerCase().includes("playwright"))
         : [...DEFAULT_BRANCHES];
@@ -3230,19 +3448,31 @@ function loadStore(): StoreData {
         }
       });
 
+      // Synchronize CMS pages
       const cmsPagesList = (parsed.cms_pages && parsed.cms_pages.length > 0) ? parsed.cms_pages : [...DEFAULT_CMS_PAGES];
       DEFAULT_CMS_PAGES.forEach((def) => {
         const existingIdx = cmsPagesList.findIndex((p: any) => p.id === def.id || p.slug === def.slug);
         if (existingIdx >= 0) {
-          if ((!cmsPagesList[existingIdx].published_config || Object.keys(cmsPagesList[existingIdx].published_config).length === 0) && def.published_config) {
-            cmsPagesList[existingIdx].published_config = def.published_config;
-          }
-          if ((!cmsPagesList[existingIdx].sections || cmsPagesList[existingIdx].sections.length === 0) && def.sections) {
-            cmsPagesList[existingIdx].sections = def.sections;
-          }
-          if (def.announcement_bar && !cmsPagesList[existingIdx].announcement_bar) {
-            cmsPagesList[existingIdx].announcement_bar = def.announcement_bar;
-          }
+          cmsPagesList[existingIdx] = {
+            ...def,
+            ...cmsPagesList[existingIdx],
+            id: cmsPagesList[existingIdx].id || def.id,
+            title: cmsPagesList[existingIdx].title || def.title,
+            slug: cmsPagesList[existingIdx].slug || def.slug,
+            page_type: cmsPagesList[existingIdx].page_type || def.page_type,
+            status: cmsPagesList[existingIdx].status || def.status,
+            meta_title: cmsPagesList[existingIdx].meta_title || def.meta_title,
+            meta_description: cmsPagesList[existingIdx].meta_description || def.meta_description,
+            sections: (cmsPagesList[existingIdx].sections && cmsPagesList[existingIdx].sections.length > 0)
+              ? cmsPagesList[existingIdx].sections
+              : def.sections,
+            draft_config: cmsPagesList[existingIdx].draft_config || def.draft_config,
+            published_config: cmsPagesList[existingIdx].published_config || def.published_config,
+            version_history: cmsPagesList[existingIdx].version_history || def.version_history || [],
+            created_at: cmsPagesList[existingIdx].created_at || def.created_at,
+            updated_at: cmsPagesList[existingIdx].updated_at || def.updated_at,
+            published_at: cmsPagesList[existingIdx].published_at || def.published_at,
+          };
         } else {
           cmsPagesList.push(def);
         }
@@ -3275,7 +3505,7 @@ function loadStore(): StoreData {
       });
 
       return {
-        products: parsed.products || DEFAULT_PRODUCTS,
+        products: deduplicateStoreProducts(parsed.products || DEFAULT_PRODUCTS),
         branches: branchesList,
         cities: citiesList,
         regions: parsed.regions || DEFAULT_REGIONS,
@@ -3351,9 +3581,9 @@ function loadStore(): StoreData {
         seo_reports: parsed.seo_reports || [],
         product_delivery_restrictions: parsed.product_delivery_restrictions || [],
         popup_campaigns: parsed.popup_campaigns || [],
+        customer_favorites: parsed.customer_favorites || [],
+        product_reviews: parsed.product_reviews || [],
       };
-    } catch (err) {
-      console.error("Failed to read db-store.json, initializing default store:", err);
     }
   }
 
@@ -3428,6 +3658,8 @@ function loadStore(): StoreData {
     seo_backlinks: [],
     seo_reports: [],
     popup_campaigns: [],
+    customer_favorites: [],
+    product_reviews: [],
   };
 
   saveStore(initial);
@@ -3454,7 +3686,24 @@ function safeJsonStringify(obj: any, space = 2): string {
 function saveStore(data: StoreData): void {
   try {
     const filePath = getStoreFilePath();
-    fs.writeFileSync(filePath, safeJsonStringify(data, 2), "utf-8");
+    const json = safeJsonStringify(data, 2);
+    const tmpPath = `${filePath}.tmp`;
+    const bakPath = `${filePath}.bak`;
+
+    // 1. Write to temporary file first
+    fs.writeFileSync(tmpPath, json, "utf-8");
+
+    // 2. Safely rotate existing store to .bak if it exists
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.copyFileSync(filePath, bakPath);
+      } catch {
+        // ignore backup copy error
+      }
+    }
+
+    // 3. Atomic rename from tmpPath to filePath
+    fs.renameSync(tmpPath, filePath);
   } catch (err) {
     console.error("Failed to write db-store.json:", err);
   }
@@ -3470,53 +3719,907 @@ export class ApiEngine {
   }
 
   static getStore() {
+    ApiEngine.ensureOrdersStore();
+    ApiEngine.ensureDeliveryPartnersStore();
     return memoryStore;
   }
 
   static getOrders(): any[] {
+    ApiEngine.ensureOrdersStore();
     return memoryStore.orders || [];
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── CUSTOMER FAVORITES / WISHLIST AUTHORITATIVE ENGINE ─────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  static ensureFavoritesStore(): CustomerFavoriteRecord[] {
+    if (!memoryStore.customer_favorites) {
+      memoryStore.customer_favorites = [];
+    }
+    return memoryStore.customer_favorites;
+  }
+
+  static addCustomerFavorite(customerUid: string, productId: string): { success: boolean; favorite?: CustomerFavoriteRecord; error?: string; is_favorited: boolean; statusCode?: number } {
+    if (!customerUid) {
+      return { success: false, error: "Authentication required", is_favorited: false, statusCode: 401 };
+    }
+    if (!productId) {
+      return { success: false, error: "Product ID is required", is_favorited: false, statusCode: 400 };
+    }
+
+    const favStore = ApiEngine.ensureFavoritesStore();
+    const cleanUid = String(customerUid).trim();
+    const cleanProdId = String(productId).trim();
+
+    // Verify product exists in catalog
+    const product = (memoryStore.products || []).find((p: any) => p.id === cleanProdId || p.product_id === cleanProdId);
+    if (!product) {
+      return { success: false, error: "Product not found", is_favorited: false, statusCode: 404 };
+    }
+
+    // Check unique constraint: UNIQUE(customer_uid, product_id)
+    const existing = favStore.find(
+      (f: any) => f.customer_uid === cleanUid && f.product_id === cleanProdId
+    );
+
+    if (existing) {
+      // Idempotent success: return existing record
+      return { success: true, favorite: existing, is_favorited: true, statusCode: 200 };
+    }
+
+    const newFavorite: CustomerFavoriteRecord = {
+      id: `fav_${cleanUid.replace(/[^a-zA-Z0-9_-]/g, "_")}_${cleanProdId}`,
+      customer_uid: cleanUid,
+      product_id: cleanProdId,
+      created_at: new Date().toISOString(),
+    };
+
+    favStore.unshift(newFavorite);
+    saveStore(memoryStore);
+
+    // Publish transactional webhook event
+    ApiEngine.fireWebhookEvent(
+      "wishlist.item.added",
+      {
+        favorite_id: newFavorite.id,
+        customer_uid: cleanUid,
+        product_id: cleanProdId,
+        title: product.title || product.name,
+        thumbnail: product.thumbnail,
+        price: product.price || (product as any).selling_price,
+        created_at: newFavorite.created_at,
+      },
+      { source: "CUSTOMER_WISHLIST" },
+      { customer_uid: cleanUid },
+      { type: "product", id: cleanProdId }
+    );
+
+    return { success: true, favorite: newFavorite, is_favorited: true, statusCode: 201 };
+  }
+
+  static removeCustomerFavorite(customerUid: string, productId: string): { success: boolean; is_favorited: boolean; product_id: string; statusCode?: number } {
+    if (!customerUid) {
+      return { success: false, is_favorited: false, product_id: productId, statusCode: 401 };
+    }
+
+    const favStore = ApiEngine.ensureFavoritesStore();
+    const cleanUid = String(customerUid).trim();
+    const cleanProdId = String(productId).trim();
+
+    const beforeCount = favStore.length;
+    memoryStore.customer_favorites = favStore.filter(
+      (f: any) => !(f.customer_uid === cleanUid && f.product_id === cleanProdId)
+    );
+
+    if (memoryStore.customer_favorites.length !== beforeCount) {
+      saveStore(memoryStore);
+
+      ApiEngine.fireWebhookEvent(
+        "wishlist.item.removed",
+        {
+          customer_uid: cleanUid,
+          product_id: cleanProdId,
+          removed_at: new Date().toISOString(),
+        },
+        { source: "CUSTOMER_WISHLIST" },
+        { customer_uid: cleanUid },
+        { type: "product", id: cleanProdId }
+      );
+    }
+
+    return { success: true, is_favorited: false, product_id: cleanProdId, statusCode: 200 };
+  }
+
+  static getCustomerFavorites(customerUid: string): any[] {
+    if (!customerUid) return [];
+    const favStore = ApiEngine.ensureFavoritesStore();
+    const cleanUid = String(customerUid).trim();
+
+    const customerFavs = favStore.filter((f: any) => f.customer_uid === cleanUid);
+    const enrichedList: any[] = [];
+
+    for (const fav of customerFavs) {
+      const product = (memoryStore.products || []).find((p: any) => p.id === fav.product_id || p.product_id === fav.product_id);
+      if (!product) continue; // Safely skip deleted/archived products
+
+      // Enrich with categories and weight prices
+      const enrichedProd = ApiEngine.enrichProductWithCategories(product);
+
+      enrichedList.push({
+        id: fav.id,
+        favorite_id: fav.id,
+        customer_uid: fav.customer_uid,
+        product_id: fav.product_id,
+        created_at: fav.created_at,
+        is_favorited: true,
+        product: enrichedProd,
+        // Flat convenience fields for UI components
+        title: enrichedProd.title || enrichedProd.name,
+        name: enrichedProd.title || enrichedProd.name,
+        thumbnail: enrichedProd.thumbnail,
+        handle: enrichedProd.handle || enrichedProd.product_id,
+        price: enrichedProd.price || enrichedProd.selling_price,
+        selling_price: enrichedProd.selling_price || enrichedProd.price,
+        mrp: enrichedProd.mrp || Math.round((enrichedProd.price || 599) * 1.25),
+        rating: enrichedProd.rating || 4.8,
+        review_count: enrichedProd.review_count || 0,
+        category: enrichedProd.category,
+        category_slug: enrichedProd.category_slug,
+        weight: enrichedProd.weight || "1 kg",
+        weight_prices: enrichedProd.weight_prices || [],
+        is_available: enrichedProd.is_deliverable !== false,
+      });
+    }
+
+    return enrichedList;
+  }
+
+  static getCustomerFavoriteIds(customerUid: string): string[] {
+    if (!customerUid) return [];
+    const favStore = ApiEngine.ensureFavoritesStore();
+    const cleanUid = String(customerUid).trim();
+    return favStore
+      .filter((f: any) => f.customer_uid === cleanUid)
+      .map((f: any) => f.product_id);
+  }
+
+  static isProductFavorited(customerUid: string, productId: string): boolean {
+    if (!customerUid || !productId) return false;
+    const favStore = ApiEngine.ensureFavoritesStore();
+    const cleanUid = String(customerUid).trim();
+    const cleanProdId = String(productId).trim();
+    return favStore.some(
+      (f: any) => f.customer_uid === cleanUid && f.product_id === cleanProdId
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── PRODUCT REVIEWS & RATINGS AUTHORITATIVE ENGINE ─────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  static ensureReviewsStore(): ProductReviewRecord[] {
+    if (!memoryStore.product_reviews) {
+      memoryStore.product_reviews = [];
+    }
+    return memoryStore.product_reviews;
+  }
+
+  static getCustomerEligibleReviews(customerUid: string): any[] {
+    if (!customerUid) return [];
+    ApiEngine.ensureReviewsStore();
+    ApiEngine.ensureOrdersStore();
+
+    const cleanUid = String(customerUid).trim();
+    const allOrders = memoryStore.orders || [];
+    const customer = (memoryStore.customers || []).find((c: any) => c.customer_uid === cleanUid || c.id === cleanUid);
+    const cleanPhone = customer?.normalized_phone || (customer?.phone ? customer.phone.replace(/\D/g, "").slice(-10) : "");
+
+    // 1. Find all delivered/completed orders belonging to this customer
+    const deliveredOrders = allOrders.filter((o: any) => {
+      const matchUid = (o.customer_uid === cleanUid || o.customer_id === cleanUid);
+      const matchPhone = cleanPhone && ((o.customer_phone || o.phone || o.shipping_address?.phone || "").replace(/\D/g, "").slice(-10) === cleanPhone);
+      const isDelivered = (o.status || "").toUpperCase() === "DELIVERED" || (o.delivery_status || "").toUpperCase() === "DELIVERED";
+      return (matchUid || matchPhone) && isDelivered;
+    });
+
+    const reviews = memoryStore.product_reviews || [];
+    const eligibleItems: any[] = [];
+
+    for (const ord of deliveredOrders) {
+      const items = Array.isArray(ord.items) ? ord.items : [];
+      for (const item of items) {
+        const prodId = String(item.product_id || item.id || "").trim();
+        if (!prodId) continue;
+
+        const existingReview = reviews.find(
+          (r) => r.customer_uid === cleanUid && r.order_id === ord.id && (r.product_id === prodId || r.product_id === `prod_${prodId}`)
+        );
+
+        const product = (memoryStore.products || []).find((p: any) => p.id === prodId || p.product_id === prodId);
+
+        eligibleItems.push({
+          order_id: ord.id,
+          order_number: ord.order_number || ord.id,
+          order_placed_at: ord.created_at || ord.placed_at,
+          order_delivered_at: ord.delivered_at || ord.updated_at,
+          product_id: prodId,
+          order_item_id: item.item_id || item.id,
+          product_title: item.title || item.name || product?.title || product?.name || "Celebration Cake",
+          product_thumbnail: item.thumbnail || product?.thumbnail,
+          purchased_variant: item.variant_name || item.weight || product?.weight || "1 kg",
+          purchased_price: item.unit_price || item.price,
+          has_reviewed: Boolean(existingReview),
+          existing_review: existingReview || null,
+        });
+      }
+    }
+
+    return eligibleItems;
+  }
+
+  static checkReviewEligibility(
+    customerUid: string,
+    productId: string,
+    orderId?: string
+  ): { eligible: boolean; order?: any; orderItem?: any; existingReview?: ProductReviewRecord; reason?: string } {
+    if (!customerUid) {
+      return { eligible: false, reason: "Authentication required" };
+    }
+    if (!productId) {
+      return { eligible: false, reason: "Product ID is required" };
+    }
+
+    const cleanUid = String(customerUid).trim();
+    const cleanProdId = String(productId).trim();
+    const reviews = ApiEngine.ensureReviewsStore();
+    const allOrders = memoryStore.orders || [];
+    const customer = (memoryStore.customers || []).find((c: any) => c.customer_uid === cleanUid || c.id === cleanUid);
+    const cleanPhone = customer?.normalized_phone || (customer?.phone ? customer.phone.replace(/\D/g, "").slice(-10) : "");
+
+    // Find delivered orders for this customer containing this product
+    const eligibleOrders = allOrders.filter((o: any) => {
+      const matchUid = (o.customer_uid === cleanUid || o.customer_id === cleanUid);
+      const matchPhone = cleanPhone && ((o.customer_phone || o.phone || o.shipping_address?.phone || "").replace(/\D/g, "").slice(-10) === cleanPhone);
+      const isDelivered = (o.status || "").toUpperCase() === "DELIVERED" || (o.delivery_status || "").toUpperCase() === "DELIVERED";
+      const matchOrderId = !orderId || o.id === orderId || o.order_number === orderId;
+      const hasProduct = Array.isArray(o.items) && o.items.some((it: any) => (it.product_id === cleanProdId || it.id === cleanProdId));
+      return (matchUid || matchPhone) && isDelivered && matchOrderId && hasProduct;
+    });
+
+    if (eligibleOrders.length === 0) {
+      return {
+        eligible: false,
+        reason: "You can only submit a verified review for cakes you have purchased and received.",
+      };
+    }
+
+    const targetOrder = eligibleOrders[0];
+    const targetItem = targetOrder.items.find((it: any) => (it.product_id === cleanProdId || it.id === cleanProdId));
+
+    // Check if already reviewed for this order
+    const existing = reviews.find(
+      (r) => r.customer_uid === cleanUid && r.order_id === targetOrder.id && (r.product_id === cleanProdId || r.product_id === `prod_${cleanProdId}`)
+    );
+
+    if (existing) {
+      return {
+        eligible: false,
+        order: targetOrder,
+        orderItem: targetItem,
+        existingReview: existing,
+        reason: "You have already reviewed this cake for this order.",
+      };
+    }
+
+    return {
+      eligible: true,
+      order: targetOrder,
+      orderItem: targetItem,
+    };
+  }
+
+  static submitProductReview(
+    customerUid: string,
+    params: {
+      productId: string;
+      orderId?: string;
+      rating: number;
+      title: string;
+      reviewText: string;
+    }
+  ): { success: boolean; review?: ProductReviewRecord; error?: string; statusCode?: number } {
+    if (!customerUid) {
+      return { success: false, error: "Authentication required", statusCode: 401 };
+    }
+    const { productId, orderId, rating, title, reviewText } = params;
+
+    if (!productId) {
+      return { success: false, error: "Product ID is required", statusCode: 400 };
+    }
+
+    const numRating = Number(rating);
+    if (isNaN(numRating) || numRating < 1 || numRating > 5 || !Number.isInteger(numRating)) {
+      return { success: false, error: "Rating must be an integer between 1 and 5", statusCode: 400 };
+    }
+
+    const cleanTitle = String(title || "").trim();
+    if (!cleanTitle) {
+      return { success: false, error: "Review title is required", statusCode: 400 };
+    }
+    if (cleanTitle.length > 120) {
+      return { success: false, error: "Review title cannot exceed 120 characters", statusCode: 400 };
+    }
+
+    const cleanText = String(reviewText || "").trim();
+    if (!cleanText) {
+      return { success: false, error: "Review text cannot be empty", statusCode: 400 };
+    }
+    if (cleanText.length > 2000) {
+      return { success: false, error: "Review text cannot exceed 2000 characters", statusCode: 400 };
+    }
+
+    const cleanUid = String(customerUid).trim();
+    const cleanProdId = String(productId).trim();
+
+    // Verify product exists in catalog
+    const product = (memoryStore.products || []).find((p: any) => p.id === cleanProdId || p.product_id === cleanProdId);
+    if (!product) {
+      return { success: false, error: "Product not found", statusCode: 404 };
+    }
+
+    // Verify customer purchase eligibility
+    const eligibility = ApiEngine.checkReviewEligibility(cleanUid, cleanProdId, orderId);
+    if (!eligibility.eligible) {
+      if (eligibility.existingReview) {
+        return { success: false, error: eligibility.reason || "Review already submitted for this purchase", statusCode: 409 };
+      }
+      return { success: false, error: eligibility.reason || "Verified purchase required to review", statusCode: 403 };
+    }
+
+    const targetOrder = eligibility.order;
+    const targetItem = eligibility.orderItem;
+
+    // Resolve customer display name (e.g. "Alex R." or "Verified Customer")
+    const customer = (memoryStore.customers || []).find((c: any) => c.customer_uid === cleanUid || c.id === cleanUid);
+    let displayName = "Verified Customer";
+    if (customer) {
+      const first = customer.first_name || (customer.name || customer.full_name || "").split(" ")[0] || "Customer";
+      const last = customer.last_name || (customer.name || customer.full_name || "").split(" ").slice(1).join(" ") || "";
+      displayName = last ? `${first} ${last[0]}.` : first;
+    } else if (targetOrder.customer_name) {
+      const parts = targetOrder.customer_name.trim().split(" ");
+      displayName = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : parts[0];
+    }
+
+    const reviews = ApiEngine.ensureReviewsStore();
+    const now = new Date().toISOString();
+
+    const newReview: ProductReviewRecord = {
+      id: `rev_${cleanUid.replace(/[^a-zA-Z0-9_-]/g, "_")}_${cleanProdId}_${targetOrder.id}`,
+      product_id: cleanProdId,
+      customer_uid: cleanUid,
+      customer_name: displayName,
+      order_id: targetOrder.id,
+      order_item_id: targetItem?.item_id || targetItem?.id,
+      rating: numRating,
+      title: cleanTitle,
+      review_text: cleanText,
+      purchased_variant: targetItem?.variant_name || targetItem?.weight || product.weight || "1 kg",
+      is_verified_purchase: true,
+      status: "APPROVED",
+      admin_response: null,
+      helpful_votes: 0,
+      created_at: now,
+      updated_at: now,
+      published_at: now,
+    };
+
+    reviews.unshift(newReview);
+    saveStore(memoryStore);
+
+    // Emit transactional webhook event
+    ApiEngine.fireWebhookEvent(
+      "review.created",
+      {
+        review_id: newReview.id,
+        product_id: cleanProdId,
+        customer_uid: cleanUid,
+        rating: newReview.rating,
+        title: newReview.title,
+        order_id: targetOrder.id,
+        created_at: newReview.created_at,
+      },
+      { source: "STOREFRONT_REVIEW" },
+      { customer_uid: cleanUid },
+      { type: "product", id: cleanProdId }
+    );
+
+    return { success: true, review: newReview, statusCode: 201 };
+  }
+
+  static updateProductReview(
+    customerUid: string,
+    reviewId: string,
+    params: {
+      rating?: number;
+      title?: string;
+      reviewText?: string;
+    }
+  ): { success: boolean; review?: ProductReviewRecord; error?: string; statusCode?: number } {
+    if (!customerUid) {
+      return { success: false, error: "Authentication required", statusCode: 401 };
+    }
+    if (!reviewId) {
+      return { success: false, error: "Review ID is required", statusCode: 400 };
+    }
+
+    const reviews = ApiEngine.ensureReviewsStore();
+    const cleanUid = String(customerUid).trim();
+    const cleanRevId = String(reviewId).trim();
+
+    const review = reviews.find((r) => r.id === cleanRevId);
+    if (!review) {
+      return { success: false, error: "Review not found", statusCode: 404 };
+    }
+
+    // Ownership check (IDOR protection)
+    if (review.customer_uid !== cleanUid) {
+      return { success: false, error: "Forbidden: You do not own this review", statusCode: 403 };
+    }
+
+    if (params.rating !== undefined) {
+      const numRating = Number(params.rating);
+      if (isNaN(numRating) || numRating < 1 || numRating > 5 || !Number.isInteger(numRating)) {
+        return { success: false, error: "Rating must be an integer between 1 and 5", statusCode: 400 };
+      }
+      review.rating = numRating;
+    }
+
+    if (params.title !== undefined) {
+      const cleanTitle = String(params.title).trim();
+      if (!cleanTitle) {
+        return { success: false, error: "Review title cannot be empty", statusCode: 400 };
+      }
+      if (cleanTitle.length > 120) {
+        return { success: false, error: "Review title cannot exceed 120 characters", statusCode: 400 };
+      }
+      review.title = cleanTitle;
+    }
+
+    if (params.reviewText !== undefined) {
+      const cleanText = String(params.reviewText).trim();
+      if (!cleanText) {
+        return { success: false, error: "Review text cannot be empty", statusCode: 400 };
+      }
+      if (cleanText.length > 2000) {
+        return { success: false, error: "Review text cannot exceed 2000 characters", statusCode: 400 };
+      }
+      review.review_text = cleanText;
+    }
+
+    review.updated_at = new Date().toISOString();
+    saveStore(memoryStore);
+
+    ApiEngine.fireWebhookEvent(
+      "review.updated",
+      {
+        review_id: review.id,
+        product_id: review.product_id,
+        customer_uid: cleanUid,
+        rating: review.rating,
+        updated_at: review.updated_at,
+      },
+      { source: "STOREFRONT_REVIEW" },
+      { customer_uid: cleanUid },
+      { type: "product", id: review.product_id }
+    );
+
+    return { success: true, review, statusCode: 200 };
+  }
+
+  static deleteProductReview(
+    customerUid: string,
+    reviewId: string
+  ): { success: boolean; error?: string; statusCode?: number } {
+    if (!customerUid) {
+      return { success: false, error: "Authentication required", statusCode: 401 };
+    }
+    if (!reviewId) {
+      return { success: false, error: "Review ID is required", statusCode: 400 };
+    }
+
+    const reviews = ApiEngine.ensureReviewsStore();
+    const cleanUid = String(customerUid).trim();
+    const cleanRevId = String(reviewId).trim();
+
+    const reviewIndex = reviews.findIndex((r) => r.id === cleanRevId);
+    if (reviewIndex === -1) {
+      return { success: false, error: "Review not found", statusCode: 404 };
+    }
+
+    const review = reviews[reviewIndex];
+    if (review.customer_uid !== cleanUid) {
+      return { success: false, error: "Forbidden: You do not own this review", statusCode: 403 };
+    }
+
+    reviews.splice(reviewIndex, 1);
+    saveStore(memoryStore);
+
+    return { success: true, statusCode: 200 };
+  }
+
+  static getProductRatingAggregate(productId: string): {
+    product_id: string;
+    average_rating: number;
+    total_reviews: number;
+    rating_distribution: { 1: number; 2: number; 3: number; 4: number; 5: number };
+  } {
+    const cleanProdId = String(productId || "").trim();
+    const reviews = ApiEngine.ensureReviewsStore();
+
+    const published = reviews.filter(
+      (r) => (r.product_id === cleanProdId || r.product_id === `prod_${cleanProdId}`) && (r.status === "APPROVED" || !r.status)
+    );
+
+    const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let totalScore = 0;
+
+    for (const rev of published) {
+      const r = Math.min(5, Math.max(1, Math.round(rev.rating || 5)));
+      dist[r as 1 | 2 | 3 | 4 | 5]++;
+      totalScore += rev.rating;
+    }
+
+    const total = published.length;
+    const avg = total > 0 ? Number((totalScore / total).toFixed(1)) : 0;
+
+    return {
+      product_id: cleanProdId,
+      average_rating: avg,
+      total_reviews: total,
+      rating_distribution: dist,
+    };
+  }
+
+  static getProductReviews(
+    productId: string,
+    options: {
+      page?: number;
+      pageSize?: number;
+      sort?: "recent" | "highest" | "lowest" | "helpful";
+      ratingFilter?: number;
+      verifiedOnly?: boolean;
+      status?: string;
+    } = {}
+  ): {
+    product_id: string;
+    reviews: any[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    aggregate: {
+      product_id: string;
+      average_rating: number;
+      total_reviews: number;
+      rating_distribution: { 1: number; 2: number; 3: number; 4: number; 5: number };
+    };
+  } {
+    const cleanProdId = String(productId || "").trim();
+    const reviews = ApiEngine.ensureReviewsStore();
+    const aggregate = ApiEngine.getProductRatingAggregate(cleanProdId);
+
+    // Filter by product and approval status
+    const targetStatus = options.status || "APPROVED";
+    let filtered = reviews.filter((r) => {
+      const matchProd = r.product_id === cleanProdId || r.product_id === `prod_${cleanProdId}`;
+      const matchStatus = targetStatus === "ALL" ? true : (r.status === targetStatus || !r.status);
+      const matchRating = !options.ratingFilter || r.rating === Number(options.ratingFilter);
+      const matchVerified = options.verifiedOnly ? r.is_verified_purchase === true : true;
+      return matchProd && matchStatus && matchRating && matchVerified;
+    });
+
+    // Sorting
+    const sort = options.sort || "recent";
+    filtered.sort((a, b) => {
+      if (sort === "highest") return b.rating - a.rating;
+      if (sort === "lowest") return a.rating - b.rating;
+      if (sort === "helpful") return (b.helpful_votes || 0) - (a.helpful_votes || 0);
+      // default: recent
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    // Pagination
+    const page = Math.max(1, Number(options.page) || 1);
+    const pageSize = Math.max(1, Math.min(50, Number(options.pageSize) || 10));
+    const total = filtered.length;
+    const totalPages = Math.ceil(total / pageSize) || 1;
+    const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+    // Privacy-safe sanitized review cards (hide private customer_uid)
+    const sanitized = paginated.map((r) => ({
+      id: r.id,
+      product_id: r.product_id,
+      rating: r.rating,
+      title: r.title,
+      review_text: r.review_text,
+      comment: r.review_text,
+      body: r.review_text,
+      author_name: r.customer_name,
+      customer_name: r.customer_name,
+      purchased_variant: r.purchased_variant,
+      is_verified_purchase: r.is_verified_purchase,
+      verified_purchase: r.is_verified_purchase,
+      admin_response: r.admin_response || null,
+      reply: r.admin_response?.message || null,
+      helpful_votes: r.helpful_votes || 0,
+      created_at: r.created_at,
+      published_at: r.published_at,
+    }));
+
+    return {
+      product_id: cleanProdId,
+      reviews: sanitized,
+      total,
+      page,
+      pageSize,
+      totalPages,
+      aggregate,
+    };
+  }
+
+  static getCustomerReviews(customerUid: string): ProductReviewRecord[] {
+    if (!customerUid) return [];
+    const reviews = ApiEngine.ensureReviewsStore();
+    const cleanUid = String(customerUid).trim();
+    return reviews.filter((r) => r.customer_uid === cleanUid);
+  }
+
+  static getAdminReviews(options: {
+    page?: number;
+    pageSize?: number;
+    status?: string;
+    productId?: string;
+    search?: string;
+  } = {}): {
+    reviews: ProductReviewRecord[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    pending_count: number;
+    approved_count: number;
+    rejected_count: number;
+  } {
+    const reviews = ApiEngine.ensureReviewsStore();
+    let filtered = [...reviews];
+
+    if (options.status && options.status !== "ALL") {
+      filtered = filtered.filter((r) => r.status === options.status);
+    }
+    if (options.productId) {
+      filtered = filtered.filter((r) => r.product_id === options.productId);
+    }
+    if (options.search) {
+      const q = options.search.toLowerCase();
+      filtered = filtered.filter(
+        (r) =>
+          r.title.toLowerCase().includes(q) ||
+          r.review_text.toLowerCase().includes(q) ||
+          r.customer_name.toLowerCase().includes(q) ||
+          r.product_id.toLowerCase().includes(q)
+      );
+    }
+
+    filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const page = Math.max(1, Number(options.page) || 1);
+    const pageSize = Math.max(1, Math.min(100, Number(options.pageSize) || 20));
+    const total = filtered.length;
+    const totalPages = Math.ceil(total / pageSize) || 1;
+    const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+    return {
+      reviews: paginated,
+      total,
+      page,
+      pageSize,
+      totalPages,
+      pending_count: reviews.filter((r) => r.status === "PENDING").length,
+      approved_count: reviews.filter((r) => r.status === "APPROVED").length,
+      rejected_count: reviews.filter((r) => r.status === "REJECTED" || r.status === "HIDDEN").length,
+    };
+  }
+
+  static moderateReview(
+    reviewId: string,
+    action: "APPROVE" | "REJECT" | "HIDE" | "RESPOND",
+    params?: { adminName?: string; adminResponse?: string }
+  ): { success: boolean; review?: ProductReviewRecord; error?: string } {
+    const reviews = ApiEngine.ensureReviewsStore();
+    const cleanRevId = String(reviewId).trim();
+    const review = reviews.find((r) => r.id === cleanRevId);
+
+    if (!review) {
+      return { success: false, error: "Review not found" };
+    }
+
+    const now = new Date().toISOString();
+    if (action === "APPROVE") {
+      review.status = "APPROVED";
+      review.published_at = now;
+    } else if (action === "REJECT") {
+      review.status = "REJECTED";
+    } else if (action === "HIDE") {
+      review.status = "HIDDEN";
+    } else if (action === "RESPOND" && params?.adminResponse) {
+      review.admin_response = {
+        author: params.adminName || "CakeToHome Bakery Chef",
+        message: params.adminResponse.trim(),
+        responded_at: now,
+      };
+    }
+
+    review.updated_at = now;
+    saveStore(memoryStore);
+
+    return { success: true, review };
   }
 
   static resolveUserAccount(params: { userId?: string; phone?: string; role?: string; customerUid?: string }): any {
     const { userId, phone, role, customerUid } = params;
     const cleanPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
     const store = memoryStore;
-
-    // Staff accounts
     const normRole = (role || "").toUpperCase();
-    if (normRole === "SUPER_ADMIN" || normRole === "ADMIN" || (userId && userId.startsWith("admin_"))) {
+
+    // 1. Canonical Staff Profile Resolution via StaffAccessControl
+    const staffByPhone = (cleanPhone && normRole !== "CUSTOMER" && normRole !== "DELIVERY_PARTNER") ? StaffAccessControl.getStaffMemberByPhone(cleanPhone) : null;
+    const staffById = userId ? StaffAccessControl.getStaffMember(userId) : null;
+    const resolvedStaff = staffByPhone || staffById;
+
+    if (resolvedStaff && resolvedStaff.status === "ACTIVE" && normRole !== "CUSTOMER") {
+      const staffName = resolvedStaff.name || "Staff Member";
+      const nameParts = staffName.split(" ");
       return {
-        id: userId || "admin_01",
-        name: "Super Admin",
-        full_name: "Super Admin",
-        email: "admin@caketohome.com",
-        phone: phone || "+91 99999 00001",
-        role: "SUPER_ADMIN",
+        id: resolvedStaff.id,
+        user_id: resolvedStaff.user_id,
+        name: staffName,
+        full_name: staffName,
+        first_name: nameParts[0] || "Staff",
+        last_name: nameParts.slice(1).join(" ") || "",
+        email: resolvedStaff.email || "",
+        phone: resolvedStaff.phone || phone || "",
+        role: resolvedStaff.role || (role ? role.toUpperCase() : "STAFF"),
+        profile_ids: resolvedStaff.profile_ids || [],
+        profile_names: resolvedStaff.profile_names || [],
+        branch_id: resolvedStaff.branch_id || null,
+        branch_name: resolvedStaff.branch_name || null,
+        delivery_partner_id: resolvedStaff.delivery_partner_id || null,
+        permissions: (resolvedStaff.role === "SUPER_ADMIN" || resolvedStaff.id === "admin_01" || resolvedStaff.user_id === "admin_01") ? ["ALL"] : StaffAccessControl.getEffectivePermissions(resolvedStaff),
+        created_at: resolvedStaff.created_at || new Date().toISOString(),
       };
+    }
+
+    // 2. Canonical Delivery Partner Resolution
+    if (((cleanPhone && normRole !== "CUSTOMER") || (userId && (userId.startsWith("dlp_") || userId.startsWith("driver_")))) && normRole !== "CUSTOMER" && normRole !== "BRANCH_MANAGER" && normRole !== "SUPER_ADMIN") {
+      const partner = (store.delivery_partners || []).find((p: any) =>
+        (userId && (p.id === userId || p.staff_id === userId || p.partner_number === userId)) ||
+        (cleanPhone && p.phone && p.phone.replace(/\D/g, "").slice(-10) === cleanPhone)
+      );
+      if (partner) {
+        const partnerFullName = partner.full_name || partner.name || `${partner.first_name || ""} ${partner.last_name || ""}`.trim() || "Delivery Partner";
+        const parts = partnerFullName.split(" ");
+        return {
+          id: partner.id,
+          user_id: partner.staff_user_id || partner.id,
+          name: partnerFullName,
+          full_name: partnerFullName,
+          first_name: partner.first_name || parts[0] || "Delivery",
+          last_name: partner.last_name || parts.slice(1).join(" ") || "Partner",
+          email: partner.email || "",
+          phone: partner.phone || phone || "",
+          role: "DELIVERY_PARTNER",
+          delivery_partner_id: partner.id,
+          partner_number: partner.partner_number || `CTH-DP-${partner.id.slice(-6).toUpperCase()}`,
+          branch_id: partner.primary_branch_id || null,
+          branch_name: partner.primary_branch_name || null,
+          primary_branch_id: partner.primary_branch_id || null,
+          primary_branch_name: partner.primary_branch_name || null,
+          associated_branches: partner.associated_branches || [],
+          availability_status: partner.availability_status || "ONLINE",
+          rating: partner.rating || null,
+          current_active_orders: partner.current_active_orders || 0,
+          maximum_concurrent_orders: partner.maximum_concurrent_orders || 2,
+          created_at: partner.created_at || new Date().toISOString(),
+        };
+      }
+    }
+
+    // 3. Canonical Branch Manager Resolution from Store Branches
+    if (((cleanPhone && normRole !== "CUSTOMER") || (userId && (userId.startsWith("shpmgr_") || userId.startsWith("mgr_")))) && normRole !== "CUSTOMER" && normRole !== "DELIVERY_PARTNER" && normRole !== "SUPER_ADMIN") {
+      const branch = (store.branches || []).find((b: any) =>
+        (userId && (b.manager_user_id === userId || b.manager_account?.id === userId)) ||
+        (cleanPhone && (b.phone?.replace(/\D/g, "").slice(-10) === cleanPhone || b.manager_account?.phone?.replace(/\D/g, "").slice(-10) === cleanPhone))
+      );
+      if (branch) {
+        const mgrName = branch.manager_name || branch.manager_account?.name || "Branch Manager";
+        const mgrParts = mgrName.split(" ");
+        return {
+          id: branch.manager_account?.id || branch.manager_user_id || `shpmgr_${branch.id}`,
+          name: mgrName,
+          full_name: mgrName,
+          first_name: mgrParts[0] || "Branch",
+          last_name: mgrParts.slice(1).join(" ") || "Manager",
+          email: branch.email || branch.manager_account?.email || "manager@caketohome.com",
+          phone: branch.phone || branch.manager_account?.phone || phone || "",
+          role: "BRANCH_MANAGER",
+          branch_id: branch.id,
+          branch_name: branch.name,
+          created_at: branch.created_at || new Date().toISOString(),
+        };
+      }
+    }
+
+    // 4. Role Fallbacks (Only when no phone provided or phone explicitly verified for role)
+    if (normRole === "SUPER_ADMIN" || normRole === "ADMIN" || (userId && userId.startsWith("admin_"))) {
+      if (!phone || cleanPhone === "9876500000" || cleanPhone === "9999999999" || userId === "admin_01") {
+        return {
+          id: userId || "admin_01",
+          name: "Super Admin",
+          full_name: "Super Admin",
+          first_name: "Super",
+          last_name: "Admin",
+          email: "admin@caketohome.com",
+          phone: phone || "+91 99999 00001",
+          role: "SUPER_ADMIN",
+          permissions: ["ALL"],
+        };
+      }
+      return null;
     }
     if (normRole === "BRANCH_MANAGER" || normRole === "SHOP_MANAGER" || normRole === "SHOP" || (userId && (userId.startsWith("shpmgr_") || userId.startsWith("mgr_")))) {
-      return {
-        id: userId || "shpmgr_01",
-        name: "Branch Manager",
-        full_name: "Branch Manager",
-        email: "manager@caketohome.com",
-        phone: phone || "+91 99999 00002",
-        role: "BRANCH_MANAGER",
-        branch_name: "Indiranagar Flagship Bakery",
-      };
+      if (!phone || cleanPhone === "9876500001" || cleanPhone === "9876500002" || (userId && userId.startsWith("shpmgr_"))) {
+        return {
+          id: userId || "shpmgr_01",
+          name: "Branch Manager",
+          full_name: "Branch Manager",
+          first_name: "Branch",
+          last_name: "Manager",
+          email: "manager@caketohome.com",
+          phone: phone || "+91 99999 00002",
+          role: "BRANCH_MANAGER",
+          branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          branch_name: "Indiranagar Flagship Bakery",
+        };
+      }
+      return null;
     }
     if (normRole === "DELIVERY_PARTNER" || normRole === "DLP" || (userId && (userId.startsWith("dlp_") || userId.startsWith("driver_")))) {
-      return {
-        id: userId || "dlp_01",
-        name: "Delivery Partner",
-        full_name: "Delivery Partner",
-        email: "rider@caketohome.com",
-        phone: phone || "+91 99999 00003",
-        role: "DELIVERY_PARTNER",
-      };
+      if (!phone || cleanPhone === "9876500001" || cleanPhone === "9876500003" || cleanPhone === "9900011111" || cleanPhone === "9900022222" || (userId && userId.startsWith("dlp_"))) {
+        return {
+          id: userId || "dlp_01",
+          name: "Delivery Partner",
+          full_name: "Delivery Partner",
+          first_name: "Delivery",
+          last_name: "Partner",
+          email: "rider@caketohome.com",
+          phone: phone || "+91 99999 00003",
+          role: "DELIVERY_PARTNER",
+          partner_number: "CTH-DP-000001",
+          primary_branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          primary_branch_name: "Indiranagar Flagship Bakery",
+          availability_status: "ONLINE",
+        };
+      }
+      return null;
     }
 
-    // Customer accounts from store
+    if (normRole && normRole !== "CUSTOMER") {
+      return null;
+    }
+
+    // 5. Customer Accounts from Store
     const customers = store.customers || [];
     const customer = customers.find((c: any) =>
       (customerUid && (c.customer_uid === customerUid || c.id === customerUid)) ||
@@ -3534,23 +4637,30 @@ export class ApiEngine {
         last_name: customer.last_name || customer.name?.split(" ").slice(1).join(" ") || "Customer",
         email: customer.email || "",
         phone: customer.phone || phone || "",
-        role: "CUSTOMER",
+        role: customer.role || (normRole === "SUPER_ADMIN" ? "SUPER_ADMIN" : "CUSTOMER"),
+        permissions: (customer.role === "SUPER_ADMIN" || normRole === "SUPER_ADMIN" || customer.id === "admin_01") ? ["ALL"] : undefined,
         date_of_birth: customer.date_of_birth || null,
         preferences: customer.preferences || {},
         stats: {
           orders: customer.orders_count || customer.total_orders || 0,
           total_spent: customer.total_spend || customer.total_revenue || 0,
         },
+        loyalty: customer.loyalty || {
+          points_balance: 100,
+          points_earned: 100,
+          points_redeemed: 0,
+          tier: "STANDARD",
+        },
         addresses: customer.addresses || [],
         created_at: customer.created_at || new Date().toISOString(),
       };
     }
 
-    if (cleanPhone || customerUid || userId) {
-      const generatedPhone = phone || (cleanPhone ? `+91 ${cleanPhone.slice(0, 5)} ${cleanPhone.slice(5)}` : "");
+    if (cleanPhone) {
+      const generatedPhone = phone || `+91 ${cleanPhone.slice(0, 5)} ${cleanPhone.slice(5)}`;
       return {
-        id: customerUid || userId || `cus_${cleanPhone || Date.now()}`,
-        customer_uid: customerUid || userId || `cth_cus_${cleanPhone || Date.now()}`,
+        id: customerUid || userId || `cus_${cleanPhone}`,
+        customer_uid: customerUid || userId || `cth_cus_${cleanPhone}`,
         name: "Valued Customer",
         full_name: "Valued Customer",
         first_name: "Valued",
@@ -3566,6 +4676,12 @@ export class ApiEngine {
           sms_notifications: true,
           marketing_emails: true,
         },
+        loyalty: {
+          points_balance: 100,
+          points_earned: 100,
+          points_redeemed: 0,
+          tier: "STANDARD",
+        },
         addresses: [],
         orders_count: 0,
         total_spend: 0,
@@ -3576,25 +4692,7 @@ export class ApiEngine {
     return null;
   }
 
-  static getCustomerMe(params: any): any {
-    return ApiEngine.resolveUserAccount(params);
-  }
-
-  static updateCustomerProfile(uid: string, body: any): any {
-    const store = memoryStore;
-    const customers = store.customers || [];
-    const index = customers.findIndex((c: any) => c.customer_uid === uid || c.id === uid);
-    if (index >= 0) {
-      customers[index] = {
-        ...customers[index],
-        ...body,
-        updated_at: new Date().toISOString(),
-      };
-      saveStore(store);
-      return { success: true, customer: customers[index] };
-    }
-    return { success: false, error: "Customer not found" };
-  }
+  // Canonical getCustomerMe and updateCustomerProfile are implemented below (lines ~7891 & ~13791)
 
   static fireWebhookEvent(
     eventType: string,
@@ -3621,11 +4719,35 @@ export class ApiEngine {
     }
   ) {
     try {
-      return WebhookEngine.emitEvent(eventType as any, payload, metadata, customerContext, aggregate);
+      const outboxItem = WebhookEngine.emitEvent(eventType as any, payload, metadata, customerContext, aggregate);
+      if (!memoryStore.outbox_events) memoryStore.outbox_events = [];
+      memoryStore.outbox_events.unshift({
+        id: outboxItem?.id || `outbox_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        event_id: outboxItem?.event_id,
+        event_type: eventType,
+        payload,
+        data: payload,
+        metadata: metadata || null,
+        created_at: new Date().toISOString(),
+      });
+      if (memoryStore.outbox_events.length > 500) {
+        memoryStore.outbox_events.length = 500;
+      }
+      return outboxItem;
     } catch (err: any) {
       console.warn("[ApiEngine Webhook Event Non-Blocking Error]:", err?.message || err);
       return null;
     }
+  }
+
+  static emitOutboxEvent(
+    eventType: string,
+    payload: any,
+    metadata?: Record<string, any>,
+    customerContext?: any,
+    aggregate?: any
+  ) {
+    return ApiEngine.fireWebhookEvent(eventType, payload, metadata, customerContext, aggregate);
   }
 
   static attributeRecoveryOrder(orderId: string, cartId?: string, recoveryToken?: string) {
@@ -3690,8 +4812,12 @@ export class ApiEngine {
     ApiEngine.persist();
   }
 
-  static listProducts() {
-    return memoryStore?.products || [];
+  static listProducts(paramsOrBranchId?: any, pincodeParam?: string) {
+    return ApiEngine.getProducts(paramsOrBranchId, pincodeParam);
+  }
+
+  static listCategories(includeInactive: boolean = false) {
+    return ApiEngine.getCategories(includeInactive);
   }
 
 
@@ -3937,18 +5063,6 @@ export class ApiEngine {
   }
 
 
-  static addAuditLog(action: string, user: string = "admin@cakes2home.com", ip: string = "127.0.0.1") {
-    const log = {
-      id: `log_${Date.now()}`,
-      action,
-      user,
-      ip,
-      timestamp: new Date().toISOString(),
-    };
-    memoryStore.audit_logs.unshift(log);
-    ApiEngine.persist();
-    return log;
-  }
 
   static getHealth() {
     return {
@@ -3960,50 +5074,493 @@ export class ApiEngine {
     };
   }
 
-  // ── Products & Catalog ──────────────────────────────
-  static getProducts(branchId?: string, pincode?: string) {
+  // ── Categories & Taxonomy System ──────────────────────────────
+  static getCategories(includeInactive: boolean = false) {
+    const rawCategories = (memoryStore.categories || memoryStore.pim_categories || DEFAULT_PIM_CATEGORIES) as any[];
     const products = memoryStore.products || [];
-    let targetBranchId = branchId;
 
-    if (!targetBranchId && pincode) {
-      const resolved = ApiEngine.resolveSmartBranch({ pincode });
+    const activeList = includeInactive
+      ? rawCategories
+      : rawCategories.filter((c: any) => c.status !== "inactive" && c.is_active !== false && c.visibility !== "hidden");
+
+    return activeList.map((cat: any) => {
+      const catId = (cat.id || "").toLowerCase();
+      const catSlug = (cat.slug || "").toLowerCase();
+      const catName = (cat.name || "").toLowerCase();
+
+      const count = products.filter((p: any) => {
+        if (Array.isArray(p.category_ids) && p.category_ids.some((id: string) => id.toLowerCase() === catId || id.toLowerCase() === catSlug)) {
+          return true;
+        }
+        if (Array.isArray(p.categories) && p.categories.some((c: any) => c.id?.toLowerCase() === catId || c.slug?.toLowerCase() === catSlug || c.name?.toLowerCase() === catName)) {
+          return true;
+        }
+        if ((p.primary_category_id || "").toLowerCase() === catId) return true;
+        if ((p.category_slug || "").toLowerCase() === catSlug) return true;
+        if ((p.category || "").toLowerCase() === catName) return true;
+        const pTitle = (p.title || p.name || "").toLowerCase();
+        if (catSlug.includes("chocolate") && pTitle.includes("chocolate")) return true;
+        if (catSlug.includes("red-velvet") && pTitle.includes("red velvet")) return true;
+        if (catSlug.includes("fruit") && (pTitle.includes("fruit") || pTitle.includes("mango"))) return true;
+        if (catSlug.includes("black-forest") && pTitle.includes("black forest")) return true;
+        if (catSlug.includes("butterscotch") && pTitle.includes("butterscotch")) return true;
+        if (catSlug.includes("cheesecakes") && (pTitle.includes("cheese") || pTitle.includes("red velvet"))) return true;
+        if (catSlug.includes("bestseller") && p.is_bestseller) return true;
+        return false;
+      }).length;
+
+      return {
+        ...cat,
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        is_active: cat.is_active !== false && cat.status !== "inactive",
+        product_count: count,
+      };
+    });
+  }
+
+  static getCategoryById(id: string) {
+    const cats = ApiEngine.getCategories(true);
+    return cats.find((c: any) => c.id === id || c.slug === id) || null;
+  }
+
+  static getCategoryBySlug(slug: string) {
+    const cats = ApiEngine.getCategories(true);
+    return cats.find((c: any) => c.slug === slug || c.id === slug || c.name.toLowerCase() === slug.toLowerCase()) || null;
+  }
+
+  static createCategory(data: any) {
+    const slug = data.slug || data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const id = data.id || `cat_${slug.replace(/-/g, "_")}`;
+    const newCat = {
+      id,
+      name: data.name,
+      slug,
+      description: data.description || "",
+      parent_id: data.parent_id || null,
+      image_url: data.image_url || null,
+      banner_url: data.banner_url || null,
+      display_order: Number(data.display_order) || 99,
+      status: data.status || "active",
+      is_active: data.status !== "inactive" && data.is_active !== false,
+      visibility: data.visibility || "public",
+      seo_title: data.seo_title || `${data.name} - CakeToHome`,
+      seo_description: data.seo_description || `Order delicious ${data.name} online from CakeToHome Bangalore.`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (!Array.isArray(memoryStore.categories)) memoryStore.categories = [];
+    if (!Array.isArray(memoryStore.pim_categories)) memoryStore.pim_categories = [];
+    memoryStore.categories.push(newCat);
+    memoryStore.pim_categories.push(newCat);
+    ApiEngine.persist();
+    return newCat;
+  }
+
+  static updateCategory(id: string, data: any) {
+    const cats = (memoryStore.categories || memoryStore.pim_categories || []) as any[];
+    const cat = cats.find((c: any) => c.id === id || c.slug === id);
+    if (cat) {
+      Object.assign(cat, data, { updated_at: new Date().toISOString() });
+      if (data.status) cat.is_active = data.status !== "inactive";
+      ApiEngine.persist();
+      return cat;
+    }
+    return null;
+  }
+
+  static deleteCategory(id: string) {
+    const cats = (memoryStore.categories || memoryStore.pim_categories || []) as any[];
+    const idx = cats.findIndex((c: any) => c.id === id || c.slug === id);
+    if (idx !== -1) {
+      // Soft-deactivate if products depend on it
+      cats[idx].status = "inactive";
+      cats[idx].is_active = false;
+      ApiEngine.persist();
+      return { success: true, deactivated: true };
+    }
+    return { success: false, error: "Category not found" };
+  }
+
+  static enrichProductWithCategories(p: any) {
+    if (!p) return p;
+    const categories = ApiEngine.getCategories(true);
+    let productCats: any[] = [];
+    if (Array.isArray(p.categories) && p.categories.length > 0) {
+      productCats = p.categories;
+    } else if (Array.isArray(p.category_ids) && p.category_ids.length > 0) {
+      productCats = p.category_ids
+        .map((catId: string) => categories.find((c: any) => c.id === catId || c.slug === catId))
+        .filter(Boolean);
+    } else if (p.primary_category_id || p.category) {
+      const target = p.primary_category_id || p.category;
+      const found = categories.find((c: any) => c.id === target || c.name.toLowerCase() === String(target).toLowerCase() || c.slug === String(target).toLowerCase());
+      if (found) {
+        productCats = [found];
+      } else if (p.category) {
+        const catSlug = p.category_slug || p.category.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        productCats = [{
+          id: p.primary_category_id || `cat_${catSlug.replace(/-/g, "_")}`,
+          name: p.category,
+          slug: catSlug,
+        }];
+      }
+    }
+
+    if (productCats.length === 0) {
+      const pTitle = (p.title || p.name || "").toLowerCase();
+      if (pTitle.includes("black forest")) {
+        const c = categories.find((cat: any) => cat.slug === "black-forest-cakes");
+        productCats.push(c || { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes" });
+      } else if (pTitle.includes("red velvet")) {
+        const c = categories.find((cat: any) => cat.slug === "red-velvet-cakes");
+        productCats.push(c || { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes" });
+      } else if (pTitle.includes("mango") || pTitle.includes("fruit")) {
+        const c = categories.find((cat: any) => cat.slug === "fruit-mousse-cakes");
+        productCats.push(c || { id: "cat_fruit_cakes", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes" });
+      } else if (pTitle.includes("butterscotch") || pTitle.includes("caramel")) {
+        const c = categories.find((cat: any) => cat.slug === "butterscotch-caramel-cakes");
+        productCats.push(c || { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes" });
+      } else if (pTitle.includes("chocolate") || pTitle.includes("truffle") || pTitle.includes("fudge")) {
+        const c = categories.find((cat: any) => cat.slug === "chocolate-cakes");
+        productCats.push(c || { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes" });
+      }
+      if (productCats.length === 0 && categories.length > 0) {
+        productCats = [categories[0]];
+      }
+    }
+
+    const primaryCat = productCats[0] || { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes" };
+    const prodId = p.id || p.product_id;
+    const weightPrices = ApiEngine.getProductWeightPrices(prodId);
+    const enabledWeights = weightPrices.filter((wp: any) => wp.is_enabled);
+    const ratingAggregate = ApiEngine.getProductRatingAggregate(prodId);
+    const hasPublishedReviews = ratingAggregate.total_reviews > 0;
+    const resolvedCatName = p.category || primaryCat.name;
+    const resolvedCatSlug = p.category_slug || (resolvedCatName ? resolvedCatName.toLowerCase().replace(/[^a-z0-9]+/g, "-") : primaryCat.slug);
+
+    return {
+      ...p,
+      thumbnail: p.thumbnail === "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800"
+        ? "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800"
+        : p.thumbnail,
+      primary_category_id: p.primary_category_id || primaryCat.id,
+      category: resolvedCatName,
+      category_slug: resolvedCatSlug,
+      category_ids: productCats.map((c: any) => c.id),
+      categories: productCats.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        description: c.description || "",
+      })),
+      flavour: p.flavour || (p.title?.toLowerCase().includes("red velvet") ? "Red Velvet" : (p.title?.toLowerCase().includes("mango") ? "Mango" : (p.title?.toLowerCase().includes("black forest") ? "Black Forest" : (p.title?.toLowerCase().includes("butterscotch") ? "Butterscotch" : "Chocolate")))),
+      weight: p.weight || (enabledWeights[0]?.weight_name || "1 kg"),
+      weight_prices: weightPrices,
+      weights: enabledWeights.map((wp: any) => wp.weight_name),
+      rating: hasPublishedReviews ? ratingAggregate.average_rating : (p.rating ?? 0),
+      review_count: hasPublishedReviews ? ratingAggregate.total_reviews : (p.review_count ?? 0),
+      rating_distribution: ratingAggregate.rating_distribution,
+    };
+  }
+
+  // ── Products & Catalog ──────────────────────────────
+  static getProducts(paramsOrBranchId?: any, pincodeParam?: string) {
+    const deduplicated = deduplicateStoreProducts(memoryStore.products || []);
+    let products = deduplicated.map((p: any) => ApiEngine.enrichProductWithCategories(p));
+    
+    let targetBranchId: string | undefined;
+    let targetPincode: string | undefined;
+    let categoryFilter: string | undefined;
+    let flavourFilter: string | undefined;
+    let weightFilter: string | undefined;
+    let minPriceFilter: number | undefined;
+    let maxPriceFilter: number | undefined;
+    let qFilter: string | undefined;
+    let sortFilter: string | undefined;
+
+    if (typeof paramsOrBranchId === "object" && paramsOrBranchId !== null) {
+      targetBranchId = paramsOrBranchId.branchId || paramsOrBranchId.branch_id;
+      targetPincode = paramsOrBranchId.pincode;
+      categoryFilter = paramsOrBranchId.category || paramsOrBranchId.category_id;
+      if (Array.isArray(categoryFilter)) categoryFilter = categoryFilter[0];
+      flavourFilter = paramsOrBranchId.flavour;
+      weightFilter = paramsOrBranchId.weight;
+      minPriceFilter = paramsOrBranchId.min_price !== undefined ? Number(paramsOrBranchId.min_price) : undefined;
+      maxPriceFilter = paramsOrBranchId.max_price !== undefined ? Number(paramsOrBranchId.max_price) : undefined;
+      qFilter = paramsOrBranchId.q;
+      sortFilter = paramsOrBranchId.sort;
+    } else {
+      targetBranchId = paramsOrBranchId;
+      targetPincode = pincodeParam;
+    }
+
+    if (!targetBranchId && targetPincode) {
+      const resolved = ApiEngine.resolveSmartBranch({ pincode: targetPincode });
       if (resolved?.branch) targetBranchId = resolved.branch.id;
     }
 
-    if (!targetBranchId) return products;
+    if (targetBranchId) {
+      const branch = ApiEngine.resolveBranchRecord(targetBranchId);
+      if (branch) {
+        const branchOverrides = branch.product_availability || {};
+        products = products
+          .filter((p: any) => {
+            const id = p.id || p.product_id;
+            const override = branchOverrides[id] || { status: "AVAILABLE" };
+            const st = (override.status || "").toUpperCase();
+            return st !== "HIDDEN" && st !== "TEMPORARILY_HIDDEN";
+          })
+          .map((p: any) => {
+            const id = p.id || p.product_id;
+            const override = branchOverrides[id] || { status: "AVAILABLE" };
+            const st = (override.status || "").toUpperCase();
+            const isOos = st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY";
 
-    const branch = ApiEngine.resolveBranchRecord(targetBranchId);
-    if (!branch) return products;
+            return {
+              ...p,
+              branch_status: isOos ? "OUT_OF_STOCK" : "AVAILABLE",
+              is_out_of_stock_at_branch: isOos,
+            };
+          });
+      }
+    }
 
-    const branchOverrides = branch.product_availability || {};
-    return products
-      .filter((p: any) => {
-        const id = p.id || p.product_id;
-        const override = branchOverrides[id] || { status: "AVAILABLE" };
-        const st = (override.status || "").toUpperCase();
-        return st !== "HIDDEN" && st !== "TEMPORARILY_HIDDEN";
-      })
-      .map((p: any) => {
-        const id = p.id || p.product_id;
-        const override = branchOverrides[id] || { status: "AVAILABLE" };
-        const st = (override.status || "").toUpperCase();
-        const isOos = st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY";
+    // Filter by category
+    if (categoryFilter && categoryFilter !== "all" && categoryFilter !== "All Categories") {
+      const catLower = categoryFilter.toLowerCase().trim();
+      products = products.filter((p: any) => {
+        const pCatSlug = (p.category_slug || (p.category ? p.category.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "")).toLowerCase();
+        const pCatName = (p.category || "").toLowerCase();
+        const pPrimId = (p.primary_category_id || "").toLowerCase();
+        const hasMatchingCat = Array.isArray(p.categories) && p.categories.some((c: any) =>
+          c.slug?.toLowerCase() === catLower || c.id?.toLowerCase() === catLower || c.name?.toLowerCase() === catLower
+        );
+        const hasMatchingId = Array.isArray(p.category_ids) && p.category_ids.some((id: string) => id.toLowerCase() === catLower);
 
-        return {
-          ...p,
-          branch_status: isOos ? "OUT_OF_STOCK" : "AVAILABLE",
-          is_out_of_stock_at_branch: isOos,
-        };
+        return (
+          hasMatchingCat ||
+          hasMatchingId ||
+          (pCatSlug && (pCatSlug === catLower || pCatSlug.includes(catLower) || catLower.includes(pCatSlug))) ||
+          (pCatName && (pCatName === catLower || pCatName.includes(catLower) || catLower.includes(pCatName))) ||
+          (pPrimId && pPrimId === catLower)
+        );
       });
+    }
+
+    // Filter by flavour
+    if (flavourFilter && flavourFilter.toLowerCase() !== "all") {
+      const flavLower = flavourFilter.toLowerCase();
+      products = products.filter((p: any) => {
+        const pFlav = (p.flavour || "").toLowerCase();
+        const pTitle = (p.title || p.name || "").toLowerCase();
+        return pFlav.includes(flavLower) || pTitle.includes(flavLower) || flavLower.includes(pFlav);
+      });
+    }
+
+    // Filter by weight
+    if (weightFilter && weightFilter.toLowerCase() !== "all") {
+      const wLower = weightFilter.toLowerCase();
+      products = products.filter((p: any) => {
+        const pWeight = (p.weight || "").toLowerCase();
+        return pWeight.includes(wLower) || wLower.includes(pWeight);
+      });
+    }
+
+    // Filter by price
+    if (minPriceFilter !== undefined && !isNaN(minPriceFilter)) {
+      products = products.filter((p: any) => (p.price || 0) >= minPriceFilter);
+    }
+    if (maxPriceFilter !== undefined && !isNaN(maxPriceFilter)) {
+      products = products.filter((p: any) => (p.price || 0) <= maxPriceFilter);
+    }
+
+    // Filter by search query
+    if (qFilter && qFilter.trim()) {
+      const qLower = qFilter.trim().toLowerCase();
+      products = products.filter((p: any) => {
+        const text = [p.title, p.name, p.description, p.category, p.flavour, p.weight].filter(Boolean).join(" ").toLowerCase();
+        return text.includes(qLower);
+      });
+    }
+
+    // Sort
+    if (sortFilter) {
+      if (sortFilter === "price_asc") {
+        products.sort((a: any, b: any) => (a.price || 0) - (b.price || 0));
+      } else if (sortFilter === "price_desc") {
+        products.sort((a: any, b: any) => (b.price || 0) - (a.price || 0));
+      } else if (sortFilter === "rating") {
+        products.sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0));
+      } else if (sortFilter === "newest") {
+        products.sort((a: any, b: any) => (b.is_new_arrival ? 1 : 0) - (a.is_new_arrival ? 1 : 0));
+      } else if (sortFilter === "bestseller") {
+        products.sort((a: any, b: any) => (b.is_bestseller ? 1 : 0) - (a.is_bestseller ? 1 : 0));
+      }
+    }
+
+    return products;
   }
 
   static getAdminProducts() {
-    return memoryStore.products;
+    const deduplicated = deduplicateStoreProducts(memoryStore.products || []);
+    return deduplicated.map((p: any) => ApiEngine.enrichProductWithCategories(p));
+  }
+
+  /**
+   * Authoritative Multi-Tier Product Search Service
+   * Deduplicates products to canonical entries, evaluates relevance across 7 tiers:
+   * 1. Exact Title Match (1000)
+   * 2. Title Prefix Match (500)
+   * 3. Title Token Match (250)
+   * 4. Category Name/Slug Match (150)
+   * 5. Flavour Match (120)
+   * 6. Tags/Keywords Match (50)
+   * 7. Description Match (30)
+   */
+  static searchProducts(options: {
+    q?: string;
+    category?: string;
+    flavour?: string;
+    weight?: string;
+    min_price?: number;
+    max_price?: number;
+    branchId?: string;
+    pincode?: string;
+    limit?: number;
+    offset?: number;
+    sort?: string;
+    include_test_products?: boolean;
+  }) {
+    const rawList = ApiEngine.getProducts({
+      branchId: options.branchId,
+      pincode: options.pincode,
+      category: options.category,
+      flavour: options.flavour,
+      weight: options.weight,
+      min_price: options.min_price,
+      max_price: options.max_price,
+    });
+
+    let list = rawList;
+
+    // Filter test products unless explicitly requested
+    if (!options.include_test_products) {
+      list = list.filter((p: any) => {
+        const t = (p.title || p.name || "").toLowerCase();
+        return (
+          !t.startsWith("api test") &&
+          !t.startsWith("test cake") &&
+          !t.startsWith("e2e special") &&
+          !t.startsWith("empirical cake") &&
+          !t.startsWith("header verification")
+        );
+      });
+    }
+
+    // Ingest into SearchEngine
+    SearchEngine.initializeFromStore(list);
+
+    // Perform canonical search with dynamic ranking, tags, synonyms & merchandising rules
+    const searchRes = SearchEngine.search({
+      query: options.q,
+      category: options.category,
+      flavour: options.flavour,
+      min_price: options.min_price,
+      max_price: options.max_price,
+      limit: options.limit || 48,
+      offset: options.offset || 0,
+      sort: options.sort,
+      branchId: options.branchId,
+    });
+
+    const products = searchRes.results.map((p) => ApiEngine.enrichProductWithCategories(p));
+
+    return {
+      products,
+      results: products,
+      total: searchRes.total,
+      count: searchRes.total,
+      categories: searchRes.facets.categories,
+      flavours: searchRes.facets.flavours.map((f) => f.name),
+      facets: searchRes.facets,
+      suggestions: searchRes.suggestions,
+      normalized_query: searchRes.normalized_query,
+      offset: options.offset || 0,
+      limit: options.limit || 48,
+    };
+  }
+
+  // ── Search & Merchandising Admin APIs ────────────────────────────────────
+  static getSearchConfig() {
+    return {
+      weights: SearchEngine.getRankingWeights(),
+      tags: SearchEngine.getTags(),
+      synonyms: SearchEngine.getSynonyms(),
+      rules: SearchEngine.getMerchandisingRules(),
+      analytics: SearchEngine.getAnalyticsSummary(),
+    };
+  }
+
+  static updateSearchWeights(weights: any) {
+    SearchEngine.updateRankingWeights(weights);
+    return SearchEngine.getRankingWeights();
+  }
+
+  static getSearchTags() {
+    return SearchEngine.getTags();
+  }
+
+  static saveSearchTag(tag: any) {
+    return SearchEngine.saveTag(tag);
+  }
+
+  static deleteSearchTag(tagId: string) {
+    SearchEngine.deleteTag(tagId);
+    return { success: true };
+  }
+
+  static getSearchSynonyms() {
+    return SearchEngine.getSynonyms();
+  }
+
+  static saveSearchSynonym(synonym: any) {
+    return SearchEngine.saveSynonym(synonym);
+  }
+
+  static deleteSearchSynonym(synId: string) {
+    SearchEngine.deleteSynonym(synId);
+    return { success: true };
+  }
+
+  static getSearchMerchandisingRules() {
+    return SearchEngine.getMerchandisingRules();
+  }
+
+  static saveSearchMerchandisingRule(rule: any) {
+    return SearchEngine.saveMerchandisingRule(rule);
+  }
+
+  static deleteSearchMerchandisingRule(ruleId: string) {
+    SearchEngine.deleteMerchandisingRule(ruleId);
+    return { success: true };
+  }
+
+  static getSearchAnalytics() {
+    return SearchEngine.getAnalyticsSummary();
+  }
+
+  static getCanonicalProducts() {
+    SearchEngine.initializeFromStore(ApiEngine.getProducts());
+    return SearchEngine.getAllCanonicalProducts();
   }
 
   static getProductById(id: string, branchId?: string, pincode?: string) {
-    const product = memoryStore.products.find((p) => p.id === id || p.product_id === id) || null;
-    if (!product) return null;
+    const rawProduct = memoryStore.products.find((p) => p.id === id || p.product_id === id) || null;
+    if (!rawProduct) return null;
+    const product = ApiEngine.enrichProductWithCategories(rawProduct);
 
     let targetBranchId = branchId;
     if (!targetBranchId && pincode) {
@@ -4031,8 +5588,9 @@ export class ApiEngine {
   }
 
   static getProductBySlug(slug: string, branchId?: string, pincode?: string) {
-    const product = memoryStore.products.find((p) => p.handle === slug || p.product_id === slug || p.id === slug) || null;
-    if (!product) return null;
+    const rawProduct = memoryStore.products.find((p) => p.handle === slug || p.product_id === slug || p.id === slug) || null;
+    if (!rawProduct) return null;
+    const product = ApiEngine.enrichProductWithCategories(rawProduct);
 
     let targetBranchId = branchId;
     if (!targetBranchId && pincode) {
@@ -4211,35 +5769,93 @@ export class ApiEngine {
 
   static saveProductWeightPrices(productId: string, weightPrices: any[]) {
     if (!memoryStore.product_weight_prices) memoryStore.product_weight_prices = [];
-    memoryStore.product_weight_prices = memoryStore.product_weight_prices.filter((item: any) => item.product_id !== productId);
-    if (Array.isArray(weightPrices) && weightPrices.length > 0) {
-      const records = weightPrices.map((wp: any) => ({
+
+    const incoming = Array.isArray(weightPrices) ? weightPrices : [];
+    const seenGrams = new Set<number>();
+    const validRecords: any[] = [];
+
+    for (let i = 0; i < incoming.length; i++) {
+      const wp = incoming[i];
+      if (!wp) continue;
+      const parsed = parseAndNormalizeWeight(wp.weight_name || wp.name || `${wp.weight_value || 1} ${wp.weight_unit || "kg"}`);
+      
+      // Deduplicate by normalized physical grams
+      if (seenGrams.has(parsed.normalized_grams)) {
+        continue;
+      }
+      seenGrams.add(parsed.normalized_grams);
+
+      const sellPrice = Math.max(1, Number(wp.selling_price || wp.price) || 599);
+      const mrpVal = Math.max(sellPrice, Number(wp.mrp) || Math.round(sellPrice * 1.25));
+      const costVal = Math.max(1, Number(wp.cost_price) || Math.round(sellPrice * 0.45));
+      const prepTime = Math.max(15, Number(wp.prep_time_minutes) || (parsed.normalized_grams > 1000 ? 120 : 60));
+      const isEnabled = wp.is_enabled !== undefined ? Boolean(wp.is_enabled) : (wp.enabled !== undefined ? Boolean(wp.enabled) : true);
+
+      validRecords.push({
+        id: wp.id && !String(wp.id).startsWith("w_custom_") ? String(wp.id) : `wp_${productId}_${parsed.normalized_grams}`,
+        weight_id: wp.weight_id || wp.id || `wp_${productId}_${parsed.normalized_grams}`,
         product_id: productId,
-        weight_name: wp.weight_name || "1.0 kg",
-        selling_price: Math.max(1, Number(wp.selling_price) || 599),
-        mrp: Math.max(1, Number(wp.mrp) || 799),
-        cost_price: Math.max(1, Number(wp.cost_price) || 350),
-        prep_time_minutes: Number(wp.prep_time_minutes) || 60,
-        is_enabled: wp.is_enabled !== undefined ? Boolean(wp.is_enabled) : true,
-      }));
-      memoryStore.product_weight_prices.push(...records);
+        weight_name: parsed.weight_name,
+        weight_value: parsed.weight_value,
+        weight_unit: parsed.weight_unit,
+        normalized_grams: parsed.normalized_grams,
+        selling_price: sellPrice,
+        mrp: mrpVal,
+        cost_price: costVal,
+        prep_time_minutes: prepTime,
+        is_enabled: isEnabled,
+        sort_order: i + 1,
+        updated_at: new Date().toISOString(),
+      });
+    }
+
+    // Deterministic sorting by physical weight (ascending)
+    const sortedRecords = sortWeightOptions(validRecords);
+    sortedRecords.forEach((r, idx) => {
+      r.sort_order = idx + 1;
+    });
+
+    // Atomic replace in memory store
+    memoryStore.product_weight_prices = memoryStore.product_weight_prices.filter((item: any) => item.product_id !== productId);
+    if (sortedRecords.length > 0) {
+      memoryStore.product_weight_prices.push(...sortedRecords);
 
       // Synchronize product price with lowest enabled selling price
-      const enabledPrices = records.filter(r => r.is_enabled).map(r => r.selling_price);
+      const enabledPrices = sortedRecords.filter((r) => r.is_enabled).map((r) => r.selling_price);
       if (enabledPrices.length > 0) {
         const minPrice = Math.min(...enabledPrices);
-        const prod = memoryStore.products.find(p => p.id === productId || p.product_id === productId);
-        if (prod) prod.price = minPrice;
+        const prod = memoryStore.products.find((p) => p.id === productId || p.product_id === productId) as any;
+        if (prod) {
+          prod.price = minPrice;
+          prod.selling_price = minPrice;
+          if (!prod.variants_json) prod.variants_json = {};
+          prod.variants_json.weights = sortedRecords.filter((r) => r.is_enabled).map((r) => r.weight_name);
+          prod.weight = sortedRecords[0].weight_name;
+        }
       }
     }
-    ApiEngine.addAuditLog(`Saved Weight Prices for Product (${productId})`);
+
+    ApiEngine.addAuditLog(`Saved ${sortedRecords.length} Weight Prices for Product (${productId})`);
     ApiEngine.persist();
-    return memoryStore.product_weight_prices.filter((item: any) => item.product_id === productId);
+    return sortedRecords;
   }
 
   static getProductWeightPrices(productId: string) {
-    if (!memoryStore.product_weight_prices) return [];
-    return memoryStore.product_weight_prices.filter((item: any) => item.product_id === productId);
+    if (!memoryStore.product_weight_prices) memoryStore.product_weight_prices = [];
+    let records = memoryStore.product_weight_prices.filter((item: any) => item.product_id === productId);
+
+    if (records.length === 0) {
+      const prod = memoryStore.products?.find((p) => p.id === productId || p.product_id === productId);
+      if (prod) {
+        const defaultMatrix = createDefaultWeightMatrix(productId, prod.price || 649);
+        memoryStore.product_weight_prices.push(...defaultMatrix);
+        ApiEngine.persist();
+        return defaultMatrix;
+      }
+      return [];
+    }
+
+    return sortWeightOptions(records);
   }
 
   static deleteAdminProduct(id: string) {
@@ -5053,9 +6669,11 @@ export class ApiEngine {
       ).length;
       p.current_active_orders = liveActiveCount;
 
-      // Ensure active partners are ONLINE unless explicitly on break or inactive
-      if (p.status === "active" && p.availability_status !== "ON_BREAK") {
+      // Ensure partner availability is set if missing, or updated to BUSY if at capacity
+      if (!p.availability_status) {
         p.availability_status = liveActiveCount >= (p.maximum_concurrent_orders || 5) ? "BUSY" : "ONLINE";
+      } else if (p.availability_status === "ONLINE" && liveActiveCount >= (p.maximum_concurrent_orders || 5)) {
+        p.availability_status = "BUSY";
       }
     });
   }
@@ -5503,6 +7121,54 @@ export class ApiEngine {
     ApiEngine.persist();
 
     return newPartner;
+  }
+
+  static saveDeliveryPartner(partnerData: any) {
+    ApiEngine.ensureDeliveryPartnersStore();
+    if (!memoryStore.delivery_partners) memoryStore.delivery_partners = [];
+    const cleanPhone = (partnerData.phone || "").replace(/\D/g, "").slice(-10);
+    const existingIndex = memoryStore.delivery_partners.findIndex((p: any) =>
+      p.id === partnerData.id || (cleanPhone && p.phone && p.phone.replace(/\D/g, "").slice(-10) === cleanPhone)
+    );
+
+    const fName = partnerData.first_name || partnerData.full_name?.split(" ")[0] || "Delivery";
+    const lName = partnerData.last_name || partnerData.full_name?.split(" ").slice(1).join(" ") || "Partner";
+    const fullName = partnerData.full_name || `${fName} ${lName}`.trim();
+    const partnerNumber = partnerData.partner_number || `CTH-DP-${String(Date.now()).slice(-6)}`;
+    const primaryBranchId = partnerData.primary_branch_id || partnerData.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT";
+    const primaryBranchName = partnerData.primary_branch_name || partnerData.branch_name || "Indiranagar Flagship Kitchen";
+
+    const partner = {
+      id: partnerData.id || `dlp_${Date.now()}`,
+      partner_number: partnerNumber,
+      full_name: fullName,
+      first_name: fName,
+      last_name: lName,
+      name: fullName,
+      phone: partnerData.phone || "+91 98123 45678",
+      email: partnerData.email || `${fName.toLowerCase()}.${lName.toLowerCase()}@caketohome.com`,
+      status: partnerData.status || "active",
+      is_active: partnerData.is_active !== false,
+      availability_status: partnerData.availability_status || "ONLINE",
+      primary_branch_id: primaryBranchId,
+      primary_branch_name: primaryBranchName,
+      associated_branches: partnerData.associated_branches || [{ branch_id: primaryBranchId, branch_name: primaryBranchName, is_primary: true, active: true }],
+      current_active_orders: Number(partnerData.current_active_orders || 0),
+      maximum_concurrent_orders: Number(partnerData.maximum_concurrent_orders || 4),
+      rating: partnerData.rating || 5.0,
+      total_deliveries: partnerData.total_deliveries || 0,
+      successful_deliveries: partnerData.successful_deliveries || 0,
+      created_at: partnerData.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (existingIndex >= 0) {
+      memoryStore.delivery_partners[existingIndex] = { ...memoryStore.delivery_partners[existingIndex], ...partner };
+    } else {
+      memoryStore.delivery_partners.push(partner);
+    }
+    ApiEngine.persist();
+    return partner;
   }
 
   static updateAdminDeliveryPartner(id: string, data: any) {
@@ -6031,20 +7697,25 @@ export class ApiEngine {
     }
 
     const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-      "pending": ["shop_accepted", "shop_declined", "cancelled"],
+      "pending": ["shop_accepted", "shop_declined", "cancelled", "pickup_claimed"],
+      "confirmed": ["shop_accepted", "pickup_claimed", "shop_preparing", "ready_for_pickup", "packed", "available", "cancelled"],
+      "placed": ["shop_accepted", "pickup_claimed", "shop_preparing", "ready_for_pickup", "packed", "available", "cancelled"],
+      "new": ["shop_accepted", "pickup_claimed", "shop_preparing", "ready_for_pickup", "packed", "available", "cancelled"],
       "shop_declined": ["shop_accepted", "cancelled"],
-      "shop_accepted": ["pickup_claimed", "shop_preparing", "ready_for_pickup", "available", "REJECTED", "cancelled"],
-      "available": ["pickup_claimed", "shop_accepted", "shop_preparing", "ready_for_pickup", "REJECTED", "cancelled"],
-      "pickup_claimed": ["shop_preparing", "going_to_store", "arrived_at_store", "ready_for_pickup", "in_transit", "out_for_delivery", "delivery_exception", "available", "cancelled"],
-      "shop_preparing": ["ready_for_pickup", "pickup_claimed", "going_to_store", "arrived_at_store", "in_transit", "out_for_delivery", "delivery_exception", "cancelled"],
-      "going_to_store": ["arrived_at_store", "ready_for_pickup", "in_transit", "out_for_delivery", "delivery_exception"],
-      "arrived_at_store": ["ready_for_pickup", "in_transit", "out_for_delivery", "delivery_exception"],
+      "shop_accepted": ["pickup_claimed", "shop_preparing", "ready_for_pickup", "packed", "available", "REJECTED", "cancelled"],
+      "available": ["pickup_claimed", "shop_accepted", "shop_preparing", "ready_for_pickup", "packed", "REJECTED", "cancelled"],
+      "pickup_claimed": ["shop_preparing", "going_to_store", "arrived_at_store", "ready_for_pickup", "packed", "in_transit", "out_for_delivery", "delivery_exception", "available", "cancelled"],
+      "shop_preparing": ["ready_for_pickup", "packed", "pickup_claimed", "going_to_store", "arrived_at_store", "in_transit", "out_for_delivery", "delivery_exception", "cancelled"],
+      "going_to_store": ["arrived_at_store", "ready_for_pickup", "packed", "in_transit", "out_for_delivery", "delivery_exception"],
+      "arrived_at_store": ["ready_for_pickup", "packed", "in_transit", "out_for_delivery", "delivery_exception"],
       "ready_for_pickup": ["in_transit", "out_for_delivery", "pickup_claimed", "delivery_exception", "cancelled"],
+      "packed": ["in_transit", "out_for_delivery", "ready_for_pickup", "pickup_claimed", "delivery_exception", "cancelled"],
+      "ready": ["in_transit", "out_for_delivery", "ready_for_pickup", "pickup_claimed", "delivery_exception", "cancelled"],
       "in_transit": ["near_customer", "arrived", "delivered", "completed", "delivery_exception"],
       "out_for_delivery": ["in_transit", "near_customer", "arrived", "delivered", "completed", "delivery_exception"],
       "near_customer": ["arrived", "delivered", "completed", "delivery_exception"],
       "arrived": ["delivered", "completed", "delivery_exception"],
-      "delivery_exception": ["in_transit", "ready_for_pickup", "delivered", "returned", "cancelled"],
+      "delivery_exception": ["in_transit", "ready_for_pickup", "packed", "delivered", "returned", "cancelled"],
       "delivered": [],
       "completed": [],
       "cancelled": [],
@@ -6094,6 +7765,16 @@ export class ApiEngine {
     if (partner.branch_id) {
       branchSet.add(partner.branch_id.trim());
     }
+    if (partner.id === "dlp_101" || partner.id === "dlp_01" || partner.primary_branch_name?.toLowerCase().includes("indiranagar")) {
+      branchSet.add("res_01KXYMAHGFPRY1G9TZKEVGAGAT");
+      branchSet.add("br_indiranagar");
+      branchSet.add("HUB-BLR-01");
+    }
+    if (partner.id === "dlp_102" || partner.primary_branch_name?.toLowerCase().includes("koramangala")) {
+      branchSet.add("res_02KXYMAHGFPRY1G9TZKEVGAGAT");
+      branchSet.add("br_koramangala");
+      branchSet.add("HUB-BLR-02");
+    }
     if (branchSet.has("res_01KXYMAHGFPRY1G9TZKEVGAGAT") || branchSet.has("br_indiranagar") || branchSet.has("HUB-BLR-01")) {
       branchSet.add("res_01KXYMAHGFPRY1G9TZKEVGAGAT");
       branchSet.add("br_indiranagar");
@@ -6104,25 +7785,43 @@ export class ApiEngine {
       branchSet.add("br_koramangala");
       branchSet.add("HUB-BLR-02");
     }
+    if (branchSet.has("res_03KXYMAHGFPRY1G9TZKEVGAGAT") || branchSet.has("br_whitefield") || branchSet.has("HUB-BLR-03")) {
+      branchSet.add("res_03KXYMAHGFPRY1G9TZKEVGAGAT");
+      branchSet.add("br_whitefield");
+      branchSet.add("HUB-BLR-03");
+    }
     return Array.from(branchSet);
   }
 
   static canPartnerAccessOrder(partner: any, order: any): boolean {
     if (!partner || !order) return false;
 
-    // 1. Canonical Branch Resolution (FAIL CLOSED: Order without valid branch is NEVER visible)
+    // 1. Payment Gate: Exclude unpaid/failed orders (riders should only see confirmed, paid orders)
+    const isUnpaid =
+      (order.payment_status === "pending" || order.payment_status === "payment_pending" || order.payment_status === "failed") &&
+      (order.status === "payment_pending" || order.status === "pending_payment" || !order.status);
+    if (isUnpaid) {
+      return false;
+    }
+
+    // 2. Lifecycle Check: Exclude cancelled or failed orders
+    if (order.status === "cancelled" || order.status === "failed" || order.delivery_status === "cancelled") {
+      return false;
+    }
+
+    // 3. Canonical Branch Resolution (FAIL CLOSED: Order without valid branch is NEVER visible)
     const orderBranchId = ApiEngine.resolveOrderBranchId(order);
     if (!orderBranchId) {
       return false;
     }
 
-    // 2. Multi-Branch Assignment Containment
+    // 4. Multi-Branch Assignment Containment
     const authorizedBranches = ApiEngine.getDeliveryPartnerAuthorizedBranches(partner);
     if (authorizedBranches.length === 0 || !authorizedBranches.includes(orderBranchId)) {
       return false;
     }
 
-    // 3. Partner Ownership Check: Unassigned (for available pool) OR assigned to this partner
+    // 5. Partner Ownership Check: Unassigned (for available pool) OR assigned to this partner
     if (order.delivery_partner_id && order.delivery_partner_id !== partner.id) {
       return false;
     }
@@ -6173,6 +7872,8 @@ export class ApiEngine {
       return { success: false, statusCode: 404, error: `Order ${orderId} not found.` };
     }
 
+    const orderBranchId = ApiEngine.resolveOrderBranchId(order);
+
     let partner = (memoryStore.delivery_partners || []).find((p: any) => p.id === partnerId || p.partner_number === partnerId) ||
                   (memoryStore.partners || []).find((p: any) => p.id === partnerId || p.partner_number === partnerId);
 
@@ -6183,16 +7884,26 @@ export class ApiEngine {
         full_name: "Delivery Rider",
         partner_number: `DLP-${partnerId.slice(-4)}`,
         phone: "+91 98123 45678",
-        primary_branch_id: order.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-        associated_branches: [order.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT"],
+        primary_branch_id: orderBranchId || order.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+        associated_branches: [orderBranchId || order.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT"],
+        availability_status: "ONLINE",
         status: "active",
       };
       if (!Array.isArray(memoryStore.delivery_partners)) memoryStore.delivery_partners = [];
       memoryStore.delivery_partners.push(partner);
     }
 
+    // Rider Online Status Enforcement Gate
+    const onlineStatus = (partner.availability_status || "OFFLINE").toUpperCase();
+    if (onlineStatus !== "ONLINE" && onlineStatus !== "AVAILABLE") {
+      return {
+        success: false,
+        statusCode: 403,
+        error: `Forbidden: Partner ${partner.full_name || partner.name} is currently ${onlineStatus}. Rider must be ONLINE to claim delivery jobs.`,
+      };
+    }
+
     // Canonical Branch Security Authorization Check (FAIL CLOSED)
-    const orderBranchId = ApiEngine.resolveOrderBranchId(order);
     if (!orderBranchId) {
       return {
         success: false,
@@ -6243,7 +7954,7 @@ export class ApiEngine {
     }
 
     // Target Status Determination: Maintain packed/ready if already prepared
-    const targetDeliveryStatus = (order.delivery_status === "ready_for_pickup" || order.status === "packed") ? "ready_for_pickup" : "pickup_claimed";
+    const targetDeliveryStatus = (order.delivery_status === "ready_for_pickup" || order.delivery_status === "packed" || order.status === "packed") ? "ready_for_pickup" : "pickup_claimed";
 
     // State Transition Validation
     const transitionCheck = ApiEngine.validateDeliveryStateTransition(order.delivery_status || order.status || "shop_accepted", targetDeliveryStatus);
@@ -6271,236 +7982,21 @@ export class ApiEngine {
   }
 
   static verifyPickupOtpBackend(orderId: string, otpInput: string, partnerId: string) {
-    ApiEngine.ensureOrdersStore();
-    ApiEngine.ensureDeliveryPartnersStore();
-
-    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
-    if (!order) return { success: false, statusCode: 404, error: `Order ${orderId} not found.` };
-
-    let partner = (memoryStore.delivery_partners || []).find((p: any) => p.id === partnerId || p.partner_number === partnerId || p.phone === partnerId) ||
-                  (memoryStore.partners || []).find((p: any) => p.id === partnerId || p.partner_number === partnerId || p.phone === partnerId);
-    if (!partner) {
-      partner = { id: partnerId, name: "Delivery Rider", full_name: "Delivery Rider", partner_number: `DLP-${String(partnerId).slice(-4)}` };
-    }
-
-    // 1. Terminal State Guard
-    if (order.status === "cancelled" || order.delivery_status === "cancelled") {
-      return { success: false, statusCode: 400, error: "Cannot verify pickup for a cancelled order." };
-    }
-    if (order.status === "delivered" || order.delivery_status === "delivered") {
-      return { success: false, statusCode: 400, error: "Order has already been delivered." };
-    }
-
-    // 2. Branch Authorization Security Check (FAIL CLOSED)
-    const orderBranchId = ApiEngine.resolveOrderBranchId(order);
-    if (orderBranchId) {
-      const authorizedBranches = ApiEngine.getDeliveryPartnerAuthorizedBranches(partner);
-      if (authorizedBranches.length > 0 && !authorizedBranches.includes(orderBranchId)) {
-        return {
-          success: false,
-          statusCode: 403,
-          error: `Forbidden: Delivery partner ${partner.full_name || partner.name} is not assigned to order branch (${orderBranchId}). Access denied.`,
-        };
-      }
-    }
-
-    // 3. Partner Assignment Ownership Guard
-    if (order.delivery_partner_id && order.delivery_partner_id !== partner.id) {
-      return {
-        success: false,
-        statusCode: 403,
-        error: `Forbidden: Order ${order.order_number || order.id} is assigned to another delivery partner. Access denied.`,
-      };
-    }
-
-    // 4. Idempotency & Replay Protection
-    // If the same partner already verified this pickup and order is out for delivery/in transit, return 200 OK cleanly
-    if (order.pickup_verified_at && (order.status === "out_for_delivery" || order.delivery_status === "in_transit")) {
-      if (!order.delivery_partner_id || order.delivery_partner_id === partner.id) {
-        return {
-          success: true,
-          statusCode: 200,
-          already_verified: true,
-          message: "Pickup OTP was already verified. Order is currently in transit.",
-          order,
-        };
-      }
-    }
-
-    // If OTP was consumed by someone else or order is in an unexpected state
-    if (order.pickup_verified_at) {
-      return { success: false, statusCode: 400, error: "Pickup OTP has already been verified and consumed." };
-    }
-
-    // 5. OTP Validation
-    const rawExpectedOtp = order.pickup_otp || order.delivery?.pickup_otp;
-    const expectedOtp = typeof rawExpectedOtp === "string" && rawExpectedOtp.trim() ? rawExpectedOtp.trim() : "1294";
-    const cleanedInput = typeof otpInput === "string" ? otpInput.trim() : String(otpInput || "").trim();
-
-    if (!cleanedInput || cleanedInput !== expectedOtp) {
-      ApiEngine.addAuditLog(`Failed Kitchen Pickup OTP attempt for Order ${order.order_number || order.id} by Partner ${partner.full_name || partner.name}`);
-      return { success: false, statusCode: 400, error: "Invalid Kitchen Pickup OTP code. Verification failed." };
-    }
-
-    // 6. State Transition Validation
-    const transitionCheck = ApiEngine.validateDeliveryStateTransition(order.delivery_status || "ready_for_pickup", "in_transit");
-    if (!transitionCheck.valid) {
-      return { success: false, statusCode: 400, error: transitionCheck.reason };
-    }
-
-    // 7. Atomic Execution
-    const now = new Date().toISOString();
-    order.pickup_verified_at = now;
-    order.pickup_verified_by = partner.id;
-    order.dispatched_at = now;
-    order.delivery_status = "in_transit";
-    order.status = "out_for_delivery";
-    order.delivery_partner_id = partner.id;
-    order.driver_name = partner.full_name || partner.name;
-    order.driver_phone = partner.phone || order.driver_phone || "+91 98123 45678";
-    order.updated_at = now;
-
-    if (!order.delivery || typeof order.delivery !== "object") {
-      order.delivery = {
-        partner_id: partner.id,
-        partner_number: partner.partner_number || `DLP-${partner.id.slice(-4)}`,
-        partner_name: partner.full_name || partner.name,
-        partner_phone: partner.phone || "+91 98123 45678",
-        pickup_otp: expectedOtp,
-        delivery_otp: order.delivery_otp || "4819",
-      };
-    }
-    order.delivery.status = "In Transit";
-    order.delivery.delivery_status = "in_transit";
-    order.delivery.pickup_verified_at = now;
-    order.delivery.partner_id = partner.id;
-    order.delivery.partner_name = partner.full_name || partner.name;
-    order.delivery.partner_phone = partner.phone || order.driver_phone || "+91 98123 45678";
-    order.delivery.live_location = "In Transit to Customer";
-
-    // Synchronize delivery record in memoryStore.deliveries if present
-    if (Array.isArray(memoryStore.deliveries)) {
-      const delItem = memoryStore.deliveries.find((d: any) => d.id === order.id || d.order_number === order.id || d.order_id === order.id);
-      if (delItem) {
-        delItem.status = "in_transit";
-        delItem.delivery_status = "in_transit";
-        delItem.pickup_verified_at = now;
-        delItem.delivery_partner_id = partner.id;
-      }
-    }
-
-    // Ensure timeline entry
-    if (!Array.isArray(order.timeline)) order.timeline = [];
-    order.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: "Out for Delivery — Dispatched from Kitchen Hub",
-      time: now,
-      author: partner.full_name || partner.name || "Delivery Partner",
-      notes: `Pickup OTP verified. Rider ${partner.full_name || partner.name} is en route to delivery destination.`,
-    });
-
-    // 8. Audit Logging & Event Triggers
-    ApiEngine.addAuditLog(`Kitchen Pickup OTP (${cleanedInput}) verified by Partner ${partner.full_name || partner.name} for Order ${order.order_number || order.id}. Order is now OUT_FOR_DELIVERY.`);
-    ApiEngine.fireWebhookEvent("order.picked_up", { order_id: order.id, order_number: order.order_number, partner_id: partner.id, verified_at: now });
-    ApiEngine.fireWebhookEvent("delivery.pickup_confirmed", { order_id: order.id, partner_id: partner.id, verified_at: now });
-    ApiEngine.fireWebhookEvent("delivery.out_for_delivery", { order_id: order.id, partner_id: partner.id, dispatched_at: now });
-    ApiEngine.fireWebhookEvent("order.out_for_delivery", { order_id: order.id, status: "out_for_delivery", dispatched_at: now });
-    ApiEngine.persist();
-
-    return { success: true, statusCode: 200, order };
+    return OrderLifecycleService.verifyPickupAndStartDelivery(
+      ApiEngine,
+      orderId,
+      partnerId,
+      otpInput
+    );
   }
 
   static verifyCustomerOtpBackend(orderId: string, otpInput: string, partnerId: string) {
-    ApiEngine.ensureOrdersStore();
-    ApiEngine.ensureDeliveryPartnersStore();
-
-    const order = (memoryStore.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
-    if (!order) return { success: false, statusCode: 404, error: `Order ${orderId} not found.` };
-
-    let partner = (memoryStore.delivery_partners || []).find((p: any) => p.id === partnerId || p.partner_number === partnerId || p.phone === partnerId) ||
-                  (memoryStore.partners || []).find((p: any) => p.id === partnerId || p.partner_number === partnerId || p.phone === partnerId);
-    if (!partner) partner = { id: partnerId, name: "Delivery Rider", full_name: "Delivery Rider" };
-
-    // Terminal check & Idempotency: If already delivered by this rider, return 200 OK cleanly
-    if (order.delivery_otp_verified_at || order.delivered_at || order.status === "delivered" || order.delivery_status === "delivered") {
-      if (!order.delivery_partner_id || order.delivery_partner_id === partner.id) {
-        return {
-          success: true,
-          statusCode: 200,
-          already_verified: true,
-          message: "Customer OTP was already verified. Order is marked delivered.",
-          order,
-        };
-      }
-      return { success: false, statusCode: 400, error: "Customer OTP has already been verified and order marked delivered." };
-    }
-
-    // Partner Assignment Ownership Guard
-    if (order.delivery_partner_id && order.delivery_partner_id !== partner.id) {
-      return {
-        success: false,
-        statusCode: 403,
-        error: `Forbidden: Order ${order.order_number || order.id} is assigned to another delivery partner. Access denied.`,
-      };
-    }
-
-    const rawExpectedOtp = order.delivery_otp || order.delivery?.delivery_otp;
-    const expectedOtp = typeof rawExpectedOtp === "string" && rawExpectedOtp.trim() ? rawExpectedOtp.trim() : "4819";
-    const cleanedInput = typeof otpInput === "string" ? otpInput.trim() : String(otpInput || "").trim();
-
-    if (!cleanedInput || cleanedInput !== expectedOtp) {
-      ApiEngine.addAuditLog(`Failed Customer Delivery OTP attempt for Order ${order.order_number || order.id} by Partner ${partner.full_name || partner.name}`);
-      return { success: false, statusCode: 400, error: "Invalid Customer Delivery OTP code. Verification failed." };
-    }
-
-    // State Transition Validation
-    const transitionCheck = ApiEngine.validateDeliveryStateTransition(order.delivery_status || "in_transit", "delivered");
-    if (!transitionCheck.valid) {
-      return { success: false, statusCode: 400, error: transitionCheck.reason };
-    }
-
-    const now = new Date().toISOString();
-    order.delivery_otp_verified_at = now;
-    order.delivered_at = now;
-    order.delivery_status = "delivered";
-    order.status = "delivered";
-    order.updated_at = now;
-    if (order.delivery) {
-      order.delivery.status = "Delivered";
-      order.delivery.delivery_status = "delivered";
-      order.delivery.delivered_at = now;
-    }
-
-    // Synchronize memoryStore.deliveries
-    if (Array.isArray(memoryStore.deliveries)) {
-      const delItem = memoryStore.deliveries.find((d: any) => d.id === order.id || d.order_number === order.id || d.order_id === order.id);
-      if (delItem) {
-        delItem.status = "delivered";
-        delItem.delivery_status = "delivered";
-        delItem.delivered_at = now;
-      }
-    }
-
-    // Decrement partner active capacity & increment completed
-    partner.current_active_orders = Math.max(0, (partner.current_active_orders || 1) - 1);
-    partner.successful_deliveries = (partner.successful_deliveries || 0) + 1;
-    partner.total_deliveries = (partner.total_deliveries || 0) + 1;
-
-    // Timeline entry
-    if (!Array.isArray(order.timeline)) order.timeline = [];
-    order.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: "Order Delivered Successfully",
-      time: now,
-      author: partner.full_name || partner.name || "Delivery Partner",
-      notes: "Customer Delivery OTP verified. Package handed over to recipient.",
-    });
-
-    ApiEngine.addAuditLog(`Customer Delivery OTP (${cleanedInput}) verified by Partner ${partner.full_name || partner.name}. Order ${order.order_number || order.id} marked DELIVERED.`);
-    ApiEngine.fireWebhookEvent("order.delivered", { order_id: order.id, partner_id: partner.id, delivered_at: now });
-    ApiEngine.persist();
-
-    return { success: true, statusCode: 200, order };
+    return OrderLifecycleService.verifyCustomerDeliveryAndComplete(
+      ApiEngine,
+      orderId,
+      partnerId,
+      otpInput
+    );
   }
 
   static reportDeliveryExceptionBackend(orderId: string, partnerId: string, type: string, description: string) {
@@ -6552,6 +8048,8 @@ export class ApiEngine {
     const partner = memoryStore.delivery_partners.find((p: any) => p.id === partnerId || p.partner_number === partnerId);
     if (!partner) return { success: false, statusCode: 404, error: `Delivery Partner ${partnerId} not found.` };
 
+    const now = new Date().toISOString();
+    const oldStatus = partner.availability_status;
     partner.availability_status = status;
     if (status === "PAUSED") {
       const mins = pauseMins || 30;
@@ -6559,12 +8057,79 @@ export class ApiEngine {
     } else {
       partner.paused_until = null;
     }
-    partner.last_online_at = new Date().toISOString();
+    if (status === "ONLINE") {
+      partner.last_online_at = now;
+      partner.went_online_at = now;
+    } else {
+      partner.went_offline_at = now;
+    }
 
-    ApiEngine.addAuditLog(`Partner ${partner.full_name} availability updated to ${status}`);
+    // Synchronize rider_presence record
+    if (!Array.isArray(memoryStore.rider_presence)) {
+      memoryStore.rider_presence = [];
+    }
+    let presence = memoryStore.rider_presence.find((r: any) => r.partner_id === partner.id);
+    if (!presence) {
+      presence = {
+        id: `rpres_${partner.id}`,
+        partner_id: partner.id,
+        online_status: status === "PAUSED" ? "ON_BREAK" : status,
+        last_seen_at: now,
+        current_order_id: null,
+        branch_id: partner.primary_branch_id || partner.branch_id || null,
+        city_id: partner.city_id || "blr",
+        went_online_at: status === "ONLINE" ? now : null,
+        went_offline_at: status !== "ONLINE" ? now : null,
+      };
+      memoryStore.rider_presence.push(presence);
+    } else {
+      presence.online_status = status === "PAUSED" ? "ON_BREAK" : status;
+      presence.last_seen_at = now;
+      if (status === "ONLINE") {
+        presence.went_online_at = now;
+      } else {
+        presence.went_offline_at = now;
+      }
+    }
+
+    // Emit transactional outbox webhook event
+    try {
+      if (status === "ONLINE") {
+        WebhookEngine.emitEvent(
+          "rider.online",
+          {
+            partner_id: partner.id,
+            partner_number: partner.partner_number,
+            branch_id: partner.primary_branch_id || partner.branch_id || null,
+            timestamp: now,
+          },
+          { source: "DELIVERY_PARTNER_PRESENCE", action: "ONLINE" },
+          { name: partner.full_name, phone: partner.phone },
+          { type: "staff", id: partner.id }
+        );
+      } else {
+        WebhookEngine.emitEvent(
+          "rider.offline",
+          {
+            partner_id: partner.id,
+            partner_number: partner.partner_number,
+            status,
+            active_orders_count: partner.current_active_orders || 0,
+            timestamp: now,
+          },
+          { source: "DELIVERY_PARTNER_PRESENCE", action: status },
+          { name: partner.full_name, phone: partner.phone },
+          { type: "staff", id: partner.id }
+        );
+      }
+    } catch (e) {
+      console.warn("[Rider Presence Event Non-Blocking Error]:", e);
+    }
+
+    ApiEngine.addAuditLog(`Partner ${partner.full_name || partner.name} availability updated from ${oldStatus} to ${status}`);
     ApiEngine.persist();
 
-    return { success: true, statusCode: 200, partner };
+    return { success: true, statusCode: 200, partner, presence };
   }
 
   static rejectDeliveryJob(orderId: string, partnerId: string, reason?: string) {
@@ -7542,6 +9107,8 @@ export class ApiEngine {
       delivery_history: deliveryHistory,
       products_purchased: productsPurchased,
       favorite_categories: favoriteCategories,
+      favorite_products: ApiEngine.getCustomerFavorites(customer.customer_uid),
+      favorites_count: (ApiEngine.getCustomerFavorites(customer.customer_uid)).length,
       carts: [],
       abandoned_carts: customerAbandoned,
       recovery_attempts: (memoryStore.cart_recovery_attempts || []).filter(
@@ -7568,11 +9135,15 @@ export class ApiEngine {
       favourite_flavours: intelligence.favourite_flavours,
       favourite_cakes: intelligence.favourite_cakes,
       average_order_size_items: intelligence.average_order_size_items,
-      top_occasions: intelligence.top_occasions,
       data_lineage: lineage,
       reminders: customerReminders,
       assigned_telecaller_id: customer.assigned_telecaller_id,
       assigned_telecaller_name: customer.assigned_telecaller_name,
+      reviews_written: ApiEngine.getCustomerReviews(customer.customer_uid),
+      reviews_count: ApiEngine.getCustomerReviews(customer.customer_uid).length,
+      average_rating_given: ApiEngine.getCustomerReviews(customer.customer_uid).length > 0
+        ? Number((ApiEngine.getCustomerReviews(customer.customer_uid).reduce((sum, r) => sum + r.rating, 0) / ApiEngine.getCustomerReviews(customer.customer_uid).length).toFixed(1))
+        : 0,
     };
 
     return fullProfile;
@@ -13036,32 +14607,7 @@ export class ApiEngine {
       };
     }
 
-    // 2. Customer check (Storefront customers take precedence for standard customer numbers)
-    ApiEngine.ensureCustomersStore();
-    const customers: CustomerRecord[] = memoryStore.customers || [];
-    const customer = customers.find(
-      (c) =>
-        (c.normalized_phone && c.normalized_phone === cleanDigits) ||
-        (c.phone && normalizePhone(c.phone) === cleanDigits) ||
-        (c.customer_uid && c.customer_uid === `cth_cus_${cleanDigits}`)
-    );
-
-    if (customer && !customer.merged_into_uid) {
-      return {
-        exists: true,
-        role: "CUSTOMER",
-        user: {
-          id: customer.id,
-          customer_uid: customer.customer_uid,
-          name: customer.name,
-          phone: customer.phone,
-          email: customer.email,
-          role: "CUSTOMER",
-        },
-      };
-    }
-
-    // 3. Authoritative StaffAccessControl lookup (Covers explicit staff, branch managers, delivery partners)
+    // 2. Authoritative StaffAccessControl lookup (Covers explicit staff, branch managers, delivery partners)
     const staffMember = StaffAccessControl.getStaffMemberByPhone(cleanDigits);
     if (staffMember) {
       if (staffMember.role === "SUPER_ADMIN") {
@@ -13093,6 +14639,31 @@ export class ApiEngine {
         role: "STAFF",
         branch_id: staffMember.branch_id || undefined,
         user: staffMember,
+      };
+    }
+
+    // 3. Customer check (Storefront customers)
+    ApiEngine.ensureCustomersStore();
+    const customers: CustomerRecord[] = memoryStore.customers || [];
+    const customer = customers.find(
+      (c) =>
+        (c.normalized_phone && c.normalized_phone === cleanDigits) ||
+        (c.phone && normalizePhone(c.phone) === cleanDigits) ||
+        (c.customer_uid && c.customer_uid === `cth_cus_${cleanDigits}`)
+    );
+
+    if (customer && !customer.merged_into_uid) {
+      return {
+        exists: true,
+        role: "CUSTOMER",
+        user: {
+          id: customer.id,
+          customer_uid: customer.customer_uid,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+          role: "CUSTOMER",
+        },
       };
     }
 
@@ -13490,186 +15061,6 @@ export class ApiEngine {
     return ApiEngine.verifyAuthOtp(phone, code, extra);
   }
 
-  static resolveUserAccount(query: { userId?: string; phone?: string; role?: string; customerUid?: string }) {
-    ApiEngine.ensureCustomersStore();
-    const cleanPhone = query.phone ? normalizePhone(query.phone) : "";
-
-    // 1. Authoritative StaffAccessControl lookup (Covers all staff, branch managers, delivery partners)
-    const staffMember = cleanPhone
-      ? StaffAccessControl.getStaffMemberByPhone(cleanPhone)
-      : (query.userId ? StaffAccessControl.getStaffMember(query.userId) : null);
-
-    if (staffMember && query.role !== "CUSTOMER") {
-      const roleMatches = !query.role || query.role === staffMember.role ||
-        (query.role === "STAFF" && staffMember.role === "STAFF") ||
-        (query.role === "BRANCH_MANAGER" && staffMember.role === "BRANCH_MANAGER") ||
-        (query.role === "DELIVERY_PARTNER" && staffMember.role === "DELIVERY_PARTNER") ||
-        (query.role === "SUPER_ADMIN" && staffMember.role === "SUPER_ADMIN");
-
-      if (roleMatches) {
-        return {
-          id: staffMember.id,
-          user_id: staffMember.user_id,
-          name: staffMember.name,
-          first_name: staffMember.name.split(" ")[0],
-          last_name: staffMember.name.split(" ").slice(1).join(" ") || "",
-          email: staffMember.email,
-          phone: staffMember.phone,
-          role: staffMember.role,
-          profile_ids: staffMember.profile_ids,
-          profile_names: staffMember.profile_names,
-          effective_permissions: staffMember.effective_permissions,
-          branch_id: staffMember.branch_id || (staffMember.role === "BRANCH_MANAGER" ? "br_indiranagar" : staffMember.role === "DELIVERY_PARTNER" ? "res_01KXYMAHGFPRY1G9TZKEVGAGAT" : undefined),
-          branch_name: staffMember.branch_name,
-          partner_id: staffMember.delivery_partner_id || (staffMember.role === "DELIVERY_PARTNER" ? staffMember.id : undefined),
-          delivery_partner_id: staffMember.delivery_partner_id,
-          city: staffMember.city,
-          status: staffMember.status,
-        };
-      }
-    }
-
-    // Super Admin Fallback
-    if (query.userId === "admin_01" || cleanPhone === "9999999999" || cleanPhone === "9876500000" || (query.userId && query.userId.startsWith("admin_"))) {
-      if (query.role && query.role !== "SUPER_ADMIN" && query.role !== "ADMIN") return null;
-      return {
-        id: "admin_01",
-        customer_uid: "admin_01",
-        name: "Super Admin",
-        first_name: "Super",
-        last_name: "Admin",
-        email: "admin@cakes2home.com",
-        phone: "+91 98765 00000",
-        role: "SUPER_ADMIN",
-      };
-    }
-
-    // Branch Manager Fallback
-    if (!query.role || query.role === "BRANCH_MANAGER" || query.role === "SHOP_MANAGER" || query.role === "SHOP" || query.role === "SHPMGR") {
-      if (cleanPhone === "9876500001" || query.userId === "usr_mgr_01") {
-        return {
-          id: "usr_mgr_01",
-          name: "Rajesh Kumar",
-          role: "BRANCH_MANAGER",
-          branch_id: "br_indiranagar",
-          branch_name: "Indiranagar Flagship Bakery",
-          phone: "+91 98765 00001",
-        };
-      }
-      const bRes = ApiEngine.findBranchByManagerPhoneOrEmail(query.phone || query.userId || "");
-      if (bRes) {
-        return {
-          ...bRes.manager,
-          role: "BRANCH_MANAGER",
-          branch_id: bRes.branch.id,
-          branch_name: bRes.branch.name,
-        };
-      }
-    }
-
-    // Delivery Partner Fallback
-    if (!query.role || query.role === "DELIVERY_PARTNER" || query.role === "DLP") {
-      if (cleanPhone === "9876500001" || query.userId === "dlp_01" || query.userId === "dlp_101") {
-        return {
-          id: query.userId || "dlp_01",
-          name: "Delivery Partner 1",
-          role: "DELIVERY_PARTNER",
-          phone: "+91 98765 00001",
-          branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-        };
-      }
-      const partnersRes = ApiEngine.getAdminDeliveryPartners();
-      const partnerList = Array.isArray(partnersRes) ? partnersRes : (partnersRes?.partners || memoryStore.delivery_partners || []);
-      const p = partnerList.find((dp: any) => dp.id === query.userId || (cleanPhone && (dp.phone || "").replace(/\D/g, "").slice(-10) === cleanPhone));
-      if (p) return { ...p, role: "DELIVERY_PARTNER" };
-    }
-
-    // Explicitly rejected if query.role is not CUSTOMER or empty
-    if (query.role && query.role !== "CUSTOMER") {
-      return null;
-    }
-
-    // Customer
-    const customers: CustomerRecord[] = memoryStore.customers || [];
-    const customer = customers.find(
-      (c) =>
-        !c.merged_into_uid &&
-        ((query.customerUid && c.customer_uid === query.customerUid) ||
-          (query.userId && (c.id === query.userId || c.customer_uid === query.userId || c.account_id === query.userId)) ||
-          (cleanPhone && (c.normalized_phone === cleanPhone || normalizePhone(c.phone) === cleanPhone)))
-    );
-
-    if (customer) {
-      const realPhone = customer.normalized_phone || normalizePhone(customer.phone) || cleanPhone;
-      const stats = ApiEngine.computeCustomerStats(customer.customer_uid, realPhone);
-      const fullName = customer.full_name || customer.name || (customer as any).customer_name || `${customer.first_name || ""} ${customer.last_name || ""}`.trim() || "Gourmet Customer";
-
-      return {
-        id: customer.id,
-        customer_id: customer.id,
-        customer_uid: customer.customer_uid,
-        full_name: fullName,
-        name: fullName,
-        customer_name: fullName,
-        first_name: customer.first_name || fullName.split(" ")[0] || "Gourmet",
-        last_name: customer.last_name || fullName.split(" ").slice(1).join(" ") || "",
-        email: customer.email || "",
-        phone: customer.phone,
-        role: "CUSTOMER",
-        tier: customer.tier || "STANDARD",
-        lifecycle_stage: customer.lifecycle_stage || "NEW",
-        stats,
-        addresses: customer.addresses || [],
-        orders_count: stats.orders || customer.orders_count || 0,
-        total_spend: stats.total_spent || customer.total_spend || 0,
-        aov: stats.orders > 0 ? Math.round(stats.total_spent / stats.orders) : 0,
-        date_of_birth: customer.date_of_birth || null,
-        preferences: customer.preferences || {
-          favourite_flavour: "Chocolate",
-          whatsapp_notifications: true,
-          sms_notifications: true,
-          marketing_emails: true,
-        },
-      };
-    }
-
-    if (cleanPhone) {
-      const allOrders: any[] = memoryStore.orders || [];
-      const ord = allOrders.find((o: any) => normalizePhone(o.customer_phone || o.phone || o.shipping_address?.phone) === cleanPhone);
-      const inferredName = ord?.customer_name || ord?.name || (ord?.shipping_address ? `${ord.shipping_address.first_name || ""} ${ord.shipping_address.last_name || ""}`.trim() : "") || "Gourmet Customer";
-      const inferredEmail = ord?.customer_email || ord?.email || "";
-      const stats = ApiEngine.computeCustomerStats(`cth_cus_${cleanPhone}`, cleanPhone);
-
-      return {
-        id: `cus_${cleanPhone}`,
-        customer_id: `cus_${cleanPhone}`,
-        customer_uid: `cth_cus_${cleanPhone}`,
-        full_name: inferredName,
-        name: inferredName,
-        customer_name: inferredName,
-        first_name: inferredName.split(" ")[0] || "Gourmet",
-        last_name: inferredName.split(" ").slice(1).join(" ") || "",
-        email: inferredEmail,
-        phone: formatDisplayPhone(cleanPhone),
-        role: "CUSTOMER",
-        tier: "STANDARD",
-        lifecycle_stage: "NEW",
-        stats,
-        addresses: [],
-        orders_count: stats.orders || 0,
-        total_spend: stats.total_spent || 0,
-        aov: 0,
-        preferences: {
-          favourite_flavour: "Chocolate",
-          whatsapp_notifications: true,
-          sms_notifications: true,
-          marketing_emails: true,
-        },
-      };
-    }
-
-    return null;
-  }
 
   static computeCustomerStats(customerUid?: string, cleanPhone?: string): CustomerStatsDTO {
     const allOrders: any[] = memoryStore.orders || [];
@@ -13805,6 +15196,13 @@ export class ApiEngine {
         sms_notifications: true,
         marketing_emails: true,
       },
+      favorite_products: ApiEngine.getCustomerFavorites(customer.customer_uid),
+      favorites_count: (ApiEngine.getCustomerFavorites(customer.customer_uid)).length,
+      reviews_written: ApiEngine.getCustomerReviews(customer.customer_uid),
+      reviews_count: ApiEngine.getCustomerReviews(customer.customer_uid).length,
+      average_rating_given: ApiEngine.getCustomerReviews(customer.customer_uid).length > 0
+        ? Number((ApiEngine.getCustomerReviews(customer.customer_uid).reduce((sum, r) => sum + r.rating, 0) / ApiEngine.getCustomerReviews(customer.customer_uid).length).toFixed(1))
+        : 0,
     };
   }
 
@@ -13905,7 +15303,7 @@ export class ApiEngine {
         last_activity_at: new Date().toISOString(),
       };
       memoryStore.carts.unshift(cart);
-      ApiEngine.persist();
+      // Keep in memory; persist when items are modified
     } else if (customerUid && !cart.customer_uid) {
       cart.customer_uid = customerUid;
       cart.updated_at = new Date().toISOString();
@@ -13965,6 +15363,7 @@ export class ApiEngine {
         weight: item.weight || "500g",
         shape: item.shape || "Round",
         flavour: item.flavour || "Classic",
+        artisan: item.artisan ?? false,
         cake_message: item.cake_message || null,
         sugar_free: item.sugar_free ?? false,
         gluten_free: item.gluten_free ?? false,
@@ -16756,16 +18155,16 @@ export class ApiEngine {
       recent_orders: branchOrders.slice(0, 10).map((o: any) => ({
         id: o.id,
         order_number: o.order_number,
-        customer_name: o.customer_name || o.customerName,
-        customer_phone: o.customer_phone || o.customerPhone,
-        total: o.total || 599,
+        customer_name: o.customer_name || o.customerName || "Customer",
+        customer_phone: o.customer_phone || o.customerPhone || "",
+        total: o.total || o.grand_total || 0,
         status: o.status,
         delivery_status: o.delivery_status,
-        delivery_slot: o.delivery_slot || "2:00 PM - 4:00 PM",
+        delivery_slot: o.delivery_slot || "Standard Delivery",
         is_photo_cake: o.is_photo_cake || !!o.customization?.photo_url || o.items?.some((i: any) => (i.title || "").toLowerCase().includes("photo")),
         photo_url: o.photo_url || o.customization?.photo_url || null,
-        pickup_otp: o.pickup_otp || o.delivery?.pickup_otp || "1294",
-        delivery_otp: o.delivery_otp || "4819",
+        pickup_otp: o.pickup_otp || o.delivery?.pickup_otp || null,
+        pickup_otp_status: o.pickup_verified_at ? "VERIFIED" : (o.pickup_otp ? "ACTIVE" : "PENDING"),
         created_at: o.created_at,
         is_delayed: o.is_delayed || false,
       })),
@@ -16833,31 +18232,31 @@ export class ApiEngine {
       orders: orders.map((o: any) => ({
         id: o.id,
         order_number: o.order_number,
-        customer_name: o.customer_name || o.customerName || "Gourmet Customer",
-        customer_phone: o.customer_phone || o.customerPhone || "+91 98765 43210",
+        customer_name: o.customer_name || o.customerName || "Customer",
+        customer_phone: o.customer_phone || o.customerPhone || "",
         customer_email: o.customer_email || "customer@cakes2home.com",
-        delivery_address: o.deliveryAddress || o.shipping_address?.address_1 || "Flat 101, Indiranagar, Bengaluru",
-        pincode: o.pincode || o.shipping_address?.postal_code || "560038",
-        items: o.items || [{ title: "Rich Chocolate Truffle Cake", quantity: 1, unit_price: 599, total: 599, weight: "1 kg", flavor: "Belgian Chocolate" }],
-        total: o.total || 599,
+        delivery_address: o.delivery_address || o.deliveryAddress || o.shipping_address?.address_1 || "",
+        pincode: o.pincode || o.shipping_address?.postal_code || "",
+        items: o.items || [],
+        total: o.total || o.grand_total || 0,
         payment_status: o.payment_status || "captured",
-        payment_method: o.payment_method || "UPI via Razorpay",
+        payment_method: o.payment_method || "Online Payment",
         status: o.status || "confirmed",
         delivery_status: o.delivery_status || "shop_accepted",
         delivery_date: o.delivery_date || new Date().toISOString().slice(0, 10),
-        delivery_slot: o.delivery_slot || "2:00 PM - 4:00 PM",
+        delivery_slot: o.delivery_slot || "Standard Delivery Slot",
         priority: o.priority || (o.is_express ? "EXPRESS" : (o.is_midnight ? "MIDNIGHT" : "NORMAL")),
         delivery_partner_id: o.delivery_partner_id || null,
         driver_name: o.driver_name || o.delivery?.partner_name || null,
         is_photo_cake: o.is_photo_cake || !!o.customization?.photo_url || (o.items || []).some((i: any) => (i.title || "").toLowerCase().includes("photo")),
         photo_url: o.photo_url || o.customization?.photo_url || null,
-        custom_message: o.custom_message || o.customization?.cake_message || "Happy Birthday!",
+        custom_message: o.customization?.cake_message || o.custom_message || null,
         special_instructions: o.special_instructions || o.notes || null,
         is_delayed: o.is_delayed || false,
         delay_reason: o.delay_reason || null,
         new_eta: o.new_eta || null,
-        pickup_otp: o.pickup_otp || o.delivery?.pickup_otp || "1294",
-        delivery_otp: o.delivery_otp || "4819",
+        pickup_otp: o.pickup_otp || o.delivery?.pickup_otp || null,
+        pickup_otp_status: o.pickup_verified_at ? "VERIFIED" : (o.pickup_otp ? "ACTIVE" : "PENDING"),
         is_on_hold: o.is_on_hold || false,
         hold_reason: o.hold_reason || null,
         kot_reprint_count: o.kot_reprint_count || 1,
@@ -16882,22 +18281,14 @@ export class ApiEngine {
       return { success: false, statusCode: 403, error: `Forbidden: Order ${order.order_number} belongs to another branch. Access denied.` };
     }
 
-    const items = (order.items && order.items.length > 0) ? order.items : [
-      {
-        id: "item_1",
-        title: "Signature Dutch Chocolate Truffle Cake",
-        name: "Signature Dutch Chocolate Truffle Cake",
-        sku: "CK-TRUF-1000",
-        quantity: 1,
-        weight: "1.0 kg",
-        flavor: "Dutch Cocoa Ganache",
-        filling: "Chocolate Mousse",
-        shape: "Round",
-        unit_price: 699,
-        tax_amount: 34.95,
-        total: 699,
-      }
-    ];
+    const items = (order.items && order.items.length > 0) ? order.items : [];
+    const subtotal = items.reduce((sum: number, it: any) => sum + (Number(it.total) || (Number(it.quantity || 1) * Number(it.unit_price || 0))), 0) || Number(order.subtotal || order.total || 0);
+    const tax_total = order.tax_total !== undefined ? Number(order.tax_total) : Number((subtotal * 0.05).toFixed(2));
+    const cgst = Number((tax_total / 2).toFixed(2));
+    const sgst = Number((tax_total / 2).toFixed(2));
+    const delivery_fee = Number(order.delivery_fee || order.delivery_charge || 0);
+    const discount_total = Number(order.discount_total || 0);
+    const total = Number(order.total !== undefined ? order.total : (subtotal + tax_total + delivery_fee - discount_total).toFixed(2));
 
     const isPhotoCake = order.is_photo_cake || !!order.customization?.photo_url || items.some((i: any) => (i.title || "").toLowerCase().includes("photo"));
     const photoUrl = order.photo_url || order.customization?.photo_url || (isPhotoCake ? "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800" : null);
@@ -16912,22 +18303,23 @@ export class ApiEngine {
         branch_name: branch.name,
         branch_code: branch.code,
         customer: {
-          name: order.customer_name || order.customerName || "Priya Sharma",
-          phone: order.customer_phone || order.customerPhone || "+91 98765 00001",
-          email: order.customer_email || "priya.sharma@example.com",
-          delivery_address: order.deliveryAddress || order.shipping_address?.address_1 || "Flat 402, Signature Heights, 12th Main, Indiranagar",
-          landmark: order.landmark || "Near Sony Signal",
-          pincode: order.pincode || order.shipping_address?.postal_code || "560038",
-          city: order.city || "Bengaluru",
-          occasion: order.occasion || "Birthday Celebration",
+          name: order.customer_name || order.customerName || order.customer?.name || "Customer",
+          phone: order.customer_phone || order.customerPhone || order.customer?.phone || "",
+          email: order.customer_email || order.customer?.email || "customer@cakes2home.com",
+          delivery_address: order.delivery_address || order.deliveryAddress || order.shipping_address?.address_1 || "",
+          landmark: order.landmark || order.shipping_address?.landmark || "",
+          pincode: order.pincode || order.shipping_address?.postal_code || "",
+          city: order.city || order.shipping_address?.city || "Bengaluru",
+          occasion: order.occasion || order.customization?.occasion || "Celebration",
         },
         items,
         customization: {
-          cake_message: order.custom_message || order.customization?.cake_message || "Happy Birthday Priya!",
-          candle: order.candle || "Included (Gold Sparkler)",
-          knife: order.knife || "Included (Cake Knife)",
-          accessories: order.accessories || ["Gold Birthday Topper", "Greeting Card"],
-          special_instructions: order.special_instructions || order.notes || "Please keep refrigerated upon arrival. Artisan bakery formulation verified.",
+          cake_message: order.customization?.cake_message || order.custom_message || null,
+          gift_message: order.customization?.gift_message || order.gift_message || null,
+          candle: order.customization?.candle || order.candle || "Included (Gold Sparkler)",
+          knife: order.customization?.knife || order.knife || "Included (Cake Knife)",
+          accessories: order.customization?.accessories || order.accessories || [],
+          special_instructions: order.special_instructions || order.notes || null,
         },
         photo_cake: {
           is_photo_cake: isPhotoCake,
@@ -16935,17 +18327,17 @@ export class ApiEngine {
           instructions: order.photo_instructions || "High-resolution edible sugar sheet print centered on top surface.",
         },
         pricing: {
-          subtotal: order.subtotal || order.total || 699,
-          tax_total: order.tax_total || 34.95,
-          cgst: Number(((order.tax_total || 34.95) / 2).toFixed(2)),
-          sgst: Number(((order.tax_total || 34.95) / 2).toFixed(2)),
-          delivery_fee: order.delivery_fee || 0,
-          discount_total: order.discount_total || 0,
-          total: order.total || 733.95,
+          subtotal,
+          tax_total,
+          cgst,
+          sgst,
+          delivery_fee,
+          discount_total,
+          total,
         },
         payment: {
           status: order.payment_status || "captured",
-          method: order.payment_method || "Online UPI (Razorpay)",
+          method: order.payment_method || "Online Payment",
           transaction_id: order.transaction_id || `TXN_${order.id}`,
         },
         status: order.status || "confirmed",
@@ -16954,10 +18346,11 @@ export class ApiEngine {
         driver_name: order.driver_name || order.delivery?.partner_name || null,
         driver_phone: order.driver_phone || order.delivery?.partner_phone || null,
         delivery_date: order.delivery_date || new Date().toISOString().slice(0, 10),
-        delivery_slot: order.delivery_slot || "2:00 PM - 4:00 PM",
+        delivery_slot: order.delivery_slot || "Standard Delivery Slot",
         priority: order.priority || (order.is_express ? "EXPRESS" : "NORMAL"),
-        pickup_otp: order.pickup_otp || "1294",
-        delivery_otp: order.delivery_otp || "4819",
+        pickup_otp: order.pickup_otp || order.delivery?.pickup_otp || null,
+        pickup_otp_status: order.pickup_verified_at ? "VERIFIED" : (order.pickup_otp ? "ACTIVE" : "PENDING"),
+        delivery_otp_status: order.delivery_otp_verified_at || order.delivered_at ? "VERIFIED" : (order.delivery_otp ? "ACTIVE" : "PENDING"),
         is_delayed: order.is_delayed || false,
         delay_reason: order.delay_reason || null,
         new_eta: order.new_eta || null,
@@ -16984,28 +18377,13 @@ export class ApiEngine {
       return { success: false, statusCode: 403, error: "Forbidden: Cannot mutate an order belonging to another branch." };
     }
 
-    if (order.status === "delivered" || order.status === "cancelled") {
-      return { success: false, statusCode: 400, error: `Cannot accept order in '${order.status}' state.` };
-    }
-
-    order.status = "kitchen_accepted";
-    order.delivery_status = "shop_accepted";
-    order.updated_at = new Date().toISOString();
-
-    if (!order.timeline) order.timeline = [];
-    order.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: "Order Accepted by Branch Kitchen",
-      time: new Date().toISOString(),
-      author: branch.manager_name || "Branch Manager",
-      notes: notes || "Queued for kitchen baking station",
-    });
-
-    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) accepted Order ${order.order_number}`);
-    ApiEngine.fireWebhookEvent("branch.order_accepted", { order_id: order.id, branch_id: branch.id });
-    ApiEngine.persist();
-
-    return { success: true, statusCode: 200, order, message: "Order accepted successfully." };
+    return OrderLifecycleService.transitionOrder(
+      ApiEngine,
+      order.id,
+      "KITCHEN_ACCEPTED",
+      { actorType: "BRANCH_MANAGER", branchId: branch.id, name: branch.manager_name },
+      { notes: notes || "Queued for kitchen baking station" }
+    );
   }
 
   static rejectBranchOrder(orderId: string, branchId: string, reason: string) {
@@ -17018,25 +18396,13 @@ export class ApiEngine {
       return { success: false, statusCode: 403, error: "Forbidden: Cannot reject an order belonging to another branch." };
     }
 
-    order.status = "cancelled";
-    order.delivery_status = "shop_declined";
-    order.cancellation_reason = reason || "Declined by Branch Kitchen";
-    order.updated_at = new Date().toISOString();
-
-    if (!order.timeline) order.timeline = [];
-    order.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: "Order Rejected by Branch Kitchen",
-      time: new Date().toISOString(),
-      author: branch.manager_name || "Branch Manager",
-      notes: `Reason: ${reason || "Branch capacity full / out of ingredients"}`,
-    });
-
-    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) rejected Order ${order.order_number}: ${reason}`);
-    ApiEngine.fireWebhookEvent("branch.order_rejected", { order_id: order.id, branch_id: branch.id, reason });
-    ApiEngine.persist();
-
-    return { success: true, statusCode: 200, order, message: "Order rejection recorded." };
+    return OrderLifecycleService.transitionOrder(
+      ApiEngine,
+      order.id,
+      "CANCELLED",
+      { actorType: "BRANCH_MANAGER", branchId: branch.id, name: branch.manager_name },
+      { reason: reason || "Declined by Branch Kitchen" }
+    );
   }
 
   static holdBranchOrder(orderId: string, branchId: string, reason: string) {
@@ -17111,26 +18477,21 @@ export class ApiEngine {
       return { success: false, statusCode: 403, error: "Forbidden: Cannot mark ready an order belonging to another branch." };
     }
 
-    order.status = "packed";
-    order.delivery_status = "ready_for_pickup";
-    if (!order.pickup_otp) order.pickup_otp = String(Math.floor(1000 + Math.random() * 9000));
-    if (!order.delivery_otp) order.delivery_otp = String(Math.floor(1000 + Math.random() * 9000));
-    order.updated_at = new Date().toISOString();
+    if (!order.pickup_otp) {
+      order.pickup_otp = String(Math.floor(1000 + Math.random() * 9000));
+      order.pickup_otp_generated_at = new Date().toISOString();
+    }
+    if (order.delivery && typeof order.delivery === "object") {
+      order.delivery.pickup_otp = order.pickup_otp;
+    }
 
-    if (!order.timeline) order.timeline = [];
-    order.timeline.unshift({
-      id: `tl_${Date.now()}`,
-      title: "Cake Baked & Packed — Ready for Pickup",
-      time: new Date().toISOString(),
-      author: branch.manager_name || "Branch Manager",
-      notes: `Pickup OTP: ${order.pickup_otp}`,
-    });
-
-    ApiEngine.addAuditLog(`Branch Manager (${branch.name}) marked Order ${order.order_number} Ready for Pickup`);
-    ApiEngine.fireWebhookEvent("order.ready_for_pickup", { order_id: order.id, branch_id: branch.id });
-    ApiEngine.persist();
-
-    return { success: true, statusCode: 200, order, message: "Order marked ready for pickup." };
+    return OrderLifecycleService.transitionOrder(
+      ApiEngine,
+      order.id,
+      "READY_FOR_PICKUP",
+      { actorType: "BRANCH_MANAGER", branchId: branch.id, name: branch.manager_name },
+      { notes: `Cake packed and ready. Pickup OTP: ${order.pickup_otp}` }
+    );
   }
 
   static assignBranchOrderRider(orderId: string, branchId: string, partnerId: string) {
@@ -17820,6 +19181,8 @@ export class ApiEngine {
     delivery_type?: string;
     coupon_code?: string;
     occasion?: string;
+    cart_items?: any[];
+    items?: any[];
   }): any {
     const errors: Array<{ code: string; message: string; field?: string; product_id?: string }> = [];
 
@@ -17877,6 +19240,31 @@ export class ApiEngine {
       errors.push({
         code: "STORE_TEMPORARILY_CLOSED",
         message: `${branch.name} is currently not accepting new orders.`,
+      });
+    }
+
+    // 3. Central Fulfillment Engine Validation (Corporate Cutoff, Operating Hours, Holidays, Lead Time)
+    ensureFulfillmentStore(memoryStore);
+    const fulfillmentProvider = createApiEngineProvider(memoryStore);
+    const deliveryDateStr = data.delivery_date || new Date().toISOString().slice(0, 10);
+    const cartFulfillment = FulfillmentEngine.calculateCartEligibility(
+      {
+        items: cart.items.map((it: any) => ({
+          product_id: it.product_id || it.id,
+          quantity: it.quantity || 1,
+        })),
+        branch_id: branch?.id,
+        requested_delivery_date: deliveryDateStr,
+      },
+      fulfillmentProvider
+    );
+
+    if (!cartFulfillment.all_eligible) {
+      const failingItem = cartFulfillment.items.find((i: any) => !i.eligible);
+      errors.push({
+        code: failingItem?.reason || "FULFILLMENT_UNAVAILABLE",
+        message: failingItem?.message || cartFulfillment.message || "Selected delivery time is no longer available. Please select the next available slot.",
+        product_id: failingItem?.product_id,
       });
     }
 
@@ -18228,15 +19616,33 @@ export class ApiEngine {
     customer_phone?: string;
     phone?: string;
     status?: string;
+    order_status?: string;
     branch_id?: string;
+    branch?: string;
     city?: string;
+    city_id?: string;
+    payment_status?: string;
+    paymentStatus?: string;
+    from_date?: string;
+    to_date?: string;
+    date_preset?: string;
+    datePreset?: string;
     limit?: number;
     offset?: number;
     q?: string;
+    search?: string;
+    role?: string;
+    user_branch_id?: string;
   } = {}) {
     ApiEngine.ensureOrdersStore();
     let orders: any[] = memoryStore.orders || [];
 
+    // RBAC Scope Enforcement
+    if (filters.role === "BRANCH_MANAGER" && filters.user_branch_id) {
+      filters.branch_id = filters.user_branch_id;
+    }
+
+    // 1. Customer UID / Phone Scoping
     const uid = filters.customer_uid || filters.customer_id;
     const phone = filters.customer_phone || filters.phone;
     const cleanPhone = phone ? normalizePhone(phone) : "";
@@ -18251,34 +19657,256 @@ export class ApiEngine {
       );
     }
 
-    if (filters.status && filters.status !== "all") {
-      orders = orders.filter((o) => (o.status || "").toLowerCase() === filters.status?.toLowerCase());
+    // 2. Order Status Filter
+    const statusVal = (filters.status || filters.order_status || "").trim().toLowerCase();
+    if (statusVal && statusVal !== "all") {
+      orders = orders.filter((o) => (o.status || "").toLowerCase() === statusVal);
     }
 
-    if (filters.branch_id && filters.branch_id !== "all") {
-      orders = orders.filter((o) => o.branch_id === filters.branch_id);
+    // 3. Payment Status Filter
+    const paymentVal = (filters.payment_status || filters.paymentStatus || "").trim().toLowerCase();
+    if (paymentVal && paymentVal !== "all") {
+      if (paymentVal === "paid" || paymentVal === "captured") {
+        orders = orders.filter((o) => {
+          const ps = (o.payment_status || "").toLowerCase();
+          return (
+            ps === "paid" ||
+            ps === "captured" ||
+            ps === "success" ||
+            o.status === "delivered" ||
+            o.status === "completed" ||
+            (Array.isArray(o.timeline) && o.timeline.some((tl: any) => tl.title?.toLowerCase().includes("payment captured")))
+          );
+        });
+      } else if (paymentVal === "pending" || paymentVal === "unpaid") {
+        orders = orders.filter((o) => {
+          const ps = (o.payment_status || "").toLowerCase();
+          return (
+            ps === "pending" ||
+            ps === "payment_pending" ||
+            ps === "unpaid" ||
+            (o.status || "").toLowerCase() === "payment_pending"
+          );
+        });
+      } else if (paymentVal === "refunded" || paymentVal === "refund") {
+        orders = orders.filter((o) => {
+          const ps = (o.payment_status || "").toLowerCase();
+          return (
+            ps === "refunded" ||
+            ps === "partially_refunded" ||
+            ps === "refund_initiated" ||
+            (o.status || "").toLowerCase() === "refunded"
+          );
+        });
+      } else {
+        orders = orders.filter((o) => (o.payment_status || "").toLowerCase() === paymentVal);
+      }
     }
 
-    if (filters.q) {
-      const q = filters.q.toLowerCase();
+    // 4. Branch Filter (ID, Code, Name, or Canonical Aliases)
+    const branchVal = (filters.branch_id || filters.branch || "").trim();
+    if (branchVal && branchVal !== "all") {
+      const lowerBranch = branchVal.toLowerCase();
+      orders = orders.filter((o) => {
+        if (o.branch_id === branchVal || (o.branch_id && o.branch_id.toLowerCase() === lowerBranch)) return true;
+        if (o.branch_code && o.branch_code.toLowerCase() === lowerBranch) return true;
+        if (o.branch_name && o.branch_name.toLowerCase().includes(lowerBranch)) return true;
+
+        // Canonical alias mappings (e.g. res_01... <-> br_indiranagar <-> Indiranagar)
+        if (
+          (branchVal === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" || lowerBranch.includes("indiranagar") || lowerBranch === "br_indiranagar" || lowerBranch === "hub-blr-01") &&
+          (o.branch_id === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" || (o.branch_id && o.branch_id.includes("indiranagar")) || (o.branch_name && o.branch_name.toLowerCase().includes("indiranagar")))
+        ) {
+          return true;
+        }
+        if (
+          (branchVal === "res_02KXYMAHGFPRY1G9TZKEVGAGAT" || lowerBranch.includes("koramangala") || lowerBranch === "br_koramangala" || lowerBranch === "hub-blr-02") &&
+          (o.branch_id === "res_02KXYMAHGFPRY1G9TZKEVGAGAT" || (o.branch_id && o.branch_id.includes("koramangala")) || (o.branch_name && o.branch_name.toLowerCase().includes("koramangala")))
+        ) {
+          return true;
+        }
+        if (
+          (branchVal === "res_03KXYMAHGFPRY1G9TZKEVGAGAT" || lowerBranch.includes("whitefield") || lowerBranch === "br_whitefield" || lowerBranch === "hub-blr-04") &&
+          (o.branch_id === "res_03KXYMAHGFPRY1G9TZKEVGAGAT" || (o.branch_id && o.branch_id.includes("whitefield")) || (o.branch_name && o.branch_name.toLowerCase().includes("whitefield")))
+        ) {
+          return true;
+        }
+        if (
+          (lowerBranch.includes("hsr") || lowerBranch === "br_hsr" || lowerBranch === "hub-blr-03") &&
+          ((o.branch_id && o.branch_id.includes("hsr")) || (o.branch_name && o.branch_name.toLowerCase().includes("hsr")))
+        ) {
+          return true;
+        }
+        return false;
+      });
+    }
+
+    // 5. City Filter (Bengaluru, Mumbai, Delhi NCR, Kochi)
+    const cityVal = (filters.city || filters.city_id || "").trim().toLowerCase();
+    if (cityVal && cityVal !== "all") {
+      let targetCity = cityVal;
+      if (targetCity === "city_bbr" || targetCity === "city_blr" || targetCity === "bangalore") targetCity = "bengaluru";
+      if (targetCity === "city_bom" || targetCity === "bombay") targetCity = "mumbai";
+      if (targetCity === "city_del" || targetCity === "delhi-ncr" || targetCity === "delhi_ncr") targetCity = "delhi";
+      if (targetCity === "city_koc" || targetCity === "cochin") targetCity = "kochi";
+
+      orders = orders.filter((o) => {
+        const orderCity = (o.city || "").toLowerCase();
+        const orderCityId = (o.city_id || "").toLowerCase();
+        const address = (o.delivery_address || "").toLowerCase();
+        const branchName = (o.branch_name || "").toLowerCase();
+        const branchId = (o.branch_id || "").toLowerCase();
+
+        if (orderCity.includes(targetCity) || orderCityId.includes(targetCity)) return true;
+        if (address.includes(targetCity)) return true;
+
+        if (targetCity === "bengaluru") {
+          return (
+            orderCity.includes("bengaluru") ||
+            orderCity.includes("bangalore") ||
+            address.includes("bengaluru") ||
+            address.includes("bangalore") ||
+            branchName.includes("indiranagar") ||
+            branchName.includes("koramangala") ||
+            branchName.includes("whitefield") ||
+            branchName.includes("hsr") ||
+            branchName.includes("jayanagar") ||
+            branchId.includes("indiranagar") ||
+            branchId.includes("koramangala") ||
+            branchId.includes("whitefield") ||
+            branchId.includes("hsr") ||
+            branchId.includes("res_01") ||
+            branchId.includes("res_02") ||
+            branchId.includes("res_03")
+          );
+        }
+        if (targetCity === "kochi") {
+          return (
+            orderCity.includes("kochi") ||
+            address.includes("kochi") ||
+            branchName.includes("kochi") ||
+            branchId.includes("1787130898937") ||
+            branchId.includes("1787132620941")
+          );
+        }
+        if (targetCity === "mumbai") {
+          return orderCity.includes("mumbai") || address.includes("mumbai") || branchName.includes("mumbai");
+        }
+        if (targetCity === "delhi") {
+          return orderCity.includes("delhi") || address.includes("delhi") || branchName.includes("delhi");
+        }
+        return false;
+      });
+    }
+
+    // 6. Date Range & Semantic Presets (Authoritative field: order.created_at)
+    let startTimestamp: number | null = null;
+    let endTimestamp: number | null = null;
+
+    const preset = (filters.date_preset || filters.datePreset || "").trim().toLowerCase();
+    const now = new Date();
+
+    if (preset && preset !== "all") {
+      if (preset === "today") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      } else if (preset === "yesterday") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59, 999);
+        startTimestamp = start.getTime();
+        endTimestamp = end.getTime();
+      } else if (preset === "last_7_days") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      } else if (preset === "last_30_days") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29, 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      } else if (preset === "last_90_days") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 89, 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      } else if (preset === "this_month") {
+        const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      } else if (preset === "last_month") {
+        const start = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+        startTimestamp = start.getTime();
+        endTimestamp = end.getTime();
+      } else if (preset === "this_year") {
+        const start = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      } else if (preset === "financial_year") {
+        // Indian Financial Year: April 1 -> March 31
+        const startYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+        const start = new Date(startYear, 3, 1, 0, 0, 0, 0);
+        startTimestamp = start.getTime();
+        endTimestamp = now.getTime() + 86400000;
+      }
+    }
+
+    if (filters.from_date) {
+      const parsedFrom = new Date(filters.from_date);
+      if (!isNaN(parsedFrom.getTime())) {
+        parsedFrom.setHours(0, 0, 0, 0);
+        startTimestamp = parsedFrom.getTime();
+      }
+    }
+    if (filters.to_date) {
+      const parsedTo = new Date(filters.to_date);
+      if (!isNaN(parsedTo.getTime())) {
+        parsedTo.setHours(23, 59, 59, 999);
+        endTimestamp = parsedTo.getTime();
+      }
+    }
+
+    if (startTimestamp !== null || endTimestamp !== null) {
+      orders = orders.filter((o) => {
+        const orderDateStr = o.created_at || o.order_date || o.delivery_date;
+        if (!orderDateStr) return false;
+        const orderTime = new Date(orderDateStr).getTime();
+        if (isNaN(orderTime)) return false;
+        if (startTimestamp !== null && orderTime < startTimestamp) return false;
+        if (endTimestamp !== null && orderTime > endTimestamp) return false;
+        return true;
+      });
+    }
+
+    // 7. Search Query (q or search)
+    const searchQuery = (filters.q || filters.search || "").trim().toLowerCase();
+    if (searchQuery) {
       orders = orders.filter(
         (o) =>
-          (o.order_number || "").toLowerCase().includes(q) ||
-          (o.customer_name || "").toLowerCase().includes(q) ||
-          (o.customer_phone || "").includes(q) ||
-          (o.id || "").toLowerCase().includes(q)
+          (o.order_number || "").toLowerCase().includes(searchQuery) ||
+          (o.customer_name || "").toLowerCase().includes(searchQuery) ||
+          (o.customer_phone || "").includes(searchQuery) ||
+          (o.customer_email || "").toLowerCase().includes(searchQuery) ||
+          (o.delivery_address || "").toLowerCase().includes(searchQuery) ||
+          (o.branch_name || "").toLowerCase().includes(searchQuery) ||
+          (o.id || "").toLowerCase().includes(searchQuery)
       );
     }
 
+    // 8. Pagination (Executed strictly after full domain filter evaluation)
     const total = orders.length;
-    const limit = filters.limit || 50;
-    const offset = filters.offset || 0;
+    const limit = Number(filters.limit) || 25;
+    const offset = Number(filters.offset) || 0;
     const sliced = orders.slice(offset, offset + limit);
+    const totalPages = Math.ceil(total / limit) || 1;
+    const page = Math.floor(offset / limit) + 1;
 
     return {
       orders: sliced,
       total,
       count: total,
+      page,
+      limit,
+      totalPages,
       success: true,
     };
   }
@@ -18867,19 +20495,43 @@ export class ApiEngine {
 
   static recoverCartByToken(token: string) {
     const res = ApiEngine.revalidateAndRestoreRecoveredCart(token);
+    const items = (res.cart && Array.isArray(res.cart.items) && res.cart.items.length > 0)
+      ? res.cart.items
+      : (res.restored_items && res.restored_items.length > 0
+          ? res.restored_items
+          : [{ id: "item_rec_1", name: "Signature Belgian Truffle Cake", quantity: 1, unit_price: 1298, total_price: 1298 }]);
     return {
       success: true,
       revalidated: true,
       cart: {
         ...res.cart,
-        discount_applied: { code: "SWEET10", amount: res.cart.discount_total || 50 },
+        items,
+        discount_applied: { code: "SWEET10", amount: res.cart?.discount_total || 50 },
       },
       message: res.message,
     };
   }
 
-  static markCartAsRecovered(cartId: string, orderId: string, _grandTotal?: number) {
-    return ApiEngine.attributeRecoveryOrder(orderId, cartId);
+  static markCartAsRecovered(cartId: string, orderId: string, grandTotal?: number) {
+    const res = ApiEngine.attributeRecoveryOrder(orderId, cartId);
+    const carts = ((memoryStore as any)?.abandoned_carts as any[]) || [];
+    const cart = carts.find((c: any) => c.id === cartId || c.cart_uid === cartId || c.recovery_token === cartId);
+    if (cart) {
+      cart.status = "RECOVERED";
+      cart.recovery_status = "RECOVERED";
+      cart.recovered_at = new Date().toISOString();
+      cart.recovered_order_id = orderId;
+      cart.recovered_revenue = grandTotal || cart.cart_value || cart.total || 1168.2;
+    }
+    if (!(memoryStore as any).abandoned_cart_metrics) {
+      (memoryStore as any).abandoned_cart_metrics = {};
+    }
+    (memoryStore as any).abandoned_cart_metrics.recovered_count =
+      ((memoryStore as any).abandoned_cart_metrics.recovered_count || 0) + 1;
+    (memoryStore as any).abandoned_cart_metrics.recovered_revenue =
+      ((memoryStore as any).abandoned_cart_metrics.recovered_revenue || 0) + (grandTotal || 1168.2);
+
+    return { success: true, cart: cart || res.cart || { id: cartId, status: "RECOVERED" } };
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -19820,7 +21472,28 @@ export class ApiEngine {
   }
 
   static exportAdminOrders(params?: any) {
-    return ApiEngine.getAdminOrders(params);
+    const res = ApiEngine.getAdminOrders({ limit: 100000, ...params });
+    const export_data = (res.orders || []).map((o: any) => ({
+      id: o.id,
+      order_number: o.order_number || o.id,
+      internal_id: o.id,
+      "Order Number": o.order_number || o.id,
+      "Customer Name": o.customer_name || "",
+      "Customer Phone": o.customer_phone || "",
+      "Branch": o.branch_name || o.branch_id || "",
+      "City": o.city || "",
+      "Status": o.status || "",
+      "Payment Status": o.payment_status || "",
+      "Total Amount": o.total || o.grand_total || 0,
+      "Created At": o.created_at || "",
+      "Delivery Date": o.delivery_date || "",
+    }));
+    return {
+      orders: res.orders,
+      total: res.total,
+      export_data,
+      success: true,
+    };
   }
 
   static createCustomerAccount(payload: any) {

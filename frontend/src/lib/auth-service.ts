@@ -67,10 +67,23 @@ let isLoggingOutInProgress = false;
 /**
  * Clear all authentication cookies in the browser across all potential paths
  */
+/**
+ * Clear all authentication cookies in the browser across all potential paths
+ */
 export function clearClientAuthCookies(): void {
   if (typeof document === "undefined") return;
 
-  const paths = ["/", "/dashboard", "/account", "/dashboard/shop", "/dashboard/delivery-partner"];
+  const paths = [
+    "/",
+    "/dashboard",
+    "/account",
+    "/dashboard/shop",
+    "/dashboard/delivery-partner",
+    "/dashboard/admin",
+    "/admin",
+    "/branch-manager",
+    "/delivery-partner",
+  ];
   const expires = "expires=Thu, 01 Jan 1970 00:00:00 UTC;";
 
   AUTH_COOKIES.forEach((cookieName) => {
@@ -95,6 +108,23 @@ export function clearClientAuthStorage(): void {
   } catch {
     // Ignore storage access errors in private browsing modes
   }
+}
+
+/**
+ * Get role-specific login portal URL
+ */
+export function getRoleLoginUrl(role?: string | null): string {
+  const norm = (role || "").toUpperCase();
+  if (norm === "SUPER_ADMIN" || norm === "ADMIN") {
+    return "/dashboard/admin/login";
+  }
+  if (norm === "BRANCH_MANAGER" || norm === "SHOP_MANAGER" || norm === "SHOP" || norm === "SHPMGR") {
+    return "/dashboard/shop/login";
+  }
+  if (norm === "DELIVERY_PARTNER" || norm === "DLP") {
+    return "/dashboard/delivery-partner/login";
+  }
+  return "/login";
 }
 
 /**
@@ -132,7 +162,8 @@ export function initMultiTabLogoutListener(onLogout?: () => void): () => void {
       if (onLogout) {
         onLogout();
       } else {
-        window.location.href = "/login?reason=multi_tab_logout";
+        const role = getClientAuthRole();
+        window.location.href = `${getRoleLoginUrl(role)}?reason=multi_tab_logout`;
       }
     }
   };
@@ -150,7 +181,8 @@ export function initMultiTabLogoutListener(onLogout?: () => void): () => void {
           if (onLogout) {
             onLogout();
           } else {
-            window.location.href = "/login?reason=multi_tab_logout";
+            const role = getClientAuthRole();
+            window.location.href = `${getRoleLoginUrl(role)}?reason=multi_tab_logout`;
           }
         }
       };
@@ -174,10 +206,12 @@ export function initMultiTabLogoutListener(onLogout?: () => void): () => void {
  * 3. Clears all client-side auth cookies across paths.
  * 4. Clears all client-side auth storage (localStorage, sessionStorage).
  * 5. Broadcasts logout to other open tabs.
- * 6. Cleanly redirects the user to the public /login page (never leaving them stuck).
+ * 6. Cleanly redirects the user to the target login page (never leaving them stuck).
  */
 export async function authLogout(options: AuthLogoutOptions = {}): Promise<void> {
-  const { redirectUrl = "/login", skipApi = false, reason = "user_initiated" } = options;
+  const currentRole = getClientAuthRole();
+  const defaultTarget = getRoleLoginUrl(currentRole);
+  const { redirectUrl = defaultTarget, skipApi = false, reason = "user_initiated" } = options;
 
   if (isLoggingOutInProgress) {
     return;

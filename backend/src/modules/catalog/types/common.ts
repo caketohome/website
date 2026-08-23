@@ -56,17 +56,25 @@ export interface ProductMetaUpdate extends Partial<Omit<ProductMetaInput, "produ
 export interface ReviewInput {
     product_id: string;
     customer_id?: string | null;
+    customer_uid?: string | null;
+    order_id?: string | null;
+    order_item_id?: string | null;
     customer_name?: string | null;
     rating: number;
     title?: string | null;
     body?: string | null;
+    review_text?: string | null;
     images?: string[] | null;
     verified_purchase?: boolean;
+    is_verified_purchase?: boolean;
+    purchased_variant?: string | null;
 }
 
 export interface ReviewModerationInput {
-    status: "approved" | "rejected";
+    status: "approved" | "rejected" | "hidden";
     reply?: string | null;
+    admin_response?: string | null;
+    admin_name?: string | null;
 }
 
 export interface ReviewAggregate {

@@ -6,13 +6,20 @@ import { authLogout, clearClientAuthCookies, clearClientAuthStorage, broadcastMu
 
 export interface AuthUser {
   id: string;
-  customer_uid: string;
+  customer_uid?: string;
   name: string;
   first_name: string;
   last_name?: string;
   email: string;
   phone: string;
   role: string;
+  branch_id?: string | null;
+  branch_name?: string | null;
+  delivery_partner_id?: string | null;
+  partner_number?: string | null;
+  profile_ids?: string[];
+  profile_names?: string[];
+  permissions?: string[];
   date_of_birth?: string | null;
   created_at?: string;
 }
@@ -38,7 +45,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(true);
   const inFlightPromiseRef = useRef<Promise<AuthUser | null> | null>(null);
   const router = useRouter();
@@ -151,8 +158,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        currentUser,
-        user: currentUser,
+        currentUser: currentUser ?? null,
+        user: currentUser ?? null,
         loading,
         isAuthenticated: Boolean(currentUser),
         login,

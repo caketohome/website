@@ -5,6 +5,8 @@ import { TelemarketingEngine } from "@frontend/lib/telemarketing-engine";
 import { TelemarketingExportService } from "@frontend/lib/telemarketing-export-service";
 import { StaffAccessControl, PERMISSION_CATALOG } from "@frontend/lib/staff-access-control";
 import { normalizePhone, SYSTEM_SEGMENTS } from "@frontend/lib/crm/crm-engine";
+import { FulfillmentEngine, DeliverySlotGenerator, DEFAULT_SLOT_CONFIG } from "@frontend/lib/fulfillment";
+import { createApiEngineProvider, ensureFulfillmentStore, generateOtp, verifyOtp, getActiveOtp } from "@frontend/lib/fulfillment/api-engine-provider";
 
 const BACKEND_URL = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000";
 
@@ -29,6 +31,27 @@ function resolveUserContext(req: NextRequest) {
     phone,
     isSuperAdmin: role === "SUPER_ADMIN" || userId === "admin_01",
   };
+}
+
+function resolveCustomerUidFromReq(req: NextRequest): string | null {
+  const cookieCustomerUid = req.cookies.get("_cth_customer_uid")?.value;
+  const cookieUserId = req.cookies.get("_cth_user_id")?.value;
+  const cookiePhone = req.cookies.get("_cth_phone")?.value;
+  const cookieRole = req.cookies.get("_cth_role")?.value;
+  const headerUid = req.headers.get("x-customer-uid") || req.headers.get("x-user-id");
+
+  if (!cookieCustomerUid && !cookieUserId && !cookiePhone && !headerUid) {
+    return null;
+  }
+
+  const resolved = ApiEngine.resolveUserAccount({
+    customerUid: cookieCustomerUid || headerUid || undefined,
+    userId: cookieUserId || headerUid || undefined,
+    phone: cookiePhone || undefined,
+    role: cookieRole || undefined,
+  });
+
+  return resolved?.customer_uid || resolved?.id || cookieCustomerUid || headerUid || null;
 }
 
 function verifyApiPermission(req: NextRequest, module: string, action: string = "VIEW"): NextResponse | null {
@@ -128,24 +151,42 @@ function resolveManagerSession(req: NextRequest) {
     return { error: "Forbidden: Account is not authorized for branch management.", status: 403 };
   }
 
-  // 3. Resolve Branch strictly from session
-  const targetBranchId = sessionBranchId || (sessionUserId?.startsWith("shpmgr_") ? "res_01KXYMAHGFPRY1G9TZKEVGAGAT" : "res_01KXYMAHGFPRY1G9TZKEVGAGAT");
-  const branch = ApiEngine.resolveBranchRecord(targetBranchId);
-
-  if (!branch) {
-    return { error: "Forbidden: Assigned operational branch not found.", status: 403 };
-  }
-
   const isSuperAdmin = Boolean(
     (sessionRole && ["super_admin", "admin"].includes(sessionRole.toLowerCase())) ||
     (sessionUserId && sessionUserId.startsWith("admin_"))
   );
 
+  // 3. Resolve Manager Profile and Authorized Branch strictly server-side
+  let targetBranchId = sessionBranchId;
+  if (!targetBranchId && sessionUserId) {
+    const managerAcc = ApiEngine.resolveUserAccount({ userId: sessionUserId, role: "BRANCH_MANAGER" });
+    if (managerAcc?.branch_id) {
+      targetBranchId = managerAcc.branch_id;
+    }
+  }
+
+  if (!targetBranchId) {
+    targetBranchId = "br_indiranagar";
+  }
+
+  const branch = ApiEngine.resolveBranchRecord(targetBranchId);
+  if (!branch) {
+    return { error: "Forbidden: Assigned operational branch not found.", status: 403 };
+  }
+
+  // Non-super-admin manager cannot manage another branch
+  if (!isSuperAdmin && sessionUserId && sessionUserId.startsWith("shpmgr_")) {
+    const assignedBranchId = sessionUserId.replace("shpmgr_", "br_");
+    if (assignedBranchId !== branch.id && branch.manager_id !== sessionUserId && (sessionUserId !== "shpmgr_01" || branch.id !== "br_indiranagar")) {
+      return { error: `Forbidden: Manager ${sessionUserId} is not authorized for branch ${branch.name}.`, status: 403 };
+    }
+  }
+
   return {
     success: true,
     branchId: branch.id,
     branch,
-    userId: sessionUserId || "shpmgr_01",
+    userId: sessionUserId || branch.manager_id || "shpmgr_01",
     role: sessionRole || "branch_manager",
     isSuperAdmin,
   };
@@ -447,16 +488,16 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const claim2 = ApiEngine.claimDeliveryJob(ord.id, "dlp_102");
       suiteResults.push({ id: "9.2", name: "Concurrent Claim Conflict Guard (409 Conflict)", status: (!claim2.success && claim2.statusCode === 409) ? "PASS" : "FAIL" });
 
-      const wrongPickup = ApiEngine.verifyPickupOtpBackend(ord.id, "0000", "dlp_101");
+      const wrongPickup = await ApiEngine.verifyPickupOtpBackend(ord.id, "0000", "dlp_101");
       suiteResults.push({ id: "9.3", name: "Invalid Pickup OTP Rejection (400 Bad Request)", status: (!wrongPickup.success && wrongPickup.statusCode === 400) ? "PASS" : "FAIL" });
 
-      const rightPickup = ApiEngine.verifyPickupOtpBackend(ord.id, ord.pickup_otp, "dlp_101");
-      suiteResults.push({ id: "9.4", name: "Valid Pickup OTP Verification (Out for Delivery)", status: (rightPickup.success && rightPickup.order.delivery_status === "out_for_delivery") ? "PASS" : "FAIL" });
+      const rightPickup = await ApiEngine.verifyPickupOtpBackend(ord.id, ord.pickup_otp, "dlp_101");
+      suiteResults.push({ id: "9.4", name: "Valid Pickup OTP Verification (Out for Delivery)", status: (rightPickup.success && (rightPickup.order.status === "out_for_delivery" || rightPickup.order.delivery_status === "in_transit")) ? "PASS" : "FAIL" });
 
-      const wrongCust = ApiEngine.verifyCustomerOtpBackend(ord.id, "0000", "dlp_101");
+      const wrongCust = await ApiEngine.verifyCustomerOtpBackend(ord.id, "0000", "dlp_101");
       suiteResults.push({ id: "9.5", name: "Invalid Customer OTP Rejection (400 Bad Request)", status: (!wrongCust.success && wrongCust.statusCode === 400) ? "PASS" : "FAIL" });
 
-      const rightCust = ApiEngine.verifyCustomerOtpBackend(ord.id, ord.delivery_otp, "dlp_101");
+      const rightCust = await ApiEngine.verifyCustomerOtpBackend(ord.id, ord.delivery_otp, "dlp_101");
       suiteResults.push({ id: "9.6", name: "Valid Customer OTP Fulfilled (Status: Delivered)", status: (rightCust.success && rightCust.order.status === "delivered") ? "PASS" : "FAIL" });
 
       // ── Domain 10: Branch Manager Control Center ──
@@ -516,6 +557,95 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
     }
 
+    // ── Canonical Products Catalog & Search Endpoints (GET) ──
+    if (
+      path === "products" ||
+      path === "store/products" ||
+      path === "products/search" ||
+      path === "store/products/search"
+    ) {
+      const q = url.searchParams.get("q") || undefined;
+      const category = url.searchParams.get("category") || url.searchParams.get("category_id") || undefined;
+      const flavour = url.searchParams.get("flavour") || undefined;
+      const weight = url.searchParams.get("weight") || undefined;
+      const branchId = url.searchParams.get("branchId") || url.searchParams.get("shop_id") || url.searchParams.get("branch_id") || undefined;
+      const pincode = url.searchParams.get("pincode") || undefined;
+      const minPrice = url.searchParams.get("min_price") ? Number(url.searchParams.get("min_price")) : undefined;
+      const maxPrice = url.searchParams.get("max_price") ? Number(url.searchParams.get("max_price")) : undefined;
+      const sort = url.searchParams.get("sort") || undefined;
+      const limit = url.searchParams.get("limit") ? Number(url.searchParams.get("limit")) : 48;
+      const offset = url.searchParams.get("offset") ? Number(url.searchParams.get("offset")) : 0;
+      const includeTestProducts = url.searchParams.get("include_test_products") === "true";
+
+      const searchResult = ApiEngine.searchProducts({
+        q,
+        category,
+        flavour,
+        weight,
+        branchId,
+        pincode,
+        min_price: minPrice,
+        max_price: maxPrice,
+        sort,
+        limit,
+        offset,
+        include_test_products: includeTestProducts,
+      });
+
+      return jsonWithDataSource(
+        {
+          success: true,
+          products: searchResult.products,
+          results: searchResult.results,
+          count: searchResult.total,
+          total: searchResult.total,
+          categories: searchResult.categories,
+          flavours: searchResult.flavours,
+          facets: searchResult.facets,
+          suggestions: searchResult.suggestions,
+          limit,
+          offset,
+        },
+        "json-fallback"
+      );
+    }
+
+    // ── Search & Merchandising Engine Endpoints (GET) ──
+    if (path === "search/config") {
+      return jsonWithDataSource({ success: true, config: ApiEngine.getSearchConfig() }, "json-fallback");
+    }
+    if (path === "search/tags") {
+      return jsonWithDataSource({ success: true, tags: ApiEngine.getSearchTags() }, "json-fallback");
+    }
+    if (path === "search/synonyms") {
+      return jsonWithDataSource({ success: true, synonyms: ApiEngine.getSearchSynonyms() }, "json-fallback");
+    }
+    if (path === "search/rules" || path === "search/merchandising-rules") {
+      return jsonWithDataSource({ success: true, rules: ApiEngine.getSearchMerchandisingRules() }, "json-fallback");
+    }
+    if (path === "search/analytics") {
+      return jsonWithDataSource({ success: true, analytics: ApiEngine.getSearchAnalytics() }, "json-fallback");
+    }
+    if (path === "search/canonical-products") {
+      return jsonWithDataSource({ success: true, products: ApiEngine.getCanonicalProducts() }, "json-fallback");
+    }
+
+    if (
+      (path.startsWith("products/") || path.startsWith("store/products/")) &&
+      !path.includes("/reviews") &&
+      !path.includes("/weight-prices") &&
+      !path.includes("/meta") &&
+      !path.includes("/cake-options") &&
+      !path.endsWith("/search")
+    ) {
+      const idOrSlug = path.replace("products/", "").replace("store/products/", "");
+      const product = ApiEngine.getProductById(idOrSlug) || (ApiEngine.getProducts() || []).find((p: any) => p.slug === idOrSlug || p.handle === idOrSlug);
+      if (!product) {
+        return jsonWithDataSource({ success: false, error: "Product not found" }, "json-fallback", 404);
+      }
+      return jsonWithDataSource({ success: true, product }, "json-fallback");
+    }
+
     if (path === "customer/me" || path === "customer/profile" || path === "auth/me" || path === "users/me" || path === "store/users/me") {
       const cookieCustomerUid = req.cookies.get("_cth_customer_uid")?.value;
       const cookieUserId = req.cookies.get("_cth_user_id")?.value;
@@ -544,11 +674,104 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ success: true, user, customer: user }, "json-fallback");
     }
 
+    // ── Customer Favorites / Wishlist (GET) ──
+    if (path === "customer/favorites" || path === "customer/wishlist" || path === "store/favorites" || path === "store/wishlist") {
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource({ success: true, favorites: [], favorite_ids: [], count: 0, is_guest: true }, "json-fallback");
+      }
+      const favorites = ApiEngine.getCustomerFavorites(customerUid);
+      const favoriteIds = ApiEngine.getCustomerFavoriteIds(customerUid);
+      return jsonWithDataSource({ success: true, favorites, favorite_ids: favoriteIds, count: favorites.length, customer_uid: customerUid }, "json-fallback");
+    }
+    if (path.startsWith("customer/favorites/check/") || path.startsWith("customer/wishlist/check/") || path.startsWith("store/favorites/check/") || path.startsWith("store/wishlist/check/")) {
+      const productId = path.split("/").pop() || "";
+      const customerUid = resolveCustomerUidFromReq(req);
+      const isFavorited = customerUid ? ApiEngine.isProductFavorited(customerUid, productId) : false;
+      return jsonWithDataSource({ success: true, is_favorited: isFavorited, product_id: productId }, "json-fallback");
+    }
+
+    if (path === "categories" || path === "products/categories" || path === "store/categories") {
+      const includeInactive = url.searchParams.get("include_inactive") === "true";
+      const categories = ApiEngine.getCategories(includeInactive);
+      return jsonWithDataSource({ categories, results: categories, count: categories.length, success: true }, "json-fallback");
+    }
+
+    if (path.startsWith("categories/")) {
+      const slugOrId = path.replace("categories/", "").replace("store/categories/", "");
+      const category = ApiEngine.getCategoryBySlug(slugOrId) || ApiEngine.getCategoryById(slugOrId);
+      if (!category) return jsonWithDataSource({ error: "Category not found", success: false }, "json-fallback", 404);
+      return jsonWithDataSource({ category, success: true }, "json-fallback");
+    }
+
     if (path === "products") {
       const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
       const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || undefined;
-      const products = ApiEngine.getProducts(branchId, pincode);
-      return jsonWithDataSource({ products, results: products }, "json-fallback");
+      const category = url.searchParams.get("category") || url.searchParams.get("category_id") || undefined;
+      const flavour = url.searchParams.get("flavour") || undefined;
+      const weight = url.searchParams.get("weight") || undefined;
+      const min_price = url.searchParams.get("min_price") ? Number(url.searchParams.get("min_price")) : undefined;
+      const max_price = url.searchParams.get("max_price") ? Number(url.searchParams.get("max_price")) : undefined;
+      const q = url.searchParams.get("q") || undefined;
+      const sort = url.searchParams.get("sort") || undefined;
+
+      const products = ApiEngine.getProducts({ branchId, pincode, category, flavour, weight, min_price, max_price, q, sort });
+      return jsonWithDataSource({ products, results: products, count: products.length, success: true }, "json-fallback");
+    }
+
+    // ── Product Reviews & Ratings (GET) ──
+    if (
+      (path.startsWith("products/") && path.endsWith("/reviews")) ||
+      (path.startsWith("store/products/") && path.endsWith("/reviews"))
+    ) {
+      const parts = path.split("/");
+      const productId = parts[parts.length - 2];
+      const page = Number(url.searchParams.get("page")) || 1;
+      const pageSize = Number(url.searchParams.get("pageSize") || url.searchParams.get("page_size") || url.searchParams.get("limit")) || 10;
+      const sort = (url.searchParams.get("sort") || "recent") as any;
+      const ratingFilter = url.searchParams.get("rating") ? Number(url.searchParams.get("rating")) : undefined;
+      const verifiedOnly = url.searchParams.get("verified_only") === "true";
+      const status = url.searchParams.get("status") || "APPROVED";
+
+      const result = ApiEngine.getProductReviews(productId, {
+        page,
+        pageSize,
+        sort,
+        ratingFilter,
+        verifiedOnly,
+        status,
+      });
+
+      return jsonWithDataSource({ success: true, ...result }, "json-fallback");
+    }
+
+    if (path === "customer/reviews/eligible" || path === "store/customer/reviews/eligible") {
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "json-fallback", 401);
+      }
+      const eligible = ApiEngine.getCustomerEligibleReviews(customerUid);
+      return jsonWithDataSource({ success: true, eligible_items: eligible, count: eligible.length }, "json-fallback");
+    }
+
+    if (path === "customer/reviews" || path === "store/customer/reviews") {
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "json-fallback", 401);
+      }
+      const reviews = ApiEngine.getCustomerReviews(customerUid);
+      return jsonWithDataSource({ success: true, reviews, count: reviews.length }, "json-fallback");
+    }
+
+    if (path === "admin/reviews") {
+      const page = Number(url.searchParams.get("page")) || 1;
+      const pageSize = Number(url.searchParams.get("pageSize")) || 20;
+      const status = url.searchParams.get("status") || "ALL";
+      const productId = url.searchParams.get("productId") || undefined;
+      const search = url.searchParams.get("search") || undefined;
+
+      const result = ApiEngine.getAdminReviews({ page, pageSize, status, productId, search });
+      return jsonWithDataSource({ success: true, ...result }, "json-fallback");
     }
 
     if (path.startsWith("products/slug/")) {
@@ -615,6 +838,83 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         coupon_code: url.searchParams.get("coupon_code") || undefined,
       });
       return jsonWithDataSource(result, "json-fallback");
+    }
+
+    // ── Centralized Fulfillment Engine Endpoints (GET) ──
+    if (path === "fulfillment/check" || path === "store/fulfillment/check" || path === "fulfillment/availability" || path === "store/fulfillment/availability") {
+      const store = ApiEngine.getStore();
+      const provider = createApiEngineProvider(store);
+      const result = FulfillmentEngine.calculateOrderAvailability(
+        {
+          product_id: url.searchParams.get("product_id") || "prod_default",
+          branch_id: url.searchParams.get("branch_id") || undefined,
+          city_id: url.searchParams.get("city_id") || undefined,
+          requested_delivery_date: url.searchParams.get("date") || undefined,
+          requested_delivery_time: url.searchParams.get("time") || undefined,
+        },
+        provider
+      );
+      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+    }
+
+    if (path === "fulfillment/operating-hours" || path === "admin/fulfillment/operating-hours") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      const entityType = url.searchParams.get("entity_type") || "organization";
+      const entityId = url.searchParams.get("entity_id") || "global";
+      const provider = createApiEngineProvider(store);
+      const hours = provider.getOperatingHours(entityType, entityId);
+      return jsonWithDataSource({ operating_hours: hours, count: hours.length, success: true }, "json-fallback");
+    }
+
+    if (path === "fulfillment/holidays" || path === "admin/fulfillment/holidays") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      const provider = createApiEngineProvider(store);
+      const holidays = provider.getHolidays();
+      return jsonWithDataSource({ holidays, count: holidays.length, success: true }, "json-fallback");
+    }
+
+    if (path === "fulfillment/slots" || path === "store/fulfillment/slots") {
+      const store = ApiEngine.getStore();
+      const provider = createApiEngineProvider(store);
+      const globalConfig = provider.getGlobalConfig();
+      const productId = url.searchParams.get("product_id") || null;
+      const branchId = url.searchParams.get("branch_id") || null;
+      let effectivePrepMinutes = globalConfig.default_preparation_time_minutes;
+      let deliveryBufferMinutes = globalConfig.default_delivery_buffer_minutes;
+
+      if (productId) {
+        const effConfig = FulfillmentEngine.resolveEffectiveConfig(
+          productId, branchId, globalConfig, provider
+        );
+        effectivePrepMinutes = effConfig.preparation_time_minutes
+          + (effConfig.preparation_delay_enabled ? effConfig.preparation_delay_minutes : 0);
+        deliveryBufferMinutes = effConfig.delivery_buffer_minutes;
+      }
+
+      const daysAhead = Number(url.searchParams.get("days") || DEFAULT_SLOT_CONFIG.days_ahead);
+      const slots = DeliverySlotGenerator.generateSlots(
+        branchId,
+        effectivePrepMinutes,
+        deliveryBufferMinutes,
+        provider,
+        { ...DEFAULT_SLOT_CONFIG, days_ahead: daysAhead }
+      );
+      return jsonWithDataSource({ slots, count: slots.length, success: true }, "json-fallback");
+    }
+
+    if (path === "fulfillment/config" || path === "admin/fulfillment/config") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      return jsonWithDataSource({
+        config: store.fulfillment_config,
+        operating_hours: store.operating_hours || [],
+        holidays: store.holidays || [],
+        product_rules_count: (store.product_fulfillment_rules || []).length,
+        rider_presence_count: (store.rider_presence || []).length,
+        success: true,
+      }, "json-fallback");
     }
 
     if (path === "orders" || path === "store/orders") {
@@ -688,7 +988,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     // Admin Controls & Marketing Subroutes
-    if (path === "admin/orders/export") return jsonWithDataSource(ApiEngine.exportAdminOrders(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/orders/export" || path === "admin/order-lifecycle/export") return jsonWithDataSource(ApiEngine.exportAdminOrders(Object.fromEntries(url.searchParams)), "json-fallback");
     if (path.startsWith("admin/delivery/partners/") && path.endsWith("/effective-coverage")) {
       const partnerId = path.replace("admin/delivery/partners/", "").replace("/effective-coverage", "");
       return jsonWithDataSource(ApiEngine.getPartnerEffectiveCoverage(partnerId), "json-fallback");
@@ -821,7 +1121,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
     if (path === "admin/delivery/eligible-partners") return jsonWithDataSource(ApiEngine.getEligibleDeliveryPartners(Object.fromEntries(url.searchParams)), "json-fallback");
     if (path === "admin/delivery/assignment-rules") return jsonWithDataSource({ rules: ApiEngine.getDeliveryAssignmentRules(), success: true }, "json-fallback");
-    if (path === "admin/orders") {
+    if (path === "admin/orders" || path === "admin/order-lifecycle" || path === "order-lifecycle") {
       const qParams = Object.fromEntries(url.searchParams);
       if (qParams.id || qParams.order_id) {
         const targetId = (qParams.id || qParams.order_id) as string;
@@ -830,8 +1130,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
       return jsonWithDataSource(ApiEngine.getAdminOrders(qParams), "json-fallback");
     }
-    if (path.startsWith("admin/orders/")) {
-      const parts = path.replace("admin/orders/", "").split("/");
+    if (path.startsWith("admin/orders/") || path.startsWith("admin/order-lifecycle/")) {
+      const parts = path.replace("admin/orders/", "").replace("admin/order-lifecycle/", "").split("/");
       const orderId = parts[0];
       const subAction = parts[1];
       if (subAction === "auto-assign-delivery") {
@@ -1353,6 +1653,77 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     const path = getPath(req, context);
     const body = await req.json().catch(() => ({}));
 
+    // ── Customer Favorites / Wishlist (POST) ──
+    if (
+      path.startsWith("customer/favorites/") ||
+      path.startsWith("customer/wishlist/") ||
+      path.startsWith("store/favorites/") ||
+      path.startsWith("store/wishlist/") ||
+      path === "customer/favorites" ||
+      path === "customer/wishlist" ||
+      path === "store/favorites" ||
+      path === "store/wishlist"
+    ) {
+      let productId = path.split("/").pop() || "";
+      if (productId === "favorites" || productId === "wishlist") {
+        productId = body.product_id || body.productId || "";
+      }
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: "UNAUTHORIZED",
+            message: "Please log in to save cakes to your Favorites.",
+            statusCode: 401,
+          },
+          "json-fallback",
+          401
+        );
+      }
+      const result = ApiEngine.addCustomerFavorite(customerUid, productId);
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+    }
+
+    // ── Product Reviews Submission (POST) ──
+    if (
+      path === "customer/reviews" ||
+      path === "customer/reviews/submit" ||
+      path === "store/customer/reviews" ||
+      path === "reviews" ||
+      (path.startsWith("products/") && path.endsWith("/reviews")) ||
+      (path.startsWith("store/products/") && path.endsWith("/reviews"))
+    ) {
+      let productId = body.productId || body.product_id;
+      if (!productId && path.startsWith("products/")) {
+        const parts = path.split("/");
+        productId = parts[parts.length - 2];
+      }
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: "UNAUTHORIZED",
+            message: "Please log in to submit a verified cake review.",
+            statusCode: 401,
+          },
+          "json-fallback",
+          401
+        );
+      }
+
+      const result = ApiEngine.submitProductReview(customerUid, {
+        productId: productId || "",
+        orderId: body.orderId || body.order_id,
+        rating: body.rating,
+        title: body.title,
+        reviewText: body.reviewText || body.review_text || body.body || body.comment || "",
+      });
+
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 201 : 400));
+    }
+
     if (path === "cart" || path === "store/cart" || path === "cart/items" || path === "store/cart/items") {
       const cartId = body.cartId || body.cart_id || req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value || `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       const pincode = body.pincode || req.cookies.get("delivery_pincode")?.value;
@@ -1623,6 +1994,200 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource(result, "json-fallback");
     }
 
+    // ── Centralized Fulfillment Engine Endpoints (POST) ──
+    if (path === "fulfillment/check" || path === "store/fulfillment/check" || path === "fulfillment/availability" || path === "store/fulfillment/availability") {
+      const store = ApiEngine.getStore();
+      const provider = createApiEngineProvider(store);
+      const result = FulfillmentEngine.calculateOrderAvailability(
+        {
+          product_id: body.product_id || (body.items && body.items[0]?.product_id) || "prod_default",
+          items: body.items,
+          productItems: body.productItems,
+          branch_id: body.branch_id,
+          city_id: body.city_id,
+          requested_delivery_date: body.date || body.requested_delivery_date || body.requestedDate,
+          requested_delivery_time: body.time || body.requested_delivery_time || body.requestedTime,
+          current_datetime: body.current_datetime || body.currentBusinessTime,
+        },
+        provider
+      );
+      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+    }
+
+    if (path === "fulfillment/cart-check" || path === "store/fulfillment/cart-check" || path === "fulfillment/cart-availability" || path === "store/fulfillment/cart-availability") {
+      const store = ApiEngine.getStore();
+      const provider = createApiEngineProvider(store);
+      const result = FulfillmentEngine.calculateCartEligibility(
+        {
+          items: (body.items || body.productItems || []).map((item: any) => ({
+            product_id: item.product_id || item.id,
+            quantity: item.quantity || 1,
+          })),
+          branch_id: body.branch_id,
+          city_id: body.city_id,
+          requested_delivery_date: body.date || body.requested_delivery_date || body.requestedDate,
+          requested_delivery_time: body.time || body.requested_delivery_time || body.requestedTime,
+          current_datetime: body.current_datetime || body.currentBusinessTime,
+        },
+        provider
+      );
+
+      // Also generate delivery slots based on the strictest item
+      const globalConfig = provider.getGlobalConfig();
+      const slots = DeliverySlotGenerator.generateSlots(
+        body.branch_id || null,
+        result.effective_preparation_minutes,
+        globalConfig.default_delivery_buffer_minutes,
+        provider
+      );
+      result.delivery_slots = slots;
+
+      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+    }
+
+    if (path === "fulfillment/otp/generate" || path === "admin/fulfillment/otp/generate") {
+      const store = ApiEngine.getStore();
+      if (!body.order_id) {
+        return jsonWithDataSource({ success: false, message: "order_id is required" }, "json-fallback", 400);
+      }
+      const otpType = body.otp_type === "pickup" ? "pickup" : "delivery";
+      const code = generateOtp(store, body.order_id, otpType);
+      ApiEngine.persist();
+      return jsonWithDataSource({
+        success: true,
+        otp_type: otpType,
+        order_id: body.order_id,
+        message: `OTP generated for ${otpType} verification.`,
+        // Code is returned for dev/demo but should be sent via SMS/WhatsApp in production
+        code,
+        expires_in_seconds: 300,
+      }, "json-fallback");
+    }
+
+    if (path === "fulfillment/otp/verify" || path === "admin/fulfillment/otp/verify") {
+      const store = ApiEngine.getStore();
+      if (!body.order_id || !body.code) {
+        return jsonWithDataSource({ success: false, message: "order_id and code are required" }, "json-fallback", 400);
+      }
+      const otpType = body.otp_type === "pickup" ? "pickup" : "delivery";
+      const verifiedBy = body.verified_by || body.rider_id || "system";
+      const result = verifyOtp(store, body.order_id, otpType, body.code, verifiedBy);
+      ApiEngine.persist();
+      return jsonWithDataSource({
+        success: result.valid,
+        verified: result.valid,
+        message: result.reason,
+        otp_type: otpType,
+        order_id: body.order_id,
+      }, "json-fallback", result.valid ? 200 : 400);
+    }
+
+    if (path === "admin/fulfillment/config" || path === "fulfillment/config") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      // Merge incoming config with existing
+      store.fulfillment_config = {
+        ...store.fulfillment_config,
+        ...body,
+        updated_at: new Date().toISOString(),
+      };
+      ApiEngine.persist();
+      return jsonWithDataSource({ config: store.fulfillment_config, success: true }, "json-fallback");
+    }
+
+    if (path === "admin/fulfillment/product-rules" || path === "fulfillment/product-rules") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      if (!body.product_id) {
+        return jsonWithDataSource({ success: false, message: "product_id is required" }, "json-fallback", 400);
+      }
+      const idx = store.product_fulfillment_rules.findIndex(
+        (r: any) => r.product_id === body.product_id
+      );
+      const ruleObj: any = {
+        id: body.id || `pfr_${body.product_id}`,
+        product_id: body.product_id,
+        instant_delivery_enabled: body.instant_delivery_enabled ?? true,
+        same_day_delivery_enabled: body.same_day_delivery_enabled ?? true,
+        pre_order_enabled: body.pre_order_enabled ?? false,
+        minimum_lead_time_minutes: body.minimum_lead_time_minutes ?? 0,
+        minimum_lead_time_days: body.minimum_lead_time_days ?? 0,
+        order_cutoff_time: body.order_cutoff_time ?? null,
+        preparation_time_minutes: body.preparation_time_minutes ?? 60,
+        preparation_delay_enabled: body.preparation_delay_enabled ?? false,
+        preparation_delay_minutes: body.preparation_delay_minutes ?? 0,
+        delivery_buffer_minutes: body.delivery_buffer_minutes ?? 30,
+        custom_delivery_rules: body.custom_delivery_rules ?? null,
+        updated_at: new Date().toISOString(),
+      };
+      if (idx >= 0) {
+        store.product_fulfillment_rules[idx] = ruleObj;
+      } else {
+        ruleObj.created_at = new Date().toISOString();
+        store.product_fulfillment_rules.push(ruleObj);
+      }
+      ApiEngine.persist();
+      return jsonWithDataSource({ rules: ruleObj, success: true }, "json-fallback");
+    }
+
+    if (path === "admin/fulfillment/operating-hours" || path === "fulfillment/operating-hours") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      if (!body.entity_type || !body.entity_id || body.day_of_week == null) {
+        return jsonWithDataSource({ success: false, message: "entity_type, entity_id, and day_of_week are required" }, "json-fallback", 400);
+      }
+      const idx = store.operating_hours.findIndex(
+        (h: any) => h.entity_type === body.entity_type && h.entity_id === body.entity_id && h.day_of_week === body.day_of_week
+      );
+      const hourObj = {
+        id: body.id || `oph_${body.entity_type}_${body.entity_id}_${body.day_of_week}`,
+        entity_type: body.entity_type,
+        entity_id: body.entity_id,
+        day_of_week: body.day_of_week,
+        is_open: body.is_open !== false,
+        opening_time: body.opening_time || "09:00",
+        closing_time: body.closing_time || "22:00",
+        last_order_time: body.last_order_time || null,
+        timezone: body.timezone || "Asia/Kolkata",
+      };
+      if (idx >= 0) {
+        store.operating_hours[idx] = hourObj;
+      } else {
+        store.operating_hours.push(hourObj);
+      }
+      ApiEngine.persist();
+      return jsonWithDataSource({ operating_hours: hourObj, success: true }, "json-fallback");
+    }
+
+    if (path === "admin/fulfillment/holidays" || path === "fulfillment/holidays") {
+      const store = ApiEngine.getStore();
+      ensureFulfillmentStore(store);
+      if (!body.date || !body.name) {
+        return jsonWithDataSource({ success: false, message: "date and name are required" }, "json-fallback", 400);
+      }
+      const holiday = {
+        id: body.id || `hol_${body.entity_type || "organization"}_${body.date}`,
+        entity_type: body.entity_type || "organization",
+        entity_id: body.entity_id || "global",
+        date: body.date,
+        name: body.name,
+        is_full_day: body.is_full_day !== false,
+        opening_time: body.opening_time || null,
+        closing_time: body.closing_time || null,
+      };
+      // Check if holiday already exists for this entity+date
+      const existIdx = store.holidays.findIndex(
+        (h: any) => h.entity_type === holiday.entity_type && h.entity_id === holiday.entity_id && h.date === holiday.date
+      );
+      if (existIdx >= 0) {
+        store.holidays[existIdx] = holiday;
+      } else {
+        store.holidays.push(holiday);
+      }
+      ApiEngine.persist();
+      return jsonWithDataSource({ holiday, success: true }, "json-fallback");
+    }
+
     if (path === "checkout/validate" || path === "store/checkout/validate") {
       const result = ApiEngine.validateCheckout(body);
       return jsonWithDataSource(result, "json-fallback", result.valid ? 200 : 400);
@@ -1812,12 +2377,12 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/pickup-otp/verify")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/pickup-otp/verify", "");
-      const result = ApiEngine.verifyPickupOtpBackend(orderId, body.otp || body.pickup_otp, body.partner_id || "dlp_101");
+      const result = await ApiEngine.verifyPickupOtpBackend(orderId, body.otp || body.pickup_otp, body.partner_id || "dlp_101");
       return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/delivery-otp/verify")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/delivery-otp/verify", "");
-      const result = ApiEngine.verifyCustomerOtpBackend(orderId, body.otp || body.delivery_otp, body.partner_id || "dlp_101");
+      const result = await ApiEngine.verifyCustomerOtpBackend(orderId, body.otp || body.delivery_otp, body.partner_id || "dlp_101");
       return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/exception")) {
@@ -1853,33 +2418,33 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
       if (path.startsWith("manager/orders/") && path.endsWith("/accept")) {
         const orderId = path.replace("manager/orders/", "").replace("/accept", "");
-        const result = ApiEngine.acceptBranchOrder(orderId, branchId, body.notes);
+        const result: any = await ApiEngine.acceptBranchOrder(orderId, branchId, body.notes);
         return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/reject")) {
         const orderId = path.replace("manager/orders/", "").replace("/reject", "");
-        const result = ApiEngine.rejectBranchOrder(orderId, branchId, body.reason);
+        const result: any = await ApiEngine.rejectBranchOrder(orderId, branchId, body.reason);
         return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/hold")) {
         const orderId = path.replace("manager/orders/", "").replace("/hold", "");
-        const result = ApiEngine.holdBranchOrder(orderId, branchId, body.reason);
+        const result: any = await ApiEngine.holdBranchOrder(orderId, branchId, body.reason);
         return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/delay")) {
         const orderId = path.replace("manager/orders/", "").replace("/delay", "");
-        const result = ApiEngine.delayBranchOrder(orderId, branchId, body.reason, body.new_eta || body.newEta);
+        const result: any = await ApiEngine.delayBranchOrder(orderId, branchId, body.reason, body.new_eta || body.newEta);
         return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/ready")) {
         const orderId = path.replace("manager/orders/", "").replace("/ready", "");
-        const result = ApiEngine.markBranchOrderReady(orderId, branchId);
+        const result: any = await ApiEngine.markBranchOrderReady(orderId, branchId);
         return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && (path.endsWith("/assign-rider") || path.endsWith("/reassign-rider"))) {
         const orderId = path.replace("manager/orders/", "").replace("/assign-rider", "").replace("/reassign-rider", "");
         const riderId = body.partner_id || body.delivery_partner_id || body.riderId || body.partnerId;
-        const result = ApiEngine.assignBranchOrderRider(orderId, branchId, riderId);
+        const result: any = await ApiEngine.assignBranchOrderRider(orderId, branchId, riderId);
         return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/kot/reprint")) {
@@ -2102,6 +2667,17 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
     // CMS Configurator
     if (path === "cms/pages") return jsonWithDataSource({ page: ApiEngine.createCmsPage(body) }, "json-fallback");
+
+    // ── Search & Merchandising Engine Endpoints (POST) ──
+    if (path === "search/tags") {
+      return jsonWithDataSource({ success: true, tag: ApiEngine.saveSearchTag(body) }, "json-fallback");
+    }
+    if (path === "search/synonyms") {
+      return jsonWithDataSource({ success: true, synonym: ApiEngine.saveSearchSynonym(body) }, "json-fallback");
+    }
+    if (path === "search/rules" || path === "search/merchandising-rules") {
+      return jsonWithDataSource({ success: true, rule: ApiEngine.saveSearchMerchandisingRule(body) }, "json-fallback");
+    }
     if (path.startsWith("cms/pages/") && path.endsWith("/duplicate")) {
       const pageId = path.replace("cms/pages/", "").replace("/duplicate", "");
       return jsonWithDataSource({ page: ApiEngine.duplicateCmsPage(pageId) }, "json-fallback");
@@ -2601,6 +3177,33 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     if (backendRes) return backendRes;
 
     // 2. Fallback Route: Disk-Backed ApiEngine
+    // ── Customer Review Edit (PUT / PATCH) ──
+    if (path.startsWith("customer/reviews/") || path.startsWith("store/customer/reviews/")) {
+      const reviewId = path.split("/").pop() || "";
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "json-fallback", 401);
+      }
+      const result = ApiEngine.updateProductReview(customerUid, reviewId, {
+        rating: body.rating,
+        title: body.title,
+        reviewText: body.reviewText || body.review_text || body.body || body.comment,
+      });
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+    }
+
+    // ── Admin Review Moderation (PUT / PATCH) ──
+    if (path.startsWith("admin/reviews/")) {
+      const parts = path.replace("admin/reviews/", "").split("/");
+      const reviewId = parts[0];
+      const action = (body.action || "APPROVE").toUpperCase() as any;
+      const result = ApiEngine.moderateReview(reviewId, action, {
+        adminName: body.adminName || body.admin_name,
+        adminResponse: body.adminResponse || body.admin_response || body.reply,
+      });
+      return jsonWithDataSource(result, "json-fallback", result.success ? 200 : 404);
+    }
+
     // Cart Item Update
     if (path === "cart/items") {
       const cartId = body.cartId || req.cookies.get("_cth_cart_id")?.value || "cart_guest_100";
@@ -2772,6 +3375,23 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       }
     }
 
+    // ── Search & Merchandising Engine Endpoints (PUT) ──
+    if (path === "search/config" || path === "search/weights") {
+      return jsonWithDataSource({ success: true, weights: ApiEngine.updateSearchWeights(body) }, "json-fallback");
+    }
+    if (path.startsWith("search/tags/")) {
+      const tagId = path.replace("search/tags/", "");
+      return jsonWithDataSource({ success: true, tag: ApiEngine.saveSearchTag({ ...body, tag_id: tagId }) }, "json-fallback");
+    }
+    if (path.startsWith("search/synonyms/")) {
+      const synId = path.replace("search/synonyms/", "");
+      return jsonWithDataSource({ success: true, synonym: ApiEngine.saveSearchSynonym({ ...body, id: synId }) }, "json-fallback");
+    }
+    if (path.startsWith("search/rules/")) {
+      const ruleId = path.replace("search/rules/", "");
+      return jsonWithDataSource({ success: true, rule: ApiEngine.saveSearchMerchandisingRule({ ...body, id: ruleId }) }, "json-fallback");
+    }
+
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
       return jsonWithDataSource({ page: ApiEngine.updateCmsPage(pageId, body) }, "json-fallback");
@@ -2918,6 +3538,59 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     if (backendRes) return backendRes;
 
     // 2. Fallback Route: Disk-Backed ApiEngine
+    // ── Customer Favorites / Wishlist (DELETE) ──
+    if (
+      path.startsWith("customer/favorites/") ||
+      path.startsWith("customer/wishlist/") ||
+      path.startsWith("store/favorites/") ||
+      path.startsWith("store/wishlist/") ||
+      path === "customer/favorites" ||
+      path === "customer/wishlist" ||
+      path === "store/favorites" ||
+      path === "store/wishlist"
+    ) {
+      let productId = path.split("/").pop() || "";
+      if (productId === "favorites" || productId === "wishlist") {
+        const url = new URL(req.url);
+        productId = url.searchParams.get("product_id") || url.searchParams.get("productId") || body.product_id || body.productId || "";
+      }
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: "UNAUTHORIZED",
+            message: "Please log in to manage your Favorites.",
+            statusCode: 401,
+          },
+          "json-fallback",
+          401
+        );
+      }
+      const result = ApiEngine.removeCustomerFavorite(customerUid, productId);
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+    }
+
+    // ── Customer Review Deletion (DELETE) ──
+    if (path.startsWith("customer/reviews/") || path.startsWith("store/customer/reviews/")) {
+      const reviewId = path.split("/").pop() || "";
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: "UNAUTHORIZED",
+            message: "Please log in to manage your reviews.",
+            statusCode: 401,
+          },
+          "json-fallback",
+          401
+        );
+      }
+      const result = ApiEngine.deleteProductReview(customerUid, reviewId);
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+    }
+
     if (path.startsWith("admin/popups/") || path.startsWith("popups/")) {
       const id = path.replace("admin/popups/", "").replace("popups/", "");
       return jsonWithDataSource({ deleted: ApiEngine.deletePopupCampaign(id), success: true }, "json-fallback");
@@ -2985,6 +3658,20 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     if (path.startsWith("admin/catalog/products/")) {
       const id = path.replace("admin/catalog/products/", "");
       return jsonWithDataSource({ deleted: ApiEngine.deleteAdminProduct(id), success: true }, "json-fallback");
+    }
+
+    // ── Search & Merchandising Engine Endpoints (DELETE) ──
+    if (path.startsWith("search/tags/")) {
+      const tagId = path.replace("search/tags/", "");
+      return jsonWithDataSource(ApiEngine.deleteSearchTag(tagId), "json-fallback");
+    }
+    if (path.startsWith("search/synonyms/")) {
+      const synId = path.replace("search/synonyms/", "");
+      return jsonWithDataSource(ApiEngine.deleteSearchSynonym(synId), "json-fallback");
+    }
+    if (path.startsWith("search/rules/")) {
+      const ruleId = path.replace("search/rules/", "");
+      return jsonWithDataSource(ApiEngine.deleteSearchMerchandisingRule(ruleId), "json-fallback");
     }
 
     if (path.startsWith("admin/abandoned-carts/campaigns/")) {
@@ -3061,6 +3748,33 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
     if (backendRes) return backendRes;
 
     // 2. Fallback Route: Disk-Backed ApiEngine
+    // ── Customer Review Edit (PATCH) ──
+    if (path.startsWith("customer/reviews/") || path.startsWith("store/customer/reviews/")) {
+      const reviewId = path.split("/").pop() || "";
+      const customerUid = resolveCustomerUidFromReq(req);
+      if (!customerUid) {
+        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "json-fallback", 401);
+      }
+      const result = ApiEngine.updateProductReview(customerUid, reviewId, {
+        rating: body.rating,
+        title: body.title,
+        reviewText: body.reviewText || body.review_text || body.body || body.comment,
+      });
+      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+    }
+
+    // ── Admin Review Moderation (PATCH) ──
+    if (path.startsWith("admin/reviews/")) {
+      const parts = path.replace("admin/reviews/", "").split("/");
+      const reviewId = parts[0];
+      const action = (body.action || "APPROVE").toUpperCase() as any;
+      const result = ApiEngine.moderateReview(reviewId, action, {
+        adminName: body.adminName || body.admin_name,
+        adminResponse: body.adminResponse || body.admin_response || body.reply,
+      });
+      return jsonWithDataSource(result, "json-fallback", result.success ? 200 : 404);
+    }
+
     if (path.startsWith("manager/")) {
       const mgrAuth: any = resolveManagerSession(req);
       if (mgrAuth.error) {
