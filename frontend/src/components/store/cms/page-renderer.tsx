@@ -577,6 +577,19 @@ export function PageRenderer({
               );
             }
 
+            // ── 1b. Kitchen Story / Scroll Frame Section ─────────────────
+            case "kitchen_story":
+            case "scroll_frame": {
+              return (
+                <ScrollFrameHero
+                  key={sectionKey}
+                  sectionId={sectionKey}
+                  config={config}
+                  isPreview={isPreview}
+                />
+              );
+            }
+
             // ── 2. Category Grid / Carousel ──────────────────────────────
             case "category_grid":
             case "categories": {

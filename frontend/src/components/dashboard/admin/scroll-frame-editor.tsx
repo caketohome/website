@@ -31,6 +31,7 @@ import {
   Tablet as TabletIcon,
   Smartphone,
   Info,
+  GripVertical,
 } from "lucide-react";
 import { AnimationFrameItem, DeviceAnimationConfig } from "../../../components/store/animation/scroll-frame-hero";
 import { apiClient } from "../../../lib/api-client";
@@ -80,7 +81,7 @@ function Toggle({
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${
         checked ? "bg-rose-500" : "bg-ui-bg-component border border-ui-border-base"
       }`}
       aria-label={label}
@@ -162,12 +163,20 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
   const [activeDevice, setActiveDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [activeTab, setActiveTab] = useState<"media" | "animation" | "content">("media");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [uploadStats, setUploadStats] = useState<{ originalTotal: number; compressedTotal: number; savingsPct: number } | null>(null);
   const [previewFrame, setPreviewFrame] = useState<AnimationFrameItem | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
 
+  // Drag-and-drop frame reordering state
+  const [draggedFrameIndex, setDraggedFrameIndex] = useState<number | null>(null);
+  const [dragOverFrameIndex, setDragOverFrameIndex] = useState<number | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const replaceFileInputRef = useRef<HTMLInputElement | null>(null);
+  const activeReplacingFrameIdRef = useRef<string | null>(null);
 
   // Get active device config with default structure
   const desktopConfig: DeviceAnimationConfig = config.desktop || {};
@@ -199,6 +208,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
   // ── 1. Batch Upload & Compression Pipeline ────────────────────────────────
   const handleFilesSelected = async (files: FileList | File[]) => {
     setErrorMessage(null);
+    setInfoMessage(null);
     const fileArray = Array.from(files).filter((f) =>
       ["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(f.type)
     );
@@ -209,11 +219,16 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
     }
 
     const availableSlots = MAX_FRAME_COUNT - currentFrameCount;
-    if (fileArray.length > availableSlots) {
-      setErrorMessage(
-        `Maximum ${MAX_FRAME_COUNT} frames allowed. You currently have ${currentFrameCount} frames and selected ${fileArray.length}.`
-      );
+    if (availableSlots <= 0) {
+      setErrorMessage(`Maximum ${MAX_FRAME_COUNT} frames allowed. Delete existing frames before uploading new ones.`);
       return;
+    }
+
+    // Accept up to availableSlots, reject excess with notice
+    let filesToProcess = fileArray;
+    if (fileArray.length > availableSlots) {
+      filesToProcess = fileArray.slice(0, availableSlots);
+      setInfoMessage(`${filesToProcess.length} frames added. Maximum ${MAX_FRAME_COUNT} frames allowed.`);
     }
 
     setIsProcessing(true);
@@ -223,8 +238,9 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
       let compTotal = 0;
       const newFrames: AnimationFrameItem[] = [];
 
-      for (let i = 0; i < fileArray.length; i++) {
-        const file = fileArray[i];
+      for (let i = 0; i < filesToProcess.length; i++) {
+        const file = filesToProcess[i];
+        setProcessingStatus(`Optimizing frame ${i + 1} of ${filesToProcess.length}: ${file.name}...`);
         const compressed = await compressImageToWebp(file, activeDevice, qualityPreset);
         origTotal += compressed.originalSize;
         compTotal += compressed.compressedSize;
@@ -249,7 +265,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
 
         const seq = currentFrameCount + i + 1;
         newFrames.push({
-          id: `frame_${activeDevice}_${Date.now()}_${i}`,
+          id: `frame_${activeDevice}_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 6)}`,
           sequence: seq,
           filename: file.name,
           url: storageUrl,
@@ -281,10 +297,87 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
       setErrorMessage(err.message || "Failed to process and compress images.");
     } finally {
       setIsProcessing(false);
+      setProcessingStatus(null);
     }
   };
 
-  // ── 2. Frame Management (Reorder, Replace, Delete) ────────────────────────
+  // ── 2. Frame Replacement Pipeline ─────────────────────────────────────────
+  const handleStartReplaceFrame = (frameId: string) => {
+    activeReplacingFrameIdRef.current = frameId;
+    replaceFileInputRef.current?.click();
+  };
+
+  const handleReplaceFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    const frameId = activeReplacingFrameIdRef.current;
+    if (!frameId) return;
+
+    if (!["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(file.type)) {
+      setErrorMessage("Please select a valid image file (PNG, JPEG, or WEBP) for replacement.");
+      return;
+    }
+
+    setIsProcessing(true);
+    setProcessingStatus(`Replacing and optimizing ${file.name}...`);
+    try {
+      const qualityPreset = currentDeviceConfig.compression_quality || "balanced";
+      const compressed = await compressImageToWebp(file, activeDevice, qualityPreset);
+
+      let storageUrl = compressed.dataUrl;
+      try {
+        const uploadRes = await apiClient.createAdminMedia({
+          filename: `${activeDevice}_replaced_${Date.now()}.webp`,
+          dataUrl: compressed.dataUrl,
+          size: compressed.compressedSize,
+          width: compressed.width,
+          height: compressed.height,
+          folder: `kitchen_story_${activeDevice}`,
+        });
+        if (uploadRes?.url || uploadRes?.media?.url) {
+          storageUrl = uploadRes.url || uploadRes.media.url;
+        }
+      } catch {
+        // Fallback to dataUrl
+      }
+
+      const targetIdx = frames.findIndex((f) => f.id === frameId);
+      if (targetIdx >= 0) {
+        const target = frames[targetIdx];
+        const updatedFrame: AnimationFrameItem = {
+          ...target,
+          filename: file.name,
+          url: storageUrl,
+          optimized_url: storageUrl,
+          original_size: compressed.originalSize,
+          compressed_size: compressed.compressedSize,
+          savings_pct: compressed.savingsPct,
+          width: compressed.width,
+          height: compressed.height,
+          format: "webp",
+          device_target: activeDevice,
+        };
+
+        const copy = [...frames];
+        copy[targetIdx] = updatedFrame;
+        updateCurrentDeviceConfig({ frames: copy });
+
+        if (previewFrame?.id === frameId) {
+          setPreviewFrame(updatedFrame);
+        }
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to replace frame image.");
+    } finally {
+      setIsProcessing(false);
+      setProcessingStatus(null);
+      activeReplacingFrameIdRef.current = null;
+      e.target.value = "";
+    }
+  };
+
+  // ── 3. Frame Management (Reorder, Delete, Resequence) ──────────────────────
   const moveFrame = (fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= frames.length) return;
     const copy = [...frames];
@@ -294,20 +387,60 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
     updateCurrentDeviceConfig({ frames: resequenced });
   };
 
-  const removeFrame = (frameId: string) => {
-    const filtered = frames.filter((f) => f.id !== frameId).map((f, idx) => ({ ...f, sequence: idx + 1 }));
+  const handleFrameDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedFrameIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
+  };
+
+  const handleFrameDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverFrameIndex !== index) {
+      setDragOverFrameIndex(index);
+    }
+  };
+
+  const handleFrameDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedFrameIndex === null || draggedFrameIndex === targetIndex) {
+      setDraggedFrameIndex(null);
+      setDragOverFrameIndex(null);
+      return;
+    }
+    const copy = [...frames];
+    const [draggedItem] = copy.splice(draggedFrameIndex, 1);
+    copy.splice(targetIndex, 0, draggedItem);
+    const resequenced = copy.map((f, idx) => ({ ...f, sequence: idx + 1 }));
+    updateCurrentDeviceConfig({ frames: resequenced });
+    setDraggedFrameIndex(null);
+    setDragOverFrameIndex(null);
+  };
+
+  const removeFrame = (frame: AnimationFrameItem) => {
+    if (!confirm(`Delete Frame ${String(frame.sequence).padStart(2, "0")} (${frame.filename})?`)) return;
+    const filtered = frames.filter((f) => f.id !== frame.id).map((f, idx) => ({ ...f, sequence: idx + 1 }));
     updateCurrentDeviceConfig({ frames: filtered, frame_count: filtered.length });
-    if (previewFrame?.id === frameId) setPreviewFrame(null);
+    if (previewFrame?.id === frame.id) setPreviewFrame(null);
   };
 
   const clearAllFrames = () => {
-    if (!confirm(`Remove all ${frames.length} frames for ${activeDevice}?`)) return;
+    if (!confirm(`Remove all ${frames.length} frames for ${activeDevice.toUpperCase()}?`)) return;
     updateCurrentDeviceConfig({ frames: [], frame_count: 0 });
     setUploadStats(null);
   };
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Hidden file input for Replace Frame action */}
+      <input
+        ref={replaceFileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/jpg,image/webp"
+        className="hidden"
+        onChange={handleReplaceFileSelected}
+      />
+
       {/* ── DEVICE SELECTOR HEADER ── */}
       <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
         <div className="flex items-center justify-between">
@@ -319,7 +452,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
             color={activeDevice === "desktop" ? "blue" : activeDevice === "tablet" ? "purple" : "green"}
             className="text-[10px] font-bold"
           >
-            Editing: {activeDevice.toUpperCase()}
+            CURRENT DEVICE: {activeDevice.toUpperCase()}
           </Badge>
         </div>
 
@@ -339,8 +472,9 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
                 onClick={() => {
                   setActiveDevice(dev.id);
                   setErrorMessage(null);
+                  setInfoMessage(null);
                 }}
-                className={`py-2 px-2.5 rounded-md flex flex-col items-center gap-1 text-xs font-bold transition-all ${
+                className={`py-2 px-2.5 rounded-md flex flex-col items-center gap-1 text-xs font-bold transition-all cursor-pointer ${
                   isSelected
                     ? "bg-rose-500 text-white shadow-sm"
                     : "text-ui-fg-muted hover:bg-ui-bg-subtle hover:text-ui-fg-base"
@@ -392,7 +526,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 text-xs transition-all ${
+              className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 text-xs transition-all cursor-pointer ${
                 isActive
                   ? "bg-rose-500 text-white shadow-xs"
                   : "text-ui-fg-muted hover:bg-ui-bg-subtle hover:text-ui-fg-base"
@@ -421,7 +555,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
               <div className="flex items-center gap-1.5">
                 <FileImage className="w-4 h-4 text-rose-600" />
                 <Text className="text-xs font-bold">
-                  Frame Set: {currentFrameCount} / {MAX_FRAME_COUNT}
+                  Frames: {currentFrameCount} / {MAX_FRAME_COUNT}
                 </Text>
               </div>
               <Badge
@@ -436,12 +570,12 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
               >
                 {currentFrameCount <= RECOMMENDED_FRAME_COUNT
                   ? `${RECOMMENDED_FRAME_COUNT} Recommended`
-                  : `${currentFrameCount} Frames (Large)`}
+                  : `${currentFrameCount} / ${MAX_FRAME_COUNT} Max`}
               </Badge>
             </div>
 
             <Text className="text-[11px] text-ui-fg-muted leading-relaxed">
-              <strong>{RECOMMENDED_FRAME_COUNT} frames</strong> is recommended for ultra-smooth 60fps motion without excessive device memory usage. Maximum <strong>{MAX_FRAME_COUNT} frames</strong> allowed per device.
+              <strong>{RECOMMENDED_FRAME_COUNT} frames</strong> is recommended for ultra-smooth 60fps motion without excessive memory. Maximum <strong>{MAX_FRAME_COUNT} frames</strong> allowed per device.
             </Text>
 
             {currentFrameCount > RECOMMENDED_FRAME_COUNT && (
@@ -470,7 +604,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
                     key={opt.id}
                     type="button"
                     onClick={() => updateCurrentDeviceConfig({ compression_quality: opt.id })}
-                    className={`p-2 rounded-lg border text-left flex flex-col gap-0.5 transition-all ${
+                    className={`p-2 rounded-lg border text-left flex flex-col gap-0.5 transition-all cursor-pointer ${
                       isSelected
                         ? "bg-rose-50 dark:bg-rose-950/30 border-rose-500 text-rose-700 dark:text-rose-300 shadow-xs"
                         : "bg-ui-bg-base border-ui-border-base text-ui-fg-muted hover:border-ui-border-strong"
@@ -533,7 +667,9 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
 
             <div className="flex flex-col gap-0.5">
               <Text className="text-xs font-bold text-ui-fg-base">
-                {isProcessing ? "Processing & Compressing Frames..." : "Drop animation frames here"}
+                {isProcessing
+                  ? processingStatus || "Processing & Compressing Frames..."
+                  : "Drop animation frames here"}
               </Text>
               <Text className="text-[11px] text-ui-fg-muted">
                 or click to browse from device (PNG, JPEG, WEBP)
@@ -547,6 +683,13 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
             </div>
           </div>
 
+          {infoMessage && (
+            <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-xl flex items-center gap-2 text-xs text-blue-700 dark:text-blue-300">
+              <Info className="w-4 h-4 shrink-0" />
+              <span>{infoMessage}</span>
+            </div>
+          )}
+
           {errorMessage && (
             <div className="p-2.5 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl flex items-center gap-2 text-xs text-red-700 dark:text-red-300">
               <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -559,86 +702,116 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
             <div className="flex flex-col gap-2 pt-2">
               <div className="flex items-center justify-between">
                 <Text className="text-xs font-bold">
-                  Frame Sequence Timeline ({frames.length})
+                  Frame Sequence Timeline ({frames.length} / {MAX_FRAME_COUNT})
                 </Text>
                 <button
                   type="button"
                   onClick={clearAllFrames}
-                  className="text-[11px] font-semibold text-red-600 hover:text-red-700 flex items-center gap-1"
+                  className="text-[11px] font-semibold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer"
                 >
                   <Trash2 className="w-3 h-3" /> Clear All
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {frames.map((frame, index) => (
-                  <div
-                    key={frame.id || index}
-                    className="p-2 bg-ui-bg-base border border-ui-border-base rounded-xl flex flex-col gap-1.5 relative group shadow-xs hover:border-rose-400 transition-all"
-                  >
-                    <div className="relative aspect-video rounded-lg overflow-hidden bg-stone-900 flex items-center justify-center">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={frame.optimized_url || frame.url}
-                        alt={`Frame ${frame.sequence}`}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                      <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-black/70 text-white font-mono text-[10px] font-bold backdrop-blur-xs">
-                        {String(frame.sequence).padStart(2, "0")}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-[10px] text-ui-fg-muted">
-                      <span className="truncate max-w-[70px]">{frame.filename}</span>
-                      {frame.compressed_size && (
-                        <span>{Math.round(frame.compressed_size / 1024)} KB</span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1 border-t border-ui-border-base">
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          disabled={index === 0}
-                          onClick={() => moveFrame(index, index - 1)}
-                          className="p-1 rounded hover:bg-ui-bg-subtle disabled:opacity-30 cursor-pointer"
-                          title="Move Left"
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {frames.map((frame, index) => {
+                  const isDragging = draggedFrameIndex === index;
+                  const isOver = dragOverFrameIndex === index;
+                  return (
+                    <div
+                      key={frame.id || `frame_${index}`}
+                      draggable={true}
+                      onDragStart={(e) => handleFrameDragStart(e, index)}
+                      onDragOver={(e) => handleFrameDragOver(e, index)}
+                      onDrop={(e) => handleFrameDrop(e, index)}
+                      className={`p-2.5 bg-ui-bg-base border rounded-xl flex flex-col gap-2 relative group shadow-xs transition-all ${
+                        isDragging
+                          ? "opacity-40 border-rose-500 scale-95"
+                          : isOver
+                          ? "border-rose-500 ring-2 ring-rose-500/20"
+                          : "border-ui-border-base hover:border-rose-400"
+                      }`}
+                    >
+                      <div className="relative aspect-video rounded-lg overflow-hidden bg-stone-900 flex items-center justify-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={frame.optimized_url || frame.url}
+                          alt={`Frame ${frame.sequence}`}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                        <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-black/70 text-white font-mono text-[10px] font-bold backdrop-blur-xs">
+                          {String(frame.sequence).padStart(2, "0")}
+                        </span>
+                        <div
+                          className="absolute top-1 right-1 p-1 rounded bg-black/50 text-white/70 hover:text-white cursor-grab"
+                          title="Drag to reorder"
                         >
-                          <ArrowLeft className="w-3 h-3" />
-                        </button>
-                        <button
-                          type="button"
-                          disabled={index === frames.length - 1}
-                          onClick={() => moveFrame(index, index + 1)}
-                          className="p-1 rounded hover:bg-ui-bg-subtle disabled:opacity-30 cursor-pointer"
-                          title="Move Right"
-                        >
-                          <ArrowRight className="w-3 h-3" />
-                        </button>
+                          <GripVertical className="w-3 h-3" />
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewFrame(frame)}
-                          className="p-1 rounded hover:bg-ui-bg-subtle text-ui-fg-muted hover:text-ui-fg-base cursor-pointer"
-                          title="Inspect Frame"
-                        >
-                          <Eye className="w-3 h-3" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeFrame(frame.id)}
-                          className="p-1 rounded hover:bg-red-50 text-red-600 cursor-pointer"
-                          title="Delete Frame"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                      <div className="flex items-center justify-between text-[10px] text-ui-fg-muted">
+                        <span className="truncate max-w-[85px]" title={frame.filename}>
+                          {frame.filename}
+                        </span>
+                        {frame.compressed_size && (
+                          <span className="font-mono">{Math.round(frame.compressed_size / 1024)} KB</span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1.5 border-t border-ui-border-base">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            disabled={index === 0}
+                            onClick={() => moveFrame(index, index - 1)}
+                            className="p-1 rounded hover:bg-ui-bg-subtle disabled:opacity-25 cursor-pointer text-ui-fg-muted hover:text-ui-fg-base"
+                            title="Move Left"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={index === frames.length - 1}
+                            onClick={() => moveFrame(index, index + 1)}
+                            className="p-1 rounded hover:bg-ui-bg-subtle disabled:opacity-25 cursor-pointer text-ui-fg-muted hover:text-ui-fg-base"
+                            title="Move Right"
+                          >
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewFrame(frame)}
+                            className="p-1 rounded hover:bg-ui-bg-subtle text-ui-fg-muted hover:text-ui-fg-base cursor-pointer"
+                            title="Inspect Frame"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleStartReplaceFrame(frame.id)}
+                            className="p-1 rounded hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-600 cursor-pointer"
+                            title="Replace Image"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeFrame(frame)}
+                            className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 cursor-pointer"
+                            title="Delete Frame"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -653,7 +826,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
           <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex items-center justify-between">
             <div className="flex flex-col">
               <Text className="text-xs font-bold">Animation Enabled</Text>
-              <Text className="text-[10px] text-ui-fg-muted">Enable scroll/motion playback for {activeDevice}</Text>
+              <Text className="text-[10px] text-ui-fg-muted">Enable scroll/motion playback for {activeDevice.toUpperCase()}</Text>
             </div>
             <Toggle
               checked={currentDeviceConfig.enabled !== false && config.disable_scroll_sequence !== true}
@@ -759,7 +932,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
           {/* Phase 1: Intro Headline & CTAs */}
           <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
             <Text className="text-xs font-bold text-rose-600 uppercase">
-              Phase 1: Main Headline & CTAs ({activeDevice})
+              Phase 1: Main Headline & CTAs ({activeDevice.toUpperCase()})
             </Text>
             <Field label="Headline">
               <Input
@@ -821,7 +994,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
           {/* Phase 2: Master Chocolatier Recipe Story */}
           <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
             <Text className="text-xs font-bold text-amber-600 uppercase">
-              Phase 2: Master Chocolatier Story ({activeDevice})
+              Phase 2: Master Chocolatier Story ({activeDevice.toUpperCase()})
             </Text>
             <Field label="Craft Badge">
               <Input
@@ -850,7 +1023,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
           {/* Phase 3: Transit & Fleet Guarantee */}
           <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
             <Text className="text-xs font-bold text-emerald-600 uppercase">
-              Phase 3: Transit & Delivery Guarantee ({activeDevice})
+              Phase 3: Transit & Delivery Guarantee ({activeDevice.toUpperCase()})
             </Text>
             <Field label="Fleet Badge">
               <Input

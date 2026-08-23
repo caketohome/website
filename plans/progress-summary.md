@@ -7,6 +7,28 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.25: Kitchen Story & Scroll-Frame CMS Frame CRUD, Replacement, Reordering & Live Storefront Synchronization (100% Verified)
+- **Eliminated Sequential State Mutation Bugs & Replaced with Atomic Section Merging**:
+  - Identified root cause in `section-config-editor.tsx` where `Object.keys(newCfg).forEach((k) => updateSectionConfig(id, k, val))` sequentially mutated stale closures, causing device configuration overwrites.
+  - Implemented `updateSectionWholeConfig(id, newConfig)` in `PageConfigurator` and passed it down to `SectionConfigEditor`, guaranteeing atomic section config updates in a single dispatch.
+- **Complete Frame Replacement Pipeline**:
+  - Added dedicated frame replacement file input and handler (`handleStartReplaceFrame` & `handleReplaceFileSelected`).
+  - Validates and compresses replacement image to WebP with target device dimensions.
+  - Retains stable frame `id` and maintains exact `sequence` position (does not append to end).
+- **HTML5 Drag & Drop and Step Reordering**:
+  - Implemented HTML5 `draggable`, `onDragStart`, `onDragOver`, and `onDrop` on timeline cards alongside Move Left ($\leftarrow$) and Move Right ($\rightarrow$) controls.
+  - Resequences all remaining frames strictly `1..N` with zero gaps.
+- **Partial Upload Limit Clamping**:
+  - When user uploads $N$ files, clamps to `availableSlots = MAX_FRAME_COUNT - currentFrameCount` (Max 22, Recommended 16).
+  - Displays clear notice: `"${accepted.length} frames added. Maximum 22 frames allowed."` without crashing.
+- **Device Independence & Section Type Parity**:
+  - Desktop, Tablet, and Mobile collections are strictly isolated and independently editable.
+  - Added `case "kitchen_story":` and `case "scroll_frame":` to `PageRenderer` and `SectionConfigEditor` alongside `hero`.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-kitchen-story-frame-crud-e2e.ts`: **100% PASS** (Add frame $\rightarrow$ Delete frame $\rightarrow$ Reorder frames $\rightarrow$ Replace frame $\rightarrow$ Max 22 clamp $\rightarrow$ Device isolation $\rightarrow$ Publish $\rightarrow$ Live Storefront).
+  - `scripts/test-scroll-frame-cms-e2e.ts`: **100% PASS** (Multi-device viewports, scroll scrub, phase overlays, fallback poster).
+  - TypeScript Check (`npx tsc --noEmit`): **0 errors (100% clean)**.
+
 ### Milestone 9.24: Enterprise Multi-Source Product Search, Product Mapping & Dynamic Ranking Engine (100% Verified)
 - **Canonical Product Identity & Strict Variant Deduplication**:
   - Ingested multi-source records (Medusa, PostgreSQL, CMS, Inventory) into a unified `CanonicalProduct` abstraction (`SearchEngine`).

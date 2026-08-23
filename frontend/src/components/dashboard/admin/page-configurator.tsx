@@ -386,6 +386,13 @@ export function PageConfigurator() {
     setSections(updated);
   };
 
+  const updateSectionWholeConfig = (id: string, newConfig: any) => {
+    const updated = getSections().map((s: any) =>
+      s.id === id ? { ...s, config: { ...(s.config || {}), ...newConfig } } : s
+    );
+    setSections(updated);
+  };
+
   const updateSectionNestedConfig = (id: string, device: "desktop" | "tablet" | "mobile", configKey: string, value: any) => {
     const updated = getSections().map((s: any) => {
       if (s.id !== id) return s;
@@ -861,6 +868,7 @@ export function PageConfigurator() {
               allOccasions={allOccasions}
               updateSectionField={updateSectionField}
               updateSectionConfig={updateSectionConfig}
+              updateSectionWholeConfig={updateSectionWholeConfig}
               updateSectionNestedConfig={updateSectionNestedConfig}
               openImagePicker={openImagePicker}
               onClose={() => setConfiguringSection(null)}

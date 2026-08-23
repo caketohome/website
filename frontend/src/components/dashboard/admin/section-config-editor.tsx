@@ -21,6 +21,7 @@ interface SectionConfigEditorProps {
   allOccasions: any[];
   updateSectionField: (id: string, key: string, value: any) => void;
   updateSectionConfig: (id: string, key: string, value: any) => void;
+  updateSectionWholeConfig?: (id: string, newFullConfig: any) => void;
   updateSectionNestedConfig: (id: string, device: "desktop" | "tablet" | "mobile", key: string, value: any) => void;
   openImagePicker: (title: string, current: any, onSelect: (sel: MediaSelection) => void) => void;
   onClose: () => void;
@@ -90,6 +91,7 @@ export function SectionConfigEditor({
   allOccasions,
   updateSectionField,
   updateSectionConfig,
+  updateSectionWholeConfig,
   updateSectionNestedConfig,
   openImagePicker,
   onClose,
@@ -591,15 +593,19 @@ export function SectionConfigEditor({
             </>
           )}
 
-          {/* Hero Scroll Sequence & Multi-Device Frame Controller */}
-          {section.type === "hero" && (
+          {/* Hero / Kitchen Story Scroll Sequence & Multi-Device Frame Controller */}
+          {(section.type === "hero" || section.type === "kitchen_story" || section.type === "scroll_frame") && (
             <div className="flex flex-col gap-3 pt-2 border-t border-ui-border-base">
               <ScrollFrameEditor
                 config={config}
                 onChange={(newCfg) => {
-                  Object.keys(newCfg).forEach((k) => {
-                    updateSectionConfig(section.id, k, (newCfg as any)[k]);
-                  });
+                  if (updateSectionWholeConfig) {
+                    updateSectionWholeConfig(section.id, newCfg);
+                  } else {
+                    Object.keys(newCfg).forEach((k) => {
+                      updateSectionConfig(section.id, k, (newCfg as any)[k]);
+                    });
+                  }
                 }}
               />
             </div>
