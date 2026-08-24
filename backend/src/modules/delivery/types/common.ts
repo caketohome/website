@@ -54,8 +54,9 @@ export interface DeliveryDeliveryPartnerDTO {
   delivery_partner_id: string;
 }
 
-// declare module "@medusajs/types" {
-//   export interface ModuleImplementations {
-//     deliveryModuleService: DeliveryModuleService;
-//   }
-// }
+declare module "@medusajs/types" {
+  export interface ModuleImplementations {
+    deliveryModuleService: DeliveryModuleService;
+  }
+}
+

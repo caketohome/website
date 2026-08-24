@@ -31,10 +31,22 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       delivery_location: parsed.data.address || `Pincode ${parsed.data.pincode || "560001"}`,
       delivery_fee: resolved.delivery_fee,
       estimated_delivery_minutes: resolved.estimated_delivery_minutes,
-      is_serviceable: true,
+      is_serviceable: resolved.is_serviceable !== false,
       resolution_tier: resolved.resolution_tier,
     });
   } catch (error: any) {
+    const isRangeError = error.message.includes("Out of delivery range") || error.message.includes("outside our current bakery delivery coverage");
+    if (isRangeError) {
+      return res.status(200).json({
+        delivery_pincode: parsed.data.pincode || "",
+        delivery_location: parsed.data.address || (parsed.data.pincode ? `Pincode ${parsed.data.pincode}` : "Unknown Location"),
+        delivery_fee: 0,
+        estimated_delivery_minutes: 0,
+        is_serviceable: false,
+        resolution_tier: "Unserviceable",
+        blockedReason: error.message,
+      });
+    }
     return res.status(500).json({ message: error.message });
   }
 }

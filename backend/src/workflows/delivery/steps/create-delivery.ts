@@ -38,7 +38,7 @@ export const createDeliveryStep = createStep(
     const delivery = (await service.createDeliveries({
       delivery_date: input.delivery_date || null,
       delivery_slot_id: input.delivery_slot_id || null,
-    })) as any as DeliveryDTO
+    })) as unknown as DeliveryDTO
 
     return new StepResponse(delivery, {
       delivery_id: delivery.id,
@@ -52,6 +52,6 @@ export const createDeliveryStep = createStep(
   ) {
     const service = container.resolve(DELIVERY_MODULE);
 
-    service.softDeleteDeliveries(delivery_id);
+    await service.softDeleteDeliveries(delivery_id);
   }
 );

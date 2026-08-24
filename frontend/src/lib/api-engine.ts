@@ -2293,6 +2293,9 @@ export interface DeliveryZone {
   express_allowed: boolean;
   midnight_allowed: boolean;
   scheduled_allowed: boolean;
+  radius_km?: number;
+  center_latitude?: number;
+  center_longitude?: number;
   
   // ── Zone Pricing (Strictly stored on Zone, never on Branch) ──
   delivery_charge: number;
@@ -5090,7 +5093,7 @@ export class ApiEngine {
   }
 
   // ── Single Authoritative Delivery Resolver ──────────────────────────────
-  static resolveDeliveryContext(pincode: string): {
+  static resolveDeliveryContext(pincode?: string, lat?: number, lng?: number): {
     city: CityItem | null;
     cityId: string | null;
     cityName: string | null;
@@ -5111,8 +5114,8 @@ export class ApiEngine {
     expressAvailable: boolean;
     midnightAvailable: boolean;
   } {
-    const cleanPin = (pincode || "").trim().replace(/\D/g, "");
-    if (!cleanPin || cleanPin.length !== 6) {
+    const cleanPin = pincode ? (pincode || "").trim().replace(/\D/g, "") : "";
+    if (pincode && (!cleanPin || cleanPin.length !== 6)) {
       return {
         city: null, cityId: null, cityName: null,
         store: null, storeId: null, storeName: null,
@@ -5124,15 +5127,26 @@ export class ApiEngine {
       };
     }
 
-    const resolved = ApiEngine.resolveSmartBranch({ pincode: cleanPin });
-    if (!resolved || resolved.resolvedBy === "unserviceable_pincode" || resolved.resolvedBy === "fallback_default") {
+    const resolved = ApiEngine.resolveSmartBranch({
+      pincode: cleanPin || undefined,
+      lat: typeof lat === "number" ? lat : undefined,
+      lng: typeof lng === "number" ? lng : undefined,
+    });
+
+    const isUnserviceable = !resolved ||
+      resolved.resolvedBy === "unserviceable_pincode" ||
+      resolved.resolvedBy === "unserviceable_coords" ||
+      resolved.resolvedBy === "fallback_default" ||
+      resolved.resolvedBy === "blocked_area";
+
+    if (isUnserviceable) {
       return {
         city: null, cityId: null, cityName: null,
         store: null, storeId: null, storeName: null,
         fulfillmentHub: null, fulfillmentHubId: null, fulfillmentHubName: null,
         zone: null, zoneId: null, zoneName: null,
         pincode: cleanPin, deliveryFee: 0, serviceable: false,
-        blockedReason: resolved.blockedReason || `Pincode ${cleanPin} is not currently serviceable.`,
+        blockedReason: resolved?.blockedReason || `This location is not currently serviceable for delivery.`,
         etaMinutes: 0, expressAvailable: false, midnightAvailable: false,
       };
     }
@@ -5141,12 +5155,7 @@ export class ApiEngine {
     const city = ApiEngine.getCityForBranch(branch.id);
 
     // Find the matched zone
-    let matchedZone: DeliveryZone | null = null;
-    if (branch.delivery_zones) {
-      matchedZone = branch.delivery_zones.find((z: DeliveryZone) =>
-        z.enabled && Array.isArray(z.pincodes) && z.pincodes.includes(cleanPin)
-      ) || null;
-    }
+    const matchedZone = (resolved as any).zone || null;
 
     return {
       city: city,
@@ -13800,17 +13809,37 @@ export class ApiEngine {
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         const distance = R * c;
 
-        const maxZoneKm = Math.max(...(b.delivery_zones || []).map((z: DeliveryZone) => z.max_km ?? 0), 10);
-        if (distance <= maxZoneKm) {
+        // Find matching zone based on distance limit (z.max_km or z.radius_km)
+        const zones = b.delivery_zones || [];
+        const matchedZone = zones.find((z: DeliveryZone) => distance <= (z.max_km ?? z.radius_km ?? 10));
+
+        if (matchedZone) {
           const existing = candidates.find((c) => c.branch.id === b.id);
           if (existing) {
             existing.distanceKm = distance;
             existing.matchedBy = `geofence_${distance.toFixed(1)}km`;
+            existing.zone = matchedZone;
           } else {
-            candidates.push({ branch: b, distanceKm: distance, matchedBy: `geofence_${distance.toFixed(1)}km` });
+            candidates.push({ branch: b, distanceKm: distance, matchedBy: `geofence_${distance.toFixed(1)}km`, zone: matchedZone });
           }
         }
       });
+    }
+
+    // If query has coordinates but no candidate branch was matched through zones (out of range), return unserviceable block
+    if (typeof query.lat === "number" && typeof query.lng === "number" && candidates.length === 0) {
+      const fb = branches[0] || DEFAULT_BRANCHES[0];
+      return {
+        branch: fb,
+        resolvedBy: "unserviceable_coords",
+        etaminutes: 0,
+        deliveryFee: 0,
+        feeBreakdown: {},
+        partnerSequence: [],
+        candidatesEvaluated: 0,
+        blockedReason: `Your location is outside our current bakery delivery coverage zones.`,
+        zoneName: "Unserviceable Area",
+      };
     }
 
     // If query has pincode but no candidate branch was matched through zones, return unserviceable block

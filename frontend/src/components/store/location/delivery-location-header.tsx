@@ -59,7 +59,7 @@ export function DeliveryLocationHeader() {
       if (lat) params.set("lat", String(lat));
       if (lng) params.set("lng", String(lng));
 
-      const res = await fetch(`/api/v1/delivery/resolve?pincode=${encodeURIComponent(pinInput)}`);
+      const res = await fetch(`/api/v1/delivery/resolve?${params.toString()}`);
       const data = await res.json();
 
       if (res.ok && data && data.serviceable) {

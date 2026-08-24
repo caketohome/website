@@ -245,6 +245,7 @@ class DeliveryModuleService extends MedusaService({
     estimated_delivery_minutes: number;
     delivery_zone_id: string | null;
     resolution_tier: string;
+    is_serviceable?: boolean;
   }> {
     const zones: any[] = await (this as any).listDeliveryZones(
       { is_serviceable: true },
@@ -283,8 +284,11 @@ class DeliveryModuleService extends MedusaService({
       }
     }
 
-    // Tier 3: Radius Match (if GPS coordinates provided)
+    // Tier 4: Radius Match (if GPS coordinates provided)
     if (input.latitude && input.longitude) {
+      let closestBranchZone = null;
+      let minDistance = Infinity;
+
       for (const z of zones) {
         if (z.center_latitude && z.center_longitude && z.radius_km && z.branch_id) {
           const dist = this.calculateHaversineDistance(
@@ -293,20 +297,33 @@ class DeliveryModuleService extends MedusaService({
             z.center_latitude,
             z.center_longitude
           );
-          if (dist <= z.radius_km) {
-            return {
-              branch_id: z.branch_id,
-              delivery_fee: z.delivery_fee || 0,
-              estimated_delivery_minutes: z.estimated_delivery_minutes || 45,
-              delivery_zone_id: z.id,
-              resolution_tier: "Tier 4 (Radius Match)",
-            };
+          if (dist <= z.radius_km && dist < minDistance) {
+            minDistance = dist;
+            closestBranchZone = z;
           }
         }
       }
+
+      if (closestBranchZone) {
+        return {
+          branch_id: closestBranchZone.branch_id,
+          delivery_fee: closestBranchZone.delivery_fee || 0,
+          estimated_delivery_minutes: closestBranchZone.estimated_delivery_minutes || 45,
+          delivery_zone_id: closestBranchZone.id,
+          resolution_tier: "Tier 4 (Radius Match)",
+          is_serviceable: true,
+        };
+      }
+
+      throw new Error("Out of delivery range. The delivery location exceeds the serviceable radius of our branches.");
     }
 
-    // Tier 5: Default Fallback Branch
+    // If a pincode was explicitly provided but matched no zone
+    if (targetPincode) {
+      throw new Error(`Pincode ${targetPincode} is outside our current bakery delivery coverage zone.`);
+    }
+
+    // Tier 5: Default Fallback Branch (Only when no location inputs were provided)
     const defaultZone = zones.find((z) => z.branch_id) || zones[0];
     const fallbackBranchId = defaultZone?.branch_id || "branch_default";
 
@@ -316,6 +333,7 @@ class DeliveryModuleService extends MedusaService({
       estimated_delivery_minutes: defaultZone?.estimated_delivery_minutes || 50,
       delivery_zone_id: defaultZone?.id || null,
       resolution_tier: "Tier 5 (Default Branch)",
+      is_serviceable: true,
     };
   }
 

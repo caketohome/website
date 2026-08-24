@@ -1192,7 +1192,11 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
     if (path === "delivery/resolve" || path === "store/delivery/resolve") {
       const pincode = url.searchParams.get("pincode") || "";
-      const result = ApiEngine.resolveDeliveryContext(pincode);
+      const latStr = url.searchParams.get("lat");
+      const lngStr = url.searchParams.get("lng");
+      const lat = latStr ? parseFloat(latStr) : undefined;
+      const lng = lngStr ? parseFloat(lngStr) : undefined;
+      const result = ApiEngine.resolveDeliveryContext(pincode || undefined, lat, lng);
       return jsonWithDataSource({ ...result, success: result.serviceable }, "json-fallback");
     }
     if (path === "admin/cities") return jsonWithDataSource({ cities: ApiEngine.getAdminCities(), success: true }, "json-fallback");
@@ -2341,7 +2345,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ city, success: true }, "json-fallback");
     }
     if (path === "delivery/resolve" || path === "store/delivery/resolve") {
-      const result = ApiEngine.resolveDeliveryContext(body.pincode || "");
+      const result = ApiEngine.resolveDeliveryContext(body.pincode || undefined, body.latitude || body.lat, body.longitude || body.lng);
       return jsonWithDataSource({ ...result, success: result.serviceable }, "json-fallback");
     }
     if (path === "admin/cities/migrate") {
