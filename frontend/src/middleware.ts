@@ -3,20 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 export async function middleware(request: NextRequest) {
   try {
     const pathname = request.nextUrl.pathname;
-    const response = NextResponse.next();
-
-    // Cache ID tracking
-    const cacheId = request.cookies.get("_medusa_cache_id")?.value;
-    if (!cacheId) {
-      const newCacheId = Math.random().toString(36).substring(2) + Date.now().toString(36);
-      response.cookies.set("_medusa_cache_id", newCacheId, {
-        maxAge: 60 * 60 * 24,
-        path: "/",
-      });
-      response.headers.set("x-medusa-cache-id", newCacheId);
-    } else {
-      response.headers.set("x-medusa-cache-id", cacheId);
-    }
 
     // Role-based route protection
     const token = request.cookies.get("_cth_jwt")?.value || request.cookies.get("_medusa_jwt")?.value;
@@ -62,7 +48,7 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    // 2. /dashboard/shop protection
+    // 3. /dashboard/shop protection
     if (pathname.startsWith("/dashboard/shop")) {
       if (!hasAuthSession) {
         return NextResponse.redirect(new URL("/login", request.url));
@@ -75,7 +61,7 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    // 3. /account protection
+    // 4. /account protection
     if (pathname.startsWith("/account")) {
       if (!hasAuthSession) {
         return NextResponse.redirect(new URL("/login", request.url));
@@ -86,6 +72,21 @@ export async function middleware(request: NextRequest) {
       if (rawRole === "BRANCH_MANAGER" || rawRole === "SHOP_MANAGER" || rawRole === "SHOP" || rawRole === "SHPMGR") {
         return NextResponse.redirect(new URL("/dashboard/shop", request.url));
       }
+    }
+
+    const response = NextResponse.next();
+
+    // Cache ID tracking
+    const cacheId = request.cookies.get("_medusa_cache_id")?.value;
+    if (!cacheId) {
+      const newCacheId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      response.cookies.set("_medusa_cache_id", newCacheId, {
+        maxAge: 60 * 60 * 24,
+        path: "/",
+      });
+      response.headers.set("x-medusa-cache-id", newCacheId);
+    } else {
+      response.headers.set("x-medusa-cache-id", cacheId);
     }
 
     return response;

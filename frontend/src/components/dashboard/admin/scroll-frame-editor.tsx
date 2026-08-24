@@ -173,6 +173,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
   // Drag-and-drop frame reordering state
   const [draggedFrameIndex, setDraggedFrameIndex] = useState<number | null>(null);
   const [dragOverFrameIndex, setDragOverFrameIndex] = useState<number | null>(null);
+  const [brokenFrameIds, setBrokenFrameIds] = useState<Set<string>>(new Set());
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const replaceFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -733,14 +734,26 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
                       }`}
                     >
                       <div className="relative aspect-video rounded-lg overflow-hidden bg-stone-900 flex items-center justify-center">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={frame.optimized_url || frame.url}
-                          alt={`Frame ${frame.sequence}`}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                        <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-black/70 text-white font-mono text-[10px] font-bold backdrop-blur-xs">
+                        {brokenFrameIds.has(frame.id) ? (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-red-950/60 p-2 text-center text-red-300">
+                            <AlertTriangle className="w-5 h-5 text-red-400 mb-1" />
+                            <span className="text-[10px] font-bold">ASSET NOT FOUND (404)</span>
+                          </div>
+                        ) : (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={frame.optimized_url || frame.url}
+                            alt={`Frame ${frame.sequence}`}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            onError={() => {
+                              setBrokenFrameIds((prev) => new Set(prev).add(frame.id));
+                            }}
+                          />
+                        )}
+                        <span className={`absolute top-1 left-1 px-1.5 py-0.5 rounded-md font-mono text-[10px] font-bold backdrop-blur-xs ${
+                          brokenFrameIds.has(frame.id) ? "bg-red-600 text-white" : "bg-black/70 text-white"
+                        }`}>
                           {String(frame.sequence).padStart(2, "0")}
                         </span>
                         <div
@@ -907,6 +920,55 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
               </Select.Content>
             </Select>
           </Field>
+
+          <Field label="Scrub Smoothing" hint="Dampens rapid scroll movements for buttery fluid scrub">
+            <Select
+              value={currentDeviceConfig.scrub_smoothing || "medium"}
+              onValueChange={(v) => updateCurrentDeviceConfig({ scrub_smoothing: v as any })}
+            >
+              <Select.Trigger><Select.Value /></Select.Trigger>
+              <Select.Content>
+                <Select.Item value="off">Off (Immediate / 1:1 Raw Scroll)</Select.Item>
+                <Select.Item value="low">Low (Snappy Responsive)</Select.Item>
+                <Select.Item value="medium">Medium (Cinematic Smooth - Recommended)</Select.Item>
+                <Select.Item value="high">High (Ultra-Fluid Heavy Dampening)</Select.Item>
+              </Select.Content>
+            </Select>
+          </Field>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Field label="First Frame Hold" hint="Holds initial hero image before scrub">
+              <Select
+                value={String(currentDeviceConfig.first_frame_hold_pct ?? 0.06)}
+                onValueChange={(v) => updateCurrentDeviceConfig({ first_frame_hold_pct: parseFloat(v) })}
+              >
+                <Select.Trigger><Select.Value /></Select.Trigger>
+                <Select.Content>
+                  <Select.Item value="0">0% (Immediate)</Select.Item>
+                  <Select.Item value="0.04">4% (Brief)</Select.Item>
+                  <Select.Item value="0.06">6% (Standard)</Select.Item>
+                  <Select.Item value="0.10">10% (Extended)</Select.Item>
+                  <Select.Item value="0.15">15% (Long Hold)</Select.Item>
+                </Select.Content>
+              </Select>
+            </Field>
+
+            <Field label="Final Frame Hold" hint="Holds completed cake before release">
+              <Select
+                value={String(currentDeviceConfig.final_frame_hold_pct ?? 0.10)}
+                onValueChange={(v) => updateCurrentDeviceConfig({ final_frame_hold_pct: parseFloat(v) })}
+              >
+                <Select.Trigger><Select.Value /></Select.Trigger>
+                <Select.Content>
+                  <Select.Item value="0">0% (Instant Release)</Select.Item>
+                  <Select.Item value="0.05">5% (Short)</Select.Item>
+                  <Select.Item value="0.10">10% (Standard - Recommended)</Select.Item>
+                  <Select.Item value="0.15">15% (Extended Hold)</Select.Item>
+                  <Select.Item value="0.20">20% (Long Showcase)</Select.Item>
+                </Select.Content>
+              </Select>
+            </Field>
+          </div>
 
           <Field label="Preload Strategy" hint="Controls network buffering">
             <Select

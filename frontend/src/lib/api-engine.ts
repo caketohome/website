@@ -1200,7 +1200,85 @@ const DEFAULT_CMS_PAGES = [
     announcement_bar: { enabled: true, text: "⚡ Monsoon Special — 50% OFF Up to ₹150 on All Cakes", cta_text: "Shop Now", cta_url: "/products", bg_color: "#e11d48" },
     header_config: { show_header: true, style: "transparent" },
     sections: [
-      { id: "sec_home_hero", type: "hero", name: "Hero Banner", enabled: true, order: 1, config: { headline: "Handcrafted Gourmet Cakes Delivered in 2 Hours", subheadline: "Fresh, artisanal birthday & wedding cakes across Bangalore. Midnight delivery available!", cta_primary_text: "Order a Cake", cta_primary_url: "/products", cta_secondary_text: "View Collections", cta_secondary_url: "/collections", bg_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400", overlay_opacity: 0.4, alignment: "center", height: "large" } },
+      {
+        id: "sec_home_hero",
+        type: "hero",
+        name: "Hero Banner & Kitchen Story Animation",
+        enabled: true,
+        order: 1,
+        config: {
+          headline: "Handcrafted Gourmet Cakes Delivered in 2 Hours",
+          subheadline: "Fresh, artisanal birthday & wedding cakes across Bangalore. Midnight delivery available!",
+          badge_text: "100% Fresh & Artisanal • Express 2-Hour Delivery",
+          cta_primary_text: "Order a Cake",
+          cta_primary_url: "/products",
+          cta_secondary_text: "View Collections",
+          cta_secondary_url: "/collections",
+          disable_scroll_sequence: false,
+          desktop: {
+            enabled: true,
+            animation_type: "scroll_frame",
+            frame_count: 16,
+            scrub_smoothing: "medium",
+            first_frame_hold_pct: 0.06,
+            final_frame_hold_pct: 0.10,
+            frames: [
+              { id: "frame_desktop_1", sequence: 1, filename: "kitchen_story_frame_01.webp", url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_2", sequence: 2, filename: "kitchen_story_frame_02.webp", url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_3", sequence: 3, filename: "kitchen_story_frame_03.webp", url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_4", sequence: 4, filename: "kitchen_story_frame_04.webp", url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_5", sequence: 5, filename: "kitchen_story_frame_05.webp", url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_6", sequence: 6, filename: "kitchen_story_frame_06.webp", url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_7", sequence: 7, filename: "kitchen_story_frame_07.webp", url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_8", sequence: 8, filename: "kitchen_story_frame_08.webp", url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_9", sequence: 9, filename: "kitchen_story_frame_09.webp", url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_10", sequence: 10, filename: "kitchen_story_frame_10.webp", url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_11", sequence: 11, filename: "kitchen_story_frame_11.webp", url: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_12", sequence: 12, filename: "kitchen_story_frame_12.webp", url: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_13", sequence: 13, filename: "kitchen_story_frame_13.webp", url: "https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_14", sequence: 14, filename: "kitchen_story_frame_14.webp", url: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_15", sequence: 15, filename: "kitchen_story_frame_15.webp", url: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              { id: "frame_desktop_16", sequence: 16, filename: "kitchen_story_frame_16.webp", url: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+            ]
+          },
+          tablet: {
+            enabled: true,
+            animation_type: "scroll_frame",
+            frame_count: 12,
+            frames: [
+              { id: "frame_tablet_1", sequence: 1, filename: "tablet_frame_01.webp", url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+              { id: "frame_tablet_2", sequence: 2, filename: "tablet_frame_02.webp", url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+              { id: "frame_tablet_3", sequence: 3, filename: "tablet_frame_03.webp", url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+              { id: "frame_tablet_4", sequence: 4, filename: "tablet_frame_04.webp", url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+              { id: "frame_tablet_5", sequence: 5, filename: "tablet_frame_05.webp", url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+              { id: "frame_tablet_6", sequence: 6, filename: "tablet_frame_06.webp", url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+              { id: "frame_tablet_7", sequence: 7, filename: "tablet_frame_07.webp", url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+              { id: "frame_tablet_8", sequence: 8, filename: "tablet_frame_08.webp", url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+              { id: "frame_tablet_9", sequence: 9, filename: "tablet_frame_09.webp", url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+              { id: "frame_tablet_10", sequence: 10, filename: "tablet_frame_10.webp", url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+              { id: "frame_tablet_11", sequence: 11, filename: "tablet_frame_11.webp", url: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+              { id: "frame_tablet_12", sequence: 12, filename: "tablet_frame_12.webp", url: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+            ]
+          },
+          mobile: {
+            enabled: true,
+            animation_type: "scroll_frame",
+            frame_count: 10,
+            frames: [
+              { id: "frame_mobile_1", sequence: 1, filename: "mobile_frame_01.webp", url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+              { id: "frame_mobile_2", sequence: 2, filename: "mobile_frame_02.webp", url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+              { id: "frame_mobile_3", sequence: 3, filename: "mobile_frame_03.webp", url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+              { id: "frame_mobile_4", sequence: 4, filename: "mobile_frame_04.webp", url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+              { id: "frame_mobile_5", sequence: 5, filename: "mobile_frame_05.webp", url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+              { id: "frame_mobile_6", sequence: 6, filename: "mobile_frame_06.webp", url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+              { id: "frame_mobile_7", sequence: 7, filename: "mobile_frame_07.webp", url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+              { id: "frame_mobile_8", sequence: 8, filename: "mobile_frame_08.webp", url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+              { id: "frame_mobile_9", sequence: 9, filename: "mobile_frame_09.webp", url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+              { id: "frame_mobile_10", sequence: 10, filename: "mobile_frame_10.webp", url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+            ]
+          }
+        }
+      },
       { id: "sec_home_cats", type: "category_grid", name: "Shop by Category", enabled: true, order: 2, config: { heading: "Shop by Occasion", subheading: "Find the perfect cake for every celebration", layout: "grid", columns: 3, category_ids: ["pcat_01", "pcat_02", "pcat_03"] } },
       { id: "sec_home_bestsellers", type: "product_grid", name: "Best Sellers", enabled: true, order: 3, config: { heading: "🏆 Best-Selling Cakes", subheading: "Freshly baked fan favourites", mode: "best_sellers", layout: "grid", columns: 4, show_ratings: true, show_price: true, product_ids: [] } },
       { id: "sec_home_promo", type: "promotional_banner", name: "Monsoon Sale Banner", enabled: true, order: 4, config: { headline: "🎉 Monsoon Special — Flat 50% OFF", subheadline: "Use Code: CAKE50. Valid on all birthday & anniversary cakes above ₹299", cta_text: "Claim Offer", cta_url: "/products?promo=CAKE50", bg_color: "#fef3c7", text_color: "#92400e" } },
@@ -1211,7 +1289,85 @@ const DEFAULT_CMS_PAGES = [
     draft_config: { sections: [], banners: [], products_mode: "best_sellers", product_ids: [], category_ids: [] },
     published_config: {
       sections: [
-        { id: "sec_home_hero", type: "hero", name: "Hero Banner", enabled: true, order: 1, config: { headline: "Handcrafted Gourmet Cakes Delivered in 2 Hours", subheadline: "Fresh, artisanal birthday & wedding cakes across Bangalore. Midnight delivery available!", cta_primary_text: "Order a Cake", cta_primary_url: "/products", cta_secondary_text: "View Collections", cta_secondary_url: "/collections", bg_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400", overlay_opacity: 0.4, alignment: "center", height: "large" } },
+        {
+          id: "sec_home_hero",
+          type: "hero",
+          name: "Hero Banner & Kitchen Story Animation",
+          enabled: true,
+          order: 1,
+          config: {
+            headline: "Handcrafted Gourmet Cakes Delivered in 2 Hours",
+            subheadline: "Fresh, artisanal birthday & wedding cakes across Bangalore. Midnight delivery available!",
+            badge_text: "100% Fresh & Artisanal • Express 2-Hour Delivery",
+            cta_primary_text: "Order a Cake",
+            cta_primary_url: "/products",
+            cta_secondary_text: "View Collections",
+            cta_secondary_url: "/collections",
+            disable_scroll_sequence: false,
+            desktop: {
+              enabled: true,
+              animation_type: "scroll_frame",
+              frame_count: 16,
+              scrub_smoothing: "medium",
+              first_frame_hold_pct: 0.06,
+              final_frame_hold_pct: 0.10,
+              frames: [
+                { id: "frame_desktop_1", sequence: 1, filename: "kitchen_story_frame_01.webp", url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_2", sequence: 2, filename: "kitchen_story_frame_02.webp", url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_3", sequence: 3, filename: "kitchen_story_frame_03.webp", url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_4", sequence: 4, filename: "kitchen_story_frame_04.webp", url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_5", sequence: 5, filename: "kitchen_story_frame_05.webp", url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_6", sequence: 6, filename: "kitchen_story_frame_06.webp", url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_7", sequence: 7, filename: "kitchen_story_frame_07.webp", url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_8", sequence: 8, filename: "kitchen_story_frame_08.webp", url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_9", sequence: 9, filename: "kitchen_story_frame_09.webp", url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_10", sequence: 10, filename: "kitchen_story_frame_10.webp", url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_11", sequence: 11, filename: "kitchen_story_frame_11.webp", url: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_12", sequence: 12, filename: "kitchen_story_frame_12.webp", url: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_13", sequence: 13, filename: "kitchen_story_frame_13.webp", url: "https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_14", sequence: 14, filename: "kitchen_story_frame_14.webp", url: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_15", sequence: 15, filename: "kitchen_story_frame_15.webp", url: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+                { id: "frame_desktop_16", sequence: 16, filename: "kitchen_story_frame_16.webp", url: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&q=80&w=1400", optimized_url: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&q=80&w=1400", device_target: "desktop", original_size: 2800000, compressed_size: 420000, savings_pct: 85, width: 1920, height: 1080, format: "webp" },
+              ]
+            },
+            tablet: {
+              enabled: true,
+              animation_type: "scroll_frame",
+              frame_count: 12,
+              frames: [
+                { id: "frame_tablet_1", sequence: 1, filename: "tablet_frame_01.webp", url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+                { id: "frame_tablet_2", sequence: 2, filename: "tablet_frame_02.webp", url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+                { id: "frame_tablet_3", sequence: 3, filename: "tablet_frame_03.webp", url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+                { id: "frame_tablet_4", sequence: 4, filename: "tablet_frame_04.webp", url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+                { id: "frame_tablet_5", sequence: 5, filename: "tablet_frame_05.webp", url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+                { id: "frame_tablet_6", sequence: 6, filename: "tablet_frame_06.webp", url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+                { id: "frame_tablet_7", sequence: 7, filename: "tablet_frame_07.webp", url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+                { id: "frame_tablet_8", sequence: 8, filename: "tablet_frame_08.webp", url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+                { id: "frame_tablet_9", sequence: 9, filename: "tablet_frame_09.webp", url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+                { id: "frame_tablet_10", sequence: 10, filename: "tablet_frame_10.webp", url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+                { id: "frame_tablet_11", sequence: 11, filename: "tablet_frame_11.webp", url: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+                { id: "frame_tablet_12", sequence: 12, filename: "tablet_frame_12.webp", url: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=900", optimized_url: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=900", device_target: "tablet", width: 1280, height: 720, format: "webp" },
+              ]
+            },
+            mobile: {
+              enabled: true,
+              animation_type: "scroll_frame",
+              frame_count: 10,
+              frames: [
+                { id: "frame_mobile_1", sequence: 1, filename: "mobile_frame_01.webp", url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+                { id: "frame_mobile_2", sequence: 2, filename: "mobile_frame_02.webp", url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+                { id: "frame_mobile_3", sequence: 3, filename: "mobile_frame_03.webp", url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+                { id: "frame_mobile_4", sequence: 4, filename: "mobile_frame_04.webp", url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+                { id: "frame_mobile_5", sequence: 5, filename: "mobile_frame_05.webp", url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+                { id: "frame_mobile_6", sequence: 6, filename: "mobile_frame_06.webp", url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+                { id: "frame_mobile_7", sequence: 7, filename: "mobile_frame_07.webp", url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+                { id: "frame_mobile_8", sequence: 8, filename: "mobile_frame_08.webp", url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+                { id: "frame_mobile_9", sequence: 9, filename: "mobile_frame_09.webp", url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+                { id: "frame_mobile_10", sequence: 10, filename: "mobile_frame_10.webp", url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=600", optimized_url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=600", device_target: "mobile", width: 828, height: 1792, format: "webp" },
+              ]
+            }
+          }
+        },
         { id: "sec_home_cats", type: "category_grid", name: "Shop by Category", enabled: true, order: 2, config: { heading: "Shop by Occasion", subheading: "Find the perfect cake for every celebration", layout: "grid", columns: 3, category_ids: ["pcat_01", "pcat_02", "pcat_03"] } },
         { id: "sec_home_bestsellers", type: "product_grid", name: "Best Sellers", enabled: true, order: 3, config: { heading: "🏆 Best-Selling Cakes", subheading: "Freshly baked fan favourites", mode: "best_sellers", layout: "grid", columns: 4, show_ratings: true, show_price: true, product_ids: [] } },
         { id: "sec_home_promo", type: "promotional_banner", name: "Monsoon Sale Banner", enabled: true, order: 4, config: { headline: "🎉 Monsoon Special — Flat 50% OFF", subheadline: "Use Code: CAKE50. Valid on all birthday & anniversary cakes above ₹299", cta_text: "Claim Offer", cta_url: "/products?promo=CAKE50", bg_color: "#fef3c7", text_color: "#92400e" } },
@@ -1228,6 +1384,7 @@ const DEFAULT_CMS_PAGES = [
     updated_at: "2026-08-09T10:00:00Z",
     published_at: "2026-07-01T12:00:00Z",
   },
+
   {
     id: "cmspg_products",
     title: "Products / Catalog",
@@ -1661,8 +1818,8 @@ export const DEFAULT_MEDIA = [
     id: "med_fruit_01",
     name: "Exotic Fresh Fruit Gateau Cake",
     filename: "fresh-fruit-cake.jpg",
-    url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=1400",
-    thumbnail_url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=300",
+    url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=1400",
+    thumbnail_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=300",
     mime_type: "image/jpeg",
     size: 310000,
     width: 1400,
@@ -1862,8 +2019,8 @@ const DEFAULT_ACCESSORIES: AccessoryItem[] = [
     stock: 45,
     low_stock_threshold: 5,
     gst_rate: 18,
-    thumbnail: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=400",
-    images: ["https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=400"],
+    thumbnail: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400",
+    images: ["https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400"],
     description: "Premium mirror gold finish acrylic topper for birthday cakes.",
     status: "active",
     weight: "50g",
@@ -3036,7 +3193,7 @@ const DEFAULT_ABANDONED_CARTS: AbandonedCart[] = [
         quantity: 1,
         unit_price: 99,
         total_price: 99,
-        thumbnail: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=400",
+        thumbnail: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400",
       },
     ],
     item_count: 2,
@@ -3112,7 +3269,7 @@ const DEFAULT_ABANDONED_CARTS: AbandonedCart[] = [
         quantity: 1,
         unit_price: 699,
         total_price: 699,
-        thumbnail: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=400",
+        thumbnail: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400",
       },
     ],
     item_count: 1,
@@ -5243,7 +5400,7 @@ export class ApiEngine {
 
     return {
       ...p,
-      thumbnail: p.thumbnail === "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800"
+      thumbnail: p.thumbnail === "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800"
         ? "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800"
         : p.thumbnail,
       primary_category_id: p.primary_category_id || primaryCat.id,
@@ -11719,17 +11876,23 @@ export class ApiEngine {
   static getCmsPage(idOrSlug: string) {
     const pages = ApiEngine.listCmsPages();
     if (!idOrSlug) {
-      return pages.find((p: any) => p.slug === "home" || p.page_type === "home" || p.url_path === "/") || null;
+      return pages.find((p: any) => p.id === "cmspg_home" || p.slug === "home") ||
+             pages.find((p: any) => p.url_path === "/" || p.page_type === "home") || null;
     }
     const clean = idOrSlug.startsWith("/") ? idOrSlug.substring(1) : idOrSlug;
     if (clean === "" || clean === "home" || idOrSlug === "/") {
-      const home = pages.find((p: any) => p.slug === "home" || p.page_type === "home" || p.url_path === "/");
+      const home = pages.find((p: any) => p.id === "cmspg_home" || p.slug === "home") ||
+                   pages.find((p: any) => p.url_path === "/" || p.page_type === "home");
       if (home) return home;
     }
+    // Exact ID match first
+    const exactId = pages.find((p: any) => p.id === idOrSlug);
+    if (exactId) return exactId;
+    // Exact slug match
+    const exactSlug = pages.find((p: any) => p.slug === idOrSlug || p.slug === clean);
+    if (exactSlug) return exactSlug;
+    // URL path match
     return pages.find((p: any) =>
-      p.id === idOrSlug ||
-      p.slug === idOrSlug ||
-      p.slug === clean ||
       p.url_path === idOrSlug ||
       p.url_path === `/${clean}` ||
       p.url_path === `/${idOrSlug}`
@@ -12512,8 +12675,8 @@ export class ApiEngine {
       gst_rate: Number(data.gst_rate) || Number(data.gst_rate_pct) || 18,
       gst_rate_pct: Number(data.gst_rate_pct) || Number(data.gst_rate) || 18,
       tax_treatment: data.tax_treatment || "inclusive",
-      thumbnail: data.thumbnail || "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=400",
-      images: Array.isArray(data.images) && data.images.length > 0 ? data.images : [data.thumbnail || "https://images.unsplash.com/photo-1535141192574-5d4897c13136"],
+      thumbnail: data.thumbnail || "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400",
+      images: Array.isArray(data.images) && data.images.length > 0 ? data.images : [data.thumbnail || "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b"],
       description: data.description || "Premium celebration accessory.",
       status: data.status || "active",
       weight: data.weight || "100g",

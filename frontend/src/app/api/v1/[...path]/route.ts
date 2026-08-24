@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { ApiEngine } from "@frontend/lib/api-engine";
 import { WebhookEngine } from "@frontend/lib/webhook-engine";
 import { TelemarketingEngine } from "@frontend/lib/telemarketing-engine";
@@ -2688,11 +2689,25 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/publish")) {
       const pageId = path.replace("cms/pages/", "").replace("/publish", "");
-      return jsonWithDataSource(ApiEngine.publishCmsPage(pageId), "json-fallback");
+      const res = ApiEngine.publishCmsPage(pageId);
+      try {
+        revalidatePath("/");
+        revalidatePath("/(store)");
+      } catch {
+        // ignore in non-server-action contexts
+      }
+      return jsonWithDataSource(res, "json-fallback");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/unpublish")) {
       const pageId = path.replace("cms/pages/", "").replace("/unpublish", "");
-      return jsonWithDataSource(ApiEngine.unpublishCmsPage(pageId), "json-fallback");
+      const res = ApiEngine.unpublishCmsPage(pageId);
+      try {
+        revalidatePath("/");
+        revalidatePath("/(store)");
+      } catch {
+        // ignore
+      }
+      return jsonWithDataSource(res, "json-fallback");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/reorder-sections")) {
       const pageId = path.replace("cms/pages/", "").replace("/reorder-sections", "");

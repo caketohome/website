@@ -155,7 +155,8 @@ class CakeToHomeApiClient {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const requestTimeoutMs = typeof window === "undefined" ? 45000 : 20000;
+      const timeoutId = setTimeout(() => controller.abort(), requestTimeoutMs);
       const response = await fetch(primaryUrl, {
         ...options,
         headers,

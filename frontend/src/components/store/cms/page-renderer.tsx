@@ -11,6 +11,7 @@ import {
 import { ScrollFrameHero } from "@frontend/components/store/animation/scroll-frame-hero";
 import { PromotionalBannerSection } from "./promotional-banner-section";
 import { AnnouncementBarSection, AnnouncementBarConfig } from "./announcement-bar-section";
+import { resolveHeroBannerConfig } from "@frontend/lib/cms/hero-resolver";
 
 export interface PageSectionConfig {
   id: string;
@@ -320,8 +321,8 @@ export function PageRenderer({
         />
       )}
 
-      {/* Optional Page Heading for Static / Landing Pages */}
-      {(h1 || subheading || introContent) && (
+      {/* Optional Page Heading for Static / Landing Pages (only when no Hero banner is active) */}
+      {(h1 || subheading || introContent) && !activeSections.some((s) => s.type === "hero" && s.enabled !== false) && (
         <div className="max-w-4xl mx-auto text-center px-4 pt-6 flex flex-col gap-3">
           {h1 && (
             <Heading
@@ -435,29 +436,30 @@ export function PageRenderer({
           switch (section.type) {
             // ── 1. Hero Section ──────────────────────────────────────────
             case "hero": {
-              const headline = config.headline || "Handcrafted Gourmet Cakes Delivered in 2 Hours";
-              const subheadline = config.subheadline || "Fresh, artisanal birthday & wedding cakes across Bangalore. Midnight delivery available!";
-              const badgeText = config.badge_text || "100% Fresh & Artisanal • Express 2-Hour Delivery";
-              const bgImage = config.bg_image || config.desktop_image?.url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400";
-              const bgImageAlt = config.bg_image_alt || config.desktop_image?.alt || headline;
-              const mobileImage = config.mobile_image?.url || bgImage;
-              const tabletImage = config.tablet_image?.url || bgImage;
-              const overlayOpacity = config.overlay_opacity ?? 0.4;
-              const objectFit = config.object_fit || "cover";
-              const imagePosition = config.image_position || "center";
+              const resolvedHero = resolveHeroBannerConfig(config, "desktop");
+              const headline = resolvedHero.headline;
+              const subheadline = resolvedHero.subheadline;
+              const badgeText = resolvedHero.badgeText;
+              const bgImage = resolvedHero.desktopImage;
+              const bgImageAlt = resolvedHero.imageAlt;
+              const mobileImage = resolvedHero.mobileImage;
+              const tabletImage = resolvedHero.tabletImage;
+              const overlayOpacity = resolvedHero.overlayOpacity;
+              const objectFit = resolvedHero.objectFit;
+              const imagePosition = resolvedHero.imagePosition;
 
               // Responsive Alignment & Height
-              const desktopAlignment = desktopConfig.alignment || config.alignment || "center";
+              const desktopAlignment = desktopConfig.alignment || resolvedHero.alignment;
               const tabletAlignment = tabletConfig.alignment || desktopAlignment;
               const mobileAlignment = mobileConfig.alignment || desktopAlignment;
 
-              const primaryCtaVisible = config.cta_primary_visible !== false && !!(config.cta_primary_text || config.cta_text || "Order a Cake");
-              const secondaryCtaVisible = config.cta_secondary_visible !== false && !!(config.cta_secondary_text || "View Collections");
+              const primaryCtaVisible = resolvedHero.primaryCtaVisible;
+              const secondaryCtaVisible = resolvedHero.secondaryCtaVisible;
 
-              const primaryCtaText = config.cta_primary_text || config.cta_text || "Explore Cakes";
-              const primaryCtaUrl = config.cta_primary_url || config.cta_url || "/products";
-              const secondaryCtaText = config.cta_secondary_text || "Birthday Specials";
-              const secondaryCtaUrl = config.cta_secondary_url || "/products?occasion=birthday";
+              const primaryCtaText = resolvedHero.primaryCtaText;
+              const primaryCtaUrl = resolvedHero.primaryCtaUrl;
+              const secondaryCtaText = resolvedHero.secondaryCtaText;
+              const secondaryCtaUrl = resolvedHero.secondaryCtaUrl;
 
               // Dynamic Scroll-Frame Hero with Multi-Device Frame Sets
               if (config.disable_scroll_sequence !== true) {
@@ -471,8 +473,28 @@ export function PageRenderer({
                 );
               }
 
+              if (process.env.NODE_ENV === "development" && config.disable_scroll_sequence !== true) {
+                console.error(
+                  "INVALID RENDER PATH: CMS section has valid scroll_frame configuration but StaticHero was rendered for section:",
+                  sectionKey
+                );
+              }
+
               return (
-                <section key={sectionKey} className="w-full">
+                <section
+                  key={sectionKey}
+                  className="w-full"
+                  data-cms-renderer="static-hero"
+                  data-section-id={sectionKey}
+                  data-cms-section-id={sectionKey}
+                  data-section-type="hero"
+                  data-cms-section-type="hero"
+                  data-cms-headline={headline}
+                  data-cms-badge={badgeText}
+                  data-cms-primary-cta={primaryCtaText}
+                  data-cms-secondary-cta={secondaryCtaText}
+                  data-animation-mode="static"
+                >
                   <style
                     dangerouslySetInnerHTML={{
                       __html: `
@@ -934,28 +956,37 @@ export function PageRenderer({
               );
             }
 
-            // ── 6. Image + Text / Brand Story ───────────────────────────
+            // ── 6. Image + Text / Brand Story / Kitchen Story ─────────────
             case "image_text":
             case "brand_story": {
               const heading = config.heading || "Handcrafted with Pure Ingredients";
               const body = config.body || "At CakeToHome, our master bakers use only premium Belgian dark chocolate, Madagascar bourbon vanilla beans, and farm-fresh seasonal fruits.";
-              const imageUrl = config.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
+              const desktopImageUrl = config.image_url || config.desktop_image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
+              const tabletImageUrl = config.tablet_image_url || desktopImageUrl;
+              const mobileImageUrl = config.mobile_image_url || desktopImageUrl;
               const imageAlt = config.image_alt || heading;
               const badgeText = config.badge_text || "About Our Kitchen";
               const ctaText = config.cta_text;
               const ctaUrl = config.cta_url || "/products";
               const imagePosition = config.image_position || "left";
+              const objectFit = (config.image_fit || "cover") as "cover" | "contain";
+              const objectPosition = config.image_position_align || "center";
 
               return (
                 <section key={sectionKey} className={`grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-ui-bg-subtle/40 p-6 sm:p-10 rounded-3xl border border-ui-border-base ${imagePosition === "right" ? "md:grid-flow-dense" : ""}`}>
                   <div className={`relative aspect-[4/3] rounded-2xl overflow-hidden shadow-md ${imagePosition === "right" ? "md:col-start-2" : ""}`}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={imageUrl}
-                      alt={imageAlt}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+                    <picture>
+                      {mobileImageUrl && <source media="(max-width: 640px)" srcSet={mobileImageUrl} />}
+                      {tabletImageUrl && <source media="(max-width: 1024px)" srcSet={tabletImageUrl} />}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={desktopImageUrl}
+                        alt={imageAlt}
+                        className="w-full h-full"
+                        style={{ objectFit, objectPosition }}
+                        loading="lazy"
+                      />
+                    </picture>
                   </div>
                   <div className="flex flex-col gap-4">
                     {badgeText && (
@@ -1196,6 +1227,11 @@ export function PageRenderer({
           }
         };
 
+        const isStickySection =
+          section.type === "hero" ||
+          section.type === "kitchen_story" ||
+          section.type === "scroll_frame";
+
         return (
           <div
             key={sectionKey}
@@ -1207,9 +1243,13 @@ export function PageRenderer({
           >
             {wrapperStyle}
             <div className={`sec-wrap-${sectionKey}`}>
-              <SectionMotionWrapper animationConfig={config.animation}>
-                {renderSectionContent()}
-              </SectionMotionWrapper>
+              {isStickySection ? (
+                renderSectionContent()
+              ) : (
+                <SectionMotionWrapper animationConfig={config.animation}>
+                  {renderSectionContent()}
+                </SectionMotionWrapper>
+              )}
             </div>
           </div>
         );

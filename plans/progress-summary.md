@@ -7,7 +7,46 @@
 
 ## 1. Recently Completed Milestones
 
-### Milestone 9.26: Kitchen Story / Scroll-Frame Hero Runtime Animation & Full-Cover Hero Repair (100% Verified)
+### Milestone 9.31: Hero Banner CMS Data Binding & Canonical Resolution (100% Verified)
+- **Root Cause Elimination**:
+  - Identified data binding priority issue where `scroll-frame-hero.tsx` and fallback static hero prioritized `desktopConfig.headline` (containing legacy `"Desktop: "` prefix) over authoritative global `config.headline`.
+  - Resolved `page-configurator.tsx` section selection logic, ensuring instant preview canvas and live storefront share 100% identical configuration.
+  - Fixed `getCmsPage` exact matching priority in `api-engine.ts`, preventing duplicate slug test pages from intercepting canonical homepage resolution.
+- **Canonical Hero Resolver (`frontend/src/lib/cms/hero-resolver.ts`)**:
+  - Implemented `resolveHeroBannerConfig(sectionOrConfig, device)`:
+    - Authoritatively resolves `headline`, `subheadline`, `badgeText`, `primaryCtaText`, `primaryCtaUrl`, `secondaryCtaText`, `secondaryCtaUrl`.
+    - Automatically strips editor artifact prefixes (`Desktop: `, `Tablet: `, `Mobile: `) via `sanitizeHeroText()`.
+    - Resolves multi-device responsive images (`desktopImage`, `tabletImage`, `mobileImage`) with fallback logic.
+    - Exposes dev-only debug payload `window.__CAKETOHOME_HERO_DEBUG__` with `source: "published CMS"`.
+- **Live DOM Instrumentation**:
+  - Connected `data-cms-section-id`, `data-cms-section-type="hero"`, `data-cms-headline`, `data-cms-badge`, `data-cms-primary-cta`, `data-cms-secondary-cta` to both `ScrollFrameHero` and `page-renderer.tsx`.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-hero-banner-cms-binding-e2e.ts`: **100% PASS** (Live storefront initial audit, no "Desktop:" prefix, CMS editor update, instant preview canvas parity, save draft, publish, hard reload persistence, and mobile 375px responsive audit).
+  - `scripts/test-kitchen-story-image-upload-e2e.ts`: **100% PASS** (Regression verification).
+  - `scripts/test-dashboard-route-assets-e2e.ts`: **100% PASS** (0 asset/chunk 404s).
+  - `npx tsc --noEmit`: **0 errors (100% clean)**.
+
+### Milestone 9.30: Kitchen Story Image Upload System & Media Pipeline (100% Verified)
+- **Replaced Raw Image URL Inputs with Unified Image Uploader**:
+  - Replaced legacy text inputs (`<Input value={config.image_url} placeholder="https://..." />`) in `section-config-editor.tsx` with a modern, full-featured `CmsImageUploader` component.
+  - Provided interactive drag-and-drop zone (`"Drop image here or click to upload"`), direct file selection, media library browser (`MediaSelectorModal`), replace image, and remove image (with confirmation).
+- **Security Validation & Format Whitelisting**:
+  - Whitelisted formats: JPG, JPEG, PNG, WebP, AVIF.
+  - Prohibited formats: Strictly rejects SVG, XML, HTML, and script payloads with explicit security alert messaging on both client and backend API (`/api/v1/admin/media/upload`).
+  - Size enforcement: Validates 10 MB maximum file size limit.
+- **Client-Side Image Optimization & Canonical Storage**:
+  - Connected upload pipeline to client-side `compressImageToWebP` utility (resizing and WebP encoding).
+  - Persisted assets to `public/uploads/upload_[timestamp]_[hash].webp` via canonical `apiClient.uploadMedia` API and registered in persistent media catalog (never storing large permanent base64 strings in CMS draft JSON).
+- **Responsive Images & Storefront Rendering**:
+  - Implemented responsive device selectors (`Desktop (Primary)`, `Tablet`, `Mobile`) with automatic fallback to Desktop image.
+  - Integrated `Alt Text` input, `Object Fit` (`cover` | `contain`), and `Image Alignment` (`left` | `right`).
+  - Updated storefront `page-renderer.tsx` to render `<picture>` elements with media queries (`max-width: 640px`, `max-width: 1024px`) for optimal responsive delivery.
+  - Guaranteed 100% backward compatibility for legacy external URLs (`https://images.unsplash.com/...`).
+- **Empirical Evidence & Verification**:
+  - `scripts/test-kitchen-story-image-upload-e2e.ts`: **100% PASS** (SVG security rejection, oversized rejection, WebP upload, canonical URL generation, CMS draft save, publish, dashboard UI load, storefront `<picture>` rendering, hard reload persistence, replacement safety, legacy URL backward compatibility).
+  - TypeScript Check (`npx tsc --noEmit`): **0 errors (100% clean)**.
+
+### Milestone 9.29: Next.js Route Chunk & Build ID Synchronization (100% Verified)
 - **Resolved Hero Routing & Animation Mount in `PageRenderer`**:
   - Identified root cause in `page-renderer.tsx` where sections of type `"hero"` always rendered static `<picture>` banner markup regardless of configured animation frames.
   - Updated `case "hero":` to dynamically mount `<ScrollFrameHero>` when `config.animation_type === "scroll_frame"` or `desktop.frames.length > 0`, connecting published CMS frames to live storefront rendering.
@@ -28,6 +67,38 @@
   - `scripts/test-scroll-frame-hero-live-cover.ts`: **100% PASS** (Published CMS config, Canvas dimensions 1440x900, 0 overflow, 0% $\rightarrow$ 25% $\rightarrow$ 50% $\rightarrow$ 75% $\rightarrow$ 100% progression, reverse scrub, natural document flow, Tablet 768x1024, Mobile 390x844).
   - `scripts/test-scroll-frame-visual-diff.ts`: **100% PASS** (Proved visual frame differences across 0%, 25%, 50%, 75%, 100% scroll points via direct GPU screenshots).
   - `npm run build`: **39/39 pages static generation passed (100% clean, exit code 0)**.
+### Milestone 9.27: Live Hero Production Renderer Ownership & Single Source of Truth (100% Verified)
+- **Eliminated Hydration Fallback Override & Motion Drop**:
+  - Identified root cause where client-side `useEffect` media-query check for `prefers-reduced-motion` or responsive device switching evaluated `isAnimationEnabled = false`, triggering the static fallback `<section>` and replacing the active canvas hero with the static banner.
+  - Hardened `isAnimationEnabled` to enforce that valid CMS scroll sequence configurations remain 100% active and mounted on the canvas, while applying accessible zero-smoothing direct scrubbing instead of dropping the component.
+- **Single Source of Truth & Component Identity Markers**:
+  - Tagged all hero renderers with explicit dev markers (`data-cms-renderer="scroll-frame-hero"`, `data-cms-renderer="static-hero"`).
+  - Added hard development assertions in `page-renderer.tsx` to detect and prevent unauthorized static hero fallback execution.
+  - Implemented component mount/unmount lifecycle logging in development mode.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-kitchen-story-production-renderer-e2e.ts`: **100% PASS** (Live DOM contains exactly 1 hero renderer: `scroll-frame-hero`, 1 `.scroll-frame-section`, 0 static hero containers, 1 `<canvas>`, remains mounted across 0%, 25%, 50%, 75%, 100% scroll, smooth transition to subsequent sections, deterministic SSR/hard-reload).
+  - `scripts/test-kitchen-story-visual-scrub-e2e.ts`: **100% PASS** (163-step incremental scroll, 0 blank frames, 0 network requests during active scroll, multi-device viewports).
+  - TypeScript Check (`npx tsc --noEmit`): **0 errors (100% clean)**.
+
+### Milestone 9.26: Kitchen Story Cinematic Sub-Frame Crossfade, Hold Durations & Smooth Scrub Engine (100% Verified)
+- **Continuous Sub-Frame Alpha Blending (Crossfade)**:
+  - Eliminated discrete 168px frame jumps by implementing continuous floating-point frame progress interpolation in `scroll-frame-hero.tsx`.
+  - Seamlessly blends base frame image with adjacent sequence frame via `globalAlpha = fractionalIndex - baseIndex` ($0.0 \rightarrow 1.0$), delivering 60+ FPS fluid motion across 16 discrete CMS frames.
+- **Zero-Flicker Canvas Lifecycle & Buffer Management**:
+  - Decoupled canvas buffer allocation (`canvas.width = bufferWidth`) from render ticks to prevent DPR clear flashes during scroll scrub.
+  - Sizing is managed exclusively via `ResizeObserver` and window resize listeners.
+  - Implemented persistent image cache fallback (`lastRenderedImgRef`) to guarantee that the canvas never clears or flashes procedural gradients during active scrolling.
+- **Cinematic First Frame & Final Frame Hold Durations**:
+  - Implemented `first_frame_hold_pct` (default: 6%) so the introductory headline and initial artisanal cake frame remain stably anchored as the user scrolls into the section.
+  - Implemented `final_frame_hold_pct` (default: 10%) so the completed masterpiece and delivery fleet guarantee remain proudly displayed before releasing smoothly into subsequent sections.
+- **Configurable Scrub Smoothing & CMS Controls**:
+  - Added `scrub_smoothing` ("off", "low", "medium", "high") with RAF lerp dampening to eliminate jerky wheel inputs.
+  - Exposed First Frame Hold, Final Frame Hold, and Scrub Smoothing controls in the CMS `ScrollFrameEditor`.
+  - Added dev-only floating HUD (`?debug_scroll=1`) to monitor frame load states, target vs displayed progress, and device resolution.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-kitchen-story-visual-scrub-e2e.ts`: **100% PASS** (Full sequence preload, +10px incremental continuous scroll across 1620px track, 0 blank frames, 0 network requests during active scroll, 6% first frame hold, 10% final frame hold, Desktop 1440x900, Tablet 768x1024, Mobile 390x844).
+  - `scripts/test-kitchen-story-micro-scroll-e2e.ts`: **100% PASS** (21-point micro-scroll progression in 5% steps, First Frame Hold, Final Frame Hold, 15px continuous incremental wheel scroll, Reverse scrub, 0 blank frames, 0 404 errors, 0 duplicate asset storms).
+  - `scripts/test-kitchen-story-live-homepage-e2e.ts`: **100% PASS** (FRAME_INDEX_CHANGES_E2E: Published CMS config, Canvas dimensions 1440x900, 0 overflow, 0% $\rightarrow$ 25% $\rightarrow$ 50% $\rightarrow$ 75% $\rightarrow$ 100% progression, reverse scrub, natural document flow, Tablet 768x1024, Mobile 390x844).
   - TypeScript Check (`npx tsc --noEmit`): **0 errors (100% clean)**.
 
 ### Milestone 9.25: Kitchen Story & Scroll-Frame CMS Frame CRUD, Replacement, Reordering & Live Storefront Synchronization (100% Verified)

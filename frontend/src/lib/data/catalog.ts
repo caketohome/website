@@ -168,7 +168,7 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
       variant_id: p.variant_id || `var_${p.id || p.product_id}`,
       title: p.title || p.name || "Gourmet Cake",
       description: p.description || p.short_description || "Freshly baked cake.",
-      thumbnail: p.thumbnail === "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=800"
+      thumbnail: p.thumbnail === "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800"
         ? "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800"
         : (p.thumbnail || p.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587"),
       handle: p.handle || p.slug || "cake",
@@ -573,14 +573,14 @@ export async function listPimCategories(): Promise<any[]> {
     return [
       { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587" },
       { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", image: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c" },
-      { id: "cat_fruit", name: "Fresh Fruit Cakes", slug: "fruit-cakes", image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136" },
+      { id: "cat_fruit", name: "Fresh Fruit Cakes", slug: "fruit-cakes", image: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b" },
       { id: "cat_cheesecake", name: "Cheesecakes", slug: "cheesecakes", image: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad" },
     ];
   } catch {
     return [
       { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587" },
       { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", image: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c" },
-      { id: "cat_fruit", name: "Fresh Fruit Cakes", slug: "fruit-cakes", image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136" },
+      { id: "cat_fruit", name: "Fresh Fruit Cakes", slug: "fruit-cakes", image: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b" },
       { id: "cat_cheesecake", name: "Cheesecakes", slug: "cheesecakes", image: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad" },
     ];
   }

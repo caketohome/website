@@ -5,6 +5,9 @@ import { listProducts, listPimCategories, listOccasions } from "../../lib/data/c
 import { SeoMetadataBuilder } from "../../lib/seo/metadata-builder";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getHomepage().catch(() => ({ page: null, sections: [], banners: [] }));
   const page = cms.page;
@@ -31,7 +34,7 @@ export default async function Home() {
   const announcementBar = "announcementBar" in cms ? cms.announcementBar : undefined;
 
   return (
-    <div className="flex flex-col gap-0 w-full overflow-x-hidden">
+    <div className="flex flex-col gap-0 w-full overflow-x-clip">
       {/* Dynamic Published CMS Page Sections */}
       {sections.length > 0 ? (
         <PageRenderer

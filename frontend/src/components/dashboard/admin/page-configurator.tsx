@@ -303,6 +303,7 @@ export function PageConfigurator() {
   // Canvas-Only Section Scrolling Helper
   const scrollToSectionInCanvas = (sectionId: string) => {
     setConfiguringSection(sectionId);
+    setMobilePanelTab("settings");
     if (centerCanvasRef.current) {
       const targetEl = centerCanvasRef.current.querySelector(`[data-section-id="${sectionId}"]`);
       if (targetEl) {
@@ -816,19 +817,19 @@ export function PageConfigurator() {
             <Copy className="w-3.5 h-3.5 mr-1" /> Duplicate
           </Button>
 
-          <Button variant="secondary" size="small" onClick={handleSaveDraft} isLoading={saving}>
+          <Button variant="secondary" size="small" onClick={handleSaveDraft} isLoading={saving} data-testid="cms-save-draft-btn">
             <Save className="w-3.5 h-3.5 mr-1" /> Save Draft
           </Button>
 
-          {editingPage.status === "published" ? (
-            <Button variant="secondary" size="small" onClick={handleUnpublish}>
+          {editingPage.status === "published" && (
+            <Button variant="secondary" size="small" onClick={handleUnpublish} data-testid="cms-unpublish-btn">
               <EyeOff className="w-3.5 h-3.5 mr-1" /> Unpublish
             </Button>
-          ) : (
-            <Button variant="primary" size="small" onClick={handlePublish} isLoading={publishing}>
-              <Send className="w-3.5 h-3.5 mr-1" /> Publish
-            </Button>
           )}
+
+          <Button variant="primary" size="small" onClick={handlePublish} isLoading={publishing} data-testid="cms-publish-btn">
+            <Send className="w-3.5 h-3.5 mr-1" /> {editingPage.status === "published" ? "Publish Changes" : "Publish"}
+          </Button>
         </div>
       </div>
 
@@ -860,20 +861,20 @@ export function PageConfigurator() {
         {/* LEFT PANEL: Controls & Settings (~340px / 3 cols) */}
         <div className={`col-span-12 lg:col-span-3 bg-ui-bg-base border border-ui-border-base rounded-xl p-4 flex-col gap-4 h-full overflow-y-auto overscroll-y-auto min-h-0 ${mobilePanelTab === "settings" ? "flex" : "hidden lg:flex"}`}>
           {configuringSection && selectedSection ? (
-            /* SECTION EDITOR MODE */
-            <SectionConfigEditor
-              section={selectedSection}
-              allProducts={allProducts}
-              allCategories={allCategories}
-              allOccasions={allOccasions}
-              updateSectionField={updateSectionField}
-              updateSectionConfig={updateSectionConfig}
-              updateSectionWholeConfig={updateSectionWholeConfig}
-              updateSectionNestedConfig={updateSectionNestedConfig}
-              openImagePicker={openImagePicker}
-              onClose={() => setConfiguringSection(null)}
-            />
-          ) : (
+                /* SECTION EDITOR MODE */
+                <SectionConfigEditor
+                  section={selectedSection}
+                  allProducts={allProducts}
+                  allCategories={allCategories}
+                  allOccasions={allOccasions}
+                  updateSectionField={updateSectionField}
+                  updateSectionConfig={updateSectionConfig}
+                  updateSectionWholeConfig={updateSectionWholeConfig}
+                  updateSectionNestedConfig={updateSectionNestedConfig}
+                  openImagePicker={openImagePicker}
+                  onClose={() => setConfiguringSection(null)}
+                />
+              ) : (
             /* PAGE SETTINGS MODE */
             <div className="flex flex-col gap-4">
               {/* Tab Navigation Bar */}
@@ -1222,6 +1223,9 @@ export function PageConfigurator() {
                 return (
                   <div
                     key={sec.id}
+                    data-testid={`section-item-${sec.type}`}
+                    data-section-id={sec.id}
+                    data-section-type={sec.type}
                     draggable={true}
                     onDragStart={e => handleDragStart(e, idx)}
                     onDragOver={e => handleDragOver(e, idx)}
@@ -1239,12 +1243,12 @@ export function PageConfigurator() {
                     }`}
                   >
                     <div className="flex items-center justify-between gap-1">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <div className="cursor-grab active:cursor-grabbing text-ui-fg-muted hover:text-ui-fg-base" title="Drag to reorder">
+                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                        <div className="cursor-grab active:cursor-grabbing text-ui-fg-muted hover:text-ui-fg-base shrink-0" title="Drag to reorder">
                           <GripVertical className="w-3.5 h-3.5 shrink-0" />
                         </div>
                         <SectionIcon type={sec.type} />
-                        <Text className="text-xs font-bold truncate max-w-[80px]">{sec.name}</Text>
+                        <Text className="text-xs font-bold truncate flex-1">{sec.name}</Text>
                       </div>
                       <Badge color={sec.enabled !== false ? "green" : "grey"} className="text-[8px] px-1 py-0 shrink-0">
                         {sec.enabled !== false ? "Active" : "Off"}

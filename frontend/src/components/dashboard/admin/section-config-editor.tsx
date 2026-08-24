@@ -13,6 +13,7 @@ import { MediaSelection } from "./media-selector-modal";
 import { PromotionalBannerEditor } from "./promotional-banner-editor";
 import { AnnouncementBarEditor } from "./announcement-bar-editor";
 import { ScrollFrameEditor } from "./scroll-frame-editor";
+import { CmsImageUploader } from "./cms-image-uploader";
 
 interface SectionConfigEditorProps {
   section: any;
@@ -250,13 +251,29 @@ export function SectionConfigEditor({
           {section.type === "hero" && (
             <>
               <Field label="Headline">
-                <Input value={config.headline || ""} onChange={(e) => updateSectionConfig(section.id, "headline", e.target.value)} placeholder="Handcrafted Gourmet Cakes Delivered in 2 Hours" />
+                <Input
+                  data-testid="hero-headline-input"
+                  value={config.headline || ""}
+                  onChange={(e) => updateSectionConfig(section.id, "headline", e.target.value)}
+                  placeholder="Handcrafted Gourmet Cakes Delivered in 2 Hours"
+                />
               </Field>
               <Field label="Subheadline">
-                <Textarea value={config.subheadline || ""} onChange={(e) => updateSectionConfig(section.id, "subheadline", e.target.value)} placeholder="Fresh, artisanal birthday & wedding cakes across Bangalore..." rows={2} />
+                <Textarea
+                  data-testid="hero-subheadline-input"
+                  value={config.subheadline || ""}
+                  onChange={(e) => updateSectionConfig(section.id, "subheadline", e.target.value)}
+                  placeholder="Fresh, artisanal birthday & wedding cakes across Bangalore..."
+                  rows={2}
+                />
               </Field>
               <Field label="Badge Text">
-                <Input value={config.badge_text || ""} onChange={(e) => updateSectionConfig(section.id, "badge_text", e.target.value)} placeholder="100% Fresh & Artisanal • Express 2-Hour Delivery" />
+                <Input
+                  data-testid="hero-badge-input"
+                  value={config.badge_text || ""}
+                  onChange={(e) => updateSectionConfig(section.id, "badge_text", e.target.value)}
+                  placeholder="100% Fresh & Artisanal • Express 2-Hour Delivery"
+                />
               </Field>
 
               {/* Phase 1 CTAs */}
@@ -264,18 +281,38 @@ export function SectionConfigEditor({
                 <Text className="text-xs font-bold text-rose-600 uppercase">Primary & Secondary Call To Action</Text>
                 <div className="grid grid-cols-2 gap-2">
                   <Field label="Primary CTA Text">
-                    <Input value={config.cta_primary_text || config.cta_text || ""} onChange={(e) => updateSectionConfig(section.id, "cta_primary_text", e.target.value)} placeholder="Explore Cakes" />
+                    <Input
+                      data-testid="hero-primary-cta-text-input"
+                      value={config.cta_primary_text || config.cta_text || ""}
+                      onChange={(e) => updateSectionConfig(section.id, "cta_primary_text", e.target.value)}
+                      placeholder="Explore Cakes"
+                    />
                   </Field>
                   <Field label="Primary CTA URL">
-                    <Input value={config.cta_primary_url || config.cta_url || ""} onChange={(e) => updateSectionConfig(section.id, "cta_primary_url", e.target.value)} placeholder="/products" />
+                    <Input
+                      data-testid="hero-primary-cta-url-input"
+                      value={config.cta_primary_url || config.cta_url || ""}
+                      onChange={(e) => updateSectionConfig(section.id, "cta_primary_url", e.target.value)}
+                      placeholder="/products"
+                    />
                   </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <Field label="Secondary CTA Text">
-                    <Input value={config.cta_secondary_text || ""} onChange={(e) => updateSectionConfig(section.id, "cta_secondary_text", e.target.value)} placeholder="Birthday Specials" />
+                    <Input
+                      data-testid="hero-secondary-cta-text-input"
+                      value={config.cta_secondary_text || ""}
+                      onChange={(e) => updateSectionConfig(section.id, "cta_secondary_text", e.target.value)}
+                      placeholder="Birthday Specials"
+                    />
                   </Field>
                   <Field label="Secondary CTA URL">
-                    <Input value={config.cta_secondary_url || ""} onChange={(e) => updateSectionConfig(section.id, "cta_secondary_url", e.target.value)} placeholder="/products?occasion=birthday" />
+                    <Input
+                      data-testid="hero-secondary-cta-url-input"
+                      value={config.cta_secondary_url || ""}
+                      onChange={(e) => updateSectionConfig(section.id, "cta_secondary_url", e.target.value)}
+                      placeholder="/products?occasion=birthday"
+                    />
                   </Field>
                 </div>
               </div>
@@ -311,16 +348,15 @@ export function SectionConfigEditor({
                 </div>
               </div>
 
-              {/* Static Background Image Picker */}
-              <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex items-center justify-between">
-                <div>
-                  <Label className="text-xs font-semibold">Static Hero Image</Label>
-                  <Text className="text-[10px] text-ui-fg-muted truncate max-w-[160px]">{config.bg_image || "No image"}</Text>
-                </div>
-                <Button variant="secondary" size="small" onClick={() => openImagePicker("Hero Desktop Image", { url: config.bg_image }, (sel) => updateSectionConfig(section.id, "bg_image", sel.url))}>
-                  <ImageIcon className="w-3.5 h-3.5 mr-1" /> Select
-                </Button>
-              </div>
+              {/* Hero Banner Responsive Image Uploader */}
+              <CmsImageUploader
+                label="Hero Banner Image"
+                sectionId={section.id}
+                config={config}
+                updateConfig={(key, val) => updateSectionConfig(section.id, key, val)}
+                openImagePicker={openImagePicker}
+                headingFallback={config.headline || section.name || "Hero Banner"}
+              />
             </>
           )}
 
@@ -404,7 +440,14 @@ export function SectionConfigEditor({
                 <Field label="CTA Text"><Input value={config.cta_text || ""} onChange={(e) => updateSectionConfig(section.id, "cta_text", e.target.value)} placeholder="Learn More" /></Field>
                 <Field label="CTA URL"><Input value={config.cta_url || ""} onChange={(e) => updateSectionConfig(section.id, "cta_url", e.target.value)} placeholder="/products" /></Field>
               </div>
-              <Field label="Image URL"><Input value={config.image_url || ""} onChange={(e) => updateSectionConfig(section.id, "image_url", e.target.value)} placeholder="https://..." /></Field>
+              <CmsImageUploader
+                label="Our Kitchen Story Image"
+                sectionId={section.id}
+                config={config}
+                updateConfig={(key, val) => updateSectionConfig(section.id, key, val)}
+                openImagePicker={openImagePicker}
+                headingFallback={config.heading || section.name || "Kitchen Story"}
+              />
             </>
           )}
 

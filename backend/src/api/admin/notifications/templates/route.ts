@@ -5,7 +5,7 @@ import { NOTIFICATION_MODULE } from "../../../../modules/notification";
  * GET /admin/notifications/templates
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-    const notificationModule = req.scope.resolve(NOTIFICATION_MODULE);
+    const notificationModule = req.scope.resolve(NOTIFICATION_MODULE) as any;
     const filters: Record<string, unknown> = {};
     if (req.query.channel) filters.channel = req.query.channel;
     if (req.query.event) filters.event = req.query.event;
@@ -18,7 +18,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
  * POST /admin/notifications/templates
  */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
-    const notificationModule = req.scope.resolve(NOTIFICATION_MODULE);
+    const notificationModule = req.scope.resolve(NOTIFICATION_MODULE) as any;
 
     const body = req.body as {
         name: string;

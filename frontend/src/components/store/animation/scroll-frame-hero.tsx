@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef, useCallback, useState } from "react";
+import React, { useEffect, useRef, useCallback, useState, useMemo } from "react";
 import Link from "next/link";
 import { Heading, Text, Button } from "@medusajs/ui";
 import { Sparkles, ArrowRight, ShieldCheck } from "lucide-react";
+import { resolveHeroBannerConfig } from "@frontend/lib/cms/hero-resolver";
 
 export interface AnimationFrameItem {
   id: string;
@@ -37,6 +38,10 @@ export interface DeviceAnimationConfig {
   duration?: number;
   easing?: "linear" | "ease_in" | "ease_out" | "ease_in_out";
   smoothing?: boolean;
+  scrub_smoothing?: "off" | "low" | "medium" | "high";
+  first_frame_hold_pct?: number; // e.g. 0.06 (6%)
+  final_frame_hold_pct?: number; // e.g. 0.10 (10%)
+  crossfade?: boolean;
   loop?: boolean;
   reverse?: boolean;
   direction?: "forward" | "reverse";
@@ -112,6 +117,9 @@ export interface ScrollFrameAnimationProps {
     poster_image?: string;
     bg_image?: string;
     disable_scroll_sequence?: boolean;
+    scrub_smoothing?: "off" | "low" | "medium" | "high";
+    first_frame_hold_pct?: number;
+    final_frame_hold_pct?: number;
 
     // Device-specific configurations
     desktop?: DeviceAnimationConfig;
@@ -148,32 +156,126 @@ export interface ScrollFrameAnimationProps {
   fleetCtaUrl?: string;
 }
 
+// ── Frame Loading State Machine ───────────────────────────────────────────────
+export type FrameLoadState = "UNLOADED" | "LOADING" | "LOADED" | "FAILED";
+
 // Global in-memory decoded image cache to prevent re-fetching across re-renders
 const RUNTIME_IMAGE_CACHE = new Map<string, HTMLImageElement>();
-const RUNTIME_IN_FLIGHT = new Set<string>();
+const RUNTIME_FAILED_URLS = new Set<string>();
+const RUNTIME_IN_FLIGHT = new Map<string, Promise<HTMLImageElement | null>>();
+const RUNTIME_FRAME_STATES = new Map<string, FrameLoadState>();
 
-function preloadSingleImage(url: string, onLoaded?: (img: HTMLImageElement) => void) {
-  if (!url) return;
-  const cached = RUNTIME_IMAGE_CACHE.get(url);
-  if (cached && cached.complete && cached.naturalWidth > 0) {
-    if (onLoaded) onLoaded(cached);
-    return;
+export function resolveMediaUrl(url?: string): string {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("blob:")
+  ) {
+    return trimmed;
   }
-  if (RUNTIME_IN_FLIGHT.has(url)) return;
+  if (trimmed.startsWith("/")) {
+    return trimmed;
+  }
+  return `/${trimmed}`;
+}
 
-  RUNTIME_IN_FLIGHT.add(url);
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.decoding = "async";
-  img.src = url;
-  img.onload = () => {
-    RUNTIME_IN_FLIGHT.delete(url);
-    RUNTIME_IMAGE_CACHE.set(url, img);
-    if (onLoaded) onLoaded(img);
-  };
-  img.onerror = () => {
-    RUNTIME_IN_FLIGHT.delete(url);
-  };
+export function resolveAnimationFrames(
+  config: ScrollFrameAnimationProps["config"] | undefined,
+  device: "desktop" | "tablet" | "mobile" = "desktop"
+): AnimationFrameItem[] {
+  if (!config) return [];
+  const desktopCfg: DeviceAnimationConfig = config.desktop || {};
+  const tabletCfg: DeviceAnimationConfig =
+    config.tablet?.use_desktop_fallback !== false && (!config.tablet?.frames || config.tablet.frames.length === 0)
+      ? desktopCfg
+      : config.tablet || desktopCfg;
+  const mobileCfg: DeviceAnimationConfig =
+    config.mobile?.use_desktop_fallback !== false && (!config.mobile?.frames || config.mobile.frames.length === 0)
+      ? desktopCfg
+      : config.mobile || desktopCfg;
+
+  const targetCfg: DeviceAnimationConfig =
+    device === "mobile" ? mobileCfg : device === "tablet" ? tabletCfg : desktopCfg;
+
+  const raw = targetCfg.frames && targetCfg.frames.length > 0 ? targetCfg.frames : desktopCfg.frames || [];
+  if (!raw || raw.length === 0) return [];
+  return [...raw]
+    .filter((f) => f && (f.url || f.optimized_url))
+    .sort((a, b) => (a.sequence || 0) - (b.sequence || 0))
+    .slice(0, 24);
+}
+
+export function preloadSingleImage(
+  url: string,
+  frameId?: string,
+  onLoaded?: (img: HTMLImageElement) => void
+): Promise<HTMLImageElement | null> {
+  const resolvedUrl = resolveMediaUrl(url);
+  if (!resolvedUrl) return Promise.resolve(null);
+
+  const cacheKey = `${frameId || "frame"}:${resolvedUrl}`;
+
+  // 1. Permanent Failure Guard: If URL or frame previously failed, block repeat network requests
+  if (RUNTIME_FAILED_URLS.has(resolvedUrl) || RUNTIME_FRAME_STATES.get(cacheKey) === "FAILED") {
+    RUNTIME_FRAME_STATES.set(cacheKey, "FAILED");
+    return Promise.resolve(null);
+  }
+
+  // 2. Memory Cache Hit: Return already-decoded image instantly
+  const cached = RUNTIME_IMAGE_CACHE.get(resolvedUrl);
+  if (cached && cached.complete && cached.naturalWidth > 0) {
+    RUNTIME_FRAME_STATES.set(cacheKey, "LOADED");
+    if (onLoaded) onLoaded(cached);
+    return Promise.resolve(cached);
+  }
+
+  // 3. In-Flight Deduplication: Re-use active loading promise to prevent concurrent fetches
+  if (RUNTIME_IN_FLIGHT.has(resolvedUrl)) {
+    return RUNTIME_IN_FLIGHT.get(resolvedUrl)!;
+  }
+
+  // 4. State Transition: UNLOADED -> LOADING
+  RUNTIME_FRAME_STATES.set(cacheKey, "LOADING");
+
+  const loadPromise = new Promise<HTMLImageElement | null>((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.decoding = "async";
+    img.src = resolvedUrl;
+
+    img.onload = () => {
+      RUNTIME_IN_FLIGHT.delete(resolvedUrl);
+      RUNTIME_IMAGE_CACHE.set(resolvedUrl, img);
+      RUNTIME_FRAME_STATES.set(cacheKey, "LOADED");
+
+      if (typeof img.decode === "function") {
+        img.decode().then(() => {
+          if (onLoaded) onLoaded(img);
+          resolve(img);
+        }).catch(() => {
+          if (onLoaded) onLoaded(img);
+          resolve(img);
+        });
+      } else {
+        if (onLoaded) onLoaded(img);
+        resolve(img);
+      }
+    };
+
+    img.onerror = () => {
+      RUNTIME_IN_FLIGHT.delete(resolvedUrl);
+      RUNTIME_FAILED_URLS.add(resolvedUrl);
+      RUNTIME_FRAME_STATES.set(cacheKey, "FAILED");
+      resolve(null);
+    };
+  });
+
+  RUNTIME_IN_FLIGHT.set(resolvedUrl, loadPromise);
+  return loadPromise;
 }
 
 export function ScrollFrameAnimation({
@@ -222,23 +324,31 @@ export function ScrollFrameAnimation({
   const [currentDevice, setCurrentDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [loadedCount, setLoadedCount] = useState(0);
+  const [showDebugHud, setShowDebugHud] = useState(false);
 
   // High-Frequency mutable animation state (zero React state on scroll ticks)
-  const currentFrameIdxRef = useRef<number>(0);
-  const targetFrameIdxRef = useRef<number>(0);
+  const targetProgressRef = useRef<number>(0);
+  const displayedProgressRef = useRef<number>(0);
   const currentProgressRef = useRef<number>(0);
   const lastDrawnFrameRef = useRef<number>(-1);
+  const lastRenderedImgRef = useRef<HTMLImageElement | null>(null);
+  const bufferDimsRef = useRef<{ w: number; h: number; dpr: number }>({ w: 0, h: 0, dpr: 1 });
   const rafIdRef = useRef<number | null>(null);
   const isLoopRunningRef = useRef<boolean>(false);
   const autoplayTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // ── 1. Device Resolution ──────────────────────────────────────────────────
+  // ── 1. Device Resolution & Debug HUD Toggle ───────────────────────────────
   useEffect(() => {
     if (previewDevice) {
       setCurrentDevice(previewDevice);
       return;
     }
     if (typeof window === "undefined") return;
+
+    // Check if ?debug_scroll=true is present in URL
+    if (window.location.search.includes("debug_scroll=1") || window.location.search.includes("debug_scroll=true")) {
+      setShowDebugHud(true);
+    }
 
     const checkMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(checkMotion.matches);
@@ -260,7 +370,7 @@ export function ScrollFrameAnimation({
     };
   }, [previewDevice]);
 
-  // ── 2. Active Config Computation ──────────────────────────────────────────
+  // ── 2. Active Config Computation via Single Source of Truth ───────────────
   const desktopCfg: DeviceAnimationConfig = config.desktop || {};
   const tabletCfg: DeviceAnimationConfig = config.tablet?.use_desktop_fallback !== false && (!config.tablet?.frames || config.tablet.frames.length === 0)
     ? desktopCfg
@@ -272,174 +382,313 @@ export function ScrollFrameAnimation({
   const activeDeviceConfig: DeviceAnimationConfig =
     currentDevice === "mobile" ? mobileCfg : currentDevice === "tablet" ? tabletCfg : desktopCfg;
 
-  // Extract frames (fallback to root poster/bg_image if no frame array configured)
-  const rawFrames = activeDeviceConfig.frames || [];
-  const frames: AnimationFrameItem[] = rawFrames.length > 0
-    ? [...rawFrames].sort((a, b) => (a.sequence || 0) - (b.sequence || 0)).slice(0, 22)
-    : [];
+  // Authoritative frames extraction
+  const frames: AnimationFrameItem[] = React.useMemo(() => {
+    return resolveAnimationFrames(config, currentDevice);
+  }, [config, currentDevice]);
 
   const totalFrames = frames.length;
+
+  // Stale cache invalidation when frame set identity changes
+  const frameUrlsKey = React.useMemo(() => {
+    return frames.map((f) => f.url || f.optimized_url).join("|");
+  }, [frames]);
+
+  useEffect(() => {
+    if (lastRenderedImgRef.current && frames.length > 0) {
+      const isStillInFrames = frames.some(
+        (f) => resolveMediaUrl(f.optimized_url || f.url) === lastRenderedImgRef.current?.src
+      );
+      if (!isStillInFrames) {
+        lastRenderedImgRef.current = null;
+        lastDrawnFrameRef.current = -1;
+      }
+    }
+  }, [frameUrlsKey, frames]);
+
+  // Lifecycle logging
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[MOUNT] ScrollFrameHero (${sectionId}) | device: ${currentDevice} | frames: ${totalFrames}`);
+    }
+    return () => {
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[UNMOUNT] ScrollFrameHero (${sectionId})`);
+      }
+    };
+  }, [sectionId, currentDevice, totalFrames]);
+
+  // Animation is enabled whenever sequence is not explicitly disabled and valid frames exist
   const isAnimationEnabled =
     config.disable_scroll_sequence !== true &&
     activeDeviceConfig.enabled !== false &&
-    !prefersReducedMotion &&
     totalFrames > 0;
 
   const animationType = activeDeviceConfig.animation_type || (totalFrames > 0 ? "scroll_frame" : "none");
   const isScrub = activeDeviceConfig.scrub !== false;
-  const scrollLengthVh = activeDeviceConfig.scroll_length_vh ?? (activeDeviceConfig.speed === "slow" ? 350 : activeDeviceConfig.speed === "fast" ? 200 : 280);
-  const easingRate = activeDeviceConfig.easing === "linear" ? 0.25 : activeDeviceConfig.easing === "ease_out" ? 0.18 : 0.14;
+  const scrollLengthVh = activeDeviceConfig.scroll_length_vh ?? (currentDevice === "mobile" ? 240 : activeDeviceConfig.speed === "slow" ? 350 : activeDeviceConfig.speed === "fast" ? 200 : 280);
 
-  // Text / Content resolution (Device specific with root fallback)
-  const headline = activeDeviceConfig.headline || config.headline || "Handcrafted Gourmet Cakes Delivered in 2 Hours";
-  const subheadline = activeDeviceConfig.subheadline || config.subheadline || "Fresh, artisanal birthday & wedding cakes across Bangalore. Midnight delivery available!";
-  const badgeText = activeDeviceConfig.badge || config.badge_text || "100% Fresh & Artisanal • Express 2-Hour Delivery";
-  const badgeBg = activeDeviceConfig.badge_bg || config.badge_bg;
-  const badgeColor = activeDeviceConfig.badge_color || config.badge_color;
+  // Cinematic scrub smoothing factor
+  const smoothingPreset = activeDeviceConfig.scrub_smoothing || config.scrub_smoothing || (activeDeviceConfig.smoothing !== false ? "medium" : "off");
+  const smoothingFactor =
+    smoothingPreset === "off"
+      ? 1.0
+      : smoothingPreset === "low"
+      ? 0.35
+      : smoothingPreset === "high"
+      ? 0.08
+      : 0.16; // "medium" default
 
-  const primaryCtaVisible = activeDeviceConfig.cta_primary_visible ?? config.cta_primary_visible ?? true;
-  const primaryCtaText = activeDeviceConfig.cta_primary_text || config.cta_primary_text || "Explore Cakes";
-  const primaryCtaUrl = activeDeviceConfig.cta_primary_url || config.cta_primary_url || "/products";
-  const primaryCtaBg = activeDeviceConfig.cta_primary_bg || config.cta_primary_bg;
-  const primaryCtaColor = activeDeviceConfig.cta_primary_color || config.cta_primary_color;
+  // First Frame Hold & Final Frame Hold
+  const firstFrameHold = activeDeviceConfig.first_frame_hold_pct ?? config.first_frame_hold_pct ?? 0.06; // 6% hold
+  const finalFrameHold = activeDeviceConfig.final_frame_hold_pct ?? config.final_frame_hold_pct ?? 0.10; // 10% hold
 
-  const secondaryCtaVisible = activeDeviceConfig.cta_secondary_visible ?? config.cta_secondary_visible ?? true;
-  const secondaryCtaText = activeDeviceConfig.cta_secondary_text || config.cta_secondary_text || "Birthday Specials";
-  const secondaryCtaUrl = activeDeviceConfig.cta_secondary_url || config.cta_secondary_url || "/products?occasion=birthday";
+  // Canonical Hero Banner Content Resolution (Single Source of Truth)
+  const resolvedHero = useMemo(() => {
+    return resolveHeroBannerConfig(config, currentDevice);
+  }, [config, currentDevice]);
 
-  const craftBadge = activeDeviceConfig.craft_badge || config.craft_badge || "Master Chocolatier Recipe";
-  const craftHeading = activeDeviceConfig.craft_heading || config.craft_heading || "Every Layer, A Symphony of Flavor";
-  const craftText = activeDeviceConfig.craft_text || config.craft_text || "Crafted with Belgian cocoa, Madagascan vanilla, and fresh dairy cream. Baked to order within minutes of your celebration.";
+  const headline = resolvedHero.headline;
+  const subheadline = resolvedHero.subheadline;
+  const badgeText = resolvedHero.badgeText;
+  const badgeBg = resolvedHero.badgeBg;
+  const badgeColor = resolvedHero.badgeColor;
 
-  const fleetBadge = activeDeviceConfig.fleet_badge || config.fleet_badge || "Climate-Controlled Transit";
-  const fleetHeading = activeDeviceConfig.fleet_heading || config.fleet_heading || "Pristine & Chilled To Your Table";
-  const fleetText = activeDeviceConfig.fleet_text || config.fleet_text || "Specially engineered shock-absorbent cake domes guarantee zero damage during transit across Bangalore.";
-  const fleetCtaText = activeDeviceConfig.fleet_cta_text || config.fleet_cta_text || "Order for Today";
-  const fleetCtaUrl = activeDeviceConfig.fleet_cta_url || config.fleet_cta_url || "/products";
+  const primaryCtaVisible = resolvedHero.primaryCtaVisible;
+  const primaryCtaText = resolvedHero.primaryCtaText;
+  const primaryCtaUrl = resolvedHero.primaryCtaUrl;
+  const primaryCtaBg = resolvedHero.primaryCtaBg;
+  const primaryCtaColor = resolvedHero.primaryCtaColor;
 
-  const posterImage = activeDeviceConfig.poster_image || config.poster_image || config.bg_image || (frames.length > 0 ? frames[0].url : "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400");
+  const secondaryCtaVisible = resolvedHero.secondaryCtaVisible;
+  const secondaryCtaText = resolvedHero.secondaryCtaText;
+  const secondaryCtaUrl = resolvedHero.secondaryCtaUrl;
+  const secondaryCtaBg = resolvedHero.secondaryCtaBg;
+  const secondaryCtaColor = resolvedHero.secondaryCtaColor;
 
-  // ── 3. Canvas Draw Routine (Full Cover Math + DPR Scaling) ────────────────
+  const craftBadge = resolvedHero.craftBadge;
+  const craftHeading = resolvedHero.craftHeading;
+  const craftText = resolvedHero.craftText;
+
+  const fleetBadge = resolvedHero.fleetBadge;
+  const fleetHeading = resolvedHero.fleetHeading;
+  const fleetText = resolvedHero.fleetText;
+  const fleetCtaText = resolvedHero.fleetCtaText;
+  const fleetCtaUrl = resolvedHero.fleetCtaUrl;
+
+  const posterImage = resolveMediaUrl(activeDeviceConfig.poster_image || config.poster_image || resolvedHero.activeImage);
+
+  // Helper to extract cached decoded image or nearest loaded frame
+  const getLoadedFrameImage = useCallback((frame: AnimationFrameItem): HTMLImageElement | null => {
+    const url = resolveMediaUrl(frame.optimized_url || frame.url);
+    const img = RUNTIME_IMAGE_CACHE.get(url);
+    if (img && img.complete && img.naturalWidth > 0) {
+      return img;
+    }
+    return null;
+  }, []);
+
+  // Expose Dev-Only Canonical Debug Global
+  const updateDebugGlobal = useCallback((renderedIdx: number, renderedImg: HTMLImageElement | null) => {
+    if (typeof window === "undefined" || process.env.NODE_ENV === "production") return;
+    const targetIdx = Math.max(0, Math.min(frames.length - 1, Math.floor(displayedProgressRef.current * (frames.length - 1))));
+    const targetFrame = frames[targetIdx];
+    const renderedFrame = renderedIdx >= 0 && renderedIdx < frames.length ? frames[renderedIdx] : targetFrame;
+
+    (window as any).__CAKETOHOME_HERO_DEBUG__ = {
+      pageId: "cmspg_home",
+      sectionId,
+      sectionType: "hero",
+      animationType,
+      device: currentDevice,
+      source: resolvedHero.source,
+      headline: resolvedHero.headline,
+      subheadline: resolvedHero.subheadline,
+      badge: resolvedHero.badgeText,
+      primaryCtaText: resolvedHero.primaryCtaText,
+      primaryCtaUrl: resolvedHero.primaryCtaUrl,
+      secondaryCtaText: resolvedHero.secondaryCtaText,
+      secondaryCtaUrl: resolvedHero.secondaryCtaUrl,
+      imageUrl: resolvedHero.activeImage,
+      frameCount: totalFrames,
+      currentFrameId: targetFrame?.id || null,
+      currentFrameUrl: targetFrame ? resolveMediaUrl(targetFrame.optimized_url || targetFrame.url) : null,
+      renderedFrameId: renderedFrame?.id || null,
+      renderedFrameUrl: renderedImg?.src || (renderedFrame ? resolveMediaUrl(renderedFrame.optimized_url || renderedFrame.url) : null),
+      posterUrl: posterImage,
+      fallbackUrl: undefined,
+      frameUrls: frames.map((f) => resolveMediaUrl(f.optimized_url || f.url)),
+      progress: displayedProgressRef.current,
+      smoothing: smoothingPreset,
+    };
+  }, [sectionId, animationType, currentDevice, totalFrames, frames, posterImage, smoothingPreset, resolvedHero]);
+
+
+  // ── 3. High-Performance Canvas Draw Routine (Full-Cover + Sub-Frame Crossfade) ──
   const drawCanvasFrame = useCallback(
-    (frameIndex: number) => {
+    (fractionalIndex: number) => {
       const canvas = canvasRef.current;
       if (!canvas || frames.length === 0) return;
       const ctx = canvas.getContext("2d", { alpha: false });
       if (!ctx) return;
 
-      const clamped = Math.max(0, Math.min(frames.length - 1, Math.round(frameIndex)));
-      const targetFrame = frames[clamped];
-      if (!targetFrame) return;
+      const clamped = Math.max(0, Math.min(frames.length - 1, fractionalIndex));
+      const baseIndex = Math.floor(clamped);
+      const nextIndex = Math.min(frames.length - 1, baseIndex + 1);
+      const blendFactor = clamped - baseIndex;
 
-      const url = targetFrame.optimized_url || targetFrame.url;
-      let img = RUNTIME_IMAGE_CACHE.get(url);
+      const baseFrame = frames[baseIndex];
+      const nextFrame = frames[nextIndex];
+      if (!baseFrame) return;
 
-      // Fallback to nearest loaded frame if current target not decoded yet
-      if (!img || !img.complete || img.naturalWidth === 0) {
+      let baseImg = getLoadedFrameImage(baseFrame);
+      const nextImg = nextFrame ? getLoadedFrameImage(nextFrame) : null;
+
+      // If target base frame not yet ready, search nearest loaded frame in cache
+      if (!baseImg) {
         const loadedFrames = frames.filter((f) => {
-          const item = RUNTIME_IMAGE_CACHE.get(f.optimized_url || f.url);
+          const u = resolveMediaUrl(f.optimized_url || f.url);
+          const item = RUNTIME_IMAGE_CACHE.get(u);
           return item && item.complete && item.naturalWidth > 0;
         });
         if (loadedFrames.length > 0) {
-          loadedFrames.sort((a, b) => Math.abs(a.sequence - targetFrame.sequence) - Math.abs(b.sequence - targetFrame.sequence));
-          img = RUNTIME_IMAGE_CACHE.get(loadedFrames[0].optimized_url || loadedFrames[0].url);
+          loadedFrames.sort((a, b) => Math.abs(a.sequence - baseFrame.sequence) - Math.abs(b.sequence - baseFrame.sequence));
+          baseImg = RUNTIME_IMAGE_CACHE.get(resolveMediaUrl(loadedFrames[0].optimized_url || loadedFrames[0].url)) || null;
         }
       }
 
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const activeBase = baseImg || lastRenderedImgRef.current;
       const containerWidth = canvas.clientWidth || window.innerWidth;
       const containerHeight = canvas.clientHeight || window.innerHeight;
 
-      const bufferWidth = Math.floor(containerWidth * dpr);
-      const bufferHeight = Math.floor(containerHeight * dpr);
+      if (containerWidth === 0 || containerHeight === 0) return;
 
-      if (canvas.width !== bufferWidth || canvas.height !== bufferHeight) {
-        canvas.width = bufferWidth;
-        canvas.height = bufferHeight;
-      }
+      // Draw Main Frame Image
+      if (activeBase && activeBase.complete && activeBase.naturalWidth > 0) {
+        lastRenderedImgRef.current = activeBase;
+        lastDrawnFrameRef.current = baseIndex;
 
-      ctx.save();
-      ctx.scale(dpr, dpr);
+        const scale = Math.max(containerWidth / activeBase.naturalWidth, containerHeight / activeBase.naturalHeight);
+        const drawW = activeBase.naturalWidth * scale;
+        const drawH = activeBase.naturalHeight * scale;
+        const offX = (containerWidth - drawW) / 2;
+        const offY = (containerHeight - drawH) / 2;
 
-      if (!img || !img.complete || img.naturalWidth === 0) {
-        // High-contrast procedural frame fallback while remote asset buffers
+        ctx.save();
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.globalAlpha = 1.0;
+        ctx.drawImage(activeBase, offX, offY, drawW, drawH);
+
+        // Smooth Sub-frame Alpha Blending (Eliminates discrete frame jumping)
+        if (
+          blendFactor > 0.005 &&
+          nextImg &&
+          nextImg.complete &&
+          nextImg.naturalWidth > 0 &&
+          nextIndex !== baseIndex
+        ) {
+          const nextScale = Math.max(containerWidth / nextImg.naturalWidth, containerHeight / nextImg.naturalHeight);
+          const nextDrawW = nextImg.naturalWidth * nextScale;
+          const nextDrawH = nextImg.naturalHeight * nextScale;
+          const nextOffX = (containerWidth - nextDrawW) / 2;
+          const nextOffY = (containerHeight - nextDrawH) / 2;
+
+          ctx.globalAlpha = blendFactor;
+          ctx.drawImage(nextImg, nextOffX, nextOffY, nextDrawW, nextDrawH);
+        }
+
+        ctx.restore();
+        updateDebugGlobal(baseIndex, activeBase);
+      } else {
+        // High-contrast procedural base fallback (ONLY on initial boot before any image decoded)
+        ctx.save();
         const grad = ctx.createLinearGradient(0, 0, containerWidth, containerHeight);
-        const hue = (clamped * 24 + 340) % 360;
+        const hue = (baseIndex * 24 + 340) % 360;
         grad.addColorStop(0, `hsl(${hue}, 50%, 14%)`);
         grad.addColorStop(0.5, `hsl(${(hue + 30) % 360}, 60%, 8%)`);
         grad.addColorStop(1, `hsl(${hue}, 45%, 5%)`);
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, containerWidth, containerHeight);
         ctx.restore();
-        lastDrawnFrameRef.current = clamped;
-        return;
+        updateDebugGlobal(baseIndex, null);
       }
-
-      // Exact aspect-ratio cover math
-      const scale = Math.max(containerWidth / img.naturalWidth, containerHeight / img.naturalHeight);
-      const drawWidth = img.naturalWidth * scale;
-      const drawHeight = img.naturalHeight * scale;
-      const offsetX = (containerWidth - drawWidth) / 2;
-      const offsetY = (containerHeight - drawHeight) / 2;
-
-      ctx.fillStyle = "#0c0a09"; // stone-950 base
-      ctx.fillRect(0, 0, containerWidth, containerHeight);
-      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-      ctx.restore();
-
-      lastDrawnFrameRef.current = clamped;
     },
-    [frames]
+    [frames, getLoadedFrameImage, updateDebugGlobal]
   );
 
-  // ── 4. Frame Preloading Strategy ──────────────────────────────────────────
+  // ── 4. Progressive Preloading & Pre-decoding ──────────────────────────────
   useEffect(() => {
     if (frames.length === 0) return;
 
-    // Immediately trigger preload for all frames in the active device set
-    frames.forEach((frame, idx) => {
-      preloadSingleImage(frame.optimized_url || frame.url, () => {
+    // 1. Immediately preload and decode frame 0
+    const firstFrame = frames[0];
+    if (firstFrame) {
+      preloadSingleImage(firstFrame.optimized_url || firstFrame.url, firstFrame.id, (img) => {
+        lastRenderedImgRef.current = img;
+        drawCanvasFrame(0);
         setLoadedCount((c) => c + 1);
-        const currentTarget = Math.round(currentFrameIdxRef.current);
-        if (currentTarget === idx || lastDrawnFrameRef.current < 0) {
-          drawCanvasFrame(currentTarget);
+      });
+    }
+
+    // 2. Preload and decode remaining frames
+    frames.slice(1).forEach((frame, idx) => {
+      preloadSingleImage(frame.optimized_url || frame.url, frame.id, (img) => {
+        setLoadedCount((c) => c + 1);
+        const currentTarget = Math.round(displayedProgressRef.current * (frames.length - 1));
+        if (currentTarget === idx + 1) {
+          drawCanvasFrame(displayedProgressRef.current * (frames.length - 1));
         }
       });
     });
-
-    // Draw initial frame immediately
-    drawCanvasFrame(0);
   }, [frames, drawCanvasFrame]);
 
-  // ── 4b. ResizeObserver to keep canvas full-cover on container resize ───────
+  // ── 4b. ResizeObserver (Buffers resolution without draw-time resizing flashes) ──
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const resizeObserver = new ResizeObserver(() => {
-      if (lastDrawnFrameRef.current >= 0) {
-        drawCanvasFrame(lastDrawnFrameRef.current);
-      } else {
-        drawCanvasFrame(0);
-      }
-    });
+    const updateCanvasBufferSize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const containerWidth = canvas.clientWidth || window.innerWidth;
+      const containerHeight = canvas.clientHeight || window.innerHeight;
+      if (containerWidth === 0 || containerHeight === 0) return;
 
+      const bufferW = Math.floor(containerWidth * dpr);
+      const bufferH = Math.floor(containerHeight * dpr);
+
+      if (canvas.width !== bufferW || canvas.height !== bufferH) {
+        canvas.width = bufferW;
+        canvas.height = bufferH;
+        bufferDimsRef.current = { w: bufferW, h: bufferH, dpr };
+        const ctx = canvas.getContext("2d", { alpha: false });
+        if (ctx) {
+          ctx.scale(dpr, dpr);
+        }
+      }
+      const currentFractional = displayedProgressRef.current * (frames.length > 1 ? frames.length - 1 : 0);
+      drawCanvasFrame(currentFractional);
+    };
+
+    updateCanvasBufferSize();
+    const resizeObserver = new ResizeObserver(() => updateCanvasBufferSize());
     resizeObserver.observe(canvas);
     return () => resizeObserver.disconnect();
-  }, [drawCanvasFrame]);
+  }, [frames, drawCanvasFrame]);
 
   // ── 5. Overlay Interpolation (Intro -> Craft Story -> Fleet Guarantee) ───
   const updateOverlays = useCallback((progress: number) => {
-    // Phase 1 (Intro): 0.00 -> 0.28
+    // Phase 1 (Intro): 0.00 -> 0.25 (Maintains full visibility during first frame hold)
     if (introOverlayRef.current) {
       let opacity = 0;
       let translateY = 0;
-      if (progress < 0.15) {
-        opacity = 1 - progress * 1.5;
-        translateY = progress * -40;
-      } else if (progress < 0.28) {
-        opacity = Math.max(0, 1 - (progress - 0.15) / 0.13);
-        translateY = -40 - (progress - 0.15) * 60;
+      if (progress <= 0.08) {
+        opacity = 1;
+        translateY = 0;
+      } else if (progress < 0.25) {
+        const t = (progress - 0.08) / 0.17;
+        opacity = Math.max(0, 1 - t);
+        translateY = -50 * t;
       }
       introOverlayRef.current.style.opacity = opacity.toFixed(3);
       introOverlayRef.current.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0)`;
@@ -450,15 +699,15 @@ export function ScrollFrameAnimation({
     if (craftOverlayRef.current) {
       let opacity = 0;
       let translateY = 20;
-      if (progress >= 0.28 && progress <= 0.42) {
-        const t = (progress - 0.28) / 0.14;
+      if (progress >= 0.26 && progress <= 0.38) {
+        const t = (progress - 0.26) / 0.12;
         opacity = t;
         translateY = 20 * (1 - t);
-      } else if (progress > 0.42 && progress < 0.52) {
+      } else if (progress > 0.38 && progress < 0.54) {
         opacity = 1;
         translateY = 0;
-      } else if (progress >= 0.52 && progress <= 0.64) {
-        const t = (progress - 0.52) / 0.12;
+      } else if (progress >= 0.54 && progress <= 0.66) {
+        const t = (progress - 0.54) / 0.12;
         opacity = Math.max(0, 1 - t);
         translateY = -20 * t;
       }
@@ -467,15 +716,15 @@ export function ScrollFrameAnimation({
       craftOverlayRef.current.style.pointerEvents = opacity > 0.4 ? "auto" : "none";
     }
 
-    // Phase 3 (Fleet Guarantee): 0.65 -> 1.00
+    // Phase 3 (Fleet Guarantee): 0.68 -> 1.00 (Held steadily during final frame hold)
     if (fleetOverlayRef.current) {
       let opacity = 0;
       let translateY = 20;
-      if (progress >= 0.65 && progress <= 0.78) {
-        const t = (progress - 0.65) / 0.13;
+      if (progress >= 0.68 && progress <= 0.82) {
+        const t = (progress - 0.68) / 0.14;
         opacity = t;
         translateY = 20 * (1 - t);
-      } else if (progress > 0.78) {
+      } else if (progress > 0.82) {
         opacity = 1;
         translateY = 0;
       }
@@ -490,32 +739,33 @@ export function ScrollFrameAnimation({
     }
   }, []);
 
-  // ── 6. RAF Animation Render Loop ──────────────────────────────────────────
+  // ── 6. Continuous RAF Scrub Engine ─────────────────────────────────────────
   const startRafLoop = useCallback(() => {
     if (isLoopRunningRef.current) return;
     isLoopRunningRef.current = true;
 
     const loop = () => {
-      const diff = targetFrameIdxRef.current - currentFrameIdxRef.current;
+      const diff = targetProgressRef.current - displayedProgressRef.current;
 
-      if (Math.abs(diff) > 0.005) {
-        currentFrameIdxRef.current += diff * easingRate;
-        const rounded = Math.round(currentFrameIdxRef.current);
-        if (rounded !== lastDrawnFrameRef.current) {
-          drawCanvasFrame(rounded);
-        }
-      } else if (Math.round(currentFrameIdxRef.current) !== lastDrawnFrameRef.current) {
-        currentFrameIdxRef.current = targetFrameIdxRef.current;
-        drawCanvasFrame(Math.round(currentFrameIdxRef.current));
+      if (Math.abs(diff) > 0.0001) {
+        displayedProgressRef.current += diff * smoothingFactor;
+        const fractionalFrame = displayedProgressRef.current * (totalFrames - 1);
+        drawCanvasFrame(fractionalFrame);
+        updateOverlays(displayedProgressRef.current);
+      } else if (displayedProgressRef.current !== targetProgressRef.current) {
+        displayedProgressRef.current = targetProgressRef.current;
+        const fractionalFrame = displayedProgressRef.current * (totalFrames - 1);
+        drawCanvasFrame(fractionalFrame);
+        updateOverlays(displayedProgressRef.current);
       }
 
       rafIdRef.current = requestAnimationFrame(loop);
     };
 
     rafIdRef.current = requestAnimationFrame(loop);
-  }, [drawCanvasFrame, easingRate]);
+  }, [drawCanvasFrame, smoothingFactor, totalFrames, updateOverlays]);
 
-  // ── 7. Scroll Listener & Scrub Engine ─────────────────────────────────────
+  // ── 7. Scroll Listener with Hold Mapping & Continuous Scrub ───────────────
   useEffect(() => {
     if (!isAnimationEnabled || totalFrames <= 1) {
       drawCanvasFrame(0);
@@ -536,15 +786,28 @@ export function ScrollFrameAnimation({
       if (totalScrollable <= 0) return;
 
       const currentScroll = -rect.top;
-      const progress = Math.max(0, Math.min(1, currentScroll / totalScrollable));
+      const rawProgress = Math.max(0, Math.min(1, currentScroll / totalScrollable));
 
-      currentProgressRef.current = progress;
+      currentProgressRef.current = rawProgress;
 
-      if (isScrub) {
-        targetFrameIdxRef.current = progress * (totalFrames - 1);
+      // Normalize animation progress with First Frame Hold and Final Frame Hold
+      let effectiveProgress = 0;
+      if (rawProgress <= firstFrameHold) {
+        effectiveProgress = 0;
+      } else if (rawProgress >= 1.0 - finalFrameHold) {
+        effectiveProgress = 1.0;
+      } else {
+        effectiveProgress = (rawProgress - firstFrameHold) / (1.0 - firstFrameHold - finalFrameHold);
       }
 
-      updateOverlays(progress);
+      if (isScrub) {
+        targetProgressRef.current = effectiveProgress;
+        if (smoothingPreset === "off") {
+          displayedProgressRef.current = effectiveProgress;
+          drawCanvasFrame(effectiveProgress * (totalFrames - 1));
+          updateOverlays(effectiveProgress);
+        }
+      }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -557,7 +820,7 @@ export function ScrollFrameAnimation({
         isLoopRunningRef.current = false;
       }
     };
-  }, [isAnimationEnabled, totalFrames, isScrub, startRafLoop, drawCanvasFrame, updateOverlays]);
+  }, [isAnimationEnabled, totalFrames, isScrub, smoothingPreset, firstFrameHold, finalFrameHold, startRafLoop, drawCanvasFrame, updateOverlays]);
 
   // ── 8. Autoplay Mode (Optional trigger) ───────────────────────────────────
   useEffect(() => {
@@ -565,8 +828,8 @@ export function ScrollFrameAnimation({
 
     const intervalMs = 1000 / (activeDeviceConfig.fps || 12);
     autoplayTimerRef.current = setInterval(() => {
-      targetFrameIdxRef.current = (targetFrameIdxRef.current + 1) % totalFrames;
-      drawCanvasFrame(targetFrameIdxRef.current);
+      targetProgressRef.current = (targetProgressRef.current + 1 / (totalFrames - 1)) % 1.0;
+      drawCanvasFrame(targetProgressRef.current * (totalFrames - 1));
     }, intervalMs);
 
     return () => {
@@ -576,11 +839,27 @@ export function ScrollFrameAnimation({
 
   // ── 9. Static Fallback Mode (When animation disabled or zero frames) ─────
   if (!isAnimationEnabled || totalFrames === 0) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        `[ScrollFrameHero] Rendering static fallback for section ${sectionId}. isAnimationEnabled: ${isAnimationEnabled}, totalFrames: ${totalFrames}`
+      );
+    }
     return (
       <section
         id={sectionId}
         ref={sectionRef}
         className="relative w-full overflow-hidden border-b border-ui-border-base min-h-[420px] sm:min-h-[500px] flex items-center justify-center text-white"
+        data-cms-renderer="scroll-frame-hero-static-fallback"
+        data-section-id={sectionId}
+        data-cms-section-id={sectionId}
+        data-section-type="hero"
+        data-cms-section-type="hero"
+        data-cms-headline={headline}
+        data-cms-badge={badgeText}
+        data-cms-primary-cta={primaryCtaText}
+        data-cms-secondary-cta={secondaryCtaText}
+        data-animation-mode="static"
+        data-frame-count={totalFrames}
         style={{
           backgroundImage: `url(${posterImage})`,
           backgroundSize: "cover",
@@ -645,6 +924,17 @@ export function ScrollFrameAnimation({
       id={sectionId}
       ref={sectionRef}
       className="scroll-frame-section relative w-full overflow-visible"
+      data-cms-renderer="scroll-frame-hero"
+      data-section-id={sectionId}
+      data-cms-section-id={sectionId}
+      data-section-type="hero"
+      data-cms-section-type="hero"
+      data-cms-headline={headline}
+      data-cms-badge={badgeText}
+      data-cms-primary-cta={primaryCtaText}
+      data-cms-secondary-cta={secondaryCtaText}
+      data-animation-mode={animationType}
+      data-frame-count={totalFrames}
       style={{ height: `${scrollLengthVh}vh` }}
     >
       <div
@@ -668,6 +958,34 @@ export function ScrollFrameAnimation({
             style={{ transform: "scaleX(0)" }}
           />
         </div>
+
+        {/* Dev-Only Debug HUD (Visible via ?debug_scroll=1 or in dev) */}
+        {showDebugHud && (
+          <div className="fixed bottom-4 right-4 z-50 p-3.5 rounded-2xl bg-stone-950/90 backdrop-blur-md border border-white/20 text-white font-mono text-[11px] shadow-2xl flex flex-col gap-1.5 pointer-events-none select-none max-w-xs">
+            <div className="font-bold text-rose-400 flex items-center justify-between">
+              <span>🎬 Kitchen Story HUD</span>
+              <span className="text-[9px] uppercase px-1.5 py-0.5 bg-rose-500/20 text-rose-300 rounded font-bold">{currentDevice}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-stone-300 mt-1">
+              <span>Frames:</span>
+              <span className="text-white font-bold">{totalFrames} ({loadedCount} loaded)</span>
+              <span>Raw Scroll:</span>
+              <span className="text-white">{(currentProgressRef.current * 100).toFixed(1)}%</span>
+              <span>Target Prog:</span>
+              <span className="text-white">{(targetProgressRef.current * 100).toFixed(1)}%</span>
+              <span>Disp Prog:</span>
+              <span className="text-white">{(displayedProgressRef.current * 100).toFixed(1)}%</span>
+              <span>Disp Frame:</span>
+              <span className="text-rose-300 font-bold">{(displayedProgressRef.current * (totalFrames - 1)).toFixed(2)}</span>
+              <span>Hold (In/Out):</span>
+              <span className="text-white">{(firstFrameHold * 100).toFixed(0)}% / {(finalFrameHold * 100).toFixed(0)}%</span>
+              <span>Smoothing:</span>
+              <span className="text-emerald-400 font-bold">{smoothingPreset}</span>
+              <span>Track Height:</span>
+              <span className="text-white">{scrollLengthVh}vh</span>
+            </div>
+          </div>
+        )}
 
         {/* ── Phase 1 Overlay (Intro Headline & Primary CTAs) ── */}
         <div

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: "Order premium cakes and bakery products online",
 };
 
-export default async function RootLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

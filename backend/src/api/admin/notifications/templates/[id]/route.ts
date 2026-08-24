@@ -5,7 +5,7 @@ import { NOTIFICATION_MODULE } from "../../../../../modules/notification";
  * GET /admin/notifications/templates/:id
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-    const notificationModule = req.scope.resolve(NOTIFICATION_MODULE);
+    const notificationModule = req.scope.resolve(NOTIFICATION_MODULE) as any;
     const template = await notificationModule.retrieveNotificationTemplate(
         req.params.id
     );
@@ -16,7 +16,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
  * POST /admin/notifications/templates/:id
  */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
-    const notificationModule = req.scope.resolve(NOTIFICATION_MODULE);
+    const notificationModule = req.scope.resolve(NOTIFICATION_MODULE) as any;
 
     const body = req.body as {
         name?: string;
@@ -37,7 +37,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
  * DELETE /admin/notifications/templates/:id
  */
 export async function DELETE(req: MedusaRequest, res: MedusaResponse) {
-    const notificationModule = req.scope.resolve(NOTIFICATION_MODULE);
+    const notificationModule = req.scope.resolve(NOTIFICATION_MODULE) as any;
     await notificationModule.deleteNotificationTemplates([req.params.id]);
     return res.status(200).json({ id: req.params.id, deleted: true });
 }
