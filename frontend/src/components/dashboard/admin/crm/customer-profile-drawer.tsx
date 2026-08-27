@@ -312,7 +312,7 @@ export function CustomerProfileDrawer({
                 )}
                 <span className="flex items-center gap-1 text-neutral-500">
                   <MapPin className="w-3.5 h-3.5 text-rose-500" />
-                  {profile.branch_name || "Central Bakery"} ({profile.city_name || "Bengaluru"})
+                  {profile.branch_name || "—"} {profile.city_name ? `(${profile.city_name})` : ""}
                 </span>
                 {profile.assigned_telecaller_name && (
                   <span className="flex items-center gap-1 text-purple-600 font-medium bg-purple-50 dark:bg-purple-950/40 px-2 py-0.5 rounded">
@@ -466,15 +466,15 @@ export function CustomerProfileDrawer({
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                       <div>
                         <span className="text-neutral-500 block">Primary Kitchen Hub</span>
-                        <span className="font-semibold text-neutral-900 dark:text-white">{profile.branch_name || "Central Bakery Kitchen"}</span>
+                        <span className="font-semibold text-neutral-900 dark:text-white">{profile.branch_name || "—"}</span>
                       </div>
                       <div>
                         <span className="text-neutral-500 block">Operating City</span>
-                        <span className="font-semibold text-neutral-900 dark:text-white">{profile.city_name || "Bengaluru"}</span>
+                        <span className="font-semibold text-neutral-900 dark:text-white">{profile.city_name || "—"}</span>
                       </div>
                       <div>
                         <span className="text-neutral-500 block">Delivery Pincode</span>
-                        <span className="font-semibold text-neutral-900 dark:text-white">{profile.delivery_pincode || "560001"}</span>
+                        <span className="font-semibold text-neutral-900 dark:text-white">{profile.delivery_pincode || "—"}</span>
                       </div>
                     </div>
                   </div>
@@ -856,7 +856,7 @@ export function CustomerProfileDrawer({
                           <span className="font-bold text-neutral-900 dark:text-white">
                             {addr.type || "Delivery Address"} {addr.is_default && "(Default)"}
                           </span>
-                          <Badge color="blue">{addr.city || "Bengaluru"}</Badge>
+                          <Badge color="blue">{addr.city || "—"}</Badge>
                         </div>
                         <p className="text-neutral-600 dark:text-neutral-400">{addr.address_1}</p>
                         {addr.landmark && <p className="text-neutral-500">Landmark: {addr.landmark}</p>}
@@ -953,9 +953,9 @@ export function CustomerProfileDrawer({
                           <Badge color="purple">{profile.data_lineage?.routing_method || "DEFAULT_ADDRESS"}</Badge>
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-neutral-600 dark:text-neutral-400 pt-1">
-                          <div>Hub Name: <span className="font-bold text-neutral-900 dark:text-white">{profile.data_lineage?.assigned_branch_name || profile.branch_name || "Indiranagar Hub"}</span></div>
-                          <div>Operating City: <span className="font-semibold text-neutral-900 dark:text-white">{profile.data_lineage?.city_name || profile.city_name || "Bengaluru"}</span></div>
-                          <div>Assigned Pincode: <span className="font-mono font-bold text-neutral-900 dark:text-white">{profile.data_lineage?.primary_pincode || profile.delivery_pincode || "560038"}</span></div>
+                          <div>Hub Name: <span className="font-bold text-neutral-900 dark:text-white">{profile.data_lineage?.assigned_branch_name || profile.branch_name || "—"}</span></div>
+                          <div>Operating City: <span className="font-semibold text-neutral-900 dark:text-white">{profile.data_lineage?.city_name || profile.city_name || "—"}</span></div>
+                          <div>Assigned Pincode: <span className="font-mono font-bold text-neutral-900 dark:text-white">{profile.data_lineage?.primary_pincode || profile.delivery_pincode || "—"}</span></div>
                           <div>Serviceability: <span className="text-emerald-600 font-bold">100% Resolved</span></div>
                         </div>
                       </div>
@@ -1175,7 +1175,7 @@ export function CustomerProfileDrawer({
                           <span className="font-bold text-neutral-900 dark:text-white">
                             {addr.type || "Delivery Address"} {addr.is_default && "(Default)"}
                           </span>
-                          <Badge color="blue">{addr.city || "Bengaluru"}</Badge>
+                          <Badge color="blue">{addr.city || "—"}</Badge>
                         </div>
                         <p className="text-neutral-600 dark:text-neutral-400">{addr.address_1}</p>
                         {addr.landmark && <p className="text-neutral-500">Landmark: {addr.landmark}</p>}

@@ -724,7 +724,7 @@ class TelemarketingEngineStore {
           occasion: occasionStr,
           orderDateStr: ordDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
           opportunityType: oppType,
-          cityName: ord.city || "Bengaluru",
+          cityName: ord.city || "",
         });
 
         const startWindow = new Date(anniversaryDate);
@@ -749,12 +749,12 @@ class TelemarketingEngineStore {
             customer_name: custName,
             customer_phone: custPhone,
             customer_email: ord.customer_email || ord.customerEmail || ord.email || null,
-            city_id: (ord.city_id || ord.city || "bengaluru").toLowerCase().replace(/\s+/g, "_"),
-            city: ord.city || "Bengaluru",
-            area: ord.delivery_area || ord.area || "Indiranagar",
-            pincode: ord.delivery_pincode || ord.pincode || "560038",
-            preferred_branch_id: ord.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-            preferred_branch_name: ord.branch_name || ord.branchName || "Indiranagar Flagship Kitchen",
+            city_id: (ord.city_id || ord.city || "").toLowerCase().replace(/\s+/g, "_"),
+            city: ord.city || "",
+            area: ord.delivery_area || ord.area || "",
+            pincode: ord.delivery_pincode || ord.pincode || "",
+            preferred_branch_id: ord.branch_id || "",
+            preferred_branch_name: ord.branch_name || ord.branchName || "",
 
             opportunity_type: oppType,
             reference_order_id: ord.id || ord.order_number,

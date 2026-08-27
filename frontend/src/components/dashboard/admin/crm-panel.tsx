@@ -572,7 +572,7 @@ export const CrmPanel = memo(function CrmPanel() {
             <option value="all">All Kitchen Hubs</option>
             {branches.map((b) => (
               <option key={b.id} value={b.id}>
-                {b.name || b.branch_name || b.id} ({b.city || "Bengaluru"})
+                {b.name || b.branch_name || b.id} {b.city ? `(${b.city})` : ""}
               </option>
             ))}
           </select>
@@ -674,10 +674,10 @@ export const CrmPanel = memo(function CrmPanel() {
                       {/* Branch */}
                       <td className="py-3 px-4">
                         <span className="text-xs text-neutral-700 dark:text-neutral-300 font-medium">
-                          {c.branch_name || "Central Bakery Kitchen"}
+                          {c.branch_name || "—"}
                         </span>
                         <span className="text-[10px] text-neutral-400 block">
-                          {c.city_name || "Bengaluru"}
+                          {c.city_name || ""}
                         </span>
                       </td>
 
@@ -945,7 +945,7 @@ export const CrmPanel = memo(function CrmPanel() {
                   >
                     {branches.map((b) => (
                       <option key={b.id} value={b.id}>
-                        {b.name || b.branch_name || b.id} ({b.city || "Bengaluru"})
+                        {b.name || b.branch_name || b.id} {b.city ? `(${b.city})` : ""}
                       </option>
                     ))}
                   </select>

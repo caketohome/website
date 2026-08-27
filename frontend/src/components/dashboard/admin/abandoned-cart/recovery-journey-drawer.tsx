@@ -263,7 +263,7 @@ export function RecoveryJourneyDrawer({ cart, isOpen, onClose, onRefresh }: Reco
               <div>
                 <span className="text-neutral-400 block">Hub / Branch</span>
                 <span className="text-neutral-700 dark:text-neutral-300">
-                  {currentCart.branch_name || "Central Kitchen"} ({currentCart.city || "Bengaluru"})
+                  {currentCart.branch_name || "—"} {currentCart.city ? `(${currentCart.city})` : ""}
                 </span>
               </div>
             </div>

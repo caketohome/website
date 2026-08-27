@@ -504,8 +504,8 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
                             </td>
 
                             <td className="py-3.5 px-4 text-neutral-600 dark:text-neutral-400">
-                              <div>{cart.branch_name || "Central Kitchen"}</div>
-                              <div className="text-[10px] text-neutral-400">{cart.city || "Bengaluru"}</div>
+                              <div>{cart.branch_name || "—"}</div>
+                              <div className="text-[10px] text-neutral-400">{cart.city || ""}</div>
                             </td>
 
                             <td className="py-3.5 px-4 text-neutral-500">

@@ -202,7 +202,8 @@ export function resolveCustomerBranch(
   branches: any[] = []
 ): { branch_id: string; branch_name: string; city_id: string; city_name: string } {
   if (branches.length === 0) {
-    return { branch_id: "hub_main", branch_name: "Central Kitchen Hub", city_id: "blr", city_name: "Bengaluru" };
+    // No branches available — return empty context instead of hardcoded city
+    return { branch_id: "hub_main", branch_name: "Central Kitchen Hub", city_id: "", city_name: "" };
   }
 
   // 1. Determine from most recent completed orders
@@ -215,8 +216,8 @@ export function resolveCustomerBranch(
         return {
           branch_id: matched.id,
           branch_name: matched.name || matched.branch_name,
-          city_id: matched.city_id || matched.city || "city_blr",
-          city_name: matched.city || matched.city_name || "Bengaluru",
+          city_id: matched.city_id || matched.city || "",
+          city_name: matched.city || matched.city_name || "",
         };
       }
     }
@@ -234,8 +235,8 @@ export function resolveCustomerBranch(
       return {
         branch_id: matchedByPincode.id,
         branch_name: matchedByPincode.name || matchedByPincode.branch_name,
-        city_id: matchedByPincode.city_id || matchedByPincode.city || "city_blr",
-        city_name: matchedByPincode.city || matchedByPincode.city_name || "Bengaluru",
+        city_id: matchedByPincode.city_id || matchedByPincode.city || "",
+        city_name: matchedByPincode.city || matchedByPincode.city_name || "",
       };
     }
   }
@@ -245,8 +246,8 @@ export function resolveCustomerBranch(
   return {
     branch_id: primaryBranch.id,
     branch_name: primaryBranch.name || primaryBranch.branch_name || "Central Bakery Hub",
-    city_id: primaryBranch.city_id || primaryBranch.city || "city_blr",
-    city_name: primaryBranch.city || primaryBranch.city_name || "Bengaluru",
+    city_id: primaryBranch.city_id || primaryBranch.city || "",
+    city_name: primaryBranch.city || primaryBranch.city_name || "",
   };
 }
 
@@ -492,9 +493,9 @@ export function computeCustomerDataLineage(
   const callComms = custComms.filter((c) => c.channel === "PHONE_CALL" || c.channel === "PHONE");
 
   const primaryGateway = (firstOrder?.payment_gateway || firstOrder?.payment_method?.includes("RAZORPAY") ? "RAZORPAY" : "RAZORPAY") as any;
-  const hubName = customer.branch_name || "Indiranagar Central Hub";
-  const cityName = customer.city_name || "Bengaluru";
-  const pincode = customer.delivery_pincode || "560038";
+  const hubName = customer.branch_name || "Primary Hub";
+  const cityName = customer.city_name || "";
+  const pincode = customer.delivery_pincode || "";
   const routingMethod = customer.addresses && customer.addresses.length > 0 ? "DEFAULT_ADDRESS" : "ACTIVE_HUB_FALLBACK";
   const deliveredCount = custOrders.filter((o) => o.status === "delivered").length;
   const riderName = lastDeliveredOrder?.delivery_partner_name || "Ramesh Rider (Gig)";

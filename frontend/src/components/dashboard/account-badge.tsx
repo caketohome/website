@@ -26,7 +26,7 @@ export default function AccountBadge({ data, type = "delivery_partner", classNam
     name = data.name || data.branch_name || "Bakery Branch";
     roleTitle = "Branch Kitchen";
     identifier = data.code || (data.id ? `HUB-${String(data.id).slice(-4)}` : "HUB");
-    subText = data.city || data.city_name || "Bengaluru";
+    subText = data.city || data.city_name || "";
   } else {
     name = data.name || data.full_name || "Staff Member";
     roleTitle = data.role || "Operator";

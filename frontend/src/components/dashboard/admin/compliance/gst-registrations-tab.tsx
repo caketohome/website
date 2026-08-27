@@ -55,8 +55,8 @@ export function GstRegistrationsTab({
     setFormGstin(reg.gstin || "");
     setFormLegalName(reg.legal_name || "CakeToHome India Private Limited");
     setFormTradeName(reg.trade_name || "CakeToHome");
-    setFormState(reg.state || "Karnataka");
-    setFormStateCode(reg.state_code || "29");
+    setFormState(reg.state || "");
+    setFormStateCode(reg.state_code || "");
     setFormType(reg.registration_type || "REGULAR");
     setFormAddressLine(reg.address?.line1 || "");
     setFormCity(reg.address?.city || "");

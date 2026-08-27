@@ -4,6 +4,7 @@ import DeliveryPartnerDeliveryButtons from "./delivery-partner/delivery-buttons"
 import { DeliveryPartnerDeliveryStatusBadge } from "./delivery-partner/delivery-status-badge";
 import ShopDeliveryButtons from "./shop/delivery-buttons";
 import { ShopDeliveryStatusBadge } from "./shop/delivery-status-badge";
+import { extractDeliveryCoordinates } from "@frontend/lib/location/directions";
 
 export default async function DeliveryCard({
   delivery,
@@ -73,6 +74,8 @@ export default async function DeliveryCard({
         const giftMsg = typeof delivery.gift_message === "string" && delivery.gift_message.trim() ? delivery.gift_message.trim() : null;
         const hasDeliveryOtp = Boolean(delivery.delivery_otp);
 
+        const coords = extractDeliveryCoordinates(delivery);
+
         return (
           <div className="flex flex-col gap-1 bg-ui-bg-subtle p-3 rounded-lg border text-xs">
             <span className="font-semibold text-rose-600 dark:text-rose-400">
@@ -80,6 +83,11 @@ export default async function DeliveryCard({
             </span>
             {recipientPhone && <span>📞 Phone: {recipientPhone}</span>}
             <span>📍 Address: {recipientAddress}{recipientPincode ? ` (${recipientPincode})` : ""}</span>
+            {coords.hasCoords && typeof coords.latitude === "number" && typeof coords.longitude === "number" && (
+              <span className="text-[11px] font-mono text-blue-600 dark:text-blue-400 flex items-center gap-1 font-bold">
+                🎯 GPS Coordinates: {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}
+              </span>
+            )}
             {landmark && <span>🏠 Landmark: {landmark}</span>}
             {instructions && <span className="italic text-ui-fg-muted">💬 Note: &quot;{instructions}&quot;</span>}
             {giftMsg && <span className="font-medium text-purple-600 dark:text-purple-400">🎁 Gift Card Message Included</span>}

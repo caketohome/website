@@ -89,10 +89,10 @@ export function BranchComplianceTab({
                       </td>
                       <td className="px-5 py-4">
                         <div className="text-slate-800 dark:text-slate-200 font-medium">
-                          {b.city || "Bengaluru"}
+                          {b.city || "—"}
                         </div>
                         <div className="text-xs text-slate-500">
-                          {b.state || "Karnataka"} (Code: {b.state_code || "29"})
+                          {b.state || "—"}{b.state_code ? ` (Code: ${b.state_code})` : ""}
                         </div>
                       </td>
                       <td className="px-5 py-4">

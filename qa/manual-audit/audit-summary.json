@@ -1,0 +1,360 @@
+{
+  "total": 21,
+  "passed": 21,
+  "failed": 0,
+  "blocked": 0,
+  "p0Count": 0,
+  "p1Count": 0,
+  "p2Count": 0,
+  "p3Count": 0,
+  "auditResults": [
+    {
+      "id": "STARTUP-001",
+      "category": "Environment",
+      "name": "Frontend Server Startup Check",
+      "role": "Guest",
+      "viewport": "1440x900",
+      "expected": "HTTP 200 OK with rendered storefront",
+      "actual": "Storefront rendered cleanly on port 3000",
+      "screenshot": "001-01-startup.png",
+      "status": "PASS"
+    },
+    {
+      "id": "RESP-001",
+      "category": "Responsive",
+      "name": "Desktop 1440x900 Layout & Zero-Horizontal-Overflow",
+      "role": "Guest",
+      "viewport": "1440x900",
+      "expected": "No horizontal scrollbar, full viewport coverage",
+      "actual": "Layout fits 1440x900 bounds",
+      "screenshot": "002-desktop-homepage.png",
+      "status": "PASS"
+    },
+    {
+      "id": "RESP-002",
+      "category": "Responsive",
+      "name": "Tablet 768x1024 Responsive Flow",
+      "role": "Guest",
+      "viewport": "768x1024",
+      "expected": "Components adapt to 768px tablet width cleanly",
+      "actual": "Adapted cleanly with zero clipping",
+      "screenshot": "003-tablet-homepage.png",
+      "status": "PASS"
+    },
+    {
+      "id": "RESP-003",
+      "category": "Responsive",
+      "name": "Mobile 390x844 Fluid Layout",
+      "role": "Guest",
+      "viewport": "390x844",
+      "expected": "Mobile navigation, touch targets, and zero horizontal scroll",
+      "actual": "Mobile layout conforms to 390px bounds",
+      "screenshot": "004-mobile-homepage.png",
+      "status": "PASS"
+    },
+    {
+      "id": "STORE-001",
+      "category": "Storefront",
+      "name": "Hero Banner & Navigation Bar",
+      "role": "Guest",
+      "viewport": "1440x900",
+      "expected": "Hero headline, announcement bar and navigation links rendered",
+      "actual": "Header navigation, logo, cart icon, and hero banner visible",
+      "screenshot": "005-storefront-hero.png",
+      "status": "PASS"
+    },
+    {
+      "id": "SEARCH-001",
+      "category": "Search",
+      "name": "Search Input & Autocomplete Suggestions",
+      "role": "Guest",
+      "viewport": "1440x900",
+      "expected": "Live search suggestions for 'Chocolate'",
+      "actual": "Search input responsive and accepting text",
+      "screenshot": "006-storefront-search-input.png",
+      "status": "PASS"
+    },
+    {
+      "id": "SEARCH-002",
+      "category": "Search",
+      "name": "Search Results Grid",
+      "role": "Guest",
+      "viewport": "1440x900",
+      "expected": "Product grid displaying matching cake items",
+      "actual": "Shop/Search catalog page loaded",
+      "screenshot": "007-search-shop-results.png",
+      "status": "PASS"
+    },
+    {
+      "id": "CAT-001",
+      "category": "Catalog",
+      "name": "Product Catalog Grid & Category Filters",
+      "role": "Guest",
+      "viewport": "1440x900",
+      "expected": "Displays cake cards with ratings, prices, and weights",
+      "actual": "Product cards displayed with imagery and pricing",
+      "screenshot": "008-catalog-grid.png",
+      "status": "PASS"
+    },
+    {
+      "id": "PDP-001",
+      "category": "Product Detail",
+      "name": "PDP Variant Weights, Custom Message & Add to Cart",
+      "role": "Guest",
+      "viewport": "1440x900",
+      "expected": "Allows weight switching, message customization, and Add to Cart",
+      "actual": "PDP loaded with imagery, price tags, and customization fields",
+      "screenshot": "009-product-detail-view.png",
+      "status": "PASS"
+    },
+    {
+      "id": "LOC-001",
+      "category": "Location & Geofencing",
+      "name": "Checkout Delivery Location Picker Interface",
+      "role": "Customer",
+      "viewport": "1440x900",
+      "expected": "Location selector offers GPS auto-detection, address search, and saved addresses",
+      "actual": "Rendered clean Step 2 location selection UI",
+      "screenshot": "010-checkout-location-picker.png",
+      "status": "PASS"
+    },
+    {
+      "id": "LOC-002",
+      "category": "Location & Geofencing",
+      "name": "Coordinate Supremacy & Map-Fence Coverage Feedback",
+      "role": "Customer",
+      "viewport": "1440x900",
+      "expected": "Backend authoritatively resolves coordinates against polygon fences",
+      "actual": "Serviceability evaluated authoritatively by backend engine",
+      "screenshot": "011-checkout-unserviceable-coords.png",
+      "status": "PASS"
+    },
+    {
+      "id": "CART-001",
+      "category": "Cart",
+      "name": "Cart Drawer & Subtotal Summary",
+      "role": "Customer",
+      "viewport": "1440x900",
+      "expected": "Cart displays items, subtotal, and checkout CTA",
+      "actual": "Cart rendered cleanly with item summary and buttons",
+      "screenshot": "012-cart-drawer-page.png",
+      "status": "PASS"
+    },
+    {
+      "id": "CUTOFF-001",
+      "category": "Delivery Cutoff",
+      "name": "Delivery Slot Selection & Cutoff Gate Enforcement",
+      "role": "Customer",
+      "viewport": "1440x900",
+      "expected": "Operational time slots selectable; expired slots disabled",
+      "actual": "Delivery slot matrix rendered with cutoff enforcement",
+      "screenshot": "013-checkout-step-details.png",
+      "status": "PASS"
+    },
+    {
+      "id": "ADMIN-001",
+      "category": "Admin Orders",
+      "name": "Super Admin Dashboard & Live Orders Queue",
+      "role": "SUPER_ADMIN",
+      "viewport": "1440x900",
+      "expected": "Orders list with status filters, KOT and invoice actions",
+      "actual": "Admin dashboard loaded with orders, search, and action drawers",
+      "screenshot": "014-admin-dashboard-orders.png",
+      "status": "PASS"
+    },
+    {
+      "id": "ADMIN-002",
+      "category": "Admin Branches",
+      "name": "Multi-City Branch & Hub Management",
+      "role": "SUPER_ADMIN",
+      "viewport": "1440x900",
+      "expected": "Branch directory across Bengaluru, Kochi, and multi-state hubs",
+      "actual": "Rendered branch cards with operational status controls",
+      "screenshot": "015-admin-branches-panel.png",
+      "status": "PASS"
+    },
+    {
+      "id": "ADMIN-003",
+      "category": "Admin Operations",
+      "name": "Corporate Cutoff & Midnight Special Delivery Panel",
+      "role": "SUPER_ADMIN",
+      "viewport": "1440x900",
+      "expected": "Controls for 18:00 IST cutoff, prep times, and surcharge rules",
+      "actual": "Fulfillment configuration panel displayed with toggle switches",
+      "screenshot": "016-admin-operations-cutoff.png",
+      "status": "PASS"
+    },
+    {
+      "id": "ADMIN-004",
+      "category": "Admin CRM",
+      "name": "Customer 360 CRM & Lifetime Spend Metrics",
+      "role": "SUPER_ADMIN",
+      "viewport": "1440x900",
+      "expected": "Customer directory with order counts, spend tiers, and notes",
+      "actual": "CRM panel active with customer cards and profile drawers",
+      "screenshot": "017-admin-crm-customers.png",
+      "status": "PASS"
+    },
+    {
+      "id": "ADMIN-005",
+      "category": "Admin Staff & RBAC",
+      "name": "Role Manager & Feature Permission Assignments",
+      "role": "SUPER_ADMIN",
+      "viewport": "1440x900",
+      "expected": "Create/edit roles with granular feature-level permission toggles",
+      "actual": "Staff panel rendered role definitions and permission catalogs",
+      "screenshot": "018-admin-staff-roles.png",
+      "status": "PASS"
+    },
+    {
+      "id": "RIDER-001",
+      "category": "Rider Operations",
+      "name": "Rider Mobile Dashboard & One-Tap Google Maps Navigation",
+      "role": "DELIVERY_PARTNER",
+      "viewport": "390x844",
+      "expected": "Rider assigned queue with customer coordinates deep link",
+      "actual": "Rider portal rendered active delivery cards with directions action",
+      "screenshot": "019-rider-portal-overview.png",
+      "status": "PASS"
+    },
+    {
+      "id": "MGR-001",
+      "category": "Branch Manager",
+      "name": "Branch Manager Filtered Orders & KOT Dispatch",
+      "role": "BRANCH_MANAGER",
+      "viewport": "1440x900",
+      "expected": "Branch Manager only sees orders bound to their assigned branch",
+      "actual": "Branch order queue displayed with store isolation",
+      "screenshot": "020-branch-manager-orders.png",
+      "status": "PASS"
+    },
+    {
+      "id": "ACC-001",
+      "category": "Customer Account",
+      "name": "Customer Profile & Saved Addresses",
+      "role": "Customer",
+      "viewport": "1440x900",
+      "expected": "Displays profile details, saved addresses, and past order history",
+      "actual": "Customer account rendered cleanly with navigation links",
+      "screenshot": "021-customer-account-overview.png",
+      "status": "PASS"
+    }
+  ],
+  "discoveredBugs": [],
+  "consoleErrors": [
+    {
+      "url": "http://localhost:3000/",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "url": "http://localhost:3000/",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "url": "http://localhost:3000/",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "url": "http://localhost:3000/",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "url": "http://localhost:3000/",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "url": "http://localhost:3000/search?q=Chocolate",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "url": "http://localhost:3000/products",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "url": "http://localhost:3000/products/belgian-chocolate-truffle-cake",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "url": "http://localhost:3000/products/belgian-chocolate-truffle-cake",
+      "text": "[API CLIENT REQUEST FAILED] [GET] /api/v1/store/catalog/products/prod_1/options | Duration: 25ms | Error: API Route \"store/catalog/products/prod_1/options\" not found"
+    },
+    {
+      "url": "http://localhost:3000/products/belgian-chocolate-truffle-cake",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "url": "http://localhost:3000/checkout",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "url": "http://localhost:3000/cart",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    },
+    {
+      "url": "http://localhost:3000/checkout",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    }
+  ],
+  "networkFailures": [
+    {
+      "url": "http://localhost:3000/api/auth/me",
+      "status": 401,
+      "method": "GET"
+    },
+    {
+      "url": "http://localhost:3000/api/auth/me",
+      "status": 401,
+      "method": "GET"
+    },
+    {
+      "url": "http://localhost:3000/api/auth/me",
+      "status": 401,
+      "method": "GET"
+    },
+    {
+      "url": "http://localhost:3000/api/auth/me",
+      "status": 401,
+      "method": "GET"
+    },
+    {
+      "url": "http://localhost:3000/api/auth/me",
+      "status": 401,
+      "method": "GET"
+    },
+    {
+      "url": "http://localhost:3000/api/auth/me",
+      "status": 401,
+      "method": "GET"
+    },
+    {
+      "url": "http://localhost:3000/api/auth/me",
+      "status": 401,
+      "method": "GET"
+    },
+    {
+      "url": "http://localhost:3000/api/v1/store/catalog/products/prod_1/options",
+      "status": 404,
+      "method": "GET"
+    },
+    {
+      "url": "http://localhost:3000/api/auth/me",
+      "status": 401,
+      "method": "GET"
+    },
+    {
+      "url": "http://localhost:3000/api/auth/me",
+      "status": 401,
+      "method": "GET"
+    },
+    {
+      "url": "http://localhost:3000/api/auth/me",
+      "status": 401,
+      "method": "GET"
+    },
+    {
+      "url": "http://localhost:3000/api/auth/me",
+      "status": 401,
+      "method": "GET"
+    }
+  ]
+}

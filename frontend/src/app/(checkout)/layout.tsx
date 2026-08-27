@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: "Order premium cakes and bakery products online",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({
   children,
 }: Readonly<{

@@ -9,7 +9,8 @@ import {
 import { apiClient } from "@frontend/lib/api-client";
 import { DeliveryDTO, DeliveryStatus, DeliveryPartnerDTO } from "@frontend/lib/types";
 import { Button, Input, Label } from "@medusajs/ui";
-import { Phone, Key, AlertTriangle, CheckCircle, Navigation, ShieldAlert, Truck } from "lucide-react";
+import { Key, CheckCircle, Navigation, Phone, AlertTriangle, Truck, MapPin, ShieldAlert } from "lucide-react";
+import { buildGoogleMapsDirectionsUrl, extractDeliveryCoordinates } from "@frontend/lib/location/directions";
 
 export default function DeliveryPartnerDeliveryButtons({
   delivery,
@@ -123,8 +124,14 @@ export default function DeliveryPartnerDeliveryButtons({
   };
 
   const openGoogleMaps = () => {
-    const address = encodeURIComponent(`${delivery.recipient_address || ""}, ${delivery.recipient_pincode || ""}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${address}`, "_blank");
+    const coords = extractDeliveryCoordinates(delivery);
+    const url = buildGoogleMapsDirectionsUrl({
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+      address: delivery.recipient_address || delivery.order?.delivery_address || delivery.order?.shipping_address?.address_1,
+      pincode: delivery.recipient_pincode || delivery.order?.delivery_pincode || delivery.order?.pincode,
+    });
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const callCustomer = () => {
@@ -153,21 +160,32 @@ export default function DeliveryPartnerDeliveryButtons({
 
       {/* ── READY FOR PICKUP ───────────────────────────────────────── */}
       {delivery.delivery_status === DeliveryStatus.READY_FOR_PICKUP && (
-        <Button
-          variant="primary"
-          size="small"
-          onClick={() => setShowPickupModal(true)}
-          className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1"
-        >
-          <Key className="w-3.5 h-3.5" /> Verify Pickup OTP
-        </Button>
+        <>
+          <Button variant="secondary" size="small" onClick={openGoogleMaps} className="flex items-center gap-1 text-xs text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100 font-bold">
+            <Navigation className="w-3.5 h-3.5 text-blue-600" /> Preview Route
+          </Button>
+          <Button
+            variant="primary"
+            size="small"
+            onClick={() => setShowPickupModal(true)}
+            className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1"
+          >
+            <Key className="w-3.5 h-3.5" /> Verify Pickup OTP
+          </Button>
+        </>
       )}
 
       {/* ── IN TRANSIT / OUT FOR DELIVERY ──────────────────────────── */}
       {delivery.delivery_status === DeliveryStatus.IN_TRANSIT && (
         <>
-          <Button variant="secondary" size="small" onClick={openGoogleMaps} className="flex items-center gap-1 text-xs">
-            <Navigation className="w-3.5 h-3.5 text-blue-600" /> Maps
+          <Button
+            variant="primary"
+            size="small"
+            onClick={openGoogleMaps}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold flex items-center gap-1 text-xs shadow-sm"
+            data-testid="rider-get-directions-btn"
+          >
+            <Navigation className="w-3.5 h-3.5" /> 📍 GET DIRECTIONS
           </Button>
           <Button variant="secondary" size="small" onClick={callCustomer} className="flex items-center gap-1 text-xs">
             <Phone className="w-3.5 h-3.5 text-emerald-600" /> Call

@@ -4,7 +4,6 @@
  */
 
 import { cookies } from "next/headers";
-import { ApiEngine } from "../api-engine";
 import { apiClient } from "../api-client";
 
 export async function retrieveCart(cartId?: string) {
@@ -12,6 +11,7 @@ export async function retrieveCart(cartId?: string) {
   
   if (typeof window === "undefined") {
     try {
+      const { ApiEngine } = await import("../api-engine");
       const cart = ApiEngine.getCart(resolvedCartId || "cart_guest_100");
       if (cart) {
         return cart;

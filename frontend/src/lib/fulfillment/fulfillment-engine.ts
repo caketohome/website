@@ -38,6 +38,8 @@ import {
   addDaysToDateString,
 } from "./types";
 
+import { DeliverySlotGenerator } from "./delivery-slot-generator";
+
 // ── Data Provider Interface ─────────────────────────────────────────────────
 // The engine doesn't know where data comes from. Callers inject a provider.
 
@@ -290,7 +292,7 @@ export class FulfillmentEngine {
           timezone,
           1
         );
-        return FulfillmentEngine.buildResult(false, "SAME_DAY_CUTOFF_PASSED", {
+        return FulfillmentEngine.buildResult(false, "CORPORATE_CUTOFF_PASSED", {
           message: `Same-day ordering closed (cutoff: ${formatTimeForDisplay(cutoffTime)}). ${nextDate ? `Earliest: ${nextDate}.` : "Pre-order for the next available day."}`,
           cutoff_datetime: `${currentDateStr}T${cutoffTime}:00`,
           next_available_date: nextDate,
@@ -390,6 +392,16 @@ export class FulfillmentEngine {
         ? "PRE_ORDER_AVAILABLE"
         : "AVAILABLE");
 
+    const slots = DeliverySlotGenerator.generateSlots(
+      input.branch_id || null,
+      effectivePrepMinutes,
+      effectiveConfig.delivery_buffer_minutes,
+      provider,
+      {},
+      new Map(),
+      input.current_datetime
+    );
+
     return FulfillmentEngine.buildResult(true, successReason, {
       message,
       earliest_available_datetime: earliestDatetime,
@@ -405,6 +417,7 @@ export class FulfillmentEngine {
       corporate_cutoff_time: effectiveConfig.order_cutoff_time,
       emergency_override_active: effectiveConfig.emergency_override_active,
       approaching_cutoff_minutes: approachingCutoffMinutes,
+      delivery_slots: slots,
     });
   }
 
@@ -499,7 +512,7 @@ export class FulfillmentEngine {
       : `Some items in your cart are not available for same-day delivery.`;
 
     if (!allEligible) {
-      const cutoffItem = itemResults.find((i) => i.reason === "SAME_DAY_CUTOFF_PASSED");
+      const cutoffItem = itemResults.find((i) => i.reason === "SAME_DAY_CUTOFF_PASSED" || i.reason === "CORPORATE_CUTOFF_PASSED");
       if (cutoffItem) {
         cartMessage = `Same-day ordering has closed for today. Next available delivery: ${furthestNextDate || "tomorrow"}.`;
       } else {
@@ -510,6 +523,16 @@ export class FulfillmentEngine {
       }
     }
 
+    const cartSlots = DeliverySlotGenerator.generateSlots(
+      input.branch_id || null,
+      maxPrepMinutes,
+      globalConfig.default_delivery_buffer_minutes,
+      provider,
+      {},
+      new Map(),
+      input.current_datetime
+    );
+
     return {
       all_eligible: allEligible,
       effective_preparation_minutes: maxPrepMinutes,
@@ -518,7 +541,7 @@ export class FulfillmentEngine {
       next_available_date: furthestNextDate,
       requires_preorder: anyRequiresPreorder,
       items: itemResults,
-      delivery_slots: [],
+      delivery_slots: cartSlots,
       message: cartMessage,
       approaching_cutoff_minutes: minApproachingMinutes,
       corporate_cutoff_time: earliestCutoffTime || globalConfig.global_order_cutoff_time,

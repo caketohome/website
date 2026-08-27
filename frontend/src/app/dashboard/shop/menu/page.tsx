@@ -9,6 +9,8 @@ import { ShopManagerDTO, ProductDTO, ProductVariantDTO } from "@frontend/lib/typ
 import { Heading, Table, Text } from "@medusajs/ui";
 import Image from "next/image";
 
+export const dynamic = "force-dynamic";
+
 export default async function MenuPage() {
   const user = (await retrieveUser()) as ShopManagerDTO;
   const shopId = user?.shop_id;

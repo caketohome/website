@@ -30,10 +30,10 @@ export function OrderInvoicePrintModal({ order, onClose }: OrderInvoicePrintModa
   const sellerLegalName = compliance.seller_legal_name || "CakeToHome India Private Limited";
   const sellerTradeName = compliance.seller_trade_name || "CakeToHome";
   const sellerGstin = compliance.seller_gstin || "29AAAAA0000A1Z5";
-  const sellerState = compliance.seller_state || "Karnataka";
-  const sellerStateCode = compliance.seller_state_code || "29";
-  const sellerFssai = compliance.seller_fssai_number || "11221333000482";
-  const sellerAddress = compliance.seller_address || branch?.address || "Indiranagar, Bengaluru, Karnataka 560038";
+  const sellerState = compliance.seller_state || branch?.state || "";
+  const sellerStateCode = compliance.seller_state_code || branch?.state_code || "";
+  const sellerFssai = compliance.seller_fssai_number || branch?.fssai_number || "";
+  const sellerAddress = compliance.seller_address || branch?.address || "";
   const isIntraState = compliance.is_intra_state !== false;
   const supplyType = compliance.supply_type || (isIntraState ? "INTRA-STATE (CGST + SGST)" : "INTER-STATE (IGST)");
 

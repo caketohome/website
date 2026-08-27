@@ -7,6 +7,8 @@ export const metadata = {
   description: "Manage your saved delivery addresses and kitchen hub locations.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function AddressesPage() {
   const user = await retrieveUser();
   if (!user) {

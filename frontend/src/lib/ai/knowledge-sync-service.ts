@@ -241,7 +241,7 @@ Parent Category: ${cat.parent_category_id || "Root Cakes"}
 
     const content = `
 Kitchen Hub: ${branch.name}
-City: ${branch.city || "Bengaluru"}
+City: ${branch.city || "—"}
 Address: ${branch.address || branch.name}
 Phone: ${branch.phone || "+91 80 4567 8900"}
 FSSAI License: ${branch.fssai_number || "11223344556677"}
@@ -253,7 +253,7 @@ Serviceable Pincodes: ${pincodes.slice(0, 20).join(", ")}
       id: `doc_branch_${branchId}`,
       source_type: "branch",
       source_id: branchId,
-      title: `CakeToHome Kitchen — ${branch.name} (${branch.city || "Bengaluru"})`,
+      title: `CakeToHome Kitchen — ${branch.name}${branch.city ? ` (${branch.city})` : ""}`,
       content,
       metadata: {
         branch_id: branchId,

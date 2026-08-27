@@ -33,9 +33,9 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
   const [address1, setAddress1] = useState("");
   const [address2, setAddress2] = useState("");
   const [landmark, setLandmark] = useState("");
-  const [city, setCity] = useState("Bengaluru");
-  const [state, setState] = useState("Karnataka");
-  const [pincode, setPincode] = useState("560038");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [pincode, setPincode] = useState("");
   const [isDefault, setIsDefault] = useState(false);
 
   const openAddModal = () => {
@@ -46,9 +46,9 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
     setAddress1("");
     setAddress2("");
     setLandmark("");
-    setCity("Bengaluru");
-    setState("Karnataka");
-    setPincode("560038");
+    setCity("");
+    setState("");
+    setPincode("");
     setIsDefault(addresses.length === 0);
     setShowModal(true);
   };
@@ -61,9 +61,9 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
     setAddress1(addr.address_1 || addr.line1 || "");
     setAddress2(addr.address_2 || addr.line2 || "");
     setLandmark(addr.landmark || "");
-    setCity(addr.city || "Bengaluru");
-    setState(addr.state || "Karnataka");
-    setPincode(addr.postal_code || addr.pincode || "560038");
+    setCity(addr.city || "");
+    setState(addr.state || "");
+    setPincode(addr.postal_code || addr.pincode || "");
     setIsDefault(Boolean(addr.is_default || addr.is_default_shipping));
     setShowModal(true);
   };
@@ -170,14 +170,14 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
                   <p className="text-neutral-400 italic">Landmark: {addr.landmark}</p>
                 )}
                 <p className="font-semibold text-neutral-200">
-                  {addr.city || "Bengaluru"}, {addr.state || "Karnataka"} – {addr.postal_code || (addr as any).pincode || ""}
+                  {[addr.city, addr.state].filter(Boolean).join(", ")}{addr.postal_code || (addr as any).pincode ? ` – ${addr.postal_code || (addr as any).pincode}` : ""}
                 </p>
               </div>
 
               {/* Branch Connection Indicator */}
               <div className="pt-2 border-t border-neutral-800/80 flex items-center gap-1.5 text-[11px] text-amber-400/90 font-medium">
                 <Store className="w-3.5 h-3.5" />
-                <span>Routed to: {(addr as any).branch_name || "Indiranagar Hub Kitchen"}</span>
+                <span>Routed to: {(addr as any).branch_name || "Nearest Hub Kitchen"}</span>
               </div>
             </div>
 

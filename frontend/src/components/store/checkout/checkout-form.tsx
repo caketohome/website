@@ -8,6 +8,8 @@ import { useFormState, useFormStatus } from "react-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ErrorComponent } from "@frontend/components/common/error-component";
 import { OrderSummary, OrderSummaryPricing } from "./order-summary";
+import { MapPin, Navigation, Search, CheckCircle2, Crosshair, AlertCircle, AlertTriangle, Bookmark, Loader2 } from "lucide-react";
+import { isValidCoordinate } from "@frontend/lib/location/directions";
 
 const AVAILABLE_PICKUP_BRANCHES = [
   {
@@ -63,12 +65,12 @@ function Submit({ disabled }: { disabled?: boolean }) {
 
 export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   const [state, action] = useFormState(placeOrder, { message: "" });
-  const [zip, setZip] = useState(cart.shipping_address?.postal_code || "560001");
+  const [zip, setZip] = useState(cart.shipping_address?.postal_code || "");
   const [checking, setChecking] = useState(false);
   
   // Delivery type selection (Delivery vs Branch Pickup)
   const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery");
-  const [selectedBranchId, setSelectedBranchId] = useState<string>("br_indiranagar");
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
 
   // Step state: 1 = Contact & Occasion, 2 = Fulfillment & Schedule, 3 = Payment & Finalize
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -76,6 +78,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   // References for focus management
   const firstNameRef = useRef<HTMLInputElement>(null);
   const zipInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const notesRef = useRef<HTMLTextAreaElement>(null);
 
   // Contact fields
@@ -84,9 +87,24 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   const [phone, setPhone] = useState("+91 98765 43210");
   const [email, setEmail] = useState("ananya.sharma@example.com");
 
-  // Address fields
-  const [address, setAddress] = useState("Flat 402, Signature Towers, 12th Main Road");
-  const [city, setCity] = useState("");
+  // Address & Location fields
+  const [address, setAddress] = useState(cart.shipping_address?.address_1 || "");
+  const [city, setCity] = useState(cart.shipping_address?.city || "");
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [locatingGps, setLocatingGps] = useState<boolean>(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
+
+  // Search location autocomplete state
+  const [locationSearchQuery, setLocationSearchQuery] = useState<string>("");
+  const [locationSearchResults, setLocationSearchResults] = useState<any[]>([]);
+  const [isSearchingLocation, setIsSearchingLocation] = useState<boolean>(false);
+  const [showLocationDropdown, setShowLocationDropdown] = useState<boolean>(false);
+
+  // Customer Saved Addresses
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
 
   // Gifting & Recipient State
   const [orderedForSelf, setOrderedForSelf] = useState<boolean>(true);
@@ -130,6 +148,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   // Authoritative Availability Resolution Engine
   const fetchAvailability = useCallback(async (customParams?: {
     zip?: string;
+    lat?: number;
+    lng?: number;
     type?: "delivery" | "pickup";
     branch?: string;
     date?: string;
@@ -138,6 +158,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   }) => {
     setLoadingAvailability(true);
     const targetZip = customParams?.zip ?? zip;
+    const targetLat = customParams?.lat !== undefined ? customParams.lat : (latitude ?? undefined);
+    const targetLng = customParams?.lng !== undefined ? customParams.lng : (longitude ?? undefined);
     const targetType = customParams?.type ?? deliveryType;
     const targetBranch = customParams?.branch ?? selectedBranchId;
     const targetDate = customParams?.date ?? selectedDate;
@@ -149,6 +171,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
         cart_id: cart.id,
         delivery_type: targetType,
         pincode: targetType === "delivery" ? targetZip : undefined,
+        latitude: typeof targetLat === "number" ? targetLat : undefined,
+        longitude: typeof targetLng === "number" ? targetLng : undefined,
         branch_id: targetType === "pickup" ? targetBranch : undefined,
         date: targetDate,
         slot_id: targetSlot || undefined,
@@ -175,7 +199,138 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
     } finally {
       setLoadingAvailability(false);
     }
-  }, [cart.id, zip, deliveryType, selectedBranchId, selectedDate, selectedSlotId, appliedCouponCode]);
+  }, [cart.id, zip, latitude, longitude, deliveryType, selectedBranchId, selectedDate, selectedSlotId, appliedCouponCode]);
+
+  // Load Saved Addresses on mount
+  useEffect(() => {
+    fetch("/api/customer/address")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.success && Array.isArray(data.data?.addresses)) {
+          setSavedAddresses(data.data.addresses);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Handle GPS "Use Current Location"
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setGpsError("Geolocation is not supported by your browser. Please search for your delivery address.");
+      return;
+    }
+    setLocatingGps(true);
+    setGpsError(null);
+    setGpsAccuracy(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const accuracy = pos.coords.accuracy;
+        setLatitude(lat);
+        setLongitude(lng);
+        setGpsAccuracy(accuracy);
+
+        try {
+          const res = await apiClient.reverseGeocode(lat, lng);
+          if (res && res.success) {
+            if (res.address_line_1) setAddress(res.address_line_1);
+            if (res.city) setCity(res.city);
+            if (res.pincode) setZip(res.pincode);
+            if (res.formatted_address) setLocationSearchQuery(res.formatted_address);
+            fetchAvailability({ zip: res.pincode, lat, lng });
+          } else {
+            fetchAvailability({ lat, lng });
+          }
+        } catch {
+          fetchAvailability({ lat, lng });
+        } finally {
+          setLocatingGps(false);
+        }
+      },
+      (err) => {
+        setLocatingGps(false);
+        if (err.code === 1) {
+          // Permission denied
+          setGpsError("Location access was not allowed. Search for your delivery address instead.");
+        } else if (err.code === 2) {
+          setGpsError("Position unavailable. Search for your delivery address instead.");
+        } else if (err.code === 3) {
+          setGpsError("Location request timed out. Search for your delivery address instead.");
+        } else {
+          setGpsError("Unable to retrieve GPS coordinates. Search for your delivery address instead.");
+        }
+        searchInputRef.current?.focus();
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  // Handle Location Search Autocomplete
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handleSearchLocationInput = (val: string) => {
+    setLocationSearchQuery(val);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+
+    if (!val || val.trim().length < 2) {
+      setLocationSearchResults([]);
+      setShowLocationDropdown(false);
+      return;
+    }
+
+    setIsSearchingLocation(true);
+    setShowLocationDropdown(true);
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res: any = await apiClient.searchDeliveryLocation(val.trim());
+        setLocationSearchResults(res?.results || []);
+      } catch {
+        setLocationSearchResults([]);
+      } finally {
+        setIsSearchingLocation(false);
+      }
+    }, 250);
+  };
+
+  // Select Search Autocomplete Location Result
+  const handleSelectSearchResult = (loc: any) => {
+    setLocationSearchQuery(loc.label || loc.formatted_address);
+    setShowLocationDropdown(false);
+    if (loc.latitude && loc.longitude) {
+      setLatitude(loc.latitude);
+      setLongitude(loc.longitude);
+    }
+    if (loc.formatted_address || loc.label) setAddress(loc.formatted_address || loc.label);
+    if (loc.city) setCity(loc.city);
+    if (loc.pincode) {
+      setZip(loc.pincode);
+    }
+    fetchAvailability({
+      zip: loc.pincode,
+      lat: loc.latitude,
+      lng: loc.longitude,
+    });
+  };
+
+  // Select Saved Address
+  const handleSelectSavedAddress = (addr: any) => {
+    setSelectedAddressId(addr.id);
+    setAddress(addr.address_1 || addr.address || "");
+    setCity(addr.city || "");
+    const pin = addr.postal_code || addr.pincode || "";
+    if (pin) setZip(pin);
+    if (typeof addr.latitude === "number" && typeof addr.longitude === "number") {
+      setLatitude(addr.latitude);
+      setLongitude(addr.longitude);
+      fetchAvailability({ zip: pin, lat: addr.latitude, lng: addr.longitude });
+    } else {
+      setLatitude(null);
+      setLongitude(null);
+      fetchAvailability({ zip: pin });
+    }
+  };
 
   // Initial Load
   useEffect(() => {
@@ -248,10 +403,15 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   // Step 1 Validation
   const isStep1Valid = firstName.trim() !== "" && phone.trim().length >= 10 && email.includes("@");
 
-  // Step 2 Validation
+  const currentSlots = availability?.available_slots || [];
+  const activeDates = availability?.available_dates || [];
+  const currentSlotObj = currentSlots.find((s: any) => s.id === selectedSlotId);
+  const isSelectedSlotAvailable = Boolean(currentSlotObj && (currentSlotObj.available === true || currentSlotObj.is_available === true));
+
+  // Step 2 Validation: Requires valid serviceable address/branch AND an active, bookable delivery slot
   const isStep2Valid = deliveryType === "delivery"
-    ? Boolean(availability?.serviceable && address.trim() !== "" && city.trim() !== "" && selectedSlotId !== "")
-    : Boolean(selectedBranchId && selectedSlotId !== "");
+    ? Boolean(availability?.serviceable && address.trim() !== "" && city.trim() !== "" && selectedSlotId !== "" && isSelectedSlotAvailable)
+    : Boolean(selectedBranchId && selectedSlotId !== "" && isSelectedSlotAvailable);
 
   // Focus management on step change
   useEffect(() => {
@@ -265,9 +425,6 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   }, [step]);
 
   const isSubmitDisabled = !isStep1Valid || !isStep2Valid;
-  const currentSlots = availability?.available_slots || [];
-  const activeDates = availability?.available_dates || [];
-  const currentSlotObj = currentSlots.find((s) => s.id === selectedSlotId);
   const servicingBranchObj = AVAILABLE_PICKUP_BRANCHES.find((b) => b.id === selectedBranchId) || {
     id: selectedBranchId,
     name: availability?.branch_name || "Flagship Hub",
@@ -570,77 +727,199 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
                 <input type="hidden" name="delivery_type" value={deliveryType} />
               </div>
 
-              {/* Mode 1: Home Delivery Pincode & Street Address */}
+              {/* Mode 1: Home Delivery Location, Map-Fencing & Address Snapshot */}
               {deliveryType === "delivery" ? (
                 <div className="border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 bg-white dark:bg-zinc-900 flex flex-col gap-4 shadow-sm">
-                  <Heading level="h2" className="text-base font-bold text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800 pb-2 flex items-center gap-2">
-                    <span>📍</span> Delivery Location & Pincode Verification
-                  </Heading>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                    <Heading level="h2" className="text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                      <span>📍</span> Delivery Location &amp; Address Snapshot
+                    </Heading>
+                    <button
+                      type="button"
+                      onClick={handleUseCurrentLocation}
+                      disabled={locatingGps}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 transition shadow-sm"
+                      data-testid="use-current-location-btn"
+                    >
+                      {locatingGps ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-600" />
+                          <span>Detecting GPS...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Crosshair className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Use Current Location</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
 
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="checkout-zip" className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">
-                      Delivery Pincode *
+                  {gpsError && (
+                    <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-xl text-xs text-amber-800 dark:text-amber-200 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+                      <span>{gpsError}</span>
+                    </div>
+                  )}
+
+                  {gpsAccuracy !== null && gpsAccuracy > 500 && (
+                    <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-xl text-xs text-amber-800 dark:text-amber-200 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
+                      <span>GPS location is approximate (~{Math.round(gpsAccuracy)}m accuracy). Please confirm your exact building name and street below.</span>
+                    </div>
+                  )}
+
+                  {/* Search Delivery Location Autocomplete */}
+                  <div className="relative">
+                    <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300 mb-1 block">
+                      Search Area, Landmark, or Complex
                     </Label>
-                    <div className="flex gap-2 items-center">
+                    <div className="relative">
+                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                       <Input
-                        ref={zipInputRef}
-                        id="checkout-zip"
-                        placeholder="e.g. 560001 or 560038"
-                        name="zip"
-                        value={zip}
-                        maxLength={6}
-                        onChange={(e) => setZip(e.target.value.replace(/\D/g, ""))}
-                        onBlur={handleCheckPincode}
-                        required
-                        className="flex-1 font-mono font-bold tracking-wider text-base"
+                        ref={searchInputRef}
+                        placeholder="Search area, landmark, street, or city..."
+                        value={locationSearchQuery}
+                        onChange={(e) => handleSearchLocationInput(e.target.value)}
+                        onFocus={() => {
+                          if (locationSearchResults.length > 0) setShowLocationDropdown(true);
+                        }}
+                        className="pl-10 text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-950"
                       />
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={handleCheckPincode}
-                        isLoading={checking || loadingAvailability}
-                        className="px-5 font-semibold"
-                      >
-                        Verify Pincode
-                      </Button>
+                      {isSearchingLocation && (
+                        <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-zinc-400" />
+                      )}
                     </div>
 
-                    {/* Authoritative Serviceability Feedback Banner */}
-                    {availability && (
-                      <div className="mt-2">
-                        {availability.serviceable ? (
-                          <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex flex-col gap-1">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                                <span>✓</span> Serviceable Zone ({availability.zone_name})
-                              </span>
-                              <span className="text-xs font-extrabold text-emerald-900 dark:text-emerald-100 bg-emerald-100 dark:bg-emerald-900/80 px-2.5 py-0.5 rounded-md">
-                                {availability.pricing.delivery_fee === 0 ? "FREE DELIVERY" : `Fee: ₹${availability.pricing.delivery_fee}.00`}
-                              </span>
+                    {/* Autocomplete Results Dropdown */}
+                    {showLocationDropdown && locationSearchResults.length > 0 && (
+                      <div className="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-2 z-40 max-h-60 overflow-y-auto space-y-1">
+                        <div className="text-[10px] font-bold text-zinc-400 px-3 py-1 uppercase tracking-wider">
+                          Suggested Delivery Localities
+                        </div>
+                        {locationSearchResults.map((loc: any) => (
+                          <div
+                            key={loc.id}
+                            onClick={() => handleSelectSearchResult(loc)}
+                            className="p-2.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer flex items-center justify-between gap-3 text-xs transition"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <MapPin className="w-4 h-4 shrink-0 text-rose-500" />
+                              <div className="truncate">
+                                <p className="font-bold text-zinc-900 dark:text-zinc-100 truncate">{loc.label}</p>
+                                <p className="text-[11px] text-zinc-500 truncate">{loc.formatted_address}</p>
+                              </div>
                             </div>
-                            <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
-                              {availability.status_message}
-                            </p>
+                            {loc.pincode && (
+                              <span className="text-[10px] font-mono font-bold text-rose-600 bg-rose-50 dark:bg-rose-900/40 px-2 py-0.5 rounded shrink-0">
+                                {loc.pincode}
+                              </span>
+                            )}
                           </div>
-                        ) : (
-                          <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 flex flex-col gap-1">
-                            <span className="text-xs font-bold text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
-                              <span>✗</span> Outside Direct Delivery Zone
-                            </span>
-                            <p className="text-[11px] text-rose-700 dark:text-rose-400">
-                              {availability.status_message} Try pincode <b>560001</b>, <b>560034</b>, <b>560038</b>, or select Store Pickup.
-                            </p>
-                          </div>
-                        )}
+                        ))}
                       </div>
                     )}
                   </div>
+
+                  {/* Customer Saved Addresses Chips */}
+                  {savedAddresses.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-zinc-500 uppercase">
+                        <Bookmark className="w-3 h-3 text-zinc-400" />
+                        <span>Saved Delivery Addresses:</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {savedAddresses.map((addr) => {
+                          const isSel = selectedAddressId === addr.id;
+                          return (
+                            <button
+                              key={addr.id}
+                              type="button"
+                              onClick={() => handleSelectSavedAddress(addr)}
+                              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition ${
+                                isSel
+                                  ? "bg-rose-600 text-white border-rose-600 shadow-sm"
+                                  : "bg-zinc-50 dark:bg-zinc-800/60 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-rose-300"
+                              }`}
+                            >
+                              <span>{addr.label || addr.type || "Address"}</span>
+                              {addr.postal_code && (
+                                <span className="text-[10px] opacity-80">({addr.postal_code})</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Verified Coordinates Badge */}
+                  {typeof latitude === "number" && typeof longitude === "number" && (
+                    <div className="p-2.5 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-xl flex items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2">
+                        <Navigation className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                        <span className="font-mono text-[11px] font-bold text-blue-900 dark:text-blue-200">
+                          GPS Coordinates: {latitude.toFixed(5)}, {longitude.toFixed(5)}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-bold text-blue-700 bg-blue-100 dark:bg-blue-900/80 px-2 py-0.5 rounded">
+                        ✓ Exact Coordinates Locked for Rider
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Authoritative Serviceability Feedback Banner */}
+                  {loadingAvailability ? (
+                    <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                      <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                      <span>Checking bakery delivery coverage &amp; map-fence serviceability...</span>
+                    </div>
+                  ) : availability ? (
+                    <div>
+                      {availability.serviceable ? (
+                        <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex flex-col gap-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Delivery Available ({availability.branch_name || "Serving Store"})
+                            </span>
+                            <span className="text-xs font-extrabold text-emerald-900 dark:text-emerald-100 bg-emerald-100 dark:bg-emerald-900/80 px-2.5 py-0.5 rounded-md">
+                              {availability.pricing?.delivery_fee === 0 ? "FREE DELIVERY" : `Fee: ₹${availability.pricing?.delivery_fee || 0}.00`}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
+                            {availability.status_message || `Serving from ${availability.branch_name}`}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
+                              <span>❌</span> We currently don't deliver to this location
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLocationSearchQuery("");
+                                searchInputRef.current?.focus();
+                              }}
+                              className="text-[11px] font-bold text-rose-700 dark:text-rose-300 underline hover:no-underline"
+                            >
+                              Change Location
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-rose-700 dark:text-rose-400">
+                            {availability.status_message || "This address is outside our current bakery delivery coverage zones. Please search a different location or choose Store Pickup."}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
 
                   <div className="grid grid-cols-1 gap-4 pt-2">
                     <div>
                       <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">Street Address / Flat / Building *</Label>
                       <Input
-                        placeholder="Flat 402, Signature Towers, 12th Main Road, HAL 2nd Stage"
+                        placeholder="House/Flat No., Building Name, Street/Road"
                         name="address"
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
@@ -648,18 +927,56 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
                         className="mt-1"
                       />
                     </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">City / Area *</Label>
+                        <Input
+                          placeholder="City / Locality"
+                          name="city"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          required
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">Pincode</Label>
+                        <Input
+                          placeholder="e.g. 560038"
+                          name="zip"
+                          value={zip}
+                          maxLength={6}
+                          onChange={(e) => setZip(e.target.value.replace(/\D/g, ""))}
+                          onBlur={handleCheckPincode}
+                          className="mt-1 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">Landmark (Optional)</Label>
+                        <Input
+                          placeholder="e.g. Near Metro Station / Park"
+                          name="landmark"
+                          value={recipientLandmark}
+                          onChange={(e) => setRecipientLandmark(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
                     <div>
-                      <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">City / Area *</Label>
+                      <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">Delivery Instructions / Gate Notes</Label>
                       <Input
-                        placeholder="City"
-                        name="city"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        required
-                        className="mt-1"
+                        placeholder="e.g. Ring bell twice, leave with security if unavailable, call upon arrival"
+                        name="special-instructions"
+                        value={deliveryInstructions}
+                        onChange={(e) => setDeliveryInstructions(e.target.value)}
+                        className="mt-1 text-xs"
                       />
                     </div>
                   </div>
+
+                  {/* Hidden GPS inputs submitted to placeOrder */}
+                  <input type="hidden" name="latitude" value={latitude ?? ""} />
+                  <input type="hidden" name="longitude" value={longitude ?? ""} />
                 </div>
               ) : (
                 /* Mode 2: Store Pickup Branch Selection */
@@ -746,7 +1063,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
                     <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">
                       Select Time Window ({deliveryType === "delivery" ? "Delivery Slot" : "Pickup Window"})
                     </Label>
-                    <span className="text-[11px] text-zinc-400">Real-time slot capacity tracking</span>
+                    <span className="text-[11px] text-zinc-400">Authoritative cutoff & capacity validation</span>
                   </div>
 
                   {loadingAvailability ? (
@@ -760,76 +1077,133 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
                       <Text className="text-xs text-zinc-500 italic">No operational slots available for this date. Please select another date.</Text>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
-                      {currentSlots.map((slot: any) => {
-                        const isAvailable = slot.available;
-                        const isSelected = selectedSlotId === slot.id;
-                        const isAlmostFull = isAvailable && slot.remaining_capacity <= 4;
-
-                        return (
-                          <button
-                            key={slot.id}
-                            type="button"
-                            disabled={!isAvailable}
-                            onClick={() => handleSlotSelect(slot.id)}
-                            className={`flex flex-col text-left border rounded-2xl p-3.5 transition-all ${
-                              isSelected
-                                ? "border-rose-500 bg-rose-50/80 dark:bg-rose-950/40 ring-2 ring-rose-500/20 shadow-sm"
-                                : isAvailable
-                                  ? "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300"
-                                  : "border-zinc-200 bg-zinc-50 dark:bg-zinc-800/40 opacity-50 cursor-not-allowed"
-                            }`}
-                          >
-                            <div className="flex justify-between items-start w-full">
-                              <span className="font-bold text-xs md:text-sm text-zinc-900 dark:text-zinc-100 pr-1">
-                                {slot.slot_name}
-                              </span>
-                              {!isAvailable ? (
-                                <Badge color="red" size="small">
-                                  {slot.status === "PAST_CUTOFF" ? "Cutoff Passed" : "Fully Booked"}
-                                </Badge>
-                              ) : isAlmostFull ? (
-                                <Badge color="orange" size="small">
-                                  🔥 {slot.remaining_capacity} left
-                                </Badge>
-                              ) : (
-                                <Badge color="green" size="small">
-                                  Available
-                                </Badge>
-                              )}
+                    <div className="flex flex-col gap-3">
+                      {/* Same-day cutoff banner when all slots on current date are closed/expired */}
+                      {currentSlots.length > 0 && currentSlots.every((s: any) => !s.available) && (
+                        <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-900 dark:text-amber-200">
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-xl">⏰</span>
+                            <div>
+                              <p className="font-bold text-xs md:text-sm">Same-Day Ordering Closed</p>
+                              <p className="text-[11px] text-amber-700 dark:text-amber-400">
+                                Same-day acceptance cutoff has passed for this date. Pre-orders are open for tomorrow!
+                              </p>
                             </div>
+                          </div>
+                          {activeDates.find((d) => d.date !== selectedDate && d.is_available) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const nextAvail = activeDates.find((d) => d.date !== selectedDate && d.is_available);
+                                if (nextAvail) handleDateChange(nextAvail.date);
+                              }}
+                              className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-1.5 px-3.5 rounded-xl whitespace-nowrap shadow-sm transition-all"
+                            >
+                              Switch to {activeDates.find((d) => d.date !== selectedDate && d.is_available)?.label} →
+                            </button>
+                          )}
+                        </div>
+                      )}
 
-                            <div className="flex justify-between items-center mt-2 text-xs">
-                              <span className="text-zinc-500 font-mono text-[11px]">
-                                {slot.start_time} - {slot.end_time}
-                              </span>
-                              {slot.extra_charge > 0 && (
-                                <span className="font-extrabold text-rose-600 dark:text-rose-400 text-xs">
-                                  +₹{slot.extra_charge} Surcharge
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+                        {currentSlots.map((slot: any) => {
+                          const isAvailable = Boolean(slot.available && slot.is_available !== false);
+                          const isSelected = selectedSlotId === slot.id;
+                          const isAlmostFull = isAvailable && slot.remaining_capacity <= 4;
+
+                          const isCutoffPassed = slot.status === "PAST_CUTOFF" || slot.reason_code === "CORPORATE_CUTOFF_PASSED" || slot.reason_code === "SPECIAL_CUTOFF_PASSED";
+                          const isPrepExceeded = slot.status === "PREP_TIME_EXCEEDED" || slot.reason_code === "PRODUCT_PREP_TIME";
+                          const isFull = slot.status === "FULL" || slot.reason_code === "SLOT_CAPACITY_FULL";
+                          const isClosed = slot.status === "CLOSED" || slot.reason_code === "STORE_CLOSED";
+
+                          return (
+                            <button
+                              key={slot.id}
+                              type="button"
+                              disabled={!isAvailable}
+                              onClick={() => {
+                                if (isAvailable) handleSlotSelect(slot.id);
+                              }}
+                              className={`flex flex-col text-left border rounded-2xl p-3.5 transition-all ${
+                                isSelected && isAvailable
+                                  ? "border-rose-500 bg-rose-50/80 dark:bg-rose-950/40 ring-2 ring-rose-500/20 shadow-sm"
+                                  : isAvailable
+                                    ? "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 cursor-pointer"
+                                    : "border-zinc-200 dark:border-zinc-800/60 bg-zinc-50/80 dark:bg-zinc-800/40 opacity-60 cursor-not-allowed"
+                              }`}
+                            >
+                              <div className="flex justify-between items-start w-full">
+                                <span className="font-bold text-xs md:text-sm text-zinc-900 dark:text-zinc-100 pr-1">
+                                  {slot.slot_name || slot.label}
                                 </span>
+                                {!isAvailable ? (
+                                  <Badge color="red" size="small">
+                                    {isCutoffPassed ? "Cutoff Passed" : isPrepExceeded ? "Prep Time Exceeded" : isFull ? "Fully Booked" : isClosed ? "Kitchen Closed" : "Unavailable"}
+                                  </Badge>
+                                ) : isAlmostFull ? (
+                                  <Badge color="orange" size="small">
+                                    🔥 {slot.remaining_capacity} left
+                                  </Badge>
+                                ) : (
+                                  <Badge color="green" size="small">
+                                    Available
+                                  </Badge>
+                                )}
+                              </div>
+
+                              <div className="flex justify-between items-center mt-2 text-xs">
+                                <span className="text-zinc-500 font-mono text-[11px]">
+                                  {slot.start_time} - {slot.end_time}
+                                </span>
+                                {slot.extra_charge > 0 && (
+                                  <span className="font-extrabold text-rose-600 dark:text-rose-400 text-xs">
+                                    +₹{slot.extra_charge} Surcharge
+                                  </span>
+                                )}
+                              </div>
+
+                              {!isAvailable && slot.reason_message && (
+                                <p className="text-[10px] text-red-500 dark:text-red-400 mt-1.5 font-medium leading-tight">
+                                  ⚠️ {slot.reason_message}
+                                </p>
                               )}
-                            </div>
-                          </button>
-                        );
-                      })}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                   <input type="hidden" name="delivery_slot_id" value={selectedSlotId} />
                 </div>
               </div>
 
-              <div className="flex justify-between items-center mt-2">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-2">
                 <Button type="button" variant="secondary" onClick={() => setStep(1)} className="rounded-xl">
                   ← Back to Contact
                 </Button>
-                <Button
-                  type="button"
-                  disabled={!isStep2Valid}
-                  onClick={() => setStep(3)}
-                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-6 rounded-xl"
-                >
-                  Continue to Review & Pay →
-                </Button>
+                <div className="flex flex-col items-end gap-1 w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    disabled={!isStep2Valid}
+                    onClick={() => setStep(3)}
+                    className={`font-bold py-2.5 px-6 rounded-xl w-full sm:w-auto transition-all ${
+                      isStep2Valid
+                        ? "bg-rose-600 hover:bg-rose-700 text-white shadow-md shadow-rose-500/20"
+                        : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed"
+                    }`}
+                  >
+                    Continue to Review & Pay →
+                  </Button>
+                  {!isStep2Valid && (
+                    <span className="text-[11px] text-zinc-400">
+                      {!selectedSlotId
+                        ? "Select an available delivery slot to proceed"
+                        : !isSelectedSlotAvailable
+                        ? "Selected slot is unavailable. Please select another slot."
+                        : "Complete delivery address & details to proceed"}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -994,9 +1368,9 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
               <input type="hidden" name="email" value={email} />
               <input type="hidden" name="address-line1" value={deliveryType === "delivery" ? address : `STORE PICKUP (${servicingBranchObj.name})`} />
               <input type="hidden" name="address-line2" value="" />
-              <input type="hidden" name="city" value={city} />
-              <input type="hidden" name="state" value="Karnataka" />
-              <input type="hidden" name="zip" value={deliveryType === "delivery" ? zip : "560038"} />
+              <input type="hidden" name="city" value={city || (servicingBranchObj as any)?.city || ""} />
+              <input type="hidden" name="state" value={(servicingBranchObj as any)?.state || ""} />
+              <input type="hidden" name="zip" value={deliveryType === "delivery" ? zip : ((servicingBranchObj as any)?.pincode || "")} />
               <input type="hidden" name="delivery-date" value={selectedDate} />
               <input type="hidden" name="delivery-slot" value={selectedSlotId} />
               <input type="hidden" name="payment-method" value={paymentMethod} />

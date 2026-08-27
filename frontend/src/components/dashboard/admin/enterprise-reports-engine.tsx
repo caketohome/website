@@ -747,7 +747,7 @@ export function EnterpriseReportsEngine() {
                     <tr key={idx} className="hover:bg-ui-bg-subtle/50">
                       <td className="p-3 font-sans font-bold text-ui-fg-base">{b.branchName}</td>
                       <td className="p-3 font-mono font-bold text-indigo-700">{b.branchCode}</td>
-                      <td className="p-3 font-sans text-ui-fg-subtle">{b.city || "Bengaluru"}</td>
+                      <td className="p-3 font-sans text-ui-fg-subtle">{b.city || "—"}</td>
                       <td className="p-3 text-right font-medium">{b.ordersCount}</td>
                       <td className="p-3 text-right font-medium">₹{b.grossSales.toLocaleString("en-IN")}</td>
                       <td className="p-3 text-right font-bold text-emerald-700">₹{b.netSales.toLocaleString("en-IN")}</td>

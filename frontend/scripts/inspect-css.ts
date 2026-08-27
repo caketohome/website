@@ -37,8 +37,8 @@ async function inspectPort(port: number) {
   }
 }
 
-async function main() {
+async function runInspection() {
   await inspectPort(3000);
 }
 
-main();
+runInspection();

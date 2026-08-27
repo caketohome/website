@@ -1,4 +1,16 @@
-import { ApiEngine } from "../api-engine";
+let _cachedApiEngine: any = null;
+async function getServerApiEngine(): Promise<any> {
+  if (typeof window !== "undefined") return null;
+  if (!_cachedApiEngine) {
+    try {
+      const mod = await import("../api-engine");
+      _cachedApiEngine = mod.ApiEngine;
+    } catch {
+      return null;
+    }
+  }
+  return _cachedApiEngine;
+}
 
 export interface HomepageSection {
   id: string;
@@ -96,7 +108,8 @@ export async function getHomepage(lang = "en"): Promise<{
   announcementBar?: any;
   headerConfig?: any;
 }> {
-  const page = ApiEngine.getCmsPage("home");
+  const engine = await getServerApiEngine();
+  const page = engine?.getCmsPage ? engine.getCmsPage("home") : null;
   if (!page) {
     return { page: null, sections: [], banners: [], announcementBar: undefined, headerConfig: undefined };
   }
@@ -131,7 +144,8 @@ export async function getHomepage(lang = "en"): Promise<{
 }
 
 export async function getCmsPage(slug: string, lang = "en", includeDrafts = false): Promise<CmsPage | null> {
-  const page = ApiEngine.getCmsPage(slug);
+  const engine = await getServerApiEngine();
+  const page = engine?.getCmsPage ? engine.getCmsPage(slug) : null;
   if (!page) return null;
 
   // If not published and drafts not explicitly allowed (e.g. public storefront), return null
@@ -164,12 +178,14 @@ export async function getCmsPage(slug: string, lang = "en", includeDrafts = fals
 }
 
 export async function getOccasions(): Promise<any[]> {
-  return ApiEngine.listOccasions();
+  const engine = await getServerApiEngine();
+  return engine?.listOccasions ? engine.listOccasions() : [];
 }
 
 export async function getNavigation(location: string, lang = "en"): Promise<any | null> {
-  const pages = ApiEngine.listCmsPages();
-  const navPages = pages
+  const engine = await getServerApiEngine();
+  const pages = engine?.listCmsPages ? engine.listCmsPages() : [];
+  const navPages = (pages || [])
     .filter((p: any) => p.status === "published" && !p.hide_from_nav && p.nav_location === location)
     .map((p: any) => ({
       id: p.id,
@@ -181,11 +197,13 @@ export async function getNavigation(location: string, lang = "en"): Promise<any 
 }
 
 export async function getBlogPosts(opts?: { lang?: string; categoryId?: string; limit?: number; offset?: number }): Promise<any[]> {
-  const pages = ApiEngine.listCmsPages();
-  return pages.filter((p: any) => p.page_type === "blog" && p.status === "published");
+  const engine = await getServerApiEngine();
+  const pages = engine?.listCmsPages ? engine.listCmsPages() : [];
+  return (pages || []).filter((p: any) => p.page_type === "blog" && p.status === "published");
 }
 
 export async function resolveRedirect(from: string): Promise<any> {
-  const redirects = (ApiEngine as any).getSeoRedirects ? ApiEngine.getSeoRedirects() : [];
-  return redirects.find((r: any) => r.from_path === from || r.from === from) || null;
+  const engine = await getServerApiEngine();
+  const redirects = (engine as any)?.getSeoRedirects ? (engine as any).getSeoRedirects() : [];
+  return (redirects || []).find((r: any) => r.from_path === from || r.from === from) || null;
 }

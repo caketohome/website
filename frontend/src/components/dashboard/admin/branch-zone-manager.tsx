@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { Heading, Text, Badge, Input, Button, Label } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
 import {
   MapPin, Plus, Edit3, Trash2, Copy, ChevronUp, ChevronDown,
   ToggleLeft, ToggleRight, Search, Upload, Download, CheckCircle,
   AlertTriangle, Truck, Zap, Moon, Clock, Package, DollarSign,
-  Settings2, ArrowRight, X, Layers,
+  Settings2, ArrowRight, X, Layers, Map,
 } from "lucide-react";
+import { MapFenceEditor } from "./map-fence-editor";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -16,6 +17,10 @@ interface DeliveryZone {
   id: string;
   name: string;
   display_order?: number;
+  priority?: number;
+  fence_type?: "polygon" | "radius" | "hybrid";
+  polygon_coordinates?: Array<{ lat: number; lng: number }>;
+  exclusion_polygons?: Array<Array<{ lat: number; lng: number }>>;
   min_km: number;
   max_km: number;
   enabled: boolean;
@@ -28,10 +33,12 @@ interface DeliveryZone {
   free_delivery_threshold: number;
   same_day_allowed: boolean;
   express_allowed: boolean;
+  instant_allowed?: boolean;
   midnight_allowed: boolean;
   scheduled_allowed: boolean;
   delivery_charge: number;
   express_charge: number;
+  instant_charge?: number;
   midnight_charge: number;
   holiday_charge?: number;
   cities?: string[];
@@ -43,6 +50,10 @@ interface DeliveryZone {
 const EMPTY_ZONE: Omit<DeliveryZone, "id"> = {
   name: "",
   display_order: 1,
+  priority: 10,
+  fence_type: "hybrid",
+  polygon_coordinates: [],
+  exclusion_polygons: [],
   min_km: 0,
   max_km: 5,
   enabled: true,
@@ -55,10 +66,12 @@ const EMPTY_ZONE: Omit<DeliveryZone, "id"> = {
   free_delivery_threshold: 999,
   same_day_allowed: true,
   express_allowed: true,
+  instant_allowed: false,
   midnight_allowed: false,
   scheduled_allowed: true,
   delivery_charge: 0,
   express_charge: 99,
+  instant_charge: 149,
   midnight_charge: 79,
   holiday_charge: 49,
   cities: [],
@@ -100,6 +113,7 @@ export function BranchZoneManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeZoneId, setActiveZoneId] = useState<string | null>(null);
+  const [showMapFence, setShowMapFence] = useState(false);
 
   // Zone modal
   const [showZoneModal, setShowZoneModal] = useState(false);
@@ -674,6 +688,69 @@ export function BranchZoneManager() {
                           <span className="text-[10px] text-slate-400">+{(activeZone.pincodes ?? []).length - 30} more</span>
                         )}
                       </div>
+                    )}
+                  </div>
+
+                  {/* ── Map Fence Section ─────────────────────────── */}
+                  <div className="col-span-2 space-y-2 border-t pt-3">
+                    <div className="flex items-center justify-between">
+                      <Text className="font-bold text-[10px] uppercase tracking-wide text-slate-500 flex items-center gap-1.5">
+                        <Map className="w-3 h-3" /> Map Fence Configuration
+                      </Text>
+                      <button
+                        onClick={() => setShowMapFence(!showMapFence)}
+                        className="text-[10px] text-amber-600 font-semibold hover:underline flex items-center gap-1"
+                      >
+                        {showMapFence ? "Hide Map" : "Show Map"}
+                      </button>
+                    </div>
+
+                    {!showMapFence ? (
+                      <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-[10px] text-blue-600 font-medium flex items-center gap-2">
+                        <Map className="w-3.5 h-3.5 shrink-0" />
+                        {activeZone.polygon_coordinates && (activeZone.polygon_coordinates as any[]).length >= 3
+                          ? `Polygon configured with ${(activeZone.polygon_coordinates as any[]).length} points. Click "Show Map" to edit.`
+                          : activeZone.fence_type === "radius"
+                            ? `Radius mode: ${activeZone.max_km || 5} km. Click "Show Map" to visualize.`
+                            : "No map fence configured. Click \"Show Map\" to draw a delivery zone polygon."}
+                      </div>
+                    ) : (
+                      <MapFenceEditor
+                        storeLat={selectedBranch?.latitude || 12.9716}
+                        storeLng={selectedBranch?.longitude || 77.5946}
+                        storeName={selectedBranch?.name || "Store"}
+                        polygonCoordinates={activeZone.polygon_coordinates as any || []}
+                        exclusionPolygons={activeZone.exclusion_polygons as any || []}
+                        fenceType={activeZone.fence_type || "hybrid"}
+                        radiusKm={activeZone.max_km || 5}
+                        zoneName={activeZone.name}
+                        onSave={async (data) => {
+                          const updatedZones = zones.map((z) =>
+                            z.id === activeZone.id
+                              ? {
+                                  ...z,
+                                  polygon_coordinates: data.polygon_coordinates as any,
+                                  exclusion_polygons: data.exclusion_polygons as any,
+                                  fence_type: data.fence_type as any,
+                                  max_km: data.radius_km ?? z.max_km,
+                                }
+                              : z
+                          );
+                          await persistZones(updatedZones);
+                        }}
+                        onStoreLocationChange={async (lat, lng) => {
+                          // Update branch coordinates when store marker is dragged
+                          try {
+                            await apiClient.updateAdminBranch(selectedBranchId, {
+                              latitude: lat,
+                              longitude: lng,
+                            });
+                            showToast("Store location updated");
+                          } catch {
+                            showToast("Failed to update store location", "error");
+                          }
+                        }}
+                      />
                     )}
                   </div>
                 </div>

@@ -2,14 +2,14 @@
  * CakeToHome Delivery Slot Generator
  *
  * Generates valid, bookable delivery time slots based on:
- * - Branch operating hours
- * - Product preparation time + any preparation delay
- * - Order cutoff times
- * - Holiday calendar
+ * - Corporate same-day acceptance cutoff (hard operational ceiling)
+ * - Branch operating hours & holiday calendar
+ * - Product preparation time + buffer
+ * - Delivery window limits (earliest / latest slot)
+ * - Configurable Express delivery & Late-night / Midnight delivery
  * - Existing slot bookings / capacity
- * - Express delivery / midnight delivery options
  *
- * Slots are generated for 1-7 days ahead. Each slot is a 2-hour window.
+ * Slots are generated with explicit availability, status, and reason codes.
  */
 
 import {
@@ -18,6 +18,11 @@ import {
   HolidayEntry,
   GlobalFulfillmentConfig,
   DEFAULT_GLOBAL_FULFILLMENT_CONFIG,
+  LateNightDeliveryConfig,
+  ExpressDeliveryConfig,
+  DEFAULT_LATE_NIGHT_CONFIG,
+  DEFAULT_EXPRESS_CONFIG,
+  FulfillmentReason,
   getNowInTimezone,
   timeStringToMinutes,
   minutesToTimeString,
@@ -31,46 +36,45 @@ import { FulfillmentDataProvider } from "./fulfillment-engine";
 // ── Slot Configuration ──────────────────────────────────────────────────────
 
 export interface SlotGeneratorConfig {
-  slot_duration_minutes: number;          // Default 120 (2 hours)
+  slot_duration_minutes: number;          // Default 120 (2 hours) or 60 (1 hour)
   slot_interval_minutes: number;          // Default 60 (1 hour between slot starts)
-  max_slots_per_window: number;           // Default 5 orders per slot
+  max_slots_per_window: number;           // Default 15 orders per slot
   days_ahead: number;                     // Default 3 days
-  express_delivery_enabled: boolean;      // Express slots (30 min windows)
-  express_extra_charge: number;           // Extra charge for express
-  midnight_delivery_enabled: boolean;     // 11 PM - 12 AM slots
-  midnight_extra_charge: number;          // Extra charge for midnight
+  express_delivery?: ExpressDeliveryConfig;
+  late_night_delivery?: LateNightDeliveryConfig;
+  express_delivery_enabled?: boolean;     // legacy alias
+  express_extra_charge?: number;          // legacy alias
+  midnight_delivery_enabled?: boolean;    // legacy alias
+  midnight_extra_charge?: number;         // legacy alias
+  earliest_delivery_time?: string;        // "HH:MM"
+  latest_delivery_slot_start?: string;    // "HH:MM"
+  latest_delivery_slot_end?: string;      // "HH:MM"
 }
 
 export const DEFAULT_SLOT_CONFIG: SlotGeneratorConfig = {
-  slot_duration_minutes: 120,
+  slot_duration_minutes: 60,
   slot_interval_minutes: 60,
-  max_slots_per_window: 5,
+  max_slots_per_window: 15,
   days_ahead: 3,
-  express_delivery_enabled: true,
-  express_extra_charge: 99,
-  midnight_delivery_enabled: true,
-  midnight_extra_charge: 149,
+  express_delivery: { ...DEFAULT_EXPRESS_CONFIG },
+  late_night_delivery: { ...DEFAULT_LATE_NIGHT_CONFIG },
+  earliest_delivery_time: "09:00",
+  latest_delivery_slot_start: "21:00",
+  latest_delivery_slot_end: "22:00",
 };
 
 // ── Slot Generator ──────────────────────────────────────────────────────────
 
 export class DeliverySlotGenerator {
   /**
-   * Generate delivery slots for a product at a branch.
-   *
-   * @param branchId - Target branch
-   * @param effectivePrepMinutes - Total preparation time (base + delay)
-   * @param deliveryBufferMinutes - Delivery transit buffer
-   * @param provider - Data provider for operating hours, holidays, etc.
-   * @param slotConfig - Slot generation configuration
-   * @param existingBookings - Map of slot_id → current booking count
+   * Generate delivery slots for a product or cart at a branch.
    */
   static generateSlots(
     branchId: string | null,
     effectivePrepMinutes: number,
     deliveryBufferMinutes: number,
     provider: FulfillmentDataProvider,
-    slotConfig: SlotGeneratorConfig = DEFAULT_SLOT_CONFIG,
+    slotConfig: Partial<SlotGeneratorConfig> = {},
     existingBookings: Map<string, number> = new Map(),
     currentDatetime?: Date
   ): DeliverySlot[] {
@@ -82,7 +86,7 @@ export class DeliverySlotGenerator {
     const totalLeadMinutes = effectivePrepMinutes + deliveryBufferMinutes;
 
     // Resolve Corporate Cutoff & Emergency Override
-    let corporateCutoff = globalConfig.global_order_cutoff_time || "20:00";
+    let corporateCutoff = globalConfig.global_order_cutoff_time || "18:00";
     if (globalConfig.emergency_override_active) {
       const now = currentDatetime || new Date();
       const startValid = !globalConfig.emergency_override_start_time || new Date(globalConfig.emergency_override_start_time) <= now;
@@ -91,20 +95,41 @@ export class DeliverySlotGenerator {
         corporateCutoff = globalConfig.emergency_override_cutoff_time;
       }
     }
-    const cutoffMinutes = timeStringToMinutes(corporateCutoff);
-    const isPastSameDayCutoff = currentTimeMinutes >= cutoffMinutes;
+    const corporateCutoffMinutes = timeStringToMinutes(corporateCutoff);
+    const isPastCorporateCutoff = currentTimeMinutes >= corporateCutoffMinutes;
     const isSameDayEnabled = globalConfig.global_same_day_delivery_enabled !== false;
+
+    // Resolve Late Night & Express Configuration
+    const globalLateNight = (globalConfig.late_night_delivery as LateNightDeliveryConfig | undefined) || DEFAULT_LATE_NIGHT_CONFIG;
+    const lateNightConfig: LateNightDeliveryConfig = slotConfig.late_night_delivery || {
+      ...DEFAULT_LATE_NIGHT_CONFIG,
+      ...globalLateNight,
+      enabled: slotConfig.midnight_delivery_enabled ?? globalLateNight.enabled ?? DEFAULT_LATE_NIGHT_CONFIG.enabled,
+      additional_charge: slotConfig.midnight_extra_charge ?? globalLateNight.additional_charge ?? DEFAULT_LATE_NIGHT_CONFIG.additional_charge,
+    };
+
+    const globalExpress = (globalConfig.express_delivery as ExpressDeliveryConfig | undefined) || DEFAULT_EXPRESS_CONFIG;
+    const expressConfig: ExpressDeliveryConfig = slotConfig.express_delivery || {
+      ...DEFAULT_EXPRESS_CONFIG,
+      ...globalExpress,
+      enabled: slotConfig.express_delivery_enabled ?? globalExpress.enabled ?? DEFAULT_EXPRESS_CONFIG.enabled,
+      surcharge: slotConfig.express_extra_charge ?? globalExpress.surcharge ?? DEFAULT_EXPRESS_CONFIG.surcharge,
+    };
+
+    const slotDuration = slotConfig.slot_duration_minutes || 60;
+    const slotInterval = slotConfig.slot_interval_minutes || 60;
+    const maxSlotsPerWindow = slotConfig.max_slots_per_window || 15;
+    const daysAhead = slotConfig.days_ahead || 3;
+
+    const earliestLimitMinutes = timeStringToMinutes(slotConfig.earliest_delivery_time || globalConfig.earliest_delivery_time || "09:00");
+    const latestStartLimitMinutes = timeStringToMinutes(slotConfig.latest_delivery_slot_start || globalConfig.latest_delivery_slot_start || "21:00");
+    const latestEndLimitMinutes = timeStringToMinutes(slotConfig.latest_delivery_slot_end || globalConfig.latest_delivery_slot_end || "22:00");
 
     const allSlots: DeliverySlot[] = [];
 
-    for (let dayOffset = 0; dayOffset < slotConfig.days_ahead; dayOffset++) {
+    for (let dayOffset = 0; dayOffset < daysAhead; dayOffset++) {
       const dateStr = addDaysToDateString(currentDateStr, dayOffset);
       const isToday = dayOffset === 0;
-
-      // If today and same-day delivery is disabled or corporate cutoff passed, skip today's slots
-      if (isToday && (!isSameDayEnabled || isPastSameDayCutoff)) {
-        continue;
-      }
 
       // Check if this date is a full-day holiday
       const holidays = [
@@ -117,7 +142,6 @@ export class DeliverySlotGenerator {
       // Get operating hours for this day
       const dayOfWeek = new Date(dateStr + "T00:00:00").getDay();
       const hours = DeliverySlotGenerator.getEffectiveHours(branchId, dayOfWeek, provider);
-
       if (hours && !hours.is_open) continue;
 
       const openMinutes = hours
@@ -129,76 +153,208 @@ export class DeliverySlotGenerator {
 
       // Partial holiday adjustments
       const partialHoliday = holidays.find(h => !h.is_full_day && (h.opening_time || (h as any).open_time) && (h.closing_time || (h as any).close_time));
-      const effectiveOpen = partialHoliday
-        ? timeStringToMinutes(partialHoliday.opening_time || (partialHoliday as any).open_time)
-        : openMinutes;
-      const effectiveClose = partialHoliday
-        ? timeStringToMinutes(partialHoliday.closing_time || (partialHoliday as any).close_time)
-        : closeMinutes;
+      const effectiveOpen = Math.max(openMinutes, partialHoliday ? timeStringToMinutes(partialHoliday.opening_time || (partialHoliday as any).open_time) : openMinutes, earliestLimitMinutes);
+      const effectiveClose = Math.min(closeMinutes, partialHoliday ? timeStringToMinutes(partialHoliday.closing_time || (partialHoliday as any).close_time) : closeMinutes, latestEndLimitMinutes);
 
-      // Standard slots
-      const standardSlots = DeliverySlotGenerator.generateWindowSlots(
-        dateStr,
-        effectiveOpen,
-        effectiveClose,
-        slotConfig.slot_duration_minutes,
-        slotConfig.slot_interval_minutes,
-        slotConfig.max_slots_per_window,
-        isToday ? currentTimeMinutes + totalLeadMinutes : effectiveOpen,
-        existingBookings,
-        false,
-        false,
-        0
-      );
-      allSlots.push(...standardSlots);
+      // ── Standard Slots ────────────────────────────────────────────────────
+      for (let sMin = effectiveOpen; sMin + slotDuration <= effectiveClose && sMin <= latestStartLimitMinutes; sMin += slotInterval) {
+        const eMin = sMin + slotDuration;
+        const startTime = minutesToTimeString(sMin);
+        const endTime = minutesToTimeString(Math.min(eMin, 24 * 60 - 1));
+        const slotId = `SLOT_STANDARD_${dateStr}_${startTime.replace(":", "")}_${endTime.replace(":", "")}`;
 
-      // Express slots (30-min windows during peak hours)
-      if (slotConfig.express_delivery_enabled) {
-        const expressStart = isToday
-          ? Math.max(currentTimeMinutes + totalLeadMinutes, effectiveOpen)
-          : effectiveOpen;
-        const expressEnd = Math.min(effectiveClose, effectiveOpen + 8 * 60); // Express available for first 8 hours
+        const booked = existingBookings.get(slotId) || 0;
+        const remainingCapacity = Math.max(0, maxSlotsPerWindow - booked);
 
-        if (expressStart < expressEnd) {
-          const expressSlots = DeliverySlotGenerator.generateWindowSlots(
-            dateStr,
-            expressStart,
-            expressEnd,
-            30,   // 30-minute express windows
-            30,
-            2,    // Lower capacity for express
-            expressStart,
-            existingBookings,
-            true,
-            false,
-            slotConfig.express_extra_charge
-          );
-          allSlots.push(...expressSlots);
+        let available = true;
+        let status: DeliverySlot["status"] = "AVAILABLE";
+        let reasonCode: FulfillmentReason = "AVAILABLE";
+        let reasonMessage = "";
+
+        if (isToday) {
+          if (!isSameDayEnabled) {
+            available = false;
+            status = "DISABLED";
+            reasonCode = "SAME_DAY_DISABLED";
+            reasonMessage = "Same-day delivery is disabled";
+          } else if (isPastCorporateCutoff) {
+            available = false;
+            status = "PAST_CUTOFF";
+            reasonCode = "CORPORATE_CUTOFF_PASSED";
+            reasonMessage = `Same-day ordering closed (cutoff: ${formatTimeForDisplay(corporateCutoff)})`;
+          } else if (currentTimeMinutes + totalLeadMinutes > sMin) {
+            available = false;
+            status = "PREP_TIME_EXCEEDED";
+            reasonCode = "PRODUCT_PREP_TIME";
+            reasonMessage = `Requires ${effectivePrepMinutes}m prep + ${deliveryBufferMinutes}m transit`;
+          }
         }
+
+        if (available && remainingCapacity <= 0) {
+          available = false;
+          status = "FULL";
+          reasonCode = "SLOT_CAPACITY_FULL";
+          reasonMessage = "Slot fully booked";
+        }
+
+        const label = `${formatTimeForDisplay(startTime)} - ${formatTimeForDisplay(endTime)}`;
+
+        allSlots.push({
+          id: slotId,
+          date: dateStr,
+          start_time: startTime,
+          end_time: endTime,
+          label,
+          slot_name: label,
+          available,
+          is_available: available,
+          status,
+          reason_code: reasonCode,
+          reason_message: reasonMessage,
+          booked_count: booked,
+          max_capacity: maxSlotsPerWindow,
+          remaining_capacity: remainingCapacity,
+          extra_charge: 0,
+          extra_fee: 0,
+          slot_type: "standard",
+          is_express: false,
+          is_midnight: false,
+          cutoff: isToday ? corporateCutoff : undefined,
+        });
       }
 
-      // Midnight slots (23:00 - 00:00)
-      if (slotConfig.midnight_delivery_enabled) {
-        const midnightStart = 23 * 60;
-        const midnightEnd = 24 * 60;
-        const canGenerateMidnight = !isToday || (currentTimeMinutes + totalLeadMinutes < midnightStart);
+      // ── Express Slots (Delivery Only) ─────────────────────────────────────
+      if (expressConfig.enabled) {
+        const expStartMin = timeStringToMinutes(expressConfig.start_time || "09:00");
+        const expEndMin = timeStringToMinutes(expressConfig.end_time || "21:00");
+        const expLead = expressConfig.minimum_lead_time_minutes || 45;
+        const expSlotId = `SLOT_EXPRESS_${dateStr}`;
+        const expBooked = existingBookings.get(expSlotId) || 0;
+        const expMax = 10;
+        const expRemaining = Math.max(0, expMax - expBooked);
 
-        if (canGenerateMidnight) {
-          const midnightSlots = DeliverySlotGenerator.generateWindowSlots(
-            dateStr,
-            midnightStart,
-            midnightEnd,
-            60,
-            60,
-            2,
-            isToday ? Math.max(currentTimeMinutes + totalLeadMinutes, midnightStart) : midnightStart,
-            existingBookings,
-            false,
-            true,
-            slotConfig.midnight_extra_charge
-          );
-          allSlots.push(...midnightSlots);
+        let expAvailable = true;
+        let expStatus: DeliverySlot["status"] = "AVAILABLE";
+        let expReasonCode: FulfillmentReason = "AVAILABLE";
+        let expReasonMsg = "";
+
+        if (isToday) {
+          const expCutoffMinutes = !expressConfig.subject_to_corporate_cutoff && expressConfig.special_order_cutoff
+            ? timeStringToMinutes(expressConfig.special_order_cutoff)
+            : corporateCutoffMinutes;
+
+          if (currentTimeMinutes >= expCutoffMinutes) {
+            expAvailable = false;
+            expStatus = "PAST_CUTOFF";
+            expReasonCode = expressConfig.subject_to_corporate_cutoff ? "CORPORATE_CUTOFF_PASSED" : "SPECIAL_CUTOFF_PASSED";
+            expReasonMsg = `Express ordering closed for today`;
+          } else if (currentTimeMinutes < expStartMin || currentTimeMinutes > expEndMin) {
+            expAvailable = false;
+            expStatus = "CLOSED";
+            expReasonCode = "STORE_CLOSED";
+            expReasonMsg = `Express available between ${formatTimeForDisplay(expressConfig.start_time)} - ${formatTimeForDisplay(expressConfig.end_time)}`;
+          }
         }
+
+        if (expAvailable && expRemaining <= 0) {
+          expAvailable = false;
+          expStatus = "FULL";
+          expReasonCode = "SLOT_CAPACITY_FULL";
+          expReasonMsg = "Express slots full";
+        }
+
+        allSlots.push({
+          id: expSlotId,
+          date: dateStr,
+          start_time: isToday ? minutesToTimeString(currentTimeMinutes + 15) : expressConfig.start_time,
+          end_time: isToday ? minutesToTimeString(currentTimeMinutes + 15 + expLead) : expressConfig.end_time,
+          label: expressConfig.display_name || "⚡ Express 45-Min Delivery",
+          slot_name: expressConfig.display_name || "⚡ Express 45-Min Delivery",
+          available: expAvailable,
+          is_available: expAvailable,
+          status: expStatus,
+          reason_code: expReasonCode,
+          reason_message: expReasonMsg,
+          booked_count: expBooked,
+          max_capacity: expMax,
+          remaining_capacity: expRemaining,
+          extra_charge: expressConfig.surcharge,
+          extra_fee: expressConfig.surcharge,
+          slot_type: "express",
+          is_express: true,
+          is_midnight: false,
+          cutoff: isToday ? (!expressConfig.subject_to_corporate_cutoff && expressConfig.special_order_cutoff ? expressConfig.special_order_cutoff : corporateCutoff) : undefined,
+        });
+      }
+
+      // ── Late-Night / Midnight Delivery Slots ──────────────────────────────
+      if (lateNightConfig.enabled) {
+        const midStartStr = lateNightConfig.start_time || "23:30";
+        const midEndStr = lateNightConfig.end_time || "00:05";
+        const midStartMinutes = timeStringToMinutes(midStartStr);
+        const midSlotId = `SLOT_MIDNIGHT_${dateStr}`;
+        const midBooked = existingBookings.get(midSlotId) || 0;
+        const midMax = 15;
+        const midRemaining = Math.max(0, midMax - midBooked);
+
+        let midAvailable = true;
+        let midStatus: DeliverySlot["status"] = "AVAILABLE";
+        let midReasonCode: FulfillmentReason = "AVAILABLE";
+        let midReasonMsg = "";
+
+        if (isToday) {
+          // Check whether midnight follows corporate cutoff or special cutoff
+          const effectiveMidnightCutoff = lateNightConfig.subject_to_corporate_cutoff
+            ? corporateCutoff
+            : (lateNightConfig.special_order_cutoff || corporateCutoff);
+          const effectiveMidCutoffMins = timeStringToMinutes(effectiveMidnightCutoff);
+
+          if (currentTimeMinutes >= effectiveMidCutoffMins) {
+            midAvailable = false;
+            midStatus = "PAST_CUTOFF";
+            midReasonCode = lateNightConfig.subject_to_corporate_cutoff
+              ? "CORPORATE_CUTOFF_PASSED"
+              : "SPECIAL_CUTOFF_PASSED";
+            midReasonMsg = `Midnight ordering closed (cutoff: ${formatTimeForDisplay(effectiveMidnightCutoff)})`;
+          } else if (currentTimeMinutes + totalLeadMinutes > midStartMinutes) {
+            midAvailable = false;
+            midStatus = "PREP_TIME_EXCEEDED";
+            midReasonCode = "PRODUCT_PREP_TIME";
+            midReasonMsg = `Insufficient prep time remaining for midnight dispatch`;
+          }
+        }
+
+        if (midAvailable && midRemaining <= 0) {
+          midAvailable = false;
+          midStatus = "FULL";
+          midReasonCode = "SLOT_CAPACITY_FULL";
+          midReasonMsg = "Midnight slots fully booked";
+        }
+
+        const midLabel = lateNightConfig.display_name || `🌙 Midnight Surprise (${formatTimeForDisplay(midStartStr)} - ${formatTimeForDisplay(midEndStr)})`;
+
+        allSlots.push({
+          id: midSlotId,
+          date: dateStr,
+          start_time: midStartStr,
+          end_time: midEndStr,
+          label: midLabel,
+          slot_name: midLabel,
+          available: midAvailable,
+          is_available: midAvailable,
+          status: midStatus,
+          reason_code: midReasonCode,
+          reason_message: midReasonMsg,
+          booked_count: midBooked,
+          max_capacity: midMax,
+          remaining_capacity: midRemaining,
+          extra_charge: lateNightConfig.additional_charge,
+          extra_fee: lateNightConfig.additional_charge,
+          slot_type: "midnight",
+          is_express: false,
+          is_midnight: true,
+          cutoff: isToday ? (lateNightConfig.subject_to_corporate_cutoff ? corporateCutoff : lateNightConfig.special_order_cutoff || corporateCutoff) : undefined,
+        });
       }
     }
 
@@ -208,56 +364,6 @@ export class DeliverySlotGenerator {
   // ══════════════════════════════════════════════════════════════════════════
   // ── PRIVATE HELPERS ────────────────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
-
-  private static generateWindowSlots(
-    dateStr: string,
-    startMinutes: number,
-    endMinutes: number,
-    slotDuration: number,
-    slotInterval: number,
-    maxCapacity: number,
-    earliestMinutes: number,
-    existingBookings: Map<string, number>,
-    isExpress: boolean,
-    isMidnight: boolean,
-    extraCharge: number
-  ): DeliverySlot[] {
-    const slots: DeliverySlot[] = [];
-
-    for (let slotStart = startMinutes; slotStart + slotDuration <= endMinutes; slotStart += slotInterval) {
-      // Skip slots that start before the earliest possible delivery time
-      if (slotStart < earliestMinutes) continue;
-
-      const slotEnd = slotStart + slotDuration;
-      const startTime = minutesToTimeString(slotStart);
-      const endTime = minutesToTimeString(Math.min(slotEnd, 24 * 60 - 1));
-
-      const slotId = `${dateStr}_${startTime}_${endTime}${isExpress ? "_express" : ""}${isMidnight ? "_midnight" : ""}`;
-      const currentBookings = existingBookings.get(slotId) || 0;
-      const remainingCapacity = Math.max(0, maxCapacity - currentBookings);
-
-      const label = `${formatTimeForDisplay(startTime)} - ${formatTimeForDisplay(endTime)}`;
-
-      slots.push({
-        id: slotId,
-        date: dateStr,
-        start_time: startTime,
-        end_time: endTime,
-        label,
-        available: remainingCapacity > 0,
-        is_available: remainingCapacity > 0,
-        booked_count: currentBookings,
-        max_capacity: maxCapacity,
-        remaining_capacity: remainingCapacity,
-        extra_charge: extraCharge,
-        slot_type: isMidnight ? "midnight" : (isExpress ? "express" : "standard"),
-        is_express: isExpress,
-        is_midnight: isMidnight,
-      });
-    }
-
-    return slots;
-  }
 
   private static getEffectiveHours(
     branchId: string | null,
@@ -274,3 +380,4 @@ export class DeliverySlotGenerator {
     return orgHours.find(h => h.day_of_week === dayOfWeek) || null;
   }
 }
+

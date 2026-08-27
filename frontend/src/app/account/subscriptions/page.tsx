@@ -1,6 +1,8 @@
 import { SubscriptionsManager } from "@frontend/components/store/account/subscriptions-manager";
 import { Heading } from "@medusajs/ui";
 
+export const dynamic = "force-dynamic";
+
 export default async function AccountSubscriptionsPage() {
   const items: any[] = [];
   return (

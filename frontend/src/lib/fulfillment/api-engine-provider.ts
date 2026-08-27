@@ -49,6 +49,14 @@ export function ensureFulfillmentStore(memoryStore: any): void {
     memoryStore.fulfillment_config = {
       ...DEFAULT_GLOBAL_FULFILLMENT_CONFIG,
       ...memoryStore.fulfillment_config,
+      late_night_delivery: {
+        ...DEFAULT_GLOBAL_FULFILLMENT_CONFIG.late_night_delivery,
+        ...(memoryStore.fulfillment_config.late_night_delivery || {}),
+      },
+      express_delivery: {
+        ...DEFAULT_GLOBAL_FULFILLMENT_CONFIG.express_delivery,
+        ...(memoryStore.fulfillment_config.express_delivery || {}),
+      },
     };
   }
   if (!Array.isArray(memoryStore.product_fulfillment_rules)) {

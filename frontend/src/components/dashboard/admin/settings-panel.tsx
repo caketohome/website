@@ -16,6 +16,7 @@ import {
   Plug,
   ScrollText,
   MapPin,
+  Globe2,
   RefreshCw,
   CheckCircle2,
   AlertTriangle,
@@ -33,6 +34,7 @@ import { SecurityTab } from "./compliance/security-tab";
 import { IntegrationsTab } from "./compliance/integrations-tab";
 import { AuditLogsTab } from "./compliance/audit-logs-tab";
 import { CitiesPanel } from "./cities-panel";
+import { StatesPanel } from "./states-panel";
 
 type SettingsTab =
   | "business"
@@ -46,6 +48,7 @@ type SettingsTab =
   | "security"
   | "integrations"
   | "audit"
+  | "states"
   | "cities";
 
 export const SettingsPanel = memo(function SettingsPanel() {
@@ -117,6 +120,7 @@ export const SettingsPanel = memo(function SettingsPanel() {
     { id: "security", label: "Security & MFA", icon: Shield },
     { id: "integrations", label: "Integrations", icon: Plug },
     { id: "audit", label: "Audit Logs", icon: ScrollText },
+    { id: "states", label: "States Master", icon: Globe2 },
     { id: "cities", label: "Cities Master", icon: MapPin },
   ];
 
@@ -259,6 +263,8 @@ export const SettingsPanel = memo(function SettingsPanel() {
           )}
 
           {activeTab === "audit" && <AuditLogsTab auditLogs={auditLogs} />}
+
+          {activeTab === "states" && <StatesPanel />}
 
           {activeTab === "cities" && <CitiesPanel />}
         </div>

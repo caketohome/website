@@ -1,9 +1,18 @@
 import type { MetadataRoute } from "next";
-import { ApiEngine } from "../lib/api-engine";
+
+export const dynamic = "force-dynamic";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://cakes2home.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  let ApiEngine: any = null;
+  try {
+    const mod = await import("../lib/api-engine");
+    ApiEngine = mod.ApiEngine;
+  } catch (e) {
+    ApiEngine = null;
+  }
+
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE_URL, lastModified: new Date(), priority: 1, changeFrequency: "daily" },
     { url: `${BASE_URL}/products`, lastModified: new Date(), priority: 0.9, changeFrequency: "daily" },
@@ -14,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic Product routes
   let products: any[] = [];
   try {
-    products = ApiEngine.getProducts() || [];
+    products = ApiEngine?.getProducts ? ApiEngine.getProducts() : [];
   } catch (e) {
     products = [];
   }

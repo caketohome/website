@@ -92,8 +92,8 @@ export class AiOrchestrator {
       session = {
         conversationId: `conv_${sessionId}_${Date.now()}`,
         sessionId,
-        cityName: initialContext?.cityName || "Bengaluru",
-        cityId: initialContext?.cityId || "city_bbr",
+        cityName: initialContext?.cityName || "",
+        cityId: initialContext?.cityId || "",
         pincode: initialContext?.pincode,
         cartId: initialContext?.cartId,
         customerId: initialContext?.customerId,

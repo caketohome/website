@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { OrderKotPrintModal } from "./order-kot-print-modal";
 import { OrderInvoicePrintModal } from "./order-invoice-print-modal";
+import { buildGoogleMapsDirectionsUrl, extractDeliveryCoordinates } from "@frontend/lib/location/directions";
 
 interface OrderDetailsDrawerProps {
   orderId: string;
@@ -527,18 +528,50 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                   </p>
                 </div>
                 <div className="pt-2 border-t text-xs space-y-1">
-                  <span className="font-bold text-slate-500 block text-[10px] uppercase">Shipping Address:</span>
-                  <p className="font-semibold text-slate-800 dark:text-slate-200">{order.customer?.address || order.shipping_address?.address_1}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-500 block text-[10px] uppercase">Shipping Address:</span>
+                    {(() => {
+                      const coords = extractDeliveryCoordinates(order);
+                      const mapsUrl = buildGoogleMapsDirectionsUrl({
+                        latitude: coords.latitude,
+                        longitude: coords.longitude,
+                        address: order.delivery_address || order.customer?.address || order.shipping_address?.address_1,
+                        pincode: order.delivery_pincode || order.pincode || order.customer?.pincode,
+                      });
+                      return (
+                        <a
+                          href={mapsUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-0.5"
+                        >
+                          <MapPin className="w-3 h-3 text-blue-500" /> Open in Maps ↗
+                        </a>
+                      );
+                    })()}
+                  </div>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">{order.delivery_address || order.customer?.address || order.shipping_address?.address_1}</p>
                   <p className="text-slate-500">
-                    {[order.customer?.area || order.shipping_address?.area, order.customer?.city || order.shipping_address?.city].filter(Boolean).join(", ")} - {order.customer?.pincode || order.shipping_address?.postal_code}
+                    {[order.delivery_area || order.customer?.area || order.shipping_address?.area, order.delivery_city || order.customer?.city || order.shipping_address?.city].filter(Boolean).join(", ")} - {order.delivery_pincode || order.customer?.pincode || order.shipping_address?.postal_code}
                   </p>
-                  {(order.customer?.landmark || order.shipping_address?.landmark) && (
-                    <p className="text-slate-500">Landmark: {order.customer?.landmark || order.shipping_address?.landmark}</p>
+                  {(() => {
+                    const coords = extractDeliveryCoordinates(order);
+                    if (coords.hasCoords && typeof coords.latitude === "number" && typeof coords.longitude === "number") {
+                      return (
+                        <p className="font-mono text-[10px] text-blue-600 dark:text-blue-400 font-bold">
+                          🎯 Coordinates: {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)} ({order.delivery_zone_name || "Service Zone"})
+                        </p>
+                      );
+                    }
+                    return null;
+                  })()}
+                  {(order.delivery_landmark || order.customer?.landmark || order.shipping_address?.landmark) && (
+                    <p className="text-slate-500">Landmark: {order.delivery_landmark || order.customer?.landmark || order.shipping_address?.landmark}</p>
                   )}
                 </div>
-                {(order.customer?.delivery_instructions || order.delivery_instructions) && (
+                {(order.delivery_instructions || order.customer?.delivery_instructions) && (
                   <div className="p-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 rounded-lg text-xs text-amber-800 dark:text-amber-200">
-                    <span className="font-bold block text-[10px]">Instructions:</span> {order.customer?.delivery_instructions || order.delivery_instructions}
+                    <span className="font-bold block text-[10px]">Instructions:</span> {order.delivery_instructions || order.customer?.delivery_instructions}
                   </div>
                 )}
               </div>

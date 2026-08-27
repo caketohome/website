@@ -581,9 +581,33 @@ class CakeToHomeApiClient {
     }));
   }
 
-  // ── Admin: CRM 360 & Customer Management ──
-  // (Full typed methods provided in Enterprise CRM section below)
+  // ── State Master Methods ──
+  async getStates() {
+    return this.request("/states").catch(() => ({ states: [] }));
+  }
+  async getState(idOrCode: string) {
+    return this.request(`/states/${idOrCode}`).catch(() => null);
+  }
+  async getCitiesForState(stateIdOrCode: string) {
+    return this.request(`/states/${stateIdOrCode}/cities`).catch(() => ({ cities: [] }));
+  }
+  async getAdminStates() {
+    return this.request("/admin/states").catch(() => ({ states: [] }));
+  }
+  async createAdminState(data: any) {
+    return this.request("/admin/states", { method: "POST", body: JSON.stringify(data) });
+  }
+  async updateAdminState(id: string, data: any) {
+    return this.request(`/admin/states/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  }
+  async archiveAdminState(id: string) {
+    return this.request(`/admin/states/${id}/archive`, { method: "POST", body: JSON.stringify({}) });
+  }
+  async restoreAdminState(id: string) {
+    return this.request(`/admin/states/${id}/restore`, { method: "POST", body: JSON.stringify({}) });
+  }
 
+  // ── Multi-City Methods ──
   async getAdminCities() {
     return this.request("/admin/cities").catch(() => ({ cities: [] }));
   }
@@ -611,8 +635,27 @@ class CakeToHomeApiClient {
   async migrateToMultiCity() {
     return this.request("/admin/cities/migrate", { method: "POST", body: JSON.stringify({}) });
   }
-  async resolveDeliveryContext(pincode: string) {
-    return this.request(`/delivery/resolve?pincode=${encodeURIComponent(pincode)}`).catch(() => ({ serviceable: false }));
+  async resolveDeliveryContext(input: string | { pincode?: string; lat?: number; lng?: number; latitude?: number; longitude?: number }) {
+    if (typeof input === "string") {
+      return this.request(`/delivery/resolve?pincode=${encodeURIComponent(input)}`).catch(() => ({ serviceable: false }));
+    }
+    const params = new URLSearchParams();
+    if (input.pincode) params.set("pincode", input.pincode);
+    const lat = input.lat ?? input.latitude;
+    const lng = input.lng ?? input.longitude;
+    if (typeof lat === "number") params.set("lat", String(lat));
+    if (typeof lng === "number") params.set("lng", String(lng));
+    return this.request(`/delivery/resolve?${params.toString()}`).catch(() => ({ serviceable: false }));
+  }
+  async reverseGeocode(lat: number, lng: number) {
+    return this.request(`/delivery/reverse-geocode?lat=${encodeURIComponent(String(lat))}&lng=${encodeURIComponent(String(lng))}`).catch((err) => ({
+      success: false,
+      serviceable: false,
+      error: err.message || "Failed to reverse geocode",
+    }));
+  }
+  async searchDeliveryLocation(query: string) {
+    return this.request(`/delivery/search-location?q=${encodeURIComponent(query)}`).catch(() => ({ results: [], success: false }));
   }
   async getAdminRegions() {
     return this.request("/admin/regions").catch(() => ({ regions: [] }));
@@ -1389,6 +1432,11 @@ class CakeToHomeApiClient {
     cart_id?: string;
     delivery_type?: "delivery" | "pickup";
     pincode?: string;
+    latitude?: number;
+    longitude?: number;
+    lat?: number;
+    lng?: number;
+    address?: string;
     branch_id?: string;
     date?: string;
     slot_id?: string;
@@ -1398,6 +1446,11 @@ class CakeToHomeApiClient {
     if (query.cart_id) q.set("cart_id", query.cart_id);
     if (query.delivery_type) q.set("delivery_type", query.delivery_type);
     if (query.pincode) q.set("pincode", query.pincode);
+    const lat = query.latitude ?? query.lat;
+    const lng = query.longitude ?? query.lng;
+    if (typeof lat === "number") q.set("lat", String(lat));
+    if (typeof lng === "number") q.set("lng", String(lng));
+    if (query.address) q.set("address", query.address);
     if (query.branch_id) q.set("branch_id", query.branch_id);
     if (query.date) q.set("date", query.date);
     if (query.slot_id) q.set("slot_id", query.slot_id);

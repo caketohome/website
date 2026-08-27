@@ -27,8 +27,8 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     // Sanitize response: Return location ETA, fee, pincode, and serviceability (hide branch_id from client)
     return res.status(200).json({
-      delivery_pincode: parsed.data.pincode || "560001",
-      delivery_location: parsed.data.address || `Pincode ${parsed.data.pincode || "560001"}`,
+      delivery_pincode: parsed.data.pincode || (resolved as any).pincode || "",
+      delivery_location: parsed.data.address || (parsed.data.pincode ? `Pincode ${parsed.data.pincode}` : (resolved as any).location_name || "Detected Location"),
       delivery_fee: resolved.delivery_fee,
       estimated_delivery_minutes: resolved.estimated_delivery_minutes,
       is_serviceable: resolved.is_serviceable !== false,

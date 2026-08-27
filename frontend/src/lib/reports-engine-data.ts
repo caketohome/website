@@ -938,7 +938,7 @@ export class ReportsEngineData {
     }>();
 
     for (const o of currentOrders) {
-      const city = o.shipping_address?.city || o.branch?.city || "Bengaluru";
+      const city = o.shipping_address?.city || o.branch?.city || "Unassigned";
       const isDelivered = (o.status || "").toLowerCase() === "delivered";
       const isCancelled = (o.status || "").toLowerCase() === "cancelled";
       const isRefunded = (o.status || "").toLowerCase() === "refunded";
@@ -1005,9 +1005,9 @@ export class ReportsEngineData {
     }>();
 
     for (const o of currentOrders) {
-      const pincode = o.shipping_address?.postal_code || o.shipping_address?.pincode || "560001";
-      const area = o.shipping_address?.area || o.shipping_address?.address_1 || "Central";
-      const city = o.shipping_address?.city || o.branch?.city || "Bengaluru";
+      const pincode = o.shipping_address?.postal_code || o.shipping_address?.pincode || "";
+      const area = o.shipping_address?.area || o.shipping_address?.address_1 || "General Area";
+      const city = o.shipping_address?.city || o.branch?.city || "Unassigned";
       const branch = o.branch?.name || "Main Kitchen Hub";
       const key = `${pincode}_${area}_${city}`;
 
@@ -1204,7 +1204,7 @@ export class ReportsEngineData {
         customerName: o.customer_name || o.customerName || "Customer",
         customerPhone: o.customer_phone || o.customerPhone || "",
         branchName: o.branch?.name || o.branchName || "Main Kitchen Hub",
-        city: o.shipping_address?.city || o.branch?.city || "Bengaluru",
+        city: o.shipping_address?.city || o.branch?.city || "",
         area: o.shipping_address?.area || o.shipping_address?.address_1 || "",
         pincode: o.shipping_address?.postal_code || o.shipping_address?.pincode || "",
         productNames,
@@ -1336,7 +1336,7 @@ export class ReportsEngineData {
       const oDate = (o.created_at || o.delivery_date || "").slice(0, 10);
       const cName = o.customer_name || "Retail Customer";
       const cGstin = o.customer_gstin || "URP (Unregistered)";
-      const city = o.shipping_address?.city || o.branch?.city || "Bengaluru";
+      const city = o.shipping_address?.city || o.branch?.city || "";
       const branchName = o.branch?.name || "Main Kitchen Hub";
       const isInterstate = false;
 
@@ -1449,7 +1449,7 @@ export class ReportsEngineData {
         id: b.id,
         branchName: b.name || b.id,
         branchCode: b.code || `HUB-${b.id.slice(-2)}`,
-        city: b.city || "Bengaluru",
+        city: b.city || "",
         ordersCount: orders,
         deliveredCount: delivered,
         cancelledCount: cancelled,

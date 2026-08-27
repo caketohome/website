@@ -1,5 +1,7 @@
 import OrderDetailClient from "@frontend/components/store/account/order-detail-client";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Account order detail page — renders the full order lifecycle view for a
  * customer's own order. Auth-gated by the account layout.

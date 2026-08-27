@@ -60,8 +60,8 @@ export function AccountDashboardView({ initialCustomer }: AccountDashboardViewPr
   const [addrPhone, setAddrPhone] = useState("");
   const [addrLine1, setAddrLine1] = useState("");
   const [addrLandmark, setAddrLandmark] = useState("");
-  const [addrCity, setAddrCity] = useState("Bengaluru");
-  const [addrPincode, setAddrPincode] = useState("560001");
+  const [addrCity, setAddrCity] = useState("");
+  const [addrPincode, setAddrPincode] = useState("");
   const [addrIsDefault, setAddrIsDefault] = useState(false);
   const [addrError, setAddrError] = useState<string | null>(null);
 
@@ -127,8 +127,8 @@ export function AccountDashboardView({ initialCustomer }: AccountDashboardViewPr
     setAddrPhone(customer.phone || "");
     setAddrLine1("");
     setAddrLandmark("");
-    setAddrCity("Bengaluru");
-    setAddrPincode("560001");
+    setAddrCity("");
+    setAddrPincode("");
     setAddrIsDefault(addresses.length === 0);
     setAddrError(null);
     setIsAddressModalOpen(true);
@@ -142,7 +142,7 @@ export function AccountDashboardView({ initialCustomer }: AccountDashboardViewPr
     setAddrPhone(addr.phone || customer.phone || "");
     setAddrLine1(addr.address_1 || "");
     setAddrLandmark(addr.landmark || "");
-    setAddrCity(addr.city || "Bengaluru");
+    setAddrCity(addr.city || "");
     setAddrPincode(addr.postal_code || "");
     setAddrIsDefault(Boolean(addr.is_default));
     setAddrError(null);

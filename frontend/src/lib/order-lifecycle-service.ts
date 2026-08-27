@@ -814,11 +814,12 @@ export class OrderLifecycleService {
     }
 
     // 7. OTP Validation
-    const rawExpectedOtp = order.pickup_otp || order.delivery?.pickup_otp;
+    const rawExpectedOtp = order.delivery?.pickup_otp || order.pickup_otp;
     const expectedOtp = typeof rawExpectedOtp === "string" && rawExpectedOtp.trim() ? rawExpectedOtp.trim() : "1294";
     const cleanedInput = typeof otpInput === "string" ? otpInput.trim() : String(otpInput || "").trim();
+    const validOtps = [order.delivery?.pickup_otp, order.pickup_otp, expectedOtp].filter(Boolean);
 
-    if (!cleanedInput || cleanedInput !== expectedOtp) {
+    if (!cleanedInput || !validOtps.includes(cleanedInput)) {
       engine.addAuditLog?.(`Failed Kitchen Pickup OTP attempt for Order ${order.order_number || order.id} by Partner ${partner.full_name || partner.name}`);
       return {
         success: false,
@@ -828,8 +829,19 @@ export class OrderLifecycleService {
     }
 
     // 8. Canonical State Transition Validation
-    const normCur = this.normalizeOrderStatus(order.status);
-    if (normCur !== "READY_FOR_PICKUP" && normCur !== "PREPARING" && normCur !== "KITCHEN_ACCEPTED" && normCur !== "CONFIRMED") {
+    const normCur = String(this.normalizeOrderStatus(order.status) || "");
+    const normDel = String(order.delivery_status || order.delivery?.status || "").toLowerCase();
+    const isReady =
+      normCur === "READY_FOR_PICKUP" ||
+      normCur === "PACKED" ||
+      normCur === "PREPARING" ||
+      normCur === "KITCHEN_ACCEPTED" ||
+      normCur === "CONFIRMED" ||
+      normDel === "ready_for_pickup" ||
+      normDel === "dispatched" ||
+      normDel === "packed";
+
+    if (!isReady) {
       return {
         success: false,
         statusCode: 400,
@@ -974,7 +986,7 @@ export class OrderLifecycleService {
     return {
       success: true,
       statusCode: 200,
-      previousStatus: normCur,
+      previousStatus: normCur as OrderLifecycleState,
       currentStatus: "OUT_FOR_DELIVERY",
       previousDeliveryStatus: "ready_for_pickup",
       currentDeliveryStatus: "in_transit",
@@ -1051,11 +1063,12 @@ export class OrderLifecycleService {
     }
 
     // OTP Validation
-    const rawExpectedOtp = order.delivery_otp || order.delivery?.delivery_otp;
+    const rawExpectedOtp = order.delivery?.delivery_otp || order.delivery_otp;
     const expectedOtp = typeof rawExpectedOtp === "string" && rawExpectedOtp.trim() ? rawExpectedOtp.trim() : "4819";
     const cleanedInput = typeof otpInput === "string" ? otpInput.trim() : String(otpInput || "").trim();
+    const validOtps = [order.delivery?.delivery_otp, order.delivery_otp, expectedOtp].filter(Boolean);
 
-    if (!cleanedInput || cleanedInput !== expectedOtp) {
+    if (!cleanedInput || !validOtps.includes(cleanedInput)) {
       engine.addAuditLog?.(`Failed Customer Delivery OTP attempt for Order ${order.order_number || order.id} by Partner ${partner.full_name || partner.name}`);
       return {
         success: false,

@@ -214,8 +214,8 @@ export function StaffProfilesPanel() {
         ? [staff.profile_id]
         : [profilesList[0]?.id || "prof_telecaller"];
     setStaffFormProfileIds(initialIds);
-    setStaffFormBranch(staff.branch_name || "Indiranagar Flagship Kitchen");
-    setStaffFormCity(staff.city || "Bengaluru");
+    setStaffFormBranch(staff.branch_name || "");
+    setStaffFormCity(staff.city || "");
     setStaffFormStatus(staff.status);
     setStaffModalOpen(true);
   };
@@ -530,7 +530,7 @@ export function StaffProfilesPanel() {
                             {staff.branch_name || "All Kitchens"}
                           </div>
                           <div className="text-[10px] text-slate-400 flex items-center gap-1">
-                            <MapPin className="w-2.5 h-2.5" /> {staff.city || "Bengaluru"}
+                            <MapPin className="w-2.5 h-2.5" /> {staff.city || "—"}
                           </div>
                         </td>
                         <td className="p-3.5">

@@ -1001,7 +1001,7 @@ class StaffAccessControlStore {
         branch_name: input.branch_name,
         role: "BRANCH_MANAGER",
         status: "ACTIVE",
-        city: input.city || existing.city || "Bengaluru",
+        city: input.city || existing.city || "",
       };
       const existingProfiles = existing.profile_ids || (existing.profile_id ? [existing.profile_id] : []);
       if (!existingProfiles.includes(profileId)) {
@@ -1019,7 +1019,7 @@ class StaffAccessControlStore {
         profile_ids: [profileId],
         branch_id: input.branch_id,
         branch_name: input.branch_name,
-        city: input.city || "Bengaluru",
+        city: input.city || "",
         status: "ACTIVE",
       },
       actorId,
@@ -1103,7 +1103,7 @@ class StaffAccessControlStore {
       branch_id: input.branch_id || null,
       branch_name: input.branch_name || null,
       delivery_partner_id: input.delivery_partner_id || null,
-      city: input.city || "Bengaluru",
+      city: input.city || "",
       status: input.status || "ACTIVE",
       overrides: {},
       created_at: new Date().toISOString(),

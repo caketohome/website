@@ -1,5 +1,4 @@
 import { retrieveUser } from "@frontend/lib/data";
-import { ApiEngine } from "@frontend/lib/api-engine";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -23,12 +22,15 @@ export const metadata = {
   description: "View and track your CakeToHome artisan cake orders and delivery timelines.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function AccountOrdersPage() {
   const user = await retrieveUser();
   if (!user) {
     redirect("/login");
   }
 
+  const { ApiEngine } = await import("@frontend/lib/api-engine");
   const customerReviews = user.customer_uid ? ApiEngine.getCustomerReviews(user.customer_uid) : [];
 
   const cleanPhone = user.normalized_phone || (user.phone ? user.phone.replace(/\D/g, "").slice(-10) : "");

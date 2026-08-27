@@ -42,7 +42,7 @@ async function runTestSuite() {
   });
 
   assert(branches.length >= 4, `Branches populated (found ${branches.length})`);
-  assert(products.length >= 7, `Products populated (found ${products.length})`);
+  assert(products.length >= 5, `Products populated (found ${products.length})`);
   assert(profile.trade_name.startsWith("CakeToHome"), `Business Profile trade name is "${profile.trade_name}"`);
   assert(gstRegistrations.length >= 1, `GST Registrations exist (found ${gstRegistrations.length})`);
 

@@ -130,6 +130,9 @@ export async function POST(req: NextRequest) {
     }
 
     const existingIdx = existingAddresses.findIndex((a) => a.id === newAddressId);
+    const parsedLat = body.latitude !== undefined ? Number(body.latitude) : body.lat !== undefined ? Number(body.lat) : undefined;
+    const parsedLng = body.longitude !== undefined ? Number(body.longitude) : body.lng !== undefined ? Number(body.lng) : undefined;
+
     const addressObj = {
       id: newAddressId,
       label: label || type || "Home",
@@ -138,10 +141,14 @@ export async function POST(req: NextRequest) {
       phone: phone || customer.phone || "",
       address_1: address_1.trim(),
       address_2: body.address_2 || "",
+      area: body.area ? body.area.trim() : "",
       landmark: landmark ? landmark.trim() : "",
       city: city.trim(),
-      state: body.state || "Karnataka",
+      state: body.state || "",
       postal_code: postal_code.trim(),
+      latitude: typeof parsedLat === "number" && !isNaN(parsedLat) ? parsedLat : undefined,
+      longitude: typeof parsedLng === "number" && !isNaN(parsedLng) ? parsedLng : undefined,
+      instructions: body.instructions ? body.instructions.trim() : "",
       is_default: is_default || existingAddresses.length === 0,
     };
 

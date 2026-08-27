@@ -9,7 +9,10 @@ import { normalizePhone, SYSTEM_SEGMENTS } from "@frontend/lib/crm/crm-engine";
 import { FulfillmentEngine, DeliverySlotGenerator, DEFAULT_SLOT_CONFIG } from "@frontend/lib/fulfillment";
 import { createApiEngineProvider, ensureFulfillmentStore, generateOtp, verifyOtp, getActiveOtp } from "@frontend/lib/fulfillment/api-engine-provider";
 
-const BACKEND_URL = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000";
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
+
+const BACKEND_URL = process.env.MEDUSA_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9000";
 
 function resolveUserContext(req: NextRequest) {
   const cookieHeader = req.headers.get("cookie") || "";
@@ -77,9 +80,19 @@ function verifyApiPermission(req: NextRequest, module: string, action: string = 
 }
 
 function jsonWithDataSource(data: any, source: "postgres" | "json-fallback", status: number = 200): NextResponse {
-  const payload = typeof data === "object" && data !== null ? { ...data, storage: source } : data;
+  const isFallback = source === "json-fallback";
+  const payload = typeof data === "object" && data !== null ? {
+    ...data,
+    storage: source,
+    backend_target: BACKEND_URL,
+    backend_health: isFallback ? "FAIL" : "PASS",
+    fallback: isFallback ? "ENABLED" : "DISABLED",
+  } : data;
   const res = NextResponse.json(payload, { status });
   res.headers.set("X-Data-Source", source);
+  res.headers.set("X-Backend-Target", BACKEND_URL);
+  res.headers.set("X-Backend-Health", isFallback ? "FAIL" : "PASS");
+  res.headers.set("X-Fallback", isFallback ? "ENABLED" : "DISABLED");
   return res;
 }
 
@@ -248,14 +261,16 @@ async function forwardToPostgresBackend(method: string, path: string, body?: any
       const token = reqHeaders.get("x-medusa-access-token");
       if (token) headers["x-medusa-access-token"] = token;
 
-      const pubKey = reqHeaders.get("x-publishable-api-key");
+      const pubKey = reqHeaders.get("x-publishable-api-key") || process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
       if (pubKey) headers["x-publishable-api-key"] = pubKey;
+    } else if (process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY) {
+      headers["x-publishable-api-key"] = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
     }
 
     const opts: RequestInit = {
       method,
       headers,
-      signal: AbortSignal.timeout(400),
+      signal: AbortSignal.timeout(3000),
     };
     if (body && (method === "POST" || method === "PUT" || method === "PATCH")) {
       let payload = body;
@@ -305,7 +320,7 @@ async function forwardToPostgresBackend(method: string, path: string, body?: any
       console.log(`[Proxy Backend ${res.status}] Target ${targetUrl} returned HTTP ${res.status} (${res.statusText}). Falling back to ApiEngine.`);
     }
   } catch (err: any) {
-    backendDownUntil = Date.now() + 60000;
+    backendDownUntil = Date.now() + 5000;
     console.log(`[Proxy Fallback] Target ${targetUrl} unreachable (${err.message}). Using ApiEngine JSON fallback.`);
   }
   return null;
@@ -793,8 +808,9 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource(product, "json-fallback");
     }
 
-    if (path === "cart") {
-      const cartId = url.searchParams.get("cartId") || url.searchParams.get("cart_id") || req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value || "cart_guest_100";
+    if (path === "cart" || path.startsWith("cart/") || path === "store/cart" || path.startsWith("store/cart/")) {
+      const urlCartId = path.startsWith("cart/") ? path.replace("cart/", "") : path.startsWith("store/cart/") ? path.replace("store/cart/", "") : null;
+      const cartId = url.searchParams.get("cartId") || url.searchParams.get("cart_id") || urlCartId || req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value || "cart_guest_100";
       const cart = ApiEngine.getCart(cartId);
       return jsonWithDataSource({ cart, success: true }, "json-fallback");
     }
@@ -1175,7 +1191,44 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         });
       }
     }
-    if (path === "admin/branches") return jsonWithDataSource({ branches: ApiEngine.getAdminBranches() }, "json-fallback");
+    if (path === "admin/branches" || path === "branches") return jsonWithDataSource({ branches: ApiEngine.getAdminBranches() }, "json-fallback");
+    if (path.startsWith("admin/branches/") || path.startsWith("branches/")) {
+      const branchId = path.replace(/^admin\/branches\//, "").replace(/^branches\//, "");
+      if (!branchId.includes("/")) {
+        const branch = ApiEngine.getBranchById(branchId);
+        if (branch) {
+          return jsonWithDataSource({ branch, success: true }, "json-fallback");
+        }
+        return jsonWithDataSource({ error: "Branch not found", success: false }, "json-fallback", 404);
+      }
+    }
+
+    // ── State Master Public + Admin Endpoints ──
+    if (path === "states" || path === "store/states") {
+      const states = ApiEngine.listStates();
+      return jsonWithDataSource({ states, success: true }, "json-fallback");
+    }
+    if (path.startsWith("states/") || path.startsWith("store/states/")) {
+      const sub = path.replace(/^store\//, "").replace("states/", "");
+      if (sub.endsWith("/cities")) {
+        const stateCodeOrId = sub.replace("/cities", "");
+        const cities = ApiEngine.getCitiesForState(stateCodeOrId);
+        return jsonWithDataSource({ cities, success: true }, "json-fallback");
+      }
+      const stateObj = ApiEngine.getStateById(sub) || ApiEngine.getStateByCode(sub) || ApiEngine.getStateByName(sub);
+      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "json-fallback", 404);
+      return jsonWithDataSource({ state: stateObj, success: true }, "json-fallback");
+    }
+    if (path === "admin/states") {
+      const states = ApiEngine.listStates(true);
+      return jsonWithDataSource({ states, success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/states/")) {
+      const stateId = path.replace("admin/states/", "");
+      const stateObj = ApiEngine.getStateById(stateId) || ApiEngine.getStateByCode(stateId);
+      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "json-fallback", 404);
+      return jsonWithDataSource({ state: stateObj, success: true }, "json-fallback");
+    }
 
     // ── Multi-City Public + Admin Endpoints ──
     if (path === "cities" || path === "store/cities") {
@@ -1192,12 +1245,25 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
     if (path === "delivery/resolve" || path === "store/delivery/resolve") {
       const pincode = url.searchParams.get("pincode") || "";
-      const latStr = url.searchParams.get("lat");
-      const lngStr = url.searchParams.get("lng");
+      const latStr = url.searchParams.get("lat") || url.searchParams.get("latitude");
+      const lngStr = url.searchParams.get("lng") || url.searchParams.get("longitude");
       const lat = latStr ? parseFloat(latStr) : undefined;
       const lng = lngStr ? parseFloat(lngStr) : undefined;
       const result = ApiEngine.resolveDeliveryContext(pincode || undefined, lat, lng);
       return jsonWithDataSource({ ...result, success: result.serviceable }, "json-fallback");
+    }
+    if (path === "delivery/reverse-geocode" || path === "store/delivery/reverse-geocode") {
+      const latStr = url.searchParams.get("lat") || url.searchParams.get("latitude");
+      const lngStr = url.searchParams.get("lng") || url.searchParams.get("longitude");
+      const lat = latStr ? parseFloat(latStr) : NaN;
+      const lng = lngStr ? parseFloat(lngStr) : NaN;
+      const result = ApiEngine.reverseGeocode(lat, lng);
+      return jsonWithDataSource(result, "json-fallback", result.success ? 200 : 400);
+    }
+    if (path === "delivery/search-location" || path === "store/delivery/search-location") {
+      const q = url.searchParams.get("q") || url.searchParams.get("query") || "";
+      const results = ApiEngine.searchLocation(q);
+      return jsonWithDataSource({ results, success: true }, "json-fallback");
     }
     if (path === "admin/cities") return jsonWithDataSource({ cities: ApiEngine.getAdminCities(), success: true }, "json-fallback");
     if (path.startsWith("admin/cities/")) {
@@ -1209,6 +1275,11 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/cities/migrate") {
       const result = ApiEngine.migrateExistingDataToMultiCity();
       return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+    }
+    if (path === "cart" || path.startsWith("cart/") || path.startsWith("store/cart")) {
+      const cartId = path.replace(/^store\//, "").replace(/^cart\/?/, "") || url.searchParams.get("cart_id") || "cart_default";
+      const cart = ApiEngine.getCart(cartId);
+      return jsonWithDataSource({ cart, success: true }, "json-fallback");
     }
     if (path === "admin/regions") return jsonWithDataSource({ regions: ApiEngine.getAdminRegions() }, "json-fallback");
     if (path === "admin/categories" || path === "categories" || path === "admin/cms/categories") return jsonWithDataSource({ categories: ApiEngine.listPimCategories() }, "json-fallback");
@@ -1729,8 +1800,13 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 201 : 400));
     }
 
-    if (path === "cart" || path === "store/cart" || path === "cart/items" || path === "store/cart/items") {
-      const cartId = body.cartId || body.cart_id || req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value || `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    if (path === "cart" || path === "store/cart" || path === "cart/items" || path === "store/cart/items" || (path.startsWith("cart/") && path.endsWith("/items")) || (path.startsWith("store/cart/") && path.endsWith("/items"))) {
+      const urlCartId = (path.startsWith("cart/") && path.endsWith("/items"))
+        ? path.replace("cart/", "").replace("/items", "")
+        : (path.startsWith("store/cart/") && path.endsWith("/items"))
+        ? path.replace("store/cart/", "").replace("/items", "")
+        : null;
+      const cartId = body.cartId || body.cart_id || urlCartId || req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value || `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       const pincode = body.pincode || req.cookies.get("delivery_pincode")?.value;
       const branchId = body.branchId || body.branch_id || body.shop_id || body.shopId;
       try {
@@ -2199,21 +2275,36 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "checkout/confirm" || path === "store/checkout/confirm") {
-      const result = ApiEngine.confirmCheckout(body);
-      if (result && (result.success || result.order)) {
-        const custUid = (result.order as any)?.customer_uid || (result as any).customer_uid || body.customer_id;
-        const ordId = (result.order as any)?.id || (result as any).order_id;
-        const ordTotal = Number((result.order as any)?.total || (result.order as any)?.grand_total || (result as any).total || 0);
-        if (custUid && ordId) {
-          TelemarketingEngine.matchAndAttributeCheckoutOrder(custUid, ordId, ordTotal);
+      try {
+        const result = ApiEngine.confirmCheckout(body);
+        if (result && (result.success || result.order)) {
+          const custUid = (result.order as any)?.customer_uid || (result as any).customer_uid || body.customer_id;
+          const ordId = (result.order as any)?.id || (result as any).order_id;
+          const ordTotal = Number((result.order as any)?.total || (result.order as any)?.grand_total || (result as any).total || 0);
+          if (custUid && ordId) {
+            TelemarketingEngine.matchAndAttributeCheckoutOrder(custUid, ordId, ordTotal);
+          }
         }
+        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 201 : 400));
+      } catch (err: any) {
+        console.error("❌ CRITICAL ERROR in confirmCheckout:", err.message, err.stack);
+        return jsonWithDataSource({ success: false, error: err.message, stack: err.stack }, "json-fallback", 500);
       }
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 201 : 400));
     }
 
     if (path === "customers/addresses" || path === "store/customers/addresses") {
       const address = ApiEngine.createCustomerAddress(body);
       return jsonWithDataSource({ address, success: true }, "json-fallback", 201);
+    }
+
+    if (path === "cart/items" || path === "store/cart/items") {
+      const cartId = body.cart_id || body.cartId || req.cookies.get("_cth_cart_id")?.value || "cart_default";
+      const cart = ApiEngine.addItemToCart(cartId, body);
+      return jsonWithDataSource({ cart, success: true }, "json-fallback", 200);
+    }
+    if (path === "cart" || path === "store/cart") {
+      const cart = ApiEngine.saveCart(body);
+      return jsonWithDataSource({ cart, success: true }, "json-fallback");
     }
 
     if (path === "cart/promo") {
@@ -2329,8 +2420,37 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         return jsonWithDataSource({ error: err.message || "Failed to save branch", success: false }, "json-fallback", isConflict ? 409 : 400);
       }
     }
-    if (path === "admin/cities") {
-      return jsonWithDataSource({ city: ApiEngine.createAdminCity(body), success: true }, "json-fallback");
+    // ── State Master Admin Endpoints ──
+    if (path === "admin/states" || path === "states") {
+      try {
+        const state = ApiEngine.createState(body);
+        return jsonWithDataSource({ state, success: true }, "json-fallback", 201);
+      } catch (err: any) {
+        const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate"));
+        return jsonWithDataSource({ error: err.message || "Failed to create state", success: false }, "json-fallback", isConflict ? 409 : 400);
+      }
+    }
+    if (path.startsWith("admin/states/") && path.endsWith("/archive")) {
+      const stateId = path.replace("admin/states/", "").replace("/archive", "");
+      const stateObj = ApiEngine.archiveState(stateId);
+      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "json-fallback", 404);
+      return jsonWithDataSource({ state: stateObj, success: true }, "json-fallback");
+    }
+    if (path.startsWith("admin/states/") && path.endsWith("/restore")) {
+      const stateId = path.replace("admin/states/", "").replace("/restore", "");
+      const stateObj = ApiEngine.restoreState(stateId);
+      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "json-fallback", 404);
+      return jsonWithDataSource({ state: stateObj, success: true }, "json-fallback");
+    }
+
+    if (path === "admin/cities" || path === "cities") {
+      try {
+        const city = ApiEngine.createAdminCity(body);
+        return jsonWithDataSource({ city, success: true }, "json-fallback", 201);
+      } catch (err: any) {
+        const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate"));
+        return jsonWithDataSource({ error: err.message || "Failed to create city", success: false }, "json-fallback", isConflict ? 409 : 400);
+      }
     }
     if (path.startsWith("admin/cities/") && path.endsWith("/archive")) {
       const cityId = path.replace("admin/cities/", "").replace("/archive", "");
@@ -2347,6 +2467,17 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path === "delivery/resolve" || path === "store/delivery/resolve") {
       const result = ApiEngine.resolveDeliveryContext(body.pincode || undefined, body.latitude || body.lat, body.longitude || body.lng);
       return jsonWithDataSource({ ...result, success: result.serviceable }, "json-fallback");
+    }
+    if (path === "delivery/reverse-geocode" || path === "store/delivery/reverse-geocode") {
+      const lat = typeof body.latitude === "number" ? body.latitude : typeof body.lat === "number" ? body.lat : parseFloat(body.latitude || body.lat);
+      const lng = typeof body.longitude === "number" ? body.longitude : typeof body.lng === "number" ? body.lng : parseFloat(body.longitude || body.lng);
+      const result = ApiEngine.reverseGeocode(lat, lng);
+      return jsonWithDataSource(result, "json-fallback", result.success ? 200 : 400);
+    }
+    if (path === "delivery/search-location" || path === "store/delivery/search-location") {
+      const q = body.query || body.q || "";
+      const results = ApiEngine.searchLocation(q);
+      return jsonWithDataSource({ results, success: true }, "json-fallback");
     }
     if (path === "admin/cities/migrate") {
       const result = ApiEngine.migrateExistingDataToMultiCity();
@@ -3266,6 +3397,12 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
         const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate") || err.message.includes("Role conflict"));
         return jsonWithDataSource({ error: err.message || "Failed to update branch", success: false }, "json-fallback", isConflict ? 409 : 400);
       }
+    }
+    if (path.startsWith("admin/states/")) {
+      const id = path.replace("admin/states/", "");
+      const stateObj = ApiEngine.updateState(id, body);
+      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "json-fallback", 404);
+      return jsonWithDataSource({ state: stateObj, success: true }, "json-fallback");
     }
     if (path.startsWith("admin/cities/")) {
       const id = path.replace("admin/cities/", "");

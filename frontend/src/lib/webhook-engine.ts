@@ -629,6 +629,16 @@ export class WebhookEngineStore {
     return WebhookEngineStore.sanitizeData(input);
   }
 
+  public static emitEvent<T = any>(
+    eventType: WebhookEventType,
+    payload: T,
+    metadata?: Record<string, any>,
+    customerContext?: any,
+    aggregate?: any
+  ): WebhookOutboxItem {
+    return WebhookEngine.getInstance().emitEvent(eventType, payload, metadata, customerContext, aggregate);
+  }
+
   // ── Transactional Outbox Ingestion ─────────────────────────
   public emitEvent<T = any>(
     eventType: WebhookEventType,

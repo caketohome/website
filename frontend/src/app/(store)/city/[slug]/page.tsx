@@ -1,7 +1,6 @@
 import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ApiEngine } from "@frontend/lib/api-engine";
 import {
   MapPin, Clock, ShieldCheck, Award, Cake, ArrowRight,
   Truck, Building2, CheckCircle2, Sparkles, Phone, Star
@@ -15,6 +14,7 @@ interface CityPageProps {
 
 export async function generateMetadata({ params }: CityPageProps) {
   const { slug } = await params;
+  const { ApiEngine } = await import("@frontend/lib/api-engine");
   const city = ApiEngine.getCityBySlug(slug) || ApiEngine.getCityById(slug);
 
   if (!city) {
@@ -36,6 +36,7 @@ export async function generateMetadata({ params }: CityPageProps) {
 
 export default async function CityLandingPage({ params }: CityPageProps) {
   const { slug } = await params;
+  const { ApiEngine } = await import("@frontend/lib/api-engine");
   const city = ApiEngine.getCityBySlug(slug) || ApiEngine.getCityById(slug);
 
   if (!city) {

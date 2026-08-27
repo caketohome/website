@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { KnowledgeSyncService } from "@frontend/lib/ai/knowledge-sync-service";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
     const res = await KnowledgeSyncService.syncAll();

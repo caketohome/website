@@ -6,6 +6,8 @@ import Link from "next/link";
 import { SeoMetadataBuilder } from "../../../lib/seo/metadata-builder";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   return SeoMetadataBuilder.buildMetadata({
     fallbackTitle: "Checkout — CakeToHome",

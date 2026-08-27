@@ -233,7 +233,7 @@ class DeliveryModuleService extends MedusaService({
   }
 
   // ── 5-Tier Branch & Delivery Resolution Engine ──────────────────────────────
-  // Tier 1: Manual Override > Tier 2: Exact PIN Code > Tier 3: Polygon Area > Tier 4: Radius Match > Tier 5: Default Branch
+  // Tier 1: Manual Override > Tier 2: Polygon Map Fence > Tier 3: Exact PIN Code > Tier 4: Radius Match > Tier 5: Default Branch
   async resolveBranchAndDeliveryDetails(input: {
     pincode?: string;
     latitude?: number;
@@ -246,6 +246,8 @@ class DeliveryModuleService extends MedusaService({
     delivery_zone_id: string | null;
     resolution_tier: string;
     is_serviceable?: boolean;
+    location_name?: string;
+    pincode?: string;
   }> {
     const zones: any[] = await (this as any).listDeliveryZones(
       { is_serviceable: true },
@@ -253,6 +255,8 @@ class DeliveryModuleService extends MedusaService({
     ).catch(() => []);
 
     const targetPincode = input.pincode?.trim();
+    const lat = typeof input.latitude === "number" ? input.latitude : undefined;
+    const lng = typeof input.longitude === "number" ? input.longitude : undefined;
 
     // Tier 1: Manual Override
     if (targetPincode) {
@@ -266,38 +270,75 @@ class DeliveryModuleService extends MedusaService({
           estimated_delivery_minutes: overrideZone.estimated_delivery_minutes || 45,
           delivery_zone_id: overrideZone.id,
           resolution_tier: "Tier 1 (Manual Override)",
+          is_serviceable: true,
+          pincode: targetPincode,
         };
       }
     }
 
-    // Tier 2: Exact PIN Code Match
+    // Tier 2: Polygon Map-Fence Match (Point-in-Polygon with Exclusion Check)
+    if (lat !== undefined && lng !== undefined) {
+      // Sort zones by explicit priority DESC
+      const polygonCandidates = zones.filter((z) => z.polygon_coordinates && z.branch_id);
+      for (const z of polygonCandidates) {
+        try {
+          const coords = typeof z.polygon_coordinates === "string" ? JSON.parse(z.polygon_coordinates) : z.polygon_coordinates;
+          if (Array.isArray(coords) && this.isPointInPolygon(lat, lng, coords)) {
+            // Check exclusion polygons if configured
+            if (z.exclusion_polygons) {
+              const exclusions = typeof z.exclusion_polygons === "string" ? JSON.parse(z.exclusion_polygons) : z.exclusion_polygons;
+              if (Array.isArray(exclusions) && exclusions.some((ex: any[]) => this.isPointInPolygon(lat, lng, ex))) {
+                continue; // Point is inside an excluded subregion
+              }
+            }
+
+            return {
+              branch_id: z.branch_id,
+              delivery_fee: z.delivery_fee ?? 49,
+              estimated_delivery_minutes: z.estimated_delivery_minutes ?? 40,
+              delivery_zone_id: z.id,
+              resolution_tier: "Tier 2 (Polygon Map-Fence)",
+              is_serviceable: true,
+              location_name: z.name || "Delivery Zone",
+            };
+          }
+        } catch {
+          // Continue to next candidate
+        }
+      }
+    }
+
+    // Tier 3: Exact PIN Code Match
     if (targetPincode) {
-      const pinZone = zones.find((z) => z.pincode === targetPincode && z.branch_id);
+      const pinZone = zones.find((z) => (z.pincode === targetPincode || (Array.isArray(z.pincodes) && z.pincodes.includes(targetPincode))) && z.branch_id);
       if (pinZone) {
         return {
           branch_id: pinZone.branch_id,
-          delivery_fee: pinZone.delivery_fee || 0,
-          estimated_delivery_minutes: pinZone.estimated_delivery_minutes || 45,
+          delivery_fee: pinZone.delivery_fee ?? 49,
+          estimated_delivery_minutes: pinZone.estimated_delivery_minutes ?? 45,
           delivery_zone_id: pinZone.id,
-          resolution_tier: "Tier 2 (Exact PIN Code)",
+          resolution_tier: "Tier 3 (Exact PIN Code)",
+          is_serviceable: true,
+          pincode: targetPincode,
         };
       }
     }
 
     // Tier 4: Radius Match (if GPS coordinates provided)
-    if (input.latitude && input.longitude) {
+    if (lat !== undefined && lng !== undefined) {
       let closestBranchZone = null;
       let minDistance = Infinity;
 
       for (const z of zones) {
-        if (z.center_latitude && z.center_longitude && z.radius_km && z.branch_id) {
+        if (z.center_latitude && z.center_longitude && (z.radius_km || z.max_km) && z.branch_id) {
+          const radiusLimit = z.radius_km || z.max_km || 10;
           const dist = this.calculateHaversineDistance(
-            input.latitude,
-            input.longitude,
+            lat,
+            lng,
             z.center_latitude,
             z.center_longitude
           );
-          if (dist <= z.radius_km && dist < minDistance) {
+          if (dist <= radiusLimit && dist < minDistance) {
             minDistance = dist;
             closestBranchZone = z;
           }
@@ -307,11 +348,12 @@ class DeliveryModuleService extends MedusaService({
       if (closestBranchZone) {
         return {
           branch_id: closestBranchZone.branch_id,
-          delivery_fee: closestBranchZone.delivery_fee || 0,
-          estimated_delivery_minutes: closestBranchZone.estimated_delivery_minutes || 45,
+          delivery_fee: closestBranchZone.delivery_fee ?? 49,
+          estimated_delivery_minutes: closestBranchZone.estimated_delivery_minutes ?? 45,
           delivery_zone_id: closestBranchZone.id,
-          resolution_tier: "Tier 4 (Radius Match)",
+          resolution_tier: `Tier 4 (Radius Match ${minDistance.toFixed(1)}km)`,
           is_serviceable: true,
+          location_name: closestBranchZone.name || `Service Zone (${minDistance.toFixed(1)}km)`,
         };
       }
 
@@ -335,6 +377,23 @@ class DeliveryModuleService extends MedusaService({
       resolution_tier: "Tier 5 (Default Branch)",
       is_serviceable: true,
     };
+  }
+
+  /**
+   * Ray-Casting Point-in-Polygon (PIP) Algorithm
+   * Authoritatively checks if a (lat, lng) coordinate falls inside a closed geometric polygon.
+   */
+  public isPointInPolygon(lat: number, lng: number, polygon: [number, number][]): boolean {
+    if (!polygon || polygon.length < 3) return false;
+    let isInside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const xi = polygon[i][0], yi = polygon[i][1];
+      const xj = polygon[j][0], yj = polygon[j][1];
+      const intersect = ((yi > lng) !== (yj > lng)) &&
+        (lat < ((xj - xi) * (lng - yi)) / (yj - yi) + xi);
+      if (intersect) isInside = !isInside;
+    }
+    return isInside;
   }
 
   private calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {

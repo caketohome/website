@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ApiEngine } from "@frontend/lib/api-engine";
+
+export const dynamic = "force-dynamic";
 
 function getSessionParams(req: NextRequest) {
   const cookieHeader = req.headers.get("cookie") || "";
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const { ApiEngine } = await import("@frontend/lib/api-engine");
     const customer = ApiEngine.getCustomerMe({ customerUid, userId, phone, token });
     if (!customer) {
       return NextResponse.json(
@@ -70,6 +72,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    const { ApiEngine } = await import("@frontend/lib/api-engine");
     const result: any = ApiEngine.updateCustomerProfile(targetUid, body);
     if (!result || !result.success) {
       return NextResponse.json(

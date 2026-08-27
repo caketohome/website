@@ -23,6 +23,7 @@ export const CitiesPanel = memo(function CitiesPanel() {
   const [timezone, setTimezone] = useState("Asia/Kolkata");
   const [currency, setCurrency] = useState("INR");
   const [phoneCode, setPhoneCode] = useState("+91");
+  const [statesList, setStatesList] = useState<any[]>([]);
   const [displayOrder, setDisplayOrder] = useState("1");
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -30,8 +31,14 @@ export const CitiesPanel = memo(function CitiesPanel() {
   const fetchCities = () => {
     setLoading(true);
     setError(null);
-    apiClient.getAdminCities()
-      .then((r: any) => setCities(r?.cities || []))
+    Promise.all([
+      apiClient.getAdminCities().catch(() => ({ cities: [] })),
+      apiClient.getAdminStates().catch(() => ({ states: [] })),
+    ])
+      .then(([citiesRes, statesRes]: any) => {
+        setCities(citiesRes?.cities || []);
+        setStatesList(statesRes?.states || []);
+      })
       .catch((err: any) => {
         setError(err.message || "Failed to load cities");
         setCities([]);
@@ -263,13 +270,31 @@ export const CitiesPanel = memo(function CitiesPanel() {
                   <Label>URL Slug *</Label>
                   <Input value={slug} onChange={(e) => setSlug(e.target.value)} required placeholder="e.g. bengaluru" />
                 </div>
-                <div>
-                  <Label>State *</Label>
-                  <Input value={state} onChange={(e) => setState(e.target.value)} required placeholder="e.g. Karnataka" />
-                </div>
-                <div>
-                  <Label>State Code</Label>
-                  <Input value={stateCode} onChange={(e) => setStateCode(e.target.value)} placeholder="e.g. KA" />
+                <div className="sm:col-span-2">
+                  <Label>State / Union Territory *</Label>
+                  <select
+                    value={stateCode}
+                    onChange={(e) => {
+                      const selCode = e.target.value;
+                      setStateCode(selCode);
+                      const matched = statesList.find((s: any) => s.code === selCode || s.id === selCode);
+                      if (matched) {
+                        setState(matched.name);
+                        setCountry(matched.country_name || "India");
+                        setCountryCode(matched.country_code || "IN");
+                        setTimezone(matched.timezone || "Asia/Kolkata");
+                        setCurrency(matched.currency || "INR");
+                      }
+                    }}
+                    className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-white"
+                  >
+                    <option value="">-- Select State / UT --</option>
+                    {statesList.map((st: any) => (
+                      <option key={st.id} value={st.code}>
+                        {st.name} ({st.code} — GST: {st.gst_state_code || "N/A"})
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <Label>Country</Label>

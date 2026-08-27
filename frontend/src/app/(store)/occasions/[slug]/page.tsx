@@ -1,7 +1,6 @@
 import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ApiEngine } from "@frontend/lib/api-engine";
 import { Sparkles, ArrowRight, ShieldCheck, Clock, Award, Cake, ShoppingCart } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +11,7 @@ interface OccasionPageProps {
 
 export async function generateMetadata({ params }: OccasionPageProps) {
   const { slug } = await params;
+  const { ApiEngine } = await import("@frontend/lib/api-engine");
   const occasion = ApiEngine.getOccasionBySlug(slug) || ApiEngine.getOccasionById(slug);
 
   if (!occasion) {
@@ -33,6 +33,7 @@ export async function generateMetadata({ params }: OccasionPageProps) {
 
 export default async function OccasionStorefrontPage({ params }: OccasionPageProps) {
   const { slug } = await params;
+  const { ApiEngine } = await import("@frontend/lib/api-engine");
   const occasion = ApiEngine.getOccasionBySlug(slug) || ApiEngine.getOccasionById(slug);
 
   if (!occasion) {

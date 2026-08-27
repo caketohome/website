@@ -11,6 +11,8 @@ const navItems = [
   { href: "/account/addresses", label: "Saved Addresses", description: "Home, Office & delivery hubs", icon: MapPin },
 ];
 
+export const dynamic = "force-dynamic";
+
 export default async function AccountLayout({
   children,
 }: {

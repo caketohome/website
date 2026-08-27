@@ -34,8 +34,8 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
     address_2: "",
     area: "",
     city: "",
-    state: "Karnataka",
-    pincode: "560038",
+    state: "",
+    pincode: "",
     landmark: "",
     delivery_instructions: "",
   });

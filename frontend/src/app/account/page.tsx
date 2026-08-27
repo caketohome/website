@@ -8,6 +8,8 @@ export const metadata = {
   description: "Manage your CakeToHome account, delivery addresses, and artisanal cake orders.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function AccountPage() {
   const user = await retrieveUser();
 

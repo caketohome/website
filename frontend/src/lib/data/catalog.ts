@@ -4,7 +4,20 @@
  */
 
 import { apiClient } from "../api-client";
-import { ApiEngine } from "../api-engine";
+
+let _cachedApiEngine: any = null;
+async function getServerApiEngine(): Promise<any> {
+  if (typeof window !== "undefined") return null;
+  if (!_cachedApiEngine) {
+    try {
+      const mod = await import("../api-engine");
+      _cachedApiEngine = mod.ApiEngine;
+    } catch {
+      return null;
+    }
+  }
+  return _cachedApiEngine;
+}
 
 export interface CategoryOption {
   id: string;
@@ -148,7 +161,8 @@ export interface Subscription {
 export async function searchProducts(filters: SearchFilters = {}): Promise<SearchResponse> {
   try {
     const categoryVal = filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id);
-    const searchRes = ApiEngine.searchProducts({
+    const engine = await getServerApiEngine();
+    const searchRes = engine?.searchProducts ? engine.searchProducts({
       q: filters.q,
       category: categoryVal,
       flavour: filters.flavour,
@@ -161,9 +175,9 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
       offset: filters.offset || 0,
       sort: filters.sort,
       include_test_products: filters.include_test_products,
-    });
+    }) : { products: [], total: 0, offset: 0, limit: 20, categories: [], flavours: [], facets: {}, suggestions: [] };
 
-    let mappedResults: SearchResult[] = searchRes.products.map((p: any) => ({
+    let mappedResults: SearchResult[] = (searchRes.products || []).map((p: any) => ({
       product_id: p.id || p.product_id,
       variant_id: p.variant_id || `var_${p.id || p.product_id}`,
       title: p.title || p.name || "Gourmet Cake",
@@ -225,14 +239,15 @@ export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
     let rawList: any[] = [];
 
     try {
-      const cats = ApiEngine.getCategories();
-      categoriesList = cats.map((c: any) => ({
+      const engine = await getServerApiEngine();
+      const cats = engine?.getCategories ? engine.getCategories() : [];
+      categoriesList = (cats || []).map((c: any) => ({
         id: c.id,
         name: c.name,
         slug: c.slug,
         product_count: typeof c.product_count === "number" ? c.product_count : 0,
       }));
-      rawList = ApiEngine.getProducts();
+      rawList = engine?.getProducts ? engine.getProducts() : [];
     } catch {
       categoriesList = [];
       rawList = [];
@@ -324,7 +339,8 @@ export async function listProductReviews(
   productId: string,
   options?: { page?: number; pageSize?: number; sort?: "recent" | "highest" | "lowest" | "helpful"; ratingFilter?: number; verifiedOnly?: boolean }
 ): Promise<any> {
-  return ApiEngine.getProductReviews(productId, options);
+  const engine = await getServerApiEngine();
+  return engine?.getProductReviews ? engine.getProductReviews(productId, options) : { reviews: [], total: 0 };
 }
 
 export async function submitReview(
@@ -335,13 +351,14 @@ export async function submitReview(
   if (!customerUid) {
     return { success: false, error: "Authentication required to submit review", statusCode: 401 };
   }
-  return ApiEngine.submitProductReview(customerUid, {
+  const engine = await getServerApiEngine();
+  return engine?.submitProductReview ? engine.submitProductReview(customerUid, {
     productId,
     orderId: input.orderId,
     rating: input.rating,
     title: input.title,
     reviewText: input.reviewText || input.body || input.comment || "",
-  });
+  }) : { success: false, error: "Service unavailable" };
 }
 
 export async function getAuthenticatedCustomerUid(): Promise<string | null> {
@@ -353,12 +370,13 @@ export async function getAuthenticatedCustomerUid(): Promise<string | null> {
     const cookiePhone = cookieStore.get("_cth_phone")?.value;
     const cookieRole = cookieStore.get("_cth_role")?.value;
 
-    const resolved = ApiEngine.resolveUserAccount({
+    const engine = await getServerApiEngine();
+    const resolved = engine?.resolveUserAccount ? engine.resolveUserAccount({
       customerUid: cookieCustomerUid,
       userId: cookieUserId,
       phone: cookiePhone,
       role: cookieRole,
-    });
+    }) : null;
 
     return resolved?.customer_uid || resolved?.id || cookieCustomerUid || null;
   } catch {
@@ -369,8 +387,9 @@ export async function getAuthenticatedCustomerUid(): Promise<string | null> {
 export async function listWishlist(): Promise<WishlistItem[]> {
   const customerUid = await getAuthenticatedCustomerUid();
   if (!customerUid) return [];
-  const favs = ApiEngine.getCustomerFavorites(customerUid);
-  return favs.map((f: any) => ({
+  const engine = await getServerApiEngine();
+  const favs = engine?.getCustomerFavorites ? engine.getCustomerFavorites(customerUid) : [];
+  return (favs || []).map((f: any) => ({
     id: f.id,
     product_id: f.product_id,
     title: f.title || f.name,
@@ -396,7 +415,8 @@ export async function addToWishlist(productId: string): Promise<any> {
   if (!customerUid) {
     return { success: false, error: "UNAUTHORIZED", message: "Please log in to save cakes to your Favorites.", statusCode: 401 };
   }
-  return ApiEngine.addCustomerFavorite(customerUid, productId);
+  const engine = await getServerApiEngine();
+  return engine?.addCustomerFavorite ? engine.addCustomerFavorite(customerUid, productId) : { success: false };
 }
 
 export async function removeFromWishlist(productId: string): Promise<any> {
@@ -404,7 +424,8 @@ export async function removeFromWishlist(productId: string): Promise<any> {
   if (!customerUid) {
     return { success: false, error: "UNAUTHORIZED", message: "Please log in to manage your Favorites.", statusCode: 401 };
   }
-  return ApiEngine.removeCustomerFavorite(customerUid, productId);
+  const engine = await getServerApiEngine();
+  return engine?.removeCustomerFavorite ? engine.removeCustomerFavorite(customerUid, productId) : { success: false };
 }
 
 export async function createStockNotification(input: any): Promise<any> {
@@ -483,20 +504,6 @@ export const DEFAULT_CATALOG_PRODUCTS: any[] = [
     is_new_arrival: true,
   },
 ];
-
-let _cachedApiEngine: any = null;
-async function getServerApiEngine(): Promise<any> {
-  if (typeof window !== "undefined") return null;
-  if (!_cachedApiEngine) {
-    try {
-      const mod = await import("../api-engine");
-      _cachedApiEngine = mod.ApiEngine;
-    } catch {
-      return null;
-    }
-  }
-  return _cachedApiEngine;
-}
 
 export async function listProducts(options?: { branchId?: string; pincode?: string }): Promise<any[]> {
   const engine = await getServerApiEngine();

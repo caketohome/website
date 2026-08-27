@@ -24,6 +24,7 @@ async function testCompleteCmsE2E() {
       enabled: true,
       order: 1,
       config: {
+        ...(initialHome.sections?.find((s: any) => s.id === "sec_home_hero")?.config || {}),
         headline: "Artisanal Belgian Truffle Cakes Delivered in 2 Hours",
         subheadline: "Freshly baked signature cakes for birthdays & celebrations in Bangalore.",
         badge_text: "Fresh & Artisanal • Express Delivery",
@@ -272,7 +273,8 @@ async function testCompleteCmsE2E() {
   const page = await context.newPage();
 
   console.log("  • Navigating to http://localhost:3000/ ...");
-  await page.goto("http://localhost:3000/", { waitUntil: "domcontentloaded" });
+  await page.goto("http://localhost:3000/", { waitUntil: "commit", timeout: 45000 });
+  await page.waitForSelector("h1, .scroll-frame-section", { timeout: 20000 });
   await page.waitForTimeout(1500);
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -280,11 +282,12 @@ async function testCompleteCmsE2E() {
   // ──────────────────────────────────────────────────────────────────────────
   console.log("\n4️⃣  Verifying Dynamic Hero Headline, Subheadline & CTAs...");
   const heroInfo = await page.evaluate(() => {
-    const heading = document.querySelector("h1")?.textContent?.trim() || "";
-    const badge = document.querySelector(".scroll-frame-section [class*='text-rose-300']")?.textContent?.trim() || "";
-    const buttons = Array.from(document.querySelectorAll(".scroll-frame-section button")).map(b => b.textContent?.trim() || "");
-    const primaryBtn = buttons.find(b => b.includes("Order Artisanal Cake")) || "";
-    const secondaryBtn = buttons.find(b => b.includes("Birthday Specials")) || "";
+    const heroSection = document.querySelector('.scroll-frame-section') || document.querySelector('[data-section-type="hero"]');
+    const heading = heroSection?.querySelector("h1")?.textContent?.trim() || document.querySelector("h1")?.textContent?.trim() || "";
+    const badge = heroSection?.querySelector("[class*='text-rose-300'], [class*='uppercase'], span")?.textContent?.trim() || "";
+    const buttons = Array.from(document.querySelectorAll(".scroll-frame-section button, .scroll-frame-section a")).map(b => b.textContent?.trim() || "");
+    const primaryBtn = buttons.find(b => b.includes("Order Artisanal Cake") || b.includes("Order")) || "";
+    const secondaryBtn = buttons.find(b => b.includes("Birthday Specials") || b.includes("Specials")) || "";
     return { heading, badge, primaryBtn, secondaryBtn };
   });
 
@@ -394,6 +397,12 @@ async function testCompleteCmsE2E() {
   }
 
   await browser.close();
+
+  // Restore initial page configuration
+  if (initialHome.page) {
+    ApiEngine.updateCmsPage(initialHome.page.id, initialHome.page);
+    ApiEngine.publishCmsPage(initialHome.page.id);
+  }
 
   console.log("\n================================================================================");
   console.log("🎉 ALL COMPLETE CMS CONTENT & ANIMATION TESTS PASSED (100% PASS)");

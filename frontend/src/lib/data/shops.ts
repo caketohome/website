@@ -3,10 +3,10 @@
  * Connects branch retrieval to ApiEngine & custom NestJS Core API (/api/v1/branches).
  */
 
-import { ApiEngine } from "../api-engine";
 import { ShopDTO } from "../types";
 
 export async function retrieveShop(shopId: string): Promise<ShopDTO> {
+  const { ApiEngine } = await import("../api-engine");
   const branch = ApiEngine.resolveBranchRecord(shopId);
   const branchProds = ApiEngine.getBranchProducts(branch?.id || shopId);
 
@@ -39,11 +39,13 @@ export async function retrieveShop(shopId: string): Promise<ShopDTO> {
 }
 
 export async function listShops(filter?: Record<string, string>): Promise<ShopDTO[]> {
+  const { ApiEngine } = await import("../api-engine");
   const branches = ApiEngine.listBranches();
   return Promise.all(branches.map((b: any) => retrieveShop(b.id)));
 }
 
 export async function retrieveShopByHandle(handle: string): Promise<ShopDTO> {
+  const { ApiEngine } = await import("../api-engine");
   const branches = ApiEngine.listBranches();
   const found = branches.find((b: any) => b.code?.toLowerCase() === handle?.toLowerCase() || b.id === handle);
   return retrieveShop(found?.id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT");

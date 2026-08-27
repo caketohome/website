@@ -27,9 +27,9 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
     email: "",
     date_of_birth: "1996-05-15",
     address: "",
-    city: "Bengaluru",
-    state: "Karnataka",
-    pincode: "560038",
+    city: "",
+    state: "",
+    pincode: "",
     emergency_contact_name: "",
     emergency_contact_relationship: "Family Member",
     emergency_contact_phone: "",
@@ -317,7 +317,7 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
 
           {/* STEP 3: INHERITED COVERAGE */}
           {step === 3 && (() => {
-            const primaryBranch = branches.find((b: any) => b.id === formData.primary_branch_id) || branches[0] || { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship Kitchen", code: "HUB-BLR-01", city: "Bengaluru", pincode: "560038", pincodes: ["560038", "560008"] };
+            const primaryBranch = branches.find((b: any) => b.id === formData.primary_branch_id) || branches[0] || { id: "", name: "No Branch Selected", code: "", city: "", pincode: "", pincodes: [] };
             const secondaryBranches = formData.secondary_branch_ids.map((id) => branches.find((b: any) => b.id === id)).filter(Boolean);
             const selectedBranchList = [primaryBranch, ...secondaryBranches].filter(Boolean);
 
@@ -338,10 +338,7 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
             });
 
             // Sample fallback mapping if branch object has light definitions
-            if (derivedPincodesSet.size === 0) {
-              derivedPincodesSet.add("560038"); derivedPincodesSet.add("560034"); derivedPincodesSet.add("560047");
-              derivedAreasSet.add("Indiranagar"); derivedAreasSet.add("Domlur"); derivedAreasSet.add("Koramangala");
-            }
+            // No pincodes derived — leave empty to signal unconfigured coverage
 
             const pList = Array.from(derivedPincodesSet);
             const aList = Array.from(derivedAreasSet);
@@ -361,7 +358,7 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
                       <div key={b.id} className="p-3 bg-white dark:bg-slate-800 rounded-lg border text-xs flex items-center justify-between shadow-sm">
                         <div>
                           <span className="font-extrabold text-slate-900 dark:text-white block">🏪 {b.name}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">{b.code || "HUB"} &bull; {b.city || "Bengaluru"}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">{b.code || "HUB"} &bull; {b.city || ""}</span>
                         </div>
                         {b.id === primaryBranch.id ? (
                           <Badge color="purple" className="text-[9px] uppercase font-bold">PRIMARY STORE</Badge>

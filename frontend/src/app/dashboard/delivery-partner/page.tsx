@@ -12,6 +12,8 @@ import { Container, Heading, Text, Badge, Button } from "@medusajs/ui";
 import { redirect } from "next/navigation";
 import { Truck, ShieldCheck, MapPin, CheckCircle2, Clock, Activity, AlertCircle } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function DeliveryPartnerDashboardPage() {
   const user = await retrieveUser();
 

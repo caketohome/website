@@ -523,6 +523,11 @@ export function ScrollFrameAnimation({
     };
   }, [sectionId, animationType, currentDevice, totalFrames, frames, posterImage, smoothingPreset, resolvedHero]);
 
+  // Ensure dev debug global is populated on mount and config changes
+  useEffect(() => {
+    updateDebugGlobal(0, null);
+  }, [updateDebugGlobal]);
+
 
   // ── 3. High-Performance Canvas Draw Routine (Full-Cover + Sub-Frame Crossfade) ──
   const drawCanvasFrame = useCallback(

@@ -7,6 +7,8 @@
 
 // ── Fulfillment Reason Codes ────────────────────────────────────────────────
 
+// ── Fulfillment Reason Codes ────────────────────────────────────────────────
+
 export type FulfillmentReason =
   | "AVAILABLE"
   | "SAME_DAY_AVAILABLE"
@@ -16,18 +18,76 @@ export type FulfillmentReason =
   | "OPERATIONS_CLOSED"
   | "SAME_DAY_CUTOFF_PASSED"
   | "CORPORATE_CUTOFF_PASSED"
+  | "STORE_CLOSED"
   | "BRANCH_CLOSED"
   | "HOLIDAY"
   | "HOLIDAY_CLOSURE"
   | "PRODUCT_REQUIRES_PREORDER"
   | "PRODUCT_ADVANCE_ORDER_REQUIRED"
   | "PREPARATION_TIME_EXCEEDED"
+  | "PRODUCT_PREP_TIME"
   | "INSTANT_DELIVERY_DISABLED"
   | "DELIVERY_UNAVAILABLE"
   | "DELIVERY_SLOT_UNAVAILABLE"
   | "CAPACITY_UNAVAILABLE"
   | "INVALID_TIME_SLOT"
-  | "OUT_OF_STOCK";
+  | "OUT_OF_STOCK"
+  | "SLOT_CAPACITY_FULL"
+  | "SPECIAL_DELIVERY_DISABLED"
+  | "SPECIAL_CUTOFF_PASSED"
+  | "PREORDER_REQUIRED"
+  | "INVALID_DATE"
+  | "INVALID_SLOT"
+  | "STALE_CHECKOUT";
+
+// ── Special Delivery Configurations ─────────────────────────────────────────
+
+export interface LateNightDeliveryConfig {
+  enabled: boolean;
+  display_name: string;               // e.g. "Midnight Surprise Delivery"
+  start_time: string;                 // "HH:MM" e.g. "23:30"
+  end_time: string;                   // "HH:MM" e.g. "00:05" (crosses midnight)
+  additional_charge: number;          // Surcharge in INR e.g. 199
+  minimum_lead_time_minutes: number;  // e.g. 60
+  required_prep_time_minutes: number; // e.g. 60
+  subject_to_corporate_cutoff: boolean;// If true, strictly follows corporate cutoff; if false, uses special_order_cutoff
+  special_order_cutoff: string | null;// "HH:MM" e.g. "21:30" when subject_to_corporate_cutoff is false
+  allowed_days?: number[];            // 0-6 days (all if omitted)
+}
+
+export const DEFAULT_LATE_NIGHT_CONFIG: LateNightDeliveryConfig = {
+  enabled: true,
+  display_name: "Midnight Surprise Delivery",
+  start_time: "23:30",
+  end_time: "00:05",
+  additional_charge: 199,
+  minimum_lead_time_minutes: 60,
+  required_prep_time_minutes: 60,
+  subject_to_corporate_cutoff: true,  // Default follows corporate cutoff
+  special_order_cutoff: null,
+};
+
+export interface ExpressDeliveryConfig {
+  enabled: boolean;
+  display_name: string;               // e.g. "Express 45-Min Delivery"
+  start_time: string;                 // "HH:MM" e.g. "09:00"
+  end_time: string;                   // "HH:MM" e.g. "21:00"
+  surcharge: number;                  // e.g. 99
+  minimum_lead_time_minutes: number;  // e.g. 45
+  subject_to_corporate_cutoff: boolean;// If true, follows corporate cutoff
+  special_order_cutoff: string | null;// "HH:MM" e.g. "18:00"
+}
+
+export const DEFAULT_EXPRESS_CONFIG: ExpressDeliveryConfig = {
+  enabled: true,
+  display_name: "Express 45-Min Delivery",
+  start_time: "09:00",
+  end_time: "21:00",
+  surcharge: 99,
+  minimum_lead_time_minutes: 45,
+  subject_to_corporate_cutoff: true,
+  special_order_cutoff: null,
+};
 
 // ── Product Fulfillment Rules ───────────────────────────────────────────────
 
@@ -76,6 +136,11 @@ export interface BranchFulfillmentOverride {
   order_cutoff_time?: string | null;
   preparation_delay_enabled?: boolean;
   preparation_delay_minutes?: number;
+  late_night_enabled?: boolean;
+  late_night_surcharge?: number;
+  late_night_cutoff_time?: string | null;
+  express_enabled?: boolean;
+  express_surcharge?: number;
 }
 
 // ── Operating Hours ─────────────────────────────────────────────────────────
@@ -169,15 +234,22 @@ export interface DeliverySlot {
   start_time: string;                    // "HH:MM"
   end_time: string;                      // "HH:MM"
   label: string;                         // "10:00 AM - 12:00 PM"
-  available?: boolean;
+  slot_name?: string;                    // e.g. "Morning Slot" or "🌙 Midnight Surprise Delivery"
+  available: boolean;
   is_available?: boolean;
-  booked_count?: number;
+  status: "AVAILABLE" | "PAST_CUTOFF" | "FULL" | "CLOSED" | "PREP_TIME_EXCEEDED" | "DISABLED";
+  reason_code?: FulfillmentReason;
+  reason_message?: string;
+  booked_count: number;
   remaining_capacity: number;
-  max_capacity?: number;
+  max_capacity: number;
   extra_charge: number;
-  slot_type?: "standard" | "express" | "midnight";
+  extra_fee?: number;
+  slot_type: "standard" | "express" | "midnight" | "pickup";
   is_express: boolean;
   is_midnight: boolean;
+  requires_preorder?: boolean;
+  cutoff?: string;                       // e.g. "18:00"
 }
 
 // ── Global Fulfillment Config (stored in Settings module) ───────────────────
@@ -188,10 +260,15 @@ export interface GlobalFulfillmentConfig {
   global_preparation_delay_enabled: boolean;
   global_preparation_delay_minutes: number;
   preparation_delay_reason?: string | null;
-  global_order_cutoff_time: string;      // "HH:MM"
+  global_order_cutoff_time: string;      // "HH:MM" e.g. "18:00"
   global_instant_delivery_enabled: boolean;
   global_same_day_delivery_enabled: boolean;
   business_timezone: string;             // "Asia/Kolkata"
+  earliest_delivery_time?: string;       // "HH:MM" e.g. "09:00" or "10:00"
+  latest_delivery_slot_start?: string;   // "HH:MM" e.g. "21:00"
+  latest_delivery_slot_end?: string;     // "HH:MM" e.g. "22:00"
+  late_night_delivery?: LateNightDeliveryConfig;
+  express_delivery?: ExpressDeliveryConfig;
   // Authorized Emergency Corporate Cutoff Override
   emergency_override_active?: boolean;
   emergency_override_cutoff_time?: string; // e.g. "20:30"
@@ -212,6 +289,11 @@ export const DEFAULT_GLOBAL_FULFILLMENT_CONFIG: GlobalFulfillmentConfig = {
   global_instant_delivery_enabled: true,
   global_same_day_delivery_enabled: true,
   business_timezone: "Asia/Kolkata",
+  earliest_delivery_time: "09:00",
+  latest_delivery_slot_start: "21:00",
+  latest_delivery_slot_end: "22:00",
+  late_night_delivery: { ...DEFAULT_LATE_NIGHT_CONFIG },
+  express_delivery: { ...DEFAULT_EXPRESS_CONFIG },
   emergency_override_active: false,
   emergency_override_cutoff_time: "20:30",
   emergency_override_reason: null,
@@ -469,6 +551,17 @@ export function formatTimeForDisplay(timeStr: string | null | undefined): string
 }
 
 /**
+ * Convert "HH:MM" to total minutes, supporting midnight crossing if end is less than start.
+ */
+export function timeStringToMinutesWithCrossing(time: string, referenceStartMinutes?: number): number {
+  const mins = timeStringToMinutes(time);
+  if (referenceStartMinutes !== undefined && mins < referenceStartMinutes) {
+    return mins + 24 * 60; // Crosses to next calendar day
+  }
+  return mins;
+}
+
+/**
  * Add days to a "YYYY-MM-DD" date string and return "YYYY-MM-DD".
  */
 export function addDaysToDateString(dateStr: string, days: number): string {
@@ -477,3 +570,4 @@ export function addDaysToDateString(dateStr: string, days: number): string {
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().split("T")[0];
 }
+

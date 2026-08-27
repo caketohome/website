@@ -17,8 +17,20 @@ import {
   Sliders,
   ShieldCheck,
 } from "lucide-react";
-import { DAY_NAMES } from "@frontend/lib/fulfillment/types";
-import type { GlobalFulfillmentConfig, OperatingHoursEntry, HolidayEntry } from "@frontend/lib/fulfillment/types";
+import {
+  DAY_NAMES,
+  DEFAULT_GLOBAL_FULFILLMENT_CONFIG,
+  DEFAULT_LATE_NIGHT_CONFIG,
+  DEFAULT_EXPRESS_CONFIG,
+} from "@frontend/lib/fulfillment/types";
+import type {
+  GlobalFulfillmentConfig,
+  OperatingHoursEntry,
+  HolidayEntry,
+  LateNightDeliveryConfig,
+  ExpressDeliveryConfig,
+} from "@frontend/lib/fulfillment/types";
+import { Moon } from "lucide-react";
 
 export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
   const [loading, setLoading] = useState(true);
@@ -28,8 +40,9 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
 
   // Configuration State
   const [config, setConfig] = useState<GlobalFulfillmentConfig>({
+    ...DEFAULT_GLOBAL_FULFILLMENT_CONFIG,
     business_timezone: "Asia/Kolkata",
-    global_order_cutoff_time: "21:00",
+    global_order_cutoff_time: "18:00",
     global_instant_delivery_enabled: true,
     global_same_day_delivery_enabled: true,
     default_preparation_time_minutes: 60,
@@ -37,6 +50,11 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
     global_preparation_delay_enabled: false,
     global_preparation_delay_minutes: 0,
     preparation_delay_reason: null,
+    earliest_delivery_time: "09:00",
+    latest_delivery_slot_start: "21:00",
+    latest_delivery_slot_end: "22:00",
+    late_night_delivery: { ...DEFAULT_LATE_NIGHT_CONFIG },
+    express_delivery: { ...DEFAULT_EXPRESS_CONFIG },
   });
 
   const [operatingHours, setOperatingHours] = useState<OperatingHoursEntry[]>([]);
@@ -54,7 +72,20 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
       const res = await fetch("/api/v1/fulfillment/config");
       if (!res.ok) throw new Error("Failed to load fulfillment config");
       const data = await res.json();
-      if (data.config) setConfig(data.config);
+      if (data.config) {
+        setConfig({
+          ...DEFAULT_GLOBAL_FULFILLMENT_CONFIG,
+          ...data.config,
+          late_night_delivery: {
+            ...DEFAULT_LATE_NIGHT_CONFIG,
+            ...(data.config.late_night_delivery || {}),
+          },
+          express_delivery: {
+            ...DEFAULT_EXPRESS_CONFIG,
+            ...(data.config.express_delivery || {}),
+          },
+        });
+      }
       if (data.operating_hours) setOperatingHours(data.operating_hours);
       if (data.holidays) setHolidays(data.holidays);
     } catch (err: any) {
@@ -275,6 +306,161 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
                 />
               </div>
             </div>
+
+            <div className="grid grid-cols-3 gap-3 pt-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-700">Earliest Delivery Slot</Label>
+                <Input
+                  type="time"
+                  value={config.earliest_delivery_time || "09:00"}
+                  onChange={(e) => setConfig({ ...config, earliest_delivery_time: e.target.value })}
+                  className="text-xs font-semibold rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-700">Latest Slot Start</Label>
+                <Input
+                  type="time"
+                  value={config.latest_delivery_slot_start || "21:00"}
+                  onChange={(e) => setConfig({ ...config, latest_delivery_slot_start: e.target.value })}
+                  className="text-xs font-semibold rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-700">Latest Slot End</Label>
+                <Input
+                  type="time"
+                  value={config.latest_delivery_slot_end || "22:00"}
+                  onChange={(e) => setConfig({ ...config, latest_delivery_slot_end: e.target.value })}
+                  className="text-xs font-semibold rounded-xl"
+                />
+              </div>
+            </div>
+          </div>
+        </Container>
+
+        {/* Section 1.5: Special Delivery Modes (Midnight & Express) */}
+        <Container className="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-5">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <Moon className="w-5 h-5 text-indigo-600" />
+            <h3 className="font-extrabold text-sm text-slate-900">Late-Night / Midnight Delivery Rules</h3>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-800">Midnight Surprise Delivery</span>
+                <span className="text-[11px] text-slate-500">Enable midnight-crossing slots (e.g. 11:30 PM - 12:05 AM)</span>
+              </div>
+              <Switch
+                checked={config.late_night_delivery?.enabled ?? true}
+                onCheckedChange={(checked) =>
+                  setConfig({
+                    ...config,
+                    late_night_delivery: {
+                      ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
+                      enabled: checked,
+                    },
+                  })
+                }
+              />
+            </div>
+
+            {config.late_night_delivery?.enabled && (
+              <div className="space-y-3 p-3 rounded-2xl bg-indigo-50/40 border border-indigo-100">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-700">Slot Window Start</Label>
+                    <Input
+                      type="time"
+                      value={config.late_night_delivery?.start_time || "23:30"}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          late_night_delivery: {
+                            ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
+                            start_time: e.target.value,
+                          },
+                        })
+                      }
+                      className="text-xs font-semibold rounded-xl bg-white"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-700">Slot Window End</Label>
+                    <Input
+                      type="time"
+                      value={config.late_night_delivery?.end_time || "00:05"}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          late_night_delivery: {
+                            ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
+                            end_time: e.target.value,
+                          },
+                        })
+                      }
+                      className="text-xs font-semibold rounded-xl bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-700">Surcharge (₹)</Label>
+                    <Input
+                      type="number"
+                      value={config.late_night_delivery?.additional_charge ?? 199}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          late_night_delivery: {
+                            ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
+                            additional_charge: Number(e.target.value) || 0,
+                          },
+                        })
+                      }
+                      className="text-xs font-semibold rounded-xl bg-white"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-indigo-100 mt-5">
+                    <span className="text-[11px] font-bold text-slate-800">Subject to Corporate Cutoff</span>
+                    <Switch
+                      checked={config.late_night_delivery?.subject_to_corporate_cutoff ?? true}
+                      onCheckedChange={(checked) =>
+                        setConfig({
+                          ...config,
+                          late_night_delivery: {
+                            ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
+                            subject_to_corporate_cutoff: checked,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                {!config.late_night_delivery?.subject_to_corporate_cutoff && (
+                  <div className="space-y-1.5 pt-1">
+                    <Label className="text-xs font-bold text-slate-700">Special Midnight Cutoff Time</Label>
+                    <Input
+                      type="time"
+                      value={config.late_night_delivery?.special_order_cutoff || "21:30"}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          late_night_delivery: {
+                            ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
+                            special_order_cutoff: e.target.value,
+                          },
+                        })
+                      }
+                      className="text-xs font-semibold rounded-xl bg-white"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </Container>
 

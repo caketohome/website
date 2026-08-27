@@ -285,7 +285,7 @@ export class ExcelExportService {
     sales.forEach((s: any) => {
       s3.getRow(r3).values = [
         s.invoiceDate, s.invoiceNumber, s.orderNumber, s.customerName, s.customerPhone,
-        s.customerGstin || "URP", s.customerGstin && s.customerGstin !== "URP" ? "B2B" : "B2C", s.placeOfSupply, s.state || "Karnataka", s.branchName,
+        s.customerGstin || "URP", s.customerGstin && s.customerGstin !== "URP" ? "B2B" : "B2C", s.placeOfSupply, s.state || "", s.branchName,
         s.branchGstin || "29AAAAA0000A1Z5", s.productName, s.sku || "CK-TRUF", s.hsnCode || "19059090", s.quantity || 1,
         s.uom || "PCS", s.unitPrice || 0, s.grossAmount || 0, s.taxableValue || 0, (s.gstRatePct || 18) / 100,
         (s.cgstRatePct || 9) / 100, s.cgst || 0, (s.sgstRatePct || 9) / 100, s.sgst || 0, (s.igstRatePct || 0) / 100,
@@ -702,7 +702,7 @@ export class ExcelExportService {
 
     const branches = data.daily?.branchSummary || [];
     for (const b of branches) {
-      sheet.getRow(rIdx).values = [b.branchName, b.branchCode, b.city || "Bengaluru", b.ordersCount, b.grossSales, b.netSales, b.aov, b.deliveredCount];
+      sheet.getRow(rIdx).values = [b.branchName, b.branchCode, b.city || "", b.ordersCount, b.grossSales, b.netSales, b.aov, b.deliveredCount];
       sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`F${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`G${rIdx}`).numFmt = "₹#,##0.00";
@@ -1070,7 +1070,7 @@ export class ExcelExportService {
     const items = data.cities || [];
     let rIdx = 7;
     for (const b of items) {
-      sheet.getRow(rIdx).values = [b.branchName, b.branchCode, b.city || "Bengaluru", b.ordersCount, b.grossSales, b.netSales, b.aov, b.deliveredCount];
+      sheet.getRow(rIdx).values = [b.branchName, b.branchCode, b.city || "", b.ordersCount, b.grossSales, b.netSales, b.aov, b.deliveredCount];
       sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`F${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`G${rIdx}`).numFmt = "₹#,##0.00";

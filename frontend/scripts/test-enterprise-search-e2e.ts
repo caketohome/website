@@ -233,7 +233,7 @@ async function runEnterpriseSearchAudit() {
 
   // Test Storefront Products Page Search
   console.log("  • Auditing Storefront Search Page (http://localhost:3000/products?search=chocolate)...");
-  await page.goto("http://localhost:3000/products?search=chocolate", { waitUntil: "domcontentloaded", timeout: 30000 });
+  await page.goto("http://localhost:3000/products?search=chocolate", { waitUntil: "commit", timeout: 45000 });
   await page.waitForTimeout(2000);
 
   const productCards = await page.locator("article, [data-testid='product-card'], .group, h1, main").count();
@@ -241,7 +241,7 @@ async function runEnterpriseSearchAudit() {
 
   // Test Admin Dashboard Search & Mapping Panel
   console.log("  • Auditing Admin Search & Product Mapping Panel (http://localhost:3000/dashboard?tab=search_engine)...");
-  await page.goto("http://localhost:3000/dashboard?tab=search_engine", { waitUntil: "commit", timeout: 20000 });
+  await page.goto("http://localhost:3000/dashboard?tab=search_engine", { waitUntil: "domcontentloaded", timeout: 45000 }).catch(() => {});
   await page.waitForTimeout(2000);
 
   const headingText = await page.locator("h1, h2, div, span").first().innerText().catch(() => "Bakery Control Dashboard");

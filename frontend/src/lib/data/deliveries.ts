@@ -87,20 +87,29 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
   const partnerId = filter?.delivery_partner_id || filter?.partner_id || "dlp_101";
 
   const mapped: DeliveryDTO[] = allOrders.map((o: any, idx: number) => {
-    const matchedDel = allDeliveries.find((d: any) => d.id === o.id || d.order_number === o.id) || {};
+    const isAssignedToThisPartner = Boolean(
+      (targetPartnerId && (o.delivery_partner_id === targetPartnerId || o.delivery_partner_id === partnerObj?.partner_number)) ||
+      (targetPartnerId && (o.delivery?.partner_id === targetPartnerId || o.delivery?.partner_id === partnerObj?.partner_number)) ||
+      (partnerObj?.partner_number && o.delivery?.partner_number === partnerObj.partner_number) ||
+      (partnerObj?.full_name && o.driver_name === partnerObj.full_name)
+    );
 
-    let status = (o.delivery_status || "shop_accepted").toLowerCase();
+    let rawDelStatus = (o.delivery_status || o.delivery?.delivery_status || o.delivery?.status || "").toLowerCase();
     const orderStatus = (o.status || "").toLowerCase();
 
-    if (status === "delivered" || orderStatus === "delivered" || orderStatus === "completed") {
+    let status = "shop_accepted";
+    if (rawDelStatus === "delivered" || orderStatus === "delivered" || orderStatus === "completed") {
       status = "delivered";
-    } else if (status === "in_transit" || orderStatus === "out_for_delivery") {
+    } else if (rawDelStatus === "in_transit" || orderStatus === "out_for_delivery" || o.pickup_verified_at) {
       status = "in_transit";
-    } else if (status === "ready_for_pickup" || orderStatus === "packed" || orderStatus === "ready_for_pickup") {
+    } else if (isAssignedToThisPartner) {
+      // Auto-assigned / manually assigned orders awaiting kitchen handoff
       status = "ready_for_pickup";
-    } else if (status === "pickup_claimed" || status === "shop_preparing" || orderStatus === "preparing" || orderStatus === "claimed") {
+    } else if (rawDelStatus === "ready_for_pickup" || orderStatus === "packed" || rawDelStatus === "dispatched") {
+      status = "ready_for_pickup";
+    } else if (rawDelStatus === "pickup_claimed" || rawDelStatus === "shop_preparing" || orderStatus === "preparing" || orderStatus === "claimed") {
       status = "pickup_claimed";
-    } else if (status === "shop_accepted" || status === "available" || orderStatus === "confirmed" || orderStatus === "pending") {
+    } else {
       status = "shop_accepted";
     }
 
@@ -156,6 +165,8 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
     }
 
     const canonicalOrderNumber = o.order_number || o.id || `CTH-ORD-${idx + 1}`;
+    const pickupOtp = typeof o.delivery?.pickup_otp === "string" && o.delivery.pickup_otp !== "Not generated" ? o.delivery.pickup_otp : (typeof o.pickup_otp === "string" && o.pickup_otp !== "Not generated" ? o.pickup_otp : "1294");
+    const deliveryOtp = typeof o.delivery?.delivery_otp === "string" && o.delivery.delivery_otp !== "Not generated" ? o.delivery.delivery_otp : (typeof o.delivery_otp === "string" && o.delivery_otp !== "Not generated" ? o.delivery_otp : "4819");
 
     return {
       id: o.id || canonicalOrderNumber,
@@ -165,7 +176,9 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
       customer_uid: o.customer_uid || o.customer_id || null,
       delivery_status: status as any,
       status: status,
-      delivery_partner_id: o.delivery_partner_id || null,
+      delivery_partner_id: o.delivery_partner_id || o.delivery?.partner_id || null,
+      driver_name: o.driver_name || o.delivery?.partner_name || null,
+      driver_phone: o.driver_phone || o.delivery?.partner_phone || null,
       recipient_name: formattedName,
       recipient_phone: formattedPhone,
       recipient_address: formattedAddress,
@@ -173,8 +186,17 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
       recipient_landmark: typeof o.landmark === "string" ? o.landmark : (o.recipient_landmark || ""),
       delivery_instructions: typeof o.delivery_instructions === "string" ? o.delivery_instructions : "",
       gift_message: typeof o.gift_message === "string" ? o.gift_message : (o.custom_message || ""),
-      delivery_otp: typeof o.delivery_otp === "string" ? o.delivery_otp : (o.delivery?.delivery_otp || "4819"),
-      pickup_otp: typeof o.pickup_otp === "string" ? o.pickup_otp : (o.delivery?.pickup_otp || "1294"),
+      delivery_otp: deliveryOtp,
+      pickup_otp: pickupOtp,
+      delivery_latitude: typeof o.delivery_latitude === "number" ? o.delivery_latitude : (typeof o.latitude === "number" ? o.latitude : null),
+      delivery_longitude: typeof o.delivery_longitude === "number" ? o.delivery_longitude : (typeof o.longitude === "number" ? o.longitude : null),
+      delivery: o.delivery || {
+        partner_id: o.delivery_partner_id || null,
+        partner_name: o.driver_name || null,
+        pickup_otp: pickupOtp,
+        delivery_otp: deliveryOtp,
+        status: status,
+      },
       order: {
         id: o.id || canonicalOrderNumber,
         order_id: o.id || canonicalOrderNumber,
@@ -191,12 +213,16 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
         delivery_status: status,
         total_amount: Number(o.total || o.grand_total || o.subtotal || 0),
         items,
+        delivery_latitude: typeof o.delivery_latitude === "number" ? o.delivery_latitude : null,
+        delivery_longitude: typeof o.delivery_longitude === "number" ? o.delivery_longitude : null,
         shipping_address: {
           first_name: formattedName.split(" ")[0] || "Customer",
           last_name: formattedName.split(" ").slice(1).join(" ") || "",
           phone: formattedPhone,
           address_1: formattedAddress,
           postal_code: formattedPincode,
+          latitude: typeof o.delivery_latitude === "number" ? o.delivery_latitude : null,
+          longitude: typeof o.delivery_longitude === "number" ? o.delivery_longitude : null,
         }
       },
       cart: { items }
@@ -299,20 +325,7 @@ export async function checkDeliveryAvailability(pincodeInput: string): Promise<{
       midnight_available: zone.midnight_available,
       message: zone.express_available
         ? `⚡ Hyperlocal 45-min Express Delivery Available in ${zone.area_name}!`
-        : `Fresh Fresh-baked Cake Delivery Available in ${zone.area_name}.`,
-    };
-  }
-
-  if (cleanPin.length === 6 && cleanPin.startsWith("560")) {
-    return {
-      serviceable: true,
-      delivery_fee: 79,
-      branch_id: "br_koramangala",
-      branch_name: "Koramangala Main Hub",
-      area_name: `Bangalore Zone (${cleanPin})`,
-      express_available: false,
-      midnight_available: true,
-      message: "Standard Delivery Available in your Bangalore area.",
+        : `Fresh-baked Cake Delivery Available in ${zone.area_name}.`,
     };
   }
 
@@ -320,7 +333,7 @@ export async function checkDeliveryAvailability(pincodeInput: string): Promise<{
     serviceable: false,
     delivery_fee: 0,
     branch_id: null,
-    message: `Pincode ${cleanPin || "entered"} is outside our current bakery delivery coverage zone. Please enter a valid Bangalore pincode (e.g. 560034, 560038, 560102).`,
+    message: `Pincode ${cleanPin || "entered"} is outside our current bakery delivery coverage zones.`,
   };
 }
 
@@ -328,6 +341,11 @@ export async function getCheckoutAvailability(query: {
   cart_id?: string;
   delivery_type?: "delivery" | "pickup";
   pincode?: string;
+  latitude?: number;
+  longitude?: number;
+  lat?: number;
+  lng?: number;
+  address?: string;
   branch_id?: string;
   date?: string;
   slot_id?: string;
@@ -339,6 +357,11 @@ export async function getCheckoutAvailability(query: {
     if (query.cart_id) params.set("cart_id", query.cart_id);
     if (query.delivery_type) params.set("delivery_type", query.delivery_type);
     if (query.pincode) params.set("pincode", query.pincode);
+    const lat = query.latitude ?? query.lat;
+    const lng = query.longitude ?? query.lng;
+    if (typeof lat === "number") params.set("lat", String(lat));
+    if (typeof lng === "number") params.set("lng", String(lng));
+    if (query.address) params.set("address", query.address);
     if (query.branch_id) params.set("branch_id", query.branch_id);
     if (query.date) params.set("date", query.date);
     if (query.slot_id) params.set("slot_id", query.slot_id);
@@ -382,17 +405,15 @@ export async function getDeliverySlots(branchId: string, date: string, mode: "de
     if (res.ok && data && data.delivery_slots) {
       return { delivery_slots: data.delivery_slots, status: data.status, message: data.message, is_open: data.is_open };
     }
-  } catch {
-    // Fallback
+  } catch (err) {
+    console.error("Failed to fetch branch delivery slots:", err);
   }
 
   return {
-    delivery_slots: [
-      { id: "SLOT_STANDARD_MORNING", slot_name: "Morning Slot (10:00 AM - 01:00 PM)", start_time: "10:00", end_time: "13:00", slot_type: "standard", extra_charge: 0, max_capacity: 30, booked_count: 5, available: true, remaining_capacity: 25, status: "AVAILABLE" },
-      { id: "SLOT_STANDARD_EVENING", slot_name: "Evening Slot (05:00 PM - 08:00 PM)", start_time: "17:00", end_time: "20:00", slot_type: "standard", extra_charge: 0, max_capacity: 30, booked_count: 8, available: true, remaining_capacity: 22, status: "AVAILABLE" },
-      { id: "SLOT_EXPRESS_45MIN", slot_name: "⚡ Express 45-Min Delivery", start_time: "Now", end_time: "+45 Min", slot_type: "express", extra_charge: 49, max_capacity: 10, booked_count: 2, available: true, remaining_capacity: 8, status: "AVAILABLE" },
-      { id: "SLOT_MIDNIGHT", slot_name: "🌙 Midnight Surprise (11:30 PM - 12:05 AM)", start_time: "23:30", end_time: "00:05", slot_type: "midnight", extra_charge: 79, max_capacity: 15, booked_count: 8, available: true, remaining_capacity: 7, status: "AVAILABLE" },
-    ],
+    delivery_slots: [],
+    status: "ERROR",
+    message: "Unable to load slots at this moment",
   };
 }
+
 

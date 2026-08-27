@@ -45,8 +45,10 @@ export const BranchesPanel = memo(function BranchesPanel() {
   const [city, setCity] = useState("");
   const [cityId, setCityId] = useState("");
   const [citiesList, setCitiesList] = useState<any[]>([]);
-  const [state, setState] = useState("Karnataka");
-  const [pincode, setPincode] = useState("560038");
+  const [statesList, setStatesList] = useState<any[]>([]);
+  const [stateId, setStateId] = useState("");
+  const [state, setState] = useState("");
+  const [pincode, setPincode] = useState("");
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -76,9 +78,13 @@ export const BranchesPanel = memo(function BranchesPanel() {
 
   useEffect(() => {
     fetchBranches();
-    apiClient.getCities().then((res: any) => {
-      setCitiesList(res?.cities || res || []);
-    }).catch(() => {});
+    Promise.all([
+      apiClient.getCities().catch(() => ({ cities: [] })),
+      apiClient.getAdminStates().catch(() => ({ states: [] })),
+    ]).then(([citiesRes, statesRes]: any) => {
+      setCitiesList(citiesRes?.cities || citiesRes || []);
+      setStatesList(statesRes?.states || []);
+    });
   }, []);
 
   const handleConfirmArchive = async () => {
@@ -117,20 +123,21 @@ export const BranchesPanel = memo(function BranchesPanel() {
     setEditingBranch(null);
     setFormError(null);
     setName("");
-    setCode(`HUB-BLR-${Math.floor(10 + Math.random() * 90)}`);
+    setCode(`HUB-${Math.floor(100 + Math.random() * 900)}`);
     setLinkedStoreId("");
     setBranchType("main_hub");
     setExtendedStatus("open");
     setCity("");
     setCityId("");
+    setStateId("");
     setState("");
-    setPincode("560038");
+    setPincode("");
     setAddress("");
-    setPhone("+91 98765 00000");
+    setPhone("");
     setEmail(`branch_${Date.now()}@cakes2home.com`);
-    setManagerName("Branch Manager");
-    setManagerPhone("+91 98765 00001");
-    setManagerEmail("manager@cakes2home.com");
+    setManagerName("");
+    setManagerPhone("");
+    setManagerEmail("");
 
     setShowModal(true);
   };
@@ -145,8 +152,12 @@ export const BranchesPanel = memo(function BranchesPanel() {
     setExtendedStatus(b.extended_status || b.operational_status || "open");
     setCity(b.city || "");
     setCityId(b.city_id || "");
-    setState(b.state || "");
-    setPincode(b.pincode || "560038");
+    // Resolve state from branch data or matching city
+    const branchState = b.state || "";
+    setState(branchState);
+    const matchedState = statesList.find((s: any) => s.name === branchState || s.code === b.state_code);
+    setStateId(b.state_id || matchedState?.id || "");
+    setPincode(b.pincode || "");
     setAddress(b.address || "");
     setPhone(b.phone || "");
     setEmail(b.email || "");
@@ -211,6 +222,7 @@ export const BranchesPanel = memo(function BranchesPanel() {
       address: address.trim(),
       city: city.trim(),
       city_id: cityId || undefined,
+      state_id: stateId || undefined,
       state: state.trim(),
       pincode: pincode.trim(),
       phone: phone.trim(),
@@ -691,6 +703,32 @@ export const BranchesPanel = memo(function BranchesPanel() {
                 </div>
 
                 <div>
+                  <Label>State *</Label>
+                  <select
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                    value={stateId}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      setStateId(selectedId);
+                      const match = statesList.find((s: any) => s.id === selectedId);
+                      if (match) {
+                        setState(match.name);
+                      } else {
+                        setState("");
+                      }
+                      // Reset city when state changes
+                      setCityId("");
+                      setCity("");
+                    }}
+                    required
+                  >
+                    <option value="">Select State...</option>
+                    {statesList.filter((s: any) => s.status === "active").map((s: any) => (
+                      <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <Label>City *</Label>
                   <select
                     className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-900"
@@ -701,28 +739,34 @@ export const BranchesPanel = memo(function BranchesPanel() {
                       const match = citiesList.find((c: any) => c.id === selectedId);
                       if (match) {
                         setCity(match.name);
-                        setState(match.state || "");
+                        // Auto-fill state if not already set
+                        if (!stateId && match.state_id) {
+                          setStateId(match.state_id);
+                          setState(match.state || "");
+                        }
                       } else {
                         setCity("");
-                        setState("");
                       }
                     }}
                     required
+                    disabled={!stateId}
                   >
-                    <option value="">Select City...</option>
-                    {citiesList.filter((c: any) => c.status === "active").map((c: any) => (
-                      <option key={c.id} value={c.id}>{c.name}, {c.state}</option>
-                    ))}
+                    <option value="">{stateId ? "Select City..." : "Select State first..."}</option>
+                    {citiesList
+                      .filter((c: any) => c.status === "active" && (!stateId || c.state_id === stateId))
+                      .map((c: any) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
                   </select>
                 </div>
                 <div>
                   <Label>Primary Pincode *</Label>
-                  <Input value={pincode} onChange={(e) => setPincode(e.target.value)} required />
+                  <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="e.g. 560038" required />
                 </div>
 
                 <div className="sm:col-span-2">
                   <Label>Full Street Address *</Label>
-                  <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="100 Feet Rd, Bengaluru" required />
+                  <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Full street address" required />
                 </div>
 
                 <div>

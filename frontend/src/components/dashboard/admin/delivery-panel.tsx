@@ -313,12 +313,12 @@ export const DeliveryPanel = memo(function DeliveryPanel() {
                           {/* Contact */}
                           <td className="p-3.5 whitespace-nowrap font-mono text-[11px]">
                             <div>{p.phone}</div>
-                            <div className="text-[10px] text-slate-400">{p.city || "Bengaluru"}</div>
+                            <div className="text-[10px] text-slate-400">{p.city || ""}</div>
                           </td>
 
                           {/* Primary Hub */}
                           <td className="p-3.5 whitespace-nowrap">
-                            <span className="font-bold text-slate-800 dark:text-slate-200 block">{p.primary_branch_name || "Indiranagar Kitchen"}</span>
+                            <span className="font-bold text-slate-800 dark:text-slate-200 block">{p.primary_branch_name || "—"}</span>
                             {(p.associated_branches?.length > 1) && (
                               <span className="text-[10px] text-purple-600 font-semibold block">+{p.associated_branches.length - 1} secondary hub(s)</span>
                             )}

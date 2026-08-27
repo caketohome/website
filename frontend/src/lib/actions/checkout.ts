@@ -10,6 +10,11 @@ export async function getCheckoutAvailabilityAction(payload: {
   cart_id?: string;
   delivery_type?: "delivery" | "pickup";
   pincode?: string;
+  latitude?: number;
+  longitude?: number;
+  lat?: number;
+  lng?: number;
+  address?: string;
   branch_id?: string;
   date?: string;
   slot_id?: string;
@@ -41,6 +46,10 @@ export async function validateCheckoutAction(payload: {
   address?: any;
   address_id?: string;
   pincode?: string;
+  latitude?: number;
+  longitude?: number;
+  lat?: number;
+  lng?: number;
   delivery_date?: string;
   delivery_slot_id?: string;
   delivery_type?: string;
@@ -74,6 +83,8 @@ export async function confirmCheckoutAction(payload: {
   customer_id?: string;
   address: any;
   pincode: string;
+  latitude?: number;
+  longitude?: number;
   delivery_date: string;
   delivery_slot_id: string;
   delivery_type?: string;
@@ -133,6 +144,11 @@ export async function placeOrder(prevState: any, data: FormData) {
   const pincode = data.get("zip")?.toString() || data.get("pincode")?.toString() || cookieStore.get("delivery_pincode")?.value || "";
   const landmark = data.get("landmark")?.toString() || "";
 
+  const rawLat = data.get("latitude")?.toString() || data.get("lat")?.toString();
+  const rawLng = data.get("longitude")?.toString() || data.get("lng")?.toString();
+  const latitude = rawLat ? parseFloat(rawLat) : undefined;
+  const longitude = rawLng ? parseFloat(rawLng) : undefined;
+
   const deliveryDate = data.get("delivery-date")?.toString() || new Date().toISOString().slice(0, 10);
   const deliverySlotId = data.get("delivery-slot")?.toString() || data.get("delivery_slot_id")?.toString() || "slot_morning";
   const paymentMethod = (data.get("payment-method")?.toString() || "cod") as "cod" | "razorpay" | "test_mode";
@@ -144,8 +160,8 @@ export async function placeOrder(prevState: any, data: FormData) {
   const giftMessage = data.get("gift-message")?.toString();
   const specialInstructions = data.get("special-instructions")?.toString();
 
-  if (!firstName || !phone || !pincode) {
-    return { message: "Please fill in all required fields (Name, Phone, and Pincode)." };
+  if (!firstName || !phone || (!pincode && (!latitude || !longitude))) {
+    return { message: "Please fill in all required fields (Name, Phone, and Delivery Location)." };
   }
 
   const result = await confirmCheckoutAction({
@@ -162,8 +178,12 @@ export async function placeOrder(prevState: any, data: FormData) {
       state,
       pincode,
       landmark,
+      latitude,
+      longitude,
     },
     pincode,
+    latitude,
+    longitude,
     delivery_date: deliveryDate,
     delivery_slot_id: deliverySlotId,
     payment_method: paymentMethod,

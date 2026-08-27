@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 const AUTH_COOKIE_NAMES = [
   "_cth_jwt",
   "_medusa_jwt",

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ApiEngine } from "@frontend/lib/api-engine";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const accessories = ApiEngine.listAccessories();

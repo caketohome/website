@@ -8,6 +8,7 @@ import {
   delayBranchOrder,
   markBranchOrderReady,
 } from "@frontend/lib/data/manager";
+import { buildGoogleMapsDirectionsUrl, extractDeliveryCoordinates } from "@frontend/lib/location/directions";
 
 interface OrderDetailsDrawerProps {
   order: any;
@@ -120,11 +121,48 @@ export default function OrderDetailsDrawer({
                 </a>
               </div>
               <div className="col-span-2">
-                <p className="text-xs text-zinc-500">Delivery Address</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-zinc-500">Delivery Address</p>
+                  {(() => {
+                    const coords = extractDeliveryCoordinates(order);
+                    const mapsUrl = buildGoogleMapsDirectionsUrl({
+                      latitude: coords.latitude,
+                      longitude: coords.longitude,
+                      address: order.delivery_address || order.customer?.delivery_address,
+                      pincode: order.delivery_pincode || order.pincode || order.customer?.pincode,
+                    });
+                    return (
+                      <a
+                        href={mapsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline"
+                      >
+                        📍 Open in Maps ↗
+                      </a>
+                    );
+                  })()}
+                </div>
                 <p className="font-medium text-zinc-800 dark:text-zinc-200">
                   {order.delivery_address || order.customer?.delivery_address || "Indiranagar Flagship Zone"}
                 </p>
-                <p className="text-xs text-zinc-500 mt-0.5">Pincode: {order.pincode || order.customer?.pincode || "560038"}</p>
+                <p className="text-xs text-zinc-500 mt-0.5">Pincode: {order.delivery_pincode || order.pincode || order.customer?.pincode || "560038"}</p>
+                {(() => {
+                  const coords = extractDeliveryCoordinates(order);
+                  if (coords.hasCoords && typeof coords.latitude === "number" && typeof coords.longitude === "number") {
+                    return (
+                      <p className="font-mono text-[10px] text-blue-600 dark:text-blue-400 font-bold mt-1">
+                        🎯 GPS Coordinates: {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)} ({order.delivery_zone_name || "Delivery Zone"})
+                      </p>
+                    );
+                  }
+                  return null;
+                })()}
+                {(order.delivery_instructions || order.customer?.delivery_instructions) && (
+                  <p className="text-xs text-amber-700 dark:text-amber-300 mt-1 italic">
+                    💬 Note: &quot;{order.delivery_instructions || order.customer?.delivery_instructions}&quot;
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { AiToolRegistry } from "@frontend/lib/ai/ai-tool-registry";
 import { AiOrchestrator } from "@frontend/lib/ai/ai-orchestrator";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     await AiOrchestrator.ensureInitialized();

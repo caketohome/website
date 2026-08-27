@@ -493,8 +493,26 @@ export function PageRenderer({
                   data-cms-badge={badgeText}
                   data-cms-primary-cta={primaryCtaText}
                   data-cms-secondary-cta={secondaryCtaText}
-                  data-animation-mode="static"
                 >
+                  <script
+                    dangerouslySetInnerHTML={{
+                      __html: `
+                        window.__CAKETOHOME_HERO_DEBUG__ = {
+                          sectionId: ${JSON.stringify(sectionKey)},
+                          sectionType: "hero",
+                          animationType: "static",
+                          source: ${JSON.stringify(resolvedHero.source)},
+                          headline: ${JSON.stringify(headline)},
+                          subheadline: ${JSON.stringify(subheadline)},
+                          badge: ${JSON.stringify(badgeText)},
+                          primaryCtaText: ${JSON.stringify(primaryCtaText)},
+                          primaryCtaUrl: ${JSON.stringify(primaryCtaUrl)},
+                          secondaryCtaText: ${JSON.stringify(secondaryCtaText)},
+                          secondaryCtaUrl: ${JSON.stringify(secondaryCtaUrl)},
+                        };
+                      `,
+                    }}
+                  />
                   <style
                     dangerouslySetInnerHTML={{
                       __html: `
