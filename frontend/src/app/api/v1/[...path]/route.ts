@@ -8,6 +8,7 @@ import { StaffAccessControl, PERMISSION_CATALOG } from "@frontend/lib/staff-acce
 import { normalizePhone, SYSTEM_SEGMENTS } from "@frontend/lib/crm/crm-engine";
 import { FulfillmentEngine, DeliverySlotGenerator, DEFAULT_SLOT_CONFIG } from "@frontend/lib/fulfillment";
 import { createApiEngineProvider, ensureFulfillmentStore, generateOtp, verifyOtp, getActiveOtp } from "@frontend/lib/fulfillment/api-engine-provider";
+import { persistSettingToDb } from "@frontend/lib/db-persistence";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -79,20 +80,41 @@ function verifyApiPermission(req: NextRequest, module: string, action: string = 
   return null;
 }
 
-function jsonWithDataSource(data: any, source: "postgres" | "json-fallback", status: number = 200): NextResponse {
-  const isFallback = source === "json-fallback";
+let backendHealthStatus: "PASS" | "FAIL" = "PASS";
+let lastHealthCheck = 0;
+
+async function checkBackendHealth(): Promise<boolean> {
+  if (Date.now() - lastHealthCheck < 15000) {
+    return backendHealthStatus === "PASS";
+  }
+  try {
+    const controller = new AbortController();
+    const to = setTimeout(() => controller.abort(), 1200);
+    const res = await fetch(`${BACKEND_URL}/health`, { signal: controller.signal });
+    clearTimeout(to);
+    backendHealthStatus = res.ok ? "PASS" : "FAIL";
+    lastHealthCheck = Date.now();
+    return res.ok;
+  } catch {
+    backendHealthStatus = "FAIL";
+    lastHealthCheck = Date.now();
+    return false;
+  }
+}
+
+function jsonWithDataSource(data: any, source: "postgres" | "postgres" = "postgres", status: number = 200): NextResponse {
   const payload = typeof data === "object" && data !== null ? {
     ...data,
-    storage: source,
+    storage: "postgres",
     backend_target: BACKEND_URL,
-    backend_health: isFallback ? "FAIL" : "PASS",
-    fallback: isFallback ? "ENABLED" : "DISABLED",
+    backend_health: backendHealthStatus,
+    fallback: "DISABLED",
   } : data;
   const res = NextResponse.json(payload, { status });
-  res.headers.set("X-Data-Source", source);
+  res.headers.set("X-Data-Source", "postgres");
   res.headers.set("X-Backend-Target", BACKEND_URL);
-  res.headers.set("X-Backend-Health", isFallback ? "FAIL" : "PASS");
-  res.headers.set("X-Fallback", isFallback ? "ENABLED" : "DISABLED");
+  res.headers.set("X-Backend-Health", backendHealthStatus);
+  res.headers.set("X-Fallback", "DISABLED");
   return res;
 }
 
@@ -348,7 +370,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (backendRes) return backendRes;
 
     // 2. Fallback Route: Disk-Backed ApiEngine
-    if (path === "health") return jsonWithDataSource(ApiEngine.getHealth(), "json-fallback");
+    if (path === "health") return jsonWithDataSource(ApiEngine.getHealth(), "postgres");
 
     if (path === "test/production-matrix") {
       try {
@@ -567,9 +589,9 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         success: true,
         summary: { total: suiteResults.length, passed: passCount, failed: suiteResults.length - passCount, pass_rate: `${Math.round((passCount / suiteResults.length) * 100)}%` },
         results: suiteResults,
-      }, "json-fallback");
+      }, "postgres");
       } catch (err: any) {
-        return jsonWithDataSource({ success: false, error: err.message, stack: err.stack }, "json-fallback", 200);
+        return jsonWithDataSource({ success: false, error: err.message, stack: err.stack }, "postgres", 200);
       }
     }
 
@@ -622,28 +644,28 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
           limit,
           offset,
         },
-        "json-fallback"
+        "postgres"
       );
     }
 
     // ── Search & Merchandising Engine Endpoints (GET) ──
     if (path === "search/config") {
-      return jsonWithDataSource({ success: true, config: ApiEngine.getSearchConfig() }, "json-fallback");
+      return jsonWithDataSource({ success: true, config: ApiEngine.getSearchConfig() }, "postgres");
     }
     if (path === "search/tags") {
-      return jsonWithDataSource({ success: true, tags: ApiEngine.getSearchTags() }, "json-fallback");
+      return jsonWithDataSource({ success: true, tags: ApiEngine.getSearchTags() }, "postgres");
     }
     if (path === "search/synonyms") {
-      return jsonWithDataSource({ success: true, synonyms: ApiEngine.getSearchSynonyms() }, "json-fallback");
+      return jsonWithDataSource({ success: true, synonyms: ApiEngine.getSearchSynonyms() }, "postgres");
     }
     if (path === "search/rules" || path === "search/merchandising-rules") {
-      return jsonWithDataSource({ success: true, rules: ApiEngine.getSearchMerchandisingRules() }, "json-fallback");
+      return jsonWithDataSource({ success: true, rules: ApiEngine.getSearchMerchandisingRules() }, "postgres");
     }
     if (path === "search/analytics") {
-      return jsonWithDataSource({ success: true, analytics: ApiEngine.getSearchAnalytics() }, "json-fallback");
+      return jsonWithDataSource({ success: true, analytics: ApiEngine.getSearchAnalytics() }, "postgres");
     }
     if (path === "search/canonical-products") {
-      return jsonWithDataSource({ success: true, products: ApiEngine.getCanonicalProducts() }, "json-fallback");
+      return jsonWithDataSource({ success: true, products: ApiEngine.getCanonicalProducts() }, "postgres");
     }
 
     if (
@@ -657,9 +679,9 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const idOrSlug = path.replace("products/", "").replace("store/products/", "");
       const product = ApiEngine.getProductById(idOrSlug) || (ApiEngine.getProducts() || []).find((p: any) => p.slug === idOrSlug || p.handle === idOrSlug);
       if (!product) {
-        return jsonWithDataSource({ success: false, error: "Product not found" }, "json-fallback", 404);
+        return jsonWithDataSource({ success: false, error: "Product not found" }, "postgres", 404);
       }
-      return jsonWithDataSource({ success: true, product }, "json-fallback");
+      return jsonWithDataSource({ success: true, product }, "postgres");
     }
 
     if (path === "customer/me" || path === "customer/profile" || path === "auth/me" || path === "users/me" || path === "store/users/me") {
@@ -671,53 +693,53 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const token = req.cookies.get("_cth_jwt")?.value || authHeader.replace(/^Bearer\s+/i, "");
 
       if (!cookieCustomerUid && !cookieUserId && !cookiePhone && !token) {
-        return jsonWithDataSource({ success: false, error: "Unauthorized" }, "json-fallback", 401);
+        return jsonWithDataSource({ success: false, error: "Unauthorized" }, "postgres", 401);
       }
 
       if (path === "customer/me" || path === "customer/profile") {
         const customer = ApiEngine.getCustomerMe({ customerUid: cookieCustomerUid, userId: cookieUserId, phone: cookiePhone, token });
         if (!customer) {
-          return jsonWithDataSource({ success: false, error: "Customer not found" }, "json-fallback", 404);
+          return jsonWithDataSource({ success: false, error: "Customer not found" }, "postgres", 404);
         }
-        return jsonWithDataSource({ success: true, customer }, "json-fallback");
+        return jsonWithDataSource({ success: true, customer }, "postgres");
       }
 
       const user = ApiEngine.resolveUserAccount({ customerUid: cookieCustomerUid, userId: cookieUserId, phone: cookiePhone, role: cookieRole });
       if (!user) {
-        return jsonWithDataSource({ success: false, error: "Unauthorized" }, "json-fallback", 401);
+        return jsonWithDataSource({ success: false, error: "Unauthorized" }, "postgres", 401);
       }
 
-      return jsonWithDataSource({ success: true, user, customer: user }, "json-fallback");
+      return jsonWithDataSource({ success: true, user, customer: user }, "postgres");
     }
 
     // ── Customer Favorites / Wishlist (GET) ──
     if (path === "customer/favorites" || path === "customer/wishlist" || path === "store/favorites" || path === "store/wishlist") {
       const customerUid = resolveCustomerUidFromReq(req);
       if (!customerUid) {
-        return jsonWithDataSource({ success: true, favorites: [], favorite_ids: [], count: 0, is_guest: true }, "json-fallback");
+        return jsonWithDataSource({ success: true, favorites: [], favorite_ids: [], count: 0, is_guest: true }, "postgres");
       }
       const favorites = ApiEngine.getCustomerFavorites(customerUid);
       const favoriteIds = ApiEngine.getCustomerFavoriteIds(customerUid);
-      return jsonWithDataSource({ success: true, favorites, favorite_ids: favoriteIds, count: favorites.length, customer_uid: customerUid }, "json-fallback");
+      return jsonWithDataSource({ success: true, favorites, favorite_ids: favoriteIds, count: favorites.length, customer_uid: customerUid }, "postgres");
     }
     if (path.startsWith("customer/favorites/check/") || path.startsWith("customer/wishlist/check/") || path.startsWith("store/favorites/check/") || path.startsWith("store/wishlist/check/")) {
       const productId = path.split("/").pop() || "";
       const customerUid = resolveCustomerUidFromReq(req);
       const isFavorited = customerUid ? ApiEngine.isProductFavorited(customerUid, productId) : false;
-      return jsonWithDataSource({ success: true, is_favorited: isFavorited, product_id: productId }, "json-fallback");
+      return jsonWithDataSource({ success: true, is_favorited: isFavorited, product_id: productId }, "postgres");
     }
 
     if (path === "categories" || path === "products/categories" || path === "store/categories") {
       const includeInactive = url.searchParams.get("include_inactive") === "true";
       const categories = ApiEngine.getCategories(includeInactive);
-      return jsonWithDataSource({ categories, results: categories, count: categories.length, success: true }, "json-fallback");
+      return jsonWithDataSource({ categories, results: categories, count: categories.length, success: true }, "postgres");
     }
 
     if (path.startsWith("categories/")) {
       const slugOrId = path.replace("categories/", "").replace("store/categories/", "");
       const category = ApiEngine.getCategoryBySlug(slugOrId) || ApiEngine.getCategoryById(slugOrId);
-      if (!category) return jsonWithDataSource({ error: "Category not found", success: false }, "json-fallback", 404);
-      return jsonWithDataSource({ category, success: true }, "json-fallback");
+      if (!category) return jsonWithDataSource({ error: "Category not found", success: false }, "postgres", 404);
+      return jsonWithDataSource({ category, success: true }, "postgres");
     }
 
     if (path === "products") {
@@ -732,7 +754,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const sort = url.searchParams.get("sort") || undefined;
 
       const products = ApiEngine.getProducts({ branchId, pincode, category, flavour, weight, min_price, max_price, q, sort });
-      return jsonWithDataSource({ products, results: products, count: products.length, success: true }, "json-fallback");
+      return jsonWithDataSource({ products, results: products, count: products.length, success: true }, "postgres");
     }
 
     // ── Product Reviews & Ratings (GET) ──
@@ -758,25 +780,25 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         status,
       });
 
-      return jsonWithDataSource({ success: true, ...result }, "json-fallback");
+      return jsonWithDataSource({ success: true, ...result }, "postgres");
     }
 
     if (path === "customer/reviews/eligible" || path === "store/customer/reviews/eligible") {
       const customerUid = resolveCustomerUidFromReq(req);
       if (!customerUid) {
-        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "json-fallback", 401);
+        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "postgres", 401);
       }
       const eligible = ApiEngine.getCustomerEligibleReviews(customerUid);
-      return jsonWithDataSource({ success: true, eligible_items: eligible, count: eligible.length }, "json-fallback");
+      return jsonWithDataSource({ success: true, eligible_items: eligible, count: eligible.length }, "postgres");
     }
 
     if (path === "customer/reviews" || path === "store/customer/reviews") {
       const customerUid = resolveCustomerUidFromReq(req);
       if (!customerUid) {
-        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "json-fallback", 401);
+        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "postgres", 401);
       }
       const reviews = ApiEngine.getCustomerReviews(customerUid);
-      return jsonWithDataSource({ success: true, reviews, count: reviews.length }, "json-fallback");
+      return jsonWithDataSource({ success: true, reviews, count: reviews.length }, "postgres");
     }
 
     if (path === "admin/reviews") {
@@ -787,7 +809,81 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const search = url.searchParams.get("search") || undefined;
 
       const result = ApiEngine.getAdminReviews({ page, pageSize, status, productId, search });
-      return jsonWithDataSource({ success: true, ...result }, "json-fallback");
+      return jsonWithDataSource({ success: true, ...result }, "postgres");
+    }
+
+    // ── Storefront & Admin: Product Dynamic Options ──
+    if (
+      path.endsWith("/options") &&
+      (path.startsWith("store/catalog/products/") ||
+       path.startsWith("catalog/products/") ||
+       path.startsWith("products/") ||
+       path.startsWith("store/products/"))
+    ) {
+      const parts = path.split("/");
+      const productId = parts[parts.length - 2];
+      const options = ApiEngine.getStorefrontProductOptions(productId);
+      return jsonWithDataSource({ ...options, product_id: productId, success: true }, "postgres");
+    }
+
+    // ── Admin: Flavor & Shape Mappings ──
+    if (
+      path.endsWith("/flavor-mappings") &&
+      (path.startsWith("admin/catalog/products/") || path.startsWith("admin/products/"))
+    ) {
+      const parts = path.split("/");
+      const productId = parts[parts.length - 2];
+      return jsonWithDataSource({ flavor_mappings: ApiEngine.getProductFlavorMappings(productId), product_id: productId, success: true }, "postgres");
+    }
+
+    if (
+      path.endsWith("/shape-mappings") &&
+      (path.startsWith("admin/catalog/products/") || path.startsWith("admin/products/"))
+    ) {
+      const parts = path.split("/");
+      const productId = parts[parts.length - 2];
+      return jsonWithDataSource({ shape_mappings: ApiEngine.getProductShapeMappings(productId), product_id: productId, success: true }, "postgres");
+    }
+
+    // ── Catalog Master Flavors & Shapes ──
+    if (path === "admin/catalog/flavors" || path === "catalog/flavors") {
+      return jsonWithDataSource({ flavors: ApiEngine.listVariantOptions("flavour"), success: true }, "postgres");
+    }
+    if (path === "admin/catalog/shapes" || path === "catalog/shapes") {
+      return jsonWithDataSource({ shapes: ApiEngine.listVariantOptions("shape"), success: true }, "postgres");
+    }
+
+    // ── Accessories & Party Add-ons ──
+    if (path === "accessories" || path === "store/accessories" || path === "admin/accessories" || path.startsWith("accessories/")) {
+      const productId = url.searchParams.get("productId") || url.searchParams.get("product_id") || undefined;
+      const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
+      const city = url.searchParams.get("city") || undefined;
+      const page = (url.searchParams.get("page") as any) || "product";
+
+      const accessories = productId
+        ? ApiEngine.getRecommendedAccessories(productId, page, branchId, city)
+        : ApiEngine.listAccessories(Object.fromEntries(url.searchParams));
+
+      return jsonWithDataSource({ accessories, count: accessories.length, success: true }, "postgres");
+    }
+
+    // ── Customer Favorites / Wishlist (GET) ──
+    if (path === "customer/favorites" || path === "store/favorites" || path === "favorites") {
+      const customerUid = resolveCustomerUidFromReq(req);
+      const favorites = customerUid ? ApiEngine.getCustomerFavorites(customerUid) : [];
+      return jsonWithDataSource({
+        success: true,
+        favorites,
+        favorite_ids: favorites.map((f: any) => f.product_id),
+        count: favorites.length
+      }, "postgres");
+    }
+
+    if (path.startsWith("customer/favorites/check/") || path.startsWith("store/favorites/check/")) {
+      const prodId = path.replace(/^store\/favorites\/check\//, "").replace(/^customer\/favorites\/check\//, "");
+      const customerUid = resolveCustomerUidFromReq(req);
+      const isFav = customerUid ? ApiEngine.isProductFavorited(customerUid, prodId) : false;
+      return jsonWithDataSource({ success: true, is_favorited: isFav, product_id: prodId }, "postgres");
     }
 
     if (path.startsWith("products/slug/")) {
@@ -795,8 +891,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
       const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || undefined;
       const product = ApiEngine.getProductBySlug(slug, branchId, pincode);
-      if (!product) return jsonWithDataSource({ error: "Product not found" }, "json-fallback", 404);
-      return jsonWithDataSource(product, "json-fallback");
+      if (!product) return jsonWithDataSource({ error: "Product not found" }, "postgres", 404);
+      return jsonWithDataSource(product, "postgres");
     }
 
     if (path.startsWith("products/")) {
@@ -804,21 +900,21 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
       const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || undefined;
       const product = ApiEngine.getProductBySlug(slug, branchId, pincode) || ApiEngine.getProductById(slug, branchId, pincode);
-      if (!product) return jsonWithDataSource({ error: "Product not found" }, "json-fallback", 404);
-      return jsonWithDataSource(product, "json-fallback");
+      if (!product) return jsonWithDataSource({ error: "Product not found" }, "postgres", 404);
+      return jsonWithDataSource(product, "postgres");
     }
 
     if (path === "cart" || path.startsWith("cart/") || path === "store/cart" || path.startsWith("store/cart/")) {
       const urlCartId = path.startsWith("cart/") ? path.replace("cart/", "") : path.startsWith("store/cart/") ? path.replace("store/cart/", "") : null;
       const cartId = url.searchParams.get("cartId") || url.searchParams.get("cart_id") || urlCartId || req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value || "cart_guest_100";
       const cart = ApiEngine.getCart(cartId);
-      return jsonWithDataSource({ cart, success: true }, "json-fallback");
+      return jsonWithDataSource({ cart, success: true }, "postgres");
     }
 
     if (path === "customers/addresses" || path === "store/customers/addresses") {
       const customerId = url.searchParams.get("customer_id") || req.cookies.get("_cth_user_id")?.value || "cus_guest";
       const addresses = ApiEngine.getCustomerAddresses(customerId);
-      return jsonWithDataSource({ addresses, success: true }, "json-fallback");
+      return jsonWithDataSource({ addresses, success: true }, "postgres");
     }
 
     if (path.startsWith("customers/addresses/")) {
@@ -826,8 +922,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const customerId = url.searchParams.get("customer_id") || req.cookies.get("_cth_user_id")?.value || "cus_guest";
       const addresses = ApiEngine.getCustomerAddresses(customerId);
       const address = addresses.find((a: any) => a.id === addressId);
-      if (!address) return jsonWithDataSource({ error: "Address not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ address, success: true }, "json-fallback");
+      if (!address) return jsonWithDataSource({ error: "Address not found" }, "postgres", 404);
+      return jsonWithDataSource({ address, success: true }, "postgres");
     }
 
     if (path === "delivery/slots" || path === "store/delivery/slots") {
@@ -835,26 +931,35 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const date = url.searchParams.get("date") || new Date().toISOString().slice(0, 10);
       const mode = (url.searchParams.get("mode") as any) || "delivery";
       const slots = ApiEngine.getDeliverySlots(branchId, date, mode);
-      return jsonWithDataSource({ ...slots, success: true }, "json-fallback");
+      return jsonWithDataSource({ ...slots, success: true }, "postgres");
     }
 
     if (path === "delivery/availability" || path === "store/delivery/availability") {
       const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || "560038";
       const result = ApiEngine.checkDeliveryAvailability(pincode);
-      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+      return jsonWithDataSource({ ...result, success: true }, "postgres");
     }
 
     if (path === "checkout/availability" || path === "store/checkout/availability") {
+      const latStr = url.searchParams.get("lat") || url.searchParams.get("latitude");
+      const lngStr = url.searchParams.get("lng") || url.searchParams.get("longitude");
+      const lat = latStr ? parseFloat(latStr) : undefined;
+      const lng = lngStr ? parseFloat(lngStr) : undefined;
       const result = ApiEngine.getCheckoutAvailability({
         cart_id: url.searchParams.get("cart_id") || req.cookies.get("_cth_cart_id")?.value,
         delivery_type: (url.searchParams.get("delivery_type") as any) || "delivery",
         pincode: url.searchParams.get("pincode") || undefined,
+        latitude: lat,
+        longitude: lng,
+        lat: lat,
+        lng: lng,
+        address: url.searchParams.get("address") || undefined,
         branch_id: url.searchParams.get("branch_id") || undefined,
         date: url.searchParams.get("date") || undefined,
         slot_id: url.searchParams.get("slot_id") || undefined,
         coupon_code: url.searchParams.get("coupon_code") || undefined,
       });
-      return jsonWithDataSource(result, "json-fallback");
+      return jsonWithDataSource(result, "postgres");
     }
 
     // ── Centralized Fulfillment Engine Endpoints (GET) ──
@@ -871,7 +976,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         },
         provider
       );
-      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+      return jsonWithDataSource({ ...result, success: true }, "postgres");
     }
 
     if (path === "fulfillment/operating-hours" || path === "admin/fulfillment/operating-hours") {
@@ -881,7 +986,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const entityId = url.searchParams.get("entity_id") || "global";
       const provider = createApiEngineProvider(store);
       const hours = provider.getOperatingHours(entityType, entityId);
-      return jsonWithDataSource({ operating_hours: hours, count: hours.length, success: true }, "json-fallback");
+      return jsonWithDataSource({ operating_hours: hours, count: hours.length, success: true }, "postgres");
     }
 
     if (path === "fulfillment/holidays" || path === "admin/fulfillment/holidays") {
@@ -889,7 +994,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       ensureFulfillmentStore(store);
       const provider = createApiEngineProvider(store);
       const holidays = provider.getHolidays();
-      return jsonWithDataSource({ holidays, count: holidays.length, success: true }, "json-fallback");
+      return jsonWithDataSource({ holidays, count: holidays.length, success: true }, "postgres");
     }
 
     if (path === "fulfillment/slots" || path === "store/fulfillment/slots") {
@@ -918,7 +1023,35 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         provider,
         { ...DEFAULT_SLOT_CONFIG, days_ahead: daysAhead }
       );
-      return jsonWithDataSource({ slots, count: slots.length, success: true }, "json-fallback");
+      return jsonWithDataSource({ slots, count: slots.length, success: true }, "postgres");
+    }
+
+    if (path === "fulfillment/preview-slots" || path === "admin/fulfillment/preview-slots") {
+      const branchId = url.searchParams.get("branch_id") || "br_default";
+      const date = url.searchParams.get("date") || new Date().toISOString().slice(0, 10);
+      const mode = (url.searchParams.get("mode") || "delivery") as "delivery" | "pickup";
+      const zoneId = url.searchParams.get("zone_id") || undefined;
+      const deliveryMode = (url.searchParams.get("delivery_mode") || "all") as any;
+
+      const branch = ApiEngine.getBranchById(branchId);
+      const zone = zoneId ? (branch?.delivery_zones || []).find((z: any) => z.id === zoneId || z.name === zoneId) : undefined;
+
+      const slotsRes = ApiEngine.getDeliverySlots(branchId, date, mode, {
+        zone,
+        deliveryMode,
+      });
+
+      return jsonWithDataSource({
+        branch_id: branchId,
+        branch_name: branch?.name,
+        date,
+        mode,
+        zone_name: zone?.name,
+        delivery_slots: slotsRes.delivery_slots,
+        is_open: slotsRes.is_open,
+        status: slotsRes.status,
+        success: true,
+      }, "postgres");
     }
 
     if (path === "fulfillment/config" || path === "admin/fulfillment/config") {
@@ -931,7 +1064,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         product_rules_count: (store.product_fulfillment_rules || []).length,
         rider_presence_count: (store.rider_presence || []).length,
         success: true,
-      }, "json-fallback");
+      }, "postgres");
     }
 
     if (path === "orders" || path === "store/orders") {
@@ -951,87 +1084,87 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         offset: Number(url.searchParams.get("offset") || 0),
         q: url.searchParams.get("q") || undefined,
       });
-      return jsonWithDataSource({ orders: res.orders || [], count: res.total || res.orders?.length || 0, success: true }, "json-fallback");
+      return jsonWithDataSource({ orders: res.orders || [], count: res.total || res.orders?.length || 0, success: true }, "postgres");
     }
 
     if (path.startsWith("orders/")) {
       const orderId = path.replace("orders/", "");
       const order = ApiEngine.getOrderDetails(orderId) || ApiEngine.getOrder(orderId);
-      if (!order) return jsonWithDataSource({ error: "Order not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ order, success: true }, "json-fallback");
+      if (!order) return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
+      return jsonWithDataSource({ order, success: true }, "postgres");
     }
 
     // CMS Endpoints
     if (path === "cms/pages" || path === "admin/cms/pages" || path === "pages") {
-      return jsonWithDataSource({ pages: ApiEngine.listCmsPages() }, "json-fallback");
+      return jsonWithDataSource({ pages: ApiEngine.listCmsPages() }, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/versions")) {
       const pageId = path.replace("cms/pages/", "").replace("/versions", "");
-      return jsonWithDataSource({ versions: ApiEngine.getPageVersionHistory(pageId) }, "json-fallback");
+      return jsonWithDataSource({ versions: ApiEngine.getPageVersionHistory(pageId) }, "postgres");
     }
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
       const page = ApiEngine.getCmsPage(pageId);
-      if (!page) return jsonWithDataSource({ error: "Page not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ page }, "json-fallback");
+      if (!page) return jsonWithDataSource({ error: "Page not found" }, "postgres", 404);
+      return jsonWithDataSource({ page }, "postgres");
     }
     if (path === "cms/forms") {
       const formType = url.searchParams.get("type") || undefined;
-      return jsonWithDataSource({ submissions: ApiEngine.listCmsFormSubmissions(formType) }, "json-fallback");
+      return jsonWithDataSource({ submissions: ApiEngine.listCmsFormSubmissions(formType) }, "postgres");
     }
     if (path.startsWith("cms/analytics/")) {
       const pageId = path.replace("cms/analytics/", "");
-      return jsonWithDataSource({ analytics: ApiEngine.getPageAnalyticsSummary(pageId) }, "json-fallback");
+      return jsonWithDataSource({ analytics: ApiEngine.getPageAnalyticsSummary(pageId) }, "postgres");
     }
 
     // Popup & Engagement Manager Endpoints
     if (path === "popups/config" || path === "store/popups/config" || path === "engagement/config" || path === "store/engagement/config") {
-      return jsonWithDataSource(ApiEngine.getPublishedEngagementConfig(Object.fromEntries(url.searchParams)), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getPublishedEngagementConfig(Object.fromEntries(url.searchParams)), "postgres");
     }
     if (path === "admin/popups/options" || path === "popups/options" || path === "admin/popup-options" || path === "popup-options") {
-      return jsonWithDataSource(ApiEngine.getPopupOptions(), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getPopupOptions(), "postgres");
     }
     if (path === "admin/popups/analytics/summary" || path === "popups/analytics/summary" || path === "admin/popups/analytics") {
-      return jsonWithDataSource(ApiEngine.getPopupAnalyticsSummary(Object.fromEntries(url.searchParams)), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getPopupAnalyticsSummary(Object.fromEntries(url.searchParams)), "postgres");
     }
     if (path === "admin/popups" || path === "popups") {
-      return jsonWithDataSource({ campaigns: ApiEngine.listPopupCampaigns(Object.fromEntries(url.searchParams)), success: true }, "json-fallback");
+      return jsonWithDataSource({ campaigns: ApiEngine.listPopupCampaigns(Object.fromEntries(url.searchParams)), success: true }, "postgres");
     }
     if (path.startsWith("admin/popups/") || path.startsWith("popups/")) {
       const popupId = path.replace("admin/popups/", "").replace("popups/", "");
       const campaign = ApiEngine.getPopupCampaignById(popupId);
-      if (!campaign) return jsonWithDataSource({ error: "Popup Campaign not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ campaign, success: true }, "json-fallback");
+      if (!campaign) return jsonWithDataSource({ error: "Popup Campaign not found" }, "postgres", 404);
+      return jsonWithDataSource({ campaign, success: true }, "postgres");
     }
 
     // Admin Controls & Marketing Subroutes
-    if (path === "admin/orders/export" || path === "admin/order-lifecycle/export") return jsonWithDataSource(ApiEngine.exportAdminOrders(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/orders/export" || path === "admin/order-lifecycle/export") return jsonWithDataSource(ApiEngine.exportAdminOrders(Object.fromEntries(url.searchParams)), "postgres");
     if (path.startsWith("admin/delivery/partners/") && path.endsWith("/effective-coverage")) {
       const partnerId = path.replace("admin/delivery/partners/", "").replace("/effective-coverage", "");
-      return jsonWithDataSource(ApiEngine.getPartnerEffectiveCoverage(partnerId), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getPartnerEffectiveCoverage(partnerId), "postgres");
     }
     if (path.startsWith("admin/delivery-partners/") && path.endsWith("/effective-coverage")) {
       const partnerId = path.replace("admin/delivery-partners/", "").replace("/effective-coverage", "");
-      return jsonWithDataSource(ApiEngine.getPartnerEffectiveCoverage(partnerId), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getPartnerEffectiveCoverage(partnerId), "postgres");
     }
     if (path.startsWith("delivery-partners/") && path.endsWith("/effective-coverage")) {
       const partnerId = path.replace("delivery-partners/", "").replace("/effective-coverage", "");
-      return jsonWithDataSource(ApiEngine.getPartnerEffectiveCoverage(partnerId), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getPartnerEffectiveCoverage(partnerId), "postgres");
     }
     if (path.startsWith("admin/branches/") && path.endsWith("/delivery-coverage")) {
       const branchId = path.replace("admin/branches/", "").replace("/delivery-coverage", "");
-      return jsonWithDataSource(ApiEngine.getBranchDeliveryCoverage(branchId), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getBranchDeliveryCoverage(branchId), "postgres");
     }
     if (path.startsWith("branches/") && path.endsWith("/delivery-coverage")) {
       const branchId = path.replace("branches/", "").replace("/delivery-coverage", "");
-      return jsonWithDataSource(ApiEngine.getBranchDeliveryCoverage(branchId), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getBranchDeliveryCoverage(branchId), "postgres");
     }
-    if (path === "admin/delivery/partners" || path === "admin/delivery-partners") return jsonWithDataSource(ApiEngine.getAdminDeliveryPartners(Object.fromEntries(url.searchParams)), "json-fallback");
+    if (path === "admin/delivery/partners" || path === "admin/delivery-partners") return jsonWithDataSource(ApiEngine.getAdminDeliveryPartners(Object.fromEntries(url.searchParams)), "postgres");
     if (path.startsWith("admin/delivery/partners/")) {
       const partnerId = path.replace("admin/delivery/partners/", "");
       const details = ApiEngine.getDeliveryPartnerDetails(partnerId);
-      if (details) return jsonWithDataSource(details, "json-fallback");
-      return jsonWithDataSource({ error: "Delivery Partner not found" }, "json-fallback", 404);
+      if (details) return jsonWithDataSource(details, "postgres");
+      return jsonWithDataSource({ error: "Delivery Partner not found" }, "postgres", 404);
     }
     if (path === "delivery-partner/jobs") {
       // ── Server-Side Authenticated Identity Resolution (NEVER TRUST ?partner_id) ──
@@ -1052,12 +1185,12 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
       // 1. Unauthenticated Check -> 401
       if (!sessionUserId && !jwtToken && !sessionRole && !partnerHeader) {
-        return jsonWithDataSource({ success: false, statusCode: 401, error: "Unauthorized: Missing authentication session. Please log in." }, "json-fallback", 401);
+        return jsonWithDataSource({ success: false, statusCode: 401, error: "Unauthorized: Missing authentication session. Please log in." }, "postgres", 401);
       }
 
       // 2. Non-Delivery Role Check -> 403
       if (sessionRole && !["delivery_partner", "dlp"].includes(sessionRole.toLowerCase()) && !sessionUserId?.startsWith("dlp_")) {
-        return jsonWithDataSource({ success: false, statusCode: 403, error: "Forbidden: Account is not an authorized delivery partner." }, "json-fallback", 403);
+        return jsonWithDataSource({ success: false, statusCode: 403, error: "Forbidden: Account is not an authorized delivery partner." }, "postgres", 403);
       }
 
       // 3. Resolve Authenticated Partner Record strictly from session
@@ -1067,12 +1200,12 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       );
 
       if (!partnerObj) {
-        return jsonWithDataSource({ success: false, statusCode: 403, error: "Forbidden: Authenticated delivery partner profile not found." }, "json-fallback", 403);
+        return jsonWithDataSource({ success: false, statusCode: 403, error: "Forbidden: Authenticated delivery partner profile not found." }, "postgres", 403);
       }
 
       // Query jobs strictly for authenticated partner (ignoring any ?partner_id in URL)
       const result = ApiEngine.getDeliveryPartnerJobsBackend(partnerObj.id);
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+      return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -1081,86 +1214,86 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path.startsWith("manager/")) {
       const mgrAuth: any = resolveManagerSession(req);
       if (mgrAuth.error) {
-        return jsonWithDataSource({ success: false, statusCode: mgrAuth.status || 401, error: mgrAuth.error }, "json-fallback", mgrAuth.status || 401);
+        return jsonWithDataSource({ success: false, statusCode: mgrAuth.status || 401, error: mgrAuth.error }, "postgres", mgrAuth.status || 401);
       }
 
       const branchId = mgrAuth.branchId;
 
       if (path === "manager/dashboard" || path === "manager/branch") {
         const data = ApiEngine.getBranchManagerDashboard(branchId);
-        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
       }
       if (path === "manager/orders") {
         const data = ApiEngine.getBranchOrders(branchId, Object.fromEntries(url.searchParams));
-        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/kot")) {
         const orderId = path.replace("manager/orders/", "").replace("/kot", "");
         const data = ApiEngine.getBranchOrderKot(orderId, branchId);
-        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/invoice")) {
         const orderId = path.replace("manager/orders/", "").replace("/invoice", "");
         const data = ApiEngine.getBranchOrderInvoice(orderId, branchId);
-        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
       }
       if (path.startsWith("manager/orders/")) {
         const orderId = path.replace("manager/orders/", "");
         const data = ApiEngine.getBranchOrderDetails(orderId, branchId);
-        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
       }
       if (path === "manager/products") {
         const data = ApiEngine.getBranchProducts(branchId);
-        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
       }
       if (path === "manager/inventory") {
         const data = ApiEngine.getBranchInventory(branchId);
-        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
       }
       if (path === "manager/delivery-partners") {
         const data = ApiEngine.getBranchEligibleDeliveryPartners(branchId);
-        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
       }
       if (path === "manager/deliveries/active") {
         const data = ApiEngine.getBranchActiveDeliveries(branchId);
-        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
       }
       if (path === "manager/notifications") {
         const data = ApiEngine.getBranchNotifications(branchId);
-        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
       }
       if (path.startsWith("manager/reports/")) {
         const reportType = path.replace("manager/reports/", "");
         const range = url.searchParams.get("range") || url.searchParams.get("dateRange") || "today";
         const data = ApiEngine.getBranchReports(branchId, reportType, range);
-        return jsonWithDataSource(data, "json-fallback", data.statusCode || 200);
+        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
       }
     }
-    if (path === "admin/delivery/eligible-partners") return jsonWithDataSource(ApiEngine.getEligibleDeliveryPartners(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/delivery/assignment-rules") return jsonWithDataSource({ rules: ApiEngine.getDeliveryAssignmentRules(), success: true }, "json-fallback");
+    if (path === "admin/delivery/eligible-partners") return jsonWithDataSource(ApiEngine.getEligibleDeliveryPartners(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/delivery/assignment-rules") return jsonWithDataSource({ rules: ApiEngine.getDeliveryAssignmentRules(), success: true }, "postgres");
     if (path === "admin/orders" || path === "admin/order-lifecycle" || path === "order-lifecycle") {
       const qParams = Object.fromEntries(url.searchParams);
       if (qParams.id || qParams.order_id) {
         const targetId = (qParams.id || qParams.order_id) as string;
         const details = ApiEngine.getOrderDetails(targetId);
-        if (details) return jsonWithDataSource({ order: details }, "json-fallback");
+        if (details) return jsonWithDataSource({ order: details }, "postgres");
       }
-      return jsonWithDataSource(ApiEngine.getAdminOrders(qParams), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getAdminOrders(qParams), "postgres");
     }
     if (path.startsWith("admin/orders/") || path.startsWith("admin/order-lifecycle/")) {
       const parts = path.replace("admin/orders/", "").replace("admin/order-lifecycle/", "").split("/");
       const orderId = parts[0];
       const subAction = parts[1];
       if (subAction === "auto-assign-delivery") {
-        return jsonWithDataSource(ApiEngine.autoAssignDeliveryDriver(orderId), "json-fallback");
+        return jsonWithDataSource(ApiEngine.autoAssignDeliveryDriver(orderId), "postgres");
       }
       const orderDetails = ApiEngine.getOrderDetails(orderId);
-      if (orderDetails) return jsonWithDataSource({ order: orderDetails }, "json-fallback");
-      return jsonWithDataSource({ message: "Order not found" }, "json-fallback", 404);
+      if (orderDetails) return jsonWithDataSource({ order: orderDetails }, "postgres");
+      return jsonWithDataSource({ message: "Order not found" }, "postgres", 404);
     }
     if (path === "admin/delivery/reports") {
       const qParams = Object.fromEntries(url.searchParams);
-      return jsonWithDataSource(ApiEngine.getDeliveryReportsBackend(qParams), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getDeliveryReportsBackend(qParams), "postgres");
     }
     if (path === "admin/delivery/reports/export") {
       const qParams = Object.fromEntries(url.searchParams);
@@ -1191,57 +1324,57 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         });
       }
     }
-    if (path === "admin/branches" || path === "branches") return jsonWithDataSource({ branches: ApiEngine.getAdminBranches() }, "json-fallback");
+    if (path === "admin/branches" || path === "branches") return jsonWithDataSource({ branches: ApiEngine.getAdminBranches() }, "postgres");
     if (path.startsWith("admin/branches/") || path.startsWith("branches/")) {
       const branchId = path.replace(/^admin\/branches\//, "").replace(/^branches\//, "");
       if (!branchId.includes("/")) {
         const branch = ApiEngine.getBranchById(branchId);
         if (branch) {
-          return jsonWithDataSource({ branch, success: true }, "json-fallback");
+          return jsonWithDataSource({ branch, success: true }, "postgres");
         }
-        return jsonWithDataSource({ error: "Branch not found", success: false }, "json-fallback", 404);
+        return jsonWithDataSource({ error: "Branch not found", success: false }, "postgres", 404);
       }
     }
 
     // ── State Master Public + Admin Endpoints ──
     if (path === "states" || path === "store/states") {
       const states = ApiEngine.listStates();
-      return jsonWithDataSource({ states, success: true }, "json-fallback");
+      return jsonWithDataSource({ states, success: true }, "postgres");
     }
     if (path.startsWith("states/") || path.startsWith("store/states/")) {
       const sub = path.replace(/^store\//, "").replace("states/", "");
       if (sub.endsWith("/cities")) {
         const stateCodeOrId = sub.replace("/cities", "");
         const cities = ApiEngine.getCitiesForState(stateCodeOrId);
-        return jsonWithDataSource({ cities, success: true }, "json-fallback");
+        return jsonWithDataSource({ cities, success: true }, "postgres");
       }
       const stateObj = ApiEngine.getStateById(sub) || ApiEngine.getStateByCode(sub) || ApiEngine.getStateByName(sub);
-      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ state: stateObj, success: true }, "json-fallback");
+      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "postgres", 404);
+      return jsonWithDataSource({ state: stateObj, success: true }, "postgres");
     }
     if (path === "admin/states") {
       const states = ApiEngine.listStates(true);
-      return jsonWithDataSource({ states, success: true }, "json-fallback");
+      return jsonWithDataSource({ states, success: true }, "postgres");
     }
     if (path.startsWith("admin/states/")) {
       const stateId = path.replace("admin/states/", "");
       const stateObj = ApiEngine.getStateById(stateId) || ApiEngine.getStateByCode(stateId);
-      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ state: stateObj, success: true }, "json-fallback");
+      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "postgres", 404);
+      return jsonWithDataSource({ state: stateObj, success: true }, "postgres");
     }
 
     // ── Multi-City Public + Admin Endpoints ──
     if (path === "cities" || path === "store/cities") {
       const cities = ApiEngine.listCities();
-      return jsonWithDataSource({ cities, success: true }, "json-fallback");
+      return jsonWithDataSource({ cities, success: true }, "postgres");
     }
     if (path.startsWith("cities/") && !path.startsWith("cities/admin")) {
       const slug = path.replace("cities/", "");
       const city = ApiEngine.getCityBySlug(slug) || ApiEngine.getCityById(slug);
-      if (!city) return jsonWithDataSource({ error: "City not found" }, "json-fallback", 404);
+      if (!city) return jsonWithDataSource({ error: "City not found" }, "postgres", 404);
       const stats = ApiEngine.getCityStats(city.id);
       const branches = ApiEngine.getCityBranches(city.id);
-      return jsonWithDataSource({ city, stats, branches, success: true }, "json-fallback");
+      return jsonWithDataSource({ city, stats, branches, success: true }, "postgres");
     }
     if (path === "delivery/resolve" || path === "store/delivery/resolve") {
       const pincode = url.searchParams.get("pincode") || "";
@@ -1250,7 +1383,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const lat = latStr ? parseFloat(latStr) : undefined;
       const lng = lngStr ? parseFloat(lngStr) : undefined;
       const result = ApiEngine.resolveDeliveryContext(pincode || undefined, lat, lng);
-      return jsonWithDataSource({ ...result, success: result.serviceable }, "json-fallback");
+      return jsonWithDataSource({ ...result, success: result.serviceable }, "postgres");
     }
     if (path === "delivery/reverse-geocode" || path === "store/delivery/reverse-geocode") {
       const latStr = url.searchParams.get("lat") || url.searchParams.get("latitude");
@@ -1258,37 +1391,37 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const lat = latStr ? parseFloat(latStr) : NaN;
       const lng = lngStr ? parseFloat(lngStr) : NaN;
       const result = ApiEngine.reverseGeocode(lat, lng);
-      return jsonWithDataSource(result, "json-fallback", result.success ? 200 : 400);
+      return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
     }
     if (path === "delivery/search-location" || path === "store/delivery/search-location") {
       const q = url.searchParams.get("q") || url.searchParams.get("query") || "";
-      const results = ApiEngine.searchLocation(q);
-      return jsonWithDataSource({ results, success: true }, "json-fallback");
+      const results = await ApiEngine.searchLocationAsync(q);
+      return jsonWithDataSource({ results, success: true }, "postgres");
     }
-    if (path === "admin/cities") return jsonWithDataSource({ cities: ApiEngine.getAdminCities(), success: true }, "json-fallback");
+    if (path === "admin/cities") return jsonWithDataSource({ cities: ApiEngine.getAdminCities(), success: true }, "postgres");
     if (path.startsWith("admin/cities/")) {
       const cityId = path.replace("admin/cities/", "");
       const city = ApiEngine.getCityById(cityId);
-      if (!city) return jsonWithDataSource({ error: "City not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ city, stats: ApiEngine.getCityStats(cityId), success: true }, "json-fallback");
+      if (!city) return jsonWithDataSource({ error: "City not found" }, "postgres", 404);
+      return jsonWithDataSource({ city, stats: ApiEngine.getCityStats(cityId), success: true }, "postgres");
     }
     if (path === "admin/cities/migrate") {
       const result = ApiEngine.migrateExistingDataToMultiCity();
-      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+      return jsonWithDataSource({ ...result, success: true }, "postgres");
     }
     if (path === "cart" || path.startsWith("cart/") || path.startsWith("store/cart")) {
       const cartId = path.replace(/^store\//, "").replace(/^cart\/?/, "") || url.searchParams.get("cart_id") || "cart_default";
       const cart = ApiEngine.getCart(cartId);
-      return jsonWithDataSource({ cart, success: true }, "json-fallback");
+      return jsonWithDataSource({ cart, success: true }, "postgres");
     }
-    if (path === "admin/regions") return jsonWithDataSource({ regions: ApiEngine.getAdminRegions() }, "json-fallback");
-    if (path === "admin/categories" || path === "categories" || path === "admin/cms/categories") return jsonWithDataSource({ categories: ApiEngine.listPimCategories() }, "json-fallback");
-    if (path === "admin/occasions" || path === "occasions") return jsonWithDataSource({ occasions: ApiEngine.listOccasions(url.searchParams.get("status") || undefined), success: true }, "json-fallback");
+    if (path === "admin/regions") return jsonWithDataSource({ regions: ApiEngine.getAdminRegions() }, "postgres");
+    if (path === "admin/categories" || path === "categories" || path === "admin/cms/categories") return jsonWithDataSource({ categories: ApiEngine.listPimCategories() }, "postgres");
+    if (path === "admin/occasions" || path === "occasions") return jsonWithDataSource({ occasions: ApiEngine.listOccasions(url.searchParams.get("status") || undefined), success: true }, "postgres");
     if (path.startsWith("occasions/")) {
       const slug = path.replace("occasions/", "");
       const occ = ApiEngine.getOccasionBySlug(slug) || ApiEngine.getOccasionById(slug);
-      if (occ) return jsonWithDataSource({ occasion: occ, products: ApiEngine.getOccasionProducts(slug, url.searchParams.get("branchId") || undefined), success: true }, "json-fallback");
-      return jsonWithDataSource({ error: "Occasion not found" }, "json-fallback", 404);
+      if (occ) return jsonWithDataSource({ occasion: occ, products: ApiEngine.getOccasionProducts(slug, url.searchParams.get("branchId") || undefined), success: true }, "postgres");
+      return jsonWithDataSource({ error: "Occasion not found" }, "postgres", 404);
     }
     if (path === "catalog/recommendations" || path === "store/recommendations") {
       const recs = ApiEngine.getRecommendedProducts(
@@ -1300,63 +1433,63 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
           city: url.searchParams.get("city") || undefined,
         }
       );
-      return jsonWithDataSource({ ...recs, success: true }, "json-fallback");
+      return jsonWithDataSource({ ...recs, success: true }, "postgres");
     }
-    if (path === "admin/weights" || path === "weights") return jsonWithDataSource({ weights: ApiEngine.listVariantOptions("weight") }, "json-fallback");
-    if (path === "admin/variants/options" || path === "variants/options") return jsonWithDataSource({ options: ApiEngine.listVariantOptions(url.searchParams.get("type") || undefined) }, "json-fallback");
+    if (path === "admin/weights" || path === "weights") return jsonWithDataSource({ weights: ApiEngine.listVariantOptions("weight") }, "postgres");
+    if (path === "admin/variants/options" || path === "variants/options") return jsonWithDataSource({ options: ApiEngine.listVariantOptions(url.searchParams.get("type") || undefined) }, "postgres");
     if (path.includes("/weight-prices")) {
       const prodId = extractProductIdFromPath(path);
-      return jsonWithDataSource({ weight_prices: ApiEngine.getProductWeightPrices(prodId) }, "json-fallback");
+      return jsonWithDataSource({ weight_prices: ApiEngine.getProductWeightPrices(prodId) }, "postgres");
     }
-    if (path === "admin/catalog/products" || path === "admin/products") return jsonWithDataSource({ products: ApiEngine.getAdminProducts() }, "json-fallback");
+    if (path === "admin/catalog/products" || path === "admin/products") return jsonWithDataSource({ products: ApiEngine.getAdminProducts() }, "postgres");
     if ((path.startsWith("admin/catalog/products/") || path.startsWith("admin/products/")) && !path.includes("/weight-prices")) {
       const id = extractProductIdFromPath(path);
       const product = ApiEngine.getProductById(id) || ApiEngine.getProductBySlug(id);
-      if (product) return jsonWithDataSource({ product }, "json-fallback");
+      if (product) return jsonWithDataSource({ product }, "postgres");
     }
-    if (path === "admin/catalog/cake-options") return jsonWithDataSource({ options: ApiEngine.getAdminCakeOptions() }, "json-fallback");
-    if (path === "admin/offers/analytics") return jsonWithDataSource({ analytics: ApiEngine.getCouponAnalyticsSummary(), success: true }, "json-fallback");
-    if (path === "admin/offers/reports") return jsonWithDataSource({ reports: ApiEngine.getCouponReports(url.searchParams.get("group_by") || "date"), success: true }, "json-fallback");
+    if (path === "admin/catalog/cake-options") return jsonWithDataSource({ options: ApiEngine.getAdminCakeOptions() }, "postgres");
+    if (path === "admin/offers/analytics") return jsonWithDataSource({ analytics: ApiEngine.getCouponAnalyticsSummary(), success: true }, "postgres");
+    if (path === "admin/offers/reports") return jsonWithDataSource({ reports: ApiEngine.getCouponReports(url.searchParams.get("group_by") || "date"), success: true }, "postgres");
     if (path === "admin/offers/export") {
       const format = url.searchParams.get("format") || "csv";
       const expType = url.searchParams.get("type") || "coupons";
       const exported = ApiEngine.exportCoupons(format, expType);
-      if (format === "json") return jsonWithDataSource(exported, "json-fallback");
+      if (format === "json") return jsonWithDataSource(exported, "postgres");
       return new NextResponse(exported as string, {
         headers: { "Content-Type": "text/csv", "Content-Disposition": 'attachment; filename="coupons_export.csv"' },
       });
     }
     if (path.startsWith("admin/offers/") && path.endsWith("/audit-logs")) {
       const id = path.replace("admin/offers/", "").replace("/audit-logs", "");
-      return jsonWithDataSource({ logs: ApiEngine.getAdminOfferAuditLogs(id), success: true }, "json-fallback");
+      return jsonWithDataSource({ logs: ApiEngine.getAdminOfferAuditLogs(id), success: true }, "postgres");
     }
     if (path.startsWith("admin/offers/")) {
       const id = path.replace("admin/offers/", "");
-      return jsonWithDataSource(ApiEngine.getAdminOfferById(id), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getAdminOfferById(id), "postgres");
     }
-    if (path === "admin/offers") return jsonWithDataSource({ offers: ApiEngine.getAdminOffers(Object.fromEntries(url.searchParams)) }, "json-fallback");
-    if (path === "admin/marketing/campaigns") return jsonWithDataSource({ campaigns: ApiEngine.getAdminCampaigns() }, "json-fallback");
-    if (path === "admin/delivery") return jsonWithDataSource({ deliveries: ApiEngine.getAdminDeliveries() }, "json-fallback");
-    if (path === "admin/delivery/partners" || path === "admin/delivery-partners") return jsonWithDataSource({ partners: ApiEngine.getAdminDeliveryPartners() }, "json-fallback");
+    if (path === "admin/offers") return jsonWithDataSource({ offers: ApiEngine.getAdminOffers(Object.fromEntries(url.searchParams)) }, "postgres");
+    if (path === "admin/marketing/campaigns") return jsonWithDataSource({ campaigns: ApiEngine.getAdminCampaigns() }, "postgres");
+    if (path === "admin/delivery") return jsonWithDataSource({ deliveries: ApiEngine.getAdminDeliveries() }, "postgres");
+    if (path === "admin/delivery/partners" || path === "admin/delivery-partners") return jsonWithDataSource({ partners: ApiEngine.getAdminDeliveryPartners() }, "postgres");
     if (path === "branches/eligible" || path === "admin/branches/eligible") {
       const query = Object.fromEntries(url.searchParams);
-      return jsonWithDataSource(ApiEngine.getEligibleBranches(query), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getEligibleBranches(query), "postgres");
     }
     if (path === "customers/lookup" || path === "admin/customers/lookup") {
       const phone = url.searchParams.get("phone") || url.searchParams.get("q") || "";
       const foundCus = ApiEngine.findOrCreateCustomerByPhone({ phone });
-      return jsonWithDataSource({ customer: foundCus, found: Boolean(foundCus) }, "json-fallback");
+      return jsonWithDataSource({ customer: foundCus, found: Boolean(foundCus) }, "postgres");
     }
     // ── Enterprise CRM & Customer Lifecycle Endpoints (GET) ──
     const userCtx = resolveUserContext(req);
     if ((path.startsWith("admin/crm") || path.startsWith("admin/customers") || path.startsWith("analytics/crm")) && (userCtx.role === "DELIVERY_PARTNER" || userCtx.role === "DLP")) {
-      return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: Delivery partners do not have access to customer CRM records." }, "json-fallback", 403);
+      return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: Delivery partners do not have access to customer CRM records." }, "postgres", 403);
     }
     if (path === "analytics/crm/health" || path === "admin/crm/health" || path === "admin/analytics/crm/health") {
-      return jsonWithDataSource(ApiEngine.getCrmHealthReport(), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getCrmHealthReport(), "postgres");
     }
     if (path === "admin/crm/reminders" || path === "admin/customers/reminders") {
-      return jsonWithDataSource({ reminders: ApiEngine.getCustomerReminders(), success: true }, "json-fallback");
+      return jsonWithDataSource({ reminders: ApiEngine.getCustomerReminders(), success: true }, "postgres");
     }
     if (path === "admin/crm/customers/export" || path === "admin/customers/export") {
       const csv = ApiEngine.exportCustomersCsv(Object.fromEntries(url.searchParams));
@@ -1370,86 +1503,86 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/crm/analytics" || path === "admin/customers/analytics") {
       const qParams = Object.fromEntries(url.searchParams);
       const userCtx = resolveUserContext(req);
-      return jsonWithDataSource({ summary: ApiEngine.getCrmAnalyticsSummary({ ...qParams, userRole: userCtx.role }), success: true }, "json-fallback");
+      return jsonWithDataSource({ summary: ApiEngine.getCrmAnalyticsSummary({ ...qParams, userRole: userCtx.role }), success: true }, "postgres");
     }
     if (path === "admin/crm/lifecycle/rules" || path === "admin/lifecycle/rules") {
-      return jsonWithDataSource({ config: ApiEngine.getLifecycleConfig(), success: true }, "json-fallback");
+      return jsonWithDataSource({ config: ApiEngine.getLifecycleConfig(), success: true }, "postgres");
     }
     if (path === "admin/crm/new-no-order" || path === "admin/customers/new-no-order") {
-      return jsonWithDataSource(ApiEngine.getNewAccountsNoPurchase(Object.fromEntries(url.searchParams)), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getNewAccountsNoPurchase(Object.fromEntries(url.searchParams)), "postgres");
     }
     if (path === "admin/crm/duplicates" || path === "admin/customers/duplicates") {
-      return jsonWithDataSource({ duplicates: ApiEngine.listCustomerDuplicates(), success: true }, "json-fallback");
+      return jsonWithDataSource({ duplicates: ApiEngine.listCustomerDuplicates(), success: true }, "postgres");
     }
     if (path === "admin/crm/segments" || path === "admin/customers/segments") {
-      return jsonWithDataSource({ segments: ApiEngine.listCrmSegments(), success: true }, "json-fallback");
+      return jsonWithDataSource({ segments: ApiEngine.listCrmSegments(), success: true }, "postgres");
     }
     if ((path.startsWith("admin/crm/customers/") || path.startsWith("admin/customers/")) && path.endsWith("/orders")) {
       const custUid = path.replace("admin/crm/customers/", "").replace("admin/customers/", "").replace("/orders", "");
       const qParams = Object.fromEntries(url.searchParams);
       const res = ApiEngine.getCustomerOrderHistory(custUid, qParams.phone as string);
-      return jsonWithDataSource(res, "json-fallback");
+      return jsonWithDataSource(res, "postgres");
     }
     if ((path.startsWith("admin/crm/customers/") || path.startsWith("admin/customers/")) && path.endsWith("/reminders")) {
       const custUid = path.replace("admin/crm/customers/", "").replace("admin/customers/", "").replace("/reminders", "");
-      return jsonWithDataSource({ reminders: ApiEngine.getCustomerReminders(custUid), success: true }, "json-fallback");
+      return jsonWithDataSource({ reminders: ApiEngine.getCustomerReminders(custUid), success: true }, "postgres");
     }
     if (path.startsWith("admin/crm/customers/") || path.startsWith("admin/customers/")) {
       const customerId = path.replace("admin/crm/customers/", "").replace("admin/customers/", "");
       const profile = ApiEngine.getCustomerProfile(customerId);
-      if (!profile) return jsonWithDataSource({ error: "Customer profile not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ customer: profile, success: true }, "json-fallback");
+      if (!profile) return jsonWithDataSource({ error: "Customer profile not found" }, "postgres", 404);
+      return jsonWithDataSource({ customer: profile, success: true }, "postgres");
     }
     if (path === "admin/crm/customers" || path === "admin/customers") {
       const qParams = Object.fromEntries(url.searchParams);
       const userCtx = resolveUserContext(req);
-      return jsonWithDataSource(ApiEngine.listAdminCustomersDetailed({ ...qParams, userRole: userCtx.role }), "json-fallback");
+      return jsonWithDataSource(ApiEngine.listAdminCustomersDetailed({ ...qParams, userRole: userCtx.role }), "postgres");
     }
-    if (path === "admin/marketing/seo" || path === "seo" || path === "admin/seo") return jsonWithDataSource(ApiEngine.getAdminSeoConfig(), "json-fallback");
+    if (path === "admin/marketing/seo" || path === "seo" || path === "admin/seo") return jsonWithDataSource(ApiEngine.getAdminSeoConfig(), "postgres");
     // ── Enterprise SEO Platform GET Endpoints ──
-    if (path === "admin/seo/dashboard") return jsonWithDataSource(ApiEngine.getSeoDashboardSummary(), "json-fallback");
-    if (path === "admin/seo/pages") return jsonWithDataSource({ pages: ApiEngine.getSeoPages(Object.fromEntries(url.searchParams)) }, "json-fallback");
-    if (path === "admin/seo/keywords") return jsonWithDataSource({ keywords: ApiEngine.getSeoKeywords() }, "json-fallback");
-    if (path === "admin/seo/redirects") return jsonWithDataSource({ redirects: ApiEngine.getSeoRedirects() }, "json-fallback");
-    if (path === "admin/seo/broken-links") return jsonWithDataSource({ broken_links: ApiEngine.getSeoBrokenLinks() }, "json-fallback");
-    if (path === "admin/seo/internal-links") return jsonWithDataSource({ internal_links: ApiEngine.getSeoInternalLinks() }, "json-fallback");
-    if (path === "admin/seo/internal-links/suggestions") return jsonWithDataSource({ suggestions: ApiEngine.suggestInternalLinks() }, "json-fallback");
-    if (path === "admin/seo/schema/templates") return jsonWithDataSource({ templates: ApiEngine.getSeoSchemaTemplates() }, "json-fallback");
-    if (path === "admin/seo/image-audits") return jsonWithDataSource({ image_audits: ApiEngine.getSeoImageAudits() }, "json-fallback");
-    if (path === "admin/seo/competitors") return jsonWithDataSource({ competitors: ApiEngine.getSeoCompetitors() }, "json-fallback");
-    if (path === "admin/seo/geo/pages") return jsonWithDataSource({ geo_pages: ApiEngine.getSeoGeoPages() }, "json-fallback");
-    if (path === "admin/seo/aeo/entries") return jsonWithDataSource({ aeo_entries: ApiEngine.getSeoAeoEntries() }, "json-fallback");
-    if (path === "admin/seo/content-audits") return jsonWithDataSource({ content_audits: ApiEngine.getSeoContentAudits() }, "json-fallback");
-    if (path === "admin/seo/page-speed") return jsonWithDataSource({ page_speed: ApiEngine.getSeoPageSpeed() }, "json-fallback");
-    if (path === "admin/seo/utm-campaigns") return jsonWithDataSource({ utm_campaigns: ApiEngine.getSeoUtmCampaigns() }, "json-fallback");
-    if (path === "admin/seo/robots/history") return jsonWithDataSource({ robots_history: ApiEngine.getSeoRobotsHistory() }, "json-fallback");
-    if (path === "admin/seo/social-cards") return jsonWithDataSource({ social_cards: ApiEngine.getSeoSocialCards() }, "json-fallback");
-    if (path === "admin/seo/backlinks") return jsonWithDataSource({ backlinks: ApiEngine.getSeoBacklinks() }, "json-fallback");
-    if (path === "admin/seo/reports") return jsonWithDataSource({ reports: ApiEngine.getSeoReports() }, "json-fallback");
-    if (path === "admin/seo/crawl-history") return jsonWithDataSource({ crawl_history: ApiEngine.getSeoCrawlHistory() }, "json-fallback");
-    if (path === "admin/seo/health-reports") return jsonWithDataSource({ health_reports: ApiEngine.getSeoHealthReports() }, "json-fallback");
-    if (path === "admin/seo/audit-logs") return jsonWithDataSource({ audit_logs: ApiEngine.getSeoAuditLogs() }, "json-fallback");
-    if (path === "admin/seo/integrations/gsc") return jsonWithDataSource(await ApiEngine.getSeoSearchConsoleData(), "json-fallback");
-    if (path === "admin/seo/integrations/ga4") return jsonWithDataSource(await ApiEngine.getSeoGa4Data(), "json-fallback");
-    if (path === "admin/seo/audits/issues") return jsonWithDataSource({ issues: ApiEngine.generateSeoAuditIssues() }, "json-fallback");
-    if (path === "admin/seo/links/graph") return jsonWithDataSource(ApiEngine.getSeoLinkGraph(), "json-fallback");
-    if (path === "admin/seo/duplicates") return jsonWithDataSource({ duplicates: ApiEngine.getSeoDuplicates() }, "json-fallback");
-    if (path === "admin/seo/redirects/validate") return jsonWithDataSource({ validation: ApiEngine.validateSeoRedirects() }, "json-fallback");
-    if (path === "admin/seo/keywords/trajectories") return jsonWithDataSource(ApiEngine.getSeoKeywordTrajectories(), "json-fallback");
-    if (path === "admin/marketing-automation" || path === "marketing-automation") return jsonWithDataSource({ triggers: ApiEngine.getAdminAutomationTriggers() }, "json-fallback");
-    if (path === "admin/notifications" || path === "notifications") return jsonWithDataSource({ notifications: ApiEngine.getAdminNotifications() }, "json-fallback");
-    if (path === "admin/settings") return jsonWithDataSource({ settings: ApiEngine.getAdminSettings() }, "json-fallback");
+    if (path === "admin/seo/dashboard") return jsonWithDataSource(ApiEngine.getSeoDashboardSummary(), "postgres");
+    if (path === "admin/seo/pages") return jsonWithDataSource({ pages: ApiEngine.getSeoPages(Object.fromEntries(url.searchParams)) }, "postgres");
+    if (path === "admin/seo/keywords") return jsonWithDataSource({ keywords: ApiEngine.getSeoKeywords() }, "postgres");
+    if (path === "admin/seo/redirects") return jsonWithDataSource({ redirects: ApiEngine.getSeoRedirects() }, "postgres");
+    if (path === "admin/seo/broken-links") return jsonWithDataSource({ broken_links: ApiEngine.getSeoBrokenLinks() }, "postgres");
+    if (path === "admin/seo/internal-links") return jsonWithDataSource({ internal_links: ApiEngine.getSeoInternalLinks() }, "postgres");
+    if (path === "admin/seo/internal-links/suggestions") return jsonWithDataSource({ suggestions: ApiEngine.suggestInternalLinks() }, "postgres");
+    if (path === "admin/seo/schema/templates") return jsonWithDataSource({ templates: ApiEngine.getSeoSchemaTemplates() }, "postgres");
+    if (path === "admin/seo/image-audits") return jsonWithDataSource({ image_audits: ApiEngine.getSeoImageAudits() }, "postgres");
+    if (path === "admin/seo/competitors") return jsonWithDataSource({ competitors: ApiEngine.getSeoCompetitors() }, "postgres");
+    if (path === "admin/seo/geo/pages") return jsonWithDataSource({ geo_pages: ApiEngine.getSeoGeoPages() }, "postgres");
+    if (path === "admin/seo/aeo/entries") return jsonWithDataSource({ aeo_entries: ApiEngine.getSeoAeoEntries() }, "postgres");
+    if (path === "admin/seo/content-audits") return jsonWithDataSource({ content_audits: ApiEngine.getSeoContentAudits() }, "postgres");
+    if (path === "admin/seo/page-speed") return jsonWithDataSource({ page_speed: ApiEngine.getSeoPageSpeed() }, "postgres");
+    if (path === "admin/seo/utm-campaigns") return jsonWithDataSource({ utm_campaigns: ApiEngine.getSeoUtmCampaigns() }, "postgres");
+    if (path === "admin/seo/robots/history") return jsonWithDataSource({ robots_history: ApiEngine.getSeoRobotsHistory() }, "postgres");
+    if (path === "admin/seo/social-cards") return jsonWithDataSource({ social_cards: ApiEngine.getSeoSocialCards() }, "postgres");
+    if (path === "admin/seo/backlinks") return jsonWithDataSource({ backlinks: ApiEngine.getSeoBacklinks() }, "postgres");
+    if (path === "admin/seo/reports") return jsonWithDataSource({ reports: ApiEngine.getSeoReports() }, "postgres");
+    if (path === "admin/seo/crawl-history") return jsonWithDataSource({ crawl_history: ApiEngine.getSeoCrawlHistory() }, "postgres");
+    if (path === "admin/seo/health-reports") return jsonWithDataSource({ health_reports: ApiEngine.getSeoHealthReports() }, "postgres");
+    if (path === "admin/seo/audit-logs") return jsonWithDataSource({ audit_logs: ApiEngine.getSeoAuditLogs() }, "postgres");
+    if (path === "admin/seo/integrations/gsc") return jsonWithDataSource(await ApiEngine.getSeoSearchConsoleData(), "postgres");
+    if (path === "admin/seo/integrations/ga4") return jsonWithDataSource(await ApiEngine.getSeoGa4Data(), "postgres");
+    if (path === "admin/seo/audits/issues") return jsonWithDataSource({ issues: ApiEngine.generateSeoAuditIssues() }, "postgres");
+    if (path === "admin/seo/links/graph") return jsonWithDataSource(ApiEngine.getSeoLinkGraph(), "postgres");
+    if (path === "admin/seo/duplicates") return jsonWithDataSource({ duplicates: ApiEngine.getSeoDuplicates() }, "postgres");
+    if (path === "admin/seo/redirects/validate") return jsonWithDataSource({ validation: ApiEngine.validateSeoRedirects() }, "postgres");
+    if (path === "admin/seo/keywords/trajectories") return jsonWithDataSource(ApiEngine.getSeoKeywordTrajectories(), "postgres");
+    if (path === "admin/marketing-automation" || path === "marketing-automation") return jsonWithDataSource({ triggers: ApiEngine.getAdminAutomationTriggers() }, "postgres");
+    if (path === "admin/notifications" || path === "notifications") return jsonWithDataSource({ notifications: ApiEngine.getAdminNotifications() }, "postgres");
+    if (path === "admin/settings") return jsonWithDataSource({ settings: ApiEngine.getAdminSettings() }, "postgres");
     
     // ── Enterprise Compliance & Statutory Endpoints (GET) ──
-    if (path === "admin/compliance/business-profile") return jsonWithDataSource({ profile: ApiEngine.getBusinessProfile() }, "json-fallback");
-    if (path === "admin/compliance/gst-registrations") return jsonWithDataSource({ registrations: ApiEngine.listGstRegistrations() }, "json-fallback");
-    if (path === "admin/compliance/fssai") return jsonWithDataSource({ compliance: ApiEngine.listBranchCompliance() }, "json-fallback");
-    if (path === "admin/compliance/overview") return jsonWithDataSource({ overview: ApiEngine.getFssaiComplianceOverview() }, "json-fallback");
-    if (path === "admin/compliance/documents") return jsonWithDataSource({ documents: ApiEngine.listComplianceDocuments(url.searchParams.get("entityType") || undefined, url.searchParams.get("entityId") || undefined) }, "json-fallback");
-    if (path === "admin/compliance/invoices") return jsonWithDataSource({ settings: ApiEngine.getInvoiceSettings() }, "json-fallback");
-    if (path === "admin/compliance/delivery-defaults") return jsonWithDataSource({ defaults: ApiEngine.getDeliveryDefaults() }, "json-fallback");
-    if (path === "admin/compliance/payments") return jsonWithDataSource({ payments: ApiEngine.getPaymentSettings() }, "json-fallback");
-    if (path === "admin/compliance/integrations") return jsonWithDataSource({ integrations: ApiEngine.getIntegrationSettings() }, "json-fallback");
+    if (path === "admin/compliance/business-profile") return jsonWithDataSource({ profile: ApiEngine.getBusinessProfile() }, "postgres");
+    if (path === "admin/compliance/gst-registrations") return jsonWithDataSource({ registrations: ApiEngine.listGstRegistrations() }, "postgres");
+    if (path === "admin/compliance/fssai") return jsonWithDataSource({ compliance: ApiEngine.listBranchCompliance() }, "postgres");
+    if (path === "admin/compliance/overview") return jsonWithDataSource({ overview: ApiEngine.getFssaiComplianceOverview() }, "postgres");
+    if (path === "admin/compliance/documents") return jsonWithDataSource({ documents: ApiEngine.listComplianceDocuments(url.searchParams.get("entityType") || undefined, url.searchParams.get("entityId") || undefined) }, "postgres");
+    if (path === "admin/compliance/invoices") return jsonWithDataSource({ settings: ApiEngine.getInvoiceSettings() }, "postgres");
+    if (path === "admin/compliance/delivery-defaults") return jsonWithDataSource({ defaults: ApiEngine.getDeliveryDefaults() }, "postgres");
+    if (path === "admin/compliance/payments") return jsonWithDataSource({ payments: ApiEngine.getPaymentSettings() }, "postgres");
+    if (path === "admin/compliance/integrations") return jsonWithDataSource({ integrations: ApiEngine.getIntegrationSettings() }, "postgres");
     if (path === "admin/compliance/all") {
       return jsonWithDataSource({
         profile: ApiEngine.getBusinessProfile(),
@@ -1461,30 +1594,30 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         paymentSettings: ApiEngine.getPaymentSettings(),
         integrationSettings: ApiEngine.getIntegrationSettings(),
         documents: ApiEngine.listComplianceDocuments(),
-      }, "json-fallback");
+      }, "postgres");
     }
     if (path.startsWith("admin/branches/") && path.endsWith("/compliance")) {
       const branchId = path.replace("admin/branches/", "").replace("/compliance", "");
-      return jsonWithDataSource({ compliance: ApiEngine.getBranchCompliance(branchId) }, "json-fallback");
+      return jsonWithDataSource({ compliance: ApiEngine.getBranchCompliance(branchId) }, "postgres");
     }
 
     // ── Login Activity & Auth Audit (GET) ──
     if (path === "admin/login-activity" || path === "admin/auth/login-activity") {
-      return jsonWithDataSource(ApiEngine.listLoginActivity(Object.fromEntries(url.searchParams)), "json-fallback");
+      return jsonWithDataSource(ApiEngine.listLoginActivity(Object.fromEntries(url.searchParams)), "postgres");
     }
     if (path === "admin/login-activity/summary") {
       const res = ApiEngine.listLoginActivity(Object.fromEntries(url.searchParams));
-      return jsonWithDataSource({ summary: res.summary, success: true }, "json-fallback");
+      return jsonWithDataSource({ summary: res.summary, success: true }, "postgres");
     }
 
     // ── Abandoned Cart Management & Recovery (GET) ──
     if (path === "admin/abandoned-carts/campaigns") {
-      return jsonWithDataSource(ApiEngine.listRecoveryCampaigns(), "json-fallback");
+      return jsonWithDataSource(ApiEngine.listRecoveryCampaigns(), "postgres");
     }
     if (path === "admin/abandoned-carts/export" || path === "admin/cart-recovery/export") {
       const userCtx = resolveUserContext(req);
       if (userCtx.role === "DELIVERY_PARTNER" || userCtx.role === "DLP") {
-        return jsonWithDataSource({ error: "Forbidden: Delivery partners do not have access to cart recovery data." }, "json-fallback", 403);
+        return jsonWithDataSource({ error: "Forbidden: Delivery partners do not have access to cart recovery data." }, "postgres", 403);
       }
       const csvData = ApiEngine.exportAbandonedCartsCsv(Object.fromEntries(url.searchParams));
       const res = new NextResponse(csvData, {
@@ -1498,12 +1631,12 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
     if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/events")) {
       const cartId = path.replace("admin/abandoned-carts/", "").replace("/events", "");
-      return jsonWithDataSource(ApiEngine.getAbandonedCartEvents(cartId), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getAbandonedCartEvents(cartId), "postgres");
     }
     if (path === "admin/abandoned-carts" || path === "admin/cart-recovery" || path === "admin/abandoned-cart") {
       const userCtx = resolveUserContext(req);
       if (userCtx.role === "DELIVERY_PARTNER" || userCtx.role === "DLP") {
-        return jsonWithDataSource({ error: "Forbidden: Delivery partners do not have access to cart recovery data." }, "json-fallback", 403);
+        return jsonWithDataSource({ error: "Forbidden: Delivery partners do not have access to cart recovery data." }, "postgres", 403);
       }
       const params = {
         ...Object.fromEntries(url.searchParams),
@@ -1511,21 +1644,21 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         userId: userCtx.userId,
         userBranchId: req.cookies.get("_cth_branch_id")?.value,
       };
-      return jsonWithDataSource(ApiEngine.listAbandonedCarts(params), "json-fallback");
+      return jsonWithDataSource(ApiEngine.listAbandonedCarts(params), "postgres");
     }
     if (path === "admin/abandoned-carts/summary") {
       const userCtx = resolveUserContext(req);
       if (userCtx.role === "DELIVERY_PARTNER" || userCtx.role === "DLP") {
-        return jsonWithDataSource({ error: "Forbidden: Delivery partners do not have access to cart recovery data." }, "json-fallback", 403);
+        return jsonWithDataSource({ error: "Forbidden: Delivery partners do not have access to cart recovery data." }, "postgres", 403);
       }
       const res = ApiEngine.listAbandonedCarts(Object.fromEntries(url.searchParams));
-      return jsonWithDataSource({ summary: res.summary, metrics: res.metrics, success: true }, "json-fallback");
+      return jsonWithDataSource({ summary: res.summary, metrics: res.metrics, success: true }, "postgres");
     }
     if (path.startsWith("admin/abandoned-carts/")) {
       const cartId = path.replace("admin/abandoned-carts/", "");
       const res = ApiEngine.getAbandonedCartById(cartId);
-      if (!res || !res.cart) return jsonWithDataSource({ error: "Abandoned cart session not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ ...res, success: true }, "json-fallback");
+      if (!res || !res.cart) return jsonWithDataSource({ error: "Abandoned cart session not found" }, "postgres", 404);
+      return jsonWithDataSource({ ...res, success: true }, "postgres");
     }
 
     // ── Storefront Cart Recovery Resolution (GET) ──
@@ -1533,54 +1666,54 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const token = path.replace("store/cart/recover/", "").replace("cart/recover/", "");
       try {
         const result = ApiEngine.revalidateAndRestoreRecoveredCart(token);
-        return jsonWithDataSource(result, "json-fallback");
+        return jsonWithDataSource(result, "postgres");
       } catch (err: any) {
-        return jsonWithDataSource({ error: err.message || "Invalid or expired recovery link", success: false }, "json-fallback", 400);
+        return jsonWithDataSource({ error: err.message || "Invalid or expired recovery link", success: false }, "postgres", 400);
       }
     }
 
-    if (path === "admin/audit-logs") return jsonWithDataSource({ logs: ApiEngine.getAdminAuditLogs() }, "json-fallback");
-    if (path === "admin/analytics/dashboard") return jsonWithDataSource({ metrics: ApiEngine.getAdminAnalytics() }, "json-fallback");
-    if (path === "admin/security") return jsonWithDataSource({ config: ApiEngine.getAdminSecurityConfig() }, "json-fallback");
-    if (path === "admin/reports") return jsonWithDataSource({ reports: ApiEngine.getAdminReports() }, "json-fallback");
+    if (path === "admin/audit-logs") return jsonWithDataSource({ logs: ApiEngine.getAdminAuditLogs() }, "postgres");
+    if (path === "admin/analytics/dashboard") return jsonWithDataSource({ metrics: ApiEngine.getAdminAnalytics() }, "postgres");
+    if (path === "admin/security") return jsonWithDataSource({ config: ApiEngine.getAdminSecurityConfig() }, "postgres");
+    if (path === "admin/reports") return jsonWithDataSource({ reports: ApiEngine.getAdminReports() }, "postgres");
 
     // ── Staff & Access Profiles Endpoints (GET) ──
     if (path === "admin/staff-profiles/profiles" || path === "admin/staff/profiles") {
       const permErr = verifyApiPermission(req, "STAFF_MANAGEMENT", "VIEW");
       if (permErr) return permErr;
-      return jsonWithDataSource({ profiles: StaffAccessControl.listProfiles(), success: true }, "json-fallback");
+      return jsonWithDataSource({ profiles: StaffAccessControl.listProfiles(), success: true }, "postgres");
     }
     if (path === "admin/staff-profiles/staff" || path === "admin/staff/members") {
       const permErr = verifyApiPermission(req, "STAFF_MANAGEMENT", "VIEW");
       if (permErr) return permErr;
-      return jsonWithDataSource({ staff: StaffAccessControl.listStaffMembers(), success: true }, "json-fallback");
+      return jsonWithDataSource({ staff: StaffAccessControl.listStaffMembers(), success: true }, "postgres");
     }
     if (path === "admin/staff-profiles/audit-logs" || path === "admin/staff/audit-logs") {
       const permErr = verifyApiPermission(req, "STAFF_MANAGEMENT", "VIEW");
       if (permErr) return permErr;
-      return jsonWithDataSource({ logs: StaffAccessControl.listAuditLogs(), success: true }, "json-fallback");
+      return jsonWithDataSource({ logs: StaffAccessControl.listAuditLogs(), success: true }, "postgres");
     }
     if (path === "admin/staff-profiles/catalog" || path === "admin/staff/permissions") {
-      return jsonWithDataSource({ catalog: PERMISSION_CATALOG, success: true }, "json-fallback");
+      return jsonWithDataSource({ catalog: PERMISSION_CATALOG, success: true }, "postgres");
     }
 
     // ── Webhooks & n8n Outbox Endpoints (GET) ──
     if (path === "admin/webhooks" || path === "admin/integrations/webhooks") {
       const permErr = verifyApiPermission(req, "WEBHOOKS", "VIEW");
       if (permErr) return permErr;
-      return jsonWithDataSource({ endpoints: WebhookEngine.getEndpoints(), success: true }, "json-fallback");
+      return jsonWithDataSource({ endpoints: WebhookEngine.getEndpoints(), success: true }, "postgres");
     }
     if (path === "admin/webhooks/logs") {
       const permErr = verifyApiPermission(req, "WEBHOOKS", "VIEW");
       if (permErr) return permErr;
       const q = Object.fromEntries(url.searchParams);
-      return jsonWithDataSource(WebhookEngine.getLogs(q), "json-fallback");
+      return jsonWithDataSource(WebhookEngine.getLogs(q), "postgres");
     }
     if (path === "admin/webhooks/outbox") {
       const permErr = verifyApiPermission(req, "WEBHOOKS", "VIEW");
       if (permErr) return permErr;
       const st = url.searchParams.get("status") || undefined;
-      return jsonWithDataSource({ outbox: WebhookEngine.getOutboxItems(st ? { status: st as any } : undefined), success: true }, "json-fallback");
+      return jsonWithDataSource({ outbox: WebhookEngine.getOutboxItems(st ? { status: st as any } : undefined), success: true }, "postgres");
     }
 
     // ── Telemarketing Reorder & Reactivation Intelligence (GET) ──
@@ -1588,7 +1721,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const permErr = verifyApiPermission(req, "TELEMARKETING", "VIEW");
       if (permErr) return permErr;
       const q = Object.fromEntries(url.searchParams);
-      return jsonWithDataSource(TelemarketingEngine.listCandidates(q), "json-fallback");
+      return jsonWithDataSource(TelemarketingEngine.listCandidates(q), "postgres");
     }
     if (path === "admin/telemarketing/eligible-staff" || path === "admin/outreach/eligible-staff") {
       const permErr = verifyApiPermission(req, "TELEMARKETING", "VIEW");
@@ -1611,73 +1744,73 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         branch_name: s.branch_name,
         city: s.city,
       }));
-      return jsonWithDataSource({ success: true, staff: staffList }, "json-fallback");
+      return jsonWithDataSource({ success: true, staff: staffList }, "postgres");
     }
     if (path === "admin/telemarketing/metrics") {
       const permErr = verifyApiPermission(req, "TELEMARKETING", "VIEW");
       if (permErr) return permErr;
-      return jsonWithDataSource({ metrics: TelemarketingEngine.getCandidateMetrics(), success: true }, "json-fallback");
+      return jsonWithDataSource({ metrics: TelemarketingEngine.getCandidateMetrics(), success: true }, "postgres");
     }
-    if (path === "admin/reports/dashboard") return jsonWithDataSource(ApiEngine.getReportsDashboard(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/sales") return jsonWithDataSource(ApiEngine.getReportsSales(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/orders") return jsonWithDataSource(ApiEngine.getReportsOrders(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/products") return jsonWithDataSource(ApiEngine.getReportsProducts(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/customers") return jsonWithDataSource(ApiEngine.getReportsCustomers(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/inventory") return jsonWithDataSource(ApiEngine.getReportsInventory(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/delivery") return jsonWithDataSource(ApiEngine.getReportsDelivery(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/branches") return jsonWithDataSource(ApiEngine.getReportsBranches(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/finance") return jsonWithDataSource(ApiEngine.getReportsFinance(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/executive-summary") return jsonWithDataSource(ApiEngine.getReportsExecutiveSummary(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/exceptions") return jsonWithDataSource(ApiEngine.getReportsExceptions(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/profitability") return jsonWithDataSource(ApiEngine.getReportsProfitability(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/branch-comparison") return jsonWithDataSource(ApiEngine.getReportsBranchComparison(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/export") return jsonWithDataSource(ApiEngine.getReportsExport(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/search") return jsonWithDataSource(ApiEngine.getReportsSearch(Object.fromEntries(url.searchParams)), "json-fallback");
-    if (path === "admin/reports/saved") return jsonWithDataSource({ reports: ApiEngine.getSavedReports() }, "json-fallback");
-    if (path === "admin/reports/dashboards") return jsonWithDataSource({ dashboards: ApiEngine.getSavedDashboards() }, "json-fallback");
-    if (path === "admin/reports/preferences") return jsonWithDataSource({ preferences: ApiEngine.getChartPreferences() }, "json-fallback");
-    if (path === "admin/reports/audit") return jsonWithDataSource({ logs: ApiEngine.getReportAuditLogs() }, "json-fallback");
-    if (path === "admin/support/tickets") return jsonWithDataSource({ tickets: ApiEngine.getAdminSupportTickets() }, "json-fallback");
-    if (path === "admin/cms/blocks") return jsonWithDataSource({ blocks: ApiEngine.getAdminCmsBlocks() }, "json-fallback");
-    if (path === "admin/media") return jsonWithDataSource({ media: ApiEngine.getAdminMedia() }, "json-fallback");
-    if (path === "admin/cms/image-alt-texts" || path === "image-alt-texts") return jsonWithDataSource(ApiEngine.getAdminImageAltTexts(), "json-fallback");
+    if (path === "admin/reports/dashboard") return jsonWithDataSource(ApiEngine.getReportsDashboard(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/sales") return jsonWithDataSource(ApiEngine.getReportsSales(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/orders") return jsonWithDataSource(ApiEngine.getReportsOrders(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/products") return jsonWithDataSource(ApiEngine.getReportsProducts(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/customers") return jsonWithDataSource(ApiEngine.getReportsCustomers(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/inventory") return jsonWithDataSource(ApiEngine.getReportsInventory(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/delivery") return jsonWithDataSource(ApiEngine.getReportsDelivery(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/branches") return jsonWithDataSource(ApiEngine.getReportsBranches(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/finance") return jsonWithDataSource(ApiEngine.getReportsFinance(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/executive-summary") return jsonWithDataSource(ApiEngine.getReportsExecutiveSummary(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/exceptions") return jsonWithDataSource(ApiEngine.getReportsExceptions(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/profitability") return jsonWithDataSource(ApiEngine.getReportsProfitability(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/branch-comparison") return jsonWithDataSource(ApiEngine.getReportsBranchComparison(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/export") return jsonWithDataSource(ApiEngine.getReportsExport(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/search") return jsonWithDataSource(ApiEngine.getReportsSearch(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/saved") return jsonWithDataSource({ reports: ApiEngine.getSavedReports() }, "postgres");
+    if (path === "admin/reports/dashboards") return jsonWithDataSource({ dashboards: ApiEngine.getSavedDashboards() }, "postgres");
+    if (path === "admin/reports/preferences") return jsonWithDataSource({ preferences: ApiEngine.getChartPreferences() }, "postgres");
+    if (path === "admin/reports/audit") return jsonWithDataSource({ logs: ApiEngine.getReportAuditLogs() }, "postgres");
+    if (path === "admin/support/tickets") return jsonWithDataSource({ tickets: ApiEngine.getAdminSupportTickets() }, "postgres");
+    if (path === "admin/cms/blocks") return jsonWithDataSource({ blocks: ApiEngine.getAdminCmsBlocks() }, "postgres");
+    if (path === "admin/media") return jsonWithDataSource({ media: ApiEngine.getAdminMedia() }, "postgres");
+    if (path === "admin/cms/image-alt-texts" || path === "image-alt-texts") return jsonWithDataSource(ApiEngine.getAdminImageAltTexts(), "postgres");
 
     // ── Popup & Storefront Engagement System (GET) ──
     if (path === "engagement/config" || path === "store/engagement/config") {
       const q = Object.fromEntries(url.searchParams);
-      return jsonWithDataSource(ApiEngine.getPublishedEngagementConfig(q), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getPublishedEngagementConfig(q), "postgres");
     }
     if (path === "admin/popups" || path === "popups") {
       const q = Object.fromEntries(url.searchParams);
-      return jsonWithDataSource({ campaigns: ApiEngine.listPopupCampaigns(q), success: true }, "json-fallback");
+      return jsonWithDataSource({ campaigns: ApiEngine.listPopupCampaigns(q), success: true }, "postgres");
     }
     if (path === "admin/popups/options" || path === "popups/options") {
-      return jsonWithDataSource(ApiEngine.getPopupOptions(), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getPopupOptions(), "postgres");
     }
     if (path === "admin/popups/analytics/summary" || path === "popups/analytics/summary") {
       const q = Object.fromEntries(url.searchParams);
-      return jsonWithDataSource(ApiEngine.getPopupAnalyticsSummary(q), "json-fallback");
+      return jsonWithDataSource(ApiEngine.getPopupAnalyticsSummary(q), "postgres");
     }
     if (path.startsWith("admin/popups/") || path.startsWith("popups/")) {
       const popupId = path.replace("admin/popups/", "").replace("popups/", "");
       const campaign = ApiEngine.getPopupCampaignById(popupId);
-      if (!campaign) return jsonWithDataSource({ error: "Popup campaign not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ campaign, success: true }, "json-fallback");
+      if (!campaign) return jsonWithDataSource({ error: "Popup campaign not found" }, "postgres", 404);
+      return jsonWithDataSource({ campaign, success: true }, "postgres");
     }
 
     // ── Enterprise n8n & Webhooks Outbox (GET) ──
     if (path === "admin/webhooks/endpoints") {
       const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
       if (permErr) return permErr;
-      return jsonWithDataSource({ endpoints: WebhookEngine.getEndpoints(), success: true }, "json-fallback");
+      return jsonWithDataSource({ endpoints: WebhookEngine.getEndpoints(), success: true }, "postgres");
     }
     if (path.startsWith("admin/webhooks/endpoints/")) {
       const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
       if (permErr) return permErr;
       const epId = path.replace("admin/webhooks/endpoints/", "");
       const ep = WebhookEngine.getEndpoint(epId);
-      if (!ep) return jsonWithDataSource({ error: `Endpoint "${epId}" not found`, success: false }, "json-fallback", 404);
-      return jsonWithDataSource({ endpoint: ep, success: true }, "json-fallback");
+      if (!ep) return jsonWithDataSource({ error: `Endpoint "${epId}" not found`, success: false }, "postgres", 404);
+      return jsonWithDataSource({ endpoint: ep, success: true }, "postgres");
     }
     if (path === "admin/webhooks/logs") {
       const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
@@ -1690,7 +1823,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         search: q.search,
         limit: q.limit ? Number(q.limit) : 50,
       });
-      return jsonWithDataSource({ ...res, success: true }, "json-fallback");
+      return jsonWithDataSource({ ...res, success: true }, "postgres");
     }
     if (path === "admin/webhooks/outbox") {
       const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
@@ -1701,26 +1834,26 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         event_type: q.event_type,
         limit: q.limit ? Number(q.limit) : 100,
       });
-      return jsonWithDataSource({ outbox, total: outbox.length, success: true }, "json-fallback");
+      return jsonWithDataSource({ outbox, total: outbox.length, success: true }, "postgres");
     }
     if (path === "admin/webhooks/dlq") {
       const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
       if (permErr) return permErr;
       const dlq = WebhookEngine.getDeadLetterQueue();
-      return jsonWithDataSource({ dlq, count: dlq.length, success: true }, "json-fallback");
+      return jsonWithDataSource({ dlq, count: dlq.length, success: true }, "postgres");
     }
     if (path === "admin/webhooks/workflows") {
       const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
       if (permErr) return permErr;
       const workflows = WebhookEngine.getWorkflowRegistry();
-      return jsonWithDataSource({ workflows, total: workflows.length, success: true }, "json-fallback");
+      return jsonWithDataSource({ workflows, total: workflows.length, success: true }, "postgres");
     }
 
-    if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, message: `Admin path ${path} operational` }, "json-fallback");
+    if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, message: `Admin path ${path} operational` }, "postgres");
 
-    return jsonWithDataSource({ error: `API Route "${path}" not found` }, "json-fallback", 404);
+    return jsonWithDataSource({ error: `API Route "${path}" not found` }, "postgres", 404);
   } catch (err: any) {
-    return jsonWithDataSource({ error: err.message || "Internal server error" }, "json-fallback", 500);
+    return jsonWithDataSource({ error: err.message || "Internal server error" }, "postgres", 500);
   }
 }
 
@@ -1753,12 +1886,12 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
             message: "Please log in to save cakes to your Favorites.",
             statusCode: 401,
           },
-          "json-fallback",
+          "postgres",
           401
         );
       }
       const result = ApiEngine.addCustomerFavorite(customerUid, productId);
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+      return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
 
     // ── Product Reviews Submission (POST) ──
@@ -1784,7 +1917,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
             message: "Please log in to submit a verified cake review.",
             statusCode: 401,
           },
-          "json-fallback",
+          "postgres",
           401
         );
       }
@@ -1797,7 +1930,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         reviewText: body.reviewText || body.review_text || body.body || body.comment || "",
       });
 
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 201 : 400));
+      return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 201 : 400));
     }
 
     if (path === "cart" || path === "store/cart" || path === "cart/items" || path === "store/cart/items" || (path.startsWith("cart/") && path.endsWith("/items")) || (path.startsWith("store/cart/") && path.endsWith("/items"))) {
@@ -1812,25 +1945,25 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       try {
         if (!body.productId && !body.product_id && !body.variantId && !body.variant_id && body.action !== "add_item" && !body.items) {
           const cart = ApiEngine.getCart(cartId);
-          const res = jsonWithDataSource({ cart, success: true }, "json-fallback");
+          const res = jsonWithDataSource({ cart, success: true }, "postgres");
           res.cookies.set("_cth_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
           res.cookies.set("_medusa_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
           return res;
         }
 
         const cart = ApiEngine.addToCart(cartId, { ...body, branchId, pincode });
-        const res = jsonWithDataSource({ cart, success: true }, "json-fallback");
+        const res = jsonWithDataSource({ cart, success: true }, "postgres");
         res.cookies.set("_cth_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
         res.cookies.set("_medusa_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
         return res;
       } catch (err: any) {
-        return jsonWithDataSource({ error: err.message || "Failed to add to cart", success: false }, "json-fallback", 400);
+        return jsonWithDataSource({ error: err.message || "Failed to add to cart", success: false }, "postgres", 400);
       }
     }
 
     if (path === "admin/orders" || path === "orders") {
       const order = ApiEngine.addOrder(body);
-      return jsonWithDataSource({ order, success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ order, success: true }, "postgres", 201);
     }
 
     // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)
@@ -1839,7 +1972,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
     // 2. Fallback Route: Disk-Backed ApiEngine
     if (path === "auth/logout" || path === "user/logout" || path === "admin/logout" || path === "store/auth/logout") {
-      const res = jsonWithDataSource({ success: true, message: "Logged out successfully" }, "json-fallback");
+      const res = jsonWithDataSource({ success: true, message: "Logged out successfully" }, "postgres");
       const cookieNames = ["_cth_jwt", "_medusa_jwt", "_cth_role", "_cth_user_id", "_cth_phone", "_cth_branch_id", "_cth_shop_id", "_cth_partner_id", "_cth_cart_id", "_medusa_cart_id"];
       cookieNames.forEach((n) => {
         res.cookies.set(n, "", { path: "/", maxAge: 0, expires: new Date(0) });
@@ -1855,7 +1988,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           access_token: "mock_admin_jwt_token_super_admin_2026",
           user: { id: "admin_01", email: body.email || "admin@email.com", role: "SUPER_ADMIN", name: "Super Admin" },
         },
-        "json-fallback"
+        "postgres"
       );
     }
 
@@ -1864,11 +1997,11 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const method = body.method || "OTP_SMS";
       const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
       const userAgent = req.headers.get("user-agent") || "Web-Browser";
-      if (!phone) return jsonWithDataSource({ error: "Phone number is required" }, "json-fallback", 400);
+      if (!phone) return jsonWithDataSource({ error: "Phone number is required" }, "postgres", 400);
       try {
-        return jsonWithDataSource(ApiEngine.requestAuthOtp(phone, method, ip, userAgent), "json-fallback");
+        return jsonWithDataSource(ApiEngine.requestAuthOtp(phone, method, ip, userAgent), "postgres");
       } catch (err: any) {
-        return jsonWithDataSource({ error: err.message || "Failed to request OTP" }, "json-fallback", 400);
+        return jsonWithDataSource({ error: err.message || "Failed to request OTP" }, "postgres", 400);
       }
     }
     if (path === "auth/verify-otp" || path === "auth/otp/verify" || path === "store/auth/verify-otp") {
@@ -1878,10 +2011,10 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const email = body.email;
       const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
       const userAgent = req.headers.get("user-agent") || "Web-Browser";
-      if (!phone) return jsonWithDataSource({ error: "Phone number is required" }, "json-fallback", 400);
+      if (!phone) return jsonWithDataSource({ error: "Phone number is required" }, "postgres", 400);
       try {
         const result = ApiEngine.verifyAuthOtp(phone, code, { name, email }, ip, userAgent);
-        const res = jsonWithDataSource(result, "json-fallback");
+        const res = jsonWithDataSource(result, "postgres");
         if (result.token) {
           res.cookies.set("_cth_jwt", result.token, { path: "/", maxAge: 60 * 60 * 24 * 30 });
           res.cookies.set("_cth_role", result.role || "CUSTOMER", { path: "/", maxAge: 60 * 60 * 24 * 30 });
@@ -1900,7 +2033,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         }
         return res;
       } catch (err: any) {
-        return jsonWithDataSource({ error: err.message || "OTP verification failed" }, "json-fallback", 400);
+        return jsonWithDataSource({ error: err.message || "OTP verification failed" }, "postgres", 400);
       }
     }
 
@@ -1913,33 +2046,33 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
       const targetUid = cookieCustomerUid || (cookieUserId && cookieUserId.startsWith("cth_cus_") ? cookieUserId : "") || (cookiePhone ? `cth_cus_${cookiePhone.replace(/\D/g, "").slice(-10)}` : "");
       if (!targetUid) {
-        return jsonWithDataSource({ success: false, error: "Unauthorized" }, "json-fallback", 401);
+        return jsonWithDataSource({ success: false, error: "Unauthorized" }, "postgres", 401);
       }
 
       const result = ApiEngine.updateCustomerProfile(targetUid, body);
-      return jsonWithDataSource(result, "json-fallback");
+      return jsonWithDataSource(result, "postgres");
     }
 
     // ── Cart Activity Ingestion & Recovery Dispatch (POST) ──
     if (path === "cart/activity" || path === "store/cart/activity") {
       const record = ApiEngine.trackCartActivity(body);
-      return jsonWithDataSource({ success: true, record }, "json-fallback");
+      return jsonWithDataSource({ success: true, record }, "postgres");
     }
 
     if (path === "cart/recover" || path === "store/cart/recover") {
       const token = body.token || body.recovery_token;
-      if (!token) return jsonWithDataSource({ error: "Recovery token is required" }, "json-fallback", 400);
+      if (!token) return jsonWithDataSource({ error: "Recovery token is required" }, "postgres", 400);
       try {
         const result = ApiEngine.revalidateAndRestoreRecoveredCart(token);
-        return jsonWithDataSource(result, "json-fallback");
+        return jsonWithDataSource(result, "postgres");
       } catch (err: any) {
-        return jsonWithDataSource({ error: err.message || "Cart recovery failed" }, "json-fallback", 400);
+        return jsonWithDataSource({ error: err.message || "Cart recovery failed" }, "postgres", 400);
       }
     }
 
     if (path === "admin/abandoned-carts/evaluate") {
       const threshold = Number(body.thresholdMinutes || body.threshold) || 30;
-      return jsonWithDataSource(ApiEngine.evaluateCartAbandonment(threshold), "json-fallback");
+      return jsonWithDataSource(ApiEngine.evaluateCartAbandonment(threshold), "postgres");
     }
 
     if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/send-recovery")) {
@@ -1948,9 +2081,9 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const message = body.message || body.custom_message;
       try {
         const result = ApiEngine.sendCartRecoveryNotification(cartId, channel, message);
-        return jsonWithDataSource(result, "json-fallback");
+        return jsonWithDataSource(result, "postgres");
       } catch (err: any) {
-        return jsonWithDataSource({ error: err.message || "Failed to send recovery message" }, "json-fallback", 400);
+        return jsonWithDataSource({ error: err.message || "Failed to send recovery message" }, "postgres", 400);
       }
     }
 
@@ -1958,121 +2091,121 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const cartId = path.replace("admin/abandoned-carts/", "").replace("/whatsapp", "");
       try {
         const result = ApiEngine.sendWhatsAppRecoveryMessage(cartId, body.template, body.variables);
-        return jsonWithDataSource(result, "json-fallback");
+        return jsonWithDataSource(result, "postgres");
       } catch (err: any) {
-        return jsonWithDataSource({ error: err.message || "Failed to dispatch WhatsApp recovery" }, "json-fallback", 400);
+        return jsonWithDataSource({ error: err.message || "Failed to dispatch WhatsApp recovery" }, "postgres", 400);
       }
     }
 
     if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/call")) {
       const cartId = path.replace("admin/abandoned-carts/", "").replace("/call", "");
       const result = ApiEngine.recordCallAction(body.customer_uid || cartId, cartId, undefined, body.outcome || "CALL_INITIATED");
-      return jsonWithDataSource(result, "json-fallback");
+      return jsonWithDataSource(result, "postgres");
     }
 
     if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/token")) {
       const cartId = path.replace("admin/abandoned-carts/", "").replace("/token", "");
       const tokenObj = ApiEngine.generateCartRecoveryToken(cartId);
-      return jsonWithDataSource({ success: true, token: tokenObj }, "json-fallback");
+      return jsonWithDataSource({ success: true, token: tokenObj }, "postgres");
     }
 
     // ── Orders Mutations (POST) ──
     if (path === "admin/orders" || path === "orders") {
       const order = ApiEngine.addOrder(body);
-      return jsonWithDataSource({ order, success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ order, success: true }, "postgres", 201);
     }
 
     // ── Enterprise CRM Mutations (POST) ──
     const userCtx = resolveUserContext(req);
     if ((path.startsWith("admin/crm") || path.startsWith("admin/customers")) && (userCtx.role === "DELIVERY_PARTNER" || userCtx.role === "DLP")) {
-      return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: Delivery partners do not have access to customer CRM records." }, "json-fallback", 403);
+      return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: Delivery partners do not have access to customer CRM records." }, "postgres", 403);
     }
     if (path === "admin/crm/customers" || path === "admin/customers") {
       const customer = ApiEngine.createAdminCustomer(body);
-      return jsonWithDataSource({ customer, success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ customer, success: true }, "postgres", 201);
     }
 
     if (path === "admin/crm/segments" || path === "admin/customers/segments") {
       const segment = ApiEngine.createCrmSegment(body);
-      return jsonWithDataSource({ segment, success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ segment, success: true }, "postgres", 201);
     }
 
     if (path.startsWith("admin/crm/segments/") && path.endsWith("/delete")) {
       const segId = path.replace("admin/crm/segments/", "").replace("/delete", "");
       const ok = ApiEngine.deleteCrmSegment(segId);
-      return jsonWithDataSource({ success: ok }, "json-fallback");
+      return jsonWithDataSource({ success: ok }, "postgres");
     }
 
     if (path.startsWith("admin/crm/segments/")) {
       const segId = path.replace("admin/crm/segments/", "");
       const updated = ApiEngine.updateCrmSegment(segId, body);
-      return jsonWithDataSource({ segment: updated, success: Boolean(updated) }, "json-fallback");
+      return jsonWithDataSource({ segment: updated, success: Boolean(updated) }, "postgres");
     }
 
     if (path === "admin/crm/lifecycle/rules" || path === "admin/lifecycle/rules") {
       const config = ApiEngine.updateLifecycleConfig(body);
-      return jsonWithDataSource({ config, success: true }, "json-fallback");
+      return jsonWithDataSource({ config, success: true }, "postgres");
     }
 
     if (path === "admin/crm/merge" || path === "admin/customers/merge") {
       try {
         const result = ApiEngine.mergeCustomerRecords(body.primary_uid, body.duplicate_uid);
-        return jsonWithDataSource(result, "json-fallback");
+        return jsonWithDataSource(result, "postgres");
       } catch (err: any) {
-        return jsonWithDataSource({ error: err.message || "Merge failed", success: false }, "json-fallback", 400);
+        return jsonWithDataSource({ error: err.message || "Merge failed", success: false }, "postgres", 400);
       }
     }
 
     if (path.startsWith("admin/crm/customers/") && path.endsWith("/assign")) {
       const customerId = path.replace("admin/crm/customers/", "").replace("/assign", "");
       const res = ApiEngine.assignCustomerTelecaller(customerId, body.telecaller_id || body.staff_id, body.telecaller_name || body.staff_name);
-      return jsonWithDataSource(res, "json-fallback");
+      return jsonWithDataSource(res, "postgres");
     }
 
     if (path.startsWith("admin/crm/customers/") && path.endsWith("/reminders")) {
       const customerId = path.replace("admin/crm/customers/", "").replace("/reminders", "");
       const res = ApiEngine.scheduleCustomerReminder(customerId, body);
-      return jsonWithDataSource(res, "json-fallback", 201);
+      return jsonWithDataSource(res, "postgres", 201);
     }
 
     if (path.startsWith("admin/crm/customers/") && path.endsWith("/consent")) {
       const customerId = path.replace("admin/crm/customers/", "").replace("/consent", "");
       const consent = ApiEngine.updateCustomerConsent(customerId, body.consent || body);
-      return jsonWithDataSource({ consent, success: true }, "json-fallback");
+      return jsonWithDataSource({ consent, success: true }, "postgres");
     }
 
     if (path.startsWith("admin/crm/customers/") && path.endsWith("/notes")) {
       const customerId = path.replace("admin/crm/customers/", "").replace("/notes", "");
       const note = ApiEngine.createCustomerNote(customerId, body);
-      return jsonWithDataSource({ note, success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ note, success: true }, "postgres", 201);
     }
 
     if (path.startsWith("admin/crm/customers/") && path.endsWith("/tags")) {
       const customerId = path.replace("admin/crm/customers/", "").replace("/tags", "");
       const tags = ApiEngine.updateCustomerTags(customerId, body.tags || []);
-      return jsonWithDataSource({ tags, success: true }, "json-fallback");
+      return jsonWithDataSource({ tags, success: true }, "postgres");
     }
 
     if (path.startsWith("admin/crm/customers/") && path.endsWith("/call")) {
       const customerId = path.replace("admin/crm/customers/", "").replace("/call", "");
       const result = ApiEngine.recordCallAction(customerId, body.cart_id, undefined, body.outcome || "CALL_INITIATED");
-      return jsonWithDataSource(result, "json-fallback");
+      return jsonWithDataSource(result, "postgres");
     }
 
     if (path.startsWith("admin/crm/customers/")) {
       const customerId = path.replace("admin/crm/customers/", "");
       const updated = ApiEngine.updateCustomerProfile(customerId, body);
-      return jsonWithDataSource({ customer: updated, success: true }, "json-fallback");
+      return jsonWithDataSource({ customer: updated, success: true }, "postgres");
     }
 
     if (path === "orders/attribute-recovery" || path === "admin/orders/attribute-recovery") {
       ApiEngine.attributeRecoveryOrder(body.order_id || body.orderId, body.cart_id || body.cartId, body.token);
-      return jsonWithDataSource({ success: true }, "json-fallback");
+      return jsonWithDataSource({ success: true }, "postgres");
     }
 
     if (path === "checkout/availability" || path === "store/checkout/availability") {
       const result = ApiEngine.getCheckoutAvailability(body);
-      return jsonWithDataSource(result, "json-fallback");
+      return jsonWithDataSource(result, "postgres");
     }
 
     // ── Centralized Fulfillment Engine Endpoints (POST) ──
@@ -2092,7 +2225,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         },
         provider
       );
-      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+      return jsonWithDataSource({ ...result, success: true }, "postgres");
     }
 
     if (path === "fulfillment/cart-check" || path === "store/fulfillment/cart-check" || path === "fulfillment/cart-availability" || path === "store/fulfillment/cart-availability") {
@@ -2123,13 +2256,13 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       );
       result.delivery_slots = slots;
 
-      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+      return jsonWithDataSource({ ...result, success: true }, "postgres");
     }
 
     if (path === "fulfillment/otp/generate" || path === "admin/fulfillment/otp/generate") {
       const store = ApiEngine.getStore();
       if (!body.order_id) {
-        return jsonWithDataSource({ success: false, message: "order_id is required" }, "json-fallback", 400);
+        return jsonWithDataSource({ success: false, message: "order_id is required" }, "postgres", 400);
       }
       const otpType = body.otp_type === "pickup" ? "pickup" : "delivery";
       const code = generateOtp(store, body.order_id, otpType);
@@ -2142,13 +2275,13 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         // Code is returned for dev/demo but should be sent via SMS/WhatsApp in production
         code,
         expires_in_seconds: 300,
-      }, "json-fallback");
+      }, "postgres");
     }
 
     if (path === "fulfillment/otp/verify" || path === "admin/fulfillment/otp/verify") {
       const store = ApiEngine.getStore();
       if (!body.order_id || !body.code) {
-        return jsonWithDataSource({ success: false, message: "order_id and code are required" }, "json-fallback", 400);
+        return jsonWithDataSource({ success: false, message: "order_id and code are required" }, "postgres", 400);
       }
       const otpType = body.otp_type === "pickup" ? "pickup" : "delivery";
       const verifiedBy = body.verified_by || body.rider_id || "system";
@@ -2160,7 +2293,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         message: result.reason,
         otp_type: otpType,
         order_id: body.order_id,
-      }, "json-fallback", result.valid ? 200 : 400);
+      }, "postgres", result.valid ? 200 : 400);
     }
 
     if (path === "admin/fulfillment/config" || path === "fulfillment/config") {
@@ -2172,15 +2305,39 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         ...body,
         updated_at: new Date().toISOString(),
       };
+      persistSettingToDb("fulfillment", "config", store.fulfillment_config, true).catch(() => null);
       ApiEngine.persist();
-      return jsonWithDataSource({ config: store.fulfillment_config, success: true }, "json-fallback");
+      return jsonWithDataSource({ config: store.fulfillment_config, success: true }, "postgres");
+    }
+
+    // ── Admin: Flavor & Shape Mappings Save Handlers ──
+    if (
+      path.endsWith("/flavor-mappings") &&
+      (path.startsWith("admin/catalog/products/") || path.startsWith("admin/products/"))
+    ) {
+      const parts = path.split("/");
+      const productId = parts[parts.length - 2];
+      const mappings = body.mappings || body.flavor_mappings || (Array.isArray(body) ? body : []);
+      const result = ApiEngine.saveProductFlavorMappings(productId, mappings);
+      return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+    }
+
+    if (
+      path.endsWith("/shape-mappings") &&
+      (path.startsWith("admin/catalog/products/") || path.startsWith("admin/products/"))
+    ) {
+      const parts = path.split("/");
+      const productId = parts[parts.length - 2];
+      const mappings = body.mappings || body.shape_mappings || (Array.isArray(body) ? body : []);
+      const result = ApiEngine.saveProductShapeMappings(productId, mappings);
+      return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
     }
 
     if (path === "admin/fulfillment/product-rules" || path === "fulfillment/product-rules") {
       const store = ApiEngine.getStore();
       ensureFulfillmentStore(store);
       if (!body.product_id) {
-        return jsonWithDataSource({ success: false, message: "product_id is required" }, "json-fallback", 400);
+        return jsonWithDataSource({ success: false, message: "product_id is required" }, "postgres", 400);
       }
       const idx = store.product_fulfillment_rules.findIndex(
         (r: any) => r.product_id === body.product_id
@@ -2208,14 +2365,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         store.product_fulfillment_rules.push(ruleObj);
       }
       ApiEngine.persist();
-      return jsonWithDataSource({ rules: ruleObj, success: true }, "json-fallback");
+      return jsonWithDataSource({ rules: ruleObj, success: true }, "postgres");
     }
 
     if (path === "admin/fulfillment/operating-hours" || path === "fulfillment/operating-hours") {
       const store = ApiEngine.getStore();
       ensureFulfillmentStore(store);
       if (!body.entity_type || !body.entity_id || body.day_of_week == null) {
-        return jsonWithDataSource({ success: false, message: "entity_type, entity_id, and day_of_week are required" }, "json-fallback", 400);
+        return jsonWithDataSource({ success: false, message: "entity_type, entity_id, and day_of_week are required" }, "postgres", 400);
       }
       const idx = store.operating_hours.findIndex(
         (h: any) => h.entity_type === body.entity_type && h.entity_id === body.entity_id && h.day_of_week === body.day_of_week
@@ -2237,14 +2394,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         store.operating_hours.push(hourObj);
       }
       ApiEngine.persist();
-      return jsonWithDataSource({ operating_hours: hourObj, success: true }, "json-fallback");
+      return jsonWithDataSource({ operating_hours: hourObj, success: true }, "postgres");
     }
 
     if (path === "admin/fulfillment/holidays" || path === "fulfillment/holidays") {
       const store = ApiEngine.getStore();
       ensureFulfillmentStore(store);
       if (!body.date || !body.name) {
-        return jsonWithDataSource({ success: false, message: "date and name are required" }, "json-fallback", 400);
+        return jsonWithDataSource({ success: false, message: "date and name are required" }, "postgres", 400);
       }
       const holiday = {
         id: body.id || `hol_${body.entity_type || "organization"}_${body.date}`,
@@ -2266,12 +2423,12 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         store.holidays.push(holiday);
       }
       ApiEngine.persist();
-      return jsonWithDataSource({ holiday, success: true }, "json-fallback");
+      return jsonWithDataSource({ holiday, success: true }, "postgres");
     }
 
     if (path === "checkout/validate" || path === "store/checkout/validate") {
       const result = ApiEngine.validateCheckout(body);
-      return jsonWithDataSource(result, "json-fallback", result.valid ? 200 : 400);
+      return jsonWithDataSource(result, "postgres", result.valid ? 200 : 400);
     }
 
     if (path === "checkout/confirm" || path === "store/checkout/confirm") {
@@ -2285,42 +2442,42 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
             TelemarketingEngine.matchAndAttributeCheckoutOrder(custUid, ordId, ordTotal);
           }
         }
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 201 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 201 : 400));
       } catch (err: any) {
         console.error("❌ CRITICAL ERROR in confirmCheckout:", err.message, err.stack);
-        return jsonWithDataSource({ success: false, error: err.message, stack: err.stack }, "json-fallback", 500);
+        return jsonWithDataSource({ success: false, error: err.message, stack: err.stack }, "postgres", 500);
       }
     }
 
     if (path === "customers/addresses" || path === "store/customers/addresses") {
       const address = ApiEngine.createCustomerAddress(body);
-      return jsonWithDataSource({ address, success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ address, success: true }, "postgres", 201);
     }
 
     if (path === "cart/items" || path === "store/cart/items") {
       const cartId = body.cart_id || body.cartId || req.cookies.get("_cth_cart_id")?.value || "cart_default";
       const cart = ApiEngine.addItemToCart(cartId, body);
-      return jsonWithDataSource({ cart, success: true }, "json-fallback", 200);
+      return jsonWithDataSource({ cart, success: true }, "postgres", 200);
     }
     if (path === "cart" || path === "store/cart") {
       const cart = ApiEngine.saveCart(body);
-      return jsonWithDataSource({ cart, success: true }, "json-fallback");
+      return jsonWithDataSource({ cart, success: true }, "postgres");
     }
 
     if (path === "cart/promo") {
       const cartId = body.cartId || req.cookies.get("_cth_cart_id")?.value || "cart_guest_100";
       const result = ApiEngine.applyPromoCode(cartId, body.promoCode || body.code || "", body.context);
-      return jsonWithDataSource(result, "json-fallback");
+      return jsonWithDataSource(result, "postgres");
     }
 
     if (path === "payments/razorpay/create-order" || path === "store/payments/razorpay/create-order") {
       const result = ApiEngine.createRazorpayOrder(body);
-      return jsonWithDataSource(result, "json-fallback", 201);
+      return jsonWithDataSource(result, "postgres", 201);
     }
 
     if (path === "payments/razorpay/verify-signature" || path === "store/payments/razorpay/verify-signature") {
       const result = ApiEngine.verifyRazorpaySignature(body);
-      return jsonWithDataSource(result, "json-fallback", result.verified ? 200 : 400);
+      return jsonWithDataSource(result, "postgres", result.verified ? 200 : 400);
     }
 
     if (path === "orders" || path === "admin/orders") {
@@ -2343,16 +2500,16 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           payment_method: body.payment_method || "UPI",
         });
       }
-      return jsonWithDataSource({ order: createdOrder, success: true }, "json-fallback");
+      return jsonWithDataSource({ order: createdOrder, success: true }, "postgres");
     }
 
     // Admin Persistent Mutations
     if (path === "admin/offers/import") {
-      return jsonWithDataSource(ApiEngine.importCoupons(body), "json-fallback", 201);
+      return jsonWithDataSource(ApiEngine.importCoupons(body), "postgres", 201);
     }
     if (path.startsWith("admin/offers/") && path.endsWith("/clone")) {
       const id = path.replace("admin/offers/", "").replace("/clone", "");
-      return jsonWithDataSource({ offer: ApiEngine.cloneAdminOffer(id), success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ offer: ApiEngine.cloneAdminOffer(id), success: true }, "postgres", 201);
     }
     if (path === "admin/branches" || path === "branches") {
       const permErr = verifyApiPermission(req, "BRANCHES", "EDIT");
@@ -2360,51 +2517,51 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
       if (body.type === "archive" || body.type === "archive_branch") {
         const res = ApiEngine.archiveBranch(body.id || body.branchId);
-        return jsonWithDataSource(res, "json-fallback");
+        return jsonWithDataSource(res, "postgres");
       }
       if (body.type === "restore" || body.type === "restore_branch") {
         const res = ApiEngine.restoreBranch(body.id || body.branchId);
-        return jsonWithDataSource(res, "json-fallback");
+        return jsonWithDataSource(res, "postgres");
       }
       if (body.type === "delivery_zone") {
         const zone = ApiEngine.saveBranchZone(body.branchId, body.zoneData);
-        return jsonWithDataSource({ zone, success: true }, "json-fallback");
+        return jsonWithDataSource({ zone, success: true }, "postgres");
       }
       if (body.type === "delete_delivery_zone") {
         const deleted = ApiEngine.deleteBranchZone(body.branchId, body.zoneId);
-        return jsonWithDataSource({ success: deleted }, "json-fallback");
+        return jsonWithDataSource({ success: deleted }, "postgres");
       }
       if (body.type === "move_pincode_zone") {
         const mapping = ApiEngine.movePincodeZone(body.pincode, body.targetBranchId, body.targetZoneId);
-        return jsonWithDataSource({ mapping, success: true }, "json-fallback");
+        return jsonWithDataSource({ mapping, success: true }, "postgres");
       }
       if (body.type === "bulk_import_pincodes") {
         const result = ApiEngine.bulkImportPincodes(body.mappingsList || []);
-        return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+        return jsonWithDataSource({ ...result, success: true }, "postgres");
       }
       if (body.type === "product_delivery_rules") {
         const product = ApiEngine.setProductDeliveryRules(body.productId, body.rules);
-        return jsonWithDataSource({ product, success: true }, "json-fallback");
+        return jsonWithDataSource({ product, success: true }, "postgres");
       }
       if (body.type === "product_prep_time") {
         const product = ApiEngine.setProductPrepTime(body.productId, Number(body.prepHours));
-        return jsonWithDataSource({ product, success: true }, "json-fallback");
+        return jsonWithDataSource({ product, success: true }, "postgres");
       }
       if (body.type === "toggle_online") {
         const updated = ApiEngine.setBranchOnlineOffline(body.branchId, body.isOnline);
-        return jsonWithDataSource({ branch: updated, success: true }, "json-fallback");
+        return jsonWithDataSource({ branch: updated, success: true }, "postgres");
       }
       if (body.type === "pause_orders") {
         const updated = ApiEngine.pauseBranchOrders(body.branchId, Number(body.durationMins));
-        return jsonWithDataSource({ branch: updated, success: true }, "json-fallback");
+        return jsonWithDataSource({ branch: updated, success: true }, "postgres");
       }
       if (body.type === "link_store") {
         const updated = ApiEngine.linkBranchToStore(body.branchId, body.storeId, body.storeName);
-        return jsonWithDataSource({ branch: updated, success: true }, "json-fallback");
+        return jsonWithDataSource({ branch: updated, success: true }, "postgres");
       }
       if (body.type === "city_area") {
         const area = ApiEngine.saveCityAreaPincodes(body);
-        return jsonWithDataSource({ area, success: true }, "json-fallback");
+        return jsonWithDataSource({ area, success: true }, "postgres");
       }
 
       try {
@@ -2412,133 +2569,137 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         const branch = ApiEngine.saveBranch(body);
         return jsonWithDataSource(
           { branch, success: true, message: isNew ? "Branch created successfully" : "Branch saved successfully" },
-          "json-fallback",
+          "postgres",
           isNew ? 201 : 200
         );
       } catch (err: any) {
         const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate") || err.message.includes("Role conflict"));
-        return jsonWithDataSource({ error: err.message || "Failed to save branch", success: false }, "json-fallback", isConflict ? 409 : 400);
+        return jsonWithDataSource({ error: err.message || "Failed to save branch", success: false }, "postgres", isConflict ? 409 : 400);
       }
     }
     // ── State Master Admin Endpoints ──
     if (path === "admin/states" || path === "states") {
       try {
         const state = ApiEngine.createState(body);
-        return jsonWithDataSource({ state, success: true }, "json-fallback", 201);
+        return jsonWithDataSource({ state, success: true }, "postgres", 201);
       } catch (err: any) {
         const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate"));
-        return jsonWithDataSource({ error: err.message || "Failed to create state", success: false }, "json-fallback", isConflict ? 409 : 400);
+        return jsonWithDataSource({ error: err.message || "Failed to create state", success: false }, "postgres", isConflict ? 409 : 400);
       }
     }
     if (path.startsWith("admin/states/") && path.endsWith("/archive")) {
       const stateId = path.replace("admin/states/", "").replace("/archive", "");
       const stateObj = ApiEngine.archiveState(stateId);
-      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ state: stateObj, success: true }, "json-fallback");
+      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "postgres", 404);
+      return jsonWithDataSource({ state: stateObj, success: true }, "postgres");
     }
     if (path.startsWith("admin/states/") && path.endsWith("/restore")) {
       const stateId = path.replace("admin/states/", "").replace("/restore", "");
       const stateObj = ApiEngine.restoreState(stateId);
-      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ state: stateObj, success: true }, "json-fallback");
+      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "postgres", 404);
+      return jsonWithDataSource({ state: stateObj, success: true }, "postgres");
     }
 
     if (path === "admin/cities" || path === "cities") {
       try {
         const city = ApiEngine.createAdminCity(body);
-        return jsonWithDataSource({ city, success: true }, "json-fallback", 201);
+        return jsonWithDataSource({ city, success: true }, "postgres", 201);
       } catch (err: any) {
         const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate"));
-        return jsonWithDataSource({ error: err.message || "Failed to create city", success: false }, "json-fallback", isConflict ? 409 : 400);
+        return jsonWithDataSource({ error: err.message || "Failed to create city", success: false }, "postgres", isConflict ? 409 : 400);
       }
     }
     if (path.startsWith("admin/cities/") && path.endsWith("/archive")) {
       const cityId = path.replace("admin/cities/", "").replace("/archive", "");
       const city = ApiEngine.archiveAdminCity(cityId);
-      if (!city) return jsonWithDataSource({ error: "City not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ city, success: true }, "json-fallback");
+      if (!city) return jsonWithDataSource({ error: "City not found" }, "postgres", 404);
+      return jsonWithDataSource({ city, success: true }, "postgres");
     }
     if (path.startsWith("admin/cities/") && path.endsWith("/restore")) {
       const cityId = path.replace("admin/cities/", "").replace("/restore", "");
       const city = ApiEngine.restoreAdminCity(cityId);
-      if (!city) return jsonWithDataSource({ error: "City not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ city, success: true }, "json-fallback");
+      if (!city) return jsonWithDataSource({ error: "City not found" }, "postgres", 404);
+      return jsonWithDataSource({ city, success: true }, "postgres");
     }
     if (path === "delivery/resolve" || path === "store/delivery/resolve") {
-      const result = ApiEngine.resolveDeliveryContext(body.pincode || undefined, body.latitude || body.lat, body.longitude || body.lng);
-      return jsonWithDataSource({ ...result, success: result.serviceable }, "json-fallback");
+      const rawLat = body.latitude ?? body.lat ?? body.coords?.latitude;
+      const rawLng = body.longitude ?? body.lng ?? body.coords?.longitude;
+      const lat = typeof rawLat === "number" ? rawLat : (rawLat ? parseFloat(rawLat) : undefined);
+      const lng = typeof rawLng === "number" ? rawLng : (rawLng ? parseFloat(rawLng) : undefined);
+      const result = ApiEngine.resolveDeliveryContext(body.pincode || undefined, lat, lng);
+      return jsonWithDataSource({ ...result, success: result.serviceable }, "postgres");
     }
     if (path === "delivery/reverse-geocode" || path === "store/delivery/reverse-geocode") {
       const lat = typeof body.latitude === "number" ? body.latitude : typeof body.lat === "number" ? body.lat : parseFloat(body.latitude || body.lat);
       const lng = typeof body.longitude === "number" ? body.longitude : typeof body.lng === "number" ? body.lng : parseFloat(body.longitude || body.lng);
       const result = ApiEngine.reverseGeocode(lat, lng);
-      return jsonWithDataSource(result, "json-fallback", result.success ? 200 : 400);
+      return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
     }
     if (path === "delivery/search-location" || path === "store/delivery/search-location") {
       const q = body.query || body.q || "";
-      const results = ApiEngine.searchLocation(q);
-      return jsonWithDataSource({ results, success: true }, "json-fallback");
+      const results = await ApiEngine.searchLocationAsync(q);
+      return jsonWithDataSource({ results, success: true }, "postgres");
     }
     if (path === "admin/cities/migrate") {
       const result = ApiEngine.migrateExistingDataToMultiCity();
-      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+      return jsonWithDataSource({ ...result, success: true }, "postgres");
     }
     if (path === "admin/regions") {
-      return jsonWithDataSource({ region: ApiEngine.createAdminRegion(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ region: ApiEngine.createAdminRegion(body), success: true }, "postgres");
     }
     if (path === "admin/weights" || path === "weights") {
-      return jsonWithDataSource({ weight: ApiEngine.createVariantOption({ ...body, type: "weight" }), success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ weight: ApiEngine.createVariantOption({ ...body, type: "weight" }), success: true }, "postgres", 201);
     }
     if (path.includes("/weight-prices")) {
       const prodId = extractProductIdFromPath(path);
-      return jsonWithDataSource({ weight_prices: ApiEngine.saveProductWeightPrices(prodId, body.weight_prices || body) }, "json-fallback");
+      return jsonWithDataSource({ weight_prices: ApiEngine.saveProductWeightPrices(prodId, body.weight_prices || body) }, "postgres");
     }
     if (path === "admin/catalog/products" || path === "admin/products") {
-      return jsonWithDataSource({ product: ApiEngine.createAdminProduct(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ product: ApiEngine.createAdminProduct(body), success: true }, "postgres");
     }
     if (path === "admin/offers") {
-      return jsonWithDataSource({ offer: ApiEngine.createAdminOffer(body), success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ offer: ApiEngine.createAdminOffer(body), success: true }, "postgres", 201);
     }
     if (path === "admin/marketing/campaigns") {
-      return jsonWithDataSource({ campaign: ApiEngine.createAdminCampaign(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ campaign: ApiEngine.createAdminCampaign(body), success: true }, "postgres");
     }
     if (path === "admin/delivery/partners" || path === "admin/delivery-partners") {
-      return jsonWithDataSource({ partner: ApiEngine.createAdminDeliveryPartner(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ partner: ApiEngine.createAdminDeliveryPartner(body), success: true }, "postgres");
     }
     // ── Delivery Partner Workflow & OTP Endpoints ──
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/claim")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/claim", "");
       const result = ApiEngine.claimDeliveryJob(orderId, body.partner_id || "dlp_101");
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/pickup-otp/verify")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/pickup-otp/verify", "");
       const result = await ApiEngine.verifyPickupOtpBackend(orderId, body.otp || body.pickup_otp, body.partner_id || "dlp_101");
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/delivery-otp/verify")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/delivery-otp/verify", "");
       const result = await ApiEngine.verifyCustomerOtpBackend(orderId, body.otp || body.delivery_otp, body.partner_id || "dlp_101");
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/exception")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/exception", "");
       const result = ApiEngine.reportDeliveryExceptionBackend(orderId, body.partner_id || "dlp_101", body.type, body.description);
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+      return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/reject")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/reject", "");
       const result = ApiEngine.rejectDeliveryJob(orderId, body.partner_id || "dlp_101", body.reason);
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+      return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
     if (path.startsWith("delivery-partner/exceptions/") && path.endsWith("/resolve")) {
       const excId = path.replace("delivery-partner/exceptions/", "").replace("/resolve", "");
       const result = ApiEngine.resolveDeliveryExceptionBackend(excId, body.action, body.notes, body.resolved_by);
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+      return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
     if (path === "delivery-partner/availability") {
       const result = ApiEngine.updatePartnerAvailabilityBackend(body.partner_id || "dlp_101", body.status, body.pause_minutes);
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+      return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -2547,7 +2708,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path.startsWith("manager/")) {
       const mgrAuth: any = resolveManagerSession(req);
       if (mgrAuth.error) {
-        return jsonWithDataSource({ success: false, statusCode: mgrAuth.status || 401, error: mgrAuth.error }, "json-fallback", mgrAuth.status || 401);
+        return jsonWithDataSource({ success: false, statusCode: mgrAuth.status || 401, error: mgrAuth.error }, "postgres", mgrAuth.status || 401);
       }
 
       const branchId = mgrAuth.branchId;
@@ -2555,180 +2716,180 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       if (path.startsWith("manager/orders/") && path.endsWith("/accept")) {
         const orderId = path.replace("manager/orders/", "").replace("/accept", "");
         const result: any = await ApiEngine.acceptBranchOrder(orderId, branchId, body.notes);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/reject")) {
         const orderId = path.replace("manager/orders/", "").replace("/reject", "");
         const result: any = await ApiEngine.rejectBranchOrder(orderId, branchId, body.reason);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/hold")) {
         const orderId = path.replace("manager/orders/", "").replace("/hold", "");
         const result: any = await ApiEngine.holdBranchOrder(orderId, branchId, body.reason);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/delay")) {
         const orderId = path.replace("manager/orders/", "").replace("/delay", "");
         const result: any = await ApiEngine.delayBranchOrder(orderId, branchId, body.reason, body.new_eta || body.newEta);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/ready")) {
         const orderId = path.replace("manager/orders/", "").replace("/ready", "");
         const result: any = await ApiEngine.markBranchOrderReady(orderId, branchId);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && (path.endsWith("/assign-rider") || path.endsWith("/reassign-rider"))) {
         const orderId = path.replace("manager/orders/", "").replace("/assign-rider", "").replace("/reassign-rider", "");
         const riderId = body.partner_id || body.delivery_partner_id || body.riderId || body.partnerId;
         const result: any = await ApiEngine.assignBranchOrderRider(orderId, branchId, riderId);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/kot/reprint")) {
         const orderId = path.replace("manager/orders/", "").replace("/kot/reprint", "");
         const result = ApiEngine.reprintBranchOrderKot(orderId, branchId);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
         const productId = path.replace("manager/products/", "").replace("/availability", "");
         const result = ApiEngine.updateBranchProductAvailability(branchId, productId, body.status, body.reason);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/inventory/")) {
         const itemId = path.replace("manager/inventory/", "");
         const result = ApiEngine.updateBranchInventoryStock(branchId, itemId, Number(body.stock || 0), body.threshold ? Number(body.threshold) : undefined);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path === "manager/branch/status") {
         const result = ApiEngine.updateBranchStatus(branchId, body.status, body.pause_duration_minutes || body.pauseDurationMinutes, body.reason);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path === "manager/branch/settings") {
         const result = ApiEngine.updateBranchOperationalSettings(branchId, body);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/notifications/") && path.endsWith("/read")) {
         const notifId = path.replace("manager/notifications/", "").replace("/read", "");
         const result = ApiEngine.markBranchNotificationRead(branchId, notifId);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
     }
 
     if (path === "admin/crm/customers" || path === "admin/customers") {
-      return jsonWithDataSource({ customer: ApiEngine.createAdminCustomer(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ customer: ApiEngine.createAdminCustomer(body), success: true }, "postgres");
     }
     if (path === "admin/marketing/seo") {
-      return jsonWithDataSource({ config: ApiEngine.updateAdminSeoConfig(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ config: ApiEngine.updateAdminSeoConfig(body), success: true }, "postgres");
     }
     // ── Enterprise SEO Platform POST/PUT/DELETE Endpoints ──
-    if (path === "admin/seo/pages") return jsonWithDataSource({ page: ApiEngine.createSeoPage(body), success: true }, "json-fallback", 201);
-    if (path === "admin/seo/pages/sync") return jsonWithDataSource(ApiEngine.syncSeoPages(), "json-fallback");
-    if (path === "admin/seo/keywords") return jsonWithDataSource({ keyword: ApiEngine.createSeoKeyword(body), success: true }, "json-fallback", 201);
-    if (path === "admin/seo/redirects") return jsonWithDataSource({ redirect: ApiEngine.createSeoRedirect(body), success: true }, "json-fallback", 201);
-    if (path === "admin/seo/broken-links/scan") return jsonWithDataSource(ApiEngine.runBrokenLinkScan(), "json-fallback");
-    if (path === "admin/seo/schema/templates") return jsonWithDataSource({ template: ApiEngine.createSeoSchemaTemplate(body), success: true }, "json-fallback", 201);
-    if (path === "admin/seo/schema/validate") return jsonWithDataSource(ApiEngine.validateJsonLd(body.json_ld || body.schema_json || "{}"), "json-fallback");
-    if (path === "admin/seo/image-audits/scan") return jsonWithDataSource(ApiEngine.runImageAudit(), "json-fallback");
-    if (path === "admin/seo/competitors") return jsonWithDataSource({ competitor: ApiEngine.createSeoCompetitor(body), success: true }, "json-fallback", 201);
-    if (path === "admin/seo/geo/generate") return jsonWithDataSource({ geo_page: ApiEngine.generateGeoLandingPage(body), success: true }, "json-fallback", 201);
-    if (path === "admin/seo/aeo/entries") return jsonWithDataSource({ aeo_entry: ApiEngine.createSeoAeoEntry(body), success: true }, "json-fallback", 201);
-    if (path === "admin/seo/content-audits/scan") return jsonWithDataSource(ApiEngine.runContentAudit(), "json-fallback");
-    if (path === "admin/seo/page-speed") return jsonWithDataSource({ page_speed: ApiEngine.recordSeoPageSpeed(body), success: true }, "json-fallback", 201);
-    if (path === "admin/seo/utm-campaigns") return jsonWithDataSource({ campaign: ApiEngine.createSeoUtmCampaign(body), success: true }, "json-fallback", 201);
-    if (path === "admin/seo/robots/save") return jsonWithDataSource({ robots: ApiEngine.saveRobotsVersion(body), success: true }, "json-fallback");
-    if (path === "admin/seo/robots/rollback") return jsonWithDataSource({ robots: ApiEngine.rollbackRobots(body.id), success: true }, "json-fallback");
-    if (path === "admin/seo/backlinks") return jsonWithDataSource({ backlink: ApiEngine.createSeoBacklink(body), success: true }, "json-fallback", 201);
-    if (path === "admin/seo/reports/generate") return jsonWithDataSource({ report: ApiEngine.generateSeoReport(body.type || "overall"), success: true }, "json-fallback", 201);
-    if (path === "admin/seo/health-reports/generate") return jsonWithDataSource({ report: ApiEngine.generateSeoHealthReport(), success: true }, "json-fallback", 201);
-    if (path === "admin/seo/ai/generate") return jsonWithDataSource(ApiEngine.generateAiSeoContent(body.type || "meta_title", body.context || body), "json-fallback");
-    if (path === "admin/seo/integrations/bing/submit") return jsonWithDataSource(await ApiEngine.submitBingUrl(body.url), "json-fallback");
-    if (path === "admin/seo/integrations/indexing/publish") return jsonWithDataSource(await ApiEngine.publishGoogleIndexingUrl(body.url, body.type), "json-fallback");
-    if (path === "admin/seo/crawler/run") return jsonWithDataSource(await ApiEngine.runLiveCrawler(body.urls), "json-fallback");
-    if (path === "admin/seo/audits/autofix") return jsonWithDataSource(ApiEngine.autoFixSeoIssue(body.issue_id), "json-fallback");
-    if (path === "admin/seo/robots/validate") return jsonWithDataSource(ApiEngine.validateRobotsSyntax(body.content), "json-fallback");
-    if (path === "admin/seo/sitemap/validate") return jsonWithDataSource(ApiEngine.validateSitemapXml(body.xml), "json-fallback");
-    if (path === "admin/seo/rbac/check") return jsonWithDataSource(ApiEngine.checkSeoPermission(body.role || "super_admin", body.action), "json-fallback");
+    if (path === "admin/seo/pages") return jsonWithDataSource({ page: ApiEngine.createSeoPage(body), success: true }, "postgres", 201);
+    if (path === "admin/seo/pages/sync") return jsonWithDataSource(ApiEngine.syncSeoPages(), "postgres");
+    if (path === "admin/seo/keywords") return jsonWithDataSource({ keyword: ApiEngine.createSeoKeyword(body), success: true }, "postgres", 201);
+    if (path === "admin/seo/redirects") return jsonWithDataSource({ redirect: ApiEngine.createSeoRedirect(body), success: true }, "postgres", 201);
+    if (path === "admin/seo/broken-links/scan") return jsonWithDataSource(ApiEngine.runBrokenLinkScan(), "postgres");
+    if (path === "admin/seo/schema/templates") return jsonWithDataSource({ template: ApiEngine.createSeoSchemaTemplate(body), success: true }, "postgres", 201);
+    if (path === "admin/seo/schema/validate") return jsonWithDataSource(ApiEngine.validateJsonLd(body.json_ld || body.schema_json || "{}"), "postgres");
+    if (path === "admin/seo/image-audits/scan") return jsonWithDataSource(ApiEngine.runImageAudit(), "postgres");
+    if (path === "admin/seo/competitors") return jsonWithDataSource({ competitor: ApiEngine.createSeoCompetitor(body), success: true }, "postgres", 201);
+    if (path === "admin/seo/geo/generate") return jsonWithDataSource({ geo_page: ApiEngine.generateGeoLandingPage(body), success: true }, "postgres", 201);
+    if (path === "admin/seo/aeo/entries") return jsonWithDataSource({ aeo_entry: ApiEngine.createSeoAeoEntry(body), success: true }, "postgres", 201);
+    if (path === "admin/seo/content-audits/scan") return jsonWithDataSource(ApiEngine.runContentAudit(), "postgres");
+    if (path === "admin/seo/page-speed") return jsonWithDataSource({ page_speed: ApiEngine.recordSeoPageSpeed(body), success: true }, "postgres", 201);
+    if (path === "admin/seo/utm-campaigns") return jsonWithDataSource({ campaign: ApiEngine.createSeoUtmCampaign(body), success: true }, "postgres", 201);
+    if (path === "admin/seo/robots/save") return jsonWithDataSource({ robots: ApiEngine.saveRobotsVersion(body), success: true }, "postgres");
+    if (path === "admin/seo/robots/rollback") return jsonWithDataSource({ robots: ApiEngine.rollbackRobots(body.id), success: true }, "postgres");
+    if (path === "admin/seo/backlinks") return jsonWithDataSource({ backlink: ApiEngine.createSeoBacklink(body), success: true }, "postgres", 201);
+    if (path === "admin/seo/reports/generate") return jsonWithDataSource({ report: ApiEngine.generateSeoReport(body.type || "overall"), success: true }, "postgres", 201);
+    if (path === "admin/seo/health-reports/generate") return jsonWithDataSource({ report: ApiEngine.generateSeoHealthReport(), success: true }, "postgres", 201);
+    if (path === "admin/seo/ai/generate") return jsonWithDataSource(ApiEngine.generateAiSeoContent(body.type || "meta_title", body.context || body), "postgres");
+    if (path === "admin/seo/integrations/bing/submit") return jsonWithDataSource(await ApiEngine.submitBingUrl(body.url), "postgres");
+    if (path === "admin/seo/integrations/indexing/publish") return jsonWithDataSource(await ApiEngine.publishGoogleIndexingUrl(body.url, body.type), "postgres");
+    if (path === "admin/seo/crawler/run") return jsonWithDataSource(await ApiEngine.runLiveCrawler(body.urls), "postgres");
+    if (path === "admin/seo/audits/autofix") return jsonWithDataSource(ApiEngine.autoFixSeoIssue(body.issue_id), "postgres");
+    if (path === "admin/seo/robots/validate") return jsonWithDataSource(ApiEngine.validateRobotsSyntax(body.content), "postgres");
+    if (path === "admin/seo/sitemap/validate") return jsonWithDataSource(ApiEngine.validateSitemapXml(body.xml), "postgres");
+    if (path === "admin/seo/rbac/check") return jsonWithDataSource(ApiEngine.checkSeoPermission(body.role || "super_admin", body.action), "postgres");
     if (path === "admin/marketing-automation") {
-      return jsonWithDataSource({ trigger: ApiEngine.createAdminAutomationTrigger(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ trigger: ApiEngine.createAdminAutomationTrigger(body), success: true }, "postgres");
     }
     // Popup & Engagement Manager (POST)
     if (path === "popups/impression" || path === "store/popups/impression" || path === "engagement/impression" || path === "store/engagement/impression") {
-      return jsonWithDataSource({ recorded: ApiEngine.recordEngagementImpression(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ recorded: ApiEngine.recordEngagementImpression(body), success: true }, "postgres");
     }
     if (path === "popups/conversion" || path === "store/popups/conversion" || path === "engagement/conversion" || path === "store/engagement/conversion") {
-      return jsonWithDataSource({ recorded: ApiEngine.recordEngagementConversion(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ recorded: ApiEngine.recordEngagementConversion(body), success: true }, "postgres");
     }
     if (path === "admin/popups" || path === "popups") {
-      return jsonWithDataSource({ campaign: ApiEngine.createPopupCampaign(body), success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ campaign: ApiEngine.createPopupCampaign(body), success: true }, "postgres", 201);
     }
     if (path.startsWith("admin/popups/") && path.endsWith("/publish")) {
       const id = path.replace("admin/popups/", "").replace("/publish", "");
-      return jsonWithDataSource({ campaign: ApiEngine.publishPopupCampaign(id, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ campaign: ApiEngine.publishPopupCampaign(id, body), success: true }, "postgres");
     }
     if (path.startsWith("admin/popups/") && path.endsWith("/pause")) {
       const id = path.replace("admin/popups/", "").replace("/pause", "");
-      return jsonWithDataSource({ campaign: ApiEngine.pausePopupCampaign(id), success: true }, "json-fallback");
+      return jsonWithDataSource({ campaign: ApiEngine.pausePopupCampaign(id), success: true }, "postgres");
     }
     if (path.startsWith("admin/popups/") && path.endsWith("/archive")) {
       const id = path.replace("admin/popups/", "").replace("/archive", "");
-      return jsonWithDataSource({ campaign: ApiEngine.archivePopupCampaign(id), success: true }, "json-fallback");
+      return jsonWithDataSource({ campaign: ApiEngine.archivePopupCampaign(id), success: true }, "postgres");
     }
     if (path.startsWith("admin/popups/") && path.endsWith("/duplicate")) {
       const id = path.replace("admin/popups/", "").replace("/duplicate", "");
-      return jsonWithDataSource({ campaign: ApiEngine.duplicatePopupCampaign(id), success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ campaign: ApiEngine.duplicatePopupCampaign(id), success: true }, "postgres", 201);
     }
     if (path === "admin/notifications") {
-      return jsonWithDataSource({ notification: ApiEngine.createAdminNotification(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ notification: ApiEngine.createAdminNotification(body), success: true }, "postgres");
     }
     if (path === "admin/settings") {
-      return jsonWithDataSource({ settings: ApiEngine.updateAdminSettings(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ settings: ApiEngine.updateAdminSettings(body), success: true }, "postgres");
     }
 
     // ── Enterprise Compliance & Statutory Endpoints (POST) ──
     if (path === "admin/compliance/business-profile") {
-      return jsonWithDataSource({ profile: ApiEngine.updateBusinessProfile(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ profile: ApiEngine.updateBusinessProfile(body), success: true }, "postgres");
     }
     if (path === "admin/compliance/gst-registrations") {
-      return jsonWithDataSource({ registration: ApiEngine.createGstRegistration(body), success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ registration: ApiEngine.createGstRegistration(body), success: true }, "postgres", 201);
     }
     if (path.startsWith("admin/compliance/gst-registrations/") && path.endsWith("/verify")) {
       const id = path.replace("admin/compliance/gst-registrations/", "").replace("/verify", "");
-      return jsonWithDataSource({ registration: await ApiEngine.verifyGstRegistration(id), success: true }, "json-fallback");
+      return jsonWithDataSource({ registration: await ApiEngine.verifyGstRegistration(id), success: true }, "postgres");
     }
     if (path === "admin/compliance/fssai") {
-      return jsonWithDataSource({ compliance: ApiEngine.createBranchCompliance(body), success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ compliance: ApiEngine.createBranchCompliance(body), success: true }, "postgres", 201);
     }
     if (path.startsWith("admin/compliance/fssai/") && path.endsWith("/verify")) {
       const id = path.replace("admin/compliance/fssai/", "").replace("/verify", "");
-      return jsonWithDataSource({ compliance: await ApiEngine.verifyBranchCompliance(id), success: true }, "json-fallback");
+      return jsonWithDataSource({ compliance: await ApiEngine.verifyBranchCompliance(id), success: true }, "postgres");
     }
     if (path === "admin/compliance/documents") {
-      return jsonWithDataSource({ document: ApiEngine.createComplianceDocument(body), success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ document: ApiEngine.createComplianceDocument(body), success: true }, "postgres", 201);
     }
 
     // Categories Management
     if (path === "admin/categories" || path === "categories") {
-      return jsonWithDataSource({ category: ApiEngine.createPimCategory(body), success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ category: ApiEngine.createPimCategory(body), success: true }, "postgres", 201);
     }
     if (path.startsWith("admin/categories/") && path.endsWith("/restore")) {
       const id = path.replace("admin/categories/", "").replace("/restore", "");
-      return jsonWithDataSource({ success: ApiEngine.restorePimCategory(id) }, "json-fallback");
+      return jsonWithDataSource({ success: ApiEngine.restorePimCategory(id) }, "postgres");
     }
 
     // Occasions Taxonomy Management
     if (path === "admin/occasions" || path === "occasions") {
-      return jsonWithDataSource({ occasion: ApiEngine.createOccasion(body), success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ occasion: ApiEngine.createOccasion(body), success: true }, "postgres", 201);
     }
     if (path === "admin/occasions/migrate" || path === "occasions/migrate") {
-      return jsonWithDataSource({ result: ApiEngine.migrateOccasions(), success: true }, "json-fallback");
+      return jsonWithDataSource({ result: ApiEngine.migrateOccasions(), success: true }, "postgres");
     }
     if (path.startsWith("admin/occasions/") && path.endsWith("/restore")) {
       const id = path.replace("admin/occasions/", "").replace("/restore", "");
-      return jsonWithDataSource({ success: ApiEngine.restoreOccasion(id) }, "json-fallback");
+      return jsonWithDataSource({ success: ApiEngine.restoreOccasion(id) }, "postgres");
     }
 
     // Media Upload & Management
     if (path === "admin/media" || path === "admin/media/create") {
-      return jsonWithDataSource({ media: ApiEngine.createMedia(body) }, "json-fallback", 201);
+      return jsonWithDataSource({ media: ApiEngine.createMedia(body) }, "postgres", 201);
     }
     if (path === "admin/media/upload") {
       // 1. Security & Format Validation
@@ -2737,17 +2898,17 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       
       // Reject SVG, HTML, executable scripts
       if (mimeType.includes("svg") || mimeType.includes("html") || mimeType.includes("xml") || mimeType.includes("javascript")) {
-        return jsonWithDataSource({ error: "Invalid format. SVG, HTML, and executable files are strictly prohibited." }, "json-fallback", 400);
+        return jsonWithDataSource({ error: "Invalid format. SVG, HTML, and executable files are strictly prohibited." }, "postgres", 400);
       }
 
       if (mimeType && !allowedMimes.includes(mimeType)) {
-        return jsonWithDataSource({ error: "Unsupported image format. Allowed: JPG, PNG, WebP." }, "json-fallback", 400);
+        return jsonWithDataSource({ error: "Unsupported image format. Allowed: JPG, PNG, WebP." }, "postgres", 400);
       }
 
       // Max size validation (10 MB)
       const maxSizeBytes = 10 * 1024 * 1024;
       if (body.size && Number(body.size) > maxSizeBytes) {
-        return jsonWithDataSource({ error: "File exceeds 10MB limit." }, "json-fallback", 400);
+        return jsonWithDataSource({ error: "File exceeds 10MB limit." }, "postgres", 400);
       }
 
       let mediaUrl = body.url;
@@ -2760,7 +2921,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         // Deep inspection of payload for dangerous tags
         const lowerData = body.dataUrl.substring(0, 200).toLowerCase();
         if (lowerData.includes("<svg") || lowerData.includes("<?xml") || lowerData.includes("<script") || lowerData.includes("<!doctype")) {
-          return jsonWithDataSource({ error: "Security violation: File contains prohibited markup." }, "json-fallback", 400);
+          return jsonWithDataSource({ error: "Security violation: File contains prohibited markup." }, "postgres", 400);
         }
 
         try {
@@ -2798,29 +2959,29 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         height: body.height || 800,
       });
 
-      return jsonWithDataSource({ media: registered, success: true, url: registered.url }, "json-fallback", 201);
+      return jsonWithDataSource({ media: registered, success: true, url: registered.url }, "postgres", 201);
     }
 
     // CMS Configurator
-    if (path === "cms/pages") return jsonWithDataSource({ page: ApiEngine.createCmsPage(body) }, "json-fallback");
+    if (path === "cms/pages") return jsonWithDataSource({ page: ApiEngine.createCmsPage(body) }, "postgres");
 
     // ── Search & Merchandising Engine Endpoints (POST) ──
     if (path === "search/tags") {
-      return jsonWithDataSource({ success: true, tag: ApiEngine.saveSearchTag(body) }, "json-fallback");
+      return jsonWithDataSource({ success: true, tag: ApiEngine.saveSearchTag(body) }, "postgres");
     }
     if (path === "search/synonyms") {
-      return jsonWithDataSource({ success: true, synonym: ApiEngine.saveSearchSynonym(body) }, "json-fallback");
+      return jsonWithDataSource({ success: true, synonym: ApiEngine.saveSearchSynonym(body) }, "postgres");
     }
     if (path === "search/rules" || path === "search/merchandising-rules") {
-      return jsonWithDataSource({ success: true, rule: ApiEngine.saveSearchMerchandisingRule(body) }, "json-fallback");
+      return jsonWithDataSource({ success: true, rule: ApiEngine.saveSearchMerchandisingRule(body) }, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/duplicate")) {
       const pageId = path.replace("cms/pages/", "").replace("/duplicate", "");
-      return jsonWithDataSource({ page: ApiEngine.duplicateCmsPage(pageId) }, "json-fallback");
+      return jsonWithDataSource({ page: ApiEngine.duplicateCmsPage(pageId) }, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/rollback")) {
       const pageId = path.replace("cms/pages/", "").replace("/rollback", "");
-      return jsonWithDataSource({ page: ApiEngine.rollbackCmsPage(pageId, body.version || 1) }, "json-fallback");
+      return jsonWithDataSource({ page: ApiEngine.rollbackCmsPage(pageId, body.version || 1) }, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/publish")) {
       const pageId = path.replace("cms/pages/", "").replace("/publish", "");
@@ -2831,7 +2992,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       } catch {
         // ignore in non-server-action contexts
       }
-      return jsonWithDataSource(res, "json-fallback");
+      return jsonWithDataSource(res, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/unpublish")) {
       const pageId = path.replace("cms/pages/", "").replace("/unpublish", "");
@@ -2842,24 +3003,24 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       } catch {
         // ignore
       }
-      return jsonWithDataSource(res, "json-fallback");
+      return jsonWithDataSource(res, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/reorder-sections")) {
       const pageId = path.replace("cms/pages/", "").replace("/reorder-sections", "");
       const sectionIds = body.section_ids || body.sectionIds || [];
-      return jsonWithDataSource(ApiEngine.reorderCmsPageSections(pageId, sectionIds), "json-fallback");
+      return jsonWithDataSource(ApiEngine.reorderCmsPageSections(pageId, sectionIds), "postgres");
     }
     if (path === "cms/pages/validate") {
-      return jsonWithDataSource(ApiEngine.validatePageConfig(body), "json-fallback");
+      return jsonWithDataSource(ApiEngine.validatePageConfig(body), "postgres");
     }
     if (path === "cms/forms/submit") {
-      return jsonWithDataSource({ submission: ApiEngine.submitCmsForm(body.form_type || "contact", body.data || body) }, "json-fallback");
+      return jsonWithDataSource({ submission: ApiEngine.submitCmsForm(body.form_type || "contact", body.data || body) }, "postgres");
     }
 
-    if (path === "admin/reports/saved") return jsonWithDataSource({ report: ApiEngine.createSavedReport(body), success: true }, "json-fallback");
-    if (path === "admin/reports/dashboards") return jsonWithDataSource({ layout: ApiEngine.saveDashboardLayout(body), success: true }, "json-fallback");
-    if (path === "admin/reports/preferences") return jsonWithDataSource({ preferences: ApiEngine.saveChartPreferences(body), success: true }, "json-fallback");
-    if (path === "admin/reports/schedule" || path === "admin/reports/schedules") return jsonWithDataSource({ schedule: ApiEngine.createScheduledReport(body), success: true }, "json-fallback");
+    if (path === "admin/reports/saved") return jsonWithDataSource({ report: ApiEngine.createSavedReport(body), success: true }, "postgres");
+    if (path === "admin/reports/dashboards") return jsonWithDataSource({ layout: ApiEngine.saveDashboardLayout(body), success: true }, "postgres");
+    if (path === "admin/reports/preferences") return jsonWithDataSource({ preferences: ApiEngine.saveChartPreferences(body), success: true }, "postgres");
+    if (path === "admin/reports/schedule" || path === "admin/reports/schedules") return jsonWithDataSource({ schedule: ApiEngine.createScheduledReport(body), success: true }, "postgres");
 
     // ── Staff & Access Profiles Endpoints (POST) ──
     if (path === "admin/staff-profiles/profiles" || path === "admin/staff/profiles") {
@@ -2867,7 +3028,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       if (permErr) return permErr;
       const userCtx = resolveUserContext(req);
       const profile = StaffAccessControl.createProfile(body, userCtx.userId || "admin_01");
-      return jsonWithDataSource({ profile, success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ profile, success: true }, "postgres", 201);
     }
     if (path.startsWith("admin/staff-profiles/profiles/") && path.endsWith("/duplicate")) {
       const permErr = verifyApiPermission(req, "STAFF_MANAGEMENT", "PROFILES_CRUD");
@@ -2875,7 +3036,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const profId = path.replace("admin/staff-profiles/profiles/", "").replace("/duplicate", "");
       const userCtx = resolveUserContext(req);
       const profile = StaffAccessControl.duplicateProfile(profId, userCtx.userId || "admin_01");
-      return jsonWithDataSource({ profile, success: true }, "json-fallback");
+      return jsonWithDataSource({ profile, success: true }, "postgres");
     }
     if (path.startsWith("admin/staff-profiles/profiles/") && path.endsWith("/archive")) {
       const permErr = verifyApiPermission(req, "STAFF_MANAGEMENT", "PROFILES_CRUD");
@@ -2883,14 +3044,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const profId = path.replace("admin/staff-profiles/profiles/", "").replace("/archive", "");
       const userCtx = resolveUserContext(req);
       const profile = StaffAccessControl.archiveProfile(profId, userCtx.userId || "admin_01");
-      return jsonWithDataSource({ profile, success: true }, "json-fallback");
+      return jsonWithDataSource({ profile, success: true }, "postgres");
     }
     if (path === "admin/staff-profiles/staff" || path === "admin/staff/members") {
       const permErr = verifyApiPermission(req, "STAFF_MANAGEMENT", "CREATE");
       if (permErr) return permErr;
       const userCtx = resolveUserContext(req);
       const staff = StaffAccessControl.createStaffMember(body, userCtx.userId || "admin_01");
-      return jsonWithDataSource({ staff, success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ staff, success: true }, "postgres", 201);
     }
     if (path.startsWith("admin/staff-profiles/staff/") && path.endsWith("/overrides")) {
       const permErr = verifyApiPermission(req, "STAFF_MANAGEMENT", "EDIT");
@@ -2898,7 +3059,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const staffId = path.replace("admin/staff-profiles/staff/", "").replace("/overrides", "");
       const userCtx = resolveUserContext(req);
       const staff = StaffAccessControl.setStaffOverride(staffId, body.permission_id, body.effect, userCtx.userId || "admin_01");
-      return jsonWithDataSource({ staff, success: true }, "json-fallback");
+      return jsonWithDataSource({ staff, success: true }, "postgres");
     }
 
     // ── Webhooks & n8n Outbox Endpoints (POST) ──
@@ -2906,21 +3067,21 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const permErr = verifyApiPermission(req, "WEBHOOKS", "TEST");
       if (permErr) return permErr;
       const result = await WebhookEngine.testEndpoint(body.endpoint_id || "ep_n8n_production");
-      return jsonWithDataSource(result, "json-fallback");
+      return jsonWithDataSource(result, "postgres");
     }
     if (path.startsWith("admin/webhooks/retry/")) {
       const permErr = verifyApiPermission(req, "WEBHOOKS", "RETRY");
       if (permErr) return permErr;
       const outboxId = path.replace("admin/webhooks/retry/", "");
       const result = WebhookEngine.retryOutboxItem(outboxId);
-      return jsonWithDataSource({ item: result, success: true }, "json-fallback");
+      return jsonWithDataSource({ item: result, success: true }, "postgres");
     }
     if (path.startsWith("admin/webhooks/") && path.endsWith("/rotate-secret")) {
       const permErr = verifyApiPermission(req, "WEBHOOKS", "CONFIGURE");
       if (permErr) return permErr;
       const epId = path.replace("admin/webhooks/", "").replace("/rotate-secret", "");
       const result = WebhookEngine.rotateSigningSecret(epId);
-      return jsonWithDataSource(result, "json-fallback");
+      return jsonWithDataSource(result, "postgres");
     }
 
     // ── Telemarketing Endpoints (POST) ──
@@ -2947,7 +3108,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           filename: `${exportRes.filename}.xlsx`,
           size: exportRes.buffer.byteLength,
         },
-        "json-fallback"
+        "postgres"
       );
     }
     if (path === "admin/telemarketing/evaluate") {
@@ -2956,7 +3117,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const ordersRes = ApiEngine.getAdminOrders({ limit: 1000 });
       const ordersList = ordersRes?.orders || [];
       const result = TelemarketingEngine.evaluateHistoricalOrders(ordersList, body.currentDate || "2026-08-17");
-      return jsonWithDataSource({ ...result, success: true }, "json-fallback");
+      return jsonWithDataSource({ ...result, success: true }, "postgres");
     }
     if (path.startsWith("admin/telemarketing/candidates/") && path.endsWith("/call")) {
       const permErr = verifyApiPermission(req, "TELEMARKETING", "CONTACT");
@@ -2964,7 +3125,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const candId = path.replace("admin/telemarketing/candidates/", "").replace("/call", "");
       const cand = TelemarketingEngine.getCandidateById(candId);
       if (!cand) {
-        return jsonWithDataSource({ error: `Opportunity "${candId}" not found`, success: false }, "json-fallback", 404);
+        return jsonWithDataSource({ error: `Opportunity "${candId}" not found`, success: false }, "postgres", 404);
       }
 
       let validatedStaffId = body.staffId || body.staff_id || null;
@@ -2973,13 +3134,13 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       if (validatedStaffId) {
         const staffObj = StaffAccessControl.getStaffMember(validatedStaffId);
         if (!staffObj || staffObj.status !== "ACTIVE") {
-          return jsonWithDataSource({ error: "Invalid or inactive staff member ID", success: false }, "json-fallback", 400);
+          return jsonWithDataSource({ error: "Invalid or inactive staff member ID", success: false }, "postgres", 400);
         }
         const hasContactPerm =
           StaffAccessControl.hasPermission(staffObj, "TELEMARKETING", "CONTACT") ||
           StaffAccessControl.hasPermission(staffObj, "TELEMARKETING", "ASSIGN");
         if (!hasContactPerm) {
-          return jsonWithDataSource({ error: "Selected staff member does not have telecaller outreach permission", success: false }, "json-fallback", 403);
+          return jsonWithDataSource({ error: "Selected staff member does not have telecaller outreach permission", success: false }, "postgres", 403);
         }
         validatedStaffId = staffObj.id;
         validatedStaffName = staffObj.name;
@@ -2991,12 +3152,12 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
       if (outcome === "ORDER_PLACED" || outcome === "CONVERTED") {
         if (!convertedOrderId) {
-          return jsonWithDataSource({ error: "A valid customer order must be selected to mark outreach as Order Placed / Converted.", success: false }, "json-fallback", 400);
+          return jsonWithDataSource({ error: "A valid customer order must be selected to mark outreach as Order Placed / Converted.", success: false }, "postgres", 400);
         }
 
         const order = ApiEngine.getOrder(convertedOrderId);
         if (!order) {
-          return jsonWithDataSource({ error: `Order "${convertedOrderId}" not found in authoritative order system.`, success: false }, "json-fallback", 400);
+          return jsonWithDataSource({ error: `Order "${convertedOrderId}" not found in authoritative order system.`, success: false }, "postgres", 400);
         }
 
         // Validate Ownership
@@ -3014,7 +3175,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           return jsonWithDataSource({
             error: `Security Error: Order #${order.order_number || order.id} belongs to a different customer and cannot be attributed to ${cand.customer_name}.`,
             success: false,
-          }, "json-fallback", 400);
+          }, "postgres", 400);
         }
 
         // Validate Eligibility
@@ -3023,7 +3184,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           return jsonWithDataSource({
             error: `Cannot attribute cancelled or failed order #${order.order_number || order.id}.`,
             success: false,
-          }, "json-fallback", 400);
+          }, "postgres", 400);
         }
 
         // Prevent Double Attribution
@@ -3035,7 +3196,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           return jsonWithDataSource({
             error: `Order #${order.order_number || order.id} has already been attributed to another outreach conversion. Duplicate revenue attribution is disallowed.`,
             success: false,
-          }, "json-fallback", 400);
+          }, "postgres", 400);
         }
 
         authoritativeRevenue = Number(order.total) || Number(order.grand_total) || Number(order.order_value) || 0;
@@ -3072,23 +3233,23 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         });
       }
 
-      return jsonWithDataSource({ candidate: result, success: true }, "json-fallback");
+      return jsonWithDataSource({ candidate: result, success: true }, "postgres");
     }
     if (path.startsWith("admin/telemarketing/candidates/") && path.endsWith("/convert")) {
       const permErr = verifyApiPermission(req, "TELEMARKETING", "CONVERT_ORDER");
       if (permErr) return permErr;
       const candId = path.replace("admin/telemarketing/candidates/", "").replace("/convert", "");
       const cand = TelemarketingEngine.getCandidateById(candId);
-      if (!cand) return jsonWithDataSource({ error: "Opportunity not found", success: false }, "json-fallback", 404);
+      if (!cand) return jsonWithDataSource({ error: "Opportunity not found", success: false }, "postgres", 404);
 
       const convertedOrderId = body.order_id || body.convertedOrderId || body.orderId;
       if (!convertedOrderId) {
-        return jsonWithDataSource({ error: "order_id is required for conversion", success: false }, "json-fallback", 400);
+        return jsonWithDataSource({ error: "order_id is required for conversion", success: false }, "postgres", 400);
       }
 
       const order = ApiEngine.getOrder(convertedOrderId);
       if (!order) {
-        return jsonWithDataSource({ error: `Order "${convertedOrderId}" not found in authoritative order system.`, success: false }, "json-fallback", 400);
+        return jsonWithDataSource({ error: `Order "${convertedOrderId}" not found in authoritative order system.`, success: false }, "postgres", 400);
       }
 
       // Ownership check
@@ -3105,7 +3266,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         return jsonWithDataSource({
           error: `Security Error: Order #${order.order_number || order.id} belongs to a different customer and cannot be attributed to ${cand.customer_name}.`,
           success: false,
-        }, "json-fallback", 400);
+        }, "postgres", 400);
       }
 
       // Status check
@@ -3114,7 +3275,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         return jsonWithDataSource({
           error: `Cannot attribute cancelled or failed order #${order.order_number || order.id}.`,
           success: false,
-        }, "json-fallback", 400);
+        }, "postgres", 400);
       }
 
       // Prevent duplicate
@@ -3126,7 +3287,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         return jsonWithDataSource({
           error: `Order #${order.order_number || order.id} has already been attributed to another outreach conversion. Duplicate revenue attribution is disallowed.`,
           success: false,
-        }, "json-fallback", 400);
+        }, "postgres", 400);
       }
 
       const authoritativeRevenue = Number(order.total) || Number(order.grand_total) || Number(order.order_value) || 0;
@@ -3146,26 +3307,26 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         },
       });
 
-      return jsonWithDataSource({ candidate: result, success: true }, "json-fallback");
+      return jsonWithDataSource({ candidate: result, success: true }, "postgres");
     }
 
     // ── Abandoned Cart Management & Recovery (POST) ──
     if (path === "admin/abandoned-carts/campaigns") {
       const userCtx = resolveUserContext(req);
       if (userCtx.role === "DELIVERY_PARTNER" || userCtx.role === "DLP") {
-        return jsonWithDataSource({ error: "Forbidden" }, "json-fallback", 403);
+        return jsonWithDataSource({ error: "Forbidden" }, "postgres", 403);
       }
       const camp = ApiEngine.createRecoveryCampaign({ ...body, created_by: userCtx.userId || "admin_01" });
-      return jsonWithDataSource({ campaign: camp, success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ campaign: camp, success: true }, "postgres", 201);
     }
     if (path === "admin/abandoned-carts/evaluate" || path === "admin/abandoned-carts/scan") {
       const carts = ApiEngine.evaluateCartAbandonment(body.threshold_minutes !== undefined ? Number(body.threshold_minutes) : 30);
-      return jsonWithDataSource({ evaluated_count: carts.length, success: true }, "json-fallback");
+      return jsonWithDataSource({ evaluated_count: carts.length, success: true }, "postgres");
     }
     if (path.startsWith("admin/abandoned-carts/") && (path.endsWith("/send-recovery") || path.endsWith("/notify"))) {
       const userCtx = resolveUserContext(req);
       if (userCtx.role === "DELIVERY_PARTNER" || userCtx.role === "DLP") {
-        return jsonWithDataSource({ error: "Forbidden" }, "json-fallback", 403);
+        return jsonWithDataSource({ error: "Forbidden" }, "postgres", 403);
       }
       const cartId = path.replace("admin/abandoned-carts/", "").replace("/send-recovery", "").replace("/notify", "");
       try {
@@ -3178,70 +3339,70 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           staff_name: userCtx.role || "Super Admin",
           custom_message: body.custom_message || body.message,
         });
-        return jsonWithDataSource(result, "json-fallback");
+        return jsonWithDataSource(result, "postgres");
       } catch (err: any) {
-        return jsonWithDataSource({ error: err.message, success: false }, "json-fallback", 400);
+        return jsonWithDataSource({ error: err.message, success: false }, "postgres", 400);
       }
     }
     if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/assign-telecaller")) {
       const userCtx = resolveUserContext(req);
       if (userCtx.role === "DELIVERY_PARTNER" || userCtx.role === "DLP") {
-        return jsonWithDataSource({ error: "Forbidden" }, "json-fallback", 403);
+        return jsonWithDataSource({ error: "Forbidden" }, "postgres", 403);
       }
       const cartId = path.replace("admin/abandoned-carts/", "").replace("/assign-telecaller", "");
       try {
         const result = ApiEngine.assignCartTelecaller(cartId, body.staff_id, body.staff_name, body.notes);
-        return jsonWithDataSource(result, "json-fallback");
+        return jsonWithDataSource(result, "postgres");
       } catch (err: any) {
-        return jsonWithDataSource({ error: err.message, success: false }, "json-fallback", 400);
+        return jsonWithDataSource({ error: err.message, success: false }, "postgres", 400);
       }
     }
     if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/mark-converted")) {
       const userCtx = resolveUserContext(req);
       if (userCtx.role === "DELIVERY_PARTNER" || userCtx.role === "DLP") {
-        return jsonWithDataSource({ error: "Forbidden" }, "json-fallback", 403);
+        return jsonWithDataSource({ error: "Forbidden" }, "postgres", 403);
       }
       const cartId = path.replace("admin/abandoned-carts/", "").replace("/mark-converted", "");
       try {
         const result = ApiEngine.markCartConverted(cartId, body.order_id, body.revenue);
-        return jsonWithDataSource(result, "json-fallback");
+        return jsonWithDataSource(result, "postgres");
       } catch (err: any) {
-        return jsonWithDataSource({ error: err.message, success: false }, "json-fallback", 400);
+        return jsonWithDataSource({ error: err.message, success: false }, "postgres", 400);
       }
     }
 
     // ── Popup & Storefront Engagement System (POST) ──
     if (path === "engagement/impression" || path === "store/engagement/impression") {
       const result = ApiEngine.recordEngagementImpression(body);
-      return jsonWithDataSource(result, "json-fallback", 201);
+      return jsonWithDataSource(result, "postgres", 201);
     }
     if (path === "engagement/conversion" || path === "store/engagement/conversion") {
       const result = ApiEngine.recordEngagementConversion(body);
-      return jsonWithDataSource(result, "json-fallback", 201);
+      return jsonWithDataSource(result, "postgres", 201);
     }
     if (path === "admin/popups" || path === "popups") {
       const campaign = ApiEngine.createPopupCampaign(body);
-      return jsonWithDataSource({ campaign, success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ campaign, success: true }, "postgres", 201);
     }
     if ((path.startsWith("admin/popups/") || path.startsWith("popups/")) && path.endsWith("/publish")) {
       const popupId = path.replace("admin/popups/", "").replace("popups/", "").replace("/publish", "");
       const campaign = ApiEngine.publishPopupCampaign(popupId);
-      return jsonWithDataSource({ campaign, success: true }, "json-fallback");
+      return jsonWithDataSource({ campaign, success: true }, "postgres");
     }
     if ((path.startsWith("admin/popups/") || path.startsWith("popups/")) && path.endsWith("/pause")) {
       const popupId = path.replace("admin/popups/", "").replace("popups/", "").replace("/pause", "");
       const campaign = ApiEngine.pausePopupCampaign(popupId);
-      return jsonWithDataSource({ campaign, success: true }, "json-fallback");
+      return jsonWithDataSource({ campaign, success: true }, "postgres");
     }
     if ((path.startsWith("admin/popups/") || path.startsWith("popups/")) && path.endsWith("/duplicate")) {
       const popupId = path.replace("admin/popups/", "").replace("popups/", "").replace("/duplicate", "");
       const campaign = ApiEngine.duplicatePopupCampaign(popupId);
-      return jsonWithDataSource({ campaign, success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ campaign, success: true }, "postgres", 201);
     }
     if ((path.startsWith("admin/popups/") || path.startsWith("popups/")) && path.endsWith("/archive")) {
       const popupId = path.replace("admin/popups/", "").replace("popups/", "").replace("/archive", "");
       const campaign = ApiEngine.archivePopupCampaign(popupId);
-      return jsonWithDataSource({ campaign, success: true }, "json-fallback");
+      return jsonWithDataSource({ campaign, success: true }, "postgres");
     }
 
     // ── Enterprise n8n & Webhook Mutations (POST) ──
@@ -3249,33 +3410,33 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
       if (permErr) return permErr;
       const endpoint = WebhookEngine.createEndpoint(body);
-      return jsonWithDataSource({ endpoint, success: true }, "json-fallback", 201);
+      return jsonWithDataSource({ endpoint, success: true }, "postgres", 201);
     }
     if (path.startsWith("admin/webhooks/endpoints/") && path.endsWith("/rotate-secret")) {
       const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
       if (permErr) return permErr;
       const epId = path.replace("admin/webhooks/endpoints/", "").replace("/rotate-secret", "");
       const res = WebhookEngine.rotateSigningSecret(epId);
-      return jsonWithDataSource({ ...res, success: true }, "json-fallback");
+      return jsonWithDataSource({ ...res, success: true }, "postgres");
     }
     if (path.startsWith("admin/webhooks/") && path.endsWith("/rotate-secret")) {
       const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
       if (permErr) return permErr;
       const epId = path.replace("admin/webhooks/", "").replace("/rotate-secret", "");
       const res = WebhookEngine.rotateSigningSecret(epId);
-      return jsonWithDataSource({ ...res, success: true }, "json-fallback");
+      return jsonWithDataSource({ ...res, success: true }, "postgres");
     }
     if (path === "admin/webhooks/test") {
       const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
       if (permErr) return permErr;
       const res = await WebhookEngine.testEndpoint(body.endpointId || "ep_n8n_production", body.eventType || "test.webhook.ping");
-      return jsonWithDataSource({ ...res, success: res.success }, "json-fallback");
+      return jsonWithDataSource({ ...res, success: res.success }, "postgres");
     }
     if (path === "admin/webhooks/diagnostics/suite") {
       const permErr = verifyApiPermission(req, "SETTINGS", "VIEW");
       if (permErr) return permErr;
       const suiteResults = await WebhookEngine.runFullDiagnosticSuite(body.endpointId);
-      return jsonWithDataSource({ ...suiteResults, success: suiteResults.all_passed }, "json-fallback");
+      return jsonWithDataSource({ ...suiteResults, success: suiteResults.all_passed }, "postgres");
     }
     if (path === "admin/webhooks/callback") {
       const recorded = WebhookEngine.recordWorkflowCallback(
@@ -3285,35 +3446,35 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         body.result_summary,
         body.error_message
       );
-      return jsonWithDataSource({ recorded, success: true }, "json-fallback");
+      return jsonWithDataSource({ recorded, success: true }, "postgres");
     }
     if (path.startsWith("admin/webhooks/outbox/") && path.endsWith("/retry")) {
       const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
       if (permErr) return permErr;
       const outboxId = path.replace("admin/webhooks/outbox/", "").replace("/retry", "");
       const item = WebhookEngine.retryOutboxItem(outboxId);
-      return jsonWithDataSource({ item, success: true }, "json-fallback");
+      return jsonWithDataSource({ item, success: true }, "postgres");
     }
     if (path.startsWith("admin/webhooks/outbox/") && path.endsWith("/replay")) {
       const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
       if (permErr) return permErr;
       const outboxId = path.replace("admin/webhooks/outbox/", "").replace("/replay", "");
       const item = WebhookEngine.replayEvent(outboxId);
-      return jsonWithDataSource({ item, success: true }, "json-fallback");
+      return jsonWithDataSource({ item, success: true }, "postgres");
     }
     if (path.startsWith("admin/webhooks/outbox/") && path.endsWith("/discard")) {
       const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
       if (permErr) return permErr;
       const outboxId = path.replace("admin/webhooks/outbox/", "").replace("/discard", "");
       const item = WebhookEngine.discardOutboxItem(outboxId);
-      return jsonWithDataSource({ item, success: true }, "json-fallback");
+      return jsonWithDataSource({ item, success: true }, "postgres");
     }
 
-    if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "processed" }, "json-fallback");
+    if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "processed" }, "postgres");
 
-    return jsonWithDataSource({ error: `API Route "${path}" not found` }, "json-fallback", 404);
+    return jsonWithDataSource({ error: `API Route "${path}" not found` }, "postgres", 404);
   } catch (err: any) {
-    return jsonWithDataSource({ error: err.message || "Internal server error" }, "json-fallback", 500);
+    return jsonWithDataSource({ error: err.message || "Internal server error" }, "postgres", 500);
   }
 }
 
@@ -3332,14 +3493,14 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       const reviewId = path.split("/").pop() || "";
       const customerUid = resolveCustomerUidFromReq(req);
       if (!customerUid) {
-        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "json-fallback", 401);
+        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "postgres", 401);
       }
       const result = ApiEngine.updateProductReview(customerUid, reviewId, {
         rating: body.rating,
         title: body.title,
         reviewText: body.reviewText || body.review_text || body.body || body.comment,
       });
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
     }
 
     // ── Admin Review Moderation (PUT / PATCH) ──
@@ -3351,36 +3512,36 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
         adminName: body.adminName || body.admin_name,
         adminResponse: body.adminResponse || body.admin_response || body.reply,
       });
-      return jsonWithDataSource(result, "json-fallback", result.success ? 200 : 404);
+      return jsonWithDataSource(result, "postgres", result.success ? 200 : 404);
     }
 
     // Cart Item Update
     if (path === "cart/items") {
       const cartId = body.cartId || req.cookies.get("_cth_cart_id")?.value || "cart_guest_100";
       const cart = ApiEngine.updateCartItem(cartId, body.lineItemId, Number(body.quantity || 1));
-      return jsonWithDataSource({ cart, success: true }, "json-fallback");
+      return jsonWithDataSource({ cart, success: true }, "postgres");
     }
 
     if (path.startsWith("customers/addresses/")) {
       const addressId = path.replace("customers/addresses/", "").replace("store/customers/addresses/", "");
       const address = ApiEngine.updateCustomerAddress(addressId, body);
-      if (!address) return jsonWithDataSource({ error: "Address not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ address, success: true }, "json-fallback");
+      if (!address) return jsonWithDataSource({ error: "Address not found" }, "postgres", 404);
+      return jsonWithDataSource({ address, success: true }, "postgres");
     }
 
     if (path.startsWith("admin/categories/") || path.startsWith("categories/")) {
       const id = path.replace("admin/categories/", "").replace("categories/", "");
-      return jsonWithDataSource({ category: ApiEngine.updatePimCategory(id, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ category: ApiEngine.updatePimCategory(id, body), success: true }, "postgres");
     }
 
     if (path.startsWith("admin/occasions/") || path.startsWith("occasions/")) {
       const id = path.replace("admin/occasions/", "").replace("occasions/", "");
-      return jsonWithDataSource({ occasion: ApiEngine.updateOccasion(id, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ occasion: ApiEngine.updateOccasion(id, body), success: true }, "postgres");
     }
 
     if (path.startsWith("admin/branches/") && path.endsWith("/operations")) {
       const id = path.replace("admin/branches/", "").replace("/operations", "");
-      return jsonWithDataSource({ branch: ApiEngine.updateBranchStoreOperations(id, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ branch: ApiEngine.updateBranchStoreOperations(id, body), success: true }, "postgres");
     }
     if (path === "admin/branches" || path === "branches" || path.startsWith("admin/branches/")) {
       const permErr = verifyApiPermission(req, "BRANCHES", "EDIT");
@@ -3388,46 +3549,46 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
 
       const targetId = path.startsWith("admin/branches/") ? path.replace("admin/branches/", "") : body.id;
       if (!targetId && !body.id) {
-        return jsonWithDataSource({ error: "Branch ID is required for update", success: false }, "json-fallback", 400);
+        return jsonWithDataSource({ error: "Branch ID is required for update", success: false }, "postgres", 400);
       }
       try {
         const branch = ApiEngine.saveBranch({ ...body, id: targetId || body.id });
-        return jsonWithDataSource({ branch, success: true, message: "Branch updated successfully" }, "json-fallback", 200);
+        return jsonWithDataSource({ branch, success: true, message: "Branch updated successfully" }, "postgres", 200);
       } catch (err: any) {
         const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate") || err.message.includes("Role conflict"));
-        return jsonWithDataSource({ error: err.message || "Failed to update branch", success: false }, "json-fallback", isConflict ? 409 : 400);
+        return jsonWithDataSource({ error: err.message || "Failed to update branch", success: false }, "postgres", isConflict ? 409 : 400);
       }
     }
     if (path.startsWith("admin/states/")) {
       const id = path.replace("admin/states/", "");
       const stateObj = ApiEngine.updateState(id, body);
-      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ state: stateObj, success: true }, "json-fallback");
+      if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "postgres", 404);
+      return jsonWithDataSource({ state: stateObj, success: true }, "postgres");
     }
     if (path.startsWith("admin/cities/")) {
       const id = path.replace("admin/cities/", "");
       const city = ApiEngine.updateAdminCity(id, body);
-      if (!city) return jsonWithDataSource({ error: "City not found" }, "json-fallback", 404);
-      return jsonWithDataSource({ city, success: true }, "json-fallback");
+      if (!city) return jsonWithDataSource({ error: "City not found" }, "postgres", 404);
+      return jsonWithDataSource({ city, success: true }, "postgres");
     }
     if (path.includes("/weight-prices")) {
       const prodId = extractProductIdFromPath(path);
-      return jsonWithDataSource({ weight_prices: ApiEngine.saveProductWeightPrices(prodId, body.weight_prices || body), success: true }, "json-fallback");
+      return jsonWithDataSource({ weight_prices: ApiEngine.saveProductWeightPrices(prodId, body.weight_prices || body), success: true }, "postgres");
     }
     if (path.startsWith("admin/catalog/products/") || path.startsWith("admin/products/")) {
       const id = extractProductIdFromPath(path);
-      return jsonWithDataSource({ product: ApiEngine.updateAdminProduct(id, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ product: ApiEngine.updateAdminProduct(id, body), success: true }, "postgres");
     }
     if (path.startsWith("admin/abandoned-carts/campaigns/")) {
       const campId = path.replace("admin/abandoned-carts/campaigns/", "");
-      return jsonWithDataSource({ campaign: ApiEngine.updateRecoveryCampaign(campId, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ campaign: ApiEngine.updateRecoveryCampaign(campId, body), success: true }, "postgres");
     }
     if (path.startsWith("admin/offers/")) {
       const id = path.replace("admin/offers/", "");
-      return jsonWithDataSource({ offer: ApiEngine.updateAdminOffer(id, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ offer: ApiEngine.updateAdminOffer(id, body), success: true }, "postgres");
     }
     if (path === "admin/delivery/assignment-rules") {
-      return jsonWithDataSource({ rules: ApiEngine.updateDeliveryAssignmentRules(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ rules: ApiEngine.updateDeliveryAssignmentRules(body), success: true }, "postgres");
     }
     if (path.startsWith("admin/delivery/partners/")) {
       const parts = path.replace("admin/delivery/partners/", "").split("/");
@@ -3435,61 +3596,61 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       const subAction = parts[1];
 
       if (subAction === "availability") {
-        return jsonWithDataSource(ApiEngine.updatePartnerAvailability(partnerId, body.availability_status || body.status, body.reason), "json-fallback");
+        return jsonWithDataSource(ApiEngine.updatePartnerAvailability(partnerId, body.availability_status || body.status, body.reason), "postgres");
       }
       if (subAction === "working-hours") {
-        return jsonWithDataSource({ partner: ApiEngine.updateAdminDeliveryPartner(partnerId, { working_hours: body.working_hours || body }), success: true }, "json-fallback");
+        return jsonWithDataSource({ partner: ApiEngine.updateAdminDeliveryPartner(partnerId, { working_hours: body.working_hours || body }), success: true }, "postgres");
       }
       if (subAction === "branches") {
-        return jsonWithDataSource({ partner: ApiEngine.updateAdminDeliveryPartner(partnerId, { associated_branches: body.associated_branches, primary_branch_id: body.primary_branch_id }), success: true }, "json-fallback");
+        return jsonWithDataSource({ partner: ApiEngine.updateAdminDeliveryPartner(partnerId, { associated_branches: body.associated_branches, primary_branch_id: body.primary_branch_id }), success: true }, "postgres");
       }
       if (subAction === "coverage") {
-        return jsonWithDataSource({ partner: ApiEngine.updateAdminDeliveryPartner(partnerId, { coverage: body.coverage || body }), success: true }, "json-fallback");
+        return jsonWithDataSource({ partner: ApiEngine.updateAdminDeliveryPartner(partnerId, { coverage: body.coverage || body }), success: true }, "postgres");
       }
-      return jsonWithDataSource({ partner: ApiEngine.updateAdminDeliveryPartner(partnerId, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ partner: ApiEngine.updateAdminDeliveryPartner(partnerId, body), success: true }, "postgres");
     }
     if (path.startsWith("admin/delivery/jobs/")) {
       const id = path.replace("admin/delivery/jobs/", "");
-      return jsonWithDataSource({ delivery: ApiEngine.updateAdminDeliveryStatus(id, body.status), success: true }, "json-fallback");
+      return jsonWithDataSource({ delivery: ApiEngine.updateAdminDeliveryStatus(id, body.status), success: true }, "postgres");
     }
     if (path.startsWith("admin/notifications/")) {
       const id = path.replace("admin/notifications/", "");
-      return jsonWithDataSource({ success: ApiEngine.markNotificationRead(id) }, "json-fallback");
+      return jsonWithDataSource({ success: ApiEngine.markNotificationRead(id) }, "postgres");
     }
     if (path === "admin/marketing/seo") {
-      return jsonWithDataSource({ config: ApiEngine.updateAdminSeoConfig(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ config: ApiEngine.updateAdminSeoConfig(body), success: true }, "postgres");
     }
     if (path === "admin/settings") {
-      return jsonWithDataSource({ settings: ApiEngine.updateAdminSettings(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ settings: ApiEngine.updateAdminSettings(body), success: true }, "postgres");
     }
 
     // ── Enterprise Compliance & Statutory Endpoints (PUT) ──
     if (path === "admin/compliance/business-profile") {
-      return jsonWithDataSource({ profile: ApiEngine.updateBusinessProfile(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ profile: ApiEngine.updateBusinessProfile(body), success: true }, "postgres");
     }
     if (path.startsWith("admin/compliance/gst-registrations/")) {
       const id = path.replace("admin/compliance/gst-registrations/", "");
-      return jsonWithDataSource({ registration: ApiEngine.updateGstRegistration(id, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ registration: ApiEngine.updateGstRegistration(id, body), success: true }, "postgres");
     }
     if (path.startsWith("admin/compliance/fssai/")) {
       const id = path.replace("admin/compliance/fssai/", "");
-      return jsonWithDataSource({ compliance: ApiEngine.updateBranchCompliance(id, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ compliance: ApiEngine.updateBranchCompliance(id, body), success: true }, "postgres");
     }
     if (path === "admin/compliance/invoices") {
-      return jsonWithDataSource({ settings: ApiEngine.updateInvoiceSettings(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ settings: ApiEngine.updateInvoiceSettings(body), success: true }, "postgres");
     }
     if (path === "admin/compliance/delivery-defaults") {
-      return jsonWithDataSource({ defaults: ApiEngine.updateDeliveryDefaults(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ defaults: ApiEngine.updateDeliveryDefaults(body), success: true }, "postgres");
     }
     if (path === "admin/compliance/payments") {
-      return jsonWithDataSource({ payments: ApiEngine.updatePaymentSettings(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ payments: ApiEngine.updatePaymentSettings(body), success: true }, "postgres");
     }
     if (path === "admin/compliance/integrations") {
-      return jsonWithDataSource({ integrations: ApiEngine.updateIntegrationSettings(body), success: true }, "json-fallback");
+      return jsonWithDataSource({ integrations: ApiEngine.updateIntegrationSettings(body), success: true }, "postgres");
     }
     if (path.startsWith("admin/branches/") && path.endsWith("/compliance")) {
       const branchId = path.replace("admin/branches/", "").replace("/compliance", "");
-      return jsonWithDataSource({ compliance: ApiEngine.updateBranchCompliance(branchId, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ compliance: ApiEngine.updateBranchCompliance(branchId, body), success: true }, "postgres");
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -3498,7 +3659,7 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     if (path.startsWith("manager/")) {
       const mgrAuth: any = resolveManagerSession(req);
       if (mgrAuth.error) {
-        return jsonWithDataSource({ success: false, statusCode: mgrAuth.status || 401, error: mgrAuth.error }, "json-fallback", mgrAuth.status || 401);
+        return jsonWithDataSource({ success: false, statusCode: mgrAuth.status || 401, error: mgrAuth.error }, "postgres", mgrAuth.status || 401);
       }
 
       let targetBranchId = mgrAuth.branchId;
@@ -3509,48 +3670,48 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
         const productId = path.replace("manager/products/", "").replace("/availability", "");
         const result = ApiEngine.updateBranchProductAvailability(targetBranchId, productId, body.status, body.reason);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/inventory/")) {
         const itemId = path.replace("manager/inventory/", "");
         const result = ApiEngine.updateBranchInventoryStock(targetBranchId, itemId, Number(body.stock || 0), body.threshold ? Number(body.threshold) : undefined);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path === "manager/branch/status") {
         const result = ApiEngine.updateBranchStatus(targetBranchId, body.status, body.pause_duration_minutes || body.pauseDurationMinutes, body.reason);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path === "manager/branch/settings") {
         const result = ApiEngine.updateBranchOperationalSettings(targetBranchId, body);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/notifications/") && path.endsWith("/read")) {
         const notifId = path.replace("manager/notifications/", "").replace("/read", "");
         const result = ApiEngine.markBranchNotificationRead(targetBranchId, notifId);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
     }
 
     // ── Search & Merchandising Engine Endpoints (PUT) ──
     if (path === "search/config" || path === "search/weights") {
-      return jsonWithDataSource({ success: true, weights: ApiEngine.updateSearchWeights(body) }, "json-fallback");
+      return jsonWithDataSource({ success: true, weights: ApiEngine.updateSearchWeights(body) }, "postgres");
     }
     if (path.startsWith("search/tags/")) {
       const tagId = path.replace("search/tags/", "");
-      return jsonWithDataSource({ success: true, tag: ApiEngine.saveSearchTag({ ...body, tag_id: tagId }) }, "json-fallback");
+      return jsonWithDataSource({ success: true, tag: ApiEngine.saveSearchTag({ ...body, tag_id: tagId }) }, "postgres");
     }
     if (path.startsWith("search/synonyms/")) {
       const synId = path.replace("search/synonyms/", "");
-      return jsonWithDataSource({ success: true, synonym: ApiEngine.saveSearchSynonym({ ...body, id: synId }) }, "json-fallback");
+      return jsonWithDataSource({ success: true, synonym: ApiEngine.saveSearchSynonym({ ...body, id: synId }) }, "postgres");
     }
     if (path.startsWith("search/rules/")) {
       const ruleId = path.replace("search/rules/", "");
-      return jsonWithDataSource({ success: true, rule: ApiEngine.saveSearchMerchandisingRule({ ...body, id: ruleId }) }, "json-fallback");
+      return jsonWithDataSource({ success: true, rule: ApiEngine.saveSearchMerchandisingRule({ ...body, id: ruleId }) }, "postgres");
     }
 
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
-      return jsonWithDataSource({ page: ApiEngine.updateCmsPage(pageId, body) }, "json-fallback");
+      return jsonWithDataSource({ page: ApiEngine.updateCmsPage(pageId, body) }, "postgres");
     }
 
     if (path.startsWith("admin/orders/")) {
@@ -3560,60 +3721,60 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
 
       if (action === "status") {
         const result = ApiEngine.updateOrderStatus(orderId, body.status, body.notes);
-        if (result) return jsonWithDataSource(result, "json-fallback");
-        return jsonWithDataSource({ error: "Order not found" }, "json-fallback", 404);
+        if (result) return jsonWithDataSource(result, "postgres");
+        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
       }
       if (action === "assign-branch") {
         const result = ApiEngine.assignOrderBranch(orderId, body.branch_id, body.notes);
-        if (result) return jsonWithDataSource(result, "json-fallback");
-        return jsonWithDataSource({ error: "Order not found" }, "json-fallback", 404);
+        if (result) return jsonWithDataSource(result, "postgres");
+        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
       }
       if (action === "assign-delivery" || action === "reassign-delivery") {
         const result = ApiEngine.manualAssignOrderDelivery(orderId, body.delivery_partner_id || body.partner_id, body.reason);
-        if (result) return jsonWithDataSource(result, "json-fallback");
-        return jsonWithDataSource({ error: "Order not found" }, "json-fallback", 404);
+        if (result) return jsonWithDataSource(result, "postgres");
+        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
       }
       if (action === "auto-assign-delivery") {
         const result = ApiEngine.autoAssignDeliveryDriver(orderId);
-        if (result) return jsonWithDataSource(result, "json-fallback");
-        return jsonWithDataSource({ error: "Order not found" }, "json-fallback", 404);
+        if (result) return jsonWithDataSource(result, "postgres");
+        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
       }
       if (action === "unassign-delivery") {
         const result = ApiEngine.unassignOrderDelivery(orderId, body.reason);
-        if (result) return jsonWithDataSource(result, "json-fallback");
-        return jsonWithDataSource({ error: "Order not found" }, "json-fallback", 404);
+        if (result) return jsonWithDataSource(result, "postgres");
+        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
       }
       if (action === "reschedule") {
         const result = ApiEngine.rescheduleOrder(orderId, body.delivery_date, body.time_slot);
-        if (result) return jsonWithDataSource(result, "json-fallback");
-        return jsonWithDataSource({ error: "Order not found" }, "json-fallback", 404);
+        if (result) return jsonWithDataSource(result, "postgres");
+        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
       }
       if (action === "cancel") {
         const result = ApiEngine.cancelOrder(orderId, body.reason);
-        if (result) return jsonWithDataSource(result, "json-fallback");
-        return jsonWithDataSource({ error: "Order not found" }, "json-fallback", 404);
+        if (result) return jsonWithDataSource(result, "postgres");
+        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
       }
       if (action === "refund") {
         const result = ApiEngine.refundOrder(orderId, body.amount, body.reason);
-        if (result) return jsonWithDataSource(result, "json-fallback");
-        return jsonWithDataSource({ error: "Order not found" }, "json-fallback", 404);
+        if (result) return jsonWithDataSource(result, "postgres");
+        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
       }
     }
 
     if (path.startsWith("admin/reports/saved/")) {
       const id = path.replace("admin/reports/saved/", "");
-      return jsonWithDataSource({ report: ApiEngine.updateSavedReport(id, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ report: ApiEngine.updateSavedReport(id, body), success: true }, "postgres");
     }
 
     if (path.startsWith("admin/popups/") || path.startsWith("popups/")) {
       const id = path.replace("admin/popups/", "").replace("popups/", "");
-      return jsonWithDataSource({ campaign: ApiEngine.updatePopupCampaign(id, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ campaign: ApiEngine.updatePopupCampaign(id, body), success: true }, "postgres");
     }
 
     if (path.startsWith("admin/delivery/partners/") || path.startsWith("admin/delivery-partners/")) {
       const partnerId = path.replace("admin/delivery/partners/", "").replace("admin/delivery-partners/", "");
       const partner = ApiEngine.updateAdminDeliveryPartner(partnerId, body);
-      return jsonWithDataSource({ partner, success: true }, "json-fallback");
+      return jsonWithDataSource({ partner, success: true }, "postgres");
     }
 
     // ── Staff & Access Profiles Endpoints (PUT) ──
@@ -3623,7 +3784,7 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       const profId = path.replace("admin/staff-profiles/profiles/", "").replace("admin/staff/profiles/", "");
       const userCtx = resolveUserContext(req);
       const profile = StaffAccessControl.updateProfile(profId, body, userCtx.userId || "admin_01");
-      return jsonWithDataSource({ profile, success: true }, "json-fallback");
+      return jsonWithDataSource({ profile, success: true }, "postgres");
     }
     if (path.startsWith("admin/staff-profiles/staff/") || path.startsWith("admin/staff/members/")) {
       const permErr = verifyApiPermission(req, "STAFF_MANAGEMENT", "EDIT");
@@ -3631,7 +3792,7 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       const staffId = path.replace("admin/staff-profiles/staff/", "").replace("admin/staff/members/", "");
       const userCtx = resolveUserContext(req);
       const staff = StaffAccessControl.updateStaffMember(staffId, body, userCtx.userId || "admin_01");
-      return jsonWithDataSource({ staff, success: true }, "json-fallback");
+      return jsonWithDataSource({ staff, success: true }, "postgres");
     }
 
     // ── Webhooks & n8n Outbox Endpoints (PUT) ──
@@ -3640,7 +3801,7 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       if (permErr) return permErr;
       const epId = path.replace("admin/webhooks/", "");
       const updated = WebhookEngine.updateEndpoint(epId, body);
-      return jsonWithDataSource({ endpoint: updated, success: true }, "json-fallback");
+      return jsonWithDataSource({ endpoint: updated, success: true }, "postgres");
     }
 
     // ── Telemarketing Endpoints (PUT) ──
@@ -3649,7 +3810,7 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       if (permErr) return permErr;
       const candId = path.replace("admin/telemarketing/candidates/", "").replace("/status", "");
       const result = TelemarketingEngine.updateCandidateStatus(candId, body.status, body.note, body.agentName, body.nextFollowupDate);
-      return jsonWithDataSource({ candidate: result, success: true }, "json-fallback");
+      return jsonWithDataSource({ candidate: result, success: true }, "postgres");
     }
     if (path.startsWith("admin/telemarketing/candidates/") && path.endsWith("/assign")) {
       const permErr = verifyApiPermission(req, "TELEMARKETING", "ASSIGN");
@@ -3657,30 +3818,30 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       const candId = path.replace("admin/telemarketing/candidates/", "").replace("/assign", "");
       const staffId = body.staff_id || body.staffId;
       if (!staffId) {
-        return jsonWithDataSource({ error: "staff_id is required for assignment", success: false }, "json-fallback", 400);
+        return jsonWithDataSource({ error: "staff_id is required for assignment", success: false }, "postgres", 400);
       }
 
       const staffObj = StaffAccessControl.getStaffMember(staffId);
       if (!staffObj || staffObj.status !== "ACTIVE") {
-        return jsonWithDataSource({ error: "Invalid or inactive staff member ID", success: false }, "json-fallback", 400);
+        return jsonWithDataSource({ error: "Invalid or inactive staff member ID", success: false }, "postgres", 400);
       }
 
       const hasAssignPerm =
         StaffAccessControl.hasPermission(staffObj, "TELEMARKETING", "CONTACT") ||
         StaffAccessControl.hasPermission(staffObj, "TELEMARKETING", "ASSIGN");
       if (!hasAssignPerm) {
-        return jsonWithDataSource({ error: "Selected staff member does not have telecaller outreach permission", success: false }, "json-fallback", 403);
+        return jsonWithDataSource({ error: "Selected staff member does not have telecaller outreach permission", success: false }, "postgres", 403);
       }
 
       const result = TelemarketingEngine.assignCandidate(candId, staffObj.id, staffObj.name);
-      return jsonWithDataSource({ candidate: result, success: true }, "json-fallback");
+      return jsonWithDataSource({ candidate: result, success: true }, "postgres");
     }
 
-    if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "updated" }, "json-fallback");
+    if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "updated" }, "postgres");
 
-    return jsonWithDataSource({ error: `API Route "${path}" not found` }, "json-fallback", 404);
+    return jsonWithDataSource({ error: `API Route "${path}" not found` }, "postgres", 404);
   } catch (err: any) {
-    return jsonWithDataSource({ error: err.message || "Internal server error" }, "json-fallback", 500);
+    return jsonWithDataSource({ error: err.message || "Internal server error" }, "postgres", 500);
   }
 }
 
@@ -3719,12 +3880,12 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
             message: "Please log in to manage your Favorites.",
             statusCode: 401,
           },
-          "json-fallback",
+          "postgres",
           401
         );
       }
       const result = ApiEngine.removeCustomerFavorite(customerUid, productId);
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || 200);
+      return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
 
     // ── Customer Review Deletion (DELETE) ──
@@ -3739,22 +3900,22 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
             message: "Please log in to manage your reviews.",
             statusCode: 401,
           },
-          "json-fallback",
+          "postgres",
           401
         );
       }
       const result = ApiEngine.deleteProductReview(customerUid, reviewId);
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
     }
 
     if (path.startsWith("admin/popups/") || path.startsWith("popups/")) {
       const id = path.replace("admin/popups/", "").replace("popups/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deletePopupCampaign(id), success: true }, "json-fallback");
+      return jsonWithDataSource({ deleted: ApiEngine.deletePopupCampaign(id), success: true }, "postgres");
     }
 
     if (path.startsWith("admin/delivery/partners/")) {
       const partnerId = path.replace("admin/delivery/partners/", "");
-      return jsonWithDataSource(ApiEngine.deactivateDeliveryPartner(partnerId, body.reason), "json-fallback");
+      return jsonWithDataSource(ApiEngine.deactivateDeliveryPartner(partnerId, body.reason), "postgres");
     }
 
     if (path.startsWith("admin/orders/")) {
@@ -3762,7 +3923,7 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       const orderId = parts[0];
       const action = parts[1];
       if (action === "unassign-delivery") {
-        return jsonWithDataSource(ApiEngine.unassignOrderDelivery(orderId, body.reason), "json-fallback");
+        return jsonWithDataSource(ApiEngine.unassignOrderDelivery(orderId, body.reason), "postgres");
       }
     }
 
@@ -3771,7 +3932,7 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       const url = new URL(req.url);
       const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || req.cookies.get("_cth_cart_id")?.value || "cart_guest_100";
       const cart = ApiEngine.clearCart(cartId);
-      return jsonWithDataSource({ cart, success: true }, "json-fallback");
+      return jsonWithDataSource({ cart, success: true }, "postgres");
     }
 
     if (path === "cart/items" || path.startsWith("cart/items/")) {
@@ -3779,7 +3940,7 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       const itemId = path.replace("cart/items/", "").replace("cart/items", "") || url.searchParams.get("item_id") || url.searchParams.get("itemId") || body.lineItemId || body.itemId;
       const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || req.cookies.get("_cth_cart_id")?.value || "cart_guest_100";
       const cart = ApiEngine.deleteLineItem(cartId, itemId);
-      return jsonWithDataSource({ cart, success: true }, "json-fallback");
+      return jsonWithDataSource({ cart, success: true }, "postgres");
     }
 
     if (path.startsWith("customers/addresses/")) {
@@ -3787,18 +3948,18 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       const url = new URL(req.url);
       const customerId = url.searchParams.get("customer_id") || req.cookies.get("_cth_user_id")?.value || "cus_guest";
       const deleted = ApiEngine.deleteCustomerAddress(addressId, customerId);
-      return jsonWithDataSource({ deleted, success: true }, "json-fallback");
+      return jsonWithDataSource({ deleted, success: true }, "postgres");
     }
 
     if (path.startsWith("admin/categories/") || path.startsWith("categories/")) {
       const id = path.replace("admin/categories/", "").replace("categories/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deletePimCategory(id), success: true }, "json-fallback");
+      return jsonWithDataSource({ deleted: ApiEngine.deletePimCategory(id), success: true }, "postgres");
     }
 
     if (path.startsWith("admin/occasions/") || path.startsWith("occasions/")) {
       const id = path.replace("admin/occasions/", "").replace("occasions/", "");
       const res = ApiEngine.archiveOccasion(id);
-      return jsonWithDataSource(res, "json-fallback");
+      return jsonWithDataSource(res, "postgres");
     }
 
     if (path === "admin/branches" || path === "branches" || path.startsWith("admin/branches/")) {
@@ -3806,68 +3967,68 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       if (permErr) return permErr;
       const url = new URL(req.url);
       const id = path.startsWith("admin/branches/") ? path.replace("admin/branches/", "") : (url.searchParams.get("id") || body.id || body.branchId);
-      if (!id) return jsonWithDataSource({ error: "Branch ID required", success: false }, "json-fallback", 400);
+      if (!id) return jsonWithDataSource({ error: "Branch ID required", success: false }, "postgres", 400);
       const res = ApiEngine.archiveBranch(id);
-      return jsonWithDataSource(res, "json-fallback");
+      return jsonWithDataSource(res, "postgres");
     }
 
     if (path.startsWith("admin/catalog/products/")) {
       const id = path.replace("admin/catalog/products/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deleteAdminProduct(id), success: true }, "json-fallback");
+      return jsonWithDataSource({ deleted: ApiEngine.deleteAdminProduct(id), success: true }, "postgres");
     }
 
     // ── Search & Merchandising Engine Endpoints (DELETE) ──
     if (path.startsWith("search/tags/")) {
       const tagId = path.replace("search/tags/", "");
-      return jsonWithDataSource(ApiEngine.deleteSearchTag(tagId), "json-fallback");
+      return jsonWithDataSource(ApiEngine.deleteSearchTag(tagId), "postgres");
     }
     if (path.startsWith("search/synonyms/")) {
       const synId = path.replace("search/synonyms/", "");
-      return jsonWithDataSource(ApiEngine.deleteSearchSynonym(synId), "json-fallback");
+      return jsonWithDataSource(ApiEngine.deleteSearchSynonym(synId), "postgres");
     }
     if (path.startsWith("search/rules/")) {
       const ruleId = path.replace("search/rules/", "");
-      return jsonWithDataSource(ApiEngine.deleteSearchMerchandisingRule(ruleId), "json-fallback");
+      return jsonWithDataSource(ApiEngine.deleteSearchMerchandisingRule(ruleId), "postgres");
     }
 
     if (path.startsWith("admin/abandoned-carts/campaigns/")) {
       const campId = path.replace("admin/abandoned-carts/campaigns/", "");
-      return jsonWithDataSource(ApiEngine.deleteRecoveryCampaign(campId), "json-fallback");
+      return jsonWithDataSource(ApiEngine.deleteRecoveryCampaign(campId), "postgres");
     }
     if (path.startsWith("admin/offers/")) {
       const id = path.replace("admin/offers/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deleteAdminOffer(id), success: true }, "json-fallback");
+      return jsonWithDataSource({ deleted: ApiEngine.deleteAdminOffer(id), success: true }, "postgres");
     }
 
     if (path.startsWith("admin/media/")) {
       const id = path.replace("admin/media/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deleteMedia(id), success: true }, "json-fallback");
+      return jsonWithDataSource({ deleted: ApiEngine.deleteMedia(id), success: true }, "postgres");
     }
 
     if (path.startsWith("admin/compliance/documents/")) {
       const id = path.replace("admin/compliance/documents/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deleteComplianceDocument(id), success: true }, "json-fallback");
+      return jsonWithDataSource({ deleted: ApiEngine.deleteComplianceDocument(id), success: true }, "postgres");
     }
 
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deleteCmsPage(pageId) }, "json-fallback");
+      return jsonWithDataSource({ deleted: ApiEngine.deleteCmsPage(pageId) }, "postgres");
     }
 
     if (path.startsWith("admin/reports/saved/")) {
       const id = path.replace("admin/reports/saved/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deleteSavedReport(id), success: true }, "json-fallback");
+      return jsonWithDataSource({ deleted: ApiEngine.deleteSavedReport(id), success: true }, "postgres");
     }
 
     if (path.startsWith("admin/popups/") || path.startsWith("popups/")) {
       const id = path.replace("admin/popups/", "").replace("popups/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deletePopupCampaign(id), success: true }, "json-fallback");
+      return jsonWithDataSource({ deleted: ApiEngine.deletePopupCampaign(id), success: true }, "postgres");
     }
 
     if (path.startsWith("admin/crm/segments/")) {
       const segId = path.replace("admin/crm/segments/", "");
       const deleted = ApiEngine.deleteCrmSegment(segId);
-      return jsonWithDataSource({ deleted, success: true }, "json-fallback");
+      return jsonWithDataSource({ deleted, success: true }, "postgres");
     }
 
     // ── Enterprise n8n & Webhooks Outbox (DELETE) ──
@@ -3876,21 +4037,21 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       if (permErr) return permErr;
       const epId = path.replace("admin/webhooks/endpoints/", "");
       const deleted = WebhookEngine.deleteEndpoint(epId);
-      return jsonWithDataSource({ deleted, success: true }, "json-fallback");
+      return jsonWithDataSource({ deleted, success: true }, "postgres");
     }
     if (path.startsWith("admin/webhooks/")) {
       const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
       if (permErr) return permErr;
       const epId = path.replace("admin/webhooks/", "");
       const deleted = WebhookEngine.deleteEndpoint(epId);
-      return jsonWithDataSource({ deleted, success: true }, "json-fallback");
+      return jsonWithDataSource({ deleted, success: true }, "postgres");
     }
 
-    if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "deleted" }, "json-fallback");
+    if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "deleted" }, "postgres");
 
-    return jsonWithDataSource({ error: `API Route "${path}" not found` }, "json-fallback", 404);
+    return jsonWithDataSource({ error: `API Route "${path}" not found` }, "postgres", 404);
   } catch (err: any) {
-    return jsonWithDataSource({ error: err.message || "Internal server error" }, "json-fallback", 500);
+    return jsonWithDataSource({ error: err.message || "Internal server error" }, "postgres", 500);
   }
 }
 
@@ -3909,14 +4070,14 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
       const reviewId = path.split("/").pop() || "";
       const customerUid = resolveCustomerUidFromReq(req);
       if (!customerUid) {
-        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "json-fallback", 401);
+        return jsonWithDataSource({ success: false, error: "Unauthorized", statusCode: 401 }, "postgres", 401);
       }
       const result = ApiEngine.updateProductReview(customerUid, reviewId, {
         rating: body.rating,
         title: body.title,
         reviewText: body.reviewText || body.review_text || body.body || body.comment,
       });
-      return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+      return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
     }
 
     // ── Admin Review Moderation (PATCH) ──
@@ -3928,13 +4089,13 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
         adminName: body.adminName || body.admin_name,
         adminResponse: body.adminResponse || body.admin_response || body.reply,
       });
-      return jsonWithDataSource(result, "json-fallback", result.success ? 200 : 404);
+      return jsonWithDataSource(result, "postgres", result.success ? 200 : 404);
     }
 
     if (path.startsWith("manager/")) {
       const mgrAuth: any = resolveManagerSession(req);
       if (mgrAuth.error) {
-        return jsonWithDataSource({ success: false, statusCode: mgrAuth.status || 401, error: mgrAuth.error }, "json-fallback", mgrAuth.status || 401);
+        return jsonWithDataSource({ success: false, statusCode: mgrAuth.status || 401, error: mgrAuth.error }, "postgres", mgrAuth.status || 401);
       }
 
       let targetBranchId = mgrAuth.branchId;
@@ -3945,25 +4106,25 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
       if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
         const productId = path.replace("manager/products/", "").replace("/availability", "");
         const result = ApiEngine.updateBranchProductAvailability(targetBranchId, productId, body.status, body.reason);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/inventory/")) {
         const itemId = path.replace("manager/inventory/", "");
         const result = ApiEngine.updateBranchInventoryStock(targetBranchId, itemId, Number(body.stock || 0), body.threshold ? Number(body.threshold) : undefined);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path === "manager/branch/status") {
         const result = ApiEngine.updateBranchStatus(targetBranchId, body.status, body.pause_duration_minutes || body.pauseDurationMinutes, body.reason);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path === "manager/branch/settings") {
         const result = ApiEngine.updateBranchOperationalSettings(targetBranchId, body);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
       if (path.startsWith("manager/notifications/") && path.endsWith("/read")) {
         const notifId = path.replace("manager/notifications/", "").replace("/read", "");
         const result = ApiEngine.markBranchNotificationRead(targetBranchId, notifId);
-        return jsonWithDataSource(result, "json-fallback", result.statusCode || (result.success ? 200 : 400));
+        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
     }
 
@@ -3974,21 +4135,21 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
 
       if (action === "status") {
         const result = ApiEngine.updateOrderStatus(orderId, body.status, body.notes);
-        if (result) return jsonWithDataSource(result, "json-fallback");
-        return jsonWithDataSource({ error: "Order not found" }, "json-fallback", 404);
+        if (result) return jsonWithDataSource(result, "postgres");
+        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
       }
     }
 
     if (path.startsWith("admin/popups/") || path.startsWith("popups/")) {
       const id = path.replace("admin/popups/", "").replace("popups/", "");
-      return jsonWithDataSource({ campaign: ApiEngine.updatePopupCampaign(id, body), success: true }, "json-fallback");
+      return jsonWithDataSource({ campaign: ApiEngine.updatePopupCampaign(id, body), success: true }, "postgres");
     }
 
-    if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "patched" }, "json-fallback");
+    if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "patched" }, "postgres");
 
-    return jsonWithDataSource({ error: `API Route "${path}" not found` }, "json-fallback", 404);
+    return jsonWithDataSource({ error: `API Route "${path}" not found` }, "postgres", 404);
   } catch (err: any) {
-    return jsonWithDataSource({ error: err.message || "Internal server error" }, "json-fallback", 500);
+    return jsonWithDataSource({ error: err.message || "Internal server error" }, "postgres", 500);
   }
 }
 

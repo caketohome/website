@@ -1,42 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import { retrieveUser } from "@/lib/data/users";
+import { ApiEngine } from "@frontend/lib/api-engine";
+import { persistCustomerToDb } from "@frontend/lib/db-persistence";
+import { dbQuery } from "@frontend/lib/db";
 
 export const dynamic = "force-dynamic";
-
-function getStoreFilePath(): string {
-  let root = process.cwd();
-  if (!root.endsWith("frontend") && fs.existsSync(path.join(root, "frontend"))) {
-    root = path.join(root, "frontend");
-  }
-  const dir = path.join(root, "data");
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  return path.join(dir, "db-store.json");
-}
-
-function loadStoreData(): any {
-  const filePath = getStoreFilePath();
-  if (fs.existsSync(filePath)) {
-    try {
-      return JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    } catch {
-      return { customers: [], orders: [] };
-    }
-  }
-  return { customers: [], orders: [] };
-}
-
-function saveStoreData(data: any): void {
-  try {
-    const filePath = getStoreFilePath();
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
-  } catch (err) {
-    console.error("[Customer Profile Route] Failed to persist data:", err);
-  }
-}
 
 function getSessionUser(req: NextRequest) {
   const cookieHeader = req.headers.get("cookie") || "";
@@ -67,7 +35,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const store = loadStoreData();
+    const store = ApiEngine.getStore();
     const customers = store.customers || [];
     const normPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
 
@@ -77,7 +45,40 @@ export async function GET(req: NextRequest) {
       (normPhone && (c.normalized_phone === normPhone || c.phone?.replace(/\D/g, "").slice(-10) === normPhone))
     );
 
-    // If not found in store, fall back to resolved user
+    // If not found in memory store, query PostgreSQL directly
+    if (!customer && (customerUid || userId || normPhone)) {
+      try {
+        const dbRes = await dbQuery(
+          `SELECT * FROM "customer" WHERE ("id" = $1 OR "metadata"->>'customer_uid' = $1 OR "phone" LIKE $2) AND deleted_at IS NULL LIMIT 1`,
+          [customerUid || userId || "", `%${normPhone}%`]
+        );
+        if (dbRes.rows.length > 0) {
+          const row = dbRes.rows[0];
+          const meta = row.metadata || {};
+          customer = {
+            id: row.id,
+            customer_uid: meta.customer_uid || row.id,
+            first_name: row.first_name,
+            last_name: row.last_name,
+            name: `${row.first_name || ""} ${row.last_name || ""}`.trim() || "Customer",
+            full_name: `${row.first_name || ""} ${row.last_name || ""}`.trim() || "Customer",
+            email: row.email,
+            phone: row.phone,
+            normalized_phone: meta.normalized_phone || row.phone,
+            preferences: meta.preferences || {},
+            addresses: meta.addresses || [],
+            orders_count: meta.orders_count || 0,
+            total_spend: meta.total_spend || 0,
+            created_at: row.created_at,
+          };
+          customers.push(customer);
+        }
+      } catch (err: any) {
+        console.warn("[Customer Profile GET] Direct DB lookup warning:", err.message);
+      }
+    }
+
+    // If not found in DB or store, fall back to resolved user session
     if (!customer) {
       const resolvedUser = await retrieveUser();
       if (resolvedUser) {
@@ -102,8 +103,9 @@ export async function GET(req: NextRequest) {
             marketing_emails: true,
           },
         };
-        store.customers = [...customers, customer];
-        saveStoreData(store);
+        customers.push(customer);
+        // Persist new customer record directly to PostgreSQL
+        await persistCustomerToDb(customer).catch((e) => console.error("Failed to persist user profile:", e));
       }
     }
 
@@ -157,6 +159,7 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     );
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    response.headers.set("X-Data-Source", "postgres");
     return response;
   } catch (err: any) {
     return NextResponse.json(
@@ -210,7 +213,7 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    const store = loadStoreData();
+    const store = ApiEngine.getStore();
     const customers = store.customers || [];
     const normPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
 
@@ -245,9 +248,11 @@ export async function PUT(req: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
+    // 1. Persist directly to PostgreSQL database (Mandatory & Visible Error on Failure)
+    await persistCustomerToDb(updatedCustomer);
+
+    // 2. Update memory store cache
     customers[customerIdx] = updatedCustomer;
-    store.customers = customers;
-    saveStoreData(store);
 
     const profile = {
       id: updatedCustomer.id,
@@ -278,10 +283,12 @@ export async function PUT(req: NextRequest) {
       { status: 200 }
     );
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    response.headers.set("X-Data-Source", "postgres");
     return response;
   } catch (err: any) {
+    console.error("[Customer Profile PUT Error]:", err);
     return NextResponse.json(
-      { success: false, error: err.message || "Failed to update profile." },
+      { success: false, error: err.message || "Failed to update profile in database." },
       { status: 500 }
     );
   }

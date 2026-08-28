@@ -16,6 +16,7 @@ import {
   Globe,
   Sliders,
   ShieldCheck,
+  Store,
 } from "lucide-react";
 import {
   DAY_NAMES,
@@ -59,11 +60,47 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
 
   const [operatingHours, setOperatingHours] = useState<OperatingHoursEntry[]>([]);
   const [holidays, setHolidays] = useState<HolidayEntry[]>([]);
-
-  // New Holiday Form
   const [newHolidayDate, setNewHolidayDate] = useState("");
   const [newHolidayName, setNewHolidayName] = useState("");
   const [newHolidayIsFullDay, setNewHolidayIsFullDay] = useState(true);
+
+  // Live Simulator State
+  const [simBranchId, setSimBranchId] = useState("br_default");
+  const [simDate, setSimDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [simMode, setSimMode] = useState<"delivery" | "pickup">("delivery");
+  const [simDeliveryMode, setSimDeliveryMode] = useState<"all" | "standard" | "express" | "midnight">("all");
+  const [simBranches, setSimBranches] = useState<Array<{ id: string; name: string }>>([
+    { id: "br_default", name: "Flagship Kitchen (Kollam Main Hub)" },
+    { id: "br_kadavanthra", name: "Kochi Central Studio" },
+    { id: "br_palayam", name: "Trivandrum City Kitchen" },
+  ]);
+  const [simSlots, setSimSlots] = useState<any[]>([]);
+  const [loadingSim, setLoadingSim] = useState(false);
+
+  const fetchSimSlots = async () => {
+    try {
+      setLoadingSim(true);
+      const params = new URLSearchParams({
+        branch_id: simBranchId,
+        date: simDate,
+        mode: simMode,
+        delivery_mode: simDeliveryMode,
+      });
+      const res = await fetch(`/api/v1/fulfillment/preview-slots?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSimSlots(data.delivery_slots || []);
+      }
+    } catch (e) {
+      console.error("Failed to load simulator slots", e);
+    } finally {
+      setLoadingSim(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSimSlots();
+  }, [simBranchId, simDate, simMode, simDeliveryMode, config]);
 
   const fetchFulfillmentConfig = async () => {
     try {
@@ -309,6 +346,42 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
 
             <div className="grid grid-cols-3 gap-3 pt-2">
               <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-700">Slot Duration (mins)</Label>
+                <Input
+                  type="number"
+                  value={config.slot_duration_minutes || 60}
+                  onChange={(e) => setConfig({ ...config, slot_duration_minutes: Number(e.target.value) || 60 })}
+                  className="text-xs font-semibold rounded-xl"
+                  placeholder="60"
+                />
+                <span className="text-[10px] text-slate-400">Duration of each delivery window (e.g. 60m = 1-hr slot, 30m = 30-min slot)</span>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-700">Slot Interval (mins)</Label>
+                <Input
+                  type="number"
+                  value={config.slot_interval_minutes || 60}
+                  onChange={(e) => setConfig({ ...config, slot_interval_minutes: Number(e.target.value) || 60 })}
+                  className="text-xs font-semibold rounded-xl"
+                  placeholder="60"
+                />
+                <span className="text-[10px] text-slate-400">Step interval between start times (e.g. 60m, 30m, 15m)</span>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-700">Max Capacity / Slot</Label>
+                <Input
+                  type="number"
+                  value={config.max_slots_per_window || 10}
+                  onChange={(e) => setConfig({ ...config, max_slots_per_window: Number(e.target.value) || 10 })}
+                  className="text-xs font-semibold rounded-xl"
+                  placeholder="10"
+                />
+                <span className="text-[10px] text-slate-400">Concurrent orders permitted per window</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 pt-2">
+              <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-slate-700">Earliest Delivery Slot</Label>
                 <Input
                   type="time"
@@ -339,7 +412,132 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
           </div>
         </Container>
 
-        {/* Section 1.5: Special Delivery Modes (Midnight & Express) */}
+        {/* Section 1.4: Express 45-Min Delivery Rules */}
+        <Container className="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-5">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <Zap className="w-5 h-5 text-amber-500" />
+            <h3 className="font-extrabold text-sm text-slate-900">⚡ Express 45-Min Priority Delivery Rules</h3>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-800">Express 45-Min Delivery Mode</span>
+                <span className="text-[11px] text-slate-500">Enable priority instant courier dispatch mode</span>
+              </div>
+              <Switch
+                checked={config.express_delivery?.enabled ?? true}
+                onCheckedChange={(checked) =>
+                  setConfig({
+                    ...config,
+                    express_delivery: {
+                      ...(config.express_delivery || DEFAULT_EXPRESS_CONFIG),
+                      enabled: checked,
+                    },
+                  })
+                }
+              />
+            </div>
+
+            {config.express_delivery?.enabled && (
+              <div className="space-y-3 p-3.5 rounded-2xl bg-amber-50/50 border border-amber-200/80">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-700">Operating Start</Label>
+                    <Input
+                      type="time"
+                      value={config.express_delivery?.start_time || "09:00"}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          express_delivery: {
+                            ...(config.express_delivery || DEFAULT_EXPRESS_CONFIG),
+                            start_time: e.target.value,
+                          },
+                        })
+                      }
+                      className="text-xs font-semibold rounded-xl bg-white"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-700">Operating End</Label>
+                    <Input
+                      type="time"
+                      value={config.express_delivery?.end_time || "21:00"}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          express_delivery: {
+                            ...(config.express_delivery || DEFAULT_EXPRESS_CONFIG),
+                            end_time: e.target.value,
+                          },
+                        })
+                      }
+                      className="text-xs font-semibold rounded-xl bg-white"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-700">Surcharge (₹)</Label>
+                    <Input
+                      type="number"
+                      value={config.express_delivery?.surcharge ?? 99}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          express_delivery: {
+                            ...(config.express_delivery || DEFAULT_EXPRESS_CONFIG),
+                            surcharge: Number(e.target.value) || 0,
+                          },
+                        })
+                      }
+                      className="text-xs font-semibold rounded-xl bg-white"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-700">Max Capacity</Label>
+                    <Input
+                      type="number"
+                      value={config.express_delivery?.max_capacity ?? 5}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          express_delivery: {
+                            ...(config.express_delivery || DEFAULT_EXPRESS_CONFIG),
+                            max_capacity: Number(e.target.value) || 5,
+                          },
+                        })
+                      }
+                      className="text-xs font-semibold rounded-xl bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-amber-200 mt-2">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-800">Same-Day Only Delivery</span>
+                    <span className="text-[10px] text-slate-500">
+                      Express 45-Min is strictly for same-day delivery. Will NOT be shown when customer selects tomorrow or future dates.
+                    </span>
+                  </div>
+                  <Switch
+                    checked={config.express_delivery?.same_day_only ?? true}
+                    onCheckedChange={(checked) =>
+                      setConfig({
+                        ...config,
+                        express_delivery: {
+                          ...(config.express_delivery || DEFAULT_EXPRESS_CONFIG),
+                          same_day_only: checked,
+                        },
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </Container>
+
+        {/* Section 1.5: Special Delivery Modes (Midnight) */}
         <Container className="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-5">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
             <Moon className="w-5 h-5 text-indigo-600" />
@@ -423,21 +621,39 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
                       className="text-xs font-semibold rounded-xl bg-white"
                     />
                   </div>
-                  <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-indigo-100 mt-5">
-                    <span className="text-[11px] font-bold text-slate-800">Subject to Corporate Cutoff</span>
-                    <Switch
-                      checked={config.late_night_delivery?.subject_to_corporate_cutoff ?? true}
-                      onCheckedChange={(checked) =>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-700">Max Capacity / Night</Label>
+                    <Input
+                      type="number"
+                      value={config.late_night_delivery?.max_capacity ?? 5}
+                      onChange={(e) =>
                         setConfig({
                           ...config,
                           late_night_delivery: {
                             ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
-                            subject_to_corporate_cutoff: checked,
+                            max_capacity: Number(e.target.value) || 5,
                           },
                         })
                       }
+                      className="text-xs font-semibold rounded-xl bg-white"
                     />
                   </div>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-indigo-100 mt-2">
+                  <span className="text-[11px] font-bold text-slate-800">Subject to Corporate Cutoff</span>
+                  <Switch
+                    checked={config.late_night_delivery?.subject_to_corporate_cutoff ?? true}
+                    onCheckedChange={(checked) =>
+                      setConfig({
+                        ...config,
+                        late_night_delivery: {
+                          ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
+                          subject_to_corporate_cutoff: checked,
+                        },
+                      })
+                    }
+                  />
                 </div>
 
                 {!config.late_night_delivery?.subject_to_corporate_cutoff && (
@@ -459,6 +675,76 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
                     />
                   </div>
                 )}
+              </div>
+            )}
+          </div>
+        </Container>
+
+        {/* Section 1.6: Store Pickup Fulfillment Configuration */}
+        <Container className="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-5">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <Store className="w-5 h-5 text-emerald-600" />
+            <h3 className="font-extrabold text-sm text-slate-900">🏪 Kitchen Hub Store Pickup Configuration</h3>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-800">Enable Customer Store Pickup</span>
+                <span className="text-[11px] text-slate-500">Allow customers to select and collect orders directly from kitchen hubs (FREE)</span>
+              </div>
+              <Switch
+                checked={config.store_pickup_enabled ?? true}
+                onCheckedChange={(checked) =>
+                  setConfig({
+                    ...config,
+                    store_pickup_enabled: checked,
+                  })
+                }
+              />
+            </div>
+
+            {config.store_pickup_enabled !== false && (
+              <div className="space-y-3 p-3.5 rounded-2xl bg-emerald-50/50 border border-emerald-200/80">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-700">Pickup Lead Time (Minutes)</Label>
+                    <Input
+                      type="number"
+                      value={config.store_pickup_lead_time_minutes ?? 30}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          store_pickup_lead_time_minutes: Number(e.target.value) || 30,
+                        })
+                      }
+                      className="text-xs font-semibold rounded-xl bg-white"
+                      placeholder="30"
+                    />
+                    <span className="text-[10px] text-slate-400 leading-tight block">
+                      Minimum preparation lead time required before customer can collect.
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-700">Convenience Fee (₹)</Label>
+                    <Input
+                      type="number"
+                      value={config.store_pickup_convenience_fee ?? 0}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          store_pickup_convenience_fee: Number(e.target.value) || 0,
+                        })
+                      }
+                      className="text-xs font-semibold rounded-xl bg-white"
+                      placeholder="0"
+                    />
+                    <span className="text-[10px] text-slate-400 leading-tight block">
+                      Typically ₹0 (Free store collection).
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -735,6 +1021,156 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
             ))}
           </div>
         )}
+      </Container>
+
+      {/* Section 5: Live Slot Preview Simulator (Direct Cascading Verification) */}
+      <Container className="p-6 rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/30 shadow-md space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-indigo-100">
+          <div className="flex items-center gap-2">
+            <Sliders className="w-5 h-5 text-indigo-600" />
+            <div>
+              <h3 className="font-extrabold text-sm text-slate-900">Live Customer Delivery Slot Simulator</h3>
+              <p className="text-[11px] text-slate-500">Preview exact customer slot schedule generated from active configuration (Global &gt; Store &gt; Zone)</p>
+            </div>
+          </div>
+          <Badge color="purple" className="bg-purple-100 text-purple-800 font-bold border-purple-200">
+            Realtime Engine Simulator
+          </Badge>
+        </div>
+
+        {/* Simulator Controls */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-white border border-indigo-100 shadow-sm">
+          <div className="space-y-1">
+            <Label className="text-xs font-bold text-slate-700">Target Store</Label>
+            <select
+              value={simBranchId}
+              onChange={(e) => setSimBranchId(e.target.value)}
+              className="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 p-2.5 h-10"
+            >
+              {simBranches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs font-bold text-slate-700">Target Date</Label>
+            <Input
+              type="date"
+              value={simDate}
+              onChange={(e) => setSimDate(e.target.value)}
+              className="text-xs font-semibold rounded-xl bg-slate-50 h-10"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs font-bold text-slate-700">Fulfillment Type</Label>
+            <select
+              value={simMode}
+              onChange={(e) => setSimMode(e.target.value as any)}
+              className="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 p-2.5 h-10"
+            >
+              <option value="delivery">Home Delivery</option>
+              <option value="pickup">Store Pickup</option>
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs font-bold text-slate-700">Mode Filter</Label>
+            <select
+              value={simDeliveryMode}
+              onChange={(e) => setSimDeliveryMode(e.target.value as any)}
+              className="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 p-2.5 h-10"
+            >
+              <option value="all">All Modes (Standard + Express + Midnight)</option>
+              <option value="standard">Standard Scheduled Slots Only</option>
+              <option value="express">⚡ Express 45-Min Only</option>
+              <option value="midnight">🌙 Midnight Delivery Only</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Simulator Results Grid */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+            <span>Generated Customer Slots ({simSlots.length} Total Windows):</span>
+            <span className="text-indigo-600 font-mono text-[11px]">
+              Active: {simSlots.filter((s) => s.available).length} Available | {simSlots.filter((s) => !s.available).length} Closed/Cutoff
+            </span>
+          </div>
+
+          {loadingSim ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-20 bg-slate-100 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          ) : simSlots.length === 0 ? (
+            <div className="p-8 rounded-2xl bg-white border border-slate-200 text-center text-xs text-slate-400">
+              No operational slots generated for the selected parameters. (Store may be closed on this day or outside operating window).
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {simSlots.map((slot) => {
+                const isAvail = slot.available;
+                return (
+                  <div
+                    key={slot.id}
+                    className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-2 transition ${
+                      isAvail
+                        ? slot.slot_type === "express"
+                          ? "bg-amber-50/80 border-amber-300 shadow-sm"
+                          : slot.slot_type === "midnight"
+                          ? "bg-indigo-50/80 border-indigo-300 shadow-sm"
+                          : "bg-white border-emerald-200 shadow-sm"
+                        : "bg-slate-50 border-slate-200 opacity-60"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="font-extrabold text-xs text-slate-900 block truncate">
+                          {slot.slot_name || slot.id}
+                        </span>
+                        <span className="text-[11px] font-mono text-slate-500 font-semibold">
+                          {slot.start_time} - {slot.end_time}
+                        </span>
+                      </div>
+                      <Badge
+                        color={isAvail ? "green" : "red"}
+                        className={`text-[10px] uppercase font-bold shrink-0 ${
+                          isAvail
+                            ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                            : "bg-rose-100 text-rose-800 border-rose-200"
+                        }`}
+                      >
+                        {slot.status || (isAvail ? "AVAILABLE" : "UNAVAILABLE")}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] border-t border-slate-100 pt-2 mt-1">
+                      <span className="text-slate-500">
+                        Cap: <b>{slot.remaining_capacity ?? slot.max_capacity}</b>/{slot.max_capacity || 10} left
+                      </span>
+                      {slot.extra_charge > 0 && (
+                        <span className="font-extrabold text-rose-600">
+                          +₹{slot.extra_charge} Fee
+                        </span>
+                      )}
+                    </div>
+
+                    {!isAvail && slot.reason_message && (
+                      <p className="text-[10px] text-rose-600 font-medium">
+                        ⚠️ {slot.reason_message}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </Container>
     </div>
   );

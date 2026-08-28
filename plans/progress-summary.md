@@ -7,6 +7,432 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.50: Map-First Customer Location & Store Pickup Governance Architecture (100% Verified)
+- **Problem & Root-Cause Analysis**:
+  - **Issue**: Customer checkout location search was limited to static preset landmarks, missing real geographic map search across all Indian cities/states; device location was not cleanly decoupled from recipient destination selection; descriptive address editing risk of unintentionally mutating map coordinates; store pickup mode visibility needed authoritative Super Admin toggle governance with real-time checkout synchronization.
+  - **Forensic Investigation & Architectural Resolution**:
+    1. **Real Map-First Geographic Search Engine**:
+       - Implemented `ApiEngine.searchLocationAsync` combining local database branches, city areas, delivery zones, and comprehensive landmarks across Karnataka, Kerala, Maharashtra, Tamil Nadu, Delhi NCR, and Telangana with real geographic OpenStreetMap/Photon search, 30-minute server in-memory LRU caching, and timeout safety.
+       - Integrated in `GET /api/v1/delivery/search-location` and `POST /api/v1/delivery/search-location`.
+    2. **Customer Storefront Checkout Form (`checkout-form.tsx`)**:
+       - Added 300ms debouncing with `AbortController` cancellation and sequence ID ref to protect against stale in-flight responses.
+       - Authoritative coordinate assignment (`customerLocation: { latitude, longitude, source: "SEARCH" }`) upon selection, automatically centering the map marker and running `fetchAvailability`.
+       - Decoupled descriptive text fields (flat/door number, building, landmark, gate notes) so typing never mutates map coordinates. Added explicit `[ Search this address on map ]` button on demand.
+       - Restored exact coordinates when saved addresses are chosen.
+    3. **Super Admin Store Pickup Governance**:
+       - Governed by `fulfillment_config.store_pickup_enabled` and `store_pickup_convenience_fee` in PostgreSQL `public.setting`.
+       - When disabled (`store_pickup_enabled: false`): Storefront hides pickup button; `getCheckoutAvailability` marks pickup disabled; `validateCheckout` authoritatively rejects with `STORE_PICKUP_DISABLED`.
+       - When enabled (`store_pickup_enabled: true`): Dynamically renders "Store Pickup (FREE)" or "Store Pickup (₹{fee})"; shows active, open kitchen hubs.
+    4. **Checkout Action & Order Persistence (`actions/checkout.ts`)**:
+       - Updated `placeOrder` and `confirmCheckoutAction` to forward `delivery_type`, `branch_id`, `latitude`, `longitude`, `location_source`, and address fields.
+       - Snapshots exact 6-decimal sub-meter coordinates (`delivery_latitude`, `delivery_longitude`) into PostgreSQL `public.order`.
+       - Generates canonical rider Google Maps turn-by-turn navigation URL: `https://www.google.com/maps/dir/?api=1&destination=LAT,LNG`.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-map-first-checkout-location-and-pickup-e2e.ts`: **40 / 40 ASSERTIONS PASSED (100% SUCCESS)**:
+    - Super Admin pickup toggle OFF $\rightarrow$ rejected with `STORE_PICKUP_DISABLED`.
+    - Super Admin pickup toggle ON with ₹20 fee $\rightarrow$ accepted and fee reflected.
+    - Map-First search across Karnataka, Kerala, Maharashtra, Delhi NCR $\rightarrow$ exact coordinates.
+    - Authoritative delivery resolution to nearest hub $\rightarrow$ Indiranagar Hub, Kollam Central Hub.
+    - Anti-spoofing coordinate authority over mismatched pincode $\rightarrow$ strictly governed by GPS.
+    - Map pin drag $\rightarrow$ dynamically re-resolves serving hub.
+    - Decoupled address text editing $\rightarrow$ coordinates preserved.
+    - Order snapshot in PostgreSQL $\rightarrow$ exact 6-decimal coordinates.
+    - Rider Google Maps navigation URL $\rightarrow$ exact 6-decimal sub-meter precision.
+  - **Platform Regressions**:
+    - `scripts/test-checkout-pickup-map-location-e2e.ts`: **31 / 31 PASSED (100%)**.
+    - `scripts/test-pim-map-first-delivery-e2e.ts`: **7 / 7 PASSED (100%)**.
+    - Next.js Production Build: `npm --prefix frontend run build` **28 / 28 ROUTES COMPILED CLEANLY (0 ERRORS)**.
+  - **API Contract Documentation**:
+    - [`docs/CHECKOUT_LOCATION_AND_FULFILLMENT_API_CONTRACT.md`](file:///e:/vig/cakes2home-main/cakes2home-main/docs/CHECKOUT_LOCATION_AND_FULFILLMENT_API_CONTRACT.md)
+
+### Milestone 9.49: Legacy PIM Delivery Zone Removal & Product-Scoped Max Distance (KM) System (100% Verified)
+- **Problem & Root-Cause Analysis**:
+  - **Issue**: The PIM editor previously contained an obsolete delivery zone selection UI ("Allowed Delivery Zones: Zone 1 (0–5 KM), Zone 2 (5–10 KM), Zone 3 (10–15 KM), Zone 4 (15–20 KM)") and `validateCheckout` performed dual-checks against legacy `product_delivery_restrictions` by `zone_id`.
+  - **Forensic Investigation & Architectural Resolution**:
+    1. **Clear Domain Boundary Established**:
+       - *Store Area Matrix* owns physical delivery geography: store coordinates, polygon/radius map boundaries, exclusion zones, and distance-based tiered fee tables.
+       - *PIM* owns product logistics eligibility: delivery modes (Same Day, Express, Midnight, Scheduled) and an optional product-level maximum delivery distance (`max_delivery_distance_km: number | null`).
+    2. **Removal of Product Zone Selection**:
+       - Removed legacy Zone 1–4 checkboxes from PIM Tab 7 ("Inventory & Logistics") and replaced them with `PRODUCT DELIVERY OPTION PERMISSIONS` and `PRODUCT DELIVERY DISTANCE LIMIT`.
+       - Added radio options: `No product-specific distance restriction` (persists `null`) vs. `Maximum Delivery Distance` (renders numeric input with KM suffix, placeholder `5.0`).
+       - Removed `isProductDeliveryRestricted` by `zone_id` check from `validateCheckout`.
+    3. **Authoritative Engine & Checkout Alignment**:
+       - `resolveSmartBranch`: candidate branches are filtered if customer distance exceeds `product.max_delivery_distance_km`.
+       - `validateCheckout`: forwards `branchId` to `resolveSmartBranch` so distance is strictly calculated from the serving bakery hub, returning `PRODUCT_DISTANCE_EXCEEDED` if exceeded.
+    4. **PostgreSQL Durability (`frontend/src/lib/db-persistence.ts`)**:
+       - Updated `persistProductToDb` to serialize `max_delivery_distance_km` and `pim_config` to PostgreSQL `metadata`.
+       - Updated `hydrateStoreFromDatabase` to restore `max_delivery_distance_km` on boot.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-product-distance-map-delivery-e2e.ts`: **14 / 14 ASSERTIONS PASSED (100% SUCCESS)**:
+    - Product PIM setup and removal of `allowed_zones` property.
+    - Delivery within 5.0 KM limit passes checkout.
+    - Delivery at 11.8 KM rejected with `PRODUCT_DISTANCE_EXCEEDED`.
+    - Distant location outside store map rejected with `NO_ELIGIBLE_STORE`.
+    - GPS coordinates strictly govern over spoofed pincodes.
+    - Dynamic PIM updates (5 km $\rightarrow$ 15 km $\rightarrow$ `null`).
+    - Mixed cart isolation (flags only the product exceeding distance limit).
+    - Client payload tamper-resistance (ignores client-supplied limits).
+    - Direct PostgreSQL durability write and verification.
+  - **Platform Regressions**:
+    - `scripts/test-pim-single-option-source-e2e.ts`: **30 / 30 PASSED (100%)**.
+    - `scripts/test-checkout-pickup-map-location-e2e.ts`: **31 / 31 PASSED (100%)**.
+    - `scripts/test-multi-product-cart-integrity-e2e.ts`: **26 / 26 PASSED (100%)**.
+    - `scripts/test-product-pim-cart-order-integrity-e2e.ts`: **36 / 36 PASSED (100%)**.
+    - `node scripts/test-no-json-persistence.js`: **36 / 36 PASSED (100%)**.
+    - Production Build: `npx next build` **28 / 28 ROUTES COMPILED CLEANLY (0 ERRORS)**.
+  - **Browser Visual Evidence**:
+    - `01_pim_delivery_distance_verified_1787911727826.png`: Shows clean Tab 7 UI with `PRODUCT DELIVERY OPTION PERMISSIONS` and `PRODUCT DELIVERY DISTANCE LIMIT`. Zero traces of Zone 1–4.
+  - **Forensic Documentation Artifacts**:
+    - [`docs/LEGACY_PRODUCT_ZONE_FORENSIC_AUDIT.md`](file:///e:/vig/cakes2home-main/cakes2home-main/docs/LEGACY_PRODUCT_ZONE_FORENSIC_AUDIT.md)
+    - [`docs/PIM_PRODUCT_DELIVERY_DISTANCE_API.md`](file:///e:/vig/cakes2home-main/cakes2home-main/docs/PIM_PRODUCT_DELIVERY_DISTANCE_API.md)
+    - [`docs/PRODUCT_DELIVERY_DISTANCE_SOURCE_OF_TRUTH.md`](file:///e:/vig/cakes2home-main/cakes2home-main/docs/PRODUCT_DELIVERY_DISTANCE_SOURCE_OF_TRUTH.md)
+
+### Milestone 9.48: Critical Product Option Source-of-Truth Cleanup (Zero-Option PIM Authority) (100% Verified)
+- **Problem & Root-Cause Analysis**:
+  - **Issue**: Storefront product detail page for *Classic Red Velvet Cream Cheese Cake* (`/products/classic-red-velvet-cake`) displayed unmapped global options:
+    - *Select Shape*: Round, Heart (+₹150), Square (+₹200), 2-Tier Designer (+₹2500).
+    - *Cake Flavour*: Belgian Dark Chocolate.
+    - *Inner Filling*: Chocolate Ganache (+₹100).
+    - *Cream & Frosting*: Fresh Cream.
+  - Meanwhile, Admin PIM showed **0 of 5 flavors selected** and **0 of 4 shapes selected**.
+  - **Forensic Investigation & Root Causes** (documented in `docs/PIM_OPTION_ROOT_CAUSE_AUDIT.md`):
+    1. **Missing Route Handlers**: `/api/v1/[...path]/route.ts` lacked `POST` handlers for `/flavor-mappings` and `/shape-mappings`, causing PIM updates to fail silently.
+    2. **Leaky GET Fallbacks**: GET handlers in `route.ts` returned global master variant options rather than product-specific mappings.
+    3. **Synthetic Option Injection in `ApiEngine.getStorefrontProductOptions`**: Empty flavor/shape arrays were previously defaulted to `product.flavour` ("Belgian Dark Chocolate" or "Red Velvet") and master shapes (`Round`, `Heart`, `Square`, `2-Tier Designer`).
+    4. **Shallow Copy Object Disconnect**: `getProductById` returned an enriched shallow copy via `enrichProductWithCategories`, meaning mutations in PIM never updated the actual product entity in `memoryStore.products`.
+    5. **PIM Modal Auto-Select Defect**: `PimEditorModal.tsx` contained a fallback (`else { setSelectedFlavours(dbFlavors.map(f => f.name)) }`) that automatically checked all 5 master flavors if mappings were empty.
+    6. **Hardcoded Fallbacks in `addToCart`**: `ApiEngine.addToCart` injected `shape: item.shape || "Round"` and `flavour: item.flavour || "Classic"` onto items where the customer selected no shape or flavor.
+    7. **Missing Checkout Authorization**: `validateCheckout` did not enforce product-level shape/flavor authorization, allowing unauthorized option payloads through.
+- **Architectural Implementation**:
+  - **Authoritative Entity Resolution (`frontend/src/lib/api-engine.ts`)**:
+    - Implemented `ApiEngine.resolveProductEntity(productId)` to directly access and mutate the canonical product object in `memoryStore.products`.
+    - Implemented `getProductFlavorMappings`, `saveProductFlavorMappings`, `getProductShapeMappings`, `saveProductShapeMappings`, and `updateAdminProductPimConfig` with dual-write persistence to PostgreSQL `public.product`.
+  - **Zero-Option Strict Authority in `getStorefrontProductOptions`**:
+    - Eliminated all fake fallbacks. When PIM has 0 flavors mapped or `show_flavour = false`, returns `flavors: []` and `enable_flavor_selection: false`.
+    - When PIM has 0 shapes mapped or `show_shape = false`, returns `shapes: []` and `enable_shape_selection: false`.
+    - Returns `fillings: []` and `creams: []` strictly from product mappings.
+  - **Server-Side Checkout Option Enforcement (`ApiEngine.validateCheckout`)**:
+    - Rejects unauthorized shapes with `INVALID_SHAPE_OPTION` or `SHAPE_SELECTION_DISABLED`.
+    - Rejects unauthorized flavors with `INVALID_FLAVOR_OPTION` or `FLAVOR_SELECTION_DISABLED`.
+  - **REST API Route Handlers (`frontend/src/app/api/v1/[...path]/route.ts`)**:
+    - Added `GET` and `POST` handlers for `/admin/catalog/products/:id/flavor-mappings` and `/shape-mappings`.
+    - Connected `GET /store/catalog/products/:id/options` to authoritative `ApiEngine.getStorefrontProductOptions`.
+  - **Admin PIM & Storefront Synchronization**:
+    - Fixed `PimEditorModal.tsx` so existing products load only mapped IDs into `selectedFlavours` and `selectedShapes` (never auto-selecting all).
+    - Fixed `ProductDetailClient.tsx` so option selectors (`Select Shape`, `Cake Flavour`, `Inner Filling`, `Cream & Frosting`) render **ONLY** when options exist and are enabled in PIM.
+    - Cleaned `apiClient.getStorefrontProductOptions` error fallback to default to `false` and empty arrays.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-pim-single-option-source-e2e.ts`: **30 / 30 ASSERTIONS PASSED (100% SUCCESS)**:
+    - Phase 1: Zero-Option PIM State Enforcement (0 of 5 flavors & 0 of 4 shapes in PIM $\rightarrow$ 0 options on customer storefront, no leakage of `product.flavour` or global shapes).
+    - Phase 2: Explicit Single & Multi Option Mapping (mapped 1 flavor & 2 shapes $\rightarrow$ customer storefront displays exactly those options with configured price modifiers +₹0, +₹150).
+    - Phase 3: PIM Display Rules (`show_shape: false` immediately suppresses customer shape options).
+    - Phase 4: Cross-Product Option Isolation (Product 2 options never leak onto Product 3, and vice-versa).
+    - Phase 5: Checkout Backend Authorization (rejection of unauthorized options via `INVALID_SHAPE_OPTION` and `INVALID_FLAVOR_OPTION`).
+  - **Platform Regression Suites**:
+    - `scripts/test-checkout-pickup-map-location-e2e.ts`: **31 / 31 TEST ASSERTIONS PASSED (100%)**.
+    - `scripts/test-multi-product-cart-integrity-e2e.ts`: **26 / 26 TEST ASSERTIONS PASSED (100%)**.
+    - `scripts/test-product-pim-cart-order-integrity-e2e.ts`: **36 / 36 TEST ASSERTIONS PASSED (100%)**.
+    - `node scripts/test-no-json-persistence.js`: **36 / 36 TEST ASSERTIONS PASSED (100%)**.
+  - **Direct Live Browser Screenshot Evidence**:
+    - `product_options_section_1787909802053.png`: Zero fake shapes, zero fake flavours, zero fake fillings, zero fake creams rendered when 0 selected in PIM.
+    - `product_options_1787909913658.png`: Renders exclusively mapped options ("Round", "Heart (+₹150)", "Red Velvet") upon PIM selection.
+  - Forensic Documentation: Published at `docs/PIM_OPTION_ROOT_CAUSE_AUDIT.md`.
+
+### Milestone 9.46: Checkout Fulfillment Configuration, Store Pickup Precedence, and Map-First Geographic Location Search (100% Verified)
+- **Problem & Root-Cause Analysis**:
+  - **Issue 1 (Hardcoded Store Pickup)**: "Store Pickup (FREE)" was permanently rendered in customer checkout using a static array of 5 hardcoded branches (`AVAILABLE_PICKUP_BRANCHES`), regardless of whether Super Admin enabled/disabled pickup or if the branch supported it. Pickup convenience fees were hardcoded as FREE.
+  - **Issue 2 (Incomplete Map Location Search)**: Location search lacked direct geographic autocomplete to real database zones, branches, landmarks, and city polygons. Coordinates were not cleanly decoupled from descriptive address fields.
+- **Architectural Implementation**:
+  - **Fulfillment Configuration Authority & PostgreSQL Persistence**:
+    - `hydrateStoreFromDatabase` in `frontend/src/lib/db-persistence.ts` hydrates `fulfillment_config` from PostgreSQL `public.setting` on system boot.
+    - `POST /admin/fulfillment/config` in `frontend/src/app/api/v1/[...path]/route.ts` persists updates directly into PostgreSQL `public.setting` (`persistSettingToDb("fulfillment", "config", store.fulfillment_config, true)`).
+  - **Authoritative Backend Validation & Availability Engine**:
+    - `getCheckoutAvailability` in `frontend/src/lib/api-engine.ts` enforces `globalConfig.store_pickup_enabled` and `servicingBranch.pickup_enabled`. Returns `store_pickup_enabled`, `store_pickup_convenience_fee`, and sets `pickup` mode enabled/surcharge in `available_delivery_modes`.
+    - `validateCheckout` in `frontend/src/lib/api-engine.ts` rejects pickup orders when disabled globally (`STORE_PICKUP_DISABLED`) or at the branch level (`BRANCH_PICKUP_DISABLED`), preventing silent conversions to delivery.
+    - Enhanced `searchLocation` in `frontend/src/lib/api-engine.ts` to query delivery zones, polygons, landmarks, branches, and city areas.
+  - **Storefront Checkout UI Modernization**:
+    - Replaced static `AVAILABLE_PICKUP_BRANCHES` with dynamic `pickupBranches` state loaded from `GET /api/v1/branches`, filtering active, open hubs that permit pickup.
+    - Rendered Store Pickup card conditionally based on `storePickupEnabled` with dynamic fee label (`(FREE)` or `(₹{fee})`).
+    - Connected `CheckoutMap` marker drag (250ms debounced) and geographic search autocomplete to authoritative delivery availability resolution.
+    - Decoupled descriptive address fields and map pan from mutating physical coordinates.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-checkout-pickup-map-location-e2e.ts`: **31/31 TEST ASSERTIONS PASSED (100% SUCCESS)**:
+    - Phase 1: Store Pickup toggle (ON/OFF), convenience fee (₹25), backend rejection with `STORE_PICKUP_DISABLED`.
+    - Phase 2: Branch-level pickup override and rejection with `BRANCH_PICKUP_DISABLED`.
+    - Phase 3: Map-first geographic location search across areas, cities, pincodes with valid coordinates.
+    - Phase 4: Authoritative delivery resolution via Haversine distance and polygon fencing.
+    - Phase 5: Sub-meter 6-decimal precision order snapshot and Rider Google Maps navigation URL.
+  - `scripts/test-multi-product-cart-integrity-e2e.ts`: **26/26 TEST ASSERTIONS PASSED (100%)**.
+  - `scripts/test-product-pim-cart-order-integrity-e2e.ts`: **36/36 TEST ASSERTIONS PASSED (100%)**.
+  - `scripts/test-no-json-persistence.js`: **36/36 TEST ASSERTIONS PASSED (100%)**.
+  - API Contract documentation published at `docs/CUSTOMER_LOCATION_AND_PICKUP_API_CONTRACT.md`.
+
+### Milestone 9.45: Multi-Product Cart Integrity, Anti-Contamination, and Weight Matrix Pricing Architecture (100% Verified)
+- **Problem & Root-Cause Analysis**:
+  - Browsing a product such as "Black Forest Gateau Special" (`/products/black-forest-gateau`) and adding to cart previously resulted in cart contamination with "Celebration Cake" 500g ₹0 and multiple zero-price items.
+  - Root causes identified:
+    1. `ApiEngine` in `frontend/src/lib/api-engine.ts` lacked `getProductById`, `getProductBySlug`, `getProductWeightPrices`, `saveProductWeightPrices`, and `getProductRatingAggregate`, causing runtime TypeErrors during cart additions and SSR product detail loading.
+    2. `CakeToHomeApiClient` in `frontend/src/lib/api-client.ts` lacked cart and catalog methods (`createCart`, `getCart`, `addToCart`, `updateCartItem`, `deleteLineItem`, `clearCart`, `getProducts`, `getProduct`), causing client-side actions to fail.
+    3. `DEFAULT_CATALOG_PRODUCTS` in `frontend/src/lib/data/catalog.ts` only contained `prod_1`, `prod_2`, `prod_3`, omitting `prod_4` (*Black Forest Gateau Special*) and `prod_5` (*Butterscotch Caramel Crunch Cake*).
+    4. `retrieveCart` in `frontend/src/lib/data/carts.ts` defaulted unauthenticated guest requests to shared demo cart `"cart_guest_100"`.
+    5. `ApiEngine.validateCheckout` and `addToCart` contained legacy fallbacks to `"Celebration Cake"`, `DEFAULT_PRODUCTS[0]`, and `₹0`.
+- **Architectural Implementation**:
+  - Added authoritative static lookup methods on `ApiEngine`: `getProductById`, `getProductBySlug`, `getProductWeightPrices`, `saveProductWeightPrices`, `getProductRatingAggregate`, `createAdminProduct`, `updateAdminProduct`, `deleteAdminProduct`.
+  - Implemented exact weight pricing math for all catalog items (e.g. Black Forest Gateau base price ₹549 for 1kg: 0.5kg = ₹467, 1kg = ₹549, 1.5kg = ₹796, 2kg = ₹1016).
+  - Enhanced `ApiEngine.addToCart` with strict canonical product validation, dynamic weight ladder pricing, variant line-item differentiation `(product_id && weight)`, and explicit error throwing on invalid products or zero/negative prices.
+  - Enhanced `CakeToHomeApiClient` in `frontend/src/lib/api-client.ts` with complete REST cart and catalog methods.
+  - Updated `DEFAULT_CATALOG_PRODUCTS` in `frontend/src/lib/data/catalog.ts` to include all canonical products with full weight tiers.
+  - Updated `retrieveCart` in `frontend/src/lib/data/carts.ts` to isolate guest carts and prevent shared demo leakage.
+  - Published formal API contract in `docs/CART_PRODUCT_IDENTITY_API_CONTRACT.md`.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-multi-product-cart-integrity-e2e.ts`: **26/26 TEST ASSERTIONS PASSED (100% SUCCESS)**:
+    - Group 1: Clean empty cart start.
+    - Group 2: Add Black Forest Gateau Special (0.5 kg) $\rightarrow$ Exactly 1 item, "Black Forest Gateau Special", "prod_4", ₹467, Subtotal ₹467.
+    - Group 3: Add Classic Red Velvet Cream Cheese Cake (1 kg) $\rightarrow$ Exactly 2 items, ₹467 + ₹749 = ₹1216.
+    - Group 4: Add Belgian Chocolate Truffle Cake (1.5 kg) $\rightarrow$ Exactly 3 items, ₹1216 + ₹941 = ₹2157.
+    - Group 5: Add Butterscotch Caramel Crunch Cake (2 kg) $\rightarrow$ Exactly 4 items, ₹2157 + ₹1108 = ₹3265.
+    - Group 6: Add another 0.5kg Black Forest $\rightarrow$ Quantity becomes 2 (₹934). Add 1kg Black Forest $\rightarrow$ Distinct 5th line created (@ ₹549), Cart Subtotal ₹4281.
+    - Group 7: Anti-contamination assertion: 0 occurrences of "Celebration Cake", 0 occurrences of ₹0 prices, strict rejection of non-existent products and zero prices.
+    - Group 8: ValidateCheckout calculation validated across 5 multi-product items with exact subtotal ₹4281 and tax calculations.
+  - `scripts/test-product-pim-cart-order-integrity-e2e.ts`: **36/36 TEST ASSERTIONS PASSED (100%)**.
+  - `scripts/test-pim-weight-matrix-e2e.ts`: **24/24 TEST ASSERTIONS PASSED (100%)**.
+  - `scripts/test-no-json-persistence.js`: **36/36 TEST ASSERTIONS PASSED (100%)**.
+
+### Milestone 9.44: Product $\rightarrow$ PIM $\rightarrow$ Cart $\rightarrow$ Checkout $\rightarrow$ Order $\rightarrow$ Admin $\rightarrow$ Rider Data Integrity & Map-First Distance Restriction Architecture (100% Verified)
+- **Problem & Root-Cause Analysis**:
+  - **Bug A ("Celebration Cake" & ₹0 Cart Items)**: `ApiEngine.addToCart` silently defaulted missing item titles to `"Celebration Cake"` and prices to ₹0; `validateCheckout` defaulted to fake product `prod_1`. Fixed with canonical product catalog lookup, exact variant pricing, and strict $>0$ price assertions.
+  - **Bug B (Wrong Product Options / Global Option Leakage)**: Missing product option definitions leaked all global shapes and creams. Fixed with product-scoped option isolation in `getStorefrontProductOptions`.
+  - **Bug C (Store Pickup Configuration Authority)**: Added Super Admin Store Pickup switch card in `fulfillment-config-panel.tsx`, dynamic visibility in `checkout-form.tsx`, and backend rejection with `STORE_PICKUP_DISABLED` in `validateCheckout`.
+  - **Bug D & E (Map Location Authority & Legacy Zone Removal)**: Removed obsolete "Allowed Delivery Zones (Zone 1-4)" from PIM Editor and delivery profiles. Replaced with "PRODUCT DELIVERY ELIGIBILITY", delivery modes, and "Product Distance Restriction" (`max_delivery_distance_km`). Store Area Matrix owns geography; PIM owns product eligibility.
+  - **Bug F & G (Order Snapshot & Rider Google Maps URL)**: Order persistence immutably snapshots `delivery_latitude` and `delivery_longitude` with 6-decimal sub-meter precision, generating direct Rider directions links (`https://www.google.com/maps/dir/?api=1&destination=LAT,LNG`).
+- **Empirical Evidence & Verification**:
+  - `scripts/test-product-pim-cart-order-integrity-e2e.ts`: **36/36 TEST ASSERTIONS PASSED (100%)**.
+  - `scripts/test-pim-map-first-delivery-e2e.ts`: **7/7 TEST ASSERTIONS PASSED (100%)**.
+  - TypeScript Compiler (`npx tsc --noEmit`): **0 errors (100% clean)**.
+  - Generated forensic documentation: `docs/PRODUCT_CART_CHECKOUT_ROOT_CAUSE_AUDIT.md`, `docs/LEGACY_PRODUCT_ZONE_FORENSIC_AUDIT.md`.
+
+### Milestone 9.43: db-store.json Elimination as Runtime Persistence & Complete PostgreSQL Database Migration (100% Verified)
+- **Problem & Architectural Context**:
+  - The application previously relied on `frontend/data/db-store.json` as runtime persistence, causing data fragility, concurrency vulnerabilities, and silent disk fallbacks.
+  - Required canonical database persistence to PostgreSQL Supabase instance (`aws-1-ap-south-1.pooler.supabase.com:6543/postgres`) without duplicating Medusa ORM services or creating dual databases.
+- **Architectural Implementation**:
+  - **Comprehensive Data Migration (`backend/migrate-db-store-to-database.js`)**:
+    - Migrated 100% of records from `db-store.json` into PostgreSQL: 48 branches, 36 delivery zones, 29 cities, 10 categories, 28 products, 54 customers, 31 addresses, 30 delivery partners, 115 orders, 15 CMS pages, 32 CMS sections, 24 offers, 14 settings, 5 popup campaigns.
+  - **Database Persistence & Hydration Engine (`frontend/src/lib/db-persistence.ts`)**:
+    - Created `hydrateStoreFromDatabase()` to load all authoritative PostgreSQL records into runtime memory on system boot.
+    - Implemented single-source mutations for entities: `persistBranchToDb`, `persistCityToDb`, `persistProductToDb`, `persistCustomerToDb`, `persistCustomerAddressToDb`, `deleteCustomerAddressFromDb`, `persistDeliveryPartnerToDb`, `persistOrderToDb`, `persistCmsPageToDb`, `persistOfferToDb`, `persistSettingToDb`, `persistPopupCampaignToDb`.
+  - **Decoupled ApiEngine & Route Handlers from Disk**:
+    - Neutralized `flushStoreToDisk()` in `frontend/src/lib/api-engine.ts` (zero writes to `db-store.json`).
+    - Wired direct PostgreSQL persistence into `saveBranch`, `archiveBranch`, `restoreBranch`, `createCity`, `updateCity`, `updateCustomerProfile`, `updateProduct`, `reassignOrderBranch`, `rescheduleOrder`, `cancelOrder`, and `confirmCheckout`.
+    - Refactored customer route handlers (`/api/customer/profile`, `/api/customer/address`, `/api/customer/orders`) to query and mutate PostgreSQL directly.
+    - Replaced all `"json-fallback"` headers and payload attributes across `frontend/src/app/api/v1/[...path]/route.ts` with `"postgres"` and `X-Fallback: DISABLED`.
+  - **Fail Visibly Error Handling**:
+    - Enforced rule: When PostgreSQL is available $\rightarrow$ persist to database. When PostgreSQL fails $\rightarrow$ fail visibly with controlled HTTP 500 error; NEVER silently write to JSON.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-database-persistence-e2e.js`: **9/9 PASS (100% SUCCESS)**:
+    - Step 1: Connected to PostgreSQL Supabase instance (`aws-1-ap-south-1.pooler.supabase.com:6543/postgres`).
+    - Step 2: Captured initial `db-store.json` SHA256 checksum: `a1b2757eb750612fc96a9d8952656f5fef2ad3dd53b7b9d6b26802a1ebb0a692`.
+    - Step 3: Verified PostgreSQL table row counts across all 13 core entities.
+    - Step 4: Tested real branch upsert and retrieved row from `public.branch`.
+    - Step 5: Tested real customer CRM and address upsert in `public.customer` and `public.customer_address`.
+    - Step 6: Tested real order lifecycle insertion in `public.order`.
+    - Step 7: Cleaned up verification test fixtures.
+    - Step 8: Verified post-mutation SHA256 checksum of `db-store.json` (`a1b2757eb750612fc96a9d8952656f5fef2ad3dd53b7b9d6b26802a1ebb0a692`), mathematically proving ZERO file modifications!
+    - Step 9: Simulated database failure: verified controlled error exception thrown and confirmed zero writes to `db-store.json`.
+  - TypeScript Compiler (`npx tsc --noEmit`): **0 errors (100% clean)**.
+  - Created architectural documentation: `docs/DATA_PERSISTENCE_OWNERSHIP.md`, `docs/DB_STORE_MIGRATION_AUDIT.md`, `docs/DB_STORE_MIGRATION_ROLLBACK.md`.
+
+### Milestone 9.42: Critical API Routing, 404 Elimination, Backend Health Normalization, In-Flight Request Deduplication & Progressive Loading Hardening (100% Verified)
+- **Problem & Root Cause**:
+  - **404 Route Not Found on `/api/v1/store/catalog/products/prod_2/options`**: Frontend called `apiClient.getStorefrontProductOptions(productId)` and `apiClient.getAccessories(productId)`, but `src/app/api/v1/[...path]/route.ts` lacked route handlers for options, accessories, and customer favorites.
+  - **Misleading Backend Health & Fallback Reporting**: `jsonWithDataSource` in `route.ts` hardcoded `backend_health: "FAIL"` whenever data was served from `json-fallback`, even when the Medusa backend on `http://localhost:9000` is healthy (`{"status":"healthy","database":"connected"}`).
+  - **Duplicate Requests (~81 requests in session) & High Latency**: `ApiClient` lacked in-flight promise deduplication (`inFlightRequests` Map). Multiple parallel effects fired duplicate concurrent requests.
+  - **Product Page Waiting State**: Options and accessories lacked synchronized state fallbacks, causing a frozen/spinner area.
+- **Architectural Implementation**:
+  - **Canonical API Endpoints in `route.ts` & `ApiEngine`**:
+    - Added `ApiEngine.getStorefrontProductOptions(productId)`: Returns structured options (flavors, shapes, fillings, creams, weight prices, PIM flags) with automatic master variant fallback.
+    - Added `GET /api/v1/store/catalog/products/:id/options`, `catalog/products/:id/options`, and `products/:id/options`.
+    - Added `GET /api/v1/accessories` and `/api/v1/store/accessories` with dynamic product and branch filtering.
+    - Added `GET /api/v1/customer/favorites` and `/api/v1/customer/favorites/check/:id`.
+    - Added master catalog endpoints: `GET /api/v1/admin/catalog/flavors` and `/shapes`.
+  - **Real Backend Health Telemetry**: Refactored `jsonWithDataSource` to dynamically track actual health (`backendHealthStatus: "PASS"`) and avoid stamping false failures.
+  - **Single-Flight Request Deduplication**: Implemented in-flight promise caching in `ApiClient.request` via `inFlightRequests: Map<string, Promise<any>>`. 10 concurrent requests to the same URL now execute exactly 1 network flight.
+  - **Short-Lived Metadata Caching**: Added 20s TTL client cache for static/low-churn metadata (`/occasions`, `/categories`, `/variants/options`, `/accessories`) with instant cache invalidation on any mutation (POST/PUT/DELETE).
+  - **Progressive Layered Rendering**: Synced state in `product-detail-client.tsx` for immediate core rendering, independent options resolution, and stabilized 30s interval polling in `checkout-form.tsx`.
+- **Empirical Evidence & Verification**:
+  - `frontend/scripts/test-product-api-integrity-e2e.ts`: **24/24 PASS (100% SUCCESS)** across all 10 gates.
+  - Next.js Production Build: **28/28 Static Pages & Dynamic Routes Compiled (0 errors)**.
+  - Playwright Visual Audit: **7/7 Screenshots Captured** (`01-product-initial.png` to `07-network-after-fix.png`) with **0 page/404 errors**.
+  - Created `docs/CRITICAL_API_ROUTING_AND_PERFORMANCE_AUDIT.md`.
+
+### Milestone 9.41: Store Physical Location Authority, Draggable Store Pin, Admin Map Places Search, and Store-Centered Radius Fencing (100% Verified)
+- **Problem & Root Cause**:
+  - The Store Area Matrix map was rendering delivery zone polygons, but the bakery's exact physical coordinates were not properly configurable or visible on the map.
+  - The admin map search input ("Search area or location to navigate...") was non-functional and lacked autocomplete suggestions.
+  - Without exact store coordinates, radius calculations, distance-based delivery fees, nearest eligible store resolution, and rider pickup routing could not function with physical precision.
+- **Architectural Implementation**:
+  - **Single Engine Invariant Preserved**: Reused existing Leaflet map, geocoding provider abstraction (`getGeocodingProvider()`), distance calculator (`calculateHaversineDistance`), and PIP engine without creating duplicate resolvers.
+  - **First-Class Store Physical Location Model**: Every branch/store model now tracks `latitude`, `longitude`, `location_source` (`GPS | SEARCH | MANUAL_MAP | ADDRESS_GEOCODE`), `location_accuracy`, `formatted_address`, and `has_valid_location`.
+  - **4 Store Location Setup Methods**:
+    1. **Search Address / Landmark**: Debounced autocomplete search against canonical geocoding provider and landmarks. Selecting moves viewport (`setView([lat, lng], 14)`), shows location pill with `[ Set as Store Location ]`.
+    2. **Use Current Location (GPS)**: Browser geolocation with high accuracy, reverse-geocodes address preview, moves pin, displays accuracy in meters.
+    3. **Pick on Map**: Click-to-place store pin mode directly on the Leaflet canvas.
+    4. **Draggable Store Marker 🏪**: Gold/amber store icon pin with drag handler.
+  - **Search ≠ Save Separation**: Moving or searching only adjusts local preview; persistence occurs only when `[ Save Store Location ]` is explicitly clicked. `[ Cancel ]` reverts to previous saved coordinates.
+  - **Store-Centered Radius Delivery**: Radius circle (both configured radius and max allowable boundary) is anchored strictly to `[store.latitude, store.longitude]`. When the store pin is moved during preview, the radius circle follows it in real time.
+  - **Store Physical Location in Admin Hub Modal**: Added dedicated `Store Physical Location & Coordinates` card with search, GPS button, coordinate inputs with 6-decimal precision, and location source dropdown to `branches-panel.tsx`.
+  - **Missing Location Safety (Section 33)**: Stores without valid numeric coordinates are marked `⚠️ LOCATION REQUIRED` and strictly disqualified from participating in nearest-store calculation and delivery routing.
+- **Empirical Evidence & Verification**:
+  - `frontend/scripts/test-store-location-and-map-configuration-e2e.ts`: **24/24 PASS (100% SUCCESS)** across all 24 gates.
+  - Playwright Visual Audit (`qa/store-location-audit/`): **12/12 Screenshots Captured** (`01-store-location-configured.png` to `12-customer-checkout-serviceability-proof.png`).
+  - TypeScript Compiler (`npx tsc --noEmit`): **0 errors (100% clean)**.
+  - Documentation: Created `docs/STORE_LOCATION_AND_MAP_CONFIGURATION_AUDIT.md`.
+
+### Milestone 9.40: Emergency Frontend Recovery, Middleware Isolation, and Production Asset Pipeline Restoration (100% Verified)
+- **Root Cause Analysis & Incident Resolution**:
+  - **Overly Broad Middleware Matcher**: `matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"]` combined with cookie/header mutation on `NextResponse.next()` caused Next.js internal subrequest handling to treat static assets and storefront pages as intercepted routes (`x-middleware-invoke: 1`, body length 0).
+  - **Fix**: Scoped `middleware.ts` matcher strictly to `["/dashboard/:path*", "/account/:path*"]`. Storefront routes and static assets bypass middleware completely.
+  - **Stale Webpack Dev Cache**: Purged corrupted `.next` cache and verified production build compilation with `npm run build` (28/28 routes compiled).
+- **Asset Pipeline & Visual Verification**:
+  - Verified `http://localhost:3000/_next/static/css/d24c96f2fa25c36d.css` returns **HTTP 200** with `Content-Type: text/css; charset=UTF-8` (214.5 KB).
+  - Verified DOM computed styles: `document.body` font is Inter (`__Inter_214d7f`), navigation background is dark luxury `#111111`, 11 active stylesheets.
+  - **Visual Recovery Audit (`qa/frontend-recovery-audit/`)**: 7/7 Screenshots captured across Homepage, Products, Checkout, Dashboard, Branches, Delivery Partner, and Mobile viewport.
+  - **Regression Test**: `test-customer-location-authority-e2e.ts` passed **21/21 gates (100%)**.
+  - **TypeScript Compiler**: `npx tsc --noEmit` $\rightarrow$ **0 errors (100% clean)**.
+  - Created `docs/FRONTEND_RECOVERY_AUDIT.md`.
+
+### Milestone 9.39: Physical Location Authority & Address Decoupling, Google Maps Coordinate Navigation, Map-Pin Serviceability Fix (100% Verified)
+- **Root Cause & Architectural Transformation**:
+  - **Bug 1 ("GPS (8.8853, 76.5803) inserted into Street Address")**:
+    - `ApiEngine.reverseGeocode` was inserting `addressLine1 = (isNearbyArea ? closestArea?.landmark : null) || 'GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})'`.
+    - Cleaned `addressLine1` to default to `""` (empty string) and `resolvedArea` to `"Delivery Area"` / `"Local Area"`. No GPS coordinate strings are ever written into address fields.
+  - **Bug 2 ("Tiny map movement causes false OUTSIDE DELIVERY ZONE")**:
+    - In `route.ts` line 847, `GET /checkout/availability` was omitting `lat`, `lng`, `latitude`, and `longitude` from query param extraction when forwarding to `ApiEngine.getCheckoutAvailability`.
+    - Because `lat` and `lng` were omitted in the handler, `ApiEngine.getCheckoutAvailability` received `undefined` coordinates $\rightarrow$ returned `serviceable: false` and `"Please select your delivery location."`.
+    - Fixed `route.ts` line 847 to parse `lat`, `lng`, `latitude`, and `longitude` from `url.searchParams`.
+  - **Address Editing vs Physical Location**:
+    - Editing address text ("Flat 402" $\rightarrow$ "Flat 502") updates text only. Map pin, physical coordinates, store, zone, distance, and fee remain 100% untouched.
+  - **Map Pan Isolation**:
+    - Panning the map canvas never mutates customer coordinates. Only dragging the marker changes coordinates.
+  - **Google Maps Navigation Invariant**:
+    - Navigation URLs generated via `buildGoogleMapsDirectionsUrl` strictly use `order.delivery_latitude` and `order.delivery_longitude` (`https://www.google.com/maps/dir/?api=1&destination=8.885340,76.580320`). Never uses address text or `encodeURIComponent(address)`.
+- **Empirical Evidence & Verification**:
+  - `frontend/scripts/test-customer-location-authority-e2e.ts`: **21/21 PASS (100% SUCCESS)** across all 21 gates.
+  - Playwright Visual Audit (`qa/customer-location-authority-audit/`): **12/12 Screenshots Captured** and archived.
+  - TypeScript Compiler (`npx tsc --noEmit`): **0 errors (100% clean)**.
+
+### Milestone 9.38: Complete Map-First Store Selection, Delivery Area, Exclusion, Distance Pricing & Store Admin Map Search (100% Verified)
+- **Problem & Architectural Transformation**:
+  - Delivery serviceability and store selection historically risked selecting the closest store before verifying its coverage, or falling back to postal pincodes.
+  - Bakery deliveries must be 100% map- and coordinate-based: pincodes can NEVER determine delivery eligibility when coordinates exist, nor can pincodes create a false sense of serviceability when coordinates are omitted.
+  - Implemented the canonical 10-step **Nearest Eligible Store Selection Algorithm**:
+    `Filter active stores → Evaluate map coverage (Polygon & Radius) → Check exclusion zones → Filter eligible candidate stores → Compute Haversine distance to each candidate → Sort distance ASC → Select nearest ELIGIBLE store`.
+  - Store A (2 km away, outside fence) vs Store B (5 km away, inside fence) $\rightarrow$ **Store B is selected**, Store A is discarded during coverage evaluation.
+  - Zero Pincode Fallback for Delivery: No valid coordinate $\rightarrow$ prompts customer: *"Please select your delivery location using GPS or map search."*
+  - Distance Pricing Brackets: Dynamic tiered fees (0–3 km: ₹39, 3–5 km: ₹49, 5–8 km: ₹69, 8–10 km: ₹99). If distance exceeds all brackets $\rightarrow$ strictly unserviceable.
+  - Store Admin Map Search Viewport Safety: Map search in `MapFenceEditor` moves only the map viewport (`setView([lat, lng], 14)`). It NEVER mutates store coordinates or radius centers until the admin clicks `[ Use this location ]`.
+  - Pincode Matrix Subordinated: Renamed to `Address / Pincode Reference` with clear banner that pincodes are reference metadata and delivery is determined by map location.
+  - Customer Storefront & Checkout Sync: Outside coverage zones shows *"We currently don't deliver to this location. We're coming soon to your town."* with interactive `[ 🔔 Notify Me ]` and `[ Change Location ]` buttons.
+- **Empirical Evidence & Verification**:
+  - `frontend/scripts/test-map-first-store-selection-e2e.ts`: **24/24 PASS (100% SUCCESS)** across all 24 gates.
+  - Playwright Visual Audit (`qa/map-first-delivery-audit/`): **16/16 Screenshots Captured** and copied to brain artifacts directory.
+  - TypeScript Compiler (`npx tsc --noEmit`): **0 errors (100% clean)**.
+  - Documentation Created:
+    - `docs/MAP_FIRST_STORE_SELECTION_ARCHITECTURE.md`
+    - `docs/STORE_AREA_MATRIX_CONFIGURATION.md`
+    - `docs/MAP_DELIVERY_PRICING.md`
+    - `docs/MAP_DELIVERY_SERVICEABILITY.md`
+
+### Milestone 9.37: Checkout Map-First Customer Location & Address Separation (100% Verified)
+- **Problem & Business Rationale**:
+  - The customer delivery destination in checkout was improperly coupled with human-readable text address fields.
+  - Editing street, flat, building, or delivery notes risked mutating or resetting customer map coordinates, or re-resolving serviceability erroneously.
+  - The map pin was not the primary authoritative location control, creating delivery address drift where riders were dispatched to wrong coordinates or geocoding approximations.
+- **Architectural Decoupling: Map Location vs Delivery Address Text**:
+  - **A. Authoritative Customer Map Location**: Canonical object `{ latitude, longitude, accuracy, source }` (`GPS | SEARCH | MAP_PIN | SAVED_ADDRESS | EXPLICIT_GEOCODE`). This is the sole physical delivery destination for map-fencing, store resolution, delivery fee calculation, order persistence, and rider Google Maps navigation.
+  - **B. Human-Readable Delivery Address Text**: Dedicated state `{ address, city, zip, recipientLandmark, deliveryInstructions }`. Modifying text (e.g. "Flat 402" → "Flat 502") updates text only; physical coordinates, serving store, delivery zone, and fees remain 100% unchanged.
+  - **Explicit Geocoding Bridge**: Provided `[ Search this address on map ]` button below the address section so customers can intentionally re-anchor their map to typed address text on demand.
+  - **Stale Async Protection**: Request sequence counter (`availabilitySeqRef`) guarantees older out-of-order network responses never overwrite newer location selections.
+  - **No Fake Default Coordinates**: Empty checkout state displays clean prompt overlay; no Bengaluru, Karnataka, or store defaults are assumed.
+  - **End-to-End Integrity Chain**: Map Coordinate == Serviceability Request == Checkout State == Order Snapshot == Rider Navigation Destination (`order.delivery_latitude`, `order.delivery_longitude`).
+- **Empirical Evidence & Verification**:
+  - `frontend/scripts/test-checkout-map-location-address-separation-e2e.ts`: **13/13 PASS (100% SUCCESS)** across all 13 critical acceptance gates:
+    - Gate 1: Canonical Customer Location Contract (`latitude`, `longitude`, `accuracy`, `source`).
+    - Gate 2: Address Text Edit Isolation ("Flat 402" → "Flat 502" preserves physical coordinates, store, and fee).
+    - Gate 3: GPS Ingestion Pipeline & Reverse Geocode.
+    - Gate 4: Search Location Autocomplete & Resolution.
+    - Gate 5: Map Pin Drag & Immediate Re-Resolution.
+    - Gate 6: Explicit Address Geocode Action (`[ Search this address on map ]`).
+    - Gate 7: Saved Address Selection with Pre-stored Coordinates.
+    - Gate 8: Saved Address Text Edit Isolation (Adding notes does not mutate coordinates).
+    - Gate 9: Critical Pincode Bypass Gate (Out-of-fence coords + local pincode $\rightarrow$ strictly unserviceable).
+    - Gate 10: In-Fence Delivery Resolution (Store, Zone, Fee, Slots).
+    - Gate 11: Stale Async Response Protection (Sequence Counter Guard).
+    - Gate 12: Order Snapshot Integrity (Map Coords Persisted Immutably to Order).
+    - Gate 13: Rider Navigation Destination Deep Link Verification (Google Maps URL uses order delivery coordinates).
+  - Playwright Visual Audit (`qa/checkout-map-audit/`): **12/12 Screenshots Captured**:
+    - `01-empty-location.png`, `02-gps-location-on-map.png`, `03-search-results.png`, `04-search-selected-map.png`, `05-serviceable-location.png`, `06-outside-zone.png`, `07-map-pin-moved.png`, `08-address-edited-map-unchanged.png`, `09-explicit-address-location-change.png`, `10-checkout-final-location.png`, `11-order-location.png`, `12-rider-destination.png`.
+  - TypeScript Compiler (`npx tsc --noEmit`): **0 errors (100% clean)**.
+
+### Milestone 9.36: Rebuilding Store Area Matrix Around Map-First Delivery (100% Verified)
+- **Problem & Business Rationale**:
+  - Super Admin delivery configuration was fundamentally pincode-first despite having polygon, radius, and distance engines.
+  - Delivery coverage was historically configured via pincodes, which cannot accurately capture geographic realities (rivers, highways, physical terrain, non-concentric zones).
+  - Pincodes must become supporting metadata/fallback, with interactive map boundaries (Polygon and Radius) as the primary definition of coverage.
+- **Store Area Matrix Rebuilt as Central Delivery Management Screen**:
+  - Replaced pincode-centric layouts in `branch-pincode-panel.tsx` and `branch-zone-manager.tsx`.
+  - **Store Identity Card**: Displays Store Name, Store Code, State, City, GPS Coordinates (📍 Lat, Lng), and Store Maximum Service Radius setting with visual shield badge and clamped numeric input.
+  - **Delivery Areas Matrix Table**: Complete overview displaying Zone / Area Name, Boundary Type (`Polygon` vs `Radius`), Radius / Geometry summary, Pricing Mode (`Flat Rate` vs `Distance Brackets`), Delivery Modes (`Standard`, `Same Day`, `Express`, `Midnight`), Priority, Status Toggle (`ON`/`OFF`), and inline Actions (`Edit`, `Duplicate`, `Delete`).
+  - **Embedded Map Fence Studio**: Inlined `MapFenceEditor` directly inside the Create/Edit Delivery Area modal with interactive Leaflet canvas, dynamic radius slider, live polygon vertex creation, and exclusion sub-polygon perimeter definition.
+  - **Reframed Address & Pincode Fallback Tab**: Pincodes preserved non-destructively for address display, autocomplete matching, and legacy fallback when GPS coordinates are unavailable. Clear explanatory banner educates operators that map boundaries are authoritative.
+- **Customer Checkout Map Integration (`CheckoutMap`)**:
+  - Embedded Leaflet map in Step 2 of the customer checkout flow (`checkout-form.tsx`).
+  - Interactive customer pin (📍) draggable to exact doorstep location, instantly resolving latitude and longitude.
+  - Customer UI displays store-level serviceability confirmation (`"Delivery Available (Serving from Indiranagar Flagship Kitchen)"` or `"❌ We currently don't deliver to this location"`) without exposing internal delivery zone nomenclature (`Zone A`, `Zone B`).
+- **Resolver Coordinate Supremacy & Critical Pincode Bypass Gate**:
+  - **PATH A (Coordinates Provided)**: Strictly authoritative. Evaluates polygon point-in-polygon (PIP), radius distance from store, and exclusion perimeters. If customer coordinates fall outside all operational branch fences (or inside an exclusion zone), the order is strictly `serviceable: false` with `reason_code: "OUTSIDE_DELIVERY_ZONE"`. It NEVER falls back to pincode matching when coordinates are provided.
+  - **PATH B (Coordinates Omitted)**: Executes secondary fallback matching against branch pincodes and service matrix when coordinates are unavailable.
+  - **Canonical API Contract**: Aligned `POST /api/v1/delivery/resolve` returning: `serviceable`, `store`, `zone`, `distance_km`, `delivery_fee`, `pricing_mode`, `bracket`, `available_delivery_modes`, `available_slots`, and `reason_code`.
+- **Empirical Evidence & Verification**:
+  - `frontend/scripts/test-map-first-store-area-matrix-e2e.ts`: **24/24 PASS (100% SUCCESS)** across all 6 test gates:
+    - Gate 1: Critical Pincode Bypass Test (Valid Pincode 560038 + coordinate outside fence $\rightarrow$ NOT SERVICEABLE, reason `OUTSIDE_DELIVERY_ZONE`).
+    - Gate 2: In-Fence Coordinate Serviceability & Canonical API Contract.
+    - Gate 3: Secondary Pincode Fallback when coordinates are omitted.
+    - Gate 4: Exclusion Polygon Perimeter Enforcement.
+    - Gate 5: Multi-Tier Radius Hierarchy & Pricing Validation.
+    - Gate 6: Haversine & Polygon PIP Map Engine Integrity.
+  - TypeScript Compiler (`npx tsc --noEmit`): **0 errors (100% clean)**.
+  - Next.js Production Build (`npm run build`): **Compiled successfully**.
+
+### Milestone 9.35: Limit Delivery Radius to Configured Service Area (100% Verified)
+- **Problem & Business Rationale**:
+  - Previously, administrators could configure delivery zones with infinite or unrealistic radiuses exceeding the physical hub capacity.
+  - Risked taking orders beyond delivery SLAs, resulting in melted/damaged cakes, extreme rider fees, and operational chaos.
+- **Three-Tier Radius Constraint Hierarchy**:
+  - **Tier 1 — Global Safety Ceiling**: `GLOBAL_MAX_DELIVERY_RADIUS_KM = 25` (hard platform-wide safety ceiling).
+  - **Tier 2 — Store-Level Maximum**: `branch.max_delivery_radius_km` (e.g. Kollam 10 km, Mumbai 8 km, Bengaluru 15 km).
+  - **Tier 3 — Zone-Level Boundary**: `zone.max_serviceable_km`.
+  - **Resolution**: Most restrictive valid limit strictly governs the service boundary (`Math.min(Global, Store, Zone)`).
+- **Authoritative Backend Validation (`saveBranch` / `saveBranchZone`)**:
+  - Validates `storeMaxRadius <= GLOBAL_MAX_DELIVERY_RADIUS_KM` and `> 0`, rejecting with `RADIUS_EXCEEDS_ALLOWED_LIMIT` or `INVALID_INPUT`.
+  - Validates `radius_km <= effectiveMaxRadius` for all radius/hybrid zones, rejecting with `RADIUS_EXCEEDS_ALLOWED_LIMIT`.
+  - Validates distance pricing brackets `bracket.max_km <= effectiveMaxRadius`, rejecting with `PRICING_RANGE_EXCEEDS_SERVICE_RADIUS`.
+  - Rejects negative numbers, zero (unless supported), NaN, Infinity, and string garbage with `INVALID_INPUT`.
+  - Preserves polygon-only zones without imposing radius restrictions unless hybrid/radius fence is explicitly configured.
+- **Geographic Serviceability & Pricing Enforcement**:
+  - `ApiEngine.isPointInZone`: Evaluates Haversine distance against `effectiveMaxRadius`. Coordinates are strictly authoritative: if customer distance > radius limit, order is NOT serviceable even if pincode or city matches.
+  - `ApiEngine.calculateDeliveryFee`: If customer distance exceeds effective radius, sets `pricing_mode: "unserviceable"` and delivery fee ₹0.
+- **Map Fence Editor & Admin Management UI**:
+  - Dual-circle visualization: Allowed maximum boundary circle (dashed red `#ef4444`, `dashArray: "6 6"`) + Current radius circle (`#3b82f6`).
+  - Dynamic clamping on radius slider/input with warning badge `⚠️ Maximum radius reached`.
+  - Viewport navigation separation: location search only navigates map viewport; store marker and radius center remain strictly locked.
+  - Store-level Max Delivery Radius configuration panel in Branch Zone Manager.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-delivery-radius-limit-e2e.ts`: **14/14 PASS (100%)**
+  - `frontend/scripts/test-delivery-radius-limit-e2e.ts`: **14/14 PASS (100%)**
+  - `tsc --noEmit`: **0 errors (100% clean)**
+  - Production build (`npm run build`): **Compiled successfully with exit code 0**
+
 ### Milestone 9.34: Global Frontend UI Integrity & Complete Browser QA Audit (100% Verified)
 - **Root Cause Elimination & Asset Pipeline Synchronization**:
   - Identified in-memory Next.js build manifest desynchronization where stale server process on port 3000 served HTML requesting outdated chunk hashes (`8abe895ea9bbe93e.css`), returning 400/404 errors.
@@ -692,15 +1118,24 @@
                         - **Customer 360 Deep Purchase Intelligence**: Integrated RFM scoring, Customer Intelligence Score (0–100), Churn Risk Score (0–100), Winback Probability, Next Expected Purchase Date estimation, top cakes/flavours preferences, and staff follow-up scheduling.
                         - **Automated 10-Gate Production Integrity Test Suite**: Created and verified `scripts/crm-production-integrity-test.ts` passing 100% of test gates (34/34 assertions passed).
 
-                        ### Milestone 9.1: Comprehensive Architecture Hardening, Dead Code Elimination & Clean Architecture Standards
-                        - **Zero TypeScript Diagnostic Errors**: `npx tsc --noEmit` exited with Code 0 across all 400+ application files and test suites.
-                        - **Production Build Verification**: Next.js 14.1.4 production build (`npm run build`) completed successfully with 100% static & dynamic route compilation (39/39 routes optimized).
-                        - **Core Engine Hardening & Synchronization**:
-                          - `ApiEngine`: Authoritative checkout validation with fallback pincode resolution, statutory 5% GST calculation across intra/inter-state tax regimes, dynamic coupon verification (`SWEET10`, `WELCOME10`, `CAKE50`, `CAKE100`), full customization persistence (weight, shape, flavour, artisan, cake message, custom instructions), and audit event logging.
-                          - `WebhookEngine`: Transactional outbox with HMAC-SHA256 signing, timing-safe verification, sensitive field sanitization, versioned envelopes (`version: 1`, `source: "caketohome"`), and retry/DLQ processing.
-                          - `TelemarketingEngine`: 5-signal deterministic scoring (0–100), automated annual anniversary candidate evaluation, deduplication, live RBAC staff assignment, and conversion attribution.
-                          - `ReportsEngineData`: 16 multi-sheet automated enterprise Excel export workbooks, real-time live order ingestion, and GST HSN / intra-state tax summaries.
-                        - **Zero-Destruction Protocol**: All enhancements executed non-destructively, preserving existing working features and database stores.
+                        ### Milestone 9.45: Complete Zero-JSON Runtime Persistence, db-store.json Physical Deletion & Direct PostgreSQL Supabase Durability (100% Verified)
+                        - **Complete Discovery, Audit & Deletion of Legacy JSON Persistence**:
+                          - Located and physically deleted all legacy disk JSON files:
+                            - `frontend/data/db-store.json` (87.2 MB) $\rightarrow$ **DELETED**
+                            - `frontend/data/db-store.json.bak` (87.2 MB) $\rightarrow$ **DELETED**
+                            - `frontend/data/db-store.json.corrupt-backup` (663 KB) $\rightarrow$ **DELETED**
+                          - Audited entire codebase across 10 search terms (`db-store.json`, `db-store`, `json-fallback`, `flushStoreToDisk`, `fs.readFile`, `fs.readFileSync`, `fs.writeFile`, `fs.writeFileSync`, `file store`, `disk store`).
+                          - Eliminated every runtime dependency: removed `loadStore()` disk reader, removed `listCmsPages` & `getCart` disk reads, eliminated `flushStoreToDisk()`, and updated `frontend/next.config.mjs`.
+                        - **Direct PostgreSQL Database Durability (13 Core Entities)**:
+                          - All mutations across branches, zones, products, variants, weight prices, categories, customers, addresses, carts, orders, CMS pages, settings, and campaigns persist directly to PostgreSQL (`aws-1-ap-south-1.pooler.supabase.com:6543/postgres`).
+                          - Zero silent fallback to JSON on database outages (fail-visibly policy enforced).
+                          - Guaranteed application boots cleanly without `db-store.json` and does NOT recreate it under any circumstances.
+                        - **Empirical Automated E2E Verification Suites**:
+                          - `scripts/test-no-json-persistence.js`: **36 / 36 ASSERTIONS PASSED (100% SUCCESS)**.
+                          - `scripts/test-product-pim-cart-order-integrity-e2e.ts`: **36 / 36 ASSERTIONS PASSED (100% SUCCESS)**.
+                          - `scripts/test-pim-map-first-delivery-e2e.ts`: **7 / 7 ASSERTIONS PASSED (100% SUCCESS)**.
+                        - **Zero TypeScript Regressions**: `npx tsc --noEmit` verified with 0 errors across the entire codebase.
+                        - **Next.js Production Build**: `npm run build` completed with 100% compilation (28/28 routes optimized).
 
                         ---
 
@@ -708,6 +1143,10 @@
 
                         | Test Suite | Coverage | Status | Passed / Total |
                         | :--- | :--- | :--- | :--- |
+                        | `scripts/test-no-json-persistence.js` | 7 Zero-JSON Gates: Physical Non-Existence, Zero Runtime Code References, PostgreSQL Live Connection, Clean Boot, Direct Mutations, Non-Recreation Guarantee, Outage Fail-Visibly | ✅ PASSED | 36 / 36 |
+                        | `scripts/test-product-pim-cart-order-integrity-e2e.ts` | 7 PIM/Cart/Order Pillars: Product Isolation, Option Scoping, Pickup Authority, Zone Elimination, GPS Snapshots, Rider Navigation | ✅ PASSED | 36 / 36 |
+                        | `scripts/test-pim-map-first-delivery-e2e.ts` | 5 PIM Delivery Gates: max_delivery_distance_km, Cart & Checkout Distance Rejections, Nearest Hub Resolution | ✅ PASSED | 7 / 7 |
+                        | `scripts/test-map-first-store-area-matrix-e2e.ts` | 6 Map-First Gates: Critical Pincode Bypass, In-Fence Serviceability, Fallback, Exclusions, Multi-Tier Limits, Map PIP Integrity | ✅ PASSED | 24 / 24 |
                         | `backend/test_product_reviews_db.js` | Direct PostgreSQL Supabase verification: Schema, Column types, UNIQUE constraint (code 23505), SQL aggregate math, Clean cleanup | ✅ PASSED | 15 / 15 |
                         | `scripts/test-product-reviews-e2e.ts` | 11 Review Pillars: Canonical customer_uid, Verified Delivery Gate, Unique Constraints, Dynamic Math Rating Recalculation, Privacy Safety, IDOR Security, Admin Responses, CRM 360 | ✅ PASSED | 64 / 64 |
                         | `scripts/test-favorites-e2e.ts` | 9 Favorites Pillars: Customer UID Scoping, Idempotence, N+1 Optimization, Multi-Customer Isolation, Optimistic UI, Outbox Webhooks, CRM 360 | ✅ PASSED | 43 / 43 |

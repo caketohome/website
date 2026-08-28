@@ -13,7 +13,6 @@ const nextConfig = {
       ignored: [
         "**/node_modules/**",
         "**/.git/**",
-        "**/data/db-store.json",
         "**/backend/**",
       ],
     };

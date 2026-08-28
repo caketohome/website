@@ -88,6 +88,7 @@ export async function confirmCheckoutAction(payload: {
   delivery_date: string;
   delivery_slot_id: string;
   delivery_type?: string;
+  branch_id?: string;
   coupon_code?: string;
   payment_method: "cod" | "razorpay" | "test_mode" | "wallet";
   payment_details?: any;
@@ -97,6 +98,7 @@ export async function confirmCheckoutAction(payload: {
   recipient_phone?: string;
   gift_message?: string;
   special_instructions?: string;
+  location_source?: string;
 }) {
   const cookieStore = cookies();
   const cartId = payload.cart_id || cookieStore.get("_cth_cart_id")?.value || cookieStore.get("_medusa_cart_id")?.value || "cart_guest";
@@ -144,24 +146,36 @@ export async function placeOrder(prevState: any, data: FormData) {
   const pincode = data.get("zip")?.toString() || data.get("pincode")?.toString() || cookieStore.get("delivery_pincode")?.value || "";
   const landmark = data.get("landmark")?.toString() || "";
 
+  const deliveryType = data.get("delivery_type")?.toString() || data.get("delivery-type")?.toString() || "delivery";
+  const branchId = data.get("branch_id")?.toString() || data.get("branch-id")?.toString() || undefined;
+
   const rawLat = data.get("latitude")?.toString() || data.get("lat")?.toString();
   const rawLng = data.get("longitude")?.toString() || data.get("lng")?.toString();
+  const locationSource = data.get("location_source")?.toString() || data.get("source")?.toString() || undefined;
   const latitude = rawLat ? parseFloat(rawLat) : undefined;
   const longitude = rawLng ? parseFloat(rawLng) : undefined;
 
-  const deliveryDate = data.get("delivery-date")?.toString() || new Date().toISOString().slice(0, 10);
+  const deliveryDate = data.get("delivery-date")?.toString() || data.get("delivery_date")?.toString() || new Date().toISOString().slice(0, 10);
   const deliverySlotId = data.get("delivery-slot")?.toString() || data.get("delivery_slot_id")?.toString() || "slot_morning";
   const paymentMethod = (data.get("payment-method")?.toString() || "cod") as "cod" | "razorpay" | "test_mode";
 
   const occasion = data.get("occasion")?.toString() || "Celebration";
-  const orderedForSelf = data.get("ordered-for-self")?.toString() !== "false";
-  const recipientName = data.get("recipient-name")?.toString();
-  const recipientPhone = data.get("recipient-phone")?.toString();
-  const giftMessage = data.get("gift-message")?.toString();
-  const specialInstructions = data.get("special-instructions")?.toString();
+  const orderedForSelf = data.get("ordered-for-self")?.toString() !== "false" && data.get("ordered_for_self")?.toString() !== "false";
+  const recipientName = data.get("recipient-name")?.toString() || data.get("recipient_name")?.toString();
+  const recipientPhone = data.get("recipient-phone")?.toString() || data.get("recipient_phone")?.toString();
+  const giftMessage = data.get("gift-message")?.toString() || data.get("gift_message")?.toString();
+  const specialInstructions = data.get("special-instructions")?.toString() || data.get("special_instructions")?.toString();
 
-  if (!firstName || !phone || (!pincode && (!latitude || !longitude))) {
-    return { message: "Please fill in all required fields (Name, Phone, and Delivery Location)." };
+  if (!firstName || !phone) {
+    return { message: "Please fill in all required contact fields (Name and Mobile Phone)." };
+  }
+
+  if (deliveryType === "delivery" && (!pincode && (!latitude || !longitude))) {
+    return { message: "Please select your delivery location on the map or enter your address." };
+  }
+
+  if (deliveryType === "pickup" && !branchId) {
+    return { message: "Please select a bakery hub for store pickup." };
   }
 
   const result = await confirmCheckoutAction({
@@ -184,8 +198,11 @@ export async function placeOrder(prevState: any, data: FormData) {
     pincode,
     latitude,
     longitude,
+    location_source: locationSource,
     delivery_date: deliveryDate,
     delivery_slot_id: deliverySlotId,
+    delivery_type: deliveryType,
+    branch_id: branchId,
     payment_method: paymentMethod,
     occasion,
     ordered_for_self: orderedForSelf,

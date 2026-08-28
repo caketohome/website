@@ -2,7 +2,7 @@
 
 import { useEffect, useState, memo } from "react";
 import { Container, Heading, Text, Button, Input, Badge, Label } from "@medusajs/ui";
-import { Plus, Store, Trash2, MapPin, Phone, CheckCircle, AlertCircle, User, ShieldCheck, Clock, Truck, Sliders, Edit3, Cake, ShoppingBag, BarChart3, Lock, RefreshCw, AlertTriangle, Link2, RotateCw, Check } from "lucide-react";
+import { Plus, Store, Trash2, MapPin, Phone, CheckCircle, AlertCircle, User, ShieldCheck, Clock, Truck, Sliders, Edit3, Cake, ShoppingBag, BarChart3, Lock, RefreshCw, AlertTriangle, Link2, RotateCw, Check, Search, Navigation, Loader2 } from "lucide-react";
 import { apiClient } from "@frontend/lib/api-client";
 import { BranchPincodePanel } from "./branch-pincode-panel";
 import { BranchProductAvailabilityModal } from "./branch-product-availability-modal";
@@ -55,6 +55,16 @@ export const BranchesPanel = memo(function BranchesPanel() {
   const [managerName, setManagerName] = useState("Rajesh Kumar");
   const [managerPhone, setManagerPhone] = useState("+91 98765 00001");
   const [managerEmail, setManagerEmail] = useState("manager@cakes2home.com");
+
+  // Store Physical Location State
+  const [latitude, setLatitude] = useState<number | string>("");
+  const [longitude, setLongitude] = useState<number | string>("");
+  const [locationSource, setLocationSource] = useState<string>("MANUAL_MAP");
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
+  const [gpsLoading, setGpsLoading] = useState<boolean>(false);
+  const [locationSearchQuery, setLocationSearchQuery] = useState<string>("");
+  const [locationSearchResults, setLocationSearchResults] = useState<any[]>([]);
+  const [searchingLocation, setSearchingLocation] = useState<boolean>(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -133,6 +143,12 @@ export const BranchesPanel = memo(function BranchesPanel() {
     setState("");
     setPincode("");
     setAddress("");
+    setLatitude("");
+    setLongitude("");
+    setLocationSource("MANUAL_MAP");
+    setLocationAccuracy(null);
+    setLocationSearchQuery("");
+    setLocationSearchResults([]);
     setPhone("");
     setEmail(`branch_${Date.now()}@cakes2home.com`);
     setManagerName("");
@@ -159,6 +175,12 @@ export const BranchesPanel = memo(function BranchesPanel() {
     setStateId(b.state_id || matchedState?.id || "");
     setPincode(b.pincode || "");
     setAddress(b.address || "");
+    setLatitude(typeof b.latitude === "number" ? b.latitude : "");
+    setLongitude(typeof b.longitude === "number" ? b.longitude : "");
+    setLocationSource(b.location_source || "MANUAL_MAP");
+    setLocationAccuracy(b.location_accuracy ?? null);
+    setLocationSearchQuery("");
+    setLocationSearchResults([]);
     setPhone(b.phone || "");
     setEmail(b.email || "");
     setManagerName(b.manager_name || b.manager_account?.name || "");
@@ -166,6 +188,61 @@ export const BranchesPanel = memo(function BranchesPanel() {
     setManagerEmail(b.manager_account?.email || b.email || "");
 
     setShowModal(true);
+  };
+
+  const handleGpsCurrentLocation = () => {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setNotification({ message: "Geolocation is not supported by your browser.", type: "error" });
+      return;
+    }
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = Number(pos.coords.latitude.toFixed(6));
+        const lng = Number(pos.coords.longitude.toFixed(6));
+        const acc = Math.round(pos.coords.accuracy || 10);
+        setLatitude(lat);
+        setLongitude(lng);
+        setLocationSource("GPS");
+        setLocationAccuracy(acc);
+        try {
+          const revRes: any = await apiClient.reverseGeocode(lat, lng);
+          if (revRes?.formatted_address && !address) {
+            setAddress(revRes.formatted_address);
+          }
+          if (revRes?.city && !city) {
+            setCity(revRes.city);
+          }
+          if (revRes?.pincode && !pincode) {
+            setPincode(revRes.pincode);
+          }
+        } catch {}
+        setGpsLoading(false);
+        setNotification({ message: `GPS Location acquired: ${lat}, ${lng} (±${acc}m)`, type: "success" });
+      },
+      (err) => {
+        setGpsLoading(false);
+        setNotification({ message: `Failed to acquire GPS: ${err.message}`, type: "error" });
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  const handleLocationSearch = async (q: string) => {
+    setLocationSearchQuery(q);
+    if (!q || q.trim().length < 2) {
+      setLocationSearchResults([]);
+      return;
+    }
+    setSearchingLocation(true);
+    try {
+      const res: any = await apiClient.searchDeliveryLocation(q.trim());
+      setLocationSearchResults(res?.results || []);
+    } catch {
+      setLocationSearchResults([]);
+    } finally {
+      setSearchingLocation(false);
+    }
   };
 
   const handleToggleBranchOnline = async (branchId: string, isOnline: boolean) => {
@@ -220,6 +297,11 @@ export const BranchesPanel = memo(function BranchesPanel() {
       extended_status: extendedStatus,
       operational_status: extendedStatus === "open" ? "operational" : extendedStatus === "busy" ? "busy" : "temporarily_closed",
       address: address.trim(),
+      formatted_address: address.trim(),
+      latitude: latitude !== "" && !isNaN(Number(latitude)) ? Number(Number(latitude).toFixed(6)) : undefined,
+      longitude: longitude !== "" && !isNaN(Number(longitude)) ? Number(Number(longitude).toFixed(6)) : undefined,
+      location_source: locationSource || "MANUAL_MAP",
+      location_accuracy: locationAccuracy ?? null,
       city: city.trim(),
       city_id: cityId || undefined,
       state_id: stateId || undefined,
@@ -419,9 +501,18 @@ export const BranchesPanel = memo(function BranchesPanel() {
                             <Badge color="purple" className="text-[10px] font-extrabold">{b.code}</Badge>
                             <Badge color="blue" className="text-[10px]">{typeLabel}</Badge>
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                          <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap">
                             <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
                             <span>{b.address}, {b.city} ({b.pincode})</span>
+                            {typeof b.latitude === "number" && typeof b.longitude === "number" ? (
+                              <span className="font-mono text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded flex items-center gap-1 font-semibold">
+                                📍 {b.latitude.toFixed(4)}° N, {b.longitude.toFixed(4)}° E
+                              </span>
+                            ) : (
+                              <Badge color="red" className="text-[9px] font-bold">
+                                ⚠️ LOCATION REQUIRED
+                              </Badge>
+                            )}
                           </div>
                         </div>
 
@@ -767,6 +858,122 @@ export const BranchesPanel = memo(function BranchesPanel() {
                 <div className="sm:col-span-2">
                   <Label>Full Street Address *</Label>
                   <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Full street address" required />
+                </div>
+
+                {/* ── STORE PHYSICAL LOCATION & COORDINATES SECTION ── */}
+                <div className="sm:col-span-2 p-4 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 dark:from-slate-800 dark:to-slate-800/90 rounded-xl border border-amber-300 dark:border-slate-700 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <Label className="font-extrabold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <MapPin className="w-4 h-4 text-amber-600" /> Store Physical Location &amp; Coordinates *
+                      </Label>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        Delivery radius, distance pricing, and customer serviceability originate strictly from these coordinates.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        type="button"
+                        size="small"
+                        variant="secondary"
+                        onClick={handleGpsCurrentLocation}
+                        disabled={gpsLoading}
+                        className="text-[11px] font-bold gap-1 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600"
+                      >
+                        {gpsLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Navigation className="w-3.5 h-3.5 text-blue-600" />}
+                        Use Current Location
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Location Search Helper */}
+                  <div className="relative">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                      <input
+                        type="text"
+                        value={locationSearchQuery}
+                        onChange={(e) => handleLocationSearch(e.target.value)}
+                        placeholder="🔍 Search area, landmark, or street to auto-fill coordinates..."
+                        className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                      />
+                      {searchingLocation && <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-amber-500 animate-spin" />}
+                    </div>
+                    {locationSearchResults.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                        {locationSearchResults.map((r: any, idx: number) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              const lat = typeof r.latitude === "number" ? r.latitude : (typeof r.lat === "number" ? r.lat : 0);
+                              const lng = typeof r.longitude === "number" ? r.longitude : (typeof r.lng === "number" ? r.lng : 0);
+                              if (lat && lng) {
+                                setLatitude(lat);
+                                setLongitude(lng);
+                                setLocationSource("SEARCH");
+                                if (r.label || r.formatted_address) {
+                                  if (!address) setAddress(r.label || r.formatted_address);
+                                }
+                                if (r.city && !city) setCity(r.city);
+                                if (r.pincode && !pincode) setPincode(r.pincode);
+                              }
+                              setLocationSearchResults([]);
+                              setLocationSearchQuery("");
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs hover:bg-amber-50 dark:hover:bg-slate-800 flex items-center justify-between"
+                          >
+                            <span className="truncate font-medium">{r.label || r.formatted_address || r.area_name}</span>
+                            <span className="text-[10px] text-amber-600 font-bold shrink-0 ml-2">Apply Coords</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div>
+                      <Label className="text-[11px]">Latitude (e.g. 12.971600) *</Label>
+                      <Input
+                        type="number"
+                        step="0.000001"
+                        value={latitude}
+                        onChange={(e) => {
+                          setLatitude(e.target.value);
+                          setLocationSource("MANUAL_MAP");
+                        }}
+                        placeholder="12.971600"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">Longitude (e.g. 77.594600) *</Label>
+                      <Input
+                        type="number"
+                        step="0.000001"
+                        value={longitude}
+                        onChange={(e) => {
+                          setLongitude(e.target.value);
+                          setLocationSource("MANUAL_MAP");
+                        }}
+                        placeholder="77.594600"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">Location Source</Label>
+                      <select
+                        value={locationSource}
+                        onChange={(e) => setLocationSource(e.target.value)}
+                        className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-2 text-xs bg-white dark:bg-slate-900"
+                      >
+                        <option value="GPS">GPS Geolocation</option>
+                        <option value="SEARCH">Address Search</option>
+                        <option value="MANUAL_MAP">Manual Map Placement</option>
+                        <option value="ADDRESS_GEOCODE">Address Geocode</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
 
                 <div>

@@ -149,13 +149,23 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
   const [shelfLifeDays, setShelfLifeDays] = useState("3");
   const [deliveryProfileId, setDeliveryProfileId] = useState(product?.delivery_profile_id || "prof_regular");
 
-  // Logistics – Delivery Option Permissions (missing state vars that the JSX references)
+  // Logistics – Delivery Option Permissions & Map-First Distance Restriction
   const [minPrepHours, setMinPrepHours] = useState<string>(String(product?.pim_config?.min_prep_hours || "2"));
   const [sameDayAllowed, setSameDayAllowed] = useState<boolean>(product?.pim_config?.same_day_allowed ?? true);
   const [expressAllowed, setExpressAllowed] = useState<boolean>(product?.pim_config?.express_allowed ?? true);
   const [midnightAllowed, setMidnightAllowed] = useState<boolean>(product?.pim_config?.midnight_allowed ?? false);
   const [scheduledAllowed, setScheduledAllowed] = useState<boolean>(product?.pim_config?.scheduled_allowed ?? true);
-  const [allowedZoneIds, setAllowedZoneIds] = useState<string[]>(product?.pim_config?.allowed_zone_ids || ["zone_1", "zone_2"]);
+  const [hasDistanceLimit, setHasDistanceLimit] = useState<boolean>(
+    (product?.pim_config?.max_delivery_distance_km != null && Number(product.pim_config.max_delivery_distance_km) > 0) ||
+    (product?.max_delivery_distance_km != null && Number(product.max_delivery_distance_km) > 0)
+  );
+  const [maxDeliveryDistanceKm, setMaxDeliveryDistanceKm] = useState<string>(
+    product?.pim_config?.max_delivery_distance_km != null
+      ? String(product.pim_config.max_delivery_distance_km)
+      : product?.max_delivery_distance_km != null
+      ? String(product.max_delivery_distance_km)
+      : "10.0"
+  );
 
   // SEO & AI
   const [seoTitle, setSeoTitle] = useState(product?.title ? `${product.title} - CakeToHome` : "");
@@ -289,19 +299,15 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       setMasterFlavours(dbFlavors);
       setMasterShapes(dbShapes);
 
-      const mappedFlvIds = (resFlvMaps?.flavor_mappings || []).map((m: any) => m.flavor_id);
-      const mappedShpIds = (resShpMaps?.shape_mappings || []).map((m: any) => m.shape_id);
+      const mappedFlvIds = (resFlvMaps?.flavor_mappings || []).map((m: any) => m.flavor_id || m.id);
+      const mappedShpIds = (resShpMaps?.shape_mappings || []).map((m: any) => m.shape_id || m.id);
 
-      if (mappedFlvIds.length > 0) {
+      if (product?.id) {
         setSelectedFlavours(dbFlavors.filter((f: any) => mappedFlvIds.includes(f.id)).map((f: any) => f.name));
-      } else {
-        setSelectedFlavours(dbFlavors.map((f: any) => f.name));
-      }
-
-      if (mappedShpIds.length > 0) {
         setSelectedShapes(dbShapes.filter((s: any) => mappedShpIds.includes(s.id)).map((s: any) => s.name));
       } else {
-        setSelectedShapes(dbShapes.map((s: any) => s.name));
+        setSelectedFlavours([]);
+        setSelectedShapes([]);
       }
 
       const rawPrices = resPrices?.weight_prices;
@@ -462,13 +468,14 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       seo_keywords: seoKeywords,
       pim_config: {
         ...pimConfig,
-        min_prep_hours: minPrepHours,
+        min_prep_hours: Number(minPrepHours) || 2,
         same_day_allowed: sameDayAllowed,
         express_allowed: expressAllowed,
         midnight_allowed: midnightAllowed,
         scheduled_allowed: scheduledAllowed,
-        allowed_zone_ids: allowedZoneIds,
+        max_delivery_distance_km: hasDistanceLimit && Number(maxDeliveryDistanceKm) > 0 ? Number(maxDeliveryDistanceKm) : null,
       },
+      max_delivery_distance_km: hasDistanceLimit && Number(maxDeliveryDistanceKm) > 0 ? Number(maxDeliveryDistanceKm) : null,
     };
 
     try {
@@ -1427,16 +1434,16 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                     onChange={(e) => setDeliveryProfileId(e.target.value)}
                     className="w-full p-2 text-xs font-bold rounded-lg border bg-purple-50/50 dark:bg-purple-950/30 text-purple-900 dark:text-purple-200 cursor-pointer"
                   >
-                    <option value="prof_regular">Regular Cake Profile (1h Prep, Bike, All Zones, 60m Slots)</option>
-                    <option value="prof_designer">Designer Cake Profile (6h Prep, Car, Zones 1-3, 120m Slots)</option>
-                    <option value="prof_photo">Photo Cake Profile (4h Prep, Bike, Zones 1-3, 60m Slots)</option>
-                    <option value="prof_wedding">Tiered Wedding Cake Profile (24h Prep, Van, Zones 1-2, 120m Slots)</option>
-                    <option value="prof_icecream">Ice Cream Cake Profile (2h Prep, Car, Zones 1-2, 30m Slots)</option>
-                    <option value="prof_dry">Dry Cake Profile (30m Prep, Bike, All Zones, Express Ready)</option>
-                    <option value="prof_tier">Multi-Tier Cake Profile (12h Prep, Van, Zones 1-3, 120m Slots)</option>
+                    <option value="prof_regular">Regular Cake Delivery Profile (1h Prep, Bike, 60m Slots)</option>
+                    <option value="prof_designer">Designer Cake Delivery Profile (6h Prep, Car, 120m Slots)</option>
+                    <option value="prof_photo">Photo Cake Delivery Profile (4h Prep, Bike, 60m Slots)</option>
+                    <option value="prof_wedding">Tiered Wedding Cake Delivery Profile (24h Prep, Van, 120m Slots)</option>
+                    <option value="prof_icecream">Ice Cream Cake Delivery Profile (2h Prep, Car, 30m Slots)</option>
+                    <option value="prof_dry">Dry Cake Delivery Profile (30m Prep, Bike, Express Ready)</option>
+                    <option value="prof_tier">Multi-Tier Cake Delivery Profile (12h Prep, Van, 120m Slots)</option>
                   </select>
                   <Text className="text-[10px] text-slate-500">
-                    Products inherit allowed zones, vehicle restrictions, slot durations, and cutoff rules automatically from their assigned profile.
+                    Products inherit vehicle restrictions, slot durations, and default cutoff rules automatically from their assigned profile.
                   </Text>
                 </div>
 
@@ -1470,54 +1477,117 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                   </div>
                 </div>
 
-                {/* Delivery Option Allowances */}
-                <div className="pt-3 border-t">
-                  <Label className="mb-2 block font-semibold text-xs text-slate-700 dark:text-slate-300">Product Delivery Option Permissions:</Label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                    <label className="flex items-center gap-2 p-2.5 border rounded-lg bg-white dark:bg-slate-900 cursor-pointer">
-                      <input type="checkbox" checked={sameDayAllowed} onChange={(e) => setSameDayAllowed(e.target.checked)} />
-                      <span>Same Day Delivery</span>
-                    </label>
-                    <label className="flex items-center gap-2 p-2.5 border rounded-lg bg-white dark:bg-slate-900 cursor-pointer">
-                      <input type="checkbox" checked={expressAllowed} onChange={(e) => setExpressAllowed(e.target.checked)} />
-                      <span>Express Delivery</span>
-                    </label>
-                    <label className="flex items-center gap-2 p-2.5 border rounded-lg bg-white dark:bg-slate-900 cursor-pointer">
-                      <input type="checkbox" checked={midnightAllowed} onChange={(e) => setMidnightAllowed(e.target.checked)} />
-                      <span>Midnight Delivery</span>
-                    </label>
-                    <label className="flex items-center gap-2 p-2.5 border rounded-lg bg-white dark:bg-slate-900 cursor-pointer">
-                      <input type="checkbox" checked={scheduledAllowed} onChange={(e) => setScheduledAllowed(e.target.checked)} />
-                      <span>Scheduled Delivery</span>
-                    </label>
-                  </div>
-                </div>
+                {/* PRODUCT DELIVERY OPTION PERMISSIONS */}
+                <div className="pt-3 border-t space-y-4">
+                  <Text className="font-extrabold text-xs text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                    PRODUCT DELIVERY OPTION PERMISSIONS
+                  </Text>
 
-                {/* Allowed Delivery Zones Selector */}
-                <div className="pt-3 border-t">
-                  <Label className="mb-2 block font-semibold text-xs text-slate-700 dark:text-slate-300">Allowed Delivery Zones (Select enabled zones):</Label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                    {[
-                      { id: "zone_1", label: "Zone 1 (0-5 KM)" },
-                      { id: "zone_2", label: "Zone 2 (5-10 KM)" },
-                      { id: "zone_3", label: "Zone 3 (10-15 KM)" },
-                      { id: "zone_4", label: "Zone 4 (15-20 KM)" },
-                    ].map((z) => (
-                      <label key={z.id} className="flex items-center gap-2 p-2.5 border rounded-lg bg-white dark:bg-slate-900 cursor-pointer font-medium">
-                        <input
-                          type="checkbox"
-                          checked={allowedZoneIds.includes(z.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setAllowedZoneIds((prev) => [...prev, z.id]);
-                            } else {
-                              setAllowedZoneIds((prev) => prev.filter((id) => id !== z.id));
-                            }
-                          }}
-                        />
-                        <span>{z.label}</span>
+                  {/* Delivery Modes */}
+                  <div className="space-y-2">
+                    <Label className="block font-semibold text-xs text-slate-700 dark:text-slate-300">Delivery Modes:</Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                      <label className="flex items-center gap-2 p-2.5 border rounded-lg bg-white dark:bg-slate-900 cursor-pointer">
+                        <input type="checkbox" checked={sameDayAllowed} onChange={(e) => setSameDayAllowed(e.target.checked)} />
+                        <span>Same Day Delivery</span>
                       </label>
-                    ))}
+                      <label className="flex items-center gap-2 p-2.5 border rounded-lg bg-white dark:bg-slate-900 cursor-pointer">
+                        <input type="checkbox" checked={expressAllowed} onChange={(e) => setExpressAllowed(e.target.checked)} />
+                        <span>Express Delivery</span>
+                      </label>
+                      <label className="flex items-center gap-2 p-2.5 border rounded-lg bg-white dark:bg-slate-900 cursor-pointer">
+                        <input type="checkbox" checked={midnightAllowed} onChange={(e) => setMidnightAllowed(e.target.checked)} />
+                        <span>Midnight Delivery</span>
+                      </label>
+                      <label className="flex items-center gap-2 p-2.5 border rounded-lg bg-white dark:bg-slate-900 cursor-pointer">
+                        <input type="checkbox" checked={scheduledAllowed} onChange={(e) => setScheduledAllowed(e.target.checked)} />
+                        <span>Scheduled Delivery</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Product Delivery Distance Limit (Map-First Architecture) */}
+                  <div className="pt-3 border-t space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="block font-bold text-xs text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                        PRODUCT DELIVERY DISTANCE LIMIT
+                      </Label>
+                      <a
+                        href="#store-area-matrix"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onClose();
+                        }}
+                        className="text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1"
+                      >
+                        Open Store Area Matrix →
+                      </a>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <label
+                        className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-all ${
+                          !hasDistanceLimit
+                            ? "border-rose-500 bg-rose-50/50 dark:bg-rose-950/30 text-rose-900 dark:text-rose-200 font-bold"
+                            : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="product_distance_limit_type"
+                          checked={!hasDistanceLimit}
+                          onChange={() => setHasDistanceLimit(false)}
+                          className="accent-rose-600"
+                        />
+                        <span>No product-specific distance restriction</span>
+                      </label>
+
+                      <label
+                        className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-all ${
+                          hasDistanceLimit
+                            ? "border-rose-500 bg-rose-50/50 dark:bg-rose-950/30 text-rose-900 dark:text-rose-200 font-bold"
+                            : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="product_distance_limit_type"
+                          checked={hasDistanceLimit}
+                          onChange={() => setHasDistanceLimit(true)}
+                          className="accent-rose-600"
+                        />
+                        <span>Maximum Delivery Distance</span>
+                      </label>
+                    </div>
+
+                    {hasDistanceLimit && (
+                      <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl space-y-1.5 animate-in fade-in">
+                        <Label htmlFor="pim_max_distance" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                          Maximum Delivery Distance (KM)
+                        </Label>
+                        <div className="flex items-center gap-2 max-w-xs">
+                          <Input
+                            id="pim_max_distance"
+                            type="number"
+                            step="0.5"
+                            min="0.5"
+                            max="50"
+                            value={maxDeliveryDistanceKm}
+                            onChange={(e) => setMaxDeliveryDistanceKm(e.target.value)}
+                            className="text-xs font-bold"
+                            placeholder="5.0"
+                          />
+                          <span className="text-xs font-bold text-slate-500">KM</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="p-2.5 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-xl text-[11px] text-blue-900 dark:text-blue-200 flex items-start gap-2">
+                      <span>ⓘ</span>
+                      <span>
+                        Maximum distance this product can be delivered from the serving store. Customer locations must still fall inside the serving store&apos;s configured map delivery area. Physical delivery coverage is controlled by the store&apos;s map boundary and exclusion areas.
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

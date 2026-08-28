@@ -10,6 +10,7 @@ export interface OrderSummaryPricing {
   slot_surcharge: number;
   tax: number;
   grand_total: number;
+  distance_km?: number | null;
 }
 
 export function OrderSummary({

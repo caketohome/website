@@ -1,11 +1,27 @@
 /**
  * CakeToHome Persistent API Engine
- * Disk-backed REST engine serving endpoints under /api/v1/*
- * Guarantees 100% data persistence across browser refreshes and server restarts.
+ * Authoritative PostgreSQL persistence layer serving endpoints under /api/v1/*
+ * Guarantees 100% data persistence directly into PostgreSQL.
  */
 
 import fs from "fs";
 import path from "path";
+import {
+  hydrateStoreFromDatabase,
+  persistBranchToDb,
+  deleteBranchZoneFromDb,
+  persistCityToDb,
+  persistProductToDb,
+  persistCustomerToDb,
+  persistCustomerAddressToDb,
+  deleteCustomerAddressFromDb,
+  persistDeliveryPartnerToDb,
+  persistOrderToDb,
+  persistCmsPageToDb,
+  persistOfferToDb,
+  persistSettingToDb,
+  persistPopupCampaignToDb,
+} from "./db-persistence";
 import { SeoIntegrationsEngine } from "./integrations/seo-integrations";
 import { LiveHttpCrawler } from "./crawler/live-crawler";
 import { SeoAuditEngine } from "./audit/seo-audit-engine";
@@ -103,6 +119,9 @@ export interface ProductItem {
   thumbnail: string;
   handle: string;
   price: number;
+  selling_price?: number;
+  mrp?: number;
+  cost_price?: number;
   rating: number;
   review_count: number;
   sugar_free: boolean;
@@ -111,6 +130,8 @@ export interface ProductItem {
   is_featured: boolean;
   is_bestseller: boolean;
   is_new_arrival: boolean;
+  weight_prices?: any[];
+  weights?: string[];
 
   // ── Category & Taxonomy Properties ──
   category?: string;
@@ -2427,12 +2448,38 @@ export const DEFAULT_STORES: ParentStore[] = [
   { id: "store_blr_04", name: "Bakingo Whitefield", code: "STR-BLR-04", city: "Bengaluru", address: "ITPL Main Rd, Whitefield", phone: "+91 98765 44444", status: "active" },
 ];
 
+/**
+ * Distance-based delivery pricing bracket.
+ * Each bracket defines a distance range (min_km..max_km) and the charge for deliveries within that range.
+ * Brackets must be contiguous (no gaps) and non-overlapping.
+ */
+export interface DeliveryPricingBracket {
+  min_km: number;
+  max_km: number;
+  charge: number;
+  label?: string;
+  enabled?: boolean;
+}
+
+/** Default distance-based pricing brackets (used when admin enables bracket pricing without custom config) */
+export const DEFAULT_PRICING_BRACKETS: DeliveryPricingBracket[] = [
+  { min_km: 0,  max_km: 3,  charge: 39,  label: "0–3 km",   enabled: true },
+  { min_km: 3,  max_km: 5,  charge: 49,  label: "3–5 km",   enabled: true },
+  { min_km: 5,  max_km: 8,  charge: 69,  label: "5–8 km",   enabled: true },
+  { min_km: 8,  max_km: 12, charge: 99,  label: "8–12 km",  enabled: true },
+  { min_km: 12, max_km: 15, charge: 149, label: "12–15 km", enabled: true },
+];
+
+/** Platform-wide operational safety ceiling for delivery radius (km) */
+export const GLOBAL_MAX_DELIVERY_RADIUS_KM = 25;
+
 export interface DeliveryZone {
   id: string;
   name: string;
   display_order?: number;
   priority?: number;
   fence_type?: "RADIUS" | "POLYGON" | "MULTI_POLYGON" | "PINCODE_LIST" | "HYBRID";
+  boundary_type?: "polygon" | "radius" | "hybrid";
   min_km: number;
   max_km: number;
   enabled: boolean;
@@ -2458,6 +2505,14 @@ export interface DeliveryZone {
   state_id?: string;
   
   // ── Zone Pricing (Strictly stored on Zone, never on Branch) ──
+  /** Pricing model: "flat" uses delivery_charge directly; "distance_bracket" resolves charge from pricing_brackets based on distance_km */
+  pricing_type?: "flat" | "distance_bracket";
+  /** Ordered distance-based pricing brackets. Only used when pricing_type === "distance_bracket". */
+  pricing_brackets?: DeliveryPricingBracket[];
+  /** Max serviceable distance in km. Deliveries beyond this are rejected. Only enforced when pricing_type === "distance_bracket". */
+  max_serviceable_km?: number;
+  /** Remaining distance in km before hitting maximum allowed radius constraint (calculated dynamically) */
+  remaining_radius_km?: number;
   delivery_charge: number;
   express_charge: number;
   midnight_charge: number;
@@ -2506,7 +2561,7 @@ export interface ProductDeliveryRestriction {
 export interface DeliveryProfile {
   id: string;
   name: string;
-  allowed_zone_ids: string[];
+  max_delivery_distance_km?: number | null;
   min_prep_time_hours: number;
   vehicle_restriction: "bike" | "car" | "van";
   slot_duration_mins: number;
@@ -2533,13 +2588,13 @@ export interface ServiceArea {
 }
 
 export const DEFAULT_DELIVERY_PROFILES: DeliveryProfile[] = [
-  { id: "prof_regular", name: "Regular Cake Profile", allowed_zone_ids: ["zone_1", "zone_2", "zone_3", "zone_4"], min_prep_time_hours: 1, vehicle_restriction: "bike", slot_duration_mins: 60, same_day_cutoff_time: "20:00", is_fragile: false, requires_refrigeration: true, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true },
-  { id: "prof_designer", name: "Designer Cake Profile", allowed_zone_ids: ["zone_1", "zone_2", "zone_3"], min_prep_time_hours: 6, vehicle_restriction: "car", slot_duration_mins: 120, same_day_cutoff_time: "16:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: true, express_allowed: false, midnight_allowed: true, scheduled_allowed: true },
-  { id: "prof_photo", name: "Photo Cake Profile", allowed_zone_ids: ["zone_1", "zone_2", "zone_3"], min_prep_time_hours: 4, vehicle_restriction: "bike", slot_duration_mins: 60, same_day_cutoff_time: "18:00", is_fragile: false, requires_refrigeration: true, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true },
-  { id: "prof_wedding", name: "Tiered Wedding Cake Profile", allowed_zone_ids: ["zone_1", "zone_2"], min_prep_time_hours: 24, vehicle_restriction: "van", slot_duration_mins: 120, same_day_cutoff_time: "12:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: false, express_allowed: false, midnight_allowed: false, scheduled_allowed: true },
-  { id: "prof_icecream", name: "Ice Cream Cake Profile", allowed_zone_ids: ["zone_1", "zone_2"], min_prep_time_hours: 2, vehicle_restriction: "car", slot_duration_mins: 30, same_day_cutoff_time: "19:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: true, express_allowed: true, midnight_allowed: false, scheduled_allowed: true },
-  { id: "prof_dry", name: "Dry Cake Profile", allowed_zone_ids: ["zone_1", "zone_2", "zone_3", "zone_4"], min_prep_time_hours: 0.5, vehicle_restriction: "bike", slot_duration_mins: 60, same_day_cutoff_time: "21:00", is_fragile: false, requires_refrigeration: false, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true },
-  { id: "prof_tier", name: "Multi-Tier Cake Profile", allowed_zone_ids: ["zone_1", "zone_2", "zone_3"], min_prep_time_hours: 12, vehicle_restriction: "van", slot_duration_mins: 120, same_day_cutoff_time: "14:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: true, express_allowed: false, midnight_allowed: true, scheduled_allowed: true },
+  { id: "prof_regular", name: "Regular Cake Profile", max_delivery_distance_km: null, min_prep_time_hours: 1, vehicle_restriction: "bike", slot_duration_mins: 60, same_day_cutoff_time: "20:00", is_fragile: false, requires_refrigeration: true, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true },
+  { id: "prof_designer", name: "Designer Cake Profile", max_delivery_distance_km: 15, min_prep_time_hours: 6, vehicle_restriction: "car", slot_duration_mins: 120, same_day_cutoff_time: "16:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: true, express_allowed: false, midnight_allowed: true, scheduled_allowed: true },
+  { id: "prof_photo", name: "Photo Cake Profile", max_delivery_distance_km: 15, min_prep_time_hours: 4, vehicle_restriction: "bike", slot_duration_mins: 60, same_day_cutoff_time: "18:00", is_fragile: false, requires_refrigeration: true, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true },
+  { id: "prof_wedding", name: "Tiered Wedding Cake Profile", max_delivery_distance_km: 10, min_prep_time_hours: 24, vehicle_restriction: "van", slot_duration_mins: 120, same_day_cutoff_time: "12:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: false, express_allowed: false, midnight_allowed: false, scheduled_allowed: true },
+  { id: "prof_icecream", name: "Ice Cream Cake Profile", max_delivery_distance_km: 8, min_prep_time_hours: 2, vehicle_restriction: "car", slot_duration_mins: 30, same_day_cutoff_time: "19:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: true, express_allowed: true, midnight_allowed: false, scheduled_allowed: true },
+  { id: "prof_dry", name: "Dry Cake Profile", max_delivery_distance_km: null, min_prep_time_hours: 0.5, vehicle_restriction: "bike", slot_duration_mins: 60, same_day_cutoff_time: "21:00", is_fragile: false, requires_refrigeration: false, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true },
+  { id: "prof_tier", name: "Multi-Tier Cake Profile", max_delivery_distance_km: 12, min_prep_time_hours: 12, vehicle_restriction: "van", slot_duration_mins: 120, same_day_cutoff_time: "14:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: true, express_allowed: false, midnight_allowed: true, scheduled_allowed: true },
 ];
 
 export const DEFAULT_SERVICE_AREAS: ServiceArea[] = [
@@ -2662,6 +2717,8 @@ export interface BranchItem {
   simultaneous_cakes_capacity: number;
   current_hourly_load?: number;
   deliverable_areas: string[];
+  /** Store-level maximum delivery radius in km (constrained by global safety ceiling) */
+  max_delivery_radius_km?: number;
   
   // ── Enterprise Routing & Operational Extensions ──
   routing_priority?: number;
@@ -2801,6 +2858,7 @@ export function normalizeBranchOperations(b: any): BranchItem {
 
   return {
     ...b,
+    max_delivery_radius_km: typeof b.max_delivery_radius_km === "number" ? b.max_delivery_radius_km : 15,
     weekly_schedule: weekly,
     holidays: Array.isArray(b.holidays) ? b.holidays : [],
     special_dates: Array.isArray(b.special_dates) ? b.special_dates : [],
@@ -2815,6 +2873,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     id: "br_indiranagar",
     code: "HUB-BLR-01",
     name: "Indiranagar Flagship Bakery",
+    max_delivery_radius_km: 15,
     city_id: "city_bbr",
     hierarchy: { region_id: "reg_south", state_id: "st_ka", city_id: "city_bbr", zone_id: "zone_east", kitchen_id: "ktch_01" },
     gst_number: "29AAAAA0000A1Z5",
@@ -2987,6 +3046,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     id: "br_koramangala",
     code: "HUB-BLR-02",
     name: "Koramangala Central Hub",
+    max_delivery_radius_km: 10,
     city_id: "city_bbr",
     hierarchy: { region_id: "reg_south", state_id: "state_ka", city_id: "city_bbr", zone_id: "zone_south", kitchen_id: "ktch_02" },
     gst_number: "29AAAAA0000A1Z5",
@@ -3063,6 +3123,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     id: "br_whitefield",
     code: "HUB-BLR-03",
     name: "Whitefield Tech Hub",
+    max_delivery_radius_km: 12,
     city_id: "city_bbr",
     hierarchy: { region_id: "reg_south", state_id: "state_ka", city_id: "city_bbr", zone_id: "zone_east", kitchen_id: "ktch_03" },
     gst_number: "29AAAAA0000A1Z5",
@@ -3139,6 +3200,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     id: "br_kochi_ernakulam",
     code: "HUB-KOC-01",
     name: "Kochi Ernakulam Gourmet Hub",
+    max_delivery_radius_km: 12,
     city_id: "city_koc",
     hierarchy: { region_id: "reg_south", state_id: "state_kl", city_id: "city_koc", zone_id: "zone_central", kitchen_id: "ktch_koc_01" },
     gst_number: "32ABCDE1234F1Z5",
@@ -3278,6 +3340,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     id: "br_kollam_central",
     code: "HUB-KLM-01",
     name: "Kollam Central Cake Studio",
+    max_delivery_radius_km: 10,
     city_id: "city_klm",
     hierarchy: { region_id: "reg_south", state_id: "state_kl", city_id: "city_klm", zone_id: "zone_south_kl", kitchen_id: "ktch_klm_01" },
     gst_number: "32ABCDE1234F1Z5",
@@ -3353,6 +3416,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     id: "br_chennai_tnagar",
     code: "HUB-MAA-01",
     name: "Chennai T. Nagar Artisanal Bakery",
+    max_delivery_radius_km: 15,
     city_id: "city_maa",
     hierarchy: { region_id: "reg_south", state_id: "state_tn", city_id: "city_maa", zone_id: "zone_central_tn", kitchen_id: "ktch_maa_01" },
     gst_number: "33ABCDE1234F1Z5",
@@ -3428,6 +3492,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     id: "br_mumbai_bandra",
     code: "HUB-BOM-01",
     name: "Mumbai Bandra West Cake Studio",
+    max_delivery_radius_km: 8,
     city_id: "city_bom",
     hierarchy: { region_id: "reg_west", state_id: "state_mh", city_id: "city_bom", zone_id: "zone_west_mh", kitchen_id: "ktch_bom_01" },
     gst_number: "27ABCDE1234F1Z5",
@@ -4007,377 +4072,13 @@ export interface ProductReviewRecord {
   published_at?: string | null;
 }
 
-function getStoreFilePath(): string {
-  let root = process.cwd();
-  if (!root.endsWith("frontend") && fs.existsSync(path.join(root, "frontend"))) {
-    root = path.join(root, "frontend");
-  }
-  const dir = path.join(root, "data");
-  if (!fs.existsSync(dir)) {
-    try {
-      fs.mkdirSync(dir, { recursive: true });
-    } catch {
-      // Ignore directory creation error
-    }
-  }
-  return path.join(dir, "db-store.json");
-}
-
-function deduplicateStoreProducts(rawProducts: any[]): ProductItem[] {
-  if (!Array.isArray(rawProducts) || rawProducts.length === 0) {
-    return [...DEFAULT_PRODUCTS];
-  }
-
-  const map = new Map<string, any>();
-
-  // Ensure default products are seeded into canonical map
-  DEFAULT_PRODUCTS.forEach((def: any) => {
-    const key = (def.handle || def.slug || def.name || def.title || def.id || def.product_id || "")
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, "-");
-    map.set(key, { ...def });
-  });
-
-  rawProducts.forEach((p) => {
-    if (!p) return;
-    const title = (p.title || p.name || "").trim();
-    const handle = (p.handle || p.slug || title || p.id || p.product_id || "")
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, "-");
-    if (!handle) return;
-
-    const existing = map.get(handle);
-    if (existing) {
-      // Calculate starting price across all variants
-      const existingPrice = Number(existing.price || existing.selling_price || 999999);
-      const incomingPrice = Number(p.price || p.selling_price || 999999);
-      const minPrice = Math.min(existingPrice, incomingPrice);
-      const validPrice = minPrice < 999999 ? minPrice : (existing.price || p.price || 599);
-
-      // Merge weights
-      const existingWeights: string[] = existing.variants_json?.weights || (existing.weight ? [existing.weight] : []);
-      const newWeights: string[] = p.variants_json?.weights || (p.weight ? [p.weight] : []);
-      const combinedWeights = Array.from(new Set([...existingWeights, ...newWeights]));
-
-      map.set(handle, {
-        ...existing,
-        ...p,
-        id: existing.id && !existing.id.startsWith("prod_1787") ? existing.id : (p.id || existing.id),
-        product_id: existing.product_id && !existing.product_id.startsWith("prod_1787") ? existing.product_id : (p.product_id || p.id || existing.product_id),
-        title: existing.title || p.title || p.name,
-        name: existing.name || p.name || p.title,
-        handle: existing.handle || p.handle || handle,
-        price: validPrice,
-        selling_price: validPrice,
-        rating: Math.max(Number(existing.rating || 0), Number(p.rating || 0)) || 4.9,
-        review_count: Math.max(Number(existing.review_count || 0), Number(p.review_count || 0)) || 12,
-        thumbnail: p.thumbnail && !p.thumbnail.includes("535141192574") ? p.thumbnail : existing.thumbnail,
-        category: p.category || existing.category || "Chocolate Cakes",
-        category_slug: p.category_slug || existing.category_slug || "chocolate-cakes",
-        primary_category_id: p.primary_category_id || existing.primary_category_id || "cat_chocolate",
-    category_ids: Array.from(new Set([...(existing.category_ids || []), ...(p.category_ids || [])])),
-        categories: (existing.categories && existing.categories.length > 0) ? existing.categories : (p.categories || []),
-        flavour: p.flavour || existing.flavour || "Chocolate",
-        variants_json: {
-          ...(existing.variants_json || p.variants_json || {}),
-          weights: combinedWeights.length > 0 ? combinedWeights : ["0.5 kg", "1 kg", "1.5 kg", "2 kg"],
-        },
-      });
-    } else {
-      map.set(handle, {
-        ...p,
-        id: p.id || p.product_id || `prod_${Date.now()}`,
-        product_id: p.product_id || p.id || `prod_${Date.now()}`,
-        title: p.title || p.name || "Gourmet Cake",
-        name: p.name || p.title || "Gourmet Cake",
-        handle: p.handle || p.slug || handle,
-        price: Number(p.price || p.selling_price || 599),
-        selling_price: Number(p.selling_price || p.price || 599),
-        rating: Number(p.rating) || 4.9,
-        review_count: Number(p.review_count) || 12,
-      });
-    }
-  });
-
-  return Array.from(map.values());
-}
-
 function loadStore(): StoreData {
-  const filePath = getStoreFilePath();
-  if (fs.existsSync(filePath)) {
-    let parsed: any = null;
-    try {
-      const content = fs.readFileSync(filePath, "utf-8");
-      parsed = JSON.parse(content);
-    } catch (err) {
-      console.error("Failed to read db-store.json directly. Attempting automatic recovery from .bak backup...", err);
-      const bakPath = `${filePath}.bak`;
-      const corruptBackupPath = `${filePath}.corrupt-backup`;
-      let recovered = false;
+  // Authoritative runtime store starts from canonical defaults in memory
+  // and is asynchronously hydrated directly from PostgreSQL database on startup.
+  return createDefaultStore();
+}
 
-      // Try .bak first
-      if (fs.existsSync(bakPath)) {
-        try {
-          const bakRaw = fs.readFileSync(bakPath, "utf-8");
-          parsed = JSON.parse(bakRaw);
-          console.log("✅ Successfully recovered store state from db-store.json.bak");
-          recovered = true;
-        } catch {
-          // try corrupt-backup
-        }
-      }
-
-      // Try .corrupt-backup if needed
-      if (!recovered && fs.existsSync(corruptBackupPath)) {
-        try {
-          const cbRaw = fs.readFileSync(corruptBackupPath, "utf-8");
-          parsed = JSON.parse(cbRaw);
-          console.log("✅ Successfully recovered store state from db-store.json.corrupt-backup");
-          recovered = true;
-        } catch {
-          // ignore
-        }
-      }
-
-      if (!recovered) {
-        console.error("❌ Critical: Could not parse db-store.json or any backup. Initializing default store with safety backup.");
-      }
-    }
-
-    if (parsed) {
-      const cleanRaw = (parsed.branches && parsed.branches.length > 0)
-        ? parsed.branches.filter((b: any) => !b.name?.toLowerCase().includes("playwright") && !b.id?.toLowerCase().includes("playwright"))
-        : [...DEFAULT_BRANCHES];
-
-      const branchesList = cleanRaw.map((b: any) => normalizeBranchOperations(b));
-
-      // Ensure all 4 canonical flagship hubs exist and take priority
-      DEFAULT_BRANCHES.forEach((def) => {
-        const existingIdx = branchesList.findIndex((b: any) =>
-          b.id === def.id ||
-          b.code === def.code ||
-          (b.name || "").toLowerCase().includes(def.name.split(" ")[0].toLowerCase())
-        );
-        if (existingIdx >= 0) {
-          branchesList[existingIdx] = normalizeBranchOperations({
-            ...def,
-            ...branchesList[existingIdx],
-            city_id: branchesList[existingIdx].city_id || def.city_id || "city_bbr",
-            city: branchesList[existingIdx].city || def.city || "",
-            is_archived: false,
-            status: "active",
-            name: branchesList[existingIdx].name || def.name,
-            code: branchesList[existingIdx].code || def.code,
-            deliverable_areas: (branchesList[existingIdx].deliverable_areas && branchesList[existingIdx].deliverable_areas.length > 0) ? branchesList[existingIdx].deliverable_areas : def.deliverable_areas,
-            delivery_zones: (def.delivery_zones && def.delivery_zones.length > 0) ? def.delivery_zones : branchesList[existingIdx].delivery_zones,
-            latitude: branchesList[existingIdx].latitude || def.latitude,
-            longitude: branchesList[existingIdx].longitude || def.longitude,
-            operational_status: "operational",
-            is_open: true,
-          });
-        } else {
-          branchesList.unshift(def);
-        }
-      });
-
-      // Synchronize CMS pages
-      const cmsPagesList = (parsed.cms_pages && parsed.cms_pages.length > 0) ? parsed.cms_pages : [...DEFAULT_CMS_PAGES];
-      DEFAULT_CMS_PAGES.forEach((def) => {
-        const existingIdx = cmsPagesList.findIndex((p: any) => p.id === def.id || p.slug === def.slug);
-        if (existingIdx >= 0) {
-          cmsPagesList[existingIdx] = {
-            ...def,
-            ...cmsPagesList[existingIdx],
-            id: cmsPagesList[existingIdx].id || def.id,
-            title: cmsPagesList[existingIdx].title || def.title,
-            slug: cmsPagesList[existingIdx].slug || def.slug,
-            page_type: cmsPagesList[existingIdx].page_type || def.page_type,
-            status: cmsPagesList[existingIdx].status || def.status,
-            meta_title: cmsPagesList[existingIdx].meta_title || def.meta_title,
-            meta_description: cmsPagesList[existingIdx].meta_description || def.meta_description,
-            sections: (cmsPagesList[existingIdx].sections && cmsPagesList[existingIdx].sections.length > 0)
-              ? cmsPagesList[existingIdx].sections.map((sec: any) => {
-                  if (sec.type === "hero" || sec.id === "sec_home_hero") {
-                    const defHero: any = def.sections?.find((s: any) => s.id === "sec_home_hero" || s.type === "hero");
-                    if (defHero?.config?.desktop && (!sec.config?.desktop?.frames || sec.config.desktop.frames.length === 0)) {
-                      sec.config = { ...defHero.config, ...sec.config, desktop: defHero.config.desktop, tablet: defHero.config.tablet, mobile: defHero.config.mobile };
-                    }
-                  }
-                  return sec;
-                })
-              : def.sections,
-            draft_config: cmsPagesList[existingIdx].draft_config || def.draft_config,
-            published_config: cmsPagesList[existingIdx].published_config ? {
-              ...cmsPagesList[existingIdx].published_config,
-              sections: (cmsPagesList[existingIdx].published_config.sections || []).map((sec: any) => {
-                if (sec.type === "hero" || sec.id === "sec_home_hero") {
-                  const defHero: any = def.sections?.find((s: any) => s.id === "sec_home_hero" || s.type === "hero");
-                  if (defHero?.config?.desktop && (!sec.config?.desktop?.frames || sec.config.desktop.frames.length === 0)) {
-                    sec.config = { ...defHero.config, ...sec.config, desktop: defHero.config.desktop, tablet: defHero.config.tablet, mobile: defHero.config.mobile };
-                  }
-                }
-                return sec;
-              }),
-            } : def.published_config,
-            version_history: cmsPagesList[existingIdx].version_history || def.version_history || [],
-            created_at: cmsPagesList[existingIdx].created_at || def.created_at,
-            updated_at: cmsPagesList[existingIdx].updated_at || def.updated_at,
-            published_at: cmsPagesList[existingIdx].published_at || def.published_at,
-          };
-        } else {
-          cmsPagesList.push(def);
-        }
-      });
-
-      const citiesList = (parsed.cities && parsed.cities.length > 0) ? parsed.cities : [...DEFAULT_CITIES];
-      DEFAULT_CITIES.forEach((def) => {
-        const existingIdx = citiesList.findIndex((c: any) => c.id === def.id || c.slug === def.slug || (c.name && c.name.toLowerCase() === def.name.toLowerCase()));
-        if (existingIdx >= 0) {
-          citiesList[existingIdx] = {
-            ...def,
-            ...citiesList[existingIdx],
-            id: citiesList[existingIdx].id || def.id,
-            name: citiesList[existingIdx].name || def.name,
-            slug: citiesList[existingIdx].slug || def.slug,
-            state: citiesList[existingIdx].state || def.state,
-            stateCode: citiesList[existingIdx].stateCode || def.stateCode,
-            country: citiesList[existingIdx].country || def.country,
-            countryCode: citiesList[existingIdx].countryCode || def.countryCode,
-            timezone: citiesList[existingIdx].timezone || def.timezone,
-            currency: citiesList[existingIdx].currency || def.currency,
-            phoneCode: citiesList[existingIdx].phoneCode || def.phoneCode,
-            status: citiesList[existingIdx].status || (citiesList[existingIdx].active === false ? "archived" : "active"),
-            displayOrder: citiesList[existingIdx].displayOrder || def.displayOrder,
-            created_at: citiesList[existingIdx].created_at || def.created_at,
-          };
-        } else {
-          citiesList.push(def);
-        }
-      });
-
-      const statesList = (parsed.states && parsed.states.length > 0) ? parsed.states : [...DEFAULT_STATES];
-      DEFAULT_STATES.forEach((def) => {
-        const existingIdx = statesList.findIndex((s: any) => s.id === def.id || s.code === def.code || (s.name && s.name.toLowerCase() === def.name.toLowerCase()));
-        if (existingIdx >= 0) {
-          statesList[existingIdx] = {
-            ...def,
-            ...statesList[existingIdx],
-            id: statesList[existingIdx].id || def.id,
-            code: statesList[existingIdx].code || def.code,
-            gst_state_code: statesList[existingIdx].gst_state_code || def.gst_state_code,
-            name: statesList[existingIdx].name || def.name,
-            country_id: statesList[existingIdx].country_id || def.country_id || "country_in",
-            country_code: statesList[existingIdx].country_code || def.country_code || "IN",
-            status: statesList[existingIdx].status || "active",
-            display_order: statesList[existingIdx].display_order || def.display_order,
-          };
-        } else {
-          statesList.push(def);
-        }
-      });
-
-      return {
-        products: deduplicateStoreProducts(parsed.products || DEFAULT_PRODUCTS),
-        branches: branchesList,
-        cities: citiesList,
-        states: statesList,
-        regions: parsed.regions || DEFAULT_REGIONS,
-        offers: (parsed.offers && parsed.offers.length > 0 && parsed.offers.some((o: any) => o.starts_at || o.approval_status)) ? parsed.offers : DEFAULT_OFFERS,
-        offer_redemptions: parsed.offer_redemptions || DEFAULT_OFFER_REDEMPTIONS,
-        offer_audit_logs: parsed.offer_audit_logs || DEFAULT_OFFER_AUDIT_LOGS,
-        offer_daily_metrics: parsed.offer_daily_metrics || DEFAULT_OFFER_DAILY_METRICS,
-        campaigns: parsed.campaigns || DEFAULT_CAMPAIGNS,
-        customers: parsed.customers || DEFAULT_CUSTOMERS,
-        deliveries: parsed.deliveries || DEFAULT_DELIVERIES,
-        delivery_partners: parsed.delivery_partners || DEFAULT_DELIVERY_PARTNERS,
-        settings: parsed.settings || DEFAULT_SETTINGS,
-        seo_config: parsed.seo_config || DEFAULT_SEO_CONFIG,
-        automation_triggers: parsed.automation_triggers || DEFAULT_AUTOMATION_TRIGGERS,
-        notifications: parsed.notifications || DEFAULT_NOTIFICATIONS,
-        audit_logs: parsed.audit_logs || DEFAULT_AUDIT_LOGS,
-        login_events: (parsed.login_events && parsed.login_events.length > 0) ? parsed.login_events : [...DEFAULT_LOGIN_EVENTS],
-        abandoned_carts: (parsed.abandoned_carts && parsed.abandoned_carts.length > 0) ? parsed.abandoned_carts : [...DEFAULT_ABANDONED_CARTS],
-        cart_recovery_attempts: (parsed.cart_recovery_attempts && parsed.cart_recovery_attempts.length > 0) ? parsed.cart_recovery_attempts : [...DEFAULT_RECOVERY_ATTEMPTS],
-        recovery_tokens: parsed.recovery_tokens || [],
-        cms_pages: cmsPagesList,
-        pim_categories: (parsed.pim_categories && parsed.pim_categories.length > 0) ? parsed.pim_categories : DEFAULT_PIM_CATEGORIES,
-        variant_options: (parsed.variant_options && parsed.variant_options.length > 0) ? parsed.variant_options : DEFAULT_VARIANT_OPTIONS,
-        product_weight_prices: parsed.product_weight_prices || [],
-        accessories: (parsed.accessories && parsed.accessories.length > 0) ? parsed.accessories : DEFAULT_ACCESSORIES,
-        accessory_categories: (parsed.accessory_categories && parsed.accessory_categories.length > 0) ? parsed.accessory_categories : DEFAULT_ACCESSORY_CATEGORIES,
-        cross_sell_rules: (parsed.cross_sell_rules && parsed.cross_sell_rules.length > 0) ? parsed.cross_sell_rules : DEFAULT_CROSS_SELL_RULES,
-        product_accessory_mappings: parsed.product_accessory_mappings || [],
-        city_areas: (parsed.city_areas && parsed.city_areas.length > 0) ? parsed.city_areas : DEFAULT_CITY_AREAS,
-        occasions: (parsed.occasions && parsed.occasions.length > 0) ? parsed.occasions : DEFAULT_OCCASIONS,
-        product_occasions: parsed.product_occasions || [],
-        category_occasions: parsed.category_occasions || [],
-        accessory_occasions: parsed.accessory_occasions || [],
-        delivery_exceptions: parsed.delivery_exceptions || [],
-        delivery_rejections: parsed.delivery_rejections || [],
-        delivery_partner_assignments: parsed.delivery_partner_assignments || [],
-        orders: parsed.orders || [],
-        carts: Array.isArray(parsed.carts) ? parsed.carts : [],
-        media: (parsed.media && parsed.media.length > 0) ? parsed.media : [...DEFAULT_MEDIA],
-        // ── Enterprise Compliance & Statutory Collections ──
-        business_profile: parsed.business_profile || { ...DEFAULT_BUSINESS_PROFILE },
-        gst_registrations: (() => {
-          const list = (Array.isArray(parsed.gst_registrations) && parsed.gst_registrations.filter(Boolean).length > 0) ? parsed.gst_registrations.filter(Boolean) : [...DEFAULT_GST_REGISTRATIONS];
-          DEFAULT_GST_REGISTRATIONS.forEach((def) => {
-            if (!list.some((g: any) => g && (g.id === def.id || g.gstin === def.gstin))) {
-              list.push(def);
-            }
-          });
-          return list;
-        })(),
-        branch_compliance: (() => {
-          const list = (Array.isArray(parsed.branch_compliance) && parsed.branch_compliance.filter(Boolean).length > 0) ? parsed.branch_compliance.filter(Boolean) : [...DEFAULT_BRANCH_COMPLIANCE];
-          DEFAULT_BRANCH_COMPLIANCE.forEach((def) => {
-            if (!list.some((c: any) => c && (c.id === def.id || c.branch_id === def.branch_id))) {
-              list.push(def);
-            }
-          });
-          return list;
-        })(),
-        compliance_documents: (Array.isArray(parsed.compliance_documents) && parsed.compliance_documents.filter(Boolean).length > 0) ? parsed.compliance_documents.filter(Boolean) : [...DEFAULT_COMPLIANCE_DOCUMENTS],
-        invoice_settings: parsed.invoice_settings || { ...DEFAULT_INVOICE_SETTINGS },
-        delivery_defaults: parsed.delivery_defaults || { ...DEFAULT_DELIVERY_DEFAULTS },
-        payment_settings: parsed.payment_settings || { ...DEFAULT_PAYMENT_SETTINGS },
-        integration_settings: parsed.integration_settings || { ...DEFAULT_INTEGRATION_SETTINGS },
-        // ── Enterprise SEO Platform ──
-        seo_pages: parsed.seo_pages || [],
-        seo_page_scores: parsed.seo_page_scores || [],
-        seo_keywords: parsed.seo_keywords || [],
-        seo_keyword_groups: parsed.seo_keyword_groups || [],
-        seo_redirects: parsed.seo_redirects || [],
-        seo_redirect_logs: parsed.seo_redirect_logs || [],
-        seo_broken_links: parsed.seo_broken_links || [],
-        seo_internal_links: parsed.seo_internal_links || [],
-        seo_schema_templates: parsed.seo_schema_templates || [],
-        seo_schema_instances: parsed.seo_schema_instances || [],
-        seo_crawl_history: parsed.seo_crawl_history || [],
-        seo_health_reports: parsed.seo_health_reports || [],
-        seo_image_audits: parsed.seo_image_audits || [],
-        seo_competitors: parsed.seo_competitors || [],
-        seo_geo_pages: parsed.seo_geo_pages || [],
-        seo_aeo_entries: parsed.seo_aeo_entries || [],
-        seo_content_audits: parsed.seo_content_audits || [],
-        seo_page_speed: parsed.seo_page_speed || [],
-        seo_audit_logs: parsed.seo_audit_logs || [],
-        seo_utm_campaigns: parsed.seo_utm_campaigns || [],
-        seo_robots_history: parsed.seo_robots_history || [],
-        seo_social_cards: parsed.seo_social_cards || [],
-        seo_backlinks: parsed.seo_backlinks || [],
-        seo_reports: parsed.seo_reports || [],
-        product_delivery_restrictions: parsed.product_delivery_restrictions || [],
-        popup_campaigns: parsed.popup_campaigns || [],
-        customer_favorites: parsed.customer_favorites || [],
-        product_reviews: parsed.product_reviews || [],
-      };
-    }
-  }
-
+function createDefaultStore(): StoreData {
   const initial: StoreData = {
     carts: [],
     products: DEFAULT_PRODUCTS,
@@ -4455,7 +4156,6 @@ function loadStore(): StoreData {
     product_reviews: [],
   };
 
-  saveStore(initial);
   return initial;
 }
 
@@ -4476,82 +4176,37 @@ function safeJsonStringify(obj: any, space = 2): string {
   );
 }
 
-let saveTimer: NodeJS.Timeout | null = null;
-let isSaving = false;
-let pendingSave = false;
-
-function flushStoreToDisk(): void {
-  if (isSaving) {
-    pendingSave = true;
-    return;
-  }
-  isSaving = true;
-  pendingSave = false;
-  try {
-    const filePath = getStoreFilePath();
-    if (Array.isArray(memoryStore.orders) && memoryStore.orders.length > 500) {
-      memoryStore.orders = memoryStore.orders.slice(0, 500);
-    }
-    if (Array.isArray((memoryStore as any).abandoned_carts) && (memoryStore as any).abandoned_carts.length > 500) {
-      (memoryStore as any).abandoned_carts = (memoryStore as any).abandoned_carts.slice(0, 500);
-    }
-    if (Array.isArray((memoryStore as any).carts) && (memoryStore as any).carts.length > 500) {
-      (memoryStore as any).carts = (memoryStore as any).carts.slice(0, 500);
-    }
-    if (Array.isArray((memoryStore as any).audit_logs) && (memoryStore as any).audit_logs.length > 500) {
-      (memoryStore as any).audit_logs = (memoryStore as any).audit_logs.slice(0, 500);
-    }
-
-    for (let attempt = 0; attempt < 5; attempt++) {
-      try {
-        const json = safeJsonStringify(memoryStore);
-        const tempPath = `${filePath}.tmp.${process.pid}.${Date.now()}`;
-        fs.writeFileSync(tempPath, json, "utf-8");
-        try {
-          if (fs.existsSync(filePath)) {
-            fs.copyFileSync(filePath, `${filePath}.bak`);
-          }
-          fs.renameSync(tempPath, filePath);
-          break;
-        } catch {
-          fs.writeFileSync(filePath, json, "utf-8");
-          try { if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath); } catch {}
-          break;
-        }
-      } catch (err: any) {
-        if (attempt < 4) {
-          const start = Date.now();
-          while (Date.now() - start < 25) {}
-        }
-      }
-    }
-  } catch (err) {
-    console.error("Failed to write db-store.json:", err);
-  } finally {
-    isSaving = false;
-    if (pendingSave) {
-      pendingSave = false;
-      flushStoreToDisk();
-    }
-  }
-}
-
 function saveStore(data: StoreData): void {
-  memoryStore = data;
   (globalThis as any).__CTH_MEMORY_STORE__ = data;
-  if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    flushStoreToDisk();
-  }, 10);
 }
 
-// In-memory runtime reference initialized from disk with globalThis singleton guard
+// In-memory runtime reference initialized with globalThis singleton guard
 let memoryStore: StoreData = (globalThis as any).__CTH_MEMORY_STORE__ || loadStore();
 (globalThis as any).__CTH_MEMORY_STORE__ = memoryStore;
 
+// Trigger asynchronous hydration from PostgreSQL database on startup
+if (typeof window === "undefined") {
+  hydrateStoreFromDatabase(memoryStore).catch((err) => {
+    console.warn("[ApiEngine] Initial PostgreSQL store hydration warning:", err.message);
+  });
+}
+
+function deduplicateStoreProducts(products: any[]): any[] {
+  if (!Array.isArray(products)) return [];
+  const map = new Map<string, any>();
+  for (const p of products) {
+    if (!p) continue;
+    const key = p.id || p.handle || p.slug;
+    if (key && !map.has(key)) {
+      map.set(key, p);
+    }
+  }
+  return Array.from(map.values());
+}
+
 export class ApiEngine {
-  static reloadStore() {
-    memoryStore = loadStore();
+  static async reloadStore() {
+    await hydrateStoreFromDatabase(memoryStore);
     (globalThis as any).__CTH_MEMORY_STORE__ = memoryStore;
     return memoryStore;
   }
@@ -4783,7 +4438,7 @@ export class ApiEngine {
           order_delivered_at: ord.delivered_at || ord.updated_at,
           product_id: prodId,
           order_item_id: item.item_id || item.id,
-          product_title: item.title || item.name || product?.title || product?.name || "Celebration Cake",
+          product_title: item.title || item.name || product?.title || product?.name || "Bakery Cake",
           product_thumbnail: item.thumbnail || product?.thumbnail,
           purchased_variant: item.variant_name || item.weight || product?.weight || "1 kg",
           purchased_price: item.unit_price || item.price,
@@ -5644,7 +5299,6 @@ export class ApiEngine {
   static persist(): void {
     try {
       saveStore(memoryStore);
-      flushStoreToDisk();
     } catch {}
   }
 
@@ -5799,6 +5453,9 @@ export class ApiEngine {
     memoryStore.cities.push(city);
     ApiEngine.addAuditLog(`Created city: ${city.name} (${city.slug})`);
     ApiEngine.persist();
+    persistCityToDb(city).catch((err) => {
+      console.error("[ApiEngine] Failed to persist city to database:", err);
+    });
     return city;
   }
 
@@ -5825,6 +5482,9 @@ export class ApiEngine {
     city.updated_at = new Date().toISOString();
     ApiEngine.addAuditLog(`Updated city: ${city.name} (${city.id})`);
     ApiEngine.persist();
+    persistCityToDb(city).catch((err) => {
+      console.error("[ApiEngine] Failed to persist city update to database:", err);
+    });
     return city;
   }
 
@@ -5898,19 +5558,60 @@ export class ApiEngine {
   }
 
   /**
-   * Checks if a point falls within a delivery zone (evaluating Polygon, Radius, and Exclusions)
+   * Computes the authoritative effective maximum delivery radius (in km)
+   * by evaluating constraints across the 3-tier hierarchy:
+   * 1. Global Safety Ceiling (GLOBAL_MAX_DELIVERY_RADIUS_KM = 25 km)
+   * 2. Store-level maximum (branch.max_delivery_radius_km)
+   * 3. Zone-level maximum (zone.max_serviceable_km)
+   *
+   * The most restrictive valid limit strictly wins.
+   * Effective radius will never exceed the global safety ceiling.
    */
-  static isPointInZone(lat: number, lng: number, zone: DeliveryZone): { matched: boolean; reason?: string; distanceKm?: number } {
+  static computeEffectiveMaxRadius(
+    branch?: { max_delivery_radius_km?: number } | null,
+    zone?: { max_serviceable_km?: number } | null
+  ): number {
+    let effective = GLOBAL_MAX_DELIVERY_RADIUS_KM;
+
+    if (branch && typeof branch.max_delivery_radius_km === "number" && !isNaN(branch.max_delivery_radius_km) && branch.max_delivery_radius_km > 0) {
+      effective = Math.min(effective, branch.max_delivery_radius_km);
+    }
+
+    if (zone && typeof zone.max_serviceable_km === "number" && !isNaN(zone.max_serviceable_km) && zone.max_serviceable_km > 0) {
+      effective = Math.min(effective, zone.max_serviceable_km);
+    }
+
+    return effective;
+  }
+
+  /**
+   * Checks if a point falls within a delivery zone (evaluating Polygon, Radius, and Exclusions)
+   * Enforces effective radius constraints (Global -> Store -> Zone).
+   */
+  static isPointInZone(lat: number, lng: number, zone: DeliveryZone, branch?: BranchItem | null): { matched: boolean; reason?: string; distanceKm?: number } {
     if (!zone || !zone.enabled) return { matched: false, reason: "Zone disabled" };
 
-    // 1. Polygon Map Fence check
+    const effectiveMax = ApiEngine.computeEffectiveMaxRadius(branch, zone);
+
+    // 1. Check Store-Level Exclusions (if configured on branch)
+    const branchExclusions = (branch as any)?.exclusion_polygons;
+    if (branchExclusions) {
+      try {
+        const bEx = typeof branchExclusions === "string" ? JSON.parse(branchExclusions) : branchExclusions;
+        if (Array.isArray(bEx) && bEx.some(ex => ApiEngine.isPointInPolygon(lat, lng, ex))) {
+          return { matched: false, reason: "Point falls inside store-level exclusion polygon" };
+        }
+      } catch {}
+    }
+
+    // 2. Polygon Map Fence check
     if (zone.polygon_coordinates) {
       try {
         const coords = typeof zone.polygon_coordinates === "string"
           ? JSON.parse(zone.polygon_coordinates)
           : zone.polygon_coordinates;
         if (Array.isArray(coords) && ApiEngine.isPointInPolygon(lat, lng, coords)) {
-          // Check exclusion polygons
+          // Check zone-level exclusion polygons
           if (zone.exclusion_polygons) {
             const exclusions = typeof zone.exclusion_polygons === "string"
               ? JSON.parse(zone.exclusion_polygons)
@@ -5919,34 +5620,56 @@ export class ApiEngine {
               return { matched: false, reason: "Point falls inside excluded subzone polygon" };
             }
           }
-          return { matched: true, reason: "polygon_match" };
+
+          // Calculate true geographic distance from customer coordinate to store coordinates
+          let polyDist: number | undefined;
+          if (branch && typeof branch.latitude === "number" && typeof branch.longitude === "number") {
+            polyDist = ApiEngine.calculateHaversineDistance(branch.latitude, branch.longitude, lat, lng);
+          }
+
+          // Combined polygon + radius (HYBRID mode): radius must still obey effectiveMax
+          const isHybrid = zone.fence_type === "HYBRID" || (zone as any).boundary_type === "hybrid";
+          if (isHybrid && zone.center_latitude && zone.center_longitude) {
+            const configuredRadius = zone.radius_km || zone.max_km || effectiveMax;
+            const maxRadius = Math.min(configuredRadius, effectiveMax);
+            const dist = ApiEngine.calculateHaversineDistance(zone.center_latitude, zone.center_longitude, lat, lng);
+            if (dist > maxRadius) {
+              return { matched: false, reason: `Outside hybrid radius constraint (${dist.toFixed(2)}km > ${maxRadius}km)` };
+            }
+          }
+
+          return { matched: true, reason: "polygon_match", distanceKm: polyDist };
         }
       } catch {
         // Fall through to radius check if polygon parse fails
       }
     }
 
-    // 2. Radius Check (Haversine Distance)
-    if (zone.center_latitude && zone.center_longitude && (zone.radius_km || zone.max_km)) {
-      const maxRadius = zone.radius_km || zone.max_km || 10;
+    // 3. Radius Check (Haversine Distance)
+    const centerLat = zone.center_latitude ?? branch?.latitude;
+    const centerLng = zone.center_longitude ?? branch?.longitude;
+    if (centerLat !== undefined && centerLng !== undefined && (zone.radius_km || zone.max_km)) {
+      const configuredRadius = zone.radius_km || zone.max_km || effectiveMax;
+      const maxRadius = Math.min(configuredRadius, effectiveMax);
       const toRad = (v: number) => (v * Math.PI) / 180;
       const R = 6371;
-      const dLat = toRad(zone.center_latitude - lat);
-      const dLng = toRad(zone.center_longitude - lng);
+      const dLat = toRad(centerLat - lat);
+      const dLng = toRad(centerLng - lng);
       const a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(lat)) * Math.cos(toRad(zone.center_latitude)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        Math.cos(toRad(lat)) * Math.cos(toRad(centerLat)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       const distance = R * c;
 
-      if (distance <= maxRadius) {
+      // Exact boundary precision: inclusive <= maxRadius (with 0.001km tolerance for floating point calculations)
+      if (distance <= maxRadius + 0.001) {
         if (zone.exclusion_polygons) {
           try {
             const exclusions = typeof zone.exclusion_polygons === "string"
               ? JSON.parse(zone.exclusion_polygons)
               : zone.exclusion_polygons;
             if (Array.isArray(exclusions) && exclusions.some(ex => ApiEngine.isPointInPolygon(lat, lng, ex))) {
-              return { matched: false, reason: "Point falls inside excluded subzone polygon" };
+              return { matched: false, reason: "Point falls inside excluded subzone polygon", distanceKm: distance };
             }
           } catch {}
         }
@@ -5981,13 +5704,21 @@ export class ApiEngine {
     zoneName: string | null;
     pincode: string;
     deliveryFee: number;
+    delivery_fee?: number;
     serviceable: boolean;
     blockedReason?: string;
     reasonCode?: string;
+    reason_code?: string;
     etaMinutes: number;
     expressAvailable: boolean;
     midnightAvailable: boolean;
     resolutionTier?: string;
+    distance_km?: number | null;
+    distanceKm?: number | null;
+    pricing_mode?: string | null;
+    bracket?: string | null;
+    available_delivery_modes?: string[];
+    available_slots?: any[];
   } {
     const cleanPin = pincode ? (pincode || "").trim().replace(/\D/g, "") : "";
     if (pincode && (!cleanPin || cleanPin.length !== 6)) {
@@ -5998,18 +5729,49 @@ export class ApiEngine {
         store: null, storeId: null, storeName: null,
         fulfillmentHub: null, fulfillmentHubId: null, fulfillmentHubName: null,
         zone: null, zoneId: null, zoneName: null,
-        pincode: cleanPin, deliveryFee: 0, serviceable: false,
+        pincode: cleanPin, deliveryFee: 0, delivery_fee: 0, serviceable: false,
         blockedReason: "Invalid pincode. Please enter a valid 6-digit pincode.",
         reasonCode: "INVALID_LOCATION",
+        reason_code: "INVALID_LOCATION",
         etaMinutes: 0, expressAvailable: false, midnightAvailable: false,
         resolutionTier: "Invalid Input",
+        distance_km: null,
+        distanceKm: null,
+        pricing_mode: null,
+        bracket: null,
+        available_delivery_modes: [],
+        available_slots: [],
+      };
+    }
+
+    // Map-first requirement: delivery serviceability requires valid coordinates
+    if (lat === undefined || lng === undefined) {
+      return {
+        state: null, stateId: null, stateCode: null, stateName: null, gstStateCode: null,
+        country: "India", countryCode: "IN", countryId: "country_in",
+        city: null, cityId: null, cityName: null,
+        store: null, storeId: null, storeName: null,
+        fulfillmentHub: null, fulfillmentHubId: null, fulfillmentHubName: null,
+        zone: null, zoneId: null, zoneName: null,
+        pincode: cleanPin, deliveryFee: 0, delivery_fee: 0, serviceable: false,
+        blockedReason: "Please select your delivery location on the map to verify serviceability.",
+        reasonCode: "LOCATION_REQUIRED",
+        reason_code: "LOCATION_REQUIRED",
+        etaMinutes: 0, expressAvailable: false, midnightAvailable: false,
+        resolutionTier: "Location Required",
+        distance_km: null,
+        distanceKm: null,
+        pricing_mode: null,
+        bracket: null,
+        available_delivery_modes: [],
+        available_slots: [],
       };
     }
 
     const resolved = ApiEngine.resolveSmartBranch({
-      pincode: cleanPin || undefined,
       lat: typeof lat === "number" ? lat : undefined,
       lng: typeof lng === "number" ? lng : undefined,
+      pincode: cleanPin || undefined,
       branchId: options?.storeId,
     });
 
@@ -6033,11 +5795,18 @@ export class ApiEngine {
         store: null, storeId: null, storeName: null,
         fulfillmentHub: null, fulfillmentHubId: null, fulfillmentHubName: null,
         zone: null, zoneId: null, zoneName: null,
-        pincode: cleanPin, deliveryFee: 0, serviceable: false,
+        pincode: cleanPin, deliveryFee: 0, delivery_fee: 0, serviceable: false,
         blockedReason: resolved?.blockedReason || `This location is outside our current bakery delivery coverage zones.`,
         reasonCode,
+        reason_code: reasonCode,
         etaMinutes: 0, expressAvailable: false, midnightAvailable: false,
         resolutionTier: resolved?.resolvedBy || "Unserviceable",
+        distance_km: null,
+        distanceKm: null,
+        pricing_mode: null,
+        bracket: null,
+        available_delivery_modes: [],
+        available_slots: [],
       };
     }
 
@@ -6076,12 +5845,33 @@ export class ApiEngine {
       zoneName: matchedZone?.name || resolved.zoneName || (branch.delivery_zones && branch.delivery_zones[0]?.name) || "Core Delivery Zone",
       pincode: cleanPin || (matchedZone?.pincodes && matchedZone.pincodes[0]) || branch.pincode || "",
       deliveryFee: resolved.deliveryFee,
+      delivery_fee: resolved.deliveryFee,
       serviceable: true,
       reasonCode: "SERVICEABLE",
+      reason_code: "SERVICEABLE",
       etaMinutes: resolved.etaminutes,
       expressAvailable: matchedZone?.express_allowed ?? false,
       midnightAvailable: matchedZone?.midnight_allowed ?? false,
       resolutionTier: resolved.resolvedBy,
+      distance_km: (resolved as any).distanceKm != null ? Number(((resolved as any).distanceKm).toFixed(2)) : null,
+      distanceKm: (resolved as any).distanceKm != null ? Number(((resolved as any).distanceKm).toFixed(2)) : null,
+      pricing_mode: (resolved as any).pricingMode || (matchedZone?.pricing_type === "distance_bracket" ? "distance_bracket" : "flat"),
+      bracket: (resolved as any).bracketLabel || null,
+      available_delivery_modes: Array.from(new Set([
+        "standard",
+        ...(matchedZone?.same_day_allowed !== false ? ["same_day"] : []),
+        ...(matchedZone?.express_allowed ? ["express"] : []),
+        ...(matchedZone?.midnight_allowed ? ["midnight"] : []),
+        ...(matchedZone?.instant_allowed ? ["instant"] : []),
+      ])),
+      available_slots: (() => {
+        try {
+          const slots = ApiEngine.getDeliverySlots(branch.id, new Date().toISOString().slice(0, 10));
+          return slots?.delivery_slots || [];
+        } catch {
+          return [];
+        }
+      })(),
     };
   }
 
@@ -6163,11 +5953,11 @@ export class ApiEngine {
     }
 
     const isNearbyArea = minDistance <= 35;
-    const resolvedCity = deliveryContext.cityName || (isNearbyArea ? closestArea?.city_name : null) || "Selected Location";
+    const resolvedCity = deliveryContext.cityName || (isNearbyArea ? closestArea?.city_name : null) || (deliveryContext.serviceable ? "Selected City" : "Selected Location");
     const resolvedState = deliveryContext.stateName || (isNearbyArea ? closestArea?.state_name : null) || "";
-    const resolvedArea = (isNearbyArea ? closestArea?.area_name : null) || deliveryContext.zoneName || `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+    const resolvedArea = (isNearbyArea ? closestArea?.area_name : null) || deliveryContext.zoneName || (deliveryContext.serviceable ? "Delivery Area" : "Local Area");
     const resolvedPincode = (isNearbyArea ? closestArea?.pincode : null) || deliveryContext.pincode || (isNearbyArea && closestArea?.pincodes && closestArea.pincodes[0]) || "";
-    const addressLine1 = (isNearbyArea ? closestArea?.landmark : null) || `GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+    const addressLine1 = (isNearbyArea ? closestArea?.landmark : null) || "";
     
     const formattedAddress = [addressLine1, resolvedArea, resolvedCity, resolvedState ? `${resolvedState} ${resolvedPincode}`.trim() : resolvedPincode]
       .filter(Boolean)
@@ -6198,6 +5988,9 @@ export class ApiEngine {
     };
   }
 
+  // In-memory cache for external geocoding queries
+  private static geoSearchCache = new Map<string, { timestamp: number; results: any[] }>();
+
   /**
    * Search delivery locations, areas, landmarks, cities, and pincodes with instant coordinates.
    */
@@ -6221,6 +6014,7 @@ export class ApiEngine {
     const seenKeys = new Set<string>();
 
     const PRESET_LANDMARKS = [
+      // Karnataka
       { area: "Indiranagar", landmark: "100 Feet Road, Indiranagar", city: "Bengaluru", state: "Karnataka", pincode: "560038", lat: 12.9716, lng: 77.6412, branchId: "br_indiranagar" },
       { area: "Whitefield", landmark: "ITPL Main Road, Whitefield", city: "Bengaluru", state: "Karnataka", pincode: "560066", lat: 12.9698, lng: 77.7499, branchId: "br_whitefield" },
       { area: "Koramangala", landmark: "80 Feet Road, 4th Block, Koramangala", city: "Bengaluru", state: "Karnataka", pincode: "560034", lat: 12.9352, lng: 77.6245, branchId: "br_koramangala" },
@@ -6229,18 +6023,85 @@ export class ApiEngine {
       { area: "Malleshwaram", landmark: "Sampige Road, Malleshwaram", city: "Bengaluru", state: "Karnataka", pincode: "560003", lat: 12.9982, lng: 77.5703, branchId: "br_malleshwaram" },
       { area: "Domlur", landmark: "Old Airport Road, Domlur", city: "Bengaluru", state: "Karnataka", pincode: "560071", lat: 12.9609, lng: 77.6387, branchId: "br_indiranagar" },
       { area: "Bellandur", landmark: "Outer Ring Road, Bellandur", city: "Bengaluru", state: "Karnataka", pincode: "560103", lat: 12.9304, lng: 77.6784, branchId: "br_hsr" },
+      { area: "Electronic City", landmark: "Hosur Road, Electronic City Phase 1", city: "Bengaluru", state: "Karnataka", pincode: "560100", lat: 12.8452, lng: 77.6602, branchId: "br_hsr" },
+      { area: "Marathahalli", landmark: "Marathahalli Bridge, Outer Ring Road", city: "Bengaluru", state: "Karnataka", pincode: "560037", lat: 12.9591, lng: 77.6974, branchId: "br_whitefield" },
+      { area: "Hebbal", landmark: "Hebbal Flyover, Bellary Road", city: "Bengaluru", state: "Karnataka", pincode: "560024", lat: 13.0358, lng: 77.5970, branchId: "br_malleshwaram" },
+      { area: "Gokulam", landmark: "VV Mohalla, Gokulam", city: "Mysuru", state: "Karnataka", pincode: "570002", lat: 12.3275, lng: 76.6348 },
+      // Kerala
+      { area: "Chinnakada", landmark: "Chinnakada Clock Tower, Kollam", city: "Kollam", state: "Kerala", pincode: "691001", lat: 8.8853, lng: 76.5803, branchId: "br_kollam_hub" },
+      { area: "Kadappakada", landmark: "Kadappakada Junction, Kollam", city: "Kollam", state: "Kerala", pincode: "691008", lat: 8.8932, lng: 76.6025, branchId: "br_kollam_hub" },
+      { area: "Kollam Beach", landmark: "Beach Road, Kollam", city: "Kollam", state: "Kerala", pincode: "691006", lat: 8.8789, lng: 76.5855, branchId: "br_kollam_hub" },
+      { area: "Kollam Junction", landmark: "Railway Station Road, Kollam Junction", city: "Kollam", state: "Kerala", pincode: "691001", lat: 8.8824, lng: 76.5958, branchId: "br_kollam_hub" },
+      { area: "Asramam", landmark: "Asramam Adventure Park, Kollam", city: "Kollam", state: "Kerala", pincode: "691002", lat: 8.8965, lng: 76.5912, branchId: "br_kollam_hub" },
+      { area: "Tangasseri", landmark: "Tangasseri Lighthouse, Kollam", city: "Kollam", state: "Kerala", pincode: "691007", lat: 8.8814, lng: 76.5683, branchId: "br_kollam_hub" },
       { area: "Marine Drive", landmark: "Marine Drive Promenade", city: "Kochi", state: "Kerala", pincode: "682031", lat: 9.9816, lng: 76.2753, branchId: "br_kochi_hub" },
       { area: "Kakkanad", landmark: "Infopark Road, Kakkanad", city: "Kochi", state: "Kerala", pincode: "682030", lat: 10.0159, lng: 76.3419, branchId: "br_kochi_hub" },
+      { area: "Panampilly Nagar", landmark: "Main Avenue, Panampilly Nagar", city: "Kochi", state: "Kerala", pincode: "682036", lat: 9.9622, lng: 76.2977, branchId: "br_kochi_hub" },
+      { area: "Edappally", landmark: "Lulu Mall, Edappally", city: "Kochi", state: "Kerala", pincode: "682024", lat: 10.0261, lng: 76.3082, branchId: "br_kochi_hub" },
+      { area: "Pattom", landmark: "Pattom Junction", city: "Thiruvananthapuram", state: "Kerala", pincode: "695004", lat: 8.5241, lng: 76.9442 },
+      { area: "Kowdiar", landmark: "Kowdiar Palace Road", city: "Thiruvananthapuram", state: "Kerala", pincode: "695003", lat: 8.5298, lng: 76.9602 },
+      // Maharashtra
       { area: "Bandra West", landmark: "Linking Road, Bandra West", city: "Mumbai", state: "Maharashtra", pincode: "400050", lat: 19.0596, lng: 72.8295, branchId: "br_mumbai_hub" },
+      { area: "Juhu", landmark: "Juhu Tara Road, Juhu", city: "Mumbai", state: "Maharashtra", pincode: "400049", lat: 19.1075, lng: 72.8263, branchId: "br_mumbai_hub" },
+      { area: "BKC", landmark: "Bandra Kurla Complex, G Block", city: "Mumbai", state: "Maharashtra", pincode: "400051", lat: 19.0664, lng: 72.8677, branchId: "br_mumbai_hub" },
+      { area: "Koregaon Park", landmark: "North Main Road, Koregaon Park", city: "Pune", state: "Maharashtra", pincode: "411001", lat: 18.5362, lng: 73.8940 },
+      // Tamil Nadu
+      { area: "Anna Nagar", landmark: "2nd Avenue, Anna Nagar", city: "Chennai", state: "Tamil Nadu", pincode: "600040", lat: 13.0850, lng: 80.2101 },
+      { area: "T Nagar", landmark: "Usman Road, T. Nagar", city: "Chennai", state: "Tamil Nadu", pincode: "600017", lat: 13.0418, lng: 80.2341 },
+      { area: "Adyar", landmark: "LB Road, Adyar", city: "Chennai", state: "Tamil Nadu", pincode: "600020", lat: 13.0012, lng: 80.2565 },
+      // Delhi NCR
       { area: "Connaught Place", landmark: "Inner Circle, Connaught Place", city: "Delhi NCR", state: "Delhi", pincode: "110001", lat: 28.6315, lng: 77.2167, branchId: "br_delhi_hub" },
+      { area: "Cyber City", landmark: "DLF Cyber City, Phase 2", city: "Gurugram", state: "Haryana", pincode: "122002", lat: 28.4906, lng: 77.0898 },
+      { area: "Sector 18", landmark: "Atta Market, Sector 18", city: "Noida", state: "Uttar Pradesh", pincode: "201301", lat: 28.5708, lng: 77.3261 },
+      // Telangana
+      { area: "Hitec City", landmark: "Madhapur, Hitec City", city: "Hyderabad", state: "Telangana", pincode: "500081", lat: 17.4435, lng: 78.3772 },
+      { area: "Banjara Hills", landmark: "Road No. 1, Banjara Hills", city: "Hyderabad", state: "Telangana", pincode: "500034", lat: 17.4156, lng: 78.4357 },
     ];
 
-    // Search Presets first
+    // 1. Search Branches first
+    const branches = ApiEngine.listBranches({ includeArchived: false });
+    for (const b of branches) {
+      const bName = (b.name || "").toLowerCase();
+      const bCode = (b.code || "").toLowerCase();
+      const bCity = (b.city || "").toLowerCase();
+      const bAddress = (b.address || "").toLowerCase();
+      const bPin = (b.pincode || "");
+      if (
+        bName.includes(q) ||
+        bCode.includes(q) ||
+        bCity.includes(q) ||
+        bAddress.includes(q) ||
+        bPin.includes(q)
+      ) {
+        const key = `branch_${b.id}`;
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          const lat = typeof b.latitude === "number" ? b.latitude : 12.9716;
+          const lng = typeof b.longitude === "number" ? b.longitude : 77.6412;
+          results.push({
+            id: `loc_branch_${b.id}`,
+            label: `${b.name}, ${b.city || "Bengaluru"} (${b.pincode || ""})`,
+            formatted_address: `${b.address || b.name}, ${b.city || "Bengaluru"}, ${b.state || "Karnataka"} ${b.pincode || ""}`.trim(),
+            area: b.address || b.name,
+            city: b.city || "Bengaluru",
+            state: b.state || "Karnataka",
+            pincode: b.pincode || "",
+            latitude: lat,
+            longitude: lng,
+            branch_id: b.id,
+            branch_name: b.name,
+          });
+        }
+      }
+    }
+
+    // 2. Search Presets
     for (const lm of PRESET_LANDMARKS) {
       if (
         lm.area.toLowerCase().includes(q) ||
         lm.landmark.toLowerCase().includes(q) ||
         lm.city.toLowerCase().includes(q) ||
+        lm.state.toLowerCase().includes(q) ||
         lm.pincode.includes(q)
       ) {
         const key = `${lm.area}_${lm.pincode}`;
@@ -6262,7 +6123,7 @@ export class ApiEngine {
       }
     }
 
-    // Search city areas
+    // 3. Search City Areas from DB
     const cityAreas = ApiEngine.listCityAreasPincodes();
     for (const rawCa of cityAreas) {
       const ca = rawCa as any;
@@ -6295,7 +6156,163 @@ export class ApiEngine {
       }
     }
 
-    return results.slice(0, 10);
+    // 4. Search Delivery Zones & Polygons
+    const zones = (memoryStore.delivery_zones || []) as any[];
+    for (const z of zones) {
+      const zName = (z.name || z.zone_name || "").toLowerCase();
+      const zPin = (z.pincode || "");
+      if (zName.includes(q) || zPin.includes(q)) {
+        const key = `zone_${z.id}`;
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          const branch = branches.find((b: any) => b.id === z.branch_id);
+          const lat = z.latitude || branch?.latitude || 12.9716;
+          const lng = z.longitude || branch?.longitude || 77.6412;
+          results.push({
+            id: `loc_zone_${z.id}`,
+            label: `${z.name || `Delivery Zone ${zPin}`}, ${branch?.city || "City"} (${zPin})`,
+            formatted_address: `${z.name || "Delivery Zone"}, ${branch?.city || ""}, ${branch?.state || ""} ${zPin}`.trim(),
+            area: z.name || "Delivery Zone",
+            city: branch?.city || "City",
+            state: branch?.state || "",
+            pincode: zPin,
+            latitude: lat,
+            longitude: lng,
+            branch_id: z.branch_id,
+            branch_name: branch?.name,
+          });
+        }
+      }
+    }
+
+    return results.slice(0, 15);
+  }
+
+  /**
+   * Asynchronous Real Map-First Geographic Search Engine.
+   * Combines local database localities with real geographic map search (Photon OSM API / server geocoder)
+   * with server-side in-memory caching and graceful fallback.
+   */
+  static async searchLocationAsync(
+    query: string,
+    options?: { lat?: number; lng?: number; limit?: number }
+  ): Promise<Array<{
+    id: string;
+    label: string;
+    formatted_address: string;
+    area: string;
+    city: string;
+    state: string;
+    pincode: string;
+    latitude: number;
+    longitude: number;
+    branch_id?: string;
+    branch_name?: string;
+  }>> {
+    const q = (query || "").trim();
+    if (!q || q.length < 2) return [];
+
+    // 1. First retrieve all local matches
+    const localResults = ApiEngine.searchLocation(q);
+    const seenCoordKeys = new Set<string>();
+
+    localResults.forEach((r) => {
+      seenCoordKeys.add(`${r.latitude.toFixed(4)},${r.longitude.toFixed(4)}`);
+    });
+
+    // 2. Check in-memory cache for recent external geocoding results
+    const cacheKey = q.toLowerCase();
+    const cached = ApiEngine.geoSearchCache.get(cacheKey);
+    const now = Date.now();
+    if (cached && now - cached.timestamp < 1000 * 60 * 30) {
+      const merged = [...localResults];
+      for (const item of cached.results) {
+        const coordKey = `${item.latitude.toFixed(4)},${item.longitude.toFixed(4)}`;
+        if (!seenCoordKeys.has(coordKey)) {
+          seenCoordKeys.add(coordKey);
+          merged.push(item);
+        }
+      }
+      return merged.slice(0, options?.limit || 15);
+    }
+
+    // 3. Query Real Geographic Map Search (Photon OpenStreetMap API) with 2500ms timeout
+    const externalResults: Array<any> = [];
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+      const photonUrl = new URL("https://photon.komoot.io/api/");
+      photonUrl.searchParams.set("q", q);
+      photonUrl.searchParams.set("limit", String(options?.limit || 8));
+      photonUrl.searchParams.set("lang", "en");
+      if (options?.lat && options?.lng) {
+        photonUrl.searchParams.set("lat", String(options.lat));
+        photonUrl.searchParams.set("lon", String(options.lng));
+      }
+
+      const res = await fetch(photonUrl.toString(), {
+        signal: controller.signal,
+        headers: { "User-Agent": "CakeToHome-BakeryCommerce/1.0" },
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        const features = Array.isArray(data?.features) ? data.features : [];
+
+        for (let i = 0; i < features.length; i++) {
+          const f = features[i];
+          const coords = f.geometry?.coordinates;
+          if (!Array.isArray(coords) || coords.length < 2) continue;
+          const lng = Number(coords[0]);
+          const lat = Number(coords[1]);
+          if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) continue;
+
+          const p = f.properties || {};
+          const name = p.name || p.street || q;
+          const street = p.street || "";
+          const district = p.district || p.suburb || p.locality || "";
+          const city = p.city || p.town || p.village || district || p.state || "India";
+          const state = p.state || "";
+          const postcode = p.postcode || "";
+
+          const formatted = [name !== street ? name : "", street, district, city, state ? `${state} ${postcode}`.trim() : postcode]
+            .filter(Boolean)
+            .join(", ")
+            .trim();
+
+          const label = [name, city].filter(Boolean).join(", ") + (postcode ? ` (${postcode})` : "");
+          const coordKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+
+          if (!seenCoordKeys.has(coordKey)) {
+            seenCoordKeys.add(coordKey);
+            externalResults.push({
+              id: `geo_osm_${i}_${lat.toFixed(5)}_${lng.toFixed(5)}`,
+              label: label || formatted,
+              formatted_address: formatted || label,
+              area: district || name || street || "Area",
+              city: city,
+              state: state,
+              pincode: postcode,
+              latitude: Number(lat.toFixed(6)),
+              longitude: Number(lng.toFixed(6)),
+            });
+          }
+        }
+
+        // Cache external results for 30 minutes
+        ApiEngine.geoSearchCache.set(cacheKey, {
+          timestamp: now,
+          results: externalResults,
+        });
+      }
+    } catch {
+      // Graceful network fallback: Return local results cleanly
+    }
+
+    const finalResults = [...localResults, ...externalResults];
+    return finalResults.slice(0, options?.limit || 15);
   }
 
   // ── Multi-City Data Migration ──────────────────────────────
@@ -6689,11 +6706,6 @@ export class ApiEngine {
     return products;
   }
 
-  static getAdminProducts() {
-    const deduplicated = deduplicateStoreProducts(memoryStore.products || []);
-    return deduplicated.map((p: any) => ApiEngine.enrichProductWithCategories(p));
-  }
-
   /**
    * Authoritative Multi-Tier Product Search Service
    * Deduplicates products to canonical entries, evaluates relevance across 7 tiers:
@@ -6842,8 +6854,20 @@ export class ApiEngine {
     return SearchEngine.getAllCanonicalProducts();
   }
 
-  static getProductById(id: string, branchId?: string, pincode?: string) {
-    const rawProduct = memoryStore.products.find((p) => p.id === id || p.product_id === id) || null;
+  static getProductById(id: string, branchId?: string, pincode?: string): any | null {
+    if (!id) return null;
+    const cleanId = String(id).trim();
+    const allProducts = (memoryStore.products && memoryStore.products.length > 0)
+      ? memoryStore.products
+      : DEFAULT_PRODUCTS;
+    const rawProduct = allProducts.find(
+      (p: any) =>
+        p.id === cleanId ||
+        p.product_id === cleanId ||
+        p.handle === cleanId ||
+        p.slug === cleanId ||
+        (cleanId.startsWith("var_") && (p.id === cleanId.replace(/^var_/, "") || p.product_id === cleanId.replace(/^var_/, "")))
+    ) || null;
     if (!rawProduct) return null;
     const product = ApiEngine.enrichProductWithCategories(rawProduct);
 
@@ -6872,8 +6896,19 @@ export class ApiEngine {
     };
   }
 
-  static getProductBySlug(slug: string, branchId?: string, pincode?: string) {
-    const rawProduct = memoryStore.products.find((p) => p.handle === slug || p.product_id === slug || p.id === slug) || null;
+  static getProductBySlug(slug: string, branchId?: string, pincode?: string): any | null {
+    if (!slug) return null;
+    const cleanSlug = String(slug).trim().toLowerCase();
+    const allProducts = (memoryStore.products && memoryStore.products.length > 0)
+      ? memoryStore.products
+      : DEFAULT_PRODUCTS;
+    const rawProduct = allProducts.find(
+      (p: any) =>
+        (p.handle && p.handle.toLowerCase() === cleanSlug) ||
+        (p.slug && p.slug.toLowerCase() === cleanSlug) ||
+        p.id === cleanSlug ||
+        p.product_id === cleanSlug
+    ) || null;
     if (!rawProduct) return null;
     const product = ApiEngine.enrichProductWithCategories(rawProduct);
 
@@ -6931,11 +6966,18 @@ export class ApiEngine {
   }
 
   static updateAdminProductPimConfig(productId: string, pimConfig: Record<string, boolean>) {
-    const prod = ApiEngine.getProductById(productId) || ApiEngine.getProductBySlug(productId);
+    const prod = ApiEngine.resolveProductEntity(productId) || ApiEngine.getProductById(productId) || ApiEngine.getProductBySlug(productId);
     if (prod) {
       prod.pim_config = { ...ApiEngine.getProductPimConfig(prod), ...pimConfig };
-      ApiEngine.addAuditLog(`Updated PIM Configuration for product "${prod.title}"`);
+      if (pimConfig.show_shape !== undefined) {
+        prod.enable_shape_selection = Boolean(pimConfig.show_shape);
+      }
+      if (pimConfig.show_flavour !== undefined) {
+        prod.enable_flavor_selection = Boolean(pimConfig.show_flavour);
+      }
+      ApiEngine.addAuditLog(`Updated PIM Configuration for product "${prod.title || productId}"`);
       ApiEngine.persist();
+      persistProductToDb(prod).catch(() => null);
       return prod.pim_config;
     }
     return null;
@@ -7029,15 +7071,47 @@ export class ApiEngine {
 
       ApiEngine.addAuditLog(`Upserted Product "${newProd.title}" (${id})`);
       ApiEngine.persist();
+      persistProductToDb(newProd).catch((err) => {
+        console.error("[ApiEngine] Failed to persist product to database:", err);
+      });
       return newProd;
+    }
+
+    // Normalize and validate max_delivery_distance_km
+    let rawDist = data.max_delivery_distance_km !== undefined 
+      ? data.max_delivery_distance_km 
+      : data.pim_config?.max_delivery_distance_km;
+    let normalizedDist: number | null = null;
+    if (rawDist !== undefined && rawDist !== null && rawDist !== "") {
+      const numDist = Number(rawDist);
+      if (!isNaN(numDist) && numDist > 0 && isFinite(numDist)) {
+        normalizedDist = Math.min(100, Math.round(numDist * 100) / 100);
+      }
     }
 
     const updated = {
       ...memoryStore.products[idx],
       ...data,
+      max_delivery_distance_km: normalizedDist,
+      pim_config: {
+        ...(memoryStore.products[idx]?.pim_config || {}),
+        ...(data.pim_config || {}),
+        max_delivery_distance_km: normalizedDist,
+      },
       ...(occasionIds !== undefined ? { occasion_ids: occasionIds } : {}),
       ...(primaryOcc !== undefined ? { occasion: primaryOcc } : {}),
     };
+
+    // Strip obsolete legacy zone fields
+    delete (updated as any).allowed_zones;
+    delete (updated as any).zone_ids;
+    delete (updated as any).selected_zones;
+    if (updated.pim_config) {
+      delete (updated.pim_config as any).allowed_zones;
+      delete (updated.pim_config as any).zone_ids;
+      delete (updated.pim_config as any).selected_zones;
+    }
+
     memoryStore.products[idx] = updated;
 
     if (occasionIds !== undefined && memoryStore.product_occasions) {
@@ -7049,6 +7123,9 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Updated Product "${memoryStore.products[idx].title}"`);
     ApiEngine.persist();
+    persistProductToDb(memoryStore.products[idx]).catch((err) => {
+      console.error("[ApiEngine] Failed to persist product update to database:", err);
+    });
     return memoryStore.products[idx];
   }
 
@@ -7152,6 +7229,10 @@ export class ApiEngine {
     if (prod) ApiEngine.addAuditLog(`Deleted Product "${prod.title}"`);
     ApiEngine.persist();
     return true;
+  }
+
+  static getAdminProducts() {
+    return deduplicateStoreProducts(memoryStore.products || []).map((p: any) => ApiEngine.enrichProductWithCategories(p));
   }
 
   // ── Branches, Cities, Regions ──────────────────────────────
@@ -10652,6 +10733,9 @@ export class ApiEngine {
 
     memoryStore.customers[idx] = updated;
     ApiEngine.persist();
+    persistCustomerToDb(updated).catch((err) => {
+      console.error("[ApiEngine] Failed to persist customer to database:", err);
+    });
 
     if ((data as any).is_vip && !existing.is_vip) {
       ApiEngine.emitCrmEvent("customer.vip_promoted", updated, { vip_reason: "Manual Staff Promotion" });
@@ -13087,21 +13171,6 @@ export class ApiEngine {
 
   // ── CMS Pages & Form Submissions ──────────────────────────────
   static listCmsPages() {
-    try {
-      if (typeof window === "undefined" && typeof fs !== "undefined") {
-        const filePath = getStoreFilePath();
-        if (fs.existsSync(filePath)) {
-          const stats = fs.statSync(filePath);
-          if ((globalThis as any).__CTH_CMS_LAST_MTIME__ !== stats.mtimeMs) {
-            (globalThis as any).__CTH_CMS_LAST_MTIME__ = stats.mtimeMs;
-            const diskData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-            if (Array.isArray(diskData.cms_pages) && diskData.cms_pages.length > 0) {
-              memoryStore.cms_pages = diskData.cms_pages;
-            }
-          }
-        }
-      }
-    } catch {}
     if (!memoryStore || !Array.isArray(memoryStore.cms_pages)) {
       if (memoryStore) memoryStore.cms_pages = JSON.parse(JSON.stringify(DEFAULT_CMS_PAGES));
       return DEFAULT_CMS_PAGES;
@@ -13735,7 +13804,7 @@ export class ApiEngine {
 
     let currentProd: any = null;
     if (productId) {
-      currentProd = available.find((p) => p.id === productId || p.product_id === productId || p.handle === productId);
+      currentProd = available.find((p: any) => p.id === productId || p.product_id === productId || p.handle === productId);
     }
 
     let targetOccasionId = "";
@@ -13752,8 +13821,8 @@ export class ApiEngine {
 
     // Score other products
     const scored = available
-      .filter((p) => !currentProd || (p.id !== currentProd.id && p.product_id !== currentProd.product_id))
-      .map((p) => {
+      .filter((p: any) => !currentProd || (p.id !== currentProd.id && p.product_id !== currentProd.product_id))
+      .map((p: any) => {
         let score = 0;
         const pOccIds = Array.isArray(p.occasion_ids) ? p.occasion_ids : (p.occasion ? [p.occasion.toLowerCase()] : []);
         
@@ -13776,11 +13845,11 @@ export class ApiEngine {
         return { product: p, score, isUpsellCandidate, price: pPrice };
       });
 
-    scored.sort((a, b) => b.score - a.score);
+    scored.sort((a: any, b: any) => b.score - a.score);
 
-    const related = scored.slice(0, limit).map((s) => s.product);
-    const upsells = scored.filter((s) => s.isUpsellCandidate).slice(0, limit).map((s) => s.product);
-    const sameOccasion = targetOccasionId ? scored.filter((s) => s.score >= 50).slice(0, limit).map((s) => s.product) : related;
+    const related = scored.slice(0, limit).map((s: any) => s.product);
+    const upsells = scored.filter((s: any) => s.isUpsellCandidate).slice(0, limit).map((s: any) => s.product);
+    const sameOccasion = targetOccasionId ? scored.filter((s: any) => s.score >= 50).slice(0, limit).map((s: any) => s.product) : related;
 
     return {
       related,
@@ -13801,6 +13870,229 @@ export class ApiEngine {
       return activeList.filter((opt: any) => opt.type === type);
     }
     return activeList;
+  }
+
+  static resolveProductEntity(productId: string): any | null {
+    if (!productId) return null;
+    const cleanId = String(productId).trim().toLowerCase();
+    if (!memoryStore.products || !Array.isArray(memoryStore.products)) {
+      memoryStore.products = [...DEFAULT_PRODUCTS];
+    }
+    let p = memoryStore.products.find(
+      (item: any) =>
+        (item.id && String(item.id).trim().toLowerCase() === cleanId) ||
+        (item.product_id && String(item.product_id).trim().toLowerCase() === cleanId) ||
+        (item.handle && String(item.handle).trim().toLowerCase() === cleanId) ||
+        (item.slug && String(item.slug).trim().toLowerCase() === cleanId)
+    );
+    if (!p) {
+      const defaultP = DEFAULT_PRODUCTS.find(
+        (item: any) =>
+          (item.id && String(item.id).trim().toLowerCase() === cleanId) ||
+          (item.product_id && String(item.product_id).trim().toLowerCase() === cleanId) ||
+          (item.handle && String(item.handle).trim().toLowerCase() === cleanId) ||
+          (item.slug && String(item.slug).trim().toLowerCase() === cleanId)
+      );
+      if (defaultP) {
+        p = { ...defaultP };
+        memoryStore.products.push(p);
+      }
+    }
+    return p || null;
+  }
+
+  static getProductFlavorMappings(productId: string) {
+    const product = ApiEngine.resolveProductEntity(productId);
+    if (!product) return [];
+    const flavors = (product as any).flavors || (product as any).flavor_mappings;
+    if (Array.isArray(flavors)) {
+      return flavors.map((f: any) => ({
+        flavor_id: f.flavor_id || f.id,
+        id: f.flavor_id || f.id,
+        name: f.name || f.display_name,
+        display_name: f.display_name || f.name,
+        price_override: Number(f.price_modifier ?? f.extra_price ?? f.price_override ?? 0),
+        price_modifier: Number(f.price_modifier ?? f.extra_price ?? f.price_override ?? 0),
+        is_enabled: f.is_enabled !== false && f.status !== "archived",
+      }));
+    }
+    return [];
+  }
+
+  static saveProductFlavorMappings(productId: string, mappings: any[]) {
+    const product = ApiEngine.resolveProductEntity(productId);
+    if (!product) {
+      return { success: false, error: `Product "${productId}" not found.` };
+    }
+    const masterFlavors = ApiEngine.listVariantOptions("flavour");
+    const normalizedMappings: any[] = [];
+
+    if (Array.isArray(mappings)) {
+      for (const m of mappings) {
+        const targetId = m.flavor_id || m.id;
+        const targetName = m.name || m.display_name;
+        const master = masterFlavors.find(
+          (mf: any) => mf.id === targetId || (targetName && (mf.name.toLowerCase() === targetName.toLowerCase() || mf.display_name?.toLowerCase() === targetName.toLowerCase()))
+        );
+        const name = master?.name || m.name || "Custom Flavor";
+        const displayName = master?.display_name || m.display_name || name;
+        const priceMod = Number(m.price_override ?? m.price_modifier ?? master?.price_modifier ?? 0);
+        normalizedMappings.push({
+          id: master?.id || targetId || `flv_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          flavor_id: master?.id || targetId || `flv_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          name,
+          display_name: displayName,
+          price_modifier: priceMod,
+          extra_price: priceMod,
+          is_enabled: m.is_enabled !== false,
+          status: "active",
+        });
+      }
+    }
+
+    (product as any).flavors = normalizedMappings;
+    (product as any).flavor_mappings = normalizedMappings;
+    (product as any).enable_flavor_selection = normalizedMappings.length > 0;
+    if (!(product as any).pim_config) (product as any).pim_config = {};
+    (product as any).pim_config.show_flavour = normalizedMappings.length > 0;
+
+    ApiEngine.persist();
+    persistProductToDb(product).catch((err) => {
+      console.error("[saveProductFlavorMappings] DB Error:", err);
+    });
+
+    return {
+      success: true,
+      flavor_mappings: normalizedMappings,
+      product_id: product.id || productId,
+    };
+  }
+
+  static getProductShapeMappings(productId: string) {
+    const product = ApiEngine.resolveProductEntity(productId);
+    if (!product) return [];
+    const shapes = (product as any).shapes || (product as any).shape_mappings;
+    if (Array.isArray(shapes)) {
+      return shapes.map((s: any) => ({
+        shape_id: s.shape_id || s.id,
+        id: s.shape_id || s.id,
+        name: s.name || s.display_name,
+        display_name: s.display_name || s.name,
+        price_override: Number(s.price_modifier ?? s.additional_price ?? s.price_override ?? 0),
+        price_modifier: Number(s.price_modifier ?? s.additional_price ?? s.price_override ?? 0),
+        is_enabled: s.is_enabled !== false && s.status !== "archived",
+      }));
+    }
+    return [];
+  }
+
+  static saveProductShapeMappings(productId: string, mappings: any[]) {
+    const product = ApiEngine.resolveProductEntity(productId);
+    if (!product) {
+      return { success: false, error: `Product "${productId}" not found.` };
+    }
+    const masterShapes = ApiEngine.listVariantOptions("shape");
+    const normalizedMappings: any[] = [];
+
+    if (Array.isArray(mappings)) {
+      for (const m of mappings) {
+        const targetId = m.shape_id || m.id;
+        const targetName = m.name || m.display_name;
+        const master = masterShapes.find(
+          (ms: any) => ms.id === targetId || (targetName && (ms.name.toLowerCase() === targetName.toLowerCase() || ms.display_name?.toLowerCase() === targetName.toLowerCase()))
+        );
+        const name = master?.name || m.name || "Custom Shape";
+        const displayName = master?.display_name || m.display_name || name;
+        const priceMod = Number(m.price_override ?? m.price_modifier ?? master?.price_modifier ?? 0);
+        normalizedMappings.push({
+          id: master?.id || targetId || `shp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          shape_id: master?.id || targetId || `shp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          name,
+          display_name: displayName,
+          price_modifier: priceMod,
+          additional_price: priceMod,
+          is_enabled: m.is_enabled !== false,
+          status: "active",
+        });
+      }
+    }
+
+    (product as any).shapes = normalizedMappings;
+    (product as any).shape_mappings = normalizedMappings;
+    (product as any).enable_shape_selection = normalizedMappings.length > 0;
+    if (!(product as any).pim_config) (product as any).pim_config = {};
+    (product as any).pim_config.show_shape = normalizedMappings.length > 0;
+
+    ApiEngine.persist();
+    persistProductToDb(product).catch((err) => {
+      console.error("[saveProductShapeMappings] DB Error:", err);
+    });
+
+    return {
+      success: true,
+      shape_mappings: normalizedMappings,
+      product_id: product.id || productId,
+    };
+  }
+
+  static getStorefrontProductOptions(productId: string) {
+    const product = ApiEngine.resolveProductEntity(productId) || ApiEngine.getProductById(productId) || ApiEngine.getProductBySlug(productId);
+    const pimConfig = (product as any)?.pim_config || {};
+
+    const customFlavors: any[] = ((product as any)?.flavors && Array.isArray((product as any).flavors))
+      ? (product as any).flavors.filter((f: any) => f.status !== "archived" && f.is_enabled !== false)
+      : [];
+
+    const customShapes: any[] = ((product as any)?.shapes && Array.isArray((product as any).shapes))
+      ? (product as any).shapes.filter((s: any) => s.status !== "archived" && s.is_enabled !== false)
+      : [];
+
+    const customFillings: any[] = ((product as any)?.fillings && Array.isArray((product as any).fillings))
+      ? (product as any).fillings.filter((fil: any) => fil.status !== "archived" && fil.is_enabled !== false)
+      : [];
+
+    const customCreams: any[] = ((product as any)?.creams && Array.isArray((product as any).creams))
+      ? (product as any).creams.filter((c: any) => c.status !== "archived" && c.is_enabled !== false)
+      : [];
+
+    // Strict Product-Scoped Option Authority: ONLY show options explicitly selected for this product in PIM.
+    // 0 of 5 selected in PIM MUST return [] and NEVER fall back to global masters or product.flavour!
+    const isFlavourEnabled = pimConfig.show_flavour !== false && (product as any)?.enable_flavor_selection !== false;
+    const flavors = isFlavourEnabled ? customFlavors : [];
+
+    const isShapeEnabled = pimConfig.show_shape !== false && (product as any)?.enable_shape_selection !== false;
+    const shapes = isShapeEnabled ? customShapes : [];
+
+    const isFillingEnabled = pimConfig.show_filling === true;
+    const fillings = isFillingEnabled ? customFillings : [];
+
+    const isCreamEnabled = pimConfig.show_cream === true;
+    const creams = isCreamEnabled ? customCreams : [];
+
+    const weights = ((product as any)?.weight_prices && Array.isArray((product as any).weight_prices) && (product as any).weight_prices.length > 0)
+      ? (product as any).weight_prices
+      : ApiEngine.listVariantOptions("weight");
+
+    return {
+      enable_flavor_selection: Boolean(isFlavourEnabled && flavors.length > 0),
+      enable_shape_selection: Boolean(isShapeEnabled && shapes.length > 0),
+      enable_filling_selection: Boolean(isFillingEnabled && fillings.length > 0),
+      enable_cream_selection: Boolean(isCreamEnabled && creams.length > 0),
+      enable_weight_selection: pimConfig.show_weight !== false,
+      enable_photo_cake: Boolean(pimConfig.show_photo_cake),
+      enable_cake_message: pimConfig.show_cake_message !== false,
+      required_flavor: Boolean(pimConfig.required_flavour && flavors.length > 0),
+      required_shape: Boolean(pimConfig.required_shape && shapes.length > 0),
+      required_filling: Boolean(pimConfig.required_filling && fillings.length > 0),
+      required_cream: Boolean(pimConfig.required_cream && creams.length > 0),
+      required_weight: pimConfig.required_weight !== false,
+      flavors,
+      shapes,
+      fillings,
+      creams,
+      weights,
+      success: true,
+    };
   }
 
   static createVariantOption(data: any) {
@@ -14527,7 +14819,17 @@ export class ApiEngine {
       console.warn("Staff profile sync warning during saveBranch:", err.message);
     }
 
-    // 5. Delivery Zones Initialization
+    // 5. Store-Level Maximum Radius Validation
+    const rawStoreMax = data.max_delivery_radius_km ?? existing?.max_delivery_radius_km ?? 15;
+    const storeMaxRadius = typeof rawStoreMax === "number" ? rawStoreMax : parseFloat(rawStoreMax);
+    if (isNaN(storeMaxRadius) || !isFinite(storeMaxRadius) || storeMaxRadius <= 0) {
+      throw new Error("INVALID_INPUT: Store maximum delivery radius must be a positive finite number.");
+    }
+    if (storeMaxRadius > GLOBAL_MAX_DELIVERY_RADIUS_KM) {
+      throw new Error(`RADIUS_EXCEEDS_ALLOWED_LIMIT: Store maximum delivery radius (${storeMaxRadius} km) cannot exceed global safety ceiling (${GLOBAL_MAX_DELIVERY_RADIUS_KM} km).`);
+    }
+
+    // 6. Delivery Zones Initialization & Authoritative Radius Enforcement
     let deliveryZones = Array.isArray(data.delivery_zones) ? data.delivery_zones : (existing?.delivery_zones || []);
     if (deliveryZones.length === 0) {
       deliveryZones = [
@@ -14536,7 +14838,8 @@ export class ApiEngine {
           branch_id: branchId,
           name: `${branchName} Primary Zone`,
           min_km: 0,
-          max_km: 15,
+          max_km: Math.min(15, storeMaxRadius),
+          radius_km: Math.min(15, storeMaxRadius),
           base_fee: 49,
           pincodes: [cleanPin],
           areas: [resolvedCityName],
@@ -14546,6 +14849,93 @@ export class ApiEngine {
         },
       ];
     }
+
+    // Authoritative Zone Validation & Radius Constraint Enforcement (3-tier hierarchy: Global -> Store -> Zone)
+    for (const z of deliveryZones) {
+      // Validate zone-level max_serviceable_km if specified
+      if (z.max_serviceable_km !== undefined && z.max_serviceable_km !== null) {
+        const zoneMax = typeof z.max_serviceable_km === "number" ? z.max_serviceable_km : parseFloat(z.max_serviceable_km);
+        if (isNaN(zoneMax) || !isFinite(zoneMax) || zoneMax <= 0) {
+          throw new Error(`INVALID_INPUT: Zone "${z.name || z.id}" has invalid max_serviceable_km (${z.max_serviceable_km}). Must be a positive finite number.`);
+        }
+        if (zoneMax > GLOBAL_MAX_DELIVERY_RADIUS_KM) {
+          throw new Error(`RADIUS_EXCEEDS_ALLOWED_LIMIT: Zone "${z.name || z.id}" max_serviceable_km (${zoneMax} km) cannot exceed global safety ceiling (${GLOBAL_MAX_DELIVERY_RADIUS_KM} km).`);
+        }
+      }
+
+      // Compute effective maximum for this zone: Math.min(Global, Store, Zone)
+      const effectiveMax = ApiEngine.computeEffectiveMaxRadius({ max_delivery_radius_km: storeMaxRadius }, z);
+
+      // Check if zone is radius-based or hybrid (Rule 10: pure polygon zones are NOT restricted by radius unless radius/hybrid is used)
+      const fenceType = ((z.fence_type || z.boundary_type || "") as string).toLowerCase();
+      const isPurePolygon = fenceType === "polygon" && !z.radius_km && (!z.boundary_type || z.boundary_type === "polygon");
+      const hasRadius = (z.radius_km !== undefined && z.radius_km !== null) ||
+                        (fenceType === "radius" || fenceType === "hybrid" || z.boundary_type === "radius" || z.boundary_type === "hybrid");
+
+      if (!isPurePolygon && hasRadius) {
+        const rawRadius = z.radius_km ?? z.max_km;
+        if (rawRadius !== undefined && rawRadius !== null) {
+          const radiusNum = typeof rawRadius === "number" ? rawRadius : parseFloat(rawRadius);
+          if (isNaN(radiusNum) || !isFinite(radiusNum) || radiusNum <= 0) {
+            throw new Error(`INVALID_INPUT: Zone "${z.name || z.id}" has invalid radius (${rawRadius}). Must be a positive finite number.`);
+          }
+          if (radiusNum > effectiveMax) {
+            throw new Error(`RADIUS_EXCEEDS_ALLOWED_LIMIT: Zone "${z.name || z.id}" radius (${radiusNum} km) exceeds effective allowed maximum (${effectiveMax} km).`);
+          }
+          z.radius_km = radiusNum;
+        }
+      }
+
+      // Validate distance pricing brackets (Rule 14: bracket max_km <= effective delivery radius)
+      if (Array.isArray(z.pricing_brackets)) {
+        for (const b of z.pricing_brackets) {
+          const bMin = typeof b.min_km === "number" ? b.min_km : parseFloat(b.min_km);
+          const bMax = typeof b.max_km === "number" ? b.max_km : parseFloat(b.max_km);
+          if (isNaN(bMin) || isNaN(bMax) || !isFinite(bMin) || !isFinite(bMax) || bMin < 0 || bMax <= 0 || bMin >= bMax) {
+            throw new Error(`INVALID_INPUT: Pricing bracket [${b.min_km}–${b.max_km}] for zone "${z.name || z.id}" has invalid boundaries.`);
+          }
+          if (bMax > effectiveMax) {
+            throw new Error(`PRICING_RANGE_EXCEEDS_SERVICE_RADIUS: Pricing bracket ${b.min_km}–${b.max_km} km for zone "${z.name || z.id}" exceeds effective service radius (${effectiveMax} km).`);
+          }
+        }
+      }
+
+      // Populate authoritative serviceability bounds on persisted zone object (Rule 24)
+      const currentR = Number(z.radius_km ?? z.max_km ?? 0);
+      z.max_serviceable_km = effectiveMax;
+      z.remaining_radius_km = Number(Math.max(0, effectiveMax - currentR).toFixed(2));
+      if (z.boundary_type === "radius" && !z.fence_type) {
+        z.fence_type = "RADIUS";
+      }
+    }
+
+    // 7. Store Physical Coordinates & Location Metadata Validation
+    let finalLat: number | undefined = undefined;
+    let finalLng: number | undefined = undefined;
+
+    if (data.latitude !== undefined && data.latitude !== null && data.latitude !== "") {
+      const parsedLat = typeof data.latitude === "number" ? data.latitude : parseFloat(data.latitude);
+      if (isNaN(parsedLat) || !isFinite(parsedLat) || parsedLat < -90 || parsedLat > 90) {
+        throw new Error(`INVALID_INPUT: Latitude must be a valid number between -90 and 90 (received ${data.latitude}).`);
+      }
+      finalLat = Number(parsedLat.toFixed(6));
+    } else if (existing?.latitude !== undefined && typeof existing.latitude === "number") {
+      finalLat = existing.latitude;
+    }
+
+    if (data.longitude !== undefined && data.longitude !== null && data.longitude !== "") {
+      const parsedLng = typeof data.longitude === "number" ? data.longitude : parseFloat(data.longitude);
+      if (isNaN(parsedLng) || !isFinite(parsedLng) || parsedLng < -180 || parsedLng > 180) {
+        throw new Error(`INVALID_INPUT: Longitude must be a valid number between -180 and 180 (received ${data.longitude}).`);
+      }
+      finalLng = Number(parsedLng.toFixed(6));
+    } else if (existing?.longitude !== undefined && typeof existing.longitude === "number") {
+      finalLng = existing.longitude;
+    }
+
+    const locationSource = data.location_source || existing?.location_source || (finalLat ? "MANUAL_MAP" : "DEFAULT");
+    const locationAccuracy = typeof data.location_accuracy === "number" ? data.location_accuracy : (existing?.location_accuracy ?? null);
+    const formattedAddress = data.formatted_address || existing?.formatted_address || data.address || existing?.address || `${branchName}, ${resolvedCityName}`;
 
     const branchObj: any = {
       id: branchId,
@@ -14563,13 +14953,17 @@ export class ApiEngine {
         zone_id: `zone_${resolvedCityId}_central`,
       },
       address: data.address || existing?.address || "100 Feet Rd, Bengaluru",
+      formatted_address: formattedAddress,
       city: resolvedCityName,
       city_id: resolvedCityId,
       state: resolvedState,
       pincode: cleanPin,
-      latitude: Number(data.latitude) || existing?.latitude || 12.9716,
-      longitude: Number(data.longitude) || existing?.longitude || 77.6412,
-      google_map_url: data.google_map_url || existing?.google_map_url || "",
+      latitude: finalLat,
+      longitude: finalLng,
+      location_source: locationSource,
+      location_accuracy: locationAccuracy,
+      has_valid_location: typeof finalLat === "number" && typeof finalLng === "number",
+      google_map_url: data.google_map_url || existing?.google_map_url || (finalLat && finalLng ? `https://www.google.com/maps?q=${finalLat},${finalLng}` : ""),
       phone: mgrPhone,
       whatsapp: data.whatsapp || mgrPhone,
       email: mgrEmail,
@@ -14611,12 +15005,21 @@ export class ApiEngine {
         is_auto_paused: Boolean(data.capacity_settings?.is_auto_paused),
       },
       delivery_zones: deliveryZones,
+      max_delivery_radius_km: storeMaxRadius,
       deliverable_areas: Array.isArray(data.deliverable_areas) && data.deliverable_areas.length > 0 ? data.deliverable_areas : [resolvedCityName],
       product_availability: data.product_availability || existing?.product_availability || {},
       accessory_inventory: data.accessory_inventory || existing?.accessory_inventory || {},
       created_at: data.created_at || existing?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
+
+    if (existing && existing.max_delivery_radius_km !== storeMaxRadius) {
+      ApiEngine.addAuditLog(`Updated store max delivery radius from ${existing.max_delivery_radius_km ?? "default"} km to ${storeMaxRadius} km for branch "${branchName}"`);
+    }
+
+    if (existing && (existing.latitude !== finalLat || existing.longitude !== finalLng)) {
+      ApiEngine.addAuditLog(`Updated Store Coordinates for "${branchName}" from (${existing.latitude?.toFixed(4) ?? "none"}, ${existing.longitude?.toFixed(4) ?? "none"}) to (${finalLat?.toFixed(4) ?? "none"}, ${finalLng?.toFixed(4) ?? "none"}) via ${locationSource}`);
+    }
 
     if (idx >= 0) {
       memoryStore.branches[idx] = branchObj;
@@ -14642,6 +15045,9 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Saved Branch "${branchObj.name}" (${branchObj.code})`);
     ApiEngine.persist();
+    persistBranchToDb(branchObj).catch((err) => {
+      console.error("[ApiEngine] Failed to persist branch to database:", err);
+    });
     return branchObj;
   }
 
@@ -14667,6 +15073,9 @@ export class ApiEngine {
       `STORE_ARCHIVED: Store "${branch.name}" (${branch.code}) archived by Super Admin. Previous: ${previousStatus.toUpperCase()} → New: ARCHIVED`
     );
     ApiEngine.persist();
+    persistBranchToDb(branch).catch((err) => {
+      console.error("[ApiEngine] Failed to persist branch archive to database:", err);
+    });
     return { success: true, message: `Store "${branch.name}" has been archived successfully.`, branch };
   }
 
@@ -14692,6 +15101,9 @@ export class ApiEngine {
       `STORE_RESTORED: Store "${branch.name}" (${branch.code}) restored by Super Admin. Previous: ${previousStatus.toUpperCase()} → New: ACTIVE`
     );
     ApiEngine.persist();
+    persistBranchToDb(branch).catch((err) => {
+      console.error("[ApiEngine] Failed to persist branch restoration to database:", err);
+    });
     return { success: true, message: `Store "${branch.name}" has been restored successfully.`, branch };
   }
 
@@ -14804,6 +15216,28 @@ export class ApiEngine {
     };
   }
 
+  /**
+   * Resolves the base delivery fee from distance-based pricing brackets.
+   * Returns the bracket charge for the matching distance range, or null if no bracket matches
+   * (indicating the distance exceeds all configured brackets — not serviceable).
+   */
+  static resolveDistanceBracketFee(brackets: DeliveryPricingBracket[], distanceKm: number): { fee: number; bracket: DeliveryPricingBracket } | null {
+    if (!brackets || brackets.length === 0) return null;
+    // Sort brackets by min_km ascending for deterministic matching
+    const sorted = [...brackets].filter(b => b.enabled !== false).sort((a, b) => a.min_km - b.min_km);
+    for (const bracket of sorted) {
+      if (distanceKm >= bracket.min_km && distanceKm < bracket.max_km) {
+        return { fee: bracket.charge, bracket };
+      }
+    }
+    // Check if distance exactly equals the max_km of the last bracket (boundary inclusive)
+    const last = sorted[sorted.length - 1];
+    if (last && distanceKm === last.max_km) {
+      return { fee: last.charge, bracket: last };
+    }
+    return null; // Beyond all brackets — not serviceable at this distance
+  }
+
   static calculateDeliveryFee(
     branch: BranchItem,
     context: {
@@ -14821,48 +15255,96 @@ export class ApiEngine {
       delivery_type?: "delivery" | "pickup";
       area_fee_override?: number;
     }
-  ): { total_fee: number; breakdown: Record<string, number>; zone_name?: string } {
+  ): { total_fee: number; breakdown: Record<string, number>; zone_name?: string; pricing_mode?: string; bracket_label?: string } {
     if (context.delivery_type === "pickup") {
-      return { total_fee: 0, breakdown: { pickup_free: 0 }, zone_name: "Branch Pickup (Direct Collection)" };
+      return { total_fee: 0, breakdown: { pickup_free: 0 }, zone_name: "Branch Pickup (Direct Collection)", pricing_mode: "pickup" };
     }
 
-    // Resolve assigned zone: by zone_id if provided, else by pincode lookup, else first enabled zone
+    // Resolve assigned zone: by zone_id if provided, else by pincode lookup, else by distance, else first enabled zone
     const zones = (branch.delivery_zones || []).filter(z => z.enabled);
     let assignedZone: DeliveryZone | undefined;
 
     if (context.zone_id) {
       assignedZone = zones.find(z => z.id === context.zone_id);
     }
-    if (!assignedZone && context.pincode) {
-      assignedZone = zones.find(z => Array.isArray(z.pincodes) && z.pincodes.includes(context.pincode!));
-    }
     if (!assignedZone && context.distance_km !== undefined) {
       assignedZone = zones.find(z => (context.distance_km! >= z.min_km && context.distance_km! < z.max_km));
     }
-    // Fallback: use zone with lowest max_km
+    // Fallback: use zone with lowest min_km
     if (!assignedZone && zones.length > 0) {
-      assignedZone = zones.sort((a, b) => a.min_km - b.min_km)[0];
+      assignedZone = [...zones].sort((a, b) => a.min_km - b.min_km)[0];
     }
 
     if (!assignedZone) {
-      return { total_fee: 49, breakdown: { base: 49, note_no_zone_found: 0 }, zone_name: "Standard Area" };
+      return { total_fee: 49, breakdown: { base: 49, note_no_zone_found: 0 }, zone_name: "Standard Area", pricing_mode: "fallback" };
+    }
+
+    // Enforce effective maximum delivery radius
+    const effectiveMaxRadius = ApiEngine.computeEffectiveMaxRadius(branch, assignedZone);
+    if (context.distance_km !== undefined && context.distance_km > effectiveMaxRadius) {
+      return {
+        total_fee: 0,
+        breakdown: { not_serviceable_distance_exceeded: 0 },
+        zone_name: assignedZone.name,
+        pricing_mode: "unserviceable",
+        bracket_label: `Distance exceeds maximum delivery radius (${context.distance_km.toFixed(1)} km > ${effectiveMaxRadius} km)`,
+      };
     }
 
     let fee = 0;
     const breakdown: Record<string, number> = {};
+    let pricingMode = "flat";
+    let bracketLabel: string | undefined;
 
-    if (context.is_express) {
-      fee = Number(assignedZone.express_charge ?? 49);
-      breakdown.express = fee;
-    } else if (context.is_midnight) {
-      fee = Number(assignedZone.midnight_charge ?? 79);
-      breakdown.midnight = fee;
-    } else if (context.is_holiday || context.is_festival) {
-      fee = Number(assignedZone.holiday_charge ?? assignedZone.delivery_charge);
-      breakdown.holiday = fee;
+    // ── Resolve Base Delivery Fee ──────────────────────────────────────────
+    // Distance-bracket pricing takes priority when configured AND distance is known
+    const useBracketPricing = assignedZone.pricing_type === "distance_bracket" &&
+      assignedZone.pricing_brackets &&
+      assignedZone.pricing_brackets.length > 0 &&
+      context.distance_km !== undefined &&
+      context.distance_km >= 0;
+
+    if (useBracketPricing) {
+      const bracketResult = ApiEngine.resolveDistanceBracketFee(assignedZone.pricing_brackets!, context.distance_km!);
+      if (bracketResult) {
+        fee = bracketResult.fee;
+        breakdown.distance_bracket = fee;
+        pricingMode = "distance_bracket";
+        bracketLabel = bracketResult.bracket.label || `${bracketResult.bracket.min_km}–${bracketResult.bracket.max_km} km`;
+      } else {
+        // Distance exceeds all configured brackets — unserviceable!
+        return {
+          total_fee: 0,
+          breakdown: { distance_exceeds_pricing_brackets: 0 },
+          zone_name: assignedZone.name,
+          pricing_mode: "unserviceable",
+          bracket_label: `Distance exceeds all configured delivery pricing brackets (${context.distance_km?.toFixed(1)} km)`,
+        };
+      }
     } else {
+      // Flat-rate pricing (original behavior)
       fee = Number(assignedZone.delivery_charge ?? 0);
       breakdown.base = fee;
+      pricingMode = "flat";
+    }
+
+    // ── Additive Surcharges (applied on top of base fee) ─────────────────
+    if (context.is_express) {
+      const expressSurcharge = Number(assignedZone.express_charge ?? 49);
+      fee += expressSurcharge;
+      breakdown.express_surcharge = expressSurcharge;
+    }
+    if (context.is_midnight) {
+      const midnightSurcharge = Number(assignedZone.midnight_charge ?? 79);
+      fee += midnightSurcharge;
+      breakdown.midnight_surcharge = midnightSurcharge;
+    }
+    if (context.is_holiday || context.is_festival) {
+      const holidaySurcharge = Number(assignedZone.holiday_charge ?? 0);
+      if (holidaySurcharge > 0) {
+        fee += holidaySurcharge;
+        breakdown.holiday_surcharge = holidaySurcharge;
+      }
     }
 
     if (context.is_peak_hour) {
@@ -14893,7 +15375,7 @@ export class ApiEngine {
       fee = 0;
     }
 
-    return { total_fee: Math.max(0, fee), breakdown, zone_name: assignedZone.name };
+    return { total_fee: Math.max(0, fee), breakdown, zone_name: assignedZone.name, pricing_mode: pricingMode, bracket_label: bracketLabel };
   }
 
   static resolveSmartBranch(query: {
@@ -14919,6 +15401,10 @@ export class ApiEngine {
     blockedReason?: string;
     reasonCode?: string;
     zoneName?: string;
+    zone?: DeliveryZone;
+    distanceKm?: number;
+    pricingMode?: string;
+    bracketLabel?: string;
   } {
     const rawBranches = ApiEngine.listBranches();
     const branches = rawBranches.map(b => normalizeBranchOperations(b));
@@ -14954,8 +15440,14 @@ export class ApiEngine {
 
     const operational = branches.filter((b: any) => {
       if (b.is_open === false) return false;
+      if (b.is_archived === true || b.status === "archived") return false;
       const status = b.extended_status || b.operational_status;
       if (status === "closed" || status === "temporary_closure" || status === "maintenance" || status === "emergency_closed") return false;
+
+      // Stores lacking valid coordinates cannot participate in map-first delivery resolution (Section 33)
+      if (typeof b.latitude !== "number" || typeof b.longitude !== "number" || isNaN(b.latitude) || isNaN(b.longitude) || b.latitude < -90 || b.latitude > 90 || b.longitude < -180 || b.longitude > 180) {
+        return false;
+      }
 
       // Check branch-specific product availability override (AVAILABLE / OUT_OF_STOCK / HIDDEN)
       if (query.productId && b.product_availability && b.product_availability[query.productId]) {
@@ -14989,15 +15481,14 @@ export class ApiEngine {
     // Authoritative Candidate Branch & Zone Resolution
     let candidates: Array<{ branch: BranchItem; distanceKm: number; matchedBy: string; zone?: DeliveryZone }> = [];
 
-    // ── PATH A: Coordinate-based Map-Fencing Resolution (Strict Priority) ─────
+    // ── PATH A: Coordinate-based Map-Fencing Resolution (Authoritative Delivery Flow) ─────
     if (query.lat !== undefined || query.lng !== undefined) {
       const isValidLat = typeof query.lat === "number" && !isNaN(query.lat) && isFinite(query.lat) && query.lat >= -90 && query.lat <= 90 && query.lat !== 999.999;
       const isValidLng = typeof query.lng === "number" && !isNaN(query.lng) && isFinite(query.lng) && query.lng >= -180 && query.lng <= 180 && query.lng !== 999.999;
 
       if (!isValidLat || !isValidLng) {
-        const fb = branches[0] || DEFAULT_BRANCHES[0];
         return {
-          branch: fb,
+          branch: null as any,
           resolvedBy: "invalid_coords",
           reasonCode: "INVALID_LOCATION",
           etaminutes: 0,
@@ -15013,200 +15504,158 @@ export class ApiEngine {
       const qLat = query.lat!;
       const qLng = query.lng!;
 
-      // 1. Check if coordinate falls within ANY active delivery exclusion polygon across operational branches
-      let exclusionBlocker: string | null = null;
-      for (const b of operational) {
-        const rawZones: DeliveryZone[] = (b as any).delivery_zones || [];
-        for (const z of rawZones) {
-          if (!z.enabled || !z.exclusion_polygons) continue;
-          try {
-            const exclusions = typeof z.exclusion_polygons === "string"
-              ? JSON.parse(z.exclusion_polygons)
-              : z.exclusion_polygons;
-            if (Array.isArray(exclusions)) {
-              for (const exPoly of exclusions) {
-                if (ApiEngine.isPointInPolygon(qLat, qLng, exPoly)) {
-                  exclusionBlocker = `Location (${qLat.toFixed(4)}, ${qLng.toFixed(4)}) falls within restricted exclusion zone (${z.name || "Restricted Area"}). Delivery is blocked for this perimeter.`;
-                  break;
-                }
-              }
-            }
-          } catch {}
-          if (exclusionBlocker) break;
-        }
-        if (exclusionBlocker) break;
-      }
-
-      if (exclusionBlocker) {
-        const fb = branches[0] || DEFAULT_BRANCHES[0];
-        return {
-          branch: fb,
-          resolvedBy: "blocked_area",
-          reasonCode: "INSIDE_EXCLUSION_ZONE",
-          etaminutes: 0,
-          deliveryFee: 0,
-          feeBreakdown: {},
-          partnerSequence: [],
-          candidatesEvaluated: operational.length,
-          blockedReason: exclusionBlocker,
-          zoneName: "Restricted Exclusion Zone",
-        };
-      }
-
-      // 2. Evaluate all active operational branch zones (Polygon & Radius with Priority)
+      // Evaluate each operational branch: map-coverage (Polygon & Radius) and exclusions per store/zone
       operational.forEach((b: any) => {
+        // If a specific store was requested, enforce it
+        if (query.branchId && b.id !== query.branchId && b.code !== query.branchId) {
+          return;
+        }
+
         const rawZones: DeliveryZone[] = b.delivery_zones || [];
         // Sort zones by explicit priority DESC, then display_order ASC
         const zones = [...rawZones].sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0) || (a.display_order ?? 0) - (b.display_order ?? 0));
 
         for (const z of zones) {
           if (!z.enabled) continue;
-          const matchRes = ApiEngine.isPointInZone(qLat, qLng, z);
+          const matchRes = ApiEngine.isPointInZone(qLat, qLng, z, b);
           if (matchRes.matched) {
-            const dist = matchRes.distanceKm ?? 2.5;
+            // Calculate real geographic distance from customer coordinate to store coordinates
+            const dist = (typeof b.latitude === "number" && typeof b.longitude === "number")
+              ? ApiEngine.calculateHaversineDistance(b.latitude, b.longitude, qLat, qLng)
+              : (matchRes.distanceKm ?? 2.5);
+
+            // Check Product-Specific Maximum Delivery Distance Restriction for Candidate Store
+            if (query.productId) {
+              const prod = ApiEngine.getProductById(query.productId) || ApiEngine.getProductBySlug(query.productId);
+              const maxDist = (prod as any)?.max_delivery_distance_km ?? (prod as any)?.pim_config?.max_delivery_distance_km;
+              if (maxDist != null && maxDist > 0 && dist > maxDist) {
+                continue; // Product cannot travel this far from this candidate store
+              }
+            }
+
             candidates.push({
               branch: b,
               distanceKm: dist,
               matchedBy: `geofence_${z.fence_type || "ZONE"}_${z.name}`,
               zone: z,
             });
-            break; // Highest priority zone matched for this branch
+            break; // Highest priority zone matched for this store
           }
         }
       });
 
-      // When coordinates are provided, IF no polygon/geofence matches, customer is STRICTLY unserviceable
-      // (Do NOT fall back to pincode matching when coordinates are explicitly outside)
+      // If no candidate store matched the customer's coordinates
       if (candidates.length === 0) {
-        const fb = branches[0] || DEFAULT_BRANCHES[0];
+        // Check if customer coordinate falls inside an exclusion zone for diagnostic messaging
+        let insideExclusion = false;
+        for (const b of operational) {
+          for (const z of (b.delivery_zones || [])) {
+            if (z.exclusion_polygons) {
+              try {
+                const exList = typeof z.exclusion_polygons === "string" ? JSON.parse(z.exclusion_polygons) : z.exclusion_polygons;
+                if (Array.isArray(exList) && exList.some(ex => ApiEngine.isPointInPolygon(qLat, qLng, ex))) {
+                  insideExclusion = true;
+                  break;
+                }
+              } catch {}
+            }
+          }
+          if (insideExclusion) break;
+        }
+
         return {
-          branch: fb,
+          branch: null as any,
           resolvedBy: "unserviceable_coords",
-          reasonCode: "OUTSIDE_DELIVERY_ZONE",
+          reasonCode: insideExclusion ? "INSIDE_EXCLUSION_ZONE" : "NO_ELIGIBLE_STORE",
           etaminutes: 0,
           deliveryFee: 0,
           feeBreakdown: {},
           partnerSequence: [],
           candidatesEvaluated: operational.length,
-          blockedReason: "Your location is outside our current bakery delivery coverage zones.",
+          blockedReason: insideExclusion
+            ? "This location falls within a restricted delivery exclusion zone and cannot be serviced."
+            : "We currently don't deliver to this location.",
           zoneName: "Unserviceable Area",
         };
       }
-    } else {
-      // ── PATH B: Pincode / Area Text Fallback (ONLY when coordinates are NOT provided) ──
-      if (query.pincode) {
-        const globalPincodeMaps = ApiEngine.listPincodeMappings();
-        operational.forEach((b: any) => {
-          const matchingZone = (b.delivery_zones || []).find((z: DeliveryZone) => z.enabled && Array.isArray(z.pincodes) && z.pincodes.includes(query.pincode!));
-          if (matchingZone) {
-            candidates.push({ branch: b, distanceKm: (matchingZone.min_km + matchingZone.max_km) / 2, matchedBy: `pincode_zone_${matchingZone.name}`, zone: matchingZone });
-          } else if (b.pincode === query.pincode) {
-            candidates.push({ branch: b, distanceKm: 2.0, matchedBy: `branch_pincode_${query.pincode}` });
-          } else {
-            const mapMatch = globalPincodeMaps.find(
-              (m) =>
-                m.pincode === query.pincode &&
-                m.status === "active" &&
-                (m.branch_id === b.id ||
-                  m.branch_code === b.code ||
-                  (m.branch_id === "br_indiranagar" && (b.id === "br_indiranagar" || b.id === "res_01KXYMAHGFPRY1G9TZKEVGAGAT")) ||
-                  (m.branch_id === "br_koramangala" && (b.id === "br_koramangala" || b.id === "res_02KXYMAHGFPRY1G9TZKEVGAGAT")))
-            );
-            if (mapMatch) {
-              candidates.push({ branch: b, distanceKm: 3.0, matchedBy: `matrix_pincode_${query.pincode}` });
-            }
-          }
-        });
-      } else if (query.areaName) {
-        const qArea = query.areaName.toLowerCase();
-        operational.forEach((b: any) => {
-          const matchingZone = (b.delivery_zones || []).find((z: DeliveryZone) => z.enabled && Array.isArray(z.areas) && z.areas.some(a => a.toLowerCase().includes(qArea)));
-          if (matchingZone) {
-            candidates.push({ branch: b, distanceKm: 3.5, matchedBy: `area_zone_${matchingZone.name}`, zone: matchingZone });
-          } else if (Array.isArray(b.deliverable_areas) && b.deliverable_areas.some((a: string) => a.toLowerCase().includes(qArea))) {
-            candidates.push({ branch: b, distanceKm: 4.5, matchedBy: `area_${query.areaName}` });
-          }
-        });
-      }
 
-      if (candidates.length === 0) {
-        const fb = branches[0] || DEFAULT_BRANCHES[0];
+      // ── CRITICAL STORE SELECTION RULE: NEAREST ELIGIBLE STORE ─────────────────
+      // Sort strictly by geographic distance ASC, tie-breaking by configured store routing_priority DESC
+      candidates.sort((a, b) => (a.distanceKm - b.distanceKm) || ((b.branch.routing_priority ?? 0) - (a.branch.routing_priority ?? 0)));
+      const selected = candidates[0];
+      const eta = Math.max(20, Math.round(selected.distanceKm * 3.5 + 15));
+
+      const feeRes = ApiEngine.calculateDeliveryFee(selected.branch, {
+        zone_id: selected.zone?.id,
+        distance_km: selected.distanceKm,
+        is_express: query.isExpress,
+        is_midnight: query.isMidnight,
+        order_total: query.orderTotal,
+        area_fee_override: areaFeeOverride,
+      });
+
+      if (feeRes.pricing_mode === "unserviceable") {
         return {
-          branch: fb,
-          resolvedBy: query.pincode ? "unserviceable_pincode" : "unserviceable_location",
+          branch: selected.branch,
+          resolvedBy: "distance_exceeded",
           reasonCode: "OUTSIDE_DELIVERY_ZONE",
-          etaminutes: 45,
-          deliveryFee: 79,
-          feeBreakdown: { base: 79 },
-          partnerSequence: fb.partner_failover?.priority || ["porter", "rapido", "shadowfax", "own_fleet"],
-          candidatesEvaluated: 0,
-          blockedReason: query.pincode
-            ? `Delivery pincode ${query.pincode} is outside our current bakery delivery coverage zone.`
-            : "No CakeToHome bakery branch services this delivery location.",
-          zoneName: "Unserviceable Area",
+          etaminutes: 0,
+          deliveryFee: 0,
+          feeBreakdown: feeRes.breakdown,
+          partnerSequence: [],
+          candidatesEvaluated: candidates.length,
+          blockedReason: feeRes.bracket_label || "Delivery distance exceeds maximum serviceable limit.",
+          zoneName: feeRes.zone_name || "Unserviceable Area",
+          distanceKm: selected.distanceKm,
+          pricingMode: "unserviceable",
         };
       }
-    }
-
-    // If no candidate branches matched specific filters, fallback to all operational
-    if (candidates.length === 0) {
-      candidates = operational.map((b) => ({ branch: b, distanceKm: 6.0, matchedBy: "operational_fallback" }));
-    }
-
-    // Multi-Branch Scoring Algorithm
-    const scoredCandidates = candidates.map((item) => {
-      const b = item.branch;
-      const maxZoneKm = Math.max(...(b.delivery_zones || []).map((z: DeliveryZone) => z.max_km ?? 0), 10);
-      const distScore = Math.max(0, 1 - item.distanceKm / maxZoneKm) * 30;
-
-      const currentLoad = b.capacity_settings?.current_load || b.current_hourly_load || 0;
-      const maxLoad = b.capacity_settings?.max_hourly_orders || b.max_orders_per_hour || 25;
-      const loadScore = Math.max(0, 1 - currentLoad / maxLoad) * 25;
-
-      const rating = b.analytics_summary?.rating || 4.8;
-      const ratingScore = (rating / 5) * 20;
-
-      const eta = Math.max(25, Math.round(item.distanceKm * 4 + 20));
-      const etaScore = Math.max(0, 1 - eta / 60) * 15;
-
-      const priorityBoost = Math.min(10, (b.routing_priority || 0) * 1.5);
-      const totalScore = Math.round((distScore + loadScore + ratingScore + etaScore + priorityBoost) * 10) / 10;
 
       return {
-        ...item,
-        etaMinutes: eta,
-        totalScore,
-        scoringBreakdown: { distScore, loadScore, ratingScore, etaScore, priorityBoost },
+        branch: selected.branch,
+        resolvedBy: selected.matchedBy,
+        etaminutes: eta,
+        deliveryFee: feeRes.total_fee,
+        feeBreakdown: feeRes.breakdown,
+        partnerSequence: selected.branch.partner_failover?.priority || selected.branch.delivery_partner_priority || ["porter", "rapido", "shadowfax", "own_fleet"],
+        candidatesEvaluated: candidates.length,
+        zoneName: feeRes.zone_name,
+        zone: selected.zone,
+        distanceKm: selected.distanceKm,
+        pricingMode: feeRes.pricing_mode,
+        bracketLabel: feeRes.bracket_label,
       };
-    });
-
-    scoredCandidates.sort((a, b) => b.totalScore - a.totalScore);
-    const selected = scoredCandidates[0];
-
-    const feeRes = ApiEngine.calculateDeliveryFee(selected.branch, {
-      pincode: query.pincode,
-      zone_id: selected.zone?.id,
-      distance_km: selected.distanceKm,
-      is_express: query.isExpress,
-      is_midnight: query.isMidnight,
-      order_total: query.orderTotal,
-      area_fee_override: areaFeeOverride,
-    });
-
-    return {
-      branch: selected.branch,
-      resolvedBy: selected.matchedBy,
-      etaminutes: selected.etaMinutes,
-      deliveryFee: feeRes.total_fee,
-      feeBreakdown: feeRes.breakdown,
-      partnerSequence: selected.branch.partner_failover?.priority || selected.branch.delivery_partner_priority || ["porter", "rapido", "shadowfax", "own_fleet"],
-      candidatesEvaluated: scoredCandidates.length,
-      scoringBreakdown: selected.scoringBreakdown,
-      zoneName: feeRes.zone_name,
-    };
+    } else {
+      // ── PATH B: No coordinates provided — DO NOT silently fall back to pincode ──
+      return {
+        branch: null as any,
+        resolvedBy: "location_required",
+        reasonCode: "LOCATION_REQUIRED",
+        etaminutes: 0,
+        deliveryFee: 0,
+        feeBreakdown: {},
+        partnerSequence: [],
+        candidatesEvaluated: 0,
+        blockedReason: "Please select your delivery location on the map to verify serviceability.",
+        zoneName: "Location Required",
+      };
+    }
   }
 
-  static getDeliverySlots(branchId: string, dateStr: string, mode: "delivery" | "pickup" = "delivery"): {
+  static getDeliverySlots(
+    branchId: string,
+    dateStr: string,
+    mode: "delivery" | "pickup" = "delivery",
+    options?: {
+      zone?: DeliveryZone;
+      deliveryMode?: "standard" | "express" | "midnight" | "pickup" | "all";
+      prepTimeMins?: number;
+      dispatchBufferMins?: number;
+      slotDurationMins?: number;
+      slotIntervalMins?: number;
+      slotCapacity?: number;
+    }
+  ): {
     status: string;
     message?: string;
     is_open: boolean;
@@ -15217,11 +15666,16 @@ export class ApiEngine {
       end_time: string;
       slot_type: "standard" | "express" | "midnight" | "pickup";
       extra_charge: number;
+      extra_fee: number;
       max_capacity: number;
       booked_count: number;
       remaining_capacity: number;
       available: boolean;
-      status: "AVAILABLE" | "FULL" | "PAST_CUTOFF" | "CLOSED";
+      is_available: boolean;
+      status: "AVAILABLE" | "FULL" | "PAST_CUTOFF" | "CLOSED" | "PREP_TIME_EXCEEDED";
+      reason_code?: string;
+      reason_message?: string;
+      cutoff?: string;
     }>;
   } {
     const rawBranch = ApiEngine.getBranchById(branchId) || ApiEngine.listBranches()[0] || DEFAULT_BRANCHES[0];
@@ -15232,7 +15686,8 @@ export class ApiEngine {
     const dayOfWeek = targetDate.toLocaleDateString("en-US", { weekday: "long" });
 
     const now = new Date();
-    const isToday = now.toISOString().slice(0, 10) === dateIso;
+    const todayIso = now.toISOString().slice(0, 10);
+    const isToday = todayIso === dateIso;
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
     // 1. Overall Branch Status Check
@@ -15303,23 +15758,21 @@ export class ApiEngine {
         : [{ open: "09:00", close: "23:00" }];
     }
 
-    // 6. Fulfillment Rules & Slot Configuration
+    // 6. Fulfillment Rules & Cascading Slot Configuration (Global -> Store -> Zone)
     const store = ApiEngine.getStore();
     ensureFulfillmentStore(store);
     const provider = createApiEngineProvider(store);
     const globalConfig = provider.getGlobalConfig();
+    const zone = options?.zone;
 
     let corporateCutoff = globalConfig.global_order_cutoff_time || "18:00";
     if (globalConfig.emergency_override_active) {
-      const now = new Date();
       const startValid = !globalConfig.emergency_override_start_time || new Date(globalConfig.emergency_override_start_time) <= now;
       const endValid = !globalConfig.emergency_override_end_time || new Date(globalConfig.emergency_override_end_time) >= now;
       if (startValid && endValid && globalConfig.emergency_override_cutoff_time) {
         corporateCutoff = globalConfig.emergency_override_cutoff_time;
       }
     }
-    const corporateCutoffMinutes = timeStringToMinutes(corporateCutoff);
-    const isPastCorporateCutoff = isToday && currentMinutes >= corporateCutoffMinutes;
 
     const rules: BranchFulfillmentRules = branch.fulfillment_rules || {
       prep_time_mins: 30,
@@ -15342,9 +15795,28 @@ export class ApiEngine {
       allow_delivery: true,
     };
 
-    const slotDuration = mode === "pickup" ? (rules.pickup_slot_duration_mins || 60) : (rules.slot_duration_mins || 60);
-    const defaultCapacity = mode === "pickup" ? (rules.pickup_slot_capacity || 30) : (rules.slot_capacity || 15);
-    const minLeadTime = rules.prep_time_mins + rules.dispatch_buffer_mins;
+    // Store Cutoff & Zone Cutoff
+    const storeCutoff = (rules as any).same_day_cutoff_time || (rules as any).order_cutoff_time || corporateCutoff;
+    const effectiveCutoff = (zone as any)?.cutoff_time || storeCutoff || corporateCutoff;
+    const effectiveCutoffMinutes = timeStringToMinutes(effectiveCutoff);
+    const isPastCutoff = isToday && currentMinutes >= effectiveCutoffMinutes;
+
+    // Slot duration, interval, capacity with Cascading Hierarchy
+    const slotDuration = options?.slotDurationMins || (mode === "pickup"
+      ? (rules.pickup_slot_duration_mins || 60)
+      : ((zone as any)?.slot_duration_mins || rules.slot_duration_mins || globalConfig.slot_duration_minutes || 60));
+
+    const slotInterval = options?.slotIntervalMins || (mode === "pickup"
+      ? (rules.pickup_slot_duration_mins || 60)
+      : ((zone as any)?.slot_interval_mins || (rules as any).slot_interval_mins || globalConfig.slot_interval_minutes || slotDuration || 60));
+
+    const defaultCapacity = options?.slotCapacity || (mode === "pickup"
+      ? (rules.pickup_slot_capacity || 30)
+      : ((zone as any)?.slot_capacity || rules.slot_capacity || globalConfig.max_slots_per_window || 10));
+
+    const prepMins = options?.prepTimeMins ?? rules.prep_time_mins ?? 30;
+    const bufferMins = options?.dispatchBufferMins ?? rules.dispatch_buffer_mins ?? 15;
+    const minLeadTime = prepMins + bufferMins;
 
     // 7. Calculate Real Booked Counts from Persisted Orders
     const allOrders = memoryStore.orders || [];
@@ -15370,24 +15842,39 @@ export class ApiEngine {
       minimum_lead_time_minutes: 45,
       subject_to_corporate_cutoff: true,
       special_order_cutoff: null,
+      same_day_only: true,
+      max_days_ahead: 0,
+      max_capacity: 5,
     };
-    const expressEnabled = rules.express_enabled !== false && expressConfig.enabled !== false;
-    if (mode === "delivery" && expressEnabled) {
+
+    const isExpressGloballyEnabled = expressConfig.enabled !== false;
+    const isExpressStoreEnabled = rules.express_enabled !== false;
+    const isExpressZoneEnabled = zone?.express_allowed !== false;
+    const isExpressEnabled = isExpressGloballyEnabled && isExpressStoreEnabled && isExpressZoneEnabled;
+
+    const isExpressSameDayOnly = (rules as any).express_same_day_only !== undefined
+      ? (rules as any).express_same_day_only
+      : (expressConfig.same_day_only !== false);
+
+    // Calculate day difference from today
+    const msDiff = targetDate.getTime() - new Date(todayIso).getTime();
+    const dayOffset = Math.round(msDiff / (1000 * 60 * 60 * 24));
+    const isExpressAllowedForDate = isToday || (!isExpressSameDayOnly && dayOffset <= (expressConfig.max_days_ahead || 0));
+
+    if (mode === "delivery" && isExpressEnabled && isExpressAllowedForDate && (options?.deliveryMode === undefined || options.deliveryMode === "all" || options.deliveryMode === "express")) {
       const expressBooked = bookedCounts["SLOT_EXPRESS_45MIN"] || bookedCounts["slot_express"] || 0;
-      const expressMax = 10;
+      const expressMax = (rules as any).express_capacity || expressConfig.max_capacity || 5;
       const expressRemaining = Math.max(0, expressMax - expressBooked);
 
-      const expCutoffTime = !expressConfig.subject_to_corporate_cutoff && expressConfig.special_order_cutoff
-        ? expressConfig.special_order_cutoff
-        : corporateCutoff;
+      const expCutoffTime = (rules as any).express_cutoff_time || (zone as any)?.express_cutoff_time || (!expressConfig.subject_to_corporate_cutoff && expressConfig.special_order_cutoff ? expressConfig.special_order_cutoff : effectiveCutoff);
       const expCutoffMinutes = timeStringToMinutes(expCutoffTime);
 
-      const expStartMin = timeStringToMinutes(expressConfig.start_time || "09:00");
-      const expEndMin = timeStringToMinutes(expressConfig.end_time || "21:00");
+      const expStartMin = timeStringToMinutes((rules as any).express_start_time || expressConfig.start_time || "09:00");
+      const expEndMin = timeStringToMinutes((rules as any).express_end_time || expressConfig.end_time || "21:00");
       const isExpressInOperatingHours = currentMinutes >= expStartMin && currentMinutes <= expEndMin;
 
       let expAvailable = true;
-      let expStatus = "AVAILABLE";
+      let expStatus: any = "AVAILABLE";
       let expReasonCode = "AVAILABLE";
       let expReasonMsg = "";
 
@@ -15396,7 +15883,7 @@ export class ApiEngine {
           expAvailable = false;
           expStatus = "PAST_CUTOFF";
           expReasonCode = expressConfig.subject_to_corporate_cutoff ? "CORPORATE_CUTOFF_PASSED" : "SPECIAL_CUTOFF_PASSED";
-          expReasonMsg = `Express ordering closed (cutoff: ${formatTimeForDisplay(expCutoffTime)})`;
+          expReasonMsg = `Express ordering closed for today (cutoff: ${formatTimeForDisplay(expCutoffTime)})`;
         } else if (!isExpressInOperatingHours) {
           expAvailable = false;
           expStatus = "CLOSED";
@@ -15417,14 +15904,14 @@ export class ApiEngine {
         expReasonMsg = "Express slots fully booked";
       }
 
-      const expCharge = rules.express_surcharge ?? expressConfig.surcharge ?? 99;
+      const expCharge = zone?.express_charge ?? rules.express_surcharge ?? expressConfig.surcharge ?? 99;
       const expDisplayName = expressConfig.display_name || "⚡ Express 45-Min Delivery (Priority Courier)";
 
       slots.push({
         id: "SLOT_EXPRESS_45MIN",
         slot_name: expDisplayName,
-        start_time: "Now",
-        end_time: "+45 Min",
+        start_time: isToday ? "Now" : (expressConfig.start_time || "09:00"),
+        end_time: isToday ? "+45 Min" : minutesToTimeString(timeStringToMinutes(expressConfig.start_time || "09:00") + 45),
         slot_type: "express",
         extra_charge: expCharge,
         extra_fee: expCharge,
@@ -15441,93 +15928,103 @@ export class ApiEngine {
     }
 
     // 9. Standard Windows Generation
-    windows.forEach((win) => {
-      const [startH, startM] = win.open.split(":").map(Number);
-      const [endH, endM] = win.close.split(":").map(Number);
-      const winStartMin = (startH || 0) * 60 + (startM || 0);
-      const winEndMin = (endH || 0) * 60 + (endM || 0);
+    if (options?.deliveryMode === undefined || options.deliveryMode === "all" || options.deliveryMode === "standard" || options.deliveryMode === "pickup") {
+      windows.forEach((win) => {
+        const [startH, startM] = win.open.split(":").map(Number);
+        const [endH, endM] = win.close.split(":").map(Number);
+        let winStartMin = (startH || 0) * 60 + (startM || 0);
+        let winEndMin = (endH || 0) * 60 + (endM || 0);
 
-      for (let sMin = winStartMin; sMin + slotDuration <= winEndMin; sMin += slotDuration) {
-        const eMin = sMin + slotDuration;
-        const sH = Math.floor(sMin / 60);
-        const sM = sMin % 60;
-        const eH = Math.floor(eMin / 60);
-        const eM = eMin % 60;
+        // Zone Operating Hours Intersect
+        if (zone && (zone as any).delivery_start_time) {
+          winStartMin = Math.max(winStartMin, timeStringToMinutes((zone as any).delivery_start_time));
+        }
+        if (zone && (zone as any).delivery_end_time) {
+          winEndMin = Math.min(winEndMin, timeStringToMinutes((zone as any).delivery_end_time));
+        }
 
-        const startStr = `${String(sH).padStart(2, "0")}:${String(sM).padStart(2, "0")}`;
-        const endStr = `${String(eH).padStart(2, "0")}:${String(eM).padStart(2, "0")}`;
+        for (let sMin = winStartMin; sMin + slotDuration <= winEndMin; sMin += slotInterval) {
+          const eMin = sMin + slotDuration;
+          const sH = Math.floor(sMin / 60);
+          const sM = sMin % 60;
+          const eH = Math.floor(eMin / 60);
+          const eM = eMin % 60;
 
-        const formatTime = (h: number, m: number) => {
-          const ampm = h >= 12 ? "PM" : "AM";
-          const h12 = h % 12 === 0 ? 12 : h % 12;
-          return `${String(h12).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
-        };
+          const startStr = `${String(sH).padStart(2, "0")}:${String(sM).padStart(2, "0")}`;
+          const endStr = `${String(eH).padStart(2, "0")}:${String(eM).padStart(2, "0")}`;
 
-        const label = mode === "pickup"
-          ? `Store Pickup (${formatTime(sH, sM)} - ${formatTime(eH, eM)})`
-          : `${formatTime(sH, sM)} - ${formatTime(eH, eM)}`;
+          const formatTime = (h: number, m: number) => {
+            const ampm = h >= 12 ? "PM" : "AM";
+            const h12 = h % 12 === 0 ? 12 : h % 12;
+            return `${String(h12).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
+          };
 
-        const slotId = `SLOT_${mode.toUpperCase()}_${startStr.replace(":", "")}_${endStr.replace(":", "")}`;
-        const booked = bookedCounts[slotId] || 0;
-        const remaining = Math.max(0, defaultCapacity - booked);
+          const label = mode === "pickup"
+            ? `Store Pickup (${formatTime(sH, sM)} - ${formatTime(eH, eM)})`
+            : `${formatTime(sH, sM)} - ${formatTime(eH, eM)}`;
 
-        let isPast = false;
-        let reasonCode = "AVAILABLE";
-        let reasonMessage = "";
-        let status = "AVAILABLE";
+          const slotId = `SLOT_${mode.toUpperCase()}_${startStr.replace(":", "")}_${endStr.replace(":", "")}`;
+          const booked = bookedCounts[slotId] || 0;
+          const remaining = Math.max(0, defaultCapacity - booked);
 
-        if (isToday) {
-          if (globalConfig.global_same_day_delivery_enabled === false) {
-            isPast = true;
-            status = "PAST_CUTOFF";
-            reasonCode = "SAME_DAY_DISABLED";
-            reasonMessage = "Same-day delivery is disabled";
-          } else if (isPastCorporateCutoff) {
-            isPast = true;
-            status = "PAST_CUTOFF";
-            reasonCode = "CORPORATE_CUTOFF_PASSED";
-            reasonMessage = `Same-day ordering closed (cutoff: ${formatTimeForDisplay(corporateCutoff)})`;
-          } else if (currentMinutes + minLeadTime > sMin) {
-            isPast = true;
-            status = "PREP_TIME_EXCEEDED";
-            reasonCode = "PRODUCT_PREP_TIME";
-            reasonMessage = `Insufficient preparation time remaining (${rules.prep_time_mins}m prep)`;
+          let isPast = false;
+          let reasonCode = "AVAILABLE";
+          let reasonMessage = "";
+          let status: any = "AVAILABLE";
+
+          if (isToday) {
+            if (globalConfig.global_same_day_delivery_enabled === false || rules.same_day_allowed === false || zone?.same_day_allowed === false) {
+              isPast = true;
+              status = "PAST_CUTOFF";
+              reasonCode = "SAME_DAY_DISABLED";
+              reasonMessage = "Same-day delivery is disabled";
+            } else if (isPastCutoff) {
+              isPast = true;
+              status = "PAST_CUTOFF";
+              reasonCode = "CORPORATE_CUTOFF_PASSED";
+              reasonMessage = `Same-day ordering closed (cutoff: ${formatTimeForDisplay(effectiveCutoff)})`;
+            } else if (currentMinutes + minLeadTime > sMin) {
+              isPast = true;
+              status = "PREP_TIME_EXCEEDED";
+              reasonCode = "PRODUCT_PREP_TIME";
+              reasonMessage = `Requires ${prepMins}m prep + ${bufferMins}m transit`;
+            }
           }
+
+          const isPausedTime = isToday && Boolean(branch.temporary_closure?.is_paused);
+          if (isPausedTime) {
+            status = "CLOSED";
+            reasonCode = "STORE_CLOSED";
+            reasonMessage = branch.temporary_closure?.reason || "Kitchen temporarily paused";
+          } else if (remaining <= 0) {
+            status = "FULL";
+            reasonCode = "SLOT_CAPACITY_FULL";
+            reasonMessage = "Slot capacity full";
+          }
+
+          const available = !isPast && !isPausedTime && remaining > 0;
+
+          slots.push({
+            id: slotId,
+            slot_name: label,
+            start_time: startStr,
+            end_time: endStr,
+            slot_type: mode === "pickup" ? "pickup" : "standard",
+            extra_charge: 0,
+            extra_fee: 0,
+            max_capacity: defaultCapacity,
+            booked_count: booked,
+            remaining_capacity: remaining,
+            available,
+            is_available: available,
+            status,
+            reason_code: reasonCode,
+            reason_message: reasonMessage,
+            cutoff: isToday ? effectiveCutoff : undefined,
+          });
         }
-
-        const isPausedTime = isToday && Boolean(branch.temporary_closure?.is_paused);
-        if (isPausedTime) {
-          status = "CLOSED";
-          reasonCode = "STORE_CLOSED";
-          reasonMessage = branch.temporary_closure?.reason || "Kitchen temporarily paused";
-        } else if (remaining <= 0) {
-          status = "FULL";
-          reasonCode = "SLOT_CAPACITY_FULL";
-          reasonMessage = "Slot capacity full";
-        }
-
-        const available = !isPast && !isPausedTime && remaining > 0;
-
-        slots.push({
-          id: slotId,
-          slot_name: label,
-          start_time: startStr,
-          end_time: endStr,
-          slot_type: mode === "pickup" ? "pickup" : "standard",
-          extra_charge: 0,
-          extra_fee: 0,
-          max_capacity: defaultCapacity,
-          booked_count: booked,
-          remaining_capacity: remaining,
-          available,
-          is_available: available,
-          status,
-          reason_code: reasonCode,
-          reason_message: reasonMessage,
-          cutoff: isToday ? corporateCutoff : undefined,
-        });
-      }
-    });
+      });
+    }
 
     // 10. Late-Night / Midnight Delivery Slot (Delivery Only)
     const lateNightConfig = globalConfig.late_night_delivery || {
@@ -15644,31 +16141,68 @@ export class ApiEngine {
     const qLat = query.latitude !== undefined ? Number(query.latitude) : query.lat !== undefined ? Number(query.lat) : undefined;
     const qLng = query.longitude !== undefined ? Number(query.longitude) : query.lng !== undefined ? Number(query.lng) : undefined;
 
+    const store = ApiEngine.getStore();
+    ensureFulfillmentStore(store);
+    const globalFulfillmentConfig = store.fulfillment_config || {};
+    const isGlobalPickupEnabled = globalFulfillmentConfig.store_pickup_enabled !== false;
+    const pickupConvenienceFee = Number(globalFulfillmentConfig.store_pickup_convenience_fee || 0);
+
     let servicingBranch: BranchItem | null = null;
     let deliveryFee = 0;
     let zoneName = "Standard Area";
     let isServiceable = false;
     let statusMessage = "";
+    let distanceKm: number | null = null;
+    let etaMinutes: number = 35;
+
+    let resolvedZone: DeliveryZone | undefined = undefined;
 
     if (deliveryType === "pickup") {
-      servicingBranch = query.branch_id ? (branches.find(b => b.id === query.branch_id) || branches[0]) : (branches[0] || DEFAULT_BRANCHES[0]);
-      deliveryFee = 0;
-      zoneName = "Branch Pickup (Direct Collection)";
-      isServiceable = Boolean(servicingBranch && servicingBranch.is_open);
-      statusMessage = isServiceable ? `Ready for pickup at ${servicingBranch.name}.` : "Selected pickup store is currently closed.";
+      if (!isGlobalPickupEnabled) {
+        servicingBranch = null;
+        deliveryFee = 0;
+        zoneName = "Branch Pickup";
+        isServiceable = false;
+        statusMessage = "Store pickup is currently disabled by bakery administration.";
+      } else {
+        const eligiblePickupBranches = branches.filter((b) => (b as any).status !== "inactive" && b.is_open !== false && (b as any).pickup_enabled !== false && (b as any).allow_pickup !== false);
+        servicingBranch = query.branch_id
+          ? (branches.find(b => b.id === query.branch_id) || eligiblePickupBranches[0] || branches[0])
+          : (eligiblePickupBranches[0] || branches[0] || DEFAULT_BRANCHES[0]);
+
+        const branchAllowsPickup = servicingBranch && (servicingBranch as any).pickup_enabled !== false && (servicingBranch as any).allow_pickup !== false;
+        const branchIsOpen = Boolean(servicingBranch && servicingBranch.is_open !== false && servicingBranch.operational_status !== "temporarily_closed" && servicingBranch.operational_status !== "permanently_closed");
+
+        if (!branchAllowsPickup) {
+          isServiceable = false;
+          statusMessage = `Store pickup is not available at ${servicingBranch.name}.`;
+        } else if (!branchIsOpen) {
+          isServiceable = false;
+          statusMessage = `${servicingBranch.name} is currently closed for store pickup.`;
+        } else {
+          isServiceable = true;
+          statusMessage = `Ready for pickup at ${servicingBranch.name}.`;
+        }
+        deliveryFee = pickupConvenienceFee;
+        zoneName = "Branch Pickup (Direct Collection)";
+      }
     } else {
-      if (query.pincode || (qLat !== undefined && qLng !== undefined)) {
+      if (qLat !== undefined && qLng !== undefined) {
         const resolved = ApiEngine.resolveSmartBranch({
-          pincode: query.pincode,
           lat: qLat,
           lng: qLng,
+          pincode: query.pincode,
           isExpress: query.slot_id?.includes("EXPRESS"),
           isMidnight: query.slot_id?.includes("MIDNIGHT"),
         });
-        if (resolved.blockedReason || resolved.resolvedBy === "unserviceable_pincode" || resolved.resolvedBy === "unserviceable_coords") {
+        distanceKm = resolved.distanceKm ?? null;
+        etaMinutes = resolved.etaminutes || 35;
+        resolvedZone = resolved.zone;
+        if (resolved.blockedReason || resolved.resolvedBy === "unserviceable_coords" || resolved.resolvedBy === "location_required" || !resolved.branch || (resolved as any).reasonCode === "NO_ELIGIBLE_STORE") {
           isServiceable = false;
-          statusMessage = resolved.blockedReason || `Selected location is not currently serviceable for home delivery.`;
-          servicingBranch = resolved.branch;
+          statusMessage = resolved.blockedReason || `We currently don't deliver to this location.`;
+          servicingBranch = null;
+          deliveryFee = 0;
         } else {
           isServiceable = true;
           servicingBranch = resolved.branch;
@@ -15677,27 +16211,27 @@ export class ApiEngine {
           statusMessage = `Fresh cake delivery available from ${resolved.branch.name}. ETA ~${resolved.etaminutes} mins.`;
         }
       } else {
-        servicingBranch = branches[0] || DEFAULT_BRANCHES[0];
+        servicingBranch = null;
         isServiceable = false;
-        statusMessage = "Please select or search your delivery location to check serviceability.";
+        statusMessage = "Please select your delivery location.";
+        deliveryFee = 0;
       }
     }
 
-    // Generate Next 14 Available Dates with Operational Health
+    // Generate Next 14 Available Dates with Operational Health (ONLY when serviceable)
     const availableDates: Array<{ date: string; label: string; is_available: boolean; reason?: string }> = [];
-    const today = new Date();
+    if (isServiceable && servicingBranch) {
+      const today = new Date();
+      for (let i = 0; i < 14; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
+        const dIso = d.toISOString().slice(0, 10);
+        const dName = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+        const dayLabel = i === 0 ? `Today (${dName})` : i === 1 ? `Tomorrow (${dName})` : dName;
 
-    for (let i = 0; i < 14; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() + i);
-      const dIso = d.toISOString().slice(0, 10);
-      const dName = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-      const dayLabel = i === 0 ? `Today (${dName})` : i === 1 ? `Tomorrow (${dName})` : dName;
+        let dateAvailable = true;
+        let dateReason: string | undefined = undefined;
 
-      let dateAvailable = true;
-      let dateReason: string | undefined = undefined;
-
-      if (servicingBranch) {
         const hol = (servicingBranch.holidays || []).find((h: BranchHoliday) => h.date === dIso);
         const spec = (servicingBranch.special_dates || []).find((s: BranchSpecialDate) => s.date === dIso);
         const dayOfWeek = d.toLocaleDateString("en-US", { weekday: "long" });
@@ -15713,24 +16247,22 @@ export class ApiEngine {
           dateAvailable = false;
           dateReason = `Closed on ${dayOfWeek}s`;
         }
+
+        availableDates.push({
+          date: dIso,
+          label: dayLabel,
+          is_available: dateAvailable,
+          reason: dateReason,
+        });
       }
 
-      availableDates.push({
-        date: dIso,
-        label: dayLabel,
-        is_available: dateAvailable,
-        reason: dateReason,
-      });
-    }
+      if (query.date && !availableDates.find(d => d.date === query.date)) {
+        const qd = new Date(query.date);
+        const qdIso = query.date.slice(0, 10);
+        const qdName = isNaN(qd.getTime()) ? query.date : qd.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+        let qdAvailable = true;
+        let qdReason: string | undefined = undefined;
 
-    if (query.date && !availableDates.find(d => d.date === query.date)) {
-      const qd = new Date(query.date);
-      const qdIso = query.date.slice(0, 10);
-      const qdName = isNaN(qd.getTime()) ? query.date : qd.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-      let qdAvailable = true;
-      let qdReason: string | undefined = undefined;
-
-      if (servicingBranch) {
         const hol = (servicingBranch.holidays || []).find((h: BranchHoliday) => h.date === qdIso);
         const spec = (servicingBranch.special_dates || []).find((s: BranchSpecialDate) => s.date === qdIso);
         const dayOfWeek = isNaN(qd.getTime()) ? "" : qd.toLocaleDateString("en-US", { weekday: "long" });
@@ -15746,20 +16278,52 @@ export class ApiEngine {
           qdAvailable = false;
           qdReason = `Closed on ${dayOfWeek}s`;
         }
-      }
 
-      availableDates.push({
-        date: qdIso,
-        label: qdName,
-        is_available: qdAvailable,
-        reason: qdReason,
-      });
+        availableDates.push({
+          date: qdIso,
+          label: qdName,
+          is_available: qdAvailable,
+          reason: qdReason,
+        });
+      }
     }
 
     const selectedDate = query.date || (availableDates.find(d => d.is_available)?.date || availableDates[0]?.date);
-    const slotsRes = servicingBranch
-      ? ApiEngine.getDeliverySlots(servicingBranch.id, selectedDate, deliveryType)
+    const slotsRes = (isServiceable && servicingBranch && selectedDate)
+      ? ApiEngine.getDeliverySlots(servicingBranch.id, selectedDate, deliveryType, { zone: resolvedZone })
       : { delivery_slots: [] };
+
+    // Available Delivery Modes Summary for Frontend
+    const availableDeliveryModes = isServiceable ? [
+      {
+        id: "standard",
+        name: "Standard Scheduled Delivery",
+        enabled: true,
+        surcharge: 0,
+        description: "Scheduled delivery in time window",
+      },
+      {
+        id: "express",
+        name: "Express 45-Min Delivery",
+        enabled: Boolean(slotsRes.delivery_slots.some((s: any) => s.slot_type === "express" && s.available)),
+        surcharge: slotsRes.delivery_slots.find((s: any) => s.slot_type === "express")?.extra_charge ?? 99,
+        description: "Priority courier dispatch (~45 mins, Same-day only)",
+      },
+      {
+        id: "midnight",
+        name: "Midnight Surprise Delivery",
+        enabled: Boolean(slotsRes.delivery_slots.some((s: any) => s.slot_type === "midnight" && s.available)),
+        surcharge: slotsRes.delivery_slots.find((s: any) => s.slot_type === "midnight")?.extra_charge ?? 199,
+        description: "Delivered 11:30 PM - 12:05 AM",
+      },
+      {
+        id: "pickup",
+        name: "Store Pickup",
+        enabled: Boolean(isGlobalPickupEnabled && servicingBranch && (servicingBranch as any).pickup_enabled !== false),
+        surcharge: pickupConvenienceFee,
+        description: pickupConvenienceFee === 0 ? "Collect directly from bakery hub (FREE)" : `Collect directly from bakery hub (₹${pickupConvenienceFee})`,
+      },
+    ] : [];
 
     // Cart and Pricing Breakdown
     const cart = query.cart_id ? ApiEngine.getCart(query.cart_id) : null;
@@ -15776,7 +16340,7 @@ export class ApiEngine {
     const slotSurcharge = selectedSlotObj?.extra_charge || 0;
 
     const netItems = Math.max(0, subtotal - discount);
-    const effectiveDeliveryFee = deliveryType === "pickup" ? 0 : (netItems >= 999 ? 0 : deliveryFee);
+    const effectiveDeliveryFee = (!isServiceable || deliveryType === "pickup") ? pickupConvenienceFee : (netItems >= 999 ? 0 : deliveryFee);
 
     const taxableValue = Math.round((netItems / 1.05) * 100) / 100;
     const tax = Math.round((netItems - taxableValue) * 100) / 100;
@@ -15786,13 +16350,20 @@ export class ApiEngine {
       success: true,
       serviceable: isServiceable,
       branch_id: servicingBranch?.id || null,
-      branch_name: servicingBranch?.name || "Flagship Hub",
+      branch_name: servicingBranch?.name || null,
+      store_lat: servicingBranch?.latitude,
+      store_lng: servicingBranch?.longitude,
+      distance_km: distanceKm,
+      eta_minutes: etaMinutes,
       delivery_type: deliveryType,
       zone_name: zoneName,
       status_message: statusMessage,
       operating_status: servicingBranch?.operational_status?.toUpperCase() || "OPERATIONAL",
-      available_dates: availableDates,
-      available_slots: slotsRes.delivery_slots,
+      available_dates: isServiceable ? availableDates : [],
+      available_slots: isServiceable ? slotsRes.delivery_slots : [],
+      available_delivery_modes: availableDeliveryModes,
+      store_pickup_enabled: isGlobalPickupEnabled,
+      store_pickup_convenience_fee: pickupConvenienceFee,
       pricing: {
         subtotal,
         discount,
@@ -15800,6 +16371,7 @@ export class ApiEngine {
         slot_surcharge: slotSurcharge,
         tax,
         grand_total: grandTotal,
+        distance_km: distanceKm,
       },
     };
   }
@@ -16921,23 +17493,6 @@ export class ApiEngine {
       cart = carts.find((c) => c.customer_uid === customerUid && c.status === "ACTIVE");
     }
 
-    if (!cart && cartId) {
-      try {
-        const filePath = getStoreFilePath();
-        if (fs.existsSync(filePath)) {
-          const raw = fs.readFileSync(filePath, "utf-8");
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed.carts)) {
-            const diskCart = parsed.carts.find((c: any) => c.id === cartId || c.cart_id === cartId || c.cart_uid === cartId);
-            if (diskCart) {
-              cart = diskCart;
-              memoryStore.carts.unshift(diskCart);
-            }
-          }
-        }
-      } catch {}
-    }
-
     if (!cart) {
       const newCartId = cartId || `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       cart = {
@@ -16997,6 +17552,12 @@ export class ApiEngine {
     const targetBranchId = item.branchId || item.branch_id || cart.branch_id;
     const targetPincode = item.pincode || cart.delivery_pincode;
 
+    // Canonical Product Lookup & Validation (No silent fallbacks)
+    const canonicalProduct = targetProdId ? (ApiEngine.getProductById(targetProdId) || ApiEngine.getProductBySlug(targetProdId)) : null;
+    if (targetProdId && !canonicalProduct && !ApiEngine.getAccessoryById(targetProdId)) {
+      throw new Error(`Unable to add item to cart: Product "${targetProdId}" was not found in catalog.`);
+    }
+
     if (targetProdId && (targetBranchId || targetPincode)) {
       let bId = targetBranchId;
       if (!bId && targetPincode) {
@@ -17013,31 +17574,64 @@ export class ApiEngine {
       }
     }
 
-    const existingItemIdx = cart.items.findIndex(
-      (i: any) => (i.product_id === (item.product_id || item.productId || item.id)) && i.variant_id === item.variant_id
-    );
+    const resolvedTitle = item.title || item.name || canonicalProduct?.title || canonicalProduct?.name;
+    if (!resolvedTitle) {
+      throw new Error(`Unable to add item to cart: Product title is missing and could not be resolved.`);
+    }
+
+    let unitPrice = Number(item.unit_price || item.price || item.metadata?.price || 0);
+    if ((!unitPrice || unitPrice <= 0) && canonicalProduct) {
+      const weightPrices = ApiEngine.getProductWeightPrices(canonicalProduct.id);
+      if (item.weight && Array.isArray(weightPrices)) {
+        const itemGrams = parseAndNormalizeWeight(item.weight).normalized_grams;
+        const wp = weightPrices.find((w: any) => (w.weight_name || w.weight) === item.weight || w.normalized_grams === itemGrams);
+        if (wp && (wp.selling_price || (wp as any).price)) {
+          unitPrice = Number(wp.selling_price || (wp as any).price);
+        }
+      }
+      if (!unitPrice || unitPrice <= 0) {
+        unitPrice = Number(canonicalProduct.price || canonicalProduct.selling_price || 0);
+      }
+    }
+
+    if (!unitPrice || unitPrice <= 0) {
+      throw new Error(`Unable to add item to cart: Price for "${resolvedTitle}" must be greater than zero.`);
+    }
+
+    const itemWeight = item.weight || (canonicalProduct as any)?.weight || "1 kg";
+    const canonicalProdId = canonicalProduct?.id || item.product_id || item.productId || targetProdId;
+    const variantId = item.variant_id || (canonicalProdId ? `var_${canonicalProdId}` : undefined);
+
+    const existingItemIdx = cart.items.findIndex((i: any) => {
+      const sameProd = (i.product_id === canonicalProdId || i.id === canonicalProdId);
+      const sameVariant = (item.variant_id && i.variant_id === item.variant_id);
+      const sameWeight = (!item.variant_id && (i.weight === itemWeight || parseAndNormalizeWeight(i.weight).normalized_grams === parseAndNormalizeWeight(itemWeight).normalized_grams));
+      return sameProd && (sameVariant || sameWeight);
+    });
 
     if (existingItemIdx >= 0) {
       cart.items[existingItemIdx].quantity += item.quantity || 1;
-      cart.items[existingItemIdx].total_price = cart.items[existingItemIdx].quantity * cart.items[existingItemIdx].unit_price;
+      cart.items[existingItemIdx].unit_price = unitPrice;
+      cart.items[existingItemIdx].price = unitPrice;
+      cart.items[existingItemIdx].total_price = cart.items[existingItemIdx].quantity * unitPrice;
+      cart.items[existingItemIdx].subtotal = cart.items[existingItemIdx].total_price;
     } else {
-      const unitPrice = Number(item.unit_price || item.price || 0);
       const qty = Number(item.quantity || 1);
       const itemSubtotal = unitPrice * qty;
       cart.items.push({
         id: item.id || `item_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-        product_id: item.product_id || item.productId || targetProdId,
-        variant_id: item.variant_id,
-        title: item.title || item.name || "Celebration Cake",
-        thumbnail: item.thumbnail || "",
+        product_id: canonicalProdId,
+        variant_id: variantId,
+        title: resolvedTitle,
+        thumbnail: canonicalProduct?.thumbnail || canonicalProduct?.images?.[0]?.url || item.thumbnail || "",
         unit_price: unitPrice,
         price: unitPrice,
         quantity: qty,
         total_price: itemSubtotal,
         subtotal: itemSubtotal,
-        weight: item.weight || "500g",
-        shape: item.shape || "Round",
-        flavour: item.flavour || "Classic",
+        weight: itemWeight,
+        shape: item.shape || null,
+        flavour: item.flavour || null,
         artisan: item.artisan ?? false,
         cake_message: item.cake_message || null,
         sugar_free: item.sugar_free ?? false,
@@ -19050,10 +19644,10 @@ export class ApiEngine {
     const evalMulti = ApiEngine.evaluateDeliveryFulfillmentMultiBranch({ pincode });
 
     if (!evalMulti.eligible) {
-      return products.map((p) => ({ ...p, is_available_for_pincode: false, serving_branch: "None" }));
+      return products.map((p: any) => ({ ...p, is_available_for_pincode: false, serving_branch: "None" }));
     }
 
-    return products.map((p, idx) => {
+    return products.map((p: any, idx: number) => {
       const isAvailable = idx % 5 !== 4;
       return {
         ...p,
@@ -19555,8 +20149,8 @@ export class ApiEngine {
 
   static getReportsSearch(query: Record<string, any> = {}) {
     const q = (query.q || query.search || "").toLowerCase();
-    const products = ApiEngine.listProducts().filter((p) => (p.title || p.name || "").toLowerCase().includes(q));
-    const branches = ApiEngine.listBranches().filter((b) => b.name.toLowerCase().includes(q));
+    const products = ApiEngine.listProducts().filter((p: any) => (p.title || p.name || "").toLowerCase().includes(q));
+    const branches = ApiEngine.listBranches().filter((b: any) => b.name.toLowerCase().includes(q));
 
     return {
       query: q,
@@ -20861,20 +21455,28 @@ export class ApiEngine {
   }): any {
     const errors: Array<{ code: string; message: string; field?: string; product_id?: string }> = [];
 
-    // 1. Cart Verification
-    const providedItems = (data as any).items || (data as any).cart_items || [];
-    let cart: any = {
-      id: data.cart_id || `cart_temp_${Date.now()}`,
-      items: Array.isArray(providedItems) && providedItems.length > 0 ? providedItems : [
-        {
-          id: "item_default",
-          product_id: "prod_1",
-          title: "Belgian Dark Chocolate Truffle Cake",
-          quantity: 1,
-          unit_price: 649,
-        }
-      ],
-    };
+    // 1. Cart Verification & Canonical Retrieval
+    let cart: any = null;
+    if (data.cart_id) {
+      cart = ApiEngine.getCart(data.cart_id, data.customer_id);
+    }
+    if (!cart || !Array.isArray(cart.items) || cart.items.length === 0) {
+      const providedItems = (data as any).items || (data as any).cart_items;
+      if (Array.isArray(providedItems) && providedItems.length > 0) {
+        cart = {
+          id: data.cart_id || `cart_temp_${Date.now()}`,
+          items: providedItems,
+        };
+      }
+    }
+
+    if (!cart || !Array.isArray(cart.items) || cart.items.length === 0) {
+      errors.push({
+        code: "EMPTY_CART",
+        message: "Your shopping cart is empty.",
+      });
+      cart = { id: data.cart_id || "cart_empty", items: [] };
+    }
 
     // 2. Address & Pincode & Coordinate Resolution
     const deliveryType = data.delivery_type || "pickup_or_delivery" || "delivery";
@@ -20893,8 +21495,8 @@ export class ApiEngine {
       }
     }
 
-    const rawLat = (data as any).latitude ?? (data as any).lat ?? data.address?.latitude ?? data.address?.lat;
-    const rawLng = (data as any).longitude ?? (data as any).lng ?? data.address?.longitude ?? data.address?.lng;
+    const rawLat = (data as any).latitude ?? (data as any).lat ?? (data as any).delivery_latitude ?? data.address?.latitude ?? data.address?.lat ?? data.address?.delivery_latitude;
+    const rawLng = (data as any).longitude ?? (data as any).lng ?? (data as any).delivery_longitude ?? data.address?.longitude ?? data.address?.lng ?? data.address?.delivery_longitude;
     const parsedLat = rawLat !== undefined && rawLat !== null && rawLat !== "" ? Number(rawLat) : undefined;
     const parsedLng = rawLng !== undefined && rawLng !== null && rawLng !== "" ? Number(rawLng) : undefined;
 
@@ -20935,6 +21537,7 @@ export class ApiEngine {
           pincode: pincode || undefined,
           lat: parsedLat,
           lng: parsedLng,
+          branchId: (data as any).branch_id || (data as any).branchId || undefined,
           isExpress: data.delivery_slot_id?.includes("EXPRESS"),
           isMidnight: data.delivery_slot_id?.includes("MIDNIGHT"),
         });
@@ -20961,6 +21564,24 @@ export class ApiEngine {
     const store = ApiEngine.getStore();
     ensureFulfillmentStore(store);
     const fulfillmentProvider = createApiEngineProvider(store);
+    const globalConfig = fulfillmentProvider.getGlobalConfig();
+
+    if (data.delivery_type === "pickup") {
+      if (globalConfig?.store_pickup_enabled === false) {
+        errors.push({
+          code: "STORE_PICKUP_DISABLED",
+          message: "Store pickup is currently disabled by bakery administration.",
+          field: "delivery_type",
+        });
+      } else if (branch && (branch.pickup_enabled === false || (branch as any).allow_pickup === false)) {
+        errors.push({
+          code: "BRANCH_PICKUP_DISABLED",
+          message: `Store pickup is not available at ${branch.name}.`,
+          field: "branch_id",
+        });
+      }
+    }
+
     const deliveryDateStr = data.delivery_date || new Date().toISOString().slice(0, 10);
     const cartFulfillment = FulfillmentEngine.calculateCartEligibility(
       {
@@ -21000,10 +21621,10 @@ export class ApiEngine {
     for (const item of cart.items) {
       const pId = item.product_id || item.id;
       const accItem = ApiEngine.getAccessoryById(pId);
-      const product = ApiEngine.getProductById(pId) || ApiEngine.getProductBySlug(pId) || accItem || DEFAULT_PRODUCTS[0];
+      const product = ApiEngine.getProductById(pId) || ApiEngine.getProductBySlug(pId) || accItem;
 
       if (!product && !accItem) {
-        errors.push({ code: "PRODUCT_NOT_FOUND", message: `Product ${item.title} was not found in catalog.`, product_id: pId });
+        errors.push({ code: "PRODUCT_NOT_FOUND", message: `Product "${item.title || pId}" was not found in catalog.`, product_id: pId });
         continue;
       }
 
@@ -21015,33 +21636,107 @@ export class ApiEngine {
           errors.push({
             code: "PRODUCT_UNAVAILABLE_AT_BRANCH",
             product_id: pId,
-            message: `"${item.title}" is out of stock at ${branch.name}. Please select another product.`,
+            message: `"${item.title || (product as any)?.title}" is out of stock at ${branch.name}. Please select another product.`,
           });
         } else if (st === "hidden" || st === "temporarily_hidden") {
           errors.push({
             code: "PRODUCT_HIDDEN_AT_BRANCH",
             product_id: pId,
-            message: `"${item.title}" is not available in your region (${branch.name}).`,
+            message: `"${item.title || (product as any)?.title}" is not available in your region (${branch.name}).`,
           });
         }
       }
 
-      // Check Product Zone Delivery Restrictions
-      const resolvedZoneId = branchRes?.zoneId || branchRes?.assigned_zone?.id || branchRes?.zone?.id || (branch?.delivery_zones || [])[0]?.id;
-      if (branch && resolvedZoneId && !accItem) {
-        const prodKeys = [pId, (item as any).product_id, (product as any)?.id, (product as any)?.product_id].filter(Boolean);
-        const isRestricted = prodKeys.some((k) => ApiEngine.isProductDeliveryRestricted(k, branch.id, resolvedZoneId));
-        if (isRestricted) {
+
+      // Check Product-Specific Maximum Delivery Distance Restriction
+      const productMaxDist = (product as any)?.max_delivery_distance_km ?? (product as any)?.pim_config?.max_delivery_distance_km;
+      if (productMaxDist != null && productMaxDist > 0 && branchRes?.distanceKm != null) {
+        if (branchRes.distanceKm > productMaxDist) {
           errors.push({
-            code: "PRODUCT_DELIVERY_RESTRICTED",
+            code: "PRODUCT_DISTANCE_EXCEEDED",
             product_id: pId,
-            message: "This product is not available for delivery to your selected location.",
+            message: `"${item.title || (product as any)?.title}" has a maximum delivery distance of ${productMaxDist} km (your distance is ${branchRes.distanceKm.toFixed(1)} km).`,
           });
+        }
+      }
+
+      // Check Product-Specific Shape, Flavor, Filling, and Cream Authority
+      if (product && !accItem) {
+        const pimConfig = (product as any)?.pim_config || {};
+        const allowedShapes: any[] = Array.isArray((product as any)?.shapes)
+          ? (product as any).shapes.filter((s: any) => s.status !== "archived" && s.is_enabled !== false)
+          : [];
+        const allowedFlavors: any[] = Array.isArray((product as any)?.flavors)
+          ? (product as any).flavors.filter((f: any) => f.status !== "archived" && f.is_enabled !== false)
+          : [];
+
+        if (item.shape) {
+          const isShapeActive = pimConfig.show_shape !== false && (product as any)?.enable_shape_selection !== false && allowedShapes.length > 0;
+          if (!isShapeActive) {
+            errors.push({
+              code: "SHAPE_SELECTION_DISABLED",
+              product_id: pId,
+              message: `Shape selection is not enabled for "${item.title || (product as any)?.title}".`,
+            });
+          } else {
+            const matchedShape = allowedShapes.find((s: any) => s.name === item.shape || s.display_name === item.shape || s.id === item.shape || s.shape_id === item.shape);
+            if (!matchedShape) {
+              errors.push({
+                code: "INVALID_SHAPE_OPTION",
+                product_id: pId,
+                message: `Shape "${item.shape}" is not an authorized option for "${item.title || (product as any)?.title}".`,
+              });
+            }
+          }
+        }
+
+        if (item.flavour || item.flavor) {
+          const targetFlv = item.flavour || item.flavor;
+          const isFlavourActive = pimConfig.show_flavour !== false && (product as any)?.enable_flavor_selection !== false && allowedFlavors.length > 0;
+          if (!isFlavourActive) {
+            errors.push({
+              code: "FLAVOR_SELECTION_DISABLED",
+              product_id: pId,
+              message: `Flavor selection is not enabled for "${item.title || (product as any)?.title}".`,
+            });
+          } else {
+            const matchedFlavour = allowedFlavors.find((f: any) => f.name === targetFlv || f.display_name === targetFlv || f.id === targetFlv || f.flavor_id === targetFlv);
+            if (!matchedFlavour) {
+              errors.push({
+                code: "INVALID_FLAVOR_OPTION",
+                product_id: pId,
+                message: `Flavor "${targetFlv}" is not an authorized option for "${item.title || (product as any)?.title}".`,
+              });
+            }
+          }
         }
       }
 
       const itemQty = Math.max(1, Number(item.quantity || 1));
-      const unitPrice = Number(item.unit_price || item.price || product.price || 599);
+      let unitPrice = Number(item.unit_price || item.price || 0);
+      if ((!unitPrice || unitPrice <= 0) && product) {
+        const weightPrices = ApiEngine.getProductWeightPrices((product as any).id);
+        if (item.weight && Array.isArray(weightPrices)) {
+          const itemGrams = parseAndNormalizeWeight(item.weight).normalized_grams;
+          const wp = weightPrices.find((w: any) => (w.weight_name || w.weight) === item.weight || w.normalized_grams === itemGrams);
+          if (wp && (wp.selling_price || (wp as any).price)) {
+            unitPrice = Number(wp.selling_price || (wp as any).price);
+          }
+        }
+        if (!unitPrice || unitPrice <= 0) {
+          unitPrice = Number((product as any).price || (product as any).selling_price || 0);
+        }
+      }
+
+      if (!unitPrice || unitPrice <= 0) {
+        errors.push({
+          code: "INVALID_PRODUCT_PRICE",
+          product_id: pId,
+          message: `Price for "${item.title || (product as any)?.title || pId}" must be greater than zero.`,
+        });
+        continue;
+      }
+
       const itemSubtotal = unitPrice * itemQty;
       grossItemsSubtotal += itemSubtotal;
 
@@ -21101,18 +21796,22 @@ export class ApiEngine {
       });
     }
 
-    const slotIdInput = data.delivery_slot_id || "";
-    const selectedSlot: any = slotIdInput
-      ? slots.find(
-          (s: any) =>
-            s.id === slotIdInput ||
-            s.id.toLowerCase() === slotIdInput.toLowerCase() ||
-            (slotIdInput.includes("1100_1200") && (s.id.includes("1100_1200") || (s.start_time === "11:00" && s.end_time === "12:00"))) ||
-            (slotIdInput.includes("2000_2100") && (s.id.includes("2000_2100") || (s.start_time === "20:00" && s.end_time === "21:00"))) ||
-            (slotIdInput.toLowerCase().includes("express") && s.slot_type === "express") ||
-            (slotIdInput.toLowerCase().includes("midnight") && s.slot_type === "midnight")
-        )
-      : null;
+    const slotIdInput = data.delivery_slot_id || (data as any).delivery_slot || (data as any).slot_id || "";
+    let selectedSlot: any = null;
+    if (slotIdInput) {
+      selectedSlot = slots.find(
+        (s: any) =>
+          s.id === slotIdInput ||
+          s.id.toLowerCase() === slotIdInput.toLowerCase() ||
+          (slotIdInput.includes("1100_1200") && (s.id.includes("1100_1200") || (s.start_time === "11:00" && s.end_time === "12:00"))) ||
+          (slotIdInput.includes("2000_2100") && (s.id.includes("2000_2100") || (s.start_time === "20:00" && s.end_time === "21:00"))) ||
+          (slotIdInput.toLowerCase().includes("express") && s.slot_type === "express") ||
+          (slotIdInput.toLowerCase().includes("midnight") && s.slot_type === "midnight") ||
+          (slotIdInput.toLowerCase().includes("eve") && (s.slot_type === "standard" || s.id.includes("eve") || (s.name && s.name.toLowerCase().includes("eve"))))
+      ) || null;
+    } else {
+      selectedSlot = slots[0] || null;
+    }
 
     if (slotIdInput && !selectedSlot) {
       errors.push({
@@ -21166,7 +21865,10 @@ export class ApiEngine {
     return {
       valid: errors.length === 0,
       errors,
+      subtotal: grossItemsSubtotal,
       item_total: grossItemsSubtotal,
+      items: validatedItems,
+      item_count: validatedItems.length,
       taxes: {
         ...taxContext,
         total_tax: Math.round(totalTaxAmount * 100) / 100,
@@ -21669,6 +22371,10 @@ export class ApiEngine {
     return orders.find((o) => o.id === orderId || o.order_number === orderId) || null;
   }
 
+  static getOrderById(orderId: string) {
+    return ApiEngine.getOrder(orderId);
+  }
+
   static getOrderDetails(orderId: string) {
     return ApiEngine.getOrder(orderId);
   }
@@ -21708,15 +22414,16 @@ export class ApiEngine {
     special_instructions?: string;
   }) {
     // 1. Revalidate everything authoritatively on server
-    const rawLatPayload = (payload as any).latitude ?? (payload as any).lat ?? payload.address?.latitude ?? payload.address?.lat;
-    const rawLngPayload = (payload as any).longitude ?? (payload as any).lng ?? payload.address?.longitude ?? payload.address?.lng;
+    const addrObj = payload.address || (payload as any).shipping_address || {};
+    const rawLatPayload = (payload as any).latitude ?? (payload as any).lat ?? (payload as any).delivery_latitude ?? addrObj.latitude ?? addrObj.lat ?? addrObj.delivery_latitude;
+    const rawLngPayload = (payload as any).longitude ?? (payload as any).lng ?? (payload as any).delivery_longitude ?? addrObj.longitude ?? addrObj.lng ?? addrObj.delivery_longitude;
 
     const validation = this.validateCheckout({
       ...payload,
       cart_id: payload.cart_id,
       customer_id: payload.customer_id,
-      address: payload.address || (payload as any).shipping_address,
-      pincode: payload.pincode || payload.address?.pincode || (payload as any).shipping_address?.pincode || (payload as any).delivery_pincode || "",
+      address: addrObj,
+      pincode: payload.pincode || addrObj.pincode || addrObj.postal_code || (payload as any).delivery_pincode || "",
       latitude: rawLatPayload,
       longitude: rawLngPayload,
       delivery_date: payload.delivery_date,
@@ -21794,19 +22501,20 @@ export class ApiEngine {
     });
     const customerUid = canonicalCustomer?.customer_uid || `cth_cus_${cleanCustomerPhone}`;
 
-    const rawLat = (payload as any).latitude ?? (payload as any).lat ?? payload.address?.latitude ?? payload.address?.lat;
-    const rawLng = (payload as any).longitude ?? (payload as any).lng ?? payload.address?.longitude ?? payload.address?.lng;
+    const addrObj2 = payload.address || (payload as any).shipping_address || {};
+    const rawLat = (payload as any).latitude ?? (payload as any).lat ?? (payload as any).delivery_latitude ?? addrObj2.latitude ?? addrObj2.lat ?? addrObj2.delivery_latitude;
+    const rawLng = (payload as any).longitude ?? (payload as any).lng ?? (payload as any).delivery_longitude ?? addrObj2.longitude ?? addrObj2.lng ?? addrObj2.delivery_longitude;
     const orderLat = rawLat !== undefined && rawLat !== null && rawLat !== "" ? Number(rawLat) : (validation as any).latitude ?? (validation as any).lat ?? null;
     const orderLng = rawLng !== undefined && rawLng !== null && rawLng !== "" ? Number(rawLng) : (validation as any).longitude ?? (validation as any).lng ?? null;
 
-    const deliveryAddressLine1 = payload.address?.line1 || payload.address?.address_1 || payload.address?.line_1 || payload.address?.address || "";
-    const deliveryAddressLine2 = payload.address?.line2 || payload.address?.address_2 || payload.address?.line_2 || "";
-    const deliveryArea = payload.address?.area || (validation as any).zone?.name || "";
-    const deliveryCity = payload.address?.city || branch.city || "";
-    const deliveryState = payload.address?.state || branch.state || "";
-    const deliveryPincode = payload.pincode || payload.address?.pincode || payload.address?.postal_code || branch.pincode || "";
-    const deliveryLandmark = payload.recipient_landmark || payload.address?.landmark || "";
-    const deliveryInstructions = payload.special_instructions || (payload as any).delivery_instructions || payload.address?.instructions || "";
+    const deliveryAddressLine1 = addrObj2.line1 || addrObj2.address_1 || addrObj2.line_1 || addrObj2.address || "";
+    const deliveryAddressLine2 = addrObj2.line2 || addrObj2.address_2 || addrObj2.line_2 || "";
+    const deliveryArea = addrObj2.area || (validation as any).zone?.name || "";
+    const deliveryCity = addrObj2.city || branch.city || "";
+    const deliveryState = addrObj2.state || branch.state || "";
+    const deliveryPincode = payload.pincode || addrObj2.pincode || addrObj2.postal_code || branch.pincode || "";
+    const deliveryLandmark = payload.recipient_landmark || addrObj2.landmark || "";
+    const deliveryInstructions = payload.special_instructions || (payload as any).delivery_instructions || addrObj2.instructions || "";
 
     const formattedDeliveryAddress = payload.recipient_address ||
       [deliveryAddressLine1, deliveryAddressLine2, deliveryArea, deliveryCity, deliveryState ? `${deliveryState} ${deliveryPincode}` : deliveryPincode]
@@ -21851,6 +22559,8 @@ export class ApiEngine {
       delivery_zone_id: (validation as any).zone?.id || (branch.delivery_zones && branch.delivery_zones[0]?.id) || "zone_core",
       delivery_zone_name: (validation as any).zone?.name || (branch.delivery_zones && branch.delivery_zones[0]?.name) || "Core Delivery Zone",
       delivery_mode: payload.delivery_type || "delivery",
+      distance_km: (validation as any).branchRes?.distanceKm ?? (validation as any).distance_km ?? (validation as any).deliveryContext?.distance_km ?? (typeof orderLat === "number" && typeof orderLng === "number" && typeof branch.latitude === "number" && typeof branch.longitude === "number" ? Number(ApiEngine.calculateHaversineDistance(branch.latitude, branch.longitude, orderLat, orderLng).toFixed(2)) : null),
+      location_source: (payload as any).location_source || (payload as any).source || payload.address?.source || (typeof orderLat === "number" && typeof orderLng === "number" ? "MAP_PIN" : "PINCODE_FALLBACK"),
       serviceability_result: (validation as any).branchRes?.resolvedBy || (validation as any).resolvedBy || "geofence_verified",
       eta_minutes: (validation as any).branchRes?.etaminutes || (validation as any).delivery?.estimated_minutes || 45,
       compliance_snapshot: {
@@ -21998,6 +22708,16 @@ export class ApiEngine {
     ApiEngine.addAuditLog(`New Order ${orderNumber} placed by ${customerName} (₹${newOrder.total}) -> Assigned to ${branch.name}`);
     ApiEngine.fireWebhookEvent("order.created", { order_id: newOrder.id, order_number: orderNumber, branch_id: branch.id });
     ApiEngine.persist();
+
+    // Direct PostgreSQL persistence for order and updated customer CRM record
+    persistOrderToDb(newOrder).catch((err) => {
+      console.error("[confirmCheckout] Failed to persist order to database:", err);
+    });
+    if (canonicalCustomer) {
+      persistCustomerToDb(canonicalCustomer).catch((err) => {
+        console.error("[confirmCheckout] Failed to persist customer update to database:", err);
+      });
+    }
 
     return {
       success: true,
@@ -23213,6 +23933,9 @@ export class ApiEngine {
     if (notes) order.notes = notes;
     order.updated_at = new Date().toISOString();
     ApiEngine.persist();
+    persistOrderToDb(order).catch((err) => {
+      console.error("[reassignOrderBranch] DB Error:", err);
+    });
     return { success: true, order };
   }
 
@@ -23224,6 +23947,9 @@ export class ApiEngine {
     if (timeSlot) order.delivery_slot = timeSlot;
     order.updated_at = new Date().toISOString();
     ApiEngine.persist();
+    persistOrderToDb(order).catch((err) => {
+      console.error("[rescheduleOrder] DB Error:", err);
+    });
     return { success: true, order };
   }
 
@@ -23236,6 +23962,9 @@ export class ApiEngine {
     order.updated_at = new Date().toISOString();
     ApiEngine.addAuditLog(`Cancelled order ${order.order_number}`);
     ApiEngine.persist();
+    persistOrderToDb(order).catch((err) => {
+      console.error("[cancelOrder] DB Error:", err);
+    });
     return { success: true, order };
   }
 
@@ -23245,15 +23974,19 @@ export class ApiEngine {
     if (!branch) {
       return { branchId, zone: zoneData, success: false, error: "Branch not found" };
     }
-    const zones = Array.isArray(branch.delivery_zones) ? branch.delivery_zones : [];
-    const existing = zones.find((z: any) => z.id === zoneData.id);
-    let zone: DeliveryZone | null;
-    if (existing) {
-      zone = ApiEngine.updateBranchZone(branch.id, zoneData.id, zoneData);
-    } else {
-      zone = ApiEngine.createBranchZone(branch.id, zoneData);
+    try {
+      const zones = Array.isArray(branch.delivery_zones) ? branch.delivery_zones : [];
+      const existing = zones.find((z: any) => z.id === zoneData.id);
+      let zone: DeliveryZone | null;
+      if (existing) {
+        zone = ApiEngine.updateBranchZone(branch.id, zoneData.id, zoneData);
+      } else {
+        zone = ApiEngine.createBranchZone(branch.id, zoneData);
+      }
+      return { branchId: branch.id, zone, success: !!zone };
+    } catch (err: any) {
+      return { branchId: branch.id, zone: zoneData, success: false, error: err.message };
     }
-    return { branchId: branch.id, zone, success: !!zone };
   }
 
   static saveCityAreaPincodes(data: any) {

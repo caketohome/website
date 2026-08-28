@@ -1,32 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { ApiEngine } from "@frontend/lib/api-engine";
+import { dbQuery } from "@frontend/lib/db";
 
 export const dynamic = "force-dynamic";
-
-function getStoreFilePath(): string {
-  let root = process.cwd();
-  if (!root.endsWith("frontend") && fs.existsSync(path.join(root, "frontend"))) {
-    root = path.join(root, "frontend");
-  }
-  const dir = path.join(root, "data");
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  return path.join(dir, "db-store.json");
-}
-
-function loadStoreData(): any {
-  const filePath = getStoreFilePath();
-  if (fs.existsSync(filePath)) {
-    try {
-      return JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    } catch {
-      return { customers: [], orders: [] };
-    }
-  }
-  return { customers: [], orders: [] };
-}
 
 function getSessionUser(req: NextRequest) {
   const cookieHeader = req.headers.get("cookie") || "";
@@ -57,11 +33,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const store = loadStoreData();
+    const store = ApiEngine.getStore();
     const orders = store.orders || [];
     const normPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
 
-    const customerOrders = orders.filter((o: any) => {
+    let customerOrders = orders.filter((o: any) => {
       const orderPhone = (o.customer_phone || o.phone || o.shipping_address?.phone || "").replace(/\D/g, "").slice(-10);
       const matchUid = customerUid && (o.customer_uid === customerUid || o.customer_id === customerUid);
       const matchUserId = userId && (o.customer_id === userId || o.user_id === userId);
@@ -69,11 +45,41 @@ export async function GET(req: NextRequest) {
       return matchUid || matchUserId || matchPhone;
     });
 
+    // If no orders found in memory, query PostgreSQL directly
+    if (customerOrders.length === 0 && (customerUid || userId || normPhone)) {
+      try {
+        const dbRes = await dbQuery(
+          `SELECT * FROM "order" WHERE ("customer_id" = $1 OR "metadata"->>'customer_uid' = $1 OR "email" LIKE $2) AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 100`,
+          [customerUid || userId || "", `%${normPhone}%`]
+        );
+        if (dbRes.rows.length > 0) {
+          customerOrders = dbRes.rows.map((row) => {
+            const meta = row.metadata || {};
+            return {
+              id: row.id,
+              display_id: row.display_id,
+              order_number: meta.order_number || `ORD-${row.display_id || row.id.slice(-6)}`,
+              status: meta.bakery_status || row.status,
+              total: Number(meta.total_amount || row.total || 0),
+              created_at: row.created_at,
+              items: meta.items || [],
+              delivery: meta.delivery || {},
+              delivery_slot_time: meta.delivery_slot_time,
+              delivery_date: meta.delivery_date,
+              branch_id: meta.branch_id,
+            };
+          });
+        }
+      } catch (err: any) {
+        console.warn("[Customer Orders GET] Direct DB lookup warning:", err.message);
+      }
+    }
+
     // Sort newest first
     customerOrders.sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 
     const totalOrders = customerOrders.length;
-    const totalSpend = customerOrders.reduce((sum: number, o: any) => sum + Number(o.grand_total || o.total || o.subtotal || 0), 0);
+    const totalSpend = customerOrders.reduce((sum: number, o: any) => sum + Number(o.grand_total || o.total || o.total_amount || 0), 0);
 
     const response = NextResponse.json(
       {
@@ -87,6 +93,7 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     );
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    response.headers.set("X-Data-Source", "postgres");
     return response;
   } catch (err: any) {
     return NextResponse.json(

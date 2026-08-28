@@ -53,6 +53,8 @@ export interface LateNightDeliveryConfig {
   subject_to_corporate_cutoff: boolean;// If true, strictly follows corporate cutoff; if false, uses special_order_cutoff
   special_order_cutoff: string | null;// "HH:MM" e.g. "21:30" when subject_to_corporate_cutoff is false
   allowed_days?: number[];            // 0-6 days (all if omitted)
+  same_day_only?: boolean;            // If true, only allowed for today
+  max_capacity?: number;              // Max orders per midnight window
 }
 
 export const DEFAULT_LATE_NIGHT_CONFIG: LateNightDeliveryConfig = {
@@ -65,6 +67,8 @@ export const DEFAULT_LATE_NIGHT_CONFIG: LateNightDeliveryConfig = {
   required_prep_time_minutes: 60,
   subject_to_corporate_cutoff: true,  // Default follows corporate cutoff
   special_order_cutoff: null,
+  same_day_only: false,
+  max_capacity: 5,
 };
 
 export interface ExpressDeliveryConfig {
@@ -76,6 +80,11 @@ export interface ExpressDeliveryConfig {
   minimum_lead_time_minutes: number;  // e.g. 45
   subject_to_corporate_cutoff: boolean;// If true, follows corporate cutoff
   special_order_cutoff: string | null;// "HH:MM" e.g. "18:00"
+  same_day_only: boolean;             // If true, strictly same-day only (never for tomorrow)
+  max_days_ahead?: number;            // 0 for same-day only, >0 if allowed for future dates
+  max_capacity?: number;              // Max concurrent orders
+  operating_start?: string;           // Optional alias
+  operating_end?: string;             // Optional alias
 }
 
 export const DEFAULT_EXPRESS_CONFIG: ExpressDeliveryConfig = {
@@ -87,6 +96,9 @@ export const DEFAULT_EXPRESS_CONFIG: ExpressDeliveryConfig = {
   minimum_lead_time_minutes: 45,
   subject_to_corporate_cutoff: true,
   special_order_cutoff: null,
+  same_day_only: true,
+  max_days_ahead: 0,
+  max_capacity: 5,
 };
 
 // ── Product Fulfillment Rules ───────────────────────────────────────────────
@@ -267,8 +279,15 @@ export interface GlobalFulfillmentConfig {
   earliest_delivery_time?: string;       // "HH:MM" e.g. "09:00" or "10:00"
   latest_delivery_slot_start?: string;   // "HH:MM" e.g. "21:00"
   latest_delivery_slot_end?: string;     // "HH:MM" e.g. "22:00"
+  slot_duration_minutes?: number;        // Standard slot duration (e.g. 60 min, 30 min)
+  slot_interval_minutes?: number;        // Standard slot interval (e.g. 60 min, 30 min)
+  max_slots_per_window?: number;         // Default max capacity per slot
   late_night_delivery?: LateNightDeliveryConfig;
   express_delivery?: ExpressDeliveryConfig;
+  // Store Pickup Configuration
+  store_pickup_enabled?: boolean;
+  store_pickup_lead_time_minutes?: number;
+  store_pickup_convenience_fee?: number;
   // Authorized Emergency Corporate Cutoff Override
   emergency_override_active?: boolean;
   emergency_override_cutoff_time?: string; // e.g. "20:30"
@@ -292,8 +311,14 @@ export const DEFAULT_GLOBAL_FULFILLMENT_CONFIG: GlobalFulfillmentConfig = {
   earliest_delivery_time: "09:00",
   latest_delivery_slot_start: "21:00",
   latest_delivery_slot_end: "22:00",
+  slot_duration_minutes: 60,
+  slot_interval_minutes: 60,
+  max_slots_per_window: 10,
   late_night_delivery: { ...DEFAULT_LATE_NIGHT_CONFIG },
   express_delivery: { ...DEFAULT_EXPRESS_CONFIG },
+  store_pickup_enabled: true,
+  store_pickup_lead_time_minutes: 30,
+  store_pickup_convenience_fee: 0,
   emergency_override_active: false,
   emergency_override_cutoff_time: "20:30",
   emergency_override_reason: null,

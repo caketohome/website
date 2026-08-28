@@ -42,11 +42,15 @@ export function BranchOperationsModal({
   const [dispatchBuffer, setDispatchBuffer] = useState(branch.fulfillment_rules?.dispatch_buffer_mins ?? 15);
   const [maxAdvanceDays, setMaxAdvanceDays] = useState(branch.fulfillment_rules?.max_advance_days ?? 14);
   const [slotDuration, setSlotDuration] = useState(branch.fulfillment_rules?.slot_duration_mins ?? 60);
+  const [slotInterval, setSlotInterval] = useState(branch.fulfillment_rules?.slot_interval_mins ?? 60);
   const [slotCapacity, setSlotCapacity] = useState(branch.fulfillment_rules?.slot_capacity ?? 15);
+  const [orderCutoffTime, setOrderCutoffTime] = useState(branch.fulfillment_rules?.order_cutoff_time || branch.fulfillment_rules?.same_day_cutoff_time || "");
   const [expressEnabled, setExpressEnabled] = useState(branch.fulfillment_rules?.express_enabled ?? true);
   const [expressSurcharge, setExpressSurcharge] = useState(branch.fulfillment_rules?.express_surcharge ?? 49);
+  const [expressCutoffTime, setExpressCutoffTime] = useState(branch.fulfillment_rules?.express_cutoff_time || "");
   const [midnightEnabled, setMidnightEnabled] = useState(branch.fulfillment_rules?.midnight_enabled ?? true);
   const [midnightSurcharge, setMidnightSurcharge] = useState(branch.fulfillment_rules?.midnight_surcharge ?? 79);
+  const [midnightCutoffTime, setMidnightCutoffTime] = useState(branch.fulfillment_rules?.midnight_cutoff_time || "");
 
   // Temporary Closure State
   const [isPaused, setIsPaused] = useState(Boolean(branch.temporary_closure?.is_paused));
@@ -112,11 +116,16 @@ export function BranchOperationsModal({
         dispatch_buffer_mins: Number(dispatchBuffer),
         max_advance_days: Number(maxAdvanceDays),
         slot_duration_mins: Number(slotDuration),
+        slot_interval_mins: Number(slotInterval),
         slot_capacity: Number(slotCapacity),
+        order_cutoff_time: orderCutoffTime || undefined,
+        same_day_cutoff_time: orderCutoffTime || undefined,
         express_enabled: Boolean(expressEnabled),
         express_surcharge: Number(expressSurcharge),
+        express_cutoff_time: expressCutoffTime || undefined,
         midnight_enabled: Boolean(midnightEnabled),
         midnight_surcharge: Number(midnightSurcharge),
+        midnight_cutoff_time: midnightCutoffTime || undefined,
       },
       temporary_closure: {
         is_paused: isPaused,
@@ -343,31 +352,43 @@ export function BranchOperationsModal({
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700/60 space-y-3">
-                  <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100 block">⏱️ Preparation & Buffer</span>
+                  <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100 block">⏱️ Slots & Cutoff Timing</span>
                   <div>
-                    <Label className="text-xs">Cake Prep Time (Minutes)</Label>
+                    <Label className="text-xs">Slot Duration (Minutes)</Label>
                     <Input
                       type="number"
-                      value={prepTime}
-                      onChange={(e) => setPrepTime(Number(e.target.value))}
+                      value={slotDuration}
+                      onChange={(e) => setSlotDuration(Number(e.target.value))}
                       className="mt-1"
+                      placeholder="60"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Dispatch Buffer (Minutes)</Label>
+                    <Label className="text-xs">Slot Interval / Step (Minutes)</Label>
                     <Input
                       type="number"
-                      value={dispatchBuffer}
-                      onChange={(e) => setDispatchBuffer(Number(e.target.value))}
+                      value={slotInterval}
+                      onChange={(e) => setSlotInterval(Number(e.target.value))}
                       className="mt-1"
+                      placeholder="60"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Max Advance Booking (Days)</Label>
+                    <Label className="text-xs">Max Slot Capacity (Orders/Window)</Label>
                     <Input
                       type="number"
-                      value={maxAdvanceDays}
-                      onChange={(e) => setMaxAdvanceDays(Number(e.target.value))}
+                      value={slotCapacity}
+                      onChange={(e) => setSlotCapacity(Number(e.target.value))}
+                      className="mt-1"
+                      placeholder="15"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Same-Day Order Cutoff Time (Optional Override)</Label>
+                    <Input
+                      type="time"
+                      value={orderCutoffTime}
+                      onChange={(e) => setOrderCutoffTime(e.target.value)}
                       className="mt-1"
                     />
                   </div>
@@ -385,14 +406,25 @@ export function BranchOperationsModal({
                     />
                   </div>
                   {expressEnabled && (
-                    <div>
-                      <Label className="text-xs">Express Surcharge (₹)</Label>
-                      <Input
-                        type="number"
-                        value={expressSurcharge}
-                        onChange={(e) => setExpressSurcharge(Number(e.target.value))}
-                        className="mt-1"
-                      />
+                    <div className="space-y-2">
+                      <div>
+                        <Label className="text-xs">Express Surcharge (₹)</Label>
+                        <Input
+                          type="number"
+                          value={expressSurcharge}
+                          onChange={(e) => setExpressSurcharge(Number(e.target.value))}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Express Cutoff Time (Optional Override)</Label>
+                        <Input
+                          type="time"
+                          value={expressCutoffTime}
+                          onChange={(e) => setExpressCutoffTime(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
                     </div>
                   )}
                   <div className="flex items-center justify-between pt-2 border-t">
@@ -405,14 +437,25 @@ export function BranchOperationsModal({
                     />
                   </div>
                   {midnightEnabled && (
-                    <div>
-                      <Label className="text-xs">Midnight Surcharge (₹)</Label>
-                      <Input
-                        type="number"
-                        value={midnightSurcharge}
-                        onChange={(e) => setMidnightSurcharge(Number(e.target.value))}
-                        className="mt-1"
-                      />
+                    <div className="space-y-2">
+                      <div>
+                        <Label className="text-xs">Midnight Surcharge (₹)</Label>
+                        <Input
+                          type="number"
+                          value={midnightSurcharge}
+                          onChange={(e) => setMidnightSurcharge(Number(e.target.value))}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Midnight Cutoff Time (Optional Override)</Label>
+                        <Input
+                          type="time"
+                          value={midnightCutoffTime}
+                          onChange={(e) => setMidnightCutoffTime(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
                     </div>
                   )}
                 </div>

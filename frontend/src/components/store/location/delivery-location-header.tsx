@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { MapPin, Navigation, X, Building2, Globe2 } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { MapPin, Navigation, X, Building2, Globe2, Search, Loader2 } from "lucide-react";
 import { Button, Input, Label, Text } from "@medusajs/ui";
 
 /**
@@ -21,10 +21,16 @@ export function DeliveryLocationHeader() {
   const [eta, setEta] = useState("");
   const [fee, setFee] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"pincode" | "browse">("pincode");
+  const [activeTab, setActiveTab] = useState<"pincode" | "search" | "browse">("pincode");
   const [inputPin, setInputPin] = useState("");
   const [isLocating, setIsLocating] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Search location state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Array<{ id: string; displayName: string; latitude: number; longitude: number; city?: string; pincode?: string }>>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Cascade selector state
   const [states, setStates] = useState<Array<{ id: string; code: string; name: string }>>([]);
@@ -41,13 +47,17 @@ export function DeliveryLocationHeader() {
     return null;
   };
 
-  const setDeliverySessionCookies = (pin: string, locName: string, etaTime: string, delFee: string, city?: string, state?: string) => {
+  const setDeliverySessionCookies = (pin: string, locName: string, etaTime: string, delFee: string, city?: string, state?: string, lat?: number, lng?: number) => {
     document.cookie = `delivery_pincode=${pin}; path=/; max-age=31536000; SameSite=Lax`;
     document.cookie = `delivery_location=${encodeURIComponent(locName)}; path=/; max-age=31536000; SameSite=Lax`;
     document.cookie = `delivery_eta=${encodeURIComponent(etaTime)}; path=/; max-age=31536000; SameSite=Lax`;
     document.cookie = `delivery_fee=${encodeURIComponent(delFee)}; path=/; max-age=31536000; SameSite=Lax`;
     if (city) document.cookie = `delivery_city=${encodeURIComponent(city)}; path=/; max-age=31536000; SameSite=Lax`;
     if (state) document.cookie = `delivery_state=${encodeURIComponent(state)}; path=/; max-age=31536000; SameSite=Lax`;
+    if (typeof lat === "number" && typeof lng === "number") {
+      document.cookie = `delivery_lat=${lat.toFixed(6)}; path=/; max-age=31536000; SameSite=Lax`;
+      document.cookie = `delivery_lng=${lng.toFixed(6)}; path=/; max-age=31536000; SameSite=Lax`;
+    }
   };
 
   useEffect(() => {
@@ -108,35 +118,19 @@ export function DeliveryLocationHeader() {
         setEta(newEta);
         setFee(newFee);
 
-        setDeliverySessionCookies(newPin, newLoc, newEta, newFee, resolvedCity, resolvedState);
+        setDeliverySessionCookies(newPin, newLoc, newEta, newFee, resolvedCity, resolvedState, lat, lng);
         setIsOpen(false);
         return;
       } else if (data && !data.serviceable) {
-        setErrorMsg(data.blockedReason || "This location is not currently serviceable.");
+        setErrorMsg(data.blockedReason || "We currently don't deliver to this location. Please select your location on the map.");
         return;
       }
     } catch {
-      // Fall through to local lookup
+      setErrorMsg("Unable to verify delivery serviceability. Please try again or use GPS.");
+      return;
     }
 
-    const cleanPin = pinInput.replace(/\D/g, "");
-    if (cleanPin.length === 6) {
-      const newPin = cleanPin;
-      const newLoc = `Pincode ${newPin}`;
-      const newEta = "40-50 min";
-      const newFee = "₹49";
-
-      setPincode(newPin);
-      setLocationName(newLoc);
-      setEta(newEta);
-      setFee(newFee);
-      setDeliverySessionCookies(newPin, newLoc, newEta, newFee);
-      setIsOpen(false);
-    } else if (!pinInput && (lat || lng)) {
-      setErrorMsg("Could not resolve GPS location. Please enter PIN code manually.");
-    } else {
-      setErrorMsg("Location not serviceable yet. Please enter a valid PIN code.");
-    }
+    setErrorMsg("Delivery serviceability is map-first. Please use 'Use Current Location' or search on the map.");
   };
 
   const handleSubmitPincode = (e: React.FormEvent) => {
@@ -237,7 +231,17 @@ export function DeliveryLocationHeader() {
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
               }`}
             >
-              PIN Code & GPS
+              PIN & GPS
+            </button>
+            <button
+              onClick={() => setActiveTab("search")}
+              className={`flex-1 py-1.5 rounded-md font-medium transition-all ${
+                activeTab === "search"
+                  ? "bg-white dark:bg-slate-900 text-pink-600 shadow-sm font-semibold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+              }`}
+            >
+              Search Area
             </button>
             <button
               onClick={() => setActiveTab("browse")}
@@ -250,6 +254,75 @@ export function DeliveryLocationHeader() {
               Select State & City
             </button>
           </div>
+
+          {/* Search Location Tab */}
+          {activeTab === "search" && (
+            <div className="flex flex-col gap-2">
+              <Label className="text-xs flex items-center gap-1">
+                <Search className="w-3.5 h-3.5 text-pink-500" />
+                Search by Area or Landmark
+              </Label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    const q = e.target.value;
+                    setSearchQuery(q);
+                    setErrorMsg("");
+                    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+                    if (q.trim().length < 2) { setSearchResults([]); return; }
+                    setSearchLoading(true);
+                    searchDebounceRef.current = setTimeout(async () => {
+                      try {
+                        const res = await fetch(`/api/v1/delivery/search-location?q=${encodeURIComponent(q.trim())}`);
+                        if (res.ok) {
+                          const data = await res.json();
+                          setSearchResults((data.results || []).slice(0, 6).map((r: any, idx: number) => ({
+                            id: r.id || `sr_${idx}`,
+                            displayName: r.display_name || r.formatted_address || r.area_name || r.name || q,
+                            latitude: typeof r.latitude === "number" ? r.latitude : (typeof r.lat === "number" ? r.lat : 0),
+                            longitude: typeof r.longitude === "number" ? r.longitude : (typeof r.lng === "number" ? r.lng : 0),
+                            city: r.city || r.city_name || "",
+                            pincode: r.pincode || "",
+                          })));
+                        }
+                      } catch {} finally { setSearchLoading(false); }
+                    }, 300);
+                  }}
+                  placeholder="e.g. Indiranagar, Koramangala, MG Road..."
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-400/50"
+                  autoFocus
+                />
+                {searchLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 animate-spin" />}
+              </div>
+              {searchResults.length > 0 && (
+                <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden max-h-44 overflow-y-auto">
+                  {searchResults.map((r) => (
+                    <button
+                      key={r.id}
+                      onClick={() => {
+                        if (r.latitude && r.longitude) {
+                          handleResolveLocation(r.pincode || "", r.latitude, r.longitude);
+                        } else if (r.pincode) {
+                          handleResolveLocation(r.pincode);
+                        }
+                        setSearchQuery("");
+                        setSearchResults([]);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs hover:bg-pink-50 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 flex items-center gap-2"
+                    >
+                      <MapPin className="w-3 h-3 text-pink-500 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <div className="font-medium text-slate-700 dark:text-slate-200 truncate">{r.displayName}</div>
+                        {r.city && <div className="text-[10px] text-slate-400">{r.city}{r.pincode ? ` — ${r.pincode}` : ""}</div>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {activeTab === "pincode" ? (
             <>

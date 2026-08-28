@@ -225,136 +225,145 @@ export class DeliverySlotGenerator {
 
       // ── Express Slots (Delivery Only) ─────────────────────────────────────
       if (expressConfig.enabled) {
-        const expStartMin = timeStringToMinutes(expressConfig.start_time || "09:00");
-        const expEndMin = timeStringToMinutes(expressConfig.end_time || "21:00");
-        const expLead = expressConfig.minimum_lead_time_minutes || 45;
-        const expSlotId = `SLOT_EXPRESS_${dateStr}`;
-        const expBooked = existingBookings.get(expSlotId) || 0;
-        const expMax = 10;
-        const expRemaining = Math.max(0, expMax - expBooked);
+        const isExpressAllowedForDate = isToday || (!expressConfig.same_day_only && (expressConfig.max_days_ahead === undefined || dayOffset <= (expressConfig.max_days_ahead || 0)));
 
-        let expAvailable = true;
-        let expStatus: DeliverySlot["status"] = "AVAILABLE";
-        let expReasonCode: FulfillmentReason = "AVAILABLE";
-        let expReasonMsg = "";
+        if (isExpressAllowedForDate) {
+          const expStartMin = timeStringToMinutes(expressConfig.start_time || "09:00");
+          const expEndMin = timeStringToMinutes(expressConfig.end_time || "21:00");
+          const expLead = expressConfig.minimum_lead_time_minutes || 45;
+          const expSlotId = `SLOT_EXPRESS_${dateStr}`;
+          const expBooked = existingBookings.get(expSlotId) || 0;
+          const expMax = expressConfig.max_capacity || 10;
+          const expRemaining = Math.max(0, expMax - expBooked);
 
-        if (isToday) {
-          const expCutoffMinutes = !expressConfig.subject_to_corporate_cutoff && expressConfig.special_order_cutoff
-            ? timeStringToMinutes(expressConfig.special_order_cutoff)
-            : corporateCutoffMinutes;
+          let expAvailable = true;
+          let expStatus: DeliverySlot["status"] = "AVAILABLE";
+          let expReasonCode: FulfillmentReason = "AVAILABLE";
+          let expReasonMsg = "";
 
-          if (currentTimeMinutes >= expCutoffMinutes) {
-            expAvailable = false;
-            expStatus = "PAST_CUTOFF";
-            expReasonCode = expressConfig.subject_to_corporate_cutoff ? "CORPORATE_CUTOFF_PASSED" : "SPECIAL_CUTOFF_PASSED";
-            expReasonMsg = `Express ordering closed for today`;
-          } else if (currentTimeMinutes < expStartMin || currentTimeMinutes > expEndMin) {
-            expAvailable = false;
-            expStatus = "CLOSED";
-            expReasonCode = "STORE_CLOSED";
-            expReasonMsg = `Express available between ${formatTimeForDisplay(expressConfig.start_time)} - ${formatTimeForDisplay(expressConfig.end_time)}`;
+          if (isToday) {
+            const expCutoffMinutes = !expressConfig.subject_to_corporate_cutoff && expressConfig.special_order_cutoff
+              ? timeStringToMinutes(expressConfig.special_order_cutoff)
+              : corporateCutoffMinutes;
+
+            if (currentTimeMinutes >= expCutoffMinutes) {
+              expAvailable = false;
+              expStatus = "PAST_CUTOFF";
+              expReasonCode = expressConfig.subject_to_corporate_cutoff ? "CORPORATE_CUTOFF_PASSED" : "SPECIAL_CUTOFF_PASSED";
+              expReasonMsg = `Express ordering closed for today`;
+            } else if (currentTimeMinutes < expStartMin || currentTimeMinutes > expEndMin) {
+              expAvailable = false;
+              expStatus = "CLOSED";
+              expReasonCode = "STORE_CLOSED";
+              expReasonMsg = `Express available between ${formatTimeForDisplay(expressConfig.start_time)} - ${formatTimeForDisplay(expressConfig.end_time)}`;
+            }
           }
-        }
 
-        if (expAvailable && expRemaining <= 0) {
-          expAvailable = false;
-          expStatus = "FULL";
-          expReasonCode = "SLOT_CAPACITY_FULL";
-          expReasonMsg = "Express slots full";
-        }
+          if (expAvailable && expRemaining <= 0) {
+            expAvailable = false;
+            expStatus = "FULL";
+            expReasonCode = "SLOT_CAPACITY_FULL";
+            expReasonMsg = "Express slots full";
+          }
 
-        allSlots.push({
-          id: expSlotId,
-          date: dateStr,
-          start_time: isToday ? minutesToTimeString(currentTimeMinutes + 15) : expressConfig.start_time,
-          end_time: isToday ? minutesToTimeString(currentTimeMinutes + 15 + expLead) : expressConfig.end_time,
-          label: expressConfig.display_name || "⚡ Express 45-Min Delivery",
-          slot_name: expressConfig.display_name || "⚡ Express 45-Min Delivery",
-          available: expAvailable,
-          is_available: expAvailable,
-          status: expStatus,
-          reason_code: expReasonCode,
-          reason_message: expReasonMsg,
-          booked_count: expBooked,
-          max_capacity: expMax,
-          remaining_capacity: expRemaining,
-          extra_charge: expressConfig.surcharge,
-          extra_fee: expressConfig.surcharge,
-          slot_type: "express",
-          is_express: true,
-          is_midnight: false,
-          cutoff: isToday ? (!expressConfig.subject_to_corporate_cutoff && expressConfig.special_order_cutoff ? expressConfig.special_order_cutoff : corporateCutoff) : undefined,
-        });
+          allSlots.push({
+            id: expSlotId,
+            date: dateStr,
+            start_time: isToday ? minutesToTimeString(currentTimeMinutes + 15) : (expressConfig.start_time || "09:00"),
+            end_time: isToday ? minutesToTimeString(currentTimeMinutes + 15 + expLead) : (expressConfig.end_time || "21:00"),
+            label: expressConfig.display_name || "⚡ Express 45-Min Delivery",
+            slot_name: expressConfig.display_name || "⚡ Express 45-Min Delivery",
+            available: expAvailable,
+            is_available: expAvailable,
+            status: expStatus,
+            reason_code: expReasonCode,
+            reason_message: expReasonMsg,
+            booked_count: expBooked,
+            max_capacity: expMax,
+            remaining_capacity: expRemaining,
+            extra_charge: expressConfig.surcharge,
+            extra_fee: expressConfig.surcharge,
+            slot_type: "express",
+            is_express: true,
+            is_midnight: false,
+            cutoff: isToday ? (!expressConfig.subject_to_corporate_cutoff && expressConfig.special_order_cutoff ? expressConfig.special_order_cutoff : corporateCutoff) : undefined,
+          });
+        }
       }
 
       // ── Late-Night / Midnight Delivery Slots ──────────────────────────────
       if (lateNightConfig.enabled) {
-        const midStartStr = lateNightConfig.start_time || "23:30";
-        const midEndStr = lateNightConfig.end_time || "00:05";
-        const midStartMinutes = timeStringToMinutes(midStartStr);
-        const midSlotId = `SLOT_MIDNIGHT_${dateStr}`;
-        const midBooked = existingBookings.get(midSlotId) || 0;
-        const midMax = 15;
-        const midRemaining = Math.max(0, midMax - midBooked);
+        const isMidnightAllowedForDate = !lateNightConfig.same_day_only || isToday;
+        const isMidnightDayAllowed = !lateNightConfig.allowed_days || lateNightConfig.allowed_days.length === 0 || lateNightConfig.allowed_days.includes(dayOfWeek);
 
-        let midAvailable = true;
-        let midStatus: DeliverySlot["status"] = "AVAILABLE";
-        let midReasonCode: FulfillmentReason = "AVAILABLE";
-        let midReasonMsg = "";
+        if (isMidnightAllowedForDate && isMidnightDayAllowed) {
+          const midStartStr = lateNightConfig.start_time || "23:30";
+          const midEndStr = lateNightConfig.end_time || "00:05";
+          const midStartMinutes = timeStringToMinutes(midStartStr);
+          const midSlotId = `SLOT_MIDNIGHT_${dateStr}`;
+          const midBooked = existingBookings.get(midSlotId) || 0;
+          const midMax = lateNightConfig.max_capacity || 15;
+          const midRemaining = Math.max(0, midMax - midBooked);
 
-        if (isToday) {
-          // Check whether midnight follows corporate cutoff or special cutoff
-          const effectiveMidnightCutoff = lateNightConfig.subject_to_corporate_cutoff
-            ? corporateCutoff
-            : (lateNightConfig.special_order_cutoff || corporateCutoff);
-          const effectiveMidCutoffMins = timeStringToMinutes(effectiveMidnightCutoff);
+          let midAvailable = true;
+          let midStatus: DeliverySlot["status"] = "AVAILABLE";
+          let midReasonCode: FulfillmentReason = "AVAILABLE";
+          let midReasonMsg = "";
 
-          if (currentTimeMinutes >= effectiveMidCutoffMins) {
-            midAvailable = false;
-            midStatus = "PAST_CUTOFF";
-            midReasonCode = lateNightConfig.subject_to_corporate_cutoff
-              ? "CORPORATE_CUTOFF_PASSED"
-              : "SPECIAL_CUTOFF_PASSED";
-            midReasonMsg = `Midnight ordering closed (cutoff: ${formatTimeForDisplay(effectiveMidnightCutoff)})`;
-          } else if (currentTimeMinutes + totalLeadMinutes > midStartMinutes) {
-            midAvailable = false;
-            midStatus = "PREP_TIME_EXCEEDED";
-            midReasonCode = "PRODUCT_PREP_TIME";
-            midReasonMsg = `Insufficient prep time remaining for midnight dispatch`;
+          if (isToday) {
+            // Check whether midnight follows corporate cutoff or special cutoff
+            const effectiveMidnightCutoff = lateNightConfig.subject_to_corporate_cutoff
+              ? corporateCutoff
+              : (lateNightConfig.special_order_cutoff || corporateCutoff);
+            const effectiveMidCutoffMins = timeStringToMinutes(effectiveMidnightCutoff);
+
+            if (currentTimeMinutes >= effectiveMidCutoffMins) {
+              midAvailable = false;
+              midStatus = "PAST_CUTOFF";
+              midReasonCode = lateNightConfig.subject_to_corporate_cutoff
+                ? "CORPORATE_CUTOFF_PASSED"
+                : "SPECIAL_CUTOFF_PASSED";
+              midReasonMsg = `Midnight ordering closed (cutoff: ${formatTimeForDisplay(effectiveMidnightCutoff)})`;
+            } else if (currentTimeMinutes + totalLeadMinutes > midStartMinutes) {
+              midAvailable = false;
+              midStatus = "PREP_TIME_EXCEEDED";
+              midReasonCode = "PRODUCT_PREP_TIME";
+              midReasonMsg = `Insufficient prep time remaining for midnight dispatch`;
+            }
           }
+
+          if (midAvailable && midRemaining <= 0) {
+            midAvailable = false;
+            midStatus = "FULL";
+            midReasonCode = "SLOT_CAPACITY_FULL";
+            midReasonMsg = "Midnight slots fully booked";
+          }
+
+          const midLabel = lateNightConfig.display_name || `🌙 Midnight Surprise (${formatTimeForDisplay(midStartStr)} - ${formatTimeForDisplay(midEndStr)})`;
+
+          allSlots.push({
+            id: midSlotId,
+            date: dateStr,
+            start_time: midStartStr,
+            end_time: midEndStr,
+            label: midLabel,
+            slot_name: midLabel,
+            available: midAvailable,
+            is_available: midAvailable,
+            status: midStatus,
+            reason_code: midReasonCode,
+            reason_message: midReasonMsg,
+            booked_count: midBooked,
+            max_capacity: midMax,
+            remaining_capacity: midRemaining,
+            extra_charge: lateNightConfig.additional_charge,
+            extra_fee: lateNightConfig.additional_charge,
+            slot_type: "midnight",
+            is_express: false,
+            is_midnight: true,
+            cutoff: isToday ? (lateNightConfig.subject_to_corporate_cutoff ? corporateCutoff : lateNightConfig.special_order_cutoff || corporateCutoff) : undefined,
+          });
         }
-
-        if (midAvailable && midRemaining <= 0) {
-          midAvailable = false;
-          midStatus = "FULL";
-          midReasonCode = "SLOT_CAPACITY_FULL";
-          midReasonMsg = "Midnight slots fully booked";
-        }
-
-        const midLabel = lateNightConfig.display_name || `🌙 Midnight Surprise (${formatTimeForDisplay(midStartStr)} - ${formatTimeForDisplay(midEndStr)})`;
-
-        allSlots.push({
-          id: midSlotId,
-          date: dateStr,
-          start_time: midStartStr,
-          end_time: midEndStr,
-          label: midLabel,
-          slot_name: midLabel,
-          available: midAvailable,
-          is_available: midAvailable,
-          status: midStatus,
-          reason_code: midReasonCode,
-          reason_message: midReasonMsg,
-          booked_count: midBooked,
-          max_capacity: midMax,
-          remaining_capacity: midRemaining,
-          extra_charge: lateNightConfig.additional_charge,
-          extra_fee: lateNightConfig.additional_charge,
-          slot_type: "midnight",
-          is_express: false,
-          is_midnight: true,
-          cutoff: isToday ? (lateNightConfig.subject_to_corporate_cutoff ? corporateCutoff : lateNightConfig.special_order_cutoff || corporateCutoff) : undefined,
-        });
       }
     }
 

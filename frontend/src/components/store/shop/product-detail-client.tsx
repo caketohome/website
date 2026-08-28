@@ -154,12 +154,13 @@ export default function ProductDetailClient({
         return (storefrontOptions.flavors || []).filter((f: any) => f.is_enabled !== false && f.status !== "archived");
     }, [storefrontOptions]);
 
-    // Fillings and Creams — derived from storefrontOptions (empty until backend API extends them)
     const fillingsList = useMemo(() => {
+        if (!storefrontOptions.enable_filling_selection) return [];
         return (storefrontOptions.fillings || []).filter((f: any) => f.is_enabled !== false && f.status !== "archived");
     }, [storefrontOptions]);
 
     const creamsList = useMemo(() => {
+        if (!storefrontOptions.enable_cream_selection) return [];
         return (storefrontOptions.creams || []).filter((c: any) => c.is_enabled !== false && c.status !== "archived");
     }, [storefrontOptions]);
 
@@ -197,6 +198,56 @@ export default function ProductDetailClient({
     const [selectedFlavour, setSelectedFlavour] = useState<any>(flavoursList[0] || null);
     const [selectedFilling, setSelectedFilling] = useState<any>(fillingsList[0] || null);
     const [selectedCream, setSelectedCream] = useState<any>(creamsList[0] || null);
+
+    useEffect(() => {
+        if (weightsList.length > 0) {
+            if (!selectedWeight || !weightsList.some((w: any) => (w.id || w.name) === (selectedWeight.id || selectedWeight.name))) {
+                setSelectedWeight(weightsList[0]);
+            }
+        } else {
+            setSelectedWeight(null);
+        }
+    }, [weightsList]);
+
+    useEffect(() => {
+        if (shapesList.length > 0) {
+            if (!selectedShape || !shapesList.some((s: any) => (s.id || s.name) === (selectedShape.id || selectedShape.name))) {
+                setSelectedShape(shapesList[0]);
+            }
+        } else {
+            setSelectedShape(null);
+        }
+    }, [shapesList]);
+
+    useEffect(() => {
+        if (flavoursList.length > 0) {
+            if (!selectedFlavour || !flavoursList.some((f: any) => (f.id || f.name) === (selectedFlavour.id || selectedFlavour.name))) {
+                setSelectedFlavour(flavoursList[0]);
+            }
+        } else {
+            setSelectedFlavour(null);
+        }
+    }, [flavoursList]);
+
+    useEffect(() => {
+        if (fillingsList.length > 0) {
+            if (!selectedFilling || !fillingsList.some((fil: any) => (fil.id || fil.name) === (selectedFilling.id || selectedFilling.name))) {
+                setSelectedFilling(fillingsList[0]);
+            }
+        } else {
+            setSelectedFilling(null);
+        }
+    }, [fillingsList]);
+
+    useEffect(() => {
+        if (creamsList.length > 0) {
+            if (!selectedCream || !creamsList.some((c: any) => (c.id || c.name) === (selectedCream.id || selectedCream.name))) {
+                setSelectedCream(creamsList[0]);
+            }
+        } else {
+            setSelectedCream(null);
+        }
+    }, [creamsList]);
 
     // Dietary Options State
     const [isSugarFree, setIsSugarFree] = useState<boolean>(false);

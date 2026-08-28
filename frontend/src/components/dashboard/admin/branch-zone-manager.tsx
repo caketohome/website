@@ -7,11 +7,19 @@ import {
   MapPin, Plus, Edit3, Trash2, Copy, ChevronUp, ChevronDown,
   ToggleLeft, ToggleRight, Search, Upload, Download, CheckCircle,
   AlertTriangle, Truck, Zap, Moon, Clock, Package, DollarSign,
-  Settings2, ArrowRight, X, Layers, Map,
+  Settings2, ArrowRight, X, Layers, Map, Shield, Pentagon,
 } from "lucide-react";
 import { MapFenceEditor } from "./map-fence-editor";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
+
+interface DeliveryPricingBracketLocal {
+  min_km: number;
+  max_km: number;
+  charge: number;
+  label?: string;
+  enabled?: boolean;
+}
 
 interface DeliveryZone {
   id: string;
@@ -19,6 +27,10 @@ interface DeliveryZone {
   display_order?: number;
   priority?: number;
   fence_type?: "polygon" | "radius" | "hybrid";
+  boundary_type?: "polygon" | "radius" | "hybrid";
+  radius_km?: number;
+  max_serviceable_km?: number;
+  remaining_radius_km?: number;
   polygon_coordinates?: Array<{ lat: number; lng: number }>;
   exclusion_polygons?: Array<Array<{ lat: number; lng: number }>>;
   min_km: number;
@@ -36,6 +48,8 @@ interface DeliveryZone {
   instant_allowed?: boolean;
   midnight_allowed: boolean;
   scheduled_allowed: boolean;
+  pricing_type?: "flat" | "distance_bracket";
+  pricing_brackets?: DeliveryPricingBracketLocal[];
   delivery_charge: number;
   express_charge: number;
   instant_charge?: number;
@@ -52,6 +66,9 @@ const EMPTY_ZONE: Omit<DeliveryZone, "id"> = {
   display_order: 1,
   priority: 10,
   fence_type: "hybrid",
+  boundary_type: "hybrid",
+  radius_km: 5,
+  max_serviceable_km: 10,
   polygon_coordinates: [],
   exclusion_polygons: [],
   min_km: 0,
@@ -69,6 +86,8 @@ const EMPTY_ZONE: Omit<DeliveryZone, "id"> = {
   instant_allowed: false,
   midnight_allowed: false,
   scheduled_allowed: true,
+  pricing_type: "flat",
+  pricing_brackets: [],
   delivery_charge: 0,
   express_charge: 99,
   instant_charge: 149,
@@ -84,7 +103,8 @@ const EMPTY_ZONE: Omit<DeliveryZone, "id"> = {
 
 function zoneBadgeColor(z: DeliveryZone): "green" | "grey" | "orange" {
   if (!z.enabled) return "grey";
-  if (z.pincodes && z.pincodes.length === 0) return "orange";
+  const hasMap = (z.polygon_coordinates && (z.polygon_coordinates as any[]).length >= 3) || ((z.radius_km ?? z.max_km ?? 0) > 0);
+  if (!hasMap && (!z.pincodes || z.pincodes.length === 0)) return "orange";
   return "green";
 }
 
@@ -113,7 +133,7 @@ export function BranchZoneManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeZoneId, setActiveZoneId] = useState<string | null>(null);
-  const [showMapFence, setShowMapFence] = useState(false);
+  const [showMapFence, setShowMapFence] = useState(true);
 
   // Zone modal
   const [showZoneModal, setShowZoneModal] = useState(false);
@@ -180,8 +200,8 @@ export function BranchZoneManager() {
       await apiClient.updateAdminBranch(selectedBranchId, { delivery_zones: updatedZones });
       await fetchBranches();
       showToast("Saved successfully");
-    } catch {
-      showToast("Failed to save", "error");
+    } catch (err: any) {
+      showToast(err?.message || "Failed to save", "error");
     } finally {
       setSaving(false);
     }
@@ -205,15 +225,45 @@ export function BranchZoneManager() {
   async function handleSaveZone(e: React.FormEvent) {
     e.preventDefault();
     if (!zoneForm.name.trim()) { showToast("Zone name is required", "error"); return; }
+
+    const storeMax = selectedBranch?.max_delivery_radius_km ?? 15;
+    const effectiveMax = Math.min(25, storeMax, zoneForm.max_serviceable_km || storeMax);
+
+    // Validate radius if radius or hybrid mode
+    const isRadius = zoneForm.fence_type === "radius" || zoneForm.fence_type === "hybrid" || zoneForm.boundary_type === "radius" || zoneForm.boundary_type === "hybrid";
+    const rawRadius = zoneForm.radius_km ?? zoneForm.max_km;
+    if (isRadius && rawRadius !== undefined) {
+      if (rawRadius > effectiveMax) {
+        showToast(`Radius (${rawRadius} km) exceeds maximum allowed service boundary (${effectiveMax} km).`, "error");
+        return;
+      }
+    }
+
+    // Validate pricing brackets
+    if (zoneForm.pricing_type === "distance_bracket" && Array.isArray(zoneForm.pricing_brackets)) {
+      for (const b of zoneForm.pricing_brackets) {
+        if (b.max_km > effectiveMax) {
+          showToast(`Pricing bracket ${b.min_km}–${b.max_km} km exceeds maximum delivery radius (${effectiveMax} km).`, "error");
+          return;
+        }
+      }
+    }
+
     let updatedZones: DeliveryZone[];
+    const normalizedZone = {
+      ...zoneForm,
+      max_serviceable_km: effectiveMax,
+      remaining_radius_km: Number(Math.max(0, effectiveMax - (rawRadius ?? 0)).toFixed(2)),
+    };
+
     if (editingZone) {
       updatedZones = zones.map((z) =>
-        z.id === editingZone.id ? { ...editingZone, ...zoneForm } : z
+        z.id === editingZone.id ? { ...editingZone, ...normalizedZone } : z
       );
     } else {
       const newZone: DeliveryZone = {
         id: `zone_${selectedBranchId}_${Date.now()}`,
-        ...zoneForm,
+        ...normalizedZone,
         pincodes: zoneForm.pincodes ?? [],
         cities: zoneForm.cities ?? [],
         areas: zoneForm.areas ?? [],
@@ -464,86 +514,280 @@ export function BranchZoneManager() {
         </select>
       </div>
 
+      {/* Store Identity & Radius Matrix Header */}
+      {selectedBranch && (
+        <div className="p-4 bg-gradient-to-r from-amber-50/80 to-orange-50/60 dark:from-slate-800 dark:to-slate-800/80 rounded-2xl border border-amber-200 dark:border-slate-700 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/60 dark:border-slate-700 pb-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  🏪 {selectedBranch.name}
+                </span>
+                <span className="font-mono text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 px-2 py-0.5 rounded font-bold">
+                  {selectedBranch.code}
+                </span>
+              </div>
+              <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span><strong>State:</strong> {selectedBranch.state || "Kerala"}</span>
+                <span>•</span>
+                <span><strong>City:</strong> {selectedBranch.city || "Kollam"}</span>
+                <span>•</span>
+                <span className="font-mono text-[11px] text-slate-500">
+                  📍 {typeof selectedBranch.latitude === "number" ? selectedBranch.latitude.toFixed(4) : "12.9716"}° N, {typeof selectedBranch.longitude === "number" ? selectedBranch.longitude.toFixed(4) : "77.5946"}° E
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button size="small" onClick={openCreateZone} className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs gap-1.5 shadow-sm">
+                <Plus className="w-3.5 h-3.5" /> + Add Delivery Area
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 bg-amber-500/10 rounded-lg text-amber-600 dark:text-amber-400">
+                <Shield className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                  <span>Store Maximum Service Radius:</span>
+                  <span className="text-amber-700 dark:text-amber-300 font-extrabold">{selectedBranch.max_delivery_radius_km ?? 15} km</span>
+                </div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                  Global Ceiling: 25 km · All delivery areas for {selectedBranch.name} are capped by this store-level boundary.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Set Limit:</Label>
+              <div className="flex items-center gap-1">
+                <Input
+                  type="number"
+                  min={1}
+                  max={25}
+                  step={0.5}
+                  className="w-20 text-xs h-8"
+                  defaultValue={selectedBranch.max_delivery_radius_km ?? 15}
+                  key={selectedBranch.id + "_" + (selectedBranch.max_delivery_radius_km ?? 15)}
+                  onBlur={async (e) => {
+                    const val = parseFloat(e.target.value);
+                    if (isNaN(val) || val <= 0 || val > 25) {
+                      showToast("Store radius must be between 1 and 25 km", "error");
+                      return;
+                    }
+                    if (val === selectedBranch.max_delivery_radius_km) return;
+                    try {
+                      await apiClient.updateAdminBranch(selectedBranchId, {
+                        max_delivery_radius_km: val,
+                      });
+                      setBranches((prev) =>
+                        prev.map((b) => (b.id === selectedBranchId ? { ...b, max_delivery_radius_km: val } : b))
+                      );
+                      showToast(`Store maximum delivery radius updated to ${val} km`);
+                    } catch (err: any) {
+                      showToast(err?.message || "Failed to update store radius", "error");
+                    }
+                  }}
+                />
+                <span className="text-xs text-slate-500 font-medium">km</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="text-center py-8 text-slate-400 text-xs">Loading zones…</div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          {/* Zone List Sidebar */}
-          <div className="lg:col-span-2 space-y-2">
+        <div className="space-y-6">
+          {/* ── DELIVERY AREAS MATRIX (Store Area Matrix Table) ────────────────── */}
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Text className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
-                Zones ({zones.length})
-              </Text>
-              <Button size="small" variant="secondary" onClick={openCreateZone} className="text-[10px] gap-1">
-                <Plus className="w-3 h-3" /> Add Zone
+              <div>
+                <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-amber-600" /> Delivery Areas ({zones.length})
+                </Heading>
+                <Text className="text-xs text-slate-500">
+                  Configured service areas for {selectedBranch?.name || "this store"}. Map boundaries (Polygon and Radius) strictly govern customer serviceability.
+                </Text>
+              </div>
+              <Button size="small" onClick={openCreateZone} className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs gap-1.5 shadow-sm">
+                <Plus className="w-3.5 h-3.5" /> + Add Delivery Area
               </Button>
             </div>
 
             {zones.length === 0 ? (
-              <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-6 text-center">
-                <Truck className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                <Text className="text-xs text-slate-400 font-medium">No delivery zones configured</Text>
-                <Text className="text-[10px] text-slate-400 mt-1">Add zones to enable delivery for this branch</Text>
-                <Button size="small" variant="secondary" onClick={openCreateZone} className="mt-3 text-xs">
-                  <Plus className="w-3 h-3 mr-1" /> Create First Zone
+              <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-8 text-center bg-white dark:bg-slate-800">
+                <Truck className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+                <Text className="text-sm text-slate-500 font-bold">No delivery areas configured</Text>
+                <Text className="text-xs text-slate-400 mt-1">Add delivery areas to establish real map-first delivery boundaries for this store.</Text>
+                <Button size="small" onClick={openCreateZone} className="mt-3 bg-amber-600 text-white text-xs font-bold">
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Create First Delivery Area
                 </Button>
               </div>
             ) : (
-              zones.map((zone, idx) => (
-                <div
-                  key={zone.id}
-                  onClick={() => setActiveZoneId(zone.id)}
-                  className={`rounded-xl border cursor-pointer transition-all p-3 group relative ${
-                    activeZoneId === zone.id
-                      ? "border-amber-400 bg-amber-50/60 dark:bg-amber-950/30 shadow-md"
-                      : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-300"
-                  }`}
-                >
-                  {/* Zone Header Row */}
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <Badge color={zoneBadgeColor(zone)} className="text-[9px] px-1 font-bold">
-                        {zone.enabled ? "ON" : "OFF"}
-                      </Badge>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">{zone.name}</span>
-                    </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button title="Move up" onClick={(e) => { e.stopPropagation(); moveZoneUp(idx); }} disabled={idx === 0} className="p-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30">
-                        <ChevronUp className="w-3 h-3 text-slate-500" />
-                      </button>
-                      <button title="Move down" onClick={(e) => { e.stopPropagation(); moveZoneDown(idx); }} disabled={idx >= zones.length - 1} className="p-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30">
-                        <ChevronDown className="w-3 h-3 text-slate-500" />
-                      </button>
-                    </div>
-                  </div>
+              <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 shadow-sm">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b bg-slate-50 dark:bg-slate-900/60 text-left text-slate-600 dark:text-slate-300 font-semibold">
+                      <th className="p-3">Zone / Area Name</th>
+                      <th className="p-3">Boundary Type</th>
+                      <th className="p-3">Radius / Geometry</th>
+                      <th className="p-3">Delivery Pricing</th>
+                      <th className="p-3">Delivery Modes</th>
+                      <th className="p-3">Priority</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                    {zones.map((zone, idx) => {
+                      const isRadius = zone.boundary_type === "radius" || zone.fence_type === "radius";
+                      const isPolygon = zone.boundary_type === "polygon" || zone.fence_type === "polygon";
+                      const hasPolyPoints = zone.polygon_coordinates && (zone.polygon_coordinates as any[]).length >= 3;
+                      const isSelected = activeZoneId === zone.id;
 
-                  {/* Zone Meta */}
-                  <div className="flex gap-3 text-[10px] text-slate-500">
-                    <span><MapPin className="w-2.5 h-2.5 inline mr-0.5" />{zone.min_km}–{zone.max_km} km</span>
-                    <span><Clock className="w-2.5 h-2.5 inline mr-0.5" />{zone.est_delivery_mins} min</span>
-                    <span><Package className="w-2.5 h-2.5 inline mr-0.5" />{(zone.pincodes ?? []).length} pincodes</span>
-                  </div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">
-                    <DollarSign className="w-2.5 h-2.5 inline mr-0.5 text-emerald-600" />
-                    ₹{zone.delivery_charge} delivery · ₹{zone.express_charge} express · ₹{zone.midnight_charge} midnight
-                  </div>
+                      return (
+                        <tr
+                          key={zone.id}
+                          onClick={() => setActiveZoneId(zone.id)}
+                          className={`cursor-pointer transition-colors ${
+                            isSelected
+                              ? "bg-amber-50/70 dark:bg-amber-950/30"
+                              : "hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                          }`}
+                        >
+                          <td className="p-3">
+                            <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                              <span>{zone.name}</span>
+                              {isSelected && (
+                                <span className="text-[9px] bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-200 px-1.5 py-0.2 rounded font-bold">
+                                  Selected
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-slate-500">ETA {zone.est_delivery_mins}m · Buffer {zone.preparation_buffer_mins}m</div>
+                          </td>
 
-                  {/* Warn if no pincodes */}
-                  {(zone.pincodes ?? []).length === 0 && zone.enabled && (
-                    <div className="mt-1.5 text-[9px] text-orange-500 font-semibold flex items-center gap-1">
-                      <AlertTriangle className="w-2.5 h-2.5" /> No pincodes assigned — not serving any area
-                    </div>
-                  )}
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                              isPolygon
+                                ? "bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                                : isRadius
+                                ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                                : "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                            }`}>
+                              {zone.boundary_type || zone.fence_type || "hybrid"}
+                            </span>
+                          </td>
 
-                  {/* Delivery Mode Badges */}
-                  <div className="flex gap-1 mt-1.5 flex-wrap">
-                    {zone.same_day_allowed && <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded font-bold">SameDay</span>}
-                    {zone.express_allowed && <span className="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded font-bold"><Zap className="w-2 h-2 inline" />Express</span>}
-                    {zone.midnight_allowed && <span className="text-[9px] bg-indigo-100 text-indigo-700 px-1 py-0.5 rounded font-bold"><Moon className="w-2 h-2 inline" />Midnight</span>}
-                    {zone.scheduled_allowed && <span className="text-[9px] bg-slate-100 text-slate-600 px-1 py-0.5 rounded font-bold">Scheduled</span>}
-                  </div>
-                </div>
-              ))
+                          <td className="p-3">
+                            {isRadius ? (
+                              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                                {zone.radius_km ?? zone.max_km ?? 5} km
+                              </span>
+                            ) : hasPolyPoints ? (
+                              <span className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                                <Pentagon className="w-3 h-3 text-purple-600 inline" /> {(zone.polygon_coordinates as any[]).length} pts
+                                {zone.exclusion_polygons && (zone.exclusion_polygons as any[]).length > 0 && (
+                                  <span className="text-[10px] text-rose-600 font-bold ml-1">
+                                    (+{(zone.exclusion_polygons as any[]).length} excl)
+                                  </span>
+                                )}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </td>
+
+                          <td className="p-3">
+                            {zone.pricing_type === "distance_bracket" && Array.isArray(zone.pricing_brackets) && zone.pricing_brackets.length > 0 ? (
+                              <span className="text-emerald-700 dark:text-emerald-300 font-semibold flex items-center gap-1">
+                                <Truck className="w-3 h-3 inline" /> {zone.pricing_brackets.length} Brackets (0–{Math.max(...zone.pricing_brackets.map(b => b.max_km))} km)
+                              </span>
+                            ) : (
+                              <span className="text-slate-700 dark:text-slate-300 font-semibold">
+                                Flat ₹{zone.delivery_charge}
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="p-3">
+                            <div className="flex items-center gap-1 flex-wrap">
+                              {zone.same_day_allowed && <span className="text-[9px] bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 px-1.5 py-0.5 rounded font-bold">SameDay</span>}
+                              {zone.express_allowed && <span className="text-[9px] bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 px-1.5 py-0.5 rounded font-bold">Express</span>}
+                              {zone.midnight_allowed && <span className="text-[9px] bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 px-1.5 py-0.5 rounded font-bold">Midnight</span>}
+                              {zone.scheduled_allowed && <span className="text-[9px] bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 px-1.5 py-0.5 rounded font-bold">Slot</span>}
+                            </div>
+                          </td>
+
+                          <td className="p-3">
+                            <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
+                              {zone.priority ?? 10}
+                            </span>
+                          </td>
+
+                          <td className="p-3">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleZoneEnabled(zone);
+                              }}
+                              className={`px-2 py-1 rounded text-[10px] font-bold transition-colors ${
+                                zone.enabled
+                                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                  : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                              }`}
+                            >
+                              {zone.enabled ? "ON" : "OFF"}
+                            </button>
+                          </td>
+
+                          <td className="p-3 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditZone(zone);
+                                }}
+                                className="px-2.5 py-1 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 hover:bg-amber-100 rounded-lg text-xs font-bold flex items-center gap-1"
+                              >
+                                <Edit3 className="w-3 h-3" /> Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  duplicateZone(zone);
+                                }}
+                                className="p-1 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+                                title="Duplicate Zone"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteZone(zone.id);
+                                }}
+                                className="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg"
+                                title="Delete Zone"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
 
@@ -565,7 +809,7 @@ export function BranchZoneManager() {
                       <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-white">{activeZone.name}</Heading>
                       <Badge color={zoneBadgeColor(activeZone)} className="text-[9px]">{activeZone.enabled ? "Active" : "Disabled"}</Badge>
                     </div>
-                    <Text className="text-[10px] text-slate-500">{activeZone.min_km}–{activeZone.max_km} km · {activeZone.est_delivery_mins} min ETA · {(activeZone.pincodes ?? []).length} pincodes</Text>
+                    <Text className="text-[10px] text-slate-500">{activeZone.min_km}–{activeZone.max_km} km · {activeZone.est_delivery_mins} min ETA · {(activeZone.pincodes ?? []).length} reference pincodes</Text>
                   </div>
                   {/* Zone Actions */}
                   <div className="flex items-center gap-1.5">
@@ -665,21 +909,34 @@ export function BranchZoneManager() {
                     </div>
                   </div>
 
-                  {/* Pincodes Preview */}
+                  {/* Address / Pincode Reference Preview */}
                   <div className="col-span-2 space-y-2">
                     <div className="flex items-center justify-between">
                       <Text className="font-bold text-[10px] uppercase tracking-wide text-slate-500">
-                        Pincodes ({(activeZone.pincodes ?? []).length})
+                        Address / Pincode Reference ({(activeZone.pincodes ?? []).length})
                       </Text>
                       <button onClick={() => openPincodeManager(activeZone)} className="text-[10px] text-amber-600 font-semibold hover:underline flex items-center gap-1">
                         <MapPin className="w-3 h-3" /> Manage Pincodes <ArrowRight className="w-2.5 h-2.5" />
                       </button>
                     </div>
-                    {(activeZone.pincodes ?? []).length === 0 ? (
-                      <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 rounded-lg p-3 text-[10px] text-orange-600 font-medium flex items-center gap-2">
-                        <AlertTriangle className="w-3.5 h-3.5" /> No pincodes assigned to this zone. Customers cannot be served until pincodes are added.
-                      </div>
-                    ) : (
+                    {(() => {
+                      const hasMap = (activeZone.polygon_coordinates && (activeZone.polygon_coordinates as any[]).length >= 3) || ((activeZone.radius_km ?? activeZone.max_km ?? 0) > 0);
+                      if (hasMap) {
+                        return (
+                          <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 text-[10px] text-emerald-700 dark:text-emerald-300 font-medium flex items-center gap-2">
+                            <CheckCircle className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
+                            <span>Map boundary active. Coordinates strictly determine real-time delivery serviceability. Pincodes serve only as address reference data.</span>
+                          </div>
+                        );
+                      }
+                      return (activeZone.pincodes ?? []).length === 0 ? (
+                        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-lg p-3 text-[10px] text-amber-700 font-medium flex items-center gap-2">
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                          <span>No map boundary configured yet. Draw a polygon or set delivery radius on the map below.</span>
+                        </div>
+                      ) : null;
+                    })()}
+                    {(activeZone.pincodes ?? []).length > 0 && (
                       <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
                         {(activeZone.pincodes ?? []).slice(0, 30).map((p) => (
                           <span key={p} className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono px-1.5 py-0.5 rounded">{p}</span>
@@ -719,10 +976,18 @@ export function BranchZoneManager() {
                         storeLat={selectedBranch?.latitude || 12.9716}
                         storeLng={selectedBranch?.longitude || 77.5946}
                         storeName={selectedBranch?.name || "Store"}
+                        locationSource={selectedBranch?.location_source || "MANUAL_MAP"}
+                        locationAccuracy={selectedBranch?.location_accuracy}
+                        storeAddress={selectedBranch?.address || selectedBranch?.formatted_address}
                         polygonCoordinates={activeZone.polygon_coordinates as any || []}
                         exclusionPolygons={activeZone.exclusion_polygons as any || []}
-                        fenceType={activeZone.fence_type || "hybrid"}
-                        radiusKm={activeZone.max_km || 5}
+                        fenceType={(activeZone.boundary_type || activeZone.fence_type || "hybrid") as any}
+                        radiusKm={activeZone.radius_km ?? activeZone.max_km ?? 5}
+                        maxRadiusKm={Math.min(
+                          25,
+                          selectedBranch?.max_delivery_radius_km ?? 25,
+                          activeZone.max_serviceable_km ?? (selectedBranch?.max_delivery_radius_km ?? 25)
+                        )}
                         zoneName={activeZone.name}
                         onSave={async (data) => {
                           const updatedZones = zones.map((z) =>
@@ -732,22 +997,41 @@ export function BranchZoneManager() {
                                   polygon_coordinates: data.polygon_coordinates as any,
                                   exclusion_polygons: data.exclusion_polygons as any,
                                   fence_type: data.fence_type as any,
+                                  boundary_type: data.fence_type as any,
+                                  radius_km: data.radius_km ?? z.radius_km ?? z.max_km,
                                   max_km: data.radius_km ?? z.max_km,
                                 }
                               : z
                           );
                           await persistZones(updatedZones);
                         }}
-                        onStoreLocationChange={async (lat, lng) => {
-                          // Update branch coordinates when store marker is dragged
+                        onStoreLocationChange={async (lat, lng, source, accuracy, address) => {
                           try {
                             await apiClient.updateAdminBranch(selectedBranchId, {
                               latitude: lat,
                               longitude: lng,
+                              location_source: source || "MANUAL_MAP",
+                              location_accuracy: accuracy ?? null,
+                              formatted_address: address || selectedBranch?.formatted_address,
                             });
-                            showToast("Store location updated");
-                          } catch {
-                            showToast("Failed to update store location", "error");
+                            setBranches((prev) =>
+                              prev.map((b) =>
+                                b.id === selectedBranchId
+                                  ? {
+                                      ...b,
+                                      latitude: lat,
+                                      longitude: lng,
+                                      location_source: source || "MANUAL_MAP",
+                                      location_accuracy: accuracy ?? null,
+                                      formatted_address: address || b.formatted_address,
+                                      has_valid_location: true,
+                                    }
+                                  : b
+                              )
+                            );
+                            showToast(`Store physical location updated: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+                          } catch (err: any) {
+                            showToast(`Failed to update store location: ${err.message}`, "error");
                           }
                         }}
                       />
@@ -763,11 +1047,17 @@ export function BranchZoneManager() {
       {/* ── Zone Create/Edit Modal ──────────────────────────────────────────── */}
       {showZoneModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-5 py-4 flex items-center justify-between">
-              <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-white">
-                {editingZone ? `Edit Zone: ${editingZone.name}` : "Create New Delivery Zone"}
-              </Heading>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-5 py-4 flex items-center justify-between z-10">
+              <div>
+                <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Map className="w-4 h-4 text-amber-600" />
+                  {editingZone ? `Edit Delivery Area: ${editingZone.name}` : "Create New Delivery Area"}
+                </Heading>
+                <Text className="text-[11px] text-slate-500">
+                  Configure delivery boundary directly on the map. Coordinates strictly determine customer serviceability.
+                </Text>
+              </div>
               <button onClick={() => setShowZoneModal(false)} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                 <X className="w-4 h-4 text-slate-500" />
               </button>
@@ -776,27 +1066,156 @@ export function BranchZoneManager() {
             <form onSubmit={handleSaveZone} className="p-5 space-y-5">
               {/* Basic Info */}
               <div>
-                <Text className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-3">Basic Info</Text>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2">
-                    <Label className="text-xs">Zone Name *</Label>
-                    <Input value={zoneForm.name} onChange={(e) => zf("name", e.target.value)} placeholder="e.g. Zone 1 (Nearby)" required />
+                <Text className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-3">Area Boundary Configuration</Text>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <Label className="text-xs">Area / Zone Name *</Label>
+                    <Input value={zoneForm.name} onChange={(e) => zf("name", e.target.value)} placeholder="e.g. Central Delivery Zone" required />
                   </div>
                   <div>
-                    <Label className="text-xs">Min Distance (KM)</Label>
-                    <Input type="number" min={0} step={0.5} value={zoneForm.min_km} onChange={(e) => zf("min_km", parseFloat(e.target.value) || 0)} />
+                    <Label className="text-xs">Boundary Type</Label>
+                    <select
+                      value={zoneForm.fence_type || "hybrid"}
+                      onChange={(e) => {
+                        const val = e.target.value as any;
+                        zf("fence_type", val);
+                        zf("boundary_type", val);
+                      }}
+                      className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-2.5 py-1.5 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none"
+                    >
+                      <option value="polygon">Polygon (Geofence &amp; Exclusions)</option>
+                      <option value="radius">Radius (Store-centered Circle)</option>
+                      <option value="hybrid">Hybrid (Polygon + Radius)</option>
+                    </select>
                   </div>
                   <div>
-                    <Label className="text-xs">Max Distance (KM)</Label>
-                    <Input type="number" min={0} step={0.5} value={zoneForm.max_km} onChange={(e) => zf("max_km", parseFloat(e.target.value) || 5)} />
+                    <Label className="text-xs">Priority (Lower = Higher Priority)</Label>
+                    <Input type="number" min={1} max={100} value={zoneForm.priority ?? 10} onChange={(e) => zf("priority", parseInt(e.target.value) || 10)} />
                   </div>
+
+                  {(zoneForm.fence_type === "radius" || zoneForm.fence_type === "hybrid" || zoneForm.boundary_type === "radius" || zoneForm.boundary_type === "hybrid") && (
+                    <div>
+                      <Label className="text-xs">Delivery Radius (KM)</Label>
+                      <Input
+                        type="number"
+                        min={0.5}
+                        max={selectedBranch?.max_delivery_radius_km ?? 25}
+                        step={0.5}
+                        value={zoneForm.radius_km ?? zoneForm.max_km ?? 5}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 5;
+                          zf("radius_km", val);
+                          zf("max_km", val);
+                        }}
+                      />
+                    </div>
+                  )}
+
                   <div>
                     <Label className="text-xs">Est. Delivery Time (mins)</Label>
                     <Input type="number" min={1} value={zoneForm.est_delivery_mins} onChange={(e) => zf("est_delivery_mins", parseInt(e.target.value) || 45)} />
                   </div>
                   <div>
-                    <Label className="text-xs">Prep Buffer (mins)</Label>
+                    <Label className="text-xs">Kitchen Prep Buffer (mins)</Label>
                     <Input type="number" min={0} value={zoneForm.preparation_buffer_mins} onChange={(e) => zf("preparation_buffer_mins", parseInt(e.target.value) || 15)} />
+                  </div>
+                </div>
+
+                {/* Constraint & Limit Safety Indicator */}
+                {(() => {
+                  const storeMax = selectedBranch?.max_delivery_radius_km ?? 15;
+                  const zoneMax = zoneForm.max_serviceable_km || storeMax;
+                  const effectiveMax = Math.min(25, storeMax, zoneMax);
+                  const currentR = zoneForm.radius_km ?? zoneForm.max_km ?? 5;
+                  const exceeds = zoneForm.fence_type !== "polygon" && currentR > effectiveMax;
+                  return (
+                    <div className={`mt-3 p-2.5 rounded-lg text-xs flex items-center justify-between ${exceeds ? "bg-rose-50 text-rose-700 border border-rose-200" : "bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700"}`}>
+                      <span>
+                        Store Max Radius: <strong>{storeMax} km</strong> · Effective Allowed Limit: <strong>{effectiveMax} km</strong> · Remaining: <strong>{Math.max(0, effectiveMax - currentR).toFixed(1)} km</strong>
+                      </span>
+                      {exceeds && (
+                        <span className="font-bold text-rose-600 flex items-center gap-1">
+                          <AlertTriangle className="w-3.5 h-3.5" /> Exceeds maximum limit!
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* ── Direct Interactive Map Editor in Modal ── */}
+                <div className="space-y-1.5 mt-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                      <Map className="w-3.5 h-3.5 text-amber-600" /> Interactive Map Boundary Editor
+                    </Label>
+                    <span className="text-[10px] text-slate-500">
+                      {zoneForm.fence_type === "radius" ? "Adjust radius slider/circle live on map" : "Draw polygon boundaries and exclusion sub-polygons"}
+                    </span>
+                  </div>
+                  <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-inner bg-slate-100 dark:bg-slate-800">
+                    <MapFenceEditor
+                      storeLat={selectedBranch?.latitude || 12.9716}
+                      storeLng={selectedBranch?.longitude || 77.5946}
+                      storeName={selectedBranch?.name || "Store"}
+                      locationSource={selectedBranch?.location_source || "MANUAL_MAP"}
+                      locationAccuracy={selectedBranch?.location_accuracy}
+                      storeAddress={selectedBranch?.address || selectedBranch?.formatted_address}
+                      polygonCoordinates={zoneForm.polygon_coordinates as any || []}
+                      exclusionPolygons={zoneForm.exclusion_polygons as any || []}
+                      fenceType={(zoneForm.boundary_type || zoneForm.fence_type || "hybrid") as any}
+                      radiusKm={zoneForm.radius_km ?? zoneForm.max_km ?? 5}
+                      maxRadiusKm={Math.min(
+                        25,
+                        selectedBranch?.max_delivery_radius_km ?? 25,
+                        zoneForm.max_serviceable_km ?? (selectedBranch?.max_delivery_radius_km ?? 25)
+                      )}
+                      zoneName={zoneForm.name || "New Delivery Area"}
+                      onPolygonChange={(coords) => zf("polygon_coordinates" as any, coords)}
+                      onExclusionChange={(excls) => zf("exclusion_polygons" as any, excls)}
+                      onRadiusChange={(r) => {
+                        zf("radius_km" as any, r);
+                        zf("max_km" as any, r);
+                      }}
+                      onStoreLocationChange={async (lat, lng, source, accuracy, address) => {
+                        try {
+                          await apiClient.updateAdminBranch(selectedBranchId, {
+                            latitude: lat,
+                            longitude: lng,
+                            location_source: source || "MANUAL_MAP",
+                            location_accuracy: accuracy ?? null,
+                            formatted_address: address || selectedBranch?.formatted_address,
+                          });
+                          setBranches((prev) =>
+                            prev.map((b) =>
+                              b.id === selectedBranchId
+                                ? {
+                                    ...b,
+                                    latitude: lat,
+                                    longitude: lng,
+                                    location_source: source || "MANUAL_MAP",
+                                    location_accuracy: accuracy ?? null,
+                                    formatted_address: address || b.formatted_address,
+                                    has_valid_location: true,
+                                  }
+                                : b
+                            )
+                          );
+                          showToast(`Store physical location updated: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+                        } catch (err: any) {
+                          showToast(`Failed to update store location: ${err.message}`, "error");
+                        }
+                      }}
+                      onSave={(data) => {
+                        zf("polygon_coordinates" as any, data.polygon_coordinates);
+                        zf("exclusion_polygons" as any, data.exclusion_polygons);
+                        zf("fence_type" as any, data.fence_type);
+                        zf("boundary_type" as any, data.fence_type);
+                        if (data.radius_km) {
+                          zf("radius_km" as any, data.radius_km);
+                          zf("max_km" as any, data.radius_km);
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               </div>
@@ -804,21 +1223,151 @@ export function BranchZoneManager() {
               {/* Pricing */}
               <div>
                 <Text className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-3">Pricing</Text>
+
+                {/* Pricing Mode Toggle */}
+                <div className="flex items-center gap-3 mb-4 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                  <Text className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">Pricing Mode:</Text>
+                  <div className="flex items-center gap-1 bg-white dark:bg-slate-800 rounded-md p-0.5 border border-slate-200 dark:border-slate-600">
+                    <button
+                      type="button"
+                      onClick={() => zf("pricing_type" as any, "flat")}
+                      className={`px-3 py-1 rounded text-[10px] font-bold transition-colors ${
+                        (!zoneForm.pricing_type || zoneForm.pricing_type === "flat")
+                          ? "bg-indigo-500 text-white" : "text-slate-500 hover:bg-slate-100"
+                      }`}
+                    >
+                      <DollarSign className="w-3 h-3 inline mr-1" />Flat Rate
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        zf("pricing_type" as any, "distance_bracket");
+                        // Initialize default brackets if none exist
+                        if (!zoneForm.pricing_brackets || (zoneForm.pricing_brackets as any[]).length === 0) {
+                          zf("pricing_brackets" as any, [
+                            { min_km: 0,  max_km: 3,  charge: 39,  label: "0–3 km",   enabled: true },
+                            { min_km: 3,  max_km: 5,  charge: 49,  label: "3–5 km",   enabled: true },
+                            { min_km: 5,  max_km: 8,  charge: 69,  label: "5–8 km",   enabled: true },
+                            { min_km: 8,  max_km: 12, charge: 99,  label: "8–12 km",  enabled: true },
+                            { min_km: 12, max_km: 15, charge: 149, label: "12–15 km", enabled: true },
+                          ]);
+                        }
+                      }}
+                      className={`px-3 py-1 rounded text-[10px] font-bold transition-colors ${
+                        zoneForm.pricing_type === "distance_bracket"
+                          ? "bg-emerald-500 text-white" : "text-slate-500 hover:bg-slate-100"
+                      }`}
+                    >
+                      <Truck className="w-3 h-3 inline mr-1" />Distance Brackets
+                    </button>
+                  </div>
+                </div>
+
+                {/* Flat Rate Pricing */}
+                {(!zoneForm.pricing_type || zoneForm.pricing_type === "flat") && (
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <Label className="text-xs">Delivery Fee (₹)</Label>
+                      <Input type="number" min={0} value={zoneForm.delivery_charge} onChange={(e) => zf("delivery_charge", parseFloat(e.target.value) || 0)} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Distance Bracket Pricing */}
+                {zoneForm.pricing_type === "distance_bracket" && (
+                  <div className="mb-3">
+                    <div className="space-y-2 mb-3">
+                      {((zoneForm as any).pricing_brackets || []).map((bracket: any, idx: number) => (
+                        <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                          <div className="flex items-center gap-1 flex-1">
+                            <Input
+                              type="number" min={0} step={0.5}
+                              value={bracket.min_km}
+                              onChange={(e) => {
+                                const brackets = [...((zoneForm as any).pricing_brackets || [])];
+                                brackets[idx] = { ...brackets[idx], min_km: parseFloat(e.target.value) || 0 };
+                                zf("pricing_brackets" as any, brackets);
+                              }}
+                              className="w-16 text-xs"
+                            />
+                            <span className="text-[10px] text-slate-400">–</span>
+                            <Input
+                              type="number" min={0} step={0.5}
+                              value={bracket.max_km}
+                              onChange={(e) => {
+                                const brackets = [...((zoneForm as any).pricing_brackets || [])];
+                                brackets[idx] = { ...brackets[idx], max_km: parseFloat(e.target.value) || 0 };
+                                zf("pricing_brackets" as any, brackets);
+                              }}
+                              className="w-16 text-xs"
+                            />
+                            <span className="text-[10px] text-slate-400 font-medium">km</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] text-slate-400">₹</span>
+                            <Input
+                              type="number" min={0}
+                              value={bracket.charge}
+                              onChange={(e) => {
+                                const brackets = [...((zoneForm as any).pricing_brackets || [])];
+                                brackets[idx] = { ...brackets[idx], charge: parseFloat(e.target.value) || 0 };
+                                zf("pricing_brackets" as any, brackets);
+                              }}
+                              className="w-20 text-xs"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const brackets = [...((zoneForm as any).pricing_brackets || [])];
+                              brackets.splice(idx, 1);
+                              zf("pricing_brackets" as any, brackets);
+                            }}
+                            className="p-1 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const brackets = [...((zoneForm as any).pricing_brackets || [])];
+                        const lastMax = brackets.length > 0 ? brackets[brackets.length - 1].max_km : 0;
+                        const storeMax = selectedBranch?.max_delivery_radius_km ?? 15;
+                        const effectiveMax = Math.min(25, storeMax, zoneForm.max_serviceable_km || storeMax);
+                        const nextMax = Math.min(lastMax + 5, effectiveMax);
+                        if (lastMax >= effectiveMax) {
+                          showToast(`Cannot add bracket beyond effective delivery radius (${effectiveMax} km).`, "error");
+                          return;
+                        }
+                        brackets.push({ min_km: lastMax, max_km: nextMax, charge: 0, label: "", enabled: true });
+                        zf("pricing_brackets" as any, brackets);
+                      }}
+                      className="px-3 py-1.5 rounded-md text-[10px] font-bold flex items-center gap-1 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 border border-dashed border-emerald-300 dark:border-emerald-700 w-full justify-center"
+                    >
+                      <Plus className="w-3 h-3" /> Add Distance Bracket
+                    </button>
+                    <div className="mt-2">
+                      <Label className="text-xs text-slate-400">Flat-rate fallback (₹) — used when distance exceeds all brackets</Label>
+                      <Input type="number" min={0} value={zoneForm.delivery_charge} onChange={(e) => zf("delivery_charge", parseFloat(e.target.value) || 0)} className="mt-1" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Surcharges (applicable in both modes) */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-xs">Delivery Fee (₹)</Label>
-                    <Input type="number" min={0} value={zoneForm.delivery_charge} onChange={(e) => zf("delivery_charge", parseFloat(e.target.value) || 0)} />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Express Add-on (₹)</Label>
+                    <Label className="text-xs">Express Surcharge (₹)</Label>
                     <Input type="number" min={0} value={zoneForm.express_charge} onChange={(e) => zf("express_charge", parseFloat(e.target.value) || 0)} />
                   </div>
                   <div>
-                    <Label className="text-xs">Midnight Add-on (₹)</Label>
+                    <Label className="text-xs">Midnight Surcharge (₹)</Label>
                     <Input type="number" min={0} value={zoneForm.midnight_charge} onChange={(e) => zf("midnight_charge", parseFloat(e.target.value) || 0)} />
                   </div>
                   <div>
-                    <Label className="text-xs">Holiday Add-on (₹)</Label>
+                    <Label className="text-xs">Holiday Surcharge (₹)</Label>
                     <Input type="number" min={0} value={zoneForm.holiday_charge ?? 0} onChange={(e) => zf("holiday_charge", parseFloat(e.target.value) || 0)} />
                   </div>
                   <div>

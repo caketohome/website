@@ -8,10 +8,20 @@ import { useFormState, useFormStatus } from "react-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ErrorComponent } from "@frontend/components/common/error-component";
 import { OrderSummary, OrderSummaryPricing } from "./order-summary";
+import { CheckoutMap } from "./checkout-map";
 import { MapPin, Navigation, Search, CheckCircle2, Crosshair, AlertCircle, AlertTriangle, Bookmark, Loader2 } from "lucide-react";
 import { isValidCoordinate } from "@frontend/lib/location/directions";
 
-const AVAILABLE_PICKUP_BRANCHES = [
+export interface PickupBranch {
+  id: string;
+  name: string;
+  address: string;
+  pincode: string;
+  timing?: string;
+  is_open?: boolean;
+}
+
+const DEFAULT_PICKUP_BRANCHES: PickupBranch[] = [
   {
     id: "br_indiranagar",
     name: "Indiranagar Flagship Kitchen",
@@ -44,7 +54,24 @@ const AVAILABLE_PICKUP_BRANCHES = [
     timing: "09:00 AM - 10:30 PM",
     is_open: true,
   },
+  {
+    id: "br_kollam_hub",
+    name: "Kollam Central Cake Studio",
+    address: "Chinnakada, Kollam, Kerala",
+    pincode: "691001",
+    timing: "09:00 AM - 10:00 PM",
+    is_open: true,
+  },
 ];
+
+export type LocationSource = "GPS" | "SEARCH" | "MAP_PIN" | "SAVED_ADDRESS" | "EXPLICIT_GEOCODE" | null;
+
+export interface CustomerLocation {
+  latitude: number | null;
+  longitude: number | null;
+  accuracy: number | null;
+  source: LocationSource;
+}
 
 function Submit({ disabled }: { disabled?: boolean }) {
   const status = useFormStatus();
@@ -71,6 +98,9 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   // Delivery type selection (Delivery vs Branch Pickup)
   const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery");
   const [selectedBranchId, setSelectedBranchId] = useState<string>("");
+  const [pickupBranches, setPickupBranches] = useState<PickupBranch[]>(DEFAULT_PICKUP_BRANCHES);
+  const [storePickupEnabled, setStorePickupEnabled] = useState<boolean>(true);
+  const [storePickupFee, setStorePickupFee] = useState<number>(0);
 
   // Step state: 1 = Contact & Occasion, 2 = Fulfillment & Schedule, 3 = Payment & Finalize
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -87,14 +117,32 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   const [phone, setPhone] = useState("+91 98765 43210");
   const [email, setEmail] = useState("ananya.sharma@example.com");
 
-  // Address & Location fields
-  const [address, setAddress] = useState(cart.shipping_address?.address_1 || "");
-  const [city, setCity] = useState(cart.shipping_address?.city || "");
-  const [latitude, setLatitude] = useState<number | null>(null);
-  const [longitude, setLongitude] = useState<number | null>(null);
+  // ── 1. Authoritative Customer Map Location ─────────────────────────────
+  const initialLat = (cart.shipping_address as any)?.latitude ? Number((cart.shipping_address as any).latitude) : null;
+  const initialLng = (cart.shipping_address as any)?.longitude ? Number((cart.shipping_address as any).longitude) : null;
+
+  const [customerLocation, setCustomerLocation] = useState<CustomerLocation>({
+    latitude: initialLat,
+    longitude: initialLng,
+    accuracy: null,
+    source: initialLat && initialLng ? "SAVED_ADDRESS" : null,
+  });
+
+  const latitude = customerLocation.latitude;
+  const longitude = customerLocation.longitude;
+  const locationSource = customerLocation.source;
+  const gpsAccuracy = customerLocation.accuracy;
   const [locatingGps, setLocatingGps] = useState<boolean>(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
-  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
+
+  // ── 2. Delivery Address Text (Decoupled from Map Coordinates) ───────────
+  const [address, setAddress] = useState(cart.shipping_address?.address_1 || "");
+  const [city, setCity] = useState(cart.shipping_address?.city || "");
+  const [isGeocodingAddress, setIsGeocodingAddress] = useState<boolean>(false);
+  const [addressGeocodeNotice, setAddressGeocodeNotice] = useState<string | null>(null);
+
+  // Stale response protection sequence counter
+  const availabilitySeqRef = useRef<number>(0);
 
   // Search location autocomplete state
   const [locationSearchQuery, setLocationSearchQuery] = useState<string>("");
@@ -132,6 +180,10 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
     serviceable: boolean;
     branch_id: string | null;
     branch_name: string | null;
+    store_lat?: number;
+    store_lng?: number;
+    distance_km?: number | null;
+    eta_minutes?: number | { min: number; max: number };
     delivery_type: string;
     zone_name: string;
     status_message: string;
@@ -144,8 +196,9 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [selectedSlotId, setSelectedSlotId] = useState<string>("");
   const [loadingAvailability, setLoadingAvailability] = useState(false);
+  const [notifiedLocation, setNotifiedLocation] = useState(false);
 
-  // Authoritative Availability Resolution Engine
+  // Authoritative Availability Resolution Engine with Stale Response Protection
   const fetchAvailability = useCallback(async (customParams?: {
     zip?: string;
     lat?: number;
@@ -156,6 +209,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
     slot?: string;
     coupon?: string;
   }) => {
+    const seq = ++availabilitySeqRef.current;
     setLoadingAvailability(true);
     const targetZip = customParams?.zip ?? zip;
     const targetLat = customParams?.lat !== undefined ? customParams.lat : (latitude ?? undefined);
@@ -179,8 +233,22 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
         coupon_code: targetCoupon || undefined,
       });
 
+      // Stale response protection: Ignore if a newer request has already been dispatched
+      if (seq !== availabilitySeqRef.current) {
+        return;
+      }
+
       if (res && res.success) {
         setAvailability(res);
+        if (res.store_pickup_enabled !== undefined) {
+          setStorePickupEnabled(Boolean(res.store_pickup_enabled));
+          if (!res.store_pickup_enabled && targetType === "pickup") {
+            setDeliveryType("delivery");
+          }
+        }
+        if (res.store_pickup_convenience_fee !== undefined) {
+          setStorePickupFee(Number(res.store_pickup_convenience_fee) || 0);
+        }
         if (res.branch_id) {
           setSelectedBranchId(res.branch_id);
         }
@@ -195,13 +263,17 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
         }
       }
     } catch (e) {
-      console.error("Failed to load checkout availability", e);
+      if (seq === availabilitySeqRef.current) {
+        console.error("Failed to load checkout availability", e);
+      }
     } finally {
-      setLoadingAvailability(false);
+      if (seq === availabilitySeqRef.current) {
+        setLoadingAvailability(false);
+      }
     }
   }, [cart.id, zip, latitude, longitude, deliveryType, selectedBranchId, selectedDate, selectedSlotId, appliedCouponCode]);
 
-  // Load Saved Addresses on mount
+  // Load Saved Addresses, Fulfillment Configuration, and Active Pickup Branches on mount
   useEffect(() => {
     fetch("/api/customer/address")
       .then((res) => res.json())
@@ -211,7 +283,46 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
         }
       })
       .catch(() => {});
-  }, []);
+
+    fetch("/api/v1/fulfillment/config")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.config) {
+          if (data.config.store_pickup_enabled !== undefined) {
+            setStorePickupEnabled(Boolean(data.config.store_pickup_enabled));
+            if (!data.config.store_pickup_enabled && deliveryType === "pickup") {
+              setDeliveryType("delivery");
+            }
+          }
+          if (data.config.store_pickup_convenience_fee !== undefined) {
+            setStorePickupFee(Number(data.config.store_pickup_convenience_fee) || 0);
+          }
+        }
+      })
+      .catch(() => {});
+
+    fetch("/api/v1/branches")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && Array.isArray(data.branches) && data.branches.length > 0) {
+          const eligible = data.branches
+            .filter((b: any) => b.status === "active" && b.is_open !== false && b.pickup_enabled !== false && b.allow_pickup !== false)
+            .map((b: any) => ({
+              id: b.id,
+              name: b.name,
+              address: b.address || `${b.city || "Bengaluru"} Kitchen`,
+              pincode: b.pincode || "",
+              timing: b.timing || "09:00 AM - 11:00 PM",
+              is_open: b.is_open !== false,
+            }));
+          if (eligible.length > 0) {
+            setPickupBranches(eligible);
+            setSelectedBranchId((prev) => (prev && eligible.some((b: any) => b.id === prev) ? prev : eligible[0].id));
+          }
+        }
+      })
+      .catch(() => {});
+  }, [deliveryType]);
 
   // Handle GPS "Use Current Location"
   const handleUseCurrentLocation = () => {
@@ -221,23 +332,27 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
     }
     setLocatingGps(true);
     setGpsError(null);
-    setGpsAccuracy(null);
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
+        const lat = Number(pos.coords.latitude.toFixed(6));
+        const lng = Number(pos.coords.longitude.toFixed(6));
         const accuracy = pos.coords.accuracy;
-        setLatitude(lat);
-        setLongitude(lng);
-        setGpsAccuracy(accuracy);
+        setCustomerLocation({
+          latitude: lat,
+          longitude: lng,
+          accuracy,
+          source: "GPS",
+        });
 
         try {
           const res = await apiClient.reverseGeocode(lat, lng);
           if (res && res.success) {
-            if (res.address_line_1) setAddress(res.address_line_1);
-            if (res.city) setCity(res.city);
-            if (res.pincode) setZip(res.pincode);
+            if (res.address_line_1 && !res.address_line_1.startsWith("GPS (")) {
+              setAddress((prev: string) => (prev && !prev.startsWith("GPS (") ? prev : (res.address_line_1 || "")));
+            }
+            if (res.city) setCity((prev: string) => (prev ? prev : (res.city || "")));
+            if (res.pincode) setZip((prev: string) => (prev ? prev : (res.pincode || "")));
             if (res.formatted_address) setLocationSearchQuery(res.formatted_address);
             fetchAvailability({ zip: res.pincode, lat, lng });
           } else {
@@ -252,7 +367,6 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
       (err) => {
         setLocatingGps(false);
         if (err.code === 1) {
-          // Permission denied
           setGpsError("Location access was not allowed. Search for your delivery address instead.");
         } else if (err.code === 2) {
           setGpsError("Position unavailable. Search for your delivery address instead.");
@@ -267,51 +381,99 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
     );
   };
 
-  // Handle Location Search Autocomplete
+  // Handle Location Search Autocomplete with AbortController and Stale Request Protection
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchAbortControllerRef = useRef<AbortController | null>(null);
+  const searchSeqRef = useRef<number>(0);
+
   const handleSearchLocationInput = (val: string) => {
     setLocationSearchQuery(val);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    if (searchAbortControllerRef.current) {
+      searchAbortControllerRef.current.abort();
+      searchAbortControllerRef.current = null;
+    }
 
     if (!val || val.trim().length < 2) {
       setLocationSearchResults([]);
       setShowLocationDropdown(false);
+      setIsSearchingLocation(false);
       return;
     }
 
     setIsSearchingLocation(true);
     setShowLocationDropdown(true);
 
+    const seq = ++searchSeqRef.current;
     searchTimeoutRef.current = setTimeout(async () => {
+      const controller = new AbortController();
+      searchAbortControllerRef.current = controller;
       try {
-        const res: any = await apiClient.searchDeliveryLocation(val.trim());
-        setLocationSearchResults(res?.results || []);
-      } catch {
-        setLocationSearchResults([]);
+        const res: any = await fetch(`/api/v1/delivery/search-location?q=${encodeURIComponent(val.trim())}`, {
+          signal: controller.signal,
+        }).then(r => r.json());
+
+        if (seq === searchSeqRef.current) {
+          setLocationSearchResults(res?.results || []);
+        }
+      } catch (err: any) {
+        if (err.name !== "AbortError" && seq === searchSeqRef.current) {
+          setLocationSearchResults([]);
+        }
       } finally {
-        setIsSearchingLocation(false);
+        if (seq === searchSeqRef.current) {
+          setIsSearchingLocation(false);
+        }
       }
-    }, 250);
+    }, 300);
   };
 
   // Select Search Autocomplete Location Result
   const handleSelectSearchResult = (loc: any) => {
     setLocationSearchQuery(loc.label || loc.formatted_address);
     setShowLocationDropdown(false);
-    if (loc.latitude && loc.longitude) {
-      setLatitude(loc.latitude);
-      setLongitude(loc.longitude);
+    if (typeof loc.latitude === "number" && typeof loc.longitude === "number") {
+      const lat = Number(loc.latitude.toFixed(6));
+      const lng = Number(loc.longitude.toFixed(6));
+      setCustomerLocation({
+        latitude: lat,
+        longitude: lng,
+        accuracy: null,
+        source: "SEARCH",
+      });
+      if (loc.city) setCity((prev: string) => (prev ? prev : loc.city));
+      if (loc.pincode) {
+        setZip((prev: string) => (prev ? prev : loc.pincode));
+      }
+      fetchAvailability({
+        zip: loc.pincode,
+        lat,
+        lng,
+      });
     }
-    if (loc.formatted_address || loc.label) setAddress(loc.formatted_address || loc.label);
-    if (loc.city) setCity(loc.city);
-    if (loc.pincode) {
-      setZip(loc.pincode);
-    }
-    fetchAvailability({
-      zip: loc.pincode,
-      lat: loc.latitude,
-      lng: loc.longitude,
+  };
+
+  // Handle Location Pin Dragged on Map
+  const handleLocationChangeFromMap = async (newLat: number, newLng: number) => {
+    const lat = Number(newLat.toFixed(6));
+    const lng = Number(newLng.toFixed(6));
+    setCustomerLocation({
+      latitude: lat,
+      longitude: lng,
+      accuracy: null,
+      source: "MAP_PIN",
     });
+    fetchAvailability({ lat, lng });
+
+    // Reverse geocode in background to provide helpful city/pincode hints without overwriting user address
+    try {
+      const res = await apiClient.reverseGeocode(lat, lng);
+      if (res && res.success) {
+        if (res.city && !city) setCity(res.city);
+        if (res.pincode && !zip) setZip(res.pincode);
+        if (res.formatted_address) setLocationSearchQuery(res.formatted_address);
+      }
+    } catch {}
   };
 
   // Select Saved Address
@@ -321,33 +483,96 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
     setCity(addr.city || "");
     const pin = addr.postal_code || addr.pincode || "";
     if (pin) setZip(pin);
+    if (addr.landmark) setRecipientLandmark(addr.landmark);
+    if (addr.instructions) setDeliveryInstructions(addr.instructions);
+
     if (typeof addr.latitude === "number" && typeof addr.longitude === "number") {
-      setLatitude(addr.latitude);
-      setLongitude(addr.longitude);
-      fetchAvailability({ zip: pin, lat: addr.latitude, lng: addr.longitude });
+      const lat = Number(addr.latitude.toFixed(6));
+      const lng = Number(addr.longitude.toFixed(6));
+      setCustomerLocation({
+        latitude: lat,
+        longitude: lng,
+        accuracy: null,
+        source: "SAVED_ADDRESS",
+      });
+      fetchAvailability({ zip: pin, lat, lng });
     } else {
-      setLatitude(null);
-      setLongitude(null);
+      setCustomerLocation({
+        latitude: null,
+        longitude: null,
+        accuracy: null,
+        source: null,
+      });
       fetchAvailability({ zip: pin });
     }
   };
 
-  // Initial Load
+  // Explicit Location Action: Search typed address text on map
+  const handleSearchAddressOnMap = async () => {
+    const query = [address, city, zip].filter(Boolean).join(", ");
+    if (!query || query.trim().length < 3) {
+      setAddressGeocodeNotice("Please enter at least a street address or city to locate on map.");
+      return;
+    }
+    setIsGeocodingAddress(true);
+    setAddressGeocodeNotice(null);
+
+    try {
+      const res: any = await apiClient.searchDeliveryLocation(query);
+      let match = res?.results?.[0];
+      if (!match && (city || zip)) {
+        const fbRes: any = await apiClient.searchDeliveryLocation([city, zip].filter(Boolean).join(" "));
+        match = fbRes?.results?.[0];
+      }
+
+      if (match && typeof match.latitude === "number" && typeof match.longitude === "number") {
+        const lat = Number(match.latitude.toFixed(6));
+        const lng = Number(match.longitude.toFixed(6));
+        setCustomerLocation({
+          latitude: lat,
+          longitude: lng,
+          accuracy: null,
+          source: "EXPLICIT_GEOCODE",
+        });
+        setAddressGeocodeNotice(`✓ Map updated to ${match.label || match.city || "location"}`);
+        fetchAvailability({ lat, lng, zip: match.pincode || zip });
+      } else {
+        setAddressGeocodeNotice("Could not find this exact address on the map. Please use the search bar or move the pin.");
+      }
+    } catch {
+      setAddressGeocodeNotice("Failed to locate address on map. Please use the search bar above.");
+    } finally {
+      setIsGeocodingAddress(false);
+    }
+  };
+
+  // Initial Load: Only fetch if pickup mode or initial coordinates / 6-digit zip are present
   useEffect(() => {
-    fetchAvailability();
+    if (deliveryType === "pickup" || typeof latitude === "number" || (zip && zip.length === 6)) {
+      fetchAvailability();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Periodic Refresh of Slots & Capacity every 30 seconds
+  // Periodic Refresh of Slots & Capacity every 30 seconds (stabilized ref)
+  const fetchAvailabilityRef = useRef(fetchAvailability);
   useEffect(() => {
-    const timer = setInterval(() => {
-      fetchAvailability();
-    }, 30000);
-    return () => clearInterval(timer);
+    fetchAvailabilityRef.current = fetchAvailability;
   }, [fetchAvailability]);
 
-  // Pincode Verification Handler
+  useEffect(() => {
+    const timer = setInterval(() => {
+      fetchAvailabilityRef.current();
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Pincode Verification Handler (Strict fallback ONLY if customer has not selected map coordinates)
   const handleCheckPincode = async () => {
+    if (typeof latitude === "number" && typeof longitude === "number") {
+      // Map coordinates are strictly authoritative. Editing/blurring pincode does NOT drop or override coordinates!
+      return;
+    }
     if (!zip || zip.trim().length < 6) return;
     setChecking(true);
     await fetchAvailability({ zip });
@@ -369,7 +594,15 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   // Date Selection Handler
   const handleDateChange = (date: string) => {
     setSelectedDate(date);
-    fetchAvailability({ date });
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const isTargetToday = date === todayIso;
+
+    let targetSlot = selectedSlotId;
+    if (!isTargetToday && selectedSlotId?.includes("EXPRESS")) {
+      targetSlot = "";
+      setSelectedSlotId("");
+    }
+    fetchAvailability({ date, slot: targetSlot });
   };
 
   // Slot Selection Handler
@@ -425,10 +658,11 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   }, [step]);
 
   const isSubmitDisabled = !isStep1Valid || !isStep2Valid;
-  const servicingBranchObj = AVAILABLE_PICKUP_BRANCHES.find((b) => b.id === selectedBranchId) || {
+  const servicingBranchObj = pickupBranches.find((b) => b.id === selectedBranchId) || {
     id: selectedBranchId,
     name: availability?.branch_name || "Flagship Hub",
     address: "Bengaluru Kitchen",
+    pincode: "",
   };
 
   return (
@@ -687,7 +921,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
                   <span className="text-xs text-zinc-500">Step 2 of 3</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className={`grid ${storePickupEnabled ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-3`}>
                   <button
                     type="button"
                     onClick={() => handleModeChange("delivery")}
@@ -706,23 +940,29 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
                     </span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleModeChange("pickup")}
-                    className={`py-4 px-4 rounded-2xl border text-left font-semibold transition-all flex flex-col gap-1.5 ${
-                      deliveryType === "pickup"
-                        ? "border-rose-500 bg-rose-50/60 dark:bg-rose-950/40 text-rose-900 dark:text-rose-100 ring-2 ring-rose-500/20"
-                        : "border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">🏪</span>
-                      <span className="font-bold text-sm md:text-base">Store Pickup (FREE)</span>
-                    </div>
-                    <span className="text-[11px] text-emerald-600 font-bold">
-                      Zero delivery charge • Collect from nearest kitchen hub
-                    </span>
-                  </button>
+                  {storePickupEnabled && (
+                    <button
+                      type="button"
+                      onClick={() => handleModeChange("pickup")}
+                      className={`py-4 px-4 rounded-2xl border text-left font-semibold transition-all flex flex-col gap-1.5 ${
+                        deliveryType === "pickup"
+                          ? "border-rose-500 bg-rose-50/60 dark:bg-rose-950/40 text-rose-900 dark:text-rose-100 ring-2 ring-rose-500/20"
+                          : "border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">🏪</span>
+                        <span className="font-bold text-sm md:text-base">
+                          Store Pickup {storePickupFee === 0 ? "(FREE)" : `(₹${storePickupFee})`}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-emerald-600 font-bold">
+                        {storePickupFee === 0
+                          ? "Zero delivery charge • Collect from nearest kitchen hub"
+                          : `Convenience fee ₹${storePickupFee} • Collect from kitchen hub`}
+                      </span>
+                    </button>
+                  )}
                 </div>
                 <input type="hidden" name="delivery_type" value={deliveryType} />
               </div>
@@ -859,124 +1099,225 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
                       <div className="flex items-center gap-2">
                         <Navigation className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                         <span className="font-mono text-[11px] font-bold text-blue-900 dark:text-blue-200">
-                          GPS Coordinates: {latitude.toFixed(5)}, {longitude.toFixed(5)}
+                          Delivery Coordinates: {latitude.toFixed(5)}, {longitude.toFixed(5)}
                         </span>
                       </div>
                       <span className="text-[10px] font-bold text-blue-700 bg-blue-100 dark:bg-blue-900/80 px-2 py-0.5 rounded">
-                        ✓ Exact Coordinates Locked for Rider
+                        ✓ {locationSource === "GPS" ? "GPS Verified" : locationSource === "SEARCH" ? "Search Selected" : locationSource === "EXPLICIT_GEOCODE" ? "Address Geocoded" : "Map Pin Locked"}
                       </span>
                     </div>
                   )}
 
-                  {/* Authoritative Serviceability Feedback Banner */}
+                  {/* Interactive Customer Location Map */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <Label className="font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-rose-600" /> Confirm Pin on Map 📍
+                      </Label>
+                      <span className="text-[10px] text-zinc-500">Drag pin to adjust exact delivery doorstep</span>
+                    </div>
+                    <CheckoutMap
+                      latitude={typeof latitude === "number" ? latitude : undefined}
+                      longitude={typeof longitude === "number" ? longitude : undefined}
+                      storeLat={(availability as any)?.store_lat}
+                      storeLng={(availability as any)?.store_lng}
+                      storeName={availability?.branch_name || undefined}
+                      serviceable={availability ? availability.serviceable : undefined}
+                      height={240}
+                      loading={loadingAvailability}
+                      onLocationChange={handleLocationChangeFromMap}
+                    />
+                  </div>
+
+                  {/* Authoritative Serviceability Feedback Card */}
                   {loadingAvailability ? (
-                    <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                    <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400 animate-pulse">
                       <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
-                      <span>Checking bakery delivery coverage &amp; map-fence serviceability...</span>
+                      <span>Checking delivery availability...</span>
                     </div>
                   ) : availability ? (
                     <div>
                       {availability.serviceable ? (
-                        <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex flex-col gap-1">
+                        <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex flex-col gap-2">
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Delivery Available ({availability.branch_name || "Serving Store"})
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Delivery Available
                             </span>
                             <span className="text-xs font-extrabold text-emerald-900 dark:text-emerald-100 bg-emerald-100 dark:bg-emerald-900/80 px-2.5 py-0.5 rounded-md">
-                              {availability.pricing?.delivery_fee === 0 ? "FREE DELIVERY" : `Fee: ₹${availability.pricing?.delivery_fee || 0}.00`}
+                              {availability.pricing?.delivery_fee === 0 ? "FREE DELIVERY" : `₹${availability.pricing?.delivery_fee || 0}`}
                             </span>
                           </div>
-                          <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
-                            {availability.status_message || `Serving from ${availability.branch_name}`}
-                          </p>
+                          <div className="text-xs text-emerald-900 dark:text-emerald-200 font-medium">
+                            Serving from: <span className="font-bold">{availability.branch_name || "Bakery Hub"}</span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
+                            {(typeof availability.distance_km === "number" || typeof availability.pricing?.distance_km === "number") && (
+                              <span>Distance: {availability.distance_km ?? availability.pricing?.distance_km} km</span>
+                            )}
+                            {availability.pricing?.delivery_fee !== undefined && (
+                              <span>Delivery: {availability.pricing.delivery_fee === 0 ? "Free" : `₹${availability.pricing.delivery_fee}`}</span>
+                            )}
+                            {availability.eta_minutes && (
+                              <span>ETA: ~{typeof availability.eta_minutes === "object" ? `${availability.eta_minutes.min}-${availability.eta_minutes.max}` : availability.eta_minutes} mins</span>
+                            )}
+                          </div>
                         </div>
                       ) : (
-                        <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 flex flex-col gap-2">
+                        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 flex flex-col gap-2">
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
                               <span>❌</span> We currently don't deliver to this location
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setLocationSearchQuery("");
-                                searchInputRef.current?.focus();
-                              }}
-                              className="text-[11px] font-bold text-rose-700 dark:text-rose-300 underline hover:no-underline"
-                            >
-                              Change Location
-                            </button>
+                            <div className="flex items-center gap-2">
+                              {!notifiedLocation ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setNotifiedLocation(true)}
+                                  className="text-[11px] font-bold text-amber-700 dark:text-amber-300 hover:underline flex items-center gap-1"
+                                >
+                                  <span>🔔</span> Notify Me
+                                </button>
+                              ) : (
+                                <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+                                  <span>✓</span> We will notify you
+                                </span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLocationSearchQuery("");
+                                  searchInputRef.current?.focus();
+                                }}
+                                className="text-[11px] font-bold text-rose-700 dark:text-rose-300 underline hover:no-underline ml-1"
+                              >
+                                Change Location
+                              </button>
+                            </div>
                           </div>
                           <p className="text-[11px] text-rose-700 dark:text-rose-400">
-                            {availability.status_message || "This address is outside our current bakery delivery coverage zones. Please search a different location or choose Store Pickup."}
+                            {availability.status_message || "We currently don't deliver to this location. We're coming soon to your town."}
                           </p>
+                          {notifiedLocation && (
+                            <p className="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">
+                              ✓ You will receive an SMS and WhatsApp notification as soon as our bakery coverage launches in your area.
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-dashed border-zinc-200 dark:border-zinc-700 text-center text-xs text-zinc-500">
+                      <span>📍 Select your delivery location using GPS, Search, or Saved Addresses</span>
+                    </div>
+                  )}
 
-                  <div className="grid grid-cols-1 gap-4 pt-2">
-                    <div>
-                      <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">Street Address / Flat / Building *</Label>
-                      <Input
-                        placeholder="House/Flat No., Building Name, Street/Road"
-                        name="address"
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        required
-                        className="mt-1"
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div>
-                        <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">City / Area *</Label>
-                        <Input
-                          placeholder="City / Locality"
-                          name="city"
-                          value={city}
-                          onChange={(e) => setCity(e.target.value)}
-                          required
-                          className="mt-1"
-                        />
+                  {/* Section B: Delivery Address Text (Human-Readable) — ONLY when Serviceable */}
+                  {availability?.serviceable && (
+                    <div className="border-t border-zinc-100 dark:border-zinc-800 pt-4 flex flex-col gap-3">
+                      <div className="flex flex-col gap-0.5">
+                        <Heading level="h3" className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                          <span>🏠</span> Delivery Address &amp; Gate Notes
+                        </Heading>
+                        <p className="text-[11px] text-zinc-500">
+                          This address provides building, flat, and doorstep directions for our rider. Editing it will not alter your physical map pin above.
+                        </p>
                       </div>
-                      <div>
-                        <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">Pincode</Label>
-                        <Input
-                          placeholder="e.g. 560038"
-                          name="zip"
-                          value={zip}
-                          maxLength={6}
-                          onChange={(e) => setZip(e.target.value.replace(/\D/g, ""))}
-                          onBlur={handleCheckPincode}
-                          className="mt-1 font-mono"
-                        />
-                      </div>
-                      <div>
-                        <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">Landmark (Optional)</Label>
-                        <Input
-                          placeholder="e.g. Near Metro Station / Park"
-                          name="landmark"
-                          value={recipientLandmark}
-                          onChange={(e) => setRecipientLandmark(e.target.value)}
-                          className="mt-1"
-                        />
+
+                      <div className="grid grid-cols-1 gap-4 pt-1">
+                        <div>
+                          <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">Street Address / Flat / Building *</Label>
+                          <Input
+                            placeholder="House/Flat No., Building Name, Street/Road"
+                            name="address"
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
+                            required
+                            className="mt-1"
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div>
+                            <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">City / Area *</Label>
+                            <Input
+                              placeholder="City / Locality"
+                              name="city"
+                              value={city}
+                              onChange={(e) => setCity(e.target.value)}
+                              required
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">Pincode</Label>
+                            <Input
+                              placeholder="e.g. 560038"
+                              name="zip"
+                              value={zip}
+                              maxLength={6}
+                              onChange={(e) => setZip(e.target.value.replace(/\D/g, ""))}
+                              onBlur={handleCheckPincode}
+                              className="mt-1 font-mono"
+                            />
+                          </div>
+                          <div>
+                            <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">Landmark (Optional)</Label>
+                            <Input
+                              placeholder="e.g. Near Metro Station / Park"
+                              name="landmark"
+                              value={recipientLandmark}
+                              onChange={(e) => setRecipientLandmark(e.target.value)}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">Delivery Instructions / Gate Notes</Label>
+                          <Input
+                            placeholder="e.g. Ring bell twice, leave with security if unavailable, call upon arrival"
+                            name="special-instructions"
+                            value={deliveryInstructions}
+                            onChange={(e) => setDeliveryInstructions(e.target.value)}
+                            className="mt-1 text-xs"
+                          />
+                        </div>
+
+                        {/* Explicit Map Re-anchoring Button */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                          <p className="text-[11px] text-zinc-500">
+                            Want to align your map pin to this typed address?
+                          </p>
+                          <button
+                            type="button"
+                            onClick={handleSearchAddressOnMap}
+                            disabled={isGeocodingAddress || (!address.trim() && !city.trim() && !zip.trim())}
+                            className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-750 text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 transition disabled:opacity-50"
+                          >
+                            {isGeocodingAddress ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-600" />
+                                <span>Locating on Map...</span>
+                              </>
+                            ) : (
+                              <>
+                                <MapPin className="w-3.5 h-3.5 text-rose-600" />
+                                <span>Search this address on map</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        {addressGeocodeNotice && (
+                          <p className="text-[11px] text-rose-600 dark:text-rose-400 font-medium">
+                            {addressGeocodeNotice}
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <div>
-                      <Label className="font-semibold text-xs text-zinc-700 dark:text-zinc-300">Delivery Instructions / Gate Notes</Label>
-                      <Input
-                        placeholder="e.g. Ring bell twice, leave with security if unavailable, call upon arrival"
-                        name="special-instructions"
-                        value={deliveryInstructions}
-                        onChange={(e) => setDeliveryInstructions(e.target.value)}
-                        className="mt-1 text-xs"
-                      />
-                    </div>
-                  </div>
+                  )}
 
                   {/* Hidden GPS inputs submitted to placeOrder */}
                   <input type="hidden" name="latitude" value={latitude ?? ""} />
                   <input type="hidden" name="longitude" value={longitude ?? ""} />
+                  <input type="hidden" name="location_source" value={locationSource ?? ""} />
                 </div>
               ) : (
                 /* Mode 2: Store Pickup Branch Selection */
@@ -986,7 +1327,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
                   </Heading>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    {AVAILABLE_PICKUP_BRANCHES.map((b) => {
+                    {pickupBranches.map((b) => {
                       const isSelected = selectedBranchId === b.id;
                       return (
                         <button
@@ -1006,7 +1347,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
                             </span>
                           </div>
                           <p className="text-xs text-zinc-500">{b.address}</p>
-                          <span className="text-[11px] text-zinc-400 font-mono mt-1">🕒 {b.timing}</span>
+                          <span className="text-[11px] text-zinc-400 font-mono mt-1">🕒 {b.timing || "09:00 AM - 11:00 PM"}</span>
                         </button>
                       );
                     })}
@@ -1015,16 +1356,17 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
                 </div>
               )}
 
-              {/* Delivery / Pickup Date & Slot Scheduling */}
-              <div className="border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 bg-white dark:bg-zinc-900 flex flex-col gap-4 shadow-sm">
-                <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-800 pb-2">
-                  <Heading level="h2" className="text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                    <span>🗓️</span> {deliveryType === "delivery" ? "Delivery Scheduling" : "Pickup Scheduling"}
-                  </Heading>
-                  <span className="text-xs font-semibold text-zinc-500">
-                    From: <b>{servicingBranchObj.name}</b>
-                  </span>
-                </div>
+              {/* Delivery / Pickup Date & Slot Scheduling — ONLY when Serviceable or Pickup */}
+              {(deliveryType === "pickup" || availability?.serviceable) && (
+                <div className="border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 bg-white dark:bg-zinc-900 flex flex-col gap-4 shadow-sm">
+                  <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                    <Heading level="h2" className="text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                      <span>🗓️</span> {deliveryType === "delivery" ? "Delivery Scheduling" : "Pickup Scheduling"}
+                    </Heading>
+                    <span className="text-xs font-semibold text-zinc-500">
+                      From: <b>{servicingBranchObj.name}</b>
+                    </span>
+                  </div>
 
                 {/* Date Selector */}
                 <div className="flex flex-col gap-1.5">
@@ -1176,6 +1518,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
                   <input type="hidden" name="delivery_slot_id" value={selectedSlotId} />
                 </div>
               </div>
+              )}
 
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-2">
                 <Button type="button" variant="secondary" onClick={() => setStep(1)} className="rounded-xl">

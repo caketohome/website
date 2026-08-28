@@ -125,9 +125,47 @@ class CakeToHomeApiClient {
     return this.request<T>(endpoint, { ...options, method: "DELETE" });
   }
 
+  private inFlightRequests: Map<string, Promise<any>> = new Map();
+  private metadataCache: Map<string, { data: any; expiresAt: number }> = new Map();
+
+  private isCacheableEndpoint(endpoint: string, method: string): boolean {
+    if (method !== "GET") return false;
+    const cacheablePrefixes = [
+      "/occasions",
+      "/store/occasions",
+      "/categories",
+      "/store/categories",
+      "/admin/catalog/flavors",
+      "/admin/catalog/shapes",
+      "/catalog/flavors",
+      "/catalog/shapes",
+      "/store/engagement/config",
+      "/engagement/config",
+    ];
+    return cacheablePrefixes.some((prefix) => endpoint === prefix || endpoint.startsWith(`${prefix}?`));
+  }
+
+  public invalidateCache(prefix?: string) {
+    if (!prefix) {
+      this.metadataCache.clear();
+      return;
+    }
+    for (const key of this.metadataCache.keys()) {
+      if (key.includes(prefix)) {
+        this.metadataCache.delete(key);
+      }
+    }
+  }
+
   public async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const startTime = Date.now();
-    const method = options.method || "GET";
+    const method = (options.method || "GET").toUpperCase();
+
+    // Cache invalidation on mutations
+    if (method !== "GET") {
+      this.metadataCache.clear();
+    }
+
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(options.headers as Record<string, string>),
@@ -153,59 +191,85 @@ class CakeToHomeApiClient {
       ? `/api/v1${cleanEndpoint}`
       : `http://localhost:3000/api/v1${cleanEndpoint}`;
 
-    try {
-      const controller = new AbortController();
-      const requestTimeoutMs = typeof window === "undefined" ? 45000 : 20000;
-      const timeoutId = setTimeout(() => controller.abort(), requestTimeoutMs);
-      const response = await fetch(primaryUrl, {
-        ...options,
-        headers,
-        signal: options.signal || controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      const duration = Date.now() - startTime;
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log(`[API CLIENT SUCCESS] [${method}] ${primaryUrl} | Status: ${response.status} | Duration: ${duration}ms`);
-        return data;
+    // 1. Metadata Cache Resolution for low-churn GET endpoints
+    if (method === "GET" && this.isCacheableEndpoint(cleanEndpoint, method)) {
+      const cached = this.metadataCache.get(primaryUrl);
+      if (cached && cached.expiresAt > Date.now()) {
+        return cached.data as T;
       }
+    }
 
-      if (response.status === 401 && endpoint.startsWith("/admin")) {
-        console.log(`[API CLIENT 401 AUTH RETRY] Attempting auto-auth refresh for ${endpoint}...`);
-        const freshToken = await this.autoAuthAdmin();
-        if (freshToken) {
-          headers["Authorization"] = `Bearer ${freshToken}`;
-          const retryRes = await fetch(primaryUrl, { ...options, headers });
-          if (retryRes.ok) {
-            const retryData = await retryRes.json();
-            console.log(`[API CLIENT RETRY SUCCESS] [${method}] ${primaryUrl} | Status: ${retryRes.status} | Duration: ${Date.now() - startTime}ms`);
-            return retryData;
+    // 2. In-Flight Single-Flight Deduplication for GET requests
+    const flightKey = `${method}:${primaryUrl}`;
+    if (method === "GET" && !options.signal && this.inFlightRequests.has(flightKey)) {
+      return this.inFlightRequests.get(flightKey) as Promise<T>;
+    }
+
+    const executeRequest = async (): Promise<T> => {
+      try {
+        const controller = new AbortController();
+        const requestTimeoutMs = typeof window === "undefined" ? 12000 : 8000;
+        const timeoutId = setTimeout(() => controller.abort(), requestTimeoutMs);
+        const response = await fetch(primaryUrl, {
+          ...options,
+          headers,
+          signal: options.signal || controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        const duration = Date.now() - startTime;
+
+        if (response.ok) {
+          const data = await response.json();
+          if (this.isCacheableEndpoint(cleanEndpoint, method)) {
+            this.metadataCache.set(primaryUrl, {
+              data,
+              expiresAt: Date.now() + 20000, // 20s TTL
+            });
+          }
+          return data;
+        }
+
+        if (response.status === 401 && endpoint.startsWith("/admin")) {
+          const freshToken = await this.autoAuthAdmin();
+          if (freshToken) {
+            headers["Authorization"] = `Bearer ${freshToken}`;
+            const retryRes = await fetch(primaryUrl, { ...options, headers });
+            if (retryRes.ok) {
+              return retryRes.json();
+            }
           }
         }
-      }
 
-      const errData = await response.json().catch(() => ({}));
-      console.warn(`[API CLIENT HTTP ERROR ${response.status}] [${method}] ${primaryUrl} | Duration: ${duration}ms | ${errData.message || errData.error || response.statusText}`);
-      throw new Error(errData.message || errData.error || `HTTP ${response.status} Request Failed`);
-    } catch (err: any) {
-      const duration = Date.now() - startTime;
-      console.error(`[API CLIENT REQUEST FAILED] [${method}] ${primaryUrl} | Duration: ${duration}ms | Error: ${err.message}`);
-      if (typeof window !== "undefined") {
+        const errData = await response.json().catch(() => ({}));
+        const errMsg = errData.message || errData.error || `HTTP ${response.status} Request Failed`;
+        throw new Error(errMsg);
+      } catch (err: any) {
+        if (typeof window !== "undefined") {
+          throw err;
+        }
+        const fallbackUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9000"}/api/v1${endpoint}`;
+        try {
+          const fallbackRes = await fetch(fallbackUrl, { ...options, headers });
+          if (fallbackRes.ok) {
+            return fallbackRes.json();
+          }
+        } catch {
+          // Ignore fallback error and throw original
+        }
         throw err;
       }
-      const fallbackUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9000"}/api/v1${endpoint}`;
-      try {
-        const fallbackRes = await fetch(fallbackUrl, { ...options, headers });
-        if (fallbackRes.ok) {
-          return fallbackRes.json();
-        }
-      } catch {
-        // Ignore fallback error and throw original
-      }
-      throw err;
+    };
+
+    if (method === "GET" && !options.signal) {
+      const flightPromise = executeRequest().finally(() => {
+        this.inFlightRequests.delete(flightKey);
+      });
+      this.inFlightRequests.set(flightKey, flightPromise);
+      return flightPromise;
     }
+
+    return executeRequest();
   }
 
   // Auth Domain APIs (/api/v1/auth)
@@ -536,10 +600,14 @@ class CakeToHomeApiClient {
   // ── Storefront: Dynamic Product Options ──
   async getStorefrontProductOptions(productId: string) {
     return this.request(`/store/catalog/products/${productId}/options`).catch(() => ({
-      enable_flavor_selection: true,
-      enable_shape_selection: true,
+      enable_flavor_selection: false,
+      enable_shape_selection: false,
+      enable_filling_selection: false,
+      enable_cream_selection: false,
       flavors: [],
       shapes: [],
+      fillings: [],
+      creams: [],
     }));
   }
 
@@ -656,6 +724,9 @@ class CakeToHomeApiClient {
   }
   async searchDeliveryLocation(query: string) {
     return this.request(`/delivery/search-location?q=${encodeURIComponent(query)}`).catch(() => ({ results: [], success: false }));
+  }
+  async getFulfillmentConfig() {
+    return this.request("/fulfillment/config").catch(() => ({ config: {}, success: false }));
   }
   async getAdminRegions() {
     return this.request("/admin/regions").catch(() => ({ regions: [] }));
@@ -2258,6 +2329,13 @@ class CakeToHomeApiClient {
       Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
     ).toString();
     return this.request(`/products/search${qs ? `?${qs}` : ""}`);
+  }
+
+  async getProduct(id: string, params: Record<string, any> = {}) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+    ).toString();
+    return this.request(`/products/${encodeURIComponent(id)}${qs ? `?${qs}` : ""}`);
   }
 }
 

@@ -498,7 +498,7 @@ export interface CrmHealthReport {
   missing_phone: number;
   healthy: boolean;
   environment_mode: "development" | "production";
-  database_driver: "postgres" | "json-fallback";
+  database_driver: "postgres";
   generated_at: string;
 }
 

@@ -8,11 +8,20 @@ import { apiClient } from "../api-client";
 
 export async function retrieveCart(cartId?: string) {
   const resolvedCartId = cartId || cookies().get("_cth_cart_id")?.value || cookies().get("_medusa_cart_id")?.value;
+  if (!resolvedCartId) {
+    return {
+      id: "",
+      items: [],
+      subtotal: 0,
+      total: 0,
+      currency_code: "inr",
+    };
+  }
   
   if (typeof window === "undefined") {
     try {
       const { ApiEngine } = await import("../api-engine");
-      const cart = ApiEngine.getCart(resolvedCartId || "cart_guest_100");
+      const cart = ApiEngine.getCart(resolvedCartId);
       if (cart) {
         return cart;
       }
@@ -26,7 +35,7 @@ export async function retrieveCart(cartId?: string) {
     return res?.cart || res;
   } catch (err) {
     return {
-      id: resolvedCartId || "cart_guest_100",
+      id: resolvedCartId,
       items: [],
       subtotal: 0,
       total: 0,

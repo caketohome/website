@@ -228,51 +228,57 @@ export function BranchPincodePanel() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-emerald-50/60 dark:bg-emerald-950/30 p-4 rounded-xl border border-emerald-200 dark:border-emerald-900">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-amber-50/70 dark:bg-slate-800/80 p-4 rounded-xl border border-amber-200 dark:border-slate-700">
         <div>
-          <Heading level="h2" className="text-lg font-bold flex items-center gap-2 text-emerald-900 dark:text-emerald-200">
-            <MapPin className="w-5 h-5 text-emerald-600" /> Enterprise Delivery Zone Engine & Pincode Matrix
+          <Heading level="h2" className="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+            <MapPin className="w-5 h-5 text-amber-600" /> Store Area Matrix &amp; Map-First Delivery Management
           </Heading>
-          <Text className="text-xs text-emerald-700 dark:text-emerald-300">
-            Configure unlimited distance delivery zones per branch and map pincodes to specific zones with 0 code changes.
+          <Text className="text-xs text-slate-600 dark:text-slate-300">
+            The central delivery configuration screen. Configure geographic delivery boundaries directly on the map (Polygon and Radius). Coordinates are strictly authoritative.
           </Text>
         </div>
 
         <div className="flex items-center gap-2">
           <Badge
             color={activeTab === "zones" ? "purple" : "grey"}
-            className="cursor-pointer px-3 py-1.5 text-xs font-semibold flex items-center gap-1"
+            className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5"
             onClick={() => setActiveTab("zones")}
           >
-            <Layers className="w-3.5 h-3.5" /> Delivery Zones
+            <Layers className="w-3.5 h-3.5" /> Store Area Matrix
           </Badge>
           <Badge
             color={activeTab === "simulator" ? "purple" : "grey"}
-            className="cursor-pointer px-3 py-1.5 text-xs font-semibold flex items-center gap-1"
+            className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5"
             onClick={() => setActiveTab("simulator")}
           >
             <Compass className="w-3.5 h-3.5 text-amber-500" /> Routing Simulator
           </Badge>
           <Badge
             color={activeTab === "matrix" ? "purple" : "grey"}
-            className="cursor-pointer px-3 py-1.5 text-xs font-semibold flex items-center gap-1"
+            className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5"
             onClick={() => setActiveTab("matrix")}
           >
-            <FolderTree className="w-3.5 h-3.5" /> Pincode Matrix
+            <FolderTree className="w-3.5 h-3.5" /> Address / Pincode Reference
           </Badge>
           <Badge
             color={activeTab === "service_areas" ? "purple" : "grey"}
-            className="cursor-pointer px-3 py-1.5 text-xs font-semibold flex items-center gap-1"
+            className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5"
             onClick={() => setActiveTab("service_areas")}
           >
             <Settings2 className="w-3.5 h-3.5" /> Service Areas
           </Badge>
-
         </div>
       </div>
 
       {activeTab === "matrix" && (
         <div className="space-y-4">
+          <div className="p-3 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-xs text-blue-800 dark:text-blue-200 flex items-start gap-2.5">
+            <span className="text-base">ℹ️</span>
+            <div>
+              <strong>Address / Pincode Reference:</strong> Pincodes are stored for address/reference purposes. Delivery eligibility is determined by map location.
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="relative max-w-md w-full">
               <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />

@@ -1,41 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { ApiEngine } from "@frontend/lib/api-engine";
+import { persistCustomerAddressToDb, deleteCustomerAddressFromDb, persistCustomerToDb } from "@frontend/lib/db-persistence";
 
 export const dynamic = "force-dynamic";
-
-function getStoreFilePath(): string {
-  let root = process.cwd();
-  if (!root.endsWith("frontend") && fs.existsSync(path.join(root, "frontend"))) {
-    root = path.join(root, "frontend");
-  }
-  const dir = path.join(root, "data");
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  return path.join(dir, "db-store.json");
-}
-
-function loadStoreData(): any {
-  const filePath = getStoreFilePath();
-  if (fs.existsSync(filePath)) {
-    try {
-      return JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    } catch {
-      return { customers: [] };
-    }
-  }
-  return { customers: [] };
-}
-
-function saveStoreData(data: any): void {
-  try {
-    const filePath = getStoreFilePath();
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
-  } catch (err) {
-    console.error("[Customer Address Route] Failed to persist data:", err);
-  }
-}
 
 function getSessionUser(req: NextRequest) {
   const cookieHeader = req.headers.get("cookie") || "";
@@ -76,7 +43,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const store = loadStoreData();
+    const store = ApiEngine.getStore();
     const { customer } = findCustomer(store, session);
 
     if (!customer) {
@@ -91,6 +58,7 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     );
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    response.headers.set("X-Data-Source", "postgres");
     return response;
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -114,7 +82,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const store = loadStoreData();
+    const store = ApiEngine.getStore();
     const { customer, index } = findCustomer(store, session);
 
     if (!customer || index < 0) {
@@ -124,7 +92,6 @@ export async function POST(req: NextRequest) {
     const existingAddresses: any[] = customer.addresses || [];
     const newAddressId = body.id || `addr_${Date.now()}`;
 
-    let updatedAddresses: any[];
     if (is_default) {
       existingAddresses.forEach((a) => (a.is_default = false));
     }
@@ -138,6 +105,8 @@ export async function POST(req: NextRequest) {
       label: label || type || "Home",
       type: type || "HOME",
       name: name || customer.full_name || customer.name || "Customer",
+      first_name: (name || customer.name || "Customer").split(" ")[0],
+      last_name: (name || customer.name || "").split(" ").slice(1).join(" "),
       phone: phone || customer.phone || "",
       address_1: address_1.trim(),
       address_2: body.address_2 || "",
@@ -152,6 +121,7 @@ export async function POST(req: NextRequest) {
       is_default: is_default || existingAddresses.length === 0,
     };
 
+    let updatedAddresses: any[];
     if (existingIdx >= 0) {
       existingAddresses[existingIdx] = addressObj;
       updatedAddresses = [...existingAddresses];
@@ -159,10 +129,13 @@ export async function POST(req: NextRequest) {
       updatedAddresses = [...existingAddresses, addressObj];
     }
 
+    // 1. Direct PostgreSQL Persistence (Fail Visibly on Database Error)
+    await persistCustomerAddressToDb(customer.id, addressObj);
+
     customer.addresses = updatedAddresses;
     customer.updated_at = new Date().toISOString();
     store.customers[index] = customer;
-    saveStoreData(store);
+    await persistCustomerToDb(customer);
 
     const response = NextResponse.json(
       {
@@ -173,9 +146,14 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    response.headers.set("X-Data-Source", "postgres");
     return response;
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    console.error("[Customer Address POST Error]:", err);
+    return NextResponse.json(
+      { success: false, error: err.message || "Failed to save address to database." },
+      { status: 500 }
+    );
   }
 }
 
@@ -193,18 +171,21 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Address ID is required" }, { status: 400 });
     }
 
-    const store = loadStoreData();
+    const store = ApiEngine.getStore();
     const { customer, index } = findCustomer(store, session);
 
     if (!customer || index < 0) {
       return NextResponse.json({ success: false, error: "Customer not found" }, { status: 404 });
     }
 
+    // 1. Direct PostgreSQL Deletion
+    await deleteCustomerAddressFromDb(customer.id, addressId);
+
     const filtered = (customer.addresses || []).filter((a: any) => a.id !== addressId);
     customer.addresses = filtered;
     customer.updated_at = new Date().toISOString();
     store.customers[index] = customer;
-    saveStoreData(store);
+    await persistCustomerToDb(customer);
 
     const response = NextResponse.json(
       {
@@ -215,8 +196,13 @@ export async function DELETE(req: NextRequest) {
       { status: 200 }
     );
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    response.headers.set("X-Data-Source", "postgres");
     return response;
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    console.error("[Customer Address DELETE Error]:", err);
+    return NextResponse.json(
+      { success: false, error: err.message || "Failed to delete address from database." },
+      { status: 500 }
+    );
   }
 }
