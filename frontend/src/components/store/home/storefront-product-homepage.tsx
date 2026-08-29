@@ -13,137 +13,6 @@ import { ErrorComponent } from "@frontend/components/common/error-component";
 import { ScrollFrameHero } from "@frontend/components/store/animation/scroll-frame-hero";
 import { useFavorites } from "@/providers/favorites-provider";
 
-const SAMPLE_PRODUCTS: SearchResult[] = [
-  {
-    product_id: "prod_1",
-    title: "Belgian Chocolate Truffle Cake",
-    description: "Rich, velvety Belgian dark chocolate layers frosted with silky ganache.",
-    thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
-    handle: "belgian-chocolate-truffle-cake",
-    price: 649,
-    rating: 4.9,
-    review_count: 142,
-    sugar_free: false,
-    gluten_free: false,
-    vegan: false,
-    is_featured: true,
-    is_bestseller: true,
-    is_new_arrival: false,
-  },
-  {
-    product_id: "prod_2",
-    title: "Classic Red Velvet Cream Cheese Cake",
-    description: "Moist red velvet sponge layers filled with signature cream cheese frosting.",
-    thumbnail: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800",
-    handle: "classic-red-velvet-cake",
-    price: 749,
-    rating: 4.8,
-    review_count: 98,
-    sugar_free: false,
-    gluten_free: false,
-    vegan: false,
-    is_featured: true,
-    is_bestseller: true,
-    is_new_arrival: false,
-  },
-  {
-    product_id: "prod_3",
-    title: "Fresh Alphonsa Mango Mousse Cake",
-    description: "Seasonal Alphonso mango pulp whipped into light, airy mousse layers.",
-    thumbnail: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800",
-    handle: "mango-mousse-cake",
-    price: 699,
-    rating: 4.9,
-    review_count: 76,
-    sugar_free: false,
-    gluten_free: false,
-    vegan: false,
-    is_featured: true,
-    is_bestseller: false,
-    is_new_arrival: true,
-  },
-  {
-    product_id: "prod_4",
-    title: "Black Forest Gateau Special",
-    description: "Traditional German cherry gateau topped with dark chocolate shavings.",
-    thumbnail: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=800",
-    handle: "black-forest-gateau",
-    price: 549,
-    rating: 4.7,
-    review_count: 210,
-    sugar_free: false,
-    gluten_free: false,
-    vegan: false,
-    is_featured: false,
-    is_bestseller: true,
-    is_new_arrival: false,
-  },
-  {
-    product_id: "prod_5",
-    title: "Butterscotch Caramel Crunch Cake",
-    description: "Crunchy praline & salted caramel folded in whipped vanilla cream.",
-    thumbnail: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=800",
-    handle: "butterscotch-caramel-cake",
-    price: 599,
-    rating: 4.8,
-    review_count: 115,
-    sugar_free: false,
-    gluten_free: false,
-    vegan: false,
-    is_featured: true,
-    is_bestseller: false,
-    is_new_arrival: false,
-  },
-  {
-    product_id: "prod_6",
-    title: "Artisanal Choco-Chip Cookies (Pack of 8)",
-    description: "Freshly baked butter cookies packed with melted Belgian chocolate chips.",
-    thumbnail: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&q=80&w=800",
-    handle: "choco-chip-cookies",
-    price: 249,
-    rating: 4.9,
-    review_count: 64,
-    sugar_free: false,
-    gluten_free: false,
-    vegan: false,
-    is_featured: false,
-    is_bestseller: true,
-    is_new_arrival: false,
-  },
-  {
-    product_id: "prod_7",
-    title: "French Vanilla Bean Blueberry Pastry",
-    description: "Layered French vanilla pastry drizzled with organic wild blueberry compote.",
-    thumbnail: "https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&q=80&w=800",
-    handle: "blueberry-pastry",
-    price: 149,
-    rating: 4.9,
-    review_count: 52,
-    sugar_free: false,
-    gluten_free: false,
-    vegan: false,
-    is_featured: true,
-    is_bestseller: false,
-    is_new_arrival: true,
-  },
-  {
-    product_id: "prod_8",
-    title: "Gourmet Hazelnut Praline Chocolates (Box of 12)",
-    description: "Handcrafted dark chocolate pralines filled with toasted Italian hazelnuts.",
-    thumbnail: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?auto=format&fit=crop&q=80&w=800",
-    handle: "hazelnut-chocolates-box",
-    price: 499,
-    rating: 4.9,
-    review_count: 88,
-    sugar_free: false,
-    gluten_free: true,
-    vegan: false,
-    is_featured: true,
-    is_bestseller: true,
-    is_new_arrival: false,
-  },
-];
-
 const CATEGORIES = [
   { name: "Birthday Cakes", icon: "🎂", slug: "birthday-cakes", count: "42 items", color: "bg-rose-50 border-rose-200 text-rose-900" },
   { name: "Anniversary Cakes", icon: "💖", slug: "anniversary-cakes", count: "35 items", color: "bg-pink-50 border-pink-200 text-pink-900" },
@@ -162,18 +31,22 @@ const OFFERS = [
 ];
 
 export function StorefrontProductHomepage() {
-  const [products, setProducts] = useState<SearchResult[]>(SAMPLE_PRODUCTS);
+  const [products, setProducts] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     async function loadCatalog() {
       try {
+        setLoading(true);
         const res = await searchProductsAction({ limit: 48 });
-        if (res?.results && res.results.length > 0) {
+        if (res?.results && Array.isArray(res.results)) {
           setProducts(res.results);
         }
-      } catch {
-        // Fallback to rich curated samples if API is offline
+      } catch (err) {
+        console.error("Error loading products from database:", err);
+      } finally {
+        setLoading(false);
       }
     }
     loadCatalog();
@@ -305,7 +178,7 @@ export function StorefrontProductHomepage() {
             Explore Anniversary Range →
           </Link>
         </div>
-        <ProductGrid products={products.slice(1, 5)} />
+        <ProductGrid products={products.slice(1, 5)} loading={loading} />
       </section>
 
       {/* Pastries & Treats */}
@@ -319,7 +192,7 @@ export function StorefrontProductHomepage() {
             See All →
           </Link>
         </div>
-        <ProductGrid products={products.slice(2, 6)} />
+        <ProductGrid products={products.slice(2, 6)} loading={loading} />
       </section>
 
       {/* Cookies & Chocolates */}
@@ -333,7 +206,7 @@ export function StorefrontProductHomepage() {
             See All →
           </Link>
         </div>
-        <ProductGrid products={products.slice(4, 8)} />
+        <ProductGrid products={products.slice(4, 8)} loading={loading} />
       </section>
 
       {/* New Arrivals */}
@@ -347,7 +220,7 @@ export function StorefrontProductHomepage() {
             See All →
           </Link>
         </div>
-        <ProductGrid products={newArrivals} />
+        <ProductGrid products={newArrivals} loading={loading} />
       </section>
 
       {/* Recommended For You */}
@@ -360,7 +233,7 @@ export function StorefrontProductHomepage() {
             <Text className="text-xs text-amber-800/80">Tailored suggestions based on popular choices in your area</Text>
           </div>
         </div>
-        <ProductGrid products={products.slice(0, 4)} />
+        <ProductGrid products={products.slice(0, 4)} loading={loading} />
       </section>
 
       {/* Recently Viewed Placeholder Section */}
@@ -390,11 +263,25 @@ export function StorefrontProductHomepage() {
   );
 }
 
-function ProductGrid({ products }: { products: SearchResult[] }) {
+function ProductGrid({ products, loading }: { products: SearchResult[]; loading?: boolean }) {
   const router = useRouter();
   const { isFavorited, toggleFavorite } = useFavorites();
   const [addingMap, setAddingMap] = useState<Record<string, boolean>>({});
   const [errorMap, setErrorMap] = useState<Record<string, string | null>>({});
+
+  if (loading && (!products || products.length === 0)) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {[1, 2, 3, 4].map((n) => (
+          <div key={n} className="animate-pulse bg-gray-100 rounded-2xl h-72" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!products || products.length === 0) {
+    return null;
+  }
 
   const handleQuickAdd = async (e: React.MouseEvent, product: SearchResult) => {
     e.stopPropagation();

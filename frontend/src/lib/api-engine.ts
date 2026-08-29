@@ -12,12 +12,14 @@ import {
   deleteBranchZoneFromDb,
   persistCityToDb,
   persistProductToDb,
+  deleteProductFromDb,
   persistCustomerToDb,
   persistCustomerAddressToDb,
   deleteCustomerAddressFromDb,
   persistDeliveryPartnerToDb,
   persistOrderToDb,
   persistCmsPageToDb,
+  deleteCmsPageFromDb,
   persistOfferToDb,
   persistSettingToDb,
   persistPopupCampaignToDb,
@@ -6965,7 +6967,7 @@ export class ApiEngine {
     return { ...defaultConfig, ...(product?.pim_config || {}) };
   }
 
-  static updateAdminProductPimConfig(productId: string, pimConfig: Record<string, boolean>) {
+  static async updateAdminProductPimConfig(productId: string, pimConfig: Record<string, boolean>) {
     const prod = ApiEngine.resolveProductEntity(productId) || ApiEngine.getProductById(productId) || ApiEngine.getProductBySlug(productId);
     if (prod) {
       prod.pim_config = { ...ApiEngine.getProductPimConfig(prod), ...pimConfig };
@@ -6977,13 +6979,13 @@ export class ApiEngine {
       }
       ApiEngine.addAuditLog(`Updated PIM Configuration for product "${prod.title || productId}"`);
       ApiEngine.persist();
-      persistProductToDb(prod).catch(() => null);
+      await persistProductToDb(prod);
       return prod.pim_config;
     }
     return null;
   }
 
-  static createAdminProduct(data: any) {
+  static async createAdminProduct(data: any) {
     const titleStr = data.title || data.name || "New Gourmet Cake";
     const prodId = `prod_${Date.now()}`;
     const occasionIds = Array.isArray(data.occasion_ids)
@@ -7025,11 +7027,11 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Created Product "${newProd.title}"`);
     ApiEngine.persist();
+    await persistProductToDb(newProd);
     return newProd;
   }
 
-
-  static updateAdminProduct(id: string, data: any) {
+  static async updateAdminProduct(id: string, data: any) {
     let idx = memoryStore.products.findIndex((p) => p.product_id === id || p.id === id || p.handle === id);
     const occasionIds = data.occasion_ids !== undefined
       ? (Array.isArray(data.occasion_ids) ? data.occasion_ids : [data.occasion_ids])
@@ -7071,9 +7073,7 @@ export class ApiEngine {
 
       ApiEngine.addAuditLog(`Upserted Product "${newProd.title}" (${id})`);
       ApiEngine.persist();
-      persistProductToDb(newProd).catch((err) => {
-        console.error("[ApiEngine] Failed to persist product to database:", err);
-      });
+      await persistProductToDb(newProd);
       return newProd;
     }
 
@@ -7123,13 +7123,11 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Updated Product "${memoryStore.products[idx].title}"`);
     ApiEngine.persist();
-    persistProductToDb(memoryStore.products[idx]).catch((err) => {
-      console.error("[ApiEngine] Failed to persist product update to database:", err);
-    });
+    await persistProductToDb(memoryStore.products[idx]);
     return memoryStore.products[idx];
   }
 
-  static saveProductWeightPrices(productId: string, weightPrices: any[]) {
+  static async saveProductWeightPrices(productId: string, weightPrices: any[]) {
     if (!memoryStore.product_weight_prices) memoryStore.product_weight_prices = [];
 
     const incoming = Array.isArray(weightPrices) ? weightPrices : [];
@@ -7193,6 +7191,7 @@ export class ApiEngine {
           if (!prod.variants_json) prod.variants_json = {};
           prod.variants_json.weights = sortedRecords.filter((r) => r.is_enabled).map((r) => r.weight_name);
           prod.weight = sortedRecords[0].weight_name;
+          await persistProductToDb(prod);
         }
       }
     }
@@ -7220,7 +7219,7 @@ export class ApiEngine {
     return sortWeightOptions(records);
   }
 
-  static deleteAdminProduct(id: string) {
+  static async deleteAdminProduct(id: string) {
     const prod = memoryStore.products.find((p) => p.product_id === id || p.id === id);
     memoryStore.products = memoryStore.products.filter((p) => p.product_id !== id && p.id !== id);
     if (memoryStore.product_weight_prices) {
@@ -7228,6 +7227,7 @@ export class ApiEngine {
     }
     if (prod) ApiEngine.addAuditLog(`Deleted Product "${prod.title}"`);
     ApiEngine.persist();
+    await deleteProductFromDb(id);
     return true;
   }
 
@@ -13210,7 +13210,7 @@ export class ApiEngine {
     return page;
   }
 
-  static createCmsPage(data: any) {
+  static async createCmsPage(data: any) {
     if (!memoryStore.cms_pages || !Array.isArray(memoryStore.cms_pages)) {
       memoryStore.cms_pages = JSON.parse(JSON.stringify(DEFAULT_CMS_PAGES));
     }
@@ -13222,7 +13222,7 @@ export class ApiEngine {
     while (existingSlugs.includes(slug)) { slug = `${slugBase}-${i++}`; }
     const now = new Date().toISOString();
     const page: any = {
-      id: `pg_${Date.now()}`,
+      id: data.id || `pg_${Date.now()}`,
       title: data.title || "New Page",
       slug,
       page_type: data.page_type || "landing",
@@ -13267,10 +13267,11 @@ export class ApiEngine {
     memoryStore.cms_pages.unshift(page);
     ApiEngine.addAuditLog(`Created CMS Page "${page.title}"`);
     ApiEngine.persist();
+    await persistCmsPageToDb(page);
     return page;
   }
 
-  static updateCmsPage(id: string, data: any) {
+  static async updateCmsPage(id: string, data: any) {
     const pages = ApiEngine.listCmsPages();
     const idx = pages.findIndex((p: any) => p.id === id || p.slug === id);
     if (idx < 0) return null;
@@ -13304,10 +13305,11 @@ export class ApiEngine {
     pages[idx] = updated;
     ApiEngine.addAuditLog(`Updated CMS Page "${updated.title}"`);
     ApiEngine.persist();
+    await persistCmsPageToDb(updated);
     return updated;
   }
 
-  static publishCmsPage(id: string) {
+  static async publishCmsPage(id: string) {
     const pages = ApiEngine.listCmsPages();
     const idx = pages.findIndex((p: any) => p.id === id || p.slug === id);
     if (idx < 0) return { success: false, error: "Page not found" };
@@ -13357,20 +13359,22 @@ export class ApiEngine {
     };
     ApiEngine.addAuditLog(`Published CMS Page "${page.title}"`);
     ApiEngine.persist();
+    await persistCmsPageToDb(pages[idx]);
     return { success: true, page: pages[idx] };
   }
 
-  static unpublishCmsPage(id: string) {
+  static async unpublishCmsPage(id: string) {
     const pages = ApiEngine.listCmsPages();
     const idx = pages.findIndex((p: any) => p.id === id || p.slug === id);
     if (idx < 0) return { success: false, error: "Page not found" };
     pages[idx] = { ...pages[idx], status: "draft", published_config: null, updated_at: new Date().toISOString() };
     ApiEngine.addAuditLog(`Unpublished CMS Page "${pages[idx].title}"`);
     ApiEngine.persist();
+    await persistCmsPageToDb(pages[idx]);
     return { success: true, page: pages[idx] };
   }
 
-  static duplicateCmsPage(id: string) {
+  static async duplicateCmsPage(id: string) {
     const pages = ApiEngine.listCmsPages();
     const source = pages.find((p: any) => p.id === id || p.slug === id);
     if (!source) return null;
@@ -13395,10 +13399,11 @@ export class ApiEngine {
     memoryStore.cms_pages.unshift(copy);
     ApiEngine.addAuditLog(`Duplicated CMS Page "${source.title}" → "${copy.title}"`);
     ApiEngine.persist();
+    await persistCmsPageToDb(copy);
     return copy;
   }
 
-  static rollbackCmsPage(id: string, version: number) {
+  static async rollbackCmsPage(id: string, version: number) {
     const pages = ApiEngine.listCmsPages();
     const idx = pages.findIndex((p: any) => p.id === id || p.slug === id);
     if (idx < 0) return null;
@@ -13417,10 +13422,11 @@ export class ApiEngine {
     pages[idx] = restored;
     ApiEngine.addAuditLog(`Rolled back CMS Page "${page.title}" to v${version}`);
     ApiEngine.persist();
+    await persistCmsPageToDb(restored);
     return restored;
   }
 
-  static reorderCmsPageSections(id: string, sectionIds: string[]): any {
+  static async reorderCmsPageSections(id: string, sectionIds: string[]): Promise<any> {
     const pages = ApiEngine.listCmsPages();
     const idx = pages.findIndex((p: any) => p.id === id || p.slug === id);
     if (idx < 0) return { success: false, error: "Page not found" };
@@ -13450,6 +13456,7 @@ export class ApiEngine {
     pages[idx] = updated;
     ApiEngine.addAuditLog(`Reordered sections for CMS Page "${page.title}"`);
     ApiEngine.persist();
+    await persistCmsPageToDb(updated);
     return { success: true, page: updated, sections: reordered };
   }
 
@@ -13482,7 +13489,7 @@ export class ApiEngine {
     return Array.isArray(page.version_history) ? page.version_history : [];
   }
 
-  static deleteCmsPage(id: string) {
+  static async deleteCmsPage(id: string) {
     const pages = ApiEngine.listCmsPages();
     const idx = pages.findIndex((p: any) => p.id === id);
     if (idx < 0) return false;
@@ -13490,6 +13497,7 @@ export class ApiEngine {
     pages[idx] = { ...page, status: "archived", deleted_at: new Date().toISOString() };
     ApiEngine.addAuditLog(`Archived CMS Page "${page.title}"`);
     ApiEngine.persist();
+    await deleteCmsPageFromDb(id);
     return true;
   }
 
@@ -13919,7 +13927,7 @@ export class ApiEngine {
     return [];
   }
 
-  static saveProductFlavorMappings(productId: string, mappings: any[]) {
+  static async saveProductFlavorMappings(productId: string, mappings: any[]) {
     const product = ApiEngine.resolveProductEntity(productId);
     if (!product) {
       return { success: false, error: `Product "${productId}" not found.` };
@@ -13957,9 +13965,7 @@ export class ApiEngine {
     (product as any).pim_config.show_flavour = normalizedMappings.length > 0;
 
     ApiEngine.persist();
-    persistProductToDb(product).catch((err) => {
-      console.error("[saveProductFlavorMappings] DB Error:", err);
-    });
+    await persistProductToDb(product);
 
     return {
       success: true,
@@ -13986,7 +13992,7 @@ export class ApiEngine {
     return [];
   }
 
-  static saveProductShapeMappings(productId: string, mappings: any[]) {
+  static async saveProductShapeMappings(productId: string, mappings: any[]) {
     const product = ApiEngine.resolveProductEntity(productId);
     if (!product) {
       return { success: false, error: `Product "${productId}" not found.` };
@@ -14024,9 +14030,7 @@ export class ApiEngine {
     (product as any).pim_config.show_shape = normalizedMappings.length > 0;
 
     ApiEngine.persist();
-    persistProductToDb(product).catch((err) => {
-      console.error("[saveProductShapeMappings] DB Error:", err);
-    });
+    await persistProductToDb(product);
 
     return {
       success: true,
@@ -17579,10 +17583,13 @@ export class ApiEngine {
       throw new Error(`Unable to add item to cart: Product title is missing and could not be resolved.`);
     }
 
-    let unitPrice = Number(item.unit_price || item.price || item.metadata?.price || 0);
-    if ((!unitPrice || unitPrice <= 0) && canonicalProduct) {
+    const accItem = !canonicalProduct && targetProdId ? ApiEngine.getAccessoryById(targetProdId) : null;
+    let unitPrice = 0;
+    if (accItem) {
+      unitPrice = Number((accItem as any).price || (accItem as any).selling_price || 0);
+    } else if (canonicalProduct) {
       const weightPrices = ApiEngine.getProductWeightPrices(canonicalProduct.id);
-      if (item.weight && Array.isArray(weightPrices)) {
+      if (item.weight && Array.isArray(weightPrices) && weightPrices.length > 0) {
         const itemGrams = parseAndNormalizeWeight(item.weight).normalized_grams;
         const wp = weightPrices.find((w: any) => (w.weight_name || w.weight) === item.weight || w.normalized_grams === itemGrams);
         if (wp && (wp.selling_price || (wp as any).price)) {
@@ -17592,6 +17599,33 @@ export class ApiEngine {
       if (!unitPrice || unitPrice <= 0) {
         unitPrice = Number(canonicalProduct.price || canonicalProduct.selling_price || 0);
       }
+
+      // Add Shape surcharge if selected
+      if (item.shape) {
+        const allowedShapes: any[] = Array.isArray((canonicalProduct as any)?.shapes)
+          ? (canonicalProduct as any).shapes.filter((s: any) => s.status !== "archived" && s.is_enabled !== false)
+          : [];
+        const matchedShape = allowedShapes.find((s: any) => s.name === item.shape || s.display_name === item.shape || s.id === item.shape || s.shape_id === item.shape);
+        if (matchedShape) {
+          const shapePriceMod = Number(matchedShape.price_modifier ?? matchedShape.additional_price ?? matchedShape.price_override ?? 0);
+          if (shapePriceMod > 0) unitPrice += shapePriceMod;
+        }
+      }
+
+      // Add Flavor surcharge if selected
+      if (item.flavour || item.flavor) {
+        const targetFlv = item.flavour || item.flavor;
+        const allowedFlavors: any[] = Array.isArray((canonicalProduct as any)?.flavors)
+          ? (canonicalProduct as any).flavors.filter((f: any) => f.status !== "archived" && f.is_enabled !== false)
+          : [];
+        const matchedFlavour = allowedFlavors.find((f: any) => f.name === targetFlv || f.display_name === targetFlv || f.id === targetFlv || f.flavor_id === targetFlv);
+        if (matchedFlavour) {
+          const flvPriceMod = Number(matchedFlavour.price_modifier ?? matchedFlavour.extra_price ?? matchedFlavour.price_override ?? 0);
+          if (flvPriceMod > 0) unitPrice += flvPriceMod;
+        }
+      }
+    } else if (Number(item.unit_price || item.price || 0) > 0) {
+      unitPrice = Number(item.unit_price || item.price);
     }
 
     if (!unitPrice || unitPrice <= 0) {
@@ -21713,10 +21747,12 @@ export class ApiEngine {
       }
 
       const itemQty = Math.max(1, Number(item.quantity || 1));
-      let unitPrice = Number(item.unit_price || item.price || 0);
-      if ((!unitPrice || unitPrice <= 0) && product) {
+      let unitPrice = 0;
+      if (accItem) {
+        unitPrice = Number((accItem as any).price || (accItem as any).selling_price || 0);
+      } else if (product) {
         const weightPrices = ApiEngine.getProductWeightPrices((product as any).id);
-        if (item.weight && Array.isArray(weightPrices)) {
+        if (item.weight && Array.isArray(weightPrices) && weightPrices.length > 0) {
           const itemGrams = parseAndNormalizeWeight(item.weight).normalized_grams;
           const wp = weightPrices.find((w: any) => (w.weight_name || w.weight) === item.weight || w.normalized_grams === itemGrams);
           if (wp && (wp.selling_price || (wp as any).price)) {
@@ -21726,6 +21762,33 @@ export class ApiEngine {
         if (!unitPrice || unitPrice <= 0) {
           unitPrice = Number((product as any).price || (product as any).selling_price || 0);
         }
+
+        // Add Shape surcharge if selected
+        if (item.shape) {
+          const allowedShapes: any[] = Array.isArray((product as any)?.shapes)
+            ? (product as any).shapes.filter((s: any) => s.status !== "archived" && s.is_enabled !== false)
+            : [];
+          const matchedShape = allowedShapes.find((s: any) => s.name === item.shape || s.display_name === item.shape || s.id === item.shape || s.shape_id === item.shape);
+          if (matchedShape) {
+            const shapePriceMod = Number(matchedShape.price_modifier ?? matchedShape.additional_price ?? matchedShape.price_override ?? 0);
+            if (shapePriceMod > 0) unitPrice += shapePriceMod;
+          }
+        }
+
+        // Add Flavor surcharge if selected
+        if (item.flavour || item.flavor) {
+          const targetFlv = item.flavour || item.flavor;
+          const allowedFlavors: any[] = Array.isArray((product as any)?.flavors)
+            ? (product as any).flavors.filter((f: any) => f.status !== "archived" && f.is_enabled !== false)
+            : [];
+          const matchedFlavour = allowedFlavors.find((f: any) => f.name === targetFlv || f.display_name === targetFlv || f.id === targetFlv || f.flavor_id === targetFlv);
+          if (matchedFlavour) {
+            const flvPriceMod = Number(matchedFlavour.price_modifier ?? matchedFlavour.extra_price ?? matchedFlavour.price_override ?? 0);
+            if (flvPriceMod > 0) unitPrice += flvPriceMod;
+          }
+        }
+      } else if (Number(item.unit_price || item.price || 0) > 0) {
+        unitPrice = Number(item.unit_price || item.price);
       }
 
       if (!unitPrice || unitPrice <= 0) {

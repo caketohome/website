@@ -13,7 +13,8 @@ const DEFAULT_SHOP_ID = "res_01KXYMAHGFPRY1G9TZKEVGAGAT";
 /**
  * Hydrates in-memory store from PostgreSQL
  */
-export async function hydrateStoreFromDatabase(targetStore: any): Promise<boolean> {
+export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> {
+  targetStore = targetStore || {};
   try {
     const [
       branchesRes,
@@ -278,22 +279,33 @@ export async function hydrateStoreFromDatabase(targetStore: any): Promise<boolea
 
     // 9. CMS Pages
     if (cmsPagesRes.rows.length > 0) {
-      targetStore.cms_pages = cmsPagesRes.rows.map((p) => ({
-        id: p.id,
-        title: p.title,
-        slug: p.slug,
-        page_type: p.page_type,
-        status: p.status,
-        meta_title: p.meta_title,
-        meta_description: p.meta_description,
-        sections: p.sections || [],
-        draft_config: p.draft_config || {},
-        published_config: p.published_config || {},
-        version_history: p.version_history || [],
-        created_at: p.created_at,
-        updated_at: p.updated_at,
-        published_at: p.published_at,
-      }));
+      targetStore.cms_pages = cmsPagesRes.rows.map((p) => {
+        let blockData: any = {};
+        if (p.blocks) {
+          try {
+            blockData = typeof p.blocks === "string" ? JSON.parse(p.blocks) : p.blocks;
+          } catch {}
+        }
+        return {
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          page_type: p.type || "landing",
+          type: p.type || "landing",
+          status: p.status || "published",
+          meta_title: p.meta_title || p.title,
+          meta_description: p.meta_description || "",
+          canonical_url: p.canonical_url || "",
+          og_image: p.og_image || "",
+          sections: blockData.sections || [],
+          draft_config: blockData.draft_config || {},
+          published_config: blockData.published_config || null,
+          version_history: blockData.version_history || [],
+          created_at: p.created_at,
+          updated_at: p.updated_at,
+          published_at: p.published_at,
+        };
+      });
     }
 
     // 10. Offers
@@ -357,13 +369,20 @@ export async function hydrateStoreFromDatabase(targetStore: any): Promise<boolea
       }));
     }
 
+    const summary = {
+      success: true,
+      branchesCount: targetStore.branches?.length || 0,
+      productsCount: targetStore.products?.length || 0,
+      customersCount: targetStore.customers?.length || 0,
+      ordersCount: targetStore.orders?.length || 0,
+    };
     console.log(
-      `[PostgreSQL Persistence] Hydrated store: ${targetStore.branches?.length || 0} branches, ${targetStore.products?.length || 0} products, ${targetStore.customers?.length || 0} customers, ${targetStore.orders?.length || 0} orders.`
+      `[PostgreSQL Persistence] Hydrated store: ${summary.branchesCount} branches, ${summary.productsCount} products, ${summary.customersCount} customers, ${summary.ordersCount} orders.`
     );
-    return true;
+    return summary;
   } catch (err: any) {
     console.error("[PostgreSQL Persistence] Failed to hydrate store from database:", err.message);
-    return false;
+    return { success: false, branchesCount: 0, productsCount: 0, customersCount: 0, ordersCount: 0 };
   }
 }
 
@@ -564,6 +583,13 @@ export async function persistProductToDb(product: any): Promise<void> {
 }
 
 /**
+ * Deletes a Product from PostgreSQL (Soft-delete or purge)
+ */
+export async function deleteProductFromDb(productId: string): Promise<void> {
+  await dbQuery(`UPDATE "product" SET "deleted_at" = NOW() WHERE "id" = $1`, [productId]);
+}
+
+/**
  * Persists a Customer to PostgreSQL
  */
 export async function persistCustomerToDb(customer: any): Promise<void> {
@@ -741,21 +767,27 @@ export async function persistOrderToDb(order: any): Promise<void> {
  */
 export async function persistCmsPageToDb(page: any): Promise<void> {
   const id = page.id || `cmspg_${Date.now()}`;
+  const blockData = {
+    sections: page.sections || [],
+    draft_config: page.draft_config || {},
+    published_config: page.published_config || null,
+    version_history: page.version_history || [],
+  };
+
   await dbQuery(
     `
-    INSERT INTO "cms_page" ("id", "title", "slug", "page_type", "status", "meta_title", "meta_description", "draft_config", "published_config", "sections", "version_history", "created_at", "updated_at", "published_at")
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW(), $12)
+    INSERT INTO "cms_page" ("id", "title", "slug", "type", "status", "meta_title", "meta_description", "canonical_url", "og_image", "blocks", "created_at", "updated_at", "published_at")
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW(), $11)
     ON CONFLICT ("id") DO UPDATE SET
       "title" = EXCLUDED.title,
       "slug" = EXCLUDED.slug,
-      "page_type" = EXCLUDED.page_type,
+      "type" = EXCLUDED.type,
       "status" = EXCLUDED.status,
       "meta_title" = EXCLUDED.meta_title,
       "meta_description" = EXCLUDED.meta_description,
-      "draft_config" = EXCLUDED.draft_config,
-      "published_config" = EXCLUDED.published_config,
-      "sections" = EXCLUDED.sections,
-      "version_history" = EXCLUDED.version_history,
+      "canonical_url" = EXCLUDED.canonical_url,
+      "og_image" = EXCLUDED.og_image,
+      "blocks" = EXCLUDED.blocks,
       "updated_at" = NOW(),
       "published_at" = EXCLUDED.published_at
   `,
@@ -763,17 +795,23 @@ export async function persistCmsPageToDb(page: any): Promise<void> {
       id,
       page.title || "CMS Page",
       page.slug || id,
-      page.page_type || "landing_page",
+      page.page_type || page.type || "landing",
       page.status || "published",
       page.meta_title || page.title || "",
       page.meta_description || "",
-      JSON.stringify(page.draft_config || {}),
-      JSON.stringify(page.published_config || {}),
-      JSON.stringify(page.sections || []),
-      JSON.stringify(page.version_history || []),
-      page.published_at ? new Date(page.published_at) : new Date(),
+      page.canonical_url || "",
+      page.og_image || "",
+      JSON.stringify(blockData),
+      page.published_at ? new Date(page.published_at) : null,
     ]
   );
+}
+
+/**
+ * Deletes a CMS Page from PostgreSQL
+ */
+export async function deleteCmsPageFromDb(pageId: string): Promise<void> {
+  await dbQuery(`UPDATE "cms_page" SET "deleted_at" = NOW(), "status" = 'archived' WHERE "id" = $1 OR "slug" = $1`, [pageId]);
 }
 
 /**
@@ -813,18 +851,40 @@ export async function persistOfferToDb(offer: any): Promise<void> {
 /**
  * Persists a Setting to PostgreSQL
  */
-export async function persistSettingToDb(group: string, key: string, value: any, isPublic: boolean = true): Promise<void> {
-  const id = `set_${group}_${key}`;
+export async function persistSettingToDb(
+  groupOrSetting: string | { group?: string; key: string; value: any; is_public?: boolean },
+  key?: string,
+  value?: any,
+  isPublic: boolean = true
+): Promise<void> {
+  let g = "general";
+  let k = "";
+  let v: any = null;
+
+  if (typeof groupOrSetting === "object" && groupOrSetting !== null) {
+    g = groupOrSetting.group || "general";
+    k = groupOrSetting.key;
+    v = groupOrSetting.value;
+  } else {
+    g = groupOrSetting || "general";
+    k = key || "";
+    v = value;
+  }
+
+  const id = `set_${g}_${k}`;
+  const strVal = typeof v === "string" ? v : JSON.stringify(v);
+  const isJson = typeof v === "object" && v !== null;
+
   await dbQuery(
     `
-    INSERT INTO "setting" ("id", "group", "key", "value", "is_public", "created_at", "updated_at")
-    VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-    ON CONFLICT ("group", "key") WHERE (deleted_at IS NULL) DO UPDATE SET
+    INSERT INTO "setting" ("id", "group", "key", "value", "is_json", "is_secret", "created_at", "updated_at")
+    VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+    ON CONFLICT ("id") DO UPDATE SET
       "value" = EXCLUDED.value,
-      "is_public" = EXCLUDED.is_public,
+      "is_json" = EXCLUDED.is_json,
       "updated_at" = NOW()
   `,
-    [id, group, key, JSON.stringify(value), isPublic]
+    [id, g, k, strVal, isJson, false]
   );
 }
 

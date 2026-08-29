@@ -2318,7 +2318,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const parts = path.split("/");
       const productId = parts[parts.length - 2];
       const mappings = body.mappings || body.flavor_mappings || (Array.isArray(body) ? body : []);
-      const result = ApiEngine.saveProductFlavorMappings(productId, mappings);
+      const result = await ApiEngine.saveProductFlavorMappings(productId, mappings);
       return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
     }
 
@@ -2329,7 +2329,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const parts = path.split("/");
       const productId = parts[parts.length - 2];
       const mappings = body.mappings || body.shape_mappings || (Array.isArray(body) ? body : []);
-      const result = ApiEngine.saveProductShapeMappings(productId, mappings);
+      const result = await ApiEngine.saveProductShapeMappings(productId, mappings);
       return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
     }
 
@@ -2652,10 +2652,10 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
     if (path.includes("/weight-prices")) {
       const prodId = extractProductIdFromPath(path);
-      return jsonWithDataSource({ weight_prices: ApiEngine.saveProductWeightPrices(prodId, body.weight_prices || body) }, "postgres");
+      return jsonWithDataSource({ weight_prices: await ApiEngine.saveProductWeightPrices(prodId, body.weight_prices || body) }, "postgres");
     }
     if (path === "admin/catalog/products" || path === "admin/products") {
-      return jsonWithDataSource({ product: ApiEngine.createAdminProduct(body), success: true }, "postgres");
+      return jsonWithDataSource({ product: await ApiEngine.createAdminProduct(body), success: true }, "postgres");
     }
     if (path === "admin/offers") {
       return jsonWithDataSource({ offer: ApiEngine.createAdminOffer(body), success: true }, "postgres", 201);
@@ -2963,7 +2963,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     // CMS Configurator
-    if (path === "cms/pages") return jsonWithDataSource({ page: ApiEngine.createCmsPage(body) }, "postgres");
+    if (path === "cms/pages") return jsonWithDataSource({ page: await ApiEngine.createCmsPage(body) }, "postgres");
 
     // ── Search & Merchandising Engine Endpoints (POST) ──
     if (path === "search/tags") {
@@ -2977,15 +2977,15 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/duplicate")) {
       const pageId = path.replace("cms/pages/", "").replace("/duplicate", "");
-      return jsonWithDataSource({ page: ApiEngine.duplicateCmsPage(pageId) }, "postgres");
+      return jsonWithDataSource({ page: await ApiEngine.duplicateCmsPage(pageId) }, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/rollback")) {
       const pageId = path.replace("cms/pages/", "").replace("/rollback", "");
-      return jsonWithDataSource({ page: ApiEngine.rollbackCmsPage(pageId, body.version || 1) }, "postgres");
+      return jsonWithDataSource({ page: await ApiEngine.rollbackCmsPage(pageId, body.version || 1) }, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/publish")) {
       const pageId = path.replace("cms/pages/", "").replace("/publish", "");
-      const res = ApiEngine.publishCmsPage(pageId);
+      const res = await ApiEngine.publishCmsPage(pageId);
       try {
         revalidatePath("/");
         revalidatePath("/(store)");
@@ -2996,7 +2996,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/unpublish")) {
       const pageId = path.replace("cms/pages/", "").replace("/unpublish", "");
-      const res = ApiEngine.unpublishCmsPage(pageId);
+      const res = await ApiEngine.unpublishCmsPage(pageId);
       try {
         revalidatePath("/");
         revalidatePath("/(store)");
@@ -3008,7 +3008,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path.startsWith("cms/pages/") && path.endsWith("/reorder-sections")) {
       const pageId = path.replace("cms/pages/", "").replace("/reorder-sections", "");
       const sectionIds = body.section_ids || body.sectionIds || [];
-      return jsonWithDataSource(ApiEngine.reorderCmsPageSections(pageId, sectionIds), "postgres");
+      return jsonWithDataSource(await ApiEngine.reorderCmsPageSections(pageId, sectionIds), "postgres");
     }
     if (path === "cms/pages/validate") {
       return jsonWithDataSource(ApiEngine.validatePageConfig(body), "postgres");
@@ -3573,11 +3573,11 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     }
     if (path.includes("/weight-prices")) {
       const prodId = extractProductIdFromPath(path);
-      return jsonWithDataSource({ weight_prices: ApiEngine.saveProductWeightPrices(prodId, body.weight_prices || body), success: true }, "postgres");
+      return jsonWithDataSource({ weight_prices: await ApiEngine.saveProductWeightPrices(prodId, body.weight_prices || body), success: true }, "postgres");
     }
     if (path.startsWith("admin/catalog/products/") || path.startsWith("admin/products/")) {
       const id = extractProductIdFromPath(path);
-      return jsonWithDataSource({ product: ApiEngine.updateAdminProduct(id, body), success: true }, "postgres");
+      return jsonWithDataSource({ product: await ApiEngine.updateAdminProduct(id, body), success: true }, "postgres");
     }
     if (path.startsWith("admin/abandoned-carts/campaigns/")) {
       const campId = path.replace("admin/abandoned-carts/campaigns/", "");
@@ -3711,7 +3711,7 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
 
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
-      return jsonWithDataSource({ page: ApiEngine.updateCmsPage(pageId, body) }, "postgres");
+      return jsonWithDataSource({ page: await ApiEngine.updateCmsPage(pageId, body) }, "postgres");
     }
 
     if (path.startsWith("admin/orders/")) {
@@ -3974,7 +3974,7 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
 
     if (path.startsWith("admin/catalog/products/")) {
       const id = path.replace("admin/catalog/products/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deleteAdminProduct(id), success: true }, "postgres");
+      return jsonWithDataSource({ deleted: await ApiEngine.deleteAdminProduct(id), success: true }, "postgres");
     }
 
     // ── Search & Merchandising Engine Endpoints (DELETE) ──
@@ -4012,7 +4012,7 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
 
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deleteCmsPage(pageId) }, "postgres");
+      return jsonWithDataSource({ deleted: await ApiEngine.deleteCmsPage(pageId) }, "postgres");
     }
 
     if (path.startsWith("admin/reports/saved/")) {

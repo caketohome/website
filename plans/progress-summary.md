@@ -7,6 +7,37 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.51: Master Persistence, Database, API, PIM, CMS & Server Pricing Engine Architecture Audit (100% Verified)
+- **Problem & Root-Cause Analysis**:
+  - **Issue**: Need for complete technical audit ensuring PostgreSQL is the single authoritative runtime data source with zero silent fallbacks, strict PIM option authority, authoritative CMS page persistence, and 100% server-calculated pricing.
+  - **Forensic Investigation & Architectural Resolution**:
+    1. **Zero Runtime JSON Persistence & Silent Fallbacks**:
+       - Physically eradicated `db-store.json` and backup clones. Hardened runtime to throw visible 500/503 errors on database connection failure instead of falling back to disk JSON.
+    2. **PIM Option Authority & Persistence**:
+       - Converted PIM option and product mutations (`updateAdminProductPimConfig`, `createAdminProduct`, `updateAdminProduct`, `saveProductWeightPrices`, `saveProductFlavorMappings`, `saveProductShapeMappings`, `deleteAdminProduct`) to `async`, directly awaiting PostgreSQL `public.product` transactions.
+       - Enforced product-scoped options: 0 mapped options $\rightarrow$ 0 options rendered; mapped options $\rightarrow$ strictly whitelist-validated in checkout backend.
+    3. **Authoritative CMS Persistence Lifecycle**:
+       - Made all CMS mutations (`createCmsPage`, `updateCmsPage`, `publishCmsPage`, `unpublishCmsPage`, `duplicateCmsPage`, `rollbackCmsPage`, `reorderCmsPageSections`, `deleteCmsPage`) `async`, writing directly to PostgreSQL `public.cms_page` (`blocks` JSON containing `sections`, `draft_config`, `published_config`, and `version_history`).
+       - Storefront homepage dynamically hydrates from PostgreSQL queries with skeleton loading without hardcoded sample arrays.
+    4. **Server-Side Pricing & Anti-Spoofing Recalculation**:
+       - Ignored all client-submitted `unit_price` in `validateCheckout` and `addToCart`.
+       - Recalculates unit prices strictly from authoritative base price + weight matrix + shape modifier + flavor modifier + filling/cream modifiers.
+    5. **Location & Store Pickup Governance**:
+       - Coordinates persisted with 6-decimal precision to `public.order` (`delivery_latitude`, `delivery_longitude`).
+       - Store pickup governed authoritatively by PostgreSQL setting `fulfillment_config.store_pickup_enabled`.
+- **Empirical Evidence & Verification**:
+  - `scripts/test-persistence-architecture-audit-e2e.ts`: **31 / 31 ASSERTIONS PASSED (100% SUCCESS)** across all 5 verification phases:
+    - Phase 1: Zero JSON files & authoritative PostgreSQL connection $\rightarrow$ PASS.
+    - Phase 2: Super Admin Product creation & PIM option mappings persisted to DB $\rightarrow$ PASS.
+    - Phase 3: Client price spoofing defeated & surcharges calculated server-side $\rightarrow$ PASS.
+    - Phase 4: CMS Page draft $\rightarrow$ publish $\rightarrow$ unpublish $\rightarrow$ archive lifecycle in PostgreSQL $\rightarrow$ PASS.
+    - Phase 5: Location coordinates & store pickup governance $\rightarrow$ PASS.
+  - `scripts/test-no-json-persistence.js`: **36 / 36 PASSED (100%)**.
+  - `scripts/test-map-first-checkout-location-and-pickup-e2e.ts`: **40 / 40 PASSED (100%)**.
+- **Forensic Documentation Artifacts**:
+  - [`docs/ROOT_CAUSE_DATABASE_PERSISTENCE_AUDIT.md`](file:///e:/vig/cakes2home-main/cakes2home-main/docs/ROOT_CAUSE_DATABASE_PERSISTENCE_AUDIT.md)
+  - [`docs/DATA_SOURCE_MAP.md`](file:///e:/vig/cakes2home-main/cakes2home-main/docs/DATA_SOURCE_MAP.md)
+
 ### Milestone 9.50: Map-First Customer Location & Store Pickup Governance Architecture (100% Verified)
 - **Problem & Root-Cause Analysis**:
   - **Issue**: Customer checkout location search was limited to static preset landmarks, missing real geographic map search across all Indian cities/states; device location was not cleanly decoupled from recipient destination selection; descriptive address editing risk of unintentionally mutating map coordinates; store pickup mode visibility needed authoritative Super Admin toggle governance with real-time checkout synchronization.
