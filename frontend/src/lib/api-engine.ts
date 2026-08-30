@@ -48,6 +48,9 @@ import {
   timeStringToMinutes,
   formatTimeForDisplay,
   minutesToTimeString,
+  getNowInTimezone,
+  addDaysToDateString,
+  compareTimeStrings,
 } from "./fulfillment";
 import { SearchEngine, CanonicalProduct, ProductTag, SearchSynonym, MerchandisingRule } from "./search/search-engine";
 import { parseAndNormalizeWeight, sortWeightOptions, createDefaultWeightMatrix, ProductWeightOption } from "./util/weight-matrix";
@@ -15685,14 +15688,32 @@ export class ApiEngine {
     const rawBranch = ApiEngine.getBranchById(branchId) || ApiEngine.listBranches()[0] || DEFAULT_BRANCHES[0];
     const branch = normalizeBranchOperations(rawBranch);
 
-    const targetDate = dateStr ? new Date(dateStr) : new Date();
-    const dateIso = targetDate.toISOString().slice(0, 10);
-    const dayOfWeek = targetDate.toLocaleDateString("en-US", { weekday: "long" });
+    const store = ApiEngine.getStore();
+    ensureFulfillmentStore(store);
+    const provider = createApiEngineProvider(store);
+    const globalConfig = provider.getGlobalConfig();
+    const timezone = globalConfig.business_timezone || "Asia/Kolkata";
+    const nowTz = getNowInTimezone(timezone);
+    const todayIso = nowTz.dateString;
+    const currentMinutes = nowTz.hours * 60 + nowTz.minutes;
+    const now = nowTz.date;
 
-    const now = new Date();
-    const todayIso = now.toISOString().slice(0, 10);
+    let dateIso = todayIso;
+    if (dateStr) {
+      const match = dateStr.match(/^\d{4}-\d{2}-\d{2}/);
+      if (match) {
+        dateIso = match[0];
+      } else {
+        const parsed = new Date(dateStr);
+        if (!isNaN(parsed.getTime())) {
+          dateIso = parsed.toISOString().slice(0, 10);
+        }
+      }
+    }
+
     const isToday = todayIso === dateIso;
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const targetDateObj = new Date(`${dateIso}T12:00:00Z`);
+    const dayOfWeek = targetDateObj.toLocaleDateString("en-US", { weekday: "long", timeZone: timezone });
 
     // 1. Overall Branch Status Check
     if (branch.is_open === false || (branch.operational_status as string) === "closed" || branch.operational_status === "permanently_closed") {
@@ -15710,7 +15731,7 @@ export class ApiEngine {
       if (branch.temporary_closure.pause_until && isToday) {
         const pauseUntil = new Date(branch.temporary_closure.pause_until);
         if (now < pauseUntil) {
-          pauseMessage = `Kitchen operations temporarily paused: ${branch.temporary_closure.reason || "Short operational break"}. Reopens at ${pauseUntil.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`;
+          pauseMessage = `Kitchen operations temporarily paused: ${branch.temporary_closure.reason || "Short operational break"}. Reopens at ${pauseUntil.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: timezone })}.`;
         }
       } else if (!branch.temporary_closure.pause_until && isToday) {
         pauseMessage = `Kitchen operations are temporarily paused: ${branch.temporary_closure.reason || "Order volume limit reached"}.`;
@@ -15763,10 +15784,6 @@ export class ApiEngine {
     }
 
     // 6. Fulfillment Rules & Cascading Slot Configuration (Global -> Store -> Zone)
-    const store = ApiEngine.getStore();
-    ensureFulfillmentStore(store);
-    const provider = createApiEngineProvider(store);
-    const globalConfig = provider.getGlobalConfig();
     const zone = options?.zone;
 
     let corporateCutoff = globalConfig.global_order_cutoff_time || "18:00";
@@ -15861,7 +15878,8 @@ export class ApiEngine {
       : (expressConfig.same_day_only !== false);
 
     // Calculate day difference from today
-    const msDiff = targetDate.getTime() - new Date(todayIso).getTime();
+    const todayObj = new Date(`${todayIso}T12:00:00Z`);
+    const msDiff = targetDateObj.getTime() - todayObj.getTime();
     const dayOffset = Math.round(msDiff / (1000 * 60 * 60 * 24));
     const isExpressAllowedForDate = isToday || (!isExpressSameDayOnly && dayOffset <= (expressConfig.max_days_ahead || 0));
 
@@ -16148,6 +16166,9 @@ export class ApiEngine {
     const store = ApiEngine.getStore();
     ensureFulfillmentStore(store);
     const globalFulfillmentConfig = store.fulfillment_config || {};
+    const timezone = globalFulfillmentConfig.business_timezone || "Asia/Kolkata";
+    const nowTz = getNowInTimezone(timezone);
+    const todayIso = nowTz.dateString;
     const isGlobalPickupEnabled = globalFulfillmentConfig.store_pickup_enabled !== false;
     const pickupConvenienceFee = Number(globalFulfillmentConfig.store_pickup_convenience_fee || 0);
 
@@ -16225,12 +16246,14 @@ export class ApiEngine {
     // Generate Next 14 Available Dates with Operational Health (ONLY when serviceable)
     const availableDates: Array<{ date: string; label: string; is_available: boolean; reason?: string }> = [];
     if (isServiceable && servicingBranch) {
-      const today = new Date();
+      // Evaluate if today has passed cutoff or is closed
+      const todaySlotsRes = ApiEngine.getDeliverySlots(servicingBranch.id, todayIso, deliveryType, { zone: resolvedZone });
+      const isTodayAcceptingOrders = todaySlotsRes.is_open && todaySlotsRes.delivery_slots.some((s: any) => s.available === true || s.is_available === true);
+
       for (let i = 0; i < 14; i++) {
-        const d = new Date(today);
-        d.setDate(today.getDate() + i);
-        const dIso = d.toISOString().slice(0, 10);
-        const dName = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+        const dIso = addDaysToDateString(todayIso, i);
+        const dObj = new Date(`${dIso}T12:00:00Z`);
+        const dName = dObj.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: timezone });
         const dayLabel = i === 0 ? `Today (${dName})` : i === 1 ? `Tomorrow (${dName})` : dName;
 
         let dateAvailable = true;
@@ -16238,10 +16261,13 @@ export class ApiEngine {
 
         const hol = (servicingBranch.holidays || []).find((h: BranchHoliday) => h.date === dIso);
         const spec = (servicingBranch.special_dates || []).find((s: BranchSpecialDate) => s.date === dIso);
-        const dayOfWeek = d.toLocaleDateString("en-US", { weekday: "long" });
+        const dayOfWeek = dObj.toLocaleDateString("en-US", { weekday: "long", timeZone: timezone });
         const daySched = servicingBranch.weekly_schedule?.[dayOfWeek];
 
-        if (hol && hol.is_closed) {
+        if (i === 0 && !isTodayAcceptingOrders) {
+          dateAvailable = false;
+          dateReason = "Same-day cutoff passed";
+        } else if (hol && hol.is_closed) {
           dateAvailable = false;
           dateReason = `Closed (${hol.name || "Holiday"})`;
         } else if (spec && spec.is_closed) {
@@ -16261,18 +16287,21 @@ export class ApiEngine {
       }
 
       if (query.date && !availableDates.find(d => d.date === query.date)) {
-        const qd = new Date(query.date);
-        const qdIso = query.date.slice(0, 10);
-        const qdName = isNaN(qd.getTime()) ? query.date : qd.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+        const qdIso = query.date.match(/^\d{4}-\d{2}-\d{2}/) ? query.date.match(/^\d{4}-\d{2}-\d{2}/)![0] : query.date;
+        const qd = new Date(`${qdIso}T12:00:00Z`);
+        const qdName = isNaN(qd.getTime()) ? query.date : qd.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: timezone });
         let qdAvailable = true;
         let qdReason: string | undefined = undefined;
 
         const hol = (servicingBranch.holidays || []).find((h: BranchHoliday) => h.date === qdIso);
         const spec = (servicingBranch.special_dates || []).find((s: BranchSpecialDate) => s.date === qdIso);
-        const dayOfWeek = isNaN(qd.getTime()) ? "" : qd.toLocaleDateString("en-US", { weekday: "long" });
+        const dayOfWeek = isNaN(qd.getTime()) ? "" : qd.toLocaleDateString("en-US", { weekday: "long", timeZone: timezone });
         const daySched = dayOfWeek ? servicingBranch.weekly_schedule?.[dayOfWeek] : undefined;
 
-        if (hol && hol.is_closed) {
+        if (qdIso === todayIso && !isTodayAcceptingOrders) {
+          qdAvailable = false;
+          qdReason = "Same-day cutoff passed";
+        } else if (hol && hol.is_closed) {
           qdAvailable = false;
           qdReason = `Closed (${hol.name || "Holiday"})`;
         } else if (spec && spec.is_closed) {
@@ -16292,7 +16321,8 @@ export class ApiEngine {
       }
     }
 
-    const selectedDate = query.date || (availableDates.find(d => d.is_available)?.date || availableDates[0]?.date);
+    const firstAvailableDate = availableDates.find(d => d.is_available)?.date;
+    const selectedDate = query.date || (firstAvailableDate || availableDates[0]?.date || todayIso);
     const slotsRes = (isServiceable && servicingBranch && selectedDate)
       ? ApiEngine.getDeliverySlots(servicingBranch.id, selectedDate, deliveryType, { zone: resolvedZone })
       : { delivery_slots: [] };
@@ -21616,7 +21646,9 @@ export class ApiEngine {
       }
     }
 
-    const deliveryDateStr = data.delivery_date || new Date().toISOString().slice(0, 10);
+    const deliveryDateStr = data.delivery_date
+      ? (data.delivery_date.match(/^\d{4}-\d{2}-\d{2}/) ? data.delivery_date.match(/^\d{4}-\d{2}-\d{2}/)![0] : data.delivery_date)
+      : getNowInTimezone(globalConfig.business_timezone || "Asia/Kolkata").dateString;
     const cartFulfillment = FulfillmentEngine.calculateCartEligibility(
       {
         items: cart.items.map((it: any) => ({
@@ -21847,7 +21879,9 @@ export class ApiEngine {
     }
 
     // 5. Delivery Slot & Capacity Check
-    const deliveryDate = data.delivery_date || new Date().toISOString().slice(0, 10);
+    const deliveryDate = data.delivery_date
+      ? (data.delivery_date.match(/^\d{4}-\d{2}-\d{2}/) ? data.delivery_date.match(/^\d{4}-\d{2}-\d{2}/)![0] : data.delivery_date)
+      : getNowInTimezone(globalConfig.business_timezone || "Asia/Kolkata").dateString;
     const slotsRes = this.getDeliverySlots(branch?.id || "br_default", deliveryDate, data.delivery_type === "pickup" ? "pickup" : "delivery");
     const slots = slotsRes.delivery_slots || [];
 
@@ -24075,13 +24109,17 @@ export class ApiEngine {
           const override = branch.product_availability?.[pId];
           const norm = (override?.status || "").toUpperCase();
           if (norm === "OUT_OF_STOCK" || norm === "UNAVAILABLE" || norm === "HIDDEN") {
-            throw new Error(`Item ${item.title || pId} is not available for delivery at selected branch (${branch.name}).`);
+            return {
+              success: false,
+              statusCode: 400,
+              error: `Item ${item.title || pId} is not available for delivery at selected branch (${branch.name}).`,
+            };
           }
         }
       }
     }
     const res: any = ApiEngine.confirmCheckout(payload);
-    return res.order || res;
+    return res;
   }
 
   static exportAdminOrders(params?: any) {

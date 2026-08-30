@@ -7,6 +7,29 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.52: Authoritative Delivery Cutoff Policy Correction & Scheduled Future Availability Engine (100% Verified)
+- **Problem & Root-Cause Analysis**:
+  - **Issue**: Same-day delivery cutoff calculations had timezone discrepancies evaluating against server hardware local time instead of the authoritative business timezone (`Asia/Kolkata`); date string parsing in `getDeliverySlots` shifted dates when converted to UTC; when same-day cutoff passed for today, `availableDates[0]` was not flagged as unavailable, causing `selectedDate` to lock onto an expired date with blocked slots; direct API orders (`POST /api/v1/orders`) bypassed checkout validation via an early unvalidated route handler in `route.ts`.
+  - **Forensic Investigation & Architectural Resolution**:
+    1. **Authoritative `Asia/Kolkata` Timezone Enforcement**:
+       - Rewrote `getDeliverySlots`, `getCheckoutAvailability`, and `validateCheckout` to strictly use `getNowInTimezone(globalConfig.business_timezone || "Asia/Kolkata")`.
+       - Replaced native `new Date().getHours()` / `getMinutes()` with timezone-calibrated hours and minutes, eliminating cloud server time drift.
+    2. **Timezone-Safe Date Parsing & Future Scheduled Slot Generation**:
+       - Replaced `new Date(dateStr).toISOString()` with regex `YYYY-MM-DD` matching and UTC-noon date anchoring (`new Date("${dateIso}T12:00:00Z")`) to ensure zero day-shift across timezones.
+       - Confirmed that standard scheduled delivery slots for future dates (tomorrow and beyond) are 100% available and never blocked by today's same-day cutoff.
+    3. **Multi-Date Availability & Auto-Advancement**:
+       - In `getCheckoutAvailability`, evaluated whether today is accepting orders. If today's cutoff has passed, today is marked `is_available: false` with `reason: "Same-day cutoff passed"`.
+       - When no date is specified in `query.date`, `selectedDate` automatically advances to the first truly open date (e.g. tomorrow).
+       - In `checkout-form.tsx`, `fetchAvailability` auto-advances the selected date when the current date becomes unavailable, while allowing the user to view today's cutoff status or select any open future date.
+    4. **Airtight Backend Re-Validation & Zero API Bypasses**:
+       - In `validateCheckout`, verified that selected delivery slots are strictly evaluated against branch, store, and corporate cutoffs in IST timezone, rejecting expired slots with `CORPORATE_CUTOFF_PASSED` / `INVALID_TIME_SLOT`.
+       - Eradicated early unvalidated route handler at line 1964 in `route.ts` (`ApiEngine.addOrder(body)`).
+       - Updated `POST /api/v1/orders` at line 2478 to execute `ApiEngine.createOrder` (which calls `confirmCheckout` and `validateCheckout`) and return HTTP 400 with full error details on validation failure.
+- **Empirical Evidence & Code Quality**:
+  - `frontend/src/lib/api-engine.ts`: Timezone-calibrated slot generation, multi-date resolution, and strict cutoff validation.
+  - `frontend/src/app/api/v1/[...path]/route.ts`: Removed order bypass vulnerability; enforced HTTP 400 on order validation failure.
+  - `frontend/src/components/store/checkout/checkout-form.tsx`: Real-time date auto-advance and stale slot invalidation.
+
 ### Milestone 9.51: Master Persistence, Database, API, PIM, CMS & Server Pricing Engine Architecture Audit (100% Verified)
 - **Problem & Root-Cause Analysis**:
   - **Issue**: Need for complete technical audit ensuring PostgreSQL is the single authoritative runtime data source with zero silent fallbacks, strict PIM option authority, authoritative CMS page persistence, and 100% server-calculated pricing.

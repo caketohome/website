@@ -1961,11 +1961,6 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
     }
 
-    if (path === "admin/orders" || path === "orders") {
-      const order = ApiEngine.addOrder(body);
-      return jsonWithDataSource({ order, success: true }, "postgres", 201);
-    }
-
     // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)
     const backendRes = await forwardToPostgresBackend("POST", path, body, undefined, req.headers);
     if (backendRes) return backendRes;
@@ -2482,7 +2477,15 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
     if (path === "orders" || path === "admin/orders") {
       const orderRes: any = ApiEngine.createOrder(body);
-      const createdOrder = orderRes?.order || orderRes;
+      if (orderRes && (orderRes.success === false || orderRes.valid === false || !orderRes.order)) {
+        return jsonWithDataSource({
+          success: false,
+          error: orderRes.error || orderRes.message || "Failed to create order. Validation failed.",
+          errors: orderRes.errors || [],
+          statusCode: orderRes.statusCode || 400,
+        }, "postgres", orderRes.statusCode || 400);
+      }
+      const createdOrder = orderRes.order;
       if (body.promo_offer_id || body.applied_promo_code) {
         ApiEngine.recordCouponRedemption(body.promo_offer_id || "off_50", {
           customer_id: body.customer_id,
@@ -2500,7 +2503,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           payment_method: body.payment_method || "UPI",
         });
       }
-      return jsonWithDataSource({ order: createdOrder, success: true }, "postgres");
+      return jsonWithDataSource({ order: createdOrder, success: true }, "postgres", 201);
     }
 
     // Admin Persistent Mutations

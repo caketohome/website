@@ -252,13 +252,25 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
         if (res.branch_id) {
           setSelectedBranchId(res.branch_id);
         }
+        // If current selected date is not available (e.g. same-day cutoff passed), auto-advance to first available date
+        if (res.available_dates && res.available_dates.length > 0) {
+          const currentDateEntry = res.available_dates.find((d: any) => d.date === targetDate);
+          if (currentDateEntry && !currentDateEntry.is_available && !customParams?.date) {
+            const nextOpenDate = res.available_dates.find((d: any) => d.is_available);
+            if (nextOpenDate) {
+              setSelectedDate(nextOpenDate.date);
+            }
+          }
+        }
         // Auto-select first available slot if current is invalid
         const validSlots = res.available_slots || [];
-        const isCurrentSlotValid = validSlots.some((s: any) => s.id === targetSlot && s.available);
+        const isCurrentSlotValid = validSlots.some((s: any) => s.id === targetSlot && (s.available || s.is_available));
         if (!isCurrentSlotValid) {
-          const firstAvailable = validSlots.find((s: any) => s.available);
+          const firstAvailable = validSlots.find((s: any) => s.available || s.is_available);
           if (firstAvailable) {
             setSelectedSlotId(firstAvailable.id);
+          } else {
+            setSelectedSlotId("");
           }
         }
       }
