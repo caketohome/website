@@ -21,49 +21,6 @@ export interface PickupBranch {
   is_open?: boolean;
 }
 
-const DEFAULT_PICKUP_BRANCHES: PickupBranch[] = [
-  {
-    id: "br_indiranagar",
-    name: "Indiranagar Flagship Kitchen",
-    address: "100 Feet Rd, Indiranagar, Bengaluru",
-    pincode: "560038",
-    timing: "09:00 AM - 11:00 PM",
-    is_open: true,
-  },
-  {
-    id: "br_koramangala",
-    name: "Koramangala Main Hub",
-    address: "80 Feet Rd, 4th Block, Koramangala, Bengaluru",
-    pincode: "560034",
-    timing: "09:00 AM - 11:30 PM",
-    is_open: true,
-  },
-  {
-    id: "br_hsr",
-    name: "HSR Layout Express Studio",
-    address: "27th Main Rd, Sector 1, HSR Layout, Bengaluru",
-    pincode: "560102",
-    timing: "09:00 AM - 11:00 PM",
-    is_open: true,
-  },
-  {
-    id: "br_whitefield",
-    name: "Whitefield Gourmet Hub",
-    address: "ITPL Main Rd, Whitefield, Bengaluru",
-    pincode: "560066",
-    timing: "09:00 AM - 10:30 PM",
-    is_open: true,
-  },
-  {
-    id: "br_kollam_hub",
-    name: "Kollam Central Cake Studio",
-    address: "Chinnakada, Kollam, Kerala",
-    pincode: "691001",
-    timing: "09:00 AM - 10:00 PM",
-    is_open: true,
-  },
-];
-
 export type LocationSource = "GPS" | "SEARCH" | "MAP_PIN" | "SAVED_ADDRESS" | "EXPLICIT_GEOCODE" | null;
 
 export interface CustomerLocation {
@@ -98,7 +55,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   // Delivery type selection (Delivery vs Branch Pickup)
   const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery");
   const [selectedBranchId, setSelectedBranchId] = useState<string>("");
-  const [pickupBranches, setPickupBranches] = useState<PickupBranch[]>(DEFAULT_PICKUP_BRANCHES);
+  const [pickupBranches, setPickupBranches] = useState<PickupBranch[]>([]);
   const [storePickupEnabled, setStorePickupEnabled] = useState<boolean>(true);
   const [storePickupFee, setStorePickupFee] = useState<number>(0);
 
@@ -111,11 +68,11 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const notesRef = useRef<HTMLTextAreaElement>(null);
 
-  // Contact fields
-  const [firstName, setFirstName] = useState("Ananya");
-  const [lastName, setLastName] = useState("Sharma");
-  const [phone, setPhone] = useState("+91 98765 43210");
-  const [email, setEmail] = useState("ananya.sharma@example.com");
+  // Contact fields (authoritative customer or empty)
+  const [firstName, setFirstName] = useState(cart.shipping_address?.first_name || "");
+  const [lastName, setLastName] = useState(cart.shipping_address?.last_name || "");
+  const [phone, setPhone] = useState(cart.shipping_address?.phone || "");
+  const [email, setEmail] = useState((cart as any).email || "");
 
   // ── 1. Authoritative Customer Map Location ─────────────────────────────
   const initialLat = (cart.shipping_address as any)?.latitude ? Number((cart.shipping_address as any).latitude) : null;

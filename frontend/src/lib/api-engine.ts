@@ -7793,246 +7793,10 @@ export class ApiEngine {
 
   // ── Delivery Partner & Fleet Engine ──────────────────────────────
   static ensureDeliveryPartnersStore() {
-    if (!Array.isArray(memoryStore.delivery_partners) || memoryStore.delivery_partners.length === 0) {
-      memoryStore.delivery_partners = [
-        {
-          id: "dlp_101",
-          partner_number: "CTH-DP-000001",
-          full_name: "Suresh Kumar",
-          first_name: "Suresh",
-          last_name: "Kumar",
-          name: "Suresh Kumar",
-          phone: "+91 98123 45678",
-          alternate_phone: "+91 98123 45679",
-          email: "suresh.k@cakes2home.com",
-          profile_photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
-          date_of_birth: "1994-05-15",
-          address: "Flat 102, Green Park Apartments, Indiranagar",
-          city: "Bengaluru",
-          state: "Karnataka",
-          pincode: "560038",
-          emergency_contact_name: "Anita Kumar",
-          emergency_contact_relationship: "Spouse",
-          emergency_contact_phone: "+91 98123 00000",
-          joining_date: "2024-01-15",
-          status: "active",
-          availability_status: "ONLINE",
-          rating: 4.9,
-          total_deliveries: 1245,
-          successful_deliveries: 1238,
-          cancelled_deliveries: 4,
-          failed_deliveries: 3,
-          current_active_orders: 1,
-          maximum_concurrent_orders: 5,
-          working_hours: {
-            Monday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Tuesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Wednesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Thursday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Friday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Saturday: { working: true, start: "09:00", end: "22:00", break_start: "14:00", break_end: "15:00" },
-            Sunday: { working: true, start: "09:00", end: "22:00", break_start: "14:00", break_end: "15:00" },
-          },
-          primary_branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-          primary_branch_name: "Indiranagar Flagship Kitchen",
-          associated_branches: [
-            { branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Indiranagar Flagship Kitchen", branch_code: "HUB-BLR-01", is_primary: true, active: true, priority: 1 },
-            { branch_id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Koramangala Gourmet Bakery", branch_code: "HUB-BLR-02", is_primary: false, active: true, priority: 2 },
-          ],
-          coverage: {
-            pincodes: ["560038", "560034", "560047", "560071", "560008"],
-            cities: ["Bengaluru"],
-            areas: ["Indiranagar", "Koramangala", "Domlur", "Ulsoor", "HAL"],
-          },
-          documents: {
-            driving_license: { number: "KA-01-20210098412", expiry: "2032-12-31", status: "verified" },
-            rc: { number: "KA01EQ9941RC", status: "verified" },
-            insurance: { number: "INS-99882211", expiry: "2027-06-30", status: "verified" },
-            id_proof: { type: "Aadhaar", number: "XXXX-XXXX-8812", status: "verified" },
-          },
-          notes: "Senior delivery specialist for high-value designer orders.",
-          created_at: "2024-01-15T09:00:00Z",
-          updated_at: "2026-08-09T10:00:00Z",
-        },
-        {
-          id: "dlp_102",
-          partner_number: "CTH-DP-000002",
-          full_name: "Ramesh Patel",
-          first_name: "Ramesh",
-          last_name: "Patel",
-          name: "Ramesh Patel",
-          phone: "+91 98234 56789",
-          alternate_phone: "+91 98234 56790",
-          email: "ramesh.p@cakes2home.com",
-          profile_photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
-          date_of_birth: "1996-08-20",
-          address: "80 Feet Rd, Koramangala 4th Block",
-          city: "Bengaluru",
-          state: "Karnataka",
-          pincode: "560034",
-          emergency_contact_name: "Mahesh Patel",
-          emergency_contact_relationship: "Brother",
-          emergency_contact_phone: "+91 98234 00000",
-          joining_date: "2024-03-01",
-          status: "active",
-          availability_status: "ONLINE",
-          rating: 4.8,
-          total_deliveries: 890,
-          successful_deliveries: 885,
-          cancelled_deliveries: 3,
-          failed_deliveries: 2,
-          current_active_orders: 0,
-          maximum_concurrent_orders: 4,
-          working_hours: {
-            Monday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Tuesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Wednesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Thursday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Friday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Saturday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Sunday: { working: false, start: "09:00", end: "21:00" },
-          },
-          primary_branch_id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT",
-          primary_branch_name: "Koramangala Gourmet Bakery",
-          associated_branches: [
-            { branch_id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Koramangala Gourmet Bakery", branch_code: "HUB-BLR-02", is_primary: true, active: true, priority: 1 },
-            { branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Indiranagar Flagship Kitchen", branch_code: "HUB-BLR-01", is_primary: false, active: true, priority: 2 },
-          ],
-          coverage: {
-            pincodes: ["560034", "560095", "560102", "560068", "560038"],
-            cities: ["Bengaluru"],
-            areas: ["Koramangala", "HSR Layout", "BTM Layout", "Indiranagar"],
-          },
-          documents: {
-            driving_license: { number: "KA-05-20220011223", expiry: "2035-10-15", status: "verified" },
-            rc: { number: "KA05EV4412RC", status: "verified" },
-            insurance: { number: "INS-44556677", expiry: "2027-01-30", status: "verified" },
-            id_proof: { type: "Aadhaar", number: "XXXX-XXXX-4412", status: "verified" },
-          },
-          notes: "Fast express courier for standard sized cakes & pastries.",
-          created_at: "2024-03-01T09:00:00Z",
-          updated_at: "2026-08-09T10:00:00Z",
-        },
-        {
-          id: "dlp_103",
-          partner_number: "CTH-DP-000003",
-          full_name: "Vignesh M.",
-          first_name: "Vignesh",
-          last_name: "M.",
-          name: "Vignesh M.",
-          phone: "+91 98345 67890",
-          alternate_phone: "+91 98345 67891",
-          email: "vignesh.m@cakes2home.com",
-          profile_photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200",
-          date_of_birth: "1992-11-04",
-          address: "100 Feet Rd, Whitefield",
-          city: "Bengaluru",
-          state: "Karnataka",
-          pincode: "560066",
-          emergency_contact_name: "Sowmya M.",
-          emergency_contact_relationship: "Sister",
-          emergency_contact_phone: "+91 98345 00000",
-          joining_date: "2023-11-10",
-          status: "active",
-          availability_status: "ONLINE",
-          rating: 4.95,
-          total_deliveries: 1820,
-          successful_deliveries: 1815,
-          cancelled_deliveries: 3,
-          failed_deliveries: 2,
-          current_active_orders: 0,
-          maximum_concurrent_orders: 5,
-          working_hours: {
-            Monday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Tuesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Wednesday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Thursday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Friday: { working: true, start: "09:00", end: "21:00", break_start: "14:00", break_end: "15:00" },
-            Saturday: { working: true, start: "09:00", end: "23:00", break_start: "14:00", break_end: "15:00" },
-            Sunday: { working: true, start: "09:00", end: "23:00", break_start: "14:00", break_end: "15:00" },
-          },
-          primary_branch_id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT",
-          primary_branch_name: "Whitefield Central Kitchen",
-          associated_branches: [
-            { branch_id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Whitefield Central Kitchen", branch_code: "HUB-BLR-03", is_primary: true, active: true, priority: 1 },
-            { branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Indiranagar Flagship Kitchen", branch_code: "HUB-BLR-01", is_primary: false, active: true, priority: 2 },
-          ],
-          coverage: {
-            pincodes: ["560066", "560037", "560048", "560038"],
-            cities: ["Bengaluru"],
-            areas: ["Whitefield", "Marathahalli", "Brookefield", "Indiranagar"],
-          },
-          documents: {
-            driving_license: { number: "KA-02-20190033190", expiry: "2030-05-20", status: "verified" },
-            rc: { number: "KA02EQ3319RC", status: "verified" },
-            insurance: { number: "INS-33198877", expiry: "2027-04-15", status: "verified" },
-            id_proof: { type: "Aadhaar", number: "XXXX-XXXX-3319", status: "verified" },
-          },
-          notes: "Lead driver for East Bengaluru hub.",
-          created_at: "2023-11-10T09:00:00Z",
-          updated_at: "2026-08-09T10:00:00Z",
-        },
-        {
-          id: "dlp_104",
-          partner_number: "CTH-DP-000004",
-          full_name: "Deepak Sharma",
-          first_name: "Deepak",
-          last_name: "Sharma",
-          name: "Deepak Sharma",
-          phone: "+91 98456 78901",
-          alternate_phone: "+91 98456 78902",
-          email: "deepak.s@cakes2home.com",
-          profile_photo: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&q=80&w=200",
-          date_of_birth: "1995-03-12",
-          address: "Outer Ring Rd, Marathahalli",
-          city: "Bengaluru",
-          state: "Karnataka",
-          pincode: "560037",
-          emergency_contact_name: "Pooja Sharma",
-          emergency_contact_relationship: "Spouse",
-          emergency_contact_phone: "+91 98456 00000",
-          joining_date: "2024-05-15",
-          status: "active",
-          availability_status: "OFFLINE",
-          rating: 4.85,
-          total_deliveries: 620,
-          successful_deliveries: 615,
-          cancelled_deliveries: 3,
-          failed_deliveries: 2,
-          current_active_orders: 0,
-          maximum_concurrent_orders: 5,
-          working_hours: {
-            Monday: { working: true, start: "09:00", end: "18:00", break_start: "13:00", break_end: "14:00" },
-            Tuesday: { working: true, start: "09:00", end: "18:00", break_start: "13:00", break_end: "14:00" },
-            Wednesday: { working: true, start: "09:00", end: "18:00", break_start: "13:00", break_end: "14:00" },
-            Thursday: { working: true, start: "09:00", end: "18:00", break_start: "13:00", break_end: "14:00" },
-            Friday: { working: true, start: "09:00", end: "18:00", break_start: "13:00", break_end: "14:00" },
-            Saturday: { working: false, start: "09:00", end: "18:00" },
-            Sunday: { working: false, start: "09:00", end: "18:00" },
-          },
-          primary_branch_id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT",
-          primary_branch_name: "Whitefield Central Kitchen",
-          associated_branches: [
-            { branch_id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT", branch_name: "Whitefield Central Kitchen", branch_code: "HUB-BLR-03", is_primary: true, active: true, priority: 1 }
-          ],
-          coverage: {
-            pincodes: ["560037", "560066", "560103"],
-            cities: ["Bengaluru"],
-            areas: ["Marathahalli", "Whitefield", "Bellandur"],
-          },
-          documents: {
-            driving_license: { number: "KA-03-20210088120", expiry: "2033-08-12", status: "verified" },
-            rc: { number: "KA03EQ8812RC", status: "verified" },
-            insurance: { number: "INS-88129900", expiry: "2026-11-20", status: "verified" },
-            id_proof: { type: "Aadhaar", number: "XXXX-XXXX-8812", status: "verified" },
-          },
-          notes: "Day shift driver for Marathahalli/Bellandur tech corridor.",
-          created_at: "2024-05-15T09:00:00Z",
-          updated_at: "2026-08-09T10:00:00Z",
-        },
-      ];
-      ApiEngine.persist();
+    if (!Array.isArray(memoryStore.delivery_partners)) {
+      memoryStore.delivery_partners = [];
     }
+
 
     if (!Array.isArray(memoryStore.delivery_partner_assignments)) {
       memoryStore.delivery_partner_assignments = [];
@@ -8095,13 +7859,7 @@ export class ApiEngine {
                     (b.id === "br_koramangala" && targetId === "res_02KXYMAHGFPRY1G9TZKEVGAGAT") ||
                     (b.id === "br_hsr" && targetId === "res_03KXYMAHGFPRY1G9TZKEVGAGAT") ||
                     (b.name || "").toLowerCase() === targetId.toLowerCase()
-      ) || (DEFAULT_BRANCHES || []).find(
-        (b: any) => b.id === targetId || b.code === targetId ||
-                    (b.id === "br_indiranagar" && targetId === "res_01KXYMAHGFPRY1G9TZKEVGAGAT") ||
-                    (b.id === "br_koramangala" && targetId === "res_02KXYMAHGFPRY1G9TZKEVGAGAT") ||
-                    (b.id === "br_hsr" && targetId === "res_03KXYMAHGFPRY1G9TZKEVGAGAT") ||
-                    (b.name || "").toLowerCase() === targetId.toLowerCase()
-      );
+      ) || null;
     } else {
       branch = branchIdOrObj;
     }
@@ -9913,21 +9671,12 @@ export class ApiEngine {
     ApiEngine.ensureCommunicationsStore();
     ApiEngine.ensureRemindersStore();
 
-    if (!memoryStore.customers || !Array.isArray(memoryStore.customers) || memoryStore.customers.length === 0) {
-      memoryStore.customers = DEFAULT_CUSTOMERS.map((c: any) => ({
-        ...c,
-        customer_uid: c.customer_uid || `cth_${c.id}`,
-        normalized_phone: normalizePhone(c.phone),
-        lifecycle_stage: "ACTIVE",
-        tier: c.is_vip ? "VIP" : "STANDARD",
-        orders_count: c.total_orders || 0,
-        total_spend: (c.total_orders || 1) * 850,
-      }));
+    if (!memoryStore.customers || !Array.isArray(memoryStore.customers)) {
+      memoryStore.customers = [];
     }
 
     const allOrders: any[] = memoryStore.orders || [];
     const branches: any[] = memoryStore.branches || [];
-    const envMode = ApiEngine.getEnvironmentMode();
 
     // Dynamically synchronize customer directory from orders and accounts
     const knownCustomerMap = new Map<string, Partial<CustomerRecord>>();
@@ -9936,37 +9685,7 @@ export class ApiEngine {
     for (const cus of memoryStore.customers) {
       const cleanPhone = normalizePhone(cus.phone || cus.normalized_phone);
       if (!cleanPhone) continue;
-
-      // In production mode, purge demo/placeholder records that have 0 orders and generic placeholder names
-      if (envMode === "production") {
-        const isGenericName = !cus.name || cus.name.toLowerCase() === "customer" || cus.name.toLowerCase() === "gourmet customer";
-        const hasOrders = (cus.orders_count || 0) > 0 || allOrders.some((o: any) => o.customer_uid === cus.customer_uid || normalizePhone(o.customer_phone) === cleanPhone);
-        const isFakePhone = cleanPhone === "0000000000" || cleanPhone === "1234567890" || cleanPhone.length < 10;
-        if (isFakePhone || (isGenericName && !hasOrders && cus.customer_source !== "CHECKOUT")) {
-          continue; // Block seed/demo placeholder customer in production
-        }
-      }
-
       knownCustomerMap.set(cleanPhone, cus);
-    }
-
-    // In development / test mode, ensure canonical seed customers exist
-    if (envMode !== "production") {
-      for (const defCus of DEFAULT_CUSTOMERS) {
-        const clean = normalizePhone(defCus.phone);
-        if (clean && !knownCustomerMap.has(clean)) {
-          knownCustomerMap.set(clean, {
-            ...defCus,
-            customer_type: "registered" as const,
-            customer_uid: (defCus as any).customer_uid || `cth_${defCus.id}`,
-            normalized_phone: clean,
-            lifecycle_stage: "NEW" as CustomerLifecycleStage,
-            tier: (defCus.is_vip ? "VIP_PLATINUM" : "STANDARD") as CustomerTier,
-            orders_count: defCus.total_orders || 0,
-            total_spend: (defCus.total_orders || 1) * 850,
-          });
-        }
-      }
     }
 
     // 2. Extract real customers from orders if not already present
@@ -12830,7 +12549,7 @@ export class ApiEngine {
     customerAddress?: any;
     sellerAddress?: any;
   }): Record<string, any> {
-    const branch = (params.branchId ? ApiEngine.resolveBranchRecord(params.branchId) : null) || ApiEngine.listBranches()[0] || DEFAULT_BRANCHES[0];
+    const branch = (params.branchId ? ApiEngine.resolveBranchRecord(params.branchId) : null) || ApiEngine.listBranches()[0] || null;
     const compliance = ApiEngine.getBranchCompliance(branch?.id);
     const branchState = branch?.state || "";
     const gstReg = (compliance?.gst_registration_id ? ApiEngine.getGstRegistrationById(compliance.gst_registration_id) : null)
@@ -13230,10 +12949,10 @@ export class ApiEngine {
   // ── CMS Pages & Form Submissions ──────────────────────────────
   static listCmsPages() {
     if (!memoryStore || !Array.isArray(memoryStore.cms_pages)) {
-      if (memoryStore) memoryStore.cms_pages = JSON.parse(JSON.stringify(DEFAULT_CMS_PAGES));
-      return DEFAULT_CMS_PAGES;
+      if (memoryStore) memoryStore.cms_pages = [];
+      return [];
     }
-    return memoryStore.cms_pages.length > 0 ? memoryStore.cms_pages : DEFAULT_CMS_PAGES;
+    return memoryStore.cms_pages;
   }
 
   static getCmsPage(idOrSlug: string) {
@@ -13270,7 +12989,7 @@ export class ApiEngine {
 
   static async createCmsPage(data: any) {
     if (!memoryStore.cms_pages || !Array.isArray(memoryStore.cms_pages)) {
-      memoryStore.cms_pages = JSON.parse(JSON.stringify(DEFAULT_CMS_PAGES));
+      memoryStore.cms_pages = [];
     }
     // Check slug uniqueness
     const slugBase = data.slug || (data.title ? data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") : `page-${Date.now()}`);
@@ -14763,9 +14482,12 @@ export class ApiEngine {
 
   // ── Enterprise Multi-Branch Engine ─────────────────────────────────────────
   static listBranches(filters?: { status?: string; city?: string; includeArchived?: boolean; lifecycleStatus?: "active" | "archived" | "all" | string }) {
-    if (!memoryStore || !Array.isArray(memoryStore.branches) || memoryStore.branches.length === 0) {
-      if (memoryStore) memoryStore.branches = [...DEFAULT_BRANCHES];
-      return DEFAULT_BRANCHES;
+    if (!memoryStore || !Array.isArray(memoryStore.branches)) {
+      if (memoryStore) memoryStore.branches = [];
+      return [];
+    }
+    if (memoryStore.branches.length === 0) {
+      return [];
     }
     // Permanently remove any legacy mock test branches
     memoryStore.branches = memoryStore.branches.filter((b: any) => !b.name?.toLowerCase().includes("playwright") && !b.id?.toLowerCase().includes("playwright"));
@@ -14881,14 +14603,14 @@ export class ApiEngine {
 
   static getBranchById(id: string) {
     if (!memoryStore.branches || !Array.isArray(memoryStore.branches)) {
-      memoryStore.branches = [...DEFAULT_BRANCHES];
+      memoryStore.branches = [];
     }
     return memoryStore.branches.find((b: any) => b.id === id || b.code === id) || null;
   }
 
   static saveBranch(data: any) {
     if (!memoryStore.branches || !Array.isArray(memoryStore.branches)) {
-      memoryStore.branches = [...DEFAULT_BRANCHES];
+      memoryStore.branches = [];
     }
     const branchId = data.id || `br_${Date.now()}`;
     const idx = memoryStore.branches.findIndex((b: any) => b.id === branchId);
@@ -15211,7 +14933,7 @@ export class ApiEngine {
 
   static archiveBranch(id: string) {
     if (!memoryStore || !Array.isArray(memoryStore.branches)) {
-      memoryStore.branches = [...DEFAULT_BRANCHES];
+      memoryStore.branches = [];
     }
     const branch = memoryStore.branches.find((b: any) => b.id === id || b.code === id);
     if (!branch) {
@@ -15239,7 +14961,7 @@ export class ApiEngine {
 
   static restoreBranch(id: string) {
     if (!memoryStore || !Array.isArray(memoryStore.branches)) {
-      memoryStore.branches = [...DEFAULT_BRANCHES];
+      memoryStore.branches = [];
     }
     const branch = memoryStore.branches.find((b: any) => b.id === id || b.code === id);
     if (!branch) {
@@ -15569,8 +15291,21 @@ export class ApiEngine {
 
     // Handle Direct Pickup Mode
     if (query.deliveryType === "pickup") {
-      const pickupBranch = query.branchId ? branches.find(b => b.id === query.branchId) : branches[0] || DEFAULT_BRANCHES[0];
-      const fb = pickupBranch || branches[0] || DEFAULT_BRANCHES[0];
+      const pickupBranch = query.branchId ? branches.find(b => b.id === query.branchId) : branches[0] || null;
+      const fb = pickupBranch || branches[0] || null;
+      if (!fb) {
+        return {
+          branch: null,
+          resolvedBy: "pickup_selection",
+          blockedReason: "No pickup branches are currently available.",
+          etaminutes: 0,
+          deliveryFee: 0,
+          feeBreakdown: { pickup_free: 0 },
+          partnerSequence: [],
+          candidatesEvaluated: 0,
+          zoneName: "Branch Pickup",
+        };
+      }
       return {
         branch: fb,
         resolvedBy: "pickup_selection",
@@ -15616,7 +15351,19 @@ export class ApiEngine {
     });
 
     if (operational.length === 0 || areaStatusBlocker) {
-      const fb = branches[0] || DEFAULT_BRANCHES[0];
+      const fb = branches[0] || null;
+      if (!fb) {
+        return {
+          branch: null,
+          resolvedBy: "unserviceable_coords",
+          blockedReason: areaStatusBlocker || "No bakery branches are currently operational.",
+          etaminutes: 0,
+          deliveryFee: 0,
+          feeBreakdown: {},
+          partnerSequence: [],
+          candidatesEvaluated: 0,
+        };
+      }
       const feeRes = ApiEngine.calculateDeliveryFee(fb, {
         is_express: query.isExpress,
         is_midnight: query.isMidnight,
@@ -15836,7 +15583,17 @@ export class ApiEngine {
       cutoff?: string;
     }>;
   } {
-    const rawBranch = ApiEngine.getBranchById(branchId) || ApiEngine.listBranches()[0] || DEFAULT_BRANCHES[0];
+    const rawBranch = ApiEngine.getBranchById(branchId) || ApiEngine.listBranches()[0] || null;
+    if (!rawBranch) {
+      return {
+        branch_id: branchId,
+        date,
+        delivery_type: deliveryType,
+        is_open: false,
+        message: "Bakery branch not found or currently closed.",
+        delivery_slots: [],
+      };
+    }
     const branch = normalizeBranchOperations(rawBranch);
 
     const store = ApiEngine.getStore();
@@ -16343,21 +16100,26 @@ export class ApiEngine {
       } else {
         const eligiblePickupBranches = branches.filter((b) => (b as any).status !== "inactive" && b.is_open !== false && (b as any).pickup_enabled !== false && (b as any).allow_pickup !== false);
         servicingBranch = query.branch_id
-          ? (branches.find(b => b.id === query.branch_id) || eligiblePickupBranches[0] || branches[0])
-          : (eligiblePickupBranches[0] || branches[0] || DEFAULT_BRANCHES[0]);
+          ? (branches.find(b => b.id === query.branch_id) || eligiblePickupBranches[0] || branches[0] || null)
+          : (eligiblePickupBranches[0] || branches[0] || null);
 
-        const branchAllowsPickup = servicingBranch && (servicingBranch as any).pickup_enabled !== false && (servicingBranch as any).allow_pickup !== false;
-        const branchIsOpen = Boolean(servicingBranch && servicingBranch.is_open !== false && servicingBranch.operational_status !== "temporarily_closed" && servicingBranch.operational_status !== "permanently_closed");
-
-        if (!branchAllowsPickup) {
+        if (!servicingBranch) {
           isServiceable = false;
-          statusMessage = `Store pickup is not available at ${servicingBranch.name}.`;
-        } else if (!branchIsOpen) {
-          isServiceable = false;
-          statusMessage = `${servicingBranch.name} is currently closed for store pickup.`;
+          statusMessage = "No pickup branches are currently available.";
         } else {
-          isServiceable = true;
-          statusMessage = `Ready for pickup at ${servicingBranch.name}.`;
+          const branchAllowsPickup = servicingBranch && (servicingBranch as any).pickup_enabled !== false && (servicingBranch as any).allow_pickup !== false;
+          const branchIsOpen = Boolean(servicingBranch && servicingBranch.is_open !== false && servicingBranch.operational_status !== "temporarily_closed" && servicingBranch.operational_status !== "permanently_closed");
+
+          if (!branchAllowsPickup) {
+            isServiceable = false;
+            statusMessage = `Store pickup is not available at ${servicingBranch.name}.`;
+          } else if (!branchIsOpen) {
+            isServiceable = false;
+            statusMessage = `${servicingBranch.name} is currently closed for store pickup.`;
+          } else {
+            isServiceable = true;
+            statusMessage = `Ready for pickup at ${servicingBranch.name}.`;
+          }
         }
         deliveryFee = pickupConvenienceFee;
         zoneName = "Branch Pickup (Direct Collection)";
@@ -20511,8 +20273,9 @@ export class ApiEngine {
   // ══════════════════════════════════════════════════════════════════════════
 
   static resolveBranchRecord(branchId: string) {
-    if (!memoryStore.branches) memoryStore.branches = [...DEFAULT_BRANCHES];
-    const bId = branchId || "res_01KXYMAHGFPRY1G9TZKEVGAGAT";
+    if (!memoryStore.branches) memoryStore.branches = [];
+    const bId = branchId || "";
+    if (!bId && memoryStore.branches.length === 0) return null;
     const found = memoryStore.branches.find((b: any) =>
       b.id === bId ||
       b.code === bId ||
@@ -20521,7 +20284,7 @@ export class ApiEngine {
       (bId === "res_03KXYMAHGFPRY1G9TZKEVGAGAT" && (b.id === "br_whitefield" || b.id === "res_03KXYMAHGFPRY1G9TZKEVGAGAT")) ||
       (bId === "shop_01" && (b.id === "br_indiranagar" || b.id === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" || b.id === "shop_01"))
     );
-    return found || memoryStore.branches[0] || null;
+    return found || null;
   }
 
   static isPaymentConfirmed(order: any): boolean {
@@ -22219,59 +21982,7 @@ export class ApiEngine {
 
   static ensureOrdersStore() {
     if (!memoryStore.orders || !Array.isArray(memoryStore.orders)) {
-      memoryStore.orders = [
-        {
-          id: "ord_101",
-          order_number: "CTH-20260808-000101",
-          invoice_number: "CTH/26-27/000101",
-          kot_number: "KOT-CTH-20260808-000101",
-          customer_id: "cus_01",
-          customer_uid: "cth_cus_ananya_01",
-          customer_name: "Ananya Rao",
-          customer_phone: "+91 98765 43210",
-          customer_email: "ananya.rao@example.com",
-          delivery_address: "100 Feet Road, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka",
-          pincode: "560038",
-          city: "Bengaluru",
-          state: "Karnataka",
-          branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-          branch_name: "Indiranagar Flagship Kitchen",
-          branch_code: "HUB-BLR-01",
-          items: [
-            {
-              id: "item_101_1",
-              product_id: "prod_01KXY_BELGIAN_TRUFFLE",
-              variant_id: "var_101_1",
-              title: "Belgian Dark Chocolate Truffle Cake",
-              name: "Belgian Dark Chocolate Truffle Cake",
-              weight: "1.0 kg",
-              shape: "Round",
-              flavour: "Dutch Chocolate",
-              quantity: 1,
-              unit_price: 1298,
-              subtotal: 1298,
-              total: 1298,
-              hsn_code: "19059090",
-              gst_rate_pct: 5,
-              thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800",
-              cake_message: "Happy Birthday Ananya!",
-            },
-          ],
-          subtotal: 1298,
-          total: 1298,
-          delivery_fee: 0,
-          tax_total: 62,
-          discount_total: 0,
-          status: "delivered",
-          delivery_status: "delivered",
-          payment_status: "paid",
-          payment_method: "Online UPI (Razorpay)",
-          delivery_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString().slice(0, 10),
-          delivery_slot: "Evening Slot (17:00 - 20:00)",
-          created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-          updated_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-        },
-      ];
+      memoryStore.orders = [];
     }
   }
 
@@ -22295,6 +22006,9 @@ export class ApiEngine {
     };
     memoryStore.orders.unshift(newOrd);
     saveStore(memoryStore);
+    persistOrderToDb(newOrd).catch((err) => {
+      console.error("[ApiEngine] Failed to persist new order to PostgreSQL:", err);
+    });
 
     ApiEngine.fireWebhookEvent(
       "order.created",
@@ -23135,7 +22849,7 @@ export class ApiEngine {
 
   static resetStoreToCanonical() {
     memoryStore.login_events = [];
-    memoryStore.abandoned_carts = JSON.parse(JSON.stringify(DEFAULT_ABANDONED_CARTS));
+    memoryStore.abandoned_carts = [];
     memoryStore.cart_recovery_attempts = [];
     memoryStore.recovery_tokens = [];
     (memoryStore as any).popup_campaigns = undefined;
@@ -23206,39 +22920,7 @@ export class ApiEngine {
   }
 
   static listEligibleMarketingPopups(ctx: any = {}) {
-    const popups = [
-      {
-        id: "pop_exit_cart_10",
-        title: "Wait! Complete Your Order Now",
-        headline: "Get 10% OFF Your Celebration",
-        body: "Your delicious freshly baked cake is waiting in your cart. Use discount code below for instant savings!",
-        discount_code: "SWEET10",
-        discount_percent: 10,
-        button_text: "Apply 10% & Checkout",
-        trigger_event: "EXIT_INTENT",
-        priority: 100,
-        page_pattern: "/cart",
-        is_active: true,
-      },
-      {
-        id: "pop_welcome_new_user",
-        title: "Welcome to Cakes2Home!",
-        headline: "First Order Special",
-        body: "Unlock exclusive fresh oven treats delivered in 60 minutes across India.",
-        discount_code: "FIRSTTREAT",
-        discount_percent: 15,
-        button_text: "Claim Offer",
-        trigger_event: "LANDING",
-        priority: 50,
-        page_pattern: "*",
-        is_active: true,
-      },
-    ];
-
-    if (ctx.page && ctx.page.includes("/cart")) {
-      return popups.filter((p) => p.page_pattern === "/cart" || p.page_pattern === "*");
-    }
-    return popups;
+    return [];
   }
 
   static getLoginActivity(query: any = {}) {
@@ -23321,424 +23003,13 @@ export class ApiEngine {
   static ensurePopupStore() {
     if (!memoryStore) memoryStore = {} as any;
     if (!Array.isArray((memoryStore as any).popup_campaigns)) {
-      (memoryStore as any).popup_campaigns = [
-        {
-          id: "pop_cart_recovery",
-          name: "Smart Cart Recovery Modal",
-          slug: "smart-cart-recovery",
-          description: "Engages guests and customers attempting to leave with active items in cart.",
-          popup_type: "CART_EXIT",
-          status: "published",
-          priority: 800,
-          enabled: true,
-          start_at: null,
-          end_at: null,
-          timezone: "Asia/Kolkata",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          current_version: {
-            id: "ver_cart_rec_1",
-            popup_campaign_id: "pop_cart_recovery",
-            version_number: 1,
-            published_at: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            content: {
-              eyebrow: "DON'T LEAVE YOUR TREATS BEHIND",
-              headline: "Your celebration cake is waiting!",
-              description: "Complete your checkout now and get 10% instant discount applied.",
-              badge: "10% OFF",
-              primaryButton: {
-                label: "Return to Cart & Apply 10%",
-                action: "OPEN_CART",
-                couponCode: "SWEET10",
-              },
-              secondaryButton: {
-                label: "Continue Browsing",
-                action: "CLOSE",
-              },
-            },
-            design: {
-              desktopLayout: "CENTER_MODAL",
-              tabletLayout: "CENTER_MODAL",
-              mobileLayout: "BOTTOM_SHEET",
-              width: 520,
-              borderRadius: 20,
-              backdropOpacity: 0.6,
-              animation: "SLIDE_UP",
-              accentColor: "#e11d48",
-            },
-            trigger: {
-              exitIntent: true,
-              backNavigation: true,
-              inactivitySeconds: 45,
-            },
-            audience: {
-              customerStatus: ["all"],
-              devices: ["mobile", "tablet", "desktop"],
-              cityIds: [],
-              branchIds: [],
-              minCartValue: 1,
-            },
-            frequency: {
-              mode: "once_per_session",
-              scope: "session",
-              maxShows: 1,
-              cooldownSeconds: 0,
-              cartChangeRequired: true,
-              showToGuests: true,
-              showToAuthenticated: false,
-            },
-            schedule: {
-              startAt: null,
-              endAt: null,
-              timezone: "Asia/Kolkata",
-            },
-            rules: [
-              {
-                logic: "AND",
-                conditions: [
-                  { field: "cart.hasItems", operator: "equals", value: true },
-                  { field: "checkout.active", operator: "not_equals", value: true },
-                ],
-              },
-            ],
-            media: {
-              type: "CART_IMAGES",
-              aspectRatio: "square",
-            },
-          },
-        },
-        {
-          id: "pop_welcome_first_order",
-          name: "New Visitor Welcome Privilege",
-          slug: "welcome-first-order",
-          description: "Greets first-time visitors automatically with instant welcome discount.",
-          popup_type: "WELCOME",
-          status: "published",
-          priority: 850,
-          enabled: true,
-          start_at: null,
-          end_at: null,
-          timezone: "Asia/Kolkata",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          current_version: {
-            id: "ver_welcome_1",
-            popup_campaign_id: "pop_welcome_first_order",
-            version_number: 1,
-            published_at: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            content: {
-              templateId: "LOGIN_OFFER",
-              eyebrow: "WELCOME TO CAKETOHOME",
-              headline: "Fresh from the oven to your doorstep",
-              description: "Enter your mobile number for ₹150 OFF your first handcrafted cake.",
-              badge: "WELCOME SPECIAL",
-              phoneConfig: {
-                enabled: true,
-                mandatory: false,
-                action: "LOGIN_COUPON",
-                placeholder: "Enter your mobile number",
-                buttonLabel: "Continue with Mobile Number",
-                guestButtonLabel: "Continue as Guest",
-                disclaimerText: "We'll use your number to securely sign you in and apply your discount.",
-              },
-              primaryButton: {
-                label: "Continue with Mobile Number",
-                action: "LOGIN_WITH_MOBILE",
-                couponCode: "SWEET150",
-              },
-              secondaryButton: {
-                label: "Continue Browsing",
-                action: "CLOSE",
-              },
-            },
-            design: {
-              desktopLayout: "CENTER_MODAL",
-              tabletLayout: "CENTER_MODAL",
-              mobileLayout: "BOTTOM_SHEET",
-              width: 540,
-              borderRadius: 24,
-              backdropOpacity: 0.6,
-              animation: "SLIDE_UP",
-              accentColor: "#e11d48",
-            },
-            trigger: {
-              enabled_triggers: ["time_on_page"],
-              combinator: "ANY",
-              timeOnPageSeconds: 3,
-            },
-            offer: {
-              type: "COUPON",
-              couponCode: "SWEET150",
-              autoApply: true,
-            },
-            audience: {
-              customerStatus: ["all"],
-              devices: ["mobile", "tablet", "desktop"],
-            },
-            frequency: {
-              mode: "every_page_load",
-              scope: "visitor",
-              maxShows: 10,
-              cooldownSeconds: 0,
-              showToGuests: true,
-              showToAuthenticated: false,
-            },
-            schedule: {
-              startAt: null,
-              endAt: null,
-              timezone: "Asia/Kolkata",
-            },
-            rules: [],
-            media: {
-              type: "IMAGE_URL",
-              imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600",
-              aspectRatio: "square",
-            },
-          },
-        },
-        {
-          id: "pop_product_exit_special",
-          name: "High-Intent Product Exit Special",
-          slug: "product-exit-special",
-          description: "Shows viewed cake artwork and highlights speedy 60-min delivery on exit intent.",
-          popup_type: "PRODUCT_EXIT",
-          status: "published",
-          priority: 700,
-          enabled: true,
-          start_at: null,
-          end_at: null,
-          timezone: "Asia/Kolkata",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          current_version: {
-            id: "ver_prod_exit_1",
-            popup_campaign_id: "pop_product_exit_special",
-            version_number: 1,
-            published_at: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            content: {
-              eyebrow: "SPECIAL TASTE GUARANTEE",
-              headline: "Still craving {{product_name}}?",
-              description: "Handcrafted freshly upon order. Available for 60-minute express delivery to {{city}}.",
-              primaryButton: {
-                label: "Add to Cart Now",
-                action: "OPEN_CART",
-              },
-              secondaryButton: {
-                label: "Keep Looking",
-                action: "CLOSE",
-              },
-            },
-            design: {
-              desktopLayout: "CENTER_MODAL",
-              tabletLayout: "CENTER_MODAL",
-              mobileLayout: "BOTTOM_SHEET",
-              width: 500,
-              borderRadius: 20,
-              backdropOpacity: 0.55,
-              animation: "FADE",
-            },
-            trigger: {
-              exitIntent: true,
-              backNavigation: true,
-            },
-            audience: {
-              customerStatus: ["all"],
-              devices: ["mobile", "tablet", "desktop"],
-            },
-            frequency: {
-              mode: "every_page_load",
-              scope: "product",
-              maxShows: 5,
-              cooldownSeconds: 0,
-              showToGuests: true,
-              showToAuthenticated: false,
-            },
-            schedule: {
-              startAt: null,
-              endAt: null,
-              timezone: "Asia/Kolkata",
-            },
-            rules: [],
-            media: {
-              type: "PRODUCT_IMAGE",
-              aspectRatio: "square",
-            },
-          },
-        },
-        {
-          id: "pop_wishlist_auth",
-          name: "Wishlist Authentication Guard",
-          slug: "wishlist-auth-guard",
-          description: "Prompts guest users to log in when bookmarking favorite celebration cakes.",
-          popup_type: "WISHLIST_AUTH",
-          status: "published",
-          priority: 900,
-          enabled: true,
-          start_at: null,
-          end_at: null,
-          timezone: "Asia/Kolkata",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          current_version: {
-            id: "ver_wishlist_1",
-            popup_campaign_id: "pop_wishlist_auth",
-            version_number: 1,
-            published_at: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            content: {
-              eyebrow: "SAVE YOUR FAVORITES",
-              headline: "Sign in to save this cake to your Wishlist",
-              description: "Access your saved treats across all devices and receive price drop alerts.",
-              primaryButton: {
-                label: "Sign In with Phone",
-                action: "LOGIN",
-              },
-              secondaryButton: {
-                label: "Cancel",
-                action: "CLOSE",
-              },
-            },
-            design: {
-              desktopLayout: "CENTER_MODAL",
-              tabletLayout: "CENTER_MODAL",
-              mobileLayout: "BOTTOM_SHEET",
-              width: 460,
-              borderRadius: 20,
-              backdropOpacity: 0.6,
-              animation: "SLIDE_UP",
-            },
-            trigger: {
-              authRequired: true,
-            },
-            audience: {
-              customerStatus: ["guest"],
-              devices: ["mobile", "tablet", "desktop"],
-            },
-            frequency: {
-              mode: "every_page_load",
-              scope: "session",
-              maxShows: 5,
-              cooldownSeconds: 0,
-              showToGuests: true,
-              showToAuthenticated: false,
-            },
-            schedule: {
-              startAt: null,
-              endAt: null,
-              timezone: "Asia/Kolkata",
-            },
-            rules: [],
-            media: {
-              type: "NONE",
-            },
-          },
-        },
-        {
-          id: "pop_returning_member",
-          name: "Returning VIP Customer Welcome Back",
-          slug: "returning-vip-welcome",
-          description: "Recognizes returning customers with personalized cake reordering shortcuts.",
-          popup_type: "RETURNING",
-          status: "published",
-          priority: 400,
-          enabled: true,
-          start_at: null,
-          end_at: null,
-          timezone: "Asia/Kolkata",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          current_version: {
-            id: "ver_ret_1",
-            popup_campaign_id: "pop_returning_member",
-            version_number: 1,
-            published_at: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            content: {
-              eyebrow: "WELCOME BACK",
-              headline: "Hello {{customer_name}}, ready to celebrate?",
-              description: "Your loyalty treats and quick reorder history are waiting in your account.",
-              primaryButton: {
-                label: "View Account & Past Orders",
-                action: "CUSTOM_URL",
-                targetUrl: "/account/orders",
-              },
-              secondaryButton: {
-                label: "Shop Cakes",
-                action: "CLOSE",
-              },
-            },
-            design: {
-              desktopLayout: "SIDE_PANEL",
-              tabletLayout: "CENTER_MODAL",
-              mobileLayout: "BOTTOM_SHEET",
-              width: 440,
-              borderRadius: 16,
-              backdropOpacity: 0.3,
-              animation: "SLIDE_UP",
-            },
-            trigger: {
-              returningVisitor: true,
-              timeOnPageSeconds: 15,
-            },
-            audience: {
-              customerStatus: ["logged_in", "returning_customer", "member"],
-              devices: ["mobile", "tablet", "desktop"],
-            },
-            frequency: {
-              mode: "cooldown",
-              scope: "visitor",
-              maxShows: 1,
-              cooldownSeconds: 259200, // 3 days
-              cooldownValue: 3,
-              cooldownUnit: "days",
-              showToGuests: false,
-              showToAuthenticated: true,
-            },
-            schedule: {
-              startAt: null,
-              endAt: null,
-              timezone: "Asia/Kolkata",
-            },
-            rules: [],
-            media: {
-              type: "NONE",
-            },
-          },
-        },
-      ];
-    }
-
-    // Ensure all popup campaigns in memory have modern frequency modes and non-permanent defaults
-    if (Array.isArray((memoryStore as any).popup_campaigns)) {
-      (memoryStore as any).popup_campaigns.forEach((camp: any) => {
-        const v = camp.current_version || camp.draft_version;
-        if (v && v.frequency) {
-          if (!v.frequency.mode) {
-            v.frequency.mode = camp.popup_type === "CART_EXIT" ? "once_per_session" : "every_page_load";
-          }
-          if (camp.id === "pop_welcome_first_order") {
-            v.frequency.mode = "every_page_load";
-            v.frequency.cooldownSeconds = 0;
-            v.frequency.showToGuests = true;
-            v.frequency.showToAuthenticated = false;
-          }
-        }
-      });
+      (memoryStore as any).popup_campaigns = [];
     }
     if (!Array.isArray((memoryStore as any).popup_impressions)) {
-      (memoryStore as any).popup_impressions = [
-        { id: "imp_1", popup_campaign_id: "pop_cart_recovery", session_id: "sess_1", page_url: "/cart", cart_value: 849, device_type: "desktop", event_type: "shown", created_at: new Date(Date.now() - 3600000).toISOString() },
-        { id: "imp_2", popup_campaign_id: "pop_cart_recovery", session_id: "sess_1", page_url: "/cart", cart_value: 849, device_type: "desktop", event_type: "cta_clicked", created_at: new Date(Date.now() - 3500000).toISOString() },
-        { id: "imp_3", popup_campaign_id: "pop_welcome_first_order", session_id: "sess_2", page_url: "/", device_type: "mobile", event_type: "shown", created_at: new Date(Date.now() - 7200000).toISOString() },
-      ];
+      (memoryStore as any).popup_impressions = [];
     }
     if (!Array.isArray((memoryStore as any).popup_conversions)) {
-      (memoryStore as any).popup_conversions = [
-        { id: "conv_1", popup_campaign_id: "pop_cart_recovery", session_id: "sess_1", conversion_type: "PURCHASE", order_id: "ord_sample_1", revenue: 849, created_at: new Date(Date.now() - 3400000).toISOString() },
-      ];
+      (memoryStore as any).popup_conversions = [];
     }
   }
 
