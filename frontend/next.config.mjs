@@ -6,6 +6,10 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    workerThreads: false,
+    cpus: 1,
+  },
   transpilePackages: ["@medusajs/ui"],
   webpack: (config) => {
     config.watchOptions = {
