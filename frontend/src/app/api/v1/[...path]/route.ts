@@ -361,6 +361,7 @@ function getPath(req: NextRequest, context?: any): string {
 
 export async function GET(req: NextRequest, context: { params: { path: string[] } }) {
   try {
+    await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     const url = new URL(req.url);
     const queryString = url.searchParams.toString();
@@ -1859,6 +1860,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
 export async function POST(req: NextRequest, context: { params: { path: string[] } }) {
   try {
+    await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     const body = await req.json().catch(() => ({}));
 
@@ -2300,9 +2302,25 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         ...body,
         updated_at: new Date().toISOString(),
       };
-      persistSettingToDb("fulfillment", "config", store.fulfillment_config, true).catch(() => null);
+      await persistSettingToDb("fulfillment", "config", store.fulfillment_config, true);
       ApiEngine.persist();
       return jsonWithDataSource({ config: store.fulfillment_config, success: true }, "postgres");
+    }
+
+    // ── Admin: Master Flavors & Shapes (POST) ──
+    if (path === "admin/catalog/flavors" || path === "catalog/flavors") {
+      const flavor = await ApiEngine.createVariantOption({ ...body, type: "flavour" });
+      return jsonWithDataSource({ flavor, success: true }, "postgres", 201);
+    }
+
+    if (path === "admin/catalog/shapes" || path === "catalog/shapes") {
+      const shape = await ApiEngine.createVariantOption({ ...body, type: "shape" });
+      return jsonWithDataSource({ shape, success: true }, "postgres", 201);
+    }
+
+    if (path === "admin/catalog/variant-options" || path === "catalog/variant-options") {
+      const option = await ApiEngine.createVariantOption(body);
+      return jsonWithDataSource({ option, success: true }, "postgres", 201);
     }
 
     // ── Admin: Flavor & Shape Mappings Save Handlers ──
@@ -3483,6 +3501,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
 export async function PUT(req: NextRequest, context: { params: { path: string[] } }) {
   try {
+    await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     const body = await req.json().catch(() => ({}));
 
@@ -3573,6 +3592,21 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       const city = ApiEngine.updateAdminCity(id, body);
       if (!city) return jsonWithDataSource({ error: "City not found" }, "postgres", 404);
       return jsonWithDataSource({ city, success: true }, "postgres");
+    }
+    if (path.startsWith("admin/catalog/flavors/") || path.startsWith("catalog/flavors/")) {
+      const id = path.split("/").pop() || "";
+      const flavor = await ApiEngine.updateVariantOption(id, { ...body, type: "flavour" });
+      return jsonWithDataSource({ flavor, success: Boolean(flavor) }, "postgres", flavor ? 200 : 404);
+    }
+    if (path.startsWith("admin/catalog/shapes/") || path.startsWith("catalog/shapes/")) {
+      const id = path.split("/").pop() || "";
+      const shape = await ApiEngine.updateVariantOption(id, { ...body, type: "shape" });
+      return jsonWithDataSource({ shape, success: Boolean(shape) }, "postgres", shape ? 200 : 404);
+    }
+    if (path.startsWith("admin/catalog/variant-options/") || path.startsWith("catalog/variant-options/")) {
+      const id = path.split("/").pop() || "";
+      const option = await ApiEngine.updateVariantOption(id, body);
+      return jsonWithDataSource({ option, success: Boolean(option) }, "postgres", option ? 200 : 404);
     }
     if (path.includes("/weight-prices")) {
       const prodId = extractProductIdFromPath(path);
@@ -3850,6 +3884,7 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
 
 export async function DELETE(req: NextRequest, context: { params: { path: string[] } }) {
   try {
+    await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     const body = await req.json().catch(() => ({}));
 
@@ -3909,6 +3944,23 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       }
       const result = ApiEngine.deleteProductReview(customerUid, reviewId);
       return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
+    }
+
+    // ── Catalog Master Variant Options Deletion (DELETE) ──
+    if (path.startsWith("admin/catalog/flavors/") || path.startsWith("catalog/flavors/")) {
+      const id = path.split("/").pop() || "";
+      const ok = await ApiEngine.deleteVariantOption(id);
+      return jsonWithDataSource({ success: ok, deleted: ok }, "postgres", ok ? 200 : 404);
+    }
+    if (path.startsWith("admin/catalog/shapes/") || path.startsWith("catalog/shapes/")) {
+      const id = path.split("/").pop() || "";
+      const ok = await ApiEngine.deleteVariantOption(id);
+      return jsonWithDataSource({ success: ok, deleted: ok }, "postgres", ok ? 200 : 404);
+    }
+    if (path.startsWith("admin/catalog/variant-options/") || path.startsWith("catalog/variant-options/")) {
+      const id = path.split("/").pop() || "";
+      const ok = await ApiEngine.deleteVariantOption(id);
+      return jsonWithDataSource({ success: ok, deleted: ok }, "postgres", ok ? 200 : 404);
     }
 
     if (path.startsWith("admin/popups/") || path.startsWith("popups/")) {
@@ -4060,6 +4112,7 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
 
 export async function PATCH(req: NextRequest, context: { params: { path: string[] } }) {
   try {
+    await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     const body = await req.json().catch(() => ({}));
 

@@ -494,12 +494,12 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
 
       if (targetProdId) {
         const selectedFlvObjects = masterFlavours
-          .filter((f) => selectedFlavours.includes(f.name))
-          .map((f) => ({ flavor_id: f.id, price_override: f.extra_price }));
+          .filter((f) => selectedFlavours.includes(f.name) || selectedFlavours.includes(f.display_name))
+          .map((f) => ({ flavor_id: f.id, name: f.name, display_name: f.display_name || f.name, price_override: Number(f.extra_price ?? f.price_modifier ?? 0) }));
 
         const selectedShpObjects = masterShapes
-          .filter((s) => selectedShapes.includes(s.name))
-          .map((s) => ({ shape_id: s.id, price_override: s.additional_price }));
+          .filter((s) => selectedShapes.includes(s.name) || selectedShapes.includes(s.display_name))
+          .map((s) => ({ shape_id: s.id, name: s.name, display_name: s.display_name || s.name, price_override: Number(s.additional_price ?? s.price_modifier ?? 0) }));
 
         await apiClient.saveProductFlavorMappings(targetProdId, selectedFlvObjects);
         await apiClient.saveProductShapeMappings(targetProdId, selectedShpObjects);

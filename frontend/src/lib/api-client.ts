@@ -2337,6 +2337,122 @@ class CakeToHomeApiClient {
     ).toString();
     return this.request(`/products/${encodeURIComponent(id)}${qs ? `?${qs}` : ""}`);
   }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── PIM / CATALOG & MASTER VARIANT OPTIONS ─────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  async getAdminFlavors() {
+    return this.request("/admin/catalog/flavors");
+  }
+
+  async createAdminFlavor(data: any) {
+    return this.request("/admin/catalog/flavors", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateAdminFlavor(id: string, data: any) {
+    return this.request(`/admin/catalog/flavors/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteAdminFlavor(id: string) {
+    return this.request(`/admin/catalog/flavors/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getAdminShapes() {
+    return this.request("/admin/catalog/shapes");
+  }
+
+  async createAdminShape(data: any) {
+    return this.request("/admin/catalog/shapes", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateAdminShape(id: string, data: any) {
+    return this.request(`/admin/catalog/shapes/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteAdminShape(id: string) {
+    return this.request(`/admin/catalog/shapes/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getProductFlavorMappings(productId: string) {
+    return this.request(`/admin/catalog/products/${productId}/flavor-mappings`);
+  }
+
+  async saveProductFlavorMappings(productId: string, mappings: any[]) {
+    return this.request(`/admin/catalog/products/${productId}/flavor-mappings`, {
+      method: "POST",
+      body: JSON.stringify({ mappings }),
+    });
+  }
+
+  async getProductShapeMappings(productId: string) {
+    return this.request(`/admin/catalog/products/${productId}/shape-mappings`);
+  }
+
+  async saveProductShapeMappings(productId: string, mappings: any[]) {
+    return this.request(`/admin/catalog/products/${productId}/shape-mappings`, {
+      method: "POST",
+      body: JSON.stringify({ mappings }),
+    });
+  }
+
+  async getProductWeightPrices(productId: string) {
+    return this.request(`/admin/catalog/products/${productId}/weight-prices`);
+  }
+
+  async saveProductWeightPrices(productId: string, weightPrices: any[]) {
+    return this.request(`/admin/catalog/products/${productId}/weight-prices`, {
+      method: "PUT",
+      body: JSON.stringify({ weight_prices: weightPrices }),
+    });
+  }
+
+  async getAdminProducts(params: Record<string, any> = {}) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+    ).toString();
+    return this.request(`/admin/catalog/products${qs ? `?${qs}` : ""}`);
+  }
+
+  async updateAdminProduct(productId: string, data: any) {
+    return this.request(`/admin/catalog/products/${productId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createAdminProduct(data: any) {
+    return this.request(`/admin/catalog/products`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async searchLocationAsync(query: string, options: { lat?: number; lng?: number; limit?: number } = {}) {
+    const qs = new URLSearchParams({
+      q: query,
+      ...(options.lat ? { lat: String(options.lat) } : {}),
+      ...(options.lng ? { lng: String(options.lng) } : {}),
+      ...(options.limit ? { limit: String(options.limit) } : {}),
+    }).toString();
+    return this.request(`/delivery/search-location?${qs}`);
+  }
 }
 
 export const apiClient = new CakeToHomeApiClient();

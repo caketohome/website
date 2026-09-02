@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
 import ProductDetailClient from "../../../../components/store/shop/product-detail-client";
 import { ProductJsonLd } from "../../../../components/store/seo/json-ld";
 import { getProductById, getProductBySlug, listProductReviews } from "../../../../lib/data/catalog";
@@ -9,6 +10,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const resolvedParams = await Promise.resolve(params);
   const targetId = resolvedParams.id;
   const fetched = (await getProductById(targetId)) || (await getProductBySlug(targetId));
+  if (!fetched) {
+    return {
+      title: "Product Not Found | CakeToHome",
+      description: "The requested cake could not be found.",
+    };
+  }
   const title = fetched?.title || fetched?.name || "Gourmet Cake";
   const rawDesc = fetched?.description || "Decadent handcrafted cake made with rich ingredients and fresh toppings.";
   const desc = `Order ${title} online from CakeToHome Bangalore. ${rawDesc} Freshly baked with same-day and midnight delivery available.`;
@@ -31,7 +38,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const pincodeCookie = cookies().get("delivery_pincode")?.value;
   const fetched = (await getProductById(targetId, pincodeCookie)) || (await getProductBySlug(targetId, pincodeCookie));
 
-  const productId = fetched?.id || fetched?.product_id || targetId;
+  if (!fetched) {
+    notFound();
+  }
+
+  const productId = fetched.id || fetched.product_id || targetId;
   const productTitle = fetched?.title || fetched?.name || "Gourmet Bakery Product";
   const productDescription =
     fetched?.description ||

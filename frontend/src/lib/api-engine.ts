@@ -21,8 +21,16 @@ import {
   persistCmsPageToDb,
   deleteCmsPageFromDb,
   persistOfferToDb,
+  deleteOfferFromDb,
   persistSettingToDb,
   persistPopupCampaignToDb,
+  deletePopupCampaignFromDb,
+  persistVariantOptionToDb,
+  deleteVariantOptionFromDb,
+  persistCustomerFavoriteToDb,
+  deleteCustomerFavoriteFromDb,
+  persistProductReviewToDb,
+  deleteProductReviewFromDb,
 } from "./db-persistence";
 import { SeoIntegrationsEngine } from "./integrations/seo-integrations";
 import { LiveHttpCrawler } from "./crawler/live-crawler";
@@ -4078,59 +4086,64 @@ export interface ProductReviewRecord {
 }
 
 function loadStore(): StoreData {
-  // Authoritative runtime store starts from canonical defaults in memory
-  // and is asynchronously hydrated directly from PostgreSQL database on startup.
+  // DATABASE-FIRST: Runtime store starts EMPTY and is populated exclusively
+  // from PostgreSQL during hydration. No mock/fake business data is injected.
   return createDefaultStore();
 }
 
 function createDefaultStore(): StoreData {
+  // ═══════════════════════════════════════════════════════════════════════
+  // DATABASE-FIRST ARCHITECTURE: All business data arrays start EMPTY.
+  // They are populated ONLY from PostgreSQL via hydrateStoreFromDatabase().
+  // DEFAULT_* constants are retained in the file as seed/reference only.
+  // ═══════════════════════════════════════════════════════════════════════
   const initial: StoreData = {
     carts: [],
-    products: DEFAULT_PRODUCTS,
-    branches: DEFAULT_BRANCHES,
-    cities: DEFAULT_CITIES,
-    states: DEFAULT_STATES,
-    regions: DEFAULT_REGIONS,
-    offers: DEFAULT_OFFERS,
-    offer_redemptions: DEFAULT_OFFER_REDEMPTIONS,
-    offer_audit_logs: DEFAULT_OFFER_AUDIT_LOGS,
-    offer_daily_metrics: DEFAULT_OFFER_DAILY_METRICS,
-    campaigns: DEFAULT_CAMPAIGNS,
-    customers: DEFAULT_CUSTOMERS,
-    deliveries: DEFAULT_DELIVERIES,
-    delivery_partners: DEFAULT_DELIVERY_PARTNERS,
-    settings: DEFAULT_SETTINGS,
-    business_profile: DEFAULT_BUSINESS_PROFILE,
-    gst_registrations: [...DEFAULT_GST_REGISTRATIONS],
-    branch_compliance: [...DEFAULT_BRANCH_COMPLIANCE],
-    compliance_documents: [...DEFAULT_COMPLIANCE_DOCUMENTS],
-    invoice_settings: DEFAULT_INVOICE_SETTINGS,
-    delivery_defaults: DEFAULT_DELIVERY_DEFAULTS,
-    payment_settings: DEFAULT_PAYMENT_SETTINGS,
-    integration_settings: DEFAULT_INTEGRATION_SETTINGS,
-    seo_config: DEFAULT_SEO_CONFIG,
-    automation_triggers: DEFAULT_AUTOMATION_TRIGGERS,
-    notifications: DEFAULT_NOTIFICATIONS,
-    audit_logs: DEFAULT_AUDIT_LOGS,
-    login_events: [...DEFAULT_LOGIN_EVENTS],
-    abandoned_carts: [...DEFAULT_ABANDONED_CARTS],
-    cart_recovery_attempts: [...DEFAULT_RECOVERY_ATTEMPTS],
+    products: [],                    // Populated from DB: public.product
+    branches: [],                    // Populated from DB: public.branch
+    cities: [],                      // Populated from DB: public.city
+    states: DEFAULT_STATES,          // Statutory reference data — not admin-editable
+    regions: DEFAULT_REGIONS,        // Statutory reference data — not admin-editable
+    offers: [],                      // Populated from DB: public.offer
+    offer_redemptions: [],
+    offer_audit_logs: [],
+    offer_daily_metrics: [],
+    campaigns: [],
+    customers: [],                   // Populated from DB: public.customer
+    deliveries: [],
+    delivery_partners: [],           // Populated from DB: public.delivery_partner
+    settings: {},                    // Populated from DB: public.setting
+    business_profile: undefined,     // Populated from DB: public.setting (group=general)
+    gst_registrations: [],
+    branch_compliance: [],
+    compliance_documents: [],
+    invoice_settings: undefined,     // Populated from DB: public.setting (group=invoice)
+    delivery_defaults: undefined,    // Populated from DB: public.setting (group=delivery)
+    payment_settings: undefined,     // Populated from DB: public.setting (group=payment)
+    integration_settings: undefined, // Populated from DB: public.setting (group=integration)
+    seo_config: {},
+    automation_triggers: [],
+    notifications: [],
+    audit_logs: [],
+    login_events: [],
+    abandoned_carts: [],
+    cart_recovery_attempts: [],
     recovery_tokens: [],
-    cms_pages: DEFAULT_CMS_PAGES,
-    pim_categories: DEFAULT_PIM_CATEGORIES,
-    variant_options: DEFAULT_VARIANT_OPTIONS,
+    cms_pages: [],                   // Populated from DB: public.cms_page
+    pim_categories: [],              // Populated from DB: public.setting (group=pim)
+    variant_options: [],             // Populated from DB: public.variant_option
     product_weight_prices: [],
-    accessories: DEFAULT_ACCESSORIES,
-    accessory_categories: DEFAULT_ACCESSORY_CATEGORIES,
-    cross_sell_rules: DEFAULT_CROSS_SELL_RULES,
+    accessories: [],                 // Populated from DB: public.setting (group=catalog)
+    accessory_categories: [],        // Populated from DB: public.setting (group=catalog)
+    cross_sell_rules: [],            // Populated from DB: public.setting (group=catalog)
     product_accessory_mappings: [],
-    city_areas: DEFAULT_CITY_AREAS,
-    occasions: DEFAULT_OCCASIONS,
+    city_areas: [],
+    occasions: [],
     product_occasions: [],
     category_occasions: [],
     accessory_occasions: [],
-    orders: [],
-    media: [...DEFAULT_MEDIA],
+    orders: [],                      // Populated from DB: public.order
+    media: [],
     // ── Enterprise SEO Platform ──
     seo_pages: [],
     seo_page_scores: [],
@@ -4156,7 +4169,7 @@ function createDefaultStore(): StoreData {
     seo_social_cards: [],
     seo_backlinks: [],
     seo_reports: [],
-    popup_campaigns: [],
+    popup_campaigns: [],             // Populated from DB: public.popup_campaigns
     customer_favorites: [],
     product_reviews: [],
   };
@@ -4189,11 +4202,35 @@ function saveStore(data: StoreData): void {
 let memoryStore: StoreData = (globalThis as any).__CTH_MEMORY_STORE__ || loadStore();
 (globalThis as any).__CTH_MEMORY_STORE__ = memoryStore;
 
+let _dbHydrationStatus: { hydrated: boolean; error: string | null; hydratedAt: string | null } = {
+  hydrated: false,
+  error: null,
+  hydratedAt: null,
+};
+
+let _hydrationPromise: Promise<any> | null = null;
+
 // Trigger asynchronous hydration from PostgreSQL database on startup
 if (typeof window === "undefined") {
-  hydrateStoreFromDatabase(memoryStore).catch((err) => {
-    console.warn("[ApiEngine] Initial PostgreSQL store hydration warning:", err.message);
-  });
+  _hydrationPromise = hydrateStoreFromDatabase(memoryStore)
+    .then((summary) => {
+      _dbHydrationStatus = {
+        hydrated: summary.success,
+        error: null,
+        hydratedAt: new Date().toISOString(),
+      };
+      console.log(`[ApiEngine] PostgreSQL store hydration complete (${summary.productsCount} products, ${summary.branchesCount} branches)`);
+      return summary;
+    })
+    .catch((err) => {
+      _dbHydrationStatus = {
+        hydrated: false,
+        error: err.message,
+        hydratedAt: null,
+      };
+      console.error("[ApiEngine] CRITICAL: PostgreSQL store hydration failed:", err.message);
+      return { success: false, error: err.message };
+    });
 }
 
 function deduplicateStoreProducts(products: any[]): any[] {
@@ -4210,8 +4247,16 @@ function deduplicateStoreProducts(products: any[]): any[] {
 }
 
 export class ApiEngine {
+  static async ensureHydrated() {
+    if (_hydrationPromise) {
+      await _hydrationPromise;
+    }
+    return _dbHydrationStatus;
+  }
+
   static async reloadStore() {
-    await hydrateStoreFromDatabase(memoryStore);
+    _hydrationPromise = hydrateStoreFromDatabase(memoryStore);
+    await _hydrationPromise;
     (globalThis as any).__CTH_MEMORY_STORE__ = memoryStore;
     return memoryStore;
   }
@@ -4225,6 +4270,10 @@ export class ApiEngine {
   static getOrders(): any[] {
     ApiEngine.ensureOrdersStore();
     return memoryStore.orders || [];
+  }
+
+  static getDatabaseHydrationStatus() {
+    return _dbHydrationStatus;
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -4275,6 +4324,9 @@ export class ApiEngine {
 
     favStore.unshift(newFavorite);
     saveStore(memoryStore);
+    persistCustomerFavoriteToDb(newFavorite).catch((err) => {
+      console.error("[ApiEngine] Failed to persist customer favorite to DB:", err.message);
+    });
 
     // Publish transactional webhook event
     ApiEngine.fireWebhookEvent(
@@ -4312,6 +4364,9 @@ export class ApiEngine {
 
     if (memoryStore.customer_favorites.length !== beforeCount) {
       saveStore(memoryStore);
+      deleteCustomerFavoriteFromDb(cleanUid, cleanProdId).catch((err) => {
+        console.error("[ApiEngine] Failed to delete customer favorite from DB:", err.message);
+      });
 
       ApiEngine.fireWebhookEvent(
         "wishlist.item.removed",
@@ -4615,6 +4670,9 @@ export class ApiEngine {
 
     reviews.unshift(newReview);
     saveStore(memoryStore);
+    persistProductReviewToDb(newReview).catch((err) => {
+      console.error("[ApiEngine] Failed to persist product review to DB:", err.message);
+    });
 
     // Emit transactional webhook event
     ApiEngine.fireWebhookEvent(
@@ -4698,6 +4756,9 @@ export class ApiEngine {
 
     review.updated_at = new Date().toISOString();
     saveStore(memoryStore);
+    persistProductReviewToDb(review).catch((err) => {
+      console.error("[ApiEngine] Failed to update product review in DB:", err.message);
+    });
 
     ApiEngine.fireWebhookEvent(
       "review.updated",
@@ -4743,6 +4804,9 @@ export class ApiEngine {
 
     reviews.splice(reviewIndex, 1);
     saveStore(memoryStore);
+    deleteProductReviewFromDb(cleanRevId).catch((err) => {
+      console.error("[ApiEngine] Failed to delete product review from DB:", err.message);
+    });
 
     return { success: true, statusCode: 200 };
   }
@@ -4961,6 +5025,9 @@ export class ApiEngine {
 
     review.updated_at = now;
     saveStore(memoryStore);
+    persistProductReviewToDb(review).catch((err) => {
+      console.error("[ApiEngine] Failed to persist moderated review to DB:", err.message);
+    });
 
     return { success: true, review };
   }
@@ -5997,7 +6064,7 @@ export class ApiEngine {
   private static geoSearchCache = new Map<string, { timestamp: number; results: any[] }>();
 
   /**
-   * Search delivery locations, areas, landmarks, cities, and pincodes with instant coordinates.
+   * Search delivery locations, areas, landmarks, cities, and pincodes from active database records.
    */
   static searchLocation(query: string): Array<{
     id: string;
@@ -6018,52 +6085,7 @@ export class ApiEngine {
     const results: Array<any> = [];
     const seenKeys = new Set<string>();
 
-    const PRESET_LANDMARKS = [
-      // Karnataka
-      { area: "Indiranagar", landmark: "100 Feet Road, Indiranagar", city: "Bengaluru", state: "Karnataka", pincode: "560038", lat: 12.9716, lng: 77.6412, branchId: "br_indiranagar" },
-      { area: "Whitefield", landmark: "ITPL Main Road, Whitefield", city: "Bengaluru", state: "Karnataka", pincode: "560066", lat: 12.9698, lng: 77.7499, branchId: "br_whitefield" },
-      { area: "Koramangala", landmark: "80 Feet Road, 4th Block, Koramangala", city: "Bengaluru", state: "Karnataka", pincode: "560034", lat: 12.9352, lng: 77.6245, branchId: "br_koramangala" },
-      { area: "HSR Layout", landmark: "27th Main Road, Sector 1, HSR Layout", city: "Bengaluru", state: "Karnataka", pincode: "560102", lat: 12.9121, lng: 77.6446, branchId: "br_hsr" },
-      { area: "Jayanagar", landmark: "4th Block Complex, Jayanagar", city: "Bengaluru", state: "Karnataka", pincode: "560011", lat: 12.9299, lng: 77.5824, branchId: "br_jayanagar" },
-      { area: "Malleshwaram", landmark: "Sampige Road, Malleshwaram", city: "Bengaluru", state: "Karnataka", pincode: "560003", lat: 12.9982, lng: 77.5703, branchId: "br_malleshwaram" },
-      { area: "Domlur", landmark: "Old Airport Road, Domlur", city: "Bengaluru", state: "Karnataka", pincode: "560071", lat: 12.9609, lng: 77.6387, branchId: "br_indiranagar" },
-      { area: "Bellandur", landmark: "Outer Ring Road, Bellandur", city: "Bengaluru", state: "Karnataka", pincode: "560103", lat: 12.9304, lng: 77.6784, branchId: "br_hsr" },
-      { area: "Electronic City", landmark: "Hosur Road, Electronic City Phase 1", city: "Bengaluru", state: "Karnataka", pincode: "560100", lat: 12.8452, lng: 77.6602, branchId: "br_hsr" },
-      { area: "Marathahalli", landmark: "Marathahalli Bridge, Outer Ring Road", city: "Bengaluru", state: "Karnataka", pincode: "560037", lat: 12.9591, lng: 77.6974, branchId: "br_whitefield" },
-      { area: "Hebbal", landmark: "Hebbal Flyover, Bellary Road", city: "Bengaluru", state: "Karnataka", pincode: "560024", lat: 13.0358, lng: 77.5970, branchId: "br_malleshwaram" },
-      { area: "Gokulam", landmark: "VV Mohalla, Gokulam", city: "Mysuru", state: "Karnataka", pincode: "570002", lat: 12.3275, lng: 76.6348 },
-      // Kerala
-      { area: "Chinnakada", landmark: "Chinnakada Clock Tower, Kollam", city: "Kollam", state: "Kerala", pincode: "691001", lat: 8.8853, lng: 76.5803, branchId: "br_kollam_hub" },
-      { area: "Kadappakada", landmark: "Kadappakada Junction, Kollam", city: "Kollam", state: "Kerala", pincode: "691008", lat: 8.8932, lng: 76.6025, branchId: "br_kollam_hub" },
-      { area: "Kollam Beach", landmark: "Beach Road, Kollam", city: "Kollam", state: "Kerala", pincode: "691006", lat: 8.8789, lng: 76.5855, branchId: "br_kollam_hub" },
-      { area: "Kollam Junction", landmark: "Railway Station Road, Kollam Junction", city: "Kollam", state: "Kerala", pincode: "691001", lat: 8.8824, lng: 76.5958, branchId: "br_kollam_hub" },
-      { area: "Asramam", landmark: "Asramam Adventure Park, Kollam", city: "Kollam", state: "Kerala", pincode: "691002", lat: 8.8965, lng: 76.5912, branchId: "br_kollam_hub" },
-      { area: "Tangasseri", landmark: "Tangasseri Lighthouse, Kollam", city: "Kollam", state: "Kerala", pincode: "691007", lat: 8.8814, lng: 76.5683, branchId: "br_kollam_hub" },
-      { area: "Marine Drive", landmark: "Marine Drive Promenade", city: "Kochi", state: "Kerala", pincode: "682031", lat: 9.9816, lng: 76.2753, branchId: "br_kochi_hub" },
-      { area: "Kakkanad", landmark: "Infopark Road, Kakkanad", city: "Kochi", state: "Kerala", pincode: "682030", lat: 10.0159, lng: 76.3419, branchId: "br_kochi_hub" },
-      { area: "Panampilly Nagar", landmark: "Main Avenue, Panampilly Nagar", city: "Kochi", state: "Kerala", pincode: "682036", lat: 9.9622, lng: 76.2977, branchId: "br_kochi_hub" },
-      { area: "Edappally", landmark: "Lulu Mall, Edappally", city: "Kochi", state: "Kerala", pincode: "682024", lat: 10.0261, lng: 76.3082, branchId: "br_kochi_hub" },
-      { area: "Pattom", landmark: "Pattom Junction", city: "Thiruvananthapuram", state: "Kerala", pincode: "695004", lat: 8.5241, lng: 76.9442 },
-      { area: "Kowdiar", landmark: "Kowdiar Palace Road", city: "Thiruvananthapuram", state: "Kerala", pincode: "695003", lat: 8.5298, lng: 76.9602 },
-      // Maharashtra
-      { area: "Bandra West", landmark: "Linking Road, Bandra West", city: "Mumbai", state: "Maharashtra", pincode: "400050", lat: 19.0596, lng: 72.8295, branchId: "br_mumbai_hub" },
-      { area: "Juhu", landmark: "Juhu Tara Road, Juhu", city: "Mumbai", state: "Maharashtra", pincode: "400049", lat: 19.1075, lng: 72.8263, branchId: "br_mumbai_hub" },
-      { area: "BKC", landmark: "Bandra Kurla Complex, G Block", city: "Mumbai", state: "Maharashtra", pincode: "400051", lat: 19.0664, lng: 72.8677, branchId: "br_mumbai_hub" },
-      { area: "Koregaon Park", landmark: "North Main Road, Koregaon Park", city: "Pune", state: "Maharashtra", pincode: "411001", lat: 18.5362, lng: 73.8940 },
-      // Tamil Nadu
-      { area: "Anna Nagar", landmark: "2nd Avenue, Anna Nagar", city: "Chennai", state: "Tamil Nadu", pincode: "600040", lat: 13.0850, lng: 80.2101 },
-      { area: "T Nagar", landmark: "Usman Road, T. Nagar", city: "Chennai", state: "Tamil Nadu", pincode: "600017", lat: 13.0418, lng: 80.2341 },
-      { area: "Adyar", landmark: "LB Road, Adyar", city: "Chennai", state: "Tamil Nadu", pincode: "600020", lat: 13.0012, lng: 80.2565 },
-      // Delhi NCR
-      { area: "Connaught Place", landmark: "Inner Circle, Connaught Place", city: "Delhi NCR", state: "Delhi", pincode: "110001", lat: 28.6315, lng: 77.2167, branchId: "br_delhi_hub" },
-      { area: "Cyber City", landmark: "DLF Cyber City, Phase 2", city: "Gurugram", state: "Haryana", pincode: "122002", lat: 28.4906, lng: 77.0898 },
-      { area: "Sector 18", landmark: "Atta Market, Sector 18", city: "Noida", state: "Uttar Pradesh", pincode: "201301", lat: 28.5708, lng: 77.3261 },
-      // Telangana
-      { area: "Hitec City", landmark: "Madhapur, Hitec City", city: "Hyderabad", state: "Telangana", pincode: "500081", lat: 17.4435, lng: 78.3772 },
-      { area: "Banjara Hills", landmark: "Road No. 1, Banjara Hills", city: "Hyderabad", state: "Telangana", pincode: "500034", lat: 17.4156, lng: 78.4357 },
-    ];
-
-    // 1. Search Branches first
+    // 1. Search Active Branches from Database
     const branches = ApiEngine.listBranches({ includeArchived: false });
     for (const b of branches) {
       const bName = (b.name || "").toLowerCase();
@@ -6085,11 +6107,11 @@ export class ApiEngine {
           const lng = typeof b.longitude === "number" ? b.longitude : 77.6412;
           results.push({
             id: `loc_branch_${b.id}`,
-            label: `${b.name}, ${b.city || "Bengaluru"} (${b.pincode || ""})`,
-            formatted_address: `${b.address || b.name}, ${b.city || "Bengaluru"}, ${b.state || "Karnataka"} ${b.pincode || ""}`.trim(),
+            label: `${b.name}, ${b.city || "Hub"} (${b.pincode || ""})`,
+            formatted_address: `${b.address || b.name}, ${b.city || ""}, ${b.state || ""} ${b.pincode || ""}`.trim(),
             area: b.address || b.name,
-            city: b.city || "Bengaluru",
-            state: b.state || "Karnataka",
+            city: b.city || "",
+            state: b.state || "",
             pincode: b.pincode || "",
             latitude: lat,
             longitude: lng,
@@ -6098,37 +6120,34 @@ export class ApiEngine {
           });
         }
       }
-    }
 
-    // 2. Search Presets
-    for (const lm of PRESET_LANDMARKS) {
-      if (
-        lm.area.toLowerCase().includes(q) ||
-        lm.landmark.toLowerCase().includes(q) ||
-        lm.city.toLowerCase().includes(q) ||
-        lm.state.toLowerCase().includes(q) ||
-        lm.pincode.includes(q)
-      ) {
-        const key = `${lm.area}_${lm.pincode}`;
-        if (!seenKeys.has(key)) {
-          seenKeys.add(key);
-          results.push({
-            id: `loc_${key}`,
-            label: `${lm.landmark}, ${lm.city} (${lm.pincode})`,
-            formatted_address: `${lm.landmark}, ${lm.city}, ${lm.state} ${lm.pincode}`,
-            area: lm.area,
-            city: lm.city,
-            state: lm.state,
-            pincode: lm.pincode,
-            latitude: lm.lat,
-            longitude: lm.lng,
-            branch_id: lm.branchId,
-          });
+      // Search Branch deliverable areas
+      if (Array.isArray(b.deliverable_areas)) {
+        for (const da of b.deliverable_areas) {
+          if (typeof da === "string" && da.toLowerCase().includes(q)) {
+            const key = `area_${b.id}_${da.toLowerCase()}`;
+            if (!seenKeys.has(key)) {
+              seenKeys.add(key);
+              results.push({
+                id: `loc_${key}`,
+                label: `${da}, ${b.city || ""} (${b.name})`,
+                formatted_address: `${da}, ${b.city || ""}, ${b.state || ""}`.trim(),
+                area: da,
+                city: b.city || "",
+                state: b.state || "",
+                pincode: b.pincode || "",
+                latitude: typeof b.latitude === "number" ? b.latitude : 12.9716,
+                longitude: typeof b.longitude === "number" ? b.longitude : 77.6412,
+                branch_id: b.id,
+                branch_name: b.name,
+              });
+            }
+          }
         }
       }
     }
 
-    // 3. Search City Areas from DB
+    // 2. Search City Areas from DB
     const cityAreas = ApiEngine.listCityAreasPincodes();
     for (const rawCa of cityAreas) {
       const ca = rawCa as any;
@@ -6148,10 +6167,10 @@ export class ApiEngine {
           results.push({
             id: `loc_${ca.id || key}`,
             label: `${areaName}, ${cityName} (${pin})`,
-            formatted_address: `${areaName}, ${cityName}, ${ca.state_name || "Karnataka"} ${pin}`,
+            formatted_address: `${areaName}, ${cityName}, ${ca.state_name || ""} ${pin}`,
             area: areaName,
             city: cityName,
-            state: ca.state_name || "Karnataka",
+            state: ca.state_name || "",
             pincode: pin,
             latitude: lat,
             longitude: lng,
@@ -6161,7 +6180,7 @@ export class ApiEngine {
       }
     }
 
-    // 4. Search Delivery Zones & Polygons
+    // 3. Search Delivery Zones & Polygons from DB
     const zones = (memoryStore.delivery_zones || []) as any[];
     for (const z of zones) {
       const zName = (z.name || z.zone_name || "").toLowerCase();
@@ -6862,9 +6881,7 @@ export class ApiEngine {
   static getProductById(id: string, branchId?: string, pincode?: string): any | null {
     if (!id) return null;
     const cleanId = String(id).trim();
-    const allProducts = (memoryStore.products && memoryStore.products.length > 0)
-      ? memoryStore.products
-      : DEFAULT_PRODUCTS;
+    const allProducts = memoryStore.products || [];
     const rawProduct = allProducts.find(
       (p: any) =>
         p.id === cleanId ||
@@ -6904,9 +6921,7 @@ export class ApiEngine {
   static getProductBySlug(slug: string, branchId?: string, pincode?: string): any | null {
     if (!slug) return null;
     const cleanSlug = String(slug).trim().toLowerCase();
-    const allProducts = (memoryStore.products && memoryStore.products.length > 0)
-      ? memoryStore.products
-      : DEFAULT_PRODUCTS;
+    const allProducts = memoryStore.products || [];
     const rawProduct = allProducts.find(
       (p: any) =>
         (p.handle && p.handle.toLowerCase() === cleanSlug) ||
@@ -7182,21 +7197,26 @@ export class ApiEngine {
     memoryStore.product_weight_prices = memoryStore.product_weight_prices.filter((item: any) => item.product_id !== productId);
     if (sortedRecords.length > 0) {
       memoryStore.product_weight_prices.push(...sortedRecords);
+    }
 
-      // Synchronize product price with lowest enabled selling price
+    // Always update product entity and serialize weight_prices to PostgreSQL
+    const prod = memoryStore.products.find((p) => p.id === productId || p.product_id === productId) as any;
+    if (prod) {
       const enabledPrices = sortedRecords.filter((r) => r.is_enabled).map((r) => r.selling_price);
       if (enabledPrices.length > 0) {
         const minPrice = Math.min(...enabledPrices);
-        const prod = memoryStore.products.find((p) => p.id === productId || p.product_id === productId) as any;
-        if (prod) {
-          prod.price = minPrice;
-          prod.selling_price = minPrice;
-          if (!prod.variants_json) prod.variants_json = {};
-          prod.variants_json.weights = sortedRecords.filter((r) => r.is_enabled).map((r) => r.weight_name);
-          prod.weight = sortedRecords[0].weight_name;
-          await persistProductToDb(prod);
-        }
+        prod.price = minPrice;
+        prod.selling_price = minPrice;
       }
+      if (!prod.variants_json) prod.variants_json = {};
+      prod.variants_json.weights = sortedRecords.filter((r) => r.is_enabled).map((r) => r.weight_name);
+      if (sortedRecords.length > 0) {
+        prod.weight = sortedRecords[0].weight_name;
+      }
+      prod.weight_prices = sortedRecords;
+      if (!prod.metadata) prod.metadata = {};
+      prod.metadata.weight_prices = sortedRecords;
+      await persistProductToDb(prod);
     }
 
     ApiEngine.addAuditLog(`Saved ${sortedRecords.length} Weight Prices for Product (${productId})`);
@@ -7209,8 +7229,16 @@ export class ApiEngine {
     let records = memoryStore.product_weight_prices.filter((item: any) => item.product_id === productId);
 
     if (records.length === 0) {
-      const prod = memoryStore.products?.find((p) => p.id === productId || p.product_id === productId);
+      const prod = memoryStore.products?.find((p: any) => p.id === productId || p.product_id === productId) as any;
       if (prod) {
+        if (Array.isArray(prod.weight_prices) && prod.weight_prices.length > 0) {
+          memoryStore.product_weight_prices.push(...prod.weight_prices);
+          return prod.weight_prices;
+        }
+        if (Array.isArray(prod.metadata?.weight_prices) && prod.metadata.weight_prices.length > 0) {
+          memoryStore.product_weight_prices.push(...prod.metadata.weight_prices);
+          return prod.metadata.weight_prices;
+        }
         const defaultMatrix = createDefaultWeightMatrix(productId, prod.price || 649);
         memoryStore.product_weight_prices.push(...defaultMatrix);
         ApiEngine.persist();
@@ -7342,7 +7370,7 @@ export class ApiEngine {
     return { offer, redemptions, audit_logs: auditLogs, redemptions_count: redemptions.length };
   }
 
-  static createAdminOffer(data: any) {
+  static async createAdminOffer(data: any) {
     const formattedCode = (data.code || `OFFER${Math.floor(1000 + Math.random() * 9000)}`).toUpperCase().trim();
     const newOffer = {
       id: `off_${Date.now()}`,
@@ -7415,10 +7443,13 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Created Enterprise Coupon Code "${newOffer.code}" (${newOffer.name})`);
     ApiEngine.persist();
+    await persistOfferToDb(newOffer).catch((err) => {
+      console.error("[ApiEngine] Failed to persist offer to PostgreSQL:", err);
+    });
     return newOffer;
   }
 
-  static updateAdminOffer(id: string, data: any) {
+  static async updateAdminOffer(id: string, data: any) {
     if (!memoryStore.offers) memoryStore.offers = [];
     const idx = memoryStore.offers.findIndex((o) => o.id === id);
     if (idx < 0) throw new Error(`Offer with ID ${id} not found`);
@@ -7445,10 +7476,13 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Updated Enterprise Coupon "${updated.code}"`);
     ApiEngine.persist();
+    await persistOfferToDb(updated).catch((err) => {
+      console.error("[ApiEngine] Failed to persist offer update to PostgreSQL:", err);
+    });
     return updated;
   }
 
-  static deleteAdminOffer(id: string) {
+  static async deleteAdminOffer(id: string) {
     if (!memoryStore.offers) return true;
     const offer = memoryStore.offers.find((o) => o.id === id);
     memoryStore.offers = memoryStore.offers.filter((o) => o.id !== id);
@@ -7469,6 +7503,9 @@ export class ApiEngine {
       ApiEngine.addAuditLog(`Deleted Promo Offer "${offer.code}"`);
     }
     ApiEngine.persist();
+    await deleteOfferFromDb(id).catch((err) => {
+      console.error("[ApiEngine] Failed to delete offer from PostgreSQL:", err);
+    });
     return true;
   }
 
@@ -8537,6 +8574,9 @@ export class ApiEngine {
       memoryStore.delivery_partners.push(partner);
     }
     ApiEngine.persist();
+    persistDeliveryPartnerToDb(partner).catch((err) => {
+      console.error("[ApiEngine] Failed to persist delivery partner to PostgreSQL:", err);
+    });
     return partner;
   }
 
@@ -8605,6 +8645,9 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Updated Delivery Partner profile for ${partner.name} (${partner.partner_number})`);
     ApiEngine.persist();
+    persistDeliveryPartnerToDb(partner).catch((err) => {
+      console.error("[ApiEngine] Failed to persist delivery partner update to PostgreSQL:", err);
+    });
 
     return partner;
   }
@@ -8634,6 +8677,9 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Changed Availability for ${partner.name} (${partner.partner_number}) from ${oldStatus} to ${partner.availability_status}`);
     ApiEngine.persist();
+    persistDeliveryPartnerToDb(partner).catch((err) => {
+      console.error("[ApiEngine] Failed to persist delivery partner availability to PostgreSQL:", err);
+    });
 
     return {
       success: true,
@@ -8653,6 +8699,9 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Deactivated Delivery Partner ${partner.name} (${partner.partner_number}). Reason: ${reason || 'Admin action'}`);
     ApiEngine.persist();
+    persistDeliveryPartnerToDb(partner).catch((err) => {
+      console.error("[ApiEngine] Failed to persist delivery partner deactivation to PostgreSQL:", err);
+    });
 
     return {
       success: true,
@@ -12270,6 +12319,7 @@ export class ApiEngine {
     memoryStore.settings = { ...memoryStore.settings, ...data };
     ApiEngine.addAuditLog("Updated Storefront Global Settings");
     ApiEngine.persist();
+    persistSettingToDb("general", "storefront_settings", memoryStore.settings, true).catch(() => null);
     return memoryStore.settings;
   }
 
@@ -12303,6 +12353,7 @@ export class ApiEngine {
     memoryStore.business_profile = updated;
     ApiEngine.addAuditLog(`Updated Business Profile for "${updated.legal_name}"`);
     ApiEngine.persist();
+    persistSettingToDb("general", "business_profile", updated, true).catch(() => null);
     return updated;
   }
 
@@ -12680,6 +12731,7 @@ export class ApiEngine {
     memoryStore.invoice_settings = updated;
     ApiEngine.addAuditLog("Updated Invoice & Billing Statutory Settings");
     ApiEngine.persist();
+    persistSettingToDb("invoice", "settings", updated, true).catch(() => null);
     return updated;
   }
 
@@ -12701,6 +12753,7 @@ export class ApiEngine {
     memoryStore.delivery_defaults = updated;
     ApiEngine.addAuditLog("Updated Platform Delivery Defaults");
     ApiEngine.persist();
+    persistSettingToDb("delivery", "defaults", updated, true).catch(() => null);
     return updated;
   }
 
@@ -12722,6 +12775,7 @@ export class ApiEngine {
     memoryStore.payment_settings = updated;
     ApiEngine.addAuditLog("Updated Payment Configuration Settings");
     ApiEngine.persist();
+    persistSettingToDb("payment", "settings", updated, true).catch(() => null);
     return updated;
   }
 
@@ -12743,6 +12797,7 @@ export class ApiEngine {
     memoryStore.integration_settings = updated;
     ApiEngine.addAuditLog("Updated Third-Party Integration Configuration");
     ApiEngine.persist();
+    persistSettingToDb("integration", "settings", updated, true).catch(() => null);
     return updated;
   }
 
@@ -13528,9 +13583,9 @@ export class ApiEngine {
     return memoryStore.pim_categories.length > 0 ? memoryStore.pim_categories : DEFAULT_PIM_CATEGORIES;
   }
 
-  static createPimCategory(data: any) {
+  static async createPimCategory(data: any) {
     const cat = {
-      id: `pcat_${Date.now()}`,
+      id: data.id || `pcat_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       name: data.name || "New Category",
       slug: data.slug || (data.name ? data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : `cat-${Date.now()}`),
       description: data.description || "",
@@ -13546,9 +13601,10 @@ export class ApiEngine {
       og_image: data.og_image || data.image_url || "",
       branch_ids: Array.isArray(data.branch_ids) ? data.branch_ids : ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"],
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
     if (!memoryStore.pim_categories || !Array.isArray(memoryStore.pim_categories)) {
-      memoryStore.pim_categories = [...DEFAULT_PIM_CATEGORIES];
+      memoryStore.pim_categories = [];
     }
     memoryStore.pim_categories.unshift(cat);
 
@@ -13560,10 +13616,11 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Created Category "${cat.name}"`);
     ApiEngine.persist();
+    await persistSettingToDb("pim", "categories", memoryStore.pim_categories, true).catch(() => null);
     return cat;
   }
 
-  static updatePimCategory(id: string, data: any) {
+  static async updatePimCategory(id: string, data: any) {
     const categories = ApiEngine.listPimCategories();
     const idx = categories.findIndex((c: any) => c.id === id);
     if (idx >= 0) {
@@ -13584,12 +13641,13 @@ export class ApiEngine {
 
       ApiEngine.addAuditLog(`Updated Category "${categories[idx].name}"`);
       ApiEngine.persist();
+      await persistSettingToDb("pim", "categories", memoryStore.pim_categories, true).catch(() => null);
       return categories[idx];
     }
     return null;
   }
 
-  static deletePimCategory(id: string) {
+  static async deletePimCategory(id: string) {
     const categories = ApiEngine.listPimCategories();
     const cat = categories.find((c: any) => c.id === id);
     if (cat) {
@@ -13597,19 +13655,22 @@ export class ApiEngine {
       cat.deleted_at = new Date().toISOString();
       ApiEngine.addAuditLog(`Archived Category "${cat.name}"`);
       ApiEngine.persist();
+      await persistSettingToDb("pim", "categories", memoryStore.pim_categories, true).catch(() => null);
       return true;
     }
     return false;
   }
 
-  static restorePimCategory(id: string) {
+  static async restorePimCategory(id: string) {
     const categories = ApiEngine.listPimCategories();
     const cat = categories.find((c: any) => c.id === id);
     if (cat) {
       cat.status = "active";
       delete cat.deleted_at;
+      cat.updated_at = new Date().toISOString();
       ApiEngine.addAuditLog(`Restored Category "${cat.name}"`);
       ApiEngine.persist();
+      await persistSettingToDb("pim", "categories", memoryStore.pim_categories, true).catch(() => null);
       return true;
     }
     return false;
@@ -13639,7 +13700,7 @@ export class ApiEngine {
     return list.find((o) => o.slug === clean || o.id === clean || o.name.toLowerCase() === clean) || null;
   }
 
-  static createOccasion(data: any): OccasionItem {
+  static async createOccasion(data: any): Promise<OccasionItem> {
     if (!memoryStore.occasions || !Array.isArray(memoryStore.occasions)) {
       memoryStore.occasions = [...DEFAULT_OCCASIONS];
     }
@@ -13657,6 +13718,7 @@ export class ApiEngine {
       status: data.status || "active",
       display_order: Number(data.display_order) || (memoryStore.occasions.length + 1),
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     const existingIdx = memoryStore.occasions.findIndex((o) => o.id === occId || o.slug === cleanSlug);
@@ -13668,10 +13730,11 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Created Occasion "${newOccasion.name}"`);
     ApiEngine.persist();
+    await persistSettingToDb("taxonomy", "occasions", memoryStore.occasions, true).catch(() => null);
     return newOccasion;
   }
 
-  static updateOccasion(id: string, data: any): OccasionItem | null {
+  static async updateOccasion(id: string, data: any): Promise<OccasionItem | null> {
     if (!memoryStore.occasions || !Array.isArray(memoryStore.occasions)) {
       memoryStore.occasions = [...DEFAULT_OCCASIONS];
     }
@@ -13685,12 +13748,13 @@ export class ApiEngine {
       memoryStore.occasions[idx] = updated;
       ApiEngine.addAuditLog(`Updated Occasion "${updated.name}"`);
       ApiEngine.persist();
+      await persistSettingToDb("taxonomy", "occasions", memoryStore.occasions, true).catch(() => null);
       return updated;
     }
     return null;
   }
 
-  static archiveOccasion(id: string): { success: boolean; message?: string } {
+  static async archiveOccasion(id: string): Promise<{ success: boolean; message?: string }> {
     if (!memoryStore.occasions || !Array.isArray(memoryStore.occasions)) return { success: false };
     const idx = memoryStore.occasions.findIndex((o) => o.id === id || o.slug === id);
     if (idx >= 0) {
@@ -13701,22 +13765,25 @@ export class ApiEngine {
       };
       ApiEngine.addAuditLog(`Archived Occasion "${memoryStore.occasions[idx].name}"`);
       ApiEngine.persist();
+      await persistSettingToDb("taxonomy", "occasions", memoryStore.occasions, true).catch(() => null);
       return { success: true, message: "Occasion archived successfully" };
     }
     return { success: false, message: "Occasion not found" };
   }
 
-  static restoreOccasion(id: string): { success: boolean } {
+  static async restoreOccasion(id: string): Promise<{ success: boolean }> {
     if (!memoryStore.occasions || !Array.isArray(memoryStore.occasions)) return { success: false };
     const idx = memoryStore.occasions.findIndex((o) => o.id === id || o.slug === id);
     if (idx >= 0) {
       memoryStore.occasions[idx] = {
         ...memoryStore.occasions[idx],
         status: "active",
+        updated_at: new Date().toISOString(),
       };
       delete memoryStore.occasions[idx].deleted_at;
       ApiEngine.addAuditLog(`Restored Occasion "${memoryStore.occasions[idx].name}"`);
       ApiEngine.persist();
+      await persistSettingToDb("taxonomy", "occasions", memoryStore.occasions, true).catch(() => null);
       return { success: true };
     }
     return { success: false };
@@ -13871,11 +13938,7 @@ export class ApiEngine {
 
   // ── Master Variant Options ──────────────────────────────
   static listVariantOptions(type?: string) {
-    if (!memoryStore || !Array.isArray(memoryStore.variant_options)) {
-      if (memoryStore) memoryStore.variant_options = [...DEFAULT_VARIANT_OPTIONS];
-      return DEFAULT_VARIANT_OPTIONS.filter((opt: any) => opt.status !== "archived" && opt.status !== "disabled" && opt.is_enabled !== false && opt.enabled !== false);
-    }
-    const list = memoryStore.variant_options.length > 0 ? memoryStore.variant_options : DEFAULT_VARIANT_OPTIONS;
+    const list = Array.isArray(memoryStore?.variant_options) ? memoryStore.variant_options : [];
     const activeList = list.filter((opt: any) => opt.status !== "archived" && opt.status !== "disabled" && opt.is_enabled !== false && opt.enabled !== false);
     if (type) {
       return activeList.filter((opt: any) => opt.type === type);
@@ -13883,32 +13946,87 @@ export class ApiEngine {
     return activeList;
   }
 
+  static async createVariantOption(data: any) {
+    if (!memoryStore.variant_options || !Array.isArray(memoryStore.variant_options)) {
+      memoryStore.variant_options = [];
+    }
+    const type = data.type || "flavour";
+    const prefix = type === "flavour" ? "flv" : type === "shape" ? "shp" : type === "weight" ? "w" : "opt";
+    const id = data.id || `opt_${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const newOption = {
+      id,
+      type,
+      name: data.name || data.display_name || "Custom Option",
+      display_name: data.display_name || data.name || "Custom Option",
+      price_modifier: Number(data.price_modifier ?? data.price_override ?? data.extra_price ?? 0),
+      extra_price: Number(data.price_modifier ?? data.price_override ?? data.extra_price ?? 0),
+      display_order: Number(data.display_order || ((memoryStore.variant_options?.length || 0) + 1)),
+      status: data.status || "active",
+      is_enabled: data.is_enabled !== false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ...data,
+    };
+    const existingIndex = memoryStore.variant_options.findIndex((o: any) => o.id === id || (o.type === type && o.name.toLowerCase() === newOption.name.toLowerCase()));
+    if (existingIndex >= 0) {
+      memoryStore.variant_options[existingIndex] = {
+        ...memoryStore.variant_options[existingIndex],
+        ...newOption,
+      };
+    } else {
+      memoryStore.variant_options.push(newOption);
+    }
+    ApiEngine.persist();
+    await persistVariantOptionToDb(newOption).catch((err) => {
+      console.error("[ApiEngine] Failed to persist variant option to PostgreSQL:", err);
+    });
+    return newOption;
+  }
+
+  static async updateVariantOption(id: string, data: any) {
+    if (!memoryStore.variant_options || !Array.isArray(memoryStore.variant_options)) {
+      memoryStore.variant_options = [];
+    }
+    const index = memoryStore.variant_options.findIndex((o: any) => o.id === id);
+    if (index === -1) return null;
+    memoryStore.variant_options[index] = {
+      ...memoryStore.variant_options[index],
+      ...data,
+      updated_at: new Date().toISOString(),
+    };
+    ApiEngine.persist();
+    await persistVariantOptionToDb(memoryStore.variant_options[index]).catch((err) => {
+      console.error("[ApiEngine] Failed to persist variant option update to PostgreSQL:", err);
+    });
+    return memoryStore.variant_options[index];
+  }
+
+  static async deleteVariantOption(id: string) {
+    if (!memoryStore.variant_options || !Array.isArray(memoryStore.variant_options)) {
+      memoryStore.variant_options = [];
+    }
+    const index = memoryStore.variant_options.findIndex((o: any) => o.id === id);
+    if (index === -1) return false;
+    memoryStore.variant_options[index].status = "archived";
+    memoryStore.variant_options[index].is_enabled = false;
+    ApiEngine.persist();
+    await deleteVariantOptionFromDb(id).catch((err) => {
+      console.error("[ApiEngine] Failed to delete variant option from PostgreSQL:", err);
+    });
+    return true;
+  }
+
   static resolveProductEntity(productId: string): any | null {
     if (!productId) return null;
     const cleanId = String(productId).trim().toLowerCase();
-    if (!memoryStore.products || !Array.isArray(memoryStore.products)) {
-      memoryStore.products = [...DEFAULT_PRODUCTS];
-    }
-    let p = memoryStore.products.find(
+    const products = memoryStore.products || [];
+    let p = products.find(
       (item: any) =>
         (item.id && String(item.id).trim().toLowerCase() === cleanId) ||
         (item.product_id && String(item.product_id).trim().toLowerCase() === cleanId) ||
         (item.handle && String(item.handle).trim().toLowerCase() === cleanId) ||
         (item.slug && String(item.slug).trim().toLowerCase() === cleanId)
     );
-    if (!p) {
-      const defaultP = DEFAULT_PRODUCTS.find(
-        (item: any) =>
-          (item.id && String(item.id).trim().toLowerCase() === cleanId) ||
-          (item.product_id && String(item.product_id).trim().toLowerCase() === cleanId) ||
-          (item.handle && String(item.handle).trim().toLowerCase() === cleanId) ||
-          (item.slug && String(item.slug).trim().toLowerCase() === cleanId)
-      );
-      if (defaultP) {
-        p = { ...defaultP };
-        memoryStore.products.push(p);
-      }
-    }
     return p || null;
   }
 
@@ -14102,62 +14220,90 @@ export class ApiEngine {
     };
   }
 
-  static createVariantOption(data: any) {
+  static async createVariantOption(data: any) {
     const option = {
-      id: `opt_${data.type ? data.type[0] : "v"}_${Date.now()}`,
+      id: data.id || `opt_${data.type ? data.type[0] : "v"}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       type: data.type || "weight",
-      name: data.name || "New Option",
+      name: data.name || data.display_name || "New Option",
       display_name: data.display_name || data.name || "New Option",
       weight_val: Number(data.weight_val) || undefined,
       unit: data.unit || undefined,
-      price_modifier: Number(data.price_modifier) || 0,
+      price_modifier: Number(data.price_modifier ?? data.extra_price ?? data.additional_price ?? 0),
+      extra_price: Number(data.price_modifier ?? data.extra_price ?? data.additional_price ?? 0),
+      additional_price: Number(data.price_modifier ?? data.extra_price ?? data.additional_price ?? 0),
       display_order: Number(data.display_order) || (memoryStore.variant_options?.length || 0) + 1,
       status: data.status || "active",
+      is_enabled: data.is_enabled !== false && data.enabled !== false,
+      enabled: data.is_enabled !== false && data.enabled !== false,
       image_url: data.image_url || undefined,
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
     if (!memoryStore.variant_options || !Array.isArray(memoryStore.variant_options)) {
-      memoryStore.variant_options = [...DEFAULT_VARIANT_OPTIONS];
+      memoryStore.variant_options = [];
     }
     memoryStore.variant_options.unshift(option);
     ApiEngine.addAuditLog(`Created Master Variant Option "${option.name}" (${option.type})`);
     ApiEngine.persist();
+    await persistVariantOptionToDb(option);
     return option;
   }
 
-  static updateVariantOption(id: string, data: any) {
-    const options = ApiEngine.listVariantOptions();
-    const idx = options.findIndex((o: any) => o.id === id);
+  static async updateVariantOption(id: string, data: any) {
+    if (!memoryStore.variant_options || !Array.isArray(memoryStore.variant_options)) {
+      memoryStore.variant_options = [];
+    }
+    const idx = memoryStore.variant_options.findIndex((o: any) => o.id === id);
     if (idx >= 0) {
-      options[idx] = { ...options[idx], ...data, updated_at: new Date().toISOString() };
-      ApiEngine.addAuditLog(`Updated Master Variant Option "${options[idx].name}"`);
+      const priceMod = Number(data.price_modifier ?? data.extra_price ?? data.additional_price ?? memoryStore.variant_options[idx].price_modifier ?? 0);
+      memoryStore.variant_options[idx] = {
+        ...memoryStore.variant_options[idx],
+        ...data,
+        price_modifier: priceMod,
+        extra_price: priceMod,
+        additional_price: priceMod,
+        updated_at: new Date().toISOString(),
+      };
+      ApiEngine.addAuditLog(`Updated Master Variant Option "${memoryStore.variant_options[idx].name}"`);
       ApiEngine.persist();
-      return options[idx];
+      await persistVariantOptionToDb(memoryStore.variant_options[idx]);
+      return memoryStore.variant_options[idx];
     }
     return null;
   }
 
-  static deleteVariantOption(id: string) {
-    const options = ApiEngine.listVariantOptions();
-    const opt = options.find((o: any) => o.id === id);
+  static async deleteVariantOption(id: string) {
+    if (!memoryStore.variant_options || !Array.isArray(memoryStore.variant_options)) {
+      memoryStore.variant_options = [];
+    }
+    const opt = memoryStore.variant_options.find((o: any) => o.id === id);
     if (opt) {
       opt.status = "archived";
+      opt.is_enabled = false;
+      opt.enabled = false;
       opt.deleted_at = new Date().toISOString();
       ApiEngine.addAuditLog(`Archived Master Variant Option "${opt.name}"`);
       ApiEngine.persist();
+      await deleteVariantOptionFromDb(id);
       return true;
     }
     return false;
   }
 
-  static restoreVariantOption(id: string) {
-    const options = ApiEngine.listVariantOptions();
-    const opt = options.find((o: any) => o.id === id);
+  static async restoreVariantOption(id: string) {
+    if (!memoryStore.variant_options || !Array.isArray(memoryStore.variant_options)) {
+      memoryStore.variant_options = [];
+    }
+    const opt = memoryStore.variant_options.find((o: any) => o.id === id);
     if (opt) {
       opt.status = "active";
+      opt.is_enabled = true;
+      opt.enabled = true;
       delete opt.deleted_at;
+      opt.updated_at = new Date().toISOString();
       ApiEngine.addAuditLog(`Restored Master Variant Option "${opt.name}"`);
       ApiEngine.persist();
+      await persistVariantOptionToDb(opt);
       return true;
     }
     return false;
@@ -14221,6 +14367,7 @@ export class ApiEngine {
     memoryStore.accessories.unshift(newAcc);
     ApiEngine.addAuditLog(`Created Accessory "${newAcc.name}" (${newAcc.sku})`);
     ApiEngine.persist();
+    persistSettingToDb("catalog", "accessories", memoryStore.accessories, true).catch(() => null);
     return newAcc;
   }
 
@@ -14241,6 +14388,7 @@ export class ApiEngine {
       };
       ApiEngine.addAuditLog(`Updated Accessory "${list[idx].name}"`);
       ApiEngine.persist();
+      persistSettingToDb("catalog", "accessories", memoryStore.accessories, true).catch(() => null);
       return list[idx];
     }
     return null;
@@ -14254,6 +14402,7 @@ export class ApiEngine {
       list.splice(idx, 1);
       ApiEngine.addAuditLog(`Deleted Accessory "${name}"`);
       ApiEngine.persist();
+      persistSettingToDb("catalog", "accessories", memoryStore.accessories, true).catch(() => null);
       return true;
     }
     return false;
@@ -14281,6 +14430,7 @@ export class ApiEngine {
     memoryStore.accessory_categories.push(cat);
     ApiEngine.addAuditLog(`Created Accessory Category "${cat.name}"`);
     ApiEngine.persist();
+    persistSettingToDb("catalog", "accessory_categories", memoryStore.accessory_categories, true).catch(() => null);
     return cat;
   }
 
@@ -14315,6 +14465,7 @@ export class ApiEngine {
     }
     ApiEngine.addAuditLog(`Saved Cross-Sell Rule "${ruleObj.name}"`);
     ApiEngine.persist();
+    persistSettingToDb("catalog", "cross_sell_rules", memoryStore.cross_sell_rules, true).catch(() => null);
     return ruleObj;
   }
 
@@ -21387,6 +21538,9 @@ export class ApiEngine {
     }
     list.unshift(newAddress);
     this.addressesStore.set(cId, list);
+    persistCustomerAddressToDb(cId, newAddress).catch((err) => {
+      console.error("[ApiEngine] Failed to persist customer address to PostgreSQL:", err);
+    });
     return newAddress;
   }
 
@@ -21397,6 +21551,9 @@ export class ApiEngine {
     if (idx >= 0) {
       list[idx] = { ...list[idx], ...payload, id: addressId, updated_at: new Date().toISOString() };
       this.addressesStore.set(cId, list);
+      persistCustomerAddressToDb(cId, list[idx]).catch((err) => {
+        console.error("[ApiEngine] Failed to persist customer address update to PostgreSQL:", err);
+      });
       return list[idx];
     }
     return null;
@@ -21407,6 +21564,9 @@ export class ApiEngine {
     let list = this.getCustomerAddresses(cId);
     list = list.filter((a: any) => a.id !== addressId);
     this.addressesStore.set(cId, list);
+    deleteCustomerAddressFromDb(cId, addressId).catch((err) => {
+      console.error("[ApiEngine] Failed to delete customer address from PostgreSQL:", err);
+    });
     return true;
   }
 
@@ -23630,7 +23790,7 @@ export class ApiEngine {
     return list.find((c: any) => c.id === id || c.slug === id) || null;
   }
 
-  static createPopupCampaign(payload: any) {
+  static async createPopupCampaign(payload: any) {
     ApiEngine.ensurePopupStore();
     const id = `pop_${Date.now()}`;
     const slug = (payload.slug || payload.name || `popup-${Date.now()}`)
@@ -23687,10 +23847,13 @@ export class ApiEngine {
     (memoryStore as any).popup_campaigns.unshift(newCampaign);
     ApiEngine.addAuditLog(`Created Popup Campaign "${newCampaign.name}" (${newCampaign.popup_type})`);
     ApiEngine.persist();
+    await persistPopupCampaignToDb(newCampaign).catch((err) => {
+      console.error("[ApiEngine] Failed to persist popup campaign to PostgreSQL:", err);
+    });
     return newCampaign;
   }
 
-  static updatePopupCampaign(id: string, payload: any) {
+  static async updatePopupCampaign(id: string, payload: any) {
     ApiEngine.ensurePopupStore();
     const idx = (memoryStore as any).popup_campaigns.findIndex((c: any) => c.id === id);
     if (idx < 0) return null;
@@ -23726,22 +23889,28 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Updated Popup Campaign "${existing.name}"`);
     ApiEngine.persist();
+    await persistPopupCampaignToDb((memoryStore as any).popup_campaigns[idx]).catch((err) => {
+      console.error("[ApiEngine] Failed to persist popup campaign update to PostgreSQL:", err);
+    });
     return (memoryStore as any).popup_campaigns[idx];
   }
 
-  static deletePopupCampaign(id: string) {
+  static async deletePopupCampaign(id: string) {
     ApiEngine.ensurePopupStore();
     const camp = (memoryStore as any).popup_campaigns.find((c: any) => c.id === id);
     if (camp) {
       (memoryStore as any).popup_campaigns = (memoryStore as any).popup_campaigns.filter((c: any) => c.id !== id);
       ApiEngine.addAuditLog(`Deleted Popup Campaign "${camp.name}"`);
       ApiEngine.persist();
+      await deletePopupCampaignFromDb(id).catch((err) => {
+        console.error("[ApiEngine] Failed to delete popup campaign from PostgreSQL:", err);
+      });
       return true;
     }
     return false;
   }
 
-  static publishPopupCampaign(id: string, versionData?: any) {
+  static async publishPopupCampaign(id: string, versionData?: any) {
     ApiEngine.ensurePopupStore();
     const idx = (memoryStore as any).popup_campaigns.findIndex((c: any) => c.id === id);
     if (idx < 0) return null;
@@ -23772,8 +23941,11 @@ export class ApiEngine {
       updated_at: new Date().toISOString(),
     };
 
-    ApiEngine.addAuditLog(`Published Popup Campaign "${camp.name}" (Version ${publishedVersion.version_number})`);
+    ApiEngine.addAuditLog(`Published Popup Campaign "${camp.name}" (v${publishedVersion.version_number})`);
     ApiEngine.persist();
+    await persistPopupCampaignToDb((memoryStore as any).popup_campaigns[idx]).catch((err) => {
+      console.error("[ApiEngine] Failed to persist published popup campaign to PostgreSQL:", err);
+    });
     return (memoryStore as any).popup_campaigns[idx];
   }
 
@@ -24007,6 +24179,9 @@ export class ApiEngine {
     order.updated_at = new Date().toISOString();
     ApiEngine.addAuditLog(`Refunded order ${order.order_number} for amount ₹${order.refund_amount}`);
     ApiEngine.persist();
+    persistOrderToDb(order).catch((err) => {
+      console.error("[refundOrder] DB Error:", err);
+    });
     return { success: true, order: ApiEngine.getOrder(order.id) };
   }
 
@@ -24019,6 +24194,9 @@ export class ApiEngine {
     order.updated_at = new Date().toISOString();
     ApiEngine.addAuditLog(`Updated order ${order.order_number} status to ${status}`);
     ApiEngine.persist();
+    persistOrderToDb(order).catch((err) => {
+      console.error("[updateOrderStatus] DB Error:", err);
+    });
     return { success: true, order: ApiEngine.getOrder(order.id) };
   }
 

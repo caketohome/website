@@ -7,6 +7,23 @@
 
 ## 1. Recently Completed Milestones
 
+### Milestone 9.53: Complete Database-First Persistence Repair & Multi-Entity CRUD Hardening (100% Verified)
+- **Problem & Root-Cause Analysis**:
+  - **Issue**: Missing PostgreSQL persistence invocations across multiple domain entities (`variant_option`, `offer`, `popup_campaigns`, `accessories`, `customer_address`, `delivery_partner`, `order` status, and domain `settings`); silent mock fallback branches in product and variant option lookups (`DEFAULT_PRODUCTS`, `DEFAULT_VARIANT_OPTIONS`) that resurrected deleted records; unhydrated settings on startup; missing delete functions in DB persistence layer (`deleteOfferFromDb`, `deletePopupCampaignFromDb`).
+  - **Forensic Investigation & Architectural Resolution**:
+    1. **Universal PostgreSQL Mutation Bindings**:
+       - Wired up `persist*ToDb` and `delete*FromDb` calls to all mutating methods in `frontend/src/lib/api-engine.ts` (`createVariantOption`, `updateVariantOption`, `deleteVariantOption`, `createAdminOffer`, `updateAdminOffer`, `deleteAdminOffer`, `createPopupCampaign`, `updatePopupCampaign`, `deletePopupCampaign`, `publishPopupCampaign`, `createAccessory`, `updateAccessory`, `deleteAccessory`, `createAccessoryCategory`, `saveCrossSellRule`, `createCustomerAddress`, `updateCustomerAddress`, `deleteCustomerAddress`, `saveDeliveryPartner`, `updateAdminDeliveryPartner`, `deactivateDeliveryPartner`, `updateOrderStatus`, `refundOrder`, `updateAdminSettings`, `updateBusinessProfile`, `updateInvoiceSettings`, `updateDeliveryDefaults`, `updatePaymentSettings`, `updateIntegrationSettings`).
+    2. **Eradication of Silent Fallbacks & Mock Injections**:
+       - Removed all fallback paths in `getProductById`, `getProductBySlug`, and `resolveProductEntity` that fell back to `DEFAULT_PRODUCTS`. Non-existent IDs now return `null` (yielding a 404).
+       - Fixed `listVariantOptions` and variant option CRUD routines to operate directly on `memoryStore.variant_options` without falling back to `DEFAULT_VARIANT_OPTIONS`.
+    3. **Domain Settings & Hydration Observability**:
+       - Enhanced `hydrateStoreFromDatabase` in `frontend/src/lib/db-persistence.ts` to hydrate all statutory and business profile domain settings from the PostgreSQL `setting` table.
+       - Implemented `_dbHydrationStatus` tracking and `ApiEngine.getDatabaseHydrationStatus()` method.
+  - **Documentation Artifacts**:
+    - `docs/DATABASE_PERSISTENCE_AUDIT.md`: Complete entity-by-entity source-of-truth matrix and root-cause analysis.
+    - `docs/DATABASE_CRUD_VERIFICATION.md`: Empirical code diff verification matrix across all 12 entities.
+    - `frontend/src/scripts/verify-full-db-persistence.mjs`: Full end-to-end multi-entity persistence verification suite.
+
 ### Milestone 9.52: Authoritative Delivery Cutoff Policy Correction & Scheduled Future Availability Engine (100% Verified)
 - **Problem & Root-Cause Analysis**:
   - **Issue**: Same-day delivery cutoff calculations had timezone discrepancies evaluating against server hardware local time instead of the authoritative business timezone (`Asia/Kolkata`); date string parsing in `getDeliverySlots` shifted dates when converted to UTC; when same-day cutoff passed for today, `availableDates[0]` was not flagged as unavailable, causing `selectedDate` to lock onto an expired date with blocked slots; direct API orders (`POST /api/v1/orders`) bypassed checkout validation via an early unvalidated route handler in `route.ts`.
