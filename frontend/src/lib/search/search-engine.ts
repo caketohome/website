@@ -330,18 +330,18 @@ export class SearchEngine {
       title: name,
       name,
       slug,
-      description: prod.description || existing?.description || "Freshly baked gourmet artisanal cake crafted for celebrations.",
+      description: prod.description || existing?.description || "",
       category_id: prod.category_id || existing?.category_id,
       category,
-      category_slug: prod.category_slug || (prod as any).category_slug || category.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-      categories: prod.categories || existing?.categories || [{ id: "cat_1", name: category, slug: category.toLowerCase().replace(/[^a-z0-9]+/g, "-") }],
-      flavour: prod.flavour || (prod as any).flavor || existing?.flavour || "Vanilla",
+      category_slug: prod.category_slug || (prod as any).category_slug || (category ? category.toLowerCase().replace(/[^a-z0-9]+/g, "-") : ""),
+      categories: prod.categories || existing?.categories || (category ? [{ id: "cat_1", name: category, slug: category.toLowerCase().replace(/[^a-z0-9]+/g, "-") }] : []),
+      flavour: prod.flavour || (prod as any).flavor || existing?.flavour || "",
       tag_ids: prod.tag_ids || existing?.tag_ids || [],
-      tags: cleanTags.length > 0 ? cleanTags : (existing?.tags || ["bestseller", "birthday"]),
-      occasions: prod.occasions || existing?.occasions || ["birthday", "anniversary"],
+      tags: cleanTags.length > 0 ? cleanTags : (existing?.tags || []),
+      occasions: prod.occasions || existing?.occasions || [],
       keywords: prod.keywords || existing?.keywords || [],
-      image: prod.image || (prod as any).thumbnail || existing?.image || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
-      images: prod.images || (prod as any).images || (existing?.images || [prod.image || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800"]),
+      image: prod.image || (prod as any).thumbnail || existing?.image || "",
+      images: prod.images || (prod as any).images || (existing?.images || [prod.image || (prod as any).thumbnail || ""]).filter(Boolean),
       base_price: Number(prod.base_price || prod.selling_price || (prod as any).price || variants[0]?.price || 649),
       selling_price: Number(prod.selling_price || prod.base_price || (prod as any).price || variants[0]?.price || 649),
       compare_at_price: prod.compare_at_price || (prod as any).compare_at_price,
@@ -358,7 +358,7 @@ export class SearchEngine {
       is_bestseller: prod.is_bestseller ?? (prod as any).is_bestseller ?? false,
       is_featured: prod.is_featured ?? (prod as any).is_featured ?? false,
       is_new_arrival: prod.is_new_arrival ?? (prod as any).is_new_arrival ?? false,
-      status: prod.status || "active",
+      status: (prod.status === "archived" || (prod as any).deleted_at != null) ? "archived" : "active",
       source_mappings: prod.source_mappings || existing?.source_mappings || [
         {
           mapping_id: `map_${Date.now()}`,
@@ -384,6 +384,7 @@ export class SearchEngine {
     query?: string;
     category?: string;
     flavour?: string;
+    weight?: string;
     tag?: string;
     occasion?: string;
     min_price?: number;
@@ -413,7 +414,9 @@ export class SearchEngine {
     const limit = options.limit || this.rankingWeights.top_results_count || 8;
     const offset = options.offset || 0;
 
-    const allProducts = Array.from(this.canonicalProducts.values()).filter((p) => p.status === "active");
+    const allProducts = Array.from(this.canonicalProducts.values()).filter(
+      (p) => ((p.status as any) === "active" || (p.status as any) === "published") && (p as any).deleted_at == null
+    );
 
     const scoredItems: Array<{ product: CanonicalProduct; score: number; isPinned: boolean; pinPos?: number }> = [];
 
@@ -437,9 +440,19 @@ export class SearchEngine {
         }
       }
 
+      if (options.weight && options.weight.toLowerCase() !== "all") {
+        const wLower = options.weight.toLowerCase().trim();
+        const pWeight = String((product as any).weight || "").toLowerCase().trim();
+        const hasVariantWeight = Array.isArray(product.variants) && product.variants.some((v) => String(v.weight || "").toLowerCase().trim() === wLower);
+        if (pWeight !== wLower && !hasVariantWeight) {
+          continue;
+        }
+      }
+
       if (options.tag && options.tag.toLowerCase() !== "all") {
         const tLower = options.tag.toLowerCase();
-        if (!product.tags.some((t) => t.toLowerCase() === tLower || t.toLowerCase().includes(tLower))) {
+        const pTags = Array.isArray(product.tags) ? product.tags : [];
+        if (!pTags.some((t) => (t || "").toLowerCase() === tLower || (t || "").toLowerCase().includes(tLower))) {
           continue;
         }
       }
@@ -451,14 +464,14 @@ export class SearchEngine {
         // Demote or filter out of stock
       }
 
-      // Relevance Scoring
+        // Relevance Scoring (Safe against null/undefined fields)
       let score = 0;
-      const nameLower = product.name.toLowerCase();
-      const descLower = product.description.toLowerCase();
+      const nameLower = (product.name || product.title || "").toLowerCase();
+      const descLower = (product.description || "").toLowerCase();
       const catLower = (product.category || "").toLowerCase();
       const flavourLower = (product.flavour || "").toLowerCase();
-      const tagsLower = product.tags.map((t) => t.toLowerCase());
-      const occasionsLower = product.occasions.map((o) => o.toLowerCase());
+      const tagsLower = (Array.isArray(product.tags) ? product.tags : []).map((t) => (t || "").toLowerCase());
+      const occasionsLower = (Array.isArray(product.occasions) ? product.occasions : []).map((o) => (o || "").toLowerCase());
 
       if (normalized.length > 0) {
         // A. Exact Name Match
@@ -470,32 +483,7 @@ export class SearchEngine {
           score += this.rankingWeights.phrase_match_weight * 4;
         }
 
-        // B. Token Matches in Name
-        let matchedTokenCount = 0;
-        tokens.forEach((tok) => {
-          if (nameLower.includes(tok)) matchedTokenCount++;
-        });
-
-        if (matchedTokenCount === tokens.length && tokens.length > 1) {
-          score += this.rankingWeights.name_match_weight * 4;
-        } else {
-          score += matchedTokenCount * this.rankingWeights.name_match_weight;
-        }
-
-        // C. Expanded Synonym Matches
-        expandedTokens.forEach((synTok) => {
-          if (nameLower.includes(synTok)) {
-            score += this.rankingWeights.synonym_match_weight;
-          }
-          if (flavourLower.includes(synTok)) {
-            score += this.rankingWeights.flavour_match_weight;
-          }
-          if (tagsLower.includes(synTok)) {
-            score += this.rankingWeights.tag_match_weight;
-          }
-        });
-
-        // D. Category Match
+        // B. Category / Flavour Exact Match
         const allCatNames = [
           product.category,
           product.category_slug,
@@ -504,38 +492,88 @@ export class SearchEngine {
 
         if (allCatNames.includes(normalized)) {
           score += this.rankingWeights.category_match_weight * 3;
-        } else if (tokens.some((tok) => allCatNames.includes(tok))) {
-          score += this.rankingWeights.category_match_weight;
         }
 
-        // E. Flavour Match
-        if (flavourLower === normalized || flavourLower.includes(normalized)) {
+        if (flavourLower && (flavourLower === normalized || flavourLower.includes(normalized))) {
           score += this.rankingWeights.flavour_match_weight * 3;
         }
 
-        // F. Tag Matches (Weighted by Tag Type)
-        tagsLower.forEach((pTag) => {
-          if (tokens.includes(pTag) || normalized.includes(pTag)) {
-            const foundTagObj = this.tags.find((t) => t.slug === pTag || t.name.toLowerCase() === pTag);
-            const weight = foundTagObj?.search_weight || this.rankingWeights.tag_match_weight;
-            score += weight * 2;
-          }
-        });
+        // C. Word-level token matching
+        const STOP_WORDS = new Set(["to", "in", "for", "with", "a", "an", "the", "and", "of", "product", "products", "item", "items", "caketohome"]);
+        const meaningfulTokens = tokens.filter((t) => !STOP_WORDS.has(t));
+        const effectiveTokens = meaningfulTokens.length > 0 ? meaningfulTokens : tokens;
 
-        // G. Occasion Matches
-        occasionsLower.forEach((occ) => {
-          if (tokens.includes(occ) || normalized.includes(occ)) {
-            score += this.rankingWeights.tag_match_weight * 2.5;
-          }
-        });
+        const productWords = new Set<string>(
+          `${nameLower} ${allCatNames} ${flavourLower} ${tagsLower.join(" ")} ${occasionsLower.join(" ")}`
+            .split(/[\s\-_\/,\.]+/)
+            .filter((w) => w.length > 0)
+        );
 
-        // H. Description Match
-        if (descLower.includes(normalized)) {
-          score += 15;
-        } else {
-          tokens.forEach((tok) => {
+        const checkTokenMatch = (tok: string): boolean => {
+          if (!tok || tok.length < 2) return false;
+          if (productWords.has(tok)) return true;
+          for (const w of productWords) {
+            if (tok.length >= 3 && w.length >= 3 && (w.startsWith(tok) || (tok.length >= 4 && tok.startsWith(w)))) {
+              return true;
+            }
+          }
+          return false;
+        };
+
+        const getSynonymsForToken = (tok: string): string[] => {
+          const syns: string[] = [];
+          for (const s of this.synonyms) {
+            const mainTerm = s.term.toLowerCase();
+            const synList = s.synonyms.map((syn) => syn.toLowerCase());
+            if (tok === mainTerm) {
+              syns.push(...synList);
+            } else if (s.is_bidirectional && synList.includes(tok)) {
+              syns.push(mainTerm, ...synList.filter((x) => x !== tok));
+            }
+          }
+          return syns;
+        };
+
+        const checkTokenWithSynonyms = (tok: string): boolean => {
+          if (checkTokenMatch(tok)) return true;
+          const tokenSyns = getSynonymsForToken(tok);
+          return tokenSyns.some((st) => checkTokenMatch(st));
+        };
+
+        const matchedTokensCount = effectiveTokens.filter((tok) => checkTokenWithSynonyms(tok)).length;
+
+        // Phrase match or multi-token threshold (>= 60% overlap)
+        const isPhraseMatch = nameLower.includes(normalized) || allCatNames.includes(normalized) || (flavourLower.length > 0 && flavourLower.includes(normalized));
+        const requiredCount = effectiveTokens.length === 1 ? 1 : Math.ceil(effectiveTokens.length * 0.6);
+        const hasSufficientTokenMatch = matchedTokensCount >= requiredCount;
+
+        if (isPhraseMatch || hasSufficientTokenMatch) {
+          // Add weights for matched tokens
+          effectiveTokens.forEach((tok) => {
+            if (nameLower.includes(tok)) score += this.rankingWeights.name_match_weight;
+            if (allCatNames.includes(tok)) score += this.rankingWeights.category_match_weight;
+            if (flavourLower.includes(tok)) score += this.rankingWeights.flavour_match_weight;
             if (descLower.includes(tok)) score += 5;
           });
+
+          // Tag Matches (Weighted by Tag Type)
+          tagsLower.forEach((pTag) => {
+            if (effectiveTokens.includes(pTag) || normalized.includes(pTag)) {
+              const foundTagObj = this.tags.find((t) => t.slug === pTag || t.name.toLowerCase() === pTag);
+              const weight = foundTagObj?.search_weight || this.rankingWeights.tag_match_weight;
+              score += weight * 2;
+            }
+          });
+
+          // Occasion Matches
+          occasionsLower.forEach((occ) => {
+            if (effectiveTokens.includes(occ) || normalized.includes(occ)) {
+              score += this.rankingWeights.tag_match_weight * 2.5;
+            }
+          });
+        } else {
+          // Insufficient match -> score remains 0
+          score = 0;
         }
       } else {
         // Blank search -> Base quality score
@@ -627,6 +665,8 @@ export class SearchEngine {
         scoredItems.sort((a, b) => b.product.rating - a.product.rating);
       } else if (options.sort === "bestseller") {
         scoredItems.sort((a, b) => (b.product.is_bestseller ? 1 : 0) - (a.product.is_bestseller ? 1 : 0));
+      } else if (options.sort === "newest") {
+        scoredItems.sort((a, b) => new Date(b.product.created_at || 0).getTime() - new Date(a.product.created_at || 0).getTime());
       }
     }
 
@@ -844,6 +884,7 @@ export class SearchEngine {
   }
 
   public static initializeFromStore(rawProducts: any[]) {
+    this.canonicalProducts.clear();
     if (Array.isArray(rawProducts)) {
       rawProducts.forEach((p) => this.ingestCanonicalProduct(p));
     }

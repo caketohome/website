@@ -103,7 +103,7 @@ async function runPimWeightMatrixE2ETestSuite() {
 
   // ── TEST GROUP 4: Product Creation & Weight Matrix Persistence ──
   console.log("\nTEST GROUP 4: Product Creation & Multi-Weight Persistence");
-  const createdProd = ApiEngine.createAdminProduct({
+  const createdProd = await ApiEngine.createAdminProduct({
     title: "Artisanal Belgian Black Forest Gateau",
     price: 649,
     selling_price: 649,
@@ -127,7 +127,7 @@ async function runPimWeightMatrixE2ETestSuite() {
     { weight_name: "3 kg", selling_price: 1999, mrp: 2499, cost_price: 1000, prep_time_minutes: 180, is_enabled: true },
   ];
 
-  const savedRecords = ApiEngine.saveProductWeightPrices(prodId, weightTiersToSave);
+  const savedRecords: any[] = await ApiEngine.saveProductWeightPrices(prodId, weightTiersToSave);
   assert(savedRecords.length === 7, `Saved all 7 weight option tiers (returned ${savedRecords.length})`);
 
   // Check saved records integrity
@@ -137,7 +137,7 @@ async function runPimWeightMatrixE2ETestSuite() {
 
   // ── TEST GROUP 5: Database Query & Base Product Synchronization ──
   console.log("\nTEST GROUP 5: Query & Base Product Synchronization");
-  const queriedPrices = ApiEngine.getProductWeightPrices(prodId);
+  const queriedPrices: any[] = await ApiEngine.getProductWeightPrices(prodId);
   assert(queriedPrices.length === 7, `getProductWeightPrices returns all 7 tiers (returned ${queriedPrices.length})`);
 
   const enrichedProduct: any = ApiEngine.getProductById(prodId);
@@ -153,14 +153,14 @@ async function runPimWeightMatrixE2ETestSuite() {
     { weight_name: "1000 g", selling_price: 749, mrp: 949, cost_price: 375 }, // Duplicate of 1 kg
     { weight_name: "500 gm", selling_price: 499, mrp: 649, cost_price: 250 }, // Duplicate of 0.5 kg
   ];
-  const deduplicatedSaved = ApiEngine.saveProductWeightPrices(prodId, duplicatePayload);
+  const deduplicatedSaved: any[] = await ApiEngine.saveProductWeightPrices(prodId, duplicatePayload);
   assert(deduplicatedSaved.length === 7, `Duplicate physical weights (1000g, 500gm) rejected/deduplicated (length = ${deduplicatedSaved.length})`);
 
   // ── TEST GROUP 7: Row Deletion & Re-Addition Lifecycle ──
   console.log("\nTEST GROUP 7: Row Deletion & Re-Addition Lifecycle");
   // Delete the 0.75 kg row
   const without750 = deduplicatedSaved.filter((wp) => wp.weight_name !== "0.75 kg");
-  const savedAfterDelete = ApiEngine.saveProductWeightPrices(prodId, without750);
+  const savedAfterDelete: any[] = await ApiEngine.saveProductWeightPrices(prodId, without750);
   assert(savedAfterDelete.length === 6, `Deleted 0.75 kg row, 6 rows remaining`);
   assert(!savedAfterDelete.some((wp) => wp.weight_name === "0.75 kg"), "0.75 kg confirmed absent");
 
@@ -169,7 +169,7 @@ async function runPimWeightMatrixE2ETestSuite() {
     ...savedAfterDelete,
     { weight_name: "4 kg", selling_price: 2599, mrp: 3199, cost_price: 1300, prep_time_minutes: 240, is_enabled: true },
   ];
-  const savedWith4kg = ApiEngine.saveProductWeightPrices(prodId, with4kg);
+  const savedWith4kg: any[] = await ApiEngine.saveProductWeightPrices(prodId, with4kg);
   assert(savedWith4kg.length === 7, `Appended 4 kg tier, count back to 7`);
   assert(savedWith4kg[6].weight_name === "4 kg" && savedWith4kg[6].selling_price === 2599, "4 kg sorted at index 6");
 

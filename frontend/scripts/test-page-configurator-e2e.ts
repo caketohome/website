@@ -45,7 +45,7 @@ async function runE2ETests() {
 
   // ── TEST 2: Page Creation & Draft Isolation ─────────────────────────────────
   console.log("\n--- TEST SUITE 2: Page Creation & Draft Isolation ---");
-  const newPage = ApiEngine.createCmsPage({
+  const newPage: any = await ApiEngine.createCmsPage({
     title: "Anniversary Special Celebration Cakes",
     slug: "anniversary-special-cakes",
     page_type: "campaign",
@@ -155,7 +155,7 @@ async function runE2ETests() {
     name: "Anniversary Cake Selection (Copy)",
     order: 3,
   };
-  const updatedDraft = ApiEngine.updateCmsPage(newPage.id, {
+  const updatedDraft: any = await ApiEngine.updateCmsPage(newPage.id, {
     sections: [
       { ...newPage.sections[0], order: 1 }, // Hero
       { ...newPage.sections[1], order: 2 }, // Product Grid #1
@@ -172,7 +172,7 @@ async function runE2ETests() {
   const validationRes = ApiEngine.validatePageConfig(updatedDraft);
   assert(validationRes.valid === true, "Page passes all 7 publication validation checks");
 
-  const publishRes = ApiEngine.publishCmsPage(newPage.id);
+  const publishRes: any = await ApiEngine.publishCmsPage(newPage.id);
   assert(publishRes.success === true, "Page published successfully");
   assert(publishRes.page.status === "published", "Page status is now 'published'");
   assert(!!publishRes.page.published_at, "Published timestamp recorded");
@@ -225,7 +225,7 @@ async function runE2ETests() {
   const updatedHeroUrl = "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=1400";
   const updatedHeroAlt = "Luxurious Red Velvet anniversary cake with gold leaf";
 
-  ApiEngine.updateCmsPage(newPage.id, {
+  await ApiEngine.updateCmsPage(newPage.id, {
     sections: [
       {
         ...updatedDraft.sections[0],
@@ -239,7 +239,7 @@ async function runE2ETests() {
     ],
   });
 
-  ApiEngine.publishCmsPage(newPage.id);
+  await ApiEngine.publishCmsPage(newPage.id);
   const reloadedStorefront = await getCmsPage("anniversary-special-cakes");
   const heroSection = reloadedStorefront?.sections?.find((s: any) => s.type === "hero");
   assert(heroSection?.config?.bg_image === updatedHeroUrl, "Storefront instantly reflects updated hero image URL");
@@ -247,7 +247,7 @@ async function runE2ETests() {
 
   // ── TEST 11: Clean Unpublish ────────────────────────────────────────────────
   console.log("\n--- TEST SUITE 11: Clean Unpublish ---");
-  ApiEngine.unpublishCmsPage(newPage.id);
+  await ApiEngine.unpublishCmsPage(newPage.id);
   const unpublishedCheck = ApiEngine.getPublishedCmsPage("anniversary-special-cakes");
   assert(unpublishedCheck === null, "Unpublished page is immediately removed from published query");
 

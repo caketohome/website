@@ -232,16 +232,16 @@ runGate("8: Store Admin Map Search Viewport Safety", () => {
 runGate("9: Store A Serviceability (Kollam Central in Kollam)", () => {
   // Kollam coordinate
   const res = ApiEngine.resolveSmartBranch({ lat: 8.8932, lng: 76.6025 });
-  assert.strictEqual(res.branch.code, "HUB-KLM-01", "Kollam location must resolve to Kollam Central");
+  assert.strictEqual(res.branch?.code, "HUB-KLM-01", "Kollam location must resolve to Kollam Central");
   assert.strictEqual(res.reasonCode, undefined, "Must be serviceable without error reasonCode");
-  console.log(`  Kollam coordinate (8.8932, 76.6025) serviced by: ${res.branch.name}`);
+  console.log(`  Kollam coordinate (8.8932, 76.6025) serviced by: ${res.branch?.name}`);
 });
 
 runGate("10: Store B Serviceability (Indiranagar in Bengaluru)", () => {
   // Bengaluru Indiranagar coordinate
   const res = ApiEngine.resolveSmartBranch({ lat: 12.9784, lng: 77.6408 });
-  assert(res.branch.code.includes("BLR") || res.branch.id.includes("indiranagar"), "Indiranagar location must resolve to Bengaluru branch");
-  console.log(`  Bengaluru coordinate (12.9784, 77.6408) serviced by: ${res.branch.name}`);
+  assert(res.branch?.code?.includes("BLR") || res.branch?.id?.includes("indiranagar"), "Indiranagar location must resolve to Bengaluru branch");
+  console.log(`  Bengaluru coordinate (12.9784, 77.6408) serviced by: ${res.branch?.name}`);
 });
 
 // ── GATE 11: Nearest ELIGIBLE Store Selection ─────────────────────────────────
@@ -462,13 +462,13 @@ runGate("20: Tampered Zone ID Rejection", () => {
 runGate("21: Dynamic Reassignment after Customer Moves Map Pin", () => {
   // Pin Position A: Kadappakada, Kollam
   const posA = ApiEngine.resolveSmartBranch({ lat: 8.8932, lng: 76.6025 });
-  assert.strictEqual(posA.branch.code, "HUB-KLM-01");
+  assert.strictEqual(posA.branch?.code, "HUB-KLM-01");
 
   // Pin Position B: Outside boundary (Ocean)
   const posB = ApiEngine.resolveSmartBranch({ lat: 8.5000, lng: 76.0000 });
   assert.strictEqual(posB.reasonCode, "NO_ELIGIBLE_STORE");
   assert.strictEqual(posB.branch, null);
-  console.log(`  Pin move test: Position A -> ${posA.branch.name}, Position B -> Unserviceable (reassignment instantaneous)`);
+  console.log(`  Pin move test: Position A -> ${posA.branch?.name}, Position B -> Unserviceable (reassignment instantaneous)`);
 });
 
 // ── GATE 22: Multi-State Routing ──────────────────────────────────────────────

@@ -26,7 +26,7 @@ async function main() {
     lng: 77.6412,
   });
   assert(closeCoords.resolvedBy.startsWith("geofence_"), `Resolved by geofence coordinates: ${closeCoords.resolvedBy}`);
-  assert(closeCoords.branch.id === "br_indiranagar", `Resolved to closest branch (Indiranagar): resolved to ${closeCoords.branch.id}`);
+  assert(closeCoords.branch?.id === "br_indiranagar", `Resolved to closest branch (Indiranagar): resolved to ${closeCoords.branch?.id}`);
   assert(closeCoords.zoneName === "Zone A", `Correct zone resolved: ${closeCoords.zoneName}`);
 
   const contextClose = ApiEngine.resolveDeliveryContext(undefined, 12.9716 + 0.01, 77.6412);

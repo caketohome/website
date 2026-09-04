@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +26,6 @@ const AUTH_COOKIE_NAMES = [
 ];
 
 export async function POST(req: NextRequest) {
-  const cookieStore = cookies();
   const response = NextResponse.json(
     {
       success: true,
@@ -37,30 +35,11 @@ export async function POST(req: NextRequest) {
     { status: 200 }
   );
 
-  const cookiePaths = [
-    "/",
-    "/dashboard",
-    "/account",
-    "/dashboard/shop",
-    "/dashboard/delivery-partner",
-    "/dashboard/admin",
-    "/admin",
-    "/branch-manager",
-    "/delivery-partner",
-  ];
+  const canonicalPaths = ["/", "/dashboard", "/account"];
 
-  // Expire cookies via next/headers
+  // 2. Explicitly expire auth cookies on the response
   AUTH_COOKIE_NAMES.forEach((name) => {
-    try {
-      cookieStore.delete(name);
-    } catch {
-      // Ignore
-    }
-  });
-
-  // Explicitly set expired Set-Cookie headers on response across all paths for maximum browser compatibility
-  AUTH_COOKIE_NAMES.forEach((name) => {
-    cookiePaths.forEach((path) => {
+    canonicalPaths.forEach((path) => {
       response.cookies.set(name, "", {
         path,
         maxAge: 0,

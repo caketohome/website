@@ -14,6 +14,12 @@ import { PromotionalBannerEditor } from "./promotional-banner-editor";
 import { AnnouncementBarEditor } from "./announcement-bar-editor";
 import { ScrollFrameEditor } from "./scroll-frame-editor";
 import { CmsImageUploader } from "./cms-image-uploader";
+import { FeaturesSectionEditor } from "./features-section-editor";
+import { SplitHeroEditor } from "./split-hero-editor";
+import { OccasionsGridEditor } from "./occasions-grid-editor";
+import { ProductGridEditor } from "./product-grid-editor";
+import { extractFilterValues } from "@frontend/lib/cms/pim-product-resolver";
+import { getSectionDefinition } from "@frontend/lib/cms/section-registry";
 
 interface SectionConfigEditorProps {
   section: any;
@@ -103,6 +109,9 @@ export function SectionConfigEditor({
   const [newAreaInput, setNewAreaInput] = useState("");
 
   const config = section.config || {};
+  const sectionDef = getSectionDefinition(section.type);
+  const editorType = sectionDef?.editorType || section.type;
+  const filterValues = extractFilterValues(allProducts, allCategories, allOccasions);
   const isPromo = section.type === "promotional_banner" || section.type === "promo";
   const isAnnounce = section.type === "announcement_bar" || section.type === "announcement";
 
@@ -154,7 +163,7 @@ export function SectionConfigEditor({
     );
   }
 
-  const isKitchenStory = section.type === "kitchen_story" || section.type === "scroll_frame";
+  const isKitchenStory = section.type === "kitchen_story" || section.type === "scroll_frame" || editorType === "scroll_story";
   if (isKitchenStory) {
     return (
       <div className="flex flex-col gap-4">
@@ -247,8 +256,17 @@ export function SectionConfigEditor({
       {/* ═══════════════════════════════════════════════════════════ */}
       {subTab === "content" && (
         <div className="flex flex-col gap-3">
-          {/* HERO CONTENT */}
-          {section.type === "hero" && (
+          {/* 1a. SPLIT HERO COMPREHENSIVE */}
+          {(editorType === "split_hero" || section.type === "split_hero") && (
+            <SplitHeroEditor
+              config={config}
+              onChange={(k, v) => updateSectionConfig(section.id, k, v)}
+              openImagePicker={openImagePicker}
+            />
+          )}
+
+          {/* 1b. HERO / VISUAL / SPLIT / VIDEO SECTIONS */}
+          {((editorType === "hero" || editorType === "hero_video" || editorType === "full_width_image" || editorType === "video_text" || editorType === "before_after" || section.type === "hero") && editorType !== "split_hero" && section.type !== "split_hero") && (
             <>
               <Field label="Headline">
                 <Input
@@ -270,15 +288,70 @@ export function SectionConfigEditor({
               <Field label="Badge Text">
                 <Input
                   data-testid="hero-badge-input"
-                  value={config.badge_text || ""}
+                  value={config.badge_text || config.badge || ""}
                   onChange={(e) => updateSectionConfig(section.id, "badge_text", e.target.value)}
                   placeholder="100% Fresh & Artisanal • Express 2-Hour Delivery"
                 />
               </Field>
 
-              {/* Phase 1 CTAs */}
+              {(editorType === "hero_video" || editorType === "video_text") && (
+                <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
+                  <Text className="text-xs font-bold text-purple-600 uppercase">Video Settings</Text>
+                  <Field label="Video URL (MP4 / WebM / YouTube Embed)">
+                    <Input
+                      value={config.video_url || ""}
+                      onChange={(e) => updateSectionConfig(section.id, "video_url", e.target.value)}
+                      placeholder="https://assets.mixkit.co/videos/preview/..."
+                    />
+                  </Field>
+                  <div className="flex items-center justify-between">
+                    <Text className="text-xs">Autoplay Video</Text>
+                    <Toggle checked={config.autoplay !== false} onChange={(v) => updateSectionConfig(section.id, "autoplay", v)} label="Autoplay" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Text className="text-xs">Mute Audio</Text>
+                    <Toggle checked={config.muted !== false} onChange={(v) => updateSectionConfig(section.id, "muted", v)} label="Mute Audio" />
+                  </div>
+                </div>
+              )}
+
+              {(editorType === "split_hero" || editorType === "video_text") && (
+                <Field label="Media Alignment">
+                  <Select value={config.media_position || config.image_position || "right"} onValueChange={(v) => updateSectionConfig(section.id, "media_position", v)}>
+                    <Select.Trigger><Select.Value /></Select.Trigger>
+                    <Select.Content>
+                      <Select.Item value="left">Media Left, Content Right</Select.Item>
+                      <Select.Item value="right">Content Left, Media Right</Select.Item>
+                    </Select.Content>
+                  </Select>
+                </Field>
+              )}
+
+              {editorType === "before_after" && (
+                <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
+                  <Text className="text-xs font-bold text-amber-600 uppercase">Before & After Slider Settings</Text>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="Before Image URL">
+                      <Input value={config.before_image_url || ""} onChange={(e) => updateSectionConfig(section.id, "before_image_url", e.target.value)} placeholder="https://..." />
+                    </Field>
+                    <Field label="Before Label">
+                      <Input value={config.before_label || "Baking Process"} onChange={(e) => updateSectionConfig(section.id, "before_label", e.target.value)} />
+                    </Field>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="After Image URL">
+                      <Input value={config.after_image_url || ""} onChange={(e) => updateSectionConfig(section.id, "after_image_url", e.target.value)} placeholder="https://..." />
+                    </Field>
+                    <Field label="After Label">
+                      <Input value={config.after_label || "Finished Creation"} onChange={(e) => updateSectionConfig(section.id, "after_label", e.target.value)} />
+                    </Field>
+                  </div>
+                </div>
+              )}
+
+              {/* Primary & Secondary CTAs */}
               <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
-                <Text className="text-xs font-bold text-rose-600 uppercase">Primary & Secondary Call To Action</Text>
+                <Text className="text-xs font-bold text-rose-600 uppercase">Call To Action Buttons</Text>
                 <div className="grid grid-cols-2 gap-2">
                   <Field label="Primary CTA Text">
                     <Input
@@ -317,40 +390,9 @@ export function SectionConfigEditor({
                 </div>
               </div>
 
-              {/* Scroll Sequence Overlays */}
-              <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
-                <Text className="text-xs font-bold text-amber-600 uppercase">Phase 2: Master Chocolatier Story</Text>
-                <Field label="Craft Badge">
-                  <Input value={config.craft_badge || ""} onChange={(e) => updateSectionConfig(section.id, "craft_badge", e.target.value)} placeholder="Master Chocolatier Recipe" />
-                </Field>
-                <Field label="Craft Heading">
-                  <Input value={config.craft_heading || ""} onChange={(e) => updateSectionConfig(section.id, "craft_heading", e.target.value)} placeholder="Every Layer, A Symphony of Flavor" />
-                </Field>
-                <Field label="Craft Text">
-                  <Textarea value={config.craft_text || ""} onChange={(e) => updateSectionConfig(section.id, "craft_text", e.target.value)} placeholder="Crafted with Belgian cocoa, Madagascan vanilla..." rows={2} />
-                </Field>
-              </div>
-
-              <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
-                <Text className="text-xs font-bold text-emerald-600 uppercase">Phase 3: Transit & Delivery Guarantee</Text>
-                <Field label="Fleet Badge">
-                  <Input value={config.fleet_badge || ""} onChange={(e) => updateSectionConfig(section.id, "fleet_badge", e.target.value)} placeholder="Climate-Controlled Transit" />
-                </Field>
-                <Field label="Fleet Heading">
-                  <Input value={config.fleet_heading || ""} onChange={(e) => updateSectionConfig(section.id, "fleet_heading", e.target.value)} placeholder="Pristine & Chilled To Your Table" />
-                </Field>
-                <Field label="Fleet Text">
-                  <Textarea value={config.fleet_text || ""} onChange={(e) => updateSectionConfig(section.id, "fleet_text", e.target.value)} placeholder="Specially engineered shock-absorbent cake domes..." rows={2} />
-                </Field>
-                <div className="grid grid-cols-2 gap-2">
-                  <Field label="Fleet CTA Text"><Input value={config.fleet_cta_text || ""} onChange={(e) => updateSectionConfig(section.id, "fleet_cta_text", e.target.value)} placeholder="Order for Today" /></Field>
-                  <Field label="Fleet CTA URL"><Input value={config.fleet_cta_url || ""} onChange={(e) => updateSectionConfig(section.id, "fleet_cta_url", e.target.value)} placeholder="/products" /></Field>
-                </div>
-              </div>
-
               {/* Hero Banner Responsive Image Uploader */}
               <CmsImageUploader
-                label="Hero Banner Image"
+                label="Hero Background / Banner Image"
                 sectionId={section.id}
                 config={config}
                 updateConfig={(key, val) => updateSectionConfig(section.id, key, val)}
@@ -360,62 +402,42 @@ export function SectionConfigEditor({
             </>
           )}
 
-          {/* PRODUCT GRIDS / BEST SELLERS / NEW ARRIVALS */}
-          {(section.type === "product_grid" || section.type === "best_sellers" || section.type === "new_arrivals" || section.type === "featured_cakes") && (
-            <>
-              <Field label="Section Heading">
-                <Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="🏆 Best-Selling Cakes" />
-              </Field>
-              <Field label="Section Subtitle">
-                <Input value={config.subheading || ""} onChange={(e) => updateSectionConfig(section.id, "subheading", e.target.value)} placeholder="Freshly baked artisan recipes ready for express delivery" />
-              </Field>
-              <div className="grid grid-cols-2 gap-2">
-                <Field label="View All Text"><Input value={config.view_all_text || ""} onChange={(e) => updateSectionConfig(section.id, "view_all_text", e.target.value)} placeholder="View All" /></Field>
-                <Field label="View All URL"><Input value={config.view_all_url || ""} onChange={(e) => updateSectionConfig(section.id, "view_all_url", e.target.value)} placeholder="/products" /></Field>
-              </div>
-              <Field label="Product Mode">
-                <Select value={config.mode || "best_sellers"} onValueChange={(v) => updateSectionConfig(section.id, "mode", v)}>
-                  <Select.Trigger><Select.Value /></Select.Trigger>
-                  <Select.Content>
-                    <Select.Item value="best_sellers">Best Sellers (Automated)</Select.Item>
-                    <Select.Item value="new_arrivals">New Arrivals (Automated)</Select.Item>
-                    <Select.Item value="featured">Featured Cakes</Select.Item>
-                    <Select.Item value="all">All Catalog</Select.Item>
-                    <Select.Item value="manual">Manual Selection</Select.Item>
-                  </Select.Content>
-                </Select>
-              </Field>
-
-              {config.mode === "manual" && (
-                <div className="flex flex-col gap-2">
-                  <Input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Search products..." />
-                  <div className="max-h-40 overflow-y-auto flex flex-col gap-1 border border-ui-border-base rounded-xl p-1 bg-ui-bg-subtle">
-                    {allProducts.filter((p) => !productSearch || p.title?.toLowerCase().includes(productSearch.toLowerCase())).map((p) => {
-                      const pid = p.id || p.product_id;
-                      const isSel = (config.product_ids || []).includes(pid);
-                      return (
-                        <div
-                          key={pid}
-                          onClick={() => {
-                            const cur = config.product_ids || [];
-                            const next = isSel ? cur.filter((id: string) => id !== pid) : [...cur, pid];
-                            updateSectionConfig(section.id, "product_ids", next);
-                          }}
-                          className={`p-1.5 rounded-lg cursor-pointer text-xs flex items-center justify-between ${isSel ? "bg-rose-500 text-white font-bold" : "hover:bg-ui-bg-base"}`}
-                        >
-                          <span className="truncate">{p.title}</span>
-                          <span>₹{p.price}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </>
+          {/* 2. PRODUCT SECTIONS & PIM INTEGRATION */}
+          {(editorType === "product_grid" ||
+            editorType === "product_carousel" ||
+            editorType === "product_spotlight" ||
+            editorType === "comparison_table" ||
+            section.type === "product_grid" ||
+            section.type === "best_sellers" ||
+            section.type === "new_arrivals" ||
+            section.type === "featured_cakes" ||
+            section.type === "featured_products" ||
+            section.type === "trending" ||
+            section.type === "trending_products" ||
+            section.type === "recommendations" ||
+            section.type === "recently_viewed" ||
+            section.type === "related_products" ||
+            section.type === "quick_shop" ||
+            section.type === "birthday_cakes" ||
+            section.type === "anniversary_cakes" ||
+            section.type === "wedding_cakes" ||
+            section.type === "kids_cakes" ||
+            section.type === "corporate_cakes" ||
+            section.type === "festival_cakes" ||
+            section.type === "celebration_cakes" ||
+            section.type === "chef_recommendations") && (
+            <ProductGridEditor
+              config={config}
+              allProducts={allProducts}
+              allCategories={allCategories}
+              allOccasions={allOccasions}
+              isCarousel={editorType === "product_carousel" || section.type === "product_carousel"}
+              onChange={(k, v) => updateSectionConfig(section.id, k, v)}
+            />
           )}
 
-          {/* CATEGORY GRID */}
-          {section.type === "category_grid" && (
+          {/* 3. CATEGORY SECTIONS & EXPLORERS */}
+          {(editorType === "category_grid" || editorType === "category_carousel" || editorType === "category_explorer" || section.type === "category_grid") && (
             <>
               <Field label="Heading">
                 <Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Shop by Occasion & Flavour" />
@@ -427,11 +449,89 @@ export function SectionConfigEditor({
                 <Field label="View All Text"><Input value={config.view_all_text || ""} onChange={(e) => updateSectionConfig(section.id, "view_all_text", e.target.value)} placeholder="View All Categories" /></Field>
                 <Field label="View All URL"><Input value={config.view_all_url || ""} onChange={(e) => updateSectionConfig(section.id, "view_all_url", e.target.value)} placeholder="/category" /></Field>
               </div>
+              <Field label="Category Display Layout">
+                <Select value={config.layout || "grid"} onValueChange={(v) => updateSectionConfig(section.id, "layout", v)}>
+                  <Select.Trigger><Select.Value /></Select.Trigger>
+                  <Select.Content>
+                    <Select.Item value="grid">Grid (Standard)</Select.Item>
+                    <Select.Item value="carousel">Carousel (Horizontal Scroll)</Select.Item>
+                    <Select.Item value="tiles">Masonry Tiles</Select.Item>
+                  </Select.Content>
+                </Select>
+              </Field>
+              {allCategories.length > 0 && (
+                <div className="flex flex-col gap-1.5 p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base">
+                  <Text className="text-xs font-bold">Categories Included (Leave empty for all)</Text>
+                  <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
+                    {allCategories.map((c) => {
+                      const isSel = (config.category_ids || []).includes(c.id);
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => {
+                            const cur = config.category_ids || [];
+                            const next = isSel ? cur.filter((id: string) => id !== c.id) : [...cur, c.id];
+                            updateSectionConfig(section.id, "category_ids", next);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${isSel ? "bg-rose-500 text-white border-rose-600" : "bg-ui-bg-base border-ui-border-base text-ui-fg-base hover:border-rose-400"}`}
+                        >
+                          {c.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </>
           )}
 
-          {/* BRAND STORY / IMAGE + TEXT */}
-          {(section.type === "brand_story" || section.type === "image_text") && (
+          {/* 4. OCCASIONS SECTIONS */}
+          {(editorType === "occasion_grid" || editorType === "occasion_carousel" || section.type === "occasions_grid" || section.type === "occasion_carousel") && (
+            <OccasionsGridEditor
+              config={config}
+              allOccasions={allOccasions}
+              onChange={(k, v) => updateSectionConfig(section.id, k, v)}
+            />
+          )}
+
+          {/* 5. DEAL / CAMPAIGN / FLASH SALE BANNERS */}
+          {(editorType === "deal_banner" || section.type === "campaign_banner" || section.type === "limited_time_offer" || section.type === "flash_sale" || section.type === "coupon_banner") && (
+            <>
+              <Field label="Offer Heading">
+                <Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="⚡ Limited-Time Weekend Flash Sale" />
+              </Field>
+              <Field label="Offer Subtitle">
+                <Input value={config.subheading || ""} onChange={(e) => updateSectionConfig(section.id, "subheading", e.target.value)} placeholder="Enjoy flat 25% OFF on all gourmet truffle and velvet cakes" />
+              </Field>
+              <div className="grid grid-cols-2 gap-2">
+                <Field label="Coupon Code">
+                  <Input value={config.coupon_code || ""} onChange={(e) => updateSectionConfig(section.id, "coupon_code", e.target.value)} placeholder="CELEBRATE25" />
+                </Field>
+                <Field label="Discount Badge Text">
+                  <Input value={config.discount_text || ""} onChange={(e) => updateSectionConfig(section.id, "discount_text", e.target.value)} placeholder="FLAT 25% OFF" />
+                </Field>
+              </div>
+              <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <Text className="text-xs font-bold">Countdown Timer</Text>
+                  <Toggle checked={config.show_countdown !== false} onChange={(v) => updateSectionConfig(section.id, "show_countdown", v)} label="Show Countdown" />
+                </div>
+                {config.show_countdown !== false && (
+                  <Field label="Offer Expiry Date (ISO string or datetime)">
+                    <Input type="datetime-local" value={config.end_date || ""} onChange={(e) => updateSectionConfig(section.id, "end_date", e.target.value)} />
+                  </Field>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Field label="CTA Button Text"><Input value={config.cta_text || "Claim Offer"} onChange={(e) => updateSectionConfig(section.id, "cta_text", e.target.value)} /></Field>
+                <Field label="CTA Destination URL"><Input value={config.cta_url || "/products"} onChange={(e) => updateSectionConfig(section.id, "cta_url", e.target.value)} /></Field>
+              </div>
+            </>
+          )}
+
+          {/* 6. BRAND STORY / IMAGE + TEXT */}
+          {(editorType === "brand_story" || editorType === "image_text" || section.type === "brand_story" || section.type === "image_text" || section.type === "our_bakery" || section.type === "our_kitchen" || section.type === "founder_story" || section.type === "craftsmanship" || section.type === "ingredients" || section.type === "behind_the_scenes" || section.type === "meet_the_bakers") && (
             <>
               <Field label="Badge / Tag"><Input value={config.badge_text || ""} onChange={(e) => updateSectionConfig(section.id, "badge_text", e.target.value)} placeholder="About Our Kitchen" /></Field>
               <Field label="Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Handcrafted with Pure Ingredients" /></Field>
@@ -440,8 +540,17 @@ export function SectionConfigEditor({
                 <Field label="CTA Text"><Input value={config.cta_text || ""} onChange={(e) => updateSectionConfig(section.id, "cta_text", e.target.value)} placeholder="Learn More" /></Field>
                 <Field label="CTA URL"><Input value={config.cta_url || ""} onChange={(e) => updateSectionConfig(section.id, "cta_url", e.target.value)} placeholder="/products" /></Field>
               </div>
+              <Field label="Image Position">
+                <Select value={config.image_position || "left"} onValueChange={(v) => updateSectionConfig(section.id, "image_position", v)}>
+                  <Select.Trigger><Select.Value /></Select.Trigger>
+                  <Select.Content>
+                    <Select.Item value="left">Image on Left</Select.Item>
+                    <Select.Item value="right">Image on Right</Select.Item>
+                  </Select.Content>
+                </Select>
+              </Field>
               <CmsImageUploader
-                label="Our Kitchen Story Image"
+                label="Story / Showcase Image"
                 sectionId={section.id}
                 config={config}
                 updateConfig={(key, val) => updateSectionConfig(section.id, key, val)}
@@ -451,40 +560,16 @@ export function SectionConfigEditor({
             </>
           )}
 
-          {/* FEATURES */}
-          {section.type === "features" && (
-            <>
-              <Field label="Section Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Why CakeToHome is Bangalore's #1 Choice" /></Field>
-              <div className="flex flex-col gap-2">
-                <Text className="text-xs font-bold">Feature Items ({(config.features || []).length})</Text>
-                {(config.features || []).map((feat: any, fi: number) => (
-                  <div key={fi} className="p-2.5 bg-ui-bg-subtle rounded-xl flex flex-col gap-2 border border-ui-border-base text-xs">
-                    <Input value={feat.title || ""} onChange={(e) => {
-                      const list = [...(config.features || [])];
-                      list[fi] = { ...list[fi], title: e.target.value };
-                      updateSectionConfig(section.id, "features", list);
-                    }} placeholder="Feature Title" />
-                    <Input value={feat.desc || ""} onChange={(e) => {
-                      const list = [...(config.features || [])];
-                      list[fi] = { ...list[fi], desc: e.target.value };
-                      updateSectionConfig(section.id, "features", list);
-                    }} placeholder="Description" />
-                    <button onClick={() => {
-                      const list = (config.features || []).filter((_: any, i: number) => i !== fi);
-                      updateSectionConfig(section.id, "features", list);
-                    }} className="self-end text-[10px] text-red-500 hover:underline">Remove</button>
-                  </div>
-                ))}
-                <Button variant="secondary" size="small" onClick={() => {
-                  const list = [...(config.features || []), { icon: "Sparkles", title: "New Feature", desc: "Description" }];
-                  updateSectionConfig(section.id, "features", list);
-                }}><Plus className="w-3.5 h-3.5 mr-1" /> Add Feature</Button>
-              </div>
-            </>
+          {/* 7. FEATURES & BENEFITS & TRUST */}
+          {(editorType === "features" || editorType === "trust_badges" || section.type === "features" || section.type === "trust_badges" || section.type === "why_choose_us" || section.type === "certifications" || section.type === "quality_promise" || section.type === "freshness_promise" || section.type === "delivery_promise") && (
+            <FeaturesSectionEditor
+              config={config}
+              onChange={(k, v) => updateSectionConfig(section.id, k, v)}
+            />
           )}
 
-          {/* FAQ */}
-          {section.type === "faq" && (
+          {/* 8. FAQ & ACCORDION */}
+          {(editorType === "faq" || section.type === "faq") && (
             <>
               <Field label="FAQ Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Frequently Asked Questions" /></Field>
               <div className="flex flex-col gap-2">
@@ -515,43 +600,248 @@ export function SectionConfigEditor({
             </>
           )}
 
-          {/* LOCATION COVERAGE */}
-          {section.type === "location_coverage" && (
+          {/* 9. TESTIMONIALS & REVIEWS */}
+          {(editorType === "testimonials" || section.type === "testimonials" || section.type === "reviews") && (
             <>
-              <Field label="Badge"><Input value={config.badge || ""} onChange={(e) => updateSectionConfig(section.id, "badge", e.target.value)} placeholder="Coverage Area" /></Field>
-              <Field label="Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="📍 We Deliver Fresh Cakes Across Bangalore" /></Field>
-              <Field label="Subheading"><Input value={config.subheading || ""} onChange={(e) => updateSectionConfig(section.id, "subheading", e.target.value)} placeholder="Same-day & 2-hour express delivery available" /></Field>
-              <div className="flex flex-col gap-2">
-                <Text className="text-xs font-bold">Delivery Areas ({(config.areas || []).length})</Text>
-                <div className="flex gap-2">
-                  <Input value={newAreaInput} onChange={(e) => setNewAreaInput(e.target.value)} placeholder="Add area name..." onKeyDown={(e) => {
-                    if (e.key === "Enter" && newAreaInput.trim()) {
-                      e.preventDefault();
-                      updateSectionConfig(section.id, "areas", [...(config.areas || []), newAreaInput.trim()]);
-                      setNewAreaInput("");
-                    }
-                  }} />
-                  <Button variant="secondary" size="small" onClick={() => {
-                    if (newAreaInput.trim()) {
-                      updateSectionConfig(section.id, "areas", [...(config.areas || []), newAreaInput.trim()]);
-                      setNewAreaInput("");
-                    }
-                  }}><Plus className="w-3.5 h-3.5" /></Button>
-                </div>
-                <div className="flex flex-wrap gap-1.5 p-2 bg-ui-bg-subtle rounded-xl border border-ui-border-base max-h-36 overflow-y-auto">
-                  {(config.areas || []).map((area: string, ai: number) => (
-                    <span key={ai} className="px-2 py-1 bg-white dark:bg-ui-bg-base rounded-lg border text-xs flex items-center gap-1 shadow-sm">
-                      {area}
-                      <button onClick={() => updateSectionConfig(section.id, "areas", (config.areas || []).filter((_: any, i: number) => i !== ai))} className="text-ui-fg-muted hover:text-red-500">×</button>
-                    </span>
+              <Field label="Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="What Our Customers Say" /></Field>
+              <Field label="Subtitle"><Input value={config.subheading || ""} onChange={(e) => updateSectionConfig(section.id, "subheading", e.target.value)} placeholder="Over 50,000+ celebrations sweetened across the city" /></Field>
+              <Field label="Reviews Source">
+                <Select value={config.source || "manual"} onValueChange={(v) => updateSectionConfig(section.id, "source", v)}>
+                  <Select.Trigger><Select.Value /></Select.Trigger>
+                  <Select.Content>
+                    <Select.Item value="manual">Curated Testimonials</Select.Item>
+                    <Select.Item value="reviews">Live Verified Customer Reviews</Select.Item>
+                  </Select.Content>
+                </Select>
+              </Field>
+              {config.source !== "reviews" && (
+                <div className="flex flex-col gap-2">
+                  <Text className="text-xs font-bold">Testimonials ({(config.testimonials || []).length})</Text>
+                  {(config.testimonials || []).map((t: any, ti: number) => (
+                    <div key={ti} className="p-2.5 bg-ui-bg-subtle rounded-xl flex flex-col gap-1.5 border border-ui-border-base text-xs">
+                      <Input value={t.name || ""} onChange={(e) => {
+                        const list = [...(config.testimonials || [])];
+                        list[ti] = { ...list[ti], name: e.target.value };
+                        updateSectionConfig(section.id, "testimonials", list);
+                      }} placeholder="Customer Name (e.g. Priya Sharma)" />
+                      <Input value={t.occasion || ""} onChange={(e) => {
+                        const list = [...(config.testimonials || [])];
+                        list[ti] = { ...list[ti], occasion: e.target.value };
+                        updateSectionConfig(section.id, "testimonials", list);
+                      }} placeholder="Occasion / City (e.g. 1st Birthday • Koramangala)" />
+                      <Textarea value={t.quote || ""} onChange={(e) => {
+                        const list = [...(config.testimonials || [])];
+                        list[ti] = { ...list[ti], quote: e.target.value };
+                        updateSectionConfig(section.id, "testimonials", list);
+                      }} placeholder="Customer review quote..." rows={2} />
+                      <button onClick={() => {
+                        const list = (config.testimonials || []).filter((_: any, i: number) => i !== ti);
+                        updateSectionConfig(section.id, "testimonials", list);
+                      }} className="self-end text-[10px] text-red-500 hover:underline">Remove</button>
+                    </div>
                   ))}
+                  <Button variant="secondary" size="small" onClick={() => {
+                    const list = [...(config.testimonials || []), { name: "", occasion: "", quote: "", rating: 5 }];
+                    updateSectionConfig(section.id, "testimonials", list);
+                  }}><Plus className="w-3.5 h-3.5 mr-1" /> Add Testimonial</Button>
                 </div>
+              )}
+            </>
+          )}
+
+          {/* 10. STATISTICS & NUMBERS */}
+          {(editorType === "statistics" || section.type === "statistics" || section.type === "rating_summary") && (
+            <>
+              <Field label="Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Our Numbers Speak for Themselves" /></Field>
+              <div className="flex flex-col gap-2">
+                <Text className="text-xs font-bold">Statistic Counters ({(config.stats || []).length})</Text>
+                {(config.stats || []).map((st: any, si: number) => (
+                  <div key={si} className="p-2.5 bg-ui-bg-subtle rounded-xl grid grid-cols-2 gap-2 border border-ui-border-base text-xs">
+                    <Input value={st.value || ""} onChange={(e) => {
+                      const list = [...(config.stats || [])];
+                      list[si] = { ...list[si], value: e.target.value };
+                      updateSectionConfig(section.id, "stats", list);
+                    }} placeholder="Value (e.g. 50,000+)" />
+                    <Input value={st.label || ""} onChange={(e) => {
+                      const list = [...(config.stats || [])];
+                      list[si] = { ...list[si], label: e.target.value };
+                      updateSectionConfig(section.id, "stats", list);
+                    }} placeholder="Label (e.g. Happy Celebrations)" />
+                  </div>
+                ))}
+                <Button variant="secondary" size="small" onClick={() => {
+                  const list = [...(config.stats || []), { value: "100%", label: "Fresh Guarantee" }];
+                  updateSectionConfig(section.id, "stats", list);
+                }}><Plus className="w-3.5 h-3.5 mr-1" /> Add Statistic</Button>
               </div>
             </>
           )}
 
-          {/* CTA SECTION */}
-          {section.type === "cta" && (
+          {/* 11. TIMELINE */}
+          {(editorType === "timeline" || section.type === "timeline" || section.type === "bakery_timeline") && (
+            <>
+              <Field label="Timeline Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Our Journey of Flavor" /></Field>
+              <div className="flex flex-col gap-2">
+                <Text className="text-xs font-bold">Milestones / Steps ({(config.events || []).length})</Text>
+                {(config.events || []).map((ev: any, ei: number) => (
+                  <div key={ei} className="p-2.5 bg-ui-bg-subtle rounded-xl flex flex-col gap-1.5 border border-ui-border-base text-xs">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input value={ev.year || ""} onChange={(e) => {
+                        const list = [...(config.events || [])];
+                        list[ei] = { ...list[ei], year: e.target.value };
+                        updateSectionConfig(section.id, "events", list);
+                      }} placeholder="Year or Step (e.g. 2021)" />
+                      <Input value={ev.title || ""} onChange={(e) => {
+                        const list = [...(config.events || [])];
+                        list[ei] = { ...list[ei], title: e.target.value };
+                        updateSectionConfig(section.id, "events", list);
+                      }} placeholder="Title (e.g. First Micro-Bakery)" />
+                    </div>
+                    <Textarea value={ev.desc || ""} onChange={(e) => {
+                      const list = [...(config.events || [])];
+                      list[ei] = { ...list[ei], desc: e.target.value };
+                      updateSectionConfig(section.id, "events", list);
+                    }} placeholder="Description..." rows={2} />
+                    <button onClick={() => {
+                      const list = (config.events || []).filter((_: any, i: number) => i !== ei);
+                      updateSectionConfig(section.id, "events", list);
+                    }} className="self-end text-[10px] text-red-500 hover:underline">Remove</button>
+                  </div>
+                ))}
+                <Button variant="secondary" size="small" onClick={() => {
+                  const list = [...(config.events || []), { year: "2024", title: "Milestone", desc: "" }];
+                  updateSectionConfig(section.id, "events", list);
+                }}><Plus className="w-3.5 h-3.5 mr-1" /> Add Milestone</Button>
+              </div>
+            </>
+          )}
+
+          {/* 12. GALLERY & VIDEO GALLERY */}
+          {(editorType === "gallery" || editorType === "video_gallery" || section.type === "image_gallery" || section.type === "kitchen_gallery") && (
+            <>
+              <Field label="Gallery Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Our Fresh Kitchen Creations" /></Field>
+              <Field label="Layout Style">
+                <Select value={config.layout || "grid"} onValueChange={(v) => updateSectionConfig(section.id, "layout", v)}>
+                  <Select.Trigger><Select.Value /></Select.Trigger>
+                  <Select.Content>
+                    <Select.Item value="grid">Grid</Select.Item>
+                    <Select.Item value="masonry">Masonry</Select.Item>
+                  </Select.Content>
+                </Select>
+              </Field>
+              <div className="flex flex-col gap-2">
+                <Text className="text-xs font-bold">Gallery Images ({(config.images || []).length})</Text>
+                {(config.images || []).map((img: any, ii: number) => (
+                  <div key={ii} className="p-2.5 bg-ui-bg-subtle rounded-xl grid grid-cols-2 gap-2 border border-ui-border-base text-xs">
+                    <Input value={typeof img === "string" ? img : img.url || ""} onChange={(e) => {
+                      const list = [...(config.images || [])];
+                      list[ii] = typeof img === "string" ? e.target.value : { ...img, url: e.target.value };
+                      updateSectionConfig(section.id, "images", list);
+                    }} placeholder="Image URL (https://...)" />
+                    <Input value={typeof img === "object" ? img.caption || "" : ""} onChange={(e) => {
+                      const list = [...(config.images || [])];
+                      list[ii] = { url: typeof img === "string" ? img : img.url, caption: e.target.value };
+                      updateSectionConfig(section.id, "images", list);
+                    }} placeholder="Caption" />
+                  </div>
+                ))}
+                <Button variant="secondary" size="small" onClick={() => {
+                  const list = [...(config.images || []), { url: "", caption: "" }];
+                  updateSectionConfig(section.id, "images", list);
+                }}><Plus className="w-3.5 h-3.5 mr-1" /> Add Image</Button>
+              </div>
+            </>
+          )}
+
+          {/* 12b. PULL QUOTE */}
+          {(editorType === "quote" || section.type === "quote") && (
+            <>
+              <Field label="Quote Text">
+                <Textarea value={config.text || ""} onChange={(e) => updateSectionConfig(section.id, "text", e.target.value)} placeholder="“A birthday without cake is just a meeting...”" rows={3} />
+              </Field>
+              <div className="grid grid-cols-2 gap-2">
+                <Field label="Author Name">
+                  <Input value={config.author || ""} onChange={(e) => updateSectionConfig(section.id, "author", e.target.value)} placeholder="Chef Alexandre" />
+                </Field>
+                <Field label="Author Role / Attribution">
+                  <Input value={config.role || ""} onChange={(e) => updateSectionConfig(section.id, "role", e.target.value)} placeholder="Master Patissier, CakeToHome" />
+                </Field>
+              </div>
+            </>
+          )}
+
+          {/* 13. LEAD GENERATION FORMS */}
+          {(editorType === "contact_form" || editorType === "newsletter" || editorType === "enquiry_form" || section.type === "contact_form" || section.type === "corporate_enquiry" || section.type === "custom_cake_enquiry") && (
+            <>
+              <Field label="Form Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Get in Touch with Our Bakers" /></Field>
+              <Field label="Form Subtitle"><Input value={config.subheading || ""} onChange={(e) => updateSectionConfig(section.id, "subheading", e.target.value)} placeholder="Have a custom design or corporate order? We respond within 15 minutes." /></Field>
+              <Field label="Form Type">
+                <Select value={config.form_type || "contact"} onValueChange={(v) => updateSectionConfig(section.id, "form_type", v)}>
+                  <Select.Trigger><Select.Value /></Select.Trigger>
+                  <Select.Content>
+                    <Select.Item value="contact">General Contact Form</Select.Item>
+                    <Select.Item value="newsletter">Email Newsletter Subscribe</Select.Item>
+                    <Select.Item value="corporate">Corporate Bulk Order Enquiry</Select.Item>
+                    <Select.Item value="custom_cake">Custom Cake Design Request</Select.Item>
+                    <Select.Item value="callback">Callback Request</Select.Item>
+                  </Select.Content>
+                </Select>
+              </Field>
+              <div className="grid grid-cols-2 gap-2">
+                <Field label="Submit Button Text"><Input value={config.submit_text || "Submit"} onChange={(e) => updateSectionConfig(section.id, "submit_text", e.target.value)} /></Field>
+                <Field label="Success Message"><Input value={config.success_message || "Thank you! We will get back to you shortly."} onChange={(e) => updateSectionConfig(section.id, "success_message", e.target.value)} /></Field>
+              </div>
+            </>
+          )}
+
+          {/* 14. DELIVERY & LOCATION COVERAGE */}
+          {(editorType === "delivery_coverage" || editorType === "store_locator" || section.type === "location_coverage") && (
+            <>
+              <Field label="Badge"><Input value={config.badge || ""} onChange={(e) => updateSectionConfig(section.id, "badge", e.target.value)} placeholder="Coverage Area" /></Field>
+              <Field label="Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="📍 We Deliver Fresh Cakes Across Bangalore" /></Field>
+              <Field label="Subheading"><Input value={config.subheading || ""} onChange={(e) => updateSectionConfig(section.id, "subheading", e.target.value)} placeholder="Same-day & 2-hour express delivery available" /></Field>
+              {editorType === "store_locator" ? (
+                <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2">
+                  <Text className="text-xs font-bold">Store / Branch Details</Text>
+                  <Field label="Address"><Input value={config.address || ""} onChange={(e) => updateSectionConfig(section.id, "address", e.target.value)} placeholder="123 100ft Road, Indiranagar" /></Field>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="Phone"><Input value={config.phone || ""} onChange={(e) => updateSectionConfig(section.id, "phone", e.target.value)} placeholder="+91 98765 43210" /></Field>
+                    <Field label="Hours"><Input value={config.hours || ""} onChange={(e) => updateSectionConfig(section.id, "hours", e.target.value)} placeholder="8 AM - 11 PM Daily" /></Field>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Text className="text-xs font-bold">Delivery Areas ({(config.areas || []).length})</Text>
+                  <div className="flex gap-2">
+                    <Input value={newAreaInput} onChange={(e) => setNewAreaInput(e.target.value)} placeholder="Add area name..." onKeyDown={(e) => {
+                      if (e.key === "Enter" && newAreaInput.trim()) {
+                        e.preventDefault();
+                        updateSectionConfig(section.id, "areas", [...(config.areas || []), newAreaInput.trim()]);
+                        setNewAreaInput("");
+                      }
+                    }} />
+                    <Button variant="secondary" size="small" onClick={() => {
+                      if (newAreaInput.trim()) {
+                        updateSectionConfig(section.id, "areas", [...(config.areas || []), newAreaInput.trim()]);
+                        setNewAreaInput("");
+                      }
+                    }}><Plus className="w-3.5 h-3.5" /></Button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 p-2 bg-ui-bg-subtle rounded-xl border border-ui-border-base max-h-36 overflow-y-auto">
+                    {(config.areas || []).map((area: string, ai: number) => (
+                      <span key={ai} className="px-2 py-1 bg-white dark:bg-ui-bg-base rounded-lg border text-xs flex items-center gap-1 shadow-sm">
+                        {area}
+                        <button onClick={() => updateSectionConfig(section.id, "areas", (config.areas || []).filter((_: any, i: number) => i !== ai))} className="text-ui-fg-muted hover:text-red-500">×</button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* 15. CTA SECTION */}
+          {(editorType === "cta" || section.type === "cta" || section.type === "shop_now_cta") && (
             <>
               <Field label="Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Ready to Celebrate?" /></Field>
               <Field label="Subheading"><Input value={config.subheading || ""} onChange={(e) => updateSectionConfig(section.id, "subheading", e.target.value)} placeholder="Order handcrafted cakes baked fresh..." /></Field>
@@ -562,11 +852,53 @@ export function SectionConfigEditor({
             </>
           )}
 
-          {/* TEXT / SEO CONTENT */}
-          {(section.type === "text_content" || section.type === "seo_content") && (
+          {/* 16. TEXT / SEO / RICH TEXT */}
+          {(editorType === "text_content" || editorType === "seo_content" || editorType === "rich_text" || section.type === "text_content" || section.type === "seo_content" || section.type === "rich_text" || section.type === "location_content" || section.type === "internal_links") && (
             <>
               <Field label="Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Artisanal Cake Delivery" /></Field>
               <Field label="Content Body"><Textarea value={config.content || ""} onChange={(e) => updateSectionConfig(section.id, "content", e.target.value)} rows={4} /></Field>
+            </>
+          )}
+
+          {/* 16b. BLOG & EDITORIAL ARTICLES */}
+          {(editorType === "blog_grid" || section.type === "blog_grid" || section.type === "blog_carousel" || section.type === "featured_article") && (
+            <>
+              <Field label="Blog Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="The Sweet Gazette • Cake Trends & Baking Guides" /></Field>
+              <Field label="Subtitle"><Input value={config.subheading || ""} onChange={(e) => updateSectionConfig(section.id, "subheading", e.target.value)} placeholder="Tips, recipes, celebration ideas, and behind-the-scenes bakery stories" /></Field>
+              <Field label="Layout Mode">
+                <Select value={config.layout || "grid"} onValueChange={(v) => updateSectionConfig(section.id, "layout", v)}>
+                  <Select.Trigger><Select.Value /></Select.Trigger>
+                  <Select.Content>
+                    <Select.Item value="grid">Grid (Standard)</Select.Item>
+                    <Select.Item value="carousel">Carousel (Swipeable)</Select.Item>
+                  </Select.Content>
+                </Select>
+              </Field>
+            </>
+          )}
+
+          {/* 16c. RELATED CONTENT & DISCOVERY */}
+          {(editorType === "related_content" || section.type === "related_categories_content" || section.type === "related_products_content") && (
+            <>
+              <Field label="Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Explore Related Categories" /></Field>
+              <Field label="Max Discovery Links">
+                <Input type="number" value={config.limit || 8} onChange={(e) => updateSectionConfig(section.id, "limit", parseInt(e.target.value) || 8)} />
+              </Field>
+            </>
+          )}
+
+          {/* 17. FOOTER & NAVIGATION */}
+          {(editorType === "footer" || editorType === "social_links" || editorType === "breadcrumbs" || editorType === "mega_menu" || editorType === "header" || editorType === "internal_links") && (
+            <>
+              <Field label="Section Title"><Input value={config.heading || config.title || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Navigation / Links" /></Field>
+              {editorType === "social_links" && (
+                <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2">
+                  <Text className="text-xs font-bold">Social Media Handles</Text>
+                  <Field label="Instagram"><Input value={config.instagram || ""} onChange={(e) => updateSectionConfig(section.id, "instagram", e.target.value)} placeholder="https://instagram.com/caketohome" /></Field>
+                  <Field label="WhatsApp"><Input value={config.whatsapp || ""} onChange={(e) => updateSectionConfig(section.id, "whatsapp", e.target.value)} placeholder="+91 98765 43210" /></Field>
+                  <Field label="Facebook"><Input value={config.facebook || ""} onChange={(e) => updateSectionConfig(section.id, "facebook", e.target.value)} placeholder="https://facebook.com/..." /></Field>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -654,8 +986,18 @@ export function SectionConfigEditor({
             </div>
           )}
 
-          {/* Carousel / Horizontal Scroll Mode for Product & Category Grids */}
-          {(section.type === "product_grid" || section.type === "best_sellers" || section.type === "new_arrivals" || section.type === "category_grid") && (
+          {/* Carousel / Horizontal Scroll Mode for Product, Category & Occasion Grids */}
+          {(editorType === "product_grid" ||
+            editorType === "product_carousel" ||
+            editorType === "category_grid" ||
+            editorType === "category_carousel" ||
+            editorType === "occasion_grid" ||
+            editorType === "occasion_carousel" ||
+            section.type === "product_grid" ||
+            section.type === "best_sellers" ||
+            section.type === "new_arrivals" ||
+            section.type === "category_grid" ||
+            section.type === "occasions_grid") && (
             <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
               <Text className="text-xs font-bold text-rose-600 uppercase">Layout & Carousel Controls</Text>
               <Field label="Display Layout">
@@ -732,7 +1074,17 @@ export function SectionConfigEditor({
             </div>
           )}
 
-          {(section.type === "product_grid" || section.type === "best_sellers" || section.type === "new_arrivals" || section.type === "category_grid") && (
+          {(editorType === "product_grid" ||
+            editorType === "product_carousel" ||
+            editorType === "category_grid" ||
+            editorType === "category_carousel" ||
+            editorType === "occasion_grid" ||
+            editorType === "occasion_carousel" ||
+            section.type === "product_grid" ||
+            section.type === "best_sellers" ||
+            section.type === "new_arrivals" ||
+            section.type === "category_grid" ||
+            section.type === "occasions_grid") && (
             <div className="grid grid-cols-2 gap-2">
               <Field label="Columns">
                 <Select value={String(config[activeDevice]?.columns || (activeDevice === "desktop" ? 4 : activeDevice === "tablet" ? 3 : 2))} onValueChange={(v) => updateSectionNestedConfig(section.id, activeDevice, "columns", parseInt(v))}>

@@ -19,31 +19,20 @@ import { PageRenderer } from "@frontend/components/store/cms/page-renderer";
 import { PromotionalBannerEditor } from "./promotional-banner-editor";
 import { AnnouncementBarEditor } from "./announcement-bar-editor";
 import { SectionConfigEditor } from "./section-config-editor";
+import { PdpBuilderEditor } from "./pdp-builder-editor";
+import {
+  SECTION_REGISTRY, SECTION_CATEGORIES, getSectionDefinition, searchSections, getDefaultConfig,
+  type SectionCategory, type SectionTypeDefinition,
+} from "@frontend/lib/cms/section-registry";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type DeviceMode = "desktop" | "tablet" | "mobile" | "full";
-type PageTab = "general" | "seo" | "theme" | "visibility" | "marketing" | "advanced" | "publish";
+type PageTab = "general" | "pdp" | "seo" | "theme" | "visibility" | "marketing" | "advanced" | "publish";
 type MobilePanelTab = "settings" | "preview" | "sections";
 
-const SECTION_TYPES = [
-  { value: "announcement_bar", label: "Announcement Bar", icon: "📣" },
-  { value: "hero", label: "Hero Banner", icon: "🖼️" },
-  { value: "kitchen_story", label: "Kitchen Story Animation", icon: "🎬" },
-  { value: "category_grid", label: "Category Grid", icon: "🗂️" },
-  { value: "product_grid", label: "Product Grid", icon: "🏷️" },
-  { value: "occasions_grid", label: "Occasions Grid", icon: "🎁" },
-  { value: "recommendations", label: "Chef Recommendations", icon: "⚡" },
-  { value: "trust_badges", label: "Trust & Compliance", icon: "🛡️" },
-  { value: "promotional_banner", label: "Promotional Banner", icon: "📢" },
-  { value: "image_text", label: "Image + Text", icon: "📋" },
-  { value: "text_content", label: "Text Content", icon: "📝" },
-  { value: "faq", label: "FAQ", icon: "❓" },
-  { value: "location_coverage", label: "Delivery Coverage", icon: "📍" },
-  { value: "brand_story", label: "Brand Story", icon: "✨" },
-  { value: "features", label: "Features / Benefits", icon: "⭐" },
-  { value: "cta", label: "Call to Action", icon: "🚀" },
-  { value: "seo_content", label: "SEO Content Block", icon: "🔍" },
-];
+// SECTION_TYPES is now sourced from the central section registry
+// (see @frontend/lib/cms/section-registry.ts)
+const SECTION_TYPES = SECTION_REGISTRY;
 
 const PRODUCT_MODES = [
   { value: "best_sellers", label: "Best Sellers" },
@@ -56,6 +45,7 @@ const PRODUCT_MODES = [
 const PAGE_TYPES = [
   { value: "home", label: "Homepage" },
   { value: "catalog", label: "Product Catalog" },
+  { value: "product", label: "Product Detail Page (PDP)" },
   { value: "landing", label: "Landing Page" },
   { value: "campaign", label: "Campaign Page" },
   { value: "page", label: "Static Page" },
@@ -156,7 +146,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
 }
 
 function SectionIcon({ type }: { type: string }) {
-  const sec = SECTION_TYPES.find(s => s.value === type);
+  const sec = getSectionDefinition(type);
   return <span className="text-sm">{sec?.icon || "📄"}</span>;
 }
 
@@ -192,6 +182,8 @@ export function PageConfigurator() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAddSectionModal, setShowAddSectionModal] = useState(false);
   const [addSectionType, setAddSectionType] = useState<string>("hero");
+  const [sectionSearchQuery, setSectionSearchQuery] = useState("");
+  const [activeSectionCategory, setActiveSectionCategory] = useState<SectionCategory | "all">("all");
   const [newPageForm, setNewPageForm] = useState({ title: "", slug: "", page_type: "landing", status: "draft" });
   const [validationResult, setValidationResult] = useState<{ valid: boolean; errors: string[]; warnings: string[] } | null>(null);
 
@@ -225,7 +217,7 @@ export function PageConfigurator() {
     loadAll();
   }, []);
 
-  const loadAll = async () => {
+  const loadAll = async (targetPageId?: string) => {
     setLoading(true);
     try {
       const [pagesRes, productsRes, catsRes, occsRes] = await Promise.allSettled([
@@ -241,7 +233,8 @@ export function PageConfigurator() {
       setAllOccasions((occsRes.status === "fulfilled" ? (occsRes.value as any)?.occasions : null) || []);
 
       if (fetchedPages.length > 0) {
-        const def = fetchedPages.find((p: any) => p.id === selectedPageId) || fetchedPages[0];
+        const activeId = targetPageId || selectedPageId;
+        const def = fetchedPages.find((p: any) => p.id === activeId) || fetchedPages.find((p: any) => p.id === selectedPageId) || fetchedPages[0];
         setSelectedPageId(def.id);
         setEditingPage(def);
         setSavedSnapshot(JSON.stringify(def));
@@ -413,20 +406,23 @@ export function PageConfigurator() {
     setSections(updated);
   };
 
-  const addSection = () => {
-    const sectionType = SECTION_TYPES.find(s => s.value === addSectionType);
+  const addSection = (typeOverride?: string) => {
+    const sType = typeOverride || addSectionType;
+    const sectionDef = getSectionDefinition(sType);
     const newSec = {
       id: `sec_${Date.now()}`,
-      type: addSectionType,
-      name: sectionType?.label || "New Section",
+      type: sType,
+      name: sectionDef?.label || "New Section",
       enabled: true,
       order: getSections().length + 1,
-      config: {},
+      config: sectionDef ? { ...sectionDef.defaultConfig } : {},
     };
     setSections([...getSections(), newSec]);
     setShowAddSectionModal(false);
+    setSectionSearchQuery("");
+    setActiveSectionCategory("all");
     scrollToSectionInCanvas(newSec.id);
-    showToast(`Added ${sectionType?.label} section`);
+    showToast(`Added ${sectionDef?.label || sType} section`);
   };
 
   const duplicateSection = (id: string) => {
@@ -519,7 +515,7 @@ export function PageConfigurator() {
       const updated = res?.page || res;
       setSavedSnapshot(JSON.stringify(updated));
       showToast("Draft saved successfully!");
-      await loadAll();
+      await loadAll(updated?.id || editingPage.id);
       if (updated?.id) setSelectedPageId(updated.id);
     } catch (err: any) {
       showToast(err.message || "Failed to save", "error");
@@ -545,7 +541,7 @@ export function PageConfigurator() {
         showToast("Page published successfully! Customer storefront updated. 🎉");
         setValidationResult(null);
         setSavedSnapshot(JSON.stringify(res.page));
-        await loadAll();
+        await loadAll(res?.page?.id || editingPage.id);
       }
     } catch (err: any) {
       showToast(err.message || "Failed to publish", "error");
@@ -558,7 +554,7 @@ export function PageConfigurator() {
     try {
       await apiClient.unpublishCmsPage(editingPage.id);
       showToast("Page unpublished — set back to Draft");
-      await loadAll();
+      await loadAll(editingPage.id);
     } catch {
       showToast("Failed to unpublish", "error");
     }
@@ -686,44 +682,126 @@ export function PageConfigurator() {
         </div>
       )}
 
-      {/* Add Section Modal */}
-      {showAddSectionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-ui-bg-base rounded-2xl shadow-2xl p-6 w-full max-w-lg flex flex-col gap-4 border border-ui-border-base">
-            <div className="flex items-center justify-between">
-              <Heading level="h3" className="text-base font-bold">Add New Page Section</Heading>
-              <button onClick={() => setShowAddSectionModal(false)} className="p-1.5 rounded-lg hover:bg-ui-bg-subtle">
-                <XCircle className="w-4 h-4 text-ui-fg-muted" />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2 max-h-[360px] overflow-y-auto pr-1">
-              {SECTION_TYPES.map(st => (
-                <button
-                  key={st.value}
-                  onClick={() => setAddSectionType(st.value)}
-                  className={`p-3 rounded-xl text-left flex items-center gap-3 transition-all border ${
-                    addSectionType === st.value
-                      ? "bg-rose-50 border-rose-300 text-rose-700 dark:bg-rose-950/30 dark:border-rose-700"
-                      : "bg-ui-bg-subtle/50 border-ui-border-base hover:bg-ui-bg-subtle"
-                  }`}
-                >
-                  <span className="text-xl">{st.icon}</span>
-                  <div>
-                    <Text className="text-xs font-bold">{st.label}</Text>
-                    <Text className="text-[10px] text-ui-fg-muted">{st.value}</Text>
-                  </div>
+      {/* Add Section Modal — Categorized Section Browser */}
+      {showAddSectionModal && (() => {
+        const filteredSections = sectionSearchQuery.trim()
+          ? searchSections(sectionSearchQuery)
+          : activeSectionCategory === "all"
+            ? SECTION_REGISTRY
+            : SECTION_REGISTRY.filter(s => s.category === activeSectionCategory);
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="bg-ui-bg-base rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col border border-ui-border-base overflow-hidden">
+              {/* Header */}
+              <div className="shrink-0 p-5 border-b border-ui-border-base flex items-center justify-between">
+                <div>
+                  <Heading level="h3" className="text-lg font-bold">Add Page Section</Heading>
+                  <Text className="text-xs text-ui-fg-muted mt-0.5">{SECTION_REGISTRY.length} sections in {SECTION_CATEGORIES.length} categories</Text>
+                </div>
+                <button onClick={() => { setShowAddSectionModal(false); setSectionSearchQuery(""); setActiveSectionCategory("all"); }} className="p-1.5 rounded-lg hover:bg-ui-bg-subtle">
+                  <XCircle className="w-5 h-5 text-ui-fg-muted" />
                 </button>
-              ))}
-            </div>
-            <div className="flex gap-2 pt-2 border-t border-ui-border-base">
-              <Button variant="secondary" size="small" onClick={() => setShowAddSectionModal(false)} className="flex-1">Cancel</Button>
-              <Button variant="primary" size="small" onClick={addSection} className="flex-1">
-                <Plus className="w-3.5 h-3.5 mr-1" /> Add Section
-              </Button>
+              </div>
+
+              {/* Search */}
+              <div className="shrink-0 px-5 py-3 border-b border-ui-border-base">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ui-fg-muted" />
+                  <input
+                    type="text"
+                    value={sectionSearchQuery}
+                    onChange={e => { setSectionSearchQuery(e.target.value); if (e.target.value.trim()) setActiveSectionCategory("all"); }}
+                    placeholder="Search sections... (e.g. product, hero, FAQ, delivery)"
+                    className="w-full pl-9 pr-4 py-2 text-sm bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                    autoFocus
+                  />
+                  {sectionSearchQuery && (
+                    <button onClick={() => setSectionSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <XCircle className="w-4 h-4 text-ui-fg-muted hover:text-ui-fg-base" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Body: Categories sidebar + Section grid */}
+              <div className="flex flex-1 min-h-0 overflow-hidden">
+                {/* Category sidebar */}
+                <div className="shrink-0 w-48 border-r border-ui-border-base overflow-y-auto bg-ui-bg-subtle/30 p-2 flex flex-col gap-0.5">
+                  <button
+                    onClick={() => { setActiveSectionCategory("all"); setSectionSearchQuery(""); }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                      activeSectionCategory === "all" && !sectionSearchQuery
+                        ? "bg-rose-500 text-white shadow-sm"
+                        : "text-ui-fg-muted hover:bg-ui-bg-subtle hover:text-ui-fg-base"
+                    }`}
+                  >
+                    📑 All Sections ({SECTION_REGISTRY.length})
+                  </button>
+                  {SECTION_CATEGORIES.map(cat => {
+                    const count = SECTION_REGISTRY.filter(s => s.category === cat.id).length;
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => { setActiveSectionCategory(cat.id); setSectionSearchQuery(""); }}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-between ${
+                          activeSectionCategory === cat.id && !sectionSearchQuery
+                            ? "bg-rose-500 text-white shadow-sm"
+                            : "text-ui-fg-muted hover:bg-ui-bg-subtle hover:text-ui-fg-base"
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5 truncate">
+                          <span>{cat.icon}</span>
+                          <span className="truncate">{cat.label}</span>
+                        </span>
+                        <span className={`text-[10px] font-bold shrink-0 ${
+                          activeSectionCategory === cat.id && !sectionSearchQuery ? "text-white/80" : "text-ui-fg-subtle"
+                        }`}>{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Section grid */}
+                <div className="flex-1 overflow-y-auto p-4">
+                  {filteredSections.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-16 text-ui-fg-muted">
+                      <Search className="w-8 h-8 mb-2 opacity-30" />
+                      <Text className="text-sm font-semibold">No sections found</Text>
+                      <Text className="text-xs">Try a different search term or category</Text>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                      {filteredSections.map(st => (
+                        <button
+                          key={st.value}
+                          onClick={() => addSection(st.value)}
+                          className="p-3 rounded-xl text-left flex items-start gap-3 transition-all border bg-ui-bg-subtle/30 border-ui-border-base hover:bg-rose-50 hover:border-rose-300 hover:shadow-sm dark:hover:bg-rose-950/20 group"
+                        >
+                          <span className="text-xl shrink-0 mt-0.5">{st.icon}</span>
+                          <div className="min-w-0">
+                            <Text className="text-xs font-bold group-hover:text-rose-700 dark:group-hover:text-rose-400 truncate">{st.label}</Text>
+                            <Text className="text-[10px] text-ui-fg-muted line-clamp-2 leading-relaxed mt-0.5">{st.description}</Text>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="shrink-0 p-4 border-t border-ui-border-base flex items-center justify-between bg-ui-bg-subtle/30">
+                <Text className="text-xs text-ui-fg-muted">
+                  {sectionSearchQuery ? `${filteredSections.length} results for "${sectionSearchQuery}"` : `${filteredSections.length} sections available`}
+                </Text>
+                <Button variant="secondary" size="small" onClick={() => { setShowAddSectionModal(false); setSectionSearchQuery(""); setActiveSectionCategory("all"); }}>
+                  Close
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* STICKY TOP TOOLBAR */}
       <div className="sticky top-16 z-30 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-ui-bg-base/95 backdrop-blur-md p-3 rounded-xl border border-ui-border-base shadow-sm">
@@ -881,6 +959,7 @@ export function PageConfigurator() {
               <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-ui-border-base scrollbar-none">
                 {[
                   { id: "general", label: "General" },
+                  ...(editingPage.page_type === "product" ? [{ id: "pdp", label: "PDP Layout" }] : []),
                   { id: "seo", label: "SEO" },
                   { id: "theme", label: "Theme" },
                   { id: "visibility", label: "Visibility" },
@@ -942,6 +1021,28 @@ export function PageConfigurator() {
                     />
                   </Field>
                 </div>
+              )}
+
+              {/* PDP Layout Tab */}
+              {activeTab === "pdp" && (
+                <PdpBuilderEditor
+                  config={editingPage.draft_config?.pdp || editingPage.published_config?.pdp || editingPage.pdp_config || {}}
+                  onChange={(key, val) => {
+                    setEditingPage((prev: any) => {
+                      if (!prev) return prev;
+                      const currentPdp = prev.draft_config?.pdp || prev.pdp_config || {};
+                      const updatedPdp = { ...currentPdp, [key]: val };
+                      return {
+                        ...prev,
+                        pdp_config: updatedPdp,
+                        draft_config: {
+                          ...(prev.draft_config || {}),
+                          pdp: updatedPdp,
+                        },
+                      };
+                    });
+                  }}
+                />
               )}
 
               {/* SEO Tab */}
@@ -1064,6 +1165,40 @@ export function PageConfigurator() {
                           onChange={e => updateNestedField("theme", "accent_color", e.target.value)}
                         />
                       </div>
+                    </Field>
+                  </div>
+
+                  <Text className="text-xs font-bold text-rose-600 pt-2">Typography & Style</Text>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="Body Font Family">
+                      <Select
+                        value={editingPage.theme?.font_family || "inherit"}
+                        onValueChange={v => updateNestedField("theme", "font_family", v)}
+                      >
+                        <Select.Trigger><Select.Value /></Select.Trigger>
+                        <Select.Content>
+                          <Select.Item value="inherit">Default System</Select.Item>
+                          <Select.Item value="var(--font-inter), sans-serif">Inter</Select.Item>
+                          <Select.Item value="'Outfit', sans-serif">Outfit</Select.Item>
+                          <Select.Item value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</Select.Item>
+                          <Select.Item value="'Montserrat', sans-serif">Montserrat</Select.Item>
+                        </Select.Content>
+                      </Select>
+                    </Field>
+                    <Field label="Heading Font Family">
+                      <Select
+                        value={editingPage.theme?.heading_font || "inherit"}
+                        onValueChange={v => updateNestedField("theme", "heading_font", v)}
+                      >
+                        <Select.Trigger><Select.Value /></Select.Trigger>
+                        <Select.Content>
+                          <Select.Item value="inherit">Default System</Select.Item>
+                          <Select.Item value="'Playfair Display', serif">Playfair Display (Serif)</Select.Item>
+                          <Select.Item value="'Outfit', sans-serif">Outfit (Modern)</Select.Item>
+                          <Select.Item value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</Select.Item>
+                          <Select.Item value="'Cinzel', serif">Cinzel (Luxury)</Select.Item>
+                        </Select.Content>
+                      </Select>
                     </Field>
                   </div>
                 </div>

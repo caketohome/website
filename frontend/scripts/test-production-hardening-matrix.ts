@@ -210,18 +210,18 @@ async function runSuite() {
   try {
     // 4.1 Pincode 560038
     const r1 = ApiEngine.resolveSmartBranch({ pincode: "560038" });
-    if (r1.branch.name.includes("Indiranagar") && r1.resolvedBy.includes("pincode")) {
-      record("4.1", "Zone Resolution", "Pincode 560038 -> Indiranagar Hub", "PASS", `Resolved ${r1.branch.name} (${r1.zoneName}), Fee ₹${r1.deliveryFee}`);
+    if (r1.branch?.name.includes("Indiranagar") && r1.resolvedBy.includes("pincode")) {
+      record("4.1", "Zone Resolution", "Pincode 560038 -> Indiranagar Hub", "PASS", `Resolved ${r1.branch?.name} (${r1.zoneName}), Fee ₹${r1.deliveryFee}`);
     } else {
-      record("4.1", "Zone Resolution", "Pincode 560038", "FAIL", `Resolved to ${r1.branch.name} via ${r1.resolvedBy}`);
+      record("4.1", "Zone Resolution", "Pincode 560038", "FAIL", `Resolved to ${r1.branch?.name} via ${r1.resolvedBy}`);
     }
 
     // 4.2 Pincode 560034
     const r2 = ApiEngine.resolveSmartBranch({ pincode: "560034" });
-    if (r2.branch.name.includes("Koramangala") && r2.resolvedBy.includes("pincode")) {
-      record("4.2", "Zone Resolution", "Pincode 560034 -> Koramangala Hub", "PASS", `Resolved ${r2.branch.name} (${r2.zoneName}), Fee ₹${r2.deliveryFee}`);
+    if (r2.branch?.name.includes("Koramangala") && r2.resolvedBy.includes("pincode")) {
+      record("4.2", "Zone Resolution", "Pincode 560034 -> Koramangala Hub", "PASS", `Resolved ${r2.branch?.name} (${r2.zoneName}), Fee ₹${r2.deliveryFee}`);
     } else {
-      record("4.2", "Zone Resolution", "Pincode 560034", "FAIL", `Resolved to ${r2.branch.name}`);
+      record("4.2", "Zone Resolution", "Pincode 560034", "FAIL", `Resolved to ${r2.branch?.name}`);
     }
 
     // 4.3 Pincode 560001

@@ -31,7 +31,7 @@ async function runControlsAudit() {
   const mobileImg = "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=600";
   const heroAltText = "Artisanal Birthday Cake Delivery Bangalore";
 
-  const auditPage = ApiEngine.createCmsPage({
+  const auditPage: any = await ApiEngine.createCmsPage({
     title: "Real-World Control Audit Page",
     slug: "audit-control-page",
     page_type: "landing",
@@ -113,7 +113,7 @@ async function runControlsAudit() {
       },
     },
   ];
-  const updatedPage = ApiEngine.updateCmsPage(auditPage.id, { sections: reorderedSections });
+  const updatedPage: any = await ApiEngine.updateCmsPage(auditPage.id, { sections: reorderedSections });
   assert(updatedPage?.sections[1].config.product_ids[0] === "prod_1", "Reordered Product ID at index 0 is now 'prod_1'");
   assert(updatedPage?.sections[1].config.product_ids[1] === "prod_2", "Reordered Product ID at index 1 is now 'prod_2'");
 
@@ -131,7 +131,7 @@ async function runControlsAudit() {
   assert(unpublishedRes === null, "Draft modifications are isolated from customer storefront before publish");
 
   // Now Publish Page
-  const publishRes = ApiEngine.publishCmsPage(auditPage.id);
+  const publishRes: any = await ApiEngine.publishCmsPage(auditPage.id);
   assert(publishRes.success === true, "Page published successfully");
   assert(publishRes.page.published_config.theme.bg_color === "#fffaf0", "Published snapshot includes custom theme bg_color");
   assert(publishRes.page.published_config.theme.accent_color === "#dd6b20", "Published snapshot includes custom theme accent_color");
@@ -145,13 +145,13 @@ async function runControlsAudit() {
 
   // ── TEST 6: Section Deletion & Hiding ───────────────────────────────────────
   console.log("\n--- AUDIT 6: Section Hiding & Deletion Isolation ---");
-  ApiEngine.updateCmsPage(auditPage.id, {
+  await ApiEngine.updateCmsPage(auditPage.id, {
     sections: [
       { ...updatedPage?.sections[0], enabled: false }, // Disabled hero
       updatedPage?.sections[1],
     ],
   });
-  ApiEngine.publishCmsPage(auditPage.id);
+  await ApiEngine.publishCmsPage(auditPage.id);
   const reloadedAfterHide = await getCmsPage("audit-control-page");
   const activeSecs = (reloadedAfterHide?.sections || []).filter((s: any) => s.enabled !== false);
   assert(activeSecs.length === 1, "Disabled section is filtered out from active storefront section list");
@@ -159,7 +159,7 @@ async function runControlsAudit() {
 
   // ── TEST 7: Clean Unpublish Resolution ─────────────────────────────────────
   console.log("\n--- AUDIT 7: Clean Unpublish Resolution ---");
-  ApiEngine.unpublishCmsPage(auditPage.id);
+  await ApiEngine.unpublishCmsPage(auditPage.id);
   const unpublishedStorefront = await getCmsPage("audit-control-page", "en", true);
   assert(unpublishedStorefront?.status === "draft", "Unpublished page reverts to DRAFT status");
 

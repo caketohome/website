@@ -128,7 +128,7 @@ async function testPromotionalBannerCmsE2E() {
     return sec;
   });
 
-  const updateRes = ApiEngine.updateCmsPage(initialHome.page.id, {
+  const updateRes: any = await ApiEngine.updateCmsPage(initialHome.page.id, {
     ...initialHome.page,
     sections: updatedSections,
   });
@@ -139,7 +139,7 @@ async function testPromotionalBannerCmsE2E() {
   // 3. PUBLISH CMS PAGE TO STOREFRONT
   // ──────────────────────────────────────────────────────────────────────────
   console.log("\n3️⃣  Publishing CMS Page to Live Customer Storefront...");
-  const publishRes = ApiEngine.publishCmsPage(initialHome.page.id);
+  const publishRes: any = await ApiEngine.publishCmsPage(initialHome.page.id);
   assert(publishRes.success === true, "CMS page published successfully");
   console.log("  ✅ Published status confirmed. Customer storefront cache refreshed.");
 

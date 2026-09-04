@@ -142,7 +142,7 @@ async function runSmartLoginAndCartRecoveryE2ESuite() {
   });
   assert(Array.isArray(eligiblePopups) && eligiblePopups.length >= 1, "P5.1", "Eligible marketing and cart recovery popups returned for /cart");
 
-  const topPopup = eligiblePopups[0];
+  const topPopup: any = eligiblePopups[0];
   assert(Boolean(topPopup && topPopup.discount_code), "P5.2", "Top priority popup contains active incentive / promo code");
 
   // ---------------------------------------------------------------------------

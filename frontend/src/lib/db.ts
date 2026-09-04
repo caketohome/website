@@ -73,3 +73,10 @@ export async function isDatabaseHealthy(): Promise<boolean> {
     return false;
   }
 }
+
+export async function closeDbPool(): Promise<void> {
+  if (globalThis.__cth_pg_pool__) {
+    await globalThis.__cth_pg_pool__.end();
+    globalThis.__cth_pg_pool__ = undefined;
+  }
+}

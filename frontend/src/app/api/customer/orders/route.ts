@@ -33,23 +33,17 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const store = ApiEngine.getStore();
-    const orders = store.orders || [];
     const normPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
+    let customerOrders: any[] = [];
 
-    let customerOrders = orders.filter((o: any) => {
-      const orderPhone = (o.customer_phone || o.phone || o.shipping_address?.phone || "").replace(/\D/g, "").slice(-10);
-      const matchUid = customerUid && (o.customer_uid === customerUid || o.customer_id === customerUid);
-      const matchUserId = userId && (o.customer_id === userId || o.user_id === userId);
-      const matchPhone = normPhone && orderPhone === normPhone;
-      return matchUid || matchUserId || matchPhone;
-    });
-
-    // If no orders found in memory, query PostgreSQL directly
-    if (customerOrders.length === 0 && (customerUid || userId || normPhone)) {
+    // 1. PRIMARY & AUTHORITATIVE: Direct PostgreSQL query
+    if (customerUid || userId || normPhone) {
       try {
         const dbRes = await dbQuery(
-          `SELECT * FROM "order" WHERE ("customer_id" = $1 OR "metadata"->>'customer_uid' = $1 OR "email" LIKE $2) AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 100`,
+          `SELECT * FROM "order" 
+           WHERE ("customer_id" = $1 OR "metadata"->>'customer_uid' = $1 OR "email" LIKE $2 OR "metadata"->>'customer_phone' LIKE $2) 
+             AND deleted_at IS NULL 
+           ORDER BY created_at DESC LIMIT 100`,
           [customerUid || userId || "", `%${normPhone}%`]
         );
         if (dbRes.rows.length > 0) {
@@ -66,13 +60,26 @@ export async function GET(req: NextRequest) {
               delivery: meta.delivery || {},
               delivery_slot_time: meta.delivery_slot_time,
               delivery_date: meta.delivery_date,
-              branch_id: meta.branch_id,
+              branch_id: meta.branch_id || row.branch_id,
             };
           });
         }
       } catch (err: any) {
         console.warn("[Customer Orders GET] Direct DB lookup warning:", err.message);
       }
+    }
+
+    // 2. In-memory secondary acceleration fallback only if DB returned nothing
+    if (customerOrders.length === 0) {
+      const store = ApiEngine.getStore();
+      const orders = store.orders || [];
+      customerOrders = orders.filter((o: any) => {
+        const orderPhone = (o.customer_phone || o.phone || o.shipping_address?.phone || "").replace(/\D/g, "").slice(-10);
+        const matchUid = customerUid && (o.customer_uid === customerUid || o.customer_id === customerUid);
+        const matchUserId = userId && (o.customer_id === userId || o.user_id === userId);
+        const matchPhone = normPhone && orderPhone === normPhone;
+        return matchUid || matchUserId || matchPhone;
+      });
     }
 
     // Sort newest first

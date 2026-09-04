@@ -162,6 +162,9 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
   try {
     const categoryVal = filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id);
     const engine = await getServerApiEngine();
+    if (engine?.ensureHydrated) {
+      await engine.ensureHydrated();
+    }
     const searchRes = engine?.searchProducts ? engine.searchProducts({
       q: filters.q,
       category: categoryVal,
@@ -181,14 +184,12 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
       product_id: p.id || p.product_id,
       variant_id: p.variant_id || `var_${p.id || p.product_id}`,
       title: p.title || p.name || "Gourmet Cake",
-      description: p.description || p.short_description || "Freshly baked cake.",
-      thumbnail: p.thumbnail === "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800"
-        ? "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800"
-        : (p.thumbnail || p.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587"),
+      description: p.description || p.short_description || "",
+      thumbnail: p.thumbnail || p.image || p.image_url || (Array.isArray(p.images) && p.images[0]) || (Array.isArray(p.gallery) && p.gallery[0]) || "/images/placeholder-cake.jpg",
       handle: p.handle || p.slug || "cake",
-      price: Math.max(1, Number(p.price || p.selling_price) || 599),
-      rating: Number(p.rating) || 4.9,
-      review_count: Number(p.review_count) || 12,
+      price: Math.max(0, Number(p.price || p.selling_price) || 0),
+      rating: Number(p.rating) || 0,
+      review_count: Number(p.review_count) || 0,
       sugar_free: Boolean(p.sugar_free),
       gluten_free: Boolean(p.gluten_free),
       vegan: Boolean(p.vegan),
@@ -198,11 +199,11 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
       branch_status: p.branch_status || "AVAILABLE",
       is_out_of_stock_at_branch: Boolean(p.is_out_of_stock_at_branch),
       primary_category_id: p.primary_category_id,
-      category: p.category || (p.categories && p.categories[0]?.name) || "Chocolate Cakes",
-      category_slug: p.category_slug || (p.category ? p.category.toLowerCase().replace(/[^a-z0-9]+/g, "-") : (p.categories && p.categories[0]?.slug) || "chocolate-cakes"),
+      category: p.category || (p.categories && p.categories[0]?.name) || "",
+      category_slug: p.category_slug || (p.category ? p.category.toLowerCase().replace(/[^a-z0-9]+/g, "-") : (p.categories && p.categories[0]?.slug) || ""),
       category_ids: p.category_ids || [],
       categories: p.categories || [],
-      flavour: p.flavour || p.flavour_name || p.cake_base || "Chocolate",
+      flavour: p.flavour || p.flavour_name || p.cake_base || "",
       weight: p.weight || "1 kg",
     }));
 
@@ -240,6 +241,9 @@ export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
 
     try {
       const engine = await getServerApiEngine();
+      if (engine?.ensureHydrated) {
+        await engine.ensureHydrated();
+      }
       const cats = engine?.getCategories ? engine.getCategories() : [];
       categoriesList = (cats || []).map((c: any) => ({
         id: c.id,
@@ -595,8 +599,11 @@ export async function listProducts(options?: { branchId?: string; pincode?: stri
   const engine = await getServerApiEngine();
   if (engine) {
     try {
+      if (engine.ensureHydrated) {
+        await engine.ensureHydrated();
+      }
       const products = engine.getProducts(options?.branchId, options?.pincode);
-      if (Array.isArray(products) && products.length > 0) return products;
+      if (Array.isArray(products)) return products;
     } catch {
       // Fallback to apiClient
     }
@@ -604,12 +611,12 @@ export async function listProducts(options?: { branchId?: string; pincode?: stri
   try {
     const res: any = await apiClient.getProducts(options);
     const rawList = res?.products || res?.results || res?.data;
-    if (Array.isArray(rawList) && rawList.length > 0) {
+    if (Array.isArray(rawList)) {
       return rawList;
     }
-    return DEFAULT_CATALOG_PRODUCTS;
+    return [];
   } catch {
-    return DEFAULT_CATALOG_PRODUCTS;
+    return [];
   }
 }
 
@@ -617,6 +624,9 @@ export async function getProductById(id: string, pincode?: string): Promise<any 
   const engine = await getServerApiEngine();
   if (engine) {
     try {
+      if (engine.ensureHydrated) {
+        await engine.ensureHydrated();
+      }
       const product = engine.getProductById(id, undefined, pincode);
       if (product) return product;
     } catch {
@@ -625,9 +635,9 @@ export async function getProductById(id: string, pincode?: string): Promise<any 
   }
   try {
     const res: any = await (apiClient as any).getProduct?.(id, { pincode });
-    return res?.product || res || DEFAULT_CATALOG_PRODUCTS.find((p) => p.id === id || p.product_id === id) || null;
+    return res?.product || res || null;
   } catch {
-    return DEFAULT_CATALOG_PRODUCTS.find((p) => p.id === id || p.product_id === id) || null;
+    return null;
   }
 }
 
@@ -635,6 +645,9 @@ export async function getProductBySlug(slug: string, pincode?: string): Promise<
   const engine = await getServerApiEngine();
   if (engine) {
     try {
+      if (engine.ensureHydrated) {
+        await engine.ensureHydrated();
+      }
       const product = engine.getProductBySlug(slug, undefined, pincode) || engine.getProductById(slug, undefined, pincode);
       if (product) return product;
     } catch {
@@ -643,9 +656,9 @@ export async function getProductBySlug(slug: string, pincode?: string): Promise<
   }
   try {
     const res: any = await (apiClient as any).getProduct?.(slug, { pincode });
-    return res?.product || res || DEFAULT_CATALOG_PRODUCTS.find((p) => p.handle === slug || p.slug === slug || p.id === slug) || null;
+    return res?.product || res || null;
   } catch {
-    return DEFAULT_CATALOG_PRODUCTS.find((p) => p.handle === slug || p.slug === slug || p.id === slug) || null;
+    return null;
   }
 }
 

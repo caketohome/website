@@ -62,6 +62,7 @@ async function run() {
   console.log("CakeToHome: Customer Location Authority & Address Decoupling Suite");
   console.log("=========================================================================\n");
 
+  await ApiEngine.ensureHydrated();
   ApiEngine.getStore();
   ApiEngine.ensureOrdersStore();
   ApiEngine.ensureCartsStore();
@@ -144,8 +145,8 @@ async function run() {
 
     assert(oldResolve.branch !== null, "Old location should be serviceable");
     assert(newResolve.branch !== null, "New location should be serviceable");
-    assert(oldResolve.branch.id === newResolve.branch.id, "Both points served by same store");
-    console.log(`  Pin drag from (${oldLat}, ${oldLng}) to (${newLat}, ${newLng}): both serviced by ${newResolve.branch.name}`);
+    assert(oldResolve.branch?.id === newResolve.branch?.id, "Both points served by same store");
+    console.log(`  Pin drag from (${oldLat}, ${oldLng}) to (${newLat}, ${newLng}): both serviced by ${newResolve.branch?.name}`);
   });
 
   // ── GATE 6: Small Marker Movement (10m - 100m) Stability ───────────────────
@@ -162,8 +163,8 @@ async function run() {
 
     assert(resA.branch !== null, "Base point must be serviceable");
     assert(resB.branch !== null, "Shifted point 50m away must remain serviceable");
-    assert(resA.branch.id === resB.branch.id, "Store must remain identical for 50m shift");
-    console.log(`  Small movement of ${distMeters.toFixed(1)} meters: Serviceability maintained (${resA.branch.name})`);
+    assert(resA.branch?.id === resB.branch?.id, "Store must remain identical for 50m shift");
+    console.log(`  Small movement of ${distMeters.toFixed(1)} meters: Serviceability maintained (${resA.branch?.name})`);
   });
 
   // ── GATE 7: Address Text Edit Isolation (Flat 402 -> Flat 502) ─────────────
@@ -177,7 +178,7 @@ async function run() {
 
     assert(feeBefore.deliveryFee === feeAfter.deliveryFee, "Delivery fee must remain unchanged");
     assert(feeBefore.distanceKm === feeAfter.distanceKm, "Distance must remain unchanged");
-    assert(feeBefore.branch.id === feeAfter.branch.id, "Store must remain unchanged");
+    assert(feeBefore.branch?.id === feeAfter.branch?.id, "Store must remain unchanged");
     console.log(`  Editing address text to '${textAfter}' does not alter coordinates or fee (₹${feeAfter.deliveryFee})`);
   });
 
@@ -206,7 +207,7 @@ async function run() {
     const res = ApiEngine.resolveSmartBranch({ lat: insideCoords.lat, lng: insideCoords.lng });
     assert(res.branch !== null, "Inside point must be serviceable");
     assert(res.deliveryFee > 0, "Delivery fee must be calculated");
-    console.log(`  Inside point: Store=${res.branch.name}, Zone=${res.zoneName}, Fee=₹${res.deliveryFee}`);
+    console.log(`  Inside point: Store=${res.branch?.name}, Zone=${res.zoneName}, Fee=₹${res.deliveryFee}`);
   });
 
   // ── GATE 11: Serviceability Outside Delivery Area ──────────────────────────

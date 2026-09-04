@@ -43,7 +43,7 @@ async function runCmsTestSuite() {
   console.log("── DOMAIN 1: CMS Page Lifecycle & CRUD ──");
 
   const testSlug = `e2e-landing-${Date.now()}`;
-  const createdPage = ApiEngine.createCmsPage({
+  const createdPage: any = await ApiEngine.createCmsPage({
     title: "E2E Artisan Cake Fest",
     slug: testSlug,
     page_type: "landing",
@@ -66,7 +66,7 @@ async function runCmsTestSuite() {
     Boolean(createdPage && createdPage.id && createdPage.slug === testSlug && createdPage.status === "draft")
   );
 
-  const updatedPage = ApiEngine.updateCmsPage(createdPage.id, {
+  const updatedPage: any = await ApiEngine.updateCmsPage(createdPage.id, {
     subheading: "Updated: Freshly Baked Gourmet Confections",
   });
   assert(
@@ -75,7 +75,7 @@ async function runCmsTestSuite() {
     Boolean(updatedPage && updatedPage.subheading.includes("Updated:") && updatedPage.version_history?.length === 1)
   );
 
-  const duplicated = ApiEngine.duplicateCmsPage(createdPage.id);
+  const duplicated: any = await ApiEngine.duplicateCmsPage(createdPage.id);
   assert(
     "Domain 1", "1.3",
     "Duplicate CMS Page creates independent copy with unique slug and reset draft status",
@@ -94,7 +94,7 @@ async function runCmsTestSuite() {
     Boolean(!validationRes.valid && validationRes.errors.length >= 2 && validationRes.warnings.length >= 2)
   );
 
-  const archived = ApiEngine.deleteCmsPage(duplicated.id);
+  const archived = await ApiEngine.deleteCmsPage(duplicated.id);
   const checkArchived = ApiEngine.getCmsPage(duplicated.id);
   assert(
     "Domain 1", "1.5",
@@ -124,7 +124,7 @@ async function runCmsTestSuite() {
   );
 
   // C. Publish page
-  const publishRes = ApiEngine.publishCmsPage(createdPage.id);
+  const publishRes: any = await ApiEngine.publishCmsPage(createdPage.id);
   assert(
     "Domain 2", "2.3",
     "Publish CMS Page validates required fields, freezes published_config, and sets status='published'",
@@ -140,7 +140,7 @@ async function runCmsTestSuite() {
   );
 
   // E. Editing draft does NOT affect storefront until published again
-  ApiEngine.updateCmsPage(createdPage.id, {
+  await ApiEngine.updateCmsPage(createdPage.id, {
     h1: "UNPUBLISHED DRAFT EDIT: 50% Off Everything",
   });
   const publicDuringDraftEdit = await getCmsPage(testSlug, "en", false);
@@ -151,7 +151,7 @@ async function runCmsTestSuite() {
   );
 
   // F. Unpublishing page immediately blocks public access
-  ApiEngine.unpublishCmsPage(createdPage.id);
+  await ApiEngine.unpublishCmsPage(createdPage.id);
   const publicAfterUnpublish = await getCmsPage(testSlug, "en", false);
   assert(
     "Domain 2", "2.6",
@@ -160,14 +160,14 @@ async function runCmsTestSuite() {
   );
 
   // Re-publish for subsequent domain tests
-  ApiEngine.publishCmsPage(createdPage.id);
+  await ApiEngine.publishCmsPage(createdPage.id);
 
   // ══════════════════════════════════════════════════════════════════════════
   // DOMAIN 3: SECTION CRUD & PERSISTENT ATOMIC REORDERING
   // ══════════════════════════════════════════════════════════════════════════
   console.log("\n── DOMAIN 3: Section CRUD & Persistent Atomic Reordering ──");
 
-  const multiSectionPage = ApiEngine.createCmsPage({
+  const multiSectionPage: any = await ApiEngine.createCmsPage({
     title: "Reorder Test Page",
     slug: `reorder-test-${Date.now()}`,
     meta_title: "Reorder Test Page Valid SEO Title",
@@ -180,7 +180,7 @@ async function runCmsTestSuite() {
     ],
   });
 
-  const reorderRes = ApiEngine.reorderCmsPageSections(multiSectionPage.id, ["sec_c", "sec_a", "sec_d", "sec_b"]);
+  const reorderRes: any = await ApiEngine.reorderCmsPageSections(multiSectionPage.id, ["sec_c", "sec_a", "sec_d", "sec_b"]);
   assert(
     "Domain 3", "3.1",
     "reorderCmsPageSections atomically updates order sequence in memoryStore",
@@ -315,7 +315,7 @@ async function runCmsTestSuite() {
   // ══════════════════════════════════════════════════════════════════════════
   console.log("\n── DOMAIN 7: Version History & Snapshot Rollback ──");
 
-  const versionPage = ApiEngine.createCmsPage({
+  const versionPage: any = await ApiEngine.createCmsPage({
     title: "Versioned Product Launch",
     slug: `vlaunch-${Date.now()}`,
     meta_title: "Versioned Launch Page Initial",
@@ -324,9 +324,9 @@ async function runCmsTestSuite() {
   });
 
   // Perform 3 consecutive updates to create 3 version snapshots
-  ApiEngine.updateCmsPage(versionPage.id, { title: "Versioned Launch v2", sections: [{ id: "vsec_2", type: "hero", name: "Version 2 Hero" }] });
-  ApiEngine.updateCmsPage(versionPage.id, { title: "Versioned Launch v3", sections: [{ id: "vsec_3", type: "hero", name: "Version 3 Hero" }] });
-  const finalState = ApiEngine.updateCmsPage(versionPage.id, { title: "Versioned Launch v4", sections: [{ id: "vsec_4", type: "hero", name: "Version 4 Hero" }] });
+  await ApiEngine.updateCmsPage(versionPage.id, { title: "Versioned Launch v2", sections: [{ id: "vsec_2", type: "hero", name: "Version 2 Hero" }] });
+  await ApiEngine.updateCmsPage(versionPage.id, { title: "Versioned Launch v3", sections: [{ id: "vsec_3", type: "hero", name: "Version 3 Hero" }] });
+  const finalState: any = await ApiEngine.updateCmsPage(versionPage.id, { title: "Versioned Launch v4", sections: [{ id: "vsec_4", type: "hero", name: "Version 4 Hero" }] });
 
   const history = ApiEngine.getPageVersionHistory(versionPage.id);
   assert(
@@ -336,7 +336,7 @@ async function runCmsTestSuite() {
   );
 
   // Rollback to version 1 (which had title: "Versioned Product Launch")
-  const rolledBack = ApiEngine.rollbackCmsPage(versionPage.id, 1);
+  const rolledBack: any = await ApiEngine.rollbackCmsPage(versionPage.id, 1);
   assert(
     "Domain 7", "7.2",
     "Rollback restores exact previous snapshot state and transitions status to 'draft'",

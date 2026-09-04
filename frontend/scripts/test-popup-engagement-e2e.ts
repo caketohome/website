@@ -84,7 +84,7 @@ async function runPopupEngagementE2ESuite() {
     },
   };
 
-  const createdCampaign = ApiEngine.createPopupCampaign(draftPayload);
+  const createdCampaign = await ApiEngine.createPopupCampaign(draftPayload);
   assert(
     Boolean(createdCampaign && createdCampaign.id && createdCampaign.status === "draft"),
     "P1.1",
@@ -107,7 +107,7 @@ async function runPopupEngagementE2ESuite() {
   );
 
   // P1.3: Edit Headline -> Save -> Reload -> Verify
-  const updatedCampaign = ApiEngine.updatePopupCampaign(createdCampaign.id, {
+  const updatedCampaign = await ApiEngine.updatePopupCampaign(createdCampaign.id, {
     content: {
       ...fetchedCampaign.draft_version.content,
       headline: "Updated Headline",
@@ -125,7 +125,7 @@ async function runPopupEngagementE2ESuite() {
   );
 
   // P1.4: Publish Campaign
-  const publishedCampaign = ApiEngine.publishPopupCampaign(createdCampaign.id);
+  const publishedCampaign = await ApiEngine.publishPopupCampaign(createdCampaign.id);
   assert(
     Boolean(
       publishedCampaign &&
@@ -140,7 +140,7 @@ async function runPopupEngagementE2ESuite() {
   );
 
   // P1.5: Pause Campaign
-  const pausedCampaign = ApiEngine.pausePopupCampaign(createdCampaign.id);
+  const pausedCampaign = await ApiEngine.pausePopupCampaign(createdCampaign.id);
   assert(
     Boolean(pausedCampaign && pausedCampaign.status === "paused"),
     "P1.5",
@@ -149,10 +149,10 @@ async function runPopupEngagementE2ESuite() {
   );
 
   // Re-publish for downstream testing
-  ApiEngine.publishPopupCampaign(createdCampaign.id);
+  await ApiEngine.publishPopupCampaign(createdCampaign.id);
 
   // P1.6: Duplicate Campaign
-  const duplicatedCampaign = ApiEngine.duplicatePopupCampaign(createdCampaign.id);
+  const duplicatedCampaign = await ApiEngine.duplicatePopupCampaign(createdCampaign.id);
   assert(
     Boolean(
       duplicatedCampaign &&
@@ -166,7 +166,7 @@ async function runPopupEngagementE2ESuite() {
   );
 
   // P1.7: Archive Campaign
-  const archivedCampaign = ApiEngine.archivePopupCampaign(duplicatedCampaign.id);
+  const archivedCampaign = await ApiEngine.archivePopupCampaign(duplicatedCampaign.id);
   assert(
     Boolean(archivedCampaign && archivedCampaign.status === "archived" && archivedCampaign.enabled === false),
     "P1.7",

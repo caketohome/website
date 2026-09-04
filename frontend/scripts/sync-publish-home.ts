@@ -3,7 +3,7 @@ import { getHomepage } from "../src/lib/data/cms";
 
 async function main() {
   console.log("Publishing cmspg_home via ApiEngine.publishCmsPage...");
-  const pubRes = ApiEngine.publishCmsPage("cmspg_home");
+  const pubRes: any = await ApiEngine.publishCmsPage("cmspg_home");
   console.log("Publish result success:", pubRes.success);
   if (pubRes.errors) {
     console.error("Publish errors:", pubRes.errors);

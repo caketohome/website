@@ -197,6 +197,17 @@ export function evaluateCampaignTriggersDetailed(
   context: EngagementContext,
   event?: { type: string; value?: any }
 ): DetailedTriggerEvaluationResult {
+  if (!campaign) {
+    return {
+      isTriggered: false,
+      combinator: "ANY",
+      enabledTriggers: [],
+      matchedTriggers: [],
+      unfulfilledTriggers: [],
+      triggerSummaries: {},
+      reason: "Campaign is undefined",
+    };
+  }
   const version = campaign.current_version || campaign.draft_version;
   if (!version) {
     return {

@@ -246,7 +246,7 @@ async function testCompleteCmsE2E() {
     announcement_bar: customSections.find((s) => s.id === "sec_home_announce")?.config,
   };
 
-  const draftRes = ApiEngine.updateCmsPage(initialHome.page.id, updatedPage);
+  const draftRes: any = await ApiEngine.updateCmsPage(initialHome.page.id, updatedPage);
   assert(draftRes && draftRes.id, "CMS page draft updated successfully");
   console.log("  ✅ Draft configuration saved to backend");
 
@@ -254,7 +254,7 @@ async function testCompleteCmsE2E() {
   // 2. PUBLISH CMS PAGE TO STOREFRONT
   // ──────────────────────────────────────────────────────────────────────────
   console.log("\n2️⃣  Publishing CMS Page to Live Customer Storefront...");
-  const pubRes = ApiEngine.publishCmsPage(initialHome.page.id);
+  const pubRes: any = await ApiEngine.publishCmsPage(initialHome.page.id);
   assert(pubRes.success === true, "CMS page published successfully");
 
   const liveData = await getHomepage();

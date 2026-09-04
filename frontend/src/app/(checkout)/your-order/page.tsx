@@ -30,48 +30,7 @@ export default async function YourOrderPage({
     }
   }
 
-  // Fallback demo order snapshot if freshly placed in test
-  if (!order && orderId) {
-    order = {
-      id: orderId,
-      order_number: `CTH-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-101`,
-      invoice_number: `CTH/26-27/000101`,
-      kot_number: `KOT-${orderId}`,
-      customer_name: "Valued Customer",
-      customer_phone: "+91 98765 43210",
-      delivery_address: "Address on File, Indiranagar, Bengaluru - 560038",
-      branch_name: "Indiranagar Flagship Kitchen",
-      delivery_date: new Date().toISOString().slice(0, 10),
-      delivery_slot: "2:00 PM - 5:00 PM",
-      delivery_otp: "4829",
-      payment_method: "Verified",
-      subtotal: 599,
-      total: 599,
-      delivery_fee: 0,
-      status: "confirmed",
-      items: [
-        {
-          id: "item_demo",
-          title: "Belgian Dark Truffle Celebration Cake",
-          weight: "1.0 kg",
-          quantity: 1,
-          unit_price: 599,
-          thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400",
-        },
-      ],
-      pricing: {
-        subtotal: 599,
-        delivery_fee: 0,
-        slot_surcharge: 0,
-        discount: 0,
-        grand_total: 599,
-        taxable_value: 570.48,
-        total_tax: 28.52,
-        cgst: 14.26,
-        sgst: 14.26,
-      },
-    };
-  }
+
 
   if (!order) {
     return (

@@ -210,7 +210,7 @@ async function runTests() {
   // --------------------------------------------------------------------------
   console.log("\n--- TEST 12: Existing pincode resolution mapping ---");
   const pincodeRes = ApiEngine.resolveSmartBranch({ pincode: "560038" });
-  assert(pincodeRes.branch.id === storeA.id, "Pincode 560038 cleanly resolves to store A via existing zone mapping");
+  assert(pincodeRes.branch?.id === storeA.id, "Pincode 560038 cleanly resolves to store A via existing zone mapping");
 
   // --------------------------------------------------------------------------
   // TEST 13: Multiple products in cart correctly report only restricted products

@@ -29,7 +29,7 @@ async function diagnose() {
   };
 
   console.log("\n2. UPDATING DRAFT (ApiEngine.updateCmsPage)...");
-  const updatedDraft = ApiEngine.updateCmsPage(initial.page.id, testPayload);
+  const updatedDraft: any = await ApiEngine.updateCmsPage(initial.page.id, testPayload);
   console.log("   • Returned Draft ID:", updatedDraft.id);
   console.log("   • Returned Draft announcement_bar.text:", updatedDraft.announcement_bar?.text);
   console.log("   • Returned Draft announcement_bar.action_enabled:", updatedDraft.announcement_bar?.action_enabled);
@@ -42,7 +42,7 @@ async function diagnose() {
   console.log("   ✅ Draft assertions PASSED");
 
   // 3. Verify Direct Read from ApiEngine
-  const readBackDraft = ApiEngine.getCmsPage(initial.page.id);
+  const readBackDraft: any = ApiEngine.getCmsPage(initial.page.id);
   console.log("\n3. READ BACK DRAFT FROM STORAGE (ApiEngine.getCmsPage):");
   console.log("   • Read-back announcement_bar.text:", readBackDraft.announcement_bar?.text);
   console.log("   • Read-back announcement_bar.action_enabled:", readBackDraft.announcement_bar?.action_enabled);
@@ -52,7 +52,7 @@ async function diagnose() {
 
   // 4. Publish Page
   console.log("\n4. PUBLISHING PAGE (ApiEngine.publishCmsPage)...");
-  const pubResult = ApiEngine.publishCmsPage(initial.page.id);
+  const pubResult: any = await ApiEngine.publishCmsPage(initial.page.id);
   console.log("   • Publish success:", pubResult.success);
   assert(pubResult.success, "Publish succeeded");
   console.log("   • Published config announcement_bar.text:", pubResult.page.published_config?.announcement_bar?.text);

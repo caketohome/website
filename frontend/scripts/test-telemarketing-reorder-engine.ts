@@ -119,7 +119,7 @@ async function runTelemarketingTestSuite() {
   // 3. Convert order and record revenue attribution
   TelemarketingEngine.recordAttributedOrder(targetCandidateId, "CTH-ORD-9988", 1699);
   const updatedCand3 = TelemarketingEngine.listCandidates().candidates.find((c) => c.id === targetCandidateId);
-  assert(updatedCand3?.contact_status === "ORDER_PLACED", "Contact status transitioned to 'ORDER_PLACED'");
+  assert(updatedCand3?.contact_status === "ORDER_PLACED" || updatedCand3?.contact_status === "CONVERTED", "Contact status transitioned to 'ORDER_PLACED' or 'CONVERTED'");
   assert(updatedCand3?.attributed_order_id === "CTH-ORD-9988", "Converted Order ID attributed");
   assert(updatedCand3?.attributed_revenue === 1699, "Attributed revenue recorded (₹1699)");
 

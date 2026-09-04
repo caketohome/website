@@ -6,6 +6,7 @@ import { trackProductView } from "@frontend/lib/data/analytics";
 import { Heading, Text, Badge, IconButton } from "@medusajs/ui";
 import { Heart } from "@medusajs/icons";
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 /**
@@ -32,6 +33,7 @@ export function ProductCard({ product }: { product: SearchResult }) {
     if (product.is_featured) merchandising.push("Featured");
 
     async function handleToggleWishlist(e: React.MouseEvent) {
+        e.preventDefault();
         e.stopPropagation();
         setLoading(true);
         try {
@@ -41,24 +43,15 @@ export function ProductCard({ product }: { product: SearchResult }) {
         }
     }
 
-    function navigate() {
-        trackProductView(product.product_id);
-        if (product.handle) {
-            router.push(`/products/${product.handle}`);
-        } else {
-            router.push(`/products/${product.product_id}`);
-        }
-    }
+    const productHref = product.handle ? `/products/${product.handle}` : `/products/${product.product_id}`;
 
     return (
-        <div
-            className="group relative flex flex-col gap-2 p-3 border rounded-lg hover:shadow-md transition-shadow cursor-pointer bg-ui-bg-base"
-            onClick={navigate}
-            role="link"
-            tabIndex={0}
-            onKeyDown={(e) => {
-                if (e.key === "Enter") navigate();
-            }}
+        <Link
+            href={productHref}
+            data-testid="product-card"
+            data-product-id={prodId}
+            onClick={() => trackProductView(product.product_id)}
+            className="group relative flex flex-col gap-2 p-3 border rounded-lg hover:shadow-md transition-shadow cursor-pointer bg-ui-bg-base text-inherit no-underline"
         >
             <div className="relative aspect-square w-full overflow-hidden rounded-md bg-ui-bg-subtle">
                 {product.thumbnail ? (
@@ -154,6 +147,6 @@ export function ProductCard({ product }: { product: SearchResult }) {
                     </Text>
                 )}
             </div>
-        </div>
+        </Link>
     );
 }

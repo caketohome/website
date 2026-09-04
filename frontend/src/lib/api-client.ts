@@ -64,41 +64,6 @@ class CakeToHomeApiClient {
     return null;
   }
 
-  private authPromise: Promise<string | null> | null = null;
-
-  private async autoAuthAdmin(): Promise<string | null> {
-    if (this.token) return this.token;
-    if (this.authPromise) return this.authPromise;
-
-    this.authPromise = (async () => {
-      try {
-        const authUrl = typeof window !== "undefined"
-          ? "/api/v1/auth/user/emailpass"
-          : `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9000"}/auth/user/emailpass`;
-
-        const authRes = await fetch(authUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: "admin@email.com", password: "supersecret" }),
-        });
-        if (authRes.ok) {
-          const data = await authRes.json();
-          const token = data.token || data.access_token;
-          if (token) {
-            this.setToken(token);
-            return token;
-          }
-        }
-      } catch {
-        // Ignore auto-auth error
-      } finally {
-        this.authPromise = null;
-      }
-      return null;
-    })();
-
-    return this.authPromise;
-  }
 
 
   public async get<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -171,11 +136,7 @@ class CakeToHomeApiClient {
       ...(options.headers as Record<string, string>),
     };
 
-    let activeToken = this.getToken();
-    if (!activeToken && endpoint.startsWith("/admin")) {
-      activeToken = await this.autoAuthAdmin();
-    }
-
+    const activeToken = this.getToken();
     if (activeToken) {
       headers["Authorization"] = `Bearer ${activeToken}`;
     }
@@ -213,11 +174,10 @@ class CakeToHomeApiClient {
         const response = await fetch(primaryUrl, {
           ...options,
           headers,
+          credentials: options.credentials || "same-origin",
           signal: options.signal || controller.signal,
         });
         clearTimeout(timeoutId);
-
-        const duration = Date.now() - startTime;
 
         if (response.ok) {
           const data = await response.json();
@@ -230,33 +190,10 @@ class CakeToHomeApiClient {
           return data;
         }
 
-        if (response.status === 401 && endpoint.startsWith("/admin")) {
-          const freshToken = await this.autoAuthAdmin();
-          if (freshToken) {
-            headers["Authorization"] = `Bearer ${freshToken}`;
-            const retryRes = await fetch(primaryUrl, { ...options, headers });
-            if (retryRes.ok) {
-              return retryRes.json();
-            }
-          }
-        }
-
         const errData = await response.json().catch(() => ({}));
         const errMsg = errData.message || errData.error || `HTTP ${response.status} Request Failed`;
         throw new Error(errMsg);
       } catch (err: any) {
-        if (typeof window !== "undefined") {
-          throw err;
-        }
-        const fallbackUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9000"}/api/v1${endpoint}`;
-        try {
-          const fallbackRes = await fetch(fallbackUrl, { ...options, headers });
-          if (fallbackRes.ok) {
-            return fallbackRes.json();
-          }
-        } catch {
-          // Ignore fallback error and throw original
-        }
         throw err;
       }
     };
@@ -2336,112 +2273,6 @@ class CakeToHomeApiClient {
       Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
     ).toString();
     return this.request(`/products/${encodeURIComponent(id)}${qs ? `?${qs}` : ""}`);
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // ── PIM / CATALOG & MASTER VARIANT OPTIONS ─────────────────────────────────
-  // ══════════════════════════════════════════════════════════════════════════
-
-  async getAdminFlavors() {
-    return this.request("/admin/catalog/flavors");
-  }
-
-  async createAdminFlavor(data: any) {
-    return this.request("/admin/catalog/flavors", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-  }
-
-  async updateAdminFlavor(id: string, data: any) {
-    return this.request(`/admin/catalog/flavors/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
-  }
-
-  async deleteAdminFlavor(id: string) {
-    return this.request(`/admin/catalog/flavors/${id}`, {
-      method: "DELETE",
-    });
-  }
-
-  async getAdminShapes() {
-    return this.request("/admin/catalog/shapes");
-  }
-
-  async createAdminShape(data: any) {
-    return this.request("/admin/catalog/shapes", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-  }
-
-  async updateAdminShape(id: string, data: any) {
-    return this.request(`/admin/catalog/shapes/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
-  }
-
-  async deleteAdminShape(id: string) {
-    return this.request(`/admin/catalog/shapes/${id}`, {
-      method: "DELETE",
-    });
-  }
-
-  async getProductFlavorMappings(productId: string) {
-    return this.request(`/admin/catalog/products/${productId}/flavor-mappings`);
-  }
-
-  async saveProductFlavorMappings(productId: string, mappings: any[]) {
-    return this.request(`/admin/catalog/products/${productId}/flavor-mappings`, {
-      method: "POST",
-      body: JSON.stringify({ mappings }),
-    });
-  }
-
-  async getProductShapeMappings(productId: string) {
-    return this.request(`/admin/catalog/products/${productId}/shape-mappings`);
-  }
-
-  async saveProductShapeMappings(productId: string, mappings: any[]) {
-    return this.request(`/admin/catalog/products/${productId}/shape-mappings`, {
-      method: "POST",
-      body: JSON.stringify({ mappings }),
-    });
-  }
-
-  async getProductWeightPrices(productId: string) {
-    return this.request(`/admin/catalog/products/${productId}/weight-prices`);
-  }
-
-  async saveProductWeightPrices(productId: string, weightPrices: any[]) {
-    return this.request(`/admin/catalog/products/${productId}/weight-prices`, {
-      method: "PUT",
-      body: JSON.stringify({ weight_prices: weightPrices }),
-    });
-  }
-
-  async getAdminProducts(params: Record<string, any> = {}) {
-    const qs = new URLSearchParams(
-      Object.entries(params).filter(([_, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
-    ).toString();
-    return this.request(`/admin/catalog/products${qs ? `?${qs}` : ""}`);
-  }
-
-  async updateAdminProduct(productId: string, data: any) {
-    return this.request(`/admin/catalog/products/${productId}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
-  }
-
-  async createAdminProduct(data: any) {
-    return this.request(`/admin/catalog/products`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
   }
 
   async searchLocationAsync(query: string, options: { lat?: number; lng?: number; limit?: number } = {}) {

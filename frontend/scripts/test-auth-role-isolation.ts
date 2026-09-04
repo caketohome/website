@@ -32,6 +32,7 @@ async function runAuthRoleIsolationTestSuite() {
   }
 
   // Ensure initial test accounts exist in ApiEngine persistent memory
+  await ApiEngine.ensureHydrated();
   ApiEngine.ensureDeliveryPartnersStore();
 
   const phoneCustomer = "+91 90000 00001";

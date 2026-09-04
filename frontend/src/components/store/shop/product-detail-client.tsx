@@ -39,6 +39,7 @@ interface ProductDetailProps {
     weightPrices?: any[];
     masterVariantOptions?: any[];
     pimConfig?: Record<string, boolean>;
+    pdpConfig?: Record<string, any>;
 }
 
 export default function ProductDetailClient({
@@ -54,6 +55,7 @@ export default function ProductDetailClient({
     weightPrices = [],
     masterVariantOptions = [],
     pimConfig = {},
+    pdpConfig = {},
 }: ProductDetailProps) {
     const router = useRouter();
     const { isFavorited, toggleFavorite } = useFavorites();
@@ -463,9 +465,9 @@ export default function ProductDetailClient({
 
     return (
         <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-4 py-8">
-            <div className="flex flex-col md:flex-row gap-10">
+            <div className={`flex flex-col md:flex-row gap-10 ${pdpConfig?.gallery_layout === "right" ? "md:flex-row-reverse" : pdpConfig?.gallery_layout === "stacked" ? "md:flex-col" : ""}`}>
                 {/* Dynamic Image Gallery */}
-                <div className="md:w-1/2 flex flex-col gap-4">
+                <div className={`${pdpConfig?.gallery_layout === "stacked" ? "w-full" : "md:w-1/2"} flex flex-col gap-4`}>
                     <div className="relative w-full h-[420px] bg-gray-50 rounded-2xl overflow-hidden shadow-lg border border-gray-200 group">
                         <Image
                             src={galleryImages[selectedImageIndex] || product.thumbnail}
@@ -474,15 +476,17 @@ export default function ProductDetailClient({
                             priority
                             className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
-                        <Button
-                            variant="transparent"
-                            size="small"
-                            onClick={handleWishlistToggle}
-                            disabled={wishlistLoading}
-                            className="absolute top-4 right-4 bg-white/80 backdrop-blur-md p-2 rounded-full shadow-md hover:bg-white transition z-10"
-                        >
-                            {isWishlisted ? <HeartSolidIcon className="text-rose-600 w-6 h-6" /> : <HeartIcon className="w-6 h-6 text-gray-700" />}
-                        </Button>
+                        {pdpConfig?.show_wishlist !== false && (
+                            <Button
+                                variant="transparent"
+                                size="small"
+                                onClick={handleWishlistToggle}
+                                disabled={wishlistLoading}
+                                className="absolute top-4 right-4 bg-white/80 backdrop-blur-md p-2 rounded-full shadow-md hover:bg-white transition z-10"
+                            >
+                                {isWishlisted ? <HeartSolidIcon className="text-rose-600 w-6 h-6" /> : <HeartIcon className="w-6 h-6 text-gray-700" />}
+                            </Button>
+                        )}
                     </div>
 
                     {/* Gallery Thumbnails */}
@@ -520,10 +524,14 @@ export default function ProductDetailClient({
                             <span className="text-xs text-gray-500 font-semibold">Freshly Baked On Order</span>
                         </div>
                         <Heading level="h1" className="text-3xl font-extrabold text-gray-900">{product.title}</Heading>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="text-amber-500 font-bold text-base">★ {averageRating}</span>
-                            <span className="text-gray-500 text-sm">({reviewCount} customer reviews)</span>
-                        </div>
+                        {pdpConfig?.show_rating !== false && (
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="text-amber-500 font-bold text-base">★ {averageRating}</span>
+                                {pdpConfig?.show_reviews !== false && (
+                                    <span className="text-gray-500 text-sm">({reviewCount} customer reviews)</span>
+                                )}
+                            </div>
+                        )}
 
                         {/* Structured Occasion Badges */}
                         <div className="flex items-center gap-2 flex-wrap pt-2">
@@ -541,7 +549,9 @@ export default function ProductDetailClient({
                         </div>
 
                         {/* Real-time Order Cutoff & Fulfillment Eligibility Badge */}
-                        <ProductFulfillmentBadge productId={prodId} branchId={shopId} showDetails={true} className="mt-3" />
+                        {pdpConfig?.show_delivery_checker !== false && (
+                            <ProductFulfillmentBadge productId={prodId} branchId={shopId} showDetails={true} className="mt-3" />
+                        )}
                     </div>
 
                     <Text className="text-gray-600 text-sm leading-relaxed">{product.description}</Text>
@@ -893,7 +903,7 @@ export default function ProductDetailClient({
                         >
                             {(branchStock !== null && branchStock <= 0) || product?.is_out_of_stock_at_branch === true || product?.branch_status === "OUT_OF_STOCK"
                                 ? "Out of Stock at Your Location"
-                                : `Add to Cart • ₹${calculatedPrice}`}
+                                : `${pdpConfig?.add_to_cart_text || "Add to Cart"} • ₹${calculatedPrice}`}
                         </Button>
 
                         {addedCartSuccess && (

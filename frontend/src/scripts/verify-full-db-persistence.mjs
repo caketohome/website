@@ -50,7 +50,7 @@ async function runMasterVerification() {
 
     // 2. Hydration from Real PostgreSQL
     console.log("\n--- 2. Testing Authoritative Database Store Hydration ---");
-    const testStore = {} as any;
+    const testStore = {};
     const summary = await hydrateStoreFromDatabase(testStore);
     assert(summary.success === true, "hydrateStoreFromDatabase executes successfully against PostgreSQL");
     assert(Array.isArray(testStore.products) && testStore.products.length > 0, "Products hydrated directly from PostgreSQL", `Count: ${testStore.products?.length}`);

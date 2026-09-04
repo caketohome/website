@@ -1969,6 +1969,187 @@ const DEFAULT_CMS_PAGES = [
     updated_at: "2026-08-10T10:00:00Z",
     published_at: "2026-07-01T12:00:00Z",
   },
+  {
+    id: "cmspg_about_us",
+    title: "About Us",
+    slug: "about-us",
+    page_type: "page",
+    template: "content",
+    status: "published",
+    url_path: "/about-us",
+    breadcrumb_title: "About Us",
+    meta_title: "About Us — The CakeToHome Artisanal Bakery | CakeToHome",
+    meta_description: "Discover CakeToHome's commitment to 100% fresh, handcrafted gourmet cakes with pure Belgian chocolate and 2-hour express delivery.",
+    robots_tag: "index, follow",
+    canonical_url: "https://cakes2home.com/about-us",
+    structured_data_type: "AboutPage",
+    sitemap_include: true,
+    sitemap_priority: "0.8",
+    sitemap_changefreq: "monthly",
+    nav_location: "footer",
+    visibility_rules: { audience: "public", devices: "all", locations: "all" },
+    sections: [
+      { id: "sec_about_hero", type: "hero", name: "About Hero", enabled: true, order: 1, config: { headline: "Handcrafting Joy, One Cake at a Time", subheadline: "Artisanal bakery in Bengaluru baking fresh from 5 AM daily with zero artificial preservatives.", height: "medium" } },
+      { id: "sec_about_story", type: "brand_story", name: "Our Baking Heritage", enabled: true, order: 2, config: { heading: "Our Heritage & Philosophy", body: "CakeToHome was born out of a simple belief: celebrations deserve real, freshly baked cakes made with pure butter, authentic Belgian cocoa, and farm-fresh cream — never premixes or frozen stock. Every single cake is baked to order and dispatched in temperature-controlled boxes for perfection." } },
+      { id: "sec_about_values", type: "features", name: "Core Commitments", enabled: true, order: 3, config: { heading: "Our Quality Promises", items: [ { title: "100% Fresh Daily", description: "Oven fresh, never refrigerated beforehand.", icon: "Sparkles" }, { title: "Pure Belgian Chocolate", description: "Real cocoa butter, zero compound fat.", icon: "Heart" }, { title: "2-Hour Express Delivery", description: "Precision chilled delivery across Bangalore.", icon: "Clock" }, { title: "Midnight Surprises", description: "Punctual delivery between 11:30 PM and midnight.", icon: "Moon" } ] } },
+    ],
+    draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
+    published_config: {},
+    version_history: [],
+    created_at: "2026-07-01T10:00:00Z",
+    updated_at: "2026-08-10T10:00:00Z",
+    published_at: "2026-07-01T12:00:00Z",
+  },
+  {
+    id: "cmspg_contact_us",
+    title: "Contact Us",
+    slug: "contact-us",
+    page_type: "page",
+    template: "content",
+    status: "published",
+    url_path: "/contact-us",
+    breadcrumb_title: "Contact Us",
+    meta_title: "Contact CakeToHome — Customer Support & Order Assistance",
+    meta_description: "Need help with an ongoing order, bulk corporate cakes, or wedding enquiries? Reach CakeToHome support via phone, WhatsApp, or email.",
+    robots_tag: "index, follow",
+    canonical_url: "https://cakes2home.com/contact-us",
+    structured_data_type: "ContactPage",
+    sitemap_include: true,
+    sitemap_priority: "0.8",
+    sitemap_changefreq: "monthly",
+    nav_location: "footer",
+    visibility_rules: { audience: "public", devices: "all", locations: "all" },
+    sections: [
+      { id: "sec_contact_hero", type: "hero", name: "Contact Hero", enabled: true, order: 1, config: { headline: "We're Here to Help Your Celebrations", subheadline: "Reach our customer delight team 7 days a week from 8:00 AM to midnight.", height: "small" } },
+      { id: "sec_contact_body", type: "brand_story", name: "Direct Support Channels", enabled: true, order: 2, config: { heading: "Get in Touch", body: "📞 Phone Support: +91 98765 00000 (8:00 AM – 11:30 PM)\n💬 WhatsApp Support: +91 98765 00000 (Instant order updates & live tracking)\n✉️ Email: support@cakes2home.com (Corporate & custom bulk cake enquiries)\n📍 Central Bakery Hub: 100 Feet Road, Indiranagar, Bengaluru, Karnataka 560038" } },
+    ],
+    draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
+    published_config: {},
+    version_history: [],
+    created_at: "2026-07-01T10:00:00Z",
+    updated_at: "2026-08-10T10:00:00Z",
+    published_at: "2026-07-01T12:00:00Z",
+  },
+  {
+    id: "cmspg_refund_policy",
+    title: "Refund Policy",
+    slug: "refund-policy",
+    page_type: "legal",
+    template: "content",
+    status: "published",
+    url_path: "/refund-policy",
+    breadcrumb_title: "Refund Policy",
+    meta_title: "Refund Policy | CakeToHome",
+    meta_description: "Understand CakeToHome's transparent refund terms, resolution timelines, and replacement policies for perishable bakery goods.",
+    robots_tag: "index, follow",
+    canonical_url: "https://cakes2home.com/refund-policy",
+    structured_data_type: "WebPage",
+    sitemap_include: true,
+    sitemap_priority: "0.4",
+    sitemap_changefreq: "yearly",
+    nav_location: "footer",
+    visibility_rules: { audience: "public", devices: "all", locations: "all" },
+    sections: [
+      { id: "sec_refund_hero", type: "hero", name: "Refund Hero", enabled: true, order: 1, config: { headline: "Refund & Satisfaction Policy", subheadline: "Fair, transparent, and prompt customer satisfaction guidelines.", height: "small" } },
+      { id: "sec_refund_body", type: "brand_story", name: "Refund Terms", enabled: true, order: 2, config: { heading: "Refund & Replacement Terms", body: "1. Perishable Goods Policy: Because cakes and baked goods are perishable custom food items, returns cannot be accepted once delivery is completed.\n\n2. Damaged or Defective Deliveries: If your cake arrives damaged or differs significantly from the confirmed order, please notify us within 2 hours of delivery with photographic evidence via WhatsApp (+91 98765 00000). We will issue an immediate replacement or 100% refund.\n\n3. Quality Concerns: If you experience any quality or freshness discrepancy, contact us within 4 hours. Our Head Baker will review the batch sample and process an appropriate refund or store credit.\n\n4. Processing Timelines: Approved refunds are processed back to your original payment method within 3–5 business days via Razorpay." } },
+    ],
+    draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
+    published_config: {},
+    version_history: [],
+    created_at: "2026-07-01T10:00:00Z",
+    updated_at: "2026-08-10T10:00:00Z",
+    published_at: "2026-07-01T12:00:00Z",
+  },
+  {
+    id: "cmspg_cancellation_policy",
+    title: "Cancellation Policy",
+    slug: "cancellation-policy",
+    page_type: "legal",
+    template: "content",
+    status: "published",
+    url_path: "/cancellation-policy",
+    breadcrumb_title: "Cancellation Policy",
+    meta_title: "Cancellation Policy | CakeToHome",
+    meta_description: "Learn about order cancellation cutoffs, same-day delivery cancellations, and fee structures at CakeToHome.",
+    robots_tag: "index, follow",
+    canonical_url: "https://cakes2home.com/cancellation-policy",
+    structured_data_type: "WebPage",
+    sitemap_include: true,
+    sitemap_priority: "0.4",
+    sitemap_changefreq: "yearly",
+    nav_location: "footer",
+    visibility_rules: { audience: "public", devices: "all", locations: "all" },
+    sections: [
+      { id: "sec_cancel_hero", type: "hero", name: "Cancellation Hero", enabled: true, order: 1, config: { headline: "Order Cancellation Guidelines", subheadline: "Understand cancellation windows and kitchen preparation cutoffs.", height: "small" } },
+      { id: "sec_cancel_body", type: "brand_story", name: "Cancellation Guidelines", enabled: true, order: 2, config: { heading: "Order Cancellation Windows", body: "1. Advance Scheduled Orders (48+ Hours Ahead): 100% full refund if cancelled at least 24 hours prior to scheduled delivery date.\n\n2. Next-Day Orders: Full refund if cancelled before 8:00 PM on the day preceding delivery.\n\n3. Same-Day / Express Orders: Once baking and decoration have commenced in the kitchen hub (typically within 30 minutes of order confirmation), cancellation is not permitted due to the customized nature of the product.\n\n4. How to Cancel: Go to My Account → Orders → Select Order → Request Cancellation, or contact our support team on WhatsApp." } },
+    ],
+    draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
+    published_config: {},
+    version_history: [],
+    created_at: "2026-07-01T10:00:00Z",
+    updated_at: "2026-08-10T10:00:00Z",
+    published_at: "2026-07-01T12:00:00Z",
+  },
+  {
+    id: "cmspg_shipping_policy",
+    title: "Shipping & Delivery Policy",
+    slug: "shipping-policy",
+    page_type: "legal",
+    template: "content",
+    status: "published",
+    url_path: "/shipping-policy",
+    breadcrumb_title: "Shipping Policy",
+    meta_title: "Shipping & Delivery Policy | CakeToHome",
+    meta_description: "Details on our 2-hour express delivery, midnight slots, insulated temperature packaging, and serviceability across Bengaluru.",
+    robots_tag: "index, follow",
+    canonical_url: "https://cakes2home.com/shipping-policy",
+    structured_data_type: "WebPage",
+    sitemap_include: true,
+    sitemap_priority: "0.4",
+    sitemap_changefreq: "yearly",
+    nav_location: "footer",
+    visibility_rules: { audience: "public", devices: "all", locations: "all" },
+    sections: [
+      { id: "sec_ship_hero", type: "hero", name: "Shipping Hero", enabled: true, order: 1, config: { headline: "Shipping & Delivery Policy", subheadline: "Precision, temperature-controlled delivery across Bangalore.", height: "small" } },
+      { id: "sec_ship_body", type: "brand_story", name: "Delivery Standards", enabled: true, order: 2, config: { heading: "Delivery Timelines & Safe Transit", body: "1. Delivery Slots: Standard slots (morning, afternoon, evening), 2-Hour Express, and Midnight (11:30 PM – 12:05 AM).\n\n2. Temperature Control: Cakes are packaged in custom insulated boxes with food-grade chilling pads to ensure intact frosting and structural perfection even during peak traffic.\n\n3. Handover Protocol: Riders verify delivery using an OTP sent to the recipient's phone number to guarantee safe handover to the intended party.\n\n4. Service Areas: Currently serving all major zones of Bengaluru including Indiranagar, Koramangala, HSR Layout, Whitefield, Bellandur, JP Nagar, Jayanagar, Malleshwaram, and Electronic City." } },
+    ],
+    draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
+    published_config: {},
+    version_history: [],
+    created_at: "2026-07-01T10:00:00Z",
+    updated_at: "2026-08-10T10:00:00Z",
+    published_at: "2026-07-01T12:00:00Z",
+  },
+  {
+    id: "cmspg_cookie_policy",
+    title: "Cookie Policy",
+    slug: "cookie-policy",
+    page_type: "legal",
+    template: "content",
+    status: "published",
+    url_path: "/cookie-policy",
+    breadcrumb_title: "Cookie Policy",
+    meta_title: "Cookie Policy | CakeToHome",
+    meta_description: "How CakeToHome uses cookies to enhance your shopping experience, secure your cart, and remember your delivery preferences.",
+    robots_tag: "index, follow",
+    canonical_url: "https://cakes2home.com/cookie-policy",
+    structured_data_type: "WebPage",
+    sitemap_include: true,
+    sitemap_priority: "0.3",
+    sitemap_changefreq: "yearly",
+    nav_location: "footer",
+    visibility_rules: { audience: "public", devices: "all", locations: "all" },
+    sections: [
+      { id: "sec_cookie_hero", type: "hero", name: "Cookie Hero", enabled: true, order: 1, config: { headline: "Cookie & Tracking Policy", subheadline: "Information on how we use cookies and local storage on our site.", height: "small" } },
+      { id: "sec_cookie_body", type: "brand_story", name: "Cookie Usage", enabled: true, order: 2, config: { heading: "Our Use of Cookies", body: "1. Essential Cookies: Required for shopping cart persistence, session authentication, and secure checkout processing.\n\n2. Functional Cookies: Remember your preferred delivery hub, city location, and dietary filters.\n\n3. Analytics Cookies: Help us measure catalog performance and improve user experience. We never sell your data to third parties." } },
+    ],
+    draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
+    published_config: {},
+    version_history: [],
+    created_at: "2026-07-01T10:00:00Z",
+    updated_at: "2026-08-10T10:00:00Z",
+    published_at: "2026-07-01T12:00:00Z",
+  },
 ];
 
 export const DEFAULT_MEDIA = [
@@ -2108,8 +2289,33 @@ export interface OccasionItem {
   name: string;
   slug: string;
   description?: string;
+  short_description?: string;
+  long_description?: string;
   image_url?: string;
+  cover_image?: string;
+  mobile_cover_image?: string;
+  thumbnail_image?: string;
+  thumbnail?: string;
+  secondary_image?: string;
   icon?: string;
+  alt_text?: string;
+  image_position?: "center" | "top" | "bottom" | "left" | "right";
+  featured?: boolean;
+  is_featured?: boolean;
+  show_on_homepage?: boolean;
+  show_in_grid?: boolean;
+  show_in_nav?: boolean;
+  show_in_search?: boolean;
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
+  og_image?: string;
+  canonical_url?: string;
+  featured_product_ids?: string[];
+  included_category_ids?: string[];
+  excluded_product_ids?: string[];
+  recommended_product_ids?: string[];
+  cross_sell_product_ids?: string[];
   status: "active" | "archived";
   display_order: number;
   created_at: string;
@@ -2363,30 +2569,485 @@ const DEFAULT_ACCESSORIES: AccessoryItem[] = [
 ];
 
 const DEFAULT_OCCASIONS: OccasionItem[] = [
-  { id: "occ_birthday", name: "Birthday", slug: "birthday", icon: "🎂", description: "Cakes & celebrations for memorable birthday parties", display_order: 1, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_anniversary", name: "Anniversary", slug: "anniversary", icon: "💍", description: "Romantic & milestone wedding anniversary cakes", display_order: 2, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_wedding", name: "Wedding", slug: "wedding", icon: "💒", description: "Grand designer multi-tier wedding cakes", display_order: 3, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_engagement", name: "Engagement", slug: "engagement", icon: "✨", description: "Elegant ring celebration & engagement cakes", display_order: 4, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_valentines_day", name: "Valentine's Day", slug: "valentines-day", icon: "❤️", description: "Romantic heart cakes & sweet confections", display_order: 5, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_mothers_day", name: "Mother's Day", slug: "mothers-day", icon: "🌸", description: "Special floral & gourmet treats for Mom", display_order: 6, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_fathers_day", name: "Father's Day", slug: "fathers-day", icon: "👔", description: "Custom handcrafted cakes celebrating Dad", display_order: 7, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_baby_shower", name: "Baby Shower", slug: "baby-shower", icon: "🍼", description: "Charming pastel theme cakes for welcoming baby", display_order: 8, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_baby_birthday", name: "Baby Birthday", slug: "baby-birthday", icon: "👶", description: "Cute 1st birthday & kids theme cakes", display_order: 9, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_graduation", name: "Graduation", slug: "graduation", icon: "🎓", description: "Celebrate degrees, diplomas & convocation success", display_order: 10, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_farewell", name: "Farewell", slug: "farewell", icon: "👋", description: "Heartfelt send-off cakes for colleagues & friends", display_order: 11, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_retirement", name: "Retirement", slug: "retirement", icon: "🌅", description: "Honoring years of excellence and a happy retirement", display_order: 12, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_corporate_celebration", name: "Corporate Celebration", slug: "corporate-celebration", icon: "🏢", description: "Company milestones, product launches & work anniversaries", display_order: 13, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_housewarming", name: "Housewarming", slug: "housewarming", icon: "🏡", description: "Blessings and sweet treats for new beginnings", display_order: 14, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_thank_you", name: "Thank You", slug: "thank-you", icon: "🙏", description: "Show your appreciation with gourmet confections", display_order: 15, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_congratulations", name: "Congratulations", slug: "congratulations", icon: "🎉", description: "Celebrate victories, promotions and achievements", display_order: 16, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_get_well_soon", name: "Get Well Soon", slug: "get-well-soon", icon: "🌻", description: "Warm wishes and comforting gourmet bakery treats", display_order: 17, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_christmas", name: "Christmas", slug: "christmas", icon: "🎄", description: "Rich plum, fruit & festive holiday cakes", display_order: 18, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_new_year", name: "New Year", slug: "new-year", icon: "🎆", description: "Sparkling midnight cakes for ringing in the new year", display_order: 19, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_diwali", name: "Diwali", slug: "diwali", icon: "🪔", description: "Festival of lights gourmet fusion hampers & cakes", display_order: 20, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_eid", name: "Eid", slug: "eid", icon: "🌙", description: "Festive celebration cakes and sweet delicacies", display_order: 21, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_onam", name: "Onam", slug: "onam", icon: "🌼", description: "Traditional fusion festive celebration treats", display_order: 22, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_raksha_bandhan", name: "Raksha Bandhan", slug: "raksha-bandhan", icon: "🧵", description: "Celebrate the bond of brother & sister", display_order: 23, status: "active", created_at: new Date().toISOString() },
-  { id: "occ_friendship_day", name: "Friendship Day", slug: "friendship-day", icon: "🤝", description: "Fun, vibrant celebration cakes for best friends", display_order: 24, status: "active", created_at: new Date().toISOString() },
+  {
+    id: "occ_birthday",
+    name: "Birthday",
+    slug: "birthday",
+    icon: "🎂",
+    description: "Cakes & celebrations for memorable birthday parties",
+    short_description: "Celebrate birthdays with handcrafted gourmet cakes and sparklers.",
+    long_description: "Make every birthday extraordinary with our artisanal birthday cakes. From rich Belgian chocolate truffles to whimsical rainbow layer cakes, customized with free celebration message plaques and midnight delivery across Bangalore.",
+    cover_image: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Handcrafted birthday celebration cake with candles and sprinkles",
+    image_position: "center",
+    featured: true,
+    is_featured: true,
+    show_on_homepage: true,
+    show_in_grid: true,
+    show_in_nav: true,
+    show_in_search: true,
+    seo_title: "Order Birthday Cakes Online in Bangalore — Express Delivery | CakeToHome",
+    seo_description: "Handcrafted birthday cakes delivered fresh in under 2 hours across Bangalore. Premium chocolate, red velvet, and custom photo cakes with midnight delivery.",
+    seo_keywords: "birthday cake online, birthday cake delivery bangalore, midnight birthday cake, gourmet birthday cakes",
+    og_image: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=1200",
+    display_order: 1,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_anniversary",
+    name: "Anniversary",
+    slug: "anniversary",
+    icon: "💍",
+    description: "Romantic & milestone wedding anniversary cakes",
+    short_description: "Cherish romantic milestones with decadent anniversary bakes.",
+    long_description: "Celebrate love and companionship with our romantic anniversary collection. Heart-shaped red velvet cakes, champagne infusions, and delicate fondant floral decorations.",
+    cover_image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Romantic wedding anniversary heart cake with delicate rose petals",
+    image_position: "center",
+    featured: true,
+    is_featured: true,
+    show_on_homepage: true,
+    show_in_grid: true,
+    show_in_nav: true,
+    show_in_search: true,
+    seo_title: "Anniversary Cakes Online Bangalore — Romantic Heart Cakes | CakeToHome",
+    seo_description: "Celebrate wedding milestones with romantic anniversary cakes delivered fresh across Bangalore.",
+    display_order: 2,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_wedding",
+    name: "Wedding",
+    slug: "wedding",
+    icon: "💒",
+    description: "Grand designer multi-tier wedding cakes",
+    short_description: "Magnificent multi-tier wedding centerpieces crafted to perfection.",
+    long_description: "Our master pastry artists craft stunning multi-tiered wedding cakes with bespoke fondant lace, edible gold leaf, and handcrafted sugar flowers.",
+    cover_image: "https://images.unsplash.com/photo-1535254973040-607b474cb50d?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1535254973040-607b474cb50d?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1535254973040-607b474cb50d?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1535254973040-607b474cb50d?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Grand designer multi-tier floral wedding cake centerpiece",
+    image_position: "center",
+    featured: true,
+    is_featured: true,
+    show_on_homepage: true,
+    show_in_grid: true,
+    show_in_nav: true,
+    show_in_search: true,
+    seo_title: "Luxury Wedding Cakes Bangalore — Designer Tiered Cakes | CakeToHome",
+    seo_description: "Grand designer wedding cakes with bespoke tasting consultations and chilled van delivery across Bangalore.",
+    display_order: 3,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_engagement",
+    name: "Engagement",
+    slug: "engagement",
+    icon: "✨",
+    description: "Elegant ring celebration & engagement cakes",
+    short_description: "Toast to forever with exquisite ring ceremony cakes.",
+    cover_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Elegant chocolate gold engagement ring cake",
+    image_position: "center",
+    featured: true,
+    is_featured: true,
+    show_on_homepage: true,
+    show_in_grid: true,
+    show_in_nav: true,
+    show_in_search: true,
+    display_order: 4,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_valentines_day",
+    name: "Valentine's Day",
+    slug: "valentines-day",
+    icon: "❤️",
+    description: "Romantic heart cakes & sweet confections",
+    short_description: "Express your deepest love with Valentine's gourmet specials.",
+    cover_image: "https://images.unsplash.com/photo-1586788680434-30d324b2d46f?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1586788680434-30d324b2d46f?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1586788680434-30d324b2d46f?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1586788680434-30d324b2d46f?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Velveteen heart shaped chocolate Valentine's celebration cake",
+    image_position: "center",
+    featured: true,
+    is_featured: true,
+    show_on_homepage: true,
+    show_in_grid: true,
+    show_in_nav: true,
+    show_in_search: true,
+    display_order: 5,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_mothers_day",
+    name: "Mother's Day",
+    slug: "mothers-day",
+    icon: "🌸",
+    description: "Special floral & gourmet treats for Mom",
+    short_description: "Pamper Mom with floral berry gateaux and light vanilla creams.",
+    cover_image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Floral berry gateau cake for Mother's Day",
+    image_position: "center",
+    featured: true,
+    is_featured: true,
+    show_on_homepage: true,
+    show_in_grid: true,
+    show_in_nav: true,
+    show_in_search: true,
+    display_order: 6,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_fathers_day",
+    name: "Father's Day",
+    slug: "fathers-day",
+    icon: "👔",
+    description: "Custom handcrafted cakes celebrating Dad",
+    short_description: "Celebrate Dad with robust dark roast mocha and hazelnut cakes.",
+    cover_image: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Artisanal espresso chocolate cake for Father's Day",
+    image_position: "center",
+    featured: true,
+    is_featured: true,
+    show_on_homepage: true,
+    show_in_grid: true,
+    show_in_nav: true,
+    show_in_search: true,
+    display_order: 7,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_baby_shower",
+    name: "Baby Shower",
+    slug: "baby-shower",
+    icon: "🍼",
+    description: "Charming pastel theme cakes for welcoming baby",
+    short_description: "Welcome the bundle of joy with cute pastel themed cakes.",
+    cover_image: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Pastel rainbow theme baby shower drip cake",
+    image_position: "center",
+    featured: true,
+    is_featured: true,
+    show_on_homepage: true,
+    show_in_grid: true,
+    show_in_nav: true,
+    show_in_search: true,
+    display_order: 8,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_baby_birthday",
+    name: "Baby Birthday",
+    slug: "baby-birthday",
+    icon: "👶",
+    description: "Cute 1st birthday & kids theme cakes",
+    short_description: "Magical 1st birthday and cartoon theme creations for little ones.",
+    cover_image: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Playful teddy bear theme kids birthday cake",
+    image_position: "center",
+    featured: true,
+    is_featured: true,
+    show_on_homepage: true,
+    show_in_grid: true,
+    show_in_nav: true,
+    show_in_search: true,
+    display_order: 9,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_graduation",
+    name: "Graduation",
+    slug: "graduation",
+    icon: "🎓",
+    description: "Celebrate degrees, diplomas & convocation success",
+    short_description: "Honor academic excellence and convocation milestones.",
+    cover_image: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Festive graduation cap theme celebration cake",
+    image_position: "center",
+    featured: false,
+    is_featured: false,
+    show_on_homepage: false,
+    show_in_grid: true,
+    show_in_nav: true,
+    show_in_search: true,
+    display_order: 10,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_farewell",
+    name: "Farewell",
+    slug: "farewell",
+    icon: "👋",
+    description: "Heartfelt send-off cakes for colleagues & friends",
+    short_description: "Send warm wishes for new chapters with sweet farewell bakes.",
+    cover_image: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Artisanal berry farewell celebration cake",
+    image_position: "center",
+    display_order: 11,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_retirement",
+    name: "Retirement",
+    slug: "retirement",
+    icon: "🌅",
+    description: "Honoring years of excellence and a happy retirement",
+    short_description: "Celebrate a lifetime of dedication and golden years ahead.",
+    cover_image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Golden glaze retirement celebration cake",
+    image_position: "center",
+    display_order: 12,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_corporate_celebration",
+    name: "Corporate Celebration",
+    slug: "corporate-celebration",
+    icon: "🏢",
+    description: "Company milestones, product launches & work anniversaries",
+    short_description: "Impress clients and empower teams with branded corporate cakes.",
+    cover_image: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Premium designer corporate celebration cake",
+    image_position: "center",
+    display_order: 13,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_housewarming",
+    name: "Housewarming",
+    slug: "housewarming",
+    icon: "🏡",
+    description: "Blessings and sweet treats for new beginnings",
+    short_description: "Warm new homes with sweet blessings and nutty praline cakes.",
+    cover_image: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Nutty hazelnut housewarming celebration cake",
+    image_position: "center",
+    display_order: 14,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_thank_you",
+    name: "Thank You",
+    slug: "thank-you",
+    icon: "🙏",
+    description: "Show your appreciation with gourmet confections",
+    short_description: "A decadent gesture of gratitude crafted with Belgian cocoa.",
+    cover_image: "https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Gourmet macarons and thank you celebration cake",
+    image_position: "center",
+    display_order: 15,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_congratulations",
+    name: "Congratulations",
+    slug: "congratulations",
+    icon: "🎉",
+    description: "Celebrate victories, promotions and achievements",
+    short_description: "Pop the sweetness for promotions, victories, and success.",
+    cover_image: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Confetti drip congratulations cake",
+    image_position: "center",
+    display_order: 16,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_get_well_soon",
+    name: "Get Well Soon",
+    slug: "get-well-soon",
+    icon: "🌻",
+    description: "Warm wishes and comforting gourmet bakery treats",
+    short_description: "Brighten spirits with light fruit gateaux and honey vanilla bakes.",
+    cover_image: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Comforting citrus vanilla get well soon cake",
+    image_position: "center",
+    display_order: 17,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_christmas",
+    name: "Christmas",
+    slug: "christmas",
+    icon: "🎄",
+    description: "Rich plum, fruit & festive holiday cakes",
+    short_description: "Traditional soaked fruit plum cakes and winter berry wreaths.",
+    cover_image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Festive rich plum cake for Christmas",
+    image_position: "center",
+    display_order: 18,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_new_year",
+    name: "New Year",
+    slug: "new-year",
+    icon: "🎆",
+    description: "Sparkling midnight cakes for ringing in the new year",
+    short_description: "Celebrate the countdown with midnight truffle cakes.",
+    cover_image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Sparkling dark truffle New Year celebration cake",
+    image_position: "center",
+    display_order: 19,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_diwali",
+    name: "Diwali",
+    slug: "diwali",
+    icon: "🪔",
+    description: "Festival of lights gourmet fusion hampers & cakes",
+    short_description: "Royal saffron, pistachio, and motichoor artisanal fusion cakes.",
+    cover_image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Royal saffron pistachio fusion Diwali cake",
+    image_position: "center",
+    display_order: 20,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_eid",
+    name: "Eid",
+    slug: "eid",
+    icon: "🌙",
+    description: "Festive celebration cakes and sweet delicacies",
+    short_description: "Rose cardamom, sheer khurma infusions, and pistachio treats.",
+    cover_image: "https://images.unsplash.com/photo-1579372786545-d24232daf58c?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1579372786545-d24232daf58c?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1579372786545-d24232daf58c?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1579372786545-d24232daf58c?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Rose cardamom Eid celebration gateau",
+    image_position: "center",
+    display_order: 21,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_onam",
+    name: "Onam",
+    slug: "onam",
+    icon: "🌼",
+    description: "Traditional fusion festive celebration treats",
+    short_description: "Traditional coconut jaggery and palada payasam fusion cakes.",
+    cover_image: "https://images.unsplash.com/photo-1505976378723-9726b54e9bb9?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1505976378723-9726b54e9bb9?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1505976378723-9726b54e9bb9?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1505976378723-9726b54e9bb9?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Traditional Onam festive fusion cake",
+    image_position: "center",
+    display_order: 22,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_raksha_bandhan",
+    name: "Raksha Bandhan",
+    slug: "raksha-bandhan",
+    icon: "🧵",
+    description: "Celebrate the bond of brother & sister",
+    short_description: "Sweet bonds celebrated with gourmet kesar rasmalai cakes.",
+    cover_image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Sweet saffron fusion cake for Raksha Bandhan",
+    image_position: "center",
+    display_order: 23,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "occ_friendship_day",
+    name: "Friendship Day",
+    slug: "friendship-day",
+    icon: "🤝",
+    description: "Fun, vibrant celebration cakes for best friends",
+    short_description: "Fun, vibrant berry burst cakes to celebrate best friends.",
+    cover_image: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=1200",
+    image_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=1200",
+    mobile_cover_image: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=600",
+    thumbnail_image: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=400",
+    alt_text: "Vibrant berry burst Friendship Day cake",
+    image_position: "center",
+    display_order: 24,
+    status: "active",
+    created_at: new Date().toISOString(),
+  },
 ];
 
 const DEFAULT_CROSS_SELL_RULES: CrossSellRule[] = [
@@ -4202,35 +4863,40 @@ function saveStore(data: StoreData): void {
 let memoryStore: StoreData = (globalThis as any).__CTH_MEMORY_STORE__ || loadStore();
 (globalThis as any).__CTH_MEMORY_STORE__ = memoryStore;
 
-let _dbHydrationStatus: { hydrated: boolean; error: string | null; hydratedAt: string | null } = {
+let _dbHydrationStatus: { hydrated: boolean; error: string | null; hydratedAt: string | null } = (globalThis as any).__CTH_HYDRATION_STATUS__ || {
   hydrated: false,
   error: null,
   hydratedAt: null,
 };
 
-let _hydrationPromise: Promise<any> | null = null;
+let _hydrationPromise: Promise<any> | null = (globalThis as any).__CTH_HYDRATION_PROMISE__ || null;
 
 // Trigger asynchronous hydration from PostgreSQL database on startup
 if (typeof window === "undefined") {
-  _hydrationPromise = hydrateStoreFromDatabase(memoryStore)
-    .then((summary) => {
-      _dbHydrationStatus = {
-        hydrated: summary.success,
-        error: null,
-        hydratedAt: new Date().toISOString(),
-      };
-      console.log(`[ApiEngine] PostgreSQL store hydration complete (${summary.productsCount} products, ${summary.branchesCount} branches)`);
-      return summary;
-    })
-    .catch((err) => {
-      _dbHydrationStatus = {
-        hydrated: false,
-        error: err.message,
-        hydratedAt: null,
-      };
-      console.error("[ApiEngine] CRITICAL: PostgreSQL store hydration failed:", err.message);
-      return { success: false, error: err.message };
-    });
+  if (!(globalThis as any).__CTH_HYDRATION_PROMISE__) {
+    (globalThis as any).__CTH_HYDRATION_PROMISE__ = hydrateStoreFromDatabase(memoryStore)
+      .then((summary) => {
+        _dbHydrationStatus = {
+          hydrated: summary.success,
+          error: null,
+          hydratedAt: new Date().toISOString(),
+        };
+        (globalThis as any).__CTH_HYDRATION_STATUS__ = _dbHydrationStatus;
+        console.log(`[ApiEngine] PostgreSQL store hydration complete (${summary.productsCount} products, ${summary.branchesCount} branches)`);
+        return summary;
+      })
+      .catch((err) => {
+        _dbHydrationStatus = {
+          hydrated: false,
+          error: err.message,
+          hydratedAt: null,
+        };
+        (globalThis as any).__CTH_HYDRATION_STATUS__ = _dbHydrationStatus;
+        console.error("[ApiEngine] CRITICAL: PostgreSQL store hydration failed:", err.message);
+        return { success: false, error: err.message };
+      });
+  }
+  _hydrationPromise = (globalThis as any).__CTH_HYDRATION_PROMISE__;
 }
 
 function deduplicateStoreProducts(products: any[]): any[] {
@@ -5848,6 +6514,7 @@ export class ApiEngine {
     });
 
     const isUnserviceable = !resolved ||
+      !resolved.branch ||
       resolved.resolvedBy === "unserviceable_pincode" ||
       resolved.resolvedBy === "unserviceable_coords" ||
       resolved.resolvedBy === "invalid_coords" ||
@@ -5882,7 +6549,7 @@ export class ApiEngine {
       };
     }
 
-    const branch = resolved.branch;
+    const branch = resolved.branch!;
     const city = ApiEngine.getCityForBranch(branch.id);
     
     // Resolve State dynamically from City or Branch hierarchy
@@ -6553,26 +7220,34 @@ export class ApiEngine {
         const c = categories.find((cat: any) => cat.slug === "chocolate-cakes");
         productCats.push(c || { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes" });
       }
-      if (productCats.length === 0 && categories.length > 0) {
-        productCats = [categories[0]];
-      }
     }
 
-    const primaryCat = productCats[0] || { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes" };
+    const primaryCat = productCats[0] || null;
     const prodId = p.id || p.product_id;
     const weightPrices = ApiEngine.getProductWeightPrices(prodId);
     const enabledWeights = weightPrices.filter((wp: any) => wp.is_enabled);
     const ratingAggregate = ApiEngine.getProductRatingAggregate(prodId);
     const hasPublishedReviews = ratingAggregate.total_reviews > 0;
-    const resolvedCatName = p.category || primaryCat.name;
-    const resolvedCatSlug = p.category_slug || (resolvedCatName ? resolvedCatName.toLowerCase().replace(/[^a-z0-9]+/g, "-") : primaryCat.slug);
+    const resolvedCatName = p.category || primaryCat?.name || "";
+    const resolvedCatSlug = p.category_slug || (resolvedCatName ? resolvedCatName.toLowerCase().replace(/[^a-z0-9]+/g, "-") : (primaryCat?.slug || ""));
+
+    const pTitle = (p.title || p.name || "").toLowerCase();
+    let derivedFlavour = p.flavour || "";
+    if (!derivedFlavour) {
+      if (pTitle.includes("red velvet")) derivedFlavour = "Red Velvet";
+      else if (pTitle.includes("mango")) derivedFlavour = "Mango";
+      else if (pTitle.includes("black forest")) derivedFlavour = "Black Forest";
+      else if (pTitle.includes("butterscotch") || pTitle.includes("caramel")) derivedFlavour = "Butterscotch";
+      else if (pTitle.includes("vanilla")) derivedFlavour = "Vanilla";
+      else if (pTitle.includes("chocolate") || pTitle.includes("truffle") || pTitle.includes("fudge")) derivedFlavour = "Chocolate";
+    }
 
     return {
       ...p,
       thumbnail: p.thumbnail === "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800"
         ? "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800"
         : p.thumbnail,
-      primary_category_id: p.primary_category_id || primaryCat.id,
+      primary_category_id: p.primary_category_id || primaryCat?.id || "",
       category: resolvedCatName,
       category_slug: resolvedCatSlug,
       category_ids: productCats.map((c: any) => c.id),
@@ -6582,7 +7257,7 @@ export class ApiEngine {
         slug: c.slug,
         description: c.description || "",
       })),
-      flavour: p.flavour || (p.title?.toLowerCase().includes("red velvet") ? "Red Velvet" : (p.title?.toLowerCase().includes("mango") ? "Mango" : (p.title?.toLowerCase().includes("black forest") ? "Black Forest" : (p.title?.toLowerCase().includes("butterscotch") ? "Butterscotch" : "Chocolate")))),
+      flavour: derivedFlavour,
       weight: p.weight || (enabledWeights[0]?.weight_name || "1 kg"),
       weight_prices: weightPrices,
       weights: enabledWeights.map((wp: any) => wp.weight_name),
@@ -6688,10 +7363,14 @@ export class ApiEngine {
 
     // Filter by weight
     if (weightFilter && weightFilter.toLowerCase() !== "all") {
-      const wLower = weightFilter.toLowerCase();
+      const wLower = weightFilter.toLowerCase().trim();
       products = products.filter((p: any) => {
-        const pWeight = (p.weight || "").toLowerCase();
-        return pWeight.includes(wLower) || wLower.includes(pWeight);
+        const pWeight = String(p.weight || "").toLowerCase().trim();
+        const variantsJson = p.variants_json || {};
+        const weightsList = Array.isArray(variantsJson.weights)
+          ? variantsJson.weights.map((x: any) => String(x || "").toLowerCase().trim())
+          : [];
+        return pWeight.includes(wLower) || wLower.includes(pWeight) || weightsList.some((w: string) => w.includes(wLower) || wLower.includes(w));
       });
     }
 
@@ -6789,6 +7468,7 @@ export class ApiEngine {
       query: options.q,
       category: options.category,
       flavour: options.flavour,
+      weight: options.weight,
       min_price: options.min_price,
       max_price: options.max_price,
       limit: options.limit || 48,
@@ -12949,8 +13629,14 @@ export class ApiEngine {
   // ── CMS Pages & Form Submissions ──────────────────────────────
   static listCmsPages() {
     if (!memoryStore || !Array.isArray(memoryStore.cms_pages)) {
-      if (memoryStore) memoryStore.cms_pages = [];
-      return [];
+      if (memoryStore) memoryStore.cms_pages = [...DEFAULT_CMS_PAGES];
+      return [...DEFAULT_CMS_PAGES];
+    }
+    // Ensure all default CMS pages (like policies, about, contact) are accessible if not yet in DB
+    const existingSlugs = new Set(memoryStore.cms_pages.map((p: any) => p.slug));
+    const missingDefaults = DEFAULT_CMS_PAGES.filter((p: any) => !existingSlugs.has(p.slug));
+    if (missingDefaults.length > 0) {
+      memoryStore.cms_pages.push(...missingDefaults);
     }
     return memoryStore.cms_pages;
   }
@@ -12974,11 +13660,48 @@ export class ApiEngine {
     const exactSlug = pages.find((p: any) => p.slug === idOrSlug || p.slug === clean);
     if (exactSlug) return exactSlug;
     // URL path match
-    return pages.find((p: any) =>
+    const urlMatch = pages.find((p: any) =>
       p.url_path === idOrSlug ||
       p.url_path === `/${clean}` ||
       p.url_path === `/${idOrSlug}`
-    ) || null;
+    );
+    if (urlMatch) return urlMatch;
+
+    // Canonical slug aliases for legal and policy routes
+    if (clean === "about" || clean === "about-us") {
+      const p = pages.find((p: any) => p.slug === "about-us" || p.slug === "our-story");
+      if (p) return p;
+    }
+    if (clean === "contact" || clean === "contact-us") {
+      const p = pages.find((p: any) => p.slug === "contact-us");
+      if (p) return p;
+    }
+    if (clean === "refund" || clean === "refund-policy" || clean === "refunds") {
+      const p = pages.find((p: any) => p.slug === "refund-policy");
+      if (p) return p;
+    }
+    if (clean === "cancellation" || clean === "cancellation-policy") {
+      const p = pages.find((p: any) => p.slug === "cancellation-policy");
+      if (p) return p;
+    }
+    if (clean === "terms" || clean === "terms-and-conditions" || clean === "terms-of-service") {
+      const p = pages.find((p: any) => p.slug === "terms-and-conditions");
+      if (p) return p;
+    }
+    if (clean === "privacy" || clean === "privacy-policy") {
+      const p = pages.find((p: any) => p.slug === "privacy-policy");
+      if (p) return p;
+    }
+    if (clean === "shipping" || clean === "shipping-policy" || clean === "delivery" || clean === "delivery-policy") {
+      const p = pages.find((p: any) => p.slug === "shipping-policy" || p.slug === "delivery-policy");
+      if (p) return p;
+    }
+    if (clean === "cookies" || clean === "cookie-policy") {
+      const p = pages.find((p: any) => p.slug === "cookie-policy");
+      if (p) return p;
+    }
+
+    return null;
   }
 
   static getPublishedCmsPage(idOrSlug: string) {
@@ -13402,6 +14125,26 @@ export class ApiEngine {
       return DEFAULT_OCCASIONS;
     }
     let list = memoryStore.occasions.length > 0 ? memoryStore.occasions : DEFAULT_OCCASIONS;
+    // Non-destructive fallback backfill for legacy occasions missing cover images
+    list = list.map((occ) => {
+      const def = DEFAULT_OCCASIONS.find((d) => d.id === occ.id || d.slug === occ.slug);
+      const cover = occ.cover_image || occ.image_url || def?.cover_image || "";
+      const mobileCover = occ.mobile_cover_image || def?.mobile_cover_image || cover;
+      const thumb = occ.thumbnail_image || occ.thumbnail || def?.thumbnail_image || cover;
+      return {
+        ...occ,
+        cover_image: cover,
+        image_url: cover,
+        mobile_cover_image: mobileCover,
+        thumbnail_image: thumb,
+        alt_text: occ.alt_text || def?.alt_text || `${occ.name} celebration cake`,
+        image_position: occ.image_position || def?.image_position || "center",
+        show_in_grid: occ.show_in_grid !== false,
+        show_on_homepage: occ.show_on_homepage !== false,
+        show_in_nav: occ.show_in_nav !== false,
+        show_in_search: occ.show_in_search !== false,
+      };
+    });
     if (status) {
       list = list.filter((o) => o.status === status);
     }
@@ -13426,14 +14169,39 @@ export class ApiEngine {
     const cleanName = (data.name || "New Occasion").trim();
     const cleanSlug = (data.slug || cleanName.toLowerCase().replace(/[^a-z0-9]+/g, "-")).replace(/^-|-$/g, "");
     const occId = data.id || `occ_${cleanSlug.replace(/-/g, "_") || Date.now()}`;
+    const cover = data.cover_image || data.image_url || data.image || "";
 
     const newOccasion: OccasionItem = {
       id: occId,
       name: cleanName,
       slug: cleanSlug,
-      description: data.description || `Special curated celebration cakes & accessories for ${cleanName}`,
-      image_url: data.image_url || data.image || "",
+      description: data.description || data.short_description || `Special curated celebration cakes & accessories for ${cleanName}`,
+      short_description: data.short_description || data.description || "",
+      long_description: data.long_description || "",
+      image_url: cover,
+      cover_image: cover,
+      mobile_cover_image: data.mobile_cover_image || cover,
+      thumbnail_image: data.thumbnail_image || cover,
+      secondary_image: data.secondary_image || "",
       icon: data.icon || "🎉",
+      alt_text: data.alt_text || `${cleanName} celebration cake`,
+      image_position: data.image_position || "center",
+      featured: data.featured === true || data.is_featured === true,
+      is_featured: data.featured === true || data.is_featured === true,
+      show_on_homepage: data.show_on_homepage !== false,
+      show_in_grid: data.show_in_grid !== false,
+      show_in_nav: data.show_in_nav !== false,
+      show_in_search: data.show_in_search !== false,
+      seo_title: data.seo_title || `${cleanName} Cakes Online Bangalore | CakeToHome`,
+      seo_description: data.seo_description || `Handcrafted ${cleanName} cakes delivered in 2 hours across Bangalore.`,
+      seo_keywords: data.seo_keywords || `${cleanName.toLowerCase()} cake, online ${cleanName.toLowerCase()} cake bangalore`,
+      og_image: data.og_image || cover,
+      canonical_url: data.canonical_url || `https://cakes2home.com/occasions/${cleanSlug}`,
+      featured_product_ids: Array.isArray(data.featured_product_ids) ? data.featured_product_ids : [],
+      included_category_ids: Array.isArray(data.included_category_ids) ? data.included_category_ids : [],
+      excluded_product_ids: Array.isArray(data.excluded_product_ids) ? data.excluded_product_ids : [],
+      recommended_product_ids: Array.isArray(data.recommended_product_ids) ? data.recommended_product_ids : [],
+      cross_sell_product_ids: Array.isArray(data.cross_sell_product_ids) ? data.cross_sell_product_ids : [],
       status: data.status || "active",
       display_order: Number(data.display_order) || (memoryStore.occasions.length + 1),
       created_at: new Date().toISOString(),
@@ -13459,9 +14227,17 @@ export class ApiEngine {
     }
     const idx = memoryStore.occasions.findIndex((o) => o.id === id || o.slug === id);
     if (idx >= 0) {
+      const existing = memoryStore.occasions[idx];
+      const cover = data.cover_image !== undefined ? data.cover_image : (data.image_url !== undefined ? data.image_url : existing.cover_image || existing.image_url);
       const updated: OccasionItem = {
-        ...memoryStore.occasions[idx],
+        ...existing,
         ...data,
+        cover_image: cover,
+        image_url: cover,
+        mobile_cover_image: data.mobile_cover_image !== undefined ? data.mobile_cover_image : (existing.mobile_cover_image || cover),
+        thumbnail_image: data.thumbnail_image !== undefined ? data.thumbnail_image : (existing.thumbnail_image || cover),
+        featured: data.featured !== undefined ? data.featured : (data.is_featured !== undefined ? data.is_featured : existing.featured),
+        is_featured: data.featured !== undefined ? data.featured : (data.is_featured !== undefined ? data.is_featured : existing.is_featured),
         updated_at: new Date().toISOString(),
       };
       memoryStore.occasions[idx] = updated;
@@ -13663,76 +14439,6 @@ export class ApiEngine {
       return activeList.filter((opt: any) => opt.type === type);
     }
     return activeList;
-  }
-
-  static async createVariantOption(data: any) {
-    if (!memoryStore.variant_options || !Array.isArray(memoryStore.variant_options)) {
-      memoryStore.variant_options = [];
-    }
-    const type = data.type || "flavour";
-    const prefix = type === "flavour" ? "flv" : type === "shape" ? "shp" : type === "weight" ? "w" : "opt";
-    const id = data.id || `opt_${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-    const newOption = {
-      id,
-      type,
-      name: data.name || data.display_name || "Custom Option",
-      display_name: data.display_name || data.name || "Custom Option",
-      price_modifier: Number(data.price_modifier ?? data.price_override ?? data.extra_price ?? 0),
-      extra_price: Number(data.price_modifier ?? data.price_override ?? data.extra_price ?? 0),
-      display_order: Number(data.display_order || ((memoryStore.variant_options?.length || 0) + 1)),
-      status: data.status || "active",
-      is_enabled: data.is_enabled !== false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      ...data,
-    };
-    const existingIndex = memoryStore.variant_options.findIndex((o: any) => o.id === id || (o.type === type && o.name.toLowerCase() === newOption.name.toLowerCase()));
-    if (existingIndex >= 0) {
-      memoryStore.variant_options[existingIndex] = {
-        ...memoryStore.variant_options[existingIndex],
-        ...newOption,
-      };
-    } else {
-      memoryStore.variant_options.push(newOption);
-    }
-    ApiEngine.persist();
-    await persistVariantOptionToDb(newOption).catch((err) => {
-      console.error("[ApiEngine] Failed to persist variant option to PostgreSQL:", err);
-    });
-    return newOption;
-  }
-
-  static async updateVariantOption(id: string, data: any) {
-    if (!memoryStore.variant_options || !Array.isArray(memoryStore.variant_options)) {
-      memoryStore.variant_options = [];
-    }
-    const index = memoryStore.variant_options.findIndex((o: any) => o.id === id);
-    if (index === -1) return null;
-    memoryStore.variant_options[index] = {
-      ...memoryStore.variant_options[index],
-      ...data,
-      updated_at: new Date().toISOString(),
-    };
-    ApiEngine.persist();
-    await persistVariantOptionToDb(memoryStore.variant_options[index]).catch((err) => {
-      console.error("[ApiEngine] Failed to persist variant option update to PostgreSQL:", err);
-    });
-    return memoryStore.variant_options[index];
-  }
-
-  static async deleteVariantOption(id: string) {
-    if (!memoryStore.variant_options || !Array.isArray(memoryStore.variant_options)) {
-      memoryStore.variant_options = [];
-    }
-    const index = memoryStore.variant_options.findIndex((o: any) => o.id === id);
-    if (index === -1) return false;
-    memoryStore.variant_options[index].status = "archived";
-    memoryStore.variant_options[index].is_enabled = false;
-    ApiEngine.persist();
-    await deleteVariantOptionFromDb(id).catch((err) => {
-      console.error("[ApiEngine] Failed to delete variant option from PostgreSQL:", err);
-    });
-    return true;
   }
 
   static resolveProductEntity(productId: string): any | null {
@@ -15270,7 +15976,7 @@ export class ApiEngine {
     deliveryType?: "delivery" | "pickup";
     branchId?: string;
   }): {
-    branch: BranchItem;
+    branch: BranchItem | null;
     resolvedBy: string;
     etaminutes: number;
     deliveryFee: number;
@@ -15562,6 +16268,9 @@ export class ApiEngine {
     }
   ): {
     status: string;
+    branch_id?: string;
+    date?: string;
+    delivery_type?: string;
     message?: string;
     is_open: boolean;
     delivery_slots: Array<{
@@ -15586,9 +16295,10 @@ export class ApiEngine {
     const rawBranch = ApiEngine.getBranchById(branchId) || ApiEngine.listBranches()[0] || null;
     if (!rawBranch) {
       return {
+        status: "CLOSED",
         branch_id: branchId,
-        date,
-        delivery_type: deliveryType,
+        date: dateStr,
+        delivery_type: mode,
         is_open: false,
         message: "Bakery branch not found or currently closed.",
         delivery_slots: [],
@@ -16356,6 +17066,20 @@ export class ApiEngine {
       blockers.push(resolved.blockedReason);
     } else if (resolved.resolvedBy === "fallback_default") {
       blockers.push(`Delivery pincode ${query.pincode || "entered"} is outside our current branch service zone.`);
+    }
+
+    if (!resolved.branch) {
+      blockers.push(`Delivery location is outside our current branch service zone.`);
+      return {
+        eligible: false,
+        branch: null,
+        delivery_fee: resolved.deliveryFee || 0,
+        eta_minutes: 0,
+        partner: "None",
+        warnings,
+        blockers,
+        alternative_suggestions: suggestions,
+      };
     }
 
     const branch = resolved.branch;
@@ -23004,6 +23728,162 @@ export class ApiEngine {
     if (!memoryStore) memoryStore = {} as any;
     if (!Array.isArray((memoryStore as any).popup_campaigns)) {
       (memoryStore as any).popup_campaigns = [];
+    }
+    if ((memoryStore as any).popup_campaigns.length === 0) {
+      (memoryStore as any).popup_campaigns = [
+        {
+          id: "pop_welcome_first_order",
+          name: "Welcome First Order Discount",
+          slug: "welcome-first-order",
+          popup_type: "WELCOME",
+          status: "published",
+          priority: 1000,
+          enabled: true,
+          timezone: "Asia/Kolkata",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          current_version: {
+            id: "ver_welcome_1",
+            popup_campaign_id: "pop_welcome_first_order",
+            version_number: 1,
+            created_at: new Date().toISOString(),
+            content: {
+              headline: "Get 15% OFF Your First Celebration Cake!",
+              description: "Enter your phone number to receive your instant welcome discount coupon.",
+              primaryButton: { label: "Claim 15% Discount", action: "OPEN_PHONE_AUTH" },
+              secondaryButton: { label: "No thanks, I will pay full price", action: "CLOSE" },
+            },
+            design: {
+              desktopLayout: "CENTER_MODAL",
+              tabletLayout: "CENTER_MODAL",
+              mobileLayout: "BOTTOM_SHEET",
+            },
+            trigger: {
+              enabled_triggers: ["time_on_page"],
+              timeOnPageSeconds: 3,
+              combinator: "ANY",
+            },
+            audience: {
+              customerStatus: ["guest", "all"],
+              devices: ["desktop", "mobile"],
+            },
+            frequency: {
+              scope: "session",
+              maxShows: 1,
+              snoozeDays: 7,
+            },
+            schedule: {},
+            offer: {
+              type: "COUPON",
+              code: "WELCOME15",
+              discount_type: "percentage",
+              discount_value: 15,
+            },
+            media: { source: "NO_IMAGE" },
+            rules: [],
+          },
+        },
+        {
+          id: "pop_spin_wheel_first",
+          name: "Spin & Win Celebration Wheel",
+          slug: "spin-wheel",
+          popup_type: "SPIN_WHEEL",
+          status: "published",
+          priority: 800,
+          enabled: true,
+          timezone: "Asia/Kolkata",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          current_version: {
+            id: "ver_spin_1",
+            popup_campaign_id: "pop_spin_wheel_first",
+            version_number: 1,
+            created_at: new Date().toISOString(),
+            content: {
+              headline: "Spin to Win Up to ₹250 OFF!",
+              description: "Try your luck on the celebration wheel for special rewards.",
+              primaryButton: { label: "Spin the Wheel", action: "SPIN_WHEEL" },
+            },
+            design: {
+              desktopLayout: "CENTER_MODAL",
+              tabletLayout: "CENTER_MODAL",
+              mobileLayout: "BOTTOM_SHEET",
+            },
+            trigger: {
+              enabled_triggers: ["scroll_depth"],
+              scrollDepthPercent: 50,
+              combinator: "ANY",
+            },
+            audience: {
+              customerStatus: ["guest", "all"],
+              devices: ["desktop", "mobile"],
+            },
+            frequency: {
+              scope: "session",
+              maxShows: 1,
+              snoozeDays: 3,
+            },
+            schedule: {},
+            offer: {
+              type: "SPIN_WHEEL",
+              code: "SPINWIN",
+            },
+            media: { source: "NO_IMAGE" },
+            rules: [],
+          },
+        },
+        {
+          id: "pop_cart_recovery_exit",
+          name: "Cart Abandonment Recovery",
+          slug: "cart-recovery",
+          popup_type: "CART_EXIT",
+          status: "published",
+          priority: 900,
+          enabled: true,
+          timezone: "Asia/Kolkata",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          current_version: {
+            id: "ver_cart_1",
+            popup_campaign_id: "pop_cart_recovery_exit",
+            version_number: 1,
+            created_at: new Date().toISOString(),
+            content: {
+              headline: "Don't Leave Your Cake Behind!",
+              description: "Complete your order now and enjoy an extra ₹100 instant discount.",
+              primaryButton: { label: "Complete Order with ₹100 OFF", action: "APPLY_COUPON" },
+            },
+            design: {
+              desktopLayout: "CENTER_MODAL",
+              tabletLayout: "CENTER_MODAL",
+              mobileLayout: "BOTTOM_SHEET",
+            },
+            trigger: {
+              enabled_triggers: ["exit_intent"],
+              exitIntent: true,
+              combinator: "ANY",
+            },
+            audience: {
+              customerStatus: ["all"],
+              devices: ["desktop"],
+            },
+            frequency: {
+              scope: "session",
+              maxShows: 1,
+              snoozeDays: 1,
+            },
+            schedule: {},
+            offer: {
+              type: "COUPON",
+              code: "SAVE100",
+              discount_type: "fixed",
+              discount_value: 100,
+            },
+            media: { source: "NO_IMAGE" },
+            rules: [],
+          },
+        },
+      ];
     }
     if (!Array.isArray((memoryStore as any).popup_impressions)) {
       (memoryStore as any).popup_impressions = [];

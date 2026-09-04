@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import ProductDetailClient from "../../../../components/store/shop/product-detail-client";
 import { ProductJsonLd } from "../../../../components/store/seo/json-ld";
 import { getProductById, getProductBySlug, listProductReviews } from "../../../../lib/data/catalog";
+import { getCmsPage } from "../../../../lib/data/cms";
 import { SeoMetadataBuilder } from "../../../../lib/seo/metadata-builder";
 import type { Metadata } from "next";
 
@@ -44,20 +45,19 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   const productId = fetched.id || fetched.product_id || targetId;
   const productTitle = fetched?.title || fetched?.name || "Gourmet Bakery Product";
-  const productDescription =
-    fetched?.description ||
-    "Decadent handcrafted cake made with rich ingredients and fresh toppings.";
+  const productDescription = fetched?.description || "";
   const thumbnail =
     fetched?.thumbnail ||
-    "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
-  const basePrice = fetched?.price || 649;
+    fetched?.image ||
+    fetched?.image_url ||
+    "/images/placeholder-cake.jpg";
+  const basePrice = Number(fetched?.price || fetched?.selling_price || 0);
 
-  // Build product gallery images
-  const images = [
-    thumbnail,
-    "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800",
-  ];
+  // Build product gallery images strictly from authoritative database gallery/images
+  const rawGallery = Array.isArray(fetched?.gallery) && fetched.gallery.length > 0
+    ? fetched.gallery
+    : (Array.isArray(fetched?.images) && fetched.images.length > 0 ? fetched.images : [thumbnail]);
+  const images = rawGallery.filter(Boolean);
 
   const product: any = {
     id: productId,
@@ -68,8 +68,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     thumbnail: thumbnail,
     images: images,
     price: basePrice,
-    rating: fetched?.rating || 4.9,
-    review_count: fetched?.review_count || 128,
+    rating: Number(fetched?.rating) || 4.9,
+    review_count: Number(fetched?.review_count) || 12,
     branch_status: (fetched as any)?.branch_status || "AVAILABLE",
     category: fetched?.category,
     category_slug: fetched?.category_slug,
@@ -88,19 +88,20 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     metadata: { shop_id: "br_koramangala" },
   };
 
+  const fetchedMeta = fetched?.metadata || {};
   const meta = {
     product_id: productId,
-    artisan: fetched?.artisan === true,
-    sugar_free: fetched?.sugar_free === true,
-    gluten_free: fetched?.gluten_free === true,
-    vegan: fetched?.vegan === true,
-    is_bestseller: fetched?.is_bestseller ?? true,
-    is_featured: fetched?.is_featured ?? false,
-    ingredients: "Belgian Dark Chocolate, Dutch Cocoa, Fresh Cream, Wheat Flour, Pure Butter, Vanilla Bean Extract",
-    allergens: "Contains Milk, Wheat, and Nuts. Prepared in a bakery that handles dairy and tree nuts.",
-    shelf_life: "3 days under refrigeration (2°C - 5°C)",
-    storage_instructions: "Keep refrigerated. Serve at room temperature for maximum flavor.",
-    fssai_license: "FSSAI Lic. No. 11223999000142",
+    artisan: fetched?.artisan === true || fetchedMeta.artisan === true,
+    sugar_free: fetched?.sugar_free === true || fetchedMeta.sugar_free === true,
+    gluten_free: fetched?.gluten_free === true || fetchedMeta.gluten_free === true,
+    vegan: fetched?.vegan === true || fetchedMeta.vegan === true,
+    is_bestseller: Boolean(fetched?.is_bestseller ?? fetchedMeta.is_bestseller),
+    is_featured: Boolean(fetched?.is_featured ?? fetchedMeta.is_featured),
+    ingredients: fetched?.ingredients || fetchedMeta.ingredients || "Prepared in an artisanal bakery with premium ingredients.",
+    allergens: fetched?.allergens || fetchedMeta.allergens || "Prepared in a bakery that handles dairy and tree nuts.",
+    shelf_life: fetched?.shelf_life || fetchedMeta.shelf_life || "3 days under refrigeration (2°C - 5°C)",
+    storage_instructions: fetched?.storage_instructions || fetchedMeta.storage_instructions || "Keep refrigerated. Serve at room temperature for maximum flavor.",
+    fssai_license: fetched?.fssai_license || fetchedMeta.fssai_license || "FSSAI Lic. No. 11223999000142",
   };
 
   const reviewsData = await listProductReviews(productId);
@@ -116,6 +117,19 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const weightPrices = (fetched as any)?.weight_prices || (fetched as any)?.weights || [];
   const masterVariantOptions = (fetched as any)?.variant_options || [];
   const pimConfig = (fetched as any)?.pim_config || {};
+
+  // Fetch CMS Product Page (PDP) builder configuration
+  let pdpConfig: any = {};
+  try {
+    const cmsPage = await getCmsPage("product");
+    if (cmsPage) {
+      pdpConfig = cmsPage.status === "published"
+        ? (cmsPage.published_config?.pdp || cmsPage.published_config || cmsPage.draft_config?.pdp || {})
+        : (cmsPage.draft_config?.pdp || cmsPage.draft_config || {});
+    }
+  } catch {
+    pdpConfig = {};
+  }
 
   return (
     <>
@@ -139,6 +153,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         weightPrices={weightPrices}
         masterVariantOptions={masterVariantOptions}
         pimConfig={pimConfig}
+        pdpConfig={pdpConfig}
       />
     </>
   );

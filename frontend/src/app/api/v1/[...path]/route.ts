@@ -9,6 +9,7 @@ import { normalizePhone, SYSTEM_SEGMENTS } from "@frontend/lib/crm/crm-engine";
 import { FulfillmentEngine, DeliverySlotGenerator, DEFAULT_SLOT_CONFIG } from "@frontend/lib/fulfillment";
 import { createApiEngineProvider, ensureFulfillmentStore, generateOtp, verifyOtp, getActiveOtp } from "@frontend/lib/fulfillment/api-engine-provider";
 import { persistSettingToDb } from "@frontend/lib/db-persistence";
+import { ProductRepository, OrderRepository, BranchRepository } from "@frontend/lib/repositories";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -235,14 +236,8 @@ let backendDownUntil = 0;
 const MEDUSA_PROXY_ALLOWLIST = [
   "health",
   "admin/health",
-  "products",
-  "store/products",
-  "regions",
   "store/regions",
-  "admin/products",
-  "admin/catalog/products",
-  "admin/orders",
-  "admin/delivery-partners",
+  "regions",
 ];
 
 function shouldProxyToMedusa(path: string): boolean {
@@ -339,11 +334,23 @@ async function forwardToPostgresBackend(method: string, path: string, body?: any
       }
       return jsonWithDataSource(data, "postgres", res.status);
     } else {
-      console.log(`[Proxy Backend ${res.status}] Target ${targetUrl} returned HTTP ${res.status} (${res.statusText}). Falling back to ApiEngine.`);
+      await res.text().catch(() => {});
+      console.log(`[Proxy Backend ${res.status}] Target ${targetUrl} returned HTTP ${res.status} (${res.statusText}).`);
+      if (res.status === 401 || res.status === 403) {
+        return jsonWithDataSource(
+          {
+            error: "UNAUTHORIZED",
+            status: res.status,
+            message: `Authentication required for proxy target: ${resolvedPath}`,
+          },
+          "postgres",
+          res.status
+        );
+      }
     }
   } catch (err: any) {
     backendDownUntil = Date.now() + 5000;
-    console.log(`[Proxy Fallback] Target ${targetUrl} unreachable (${err.message}). Using ApiEngine JSON fallback.`);
+    console.log(`[Proxy Fallback] Target ${targetUrl} unreachable (${err.message}).`);
   }
   return null;
 }
@@ -444,10 +451,10 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
       // ── Domain 4: Pincode -> Zone -> Branch Resolution ──
       const p1 = ApiEngine.resolveSmartBranch({ pincode: "560038" });
-      suiteResults.push({ id: "4.1", name: "Pincode 560038 -> Indiranagar Flagship", status: p1.branch.name.includes("Indiranagar") ? "PASS" : "FAIL", branch: p1.branch.name });
+      suiteResults.push({ id: "4.1", name: "Pincode 560038 -> Indiranagar Flagship", status: p1.branch?.name?.includes("Indiranagar") ? "PASS" : "FAIL", branch: p1.branch?.name || "" });
 
       const p2 = ApiEngine.resolveSmartBranch({ pincode: "560034" });
-      suiteResults.push({ id: "4.2", name: "Pincode 560034 -> Koramangala Hub", status: p2.branch.name.includes("Koramangala") ? "PASS" : "FAIL", branch: p2.branch.name });
+      suiteResults.push({ id: "4.2", name: "Pincode 560034 -> Koramangala Hub", status: p2.branch?.name?.includes("Koramangala") ? "PASS" : "FAIL", branch: p2.branch?.name || "" });
 
       const p3 = ApiEngine.resolveSmartBranch({ pincode: "560001" });
       suiteResults.push({ id: "4.3", name: "Pincode 560001 -> Zone Delivery Hub", status: (p3.deliveryFee > 0 && p3.branch) ? "PASS" : "FAIL", fee: p3.deliveryFee });
@@ -603,11 +610,12 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       path === "products/search" ||
       path === "store/products/search"
     ) {
-      const q = url.searchParams.get("q") || undefined;
+      const q = url.searchParams.get("q") || url.searchParams.get("search") || url.searchParams.get("query") || url.searchParams.get("searchTerm") || undefined;
       const category = url.searchParams.get("category") || url.searchParams.get("category_id") || undefined;
-      const flavour = url.searchParams.get("flavour") || undefined;
+      const flavour = url.searchParams.get("flavour") || url.searchParams.get("flavor") || undefined;
       const weight = url.searchParams.get("weight") || undefined;
       const branchId = url.searchParams.get("branchId") || url.searchParams.get("shop_id") || url.searchParams.get("branch_id") || undefined;
+      const city = url.searchParams.get("city") || undefined;
       const pincode = url.searchParams.get("pincode") || undefined;
       const minPrice = url.searchParams.get("min_price") ? Number(url.searchParams.get("min_price")) : undefined;
       const maxPrice = url.searchParams.get("max_price") ? Number(url.searchParams.get("max_price")) : undefined;
@@ -743,10 +751,11 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ category, success: true }, "postgres");
     }
 
-    if (path === "products") {
+    if (path === "products" || path === "store/products" || path === "products/search") {
       const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
       const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || undefined;
       const category = url.searchParams.get("category") || url.searchParams.get("category_id") || undefined;
+      const occasion = url.searchParams.get("occasion") || url.searchParams.get("occasion_id") || undefined;
       const flavour = url.searchParams.get("flavour") || undefined;
       const weight = url.searchParams.get("weight") || undefined;
       const min_price = url.searchParams.get("min_price") ? Number(url.searchParams.get("min_price")) : undefined;
@@ -754,8 +763,18 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const q = url.searchParams.get("q") || undefined;
       const sort = url.searchParams.get("sort") || undefined;
 
-      const products = ApiEngine.getProducts({ branchId, pincode, category, flavour, weight, min_price, max_price, q, sort });
-      return jsonWithDataSource({ products, results: products, count: products.length, success: true }, "postgres");
+      const res = ApiEngine.searchProducts({
+        q,
+        category: category || occasion,
+        flavour,
+        weight,
+        min_price,
+        max_price,
+        branchId,
+        pincode,
+        sort,
+      });
+      return jsonWithDataSource({ ...res, success: true }, "postgres");
     }
 
     // ── Product Reviews & Ratings (GET) ──
@@ -896,8 +915,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource(product, "postgres");
     }
 
-    if (path.startsWith("products/")) {
-      const slug = path.replace("products/", "");
+    if ((path.startsWith("products/") || path.startsWith("store/products/")) && !path.endsWith("/search")) {
+      const slug = path.replace("products/", "").replace("store/products/", "");
       const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
       const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || undefined;
       const product = ApiEngine.getProductBySlug(slug, branchId, pincode) || ApiEngine.getProductById(slug, branchId, pincode);
@@ -1273,11 +1292,19 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/delivery/eligible-partners") return jsonWithDataSource(ApiEngine.getEligibleDeliveryPartners(Object.fromEntries(url.searchParams)), "postgres");
     if (path === "admin/delivery/assignment-rules") return jsonWithDataSource({ rules: ApiEngine.getDeliveryAssignmentRules(), success: true }, "postgres");
     if (path === "admin/orders" || path === "admin/order-lifecycle" || path === "order-lifecycle") {
+      const permErr = verifyApiPermission(req, "ORDERS", "VIEW");
+      if (permErr) return permErr;
       const qParams = Object.fromEntries(url.searchParams);
       if (qParams.id || qParams.order_id) {
         const targetId = (qParams.id || qParams.order_id) as string;
+        const dbOrder = await OrderRepository.findById(targetId);
+        if (dbOrder) return jsonWithDataSource({ order: dbOrder }, "postgres");
         const details = ApiEngine.getOrderDetails(targetId);
         if (details) return jsonWithDataSource({ order: details }, "postgres");
+      }
+      const dbOrders = await OrderRepository.findAll(Number(qParams.limit) || 500);
+      if (dbOrders && dbOrders.length > 0) {
+        return jsonWithDataSource({ orders: dbOrders, total: dbOrders.length, success: true }, "postgres");
       }
       return jsonWithDataSource(ApiEngine.getAdminOrders(qParams), "postgres");
     }
@@ -1288,6 +1315,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       if (subAction === "auto-assign-delivery") {
         return jsonWithDataSource(ApiEngine.autoAssignDeliveryDriver(orderId), "postgres");
       }
+      const dbOrder = await OrderRepository.findById(orderId);
+      if (dbOrder) return jsonWithDataSource({ order: dbOrder }, "postgres");
       const orderDetails = ApiEngine.getOrderDetails(orderId);
       if (orderDetails) return jsonWithDataSource({ order: orderDetails }, "postgres");
       return jsonWithDataSource({ message: "Order not found" }, "postgres", 404);
@@ -1325,7 +1354,13 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         });
       }
     }
-    if (path === "admin/branches" || path === "branches") return jsonWithDataSource({ branches: ApiEngine.getAdminBranches() }, "postgres");
+    if (path === "admin/branches" || path === "branches") {
+      const branches = await BranchRepository.findAll();
+      if (branches && branches.length > 0) {
+        return jsonWithDataSource({ branches, total: branches.length, success: true }, "postgres");
+      }
+      return jsonWithDataSource({ branches: ApiEngine.getAdminBranches() }, "postgres");
+    }
     if (path.startsWith("admin/branches/") || path.startsWith("branches/")) {
       const branchId = path.replace(/^admin\/branches\//, "").replace(/^branches\//, "");
       if (!branchId.includes("/")) {
@@ -1442,9 +1477,19 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const prodId = extractProductIdFromPath(path);
       return jsonWithDataSource({ weight_prices: ApiEngine.getProductWeightPrices(prodId) }, "postgres");
     }
-    if (path === "admin/catalog/products" || path === "admin/products") return jsonWithDataSource({ products: ApiEngine.getAdminProducts() }, "postgres");
+    if (path === "admin/catalog/products" || path === "admin/products") {
+      const permErr = verifyApiPermission(req, "CATALOG", "VIEW");
+      if (permErr) return permErr;
+      const products = await ProductRepository.findAll();
+      if (products && products.length > 0) {
+        return jsonWithDataSource({ products, total: products.length, success: true }, "postgres");
+      }
+      return jsonWithDataSource({ products: ApiEngine.getAdminProducts() }, "postgres");
+    }
     if ((path.startsWith("admin/catalog/products/") || path.startsWith("admin/products/")) && !path.includes("/weight-prices")) {
       const id = extractProductIdFromPath(path);
+      const dbProd = await ProductRepository.findById(id);
+      if (dbProd) return jsonWithDataSource({ product: dbProd }, "postgres");
       const product = ApiEngine.getProductById(id) || ApiEngine.getProductBySlug(id);
       if (product) return jsonWithDataSource({ product }, "postgres");
     }
@@ -1894,6 +1939,40 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
       const result = ApiEngine.addCustomerFavorite(customerUid, productId);
       return jsonWithDataSource(result, "postgres", result.statusCode || 200);
+    }
+
+    // ── Lead Generation & Cake Enquiries (POST) ──
+    if (
+      path === "enquiries" ||
+      path === "leads" ||
+      path === "contact" ||
+      path === "store/enquiries" ||
+      path === "store/contact"
+    ) {
+      if (!body.name || !body.phone) {
+        return jsonWithDataSource(
+          { success: false, error: "VALIDATION_FAILED", message: "Name and contact phone number are required." },
+          "postgres",
+          400
+        );
+      }
+      const { persistLeadEnquiryToDb } = await import("@frontend/lib/db-persistence");
+      const enquiryId = await persistLeadEnquiryToDb({
+        type: body.type || "contact_form",
+        name: String(body.name).trim(),
+        phone: String(body.phone).trim(),
+        email: body.email ? String(body.email).trim() : undefined,
+        details: body.details || body.message || body.requirements || undefined,
+      });
+      return jsonWithDataSource(
+        {
+          success: true,
+          id: enquiryId,
+          message: "Thank you! Your enquiry has been received. Our bakery concierge will reach out within 15 minutes.",
+        },
+        "postgres",
+        201
+      );
     }
 
     // ── Product Reviews Submission (POST) ──

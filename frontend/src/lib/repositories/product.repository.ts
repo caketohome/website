@@ -232,6 +232,8 @@ export class ProductRepository {
       enable_shape_selection: product.enable_shape_selection,
     };
 
+    const numericWeight = typeof product.weight === "number" ? product.weight : parseFloat(String(product.weight || "1")) || 1;
+
     await dbQuery(
       `
       INSERT INTO "product" (id, title, handle, description, thumbnail, status, weight, metadata, created_at, updated_at)
@@ -246,7 +248,7 @@ export class ProductRepository {
         metadata = EXCLUDED.metadata,
         updated_at = NOW()
     `,
-      [id, title, handle, description, thumbnail, status, product.weight || "1 kg", JSON.stringify(metadata)]
+      [id, title, handle, description, thumbnail, status, numericWeight, JSON.stringify(metadata)]
     );
   }
 
@@ -254,7 +256,7 @@ export class ProductRepository {
    * Soft delete / archive product in PostgreSQL
    */
   static async delete(id: string): Promise<void> {
-    await dbQuery(`UPDATE "product" SET deleted_at = NOW(), status = 'archived' WHERE id = $1`, [id]);
+    await dbQuery(`UPDATE "product" SET deleted_at = NOW(), status = 'draft' WHERE id = $1`, [id]);
   }
 
   /**

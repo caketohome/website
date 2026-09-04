@@ -259,22 +259,22 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
         mrp: Number(meta.mrp || 799),
         rating: Number(meta.rating) || 4.9,
         review_count: Number(meta.review_count) || 12,
-        category: meta.category || "Chocolate Cakes",
-        category_slug: meta.category_slug || "chocolate-cakes",
-        primary_category_id: meta.primary_category_id || "cat_chocolate",
+        category: meta.category || "",
+        category_slug: meta.category_slug || (meta.category ? meta.category.toLowerCase().replace(/[^a-z0-9]+/g, "-") : ""),
+        primary_category_id: meta.primary_category_id || "",
         secondary_category_ids: meta.secondary_category_ids || [],
-        category_ids: meta.category_ids || [],
-        flavour: meta.flavour || "Chocolate",
-        cake_base: meta.cake_base || "Chocolate",
-        filling: meta.filling || "Chocolate Ganache",
-        cream: meta.cream || "Fresh Cream",
+        category_ids: meta.category_ids || (meta.primary_category_id ? [meta.primary_category_id] : []),
+        flavour: meta.flavour || "",
+        cake_base: meta.cake_base || meta.flavour || "",
+        filling: meta.filling || "",
+        cream: meta.cream || "",
         texture: meta.texture || "Soft & Moist",
-        weight: p.weight || "1 kg",
+        weight: p.weight || (meta.weight_prices?.[0]?.weight_name || "1 kg"),
         variants_json: meta.variants_json || { weights: ["0.5 kg", "1 kg", "1.5 kg", "2 kg"] },
         add_ons_json: meta.add_ons_json || {},
         tags: meta.tags || "",
-        occasion: meta.occasion || "Birthday",
-        occasion_ids: meta.occasion_ids || ["occ_birthday"],
+        occasion: meta.occasion || "",
+        occasion_ids: meta.occasion_ids || [],
         brand: meta.brand || "CakeToHome Signature",
         cake_type: meta.cake_type || "Layer Cake",
         gst_rate: Number(meta.gst_rate || 5),
@@ -1242,38 +1242,76 @@ export async function deleteCmsPageFromDb(pageId: string): Promise<void> {
 }
 
 /**
+ * Persists a Customer/Corporate Lead or Custom Cake Enquiry to PostgreSQL
+ */
+export async function persistLeadEnquiryToDb(enquiry: {
+  id?: string;
+  type?: string;
+  name: string;
+  phone: string;
+  email?: string;
+  details?: string;
+}): Promise<string> {
+  const id = enquiry.id || `enq_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  await dbQuery(`
+    CREATE TABLE IF NOT EXISTS "lead_enquiry" (
+      "id" VARCHAR(120) PRIMARY KEY,
+      "type" VARCHAR(50) NOT NULL,
+      "name" VARCHAR(255) NOT NULL,
+      "phone" VARCHAR(50) NOT NULL,
+      "email" VARCHAR(255),
+      "details" TEXT,
+      "status" VARCHAR(50) DEFAULT 'new',
+      "created_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    )
+  `);
+  await dbQuery(
+    `INSERT INTO "lead_enquiry" ("id", "type", "name", "phone", "email", "details", "created_at")
+     VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+    [
+      id,
+      enquiry.type || "contact_form",
+      enquiry.name,
+      enquiry.phone,
+      enquiry.email || null,
+      enquiry.details || null,
+    ]
+  );
+  return id;
+}
+
+/**
  * Persists an Offer to PostgreSQL
  */
 export async function persistOfferToDb(offer: any): Promise<void> {
   const id = offer.id || `off_${Date.now()}`;
   await dbQuery(
     `
-    INSERT INTO "offer" ("id", "name", "code", "type", "discount_value", "min_order", "is_active", "description", "metadata", "created_at", "updated_at")
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+    INSERT INTO "offer" ("id", "name", "code", "discount_type", "discount_value", "min_order_amount", "is_active", "description", "created_at", "updated_at")
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
     ON CONFLICT ("id") DO UPDATE SET
       "name" = EXCLUDED.name,
       "code" = EXCLUDED.code,
-      "type" = EXCLUDED.type,
+      "discount_type" = EXCLUDED.discount_type,
       "discount_value" = EXCLUDED.discount_value,
-      "min_order" = EXCLUDED.min_order,
+      "min_order_amount" = EXCLUDED.min_order_amount,
       "is_active" = EXCLUDED.is_active,
       "description" = EXCLUDED.description,
-      "metadata" = EXCLUDED.metadata,
       "updated_at" = NOW()
   `,
     [
       id,
-      offer.name || offer.code || "Promo Offer",
+      offer.name || offer.title || offer.code || "Promo Offer",
       (offer.code || `OFFER_${Date.now()}`).toUpperCase(),
-      offer.type || offer.discount_type || "flat",
-      Number(offer.discount_value) || 100,
-      Number(offer.min_order) || 499,
+      offer.discount_type || offer.type || "flat",
+      Number(offer.discount_value ?? offer.amount ?? offer.value ?? 100),
+      Number(offer.min_order_amount ?? offer.min_order ?? offer.min_order_value ?? 499),
       offer.is_active !== false,
       offer.description || "",
-      JSON.stringify(offer.metadata || {}),
     ]
   );
 }
+
 
 /**
  * Persists a Setting to PostgreSQL

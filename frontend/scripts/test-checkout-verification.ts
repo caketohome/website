@@ -84,12 +84,12 @@ async function runCheckoutVerification() {
   // PHASE 6: PRODUCT × BRANCH AVAILABILITY
   // ──────────────────────────────────────────────────────────────────────────
   console.log("\n--- PHASE 6: PRODUCT × BRANCH AVAILABILITY VALIDATION ---");
-  const branchIndiranagar = ApiEngine.getBranchById(pinRes1.branch.id);
+  const branchIndiranagar = ApiEngine.getBranchById(pinRes1.branch!.id);
   if (!branchIndiranagar.product_availability) branchIndiranagar.product_availability = {};
   
   // Set product prod_1 available at Indiranagar, but out of stock at Koramangala
   branchIndiranagar.product_availability["prod_1"] = { status: "available" };
-  const branchKoramangala = ApiEngine.getBranchById(pinRes2.branch.id);
+  const branchKoramangala = ApiEngine.getBranchById(pinRes2.branch!.id);
   if (!branchKoramangala.product_availability) branchKoramangala.product_availability = {};
   branchKoramangala.product_availability["prod_1"] = { status: "out_of_stock" };
 

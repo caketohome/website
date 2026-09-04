@@ -65,6 +65,7 @@ export function ProductsCatalogClient({
 
   const isFirstMount = useRef(true);
   const latestSearchId = useRef(0);
+  const lastUrlString = useRef<string>(searchParams.toString());
 
   // Sync state to URL
   const updateUrl = useCallback(
@@ -79,6 +80,7 @@ export function ProductsCatalogClient({
       if (newFilters.sort) p.set("sort", newFilters.sort);
 
       const queryString = p.toString();
+      lastUrlString.current = queryString;
       const targetUrl = queryString ? `${pathname}?${queryString}` : pathname;
       if (typeof window !== "undefined") {
         window.history.replaceState(null, "", targetUrl);
@@ -104,10 +106,12 @@ export function ProductsCatalogClient({
   // Execute catalog search on filter change
   const executeSearch = useCallback(async (currentFilters: SearchFilters) => {
     const searchId = ++latestSearchId.current;
+    console.log("[Catalog Client] executeSearch called with:", JSON.stringify(currentFilters));
     setLoading(true);
     setError(null);
     try {
       const res = await searchProductsAction({ ...currentFilters, limit: 48 });
+      console.log("[Catalog Client] executeSearch got results:", res?.results?.length, "count:", res?.count);
       if (searchId === latestSearchId.current) {
         setResults(res?.results || []);
         setCount(res?.count || 0);
@@ -128,34 +132,52 @@ export function ProductsCatalogClient({
 
   // Sync state when SSR props update
   useEffect(() => {
-    if (initialProducts && initialProducts.length > 0) {
-      setResults(initialProducts);
-      setCount(initialCount || initialProducts.length);
-      setLoading(false);
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      if (initialProducts && initialProducts.length > 0) {
+        setResults(initialProducts);
+        setCount(initialCount || initialProducts.length);
+        setLoading(false);
+      } else {
+        executeSearch(filters);
+      }
     }
   }, [initialProducts, initialCount]);
 
-  // Sync state when URL searchParams update (e.g. header search navigation)
+  // Sync state when URL searchParams update externally (e.g. browser back/forward or header search navigation)
   useEffect(() => {
+    const currentParamsString = searchParams.toString();
+    if (currentParamsString === lastUrlString.current) {
+      return; // Skip sync if this update was triggered by our own updateUrl
+    }
+    lastUrlString.current = currentParamsString;
+
     const qParam = searchParams.get("search") || searchParams.get("q") || undefined;
     const catParam = searchParams.get("category") || undefined;
-    const currentQ = filters.q || undefined;
-    const currentCat = filters.category === "all" ? undefined : filters.category;
+    const flavParam = searchParams.get("flavour") || undefined;
+    const weightParam = searchParams.get("weight") || undefined;
+    const minPParam = searchParams.get("min_price") ? Number(searchParams.get("min_price")) : undefined;
+    const maxPParam = searchParams.get("max_price") ? Number(searchParams.get("max_price")) : undefined;
+    const sortParam = (searchParams.get("sort") as SearchFilters["sort"]) || undefined;
 
-    if (qParam !== currentQ || (catParam && catParam !== currentCat)) {
-      const next = {
-        ...filters,
-        q: qParam,
-        category: catParam || (filters.category !== "all" ? filters.category : undefined),
-      };
-      setFilters(next);
-      setQInput(qParam || "");
-      executeSearch(next);
-    }
+    const next = {
+      q: qParam,
+      category: catParam,
+      flavour: flavParam,
+      weight: weightParam,
+      min_price: minPParam,
+      max_price: maxPParam,
+      sort: sortParam,
+    };
+    setFilters(next);
+    setQInput(qParam || "");
+    executeSearch(next);
   }, [searchParams, executeSearch]);
 
   const handleFilterChange = (nextFilters: SearchFilters) => {
+    console.log("[Catalog Client] handleFilterChange called with:", JSON.stringify(nextFilters));
     setFilters(nextFilters);
+    setQInput(nextFilters.q || "");
     updateUrl(nextFilters);
     executeSearch(nextFilters);
   };
@@ -163,15 +185,19 @@ export function ProductsCatalogClient({
   // Debounced search input
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (qInput !== (filters.q || "")) {
-        const next = { ...filters, q: qInput.trim() || undefined };
-        setFilters(next);
-        updateUrl(next);
-        executeSearch(next);
-      }
+      setFilters((prev) => {
+        const trimmed = qInput.trim() || undefined;
+        if (trimmed !== prev.q) {
+          const next = { ...prev, q: trimmed };
+          updateUrl(next);
+          executeSearch(next);
+          return next;
+        }
+        return prev;
+      });
     }, 300);
     return () => clearTimeout(timer);
-  }, [qInput, filters, updateUrl, executeSearch]);
+  }, [qInput, updateUrl, executeSearch]);
 
   // Compute active filter count (excluding default/empty values)
   const activeCount = [
@@ -209,6 +235,7 @@ export function ProductsCatalogClient({
           <div className="relative flex-1 md:w-80">
             <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
             <Input
+              data-testid="catalog-search-input"
               type="search"
               placeholder="Search cakes by name, flavour..."
               value={qInput}
@@ -287,7 +314,7 @@ export function ProductsCatalogClient({
               ))}
             </div>
           ) : results.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 px-4 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl bg-slate-50/50 dark:bg-slate-900/50 text-center">
+            <div data-testid="catalog-empty-state" className="flex flex-col items-center justify-center py-20 px-4 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl bg-slate-50/50 dark:bg-slate-900/50 text-center">
               <div className="w-16 h-16 rounded-full bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center text-3xl mb-4">
                 🎂
               </div>
