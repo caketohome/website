@@ -45,11 +45,11 @@ export default function CartButton({ cart }: { cart: any }) {
       >
         <DropdownMenu.Trigger
           asChild
-          className="relative group flex items-center justify-center p-2 rounded-lg text-white hover:bg-white/10 transition-colors focus:outline-none"
+          className="relative group flex items-center justify-center p-2 rounded-lg text-navy-accent hover:bg-navy-accent/5 transition-colors focus:outline-none"
         >
           <button type="button" aria-label="Shopping Cart">
             <ShoppingBag
-              className="text-white hover:text-[#FF4D6D] transition-colors shrink-0"
+              className="text-navy-accent hover:text-navy-glow transition-colors shrink-0"
               viewBox="2 2 18 18"
               height={24}
               width={24}

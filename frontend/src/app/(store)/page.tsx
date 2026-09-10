@@ -1,5 +1,4 @@
-import { StorefrontProductHomepage } from "../../components/store/home/storefront-product-homepage";
-import { PageRenderer } from "../../components/store/cms/page-renderer";
+import { LuxuryStorefront } from "../../components/store/home/luxury-storefront";
 import { getHomepage } from "../../lib/data/cms";
 import { listProducts, listPimCategories, listOccasions } from "../../lib/data/catalog";
 import { SeoMetadataBuilder } from "../../lib/seo/metadata-builder";
@@ -35,20 +34,14 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col gap-0 w-full overflow-x-clip">
-      {/* Dynamic Published CMS Page Sections */}
-      {sections.length > 0 ? (
-        <PageRenderer
-          sections={sections}
-          banners={banners}
-          allProducts={allProducts}
-          allCategories={allCategories}
-          occasions={occasions}
-          announcementBar={announcementBar}
-        />
-      ) : (
-        /* Fallback Storefront Catalog if no sections published */
-        <StorefrontProductHomepage />
-      )}
+      <LuxuryStorefront 
+        sections={sections}
+        banners={banners}
+        allProducts={allProducts}
+        allCategories={allCategories}
+        occasions={occasions}
+        announcementBar={announcementBar}
+      />
     </div>
   );
 }

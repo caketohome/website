@@ -74,7 +74,7 @@ export async function HeaderNavigation({ lang = "en" }: { lang?: string }) {
                 <div key={item.id || `${item.label}-${idx}`} className="relative group">
                     <Link
                         href={resolveHref(item)}
-                        className="text-sm font-medium text-white/85 hover:text-white transition-colors"
+                        className="text-sm font-medium text-navy-accent/85 hover:text-navy-accent transition-colors"
                     >
                         {item.label}
                         {item.badge && (

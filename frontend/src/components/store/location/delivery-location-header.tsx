@@ -199,14 +199,14 @@ export function DeliveryLocationHeader() {
     <div className="relative z-50 shrink-0">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/15 transition-colors font-medium text-xs shadow-sm max-w-[160px] sm:max-w-none"
+        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-navy-accent/20 bg-navy-accent/5 text-navy-accent hover:bg-navy-accent/10 transition-colors font-medium text-xs shadow-sm max-w-[160px] sm:max-w-none"
       >
         <MapPin className="w-3.5 h-3.5 text-[#FF4D6D] animate-pulse shrink-0" />
         <div className="flex flex-col text-left overflow-hidden">
-          <span className="font-semibold text-[11px] sm:text-xs text-white truncate max-w-[95px] sm:max-w-[170px]">
+          <span className="font-semibold text-[11px] sm:text-xs text-navy-accent truncate max-w-[95px] sm:max-w-[170px]">
             {pincode ? `Deliver to ${pincode}` : (cityName ? `${cityName}` : "Set location")}
           </span>
-          <span className="text-[9px] sm:text-[10px] text-white/75 truncate hidden sm:inline">
+          <span className="text-[9px] sm:text-[10px] text-navy-accent/75 truncate hidden sm:inline">
             {cityName && `${cityName}${stateName ? `, ${stateName}` : ""} • `}{eta && `ETA: ${eta}`}{fee && ` • ${fee}`}
           </span>
         </div>
