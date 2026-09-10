@@ -10,6 +10,23 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
+      },
+      colors: {
+        "obsidian-base": "#07090E",
+        "navy-surface": "#0D152B",
+        "navy-accent": "#142040",
+        "navy-glow": "#1E2E5B",
+        rosegold: "#B76E79",
+        pearl: "#F4F5F8",
+        ash: "#8B95A5",
+      },
+      boxShadow: {
+        ambient: "0 0 25px -5px rgba(20, 32, 64, 0.4)",
+        "ambient-lg": "0 0 40px -10px rgba(30, 46, 91, 0.5)",
+      },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":

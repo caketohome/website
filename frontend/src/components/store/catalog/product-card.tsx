@@ -51,50 +51,51 @@ export function ProductCard({ product }: { product: SearchResult }) {
             data-testid="product-card"
             data-product-id={prodId}
             onClick={() => trackProductView(product.product_id)}
-            className="group relative flex flex-col gap-2 p-3 border rounded-lg hover:shadow-md transition-shadow cursor-pointer bg-ui-bg-base text-inherit no-underline"
+            className="group relative flex flex-col h-full justify-between p-4 sm:p-5 rounded-[22px] shadow-[0_10px_40px_rgba(20,32,64,0.2)] hover:shadow-[0_20px_50px_rgba(20,32,64,0.35)] hover:-translate-y-1.5 transition-all duration-300 cursor-pointer bg-[#FAF9F6] text-inherit no-underline border border-white/20"
         >
-            <div className="relative aspect-square w-full overflow-hidden rounded-md bg-ui-bg-subtle">
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] bg-obsidian-base shrink-0">
                 {product.thumbnail ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                         src={product.thumbnail}
                         alt={product.title}
                         loading="lazy"
-                        className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                        className="h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                         onError={(e) => {
                             (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
                         }}
                     />
                 ) : (
                     <div className="flex h-full w-full items-center justify-center text-ui-fg-subtle">
-                        🎂
+                        <span className="text-4xl text-blush">♡</span>
                     </div>
                 )}
-                <div className="absolute top-2 right-2 flex flex-col gap-1">
+                
+                <div className="absolute inset-0 bg-rosegold/0 group-hover:bg-rosegold/[0.02] transition-colors duration-500 pointer-events-none" />
+
+                <div className="absolute top-3 right-3 flex flex-col gap-1.5">
                     {merchandising.map((m) => (
-                        <Badge key={m} size="small" color="orange">
+                        <div key={m} className="bg-gradient-to-b from-navy-surface to-obsidian-base border border-navy-accent/50 backdrop-blur-md px-3 py-1 rounded-full text-[9px] uppercase tracking-widest text-pearl font-semibold shadow-sm">
                             {m}
-                        </Badge>
+                        </div>
                     ))}
                 </div>
-                <div className="absolute top-2 left-2">
-                    <IconButton
-                        variant={wished ? "primary" : "transparent"}
-                        size="small"
+                <div className="absolute top-3 left-3">
+                    <button
                         onClick={handleToggleWishlist}
                         disabled={loading}
                         aria-label={wished ? "Remove from Favorites" : "Add to Favorites"}
                         title={wished ? "Remove from Favorites" : "Add to Favorites"}
-                        className={wished ? "text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100" : "bg-white/80 backdrop-blur hover:bg-white text-gray-700"}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-sm ${wished ? "bg-rose-50 border border-rose-100 text-rose-500 hover:bg-rose-100" : "bg-gradient-to-b from-navy-surface to-obsidian-base border border-navy-accent/50 border border-navy-accent/60 text-pearl hover:bg-navy-surface hover:scale-105"}`}
                     >
-                        <Heart fill={wished ? "currentColor" : "none"} className={wished ? "text-rose-600 w-4 h-4" : "w-4 h-4 text-gray-700"} />
-                    </IconButton>
+                        <Heart fill={wished ? "currentColor" : "none"} className="w-4 h-4" />
+                    </button>
                 </div>
             </div>
 
             {/* Category & Flavour Meta */}
             {(product.category || product.flavour) && (
-                <div className="flex items-center justify-between gap-1 text-[11px]">
+                <div className="flex items-center justify-between gap-1 text-[11px] mt-4">
                     {product.category && (
                         <span
                             onClick={(e) => {
@@ -102,48 +103,51 @@ export function ProductCard({ product }: { product: SearchResult }) {
                                 const catSlug = product.category_slug || product.category?.toLowerCase().replace(/\s+/g, "-");
                                 router.push(`/products?category=${catSlug}`);
                             }}
-                            className="font-semibold tracking-wide text-rose-600 dark:text-rose-400 hover:underline cursor-pointer truncate max-w-[70%]"
+                            className="font-sans text-[10px] uppercase tracking-[0.2em] text-[#606C88] hover:text-[#142040] transition-colors cursor-pointer truncate max-w-[70%] font-semibold"
                         >
                             {product.category}
                         </span>
                     )}
                     {product.flavour && (
-                        <span className="text-slate-400 dark:text-slate-500 truncate ml-auto">
+                        <span className="font-sans text-[10px] text-[#606C88] truncate ml-auto italic">
                             {product.flavour}
                         </span>
                     )}
                 </div>
             )}
 
-            <Heading level="h3" className="text-sm font-medium line-clamp-2">
-                {product.title}
-            </Heading>
+            <div className="flex flex-col gap-1 flex-1 mt-3">
+                <Heading level="h3" className="font-serif text-[22px] font-medium text-[#142040] leading-tight line-clamp-2 min-h-[3rem]">
+                    {product.title}
+                </Heading>
 
-            {product.description && (
-                <Text className="text-ui-fg-subtle text-xs line-clamp-2">
-                    {product.description}
-                </Text>
-            )}
+                {product.description && (
+                    <Text className="font-sans text-[#606C88] text-[13px] leading-relaxed line-clamp-2 mt-1 min-h-[2.5rem]">
+                        {product.description}
+                    </Text>
+                )}
+            </div>
 
             {dietary.length > 0 && (
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1.5 mt-3 mb-3">
                     {dietary.map((d) => (
-                        <Badge key={d} size="small" color="green">
+                        <div key={d} className="bg-white/80 border border-[#142040]/10 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider text-[#606C88] font-semibold shadow-sm">
                             {d}
-                        </Badge>
+                        </div>
                     ))}
                 </div>
             )}
 
-            <div className="flex items-center justify-between mt-auto pt-2">
-                <Text className="font-semibold">
+            <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#142040]/10 shrink-0">
+                <Text className="font-sans text-lg font-semibold text-[#142040]">
                     {product.price !== null
                         ? `₹${product.price.toFixed(0)}`
                         : "Price on request"}
                 </Text>
                 {product.review_count > 0 && (
-                    <Text className="text-ui-fg-subtle text-xs">
-                        ⭐ {product.rating.toFixed(1)} ({product.review_count})
+                    <Text className="font-sans text-[#606C88] text-xs flex items-center gap-1 font-medium">
+                        <span className="text-[#C29B38]">★</span> <span className="text-[#C29B38] font-bold">{product.rating.toFixed(1)}</span> 
+                        <span className="text-[#606C88]/70 ml-0.5">({product.review_count})</span>
                     </Text>
                 )}
             </div>

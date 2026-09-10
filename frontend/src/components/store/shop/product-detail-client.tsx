@@ -497,17 +497,17 @@ export default function ProductDetailClient({
     };
 
     return (
-        <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-4 py-8">
-            <div className={`flex flex-col md:flex-row gap-10 ${pdpConfig?.gallery_layout === "right" ? "md:flex-row-reverse" : pdpConfig?.gallery_layout === "stacked" ? "md:flex-col" : ""}`}>
+        <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-4 py-8 bg-navy-surface min-h-screen">
+            <div className={`flex flex-col md:flex-row gap-12 ${pdpConfig?.gallery_layout === "right" ? "md:flex-row-reverse" : pdpConfig?.gallery_layout === "stacked" ? "md:flex-col" : ""}`}>
                 {/* Dynamic Image Gallery */}
                 <div className={`${pdpConfig?.gallery_layout === "stacked" ? "w-full" : "md:w-1/2"} flex flex-col gap-4`}>
-                    <div className="relative w-full h-[420px] bg-gray-50 rounded-2xl overflow-hidden shadow-lg border border-gray-200 group">
+                    <div className="relative w-full h-[500px] bg-obsidian-base rounded-[32px] overflow-hidden shadow-ambient border border-navy-accent/60 group">
                         <Image
                             src={galleryImages[selectedImageIndex] || product.thumbnail}
                             alt={product.title}
                             fill
                             priority
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="object-cover group-hover:scale-[1.02] transition-transform duration-700 ease-out"
                         />
                         {pdpConfig?.show_wishlist !== false && (
                             <Button
@@ -515,22 +515,22 @@ export default function ProductDetailClient({
                                 size="small"
                                 onClick={handleWishlistToggle}
                                 disabled={wishlistLoading}
-                                className="absolute top-4 right-4 bg-white/80 backdrop-blur-md p-2 rounded-full shadow-md hover:bg-white transition z-10"
+                                className="absolute top-5 right-5 bg-gradient-to-b from-navy-surface to-obsidian-base border border-navy-accent/50 backdrop-blur-md p-3 rounded-full shadow-sm hover:bg-navy-surface hover:scale-105 transition-all z-10"
                             >
-                                {isWishlisted ? <HeartSolidIcon className="text-rose-600 w-6 h-6" /> : <HeartIcon className="w-6 h-6 text-gray-700" />}
+                                {isWishlisted ? <HeartSolidIcon className="text-blush w-6 h-6" /> : <HeartIcon className="w-6 h-6 text-pearl" />}
                             </Button>
                         )}
                     </div>
 
                     {/* Gallery Thumbnails */}
                     {galleryImages.length > 1 && (
-                        <div className="flex gap-3 overflow-x-auto pb-2">
+                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide mt-2">
                             {galleryImages.map((imgUrl: string, idx: number) => (
                                 <button
                                     key={idx}
                                     onClick={() => setSelectedImageIndex(idx)}
-                                    className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition shrink-0 ${
-                                        selectedImageIndex === idx ? "border-rose-600 ring-2 ring-rose-200" : "border-gray-200 hover:border-gray-400"
+                                    className={`relative w-24 h-24 rounded-2xl overflow-hidden transition-all duration-300 shrink-0 ${
+                                        selectedImageIndex === idx ? "border-2 border-navy-accent/60 ring-4 ring-blush/20 opacity-100" : "border border-taupe/10 opacity-70 hover:opacity-100"
                                     }`}
                                 >
                                     <Image src={imgUrl} alt={`Thumbnail ${idx}`} fill className="object-cover" />
@@ -541,41 +541,40 @@ export default function ProductDetailClient({
                 </div>
 
                 {/* Dynamic PIM Configuration Panel */}
-                <div className="md:w-1/2 flex flex-col gap-5">
-                    <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <div className="md:w-1/2 flex flex-col gap-6 pt-2">
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
                             {product.category && (
                                 <Link
-                                    href={`/products?category=${product.category_slug || product.category.toLowerCase().replace(/\s+/g, "-")}`}
-                                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition"
+                                    href={`/products?category=${product.category_slug || product.category.toLowerCase().replace(/\\s+/g, "-")}`}
+                                    className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest font-semibold bg-obsidian-base text-pearl border border-taupe/5 transition-colors hover:bg-rosegold/30"
                                 >
-                                    🍰 {product.category}
+                                    {product.category}
                                 </Link>
                             )}
-                            {meta?.is_bestseller && <Badge color="orange">Bestseller</Badge>}
-                            {meta?.is_featured && <Badge color="purple">Featured Cake</Badge>}
-                            <span className="text-xs text-gray-500 font-semibold">Freshly Baked On Order</span>
+                            {meta?.is_bestseller && <div className="bg-rosegold/30 text-pearl px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-semibold">Bestseller</div>}
+                            {meta?.is_featured && <div className="bg-rosegold/10 text-pearl px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-semibold">Featured</div>}
                         </div>
-                        <Heading level="h1" className="text-3xl font-extrabold text-gray-900">{product.title}</Heading>
+                        <Heading level="h1" className="font-serif text-4xl md:text-[3.25rem] font-medium text-pearl leading-[1.1] tracking-tight">{product.title}</Heading>
                         {pdpConfig?.show_rating !== false && (
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className="text-amber-500 font-bold text-base">★ {averageRating}</span>
+                            <div className="flex items-center gap-2 mt-2">
+                                <span className="text-[#D4AF37] font-semibold text-lg flex items-center gap-1">★ {averageRating}</span>
                                 {pdpConfig?.show_reviews !== false && (
-                                    <span className="text-gray-500 text-sm">({reviewCount} customer reviews)</span>
+                                    <span className="text-ash font-sans text-sm">({reviewCount} reviews)</span>
                                 )}
                             </div>
                         )}
 
                         {/* Structured Occasion Badges */}
-                        <div className="flex items-center gap-2 flex-wrap pt-2">
-                            <span className="text-xs font-semibold text-gray-500">Perfect for:</span>
+                        <div className="flex items-center gap-2 flex-wrap pt-3">
+                            <span className="font-sans text-[11px] uppercase tracking-[0.2em] font-semibold text-ash">Perfect for:</span>
                             {productOccasions.map((occ: any) => (
                                 <Link
                                     key={occ.slug}
                                     href={`/occasions/${occ.slug}`}
-                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 text-xs font-bold transition-all shadow-sm hover:scale-105"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-obsidian-base hover:bg-rosegold/30 border border-taupe/5 text-pearl text-[11px] font-medium transition-all"
                                 >
-                                    <span>{occ.icon || "🎉"}</span>
+                                    <span className="opacity-70">{occ.icon || "•"}</span>
                                     <span>{occ.name}</span>
                                 </Link>
                             ))}
@@ -583,22 +582,23 @@ export default function ProductDetailClient({
 
                         {/* Real-time Order Cutoff & Fulfillment Eligibility Badge */}
                         {pdpConfig?.show_delivery_checker !== false && (
-                            <ProductFulfillmentBadge productId={prodId} branchId={shopId} showDetails={true} className="mt-3" />
+                            <div className="mt-4 p-4 bg-obsidian-base border border-navy-accent/60 rounded-2xl">
+                                <ProductFulfillmentBadge productId={prodId} branchId={shopId} showDetails={true} />
+                            </div>
                         )}
                     </div>
 
-                    <Text className="text-gray-600 text-sm leading-relaxed">{product.description}</Text>
+                    <Text className="text-ash font-sans text-base leading-relaxed mt-2">{product.description}</Text>
 
                     {/* Weight / Size Selector - Rendered ONLY if enabled in PIM & has options */}
                     {activePimConfig.show_weight !== false && weightsList.length > 0 && (
-                        <div className="flex flex-col gap-2.5 border-t border-gray-100 pt-4">
+                        <div className="flex flex-col gap-4 border-t border-navy-accent/60 pt-8 mt-4">
                             <div className="flex justify-between items-center">
-                                <Label className="font-bold text-sm text-gray-900">
-                                    Select Cake Size / Weight {activePimConfig.required_weight !== false && "*"}
+                                <Label className="font-sans text-xs uppercase tracking-[0.15em] text-pearl font-semibold">
+                                    Select Size {activePimConfig.required_weight !== false && "*"}
                                 </Label>
-                                <span className="text-xs text-rose-600 font-semibold">Select size to calculate price</span>
                             </div>
-                            <div className="grid grid-cols-2 gap-2.5">
+                            <div className="grid grid-cols-2 gap-3">
                                 {weightsList.map((w: any) => {
                                     const isSelected = selectedWeight?.name === w.name;
                                     return (
@@ -609,14 +609,14 @@ export default function ProductDetailClient({
                                                 setSelectedWeight(w);
                                                 setValidationError(null);
                                             }}
-                                            className={`flex flex-col p-3 rounded-xl border text-left transition ${
+                                            className={`flex flex-col p-5 rounded-2xl border text-center transition-all duration-500 ${
                                                 isSelected
-                                                    ? "border-rose-600 bg-rose-50/50 ring-2 ring-rose-200"
-                                                    : "border-gray-200 hover:border-gray-300 bg-white"
+                                                    ? "border-taupe bg-rosegold text-white shadow-ambient"
+                                                    : "border-navy-accent/60 hover:border-taupe/30 bg-obsidian-base text-pearl"
                                             }`}
                                         >
-                                            <span className="font-bold text-sm text-gray-900">{w.name}</span>
-                                            <span className="text-xs text-rose-600 font-extrabold mt-0.5">₹{w.price}</span>
+                                            <span className="font-sans text-[15px] font-medium">{w.name}</span>
+                                            <span className={`text-[13px] mt-1.5 font-light ${isSelected ? "text-white/80" : "text-ash"}`}>₹{w.price}</span>
                                         </button>
                                     );
                                 })}
@@ -626,11 +626,11 @@ export default function ProductDetailClient({
 
                     {/* Shape Selector - Rendered ONLY if enabled in PIM & has options */}
                     {activePimConfig.show_shape && shapesList.length > 0 && (
-                        <div className="flex flex-col gap-2 border-t border-gray-100 pt-4">
-                            <Label className="font-bold text-sm text-gray-900">
+                        <div className="flex flex-col gap-4 border-t border-navy-accent/60 pt-8">
+                            <Label className="font-sans text-xs uppercase tracking-[0.15em] text-pearl font-semibold">
                                 Select Shape {activePimConfig.required_shape && "*"}
                             </Label>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <div className="flex flex-wrap gap-3">
                                 {shapesList.map((s: any) => {
                                     const isSelected = selectedShape?.name === s.name;
                                     return (
@@ -638,10 +638,10 @@ export default function ProductDetailClient({
                                             key={s.id || s.name}
                                             type="button"
                                             onClick={() => setSelectedShape(s)}
-                                            className={`p-2.5 text-xs font-bold rounded-xl border transition ${
+                                            className={`px-6 py-3 text-sm font-medium rounded-full border transition-all duration-300 ${
                                                 isSelected
-                                                    ? "border-rose-600 bg-rose-600 text-white"
-                                                    : "border-gray-200 text-gray-700 bg-white hover:bg-gray-50"
+                                                    ? "border-taupe bg-rosegold text-white"
+                                                    : "border-navy-accent/60 text-pearl bg-obsidian-base hover:bg-rosegold/30"
                                             }`}
                                         >
                                             {s.name} {s.price_modifier > 0 && `(+₹${s.price_modifier})`}
@@ -654,10 +654,10 @@ export default function ProductDetailClient({
 
                     {/* Flavour & Filling Selectors - Rendered ONLY if enabled in PIM & has options */}
                     {((activePimConfig.show_flavour && flavoursList.length > 0) || (activePimConfig.show_filling && fillingsList.length > 0)) && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-100 pt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 border-t border-navy-accent/60 pt-8">
                             {activePimConfig.show_flavour && flavoursList.length > 0 && (
-                                <div className="flex flex-col gap-1.5">
-                                    <Label className="font-bold text-xs text-gray-900">
+                                <div className="flex flex-col gap-3">
+                                    <Label className="font-sans text-xs uppercase tracking-[0.15em] text-pearl font-semibold">
                                         Cake Flavour {activePimConfig.required_flavour && "*"}
                                     </Label>
                                     <select
@@ -666,7 +666,7 @@ export default function ProductDetailClient({
                                             const found = flavoursList.find((f: any) => f.name === e.target.value);
                                             if (found) setSelectedFlavour(found);
                                         }}
-                                        className="w-full text-xs font-semibold p-2.5 rounded-xl border border-gray-200 bg-white"
+                                        className="w-full text-[15px] font-sans p-4 rounded-2xl border border-navy-accent/60 bg-obsidian-base text-pearl focus:border-taupe focus:ring-1 focus:border-navy-glow focus:ring-1 focus:ring-navy-glow outline-none transition-all shadow-sm"
                                     >
                                         {flavoursList.map((f: any) => (
                                             <option key={f.id || f.name} value={f.name}>
@@ -678,8 +678,8 @@ export default function ProductDetailClient({
                             )}
 
                             {activePimConfig.show_filling && fillingsList.length > 0 && (
-                                <div className="flex flex-col gap-1.5">
-                                    <Label className="font-bold text-xs text-gray-900">
+                                <div className="flex flex-col gap-3">
+                                    <Label className="font-sans text-xs uppercase tracking-[0.15em] text-pearl font-semibold">
                                         Inner Filling {activePimConfig.required_filling && "*"}
                                     </Label>
                                     <select
@@ -688,7 +688,7 @@ export default function ProductDetailClient({
                                             const found = fillingsList.find((fil: any) => fil.name === e.target.value);
                                             if (found) setSelectedFilling(found);
                                         }}
-                                        className="w-full text-xs font-semibold p-2.5 rounded-xl border border-gray-200 bg-white"
+                                        className="w-full text-[15px] font-sans p-4 rounded-2xl border border-navy-accent/60 bg-obsidian-base text-pearl focus:border-taupe focus:ring-1 focus:border-navy-glow focus:ring-1 focus:ring-navy-glow outline-none transition-all shadow-sm"
                                     >
                                         {fillingsList.map((fil: any) => (
                                             <option key={fil.id || fil.name} value={fil.name}>
@@ -703,8 +703,8 @@ export default function ProductDetailClient({
 
                     {/* Cream Selector - Rendered ONLY if enabled in PIM & has options */}
                     {activePimConfig.show_cream && creamsList.length > 0 && (
-                        <div className="flex flex-col gap-1.5 border-t border-gray-100 pt-4">
-                            <Label className="font-bold text-xs text-gray-900">
+                        <div className="flex flex-col gap-3 border-t border-navy-accent/60 pt-8">
+                            <Label className="font-sans text-xs uppercase tracking-[0.15em] text-pearl font-semibold">
                                 Cream & Frosting {activePimConfig.required_cream && "*"}
                             </Label>
                             <select
@@ -713,7 +713,7 @@ export default function ProductDetailClient({
                                     const found = creamsList.find((c: any) => c.name === e.target.value);
                                     if (found) setSelectedCream(found);
                                 }}
-                                className="w-full text-xs font-semibold p-2.5 rounded-xl border border-gray-200 bg-white"
+                                className="w-full text-[15px] font-sans p-4 rounded-2xl border border-navy-accent/60 bg-obsidian-base text-pearl focus:border-taupe focus:ring-1 focus:border-navy-glow focus:ring-1 focus:ring-navy-glow outline-none transition-all shadow-sm"
                             >
                                 {creamsList.map((c: any) => (
                                     <option key={c.id || c.name} value={c.name}>
@@ -726,24 +726,24 @@ export default function ProductDetailClient({
 
                     {/* Dietary Preference Switches - Rendered ONLY if enabled in PIM & product has at least 1 enabled dietary flag */}
                     {activePimConfig.show_dietary !== false && hasAnyDietaryOption && (
-                        <div className="flex flex-col gap-3 border-t border-gray-100 pt-4 bg-gray-50/70 p-4 rounded-2xl border">
-                            <Label className="font-bold text-xs text-gray-900">Dietary & Health Customizations</Label>
-                            <div className="grid grid-cols-2 gap-3">
+                        <div className="flex flex-col gap-4 border-t border-navy-accent/60 pt-8 bg-obsidian-base/30 px-6 pb-6 rounded-[24px] border mt-4">
+                            <Label className="font-sans text-xs uppercase tracking-[0.15em] text-pearl font-semibold mt-2">Dietary Enhancements</Label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {hasSugarFree && (
-                                    <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-gray-200">
-                                        <span className="text-xs font-semibold text-gray-800">Sugar-Free (+₹100)</span>
+                                    <div className="flex items-center justify-between bg-navy-surface p-4 rounded-2xl border border-navy-accent/60 shadow-sm">
+                                        <span className="font-sans text-[13px] font-medium text-pearl">Sugar-Free (+₹100)</span>
                                         <Switch checked={isSugarFree} onCheckedChange={setIsSugarFree} />
                                     </div>
                                 )}
                                 {hasGlutenFree && (
-                                    <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-gray-200">
-                                        <span className="text-xs font-semibold text-gray-800">Gluten-Free (+₹100)</span>
+                                    <div className="flex items-center justify-between bg-navy-surface p-4 rounded-2xl border border-navy-accent/60 shadow-sm">
+                                        <span className="font-sans text-[13px] font-medium text-pearl">Gluten-Free (+₹100)</span>
                                         <Switch checked={isGlutenFree} onCheckedChange={setIsGlutenFree} />
                                     </div>
                                 )}
                                 {hasVegan && (
-                                    <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-gray-200">
-                                        <span className="text-xs font-semibold text-gray-800">100% Vegan (+₹120)</span>
+                                    <div className="flex items-center justify-between bg-navy-surface p-4 rounded-2xl border border-navy-accent/60 shadow-sm">
+                                        <span className="font-sans text-[13px] font-medium text-pearl">100% Vegan (+₹120)</span>
                                         <Switch checked={isVegan} onCheckedChange={setIsVegan} />
                                     </div>
                                 )}
@@ -753,13 +753,13 @@ export default function ProductDetailClient({
 
                     {/* Photo Cake Option - Rendered ONLY if enabled in PIM */}
                     {activePimConfig.show_photo_cake && (
-                        <div className="flex flex-col gap-2 border-t border-gray-100 pt-4">
-                            <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-4 border-t border-navy-accent/60 pt-8 mt-2">
+                            <div className="flex items-center justify-between bg-obsidian-base p-5 rounded-2xl border border-navy-accent/60 shadow-sm">
                                 <div className="flex flex-col">
-                                    <Label className="font-bold text-sm text-gray-900">
-                                        Make it a Photo Cake (+₹250) {activePimConfig.required_photo_cake && "*"}
+                                    <Label className="font-sans text-[13px] font-semibold text-pearl">
+                                        Photo Print (+₹250) {activePimConfig.required_photo_cake && "*"}
                                     </Label>
-                                    <span className="text-xs text-gray-500">Print custom edible picture on cake top</span>
+                                    <span className="text-xs text-ash mt-0.5">Edible picture on cake top</span>
                                 </div>
                                 <Switch checked={isPhotoCake} onCheckedChange={setIsPhotoCake} />
                             </div>
@@ -767,8 +767,8 @@ export default function ProductDetailClient({
                                 <Input
                                     value={photoUrl}
                                     onChange={(e) => setPhotoUrl(e.target.value)}
-                                    placeholder="Paste photo URL or drive image link"
-                                    className="w-full text-xs mt-1"
+                                    placeholder="Paste photo URL link..."
+                                    className="w-full text-sm p-4 rounded-xl border border-navy-accent/60 bg-navy-surface"
                                 />
                             )}
                         </div>
@@ -778,19 +778,19 @@ export default function ProductDetailClient({
                     {activePimConfig.show_cake_message !== false && (
                         <div
                             id="cake-message-section"
-                            className="flex flex-col gap-2 border-t border-gray-100 pt-4 rounded-2xl transition-all duration-300"
+                            className={`flex flex-col gap-3 border-t border-navy-accent/60 pt-8 rounded-2xl transition-all duration-300 mt-2`}
                         >
                             <div className="flex items-center justify-between">
-                                <Label htmlFor="cake-message-input" className="font-bold text-sm text-gray-900 flex items-center gap-1.5">
+                                <Label htmlFor="cake-message-input" className="font-sans text-xs uppercase tracking-[0.15em] text-pearl font-semibold flex items-center gap-1.5">
                                     <span>Message on Cake</span>
                                     {activePimConfig.required_cake_message ? (
-                                        <span className="text-rose-600 font-bold">*</span>
+                                        <span className="text-pearl font-bold">*</span>
                                     ) : (
-                                        <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                                        <span className="text-[10px] text-ash font-normal tracking-normal">(Optional)</span>
                                     )}
                                 </Label>
-                                <span className={`text-xs font-semibold ${cakeMessage.length === 30 ? "text-amber-600 font-bold" : "text-gray-400"}`}>
-                                    {cakeMessage.length}/30 characters
+                                <span className={`text-[11px] font-medium ${cakeMessage.length === 30 ? "text-pearl font-bold" : "text-ash"}`}>
+                                    {cakeMessage.length}/30 chars
                                 </span>
                             </div>
                             <Input
@@ -802,48 +802,66 @@ export default function ProductDetailClient({
                                     setCakeMessage(e.target.value.slice(0, 30));
                                 }}
                                 placeholder="e.g., Happy Birthday Ananya!"
-                                className="w-full text-xs transition"
+                                className={`w-full text-[15px] p-5 rounded-2xl border-navy-accent/60 bg-obsidian-base text-pearl focus:border-taupe focus:ring-1 focus:border-navy-glow focus:ring-1 focus:ring-navy-glow transition-all shadow-sm ${
+                                    showMessageReminder ? "border-taupe ring-1 ring-navy-glow" : ""
+                                }`}
                             />
+
+                            {showMessageReminder && (
+                                <div className="p-4 bg-rosegold/30 border border-navy-accent/60 rounded-2xl text-xs text-pearl animate-in fade-in flex items-start justify-between gap-3">
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-lg leading-none">🖋️</span>
+                                        <div className="flex flex-col">
+                                            <span className="font-medium text-pearl text-[13px]">Add a personal touch</span>
+                                            <span className="text-xs text-ash leading-relaxed mt-1">
+                                                A message on the cake is <strong>optional</strong>. Leave blank if you prefer a minimal design.
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowMessageReminder(false)}
+                                        className="text-ash hover:text-pearl text-lg"
+                                        aria-label="Dismiss message reminder"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {/* Frequently Bought Together & Celebration Accessories */}
                     {recommendedAccessories.length > 0 && (
-                        <div className="flex flex-col gap-3 border-t border-gray-100 pt-5">
+                        <div className="flex flex-col gap-4 border-t border-navy-accent/60 pt-8 mt-2">
                             <div className="flex items-center justify-between">
-                                <Label className="font-extrabold text-sm text-gray-900 flex items-center gap-1.5">
-                                    🎁 Frequently Bought Together & Celebration Add-ons
+                                <Label className="font-sans text-xs uppercase tracking-[0.15em] text-pearl font-semibold">
+                                    Curated Add-ons
                                 </Label>
-                                <span className="text-[11px] text-rose-600 font-bold uppercase tracking-wider">1-Click Add</span>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {recommendedAccessories.map((acc: any) => {
                                     const isSelected = selectedAddonIds.includes(acc.id);
                                     return (
                                         <div
                                             key={acc.id}
                                             onClick={() => toggleAddon(acc.id)}
-                                            className={`p-3 rounded-2xl border transition cursor-pointer flex items-center gap-3 ${
+                                            className={`p-4 rounded-[20px] border transition-all duration-300 cursor-pointer flex items-center gap-4 ${
                                                 isSelected
-                                                    ? "border-rose-600 bg-rose-50/60 ring-2 ring-rose-200"
-                                                    : "border-gray-200 bg-white hover:border-gray-300 shadow-sm"
+                                                    ? "border-taupe bg-obsidian-base shadow-ambient"
+                                                    : "border-navy-accent/60 bg-navy-surface hover:border-taupe/30 shadow-sm"
                                             }`}
                                         >
-                                            <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-100 shrink-0 border">
+                                            <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-obsidian-base shrink-0 border border-navy-accent/60">
                                                 <Image src={acc.thumbnail || acc.images?.[0] || "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=400"} alt={acc.name} fill className="object-cover" />
                                             </div>
-                                            <div className="flex flex-col flex-1 min-w-0">
-                                                <span className="font-bold text-xs text-gray-900 truncate">{acc.name}</span>
-                                                <span className="text-xs font-black text-rose-600 mt-0.5">₹{acc.price}</span>
-                                                <span className="text-[10px] text-emerald-600 font-bold">In Stock ({acc.stock} left)</span>
+                                            <div className="flex flex-col flex-1 min-w-0 justify-center">
+                                                <span className="font-sans text-[13px] font-medium text-pearl truncate">{acc.name}</span>
+                                                <span className="text-[13px] font-semibold text-pearl mt-1">₹{acc.price}</span>
                                             </div>
-                                            <Button
-                                                size="small"
-                                                variant={isSelected ? "primary" : "secondary"}
-                                                className={`text-xs font-bold shrink-0 ${isSelected ? "bg-rose-600 text-white" : "bg-gray-100 text-gray-800"}`}
-                                            >
-                                                {isSelected ? "✓ Added" : "+ Add"}
-                                            </Button>
+                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border transition-all ${isSelected ? "bg-rosegold border-taupe text-white" : "bg-navy-surface border-navy-accent/60 text-transparent"}`}>
+                                                ✓
+                                            </div>
                                         </div>
                                     );
                                 })}
@@ -854,7 +872,7 @@ export default function ProductDetailClient({
                                     value={greetingCardText}
                                     onChange={(e) => setGreetingCardText(e.target.value)}
                                     placeholder="Write custom handwritten message for your greeting card..."
-                                    className="text-xs mt-2"
+                                    className="text-sm p-4 mt-2 rounded-2xl border-navy-accent/60 bg-obsidian-base shadow-sm focus:border-taupe"
                                 />
                             )}
                         </div>
@@ -862,38 +880,38 @@ export default function ProductDetailClient({
 
                     {/* Validation Error Prompt */}
                     {validationError && (
-                        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl animate-in fade-in">
+                        <div className="p-4 bg-rosegold/30 border border-navy-accent/60 text-pearl text-sm font-medium rounded-2xl animate-in fade-in">
                             ⚠️ {validationError}
                         </div>
                     )}
 
                     {/* Price & Add to Cart Panel */}
-                    <div className="flex flex-col gap-3 border-t-2 border-gray-200 pt-5 mt-2 bg-gray-50/80 p-5 rounded-2xl border">
+                    <div className="flex flex-col gap-6 border-t-2 border-navy-accent/60 pt-8 mt-6 bg-obsidian-base/40 p-6 rounded-[32px] border shadow-sm">
                         <div className="flex items-center justify-between">
                             <div className="flex flex-col">
-                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Calculated Total</span>
-                                <span className="text-3xl font-black text-rose-600">₹{calculatedPrice}</span>
+                                <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-ash font-semibold mb-1">Total Due</span>
+                                <span className="font-serif text-[2.5rem] font-medium text-pearl leading-none">₹{calculatedPrice}</span>
                                 {branchStock !== null && (
-                                    <span className={`text-xs font-bold mt-1 ${branchStock > 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                                        {branchStock > 0 ? `In Stock (${branchStock} fresh cakes available)` : "Out of Stock"}
+                                    <span className={`text-[11px] uppercase tracking-wider font-semibold mt-2 ${branchStock > 0 ? "text-pearl" : "text-ash"}`}>
+                                        {branchStock > 0 ? `In Stock (${branchStock} available)` : "Out of Stock"}
                                     </span>
                                 )}
                             </div>
 
                             {/* Quantity Selector */}
-                            <div className="flex items-center border border-gray-300 rounded-xl bg-white overflow-hidden shadow-sm">
+                            <div className="flex items-center border border-navy-accent/60 rounded-full bg-navy-surface overflow-hidden shadow-sm h-12">
                                 <button
                                     type="button"
                                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                                    className="px-3 py-2 text-sm font-bold text-gray-600 hover:bg-gray-100 transition"
+                                    className="px-4 h-full text-lg font-medium text-pearl hover:bg-obsidian-base transition-colors"
                                 >
                                     -
                                 </button>
-                                <span className="px-3 py-2 text-xs font-bold text-gray-900">{quantity}</span>
+                                <span className="px-4 text-[15px] font-medium text-pearl w-12 text-center">{quantity}</span>
                                 <button
                                     type="button"
                                     onClick={() => setQuantity((q) => q + 1)}
-                                    className="px-3 py-2 text-sm font-bold text-gray-600 hover:bg-gray-100 transition"
+                                    className="px-4 h-full text-lg font-medium text-pearl hover:bg-obsidian-base transition-colors"
                                 >
                                     +
                                 </button>
@@ -905,10 +923,10 @@ export default function ProductDetailClient({
                             isLoading={cartLoading}
                             size="large"
                             disabled={(branchStock !== null && branchStock <= 0) || product?.is_out_of_stock_at_branch === true || product?.branch_status === "OUT_OF_STOCK"}
-                            className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3.5 text-base rounded-xl shadow-lg transition"
+                            className="w-full bg-rosegold hover:bg-[#3A3532] text-white font-sans font-medium py-5 text-[13px] uppercase tracking-[0.15em] rounded-full shadow-ambient-lg transition-all border-none"
                         >
                             {(branchStock !== null && branchStock <= 0) || product?.is_out_of_stock_at_branch === true || product?.branch_status === "OUT_OF_STOCK"
-                                ? "Out of Stock at Your Location"
+                                ? "Unavailable"
                                 : `${pdpConfig?.add_to_cart_text || "Add to Cart"} • ₹${calculatedPrice}`}
                         </Button>
 
@@ -920,10 +938,10 @@ export default function ProductDetailClient({
                         )}
 
                         {addedCartSuccess && (
-                            <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 text-xs font-semibold shadow-sm animate-in fade-in">
-                                <span>✅ Cake successfully added to your cart!</span>
-                                <Button size="small" variant="secondary" onClick={() => router.push("/checkout")}>
-                                    View Cart & Checkout →
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-rosegold border border-taupe text-white text-[13px] font-medium shadow-ambient-lg animate-in fade-in">
+                                <span>Successfully added to your bag.</span>
+                                <Button size="small" variant="transparent" onClick={() => router.push("/checkout")} className="text-white hover:bg-gradient-to-b from-navy-surface to-obsidian-base border border-navy-accent/50 uppercase tracking-widest text-[10px] rounded-full">
+                                    Checkout →
                                 </Button>
                             </div>
                         )}
@@ -932,14 +950,16 @@ export default function ProductDetailClient({
             </div>
 
             {/* Verified Customer Reviews Section */}
-            <ProductReviewsSection
-                productId={product?.id || product?.product_id}
-                productTitle={product?.title || product?.name || "Gourmet Cake"}
-                initialReviews={initialReviews as any}
-                initialAverage={averageRating}
-                initialCount={reviewCount}
-                initialDistribution={ratingDistribution as any}
-            />
+            <div className="border-t border-navy-accent/60 pt-16 mt-8">
+                <ProductReviewsSection
+                    productId={product?.id || product?.product_id}
+                    productTitle={product?.title || product?.name || "Signature Creation"}
+                    initialReviews={initialReviews as any}
+                    initialAverage={averageRating}
+                    initialCount={reviewCount}
+                    initialDistribution={ratingDistribution as any}
+                />
+            </div>
 
             {/* Optional Cake Message Confirmation Modal */}
             {showEmptyMessageConfirm && (

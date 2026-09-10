@@ -11,7 +11,7 @@ export function NavFavorites() {
   return (
     <Link
       href="/account/wishlist"
-      className="relative p-2 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+      className="relative p-2 rounded-full text-navy-accent/80 hover:text-navy-accent hover:bg-navy-accent/5 transition-colors"
       title="My Favorites"
       aria-label={`My Favorites (${favoritesCount} items)`}
     >

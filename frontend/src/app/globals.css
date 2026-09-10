@@ -3,51 +3,41 @@
 @tailwind utilities;
 
 :root {
-  --fg-base: 15, 23, 42;
-  --bg-base: 255, 255, 255;
-  --bg-subtle: 248, 250, 252;
-  --ui-bg-base: #ffffff;
-  --ui-bg-subtle: #f8fafc;
-  --ui-fg-base: #0f172a;
-  --ui-fg-subtle: #64748b;
-  --ui-border-base: #e2e8f0;
-}
-
-.dark {
-  --fg-base: 248, 250, 252;
-  --bg-base: 15, 23, 42;
-  --bg-subtle: 30, 41, 59;
-  --ui-bg-base: #0f172a;
-  --ui-bg-subtle: #1e293b;
-  --ui-fg-base: #f8fafc;
-  --ui-fg-subtle: #94a3b8;
-  --ui-border-base: #334155;
+  /* Default to Dark Mode for Deep Navy & Obsidian aesthetic */
+  --fg-base: 244, 245, 248; /* #F4F5F8 Pearl */
+  --bg-base: 7, 9, 14; /* #07090E Obsidian Base */
+  --bg-subtle: 13, 21, 43; /* #0D152B Navy Surface */
+  --ui-bg-base: #07090E;
+  --ui-bg-subtle: #0D152B;
+  --ui-fg-base: #F4F5F8;
+  --ui-fg-subtle: #8B95A5; /* Ash */
+  --ui-border-base: rgba(20, 32, 64, 0.6); /* Navy Accent/60 */
 }
 
 /* ── MEDUSA UI & DASHBOARD CORE COMPONENT STYLING SYSTEM ────────── */
 .bg-ui-bg-base {
-  background-color: var(--ui-bg-base, #ffffff);
+  background-color: var(--ui-bg-base, #07090E);
 }
 .bg-ui-bg-subtle {
-  background-color: var(--ui-bg-subtle, #f8fafc);
+  background-color: var(--ui-bg-subtle, #0D152B);
 }
 .text-ui-fg-base {
-  color: var(--ui-fg-base, #0f172a);
+  color: var(--ui-fg-base, #F4F5F8);
 }
 .text-ui-fg-subtle {
-  color: var(--ui-fg-subtle, #64748b);
+  color: var(--ui-fg-subtle, #8B95A5);
 }
 .text-ui-fg-muted {
-  color: #94a3b8;
+  color: #8B95A5;
 }
 .border-ui-border-base {
-  border-color: var(--ui-border-base, #e2e8f0);
+  border-color: var(--ui-border-base, rgba(20, 32, 64, 0.6));
 }
 .shadow-elevation-card-rest {
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  box-shadow: 0 10px 40px -10px rgba(20, 32, 64, 0.2); /* subtle navy accent */
 }
 .shadow-elevation-card-hover {
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  box-shadow: 0 20px 50px -10px rgba(30, 46, 91, 0.3); /* navy glow */
 }
 
 *, *::before, *::after {
@@ -60,11 +50,18 @@ html, body {
 }
 
 body {
-  color: rgb(var(--fg-base, 15, 23, 42));
-  background: rgb(var(--bg-subtle, 248, 250, 252));
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: rgb(var(--fg-base));
+  background: radial-gradient(ellipse at top, #0D152B 0%, #07090E 100%);
+  background-attachment: fixed;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   margin: 0;
   padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6, .font-serif {
+  font-family: var(--font-serif), Georgia, serif;
 }
 
 img, video {
@@ -72,7 +69,7 @@ img, video {
   height: auto;
 }
 
-/* ── GLOBAL DROPDOWN & POPOVER SOLID OPAQUE SURFACE STANDARD ──────────── */
+/* ── GLOBAL DROPDOWN & POPOVER LUXURY SURFACE STANDARD ──────────── */
 [data-radix-popper-content-wrapper],
 [role="listbox"],
 [role="menu"],
@@ -83,28 +80,14 @@ img, video {
 .select-content,
 .popover-solid-panel,
 select option {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-  opacity: 1 !important;
-  z-index: 1000 !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-.dark [data-radix-popper-content-wrapper],
-.dark [role="listbox"],
-.dark [role="menu"],
-.dark .radix-popover-content,
-.dark .medusa-popover-content,
-.dark .dropdown-menu-content,
-.dark .select-content,
-.dark .popover-solid-panel,
-.dark select option {
-  background-color: #0f172a !important;
-  color: #f8fafc !important;
-  border-color: #334155 !important;
+  background-color: rgba(13, 21, 43, 0.85); /* Navy Surface with glass */
+  color: #F4F5F8;
+  z-index: 1000;
+  border: 1px solid rgba(30, 46, 91, 0.5); /* Navy Glow border */
+  box-shadow: 0 20px 50px rgba(7, 9, 14, 0.7), 0 0 25px -5px rgba(30, 46, 91, 0.4); /* Navy Glow */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 1rem;
 }
 
 @layer utilities {

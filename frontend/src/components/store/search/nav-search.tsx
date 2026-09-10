@@ -231,7 +231,7 @@ export function NavSearch() {
       <div className="hidden md:flex items-center relative w-full transition-all">
         <div className="relative w-full flex items-center">
           {/* Search Icon on the LEFT - perfectly centered vertically */}
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none transition-colors" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-accent/50 pointer-events-none transition-colors" />
 
           <input
             ref={inputRef}
@@ -246,7 +246,7 @@ export function NavSearch() {
             placeholder="Search cakes, flavours, categories..."
             aria-label="Search products"
             autoComplete="off"
-            className="w-full h-10 pl-10 pr-14 rounded-xl bg-white/10 hover:bg-white/[0.14] focus:bg-[#18181b] border border-white/15 focus:border-rose-500/80 text-sm text-white placeholder:text-white/45 focus:outline-none focus:ring-2 focus:ring-rose-500/25 transition-all shadow-inner"
+            className="w-full h-10 pl-10 pr-14 rounded-xl bg-navy-accent/5 hover:bg-navy-accent/10 focus:bg-white border border-navy-accent/15 focus:border-navy-glow text-sm text-navy-accent placeholder:text-navy-accent/50 focus:outline-none focus:ring-2 focus:ring-navy-glow/20 transition-all shadow-inner"
           />
 
           {/* Right Controls: Spinner / Clear button / Shortcut badge */}
@@ -263,13 +263,13 @@ export function NavSearch() {
                   setTotalCount(0);
                   inputRef.current?.focus();
                 }}
-                className="text-white/40 hover:text-white transition-colors p-1 rounded-full hover:bg-white/10"
+                className="text-navy-accent/40 hover:text-navy-accent transition-colors p-1 rounded-full hover:bg-navy-accent/10"
                 aria-label="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             ) : (
-              <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-white/40 bg-white/10 rounded border border-white/10 pointer-events-none">
+              <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-navy-accent/50 bg-navy-accent/5 rounded border border-navy-accent/10 pointer-events-none">
                 ⌘K
               </kbd>
             )}
@@ -287,9 +287,9 @@ export function NavSearch() {
             setTimeout(() => mobileInputRef.current?.focus(), 50);
           }}
           aria-label="Search cakes"
-          className="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+          className="p-2 rounded-full text-navy-accent/80 hover:text-navy-accent hover:bg-navy-accent/5 transition-colors"
         >
-          <Search className="w-5 h-5 text-rose-400" />
+          <Search className="w-5 h-5 text-navy-accent/80" />
         </button>
       </div>
 

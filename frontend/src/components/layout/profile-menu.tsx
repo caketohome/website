@@ -273,11 +273,11 @@ export const ProfileMenu = memo(function ProfileMenu({
       <Link
         href="/login"
         prefetch={false}
-        className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/10 transition-all hover:shadow-sm ${className}`}
+        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold text-navy-accent bg-navy-accent/5 hover:bg-navy-accent/10 border border-navy-accent/10 transition-all hover:shadow-sm ${className}`}
       >
-        <User className="w-4 h-4 text-amber-300" />
-        <span className="hidden sm:inline">Login</span>
-        <span className="hidden sm:inline-flex relative h-2 w-2 ml-0.5">
+        <User className="w-4 h-4 text-navy-accent/70" />
+        <span>Login</span>
+        <span className="relative flex h-2 w-2 ml-0.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
         </span>
@@ -296,10 +296,10 @@ export const ProfileMenu = memo(function ProfileMenu({
         aria-haspopup="menu"
         aria-label="User profile and account settings menu"
         data-testid="profile-menu-trigger"
-        className={`flex items-center gap-2.5 p-1.5 md:px-3 md:py-1.5 rounded-xl transition-colors duration-100 border select-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 cursor-pointer ${
+        className={`flex items-center gap-2.5 p-1.5 md:px-3 md:py-1.5 rounded-xl transition-colors duration-100 border select-none focus:outline-none focus:ring-2 focus:ring-navy-accent/20 cursor-pointer ${
           isOpen
-            ? "bg-white/20 border-white/30 ring-2 ring-white/20 text-white"
-            : "bg-white/10 hover:bg-white/15 border-white/10 text-white/90 hover:text-white"
+            ? "bg-navy-accent/10 border-navy-accent/20 ring-2 ring-navy-accent/10 text-navy-accent"
+            : "bg-transparent hover:bg-navy-accent/5 border-transparent text-navy-accent/90 hover:text-navy-accent"
         }`}
       >
         {/* Avatar */}
@@ -312,14 +312,14 @@ export const ProfileMenu = memo(function ProfileMenu({
         {/* User Details (Desktop) */}
         {showNameOnDesktop && (
           <div className="hidden md:flex flex-col text-left leading-tight">
-            <span className="text-xs font-bold text-white max-w-[130px] truncate">{fullName}</span>
-            <span className="text-[10px] font-medium text-amber-300/90">{roleConfig.label}</span>
+            <span className="text-xs font-bold text-navy-accent max-w-[130px] truncate">{fullName}</span>
+            <span className="text-[10px] font-medium text-navy-accent/70">{roleConfig.label}</span>
           </div>
         )}
 
         <ChevronDown
-          className={`w-3.5 h-3.5 text-white/70 transition-transform duration-150 hidden sm:inline-block ${
-            isOpen ? "rotate-180 text-white" : ""
+          className={`w-3.5 h-3.5 text-navy-accent/70 transition-transform duration-150 hidden sm:inline-block ${
+            isOpen ? "rotate-180 text-navy-accent" : ""
           }`}
         />
       </button>
