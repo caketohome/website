@@ -1,0 +1,50 @@
+{
+  "results": [
+    {
+      "index": 1,
+      "durationSec": 233.845,
+      "durationMs": 233845,
+      "exitCode": 0,
+      "hasCompiledSuccessfully": true,
+      "hasRouteTable": true,
+      "hasBuildManifest": true,
+      "minFreeMB": 6,
+      "freeBeforeMB": 359,
+      "freeAfterMB": 1443,
+      "peakRssMB": 39
+    },
+    {
+      "index": 2,
+      "durationSec": 95.567,
+      "durationMs": 95567,
+      "exitCode": 0,
+      "hasCompiledSuccessfully": true,
+      "hasRouteTable": true,
+      "hasBuildManifest": true,
+      "minFreeMB": 24,
+      "freeBeforeMB": 1419,
+      "freeAfterMB": 1593,
+      "peakRssMB": 19
+    },
+    {
+      "index": 3,
+      "durationSec": 95.582,
+      "durationMs": 95582,
+      "exitCode": 0,
+      "hasCompiledSuccessfully": true,
+      "hasRouteTable": true,
+      "hasBuildManifest": true,
+      "minFreeMB": 9,
+      "freeBeforeMB": 1534,
+      "freeAfterMB": 999,
+      "peakRssMB": 19
+    }
+  ],
+  "stats": {
+    "min": 95.567,
+    "max": 233.845,
+    "median": 95.582,
+    "mean": 141.66466666666668,
+    "stdDev": 65.18133907969536
+  }
+}

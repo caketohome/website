@@ -45,7 +45,11 @@ export interface CustomerOrder {
   };
 }
 
-export function useOrders() {
+export function useOrders(initialPage: number = 1, initialPageSize: number = 20) {
+  const [page, setPage] = useState<number>(initialPage);
+  const [pageSize, setPageSize] = useState<number>(initialPageSize);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(false);
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [totalOrders, setTotalOrders] = useState<number>(0);
   const [totalSpend, setTotalSpend] = useState<number>(0);
@@ -53,7 +57,7 @@ export function useOrders() {
   const [error, setError] = useState<string | null>(null);
   const inFlightPromiseRef = useRef<Promise<CustomerOrder[]> | null>(null);
 
-  const fetchOrders = useCallback(async (): Promise<CustomerOrder[]> => {
+  const fetchOrders = useCallback(async (targetPage = page, targetPageSize = pageSize): Promise<CustomerOrder[]> => {
     if (inFlightPromiseRef.current) {
       return inFlightPromiseRef.current;
     }
@@ -62,7 +66,7 @@ export function useOrders() {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch("/api/customer/orders", {
+        const res = await fetch(`/api/customer/orders?page=${targetPage}&pageSize=${targetPageSize}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           cache: "no-store",
@@ -83,6 +87,8 @@ export function useOrders() {
           setOrders(list);
           setTotalOrders(body.data.total_orders ?? list.length);
           setTotalSpend(body.data.total_spend ?? 0);
+          setTotalPages(body.data.total_pages ?? (Math.ceil((body.data.total_orders ?? list.length) / targetPageSize) || 1));
+          setHasMore(body.data.has_more ?? false);
           return list;
         }
 
@@ -99,18 +105,25 @@ export function useOrders() {
 
     inFlightPromiseRef.current = promise;
     return promise;
-  }, []);
+  }, [page, pageSize]);
 
   useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+    fetchOrders(page, pageSize);
+  }, [fetchOrders, page, pageSize]);
 
   return {
     orders,
     totalOrders,
     totalSpend,
+    page,
+    pageSize,
+    totalPages,
+    hasMore,
     loading,
     error,
+    setPage,
+    nextPage: () => { if (hasMore) setPage((p) => p + 1); },
+    prevPage: () => { if (page > 1) setPage((p) => p - 1); },
     refetch: fetchOrders,
   };
 }

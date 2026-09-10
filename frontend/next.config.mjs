@@ -7,9 +7,12 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   transpilePackages: ["@medusajs/ui"],
+  staticPageGenerationTimeout: 180,
   experimental: {
     workerThreads: false,
     cpus: 1,
+    optimizePackageImports: ["lucide-react"],
+    serverComponentsExternalPackages: ["exceljs", "pg"],
   },
   webpack: (config) => {
     config.watchOptions = {

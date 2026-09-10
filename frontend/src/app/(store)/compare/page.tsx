@@ -9,7 +9,7 @@ import {
     clearCompare,
     type SearchResult,
 } from "@frontend/lib/data/catalog-client";
-import { searchProductsAction } from "@frontend/lib/actions/catalog";
+import { searchProductsAction, getCompareProductsAction } from "@frontend/lib/actions/catalog";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -37,20 +37,11 @@ export default function ComparePage() {
             }
             setLoading(true);
             try {
-                // Fetch each product by searching with its id in the query.
-                // The search endpoint matches on title/description; for an exact
-                // id match we use the product_id filter via a dedicated fetch.
-                const results: SearchResult[] = [];
-                for (const id of ids) {
-                    try {
-                        const data = await searchProductsAction({ q: id, limit: 48 });
-                        const match = data.results.find((r) => r.product_id === id);
-                        if (match) results.push(match);
-                    } catch {
-                        // skip
-                    }
-                }
+                // Batch fetch all comparison products in a single database query (N queries -> 1 query)
+                const results = await getCompareProductsAction(ids);
                 setProducts(results);
+            } catch {
+                setProducts([]);
             } finally {
                 setLoading(false);
             }

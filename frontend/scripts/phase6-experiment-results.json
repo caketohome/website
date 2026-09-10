@@ -1,0 +1,54 @@
+{
+  "cold": {
+    "name": "Clean Cold Build",
+    "cleanCache": true,
+    "durationSec": 246.37,
+    "exitCode": 0,
+    "hasManifest": true,
+    "hasRoutes": true,
+    "minFreeMB": 4,
+    "freeBeforeMB": 157,
+    "freeAfterMB": 980
+  },
+  "warmRuns": [
+    {
+      "name": "Warm Build #1",
+      "cleanCache": false,
+      "durationSec": 125.61,
+      "exitCode": 0,
+      "hasManifest": true,
+      "hasRoutes": true,
+      "minFreeMB": 16,
+      "freeBeforeMB": 983,
+      "freeAfterMB": 1017
+    },
+    {
+      "name": "Warm Build #2",
+      "cleanCache": false,
+      "durationSec": 92.56,
+      "exitCode": 0,
+      "hasManifest": true,
+      "hasRoutes": true,
+      "minFreeMB": 18,
+      "freeBeforeMB": 542,
+      "freeAfterMB": 695
+    },
+    {
+      "name": "Warm Build #3",
+      "cleanCache": false,
+      "durationSec": 130.78,
+      "exitCode": 0,
+      "hasManifest": true,
+      "hasRoutes": true,
+      "minFreeMB": 3,
+      "freeBeforeMB": 206,
+      "freeAfterMB": 909
+    }
+  ],
+  "stats": {
+    "min": 92.56,
+    "max": 130.78,
+    "median": 125.61,
+    "mean": 116.31666666666668
+  }
+}

@@ -27,11 +27,6 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         "localization",
     ];
 
-    const result: Record<string, Record<string, unknown>> = {};
-
-    for (const g of publicGroups) {
-        result[g] = await settingsModule.getGroup(g, false);
-    }
-
+    const result = await settingsModule.getGroups(publicGroups, false);
     return res.status(200).json({ settings: result });
 }

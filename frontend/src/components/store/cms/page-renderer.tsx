@@ -10,7 +10,20 @@ import {
   CheckSquare, Search, Copy, Share2, Layers, AlertCircle, Quote as QuoteIcon,
   ArrowLeftRight, Play, Compass, MessageCircle, Send
 } from "lucide-react";
-import { ScrollFrameHero } from "@frontend/components/store/animation/scroll-frame-hero";
+import dynamic from "next/dynamic";
+
+const ScrollFrameHero = dynamic(
+  () => import("@frontend/components/store/animation/scroll-frame-hero").then((mod) => mod.ScrollFrameHero),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full min-h-[500px] flex items-center justify-center bg-zinc-950 text-white/50 text-sm animate-pulse">
+        Loading interactive experience...
+      </div>
+    ),
+  }
+);
+
 import { PromotionalBannerSection } from "./promotional-banner-section";
 import { AnnouncementBarSection, AnnouncementBarConfig } from "./announcement-bar-section";
 import { resolveHeroBannerConfig } from "@frontend/lib/cms/hero-resolver";
@@ -1379,7 +1392,8 @@ export function PageRenderer({
                               src={desktopImage}
                               alt={imageAlt}
                               className={`w-full h-full object-${objectFit} hover:scale-105 transition-transform duration-700`}
-                              loading="lazy"
+                              loading="eager"
+                              fetchPriority="high"
                             />
                           </picture>
                         )}
@@ -1700,14 +1714,8 @@ export function PageRenderer({
                 displayOccasions = config.manual_occasions;
               }
 
-              // Safe fallback only if database list is empty
               if (displayOccasions.length === 0) {
-                displayOccasions = [
-                  { id: "occ_bday", name: "Birthday Cakes", slug: "birthday", cover_image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=800&q=80", icon: "🎂", desc: "Party sparklers, photo cakes & decadent truffles" },
-                  { id: "occ_anni", name: "Anniversary Cakes", slug: "anniversary", cover_image: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?w=800&q=80", icon: "💑", desc: "Romantic heart shapes, red velvet & champagne cakes" },
-                  { id: "occ_wed", name: "Wedding Cakes", slug: "wedding", cover_image: "https://images.unsplash.com/photo-1535254973040-607b474cb50d?w=800&q=80", icon: "💒", desc: "Multi-tier royal floral fondant towers" },
-                  { id: "occ_kids", name: "Kids Cakes", slug: "kids", cover_image: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80", icon: "🧸", desc: "Superheroes, unicorns & playful theme cakes" },
-                ];
+                return null;
               }
 
               if (limit && limit > 0) {
@@ -3113,14 +3121,8 @@ export function PageRenderer({
                 section.type === "price_range_explorer" ? "Shop by Price Range" :
                 "Browse Cake Categories"
               );
-              const items = allCategories.length > 0 ? allCategories : [
-                { id: "c1", name: "Chocolate Cakes", slug: "chocolate" },
-                { id: "c2", name: "Red Velvet", slug: "red-velvet" },
-                { id: "c3", name: "Fruit Cakes", slug: "fruit-cakes" },
-                { id: "c4", name: "Butterscotch", slug: "butterscotch" },
-                { id: "c5", name: "Black Forest", slug: "black-forest" },
-                { id: "c6", name: "Cheesecakes", slug: "cheesecakes" },
-              ];
+              const items = allCategories.length > 0 ? allCategories : [];
+              if (items.length === 0) return null;
 
               return (
                 <section key={sectionKey} className="w-full flex flex-col gap-4">

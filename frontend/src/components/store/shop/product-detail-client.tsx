@@ -9,7 +9,21 @@ import { retrieveBranchInventory } from "@frontend/lib/data/branches";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ProductReviewsSection } from "./product-reviews-section";
+import dynamic from "next/dynamic";
+
+const ProductReviewsSection = dynamic(
+    () => import("./product-reviews-section").then((mod) => mod.ProductReviewsSection),
+    {
+        loading: () => (
+            <div className="mt-16 pt-12 border-t border-neutral-200 animate-pulse">
+                <div className="h-8 w-48 bg-neutral-200 rounded-lg mb-6" />
+                <div className="h-32 bg-neutral-100 rounded-xl" />
+            </div>
+        ),
+        ssr: true,
+    }
+);
+
 import { ProductFulfillmentBadge } from "./product-fulfillment-badge";
 import { apiClient } from "@frontend/lib/api-client";
 
@@ -65,7 +79,19 @@ export default function ProductDetailClient({
     const [cartLoading, setCartLoading] = useState(false);
     const isSubmittingRef = useRef(false);
     const messageInputRef = useRef<HTMLInputElement>(null);
-    const [showMessageReminder, setShowMessageReminder] = useState(false);
+    const [showEmptyMessageConfirm, setShowEmptyMessageConfirm] = useState(false);
+
+    // Keyboard accessibility for confirmation dialog
+    useEffect(() => {
+        if (!showEmptyMessageConfirm) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                setShowEmptyMessageConfirm(false);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [showEmptyMessageConfirm]);
 
     // Merge PIM visibility & requirement controls
     const activePimConfig = useMemo(() => {
@@ -376,39 +402,11 @@ export default function ProductDetailClient({
     const [addedCartSuccess, setAddedCartSuccess] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
 
-    const handleAddToCart = async () => {
+    const executeAddToCart = async () => {
         // Prevent duplicate API requests and rapid click submissions
         if (isSubmittingRef.current || cartLoading) {
             return;
         }
-
-        // Enforce required PIM fields before allowing Add to Cart
-        if (activePimConfig.show_weight !== false && activePimConfig.required_weight !== false && weightsList.length > 0 && !selectedWeight) {
-            setValidationError("Please select a cake size before adding to cart.");
-            return;
-        }
-        if (activePimConfig.show_shape && activePimConfig.required_shape && shapesList.length > 0 && !selectedShape) {
-            setValidationError("Please select a cake shape before adding to cart.");
-            return;
-        }
-        if (activePimConfig.show_flavour && activePimConfig.required_flavour && flavoursList.length > 0 && !selectedFlavour) {
-            setValidationError("Please select a cake flavour before adding to cart.");
-            return;
-        }
-        if (activePimConfig.show_filling && activePimConfig.required_filling && fillingsList.length > 0 && !selectedFilling) {
-            setValidationError("Please select an inner filling before adding to cart.");
-            return;
-        }
-        if (activePimConfig.show_photo_cake && activePimConfig.required_photo_cake && (!isPhotoCake || !photoUrl.trim())) {
-            setValidationError("Please upload a photo for the photo cake before adding to cart.");
-            return;
-        }
-        if (activePimConfig.show_cake_message && activePimConfig.required_cake_message && !cakeMessage.trim()) {
-            setValidationError("Please enter a custom message for the cake.");
-            return;
-        }
-
-        setValidationError(null);
 
         const targetShopId = shopId || "default_shop";
         isSubmittingRef.current = true;
@@ -439,19 +437,6 @@ export default function ProductDetailClient({
             await addToCart(variantId, targetShopId, metadata);
             router.refresh();
 
-            // Reminder & Focus Logic after successful addition
-            if (activePimConfig.show_cake_message !== false && !cakeMessage.trim()) {
-                setShowMessageReminder(true);
-                if (messageInputRef.current) {
-                    messageInputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-                    setTimeout(() => {
-                        messageInputRef.current?.focus({ preventScroll: true });
-                    }, 300);
-                }
-            } else {
-                setShowMessageReminder(false);
-            }
-
             setAddedCartSuccess(true);
             setTimeout(() => setAddedCartSuccess(false), 6000);
         } catch (e) {
@@ -461,6 +446,54 @@ export default function ProductDetailClient({
             setCartLoading(false);
             isSubmittingRef.current = false;
         }
+    };
+
+    const handleAddToCart = () => {
+        // Prevent duplicate API requests and rapid click submissions
+        if (isSubmittingRef.current || cartLoading) {
+            return;
+        }
+
+        // 1. Enforce required PIM fields before allowing Add to Cart
+        if (activePimConfig.show_weight !== false && activePimConfig.required_weight !== false && weightsList.length > 0 && !selectedWeight) {
+            setValidationError("Please select a cake size before adding to cart.");
+            return;
+        }
+        if (activePimConfig.show_shape && activePimConfig.required_shape && shapesList.length > 0 && !selectedShape) {
+            setValidationError("Please select a cake shape before adding to cart.");
+            return;
+        }
+        if (activePimConfig.show_flavour && activePimConfig.required_flavour && flavoursList.length > 0 && !selectedFlavour) {
+            setValidationError("Please select a cake flavour before adding to cart.");
+            return;
+        }
+        if (activePimConfig.show_filling && activePimConfig.required_filling && fillingsList.length > 0 && !selectedFilling) {
+            setValidationError("Please select an inner filling before adding to cart.");
+            return;
+        }
+        if (activePimConfig.show_photo_cake && activePimConfig.required_photo_cake && (!isPhotoCake || !photoUrl.trim())) {
+            setValidationError("Please upload a photo for the photo cake before adding to cart.");
+            return;
+        }
+        if (activePimConfig.show_cake_message && activePimConfig.required_cake_message && !cakeMessage.trim()) {
+            setValidationError("Please enter a custom message for the cake.");
+            return;
+        }
+
+        setValidationError(null);
+
+        // 2. Check if optional cake message is empty or whitespace-only
+        const isMessageEmpty = !cakeMessage.trim();
+        const isCakeMessageOptional = activePimConfig.show_cake_message !== false && !activePimConfig.required_cake_message;
+
+        if (isCakeMessageOptional && isMessageEmpty) {
+            // Show confirmation dialog only now at Add to Cart decision point
+            setShowEmptyMessageConfirm(true);
+            return;
+        }
+
+        // Message present or not applicable: proceed to cart
+        executeAddToCart();
     };
 
     return (
@@ -745,9 +778,7 @@ export default function ProductDetailClient({
                     {activePimConfig.show_cake_message !== false && (
                         <div
                             id="cake-message-section"
-                            className={`flex flex-col gap-2 border-t border-gray-100 pt-4 rounded-2xl transition-all duration-300 ${
-                                showMessageReminder ? "p-3.5 bg-amber-50/70 border border-amber-300/80 ring-2 ring-amber-100/80" : ""
-                            }`}
+                            className="flex flex-col gap-2 border-t border-gray-100 pt-4 rounded-2xl transition-all duration-300"
                         >
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="cake-message-input" className="font-bold text-sm text-gray-900 flex items-center gap-1.5">
@@ -769,35 +800,10 @@ export default function ProductDetailClient({
                                 maxLength={30}
                                 onChange={(e) => {
                                     setCakeMessage(e.target.value.slice(0, 30));
-                                    if (showMessageReminder) setShowMessageReminder(false);
                                 }}
                                 placeholder="e.g., Happy Birthday Ananya!"
-                                className={`w-full text-xs transition ${
-                                    showMessageReminder ? "border-amber-400 ring-2 ring-amber-200 bg-white" : ""
-                                }`}
+                                className="w-full text-xs transition"
                             />
-
-                            {showMessageReminder && (
-                                <div className="p-2.5 bg-amber-100/70 border border-amber-300/80 rounded-xl text-xs text-amber-900 animate-in fade-in flex items-start justify-between gap-2">
-                                    <div className="flex items-start gap-2">
-                                        <span className="text-base leading-none">🎂</span>
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-amber-950 text-xs">Don&apos;t forget your cake message!</span>
-                                            <span className="text-[11px] text-amber-800 leading-tight mt-0.5">
-                                                Add a message on the cake if you&apos;d like one. This is <strong>optional</strong> — you can leave it blank and continue.
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowMessageReminder(false)}
-                                        className="text-amber-700 hover:text-amber-950 text-xs font-bold px-1.5 py-0.5 rounded hover:bg-amber-200/60 shrink-0"
-                                        aria-label="Dismiss message reminder"
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                            )}
                         </div>
                     )}
 
@@ -906,6 +912,13 @@ export default function ProductDetailClient({
                                 : `${pdpConfig?.add_to_cart_text || "Add to Cart"} • ₹${calculatedPrice}`}
                         </Button>
 
+                        {validationError && (
+                            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold animate-in fade-in flex items-center gap-2">
+                                <span>⚠️</span>
+                                <span>{validationError}</span>
+                            </div>
+                        )}
+
                         {addedCartSuccess && (
                             <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 text-xs font-semibold shadow-sm animate-in fade-in">
                                 <span>✅ Cake successfully added to your cart!</span>
@@ -927,6 +940,92 @@ export default function ProductDetailClient({
                 initialCount={reviewCount}
                 initialDistribution={ratingDistribution as any}
             />
+
+            {/* Optional Cake Message Confirmation Modal */}
+            {showEmptyMessageConfirm && (
+                <div
+                    id="empty-message-confirmation-modal"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="empty-msg-dialog-title"
+                    aria-describedby="empty-msg-dialog-desc"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setShowEmptyMessageConfirm(false);
+                        }
+                    }}
+                >
+                    <div id="empty-message-confirmation-card" className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 p-6 flex flex-col gap-4 animate-in zoom-in-95 duration-200">
+                        {/* Close button */}
+                        <button
+                            type="button"
+                            onClick={() => setShowEmptyMessageConfirm(false)}
+                            className="absolute top-4 right-4 p-1.5 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                            aria-label="Close confirmation dialog"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                                🎂
+                            </div>
+                            <div className="flex flex-col">
+                                <h3 id="empty-msg-dialog-title" className="text-lg font-black text-zinc-900 dark:text-zinc-100 leading-snug">
+                                    Add cake without a message?
+                                </h3>
+                                <span className="text-xs font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
+                                    Optional Personalization
+                                </span>
+                            </div>
+                        </div>
+
+                        <p id="empty-msg-dialog-desc" className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                            The cake message is optional. Do you want to continue without one?
+                        </p>
+
+                        <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+                            <Button
+                                id="btn-add-message-focus"
+                                type="button"
+                                variant="secondary"
+                                disabled={cartLoading}
+                                onClick={() => {
+                                    setShowEmptyMessageConfirm(false);
+                                    if (messageInputRef.current) {
+                                        messageInputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+                                        setTimeout(() => {
+                                            messageInputRef.current?.focus({ preventScroll: true });
+                                        }, 200);
+                                    }
+                                }}
+                                className="flex-1 py-3 border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold text-xs rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                            >
+                                ✍️ Add Message
+                            </Button>
+                            <Button
+                                id="btn-confirm-add-to-cart"
+                                type="button"
+                                variant="primary"
+                                isLoading={cartLoading}
+                                disabled={cartLoading}
+                                onClick={() => {
+                                    setShowEmptyMessageConfirm(false);
+                                    executeAddToCart();
+                                }}
+                                className="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1.5"
+                            >
+                                <span>Continue</span>
+                                <span>→</span>
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

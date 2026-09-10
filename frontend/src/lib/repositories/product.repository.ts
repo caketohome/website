@@ -3,98 +3,11 @@ import { ProductDomain, VariantOptionDomain } from "../types/domain";
 
 export class ProductRepository {
   /**
-   * Find all active products from PostgreSQL
+   * Internal mapper from PostgreSQL row to ProductDomain
    */
-  static async findAll(): Promise<ProductDomain[]> {
-    const res = await dbQuery(
-      `SELECT * FROM "product" WHERE deleted_at IS NULL ORDER BY created_at ASC`
-    );
-    return (res.rows || []).map((p: any) => {
-      const meta = p.metadata || {};
-      const price = Number(meta.price || meta.selling_price || 599);
-      return {
-        id: p.id,
-        product_id: p.id,
-        title: p.title,
-        name: p.title,
-        handle: p.handle,
-        slug: p.handle || p.id,
-        description: p.description || "",
-        short_description: meta.short_description || p.description || "",
-        thumbnail: p.thumbnail || "",
-        gallery: Array.isArray(meta.gallery) ? meta.gallery : [p.thumbnail || ""],
-        status: p.status || "published",
-        price,
-        selling_price: price,
-        cost_price: Number(meta.cost_price || 350),
-        mrp: Number(meta.mrp || 799),
-        rating: Number(meta.rating) || 4.9,
-        review_count: Number(meta.review_count) || 12,
-        category: meta.category || "Cakes",
-        category_slug: meta.category_slug || "cakes",
-        primary_category_id: meta.primary_category_id || "cat_chocolate",
-        secondary_category_ids: meta.secondary_category_ids || [],
-        category_ids: meta.category_ids || [],
-        flavour: meta.flavour || "Chocolate",
-        cake_base: meta.cake_base || "Chocolate",
-        filling: meta.filling || "Chocolate Ganache",
-        cream: meta.cream || "Fresh Cream",
-        texture: meta.texture || "Soft & Moist",
-        weight: p.weight || "1 kg",
-        variants_json: meta.variants_json || { weights: ["0.5 kg", "1 kg", "1.5 kg", "2 kg"] },
-        add_ons_json: meta.add_ons_json || {},
-        tags: meta.tags || "",
-        occasion: meta.occasion || "Birthday",
-        occasion_ids: meta.occasion_ids || ["occ_birthday"],
-        brand: meta.brand || "CakeToHome Signature",
-        cake_type: meta.cake_type || "Layer Cake",
-        gst_rate: Number(meta.gst_rate || 5),
-        tax_class: meta.tax_class || "GST_FOOD_5",
-        tax_configuration_id: meta.tax_configuration_id || "txcfg_food_5",
-        hsn_code: meta.hsn_code || "19059090",
-        hsn_description: meta.hsn_description || "Cakes, Pastries & Bakery Goods",
-        uqc: meta.uqc || "NOS",
-        taxability: meta.taxability || "Taxable",
-        tax_inclusive: meta.tax_inclusive !== false,
-        is_featured: Boolean(meta.is_featured),
-        is_bestseller: Boolean(meta.is_bestseller),
-        is_new_arrival: Boolean(meta.is_new_arrival),
-        sugar_free: Boolean(meta.sugar_free),
-        gluten_free: Boolean(meta.gluten_free),
-        vegan: Boolean(meta.vegan),
-        daily_capacity: Number(meta.daily_capacity || 50),
-        shelf_life_days: Number(meta.shelf_life_days || 3),
-        prep_time_minutes: Number(meta.prep_time_minutes || 120),
-        seo_title: meta.seo_title || `${p.title} - CakeToHome`,
-        seo_description: meta.seo_description || p.description || "",
-        seo_keywords: meta.seo_keywords || "",
-        max_delivery_distance_km: meta.max_delivery_distance_km ? Number(meta.max_delivery_distance_km) : null,
-        pim_config: meta.pim_config || {},
-        flavors: meta.flavors || [],
-        shapes: meta.shapes || [],
-        fillings: meta.fillings || [],
-        creams: meta.creams || [],
-        weight_prices: meta.weight_prices || [],
-        enable_flavor_selection: meta.enable_flavor_selection,
-        enable_shape_selection: meta.enable_shape_selection,
-        created_at: p.created_at,
-        updated_at: p.updated_at,
-      };
-    });
-  }
-
-  /**
-   * Find product by ID or handle
-   */
-  static async findById(idOrHandle: string): Promise<ProductDomain | null> {
-    const res = await dbQuery(
-      `SELECT * FROM "product" WHERE (id = $1 OR handle = $1) AND deleted_at IS NULL LIMIT 1`,
-      [idOrHandle]
-    );
-    if (!res.rows || res.rows.length === 0) return null;
-    const p = res.rows[0];
+  static mapRowToDomain(p: any): ProductDomain {
     const meta = p.metadata || {};
-    const price = Number(meta.price || meta.selling_price || 599);
+    const price = Number(meta.selling_price ?? meta.price ?? 599);
     return {
       id: p.id,
       product_id: p.id,
@@ -163,6 +76,144 @@ export class ProductRepository {
       created_at: p.created_at,
       updated_at: p.updated_at,
     };
+  }
+
+  /**
+   * Paginated list of products from PostgreSQL with deterministic ordering
+   */
+  static async listProducts(params: {
+    page?: number;
+    pageSize?: number;
+    limit?: number;
+    offset?: number;
+    category_id?: string;
+    q?: string;
+    search?: string;
+    flavour?: string;
+    min_price?: number;
+    max_price?: number;
+    sort?: string;
+  } = {}): Promise<{
+    items: ProductDomain[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  }> {
+    const page = Math.max(1, params.page || 1);
+    const pageSize = Math.min(Math.max(1, params.pageSize || params.limit || 20), 100);
+    const offset = params.offset !== undefined ? Math.max(0, params.offset) : (page - 1) * pageSize;
+
+    const conditions: string[] = ["deleted_at IS NULL"];
+    const values: any[] = [];
+
+    if (params.category_id) {
+      values.push(params.category_id);
+      conditions.push(`(metadata->>'category_id' = $${values.length} OR metadata->>'category' ILIKE $${values.length} OR metadata->>'category_slug' ILIKE $${values.length})`);
+    }
+
+    const searchTerm = (params.q || params.search || "").trim();
+    if (searchTerm) {
+      values.push(`%${searchTerm.toLowerCase()}%`);
+      conditions.push(`(LOWER(title) LIKE $${values.length} OR LOWER(COALESCE(description, '')) LIKE $${values.length} OR LOWER(COALESCE(metadata->>'flavour', '')) LIKE $${values.length})`);
+    }
+
+    if (params.flavour) {
+      values.push(`%${params.flavour.toLowerCase().trim()}%`);
+      conditions.push(`LOWER(COALESCE(metadata->>'flavour', '')) LIKE $${values.length}`);
+    }
+
+    if (typeof params.min_price === "number") {
+      values.push(params.min_price);
+      conditions.push(`(COALESCE((metadata->>'selling_price')::numeric, (metadata->>'price')::numeric, 0) >= $${values.length})`);
+    }
+
+    if (typeof params.max_price === "number") {
+      values.push(params.max_price);
+      conditions.push(`(COALESCE((metadata->>'selling_price')::numeric, (metadata->>'price')::numeric, 0) <= $${values.length})`);
+    }
+
+    let orderByClause = "ORDER BY created_at DESC, id DESC";
+    if (params.sort === "price_asc") {
+      orderByClause = "ORDER BY COALESCE((metadata->>'selling_price')::numeric, (metadata->>'price')::numeric, 0) ASC, id DESC";
+    } else if (params.sort === "price_desc") {
+      orderByClause = "ORDER BY COALESCE((metadata->>'selling_price')::numeric, (metadata->>'price')::numeric, 0) DESC, id DESC";
+    } else if (params.sort === "rating") {
+      orderByClause = "ORDER BY COALESCE((metadata->>'rating')::numeric, 0) DESC, id DESC";
+    }
+
+    const whereClause = conditions.join(" AND ");
+    const countRes = await dbQuery(
+      `SELECT COUNT(*)::int as count FROM "product" WHERE ${whereClause}`,
+      values
+    );
+    const total = Number(countRes.rows[0]?.count || 0);
+
+    const queryValues = [...values, pageSize, offset];
+    const res = await dbQuery(
+      `SELECT * FROM "product" WHERE ${whereClause} ${orderByClause} LIMIT $${queryValues.length - 1} OFFSET $${queryValues.length}`,
+      queryValues
+    );
+
+    const items = (res.rows || []).map(ProductRepository.mapRowToDomain);
+    const totalPages = Math.ceil(total / pageSize);
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      totalPages,
+      hasNextPage: offset + items.length < total,
+      hasPreviousPage: page > 1,
+    };
+  }
+
+  /**
+   * Find active products from PostgreSQL bounded by safe limit (max 100)
+   */
+  static async findAll(limit: number = 100): Promise<ProductDomain[]> {
+    const safeLimit = Math.min(Math.max(1, limit), 100);
+    const res = await dbQuery(
+      `SELECT * FROM "product" WHERE deleted_at IS NULL ORDER BY created_at ASC, id ASC LIMIT $1`,
+      [safeLimit]
+    );
+    return (res.rows || []).map(ProductRepository.mapRowToDomain);
+  }
+
+  /**
+   * Find product by ID or handle
+   */
+  static async findById(idOrHandle: string): Promise<ProductDomain | null> {
+    const res = await dbQuery(
+      `SELECT * FROM "product" WHERE (id = $1 OR handle = $1) AND deleted_at IS NULL LIMIT 1`,
+      [idOrHandle]
+    );
+    if (!res.rows || res.rows.length === 0) return null;
+    return ProductRepository.mapRowToDomain(res.rows[0]);
+  }
+
+  /**
+   * Find product by slug alias
+   */
+  static async findBySlug(slug: string): Promise<ProductDomain | null> {
+    return ProductRepository.findById(slug);
+  }
+
+  /**
+   * Batch find products by IDs in a single database query
+   */
+  static async findByIds(ids: string[]): Promise<ProductDomain[]> {
+    if (!ids || ids.length === 0) return [];
+    const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
+    if (uniqueIds.length === 0) return [];
+    const res = await dbQuery(
+      `SELECT * FROM "product" WHERE (id = ANY($1) OR handle = ANY($1)) AND deleted_at IS NULL`,
+      [uniqueIds]
+    );
+    return (res.rows || []).map(ProductRepository.mapRowToDomain);
   }
 
   /**

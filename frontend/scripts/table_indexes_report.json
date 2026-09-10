@@ -1,0 +1,1971 @@
+{
+  "order": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "region_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "display_id",
+        "data_type": "integer",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "customer_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "version",
+        "data_type": "integer",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "sales_channel_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "status",
+        "data_type": "USER-DEFINED",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "is_draft_order",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "email",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "currency_code",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "shipping_address_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "billing_address_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "no_notification",
+        "data_type": "boolean",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "metadata",
+        "data_type": "jsonb",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "canceled_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "custom_display_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "locale",
+        "data_type": "text",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_order_billing_address_id",
+        "indexdef": "CREATE INDEX \"IDX_order_billing_address_id\" ON public.\"order\" USING btree (billing_address_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_order_currency_code",
+        "indexdef": "CREATE INDEX \"IDX_order_currency_code\" ON public.\"order\" USING btree (currency_code) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_order_custom_display_id",
+        "indexdef": "CREATE UNIQUE INDEX \"IDX_order_custom_display_id\" ON public.\"order\" USING btree (custom_display_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_order_customer_id",
+        "indexdef": "CREATE INDEX \"IDX_order_customer_id\" ON public.\"order\" USING btree (customer_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_order_deleted_at",
+        "indexdef": "CREATE INDEX \"IDX_order_deleted_at\" ON public.\"order\" USING btree (deleted_at)"
+      },
+      {
+        "indexname": "IDX_order_display_id",
+        "indexdef": "CREATE INDEX \"IDX_order_display_id\" ON public.\"order\" USING btree (display_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_order_is_draft_order",
+        "indexdef": "CREATE INDEX \"IDX_order_is_draft_order\" ON public.\"order\" USING btree (is_draft_order) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_order_region_id",
+        "indexdef": "CREATE INDEX \"IDX_order_region_id\" ON public.\"order\" USING btree (region_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_order_sales_channel_id",
+        "indexdef": "CREATE INDEX \"IDX_order_sales_channel_id\" ON public.\"order\" USING btree (sales_channel_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_order_shipping_address_id",
+        "indexdef": "CREATE INDEX \"IDX_order_shipping_address_id\" ON public.\"order\" USING btree (shipping_address_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "order_pkey",
+        "indexdef": "CREATE UNIQUE INDEX order_pkey ON public.\"order\" USING btree (id)"
+      }
+    ]
+  },
+  "product": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "title",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "handle",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "subtitle",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "description",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "is_giftcard",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "thumbnail",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "weight",
+        "data_type": "real",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "length",
+        "data_type": "real",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "height",
+        "data_type": "real",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "width",
+        "data_type": "real",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "origin_country",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "hs_code",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "mid_code",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "material",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "collection_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "type_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "discountable",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "external_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "metadata",
+        "data_type": "jsonb",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_product_collection_id",
+        "indexdef": "CREATE INDEX \"IDX_product_collection_id\" ON public.product USING btree (collection_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_product_deleted_at",
+        "indexdef": "CREATE INDEX \"IDX_product_deleted_at\" ON public.product USING btree (deleted_at)"
+      },
+      {
+        "indexname": "IDX_product_handle_unique",
+        "indexdef": "CREATE UNIQUE INDEX \"IDX_product_handle_unique\" ON public.product USING btree (handle) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_product_status",
+        "indexdef": "CREATE INDEX \"IDX_product_status\" ON public.product USING btree (status) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_product_type_id",
+        "indexdef": "CREATE INDEX \"IDX_product_type_id\" ON public.product USING btree (type_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "product_pkey",
+        "indexdef": "CREATE UNIQUE INDEX product_pkey ON public.product USING btree (id)"
+      }
+    ]
+  },
+  "branch": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "name",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "code",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "is_open",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "phone",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "email",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "address",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "latitude",
+        "data_type": "double precision",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "longitude",
+        "data_type": "double precision",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "shop_id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "city_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "region_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "metadata",
+        "data_type": "jsonb",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_branch_city_id",
+        "indexdef": "CREATE INDEX \"IDX_branch_city_id\" ON public.branch USING btree (city_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_branch_code",
+        "indexdef": "CREATE UNIQUE INDEX \"IDX_branch_code\" ON public.branch USING btree (code) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_branch_region_id",
+        "indexdef": "CREATE INDEX \"IDX_branch_region_id\" ON public.branch USING btree (region_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_branch_shop_id",
+        "indexdef": "CREATE INDEX \"IDX_branch_shop_id\" ON public.branch USING btree (shop_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "branch_pkey",
+        "indexdef": "CREATE UNIQUE INDEX branch_pkey ON public.branch USING btree (id)"
+      }
+    ]
+  },
+  "customer": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "company_name",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "first_name",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "last_name",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "email",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "phone",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "has_account",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "metadata",
+        "data_type": "jsonb",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_by",
+        "data_type": "text",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_customer_deleted_at",
+        "indexdef": "CREATE INDEX \"IDX_customer_deleted_at\" ON public.customer USING btree (deleted_at) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_customer_email_has_account_unique",
+        "indexdef": "CREATE UNIQUE INDEX \"IDX_customer_email_has_account_unique\" ON public.customer USING btree (email, has_account) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "customer_pkey",
+        "indexdef": "CREATE UNIQUE INDEX customer_pkey ON public.customer USING btree (id)"
+      }
+    ]
+  },
+  "customer_address": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "customer_id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "address_name",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "is_default_shipping",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "is_default_billing",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "company",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "first_name",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "last_name",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "address_1",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "address_2",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "city",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "country_code",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "province",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "postal_code",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "phone",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "metadata",
+        "data_type": "jsonb",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_customer_address_customer_id",
+        "indexdef": "CREATE INDEX \"IDX_customer_address_customer_id\" ON public.customer_address USING btree (customer_id)"
+      },
+      {
+        "indexname": "IDX_customer_address_deleted_at",
+        "indexdef": "CREATE INDEX \"IDX_customer_address_deleted_at\" ON public.customer_address USING btree (deleted_at) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_customer_address_unique_customer_billing",
+        "indexdef": "CREATE UNIQUE INDEX \"IDX_customer_address_unique_customer_billing\" ON public.customer_address USING btree (customer_id) WHERE (is_default_billing = true)"
+      },
+      {
+        "indexname": "IDX_customer_address_unique_customer_shipping",
+        "indexdef": "CREATE UNIQUE INDEX \"IDX_customer_address_unique_customer_shipping\" ON public.customer_address USING btree (customer_id) WHERE (is_default_shipping = true)"
+      },
+      {
+        "indexname": "customer_address_pkey",
+        "indexdef": "CREATE UNIQUE INDEX customer_address_pkey ON public.customer_address USING btree (id)"
+      }
+    ]
+  },
+  "delivery": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "transaction_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "delivery_partner_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "delivery_status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "eta",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "delivered_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "delivery_date",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "delivery_slot_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "ordered_for_self",
+        "data_type": "boolean",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "recipient_name",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "recipient_phone",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "recipient_alt_phone",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "recipient_address",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "recipient_pincode",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "recipient_landmark",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "delivery_instructions",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "gift_wrap",
+        "data_type": "boolean",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "greeting_card",
+        "data_type": "boolean",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "gift_message",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "anonymous_delivery",
+        "data_type": "boolean",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "hide_invoice",
+        "data_type": "boolean",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "occasion",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "is_surprise_delivery",
+        "data_type": "boolean",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "scheduled_delivery_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "scheduled_slot",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "delivery_otp",
+        "data_type": "text",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "delivery_pkey",
+        "indexdef": "CREATE UNIQUE INDEX delivery_pkey ON public.delivery USING btree (id)"
+      }
+    ]
+  },
+  "delivery_partner": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "first_name",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "last_name",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "email",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "phone",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "avatar_url",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "delivery_partner_pkey",
+        "indexdef": "CREATE UNIQUE INDEX delivery_partner_pkey ON public.delivery_partner USING btree (id)"
+      }
+    ]
+  },
+  "delivery_zone": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "pincode",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "branch_id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "delivery_fee",
+        "data_type": "numeric",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "is_serviceable",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "manual_override_branch_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "polygon_coordinates",
+        "data_type": "jsonb",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "radius_km",
+        "data_type": "numeric",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "center_latitude",
+        "data_type": "numeric",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "center_longitude",
+        "data_type": "numeric",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "priority",
+        "data_type": "integer",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "estimated_delivery_minutes",
+        "data_type": "integer",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_delivery_zone_pincode",
+        "indexdef": "CREATE INDEX \"IDX_delivery_zone_pincode\" ON public.delivery_zone USING btree (pincode) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "delivery_zone_pkey",
+        "indexdef": "CREATE UNIQUE INDEX delivery_zone_pkey ON public.delivery_zone USING btree (id)"
+      }
+    ]
+  },
+  "cms_page": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "slug",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "title",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "type",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "blocks",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "meta_title",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "meta_description",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "canonical_url",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "og_image",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "author",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "excerpt",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "featured_image",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "reading_time",
+        "data_type": "integer",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "published_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "archived_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "language_code",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "template_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "category_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_cms_page_slug_lang",
+        "indexdef": "CREATE UNIQUE INDEX \"IDX_cms_page_slug_lang\" ON public.cms_page USING btree (slug, language_code) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_cms_page_type_status",
+        "indexdef": "CREATE INDEX \"IDX_cms_page_type_status\" ON public.cms_page USING btree (type, status) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "cms_page_pkey",
+        "indexdef": "CREATE UNIQUE INDEX cms_page_pkey ON public.cms_page USING btree (id)"
+      }
+    ]
+  },
+  "cms_homepage_section": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "name",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "section_type",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "title",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "subtitle",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "config",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "sort_order",
+        "data_type": "integer",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "is_active",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "starts_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "ends_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "visibility",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "theme",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "language_code",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_cms_homepage_section_active",
+        "indexdef": "CREATE INDEX \"IDX_cms_homepage_section_active\" ON public.cms_homepage_section USING btree (is_active, language_code) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "cms_homepage_section_pkey",
+        "indexdef": "CREATE UNIQUE INDEX cms_homepage_section_pkey ON public.cms_homepage_section USING btree (id)"
+      }
+    ]
+  },
+  "order_status_history": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "order_id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "to_status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "from_status",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "actor_type",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "actor_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "reason",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "metadata",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_order_status_history_order_id",
+        "indexdef": "CREATE INDEX \"IDX_order_status_history_order_id\" ON public.order_status_history USING btree (order_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_order_status_history_to_status",
+        "indexdef": "CREATE INDEX \"IDX_order_status_history_to_status\" ON public.order_status_history USING btree (to_status) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "order_status_history_pkey",
+        "indexdef": "CREATE UNIQUE INDEX order_status_history_pkey ON public.order_status_history USING btree (id)"
+      }
+    ]
+  },
+  "product_reviews": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "character varying",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "product_id",
+        "data_type": "character varying",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "customer_id",
+        "data_type": "character varying",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "customer_uid",
+        "data_type": "character varying",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "customer_name",
+        "data_type": "character varying",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "order_id",
+        "data_type": "character varying",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "order_item_id",
+        "data_type": "character varying",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "rating",
+        "data_type": "smallint",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "title",
+        "data_type": "character varying",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "body",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "review_text",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "images",
+        "data_type": "jsonb",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "status",
+        "data_type": "character varying",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "is_verified_purchase",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "verified_purchase",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "purchased_variant",
+        "data_type": "character varying",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "reply",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "replied_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "admin_response",
+        "data_type": "jsonb",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "published_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "product_reviews_pkey",
+        "indexdef": "CREATE UNIQUE INDEX product_reviews_pkey ON public.product_reviews USING btree (id)"
+      },
+      {
+        "indexname": "uq_product_reviews_customer_order_product",
+        "indexdef": "CREATE UNIQUE INDEX uq_product_reviews_customer_order_product ON public.product_reviews USING btree (customer_uid, order_id, product_id) WHERE (deleted_at IS NULL)"
+      }
+    ]
+  },
+  "lead_enquiry": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "character varying",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "type",
+        "data_type": "character varying",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "name",
+        "data_type": "character varying",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "phone",
+        "data_type": "character varying",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "email",
+        "data_type": "character varying",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "details",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "status",
+        "data_type": "character varying",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "lead_enquiry_pkey",
+        "indexdef": "CREATE UNIQUE INDEX lead_enquiry_pkey ON public.lead_enquiry USING btree (id)"
+      }
+    ]
+  },
+  "analytics_event": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "event_type",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "entity_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "customer_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "session_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "branch_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "payload",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_analytics_event_branch_id",
+        "indexdef": "CREATE INDEX \"IDX_analytics_event_branch_id\" ON public.analytics_event USING btree (branch_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_analytics_event_event_type",
+        "indexdef": "CREATE INDEX \"IDX_analytics_event_event_type\" ON public.analytics_event USING btree (event_type) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_analytics_event_session_id",
+        "indexdef": "CREATE INDEX \"IDX_analytics_event_session_id\" ON public.analytics_event USING btree (session_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "analytics_event_pkey",
+        "indexdef": "CREATE UNIQUE INDEX analytics_event_pkey ON public.analytics_event USING btree (id)"
+      }
+    ]
+  },
+  "offer": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "name",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "code",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "type",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "priority",
+        "data_type": "integer",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "starts_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "ends_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "usage_limit",
+        "data_type": "integer",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "per_customer_limit",
+        "data_type": "integer",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "is_stackable",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "description",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "conditions",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "rewards",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "is_public",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "branch_ids",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "customer_segments",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "metadata",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "total_redemptions",
+        "data_type": "integer",
+        "is_nullable": "NO"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_offer_code",
+        "indexdef": "CREATE UNIQUE INDEX \"IDX_offer_code\" ON public.offer USING btree (code) WHERE ((deleted_at IS NULL) AND (code IS NOT NULL))"
+      },
+      {
+        "indexname": "IDX_offer_is_public",
+        "indexdef": "CREATE INDEX \"IDX_offer_is_public\" ON public.offer USING btree (is_public) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_offer_status",
+        "indexdef": "CREATE INDEX \"IDX_offer_status\" ON public.offer USING btree (status) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_offer_type",
+        "indexdef": "CREATE INDEX \"IDX_offer_type\" ON public.offer USING btree (type) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "offer_pkey",
+        "indexdef": "CREATE UNIQUE INDEX offer_pkey ON public.offer USING btree (id)"
+      }
+    ]
+  },
+  "cart": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "region_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "customer_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "sales_channel_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "email",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "currency_code",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "shipping_address_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "billing_address_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "metadata",
+        "data_type": "jsonb",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "completed_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "locale",
+        "data_type": "text",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_cart_billing_address_id",
+        "indexdef": "CREATE INDEX \"IDX_cart_billing_address_id\" ON public.cart USING btree (billing_address_id) WHERE ((deleted_at IS NULL) AND (billing_address_id IS NOT NULL))"
+      },
+      {
+        "indexname": "IDX_cart_currency_code",
+        "indexdef": "CREATE INDEX \"IDX_cart_currency_code\" ON public.cart USING btree (currency_code)"
+      },
+      {
+        "indexname": "IDX_cart_customer_id",
+        "indexdef": "CREATE INDEX \"IDX_cart_customer_id\" ON public.cart USING btree (customer_id) WHERE ((deleted_at IS NULL) AND (customer_id IS NOT NULL))"
+      },
+      {
+        "indexname": "IDX_cart_deleted_at",
+        "indexdef": "CREATE INDEX \"IDX_cart_deleted_at\" ON public.cart USING btree (deleted_at) WHERE (deleted_at IS NOT NULL)"
+      },
+      {
+        "indexname": "IDX_cart_region_id",
+        "indexdef": "CREATE INDEX \"IDX_cart_region_id\" ON public.cart USING btree (region_id) WHERE ((deleted_at IS NULL) AND (region_id IS NOT NULL))"
+      },
+      {
+        "indexname": "IDX_cart_sales_channel_id",
+        "indexdef": "CREATE INDEX \"IDX_cart_sales_channel_id\" ON public.cart USING btree (sales_channel_id) WHERE ((deleted_at IS NULL) AND (sales_channel_id IS NOT NULL))"
+      },
+      {
+        "indexname": "IDX_cart_shipping_address_id",
+        "indexdef": "CREATE INDEX \"IDX_cart_shipping_address_id\" ON public.cart USING btree (shipping_address_id) WHERE ((deleted_at IS NULL) AND (shipping_address_id IS NOT NULL))"
+      },
+      {
+        "indexname": "cart_pkey",
+        "indexdef": "CREATE UNIQUE INDEX cart_pkey ON public.cart USING btree (id)"
+      }
+    ]
+  },
+  "cart_line_item": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "cart_id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "title",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "subtitle",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "thumbnail",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "quantity",
+        "data_type": "integer",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "variant_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "product_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "product_title",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "product_description",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "product_subtitle",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "product_type",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "product_collection",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "product_handle",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "variant_sku",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "variant_barcode",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "variant_title",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "variant_option_values",
+        "data_type": "jsonb",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "requires_shipping",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "is_discountable",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "is_tax_inclusive",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "compare_at_unit_price",
+        "data_type": "numeric",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "raw_compare_at_unit_price",
+        "data_type": "jsonb",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "unit_price",
+        "data_type": "numeric",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "raw_unit_price",
+        "data_type": "jsonb",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "metadata",
+        "data_type": "jsonb",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "product_type_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "is_custom_price",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "is_giftcard",
+        "data_type": "boolean",
+        "is_nullable": "NO"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_cart_line_item_cart_id",
+        "indexdef": "CREATE INDEX \"IDX_cart_line_item_cart_id\" ON public.cart_line_item USING btree (cart_id) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "IDX_cart_line_item_deleted_at",
+        "indexdef": "CREATE INDEX \"IDX_cart_line_item_deleted_at\" ON public.cart_line_item USING btree (deleted_at) WHERE (deleted_at IS NOT NULL)"
+      },
+      {
+        "indexname": "IDX_line_item_product_id",
+        "indexdef": "CREATE INDEX \"IDX_line_item_product_id\" ON public.cart_line_item USING btree (product_id) WHERE ((deleted_at IS NULL) AND (product_id IS NOT NULL))"
+      },
+      {
+        "indexname": "IDX_line_item_variant_id",
+        "indexdef": "CREATE INDEX \"IDX_line_item_variant_id\" ON public.cart_line_item USING btree (variant_id) WHERE ((deleted_at IS NULL) AND (variant_id IS NOT NULL))"
+      },
+      {
+        "indexname": "cart_line_item_pkey",
+        "indexdef": "CREATE UNIQUE INDEX cart_line_item_pkey ON public.cart_line_item USING btree (id)"
+      }
+    ]
+  },
+  "payment_transaction": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "company_id",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "branch_id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "order_id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "customer_id",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "amount",
+        "data_type": "integer",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "currency",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "idempotency_key",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "settlement_status",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "provider",
+        "data_type": "text",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "provider_ref",
+        "data_type": "text",
+        "is_nullable": "YES"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "NO"
+      },
+      {
+        "column_name": "deleted_at",
+        "data_type": "timestamp with time zone",
+        "is_nullable": "YES"
+      }
+    ],
+    "indexes": [
+      {
+        "indexname": "IDX_payment_transaction_deleted_at",
+        "indexdef": "CREATE INDEX \"IDX_payment_transaction_deleted_at\" ON public.payment_transaction USING btree (deleted_at) WHERE (deleted_at IS NULL)"
+      },
+      {
+        "indexname": "payment_transaction_pkey",
+        "indexdef": "CREATE UNIQUE INDEX payment_transaction_pkey ON public.payment_transaction USING btree (id)"
+      }
+    ]
+  }
+}

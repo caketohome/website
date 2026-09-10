@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ApiEngine } from "@frontend/lib/api-engine";
+import { BranchRepository, CityRepository } from "@frontend/lib/repositories";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +19,31 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ capacity, success: true });
     }
 
-    const branches = ApiEngine.listBranches({ includeArchived: true });
+    const search = searchParams.get("search") || searchParams.get("q") || undefined;
+    const lifecycle = (searchParams.get("lifecycle") as any) || "all";
+    const page = searchParams.get("page") ? parseInt(searchParams.get("page")!, 10) : 1;
+    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : 50;
+
+    const result = await BranchRepository.findWithFilters({
+      search,
+      lifecycle,
+      page,
+      limit,
+    });
     const cityAreas = ApiEngine.listCityAreasPincodes();
-    return NextResponse.json({ branches, cityAreas, success: true });
+
+    return NextResponse.json({
+      branches: result.branches,
+      total: result.total,
+      totalCount: result.totalCount,
+      activeCount: result.activeCount,
+      archivedCount: result.archivedCount,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
+      cityAreas,
+      success: true,
+    });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -32,13 +55,17 @@ export async function POST(req: NextRequest) {
     const data = await req.json();
 
     if (data.type === "archive" || data.type === "archive_branch") {
-      const res = ApiEngine.archiveBranch(data.id || data.branchId);
-      return NextResponse.json({ ...res });
+      const bId = data.id || data.branchId;
+      await BranchRepository.delete(bId);
+      const res = ApiEngine.archiveBranch(bId);
+      return NextResponse.json({ ...res, success: true });
     }
 
     if (data.type === "restore" || data.type === "restore_branch") {
-      const res = ApiEngine.restoreBranch(data.id || data.branchId);
-      return NextResponse.json({ ...res });
+      const bId = data.id || data.branchId;
+      await BranchRepository.restore(bId);
+      const res = ApiEngine.restoreBranch(bId);
+      return NextResponse.json({ ...res, success: true });
     }
 
     if (data.type === "delivery_zone") {
@@ -141,8 +168,30 @@ export async function POST(req: NextRequest) {
     }
 
     const isNew = !data.id || !ApiEngine.getBranchById(data.id);
+
+    // Server-Side Validation: City & State Integrity
+    const reqCityId = data.city_id || (data.city?.toLowerCase() === "kollam" ? "city_klm" : "");
+    const reqState = data.state || data.state_id || "";
+    if (!data.city && !reqCityId) {
+      return NextResponse.json({ error: "City is required. Please select a valid city.", success: false }, { status: 400 });
+    }
+    if (!reqState) {
+      return NextResponse.json({ error: "State is required. Please select a valid state.", success: false }, { status: 400 });
+    }
+    if (reqCityId) {
+      const validation = await CityRepository.validateCityBelongsToState(reqCityId, reqState);
+      if (!validation.valid) {
+        return NextResponse.json({ error: validation.error || "Selected city does not belong to the selected state.", success: false }, { status: 400 });
+      }
+    }
+
     const branch = ApiEngine.saveBranch(data);
-    return NextResponse.json({ branch, success: true, message: isNew ? "Branch created successfully" : "Branch saved successfully" }, { status: isNew ? 201 : 200 });
+    await BranchRepository.save(branch);
+    const verifiedBranch = await BranchRepository.findById(branch.id);
+    return NextResponse.json(
+      { branch: verifiedBranch || branch, success: true, message: isNew ? "Branch created successfully" : "Branch saved successfully" },
+      { status: isNew ? 201 : 200 }
+    );
   } catch (err: any) {
     const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate") || err.message.includes("Role conflict"));
     return NextResponse.json({ error: err.message || "Failed to process branch request", success: false }, { status: isConflict ? 409 : 400 });
@@ -153,8 +202,27 @@ export async function PUT(req: NextRequest) {
   try {
     const data = await req.json();
     if (!data.id) return NextResponse.json({ error: "Branch ID required", success: false }, { status: 400 });
+
+    // Server-Side Validation: City & State Integrity
+    const reqCityId = data.city_id || (data.city?.toLowerCase() === "kollam" ? "city_klm" : "");
+    const reqState = data.state || data.state_id || "";
+    if (!data.city && !reqCityId) {
+      return NextResponse.json({ error: "City is required. Please select a valid city.", success: false }, { status: 400 });
+    }
+    if (!reqState) {
+      return NextResponse.json({ error: "State is required. Please select a valid state.", success: false }, { status: 400 });
+    }
+    if (reqCityId) {
+      const validation = await CityRepository.validateCityBelongsToState(reqCityId, reqState);
+      if (!validation.valid) {
+        return NextResponse.json({ error: validation.error || "Selected city does not belong to the selected state.", success: false }, { status: 400 });
+      }
+    }
+
     const updated = ApiEngine.saveBranch(data);
-    return NextResponse.json({ branch: updated, success: true, message: "Branch updated successfully" }, { status: 200 });
+    await BranchRepository.save(updated);
+    const verifiedBranch = await BranchRepository.findById(updated.id);
+    return NextResponse.json({ branch: verifiedBranch || updated, success: true, message: "Branch updated successfully" }, { status: 200 });
   } catch (err: any) {
     const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate") || err.message.includes("Role conflict"));
     return NextResponse.json({ error: err.message || "Failed to update branch", success: false }, { status: isConflict ? 409 : 400 });
@@ -166,8 +234,9 @@ export async function DELETE(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "Branch ID required", success: false }, { status: 400 });
+    await BranchRepository.delete(id);
     const res = ApiEngine.archiveBranch(id);
-    return NextResponse.json({ ...res });
+    return NextResponse.json({ ...res, success: true });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to delete branch", success: false }, { status: 400 });
   }

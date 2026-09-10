@@ -1,6 +1,6 @@
 "use client";
 
-import { removeItemFromCart, updateCartItemQuantity } from "@frontend/lib/actions";
+import { removeItemFromCart, updateCartItemQuantity } from "@frontend/lib/actions/carts";
 import { XMark } from "@medusajs/icons";
 import { Button, Container, Heading, IconButton, Text } from "@medusajs/ui";
 import Image from "next/image";

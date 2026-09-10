@@ -64,6 +64,47 @@ class SettingsModuleService extends MedusaService({
     }
 
     /**
+     * Retrieve all settings across multiple groups in a single database query.
+     * Returns a Record<group, Record<key, value>>.
+     * JSON values are parsed; secret values are excluded unless includeSecrets is true.
+     */
+    async getGroups(
+        groups: string[],
+        includeSecrets = false
+    ): Promise<Record<string, Record<string, unknown>>> {
+        const result: Record<string, Record<string, unknown>> = {};
+        for (const g of groups) {
+            result[g] = {};
+        }
+        if (!groups || groups.length === 0) return result;
+
+        const settings = await this.listSettings({ group: groups });
+
+        for (const setting of settings) {
+            if (setting.is_secret && !includeSecrets) {
+                continue;
+            }
+
+            const g = setting.group as string;
+            if (!result[g]) {
+                result[g] = {};
+            }
+
+            if (setting.is_json && setting.value) {
+                try {
+                    result[g][setting.key] = JSON.parse(setting.value);
+                } catch {
+                    result[g][setting.key] = setting.value;
+                }
+            } else {
+                result[g][setting.key] = setting.value;
+            }
+        }
+
+        return result;
+    }
+
+    /**
      * Upsert a setting value. When value is an object/array, it is JSON-stringified.
      */
     async upsertValue(

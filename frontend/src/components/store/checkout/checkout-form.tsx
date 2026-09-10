@@ -1,16 +1,29 @@
 "use client";
 
-import { placeOrder } from "@frontend/lib/actions";
+import { placeOrder } from "@frontend/lib/actions/checkout";
 import { apiClient } from "@frontend/lib/api-client";
 import { HttpTypes } from "@frontend/lib/types";
 import { Badge, Button, Heading, Input, Label, Text, Textarea } from "@medusajs/ui";
 import { useFormState, useFormStatus } from "react-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ErrorComponent } from "@frontend/components/common/error-component";
+import dynamic from "next/dynamic";
 import { OrderSummary, OrderSummaryPricing } from "./order-summary";
-import { CheckoutMap } from "./checkout-map";
 import { MapPin, Navigation, Search, CheckCircle2, Crosshair, AlertCircle, AlertTriangle, Bookmark, Loader2 } from "lucide-react";
 import { isValidCoordinate } from "@frontend/lib/location/directions";
+
+const CheckoutMap = dynamic(
+  () => import("./checkout-map").then((mod) => mod.CheckoutMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-[240px] rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-xs text-zinc-500 animate-pulse">
+        <Loader2 className="w-4 h-4 animate-spin text-rose-600 mr-2" />
+        Loading delivery map...
+      </div>
+    ),
+  }
+);
 
 export interface PickupBranch {
   id: string;

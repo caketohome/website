@@ -31,7 +31,7 @@ describe("Phase 14: Delivery Enhancements Unit Tests", () => {
       return c;
     });
     service.listDriverAttendances = jest.fn(async (sel) => {
-      return attendanceStore.filter((x) => !sel || !sel.partner_id || x.partner_id === sel.partner_id);
+      return attendanceStore.filter((x) => !sel || !sel.partner_id || (Array.isArray(sel.partner_id) ? sel.partner_id.includes(x.partner_id) : x.partner_id === sel.partner_id));
     });
     service.updateDriverAttendances = jest.fn(async (args) => {
       const match = attendanceStore.find((x) => x.id === args.id);

@@ -518,7 +518,14 @@ export function PageConfigurator() {
       await loadAll(updated?.id || editingPage.id);
       if (updated?.id) setSelectedPageId(updated.id);
     } catch (err: any) {
-      showToast(err.message || "Failed to save", "error");
+      if (err?.name === "AbortError" && !err?.message?.includes("timed out")) {
+        return;
+      }
+      if (err?.name === "TimeoutError" || err?.message?.includes("timed out")) {
+        showToast("Save draft request timed out. Your changes are persisting in the background; please refresh shortly.", "error");
+        return;
+      }
+      showToast(err?.message || "Failed to save draft", "error");
     } finally {
       setSaving(false);
     }
@@ -544,7 +551,14 @@ export function PageConfigurator() {
         await loadAll(res?.page?.id || editingPage.id);
       }
     } catch (err: any) {
-      showToast(err.message || "Failed to publish", "error");
+      if (err?.name === "AbortError" && !err?.message?.includes("timed out")) {
+        return;
+      }
+      if (err?.name === "TimeoutError" || err?.message?.includes("timed out")) {
+        showToast("Publish request timed out while writing to database. Please refresh shortly to verify status.", "error");
+        return;
+      }
+      showToast(err?.message || "Failed to publish", "error");
     } finally {
       setPublishing(false);
     }
@@ -555,8 +569,9 @@ export function PageConfigurator() {
       await apiClient.unpublishCmsPage(editingPage.id);
       showToast("Page unpublished — set back to Draft");
       await loadAll(editingPage.id);
-    } catch {
-      showToast("Failed to unpublish", "error");
+    } catch (err: any) {
+      if (err?.name === "AbortError" && !err?.message?.includes("timed out")) return;
+      showToast(err?.message || "Failed to unpublish", "error");
     }
   };
 
@@ -570,8 +585,9 @@ export function PageConfigurator() {
         setEditingPage(res.page);
         setSavedSnapshot(JSON.stringify(res.page));
       }
-    } catch {
-      showToast("Failed to duplicate", "error");
+    } catch (err: any) {
+      if (err?.name === "AbortError" && !err?.message?.includes("timed out")) return;
+      showToast(err?.message || "Failed to duplicate", "error");
     }
   };
 

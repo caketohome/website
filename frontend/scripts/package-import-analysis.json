@@ -1,0 +1,150 @@
+[
+  {
+    "pkgName": "lucide-react",
+    "importingFiles": 119,
+    "clientImports": 112,
+    "serverImports": 7,
+    "barrelImports": 120,
+    "directImports": 0,
+    "uniqueMembersCount": 178,
+    "sampleImports": [
+      {
+        "file": "app\\(store)\\city\\[slug]\\page.tsx",
+        "statement": "import {\r\n  MapPin, Clock, ShieldCheck, Award, Cake, ArrowRight,\r\n  Truck, Building2, CheckCircle2, Sparkles, Phone, Star\r\n} from \"lucide-react\""
+      },
+      {
+        "file": "app\\(store)\\login\\page.tsx",
+        "statement": "import { Sparkles, Check, Star } from \"lucide-react\""
+      },
+      {
+        "file": "app\\(store)\\occasions\\[slug]\\page.tsx",
+        "statement": "import { Sparkles, ArrowRight, ShieldCheck, Clock, Award, Cake, ShoppingCart } from \"lucide-react\""
+      },
+      {
+        "file": "app\\account\\layout.tsx",
+        "statement": "import { User, ShoppingBag, MapPin, Heart, LogOut, Sparkles, ChevronRight } from \"lucide-react\""
+      },
+      {
+        "file": "app\\account\\orders\\page.tsx",
+        "statement": "import {\r\n  ShoppingBag,\r\n  Package,\r\n  Truck,\r\n  CheckCircle2,\r\n  Clock,\r\n  ArrowRight,\r\n  RotateCcw,\r\n  Sparkles,\r\n  MapPin,\r\n  Calendar,\r\n  ExternalLink,\r\n  Star\r\n} from \"lucide-react\""
+      }
+    ],
+    "uniqueMembers": [
+      "MapPin",
+      "Clock",
+      "ShieldCheck",
+      "Award",
+      "Cake",
+      "ArrowRight",
+      "Truck",
+      "Building2",
+      "CheckCircle2",
+      "Sparkles",
+      "Phone",
+      "Star",
+      "Check",
+      "ShoppingCart",
+      "User",
+      "ShoppingBag",
+      "Heart",
+      "LogOut",
+      "ChevronRight",
+      "Package"
+    ]
+  },
+  {
+    "pkgName": "@medusajs/ui",
+    "importingFiles": 142,
+    "clientImports": 123,
+    "serverImports": 19,
+    "barrelImports": 143,
+    "directImports": 0,
+    "uniqueMembersCount": 17,
+    "sampleImports": [
+      {
+        "file": "app\\(checkout)\\layout.tsx",
+        "statement": "import { Text } from \"@medusajs/ui\""
+      },
+      {
+        "file": "app\\(store)\\blog\\page.tsx",
+        "statement": "import { Heading, Text, Container } from \"@medusajs/ui\""
+      },
+      {
+        "file": "app\\(store)\\campaigns\\page.tsx",
+        "statement": "import { Heading, Text, Container, Badge } from \"@medusajs/ui\""
+      },
+      {
+        "file": "app\\(store)\\campaigns\\[id]\\page.tsx",
+        "statement": "import { Heading, Text, Container, Badge } from \"@medusajs/ui\""
+      },
+      {
+        "file": "app\\(store)\\compare\\page.tsx",
+        "statement": "import { Heading, Text, Button, Container } from \"@medusajs/ui\""
+      }
+    ],
+    "uniqueMembers": [
+      "Text",
+      "Heading",
+      "Container",
+      "Badge",
+      "Button",
+      "Input",
+      "Table",
+      "IconButton",
+      "Label",
+      "Switch",
+      "Textarea",
+      "Select",
+      "StatusBadge",
+      "Drawer",
+      "DropdownMenu",
+      "clx",
+      "ProgressTabs"
+    ]
+  },
+  {
+    "pkgName": "@medusajs/icons",
+    "importingFiles": 12,
+    "clientImports": 10,
+    "serverImports": 2,
+    "barrelImports": 12,
+    "directImports": 0,
+    "uniqueMembersCount": 12,
+    "sampleImports": [
+      {
+        "file": "components\\common\\demo-modal.tsx",
+        "statement": "import { XMarkMini } from \"@medusajs/icons\""
+      },
+      {
+        "file": "components\\dashboard\\delivery-partner\\create-category-drawer.tsx",
+        "statement": "import { Plus } from \"@medusajs/icons\""
+      },
+      {
+        "file": "components\\dashboard\\delivery-partner\\delivery-status-badge.tsx",
+        "statement": "import { CircleQuarterSolid } from \"@medusajs/icons\""
+      },
+      {
+        "file": "components\\dashboard\\menu\\create-category-drawer.tsx",
+        "statement": "import { Plus } from \"@medusajs/icons\""
+      },
+      {
+        "file": "components\\dashboard\\menu\\create-product-drawer.tsx",
+        "statement": "import { Plus } from \"@medusajs/icons\""
+      }
+    ],
+    "uniqueMembers": [
+      "XMarkMini",
+      "Plus",
+      "CircleQuarterSolid",
+      "EllipsisHorizontal",
+      "PencilSquare",
+      "Spinner",
+      "Trash",
+      "ShoppingBag",
+      "XMark",
+      "Heart",
+      "CheckCircleSolid",
+      "CircleDottedLine"
+    ]
+  }
+]

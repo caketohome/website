@@ -9,7 +9,15 @@ import {
   ComparisonMode,
   ReportTimeRange,
 } from "@frontend/lib/reports-engine-data";
-import { ExcelExportService, setExportBusinessIdentity } from "@frontend/lib/excel-export-service";
+import type { ExcelExportService as ExcelExportServiceType } from "@frontend/lib/excel-export-service";
+
+const ExcelExportService: typeof ExcelExportServiceType = new Proxy({} as any, {
+  get: (_target, prop: string) => async (...args: any[]) => {
+    const mod = await import("@frontend/lib/excel-export-service");
+    return (mod.ExcelExportService as any)[prop](...args);
+  }
+});
+
 import { apiClient } from "@frontend/lib/api-client";
 import { getReportDefinition } from "@frontend/lib/report-registry";
 import {
@@ -65,11 +73,20 @@ export function EnterpriseReportsEngine() {
       listBranches(),
       apiClient.get<any[]>("/admin/delivery/partners").catch(() => []),
       apiClient.get<any[]>("/admin/customers").catch(() => []),
-    ]).then(([branches, partners, customers]) => {
+      apiClient.get<any>("/admin/orders?pageSize=100").catch(() => ({ orders: [] })),
+    ]).then(([branches, partners, customers, orderRes]) => {
       const branchList = Array.isArray(branches) ? branches : [];
+      const orderList = Array.isArray(orderRes?.orders) ? orderRes.orders : (Array.isArray(orderRes?.items) ? orderRes.items : []);
       setAvailableBranches(branchList);
       setAvailablePartners(Array.isArray(partners) ? partners : []);
       setAvailableCustomers(Array.isArray(customers) ? customers : []);
+      if (orderList.length > 0) {
+        ReportsEngineData.setClientStoreData({
+          orders: orderList,
+          branches: branchList,
+          customers: Array.isArray(customers) ? customers : [],
+        });
+      }
       setDataVersion((v) => v + 1);
     });
   }, []);

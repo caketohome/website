@@ -13,7 +13,7 @@ import {
   createSubscription,
   searchProducts,
 } from "../data/catalog";
-import type { SearchFilters, SearchResponse } from "../data/catalog";
+import type { SearchFilters, SearchResponse, SearchResult } from "../data/catalog";
 
 export async function pauseSubscriptionAction(id: string) {
   return pauseSubscription(id);
@@ -93,6 +93,43 @@ export async function searchProductsAction(filters: SearchFilters = {}): Promise
 export async function getCatalogFilterOptionsAction() {
   const { getCatalogFilterOptions } = await import("../data/catalog");
   return getCatalogFilterOptions();
+}
+
+export async function getCompareProductsAction(ids: string[]): Promise<SearchResult[]> {
+  if (!ids || ids.length === 0) return [];
+  try {
+    const { ProductRepository } = await import("../repositories/product.repository");
+    const products = await ProductRepository.findByIds(ids);
+    return products.map((p) => ({
+      product_id: p.id || p.product_id || "",
+      variant_id: `var_${p.id || p.product_id}`,
+      title: p.title || p.name || "Gourmet Cake",
+      description: p.description || p.short_description || "",
+      thumbnail: p.thumbnail || (Array.isArray(p.gallery) && p.gallery[0]) || "/images/placeholder-cake.jpg",
+      handle: p.handle || p.slug || "cake",
+      price: Math.max(0, Number(p.price || p.selling_price) || 0),
+      rating: Number(p.rating) || 0,
+      review_count: Number(p.review_count) || 0,
+      sugar_free: Boolean(p.sugar_free),
+      gluten_free: Boolean(p.gluten_free),
+      vegan: Boolean(p.vegan),
+      is_featured: Boolean(p.is_featured),
+      is_bestseller: Boolean(p.is_bestseller),
+      is_new_arrival: Boolean(p.is_new_arrival),
+      branch_status: "AVAILABLE",
+      is_out_of_stock_at_branch: false,
+      primary_category_id: p.primary_category_id,
+      category: p.category || "",
+      category_slug: p.category_slug || "",
+      category_ids: p.category_ids || [],
+      categories: [],
+      flavour: p.flavour || "",
+      weight: p.weight || "1 kg",
+    }));
+  } catch (err: any) {
+    console.error("getCompareProductsAction error:", err);
+    return [];
+  }
 }
 
 export async function revalidateProductAction(productHandle?: string, productId?: string) {

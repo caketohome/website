@@ -205,21 +205,29 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
     });
 
     // 3. Cities — UNCONDITIONAL HYDRATION FROM POSTGRESQL
-    targetStore.cities = (citiesRes.rows || []).map((c) => ({
-      id: c.id,
-      name: c.name,
-      slug: c.id.replace("city_", ""),
-      state: c.state || "Karnataka",
-      state_code: c.state_code || "KA",
-      country: "India",
-      countryCode: "IN",
-      timezone: "Asia/Kolkata",
-      currency: "INR",
-      phoneCode: "+91",
-      status: c.is_active !== false ? "active" : "archived",
-      is_active: c.is_active !== false,
-      created_at: c.created_at,
-    }));
+    targetStore.cities = (citiesRes.rows || []).map((c) => {
+      const stateName = c.state || "Karnataka";
+      const isKerala = stateName.toLowerCase().includes("kerala") || c.id === "city_klm" || c.id === "city_koc";
+      const stateId = isKerala ? "state_kl" : "state_ka";
+      const stateCode = isKerala ? "KL" : "KA";
+      return {
+        id: c.id,
+        name: c.name,
+        slug: c.id.replace("city_", ""),
+        state: stateName,
+        state_id: stateId,
+        state_code: stateCode,
+        stateCode: stateCode,
+        country: "India",
+        countryCode: "IN",
+        timezone: "Asia/Kolkata",
+        currency: "INR",
+        phoneCode: "+91",
+        status: c.is_active !== false ? "active" : "archived",
+        is_active: c.is_active !== false,
+        created_at: c.created_at,
+      };
+    });
 
     // 4. Products & Weight Prices Matrix — UNCONDITIONAL HYDRATION FROM POSTGRESQL
     const weightPricesList: any[] = [];
@@ -761,9 +769,15 @@ export async function persistBranchToDb(branch: any): Promise<void> {
     operational_status: branch.operational_status || "operational",
     extended_status: branch.extended_status || "open",
     branch_type: branch.branch_type || "main_hub",
-    city: branch.city || "Bengaluru",
-    state: branch.state || "Karnataka",
+    city: branch.city || (branch.city_id === "city_klm" ? "Kollam" : "Bengaluru"),
+    city_id: branch.city_id || (branch.city?.toLowerCase() === "kollam" ? "city_klm" : "city_bbr"),
+    state: branch.state || (branch.city_id === "city_klm" ? "Kerala" : "Karnataka"),
+    state_id: branch.state_id || (branch.state?.toLowerCase().includes("kerala") || branch.city_id === "city_klm" ? "state_kl" : "state_ka"),
+    state_code: branch.state_code || (branch.state?.toLowerCase().includes("kerala") || branch.city_id === "city_klm" ? "KL" : "KA"),
+    pincode: branch.pincode || "",
   };
+
+  const resolvedCityId = branch.city_id || (branch.city?.toLowerCase() === "kollam" ? "city_klm" : "city_bbr");
 
   await dbTransaction(async (client) => {
     // 1. Upsert Branch
@@ -780,6 +794,7 @@ export async function persistBranchToDb(branch: any): Promise<void> {
         "address" = EXCLUDED.address,
         "latitude" = EXCLUDED.latitude,
         "longitude" = EXCLUDED.longitude,
+        "city_id" = EXCLUDED.city_id,
         "metadata" = EXCLUDED.metadata,
         "updated_at" = NOW()
     `,
@@ -794,35 +809,28 @@ export async function persistBranchToDb(branch: any): Promise<void> {
         lat,
         lng,
         DEFAULT_SHOP_ID,
-        branch.city_id || "city_bbr",
+        resolvedCityId,
         JSON.stringify(metadata),
       ]
     );
 
-    // 2. Sync Delivery Zones
+    // 2. Sync Delivery Zones in 1 batch query (N queries -> 1 query)
     const zones = Array.isArray(branch.delivery_zones) ? branch.delivery_zones : [];
-    for (const z of zones) {
-      const zoneId = z.id || `zone_${id}_${z.pincode || Math.random().toString(36).slice(2, 7)}`;
-      const fee = Number(z.delivery_fee || z.base_fee || 0);
-      const radius = Number(z.radius_km || 10);
-      const polygonCoords = Array.isArray(z.polygon_coordinates) ? z.polygon_coordinates : [];
+    if (zones.length > 0) {
+      const values: any[] = [];
+      const valuePlaceholders: string[] = [];
 
-      await client.query(
-        `
-        INSERT INTO "delivery_zone" ("id", "pincode", "branch_id", "delivery_fee", "is_serviceable", "polygon_coordinates", "radius_km", "center_latitude", "center_longitude", "priority", "estimated_delivery_minutes", "created_at", "updated_at")
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
-        ON CONFLICT ("id") DO UPDATE SET
-          "delivery_fee" = EXCLUDED.delivery_fee,
-          "is_serviceable" = EXCLUDED.is_serviceable,
-          "polygon_coordinates" = EXCLUDED.polygon_coordinates,
-          "radius_km" = EXCLUDED.radius_km,
-          "center_latitude" = EXCLUDED.center_latitude,
-          "center_longitude" = EXCLUDED.center_longitude,
-          "priority" = EXCLUDED.priority,
-          "estimated_delivery_minutes" = EXCLUDED.estimated_delivery_minutes,
-          "updated_at" = NOW()
-      `,
-        [
+      zones.forEach((z: any, index: number) => {
+        const zoneId = z.id || `zone_${id}_${z.pincode || Math.random().toString(36).slice(2, 7)}_${index}`;
+        const fee = Number(z.delivery_fee || z.base_fee || 0);
+        const radius = Number(z.radius_km || 10);
+        const polygonCoords = Array.isArray(z.polygon_coordinates) ? z.polygon_coordinates : [];
+        const offset = index * 11;
+
+        valuePlaceholders.push(
+          `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11}, NOW(), NOW())`
+        );
+        values.push(
           zoneId,
           z.pincode || (z.pincodes && z.pincodes[0]) || "560038",
           id,
@@ -833,8 +841,26 @@ export async function persistBranchToDb(branch: any): Promise<void> {
           lat,
           lng,
           z.priority || 10,
-          z.estimated_delivery_minutes || 35,
-        ]
+          z.estimated_delivery_minutes || 35
+        );
+      });
+
+      await client.query(
+        `
+        INSERT INTO "delivery_zone" ("id", "pincode", "branch_id", "delivery_fee", "is_serviceable", "polygon_coordinates", "radius_km", "center_latitude", "center_longitude", "priority", "estimated_delivery_minutes", "created_at", "updated_at")
+        VALUES ${valuePlaceholders.join(", ")}
+        ON CONFLICT ("id") DO UPDATE SET
+          "delivery_fee" = EXCLUDED.delivery_fee,
+          "is_serviceable" = EXCLUDED.is_serviceable,
+          "polygon_coordinates" = EXCLUDED.polygon_coordinates,
+          "radius_km" = EXCLUDED.radius_km,
+          "center_latitude" = EXCLUDED.center_latitude,
+          "center_longitude" = EXCLUDED.center_longitude,
+          "priority" = EXCLUDED.priority,
+          "estimated_delivery_minutes" = EXCLUDED.estimated_delivery_minutes,
+          "updated_at" = NOW()
+        `,
+        values
       );
     }
   });
@@ -1331,7 +1357,7 @@ export async function persistSettingToDb(
     k = groupOrSetting.key;
     v = groupOrSetting.value;
   } else {
-    g = groupOrSetting || "general";
+    g = (groupOrSetting as string) || "general";
     k = key || "";
     v = value;
   }

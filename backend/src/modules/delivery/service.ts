@@ -185,24 +185,50 @@ class DeliveryModuleService extends MedusaService({
   }
 
   private async findAvailableCapacityDriver(drivers: any[]): Promise<any> {
-    for (const d of drivers) {
-      // Check shift attendance status
-      const attendances = await (this as any).listDriverAttendances(
-        { partner_id: d.partner_id },
-        { order: { created_at: "DESC" }, take: 1 }
-      );
-      if (!attendances[0] || attendances[0].status !== "active") {
-        continue;
+    if (!drivers || drivers.length === 0) return null;
+
+    const partnerIds = drivers.map((d: any) => d.partner_id).filter(Boolean);
+    if (partnerIds.length === 0) return null;
+
+    // Batch query attendances for candidate partners in 1 query (instead of N queries)
+    const attendances = (await (this as any).listDriverAttendances(
+      { partner_id: partnerIds },
+      { order: { created_at: "DESC" } }
+    )) || [];
+
+    // Map latest attendance per partner
+    const latestAttendanceByPartner = new Map<string, any>();
+    for (const att of attendances) {
+      if (!latestAttendanceByPartner.has(att.partner_id)) {
+        latestAttendanceByPartner.set(att.partner_id, att);
       }
+    }
 
-      // Check current capacity (Multi-order batching cap = 3 orders per driver)
-      const activeJobs = await (this as any).listDeliveries({
-        delivery_partner_id: d.partner_id,
-        delivery_status: ["assigned", "claimed", "picked_up"],
-      });
+    const activeDrivers = drivers.filter((d: any) => {
+      const att = latestAttendanceByPartner.get(d.partner_id);
+      return att && att.status === "active";
+    });
 
-      if (!activeJobs || activeJobs.length < 3) {
-        return d; // Matched capacity-aware driver
+    if (activeDrivers.length === 0) return null;
+
+    // Batch query active jobs for active candidate drivers in 1 query (instead of N queries)
+    const activePartnerIds = activeDrivers.map((d: any) => d.partner_id);
+    const activeJobs = (await (this as any).listDeliveries({
+      delivery_partner_id: activePartnerIds,
+      delivery_status: ["assigned", "claimed", "picked_up"],
+    })) || [];
+
+    const jobCountByPartner = new Map<string, number>();
+    for (const job of activeJobs) {
+      const pid = job.delivery_partner_id as string;
+      jobCountByPartner.set(pid, (jobCountByPartner.get(pid) || 0) + 1);
+    }
+
+    // Match first driver with available capacity (cap = 3 orders)
+    for (const d of activeDrivers) {
+      const count = jobCountByPartner.get(d.partner_id) || 0;
+      if (count < 3) {
+        return d;
       }
     }
     return null;

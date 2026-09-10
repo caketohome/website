@@ -13776,25 +13776,57 @@ export class ApiEngine {
     const idx = pages.findIndex((p: any) => p.id === id || p.slug === id);
     if (idx < 0) return null;
     const existing = pages[idx];
-    // Push version snapshot before update
-    const versionHistory = Array.isArray(existing.version_history) ? existing.version_history : [];
-    const versionNum = versionHistory.length + 1;
-    versionHistory.push({
-      version: versionNum,
-      title: existing.title,
-      saved_by: "Admin",
-      saved_at: existing.updated_at || new Date().toISOString(),
-      snapshot: {
-        title: existing.title,
-        slug: existing.slug,
-        draft_config: existing.draft_config,
-        meta_title: existing.meta_title,
-        meta_description: existing.meta_description,
-        sections: existing.sections,
-      },
+    // Push version snapshot before update with lightweight sections (avoiding duplicated binary/frame bloat)
+    const rawVersionHistory = Array.isArray(existing.version_history) ? existing.version_history : [];
+    const snapshotSections = (existing.sections || []).map((sec: any) => {
+      if (sec.config?.desktop?.frames && Array.isArray(sec.config.desktop.frames) && sec.config.desktop.frames.length > 5) {
+        const { frames, ...desktopRest } = sec.config.desktop;
+        return {
+          ...sec,
+          config: {
+            ...sec.config,
+            desktop: desktopRest,
+          },
+        };
+      }
+      return sec;
     });
-    // Keep only last 20 versions
-    const trimmedHistory = versionHistory.slice(-20);
+
+    const versionNum = rawVersionHistory.length + 1;
+    const versionHistory = [
+      ...rawVersionHistory,
+      {
+        version: versionNum,
+        title: existing.title,
+        saved_by: "Admin",
+        saved_at: existing.updated_at || new Date().toISOString(),
+        snapshot: {
+          title: existing.title,
+          slug: existing.slug,
+          draft_config: existing.draft_config,
+          meta_title: existing.meta_title,
+          meta_description: existing.meta_description,
+          sections: snapshotSections,
+        },
+      },
+    ];
+
+    // Prune history to last 5 versions and clean any prior frame bloat from older snapshots
+    const trimmedHistory = versionHistory
+      .map((entry: any) => {
+        if (entry?.snapshot?.sections) {
+          entry.snapshot.sections = entry.snapshot.sections.map((sec: any) => {
+            if (sec.config?.desktop?.frames && Array.isArray(sec.config.desktop.frames) && sec.config.desktop.frames.length > 5) {
+              const { frames, ...desktopRest } = sec.config.desktop;
+              return { ...sec, config: { ...sec.config, desktop: desktopRest } };
+            }
+            return sec;
+          });
+        }
+        return entry;
+      })
+      .slice(-5);
+
     const updated = {
       ...existing,
       ...data,
@@ -13911,7 +13943,7 @@ export class ApiEngine {
     const history = Array.isArray(page.version_history) ? page.version_history : [];
     const entry = history.find((h: any) => h.version === version);
     if (!entry || !entry.snapshot) return null;
-    const restored = {
+    const restored: any = {
       ...page,
       ...entry.snapshot,
       id: page.id,
@@ -13919,6 +13951,25 @@ export class ApiEngine {
       updated_at: new Date().toISOString(),
       version_history: history,
     };
+    // Ensure animation frames from existing sections are preserved if snapshot omitted them
+    if (Array.isArray(restored.sections)) {
+      restored.sections = restored.sections.map((sec: any) => {
+        const existingSec = page.sections?.find((s: any) => s.id === sec.id);
+        if (existingSec?.config?.desktop?.frames && (!sec.config?.desktop?.frames || sec.config.desktop.frames.length === 0)) {
+          return {
+            ...sec,
+            config: {
+              ...sec.config,
+              desktop: {
+                ...sec.config?.desktop,
+                frames: existingSec.config.desktop.frames,
+              },
+            },
+          };
+        }
+        return sec;
+      });
+    }
     pages[idx] = restored;
     ApiEngine.addAuditLog(`Rolled back CMS Page "${page.title}" to v${version}`);
     ApiEngine.persist();
@@ -22759,6 +22810,40 @@ export class ApiEngine {
     return newOrd;
   }
 
+  static recordCreatedOrder(newOrd: any): void {
+    if (!newOrd || !newOrd.id) return;
+    const existingIdx = memoryStore.orders.findIndex((o: any) => o.id === newOrd.id);
+    if (existingIdx >= 0) {
+      memoryStore.orders[existingIdx] = { ...memoryStore.orders[existingIdx], ...newOrd };
+    } else {
+      memoryStore.orders.unshift(newOrd);
+    }
+    saveStore(memoryStore);
+    try {
+      ApiEngine.fireWebhookEvent(
+        "order.created",
+        {
+          order_id: newOrd.id,
+          order_number: newOrd.order_number,
+          customer_uid: newOrd.customer_uid,
+          customer_name: newOrd.customer_name,
+          customer_phone: newOrd.customer_phone,
+          total: newOrd.total,
+          grand_total: newOrd.grand_total || newOrd.total,
+          status: newOrd.status,
+          payment_status: newOrd.payment_status,
+          items: newOrd.items,
+          branch_id: newOrd.branch_id,
+          branch_name: newOrd.branch_name,
+          created_at: newOrd.created_at,
+        },
+        { source: "ORDER_PERSISTENCE" },
+        { customer_uid: newOrd.customer_uid, name: newOrd.customer_name, phone: newOrd.customer_phone },
+        { type: "order", id: newOrd.id, branch_id: newOrd.branch_id }
+      );
+    } catch {}
+  }
+
   static getAdminOrders(filters: {
     customer_id?: string;
     customer_uid?: string;
@@ -23082,7 +23167,7 @@ export class ApiEngine {
   // ── AUTHORITATIVE ORDER CREATION & FINALIZATION ───────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  static confirmCheckout(payload: {
+  static async confirmCheckout(payload: {
     cart_id: string;
     customer_id?: string;
     address: any;
@@ -23405,13 +23490,23 @@ export class ApiEngine {
     ApiEngine.persist();
 
     // Direct PostgreSQL persistence for order and updated customer CRM record
-    persistOrderToDb(newOrder).catch((err) => {
+    try {
+      await persistOrderToDb(newOrder);
+    } catch (err: any) {
       console.error("[confirmCheckout] Failed to persist order to database:", err);
-    });
+      return {
+        success: false,
+        statusCode: 500,
+        error: "Failed to persist order to database: " + (err.message || String(err)),
+      };
+    }
+
     if (canonicalCustomer) {
-      persistCustomerToDb(canonicalCustomer).catch((err) => {
+      try {
+        await persistCustomerToDb(canonicalCustomer);
+      } catch (err) {
         console.error("[confirmCheckout] Failed to persist customer update to database:", err);
-      });
+      }
     }
 
     return {
@@ -24428,7 +24523,7 @@ export class ApiEngine {
     return ApiEngine.getCart(id, params?.customer_uid);
   }
 
-  static createOrder(payload: any) {
+  static async createOrder(payload: any) {
     if (payload.pincode && Array.isArray(payload.items)) {
       const smart = ApiEngine.resolveSmartBranch({ pincode: payload.pincode });
       const branch = smart?.branch;
@@ -24447,7 +24542,7 @@ export class ApiEngine {
         }
       }
     }
-    const res: any = ApiEngine.confirmCheckout(payload);
+    const res: any = await ApiEngine.confirmCheckout(payload);
     return res;
   }
 

@@ -1,5 +1,3 @@
-"use client";
-
 import { Container, Heading, Text } from "@medusajs/ui";
 import Image from "next/image";
 

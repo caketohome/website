@@ -204,6 +204,9 @@ export const OrdersPanel = memo(function OrdersPanel() {
         setTotalCount(r?.total ?? r?.count ?? (Array.isArray(list) ? list.length : 0));
       })
       .catch((err) => {
+        if (err?.name === "AbortError") {
+          return;
+        }
         console.error("[Orders Command Center Error] Failed to fetch orders:", err);
         setError(err.message || "Failed to load orders");
         setOrders([]);

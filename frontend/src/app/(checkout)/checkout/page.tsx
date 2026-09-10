@@ -1,6 +1,6 @@
 import CheckoutForm from "../../../components/store/checkout/checkout-form";
 import { OrderSummary } from "../../../components/store/checkout/order-summary";
-import { retrieveCart } from "../../../lib/data";
+import { retrieveCart } from "../../../lib/data/carts";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { SeoMetadataBuilder } from "../../../lib/seo/metadata-builder";

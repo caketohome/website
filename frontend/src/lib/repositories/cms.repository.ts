@@ -39,7 +39,14 @@ export class CmsRepository {
    * Find page by slug or id
    */
   static async findPageBySlug(slug: string): Promise<CmsPageDomain | null> {
-    const res = await dbQuery(`SELECT * FROM "cms_page" WHERE slug = $1 OR id = $1 LIMIT 1`, [slug]);
+    const cleanSlug = (slug || "").replace(/^\//, "").trim() || "home";
+    const res = await dbQuery(
+      `SELECT * FROM "cms_page" 
+       WHERE (slug = $1 OR id = $1 OR slug = $2 OR id = $2 OR (id = 'cmspg_home' AND ($1 = 'home' OR $2 = 'home'))) 
+         AND deleted_at IS NULL 
+       LIMIT 1`,
+      [slug, cleanSlug]
+    );
     if (!res.rows || res.rows.length === 0) return null;
     const p = res.rows[0];
     let blockParsed = { sections: [], draft_config: {}, published_config: null, version_history: [] };
@@ -80,7 +87,7 @@ export class CmsRepository {
       sections: page.sections || [],
       draft_config: page.draft_config || {},
       published_config: page.published_config || null,
-      version_history: page.version_history || [],
+      version_history: Array.isArray(page.version_history) ? page.version_history.slice(-10) : [],
     };
 
     await dbQuery(

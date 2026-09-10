@@ -1,5 +1,3 @@
-"use client";
-
 import { CartLineItemDTO } from "@frontend/lib/types";
 import { clx } from "@medusajs/ui";
 

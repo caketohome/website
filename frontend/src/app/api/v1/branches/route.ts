@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ApiEngine } from "@frontend/lib/api-engine";
+import { BranchRepository } from "@frontend/lib/repositories";
 
 export const dynamic = "force-dynamic";
 
@@ -31,9 +32,30 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ ...resolved, success: true });
     }
 
-    const branches = ApiEngine.listBranches();
+    const search = searchParams.get("search") || searchParams.get("q") || undefined;
+    const lifecycle = (searchParams.get("lifecycle") as any) || "all";
+    const page = searchParams.get("page") ? parseInt(searchParams.get("page")!, 10) : 1;
+    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : 50;
+
+    const result = await BranchRepository.findWithFilters({
+      search,
+      lifecycle,
+      page,
+      limit,
+    });
     const cityAreas = ApiEngine.listCityAreasPincodes();
-    return NextResponse.json({ branches, cityAreas, success: true });
+    return NextResponse.json({
+      branches: result.branches,
+      total: result.total,
+      totalCount: result.totalCount,
+      activeCount: result.activeCount,
+      archivedCount: result.archivedCount,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
+      cityAreas,
+      success: true,
+    });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to fetch branches" }, { status: 500 });
   }

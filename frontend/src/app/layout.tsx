@@ -6,8 +6,6 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { CustomerProvider } from "@frontend/providers/customer-provider";
 import { FavoritesProvider } from "@/providers/favorites-provider";
 
-export const dynamic = "force-dynamic";
-
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",

@@ -26,12 +26,12 @@ export default async function RootLayout({
 
   return (
     <EngagementProvider>
-      <nav className="flex px-3 sm:px-6 md:px-10 h-16 bg-[#111111] text-white justify-between items-center sticky top-0 z-50 border-b border-white/10 shadow-[0_4px_18px_rgba(0,0,0,0.25)] w-full max-w-full gap-2 sm:gap-4">
+      <nav className="flex px-2 sm:px-6 md:px-10 h-16 bg-[#111111] text-white justify-between items-center sticky top-0 z-50 border-b border-white/10 shadow-[0_4px_18px_rgba(0,0,0,0.25)] w-full max-w-full gap-1.5 sm:gap-4 overflow-x-clip">
         {/* Brand & Location & CMS Links */}
-        <div className="flex gap-2 sm:gap-4 lg:gap-6 items-center shrink-0 min-w-0">
+        <div className="flex gap-1.5 sm:gap-4 lg:gap-6 items-center shrink-0 min-w-0">
           <Link
             href="/"
-            className="flex gap-1.5 sm:gap-2 items-center text-sm sm:text-xl font-bold text-white hover:text-white transition-colors opacity-100 shrink-0"
+            className="flex gap-1 sm:gap-2 items-center text-xs sm:text-xl font-bold text-white hover:text-white transition-colors opacity-100 shrink-0"
           >
             🎂 CakeToHome
           </Link>
@@ -48,7 +48,7 @@ export default async function RootLayout({
         </div>
 
         {/* Right Actions: Favorites, Cart, Profile */}
-        <div className="flex gap-1.5 sm:gap-2 items-center shrink-0">
+        <div className="flex gap-1 sm:gap-2 items-center shrink-0">
           <NavFavorites />
           <Suspense
             fallback={

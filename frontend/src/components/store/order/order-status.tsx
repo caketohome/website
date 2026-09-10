@@ -9,7 +9,16 @@ import {
   CircleQuarterSolid,
 } from "@medusajs/icons";
 import { Container, Heading, clx } from "@medusajs/ui";
-import LottiePlayer from "./lottie-player";
+import dynamic from "next/dynamic";
+
+const LottiePlayer = dynamic(() => import("./lottie-player"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex justify-center items-center w-full h-48 animate-pulse bg-ui-bg-subtle rounded-xl text-xs text-ui-fg-muted">
+      Loading animation...
+    </div>
+  ),
+});
 import { useEffect } from "react";
 
 export default function OrderStatus({ delivery }: { delivery: DeliveryDTO }) {

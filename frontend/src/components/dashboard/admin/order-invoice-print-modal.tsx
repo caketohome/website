@@ -20,7 +20,7 @@ export function OrderInvoicePrintModal({ order, onClose }: OrderInvoicePrintModa
   const items = order?.items || [];
   const compliance = order?.compliance_snapshot || {};
 
-  const invoiceNumber = order?.invoice_number || `CTH/26-27/000124`;
+  const invoiceNumber = order?.invoice_number || "Invoice Not Generated";
   const invoiceDate = new Date(order?.created_at || Date.now()).toLocaleDateString("en-IN", {
     day: "2-digit",
     month: "short",
@@ -37,12 +37,12 @@ export function OrderInvoicePrintModal({ order, onClose }: OrderInvoicePrintModa
   const isIntraState = compliance.is_intra_state !== false;
   const supplyType = compliance.supply_type || (isIntraState ? "INTRA-STATE (CGST + SGST)" : "INTER-STATE (IGST)");
 
-  const totalVal = Number(order?.total || order?.netAmount || 1180);
-  const taxableVal = Math.round((totalVal / 1.18) * 100) / 100;
-  const taxAmt = Math.round((totalVal - taxableVal) * 100) / 100;
-  const cgstAmt = isIntraState ? Math.round((taxAmt / 2) * 100) / 100 : 0;
-  const sgstAmt = isIntraState ? Math.round((taxAmt / 2) * 100) / 100 : 0;
-  const igstAmt = isIntraState ? 0 : taxAmt;
+  const totalVal = Number(order?.total_amount ?? order?.total ?? order?.payment?.grand_total ?? 0);
+  const taxAmt = Number(order?.tax_amount ?? order?.payment?.tax_total ?? 0);
+  const taxableVal = Number(order?.payment?.taxable_value ?? compliance.taxable_value ?? Math.max(0, totalVal - taxAmt));
+  const cgstAmt = Number(order?.payment?.cgst ?? compliance.cgst ?? (isIntraState ? Number((taxAmt / 2).toFixed(2)) : 0));
+  const sgstAmt = Number(order?.payment?.sgst ?? compliance.sgst ?? (isIntraState ? Number((taxAmt / 2).toFixed(2)) : 0));
+  const igstAmt = Number(order?.payment?.igst ?? compliance.igst ?? (!isIntraState ? taxAmt : 0));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -130,56 +130,43 @@ export function OrderInvoicePrintModal({ order, onClose }: OrderInvoicePrintModa
             <tbody className="divide-y text-xs">
               {items.length > 0 ? (
                 items.map((item: any, idx: number) => {
-                  const itemPrice = Number(item.unit_price || item.price || 949);
-                  const itemTaxable = Math.round((itemPrice / 1.05) * 100) / 100;
-                  const itemTax = Math.round((itemPrice - itemTaxable) * 100) / 100;
-                  const itemCgst = isIntraState ? Math.round((itemTax / 2) * 100) / 100 : 0;
-                  const itemIgst = isIntraState ? 0 : itemTax;
+                  const qty = Number(item.quantity || 1);
+                  const itemUnitPrice = Number(item.unit_price ?? item.price ?? 0);
+                  const itemSubtotal = Number(item.subtotal ?? item.total_line_amount ?? (itemUnitPrice * qty));
+                  const itemTax = Number(item.tax_amount ?? (Number(item.cgst || 0) + Number(item.sgst || 0) + Number(item.igst || 0)));
+                  const itemTaxable = Number(item.taxable_value ?? (itemSubtotal > itemTax ? itemSubtotal - itemTax : itemSubtotal));
+                  const itemCgst = Number(item.cgst ?? (isIntraState && itemTax > 0 ? Number((itemTax / 2).toFixed(2)) : 0));
+                  const itemSgst = Number(item.sgst ?? (isIntraState && itemTax > 0 ? Number((itemTax / 2).toFixed(2)) : 0));
+                  const itemIgst = Number(item.igst ?? (!isIntraState && itemTax > 0 ? itemTax : 0));
                   return (
                     <tr key={item.id || idx}>
                       <td className="p-2.5 text-center">{idx + 1}</td>
                       <td className="p-2.5">
-                        <p className="font-bold text-slate-900 dark:text-white">{item.title}</p>
-                        <p className="text-[10px] text-slate-500">{item.weight || "1.0 kg"} &bull; {item.flavour || "Chocolate"} &bull; {item.artisan ? "artisan" : "With Egg"}</p>
+                        <p className="font-bold text-slate-900 dark:text-white">{item.title || item.product_name || "Artisan Cake"}</p>
+                        <p className="text-[10px] text-slate-500">{item.weight || "1.0 kg"} &bull; {item.flavour || "Artisan Flavor"} &bull; {item.artisan ? "artisan" : "Standard"}</p>
                       </td>
                       <td className="p-2.5 text-center font-mono text-[11px]">{item.hsn_code || "19059090"}</td>
-                      <td className="p-2.5 text-center font-bold">PCS</td>
-                      <td className="p-2.5 text-center font-bold">{item.quantity || 1}</td>
-                      <td className="p-2.5 text-right">₹{itemPrice.toLocaleString("en-IN")}</td>
+                      <td className="p-2.5 text-center font-bold">{item.uqc || "NOS"}</td>
+                      <td className="p-2.5 text-center font-bold">{qty}</td>
+                      <td className="p-2.5 text-right">₹{itemUnitPrice.toLocaleString("en-IN")}</td>
                       <td className="p-2.5 text-right font-medium">₹{itemTaxable.toLocaleString("en-IN")}</td>
                       {isIntraState ? (
                         <>
                           <td className="p-2.5 text-right text-slate-600">₹{itemCgst.toLocaleString("en-IN")}</td>
-                          <td className="p-2.5 text-right text-slate-600">₹{itemCgst.toLocaleString("en-IN")}</td>
+                          <td className="p-2.5 text-right text-slate-600">₹{itemSgst.toLocaleString("en-IN")}</td>
                         </>
                       ) : (
                         <td className="p-2.5 text-right text-slate-600">₹{itemIgst.toLocaleString("en-IN")}</td>
                       )}
-                      <td className="p-2.5 text-right font-bold text-slate-900 dark:text-white">₹{itemPrice.toLocaleString("en-IN")}</td>
+                      <td className="p-2.5 text-right font-bold text-slate-900 dark:text-white">₹{itemSubtotal.toLocaleString("en-IN")}</td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td className="p-2.5 text-center">1</td>
-                  <td className="p-2.5">
-                    <p className="font-bold text-slate-900 dark:text-white">Belgian Chocolate Truffle Cake</p>
-                    <p className="text-[10px] text-slate-500">1.0 kg &bull; Gourmet Dark Chocolate &bull; artisan</p>
+                  <td colSpan={isIntraState ? 10 : 9} className="p-6 text-center text-slate-500 italic">
+                    No items recorded for this order snapshot.
                   </td>
-                  <td className="p-2.5 text-center font-mono text-[11px]">19059090</td>
-                  <td className="p-2.5 text-center font-bold">PCS</td>
-                  <td className="p-2.5 text-center font-bold">1</td>
-                  <td className="p-2.5 text-right">₹1,000.00</td>
-                  <td className="p-2.5 text-right font-medium">₹1,000.00</td>
-                  {isIntraState ? (
-                    <>
-                      <td className="p-2.5 text-right text-slate-600">₹25.00</td>
-                      <td className="p-2.5 text-right text-slate-600">₹25.00</td>
-                    </>
-                  ) : (
-                    <td className="p-2.5 text-right text-slate-600">₹50.00</td>
-                  )}
-                  <td className="p-2.5 text-right font-bold text-slate-900 dark:text-white">₹1,050.00</td>
                 </tr>
               )}
             </tbody>

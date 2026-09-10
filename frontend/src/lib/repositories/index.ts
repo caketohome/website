@@ -7,3 +7,4 @@ export * from "./offer.repository";
 export * from "./review.repository";
 export * from "./favorite.repository";
 export * from "./setting.repository";
+export * from "./city.repository";

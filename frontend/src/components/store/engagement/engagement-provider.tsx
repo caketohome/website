@@ -1,8 +1,18 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
-import { SmartLoginModal } from "../auth/smart-login-modal";
-import { StorefrontPopupModal } from "./storefront-popup-modal";
+import dynamic from "next/dynamic";
+
+const SmartLoginModal = dynamic(
+  () => import("../auth/smart-login-modal").then((mod) => mod.SmartLoginModal),
+  { ssr: false }
+);
+
+const StorefrontPopupModal = dynamic(
+  () => import("./storefront-popup-modal").then((mod) => mod.StorefrontPopupModal),
+  { ssr: false }
+);
+
 import { apiClient } from "@frontend/lib/api-client";
 import { PopupCampaign, EngagementContext, DeviceTarget, CustomerStatus } from "@frontend/lib/engagement/types";
 import { selectWinningPopup } from "@frontend/lib/engagement/popup-priority-engine";

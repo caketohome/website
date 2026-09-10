@@ -9,7 +9,19 @@ import {
   AlertTriangle, Truck, Zap, Moon, Clock, Package, DollarSign,
   Settings2, ArrowRight, X, Layers, Map, Shield, Pentagon,
 } from "lucide-react";
-import { MapFenceEditor } from "./map-fence-editor";
+import dynamic from "next/dynamic";
+
+const MapFenceEditor = dynamic(
+  () => import("./map-fence-editor").then((m) => m.MapFenceEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-80 rounded-2xl bg-ui-bg-subtle border border-ui-border-base flex items-center justify-center text-xs text-ui-fg-muted animate-pulse">
+        Loading geofence map editor...
+      </div>
+    ),
+  }
+);
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

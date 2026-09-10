@@ -3,12 +3,22 @@ import { ProductReviewDomain } from "../types/domain";
 
 export class ReviewRepository {
   /**
-   * Find reviews by product ID
+   * Find reviews by product ID with pagination
    */
-  static async findByProductId(productId: string): Promise<ProductReviewDomain[]> {
+  static async findByProductId(
+    productId: string,
+    options?: { page?: number; pageSize?: number; limit?: number; offset?: number }
+  ): Promise<ProductReviewDomain[]> {
+    const page = Math.max(1, options?.page || 1);
+    const pageSize = Math.min(Math.max(1, options?.pageSize || options?.limit || 20), 100);
+    const offset = options?.offset !== undefined ? Math.max(0, options.offset) : (page - 1) * pageSize;
+
     const res = await dbQuery(
-      `SELECT * FROM "product_review" WHERE (product_id = $1 OR product_id = $2) AND deleted_at IS NULL ORDER BY created_at DESC`,
-      [productId, `prod_${productId}`]
+      `SELECT * FROM "product_review" 
+       WHERE (product_id = $1 OR product_id = $2) AND deleted_at IS NULL 
+       ORDER BY created_at DESC, id DESC 
+       LIMIT $3 OFFSET $4`,
+      [productId, `prod_${productId}`, pageSize, offset]
     );
 
     return (res.rows || []).map((rev: any) => {

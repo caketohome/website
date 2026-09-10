@@ -3,43 +3,86 @@ import { CustomerDomain, CustomerAddressDomain } from "../types/domain";
 
 export class CustomerRepository {
   /**
-   * Find all customers with their addresses from PostgreSQL
+   * Paginated list of customers with their addresses from PostgreSQL
    */
-  static async findAll(): Promise<CustomerDomain[]> {
-    const [customersRes, addressesRes] = await Promise.all([
-      dbQuery(`SELECT * FROM "customer" WHERE deleted_at IS NULL ORDER BY created_at ASC`),
-      dbQuery(`SELECT * FROM "customer_address" WHERE deleted_at IS NULL ORDER BY created_at ASC`),
-    ]);
+  static async listCustomers(params: {
+    page?: number;
+    pageSize?: number;
+    limit?: number;
+    offset?: number;
+    search?: string;
+  } = {}): Promise<{
+    items: CustomerDomain[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  }> {
+    const page = Math.max(1, params.page || 1);
+    const pageSize = Math.min(Math.max(1, params.pageSize || params.limit || 20), 100);
+    const offset = params.offset !== undefined ? Math.max(0, params.offset) : (page - 1) * pageSize;
 
-    const addrsByCust = new Map<string, CustomerAddressDomain[]>();
-    for (const a of addressesRes.rows || []) {
-      const cId = a.customer_id;
-      if (!addrsByCust.has(cId)) {
-        addrsByCust.set(cId, []);
-      }
-      const meta = a.metadata || {};
-      addrsByCust.get(cId)!.push({
-        id: a.id,
-        customer_id: a.customer_id,
-        first_name: a.first_name,
-        last_name: a.last_name,
-        name: `${a.first_name || ""} ${a.last_name || ""}`.trim() || "Customer",
-        address_1: a.address_1,
-        address_2: a.address_2 || "",
-        city: a.city,
-        postal_code: a.postal_code,
-        pincode: a.postal_code,
-        phone: a.phone || "",
-        landmark: meta.landmark || "",
-        latitude: meta.latitude,
-        longitude: meta.longitude,
-        is_default: Boolean(meta.is_default),
-        type: meta.type || "HOME",
-        label: meta.label || "Home",
-      });
+    const conditions: string[] = ["deleted_at IS NULL"];
+    const values: any[] = [];
+
+    if (params.search) {
+      values.push(`%${params.search.toLowerCase().trim()}%`);
+      const idx = values.length;
+      conditions.push(`(LOWER(first_name) LIKE $${idx} OR LOWER(last_name) LIKE $${idx} OR LOWER(email) LIKE $${idx} OR phone LIKE $${idx})`);
     }
 
-    return (customersRes.rows || []).map((c: any) => {
+    const whereClause = conditions.join(" AND ");
+    const countRes = await dbQuery(
+      `SELECT COUNT(*)::int as count FROM "customer" WHERE ${whereClause}`,
+      values
+    );
+    const total = Number(countRes.rows[0]?.count || 0);
+
+    const queryValues = [...values, pageSize, offset];
+    const customersRes = await dbQuery(
+      `SELECT * FROM "customer" WHERE ${whereClause} ORDER BY created_at DESC, id DESC LIMIT $${queryValues.length - 1} OFFSET $${queryValues.length}`,
+      queryValues
+    );
+
+    const customerIds = (customersRes.rows || []).map((c: any) => c.id).filter(Boolean);
+    const addrsByCust = new Map<string, CustomerAddressDomain[]>();
+
+    if (customerIds.length > 0) {
+      const addressesRes = await dbQuery(
+        `SELECT * FROM "customer_address" WHERE customer_id = ANY($1) AND deleted_at IS NULL ORDER BY created_at ASC`,
+        [customerIds]
+      );
+      for (const a of addressesRes.rows || []) {
+        const cId = a.customer_id;
+        if (!addrsByCust.has(cId)) {
+          addrsByCust.set(cId, []);
+        }
+        const meta = a.metadata || {};
+        addrsByCust.get(cId)!.push({
+          id: a.id,
+          customer_id: a.customer_id,
+          first_name: a.first_name,
+          last_name: a.last_name,
+          name: `${a.first_name || ""} ${a.last_name || ""}`.trim() || "Customer",
+          address_1: a.address_1,
+          address_2: a.address_2 || "",
+          city: a.city,
+          postal_code: a.postal_code,
+          pincode: a.postal_code,
+          phone: a.phone || "",
+          landmark: meta.landmark || "",
+          latitude: meta.latitude,
+          longitude: meta.longitude,
+          is_default: Boolean(meta.is_default),
+          type: meta.type || "HOME",
+          label: meta.label || "Home",
+        });
+      }
+    }
+
+    const items = (customersRes.rows || []).map((c: any) => {
       const meta = c.metadata || {};
       const custAddrs = addrsByCust.get(c.id) || meta.addresses || [];
       return {
@@ -62,6 +105,26 @@ export class CustomerRepository {
         updated_at: c.updated_at,
       };
     });
+
+    const totalPages = Math.ceil(total / pageSize);
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      totalPages,
+      hasNextPage: offset + items.length < total,
+      hasPreviousPage: page > 1,
+    };
+  }
+
+  /**
+   * Find customers bounded by safe limit (max 100)
+   */
+  static async findAll(limit: number = 100): Promise<CustomerDomain[]> {
+    const result = await CustomerRepository.listCustomers({ pageSize: Math.min(Math.max(1, limit), 100) });
+    return result.items;
   }
 
   /**

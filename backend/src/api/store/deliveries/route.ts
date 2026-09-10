@@ -40,8 +40,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY);
 
   const filters = {} as Record<string, any>;
-  let take = parseInt(req.query.take as string) || null;
-  let skip = parseInt(req.query.skip as string) || 0;
+  const take = Math.min(Math.max(1, parseInt(req.query.take as string) || 20), 100);
+  const skip = Math.max(0, parseInt(req.query.skip as string) || 0);
 
   for (const key in req.query) {
     if (["take", "skip"].includes(key)) continue;
@@ -55,6 +55,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     pagination: {
       take,
       skip,
+      order: { created_at: "DESC", id: "DESC" },
     },
   };
 
@@ -87,5 +88,10 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     deliveries.push(...availableDeliveries);
   }
 
-  return res.status(200).json({ deliveries });
+  return res.status(200).json({
+    deliveries,
+    count: deliveries.length,
+    limit: take,
+    offset: skip,
+  });
 }

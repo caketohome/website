@@ -11,7 +11,7 @@
  *    - Sheet 6: Campaign Summary
  */
 
-import ExcelJS from "exceljs";
+import type ExcelJS from "exceljs";
 import { ReorderCandidate, TelemarketingMetrics } from "./telemarketing-engine";
 
 export interface TelecallerExportOptions {
@@ -146,7 +146,8 @@ export class TelemarketingExportService {
     }
 
     const resolvedFilename = options?.filename || defaultName;
-    const workbook = new ExcelJS.Workbook();
+    const ExcelJSModule = (await import("exceljs")).default || (await import("exceljs"));
+    const workbook = new ExcelJSModule.Workbook();
 
     const sheet = workbook.addWorksheet("Calling List");
     sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
@@ -280,8 +281,8 @@ export class TelemarketingExportService {
     const todayStr = new Date().toISOString().slice(0, 10);
     const periodStr = `Active Opportunity Pool (${todayStr})`;
     const resolvedFilename = filename || `CakeToHome_Telemarketing_Reorder_Report_${todayStr}`;
-
-    const workbook = new ExcelJS.Workbook();
+    const ExcelJSModule = (await import("exceljs")).default || (await import("exceljs"));
+    const workbook = new ExcelJSModule.Workbook();
 
     // ── SHEET 1: CALLING LIST ──────────────────────────────────────────
     const s1 = workbook.addWorksheet("Calling List");

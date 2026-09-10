@@ -3,12 +3,22 @@ import { CustomerFavoriteDomain } from "../types/domain";
 
 export class FavoriteRepository {
   /**
-   * Find favorites by customer UID
+   * Find favorites by customer UID with pagination
    */
-  static async findByCustomerUid(customerUid: string): Promise<CustomerFavoriteDomain[]> {
+  static async findByCustomerUid(
+    customerUid: string,
+    options?: { page?: number; pageSize?: number; limit?: number; offset?: number }
+  ): Promise<CustomerFavoriteDomain[]> {
+    const page = Math.max(1, options?.page || 1);
+    const pageSize = Math.min(Math.max(1, options?.pageSize || options?.limit || 20), 100);
+    const offset = options?.offset !== undefined ? Math.max(0, options.offset) : (page - 1) * pageSize;
+
     const res = await dbQuery(
-      `SELECT * FROM "customer_favorite" WHERE customer_uid = $1 AND deleted_at IS NULL ORDER BY created_at DESC`,
-      [customerUid]
+      `SELECT * FROM "customer_favorite" 
+       WHERE customer_uid = $1 AND deleted_at IS NULL 
+       ORDER BY created_at DESC, id DESC 
+       LIMIT $2 OFFSET $3`,
+      [customerUid, pageSize, offset]
     );
 
     return (res.rows || []).map((fav: any) => ({

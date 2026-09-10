@@ -3,8 +3,21 @@
 import { useEffect, useState, memo, useCallback } from "react";
 import { Container, Heading, Text, Badge, Button, Input, Label, Select } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
+import dynamic from "next/dynamic";
 import { Plus, RefreshCw, Truck, Search, Filter, ShieldCheck, Settings, Eye, Power, CheckCircle2, AlertCircle, Clock, X } from "lucide-react";
-import { DeliveryCoverageMap } from "@frontend/components/store/coverage-map";
+
+const DeliveryCoverageMap = dynamic(
+  () => import("@frontend/components/store/coverage-map").then((m) => m.DeliveryCoverageMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-80 rounded-2xl bg-ui-bg-subtle border border-ui-border-base flex items-center justify-center text-xs text-ui-fg-muted animate-pulse">
+        Loading coverage map...
+      </div>
+    ),
+  }
+);
+
 import { WidgetErrorBoundary } from "./error-boundary";
 import { TableSkeleton } from "./admin-skeletons";
 import { DeliveryPartnerWizard } from "./delivery-partner-wizard";

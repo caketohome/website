@@ -24,26 +24,46 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AccountOrdersPage() {
+interface AccountOrdersPageProps {
+  searchParams?: Promise<{ page?: string }> | { page?: string };
+}
+
+export default async function AccountOrdersPage({ searchParams }: AccountOrdersPageProps) {
   const user = await retrieveUser();
   if (!user) {
     redirect("/login");
   }
 
+  const resolvedParams = searchParams instanceof Promise ? await searchParams : (searchParams || {});
+  const page = Math.max(1, parseInt(resolvedParams.page || "1", 10) || 1);
+  const pageSize = 20;
+
   const { ApiEngine } = await import("@frontend/lib/api-engine");
+  const { OrderRepository } = await import("@frontend/lib/repositories");
   const customerReviews = user.customer_uid ? ApiEngine.getCustomerReviews(user.customer_uid) : [];
 
-  const cleanPhone = user.normalized_phone || (user.phone ? user.phone.replace(/\D/g, "").slice(-10) : "");
-  const allOrders = ApiEngine.getOrders();
-  const customerOrders = (allOrders || []).filter((o: any) => {
-    const matchUid = user.customer_uid && (o.customer_uid === user.customer_uid || o.customer_id === user.customer_uid);
-    const matchPhone = cleanPhone && (o.customer_phone || o.phone || o.shipping_address?.phone || "").replace(/\D/g, "").slice(-10) === cleanPhone;
-    return matchUid || matchPhone;
-  });
+  let sortedOrders: any[] = [];
+  let totalOrders = 0;
+  let totalPages = 1;
 
-  const sortedOrders = [...customerOrders].sort((a: any, b: any) => {
-    return new Date(b.created_at || b.placed_at || 0).getTime() - new Date(a.created_at || a.placed_at || 0).getTime();
-  });
+  // 1. Authoritative: OrderRepository directly with database pagination
+  const customerId = user.customer_uid || user.id;
+  if (customerId) {
+    try {
+      const dbResult = await OrderRepository.listOrders({
+        page,
+        pageSize,
+        customer_id: customerId,
+      });
+      if (dbResult) {
+        sortedOrders = dbResult.items;
+        totalOrders = dbResult.total;
+        totalPages = dbResult.totalPages;
+      }
+    } catch (e: any) {
+      console.warn("[AccountOrdersPage] DB query warning:", e.message);
+    }
+  }
 
   const getStatusBadge = (status: string) => {
     const s = (status || "").toLowerCase();
@@ -239,6 +259,34 @@ export default async function AccountOrdersPage() {
               </div>
             );
           })}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-6 border-t border-neutral-800 text-xs">
+              <span className="text-neutral-400 font-medium">
+                Showing page <span className="text-white font-bold">{page}</span> of{" "}
+                <span className="text-white font-bold">{totalPages}</span> ({totalOrders} orders)
+              </span>
+              <div className="flex items-center gap-2">
+                {page > 1 && (
+                  <Link
+                    href={`/account/orders?page=${page - 1}`}
+                    className="px-3.5 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white font-bold transition-colors"
+                  >
+                    &larr; Previous
+                  </Link>
+                )}
+                {page < totalPages && (
+                  <Link
+                    href={`/account/orders?page=${page + 1}`}
+                    className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition-all shadow-md shadow-amber-500/20"
+                  >
+                    Next &rarr;
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

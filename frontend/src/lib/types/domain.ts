@@ -113,6 +113,10 @@ export interface BranchDomain {
   city_id: string;
   city: string;
   state: string;
+  state_id?: string;
+  state_code?: string;
+  pincode?: string;
+  formatted_address?: string;
   latitude: number;
   longitude: number;
   is_open: boolean;
@@ -122,6 +126,7 @@ export interface BranchDomain {
   extended_status?: "open" | "busy" | "paused" | "closed";
   branch_type?: "main_hub" | "dark_kitchen" | "express_counter";
   manager_id?: string | null;
+  manager_name?: string | null;
   manager_account?: any | null;
   max_delivery_radius_km: number;
   weekly_schedule?: Record<string, any>;
@@ -223,6 +228,11 @@ export interface OrderItemDomain {
     cream?: string;
   };
   total_line_amount: number;
+  artisan?: boolean;
+  flavour?: string;
+  shape?: string;
+  cake_message?: string | null;
+  subtotal?: number;
 }
 
 export interface OrderDomain {
@@ -244,7 +254,7 @@ export interface OrderDomain {
   tax_amount?: number;
   delivery_fee?: number;
   currency: string;
-  status: "pending" | "confirmed" | "preparing" | "ready_for_pickup" | "out_for_delivery" | "delivered" | "cancelled";
+  status: "pending" | "confirmed" | "kitchen_accepted" | "preparing" | "packed" | "ready_for_pickup" | "out_for_delivery" | "delivered" | "cancelled" | string;
   payment_status: "pending" | "authorized" | "captured" | "failed" | "refunded";
   payment_method: "cash" | "card" | "upi" | "wallet" | "cod" | "online";
   delivery: {
@@ -252,6 +262,16 @@ export interface OrderDomain {
     date: string; // YYYY-MM-DD
     slot: string; // e.g. "18:00 - 20:00"
     fee: number;
+    pickup_otp?: string;
+    delivery_otp?: string;
+    partner_id?: string | null;
+    partner_name?: string | null;
+    partner_number?: string | null;
+    partner_phone?: string | null;
+    assignment_mode?: string;
+    assignment_reason?: string | null;
+    eta?: string;
+    live_location?: string;
   };
   delivery_address?: CustomerAddressDomain;
   delivery_latitude?: number | null;
@@ -259,6 +279,21 @@ export interface OrderDomain {
   delivery_partner_id?: string | null;
   delivery_partner_name?: string | null;
   items: OrderItemDomain[];
+  customer?: any;
+  branch?: any;
+  kitchen?: any;
+  customization?: any;
+  payment?: any;
+  timeline?: any[];
+  staff_notes?: any[];
+  invoice_number?: string;
+  invoice_status?: string;
+  invoice_date?: string;
+  delivery_pincode?: string;
+  delivery_city?: string;
+  delivery_area?: string;
+  delivery_landmark?: string;
+  delivery_instructions?: string;
   created_at: string;
   updated_at: string;
 }
@@ -306,7 +341,7 @@ export interface CustomerFavoriteDomain {
   id: string;
   customer_uid: string;
   product_id: string;
-  created_at: string;
+  created_at?: string;
 }
 
 export interface ProductReviewDomain {

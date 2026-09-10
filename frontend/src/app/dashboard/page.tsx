@@ -148,7 +148,13 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
 };
 
 export default function SuperAdminDashboardPage() {
-  const [activeTab, setActiveTab] = useState<AdminTabId>("orders");
+  const [activeTab, setActiveTab] = useState<AdminTabId>(() => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search).get("tab") as AdminTabId;
+      if (p && PANEL_MAP[p]) return p;
+    }
+    return "orders";
+  });
   const [user, setUser] = useState<any>(null);
   const [accessDeniedMessage, setAccessDeniedMessage] = useState<string | null>(null);
 

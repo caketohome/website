@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * Dashboard Panel Skeleton Loader
  * Displays an animated pulse placeholder while a lazy-loaded admin panel is loading.

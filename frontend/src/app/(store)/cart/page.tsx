@@ -1,4 +1,4 @@
-import { retrieveCart } from "@frontend/lib/data";
+import { retrieveCart } from "@frontend/lib/data/carts";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import CartModal from "@frontend/components/store/cart/cart-modal";

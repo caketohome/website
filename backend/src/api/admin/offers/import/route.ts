@@ -34,10 +34,9 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
         return res.status(400).json({ message: "No valid coupons found to import." });
     }
 
-    const createdList: any[] = [];
-    for (const c of couponsToImport) {
+    const offerPayloads = couponsToImport.map((c) => {
         const formattedCode = c.code ? String(c.code).trim().toUpperCase() : `PROMO${Math.floor(1000 + Math.random() * 9000)}`;
-        const offerPayload = {
+        return {
             name: c.name || `Coupon ${formattedCode}`,
             code: formattedCode,
             type: c.type || "percentage",
@@ -50,9 +49,10 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
             created_by: actorId,
             metadata: JSON.stringify({ discount_value: Number(c.discount_value) || 10 }),
         };
-        const created = await rulesModule.createOffers(offerPayload);
-        createdList.push(created[0] || created);
-    }
+    });
+
+    const created = await rulesModule.createOffers(offerPayloads);
+    const createdList = Array.isArray(created) ? created : [created];
 
     return res.status(201).json({
         imported_count: createdList.length,

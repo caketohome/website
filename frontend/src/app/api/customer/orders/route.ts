@@ -33,18 +33,38 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const searchParams = req.nextUrl.searchParams;
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
+    const pageSize = Math.min(Math.max(1, parseInt(searchParams.get("pageSize") || searchParams.get("limit") || "20", 10) || 20), 100);
+    const offset = searchParams.get("offset") !== null ? Math.max(0, parseInt(searchParams.get("offset")!, 10) || 0) : (page - 1) * pageSize;
+
     const normPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
     let customerOrders: any[] = [];
+    let dbTotalOrders: number | null = null;
+    let dbTotalSpend: number | null = null;
 
     // 1. PRIMARY & AUTHORITATIVE: Direct PostgreSQL query
     if (customerUid || userId || normPhone) {
       try {
+        const countRes = await dbQuery(
+          `SELECT COUNT(*)::int as count, COALESCE(SUM(total), 0)::numeric as total_spend 
+           FROM "order" 
+           WHERE ("customer_id" = $1 OR "metadata"->>'customer_uid' = $1 OR "email" LIKE $2 OR "metadata"->>'customer_phone' LIKE $2) 
+             AND deleted_at IS NULL`,
+          [customerUid || userId || "", `%${normPhone}%`]
+        );
+        if (countRes.rows.length > 0) {
+          dbTotalOrders = Number(countRes.rows[0].count || 0);
+          dbTotalSpend = Number(countRes.rows[0].total_spend || 0);
+        }
+
         const dbRes = await dbQuery(
           `SELECT * FROM "order" 
            WHERE ("customer_id" = $1 OR "metadata"->>'customer_uid' = $1 OR "email" LIKE $2 OR "metadata"->>'customer_phone' LIKE $2) 
              AND deleted_at IS NULL 
-           ORDER BY created_at DESC LIMIT 100`,
-          [customerUid || userId || "", `%${normPhone}%`]
+           ORDER BY created_at DESC, id DESC 
+           LIMIT $3 OFFSET $4`,
+          [customerUid || userId || "", `%${normPhone}%`, pageSize, offset]
         );
         if (dbRes.rows.length > 0) {
           customerOrders = dbRes.rows.map((row) => {
@@ -69,24 +89,11 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 2. In-memory secondary acceleration fallback only if DB returned nothing
-    if (customerOrders.length === 0) {
-      const store = ApiEngine.getStore();
-      const orders = store.orders || [];
-      customerOrders = orders.filter((o: any) => {
-        const orderPhone = (o.customer_phone || o.phone || o.shipping_address?.phone || "").replace(/\D/g, "").slice(-10);
-        const matchUid = customerUid && (o.customer_uid === customerUid || o.customer_id === customerUid);
-        const matchUserId = userId && (o.customer_id === userId || o.user_id === userId);
-        const matchPhone = normPhone && orderPhone === normPhone;
-        return matchUid || matchUserId || matchPhone;
-      });
-    }
+    const totalOrders = dbTotalOrders ?? 0;
+    const totalSpend = dbTotalSpend ?? 0;
 
-    // Sort newest first
-    customerOrders.sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-
-    const totalOrders = customerOrders.length;
-    const totalSpend = customerOrders.reduce((sum: number, o: any) => sum + Number(o.grand_total || o.total || o.total_amount || 0), 0);
+    const totalPages = Math.ceil(totalOrders / pageSize) || 1;
+    const hasMore = offset + customerOrders.length < totalOrders;
 
     const response = NextResponse.json(
       {
@@ -95,6 +102,18 @@ export async function GET(req: NextRequest) {
           orders: customerOrders,
           total_orders: totalOrders,
           total_spend: totalSpend,
+          page,
+          pageSize,
+          total_pages: totalPages,
+          has_more: hasMore,
+          pagination: {
+            page,
+            pageSize,
+            total: totalOrders,
+            totalPages,
+            hasNextPage: hasMore,
+            hasPreviousPage: page > 1,
+          },
         },
       },
       { status: 200 }

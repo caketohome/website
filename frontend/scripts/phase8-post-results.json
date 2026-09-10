@@ -1,0 +1,15 @@
+{
+  "wallClockSec": 36.65,
+  "exitCode": 0,
+  "files": "1950",
+  "linesLibrary": "40862",
+  "linesDefinitions": "184684",
+  "linesTypeScript": "152600",
+  "memoryUsed": "510102K",
+  "ioReadTime": "13.65s",
+  "parseTime": "3.11s",
+  "resolveModuleTime": "9.38s",
+  "bindTime": "1.75s",
+  "checkTime": "N/A",
+  "totalCompilerTime": "30.03s"
+}

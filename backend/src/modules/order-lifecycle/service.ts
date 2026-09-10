@@ -213,6 +213,64 @@ class OrderLifecycleModuleService extends (MedusaService({
     }
 
     /**
+     * Get status histories for multiple orders in a single database query.
+     * Returns a Map<orderId, OrderStatusHistory[]>, sorted chronologically.
+     */
+    async getBatchStatusHistories(
+        orderIds: string[]
+    ): Promise<Map<string, Record<string, unknown>[]>> {
+        const historyMap = new Map<string, Record<string, unknown>[]>();
+        if (!orderIds || orderIds.length === 0) return historyMap;
+        for (const id of orderIds) {
+            historyMap.set(id, []);
+        }
+
+        const rows = (await this.listOrderStatusHistories({
+            order_id: orderIds,
+        })) as unknown as Record<string, unknown>[];
+
+        for (const row of rows) {
+            const orderId = row.order_id as string;
+            const list = historyMap.get(orderId);
+            if (list) {
+                list.push(row);
+            } else {
+                historyMap.set(orderId, [row]);
+            }
+        }
+
+        for (const list of historyMap.values()) {
+            list.sort(
+                (a, b) =>
+                    new Date(a.created_at as string).getTime() -
+                    new Date(b.created_at as string).getTime()
+            );
+        }
+
+        return historyMap;
+    }
+
+    /**
+     * Get current (latest) status for multiple orders in a single database query.
+     * Returns a Map<orderId, string | null>.
+     */
+    async getBatchCurrentStatuses(
+        orderIds: string[]
+    ): Promise<Map<string, string | null>> {
+        const historyMap = await this.getBatchStatusHistories(orderIds);
+        const statusMap = new Map<string, string | null>();
+        for (const id of orderIds) {
+            const history = historyMap.get(id);
+            if (history && history.length > 0) {
+                statusMap.set(id, history[history.length - 1].to_status as string);
+            } else {
+                statusMap.set(id, null);
+            }
+        }
+        return statusMap;
+    }
+
+    /**
      * Get the current (latest) status for an order, or null if none recorded.
      */
     async getCurrentStatus(orderId: string): Promise<string | null> {

@@ -9,7 +9,20 @@ import { normalizePhone, SYSTEM_SEGMENTS } from "@frontend/lib/crm/crm-engine";
 import { FulfillmentEngine, DeliverySlotGenerator, DEFAULT_SLOT_CONFIG } from "@frontend/lib/fulfillment";
 import { createApiEngineProvider, ensureFulfillmentStore, generateOtp, verifyOtp, getActiveOtp } from "@frontend/lib/fulfillment/api-engine-provider";
 import { persistSettingToDb } from "@frontend/lib/db-persistence";
-import { ProductRepository, OrderRepository, BranchRepository } from "@frontend/lib/repositories";
+import {
+  ProductRepository,
+  OrderRepository,
+  BranchRepository,
+  CmsRepository,
+  CustomerRepository,
+  OfferRepository,
+  FavoriteRepository,
+  ReviewRepository,
+  CityRepository,
+  resolveStateInfo,
+} from "@frontend/lib/repositories";
+import { OrderService } from "@frontend/lib/services/order.service";
+import { dbQuery, dbTransaction } from "@frontend/lib/db";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -509,7 +522,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       suiteResults.push({ id: "7.6", name: "Client Tamper-Proof Guard", status: "PASS" });
 
       // ── Domain 8: Order Creation & Persistence ──
-      const orderRes = ApiEngine.confirmCheckout({
+      const orderRes = await ApiEngine.confirmCheckout({
         cart_id: cartTestId,
         pincode: "560038",
         delivery_slot_id: "slot_standard",
@@ -613,48 +626,61 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const q = url.searchParams.get("q") || url.searchParams.get("search") || url.searchParams.get("query") || url.searchParams.get("searchTerm") || undefined;
       const category = url.searchParams.get("category") || url.searchParams.get("category_id") || undefined;
       const flavour = url.searchParams.get("flavour") || url.searchParams.get("flavor") || undefined;
-      const weight = url.searchParams.get("weight") || undefined;
       const branchId = url.searchParams.get("branchId") || url.searchParams.get("shop_id") || url.searchParams.get("branch_id") || undefined;
-      const city = url.searchParams.get("city") || undefined;
       const pincode = url.searchParams.get("pincode") || undefined;
       const minPrice = url.searchParams.get("min_price") ? Number(url.searchParams.get("min_price")) : undefined;
       const maxPrice = url.searchParams.get("max_price") ? Number(url.searchParams.get("max_price")) : undefined;
       const sort = url.searchParams.get("sort") || undefined;
-      const limit = url.searchParams.get("limit") ? Number(url.searchParams.get("limit")) : 48;
-      const offset = url.searchParams.get("offset") ? Number(url.searchParams.get("offset")) : 0;
-      const includeTestProducts = url.searchParams.get("include_test_products") === "true";
+      const limit = Math.min(Math.max(1, Number(url.searchParams.get("limit") || url.searchParams.get("pageSize")) || 20), 100);
+      const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+      const offset = url.searchParams.get("offset") !== null ? Math.max(0, Number(url.searchParams.get("offset"))) : (page - 1) * limit;
 
-      const searchResult = ApiEngine.searchProducts({
+      const paginated = await ProductRepository.listProducts({
+        page,
+        pageSize: limit,
+        limit,
+        offset,
+        category_id: category,
         q,
-        category,
         flavour,
-        weight,
-        branchId,
-        pincode,
         min_price: minPrice,
         max_price: maxPrice,
         sort,
-        limit,
-        offset,
-        include_test_products: includeTestProducts,
       });
 
-      return jsonWithDataSource(
+      const res = jsonWithDataSource(
         {
           success: true,
-          products: searchResult.products,
-          results: searchResult.results,
-          count: searchResult.total,
-          total: searchResult.total,
-          categories: searchResult.categories,
-          flavours: searchResult.flavours,
-          facets: searchResult.facets,
-          suggestions: searchResult.suggestions,
+          products: paginated.items,
+          results: paginated.items,
+          count: paginated.items.length,
+          total: paginated.total,
           limit,
           offset,
+          page: paginated.page,
+          pageSize: paginated.pageSize,
+          totalPages: paginated.totalPages,
+          hasNextPage: paginated.hasNextPage,
+          hasPreviousPage: paginated.hasPreviousPage,
+          pagination: {
+            page: paginated.page,
+            pageSize: paginated.pageSize,
+            total: paginated.total,
+            totalPages: paginated.totalPages,
+            hasNextPage: paginated.hasNextPage,
+            hasPreviousPage: paginated.hasPreviousPage,
+          },
         },
         "postgres"
       );
+      if (branchId || pincode) {
+        res.headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
+        res.headers.set("Vary", "Accept-Encoding, Cookie");
+      } else {
+        res.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
+        res.headers.set("Vary", "Accept-Encoding");
+      }
+      return res;
     }
 
     // ── Search & Merchandising Engine Endpoints (GET) ──
@@ -685,12 +711,48 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       !path.includes("/cake-options") &&
       !path.endsWith("/search")
     ) {
-      const idOrSlug = path.replace("products/", "").replace("store/products/", "");
-      const product = ApiEngine.getProductById(idOrSlug) || (ApiEngine.getProducts() || []).find((p: any) => p.slug === idOrSlug || p.handle === idOrSlug);
+      let idOrSlug = path.replace(/^products\//, "").replace(/^store\/products\//, "");
+      if (idOrSlug.startsWith("slug/")) {
+        idOrSlug = idOrSlug.replace(/^slug\//, "");
+      }
+      const branchId = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
+      const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || undefined;
+      let product: any = (await ProductRepository.findBySlug(idOrSlug)) || (await ProductRepository.findById(idOrSlug));
       if (!product) {
         return jsonWithDataSource({ success: false, error: "Product not found" }, "postgres", 404);
       }
-      return jsonWithDataSource({ success: true, product }, "postgres");
+      if (branchId || pincode) {
+        let targetBranchId = branchId;
+        if (!targetBranchId && pincode) {
+          const resolved = ApiEngine.resolveSmartBranch({ pincode });
+          if (resolved?.branch) targetBranchId = resolved.branch.id;
+        }
+        if (targetBranchId) {
+          const branch = ApiEngine.resolveBranchRecord(targetBranchId);
+          if (branch && branch.product_availability) {
+            const pId = product.id || product.product_id;
+            const override = branch.product_availability[pId] || { status: "AVAILABLE" };
+            const st = (override.status || "").toUpperCase();
+            const isOos = st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY";
+            const isHidden = st === "HIDDEN" || st === "TEMPORARILY_HIDDEN";
+            product = {
+              ...product,
+              branch_status: isHidden ? "HIDDEN" : (isOos ? "OUT_OF_STOCK" : "AVAILABLE"),
+              is_out_of_stock_at_branch: isOos,
+              is_hidden_at_branch: isHidden,
+            };
+          }
+        }
+      }
+      const res = jsonWithDataSource({ success: true, product, ...product }, "postgres");
+      if (branchId || pincode) {
+        res.headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
+        res.headers.set("Vary", "Accept-Encoding, Cookie");
+      } else {
+        res.headers.set("Cache-Control", "public, s-maxage=120, stale-while-revalidate=600");
+        res.headers.set("Vary", "Accept-Encoding");
+      }
+      return res;
     }
 
     if (path === "customer/me" || path === "customer/profile" || path === "auth/me" || path === "users/me" || path === "store/users/me") {
@@ -751,32 +813,6 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ category, success: true }, "postgres");
     }
 
-    if (path === "products" || path === "store/products" || path === "products/search") {
-      const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
-      const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || undefined;
-      const category = url.searchParams.get("category") || url.searchParams.get("category_id") || undefined;
-      const occasion = url.searchParams.get("occasion") || url.searchParams.get("occasion_id") || undefined;
-      const flavour = url.searchParams.get("flavour") || undefined;
-      const weight = url.searchParams.get("weight") || undefined;
-      const min_price = url.searchParams.get("min_price") ? Number(url.searchParams.get("min_price")) : undefined;
-      const max_price = url.searchParams.get("max_price") ? Number(url.searchParams.get("max_price")) : undefined;
-      const q = url.searchParams.get("q") || undefined;
-      const sort = url.searchParams.get("sort") || undefined;
-
-      const res = ApiEngine.searchProducts({
-        q,
-        category: category || occasion,
-        flavour,
-        weight,
-        min_price,
-        max_price,
-        branchId,
-        pincode,
-        sort,
-      });
-      return jsonWithDataSource({ ...res, success: true }, "postgres");
-    }
-
     // ── Product Reviews & Ratings (GET) ──
     if (
       (path.startsWith("products/") && path.endsWith("/reviews")) ||
@@ -786,6 +822,18 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const productId = parts[parts.length - 2];
       const page = Number(url.searchParams.get("page")) || 1;
       const pageSize = Number(url.searchParams.get("pageSize") || url.searchParams.get("page_size") || url.searchParams.get("limit")) || 10;
+      const dbReviews = await ReviewRepository.findByProductId(productId, { page, pageSize });
+      if (dbReviews && dbReviews.length > 0) {
+        return jsonWithDataSource({
+          success: true,
+          reviews: dbReviews,
+          count: dbReviews.length,
+          total: dbReviews.length,
+          page,
+          pageSize,
+          totalPages: Math.ceil(dbReviews.length / pageSize),
+        }, "postgres");
+      }
       const sort = (url.searchParams.get("sort") || "recent") as any;
       const ratingFilter = url.searchParams.get("rating") ? Number(url.searchParams.get("rating")) : undefined;
       const verifiedOnly = url.searchParams.get("verified_only") === "true";
@@ -890,7 +938,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     // ── Customer Favorites / Wishlist (GET) ──
     if (path === "customer/favorites" || path === "store/favorites" || path === "favorites") {
       const customerUid = resolveCustomerUidFromReq(req);
-      const favorites = customerUid ? ApiEngine.getCustomerFavorites(customerUid) : [];
+      const favorites = customerUid ? await FavoriteRepository.findByCustomerUid(customerUid) : [];
       return jsonWithDataSource({
         success: true,
         favorites,
@@ -902,7 +950,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path.startsWith("customer/favorites/check/") || path.startsWith("store/favorites/check/")) {
       const prodId = path.replace(/^store\/favorites\/check\//, "").replace(/^customer\/favorites\/check\//, "");
       const customerUid = resolveCustomerUidFromReq(req);
-      const isFav = customerUid ? ApiEngine.isProductFavorited(customerUid, prodId) : false;
+      const favorites = customerUid ? await FavoriteRepository.findByCustomerUid(customerUid) : [];
+      const isFav = favorites.some((f: any) => f.product_id === prodId);
       return jsonWithDataSource({ success: true, is_favorited: isFav, product_id: prodId }, "postgres");
     }
 
@@ -910,7 +959,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const slug = path.replace("products/slug/", "");
       const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
       const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || undefined;
-      const product = ApiEngine.getProductBySlug(slug, branchId, pincode);
+      const product = (await ProductRepository.findBySlug(slug)) || (await ProductRepository.findById(slug));
       if (!product) return jsonWithDataSource({ error: "Product not found" }, "postgres", 404);
       return jsonWithDataSource(product, "postgres");
     }
@@ -919,7 +968,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const slug = path.replace("products/", "").replace("store/products/", "");
       const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
       const pincode = url.searchParams.get("pincode") || req.cookies.get("delivery_pincode")?.value || undefined;
-      const product = ApiEngine.getProductBySlug(slug, branchId, pincode) || ApiEngine.getProductById(slug, branchId, pincode);
+      const product = (await ProductRepository.findBySlug(slug)) || (await ProductRepository.findById(slug));
       if (!product) return jsonWithDataSource({ error: "Product not found" }, "postgres", 404);
       return jsonWithDataSource(product, "postgres");
     }
@@ -1094,39 +1143,56 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const customerId = url.searchParams.get("customer_id") || req.cookies.get("_cth_user_id")?.value;
 
       const isCustomerOnly = userCtx.role === "CUSTOMER" || (!userCtx.role && (customerUid || phone || customerId));
+      const targetCustomer = isCustomerOnly ? (customerUid || customerId || phone) : (url.searchParams.get("customer_uid") || url.searchParams.get("customer_id") || undefined);
 
-      const res = ApiEngine.getAdminOrders({
-        customer_uid: isCustomerOnly ? (customerUid || customerId) : (url.searchParams.get("customer_uid") || undefined),
-        phone: isCustomerOnly ? phone : (url.searchParams.get("phone") || undefined),
+      const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+      const pageSize = Math.min(Math.max(1, Number(url.searchParams.get("pageSize") || url.searchParams.get("limit")) || 20), 100);
+      const offset = url.searchParams.get("offset") !== null ? Math.max(0, Number(url.searchParams.get("offset"))) : (page - 1) * pageSize;
+
+      const paginatedResult = await OrderRepository.listOrders({
+        page,
+        pageSize,
+        offset,
         status: url.searchParams.get("status") || undefined,
         branch_id: url.searchParams.get("branch_id") || undefined,
-        limit: Number(url.searchParams.get("limit") || 50),
-        offset: Number(url.searchParams.get("offset") || 0),
-        q: url.searchParams.get("q") || undefined,
+        customer_id: targetCustomer || undefined,
       });
-      return jsonWithDataSource({ orders: res.orders || [], count: res.total || res.orders?.length || 0, success: true }, "postgres");
+
+      return jsonWithDataSource({
+        orders: paginatedResult.items,
+        count: paginatedResult.total,
+        total: paginatedResult.total,
+        page: paginatedResult.page,
+        pageSize: paginatedResult.pageSize,
+        totalPages: paginatedResult.totalPages,
+        hasNextPage: paginatedResult.hasNextPage,
+        hasPreviousPage: paginatedResult.hasPreviousPage,
+        success: true,
+      }, "postgres");
     }
 
     if (path.startsWith("orders/")) {
       const orderId = path.replace("orders/", "");
-      const order = ApiEngine.getOrderDetails(orderId) || ApiEngine.getOrder(orderId);
-      if (!order) return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
+      const order = await OrderRepository.findById(orderId);
+      if (!order) return jsonWithDataSource({ error: "Order not found", success: false }, "postgres", 404);
       return jsonWithDataSource({ order, success: true }, "postgres");
     }
 
     // CMS Endpoints
     if (path === "cms/pages" || path === "admin/cms/pages" || path === "pages") {
-      return jsonWithDataSource({ pages: ApiEngine.listCmsPages() }, "postgres");
+      const pages = await CmsRepository.findAllPages();
+      return jsonWithDataSource({ pages: pages || [], success: true }, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/versions")) {
       const pageId = path.replace("cms/pages/", "").replace("/versions", "");
-      return jsonWithDataSource({ versions: ApiEngine.getPageVersionHistory(pageId) }, "postgres");
+      const page = await CmsRepository.findPageBySlug(pageId);
+      return jsonWithDataSource({ versions: page?.version_history || [], success: true }, "postgres");
     }
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
-      const page = ApiEngine.getCmsPage(pageId);
-      if (!page) return jsonWithDataSource({ error: "Page not found" }, "postgres", 404);
-      return jsonWithDataSource({ page }, "postgres");
+      const page = await CmsRepository.findPageBySlug(pageId);
+      if (!page) return jsonWithDataSource({ error: "Page not found", success: false }, "postgres", 404);
+      return jsonWithDataSource({ page, success: true }, "postgres");
     }
     if (path === "cms/forms") {
       const formType = url.searchParams.get("type") || undefined;
@@ -1244,23 +1310,92 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         return jsonWithDataSource(data, "postgres", data.statusCode || 200);
       }
       if (path === "manager/orders") {
-        const data = ApiEngine.getBranchOrders(branchId, Object.fromEntries(url.searchParams));
-        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
+        const q = Object.fromEntries(url.searchParams);
+        const page = Math.max(1, Number(q.page) || 1);
+        const pageSize = Math.min(Math.max(1, Number(q.pageSize || q.limit) || 50), 100);
+        const listRes = await OrderRepository.listOrders({
+          branch_id: branchId,
+          status: q.status as string,
+          page,
+          pageSize,
+        });
+        return jsonWithDataSource({
+          success: true,
+          orders: listRes.items,
+          total: listRes.total,
+          page: listRes.page,
+          pageSize: listRes.pageSize,
+          totalPages: listRes.totalPages,
+          hasMore: listRes.hasNextPage,
+        }, "postgres", 200);
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/kot")) {
         const orderId = path.replace("manager/orders/", "").replace("/kot", "");
-        const data = ApiEngine.getBranchOrderKot(orderId, branchId);
-        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
+        const dbOrder = await OrderRepository.findById(orderId);
+        if (!dbOrder) {
+          return jsonWithDataSource({ success: false, statusCode: 404, error: "Order not found" }, "postgres", 404);
+        }
+        const kotPayload = {
+          kot_number: dbOrder.kitchen?.kot_number || `KOT-${dbOrder.order_number || dbOrder.id}`,
+          order_number: dbOrder.order_number || dbOrder.id,
+          brand_name: "CakeToHome Gourmet Bakery",
+          branch_name: dbOrder.branch?.name || "Indiranagar Flagship Kitchen",
+          branch_code: dbOrder.branch?.code || "HUB-BLR-01",
+          created_at: dbOrder.created_at,
+          printed_at: new Date().toISOString(),
+          customer_name: dbOrder.customer?.name || "Valued Customer",
+          delivery_slot: dbOrder.delivery?.slot || "18:00 - 20:00",
+          delivery_date: dbOrder.delivery?.date || new Date().toISOString().split("T")[0],
+          priority: "STANDARD",
+          items: (dbOrder.items || []).map((i: any) => ({
+            title: i.title || i.product_name || i.name,
+            quantity: i.quantity || 1,
+            weight: i.weight || i.variant_name || "1.0 kg",
+            flavor: i.customization?.flavor || "Artisan",
+            notes: i.customization?.special_instructions || null,
+          })),
+          customization: dbOrder.customization || {},
+          reprint_count: 1,
+        };
+        return jsonWithDataSource({ success: true, kot: kotPayload }, "postgres", 200);
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/invoice")) {
         const orderId = path.replace("manager/orders/", "").replace("/invoice", "");
-        const data = ApiEngine.getBranchOrderInvoice(orderId, branchId);
-        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
+        const dbOrder = await OrderRepository.findById(orderId);
+        if (!dbOrder) {
+          return jsonWithDataSource({ success: false, statusCode: 404, error: "Order not found" }, "postgres", 404);
+        }
+        const invPayload = {
+          invoice_number: `INV-${dbOrder.order_number || dbOrder.id}`,
+          order_number: dbOrder.order_number || dbOrder.id,
+          invoice_date: dbOrder.created_at,
+          seller_legal_name: "CakeToHome India Private Limited",
+          seller_trade_name: "CakeToHome",
+          branch_name: dbOrder.branch?.name || "Indiranagar Flagship Kitchen",
+          seller_gstin: "29AAAAA0000A1Z5",
+          customer: dbOrder.customer,
+          items: (dbOrder.items || []).map((i: any) => ({
+            description: i.title || i.product_name || "Cake",
+            hsn_sac: i.hsn_code || "19059090",
+            quantity: i.quantity || 1,
+            unit_price: i.unit_price || i.price || 0,
+            taxable_amount: Math.round((i.unit_price || i.price || 0) * (i.quantity || 1) / 1.05),
+            gst_rate: `${i.tax_rate || 5}%`,
+            cgst_amount: Math.round(((i.unit_price || i.price || 0) * (i.quantity || 1) * 0.025)),
+            sgst_amount: Math.round(((i.unit_price || i.price || 0) * (i.quantity || 1) * 0.025)),
+          })),
+          total_tax: dbOrder.tax_amount || 0,
+          grand_total: dbOrder.total_amount || dbOrder.total || 0,
+        };
+        return jsonWithDataSource({ success: true, invoice: invPayload }, "postgres", 200);
       }
       if (path.startsWith("manager/orders/")) {
         const orderId = path.replace("manager/orders/", "");
-        const data = ApiEngine.getBranchOrderDetails(orderId, branchId);
-        return jsonWithDataSource(data, "postgres", data.statusCode || 200);
+        const dbOrder = await OrderRepository.findById(orderId);
+        if (!dbOrder) {
+          return jsonWithDataSource({ success: false, statusCode: 404, error: "Order not found" }, "postgres", 404);
+        }
+        return jsonWithDataSource({ success: true, order: dbOrder }, "postgres", 200);
       }
       if (path === "manager/products") {
         const data = ApiEngine.getBranchProducts(branchId);
@@ -1298,15 +1433,39 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       if (qParams.id || qParams.order_id) {
         const targetId = (qParams.id || qParams.order_id) as string;
         const dbOrder = await OrderRepository.findById(targetId);
-        if (dbOrder) return jsonWithDataSource({ order: dbOrder }, "postgres");
-        const details = ApiEngine.getOrderDetails(targetId);
-        if (details) return jsonWithDataSource({ order: details }, "postgres");
+        if (dbOrder) return jsonWithDataSource({ order: dbOrder, success: true }, "postgres");
+        return jsonWithDataSource({ error: "Order not found", success: false }, "postgres", 404);
       }
-      const dbOrders = await OrderRepository.findAll(Number(qParams.limit) || 500);
-      if (dbOrders && dbOrders.length > 0) {
-        return jsonWithDataSource({ orders: dbOrders, total: dbOrders.length, success: true }, "postgres");
-      }
-      return jsonWithDataSource(ApiEngine.getAdminOrders(qParams), "postgres");
+      const page = Math.max(1, Number(qParams.page) || 1);
+      const pageSize = Math.min(Math.max(1, Number(qParams.pageSize || qParams.limit) || 20), 100);
+      const offset = qParams.offset !== undefined ? Math.max(0, Number(qParams.offset)) : (page - 1) * pageSize;
+
+      const paginatedResult = await OrderRepository.listOrders({
+        page,
+        pageSize,
+        status: qParams.status as string,
+        branch_id: qParams.branch_id as string,
+        customer_id: qParams.customer_id as string,
+      });
+
+      return jsonWithDataSource({
+        orders: paginatedResult.items,
+        total: paginatedResult.total,
+        page: paginatedResult.page,
+        pageSize: paginatedResult.pageSize,
+        totalPages: paginatedResult.totalPages,
+        hasNextPage: paginatedResult.hasNextPage,
+        hasPreviousPage: paginatedResult.hasPreviousPage,
+        pagination: {
+          page: paginatedResult.page,
+          pageSize: paginatedResult.pageSize,
+          total: paginatedResult.total,
+          totalPages: paginatedResult.totalPages,
+          hasNextPage: paginatedResult.hasNextPage,
+          hasPreviousPage: paginatedResult.hasPreviousPage,
+        },
+        success: true,
+      }, "postgres");
     }
     if (path.startsWith("admin/orders/") || path.startsWith("admin/order-lifecycle/")) {
       const parts = path.replace("admin/orders/", "").replace("admin/order-lifecycle/", "").split("/");
@@ -1316,10 +1475,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         return jsonWithDataSource(ApiEngine.autoAssignDeliveryDriver(orderId), "postgres");
       }
       const dbOrder = await OrderRepository.findById(orderId);
-      if (dbOrder) return jsonWithDataSource({ order: dbOrder }, "postgres");
-      const orderDetails = ApiEngine.getOrderDetails(orderId);
-      if (orderDetails) return jsonWithDataSource({ order: orderDetails }, "postgres");
-      return jsonWithDataSource({ message: "Order not found" }, "postgres", 404);
+      if (dbOrder) return jsonWithDataSource({ order: dbOrder, success: true }, "postgres");
+      return jsonWithDataSource({ message: "Order not found", success: false }, "postgres", 404);
     }
     if (path === "admin/delivery/reports") {
       const qParams = Object.fromEntries(url.searchParams);
@@ -1355,16 +1512,33 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
     }
     if (path === "admin/branches" || path === "branches") {
-      const branches = await BranchRepository.findAll();
-      if (branches && branches.length > 0) {
-        return jsonWithDataSource({ branches, total: branches.length, success: true }, "postgres");
-      }
-      return jsonWithDataSource({ branches: ApiEngine.getAdminBranches() }, "postgres");
+      const search = url.searchParams.get("search") || url.searchParams.get("q") || undefined;
+      const lifecycle = (url.searchParams.get("lifecycle") as any) || "all";
+      const page = url.searchParams.get("page") ? parseInt(url.searchParams.get("page")!, 10) : 1;
+      const limit = url.searchParams.get("limit") ? parseInt(url.searchParams.get("limit")!, 10) : 50;
+
+      const result = await BranchRepository.findWithFilters({
+        search,
+        lifecycle,
+        page,
+        limit,
+      });
+      return jsonWithDataSource({
+        branches: result.branches,
+        total: result.total,
+        totalCount: result.totalCount,
+        activeCount: result.activeCount,
+        archivedCount: result.archivedCount,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages,
+        success: true,
+      }, "postgres");
     }
     if (path.startsWith("admin/branches/") || path.startsWith("branches/")) {
       const branchId = path.replace(/^admin\/branches\//, "").replace(/^branches\//, "");
       if (!branchId.includes("/")) {
-        const branch = ApiEngine.getBranchById(branchId);
+        const branch = (await BranchRepository.findById(branchId)) || ApiEngine.getBranchById(branchId);
         if (branch) {
           return jsonWithDataSource({ branch, success: true }, "postgres");
         }
@@ -1374,39 +1548,39 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
     // ── State Master Public + Admin Endpoints ──
     if (path === "states" || path === "store/states") {
-      const states = ApiEngine.listStates();
+      const states = CityRepository.listStates();
       return jsonWithDataSource({ states, success: true }, "postgres");
     }
     if (path.startsWith("states/") || path.startsWith("store/states/")) {
       const sub = path.replace(/^store\//, "").replace("states/", "");
       if (sub.endsWith("/cities")) {
         const stateCodeOrId = sub.replace("/cities", "");
-        const cities = ApiEngine.getCitiesForState(stateCodeOrId);
+        const cities = await CityRepository.findByState(stateCodeOrId);
         return jsonWithDataSource({ cities, success: true }, "postgres");
       }
-      const stateObj = ApiEngine.getStateById(sub) || ApiEngine.getStateByCode(sub) || ApiEngine.getStateByName(sub);
+      const stateObj = resolveStateInfo(sub);
       if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "postgres", 404);
       return jsonWithDataSource({ state: stateObj, success: true }, "postgres");
     }
     if (path === "admin/states") {
-      const states = ApiEngine.listStates(true);
+      const states = CityRepository.listStates(true);
       return jsonWithDataSource({ states, success: true }, "postgres");
     }
     if (path.startsWith("admin/states/")) {
       const stateId = path.replace("admin/states/", "");
-      const stateObj = ApiEngine.getStateById(stateId) || ApiEngine.getStateByCode(stateId);
+      const stateObj = resolveStateInfo(stateId);
       if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "postgres", 404);
       return jsonWithDataSource({ state: stateObj, success: true }, "postgres");
     }
 
     // ── Multi-City Public + Admin Endpoints ──
     if (path === "cities" || path === "store/cities") {
-      const cities = ApiEngine.listCities();
+      const cities = await CityRepository.findAll();
       return jsonWithDataSource({ cities, success: true }, "postgres");
     }
     if (path.startsWith("cities/") && !path.startsWith("cities/admin")) {
       const slug = path.replace("cities/", "");
-      const city = ApiEngine.getCityBySlug(slug) || ApiEngine.getCityById(slug);
+      const city = (await CityRepository.findById(slug)) || (await CityRepository.findAll()).find((c) => c.slug === slug);
       if (!city) return jsonWithDataSource({ error: "City not found" }, "postgres", 404);
       const stats = ApiEngine.getCityStats(city.id);
       const branches = ApiEngine.getCityBranches(city.id);
@@ -1434,10 +1608,13 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const results = await ApiEngine.searchLocationAsync(q);
       return jsonWithDataSource({ results, success: true }, "postgres");
     }
-    if (path === "admin/cities") return jsonWithDataSource({ cities: ApiEngine.getAdminCities(), success: true }, "postgres");
+    if (path === "admin/cities") {
+      const cities = await CityRepository.findAll({ includeArchived: true });
+      return jsonWithDataSource({ cities, success: true }, "postgres");
+    }
     if (path.startsWith("admin/cities/")) {
       const cityId = path.replace("admin/cities/", "");
-      const city = ApiEngine.getCityById(cityId);
+      const city = await CityRepository.findById(cityId);
       if (!city) return jsonWithDataSource({ error: "City not found" }, "postgres", 404);
       return jsonWithDataSource({ city, stats: ApiEngine.getCityStats(cityId), success: true }, "postgres");
     }
@@ -1480,18 +1657,34 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/catalog/products" || path === "admin/products") {
       const permErr = verifyApiPermission(req, "CATALOG", "VIEW");
       if (permErr) return permErr;
-      const products = await ProductRepository.findAll();
-      if (products && products.length > 0) {
-        return jsonWithDataSource({ products, total: products.length, success: true }, "postgres");
-      }
-      return jsonWithDataSource({ products: ApiEngine.getAdminProducts() }, "postgres");
+      const qParams = Object.fromEntries(url.searchParams);
+      const page = Math.max(1, Number(qParams.page) || 1);
+      const pageSize = Math.min(Math.max(1, Number(qParams.pageSize || qParams.limit) || 20), 100);
+      const prodRes = await ProductRepository.listProducts({ page, pageSize, category_id: qParams.category_id as string });
+      return jsonWithDataSource({
+        products: prodRes.items,
+        total: prodRes.total,
+        page: prodRes.page,
+        pageSize: prodRes.pageSize,
+        totalPages: prodRes.totalPages,
+        hasNextPage: prodRes.hasNextPage,
+        hasPreviousPage: prodRes.hasPreviousPage,
+        pagination: {
+          page: prodRes.page,
+          pageSize: prodRes.pageSize,
+          total: prodRes.total,
+          totalPages: prodRes.totalPages,
+          hasNextPage: prodRes.hasNextPage,
+          hasPreviousPage: prodRes.hasPreviousPage,
+        },
+        success: true,
+      }, "postgres");
     }
     if ((path.startsWith("admin/catalog/products/") || path.startsWith("admin/products/")) && !path.includes("/weight-prices")) {
       const id = extractProductIdFromPath(path);
-      const dbProd = await ProductRepository.findById(id);
-      if (dbProd) return jsonWithDataSource({ product: dbProd }, "postgres");
-      const product = ApiEngine.getProductById(id) || ApiEngine.getProductBySlug(id);
-      if (product) return jsonWithDataSource({ product }, "postgres");
+      const dbProd = (await ProductRepository.findById(id)) || (await ProductRepository.findBySlug(id));
+      if (dbProd) return jsonWithDataSource({ product: dbProd, success: true }, "postgres");
+      return jsonWithDataSource({ error: "Product not found", success: false }, "postgres", 404);
     }
     if (path === "admin/catalog/cake-options") return jsonWithDataSource({ options: ApiEngine.getAdminCakeOptions() }, "postgres");
     if (path === "admin/offers/analytics") return jsonWithDataSource({ analytics: ApiEngine.getCouponAnalyticsSummary(), success: true }, "postgres");
@@ -1511,9 +1704,14 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
     if (path.startsWith("admin/offers/")) {
       const id = path.replace("admin/offers/", "");
-      return jsonWithDataSource(ApiEngine.getAdminOfferById(id), "postgres");
+      const dbOffer = await OfferRepository.findByCode(id);
+      if (dbOffer) return jsonWithDataSource({ offer: dbOffer, success: true }, "postgres");
+      return jsonWithDataSource({ error: "Offer not found", success: false }, "postgres", 404);
     }
-    if (path === "admin/offers") return jsonWithDataSource({ offers: ApiEngine.getAdminOffers(Object.fromEntries(url.searchParams)) }, "postgres");
+    if (path === "admin/offers") {
+      const dbOffers = await OfferRepository.findAll();
+      return jsonWithDataSource({ offers: dbOffers || [], total: (dbOffers || []).length, success: true }, "postgres");
+    }
     if (path === "admin/marketing/campaigns") return jsonWithDataSource({ campaigns: ApiEngine.getAdminCampaigns() }, "postgres");
     if (path === "admin/delivery") return jsonWithDataSource({ deliveries: ApiEngine.getAdminDeliveries() }, "postgres");
     if (path === "admin/delivery/partners" || path === "admin/delivery-partners") return jsonWithDataSource({ partners: ApiEngine.getAdminDeliveryPartners() }, "postgres");
@@ -1575,14 +1773,39 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
     if (path.startsWith("admin/crm/customers/") || path.startsWith("admin/customers/")) {
       const customerId = path.replace("admin/crm/customers/", "").replace("admin/customers/", "");
-      const profile = ApiEngine.getCustomerProfile(customerId);
-      if (!profile) return jsonWithDataSource({ error: "Customer profile not found" }, "postgres", 404);
-      return jsonWithDataSource({ customer: profile, success: true }, "postgres");
+      const dbCust = await CustomerRepository.findById(customerId);
+      if (dbCust) return jsonWithDataSource({ customer: dbCust, success: true }, "postgres");
+      return jsonWithDataSource({ error: "Customer profile not found", success: false }, "postgres", 404);
     }
     if (path === "admin/crm/customers" || path === "admin/customers") {
       const qParams = Object.fromEntries(url.searchParams);
-      const userCtx = resolveUserContext(req);
-      return jsonWithDataSource(ApiEngine.listAdminCustomersDetailed({ ...qParams, userRole: userCtx.role }), "postgres");
+      const page = Math.max(1, Number(qParams.page) || 1);
+      const pageSize = Math.min(Math.max(1, Number(qParams.pageSize || qParams.limit) || 20), 100);
+      const offset = qParams.offset !== undefined ? Math.max(0, Number(qParams.offset)) : (page - 1) * pageSize;
+      const dbResult = await CustomerRepository.listCustomers({
+        page,
+        pageSize,
+        offset,
+        search: (qParams.search || qParams.q) as string,
+      });
+      return jsonWithDataSource({
+        customers: dbResult.items,
+        total: dbResult.total,
+        page: dbResult.page,
+        pageSize: dbResult.pageSize,
+        totalPages: dbResult.totalPages,
+        hasNextPage: dbResult.hasNextPage,
+        hasPreviousPage: dbResult.hasPreviousPage,
+        pagination: {
+          page: dbResult.page,
+          pageSize: dbResult.pageSize,
+          total: dbResult.total,
+          totalPages: dbResult.totalPages,
+          hasNextPage: dbResult.hasNextPage,
+          hasPreviousPage: dbResult.hasPreviousPage,
+        },
+        success: true,
+      }, "postgres");
     }
     if (path === "admin/marketing/seo" || path === "seo" || path === "admin/seo") return jsonWithDataSource(ApiEngine.getAdminSeoConfig(), "postgres");
     // ── Enterprise SEO Platform GET Endpoints ──
@@ -1938,6 +2161,15 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         );
       }
       const result = ApiEngine.addCustomerFavorite(customerUid, productId);
+      try {
+        await FavoriteRepository.save({
+          id: `fav_${customerUid}_${productId}`,
+          customer_uid: customerUid,
+          product_id: productId,
+        });
+      } catch (err: any) {
+        console.error("[route] Failed to save favorite to DB:", err.message);
+      }
       return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
 
@@ -2010,6 +2242,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         title: body.title,
         reviewText: body.reviewText || body.review_text || body.body || body.comment || "",
       });
+
+      if (result.success && result.review) {
+        try {
+          await ReviewRepository.save(result.review);
+        } catch (err: any) {
+          console.error("[route] Failed to save review to DB:", err.message);
+        }
+      }
 
       return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 201 : 400));
     }
@@ -2189,6 +2429,36 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path === "admin/orders" || path === "orders") {
       const order = ApiEngine.addOrder(body);
       return jsonWithDataSource({ order, success: true }, "postgres", 201);
+    }
+
+    if (path.startsWith("admin/orders/")) {
+      const parts = path.replace("admin/orders/", "").split("/");
+      const orderId = parts[0];
+      const action = parts[1];
+      if (action === "auto-assign-delivery") {
+        try {
+          const result = await OrderRepository.autoAssignDelivery(orderId);
+          return jsonWithDataSource(result, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to auto-assign delivery", success: false }, "postgres", 400);
+        }
+      }
+      if (action === "unassign-delivery") {
+        try {
+          const updated = await OrderRepository.unassignDelivery(orderId, body?.reason);
+          return jsonWithDataSource({ order: updated, success: true }, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to unassign delivery", success: false }, "postgres", 400);
+        }
+      }
+      if (action === "notes") {
+        try {
+          const updated = await OrderRepository.addStaffNote(orderId, body?.note || body?.notes, body?.author);
+          return jsonWithDataSource({ order: updated, success: true }, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to add note", success: false }, "postgres", 400);
+        }
+      }
     }
 
     // ── Enterprise CRM Mutations (POST) ──
@@ -2525,19 +2795,84 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
     if (path === "checkout/confirm" || path === "store/checkout/confirm") {
       try {
-        const result = ApiEngine.confirmCheckout(body);
-        if (result && (result.success || result.order)) {
-          const custUid = (result.order as any)?.customer_uid || (result as any).customer_uid || body.customer_id;
-          const ordId = (result.order as any)?.id || (result as any).order_id;
-          const ordTotal = Number((result.order as any)?.total || (result.order as any)?.grand_total || (result as any).total || 0);
-          if (custUid && ordId) {
-            TelemarketingEngine.matchAndAttributeCheckoutOrder(custUid, ordId, ordTotal);
+        let items = body.items;
+        let branchId = body.branch_id;
+        const custUid = body.customer_id || body.customer_uid || req.cookies.get("_cth_user_id")?.value || "guest";
+        const customerName = body.customer_name || (body.address ? `${body.address.first_name || ""} ${body.address.last_name || ""}`.trim() : "Customer");
+        const customerEmail = body.customer_email || body.address?.email;
+        const customerPhone = body.customer_phone || body.address?.phone;
+
+        if (!items || items.length === 0) {
+          const validation = ApiEngine.validateCheckout(body);
+          if (!validation.valid) {
+            return jsonWithDataSource({ success: false, error: validation.errors?.[0]?.message || "Checkout validation failed", errors: validation.errors }, "postgres", 400);
+          }
+          items = (validation.cart?.items || []).map((it: any) => ({
+            product_id: it.product_id,
+            quantity: it.quantity || 1,
+            weight: it.weight || "1 kg",
+            variant_name: it.weight || "1 kg",
+            customization: it.customization || {},
+          }));
+          if (!branchId) {
+            branchId = validation.branch?.id;
           }
         }
-        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 201 : 400));
+
+        if (!branchId) {
+          branchId = "br_indiranagar";
+        }
+
+        const idempotencyKey = body.idempotency_key || req.headers.get("x-idempotency-key") || undefined;
+
+        const orderRes = await OrderService.createOrder({
+          idempotency_key: idempotencyKey,
+          customer_uid: custUid,
+          customer_id: custUid,
+          customer_name: customerName,
+          customer_email: customerEmail,
+          customer_phone: customerPhone,
+          branch_id: branchId,
+          items: items || [],
+          coupon_code: body.coupon_code,
+          delivery_type: (body.delivery_type as any) || "standard",
+          delivery_date: body.delivery_date || new Date().toISOString().split("T")[0],
+          delivery_slot: body.delivery_slot_id || body.delivery_slot || "18:00 - 20:00",
+          delivery_address: body.address,
+          delivery_latitude: body.latitude,
+          delivery_longitude: body.longitude,
+          payment_method: body.payment_method === "cod" ? "cod" : "card",
+        });
+
+        if (!orderRes.success || !orderRes.order) {
+          return jsonWithDataSource({ success: false, error: orderRes.error || "Order placement failed" }, "postgres", 400);
+        }
+
+        const ord = orderRes.order;
+        if (custUid && ord.id) {
+          try {
+            TelemarketingEngine.matchAndAttributeCheckoutOrder(custUid, ord.id, ord.total_amount || ord.total || 0);
+          } catch {}
+        }
+
+        if (body.cart_id) {
+          try { ApiEngine.clearCart(body.cart_id); } catch {}
+        }
+
+        return jsonWithDataSource({
+          success: true,
+          statusCode: 201,
+          order: ord,
+          order_id: ord.id,
+          order_number: ord.order_number || ord.display_id,
+          invoice_number: `INV-${ord.order_number || ord.display_id}`,
+          kot_number: `KOT-${ord.order_number || ord.display_id}`,
+          delivery_otp: (ord as any).metadata?.delivery_otp || (ord as any).delivery?.delivery_otp || null,
+          total: ord.total_amount || ord.total,
+        }, "postgres", 201);
       } catch (err: any) {
         console.error("❌ CRITICAL ERROR in confirmCheckout:", err.message, err.stack);
-        return jsonWithDataSource({ success: false, error: err.message, stack: err.stack }, "postgres", 500);
+        return jsonWithDataSource({ success: false, error: err.message }, "postgres", 500);
       }
     }
 
@@ -2569,36 +2904,150 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
     if (path === "payments/razorpay/verify-signature" || path === "store/payments/razorpay/verify-signature") {
       const result = ApiEngine.verifyRazorpaySignature(body);
+      if (result.verified && body.razorpay_order_id && body.razorpay_payment_id) {
+        try {
+          await dbQuery(
+            `UPDATE "payment_transaction"
+             SET status = 'captured',
+                 settlement_status = 'settled',
+                 provider_ref = $1,
+                 updated_at = NOW()
+             WHERE order_id = $2 OR provider_ref = $2`,
+            [body.razorpay_payment_id, body.razorpay_order_id]
+          );
+        } catch (dbErr: any) {
+          console.warn("[verify-signature] DB sync warning:", dbErr.message);
+        }
+      }
       return jsonWithDataSource(result, "postgres", result.verified ? 200 : 400);
     }
 
+    if (path === "payments/razorpay/webhook" || path === "payments/webhook" || path === "store/payments/webhook") {
+      try {
+        const event = body.event || body.type || "payment.captured";
+        const paymentPayload = body.payload?.payment?.entity || body.payment || body;
+        const paymentId = paymentPayload.id || body.payment_id || `pay_${Date.now()}`;
+        const orderRef = paymentPayload.order_id || body.order_id;
+        const amount = Number(paymentPayload.amount || body.amount || 0);
+        const idempotencyKey = req.headers.get("x-razorpay-event-id") || req.headers.get("idempotency-key") || body.event_id || `webhook_${paymentId}`;
+
+        // 1. Idempotency check: Check if this payment transaction or webhook was already processed
+        const existingTxn = await dbQuery(
+          `SELECT id, order_id, status FROM "payment_transaction" WHERE idempotency_key = $1 OR provider_ref = $2 LIMIT 1`,
+          [idempotencyKey, paymentId]
+        );
+
+        if (existingTxn.rows && existingTxn.rows.length > 0) {
+          return jsonWithDataSource({
+            success: true,
+            message: "Webhook event already processed (idempotent)",
+            transaction_id: existingTxn.rows[0].id,
+          }, "postgres", 200);
+        }
+
+        // 2. Process payment capture atomically in PostgreSQL
+        await dbTransaction(async (client: any) => {
+          const orderMatch = await client.query(
+            `SELECT id, status, metadata FROM "order" WHERE id = $1 OR metadata->>'order_number' = $1 OR display_id::text = $1 LIMIT 1`,
+            [orderRef]
+          );
+
+          const matchedOrder = orderMatch.rows?.[0];
+          const matchedOrderId = matchedOrder ? matchedOrder.id : orderRef;
+
+          const paymentTxnId = `ptxn_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+          await client.query(
+            `INSERT INTO "payment_transaction" (
+               id, company_id, branch_id, order_id, customer_id, amount, currency,
+               idempotency_key, status, settlement_status, provider, provider_ref, created_at, updated_at
+             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'captured', 'settled', 'razorpay', $9, NOW(), NOW())
+             ON CONFLICT (id) DO UPDATE SET status = 'captured', settlement_status = 'settled', updated_at = NOW()`,
+            [
+              paymentTxnId,
+              "comp_cth_india",
+              matchedOrder?.metadata?.branch_id || "br_indiranagar",
+              matchedOrderId,
+              matchedOrder?.metadata?.customer_uid || "guest",
+              Math.round(amount > 1000 ? amount / 100 : amount),
+              "INR",
+              idempotencyKey,
+              paymentId,
+            ]
+          );
+
+          if (matchedOrder) {
+            await client.query(
+              `UPDATE "order"
+               SET metadata = jsonb_set(
+                     jsonb_set(COALESCE(metadata, '{}'::jsonb), '{payment_status}', '"captured"'::jsonb),
+                     '{payment_reference}', to_jsonb($1::text)
+                   ),
+                   updated_at = NOW()
+               WHERE id = $2`,
+              [paymentId, matchedOrder.id]
+            );
+
+            const historyId = `osh_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+            await client.query(
+              `INSERT INTO "order_status_history" (
+                 id, order_id, to_status, from_status, actor_type, actor_id, reason, metadata, created_at, updated_at
+               ) VALUES ($1, $2, $3, $4, 'webhook', 'razorpay_webhook', 'Payment captured via webhook', $5, NOW(), NOW())`,
+              [
+                historyId,
+                matchedOrder.id,
+                matchedOrder.status || "confirmed",
+                matchedOrder.status || "confirmed",
+                JSON.stringify({ payment_id: paymentId, amount, event }),
+              ]
+            );
+          }
+        });
+
+        return jsonWithDataSource({ success: true, status: "captured", payment_id: paymentId }, "postgres", 200);
+      } catch (err: any) {
+        console.error("❌ Webhook processing error:", err);
+        return jsonWithDataSource({ success: false, error: err.message }, "postgres", 500);
+      }
+    }
+
     if (path === "orders" || path === "admin/orders") {
-      const orderRes: any = ApiEngine.createOrder(body);
-      if (orderRes && (orderRes.success === false || orderRes.valid === false || !orderRes.order)) {
+      const idempotencyKey = req.headers.get("idempotency-key") || body.idempotency_key || undefined;
+      const orderRes = await OrderService.createOrder({
+        ...body,
+        idempotency_key: idempotencyKey,
+      });
+
+      if (!orderRes.success || !orderRes.order) {
         return jsonWithDataSource({
           success: false,
-          error: orderRes.error || orderRes.message || "Failed to create order. Validation failed.",
-          errors: orderRes.errors || [],
-          statusCode: orderRes.statusCode || 400,
-        }, "postgres", orderRes.statusCode || 400);
+          error: orderRes.error || "Failed to create order. Validation failed.",
+          statusCode: 400,
+        }, "postgres", 400);
       }
+
       const createdOrder = orderRes.order;
+      try {
+        ApiEngine.recordCreatedOrder(createdOrder);
+      } catch {}
+
       if (body.promo_offer_id || body.applied_promo_code) {
-        ApiEngine.recordCouponRedemption(body.promo_offer_id || "off_50", {
-          customer_id: body.customer_id,
-          customer_phone: body.customer_phone || body.phone,
-          customer_email: body.customer_email || body.email,
-          order_id: createdOrder?.id || createdOrder?.order_id,
-          order_number: createdOrder?.order_number,
-          cart_id: body.cart_id,
-          branch_id: body.branch_id,
-          branch_name: body.branch_name,
-          city: body.city,
-          pincode: body.pincode,
-          discount_amount: body.discount_amount || 50,
-          order_total: body.total || 999,
-          payment_method: body.payment_method || "UPI",
-        });
+        try {
+          ApiEngine.recordCouponRedemption(body.promo_offer_id || "off_50", {
+            customer_id: body.customer_id,
+            customer_phone: body.customer_phone || body.phone,
+            customer_email: body.customer_email || body.email,
+            order_id: createdOrder.id,
+            order_number: createdOrder.order_number,
+            cart_id: body.cart_id,
+            branch_id: body.branch_id,
+            branch_name: body.branch_name,
+            city: body.city,
+            pincode: body.pincode,
+            discount_amount: body.discount_amount || 50,
+            order_total: body.total || createdOrder.total,
+            payment_method: body.payment_method || "UPI",
+          });
+        } catch {}
       }
       return jsonWithDataSource({ order: createdOrder, success: true }, "postgres", 201);
     }
@@ -2616,11 +3065,15 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       if (permErr) return permErr;
 
       if (body.type === "archive" || body.type === "archive_branch") {
-        const res = ApiEngine.archiveBranch(body.id || body.branchId);
+        const bId = body.id || body.branchId;
+        await BranchRepository.delete(bId);
+        const res = ApiEngine.archiveBranch(bId);
         return jsonWithDataSource(res, "postgres");
       }
       if (body.type === "restore" || body.type === "restore_branch") {
-        const res = ApiEngine.restoreBranch(body.id || body.branchId);
+        const bId = body.id || body.branchId;
+        await BranchRepository.restore(bId);
+        const res = ApiEngine.restoreBranch(bId);
         return jsonWithDataSource(res, "postgres");
       }
       if (body.type === "delivery_zone") {
@@ -2666,9 +3119,29 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
       try {
         const isNew = !body.id || !ApiEngine.getBranchById(body.id);
+
+        // Server-Side Validation: City & State Integrity
+        const reqCityId = body.city_id || (body.city?.toLowerCase() === "kollam" ? "city_klm" : "");
+        const reqState = body.state || body.state_id || "";
+        if (!body.city && !reqCityId) {
+          return jsonWithDataSource({ error: "City is required. Please select a valid city.", success: false }, "postgres", 400);
+        }
+        if (!reqState) {
+          return jsonWithDataSource({ error: "State is required. Please select a valid state.", success: false }, "postgres", 400);
+        }
+        if (reqCityId) {
+          const validation = await CityRepository.validateCityBelongsToState(reqCityId, reqState);
+          if (!validation.valid) {
+            return jsonWithDataSource({ error: validation.error || "Selected city does not belong to the selected state.", success: false }, "postgres", 400);
+          }
+        }
+
         const branch = ApiEngine.saveBranch(body);
+        await BranchRepository.save(branch);
+        const verifiedBranch = await BranchRepository.findById(branch.id);
+
         return jsonWithDataSource(
-          { branch, success: true, message: isNew ? "Branch created successfully" : "Branch saved successfully" },
+          { branch: verifiedBranch || branch, success: true, message: isNew ? "Branch created successfully" : "Branch saved successfully" },
           "postgres",
           isNew ? 201 : 200
         );
@@ -2815,13 +3288,21 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
       if (path.startsWith("manager/orders/") && path.endsWith("/accept")) {
         const orderId = path.replace("manager/orders/", "").replace("/accept", "");
-        const result: any = await ApiEngine.acceptBranchOrder(orderId, branchId, body.notes);
-        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
+        try {
+          const updated = await OrderRepository.updateStatus(orderId, "kitchen_accepted", body.notes || "Queued for kitchen baking station");
+          return jsonWithDataSource({ success: true, order: updated }, "postgres", 200);
+        } catch (err: any) {
+          return jsonWithDataSource({ success: false, error: err.message }, "postgres", 400);
+        }
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/reject")) {
         const orderId = path.replace("manager/orders/", "").replace("/reject", "");
-        const result: any = await ApiEngine.rejectBranchOrder(orderId, branchId, body.reason);
-        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
+        try {
+          const updated = await OrderRepository.cancelOrder(orderId, body.reason || "Declined by Branch Kitchen");
+          return jsonWithDataSource({ success: true, order: updated }, "postgres", 200);
+        } catch (err: any) {
+          return jsonWithDataSource({ success: false, error: err.message }, "postgres", 400);
+        }
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/hold")) {
         const orderId = path.replace("manager/orders/", "").replace("/hold", "");
@@ -2835,14 +3316,22 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/ready")) {
         const orderId = path.replace("manager/orders/", "").replace("/ready", "");
-        const result: any = await ApiEngine.markBranchOrderReady(orderId, branchId);
-        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
+        try {
+          const updated = await OrderRepository.updateStatus(orderId, "packed", "Order packed and ready for dispatch");
+          return jsonWithDataSource({ success: true, order: updated }, "postgres", 200);
+        } catch (err: any) {
+          return jsonWithDataSource({ success: false, error: err.message }, "postgres", 400);
+        }
       }
       if (path.startsWith("manager/orders/") && (path.endsWith("/assign-rider") || path.endsWith("/reassign-rider"))) {
         const orderId = path.replace("manager/orders/", "").replace("/assign-rider", "").replace("/reassign-rider", "");
         const riderId = body.partner_id || body.delivery_partner_id || body.riderId || body.partnerId;
-        const result: any = await ApiEngine.assignBranchOrderRider(orderId, branchId, riderId);
-        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
+        try {
+          const updated = await OrderRepository.assignDelivery(orderId, riderId, body.driver_name, body.driver_phone, body.reason);
+          return jsonWithDataSource({ success: true, order: updated }, "postgres", 200);
+        } catch (err: any) {
+          return jsonWithDataSource({ success: false, error: err.message }, "postgres", 400);
+        }
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/kot/reprint")) {
         const orderId = path.replace("manager/orders/", "").replace("/kot/reprint", "");
@@ -3653,8 +4142,27 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
         return jsonWithDataSource({ error: "Branch ID is required for update", success: false }, "postgres", 400);
       }
       try {
+        // Server-Side Validation: City & State Integrity
+        const reqCityId = body.city_id || (body.city?.toLowerCase() === "kollam" ? "city_klm" : "");
+        const reqState = body.state || body.state_id || "";
+        if (!body.city && !reqCityId) {
+          return jsonWithDataSource({ error: "City is required. Please select a valid city.", success: false }, "postgres", 400);
+        }
+        if (!reqState) {
+          return jsonWithDataSource({ error: "State is required. Please select a valid state.", success: false }, "postgres", 400);
+        }
+        if (reqCityId) {
+          const validation = await CityRepository.validateCityBelongsToState(reqCityId, reqState);
+          if (!validation.valid) {
+            return jsonWithDataSource({ error: validation.error || "Selected city does not belong to the selected state.", success: false }, "postgres", 400);
+          }
+        }
+
         const branch = ApiEngine.saveBranch({ ...body, id: targetId || body.id });
-        return jsonWithDataSource({ branch, success: true, message: "Branch updated successfully" }, "postgres", 200);
+        await BranchRepository.save(branch);
+        const verifiedBranch = await BranchRepository.findById(branch.id);
+
+        return jsonWithDataSource({ branch: verifiedBranch || branch, success: true, message: "Branch updated successfully" }, "postgres", 200);
       } catch (err: any) {
         const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate") || err.message.includes("Role conflict"));
         return jsonWithDataSource({ error: err.message || "Failed to update branch", success: false }, "postgres", isConflict ? 409 : 400);
@@ -3827,7 +4335,12 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
 
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
-      return jsonWithDataSource({ page: await ApiEngine.updateCmsPage(pageId, body) }, "postgres");
+      await CmsRepository.savePage({ ...body, id: pageId });
+      const updated = await CmsRepository.findPageBySlug(pageId);
+      try {
+        await ApiEngine.updateCmsPage(pageId, body);
+      } catch {}
+      return jsonWithDataSource({ page: updated, success: true }, "postgres");
     }
 
     if (path.startsWith("admin/orders/")) {
@@ -3836,44 +4349,80 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       const action = parts[1];
 
       if (action === "status") {
-        const result = ApiEngine.updateOrderStatus(orderId, body.status, body.notes);
-        if (result) return jsonWithDataSource(result, "postgres");
-        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
+        try {
+          const updated = await OrderRepository.updateStatus(orderId, body.status, body.notes);
+          try {
+            ApiEngine.updateOrderStatus(orderId, body.status, body.notes);
+          } catch {}
+          return jsonWithDataSource({ order: updated, success: true }, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to update order status", success: false }, "postgres", 400);
+        }
       }
       if (action === "assign-branch") {
-        const result = ApiEngine.assignOrderBranch(orderId, body.branch_id, body.notes);
-        if (result) return jsonWithDataSource(result, "postgres");
-        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
+        try {
+          const updated = await OrderRepository.assignBranch(orderId, body.branch_id, body.branch_name, body.notes);
+          return jsonWithDataSource({ order: updated, success: true }, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to assign branch", success: false }, "postgres", 400);
+        }
       }
       if (action === "assign-delivery" || action === "reassign-delivery") {
-        const result = ApiEngine.manualAssignOrderDelivery(orderId, body.delivery_partner_id || body.partner_id, body.reason);
-        if (result) return jsonWithDataSource(result, "postgres");
-        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
+        try {
+          const partnerId = body.delivery_partner_id || body.partner_id || body.driver_name;
+          const updated = await OrderRepository.assignDelivery(orderId, partnerId, body.driver_name, body.driver_phone, body.reason);
+          return jsonWithDataSource({ order: updated, success: true }, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to assign delivery", success: false }, "postgres", 400);
+        }
       }
       if (action === "auto-assign-delivery") {
-        const result = ApiEngine.autoAssignDeliveryDriver(orderId);
-        if (result) return jsonWithDataSource(result, "postgres");
-        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
+        try {
+          const result = await OrderRepository.autoAssignDelivery(orderId);
+          return jsonWithDataSource(result, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to auto-assign delivery", success: false }, "postgres", 400);
+        }
       }
       if (action === "unassign-delivery") {
-        const result = ApiEngine.unassignOrderDelivery(orderId, body.reason);
-        if (result) return jsonWithDataSource(result, "postgres");
-        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
+        try {
+          const updated = await OrderRepository.unassignDelivery(orderId, body.reason);
+          return jsonWithDataSource({ order: updated, success: true }, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to unassign delivery", success: false }, "postgres", 400);
+        }
       }
       if (action === "reschedule") {
-        const result = ApiEngine.rescheduleOrder(orderId, body.delivery_date, body.time_slot);
-        if (result) return jsonWithDataSource(result, "postgres");
-        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
+        try {
+          const updated = await OrderRepository.reschedule(orderId, body.delivery_date, body.time_slot);
+          return jsonWithDataSource({ order: updated, success: true }, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to reschedule order", success: false }, "postgres", 400);
+        }
       }
       if (action === "cancel") {
-        const result = ApiEngine.cancelOrder(orderId, body.reason);
-        if (result) return jsonWithDataSource(result, "postgres");
-        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
+        try {
+          const updated = await OrderRepository.cancelOrder(orderId, body.reason);
+          return jsonWithDataSource({ order: updated, success: true }, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to cancel order", success: false }, "postgres", 400);
+        }
       }
       if (action === "refund") {
-        const result = ApiEngine.refundOrder(orderId, body.amount, body.reason);
-        if (result) return jsonWithDataSource(result, "postgres");
-        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
+        try {
+          const updated = await OrderRepository.refundOrder(orderId, body.amount, body.reason);
+          return jsonWithDataSource({ order: updated, success: true }, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to refund order", success: false }, "postgres", 400);
+        }
+      }
+      if (action === "notes") {
+        try {
+          const updated = await OrderRepository.addStaffNote(orderId, body.note || body.notes, body.author);
+          return jsonWithDataSource({ order: updated, success: true }, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to add note", success: false }, "postgres", 400);
+        }
       }
     }
 
@@ -4002,6 +4551,11 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
         );
       }
       const result = ApiEngine.removeCustomerFavorite(customerUid, productId);
+      try {
+        await FavoriteRepository.delete(customerUid, productId);
+      } catch (err: any) {
+        console.error("[route] Failed to delete favorite from DB:", err.message);
+      }
       return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
 
@@ -4022,6 +4576,11 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
         );
       }
       const result = ApiEngine.deleteProductReview(customerUid, reviewId);
+      try {
+        await ReviewRepository.delete(reviewId);
+      } catch (err: any) {
+        console.error("[route] Failed to delete review from DB:", err.message);
+      }
       return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
     }
 
@@ -4056,8 +4615,29 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       const parts = path.replace("admin/orders/", "").split("/");
       const orderId = parts[0];
       const action = parts[1];
+      if (action === "auto-assign-delivery") {
+        try {
+          const result = await OrderRepository.autoAssignDelivery(orderId);
+          return jsonWithDataSource(result, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to auto-assign delivery", success: false }, "postgres", 400);
+        }
+      }
       if (action === "unassign-delivery") {
-        return jsonWithDataSource(ApiEngine.unassignOrderDelivery(orderId, body.reason), "postgres");
+        try {
+          const updated = await OrderRepository.unassignDelivery(orderId, body.reason);
+          return jsonWithDataSource({ order: updated, success: true }, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to unassign delivery", success: false }, "postgres", 400);
+        }
+      }
+      if (action === "notes") {
+        try {
+          const updated = await OrderRepository.addStaffNote(orderId, body.note || body.notes, body.author);
+          return jsonWithDataSource({ order: updated, success: true }, "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to add note", success: false }, "postgres", 400);
+        }
       }
     }
 
@@ -4102,6 +4682,7 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       const url = new URL(req.url);
       const id = path.startsWith("admin/branches/") ? path.replace("admin/branches/", "") : (url.searchParams.get("id") || body.id || body.branchId);
       if (!id) return jsonWithDataSource({ error: "Branch ID required", success: false }, "postgres", 400);
+      await BranchRepository.delete(id);
       const res = ApiEngine.archiveBranch(id);
       return jsonWithDataSource(res, "postgres");
     }

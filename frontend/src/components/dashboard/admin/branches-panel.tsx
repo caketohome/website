@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, memo } from "react";
+import { useEffect, useState, useRef, useCallback, memo } from "react";
 import { Container, Heading, Text, Button, Input, Badge, Label } from "@medusajs/ui";
 import { Plus, Store, Trash2, MapPin, Phone, CheckCircle, AlertCircle, User, ShieldCheck, Clock, Truck, Sliders, Edit3, Cake, ShoppingBag, BarChart3, Lock, RefreshCw, AlertTriangle, Link2, RotateCw, Check, Search, Navigation, Loader2 } from "lucide-react";
 import { apiClient } from "@frontend/lib/api-client";
@@ -23,6 +23,15 @@ export const BranchesPanel = memo(function BranchesPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lifecycleFilter, setLifecycleFilter] = useState<"active" | "archived" | "all">("active");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit] = useState(50);
+  const [total, setTotal] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [activeCount, setActiveCount] = useState(0);
+  const [archivedCount, setArchivedCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [confirmArchiveBranch, setConfirmArchiveBranch] = useState<any | null>(null);
   const [confirmRestoreBranch, setConfirmRestoreBranch] = useState<any | null>(null);
   const [actionSubmitting, setActionSubmitting] = useState(false);
@@ -70,24 +79,66 @@ export const BranchesPanel = memo(function BranchesPanel() {
   const [formError, setFormError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  const fetchBranches = () => {
+  // Request ID ref to prevent stale responses from overwriting newer search results
+  const requestIdRef = useRef(0);
+
+  // Debounce search query changes with 300ms delay & reset to page 1
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Instant clear handler
+  const handleClearSearch = useCallback(() => {
+    setSearch("");
+    setDebouncedSearch("");
+    setPage(1);
+  }, []);
+
+  const fetchBranches = useCallback(() => {
+    const currentRequestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
     Promise.all([
-      apiClient.getAdminBranches().then((r: any) => setBranches(r?.branches || r?.data || [])),
-      apiClient.getGstRegistrations().then((r: any) => setGstRegistrations(r?.registrations || [])).catch(() => {}),
-      apiClient.getBranchCompliance().then((r: any) => setComplianceList(r?.compliance || [])).catch(() => {}),
+      apiClient.getAdminBranches({ search: debouncedSearch, lifecycle: lifecycleFilter, page, limit }).then((r: any) => {
+        if (currentRequestId !== requestIdRef.current) return;
+        setBranches(r?.branches || r?.data || []);
+        if (typeof r?.total === "number") setTotal(r.total);
+        if (typeof r?.totalCount === "number") setTotalCount(r.totalCount);
+        if (typeof r?.activeCount === "number") setActiveCount(r.activeCount);
+        if (typeof r?.archivedCount === "number") setArchivedCount(r.archivedCount);
+        if (typeof r?.totalPages === "number") setTotalPages(r.totalPages);
+      }),
+      apiClient.getGstRegistrations().then((r: any) => {
+        if (currentRequestId !== requestIdRef.current) return;
+        setGstRegistrations(r?.registrations || []);
+      }).catch(() => {}),
+      apiClient.getBranchCompliance().then((r: any) => {
+        if (currentRequestId !== requestIdRef.current) return;
+        setComplianceList(r?.compliance || []);
+      }).catch(() => {}),
     ])
       .catch((err) => {
+        if (currentRequestId !== requestIdRef.current) return;
         console.error("[Branches Panel Error] Failed to fetch branches:", err);
         setError(err.message || "Failed to load branch operations");
         setBranches([]);
       })
-      .finally(() => setLoading(false));
-  };
+      .finally(() => {
+        if (currentRequestId === requestIdRef.current) {
+          setLoading(false);
+        }
+      });
+  }, [debouncedSearch, lifecycleFilter, page, limit]);
 
   useEffect(() => {
     fetchBranches();
+  }, [fetchBranches]);
+
+  useEffect(() => {
     Promise.all([
       apiClient.getCities().catch(() => ({ cities: [] })),
       apiClient.getAdminStates().catch(() => ({ states: [] })),
@@ -166,14 +217,31 @@ export const BranchesPanel = memo(function BranchesPanel() {
     setLinkedStoreId(b.linked_store_id || "");
     setBranchType(b.branch_type || "main_hub");
     setExtendedStatus(b.extended_status || b.operational_status || "open");
-    setCity(b.city || "");
-    setCityId(b.city_id || "");
-    // Resolve state from branch data or matching city
-    const branchState = b.state || "";
+
+    // Resolve city and state identifiers
+    const resolvedCityId = b.city_id || (b.city?.toLowerCase() === "kollam" ? "city_klm" : "");
+    const resolvedCityName = b.city || (resolvedCityId === "city_klm" ? "Kollam" : "");
+    setCity(resolvedCityName);
+    setCityId(resolvedCityId);
+
+    const branchState = b.state || (resolvedCityId === "city_klm" || resolvedCityName.toLowerCase() === "kollam" ? "Kerala" : "");
     setState(branchState);
-    const matchedState = statesList.find((s: any) => s.name === branchState || s.code === b.state_code);
-    setStateId(b.state_id || matchedState?.id || "");
-    setPincode(b.pincode || "");
+    const matchedState = statesList.find(
+      (s: any) =>
+        s.id === b.state_id ||
+        s.name?.toLowerCase() === branchState?.toLowerCase() ||
+        s.code?.toUpperCase() === b.state_code?.toUpperCase() ||
+        (branchState?.toLowerCase().includes("kerala") && s.code === "KL")
+    );
+    setStateId(b.state_id || matchedState?.id || (branchState?.toLowerCase().includes("kerala") ? "state_kl" : ""));
+
+    // If city name is empty but cityId is known, resolve from loaded citiesList
+    if (resolvedCityId && !resolvedCityName && citiesList.length > 0) {
+      const matchCity = citiesList.find((c: any) => c.id === resolvedCityId);
+      if (matchCity) setCity(matchCity.name);
+    }
+
+    setPincode(b.pincode || (b.id === "br_kollam_central" ? "691001" : ""));
     setAddress(b.address || "");
     setLatitude(typeof b.latitude === "number" ? b.latitude : "");
     setLongitude(typeof b.longitude === "number" ? b.longitude : "");
@@ -286,6 +354,14 @@ export const BranchesPanel = memo(function BranchesPanel() {
       setFormError("Hub / Branch code is required.");
       return;
     }
+    if (!stateId && !state) {
+      setFormError("State is required. Please select a state.");
+      return;
+    }
+    if (!cityId && !city) {
+      setFormError("City is required. Please select a city.");
+      return;
+    }
 
     setSubmitting(true);
 
@@ -349,17 +425,6 @@ export const BranchesPanel = memo(function BranchesPanel() {
     }
   };
 
-  const activeCount = branches.filter((b) => !b.is_archived && b.status !== "archived").length;
-  const archivedCount = branches.filter((b) => b.is_archived || b.status === "archived").length;
-  const totalCount = branches.length;
-
-  const filteredBranches = branches.filter((b) => {
-    const isArchived = b.is_archived || b.status === "archived";
-    if (lifecycleFilter === "active") return !isArchived;
-    if (lifecycleFilter === "archived") return isArchived;
-    return true;
-  });
-
   return (
     <WidgetErrorBoundary widgetName="Fulfillment Hub Operations Panel">
       <div className="space-y-6 font-sans">
@@ -380,7 +445,7 @@ export const BranchesPanel = memo(function BranchesPanel() {
               className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold"
               onClick={() => setTab("branches")}
             >
-              Fulfillment Hubs ({branches.length})
+              Fulfillment Hubs ({totalCount || branches.length})
             </Badge>
             <Badge
               color={tab === "pincodes" ? "purple" : "grey"}
@@ -422,74 +487,88 @@ export const BranchesPanel = memo(function BranchesPanel() {
           <BranchPincodePanel />
         ) : (
           <Container className="p-6 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b pb-3">
               <Text className="font-semibold text-base text-slate-900 dark:text-white">
-                Fulfillment Hubs Matrix ({filteredBranches.length})
+                Fulfillment Hubs Matrix ({total || branches.length})
               </Text>
               
-              <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-                <button
-                  onClick={() => setLifecycleFilter("active")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                    lifecycleFilter === "active" ? "bg-amber-600 text-white shadow-sm" : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                  }`}
-                >
-                  <Store className="w-3.5 h-3.5" /> Active Stores ({activeCount})
-                </button>
-                <button
-                  onClick={() => setLifecycleFilter("archived")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                    lifecycleFilter === "archived" ? "bg-slate-800 text-white shadow-sm" : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                  }`}
-                >
-                  <Lock className="w-3.5 h-3.5 text-amber-400" /> Archived Stores ({archivedCount})
-                </button>
-                <button
-                  onClick={() => setLifecycleFilter("all")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    lifecycleFilter === "all" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                  }`}
-                >
-                  All ({totalCount})
-                </button>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Search Input */}
+                <div className="relative w-full sm:w-64 md:w-72">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search shops, hub code, city, pincode..."
+                    className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition"
+                  />
+                  {search && (
+                    <button
+                      onClick={handleClearSearch}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs font-bold leading-none p-0.5"
+                      title="Clear search"
+                    >
+                      &times;
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                  <button
+                    onClick={() => { setLifecycleFilter("active"); setPage(1); }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                      lifecycleFilter === "active" ? "bg-amber-600 text-white shadow-sm" : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                    }`}
+                  >
+                    <Store className="w-3.5 h-3.5" /> Active Stores ({activeCount})
+                  </button>
+                  <button
+                    onClick={() => { setLifecycleFilter("archived"); setPage(1); }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                      lifecycleFilter === "archived" ? "bg-slate-800 text-white shadow-sm" : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                    }`}
+                  >
+                    <Lock className="w-3.5 h-3.5 text-amber-400" /> Archived Stores ({archivedCount})
+                  </button>
+                  <button
+                    onClick={() => { setLifecycleFilter("all"); setPage(1); }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                      lifecycleFilter === "all" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                    }`}
+                  >
+                    All ({totalCount})
+                  </button>
+                </div>
               </div>
             </div>
 
             {loading ? (
               <TableSkeleton rows={4} />
-            ) : filteredBranches.length === 0 ? (
+            ) : branches.length === 0 ? (
               <div className="text-center py-12 border border-dashed rounded-xl text-ui-fg-subtle">
                 <Store className="w-10 h-10 mx-auto mb-2 opacity-40 text-amber-600" />
-                <Text className="font-semibold text-sm">No delivery fulfillment hubs match the filter.</Text>
-                <Text className="text-xs text-slate-500 mt-1">Try switching between Active and Archived filters.</Text>
+                <Text className="font-semibold text-sm">
+                  {debouncedSearch ? `No shops or hubs found matching "${debouncedSearch}".` : "No delivery fulfillment hubs match the filter."}
+                </Text>
+                <Text className="text-xs text-slate-500 mt-1">
+                  {debouncedSearch ? "Try checking for typos or searching by city, pincode, manager name, or hub code." : "Try switching between Active and Archived filters."}
+                </Text>
+                {debouncedSearch && (
+                  <Button size="small" variant="secondary" onClick={handleClearSearch} className="mt-3 text-xs">
+                    Clear Search
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredBranches.map((b) => {
+                {branches.map((b) => {
                   const isArchived = b.is_archived || b.status === "archived";
                   const currentLoad = b.capacity_settings?.current_load ?? b.current_hourly_load ?? 0;
                   const maxHourly = b.capacity_settings?.max_hourly_orders ?? b.max_orders_per_hour ?? 25;
                   const loadPct = Math.min(100, Math.round((currentLoad / maxHourly) * 100));
-                  const isAutoPaused = b.capacity_settings?.is_auto_paused || loadPct >= 100;
-
-                  const statusColor = isArchived
-                    ? "grey"
-                    : isAutoPaused || b.extended_status === "busy"
-                    ? "orange"
-                    : b.extended_status === "open" || b.operational_status === "operational"
-                    ? "green"
-                    : "red";
-
-                  const typeLabel =
-                    b.branch_type === "main_hub"
-                      ? "Main Hub"
-                      : b.branch_type === "retail_outlet"
-                      ? "Retail Outlet"
-                      : b.branch_type === "franchise"
-                      ? "Franchise"
-                      : b.branch_type === "partner_bakery"
-                      ? "Partner Bakery"
-                      : "Pickup Point";
+                  const statusColor = isArchived ? "grey" : b.is_open ? "green" : "red";
+                  const typeLabel = b.branch_type === "main_hub" ? "Main Hub" : b.branch_type === "retail_outlet" ? "Retail Outlet" : b.branch_type === "franchise" ? "Franchise" : "Pickup Point";
 
                   return (
                     <div key={b.id} className={`border rounded-xl p-5 bg-white dark:bg-slate-900 space-y-4 transition ${isArchived ? "border-slate-300 dark:border-slate-700 opacity-90 bg-slate-50/50" : "border-slate-200 dark:border-slate-800 hover:shadow-md"}`}>
@@ -498,93 +577,84 @@ export const BranchesPanel = memo(function BranchesPanel() {
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-base text-slate-900 dark:text-white">{b.name}</span>
-                            <Badge color="purple" className="text-[10px] font-extrabold">{b.code}</Badge>
-                            <Badge color="blue" className="text-[10px]">{typeLabel}</Badge>
+                            <Badge color={statusColor} size="small" className="text-[10px] font-bold uppercase">
+                              {isArchived ? "Archived" : b.extended_status || b.operational_status || "Active"}
+                            </Badge>
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap">
-                            <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                            <span>{b.address}, {b.city} ({b.pincode})</span>
-                            {typeof b.latitude === "number" && typeof b.longitude === "number" ? (
-                              <span className="font-mono text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded flex items-center gap-1 font-semibold">
-                                📍 {b.latitude.toFixed(4)}° N, {b.longitude.toFixed(4)}° E
-                              </span>
-                            ) : (
-                              <Badge color="red" className="text-[9px] font-bold">
-                                ⚠️ LOCATION REQUIRED
-                              </Badge>
+                          <div className="flex items-center gap-3 text-xs text-ui-fg-subtle mt-1">
+                            <span className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px] text-slate-700 dark:text-slate-300">{b.code}</span>
+                            <span>•</span>
+                            <span>{typeLabel}</span>
+                            {b.city && (
+                              <>
+                                <span>•</span>
+                                <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-slate-400" /> {b.city}, {b.state_code || b.state || "KA"}</span>
+                              </>
+                            )}
+                            {b.pincode && (
+                              <>
+                                <span>•</span>
+                                <span className="font-mono text-[10px] text-slate-500">PIN: {b.pincode}</span>
+                              </>
                             )}
                           </div>
                         </div>
 
-                        <div className="flex flex-col items-end gap-1">
-                          <Badge color={statusColor} className="capitalize font-bold text-xs">
-                            {isArchived ? "ARCHIVED" : isAutoPaused ? "AUTO-PAUSED (HIGH LOAD)" : b.extended_status || b.operational_status || "Open"}
-                          </Badge>
+                        {/* Power Switch & Pause */}
+                        <div className="flex items-center gap-2">
+                          {!isArchived && (
+                            <>
+                              <button
+                                onClick={() => handleToggleBranchOnline(b.id, !b.is_open)}
+                                className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1 transition ${
+                                  b.is_open ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100" : "bg-rose-50 text-rose-700 hover:bg-rose-100"
+                                }`}
+                              >
+                                {b.is_open ? <CheckCircle className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                                {b.is_open ? "Online" : "Offline"}
+                              </button>
+                              <button
+                                onClick={() => handlePauseBranchOrders(b.id, b.extended_status === "busy" ? 0 : 30)}
+                                className={`px-2 py-1 rounded text-xs font-semibold transition ${
+                                  b.extended_status === "busy" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                }`}
+                              >
+                                {b.extended_status === "busy" ? "Paused (30m)" : "Pause 30m"}
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
 
-                      {/* Branch Manager Fast Operational Controls */}
-                      {!isArchived && (
-                        <div className="p-3 bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200/60 dark:border-purple-900/50 rounded-xl space-y-2 text-xs">
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold text-purple-900 dark:text-purple-200 text-[11px] flex items-center gap-1.5">
-                              <Sliders className="w-3.5 h-3.5 text-purple-600" /> Manager Operational Control & Quick Pause
-                            </span>
-                            <Badge color={b.is_paused ? "orange" : b.is_open !== false ? "green" : "red"} className="text-[9px]">
-                              {b.is_paused ? `PAUSED (${b.pause_until || "Timer"})` : b.is_open !== false ? "ONLINE" : "OFFLINE"}
-                            </Badge>
-                          </div>
-
-                          <div className="flex items-center justify-between gap-1 pt-1 border-t border-purple-200/50">
-                            <button
-                              onClick={() => handleToggleBranchOnline(b.id, b.is_open === false)}
-                              className={`px-2 py-1 rounded text-[10px] font-bold ${b.is_open !== false ? "bg-rose-100 text-rose-800" : "bg-emerald-100 text-emerald-800"}`}
-                            >
-                              {b.is_open !== false ? "🛑 Go Offline" : "✅ Go Online"}
-                            </button>
-                            <div className="flex items-center gap-1">
-                              <span className="text-[10px] text-slate-500 font-medium">Pause:</span>
-                              <button onClick={() => handlePauseBranchOrders(b.id, 15)} className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 hover:bg-amber-500 hover:text-white rounded text-[10px] font-bold">15m</button>
-                              <button onClick={() => handlePauseBranchOrders(b.id, 30)} className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 hover:bg-amber-500 hover:text-white rounded text-[10px] font-bold">30m</button>
-                              <button onClick={() => handlePauseBranchOrders(b.id, 60)} className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 hover:bg-amber-500 hover:text-white rounded text-[10px] font-bold">60m</button>
-                              {b.is_paused && (
-                                <button onClick={() => handlePauseBranchOrders(b.id, 0)} className="px-1.5 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-bold">Resume</button>
-                              )}
-                            </div>
-                          </div>
+                      {/* Store Details Box */}
+                      <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3 text-xs space-y-2 border border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                          <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-slate-400" /> {b.address}</span>
+                          <span className="font-mono text-[10px]">{b.latitude?.toFixed(4)}, {b.longitude?.toFixed(4)}</span>
                         </div>
-                      )}
-
-                      {/* Metadata Grid */}
-                      <div className="grid grid-cols-2 gap-2 text-xs p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
-                        <div>
-                          <span className="text-slate-400 block text-[10px]">Assigned Branch Manager:</span>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="font-bold text-slate-800 dark:text-slate-200">{b.manager_account?.name || b.manager_name || "Manager"}</span>
-                            <Badge color={b.manager_account?.status === "suspended" ? "red" : "green"} className="text-[9px] px-1 py-0 capitalize font-bold">
-                              {b.manager_account?.status || "Active"}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block text-[10px]">Manager Phone / Contact:</span>
-                          <span className="font-bold text-slate-800 dark:text-slate-200">{b.manager_account?.phone || b.phone}</span>
+                        <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                          <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400" /> {b.phone}</span>
+                          <span className="flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-200">
+                            <User className="w-3.5 h-3.5 text-amber-600" /> Manager: {b.manager_name || b.manager_account?.name || "Rajesh Kumar"}
+                          </span>
                         </div>
                       </div>
 
-                      {/* Delivery Zone Coverage Summary */}
-                      <div className="space-y-1 text-xs">
-                        <div className="flex items-center justify-between text-[11px] text-slate-500">
-                          <span className="font-semibold">Delivery Zones:</span>
-                          <span className="font-bold text-slate-900 dark:text-white font-mono">
-                            {(b.delivery_zones || []).length} Zone{(b.delivery_zones || []).length !== 1 ? "s" : ""} Configured
-                          </span>
+                      {/* Operational Metrics */}
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div className="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-lg">
+                          <div className="text-[10px] text-ui-fg-subtle">Delivery Zones</div>
+                          <div className="font-bold text-slate-900 dark:text-white mt-0.5">{b.delivery_zones?.length || 1} Active</div>
                         </div>
-                        <div className="flex items-center justify-between text-[11px] text-slate-500">
-                          <span className="font-semibold">Coverage Pincodes:</span>
-                          <span className="font-bold text-slate-800 dark:text-slate-200 font-mono">
-                            {(b.delivery_zones || []).reduce((acc: number, z: any) => acc + (Array.isArray(z.pincodes) ? z.pincodes.length : 0), 0)} Pincodes
-                          </span>
+                        <div className="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-lg">
+                          <div className="text-[10px] text-ui-fg-subtle">Cutoff (Same-day)</div>
+                          <div className="font-bold text-slate-900 dark:text-white mt-0.5">{b.fulfillment_rules?.same_day_cutoff || "18:00"}</div>
+                        </div>
+                        <div className="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-lg">
+                          <div className="text-[10px] text-ui-fg-subtle">Current Load</div>
+                          <div className={`font-bold mt-0.5 ${loadPct >= 90 ? "text-rose-600" : loadPct >= 70 ? "text-amber-600" : "text-emerald-600"}`}>
+                            {currentLoad} / {maxHourly} ({loadPct}%)
+                          </div>
                         </div>
                       </div>
 
@@ -631,6 +701,38 @@ export const BranchesPanel = memo(function BranchesPanel() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t pt-4 text-xs text-slate-500 dark:text-slate-400">
+                <span>
+                  Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} hubs
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="small"
+                    variant="secondary"
+                    disabled={page <= 1 || loading}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className="text-xs"
+                  >
+                    Previous
+                  </Button>
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">
+                    Page {page} of {totalPages}
+                  </span>
+                  <Button
+                    size="small"
+                    variant="secondary"
+                    disabled={page >= totalPages || loading}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className="text-xs"
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
             )}
           </Container>
@@ -794,8 +896,9 @@ export const BranchesPanel = memo(function BranchesPanel() {
                 </div>
 
                 <div>
-                  <Label>State *</Label>
+                  <Label htmlFor="branch_state_select">State *</Label>
                   <select
+                    id="branch_state_select"
                     className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-900"
                     value={stateId}
                     onChange={(e) => {
@@ -820,8 +923,9 @@ export const BranchesPanel = memo(function BranchesPanel() {
                   </select>
                 </div>
                 <div>
-                  <Label>City *</Label>
+                  <Label htmlFor="branch_city_select">City *</Label>
                   <select
+                    id="branch_city_select"
                     className="w-full border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-900"
                     value={cityId}
                     onChange={(e) => {
@@ -844,7 +948,16 @@ export const BranchesPanel = memo(function BranchesPanel() {
                   >
                     <option value="">{stateId ? "Select City..." : "Select State first..."}</option>
                     {citiesList
-                      .filter((c: any) => c.status === "active" && (!stateId || c.state_id === stateId))
+                      .filter((c: any) => {
+                        const isActive = c.status === "active" || c.is_active === true;
+                        if (!isActive) return false;
+                        if (!stateId) return false;
+                        const selectedState = statesList.find((s: any) => s.id === stateId || s.code === stateId);
+                        if (c.state_id && c.state_id === stateId) return true;
+                        if (selectedState?.code && (c.state_code === selectedState.code || c.stateCode === selectedState.code)) return true;
+                        if (selectedState?.name && c.state?.toLowerCase() === selectedState.name.toLowerCase()) return true;
+                        return false;
+                      })
                       .map((c: any) => (
                         <option key={c.id} value={c.id}>{c.name}</option>
                       ))}

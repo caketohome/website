@@ -17,7 +17,15 @@ import {
   ReorderPriority,
   ScoreBreakdown
 } from "@frontend/lib/telemarketing-engine";
-import { TelemarketingExportService } from "@frontend/lib/telemarketing-export-service";
+import type { TelemarketingExportService as TelemarketingExportServiceType } from "@frontend/lib/telemarketing-export-service";
+
+const TelemarketingExportService: typeof TelemarketingExportServiceType = new Proxy({} as any, {
+  get: (_target, prop: string) => async (...args: any[]) => {
+    const mod = await import("@frontend/lib/telemarketing-export-service");
+    return (mod.TelemarketingExportService as any)[prop](...args);
+  }
+});
+
 import { CustomerProfileDrawer } from "./crm/customer-profile-drawer";
 import { WhatsAppContactModal } from "./crm/whatsapp-contact-modal";
 import { CustomerRecord } from "@frontend/lib/crm/types";

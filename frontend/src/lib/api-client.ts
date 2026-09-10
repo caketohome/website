@@ -13,6 +13,10 @@ export interface ApiResponse<T = any> {
   message?: string;
 }
 
+export interface ApiRequestOptions extends RequestInit {
+  timeoutMs?: number;
+}
+
 class CakeToHomeApiClient {
   private token: string | null = null;
   private tokenChecked = false;
@@ -66,11 +70,11 @@ class CakeToHomeApiClient {
 
 
 
-  public async get<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  public async get<T = any>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: "GET" });
   }
 
-  public async post<T = any>(endpoint: string, body?: any, options: RequestInit = {}): Promise<T> {
+  public async post<T = any>(endpoint: string, body?: any, options: ApiRequestOptions = {}): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: "POST",
@@ -78,7 +82,7 @@ class CakeToHomeApiClient {
     });
   }
 
-  public async put<T = any>(endpoint: string, body?: any, options: RequestInit = {}): Promise<T> {
+  public async put<T = any>(endpoint: string, body?: any, options: ApiRequestOptions = {}): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: "PUT",
@@ -86,7 +90,7 @@ class CakeToHomeApiClient {
     });
   }
 
-  public async delete<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  public async delete<T = any>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: "DELETE" });
   }
 
@@ -122,7 +126,7 @@ class CakeToHomeApiClient {
     }
   }
 
-  public async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  public async request<T = any>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
     const startTime = Date.now();
     const method = (options.method || "GET").toUpperCase();
 
@@ -167,15 +171,40 @@ class CakeToHomeApiClient {
     }
 
     const executeRequest = async (): Promise<T> => {
+      const controller = new AbortController();
+      const defaultTimeoutMs = cleanEndpoint.includes("/cms/")
+        ? 60000
+        : method === "GET"
+        ? 15000
+        : 30000;
+      const requestTimeoutMs = options.timeoutMs ?? defaultTimeoutMs;
+
+      const timeoutId = setTimeout(() => {
+        controller.abort(new DOMException(`Request timed out after ${requestTimeoutMs}ms`, "TimeoutError"));
+      }, requestTimeoutMs);
+
+      // Combine caller-supplied signal with internal timeout controller
+      let signalToUse = controller.signal;
+      if (options.signal) {
+        if (typeof (AbortSignal as any).any === "function") {
+          signalToUse = (AbortSignal as any).any([options.signal, controller.signal]);
+        } else {
+          if (options.signal.aborted) {
+            controller.abort(options.signal.reason);
+          } else {
+            options.signal.addEventListener("abort", () => {
+              controller.abort(options.signal?.reason);
+            }, { once: true });
+          }
+        }
+      }
+
       try {
-        const controller = new AbortController();
-        const requestTimeoutMs = typeof window === "undefined" ? 12000 : 8000;
-        const timeoutId = setTimeout(() => controller.abort(), requestTimeoutMs);
         const response = await fetch(primaryUrl, {
           ...options,
           headers,
           credentials: options.credentials || "same-origin",
-          signal: options.signal || controller.signal,
+          signal: signalToUse,
         });
         clearTimeout(timeoutId);
 
@@ -194,6 +223,13 @@ class CakeToHomeApiClient {
         const errMsg = errData.message || errData.error || `HTTP ${response.status} Request Failed`;
         throw new Error(errMsg);
       } catch (err: any) {
+        clearTimeout(timeoutId);
+        // Distinguish internal timeout from intentional external cancellation
+        if (controller.signal.aborted && !options.signal?.aborted) {
+          const timeoutErr = new Error(`Request timed out after ${requestTimeoutMs}ms`);
+          timeoutErr.name = "TimeoutError";
+          throw timeoutErr;
+        }
         throw err;
       }
     };
@@ -354,10 +390,10 @@ class CakeToHomeApiClient {
     return this.request(`/admin/customers/${customerUid}/orders${qs}`).catch(() => ({ orders: [], count: 0, total: 0 }));
   }
   async getAdminOrder(id: string) {
-    return this.request(`/admin/orders/${id}`).catch(() => null);
+    return this.request(`/admin/orders/${id}`);
   }
   async getAdminOrderDetails(id: string) {
-    return this.request(`/admin/orders/${id}`).then((r: any) => r?.order || null).catch(() => null);
+    return this.request(`/admin/orders/${id}`).then((r: any) => r?.order || r || null);
   }
   async updateOrderStatus(id: string, status: string, notes?: string) {
     return this.request(`/admin/orders/${id}/status`, {
@@ -398,6 +434,12 @@ class CakeToHomeApiClient {
     return this.request(`/admin/orders/${id}/refund`, {
       method: "PUT",
       body: JSON.stringify({ amount, reason }),
+    });
+  }
+  async addAdminOrderNote(id: string, note: string) {
+    return this.request(`/admin/orders/${id}/notes`, {
+      method: "POST",
+      body: JSON.stringify({ note }),
     });
   }
   async exportAdminOrders(params?: { q?: string; status?: string; branch_id?: string; city?: string; payment_status?: string; from_date?: string; to_date?: string }) {
@@ -848,34 +890,34 @@ class CakeToHomeApiClient {
 
   // ── Admin: CMS Page Configurator ──
   async getCmsPages() {
-    return this.request("/cms/pages").catch(() => ({ pages: [] }));
+    return this.request("/cms/pages", { timeoutMs: 30000 }).catch(() => ({ pages: [] }));
   }
   async getCmsPage(id: string) {
-    return this.request(`/cms/pages/${id}`).catch(() => ({ page: null }));
+    return this.request(`/cms/pages/${id}`, { timeoutMs: 30000 }).catch(() => ({ page: null }));
   }
   async createCmsPage(payload: any) {
-    return this.request("/cms/pages", { method: "POST", body: JSON.stringify(payload) });
+    return this.request("/cms/pages", { method: "POST", body: JSON.stringify(payload), timeoutMs: 60000 });
   }
   async updateCmsPage(id: string, payload: any) {
-    return this.request(`/cms/pages/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+    return this.request(`/cms/pages/${id}`, { method: "PUT", body: JSON.stringify(payload), timeoutMs: 60000 });
   }
   async duplicateCmsPage(id: string) {
-    return this.request(`/cms/pages/${id}/duplicate`, { method: "POST" });
+    return this.request(`/cms/pages/${id}/duplicate`, { method: "POST", timeoutMs: 60000 });
   }
   async rollbackCmsPage(id: string, version: number) {
-    return this.request(`/cms/pages/${id}/rollback`, { method: "POST", body: JSON.stringify({ version }) });
+    return this.request(`/cms/pages/${id}/rollback`, { method: "POST", body: JSON.stringify({ version }), timeoutMs: 60000 });
   }
   async deleteCmsPage(id: string) {
-    return this.request(`/cms/pages/${id}`, { method: "DELETE" });
+    return this.request(`/cms/pages/${id}`, { method: "DELETE", timeoutMs: 30000 });
   }
   async publishCmsPage(id: string) {
-    return this.request(`/cms/pages/${id}/publish`, { method: "POST" });
+    return this.request(`/cms/pages/${id}/publish`, { method: "POST", timeoutMs: 60000 });
   }
   async unpublishCmsPage(id: string) {
-    return this.request(`/cms/pages/${id}/unpublish`, { method: "POST" });
+    return this.request(`/cms/pages/${id}/unpublish`, { method: "POST", timeoutMs: 30000 });
   }
   async reorderCmsPageSections(id: string, sectionIds: string[]) {
-    return this.request(`/cms/pages/${id}/reorder-sections`, { method: "POST", body: JSON.stringify({ section_ids: sectionIds }) });
+    return this.request(`/cms/pages/${id}/reorder-sections`, { method: "POST", body: JSON.stringify({ section_ids: sectionIds }), timeoutMs: 30000 });
   }
   async getPageVersions(id: string) {
     return this.request(`/cms/pages/${id}/versions`).catch(() => ({ versions: [] }));
@@ -1191,8 +1233,25 @@ class CakeToHomeApiClient {
     return this.request(`/branches?${q.toString()}`).catch(() => ({ branch: null }));
   }
 
-  async getAdminBranches() {
-    return this.request("/admin/branches").catch(() => ({ branches: [], cityAreas: [] }));
+  async getAdminBranches(params?: { search?: string; q?: string; lifecycle?: string; page?: number; limit?: number }) {
+    const q = new URLSearchParams();
+    if (params?.search) q.append("search", params.search);
+    if (params?.q) q.append("q", params.q);
+    if (params?.lifecycle) q.append("lifecycle", params.lifecycle);
+    if (params?.page) q.append("page", String(params.page));
+    if (params?.limit) q.append("limit", String(params.limit));
+    const qs = q.toString();
+    return this.request(`/admin/branches${qs ? `?${qs}` : ""}`).catch(() => ({
+      branches: [],
+      cityAreas: [],
+      total: 0,
+      totalCount: 0,
+      activeCount: 0,
+      archivedCount: 0,
+      page: 1,
+      limit: 50,
+      totalPages: 1,
+    }));
   }
 
 

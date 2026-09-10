@@ -19,6 +19,9 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const orderLifecycleModule = req.scope.resolve(ORDER_LIFECYCLE_MODULE) as {
         getCurrentStatus: (orderId: string) => Promise<string | null>;
         getStatusHistory: (orderId: string) => Promise<Record<string, unknown>[]>;
+        getBatchStatusHistories?: (
+            orderIds: string[]
+        ) => Promise<Map<string, Record<string, unknown>[]>>;
         buildOrderSummary: (
             order: Record<string, unknown>,
             currentStatus: string | null,
@@ -27,8 +30,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     };
 
     const customerId = (req as any).auth_context?.actor_id as string;
-    const limit = req.query.limit ? Number(req.query.limit) : 20;
-    const offset = req.query.offset ? Number(req.query.offset) : 0;
+    const limit = Math.min(Math.max(1, req.query.limit ? Number(req.query.limit) : 20), 100);
+    const offset = Math.max(0, req.query.offset ? Number(req.query.offset) : 0);
     const statusFilter = req.query.status as string | undefined;
 
     // Query the Medusa core orders for this customer.
@@ -48,26 +51,32 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         pagination: {
             take: limit,
             skip: offset,
-            order: { created_at: "DESC" },
+            order: { created_at: "DESC", id: "DESC" },
         },
     });
 
+    const orderList = (orders || []) as Record<string, unknown>[];
+    const orderIds = orderList.map((o) => o.id as string).filter(Boolean);
+
+    // Batch fetch status histories in 1 query instead of 2N loop queries
+    let batchHistories = new Map<string, Record<string, unknown>[]>();
+    if (orderLifecycleModule.getBatchStatusHistories && orderIds.length > 0) {
+        batchHistories = await orderLifecycleModule.getBatchStatusHistories(orderIds);
+    }
+
     // Enrich each order with the lifecycle current status.
     const summaries: Record<string, unknown>[] = [];
-    for (const order of orders as Record<string, unknown>[]) {
-        const currentStatus = await orderLifecycleModule.getCurrentStatus(
-            order.id as string
-        );
+    for (const order of orderList) {
+        const orderId = order.id as string;
+        const history = batchHistories.get(orderId);
+        let currentStatus: string | null = null;
         let currentStatusSince: string | null = null;
-        if (currentStatus) {
-            const history = await orderLifecycleModule.getStatusHistory(
-                order.id as string
-            );
-            if (history.length > 0) {
-                currentStatusSince = new Date(
-                    history[history.length - 1].created_at as string
-                ).toISOString();
-            }
+
+        if (history && history.length > 0) {
+            currentStatus = history[history.length - 1].to_status as string;
+            currentStatusSince = new Date(
+                history[history.length - 1].created_at as string
+            ).toISOString();
         }
         const summary = orderLifecycleModule.buildOrderSummary(
             order,
@@ -80,11 +89,20 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         }
     }
 
+    const total = (metadata as Record<string, unknown>)?.count ?? summaries.length;
+
     return res.status(200).json({
         orders: summaries,
         count: summaries.length,
         offset,
         limit,
-        total: (metadata as Record<string, unknown>)?.count ?? summaries.length,
+        total,
+        pagination: {
+            page: Math.floor(offset / limit) + 1,
+            pageSize: limit,
+            total,
+            hasNextPage: offset + summaries.length < (typeof total === "number" ? total : summaries.length),
+            hasPreviousPage: offset > 0,
+        },
     });
 }

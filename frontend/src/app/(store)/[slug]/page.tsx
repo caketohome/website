@@ -6,7 +6,7 @@ import { SeoMetadataBuilder } from "@frontend/lib/seo/metadata-builder";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export async function generateMetadata({
   params,

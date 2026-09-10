@@ -264,23 +264,43 @@ class CatalogModuleService extends (MedusaService({
         if (opts.customerUid) filters.customer_uid = opts.customerUid;
         if (opts.status && opts.status !== "ALL") filters.status = opts.status;
 
+        const take = Math.min(Math.max(1, opts.limit ?? 20), 100);
+        const skip = Math.max(0, opts.offset ?? 0);
+
         const reviews = (await this.listProductReviews(
-            filters
+            filters,
+            {
+                take,
+                skip,
+                order: { created_at: "DESC", id: "DESC" },
+            }
         )) as unknown as Record<string, unknown>[];
 
-        const start = opts.offset ?? 0;
-        const end = start + (opts.limit ?? 50);
-        return reviews.slice(start, end).map((r) => ({
+        return reviews.map((r) => ({
             ...r,
             images: parseJsonField<string[]>(r.images),
         }));
     }
 
-    async listApprovedReviews(productId: string) {
-        const reviews = (await this.listProductReviews({
-            product_id: productId,
-            status: "approved",
-        })) as unknown as Record<string, unknown>[];
+    async listApprovedReviews(
+        productId: string,
+        config?: { take?: number; skip?: number; order?: Record<string, string> }
+    ) {
+        const take = Math.min(Math.max(1, config?.take ?? 20), 100);
+        const skip = Math.max(0, config?.skip ?? 0);
+        const order = config?.order ?? { created_at: "DESC", id: "DESC" };
+
+        const reviews = (await this.listProductReviews(
+            {
+                product_id: productId,
+                status: "approved",
+            },
+            {
+                take,
+                skip,
+                order,
+            }
+        )) as unknown as Record<string, unknown>[];
         return reviews.map((r) => ({
             ...r,
             images: parseJsonField<string[]>(r.images),
@@ -337,6 +357,58 @@ class CatalogModuleService extends (MedusaService({
             total_reviews: total,
             rating_distribution: distribution,
         };
+    }
+
+    /**
+     * Compute aggregate ratings for multiple products in a single database query.
+     */
+    async getBatchReviewAggregates(
+        productIds: string[]
+    ): Promise<Map<string, ReviewAggregate>> {
+        const resultMap = new Map<string, ReviewAggregate>();
+        if (!productIds || productIds.length === 0) return resultMap;
+
+        // Initialize empty aggregates
+        for (const id of productIds) {
+            resultMap.set(id, {
+                product_id: id,
+                average_rating: 0,
+                total_reviews: 0,
+                rating_distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+            });
+        }
+
+        const reviews = (await this.listProductReviews({
+            product_id: productIds,
+            status: "approved",
+        })) as unknown as Record<string, unknown>[];
+
+        const reviewsByProduct = new Map<string, Array<{ rating: number }>>();
+        for (const r of reviews) {
+            const pid = r.product_id as string;
+            if (!reviewsByProduct.has(pid)) {
+                reviewsByProduct.set(pid, []);
+            }
+            reviewsByProduct.get(pid)!.push({ rating: Number(r.rating || 0) });
+        }
+
+        for (const [pid, list] of reviewsByProduct.entries()) {
+            const total = list.length;
+            const sum = list.reduce((acc, r) => acc + r.rating, 0);
+            const average = total > 0 ? Number((sum / total).toFixed(2)) : 0;
+            const distribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+            for (const r of list) {
+                if (distribution[r.rating] !== undefined) distribution[r.rating]++;
+            }
+            resultMap.set(pid, {
+                product_id: pid,
+                average_rating: average,
+                total_reviews: total,
+                rating_distribution: distribution,
+            });
+        }
+
+        return resultMap;
     }
 
     // ── Wishlist ───────────────────────────────────────────────────────
@@ -628,15 +700,22 @@ class CatalogModuleService extends (MedusaService({
             }
         }
 
+        // Pre-fetch all review aggregates in a single batch query (50 queries -> 1 query)
+        const candidateProductIds = filtered.map((p) => p.id as string);
+        const reviewAggregates = await this.getBatchReviewAggregates(candidateProductIds).catch(
+            () => new Map<string, ReviewAggregate>()
+        );
+
         // Build enriched results with ratings + price.
         const enriched: SearchResult[] = [];
         for (const p of filtered) {
             const meta = metaByProduct.get(p.id as string) ?? {};
-            const aggregate = await this.getReviewAggregate(p.id as string).catch(() => ({
+            const aggregate = reviewAggregates.get(p.id as string) ?? {
+                product_id: p.id as string,
                 average_rating: 0,
                 total_reviews: 0,
                 rating_distribution: {},
-            }));
+            };
 
             const price = extractPrice(p);
 
@@ -738,47 +817,41 @@ class CatalogModuleService extends (MedusaService({
     // ── Flavor & Shape Mappings ──────────────────────────────────────────────
 
     async saveProductFlavorMappings(productId: string, mappings: { flavor_id: string; price_override?: number; is_enabled?: boolean }[]) {
-        // Clear existing mappings for product
+        // Clear existing mappings for product in 1 batch delete
         const existing = await (this as any).listProductFlavorMappings({ product_id: productId });
         if (existing.length > 0) {
-            for (const item of existing) {
-                await (this as any).deleteProductFlavorMappings(item.id);
-            }
+            const idsToDelete = existing.map((item: any) => item.id);
+            await (this as any).deleteProductFlavorMappings(idsToDelete);
         }
-        // Insert new mappings
-        const createdList = [];
-        for (const item of mappings) {
-            const res = await (this as any).createProductFlavorMappings({
-                product_id: productId,
-                flavor_id: item.flavor_id,
-                price_override: item.price_override ?? null,
-                is_enabled: item.is_enabled ?? true,
-            });
-            createdList.push(res);
-        }
-        return createdList;
+        // Insert new mappings in 1 batch create
+        if (!mappings || mappings.length === 0) return [];
+        const payload = mappings.map((item) => ({
+            product_id: productId,
+            flavor_id: item.flavor_id,
+            price_override: item.price_override ?? null,
+            is_enabled: item.is_enabled ?? true,
+        }));
+        const created = await (this as any).createProductFlavorMappings(payload);
+        return Array.isArray(created) ? created : [created];
     }
 
     async saveProductShapeMappings(productId: string, mappings: { shape_id: string; price_override?: number; is_enabled?: boolean }[]) {
-        // Clear existing mappings for product
+        // Clear existing mappings for product in 1 batch delete
         const existing = await (this as any).listProductShapeMappings({ product_id: productId });
         if (existing.length > 0) {
-            for (const item of existing) {
-                await (this as any).deleteProductShapeMappings(item.id);
-            }
+            const idsToDelete = existing.map((item: any) => item.id);
+            await (this as any).deleteProductShapeMappings(idsToDelete);
         }
-        // Insert new mappings
-        const createdList = [];
-        for (const item of mappings) {
-            const res = await (this as any).createProductShapeMappings({
-                product_id: productId,
-                shape_id: item.shape_id,
-                price_override: item.price_override ?? null,
-                is_enabled: item.is_enabled ?? true,
-            });
-            createdList.push(res);
-        }
-        return createdList;
+        // Insert new mappings in 1 batch create
+        if (!mappings || mappings.length === 0) return [];
+        const payload = mappings.map((item) => ({
+            product_id: productId,
+            shape_id: item.shape_id,
+            price_override: item.price_override ?? null,
+            is_enabled: item.is_enabled ?? true,
+        }));
+        const created = await (this as any).createProductShapeMappings(payload);
+        return Array.isArray(created) ? created : [created];
     }
 
     async checkFlavorUsage(flavorId: string): Promise<number> {

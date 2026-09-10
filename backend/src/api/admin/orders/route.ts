@@ -12,8 +12,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const query = req.scope.resolve(ContainerRegistrationKeys.QUERY);
     const orderLifecycleModule = req.scope.resolve(ORDER_LIFECYCLE_MODULE) as any;
 
-    const limit = req.query.limit ? Number(req.query.limit) : 50;
-    const offset = req.query.offset ? Number(req.query.offset) : 0;
+    const limit = Math.min(Math.max(1, req.query.limit ? Number(req.query.limit) : 20), 100);
+    const offset = Math.max(0, req.query.offset ? Number(req.query.offset) : 0);
     const q = (req.query.q as string || "").toLowerCase().trim();
     const statusFilter = req.query.status as string | undefined;
 
@@ -40,28 +40,38 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
           "metadata",
         ],
         pagination: {
-          take: limit * 2,
-          skip: offset,
-          order: { created_at: "DESC" },
+          take: q ? 100 : limit,
+          skip: q ? 0 : offset,
+          order: { created_at: "DESC", id: "DESC" },
         },
       });
       rawOrders = data || [];
     } catch {
       const orderService = req.scope.resolve(Modules.ORDER) as any;
-      rawOrders = await orderService.listOrders({});
+      rawOrders = await orderService.listOrders(
+        {},
+        {
+          take: q ? 100 : limit,
+          skip: q ? 0 : offset,
+          order: { created_at: "DESC", id: "DESC" },
+        }
+      );
     }
 
-    const enrichedOrders = await Promise.all(
-      rawOrders.map(async (o: any, idx: number) => {
-        let currentStatus = o.status || "pending";
-        try {
-          if (orderLifecycleModule?.getCurrentStatus) {
-            const lc = await orderLifecycleModule.getCurrentStatus(o.id);
-            if (lc) currentStatus = lc;
-          }
-        } catch {
-          // ignore error
-        }
+    const orderIds = (rawOrders || []).map((o: any) => o.id).filter(Boolean);
+    let statusMap = new Map<string, string | null>();
+    if (orderLifecycleModule?.getBatchCurrentStatuses && orderIds.length > 0) {
+      try {
+        statusMap = await orderLifecycleModule.getBatchCurrentStatuses(orderIds);
+      } catch {
+        // Fallback gracefully if error
+      }
+    }
+
+    const enrichedOrders = rawOrders.map((o: any, idx: number) => {
+      let currentStatus = o.status || "pending";
+      const lc = statusMap.get(o.id);
+      if (lc) currentStatus = lc;
 
         const meta = o.metadata || {};
         const shipping = o.shipping_address || meta.shipping_address || {};
@@ -176,8 +186,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
           items,
         };
-      })
-    );
+      });
 
     let filtered = enrichedOrders;
 
@@ -197,7 +206,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       );
     }
 
-    const paginated = filtered.slice(offset, offset + limit);
+    const paginated = q ? filtered.slice(offset, offset + limit) : filtered;
 
     return res.status(200).json({
       orders: paginated,
@@ -205,6 +214,13 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       total: filtered.length,
       limit,
       offset,
+      pagination: {
+        page: Math.floor(offset / limit) + 1,
+        pageSize: limit,
+        total: filtered.length,
+        hasNextPage: q ? offset + limit < filtered.length : paginated.length >= limit,
+        hasPreviousPage: offset > 0,
+      },
     });
   } catch (err: any) {
     return res.status(500).json({ message: err.message || "Failed to list orders" });

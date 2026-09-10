@@ -52,6 +52,11 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
   const [internalNotesList, setInternalNotesList] = useState<string[]>([]);
 
   const fetchOrderDetails = () => {
+    if (!orderId) {
+      setError("No order ID provided");
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     apiClient
@@ -59,15 +64,17 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
       .then((data: any) => {
         if (data) {
           setOrder(data);
+          if (Array.isArray(data.staff_notes)) {
+            setInternalNotesList(data.staff_notes);
+          }
         } else {
-          apiClient.getAdminOrder(orderId).then((r: any) => {
-            const resObj = r?.order || r || null;
-            if (resObj) setOrder(resObj);
-            else setError("Order details not found");
-          }).catch((err) => setError(err.message || "Failed to load order details"));
+          setError("Order details not found");
         }
       })
       .catch((err) => {
+        if (err?.name === "AbortError") {
+          return;
+        }
         setError(err.message || "Failed to load order details");
       })
       .finally(() => setLoading(false));
@@ -225,10 +232,17 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
     }
   };
 
-  const handleAddInternalNote = () => {
+  const handleAddInternalNote = async () => {
     if (!internalNoteInput.trim()) return;
-    setInternalNotesList((prev) => [...prev, internalNoteInput.trim()]);
+    const noteText = internalNoteInput.trim();
+    setInternalNotesList((prev) => [...prev, noteText]);
     setInternalNoteInput("");
+    try {
+      await apiClient.addAdminOrderNote(orderId, noteText);
+      fetchOrderDetails();
+    } catch {
+      // Non-blocking UI update
+    }
   };
 
   const statusList = [
@@ -296,7 +310,9 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                   <span className="text-[10px] font-extrabold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">SECTION 1 &bull; ORDER LIFECYCLE STATUS</span>
                   <div className="flex flex-wrap items-center gap-2 mt-1">
                     <Heading level="h3" className="text-lg font-black">{order.order_number}</Heading>
-                    <Badge color="purple" className="text-xs font-mono font-bold px-2 py-0.5">{order.invoice_number || "CTH/26-27/000124"}</Badge>
+                    <Badge color={order.invoice_number ? "purple" : "grey"} className="text-xs font-mono font-bold px-2 py-0.5">
+                      {order.invoice_number || "Invoice Not Generated"}
+                    </Badge>
                     <Button size="small" variant="secondary" onClick={() => setShowInvoiceModal(true)} className="text-xs font-extrabold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300">
                       <FileText className="w-3.5 h-3.5 mr-1 text-emerald-600" /> View / Print Tax Invoice
                     </Button>

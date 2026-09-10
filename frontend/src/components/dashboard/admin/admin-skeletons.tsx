@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * Enterprise Admin Skeleton Loaders
  * High-density animated pulse placeholders tailored for tables, grids, forms, and metrics.

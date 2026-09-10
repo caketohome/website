@@ -159,6 +159,77 @@ export interface Subscription {
 }
 
 export async function searchProducts(filters: SearchFilters = {}): Promise<SearchResponse> {
+  // Authoritative Server Data Path: Query PostgreSQL directly
+  if (typeof window === "undefined") {
+    try {
+      const { ProductRepository } = await import("../repositories/product.repository");
+      const categoryVal = filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id);
+      const limit = filters.limit || 48;
+      const offset = filters.offset || 0;
+      const page = Math.floor(offset / limit) + 1;
+
+      const paginated = await ProductRepository.listProducts({
+        page,
+        pageSize: limit,
+        limit,
+        offset,
+        category_id: categoryVal,
+        q: filters.q,
+        flavour: filters.flavour,
+        min_price: filters.min_price,
+        max_price: filters.max_price,
+        sort: filters.sort,
+      });
+
+      let mappedResults: SearchResult[] = paginated.items.map((p: any) => ({
+        product_id: p.id || p.product_id,
+        variant_id: p.variant_id || `var_${p.id || p.product_id}`,
+        title: p.title || p.name || "Gourmet Cake",
+        description: p.description || p.short_description || "",
+        thumbnail: p.thumbnail || "/images/placeholder-cake.jpg",
+        handle: p.handle || p.slug || "cake",
+        price: Math.max(0, Number(p.price || p.selling_price) || 0),
+        rating: Number(p.rating) || 4.9,
+        review_count: Number(p.review_count) || 12,
+        sugar_free: Boolean(p.sugar_free),
+        gluten_free: Boolean(p.gluten_free),
+        vegan: Boolean(p.vegan),
+        is_featured: Boolean(p.is_featured),
+        is_bestseller: Boolean(p.is_bestseller),
+        is_new_arrival: Boolean(p.is_new_arrival),
+        branch_status: p.branch_status || "AVAILABLE",
+        is_out_of_stock_at_branch: Boolean(p.is_out_of_stock_at_branch),
+        primary_category_id: p.primary_category_id,
+        category: p.category || "",
+        category_slug: p.category_slug || "",
+        category_ids: p.category_ids || [],
+        categories: p.categories || [],
+        flavour: p.flavour || "",
+        weight: p.weight || "1 kg",
+      }));
+
+      // Dietary Switches
+      if (filters.sugar_free !== undefined) {
+        mappedResults = mappedResults.filter((p) => Boolean(p.sugar_free) === filters.sugar_free);
+      }
+      if (filters.gluten_free !== undefined) {
+        mappedResults = mappedResults.filter((p) => Boolean(p.gluten_free) === filters.gluten_free);
+      }
+      if (filters.vegan !== undefined) {
+        mappedResults = mappedResults.filter((p) => Boolean(p.vegan) === filters.vegan);
+      }
+
+      return {
+        results: mappedResults,
+        count: paginated.total,
+        offset,
+        limit,
+      };
+    } catch (err) {
+      console.error("[searchProducts ProductRepository Error]", err);
+    }
+  }
+
   try {
     const categoryVal = filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id);
     const engine = await getServerApiEngine();
@@ -237,27 +308,30 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
 export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
   try {
     let categoriesList: CategoryOption[] = [];
-    let rawList: any[] = [];
+    let validProducts: any[] = [];
 
-    try {
-      const engine = await getServerApiEngine();
-      if (engine?.ensureHydrated) {
-        await engine.ensureHydrated();
-      }
-      const cats = engine?.getCategories ? engine.getCategories() : [];
-      categoriesList = (cats || []).map((c: any) => ({
+    if (typeof window === "undefined") {
+      const [cats, prods] = await Promise.all([
+        listPimCategories(),
+        listProducts(),
+      ]);
+      categoriesList = cats.map((c: any) => ({
         id: c.id,
         name: c.name,
         slug: c.slug,
         product_count: typeof c.product_count === "number" ? c.product_count : 0,
       }));
-      rawList = engine?.getProducts ? engine.getProducts() : [];
-    } catch {
-      categoriesList = [];
-      rawList = [];
-    }
-
-    if (categoriesList.length === 0 && typeof window !== "undefined") {
+      validProducts = (prods || []).filter((p: any) => {
+        const titleLower = (p.title || p.name || "").toLowerCase();
+        return (
+          !titleLower.startsWith("api test") &&
+          !titleLower.startsWith("test cake") &&
+          !titleLower.startsWith("e2e special") &&
+          !titleLower.startsWith("empirical cake") &&
+          !titleLower.startsWith("header verification")
+        );
+      });
+    } else {
       const [catRes, prodRes]: [any, any] = await Promise.all([
         apiClient.getCategories().catch(() => null),
         apiClient.getProducts().catch(() => null),
@@ -270,18 +344,18 @@ export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
         product_count: typeof c.product_count === "number" ? c.product_count : 0,
       }));
 
-      rawList = prodRes?.products || prodRes?.results || prodRes?.data || [];
+      const rawList = prodRes?.products || prodRes?.results || prodRes?.data || [];
+      validProducts = rawList.filter((p: any) => {
+        const titleLower = (p.title || p.name || "").toLowerCase();
+        return (
+          !titleLower.startsWith("api test") &&
+          !titleLower.startsWith("test cake") &&
+          !titleLower.startsWith("e2e special") &&
+          !titleLower.startsWith("empirical cake") &&
+          !titleLower.startsWith("header verification")
+        );
+      });
     }
-    const validProducts = rawList.filter((p: any) => {
-      const titleLower = (p.title || p.name || "").toLowerCase();
-      return (
-        !titleLower.startsWith("api test") &&
-        !titleLower.startsWith("test cake") &&
-        !titleLower.startsWith("e2e special") &&
-        !titleLower.startsWith("empirical cake") &&
-        !titleLower.startsWith("header verification")
-      );
-    });
 
     const flavoursSet = new Set<string>();
     const weightsSet = new Set<string>();
@@ -298,39 +372,21 @@ export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
       }
     });
 
-    ["Chocolate", "Red Velvet", "Mango", "Black Forest", "Butterscotch"].forEach((f) => flavoursSet.add(f));
-    ["0.5 kg", "1 kg", "1.5 kg", "2 kg"].forEach((w) => weightsSet.add(w));
-
     return {
-      categories: categoriesList.length > 0 ? categoriesList : [
-        { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", product_count: 2 },
-        { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", product_count: 1 },
-        { id: "cat_fruit_mousse", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes", product_count: 1 },
-        { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes", product_count: 1 },
-        { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes", product_count: 1 },
-        { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", product_count: 1 },
-        { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", product_count: 3 },
-      ],
+      categories: categoriesList,
       flavours: Array.from(flavoursSet),
       weights: Array.from(weightsSet),
-      minPrice: isFinite(minPrice) ? minPrice : 500,
-      maxPrice: isFinite(maxPrice) ? maxPrice : 800,
+      minPrice: isFinite(minPrice) ? minPrice : 0,
+      maxPrice: isFinite(maxPrice) ? maxPrice : 0,
     };
-  } catch {
+  } catch (err) {
+    console.error("[getCatalogFilterOptions Error]", err);
     return {
-      categories: [
-        { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", product_count: 2 },
-        { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", product_count: 1 },
-        { id: "cat_fruit_mousse", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes", product_count: 1 },
-        { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes", product_count: 1 },
-        { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes", product_count: 1 },
-        { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", product_count: 1 },
-        { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", product_count: 3 },
-      ],
-      flavours: ["Chocolate", "Red Velvet", "Mango", "Black Forest", "Butterscotch"],
-      weights: ["0.5 kg", "1 kg", "1.5 kg", "2 kg"],
-      minPrice: 500,
-      maxPrice: 800,
+      categories: [],
+      flavours: [],
+      weights: [],
+      minPrice: 0,
+      maxPrice: 0,
     };
   }
 }
@@ -595,19 +651,125 @@ export const DEFAULT_CATALOG_PRODUCTS: any[] = [
   },
 ];
 
-export async function listProducts(options?: { branchId?: string; pincode?: string }): Promise<any[]> {
-  const engine = await getServerApiEngine();
-  if (engine) {
+export async function listPublicOffers(): Promise<any[]> {
+  if (typeof window === "undefined") {
     try {
-      if (engine.ensureHydrated) {
-        await engine.ensureHydrated();
-      }
-      const products = engine.getProducts(options?.branchId, options?.pincode);
-      if (Array.isArray(products)) return products;
-    } catch {
-      // Fallback to apiClient
+      const { OfferRepository } = await import("../repositories/offer.repository");
+      const offers = await OfferRepository.findAll();
+      const now = new Date();
+      return offers
+        .filter((o) => {
+          if (!o.is_active || o.status === "inactive") return false;
+          if (o.starts_at && new Date(o.starts_at) > now) return false;
+          if (o.ends_at && new Date(o.ends_at) < now) return false;
+          return true;
+        })
+        .map((o, idx) => {
+          const bgs = [
+            "from-rose-500 to-pink-600",
+            "from-amber-500 to-orange-600",
+            "from-purple-600 to-indigo-600",
+            "from-emerald-500 to-teal-600",
+          ];
+          return {
+            id: o.id,
+            code: o.code,
+            title: o.name || `Special Offer ${o.code}`,
+            desc: o.description || (o.min_order ? `On orders above ₹${o.min_order}` : "Special discount on select cakes"),
+            discount_type: o.discount_type || o.type,
+            discount_value: o.discount_value,
+            min_order: o.min_order,
+            bg: bgs[idx % bgs.length],
+          };
+        });
+    } catch (err) {
+      console.error("[listPublicOffers Error]", err);
+      return [];
     }
   }
+  return [];
+}
+
+export async function listProducts(options?: { branchId?: string; pincode?: string }): Promise<any[]> {
+  // Authoritative PostgreSQL Data Layer (Server Component path)
+  if (typeof window === "undefined") {
+    try {
+      const { ProductRepository } = await import("../repositories/product.repository");
+      const products = await ProductRepository.findAll(100);
+
+      let targetBranchId = options?.branchId;
+      if (!targetBranchId && options?.pincode) {
+        try {
+          const { BranchRepository } = await import("../repositories/branch.repository");
+          const resolved = await BranchRepository.findByPincode(options.pincode);
+          if (resolved) {
+            targetBranchId = resolved.id;
+          }
+        } catch {}
+      }
+
+      let stockMap = new Map<string, number>();
+      if (targetBranchId && products.length > 0) {
+        try {
+          const { InventoryService } = await import("../services/inventory.service");
+          const productIds = products.map((p: any) => p.id || p.product_id);
+          stockMap = await InventoryService.getBatchStock(targetBranchId, productIds);
+        } catch (err) {
+          console.error("[listProducts Inventory Error]", err);
+        }
+      }
+
+      return products.map((p: any) => {
+        const prodId = p.id || p.product_id;
+        const stock = stockMap.get(prodId);
+        const hasStockData = targetBranchId ? stockMap.has(prodId) : false;
+        const isOos = hasStockData && stock !== undefined && stock <= 0;
+
+        return {
+          id: prodId,
+          product_id: prodId,
+          title: p.title || p.name || "Gourmet Cake",
+          name: p.title || p.name || "Gourmet Cake",
+          handle: p.handle || p.slug || prodId,
+          slug: p.slug || p.handle || prodId,
+          description: p.description || "",
+          short_description: p.short_description || p.description || "",
+          thumbnail: p.thumbnail || (Array.isArray(p.gallery) && p.gallery[0]) || "/images/placeholder-cake.jpg",
+          image: p.thumbnail || (Array.isArray(p.gallery) && p.gallery[0]) || "/images/placeholder-cake.jpg",
+          images: p.gallery && p.gallery.length > 0 ? p.gallery : [p.thumbnail || "/images/placeholder-cake.jpg"],
+          gallery: p.gallery || [],
+          price: Math.max(0, Number(p.selling_price || p.price) || 599),
+          selling_price: Math.max(0, Number(p.selling_price || p.price) || 599),
+          mrp: Math.max(0, Number(p.mrp) || 799),
+          cost_price: Math.max(0, Number(p.cost_price) || 350),
+          rating: Number(p.rating) || 4.9,
+          review_count: Number(p.review_count) || 12,
+          category: p.category || "Cakes",
+          category_slug: p.category_slug || "cakes",
+          primary_category_id: p.primary_category_id || "cat_chocolate",
+          category_ids: p.category_ids || [],
+          flavour: p.flavour || "Chocolate",
+          weight: p.weight || "1 kg",
+          weight_prices: p.weight_prices || [],
+          variants: p.weight_prices || [],
+          variant_id: p.weight_prices?.[0]?.id || `wp_${prodId}_default`,
+          is_featured: Boolean(p.is_featured),
+          is_bestseller: Boolean(p.is_bestseller),
+          is_new_arrival: Boolean(p.is_new_arrival),
+          sugar_free: Boolean(p.sugar_free),
+          gluten_free: Boolean(p.gluten_free),
+          vegan: Boolean(p.vegan),
+          branch_status: isOos ? "OUT_OF_STOCK" : "AVAILABLE",
+          is_out_of_stock_at_branch: isOos,
+          status: p.status || "published",
+        };
+      });
+    } catch (err) {
+      console.error("[listProducts ProductRepository Error]", err);
+    }
+  }
+
+  // Client-side fallback to API Client
   try {
     const res: any = await apiClient.getProducts(options);
     const rawList = res?.products || res?.results || res?.data;
@@ -621,18 +783,39 @@ export async function listProducts(options?: { branchId?: string; pincode?: stri
 }
 
 export async function getProductById(id: string, pincode?: string): Promise<any | null> {
-  const engine = await getServerApiEngine();
-  if (engine) {
+  // Authoritative PostgreSQL Data Layer
+  if (typeof window === "undefined") {
     try {
-      if (engine.ensureHydrated) {
-        await engine.ensureHydrated();
+      const { ProductRepository } = await import("../repositories/product.repository");
+      const product = await ProductRepository.findById(id);
+      if (!product) return null;
+
+      let isOos = false;
+      if (pincode) {
+        try {
+          const { BranchRepository } = await import("../repositories/branch.repository");
+          const resolved = await BranchRepository.findByPincode(pincode);
+          if (resolved) {
+            const { InventoryService } = await import("../services/inventory.service");
+            const stockMap = await InventoryService.getBatchStock(resolved.id, [product.id]);
+            const stock = stockMap.get(product.id);
+            if (stock !== undefined && stock <= 0) {
+              isOos = true;
+            }
+          }
+        } catch {}
       }
-      const product = engine.getProductById(id, undefined, pincode);
-      if (product) return product;
-    } catch {
-      // Fallback
+
+      return {
+        ...product,
+        branch_status: isOos ? "OUT_OF_STOCK" : "AVAILABLE",
+        is_out_of_stock_at_branch: isOos,
+      };
+    } catch (err) {
+      console.error("[getProductById ProductRepository Error]", err);
     }
   }
+
   try {
     const res: any = await (apiClient as any).getProduct?.(id, { pincode });
     return res?.product || res || null;
@@ -642,18 +825,39 @@ export async function getProductById(id: string, pincode?: string): Promise<any 
 }
 
 export async function getProductBySlug(slug: string, pincode?: string): Promise<any | null> {
-  const engine = await getServerApiEngine();
-  if (engine) {
+  // Authoritative PostgreSQL Data Layer
+  if (typeof window === "undefined") {
     try {
-      if (engine.ensureHydrated) {
-        await engine.ensureHydrated();
+      const { ProductRepository } = await import("../repositories/product.repository");
+      const product = await ProductRepository.findBySlug(slug);
+      if (!product) return null;
+
+      let isOos = false;
+      if (pincode) {
+        try {
+          const { BranchRepository } = await import("../repositories/branch.repository");
+          const resolved = await BranchRepository.findByPincode(pincode);
+          if (resolved) {
+            const { InventoryService } = await import("../services/inventory.service");
+            const stockMap = await InventoryService.getBatchStock(resolved.id, [product.id]);
+            const stock = stockMap.get(product.id);
+            if (stock !== undefined && stock <= 0) {
+              isOos = true;
+            }
+          }
+        } catch {}
       }
-      const product = engine.getProductBySlug(slug, undefined, pincode) || engine.getProductById(slug, undefined, pincode);
-      if (product) return product;
-    } catch {
-      // Fallback
+
+      return {
+        ...product,
+        branch_status: isOos ? "OUT_OF_STOCK" : "AVAILABLE",
+        is_out_of_stock_at_branch: isOos,
+      };
+    } catch (err) {
+      console.error("[getProductBySlug ProductRepository Error]", err);
     }
   }
+
   try {
     const res: any = await (apiClient as any).getProduct?.(slug, { pincode });
     return res?.product || res || null;
@@ -663,59 +867,141 @@ export async function getProductBySlug(slug: string, pincode?: string): Promise<
 }
 
 export async function listPimCategories(): Promise<any[]> {
-  const engine = await getServerApiEngine();
-  if (engine) {
+  // Authoritative PostgreSQL Data Layer
+  if (typeof window === "undefined") {
     try {
-      const categories = engine.listPimCategories();
-      if (Array.isArray(categories) && categories.length > 0) return categories;
-    } catch {
-      // Fallback
+      const { dbQuery } = await import("../db");
+      const res = await dbQuery(`
+        SELECT 
+          pc.id,
+          pc.name,
+          pc.handle as slug,
+          COALESCE(pc.metadata->>'image', 'https://images.unsplash.com/photo-1578985545062-69928b1d9587') as image,
+          COALESCE(pc.metadata->>'icon', '🎂') as icon,
+          COALESCE(pc.metadata->>'color', 'bg-rose-50 border-rose-200 text-rose-900') as color,
+          COUNT(p.id)::int as product_count
+        FROM product_category pc
+        LEFT JOIN product_category_product pcp ON pcp.product_category_id = pc.id
+        LEFT JOIN product p ON (p.id = pcp.product_id OR p.metadata->>'primary_category_id' = pc.id OR p.metadata->>'category_slug' = pc.handle) AND p.deleted_at IS NULL
+        WHERE pc.deleted_at IS NULL
+        GROUP BY pc.id, pc.name, pc.handle, pc.metadata
+        ORDER BY product_count DESC, pc.name ASC
+      `);
+
+      if (res.rows && res.rows.length > 0) {
+        return res.rows.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          slug: r.slug,
+          image: r.image,
+          icon: r.icon,
+          color: r.color,
+          product_count: Number(r.product_count) || 0,
+          count: `${Number(r.product_count) || 0} items`,
+        }));
+      }
+
+      // If product_category table is empty, dynamically derive from product metadata in PostgreSQL
+      const derived = await dbQuery(`
+        SELECT DISTINCT 
+          COALESCE(metadata->>'category', 'Artisanal Cakes') as name,
+          COALESCE(metadata->>'category_slug', 'cakes') as slug,
+          COALESCE(metadata->>'primary_category_id', 'cat_' || LOWER(REGEXP_REPLACE(metadata->>'category', '[^a-zA-Z0-9]+', '_', 'g'))) as id,
+          COUNT(*)::int as product_count
+        FROM product 
+        WHERE deleted_at IS NULL
+        GROUP BY 1, 2, 3
+        ORDER BY product_count DESC
+      `);
+
+      return (derived.rows || []).map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        slug: r.slug,
+        image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
+        icon: "🎂",
+        color: "bg-rose-50 border-rose-200 text-rose-900",
+        product_count: Number(r.product_count) || 0,
+        count: `${Number(r.product_count) || 0} items`,
+      }));
+    } catch (err) {
+      console.error("[listPimCategories PostgreSQL Error]", err);
     }
   }
+
   try {
     const res: any = await (apiClient as any).getCategories?.();
     const list = res?.categories || res?.data;
     if (Array.isArray(list) && list.length > 0) return list;
-    return [
-      { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587" },
-      { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", image: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c" },
-      { id: "cat_fruit", name: "Fresh Fruit Cakes", slug: "fruit-cakes", image: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b" },
-      { id: "cat_cheesecake", name: "Cheesecakes", slug: "cheesecakes", image: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad" },
-    ];
+    return [];
   } catch {
-    return [
-      { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587" },
-      { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", image: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c" },
-      { id: "cat_fruit", name: "Fresh Fruit Cakes", slug: "fruit-cakes", image: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b" },
-      { id: "cat_cheesecake", name: "Cheesecakes", slug: "cheesecakes", image: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad" },
-    ];
+    return [];
   }
 }
 
 export async function listOccasions(): Promise<any[]> {
-  const engine = await getServerApiEngine();
-  if (engine) {
+  // Authoritative PostgreSQL Data Layer
+  if (typeof window === "undefined") {
     try {
-      const occasions = engine.listOccasions();
-      if (Array.isArray(occasions) && occasions.length > 0) return occasions;
-    } catch {
-      // Fallback
+      const { dbQuery } = await import("../db");
+      // Check CMS page for explicit occasion configuration
+      const pageRes = await dbQuery(`SELECT blocks FROM "cms_page" WHERE id = 'cmspg_home' AND deleted_at IS NULL LIMIT 1`);
+      if (pageRes.rows && pageRes.rows.length > 0) {
+        let blocks: any = pageRes.rows[0].blocks;
+        if (typeof blocks === "string") {
+          try { blocks = JSON.parse(blocks); } catch {}
+        }
+        const sections = blocks?.published_config?.sections || blocks?.sections || [];
+        const occSec = sections.find((s: any) => s.type === "occasions_grid" || s.type === "occasion_carousel");
+        if (occSec && Array.isArray(occSec.config?.manual_occasions) && occSec.config.manual_occasions.length > 0) {
+          return occSec.config.manual_occasions;
+        }
+      }
+
+      // Extract distinct occasions from PostgreSQL product metadata
+      const occRes = await dbQuery(`
+        SELECT 
+          metadata->>'occasion' as title,
+          metadata->>'occasion' as name,
+          LOWER(REGEXP_REPLACE(metadata->>'occasion', '[^a-zA-Z0-9]+', '-', 'g')) as slug,
+          'occ_' || LOWER(REGEXP_REPLACE(metadata->>'occasion', '[^a-zA-Z0-9]+', '_', 'g')) as id,
+          thumbnail as image,
+          thumbnail as cover_image,
+          COUNT(*)::int as count
+        FROM product
+        WHERE metadata->>'occasion' IS NOT NULL 
+          AND metadata->>'occasion' != ''
+          AND deleted_at IS NULL
+        GROUP BY 1, 2, 3, 4, 5, 6
+        ORDER BY count DESC
+      `);
+
+      if (occRes.rows && occRes.rows.length > 0) {
+        return occRes.rows.map((r: any) => ({
+          id: r.id,
+          title: r.title,
+          name: r.name,
+          slug: r.slug,
+          image: r.image || "https://images.unsplash.com/photo-1558636508-e0db3814bd1d",
+          cover_image: r.cover_image || "https://images.unsplash.com/photo-1558636508-e0db3814bd1d",
+          icon: "🎂",
+          active: true,
+          is_active: true,
+        }));
+      }
+
+      return [];
+    } catch (err) {
+      console.error("[listOccasions PostgreSQL Error]", err);
     }
   }
+
   try {
     const res: any = await apiClient.getOccasions();
     const list = res?.occasions || res?.data;
     if (Array.isArray(list) && list.length > 0) return list;
-    return [
-      { id: "occ_birthday", title: "Birthday", slug: "birthday", image: "https://images.unsplash.com/photo-1558636508-e0db3814bd1d" },
-      { id: "occ_anniversary", title: "Anniversary", slug: "anniversary", image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc" },
-      { id: "occ_midnight", title: "Midnight Surprise", slug: "midnight", image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d" },
-    ];
+    return [];
   } catch {
-    return [
-      { id: "occ_birthday", title: "Birthday", slug: "birthday", image: "https://images.unsplash.com/photo-1558636508-e0db3814bd1d" },
-      { id: "occ_anniversary", title: "Anniversary", slug: "anniversary", image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc" },
-      { id: "occ_midnight", title: "Midnight Surprise", slug: "midnight", image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d" },
-    ];
+    return [];
   }
 }

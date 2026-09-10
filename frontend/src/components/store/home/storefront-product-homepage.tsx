@@ -10,32 +10,45 @@ import { searchProductsAction } from "@frontend/lib/actions/catalog";
 import { type SearchResult } from "@frontend/lib/data/catalog-client";
 import { addToCart } from "@frontend/lib/actions/carts";
 import { ErrorComponent } from "@frontend/components/common/error-component";
-import { ScrollFrameHero } from "@frontend/components/store/animation/scroll-frame-hero";
+import dynamic from "next/dynamic";
+
+const ScrollFrameHero = dynamic(
+  () => import("@frontend/components/store/animation/scroll-frame-hero").then((mod) => mod.ScrollFrameHero),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full min-h-[500px] flex items-center justify-center bg-zinc-950 text-white/50 text-sm animate-pulse">
+        Loading interactive experience...
+      </div>
+    ),
+  }
+);
+
 import { useFavorites } from "@/providers/favorites-provider";
 
-const CATEGORIES = [
-  { name: "Birthday Cakes", icon: "🎂", slug: "birthday-cakes", count: "42 items", color: "bg-rose-50 border-rose-200 text-rose-900" },
-  { name: "Anniversary Cakes", icon: "💖", slug: "anniversary-cakes", count: "35 items", color: "bg-pink-50 border-pink-200 text-pink-900" },
-  { name: "Pastries", icon: "🥐", slug: "pastries", count: "28 items", color: "bg-amber-50 border-amber-200 text-amber-900" },
-  { name: "Snacks", icon: "🥨", slug: "snacks", count: "24 items", color: "bg-orange-50 border-orange-200 text-orange-900" },
-  { name: "Cookies", icon: "🍪", slug: "cookies", count: "19 items", color: "bg-yellow-50 border-yellow-200 text-yellow-900" },
-  { name: "Chocolates", icon: "🍫", slug: "chocolates", count: "30 items", color: "bg-amber-100 border-amber-300 text-amber-950" },
-  { name: "Beverages", icon: "☕", slug: "beverages", count: "15 items", color: "bg-blue-50 border-blue-200 text-blue-900" },
-  { name: "New Arrivals", icon: "✨", slug: "new-arrivals", count: "22 items", color: "bg-purple-50 border-purple-200 text-purple-900" },
-];
+export interface StorefrontProductHomepageProps {
+  initialProducts?: any[];
+  initialCategories?: any[];
+  initialOffers?: any[];
+}
 
-const OFFERS = [
-  { code: "CAKE100", title: "Flat ₹100 OFF", desc: "On orders above ₹599", bg: "from-rose-500 to-pink-600" },
-  { code: "EXPRESS2H", title: "Free 2-Hour Express Delivery", desc: "No minimum order requirement", bg: "from-amber-500 to-orange-600" },
-  { code: "SWEET15", title: "Extra 15% OFF", desc: "On all Birthday & Anniversary orders", bg: "from-purple-600 to-indigo-600" },
-];
-
-export function StorefrontProductHomepage() {
-  const [products, setProducts] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(true);
+export function StorefrontProductHomepage({
+  initialProducts,
+  initialCategories,
+  initialOffers,
+}: StorefrontProductHomepageProps = {}) {
+  const [products, setProducts] = useState<SearchResult[]>(initialProducts || []);
+  const [categories, setCategories] = useState<any[]>(initialCategories || []);
+  const [offers, setOffers] = useState<any[]>(initialOffers || []);
+  const [loading, setLoading] = useState(!initialProducts || initialProducts.length === 0);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) {
+      setProducts(initialProducts);
+      setLoading(false);
+      return;
+    }
     async function loadCatalog() {
       try {
         setLoading(true);
@@ -50,7 +63,19 @@ export function StorefrontProductHomepage() {
       }
     }
     loadCatalog();
-  }, []);
+  }, [initialProducts]);
+
+  useEffect(() => {
+    if (initialCategories) {
+      setCategories(initialCategories);
+    }
+  }, [initialCategories]);
+
+  useEffect(() => {
+    if (initialOffers) {
+      setOffers(initialOffers);
+    }
+  }, [initialOffers]);
 
   const featuredProducts = (products.filter((p) => p.is_featured).length > 0 ? products.filter((p) => p.is_featured) : products).slice(0, 4);
   const bestSellers = (products.filter((p) => p.is_bestseller).length > 0 ? products.filter((p) => p.is_bestseller) : products).slice(0, 4);
@@ -65,61 +90,65 @@ export function StorefrontProductHomepage() {
         badgeText="100% Fresh & Artisanal • Express 2-Hour Delivery"
       />
 
-      {/* Offers & Promotions Bar */}
-      <section className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <Heading level="h2" className="text-xl font-bold flex items-center gap-2">
-            <Tag className="w-5 h-5 text-rose-600" /> Special Offers & Coupons
-          </Heading>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {OFFERS.map((o) => (
-            <div
-              key={o.code}
-              className={`p-5 rounded-2xl bg-gradient-to-br ${o.bg} text-white shadow-md flex flex-col justify-between gap-3`}
-            >
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
-                  Use Code: {o.code}
-                </span>
-                <h3 className="text-lg font-extrabold mt-2">{o.title}</h3>
-                <p className="text-xs text-white/90">{o.desc}</p>
-              </div>
-              <Link
-                href="/category/birthday-cakes"
-                className="text-xs font-bold text-white underline underline-offset-4 hover:opacity-80 flex items-center gap-1 w-fit"
+      {/* Offers & Promotions Bar - Live PostgreSQL Offers */}
+      {offers.length > 0 && (
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <Heading level="h2" className="text-xl font-bold flex items-center gap-2">
+              <Tag className="w-5 h-5 text-rose-600" /> Special Offers & Coupons
+            </Heading>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {offers.map((o) => (
+              <div
+                key={o.code || o.id}
+                className={`p-5 rounded-2xl bg-gradient-to-br ${o.bg || "from-rose-500 to-pink-600"} text-white shadow-md flex flex-col justify-between gap-3`}
               >
-                Claim Offer <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-          ))}
-        </div>
-      </section>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
+                    Use Code: {o.code}
+                  </span>
+                  <h3 className="text-lg font-extrabold mt-2">{o.title}</h3>
+                  <p className="text-xs text-white/90">{o.desc}</p>
+                </div>
+                <Link
+                  href="/search"
+                  className="text-xs font-bold text-white underline underline-offset-4 hover:opacity-80 flex items-center gap-1 w-fit"
+                >
+                  Claim Offer <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* Categories Grid */}
-      <section className="flex flex-col gap-5">
-        <div className="flex items-center justify-between">
-          <Heading level="h2" className="text-xl font-bold">
-            Explore Categories
-          </Heading>
-          <Link href="/search" className="text-xs font-semibold text-rose-600 hover:underline flex items-center gap-1">
-            View All Categories <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-          {CATEGORIES.map((cat) => (
-            <Link
-              key={cat.slug}
-              href={`/category/${cat.slug}`}
-              className={`p-3.5 rounded-2xl border ${cat.color} flex flex-col items-center text-center gap-2 hover:scale-105 transition-transform duration-200 shadow-sm`}
-            >
-              <span className="text-3xl">{cat.icon}</span>
-              <span className="text-xs font-bold line-clamp-1">{cat.name}</span>
-              <span className="text-[10px] opacity-75">{cat.count}</span>
+      {/* Categories Grid - Live PostgreSQL Categories */}
+      {categories.length > 0 && (
+        <section className="flex flex-col gap-5">
+          <div className="flex items-center justify-between">
+            <Heading level="h2" className="text-xl font-bold">
+              Explore Categories
+            </Heading>
+            <Link href="/search" className="text-xs font-semibold text-rose-600 hover:underline flex items-center gap-1">
+              View All Categories <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-          ))}
-        </div>
-      </section>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+            {categories.map((cat) => (
+              <Link
+                key={cat.slug || cat.id}
+                href={`/category/${cat.slug || cat.id}`}
+                className={`p-3.5 rounded-2xl border ${cat.color || "bg-rose-50 border-rose-200 text-rose-900"} flex flex-col items-center text-center gap-2 hover:scale-105 transition-transform duration-200 shadow-sm`}
+              >
+                <span className="text-3xl">{cat.icon || "🎂"}</span>
+                <span className="text-xs font-bold line-clamp-1">{cat.name}</span>
+                <span className="text-[10px] opacity-75">{cat.count || `${cat.product_count || 0} items`}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Featured Products */}
       <section className="flex flex-col gap-5">

@@ -53,7 +53,9 @@ function createMockService(): {
             return store.filter((r) => r.id === selector);
         }
         return store.filter((r) =>
-            Object.entries(selector).every(([k, v]) => r[k] === v)
+            Object.entries(selector).every(([k, v]) =>
+                Array.isArray(v) ? v.includes(r[k]) : r[k] === v
+            )
         );
     };
 
@@ -255,6 +257,35 @@ describe("OrderLifecycleModuleService", () => {
             const { service } = createMockService();
             const status = await service.getCurrentStatus("order_none");
             expect(status).toBeNull();
+        });
+
+        it("getBatchStatusHistories and getBatchCurrentStatuses retrieve multiple orders in batch", async () => {
+            const { service } = createMockService();
+            await service.recordStatusTransition({
+                order_id: "order_b1",
+                from_status: null,
+                to_status: "pending",
+            });
+            await service.recordStatusTransition({
+                order_id: "order_b1",
+                from_status: "pending",
+                to_status: "confirmed",
+            });
+            await service.recordStatusTransition({
+                order_id: "order_b2",
+                from_status: null,
+                to_status: "pending",
+            });
+
+            const histories = await service.getBatchStatusHistories(["order_b1", "order_b2", "order_b3"]);
+            expect(histories.get("order_b1")).toHaveLength(2);
+            expect(histories.get("order_b2")).toHaveLength(1);
+            expect(histories.get("order_b3")).toEqual([]);
+
+            const statuses = await service.getBatchCurrentStatuses(["order_b1", "order_b2", "order_b3"]);
+            expect(statuses.get("order_b1")).toBe("confirmed");
+            expect(statuses.get("order_b2")).toBe("pending");
+            expect(statuses.get("order_b3")).toBeNull();
         });
 
         it("registerOrder is idempotent (does not duplicate initial entry)", async () => {

@@ -199,11 +199,11 @@ export function DeliveryLocationHeader() {
     <div className="relative z-50 shrink-0">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/15 transition-colors font-medium text-xs shadow-sm max-w-[160px] sm:max-w-none"
+        className="flex items-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/15 transition-colors font-medium text-xs shadow-sm max-w-[85px] sm:max-w-none shrink-0"
       >
         <MapPin className="w-3.5 h-3.5 text-[#FF4D6D] animate-pulse shrink-0" />
         <div className="flex flex-col text-left overflow-hidden">
-          <span className="font-semibold text-[11px] sm:text-xs text-white truncate max-w-[95px] sm:max-w-[170px]">
+          <span className="font-semibold text-[11px] sm:text-xs text-white truncate max-w-[55px] sm:max-w-[170px]">
             {pincode ? `Deliver to ${pincode}` : (cityName ? `${cityName}` : "Set location")}
           </span>
           <span className="text-[9px] sm:text-[10px] text-white/75 truncate hidden sm:inline">
