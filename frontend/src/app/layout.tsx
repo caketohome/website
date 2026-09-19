@@ -12,13 +12,17 @@ const sans = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-sans",
+  fallback: ["system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+  adjustFontFallback: false,
 });
 
 const serif = Playfair_Display({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   display: "swap",
   variable: "--font-serif",
+  fallback: ["Georgia", "Cambria", "Times New Roman", "serif"],
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
@@ -37,10 +41,10 @@ export default function RootLayout({
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#e11d48" />
+        <meta name="theme-color" content="#1D2F5D" />
         <OrganizationJsonLd />
       </head>
-      <body className={`${sans.variable} ${serif.variable} font-sans`}>
+      <body className={`${sans.variable} ${serif.variable} font-sans min-h-screen bg-brand-cream text-brand-text antialiased`}>
         <AuthProvider>
           <CustomerProvider>
             <FavoritesProvider>

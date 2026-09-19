@@ -230,8 +230,8 @@ export function PromotionalBannerSection({
       id={`section-${sectionId}`}
       onClick={() => onSectionClick?.(sectionId)}
       className={`w-full transition-all relative ${
-        isSelected ? "ring-2 ring-rose-500 ring-offset-4 rounded-2xl cursor-pointer" : ""
-      } ${isPreview ? "hover:outline-dashed hover:outline-2 hover:outline-rose-400" : ""}`}
+        isSelected ? "ring-2 ring-[#D4AF37]/50 ring-offset-4 rounded-2xl cursor-pointer" : ""
+      } ${isPreview ? "hover:outline-dashed hover:outline-2 hover:outline-[#D4AF37]/60" : ""}`}
       style={{ backgroundColor: sectionBgColor }}
     >
       {/* Dynamic Scoped Responsive Stylesheet via dangerouslySetInnerHTML to prevent React hydration warnings */}

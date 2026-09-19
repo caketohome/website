@@ -51,11 +51,11 @@ export function SmartLoginModal({
       aria-labelledby="smart-login-modal-title"
     >
       <div
-        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-rose-100 overflow-hidden transform transition-all animate-scale-up"
+        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#D4AF37]/20 overflow-hidden transform transition-all animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Ribbon */}
-        <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 px-6 py-4 text-white">
+        <div className="bg-gradient-to-r from-[#1D2F5D] via-[#1D2F5D] to-amber-500 px-6 py-4 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-2xl">🎂</span>

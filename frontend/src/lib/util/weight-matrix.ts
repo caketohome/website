@@ -117,7 +117,7 @@ export function sortWeightOptions<T extends { normalized_grams?: number; weight_
  * Suggests the next logical standard weight size given a list of already existing weight sizes.
  * Standard progression: 0.5 kg -> 0.75 kg -> 1 kg -> 1.5 kg -> 2 kg -> 2.5 kg -> 3 kg -> 3.5 kg -> 4 kg -> 5 kg
  */
-export function getNextSuggestedWeight(existingWeights: Array<{ weight_name?: string; normalized_grams?: number }>): {
+export function getNextSuggestedWeight(existingWeights: Array<{ weight_name?: string; normalized_grams?: number; selling_price?: number }>): {
   name: string;
   price: number;
 } {
@@ -138,9 +138,13 @@ export function getNextSuggestedWeight(existingWeights: Array<{ weight_name?: st
     { grams: 5000, name: "5 kg", priceFactor: 4.5 },
   ];
 
+  const baseLadderPrice = existingWeights.length > 0
+    ? (existingWeights.find((o) => (o.weight_name || "").includes("1 kg"))?.selling_price || existingWeights[0].selling_price || 599)
+    : 599;
+
   for (const step of standardLadder) {
     if (!existingGrams.has(step.grams)) {
-      return { name: step.name, price: Math.round(599 * step.priceFactor) };
+      return { name: step.name, price: Math.round(baseLadderPrice * step.priceFactor) };
     }
   }
 
@@ -149,15 +153,19 @@ export function getNextSuggestedWeight(existingWeights: Array<{ weight_name?: st
   const nextKg = (maxGrams + 1000) / 1000;
   return {
     name: `${nextKg} kg`,
-    price: Math.round(599 * (nextKg * 0.9)),
+    price: Math.round(baseLadderPrice * (nextKg * 0.9)),
   };
 }
 
 /**
  * Creates canonical default weight matrix for a product when none exist.
+ * Only creates tiers if valid positive basePrice is supplied; does NOT invent a ₹649 fallback.
  */
-export function createDefaultWeightMatrix(productId: string, basePrice: number = 649): ProductWeightOption[] {
-  const price = Math.max(100, Number(basePrice) || 649);
+export function createDefaultWeightMatrix(productId: string, basePrice: number = 0): ProductWeightOption[] {
+  const price = Number(basePrice) || 0;
+  if (price <= 0) {
+    return [];
+  }
   const tiers = [
     { name: "0.5 kg", grams: 500, factor: 0.85 },
     { name: "1 kg", grams: 1000, factor: 1.0 },

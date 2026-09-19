@@ -37,6 +37,7 @@ import {
   Play,
   ArrowRight,
   ShieldCheck,
+  Trash2,
 } from "lucide-react";
 import { MediaSelectorModal, MediaSelection } from "./media-selector-modal";
 import { apiClient } from "@frontend/lib/api-client";
@@ -148,9 +149,15 @@ export function PopupEditorDrawer({
 
   // Media
   const [mediaSource, setMediaSource] = useState<any>("MEDIA_LIBRARY");
-  const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600");
+  const [imageUrl, setImageUrl] = useState("/images/belgian-truffle.jpg");
   const [mobileImageUrl, setMobileImageUrl] = useState("");
   const [mediaId, setMediaId] = useState("");
+  const [mediaFilename, setMediaFilename] = useState("belgian-truffle.jpg");
+  const [mediaDimensions, setMediaDimensions] = useState("800 × 800 px");
+  const [mediaSize, setMediaSize] = useState("142 KB");
+  const [mediaMime, setMediaMime] = useState("image/jpeg");
+  const [mobileMediaId, setMobileMediaId] = useState("");
+  const [mobileMediaFilename, setMobileMediaFilename] = useState("");
   const [aspectRatio, setAspectRatio] = useState<any>("square");
   const [mediaPosition, setMediaPosition] = useState<any>("top");
 
@@ -168,7 +175,7 @@ export function PopupEditorDrawer({
   const [borderRadius, setBorderRadius] = useState(20);
   const [backdropOpacity, setBackdropOpacity] = useState(0.6);
   const [animation, setAnimation] = useState<any>("SLIDE_UP");
-  const [accentColor, setAccentColor] = useState("#e11d48");
+  const [accentColor, setAccentColor] = useState("#1D2F5D");
 
   // Schedule & Frequency
   const [startAt, setStartAt] = useState("");
@@ -288,7 +295,7 @@ export function PopupEditorDrawer({
           setBorderRadius(v.design?.borderRadius || 20);
           setBackdropOpacity(v.design?.backdropOpacity ?? 0.6);
           setAnimation(v.design?.animation || "SLIDE_UP");
-          setAccentColor(v.design?.accentColor || "#e11d48");
+          setAccentColor(v.design?.accentColor || "#1D2F5D");
 
           // Frequency
           setFrequencyMode(v.frequency?.mode || (v.frequency?.scope === "session" ? "once_per_session" : "every_page_load"));
@@ -707,9 +714,19 @@ export function PopupEditorDrawer({
   const handleMediaSelect = (sel: MediaSelection) => {
     if (mediaTarget === "mobile") {
       setMobileImageUrl(sel.url);
+      setMobileMediaId(sel.media_id || "");
+      setMobileMediaFilename(sel.name || sel.url.split("/").pop() || "mobile_artwork.jpg");
     } else {
       setImageUrl(sel.url);
-      if (sel.media_id) setMediaId(sel.media_id);
+      setMediaId(sel.media_id || "");
+      setMediaFilename(sel.name || sel.url.split("/").pop() || "cake_banner.jpg");
+      if (sel.width && sel.height) {
+        setMediaDimensions(`${sel.width} × ${sel.height} px`);
+      } else {
+        setMediaDimensions("800 × 800 px");
+      }
+      setMediaMime("image/jpeg");
+      setMediaSize("120 KB");
     }
     setMediaSource("MEDIA_LIBRARY");
     setMediaModalOpen(false);
@@ -734,7 +751,7 @@ export function PopupEditorDrawer({
         {/* Top Header */}
         <div className="p-4 sm:p-5 border-b border-ui-border-base bg-ui-bg-subtle flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#1D2F5D]/10 dark:bg-[#D4AF37]/15 text-[#1D2F5D] dark:text-[#D4AF37] flex items-center justify-center shrink-0">
               <Sparkles className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -768,7 +785,7 @@ export function PopupEditorDrawer({
               size="small"
               onClick={handlePublish}
               disabled={saving || publishing}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1 text-xs shadow-sm"
+              className="bg-[#1D2F5D] hover:bg-[#152347] text-white flex items-center gap-1 text-xs shadow-sm"
             >
               <Send className="w-3.5 h-3.5" />
               {publishing ? "Publishing..." : "Publish"}
@@ -817,7 +834,7 @@ export function PopupEditorDrawer({
                 onClick={() => setActiveTab(t.id as any)}
                 className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-t-lg transition-colors whitespace-nowrap ${
                   active
-                    ? "bg-ui-bg-base text-ui-fg-base border-t border-x border-ui-border-base shadow-xs"
+                    ? "bg-ui-bg-base text-[#1D2F5D] dark:text-[#D4AF37] font-bold border-t-2 border-t-[#1D2F5D] dark:border-t-[#D4AF37] border-x border-ui-border-base shadow-xs"
                     : "text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-base/60"
                 }`}
               >
@@ -836,10 +853,10 @@ export function PopupEditorDrawer({
             {activeTab === "general" && (
               <div className="flex flex-col gap-4">
                 {/* Template Preset Selector */}
-                <div className="p-3 bg-rose-50/60 dark:bg-rose-950/30 rounded-xl border border-rose-200 dark:border-rose-900/50 flex flex-col gap-2">
+                <div className="p-3 bg-[#1D2F5D]/5 dark:bg-slate-800/60 rounded-xl border border-[#1D2F5D]/15 dark:border-slate-700 flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-rose-900 dark:text-rose-200 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-rose-600" />
+                    <span className="text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37] flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
                       Quick Campaign Presets
                     </span>
                   </div>
@@ -856,7 +873,7 @@ export function PopupEditorDrawer({
                         onClick={() => applyTemplatePreset(p.id as any)}
                         className={`p-2 rounded-lg text-left border transition-all ${
                           templateId === p.id
-                            ? "bg-white dark:bg-neutral-800 border-rose-500 shadow-xs font-semibold text-rose-700"
+                            ? "bg-white dark:bg-neutral-800 border-[#1D2F5D] dark:border-[#D4AF37] shadow-xs font-semibold text-[#1D2F5D] dark:text-[#D4AF37]"
                             : "bg-white/60 dark:bg-neutral-900 border-neutral-200 text-neutral-600 hover:border-neutral-300"
                         }`}
                       >
@@ -1521,9 +1538,13 @@ export function PopupEditorDrawer({
 
                 {mediaSource !== "NO_IMAGE" && (
                   <div className="flex flex-col gap-4">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <Label className="text-xs font-semibold text-ui-fg-base">Desktop Artwork URL</Label>
+                    {/* Desktop Artwork Card */}
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-bold text-[#1D2F5D] dark:text-white flex items-center gap-1.5">
+                          <ImageIcon className="w-4 h-4 text-[#D4AF37]" />
+                          Desktop Artwork Banner *
+                        </Label>
                         <Button
                           variant="secondary"
                           size="small"
@@ -1531,23 +1552,105 @@ export function PopupEditorDrawer({
                             setMediaTarget("desktop");
                             setMediaModalOpen(true);
                           }}
-                          className="text-xs flex items-center gap-1"
+                          className="text-xs flex items-center gap-1 bg-[#1D2F5D]/5 hover:bg-[#1D2F5D]/10 text-[#1D2F5D] border-[#1D2F5D]/20 font-semibold"
                         >
-                          <ImageIcon className="w-3.5 h-3.5" />
-                          Choose from Media Library
+                          <ImageIcon className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          Select from Media Library
                         </Button>
                       </div>
-                      <Input
-                        value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                        placeholder="https://images.unsplash.com/..."
-                        className="text-xs font-mono"
-                      />
+
+                      {imageUrl ? (
+                        <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-20 h-20 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 bg-slate-100 dark:bg-slate-900 shadow-inner">
+                              <img
+                                src={imageUrl}
+                                alt={mediaFilename || "Popup Artwork"}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1 min-w-0">
+                              <span className="font-bold text-xs text-[#1D2F5D] dark:text-white truncate block">
+                                {mediaFilename}
+                              </span>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                  {mediaDimensions}
+                                </span>
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                  {mediaMime}
+                                </span>
+                                {mediaId && (
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                    ID: {mediaId.slice(0, 10)}...
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-slate-400 font-mono truncate max-w-[280px]">
+                                {imageUrl}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                            <Button
+                              variant="secondary"
+                              size="small"
+                              onClick={() => {
+                                setMediaTarget("desktop");
+                                setMediaModalOpen(true);
+                              }}
+                              className="text-xs"
+                            >
+                              Replace
+                            </Button>
+                            <Button
+                              variant="danger"
+                              size="small"
+                              onClick={() => {
+                                setImageUrl("");
+                                setMediaId("");
+                                setMediaFilename("");
+                              }}
+                              className="text-xs flex items-center gap-1 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 dark:bg-red-950/30 dark:border-red-900/50"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-5 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl flex flex-col items-center justify-center gap-2 text-center bg-slate-50/50 dark:bg-slate-900/30">
+                          <ImageIcon className="w-8 h-8 text-slate-400" />
+                          <div>
+                            <span className="font-semibold text-xs text-slate-700 dark:text-slate-200 block">No Artwork Selected</span>
+                            <span className="text-[11px] text-slate-400">Choose an image from your CakeToHome Media Library or upload a fresh banner</span>
+                          </div>
+                          <Button
+                            variant="secondary"
+                            size="small"
+                            onClick={() => {
+                              setMediaTarget("desktop");
+                              setMediaModalOpen(true);
+                            }}
+                            className="mt-1 text-xs bg-[#1D2F5D] text-white hover:bg-[#152347] font-semibold"
+                          >
+                            Select from Media Library
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <Label className="text-xs font-semibold text-ui-fg-base">Mobile Artwork URL (Optional)</Label>
+                    {/* Mobile Artwork Card (Optional) */}
+                    <div className="flex flex-col gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-xs font-bold text-[#1D2F5D] dark:text-white flex items-center gap-1.5">
+                            <Smartphone className="w-4 h-4 text-[#D4AF37]" />
+                            Mobile-Specific Artwork (Optional)
+                          </Label>
+                          <span className="text-[10px] text-slate-400">If unset, desktop artwork will scale responsively on mobile devices</span>
+                        </div>
                         <Button
                           variant="secondary"
                           size="small"
@@ -1555,18 +1658,47 @@ export function PopupEditorDrawer({
                             setMediaTarget("mobile");
                             setMediaModalOpen(true);
                           }}
-                          className="text-xs flex items-center gap-1"
+                          className="text-xs flex items-center gap-1 bg-[#1D2F5D]/5 hover:bg-[#1D2F5D]/10 text-[#1D2F5D] border-[#1D2F5D]/20 font-semibold"
                         >
-                          <Smartphone className="w-3.5 h-3.5" />
-                          Choose Mobile Artwork
+                          <Smartphone className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          {mobileImageUrl ? "Change Mobile Artwork" : "+ Add Mobile Artwork"}
                         </Button>
                       </div>
-                      <Input
-                        value={mobileImageUrl}
-                        onChange={(e) => setMobileImageUrl(e.target.value)}
-                        placeholder="Optional mobile optimized square image URL..."
-                        className="text-xs font-mono"
-                      />
+
+                      {mobileImageUrl && (
+                        <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 bg-slate-100 dark:bg-slate-900">
+                              <img
+                                src={mobileImageUrl}
+                                alt="Mobile Artwork"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-0.5 min-w-0">
+                              <span className="font-bold text-xs text-[#1D2F5D] dark:text-white truncate">
+                                {mobileMediaFilename || "mobile-banner.jpg"}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono truncate max-w-[240px]">
+                                {mobileImageUrl}
+                              </span>
+                            </div>
+                          </div>
+                          <Button
+                            variant="danger"
+                            size="small"
+                            onClick={() => {
+                              setMobileImageUrl("");
+                              setMobileMediaId("");
+                              setMobileMediaFilename("");
+                            }}
+                            className="text-xs flex items-center gap-1 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 dark:bg-red-950/30 dark:border-red-900/50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Remove
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1856,7 +1988,7 @@ export function PopupEditorDrawer({
                 <div className="p-3 bg-neutral-900 text-white rounded-xl shadow-md flex flex-col gap-2.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold flex items-center gap-1.5">
-                      <Eye className="w-3.5 h-3.5 text-rose-400" />
+                      <Eye className="w-3.5 h-3.5 text-[#D4AF37]" />
                       Interactive AST Simulator
                     </span>
                     <button
@@ -1865,10 +1997,11 @@ export function PopupEditorDrawer({
                         setSimManualFired(true);
                         setTimeout(() => setSimManualFired(false), 3000);
                       }}
-                      className="px-2.5 py-1 text-[11px] font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg flex items-center gap-1 transition-all shadow-xs"
+                      title="Manual Test Mode: Bypasses session timing and frequency caps for instant design verification"
+                      className="px-2.5 py-1 text-[11px] font-bold bg-[#1D2F5D] hover:bg-[#152347] text-white border border-[#D4AF37]/40 rounded-lg flex items-center gap-1 transition-all shadow-xs"
                     >
-                      <Play className="w-3 h-3 fill-current" />
-                      Trigger Now
+                      <Play className="w-3 h-3 fill-current text-[#D4AF37]" />
+                      ⚡ Test Trigger (Manual Mode)
                     </button>
                   </div>
 
@@ -1879,7 +2012,7 @@ export function PopupEditorDrawer({
                         type="button"
                         onClick={() => setSimDevice("desktop")}
                         className={`flex-1 py-1 rounded text-center font-semibold transition-colors ${
-                          simDevice === "desktop" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
+                          simDevice === "desktop" ? "bg-[#1D2F5D] text-[#D4AF37] shadow-xs" : "text-neutral-400 hover:text-white"
                         }`}
                       >
                         Desktop
@@ -1888,7 +2021,7 @@ export function PopupEditorDrawer({
                         type="button"
                         onClick={() => setSimDevice("mobile")}
                         className={`flex-1 py-1 rounded text-center font-semibold transition-colors ${
-                          simDevice === "mobile" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
+                          simDevice === "mobile" ? "bg-[#1D2F5D] text-[#D4AF37] shadow-xs" : "text-neutral-400 hover:text-white"
                         }`}
                       >
                         Mobile
@@ -1900,7 +2033,7 @@ export function PopupEditorDrawer({
                         type="button"
                         onClick={() => setSimPersona("guest")}
                         className={`flex-1 py-1 rounded text-center font-semibold transition-colors ${
-                          simPersona === "guest" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
+                          simPersona === "guest" ? "bg-[#1D2F5D] text-[#D4AF37] shadow-xs" : "text-neutral-400 hover:text-white"
                         }`}
                       >
                         Guest
@@ -1909,7 +2042,7 @@ export function PopupEditorDrawer({
                         type="button"
                         onClick={() => setSimPersona("logged_in")}
                         className={`flex-1 py-1 rounded text-center font-semibold transition-colors ${
-                          simPersona === "logged_in" ? "bg-rose-600 text-white" : "text-neutral-400 hover:text-white"
+                          simPersona === "logged_in" ? "bg-[#1D2F5D] text-[#D4AF37] shadow-xs" : "text-neutral-400 hover:text-white"
                         }`}
                       >
                         Logged In
@@ -2008,7 +2141,7 @@ export function PopupEditorDrawer({
                           type="checkbox"
                           checked={simExitIntent}
                           onChange={(e) => setSimExitIntent(e.target.checked)}
-                          className="w-3 h-3 rounded accent-rose-600 cursor-pointer"
+                          className="w-3 h-3 rounded accent-[#1D2F5D] cursor-pointer"
                         />
                         <span>Exit Intent</span>
                       </label>
@@ -2017,33 +2150,71 @@ export function PopupEditorDrawer({
 
                   {/* Dynamic Diagnostic Evaluation Status */}
                   <div
-                    className={`p-2 rounded-lg text-[11px] flex flex-col gap-0.5 transition-all ${
+                    className={`p-3 rounded-xl text-xs flex flex-col gap-2 transition-all shadow-xs ${
                       isSimEligible
-                        ? "bg-emerald-950/80 border border-emerald-500 text-emerald-300"
-                        : "bg-amber-950/80 border border-amber-500 text-amber-300"
+                        ? "bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200"
+                        : "bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200"
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 font-bold">
-                      {isSimEligible ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
-                      )}
-                      <span>
-                        {isSimEligible ? "ELIGIBLE & RENDERED" : "NOT ELIGIBLE — SUPPRESSED"}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 font-bold">
+                        {isSimEligible ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                        )}
+                        <span className="text-xs">
+                          {isSimEligible ? "ELIGIBLE & RENDERED" : "TRIGGER CRITERIA NOT MET IN CURRENT CONTEXT"}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 dark:bg-slate-900/80 border border-current">
+                        {isSimEligible ? "Live Match" : "Preview Mode"}
                       </span>
                     </div>
-                    <span className="text-[10px] opacity-90">
-                      {simManualFired
-                        ? "Manual Test Fired — Bypassing realtime trigger waiting."
-                        : !audienceEvaluation.matched
-                        ? audienceEvaluation.reason
-                        : !frequencyEvaluation.eligible
-                        ? frequencyEvaluation.reason
-                        : !triggerEvaluation.isTriggered
-                        ? triggerEvaluation.reason
-                        : `Satisfied: ${triggerEvaluation.matchedTriggers.join(", ")} (${triggerCombinator} Mode)`}
-                    </span>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] pt-1 border-t border-current/20">
+                      <div>
+                        <span className="font-bold block">Audience:</span>
+                        <span className="opacity-90">
+                          {audienceEvaluation.matched ? "✓ Matched" : `✗ ${audienceEvaluation.reason || "Not targeted"}`}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-bold block">Frequency:</span>
+                        <span className="opacity-90">
+                          {frequencyEvaluation.eligible ? "✓ Eligible" : `✗ ${frequencyEvaluation.reason || "Capped"}`}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-bold block">Trigger:</span>
+                        <span className="opacity-90">
+                          {simManualFired
+                            ? "✓ Force-Fired"
+                            : triggerEvaluation.isTriggered
+                            ? `✓ ${triggerEvaluation.matchedTriggers?.join(", ") || "Satisfied"}`
+                            : `✗ ${triggerEvaluation.reason || "Pending conditions"}`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] pt-1">
+                      <span className="text-[10px] opacity-80">
+                        {simManualFired
+                          ? "Manual preview test active. Production will evaluate live visitor triggers."
+                          : isSimEligible
+                          ? "All trigger and audience rules satisfied for this simulator persona."
+                          : "Preview canvas is displayed below for design review. Click Trigger Now to test fire."}
+                      </span>
+                      {!isSimEligible && !simManualFired && (
+                        <button
+                          type="button"
+                          onClick={() => setSimManualFired(true)}
+                          className="px-2.5 py-1 rounded-lg bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold text-[10px] transition-all shadow-xs shrink-0"
+                        >
+                          ⚡ Trigger Now
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -2053,15 +2224,23 @@ export function PopupEditorDrawer({
                     simDevice === "mobile" ? "max-w-[340px] mx-auto" : "w-full"
                   }`}
                 >
+                  {/* Subtle status indicator pill when in preview simulation */}
+                  {!isSimEligible && (
+                    <div className="absolute top-2.5 right-2.5 z-20">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/80 dark:text-amber-200 shadow-xs flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                        Design Preview
+                      </span>
+                    </div>
+                  )}
+
                   {/* Scaled Popup Simulation Box */}
                   <div
                     style={{
                       borderRadius: `${borderRadius}px`,
                       borderColor: accentColor,
                     }}
-                    className={`w-full bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border overflow-hidden flex flex-col animate-scale-up transition-opacity ${
-                      !isSimEligible ? "opacity-60" : "opacity-100"
-                    }`}
+                    className="w-full bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border overflow-hidden flex flex-col animate-scale-up transition-opacity opacity-100"
                   >
                     {/* Artwork Preview */}
                     {mediaSource !== "NO_IMAGE" && (imageUrl || mobileImageUrl) && (
@@ -2107,12 +2286,12 @@ export function PopupEditorDrawer({
 
                       {/* Offer Voucher Simulation */}
                       {offerType === "COUPON" && couponCode && (
-                        <div className="p-2 rounded-lg bg-rose-50 border border-dashed border-rose-300 flex items-center justify-between">
+                        <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-dashed border-amber-300 dark:border-amber-700/60 flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
-                            <Tag className="w-3.5 h-3.5 text-rose-600" />
-                            <span className="text-xs font-mono font-bold text-rose-700">{couponCode}</span>
+                            <Tag className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                            <span className="text-xs font-mono font-bold text-[#1D2F5D] dark:text-[#D4AF37]">{couponCode}</span>
                           </div>
-                          <span className="text-[10px] font-bold text-rose-600 uppercase">
+                          <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase">
                             Apply at checkout
                           </span>
                         </div>
@@ -2121,11 +2300,11 @@ export function PopupEditorDrawer({
                       {/* Phone Input Simulation */}
                       {phoneEnabled && (
                         <div className="flex flex-col gap-1.5 pt-1">
-                          <span className="text-[10px] font-semibold text-neutral-600">
+                          <span className="text-[10px] font-semibold text-neutral-600 dark:text-neutral-300">
                             {phonePlaceholder}
                           </span>
-                          <div className="flex items-center rounded-lg border border-neutral-300 bg-neutral-50 overflow-hidden">
-                            <span className="px-2 py-1.5 text-[11px] font-bold text-neutral-600 bg-neutral-200">
+                          <div className="flex items-center rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 overflow-hidden">
+                            <span className="px-2 py-1.5 text-[11px] font-bold text-neutral-600 dark:text-neutral-300 bg-neutral-200 dark:bg-neutral-700">
                               🇮🇳 +91
                             </span>
                             <span className="px-2 py-1.5 text-[11px] text-neutral-400">
@@ -2139,7 +2318,7 @@ export function PopupEditorDrawer({
                       <button
                         type="button"
                         style={{ backgroundColor: accentColor }}
-                        className="w-full py-2 px-3 rounded-lg text-white font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 mt-1"
+                        className="w-full py-2 px-3 rounded-lg text-white font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 mt-1 hover:opacity-90 transition-opacity"
                       >
                         <span>{phoneEnabled ? phoneButtonLabel : primaryLabel}</span>
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -2152,25 +2331,6 @@ export function PopupEditorDrawer({
                       )}
                     </div>
                   </div>
-
-                  {!isSimEligible && (
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center p-4">
-                      <div className="p-3 bg-neutral-900/95 border border-amber-500/80 rounded-xl text-center shadow-2xl flex flex-col items-center gap-1.5 max-w-[280px]">
-                        <AlertCircle className="w-5 h-5 text-amber-400" />
-                        <span className="text-xs font-bold text-white">Simulation Suppressed</span>
-                        <span className="text-[10px] text-neutral-300 leading-tight">
-                          {!audienceEvaluation.matched
-                            ? audienceEvaluation.reason
-                            : !frequencyEvaluation.eligible
-                            ? frequencyEvaluation.reason
-                            : triggerEvaluation.reason}
-                        </span>
-                        <span className="text-[9px] text-rose-400 font-semibold mt-1">
-                          Click &quot;Trigger Now&quot; to test force-fire
-                        </span>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             );

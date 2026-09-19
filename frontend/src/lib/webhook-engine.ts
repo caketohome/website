@@ -577,7 +577,7 @@ export class WebhookEngineStore {
         return false;
       }
 
-      return crypto.timingSafeEqual(v1Buffer, expectedBuffer);
+      return crypto.timingSafeEqual(v1Buffer as any, expectedBuffer as any);
     } catch {
       return false;
     }

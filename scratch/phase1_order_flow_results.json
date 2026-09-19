@@ -1,0 +1,228 @@
+{
+  "timestamp": "2026-09-15T04:24:43.514Z",
+  "results": [
+    {
+      "step": "1-Homepage",
+      "status": "PASS",
+      "detail": "HTTP 200, Title: \"Untitled Page | CakeToHome\", Header: true, Content: true",
+      "timestamp": "2026-09-15T04:24:02.376Z"
+    },
+    {
+      "step": "1-CSS",
+      "status": "PASS",
+      "detail": "Stylesheets loaded: true",
+      "timestamp": "2026-09-15T04:24:02.434Z"
+    },
+    {
+      "step": "2-LocationWidget",
+      "status": "PASS",
+      "detail": "Location selection widget found on homepage",
+      "timestamp": "2026-09-15T04:24:02.529Z"
+    },
+    {
+      "step": "2-LocationVisible",
+      "status": "PASS",
+      "detail": "Location widget visible: true",
+      "timestamp": "2026-09-15T04:24:02.588Z"
+    },
+    {
+      "step": "3-ProductListing",
+      "status": "PASS",
+      "detail": "HTTP 200, 18 product cards found",
+      "timestamp": "2026-09-15T04:24:14.657Z"
+    },
+    {
+      "step": "3-ProductImages",
+      "status": "PASS",
+      "detail": "18 product images found",
+      "timestamp": "2026-09-15T04:24:14.737Z"
+    },
+    {
+      "step": "4-ProductDetail",
+      "status": "PASS",
+      "detail": "HTTP 200, Product: \"CHOCOLATE TRUFFLE\"",
+      "timestamp": "2026-09-15T04:24:27.480Z"
+    },
+    {
+      "step": "4-PriceDisplay",
+      "status": "PASS",
+      "detail": "Price element found: true",
+      "timestamp": "2026-09-15T04:24:27.480Z"
+    },
+    {
+      "step": "4-AddToCartBtn",
+      "status": "PASS",
+      "detail": "Add to cart button found: true",
+      "timestamp": "2026-09-15T04:24:27.480Z"
+    },
+    {
+      "step": "4-VariantOptions",
+      "status": "PASS",
+      "detail": "1 variant/option elements found",
+      "timestamp": "2026-09-15T04:24:27.499Z"
+    },
+    {
+      "step": "5-AddToCart",
+      "status": "PASS",
+      "detail": "Button clicked. Cart counter: true, Toast: true",
+      "timestamp": "2026-09-15T04:24:29.734Z"
+    },
+    {
+      "step": "6-CartPage",
+      "status": "PASS",
+      "detail": "HTTP 200, Items: 31",
+      "timestamp": "2026-09-15T04:24:35.694Z"
+    },
+    {
+      "step": "6-CheckoutBtn",
+      "status": "FAIL",
+      "detail": "Checkout button/link found: false",
+      "timestamp": "2026-09-15T04:24:35.695Z"
+    },
+    {
+      "step": "7-CheckoutPage",
+      "status": "PASS",
+      "detail": "HTTP 200",
+      "timestamp": "2026-09-15T04:24:36.574Z"
+    },
+    {
+      "step": "7-NameField",
+      "status": "FAIL",
+      "detail": "Name input: false",
+      "timestamp": "2026-09-15T04:24:36.575Z"
+    },
+    {
+      "step": "7-PhoneField",
+      "status": "FAIL",
+      "detail": "Phone input: false",
+      "timestamp": "2026-09-15T04:24:36.575Z"
+    },
+    {
+      "step": "7-EmailField",
+      "status": "FAIL",
+      "detail": "Email input: false",
+      "timestamp": "2026-09-15T04:24:36.575Z"
+    },
+    {
+      "step": "8-AddressField",
+      "status": "WARN",
+      "detail": "Address input: false",
+      "timestamp": "2026-09-15T04:24:36.597Z"
+    },
+    {
+      "step": "8-CityField",
+      "status": "WARN",
+      "detail": "City input: false",
+      "timestamp": "2026-09-15T04:24:36.597Z"
+    },
+    {
+      "step": "8-PincodeField",
+      "status": "INFO",
+      "detail": "No pincode field found in checkout",
+      "timestamp": "2026-09-15T04:24:36.597Z"
+    },
+    {
+      "step": "9-GPSButton",
+      "status": "INFO",
+      "detail": "GPS location button: false",
+      "timestamp": "2026-09-15T04:24:36.610Z"
+    },
+    {
+      "step": "9-MapComponent",
+      "status": "INFO",
+      "detail": "Map component: false",
+      "timestamp": "2026-09-15T04:24:36.614Z"
+    },
+    {
+      "step": "10-DateSelector",
+      "status": "INFO",
+      "detail": "Date selector: false",
+      "timestamp": "2026-09-15T04:24:36.633Z"
+    },
+    {
+      "step": "10-SlotSelector",
+      "status": "INFO",
+      "detail": "Slot selector: false",
+      "timestamp": "2026-09-15T04:24:36.633Z"
+    },
+    {
+      "step": "11-PaymentSection",
+      "status": "INFO",
+      "detail": "Payment section: false",
+      "timestamp": "2026-09-15T04:24:36.650Z"
+    },
+    {
+      "step": "11-PlaceOrderBtn",
+      "status": "INFO",
+      "detail": "Place Order button: false",
+      "timestamp": "2026-09-15T04:24:36.650Z"
+    },
+    {
+      "step": "12-AvailabilityAPI",
+      "status": "PASS",
+      "detail": "POST /api/v1/checkout/availability -> HTTP 200. Serviceable: true",
+      "timestamp": "2026-09-15T04:24:36.879Z"
+    },
+    {
+      "step": "12-BranchesAPI",
+      "status": "PASS",
+      "detail": "GET /api/v1/branches -> HTTP 200, Branches: 50",
+      "timestamp": "2026-09-15T04:24:41.655Z"
+    },
+    {
+      "step": "12-SlotsAPI",
+      "status": "PASS",
+      "detail": "GET /api/v1/delivery/slots -> HTTP 200",
+      "timestamp": "2026-09-15T04:24:42.053Z"
+    },
+    {
+      "step": "12-DeliveryResolve",
+      "status": "PASS",
+      "detail": "GET /api/v1/delivery/resolve -> HTTP 200. Serviceable: true, Branch: N/A",
+      "timestamp": "2026-09-15T04:24:42.149Z"
+    },
+    {
+      "step": "13-AdminOrders",
+      "status": "PASS",
+      "detail": "GET /dashboard?tab=orders -> HTTP 200",
+      "timestamp": "2026-09-15T04:24:42.767Z"
+    },
+    {
+      "step": "13-OrderTable",
+      "status": "INFO",
+      "detail": "Order table/list element: false",
+      "timestamp": "2026-09-15T04:24:42.963Z"
+    },
+    {
+      "step": "14-BranchManager",
+      "status": "PASS",
+      "detail": "GET /dashboard?tab=fulfillment -> HTTP 200",
+      "timestamp": "2026-09-15T04:24:43.189Z"
+    },
+    {
+      "step": "15-OrderHistory",
+      "status": "PASS",
+      "detail": "GET /account/orders -> HTTP 200",
+      "timestamp": "2026-09-15T04:24:43.504Z"
+    },
+    {
+      "step": "ERRORS-Console",
+      "status": "PASS",
+      "detail": "0 console errors",
+      "timestamp": "2026-09-15T04:24:43.505Z"
+    },
+    {
+      "step": "ERRORS-Network",
+      "status": "PASS",
+      "detail": "0 network failures",
+      "timestamp": "2026-09-15T04:24:43.505Z"
+    }
+  ],
+  "summary": {
+    "passed": 22,
+    "failed": 4,
+    "warned": 2,
+    "info": 8,
+    "total": 36
+  }
+}

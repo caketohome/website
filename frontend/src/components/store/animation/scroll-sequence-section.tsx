@@ -144,13 +144,13 @@ export function ScrollSequenceSection({
     return (
       <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#1D2F5D] text-white p-6 sm:p-10 md:p-16 shadow-2xl">
         <div className="relative z-10 flex flex-col max-w-2xl gap-5">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-rose-200 w-fit">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-[#D4AF37]/60 w-fit">
             <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
             <span>{badgeText}</span>
           </div>
           <Heading level="h1" className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
             {headline} <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-rose-200 to-pink-100">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-[#D4AF37]/40 to-[#FFF8E7]">
               Delivered To Your Doorstep
             </span>
           </Heading>
@@ -159,7 +159,7 @@ export function ScrollSequenceSection({
           </Text>
           <div className="flex items-center gap-3 pt-2">
             <Link href="/products">
-              <Button size="base" className="bg-rose-600 hover:bg-rose-700 text-white font-bold">
+              <Button size="base" className="bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold">
                 Explore Cakes <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
             </Link>
@@ -204,7 +204,7 @@ export function ScrollSequenceSection({
           }}
         >
           <div className="max-w-2xl flex flex-col gap-4 sm:gap-5 pointer-events-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-rose-200 w-fit shadow-lg">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-[#D4AF37]/60 w-fit shadow-lg">
               <Sparkles className="w-4 h-4 text-amber-300 animate-pulse shrink-0" />
               <span className="truncate">{badgeText}</span>
             </div>
@@ -214,12 +214,12 @@ export function ScrollSequenceSection({
               className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight drop-shadow-md"
             >
               {headline} <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-rose-200 to-pink-100">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-[#D4AF37]/40 to-[#FFF8E7]">
                 Delivered Fresh To Your Doorstep
               </span>
             </Heading>
 
-            <Text className="text-rose-100/90 text-xs sm:text-sm md:text-base leading-relaxed drop-shadow-sm max-w-xl">
+            <Text className="text-[#D4AF37]/70 text-xs sm:text-sm md:text-base leading-relaxed drop-shadow-sm max-w-xl">
               {subheadline}
             </Text>
 
@@ -230,12 +230,12 @@ export function ScrollSequenceSection({
                 placeholder="Search Belgian Chocolate, Red Velvet, Mango Mousse..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 sm:pl-11 pr-24 py-2.5 sm:py-3 rounded-xl bg-white/95 backdrop-blur-md text-gray-900 shadow-xl text-xs sm:text-sm focus:ring-2 focus:ring-rose-400 border-0"
+                className="w-full pl-10 sm:pl-11 pr-24 py-2.5 sm:py-3 rounded-xl bg-white/95 backdrop-blur-md text-gray-900 shadow-xl text-xs sm:text-sm focus:ring-2 focus:ring-[#D4AF37]/50 border-0"
               />
               <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <button
                 type="submit"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors shadow-sm"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg bg-[#1D2F5D] hover:bg-[#152347] text-white font-semibold text-xs transition-colors shadow-sm"
               >
                 Search
               </button>
@@ -244,7 +244,7 @@ export function ScrollSequenceSection({
             {/* Quick Filter CTAs */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-1">
               <Link href="/products">
-                <Button size="small" className="bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-bold shadow-lg text-xs sm:text-sm px-4 py-2">
+                <Button size="small" className="bg-gradient-to-r from-[#1D2F5D] to-[#D4AF37] hover:from-[#152347] hover:to-[#c59e2b] text-white font-bold shadow-lg text-xs sm:text-sm px-4 py-2">
                   Explore Cakes <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                 </Button>
               </Link>
@@ -277,14 +277,14 @@ export function ScrollSequenceSection({
             </div>
             <Heading level="h2" className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">
               Every Slice, <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-rose-200">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-[#D4AF37]/40">
                 A Symphony of Flavor
               </span>
             </Heading>
             <Text className="text-xs sm:text-sm text-slate-300 leading-relaxed">
               Baked freshly from scratch upon order using 100% natural ingredients, rich Belgian dark chocolate ganache, and signature silky mousses.
             </Text>
-            <div className="pt-2 flex items-center gap-3 text-xs text-rose-200 font-medium">
+            <div className="pt-2 flex items-center gap-3 text-xs text-[#D4AF37]/60 font-medium">
               <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Artisanal Craftsmanship</span>
               <span className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Zero Preservatives</span>
             </div>
@@ -301,12 +301,12 @@ export function ScrollSequenceSection({
           }}
         >
           <div className="max-w-md p-6 sm:p-8 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/15 text-white shadow-2xl space-y-3 pointer-events-auto">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 text-[11px] font-bold border border-rose-500/30 uppercase tracking-wider">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1D2F5D]/20 text-[#D4AF37]/80 text-[11px] font-bold border border-[#D4AF37]/30 uppercase tracking-wider">
               <Truck className="w-3.5 h-3.5" /> Express Fleet
             </div>
             <Heading level="h2" className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">
               Midnight & 2-Hour <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 via-pink-200 to-amber-100">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37]/40 via-[#D4AF37]/40 to-amber-100">
                 Guaranteed Delivery
               </span>
             </Heading>
@@ -315,7 +315,7 @@ export function ScrollSequenceSection({
             </Text>
             <div className="pt-2">
               <Link href="/products">
-                <Button size="small" className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2">
+                <Button size="small" className="bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold text-xs px-4 py-2">
                   Order For Today <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                 </Button>
               </Link>
@@ -328,18 +328,18 @@ export function ScrollSequenceSection({
           className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 text-white/70 pointer-events-none transition-opacity duration-300"
           style={{ opacity: Math.max(0, 1 - scrollProgress * 5) }}
         >
-          <span className="text-[11px] font-medium tracking-wider uppercase text-rose-200/90 flex items-center gap-1">
+          <span className="text-[11px] font-medium tracking-wider uppercase text-[#D4AF37]/60/90 flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-amber-300 animate-pulse" /> Scroll To Reveal
           </span>
           <div className="w-5 h-8 rounded-full border-2 border-white/40 flex items-start justify-center p-1">
-            <div className="w-1 h-2 rounded-full bg-rose-400 animate-bounce" />
+            <div className="w-1 h-2 rounded-full bg-[#D4AF37] animate-bounce" />
           </div>
         </div>
 
         {/* ── PROGRESS INDICATOR LINE (Sticky Bottom Border) ───────────────── */}
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 z-30">
           <div
-            className="h-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 transition-all duration-75"
+            className="h-full bg-gradient-to-r from-amber-400 via-[#1D2F5D] to-[#D4AF37] transition-all duration-75"
             style={{ width: `${Math.round(scrollProgress * 100)}%` }}
           />
         </div>

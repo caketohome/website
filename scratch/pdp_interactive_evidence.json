@@ -1,0 +1,23 @@
+{
+  "test": "PDP Interactive Features & Price Dynamics Verification",
+  "timestamp": "2026-09-17T12:35:23.240Z",
+  "tests": [
+    {
+      "feature": "Initial Price Render",
+      "status": "PASS",
+      "initialText": "ADD TO CART • ₹649"
+    },
+    {
+      "feature": "Weight Variant Price Calculation",
+      "status": "PASS",
+      "note": "Single weight configured in catalog, verified default price"
+    },
+    {
+      "feature": "Dietary Modifier Dynamic Price Update",
+      "status": "PASS",
+      "priceBefore": "ADD TO CART • ₹649",
+      "priceAfter": "ADD TO CART • ₹899"
+    }
+  ],
+  "overall": "SUCCESS"
+}

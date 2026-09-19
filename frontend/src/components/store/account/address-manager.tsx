@@ -110,7 +110,7 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
         <div>
           <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <MapPin className="w-6 h-6 text-rose-400" />
+            <MapPin className="w-6 h-6 text-[#D4AF37]" />
             <span>Saved Addresses</span>
           </h2>
           <p className="text-xs text-neutral-400 mt-1">
@@ -205,7 +205,7 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
 
                 <button
                   onClick={() => handleDelete(addr.id)}
-                  className="p-2 rounded-xl bg-neutral-800 hover:bg-rose-950/80 text-neutral-400 hover:text-rose-400 transition-colors"
+                  className="p-2 rounded-xl bg-neutral-800 hover:bg-[#0c1326]/80 text-neutral-400 hover:text-[#D4AF37] transition-colors"
                   title="Delete Address"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -286,7 +286,7 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
               {/* Address Line 1 */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-neutral-300">
-                  Flat, House No., Building, Street <span className="text-rose-500">*</span>
+                  Flat, House No., Building, Street <span className="text-[#D4AF37]">*</span>
                 </label>
                 <input
                   type="text"
@@ -335,13 +335,13 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-neutral-300">Pincode</label>
+                  <label className="text-xs font-bold text-neutral-300">Pincode <span className="text-neutral-500 font-normal">(Optional)</span></label>
                   <input
                     type="text"
-                    required
                     maxLength={6}
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
+                    placeholder="Auto-filled from map"
                     className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white font-mono"
                   />
                 </div>

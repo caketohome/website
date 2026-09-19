@@ -1,0 +1,369 @@
+{
+  "timestamp": "2026-09-13T15:51:49.561Z",
+  "viewports": {
+    "320px-mobile-compact": {
+      "windowWidth": 320,
+      "docScrollWidth": 320,
+      "hasHorizontalOverflow": false,
+      "headerExists": true,
+      "logoVisible": true,
+      "logoWidth": 126,
+      "locationVisible": true,
+      "searchHasInput": false,
+      "searchHasButton": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": true,
+      "cartVisible": true,
+      "profileVisible": true,
+      "profileClipped": false,
+      "passed": true
+    },
+    "360px-mobile-standard": {
+      "windowWidth": 360,
+      "docScrollWidth": 360,
+      "hasHorizontalOverflow": false,
+      "headerExists": true,
+      "logoVisible": true,
+      "logoWidth": 126,
+      "locationVisible": true,
+      "searchHasInput": false,
+      "searchHasButton": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": true,
+      "cartVisible": true,
+      "profileVisible": true,
+      "profileClipped": false,
+      "passed": true
+    },
+    "375px-iphone-se": {
+      "windowWidth": 375,
+      "docScrollWidth": 375,
+      "hasHorizontalOverflow": false,
+      "headerExists": true,
+      "logoVisible": true,
+      "logoWidth": 126,
+      "locationVisible": true,
+      "searchHasInput": false,
+      "searchHasButton": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": true,
+      "cartVisible": true,
+      "profileVisible": true,
+      "profileClipped": false,
+      "passed": true
+    },
+    "390px-iphone-14-15": {
+      "windowWidth": 390,
+      "docScrollWidth": 390,
+      "hasHorizontalOverflow": false,
+      "headerExists": true,
+      "logoVisible": true,
+      "logoWidth": 126,
+      "locationVisible": true,
+      "searchHasInput": false,
+      "searchHasButton": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": true,
+      "cartVisible": true,
+      "profileVisible": true,
+      "profileClipped": false,
+      "passed": true
+    },
+    "414px-iphone-plus": {
+      "windowWidth": 414,
+      "docScrollWidth": 414,
+      "hasHorizontalOverflow": false,
+      "headerExists": true,
+      "logoVisible": true,
+      "logoWidth": 126,
+      "locationVisible": true,
+      "searchHasInput": false,
+      "searchHasButton": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": true,
+      "cartVisible": true,
+      "profileVisible": true,
+      "profileClipped": false,
+      "passed": true
+    },
+    "430px-iphone-pro-max": {
+      "windowWidth": 430,
+      "docScrollWidth": 430,
+      "hasHorizontalOverflow": false,
+      "headerExists": true,
+      "logoVisible": true,
+      "logoWidth": 126,
+      "locationVisible": true,
+      "searchHasInput": false,
+      "searchHasButton": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": true,
+      "cartVisible": true,
+      "profileVisible": true,
+      "profileClipped": false,
+      "passed": true
+    },
+    "768px-tablet-portrait": {
+      "windowWidth": 768,
+      "docScrollWidth": 768,
+      "hasHorizontalOverflow": false,
+      "headerExists": true,
+      "logoVisible": true,
+      "logoWidth": 156,
+      "locationVisible": true,
+      "searchHasInput": true,
+      "searchHasButton": false,
+      "searchLocationOverlap": false,
+      "wishlistVisible": true,
+      "cartVisible": true,
+      "profileVisible": true,
+      "profileClipped": false,
+      "passed": true
+    },
+    "1024px-tablet-landscape": {
+      "windowWidth": 1024,
+      "docScrollWidth": 1024,
+      "hasHorizontalOverflow": false,
+      "headerExists": true,
+      "logoVisible": true,
+      "logoWidth": 156,
+      "locationVisible": true,
+      "searchHasInput": true,
+      "searchHasButton": false,
+      "searchLocationOverlap": false,
+      "wishlistVisible": true,
+      "cartVisible": true,
+      "profileVisible": true,
+      "profileClipped": false,
+      "passed": true
+    },
+    "1280px-desktop": {
+      "windowWidth": 1280,
+      "docScrollWidth": 1280,
+      "hasHorizontalOverflow": false,
+      "headerExists": true,
+      "logoVisible": true,
+      "logoWidth": 156,
+      "locationVisible": true,
+      "searchHasInput": true,
+      "searchHasButton": false,
+      "searchLocationOverlap": false,
+      "wishlistVisible": true,
+      "cartVisible": true,
+      "profileVisible": true,
+      "profileClipped": false,
+      "passed": true
+    },
+    "1440px-large-desktop": {
+      "windowWidth": 1440,
+      "docScrollWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "headerExists": true,
+      "logoVisible": true,
+      "logoWidth": 156,
+      "locationVisible": true,
+      "searchHasInput": true,
+      "searchHasButton": false,
+      "searchLocationOverlap": false,
+      "wishlistVisible": true,
+      "cartVisible": true,
+      "profileVisible": true,
+      "profileClipped": false,
+      "passed": true
+    }
+  },
+  "productCards": {
+    "count": 7,
+    "sampleCards": [
+      {
+        "cardIndex": 0,
+        "productId": "prod_1",
+        "hasStretchedLink": true,
+        "stretchedLinkHref": "/products/belgian-chocolate-truffle-cake",
+        "hasIsolatedOrderBtn": false,
+        "hasWishlistBtn": true,
+        "anchorsInsideAnchors": 0,
+        "buttonsInsideAnchors": 0,
+        "priceText": "₹649",
+        "actionHint": "Bestseller"
+      },
+      {
+        "cardIndex": 1,
+        "productId": "prod_2",
+        "hasStretchedLink": true,
+        "stretchedLinkHref": "/products/classic-red-velvet-cake",
+        "hasIsolatedOrderBtn": false,
+        "hasWishlistBtn": true,
+        "anchorsInsideAnchors": 0,
+        "buttonsInsideAnchors": 0,
+        "priceText": "₹749",
+        "actionHint": "Bestseller"
+      },
+      {
+        "cardIndex": 2,
+        "productId": "prod_4",
+        "hasStretchedLink": true,
+        "stretchedLinkHref": "/products/black-forest-gateau",
+        "hasIsolatedOrderBtn": false,
+        "hasWishlistBtn": true,
+        "anchorsInsideAnchors": 0,
+        "buttonsInsideAnchors": 0,
+        "priceText": "₹549",
+        "actionHint": "Bestseller"
+      },
+      {
+        "cardIndex": 3,
+        "productId": "prod_1788960228243",
+        "hasStretchedLink": true,
+        "stretchedLinkHref": "/products/red-bee",
+        "hasIsolatedOrderBtn": false,
+        "hasWishlistBtn": true,
+        "anchorsInsideAnchors": 0,
+        "buttonsInsideAnchors": 0,
+        "priceText": "₹552",
+        "actionHint": "Bestseller"
+      },
+      {
+        "cardIndex": 4,
+        "productId": "prod_1788960313218",
+        "hasStretchedLink": true,
+        "stretchedLinkHref": "/products/choco-red",
+        "hasIsolatedOrderBtn": false,
+        "hasWishlistBtn": true,
+        "anchorsInsideAnchors": 0,
+        "buttonsInsideAnchors": 0,
+        "priceText": "₹552",
+        "actionHint": "Bestseller"
+      },
+      {
+        "cardIndex": 5,
+        "productId": "prod_1788960554491",
+        "hasStretchedLink": true,
+        "stretchedLinkHref": "/products/pistachio-gateau",
+        "hasIsolatedOrderBtn": false,
+        "hasWishlistBtn": true,
+        "anchorsInsideAnchors": 0,
+        "buttonsInsideAnchors": 0,
+        "priceText": "₹552",
+        "actionHint": "Bestseller"
+      },
+      {
+        "cardIndex": 6,
+        "productId": "prod_1788960674375",
+        "hasStretchedLink": true,
+        "stretchedLinkHref": "/products/chocolate-truffle",
+        "hasIsolatedOrderBtn": false,
+        "hasWishlistBtn": true,
+        "anchorsInsideAnchors": 0,
+        "buttonsInsideAnchors": 0,
+        "priceText": "₹552",
+        "actionHint": "Bestseller"
+      }
+    ],
+    "wishlistIsolationPassed": true
+  },
+  "categoryCards": {
+    "count": 8,
+    "sample": [
+      {
+        "index": 0,
+        "href": "/products?category=chocolate-cakes",
+        "heading": "Chocolate Cakes",
+        "hasDuplicateCta": false,
+        "isCardBlock": true
+      },
+      {
+        "index": 1,
+        "href": "/products?category=birthday-cakes",
+        "heading": "Birthday Cakes",
+        "hasDuplicateCta": false,
+        "isCardBlock": true
+      },
+      {
+        "index": 2,
+        "href": "/products?category=cupcakes",
+        "heading": "Cupcakes",
+        "hasDuplicateCta": false,
+        "isCardBlock": true
+      },
+      {
+        "index": 3,
+        "href": "/products?category=pastries",
+        "heading": "Pastries",
+        "hasDuplicateCta": false,
+        "isCardBlock": true
+      },
+      {
+        "index": 4,
+        "href": "/products?category=black-forest-cakes",
+        "heading": "Black Forest Cakes",
+        "hasDuplicateCta": false,
+        "isCardBlock": true
+      },
+      {
+        "index": 5,
+        "href": "/products?category=butterscotch-caramel-cakes",
+        "heading": "Butterscotch & Caramel Cakes",
+        "hasDuplicateCta": false,
+        "isCardBlock": true
+      }
+    ]
+  },
+  "occasionCards": {
+    "count": 6,
+    "sample": [
+      {
+        "index": 0,
+        "href": "/products/classic-chocolate-truffle-cake",
+        "heading": "Classic Chocolate Truffle Cake",
+        "hasDuplicateCta": false,
+        "isCardBlock": true
+      },
+      {
+        "index": 1,
+        "href": "/products/red-velvet-dream-cake",
+        "heading": "Red Velvet Dream Cake [FORENSIC_DB_AUDIT_1788796324311]",
+        "hasDuplicateCta": false,
+        "isCardBlock": true
+      },
+      {
+        "index": 2,
+        "href": "/products/red-bee",
+        "heading": "RED BEE",
+        "hasDuplicateCta": false,
+        "isCardBlock": true
+      },
+      {
+        "index": 3,
+        "href": "/products/choco-red",
+        "heading": "CHOCO RED",
+        "hasDuplicateCta": false,
+        "isCardBlock": true
+      },
+      {
+        "index": 4,
+        "href": "/products/pistachio-gateau",
+        "heading": "PISTACHIO GATEAU",
+        "hasDuplicateCta": false,
+        "isCardBlock": true
+      },
+      {
+        "index": 5,
+        "href": "/products/chocolate-truffle",
+        "heading": "CHOCOLATE TRUFFLE",
+        "hasDuplicateCta": false,
+        "isCardBlock": true
+      }
+    ]
+  },
+  "themeTypography": {
+    "headerBg": "rgba(255, 255, 255, 0.85)",
+    "heroTitleFont": "__Playfair_Display_d59ba8, __Playfair_Display_Fallback_d59ba8, Georgia, serif",
+    "heroTitleColor": "rgb(255, 255, 255)",
+    "prodTitleFont": "",
+    "prodTitleColor": "",
+    "hasSerifForHeadings": true,
+    "roguePinkSectionsCount": 0
+  },
+  "allPassed": true
+}

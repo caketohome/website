@@ -75,7 +75,7 @@ export function CustomerProvider({ children }: { children: React.ReactNode }) {
       }
 
       const reqPromise = (async () => {
-        const res = await fetch("/api/customer/me", {
+        const res = await fetch("/api/v1/customer/me", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           cache: "no-store",
@@ -83,21 +83,6 @@ export function CustomerProvider({ children }: { children: React.ReactNode }) {
 
         if (res.ok) {
           const data = await res.json();
-          if (data.success && data.customer) {
-            setCustomer(data.customer);
-            return data.customer;
-          }
-        }
-
-        // Secondary fallback to /api/v1/customer/me
-        const fallbackRes = await fetch("/api/v1/customer/me", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
-        });
-
-        if (fallbackRes.ok) {
-          const data = await fallbackRes.json();
           if (data.success && data.customer) {
             setCustomer(data.customer);
             return data.customer;
@@ -134,7 +119,7 @@ export function CustomerProvider({ children }: { children: React.ReactNode }) {
 
   const updateProfile = useCallback(async (payload: Partial<CustomerProfileDTO>): Promise<boolean> => {
     try {
-      const res = await fetch("/api/customer/me", {
+      const res = await fetch("/api/v1/customer/me", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

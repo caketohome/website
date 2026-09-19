@@ -21,7 +21,12 @@ const POPULAR_SEARCH_SUGGESTIONS = [
   "Rasmalai Cake",
 ];
 
-export function NavSearch() {
+export interface NavSearchProps {
+  mode?: "embedded" | "trigger-only" | "auto";
+  className?: string;
+}
+
+export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [query, setQuery] = useState("");
@@ -226,123 +231,139 @@ export function NavSearch() {
   };
 
   return (
-    <div ref={containerRef} className="relative w-full flex items-center">
+    <div ref={containerRef} className={`relative flex items-center ${mode === "trigger-only" ? "w-auto" : "w-full"} ${className}`}>
       {/* ── DESKTOP SEARCH BAR (Embedded Header Input) ── */}
-      <div className="hidden md:flex items-center relative w-full transition-all">
-        <div className="relative w-full flex items-center">
-          {/* Search Icon on the LEFT - perfectly centered vertically */}
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-accent/50 pointer-events-none transition-colors" />
+      {(mode === "embedded" || mode === "auto") && (
+        <div className={`${mode === "auto" ? "hidden md:flex" : "flex"} items-center relative w-full transition-all`}>
+          <div className="relative w-full flex items-center">
+            {/* Search Icon on the LEFT */}
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-accent/50 pointer-events-none transition-colors" />
 
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onFocus={() => setIsOpen(true)}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              if (!isOpen) setIsOpen(true);
-            }}
-            onKeyDown={handleInputKeyDown}
-            placeholder="Search cakes, flavours, categories..."
-            aria-label="Search products"
-            autoComplete="off"
-            className="w-full h-10 pl-10 pr-14 rounded-xl bg-navy-accent/5 hover:bg-navy-accent/10 focus:bg-white border border-navy-accent/15 focus:border-navy-glow text-sm text-navy-accent placeholder:text-navy-accent/50 focus:outline-none focus:ring-2 focus:ring-navy-glow/20 transition-all shadow-inner"
-          />
-
-          {/* Right Controls: Spinner / Clear button / Shortcut badge */}
-          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 text-rose-400 animate-spin" />
-            ) : query ? (
-              <button
-                type="button"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  setQuery("");
-                  setResults([]);
-                  setTotalCount(0);
-                  inputRef.current?.focus();
-                }}
-                className="text-navy-accent/40 hover:text-navy-accent transition-colors p-1 rounded-full hover:bg-navy-accent/10"
-                aria-label="Clear search"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            ) : (
-              <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-navy-accent/50 bg-navy-accent/5 rounded border border-navy-accent/10 pointer-events-none">
-                ⌘K
-              </kbd>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── MOBILE SEARCH TRIGGER BUTTON (< md) ── */}
-      <div className="flex md:hidden w-full justify-end">
-        <button
-          type="button"
-          onClick={() => {
-            setIsMobileExpanded(true);
-            setIsOpen(true);
-            setTimeout(() => mobileInputRef.current?.focus(), 50);
-          }}
-          aria-label="Search cakes"
-          className="p-2 rounded-full text-navy-accent/80 hover:text-navy-accent hover:bg-navy-accent/5 transition-colors"
-        >
-          <Search className="w-5 h-5 text-navy-accent/80" />
-        </button>
-      </div>
-
-      {/* ── MOBILE EXPANDED HEADER BAR OVERLAY (< md) ── */}
-      {isMobileExpanded && (
-        <div className="fixed inset-x-0 top-0 h-16 bg-[#111111] z-50 flex items-center px-3 gap-2 border-b border-white/10 shadow-lg animate-in fade-in-0 duration-150 md:hidden">
-          <div className="relative flex-1 flex items-center">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-400 pointer-events-none" />
             <input
-              ref={mobileInputRef}
+              ref={inputRef}
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => setIsOpen(true)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                if (!isOpen) setIsOpen(true);
+              }}
               onKeyDown={handleInputKeyDown}
-              placeholder="Search cakes, flavours..."
-              aria-label="Search products mobile"
+              placeholder="Search cakes, flavours, categories..."
+              aria-label="Search products"
               autoComplete="off"
-              className="w-full h-10 pl-10 pr-10 rounded-xl bg-[#1f1f23] border border-white/20 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-rose-500"
+              suppressHydrationWarning
+              className="w-full h-10 pl-10 pr-14 rounded-xl bg-navy-accent/5 hover:bg-navy-accent/10 focus:bg-white border border-navy-accent/15 focus:border-navy-glow text-sm text-navy-accent placeholder:text-navy-accent/50 focus:outline-none focus:ring-2 focus:ring-navy-glow/20 transition-all shadow-inner"
             />
-            {query && (
-              <button
-                type="button"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  setQuery("");
-                  mobileInputRef.current?.focus();
-                }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white p-1"
-                aria-label="Clear mobile search"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
+
+            {/* Right Controls: Spinner / Clear button / Shortcut badge */}
+            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 text-[#D4AF37] animate-spin" />
+              ) : query ? (
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setQuery("");
+                    setResults([]);
+                    setTotalCount(0);
+                    inputRef.current?.focus();
+                  }}
+                  className="text-navy-accent/40 hover:text-navy-accent transition-colors p-1 rounded-full hover:bg-navy-accent/10"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-navy-accent/50 bg-navy-accent/5 rounded border border-navy-accent/10 pointer-events-none">
+                  ⌘K
+                </kbd>
+              )}
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* ── MOBILE SEARCH TRIGGER BUTTON ── */}
+      {(mode === "trigger-only" || mode === "auto") && (
+        <div className={mode === "auto" ? "flex md:hidden w-full justify-end" : "flex items-center"}>
           <button
             type="button"
             onClick={() => {
-              setIsMobileExpanded(false);
-              setIsOpen(false);
+              setIsMobileExpanded(true);
+              setIsOpen(true);
+              setTimeout(() => mobileInputRef.current?.focus(), 50);
             }}
-            className="text-xs font-semibold text-white/70 hover:text-white px-2 py-1.5 rounded-lg hover:bg-white/10 shrink-0"
+            aria-label="Search cakes and bakery items"
+            title="Search cakes"
+            className="flex items-center justify-center min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px] p-2 rounded-xl text-navy-accent/80 hover:text-navy-accent hover:bg-navy-accent/5 transition-colors focus:outline-none focus:ring-2 focus:ring-navy-accent/20"
           >
-            Cancel
+            <Search className="w-5 h-5 text-navy-accent/80" />
           </button>
         </div>
       )}
 
-      {/* ── EMBEDDED RELATIVE DROPDOWN (Directly Anchored Underneath Search) ── */}
+      {/* ── MOBILE EXPANDED HEADER BAR OVERLAY ── */}
+      {isMobileExpanded && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] md:hidden"
+            onClick={() => {
+              setIsMobileExpanded(false);
+              setIsOpen(false);
+            }}
+          />
+          <div className="fixed inset-x-0 top-0 h-16 bg-[#0D152B]/95 backdrop-blur-xl supports-[backdrop-filter]:bg-[#0D152B]/90 z-[110] flex items-center px-3 gap-2 border-b border-white/10 shadow-2xl animate-in fade-in-0 duration-150 md:hidden">
+            <div className="relative flex-1 flex items-center">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D4AF37] pointer-events-none" />
+              <input
+                ref={mobileInputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleInputKeyDown}
+                placeholder="Search cakes, flavours..."
+                aria-label="Search products mobile"
+                autoComplete="off"
+                suppressHydrationWarning
+                className="w-full h-10 pl-10 pr-10 rounded-xl bg-[#142040]/70 border border-white/20 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-[#D4AF37]"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setQuery("");
+                    mobileInputRef.current?.focus();
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white p-1"
+                  aria-label="Clear mobile search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileExpanded(false);
+                setIsOpen(false);
+              }}
+              className="text-xs font-semibold text-white/70 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-white/10 shrink-0"
+            >
+              Cancel
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* ── EMBEDDED RELATIVE DROPDOWN ── */}
       {isOpen && (
         <div
           className={`
-            ${isMobileExpanded ? "fixed left-2.5 right-2.5 top-18" : "absolute left-0 right-0 top-full mt-2 w-full min-w-[340px] sm:min-w-[420px] max-w-[540px]"}
-            bg-[#18181b] border border-white/15 rounded-2xl shadow-2xl overflow-hidden z-50 text-white animate-in fade-in-0 zoom-in-95 duration-150 backdrop-blur-md
+            ${isMobileExpanded ? "fixed inset-x-2.5 top-18 z-[100]" : "absolute left-0 right-0 top-full mt-2 w-full min-w-[340px] sm:min-w-[420px] max-w-[540px] z-50"}
+            bg-[#0D152B]/95 border border-white/15 rounded-2xl shadow-[0_20px_50px_rgba(13,21,43,0.7)] overflow-hidden text-white animate-in fade-in-0 zoom-in-95 duration-150 backdrop-blur-xl supports-[backdrop-filter]:bg-[#0D152B]/85
           `}
           style={{ maxHeight: "calc(80vh - 70px)" }}
         >
@@ -356,13 +377,13 @@ export function NavSearch() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-white/50">
                       <div className="flex items-center gap-1.5">
-                        <History className="w-3.5 h-3.5 text-rose-400" />
+                        <History className="w-3.5 h-3.5 text-[#D4AF37]" />
                         <span>Recent Searches</span>
                       </div>
                       <button
                         type="button"
                         onMouseDown={clearRecentSearches}
-                        className="text-[10px] text-white/40 hover:text-rose-400 transition-colors lowercase"
+                        className="text-[10px] text-white/40 hover:text-[#D4AF37] transition-colors lowercase"
                       >
                         clear
                       </button>
@@ -388,7 +409,7 @@ export function NavSearch() {
 
                 {/* Popular Searches */}
                 <div className="space-y-2">
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-rose-400">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#D4AF37]">
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Popular Searches</span>
                   </div>
@@ -401,7 +422,7 @@ export function NavSearch() {
                           e.preventDefault();
                           handleSelectSuggestion(suggestion);
                         }}
-                        className="text-xs px-3 py-1.5 rounded-full bg-white/5 hover:bg-rose-500/20 text-white/80 hover:text-rose-200 border border-white/10 hover:border-rose-500/40 transition-all flex items-center gap-1.5 cursor-pointer"
+                        className="text-xs px-3 py-1.5 rounded-full bg-white/5 hover:bg-[#D4AF37]/20 text-white/80 hover:text-[#D4AF37]/60 border border-white/10 hover:border-[#D4AF37]/40 transition-all flex items-center gap-1.5 cursor-pointer"
                       >
                         <span>🎂</span>
                         <span>{suggestion}</span>
@@ -421,7 +442,7 @@ export function NavSearch() {
             {/* 2. LOADING SKELETON STATE */}
             {isLoading && query.trim().length >= 2 && results.length === 0 && (
               <div className="py-4 space-y-3">
-                <div className="flex items-center gap-2 text-xs text-rose-400 px-1 font-medium">
+                <div className="flex items-center gap-2 text-xs text-[#D4AF37] px-1 font-medium">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   <span>Searching fresh bakery catalogue...</span>
                 </div>
@@ -440,7 +461,7 @@ export function NavSearch() {
 
             {/* 3. ERROR STATE */}
             {errorMessage && (
-              <div className="py-4 text-center text-rose-400 text-xs">
+              <div className="py-4 text-center text-[#D4AF37] text-xs">
                 <p>{errorMessage}</p>
               </div>
             )}
@@ -448,7 +469,7 @@ export function NavSearch() {
             {/* 4. NO RESULTS STATE */}
             {!isLoading && hasSearched && results.length === 0 && !errorMessage && query.trim().length >= 2 && (
               <div className="py-6 text-center flex flex-col items-center justify-center gap-2.5">
-                <div className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-400">
+                <div className="w-10 h-10 rounded-full bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37]">
                   <Cake className="w-5 h-5" />
                 </div>
                 <div>
@@ -468,7 +489,7 @@ export function NavSearch() {
                         e.preventDefault();
                         handleSelectSuggestion(s);
                       }}
-                      className="text-xs px-2.5 py-1 rounded-full bg-white/5 hover:bg-rose-500/20 text-white/70 border border-white/10 cursor-pointer"
+                      className="text-xs px-2.5 py-1 rounded-full bg-white/5 hover:bg-[#D4AF37]/20 text-white/70 border border-white/10 cursor-pointer"
                     >
                       {s}
                     </button>
@@ -492,7 +513,7 @@ export function NavSearch() {
                         e.preventDefault();
                         handleSelectCategory(cat.slug);
                       }}
-                      className="text-xs px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 transition-colors flex items-center gap-1 cursor-pointer"
+                      className="text-xs px-2.5 py-1 rounded-lg bg-[#D4AF37]/15 hover:bg-[#D4AF37]/25 text-[#D4AF37]/80 border border-[#D4AF37]/30 transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       <span>📂</span>
                       <span>{cat.name}</span>
@@ -535,7 +556,7 @@ export function NavSearch() {
                       onMouseEnter={() => setSelectedIndex(idx)}
                       className={`group relative flex items-center gap-3 p-2 rounded-xl transition-all ${
                         isSelected
-                          ? "bg-rose-500/20 border border-rose-500/40"
+                          ? "bg-[#D4AF37]/20 border border-[#D4AF37]/40"
                           : "hover:bg-white/5 border border-transparent"
                       }`}
                     >
@@ -597,7 +618,7 @@ export function NavSearch() {
 
                         {/* Price Display */}
                         <div className="text-right shrink-0 pr-1">
-                          <div className="text-xs sm:text-sm font-bold text-rose-400">
+                          <div className="text-xs sm:text-sm font-bold text-[#D4AF37]">
                             ₹{product.price}
                           </div>
                           <div className="text-[9px] text-white/40">From</div>
@@ -615,7 +636,7 @@ export function NavSearch() {
                         aria-label={isFav ? "Remove from wishlist" : "Add to wishlist"}
                         className={`p-1.5 rounded-full transition-all shrink-0 ${
                           isFav
-                            ? "text-rose-500 bg-rose-500/15 hover:bg-rose-500/25"
+                            ? "text-[#D4AF37] bg-[#D4AF37]/15 hover:bg-[#D4AF37]/25"
                             : "text-white/30 hover:text-white/80 hover:bg-white/10 opacity-0 group-hover:opacity-100 focus:opacity-100"
                         }`}
                       >
@@ -630,7 +651,7 @@ export function NavSearch() {
 
           {/* ── FOOTER: View All Results Link ── */}
           {query.trim().length >= 2 && results.length > 0 && (
-            <div className="p-2.5 border-t border-white/10 bg-[#1f1f23] flex items-center justify-between">
+            <div className="p-2.5 border-t border-white/10 bg-[#0D152B]/95 backdrop-blur-md flex items-center justify-between">
               <span className="text-[11px] text-white/45">
                 Showing top {results.length} of {totalCount} results
               </span>
@@ -640,7 +661,7 @@ export function NavSearch() {
                   e.preventDefault();
                   handleFullSearchSubmit();
                 }}
-                className="flex items-center gap-1 text-xs font-semibold text-rose-400 hover:text-rose-300 transition-colors px-2.5 py-1 rounded-lg hover:bg-rose-500/10 cursor-pointer"
+                className="flex items-center gap-1 text-xs font-semibold text-[#D4AF37] hover:text-[#D4AF37]/80 transition-colors px-2.5 py-1 rounded-lg hover:bg-[#D4AF37]/10 cursor-pointer"
               >
                 <span>View all for &ldquo;{query}&rdquo;</span>
                 <ArrowRight className="w-3.5 h-3.5" />

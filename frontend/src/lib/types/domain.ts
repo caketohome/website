@@ -3,9 +3,74 @@
  * Strict, shared domain types across PostgreSQL, Services, and UI
  */
 
+export type InventoryMode = "STOCK_CONTROLLED" | "MADE_TO_ORDER_AVAILABILITY" | "UNKNOWN";
+
+export function resolveProductInventoryMode(product: {
+  id?: string;
+  category?: string;
+  category_slug?: string;
+  metadata?: any;
+  pim_config?: any;
+  prep_time_minutes?: number;
+  weight_prices?: any[];
+  weight?: string;
+}): InventoryMode {
+  if (!product) return "UNKNOWN";
+  const meta = product.metadata || {};
+  const pim = meta.pim_config || product.pim_config || {};
+
+  // 1. Explicit PIM authority takes highest precedence once set
+  if (pim.inventory_mode === "STOCK_CONTROLLED" || pim.inventory_mode === "MADE_TO_ORDER_AVAILABILITY") {
+    return pim.inventory_mode;
+  }
+
+  // 2. Physical accessories / stock-held products
+  const cat = String(meta.category || product.category || "").toLowerCase();
+  const slug = String(meta.category_slug || product.category_slug || "").toLowerCase();
+  const id = String(product.id || "");
+
+  if (
+    id.startsWith("acc_") ||
+    slug === "accessories" ||
+    slug === "cake-accessories" ||
+    slug === "greeting-cards" ||
+    cat === "accessories" ||
+    cat === "cake accessories" ||
+    cat === "greeting cards"
+  ) {
+    return "STOCK_CONTROLLED";
+  }
+
+  // 3. Made-to-order bakery indicators (baking attributes, weights, prep time, bakery categories)
+  const isBakeryCategory = [
+    "cakes", "pastries", "cupcakes", "specialty-cakes", "artisanal-cakes",
+    "chocolate-cakes", "signature-cakes", "black-forest-cakes", "red-velvet-cakes",
+    "fruit-mousse-cakes", "butterscotch-caramel-cakes", "desserts"
+  ].some(b => slug.includes(b) || cat.includes(b));
+
+  const hasBakeryAttributes = 
+    meta.prep_time_minutes != null ||
+    product.prep_time_minutes != null ||
+    meta.flavour != null ||
+    meta.cake_base != null ||
+    meta.filling != null ||
+    (Array.isArray(meta.weight_prices) && meta.weight_prices.length > 0) ||
+    (Array.isArray(product.weight_prices) && product.weight_prices.length > 0) ||
+    meta.weight != null ||
+    product.weight != null;
+
+  if (isBakeryCategory || hasBakeryAttributes) {
+    return "MADE_TO_ORDER_AVAILABILITY";
+  }
+
+  return "UNKNOWN";
+}
+
 export interface ProductDomain {
   id: string;
   product_id?: string;
+  inventory_mode?: InventoryMode;
+  metadata?: Record<string, any>;
   title: string;
   name?: string;
   handle: string;
@@ -204,6 +269,7 @@ export interface OrderItemDomain {
   id?: string;
   item_id?: string;
   product_id: string;
+  variant_id?: string;
   product_name: string; // Historical snapshot
   title?: string;
   thumbnail?: string;
@@ -302,16 +368,40 @@ export interface CmsPageDomain {
   id: string;
   slug: string;
   title: string;
-  type: "landing" | "policy" | "info" | "campaign";
+  type: "landing" | "policy" | "info" | "campaign" | "home" | "product" | "catalog" | string;
   status: "draft" | "published" | "archived";
   meta_title: string;
   meta_description: string;
   canonical_url: string;
   og_image: string;
   sections: any[];
+  theme?: Record<string, any> | null;
   draft_config?: Record<string, any>;
   published_config?: Record<string, any> | null;
+  pdp_config?: Record<string, any> | null;
   version_history?: any[];
+  subheading?: string;
+  h1?: string;
+  intro_content?: string;
+  breadcrumb_title?: string;
+  announcement_bar?: any;
+  header_config?: any;
+  visibility_rules?: any;
+  robots_tag?: string;
+  keywords?: string;
+  og_title?: string;
+  og_description?: string;
+  og_type?: string;
+  twitter_card?: string;
+  twitter_title?: string;
+  twitter_description?: string;
+  twitter_image?: string;
+  structured_data_type?: string;
+  sitemap_include?: boolean;
+  sitemap_priority?: string;
+  sitemap_changefreq?: string;
+  nav_location?: string;
+  hide_from_nav?: boolean;
   created_at: string;
   updated_at: string;
   published_at?: string | null;

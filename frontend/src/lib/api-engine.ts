@@ -32,6 +32,7 @@ import {
   persistProductReviewToDb,
   deleteProductReviewFromDb,
 } from "./db-persistence";
+import { InventoryService } from "./services/inventory.service";
 import { SeoIntegrationsEngine } from "./integrations/seo-integrations";
 import { LiveHttpCrawler } from "./crawler/live-crawler";
 import { SeoAuditEngine } from "./audit/seo-audit-engine";
@@ -120,6 +121,7 @@ import {
   computeChannelPerformance,
   computeTopAbandonedProducts,
 } from "./cart-recovery/cart-recovery-engine";
+import { resolveProductInventoryMode } from "./types/domain";
 
 export interface ProductItem {
   product_id: string;
@@ -1581,7 +1583,7 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/products",
     breadcrumb_title: "All Cakes",
     meta_title: "Order Fresh Cakes Online — Birthday, Wedding & Custom Cakes | CakeToHome",
-    meta_description: "Browse 100+ fresh handcrafted cakes online. Birthday cakes, wedding cakes, photo cakes, artisan, and vegan options. Delivery across Bangalore in 2 hours.",
+    meta_description: "Browse 100+ fresh handcrafted cakes online. Birthday cakes, wedding cakes, photo cakes, and artisan specialties. Delivery across Bangalore in 2 hours.",
     robots_tag: "index, follow",
     canonical_url: "https://cakes2home.com/products",
     keywords: "buy cakes online, birthday cake order, wedding cake bangalore, gourmet cakes photo cakes",
@@ -2363,6 +2365,9 @@ export interface AccessoryItem {
   description: string;
   status: "active" | "inactive";
   weight?: string;
+  variant_id?: string;
+  available_stock?: number;
+  reserved?: number;
   branches?: string[];
   occasion_ids?: string[];
   created_at: string;
@@ -4912,6 +4917,12 @@ function deduplicateStoreProducts(products: any[]): any[] {
   return Array.from(map.values());
 }
 
+export function safeDateSlice(d: any, len = 10): string {
+  if (!d) return "";
+  if (d instanceof Date) return d.toISOString().slice(0, len);
+  return String(d).slice(0, len);
+}
+
 export class ApiEngine {
   static async ensureHydrated() {
     if (_hydrationPromise) {
@@ -5080,7 +5091,7 @@ export class ApiEngine {
         handle: enrichedProd.handle || enrichedProd.product_id,
         price: enrichedProd.price || enrichedProd.selling_price,
         selling_price: enrichedProd.selling_price || enrichedProd.price,
-        mrp: enrichedProd.mrp || Math.round((enrichedProd.price || 599) * 1.25),
+        mrp: enrichedProd.mrp || (enrichedProd.price ? Math.round(enrichedProd.price * 1.25) : (enrichedProd.selling_price || 0)),
         rating: enrichedProd.rating || 4.8,
         review_count: enrichedProd.review_count || 0,
         category: enrichedProd.category,
@@ -6482,28 +6493,38 @@ export class ApiEngine {
       };
     }
 
-    // Map-first requirement: delivery serviceability requires valid coordinates
+    // Delivery serviceability: derive reference coordinates from branch/locality if not provided directly
     if (lat === undefined || lng === undefined) {
-      return {
-        state: null, stateId: null, stateCode: null, stateName: null, gstStateCode: null,
-        country: "India", countryCode: "IN", countryId: "country_in",
-        city: null, cityId: null, cityName: null,
-        store: null, storeId: null, storeName: null,
-        fulfillmentHub: null, fulfillmentHubId: null, fulfillmentHubName: null,
-        zone: null, zoneId: null, zoneName: null,
-        pincode: cleanPin, deliveryFee: 0, delivery_fee: 0, serviceable: false,
-        blockedReason: "Please select your delivery location on the map to verify serviceability.",
-        reasonCode: "LOCATION_REQUIRED",
-        reason_code: "LOCATION_REQUIRED",
-        etaMinutes: 0, expressAvailable: false, midnightAvailable: false,
-        resolutionTier: "Location Required",
-        distance_km: null,
-        distanceKm: null,
-        pricing_mode: null,
-        bracket: null,
-        available_delivery_modes: [],
-        available_slots: [],
-      };
+      const preliminaryBranch = ApiEngine.resolveSmartBranch({
+        pincode: cleanPin || undefined,
+        branchId: options?.storeId,
+        city: (options as any)?.city || (options as any)?.cityName,
+      });
+      if (preliminaryBranch?.branch && preliminaryBranch.resolvedBy !== "location_required" && !preliminaryBranch.blockedReason) {
+        lat = preliminaryBranch.branch.latitude;
+        lng = preliminaryBranch.branch.longitude;
+      } else {
+        return {
+          state: null, stateId: null, stateCode: null, stateName: null, gstStateCode: null,
+          country: "India", countryCode: "IN", countryId: "country_in",
+          city: null, cityId: null, cityName: null,
+          store: null, storeId: null, storeName: null,
+          fulfillmentHub: null, fulfillmentHubId: null, fulfillmentHubName: null,
+          zone: null, zoneId: null, zoneName: null,
+          pincode: cleanPin, deliveryFee: 0, delivery_fee: 0, serviceable: false,
+          blockedReason: "Please select your delivery location to verify serviceability.",
+          reasonCode: "LOCATION_REQUIRED",
+          reason_code: "LOCATION_REQUIRED",
+          etaMinutes: 0, expressAvailable: false, midnightAvailable: false,
+          resolutionTier: "Location Required",
+          distance_km: null,
+          distanceKm: null,
+          pricing_mode: null,
+          bracket: null,
+          available_delivery_modes: [],
+          available_slots: [],
+        };
+      }
     }
 
     const resolved = ApiEngine.resolveSmartBranch({
@@ -7906,22 +7927,52 @@ export class ApiEngine {
 
   static getProductWeightPrices(productId: string) {
     if (!memoryStore.product_weight_prices) memoryStore.product_weight_prices = [];
+    const prod = memoryStore.products?.find((p: any) => p.id === productId || p.product_id === productId) as any;
+    const isWeightEligible = prod
+      ? prod.pim_config?.show_weight !== false &&
+        (prod.metadata?.pim_config as any)?.show_weight !== false &&
+        prod.category_slug !== "pastries" &&
+        prod.category !== "Pastries"
+      : true;
+
+    if (!isWeightEligible) {
+      return [];
+    }
+
     let records = memoryStore.product_weight_prices.filter((item: any) => item.product_id === productId);
+    records = records.filter((r: any) => {
+      const name = String(r.weight_name || r.name || "").trim().toLowerCase();
+      return name !== "1 pc" && name !== "1 piece" && name !== "1pc";
+    });
 
     if (records.length === 0) {
-      const prod = memoryStore.products?.find((p: any) => p.id === productId || p.product_id === productId) as any;
       if (prod) {
         if (Array.isArray(prod.weight_prices) && prod.weight_prices.length > 0) {
-          memoryStore.product_weight_prices.push(...prod.weight_prices);
-          return prod.weight_prices;
+          const validWp = prod.weight_prices.filter((w: any) => {
+            const n = String(w.weight_name || w.name || "").trim().toLowerCase();
+            return n !== "1 pc" && n !== "1 piece" && n !== "1pc";
+          });
+          if (validWp.length > 0) {
+            memoryStore.product_weight_prices.push(...validWp);
+            return validWp;
+          }
         }
         if (Array.isArray(prod.metadata?.weight_prices) && prod.metadata.weight_prices.length > 0) {
-          memoryStore.product_weight_prices.push(...prod.metadata.weight_prices);
-          return prod.metadata.weight_prices;
+          const validMetaWp = prod.metadata.weight_prices.filter((w: any) => {
+            const n = String(w.weight_name || w.name || "").trim().toLowerCase();
+            return n !== "1 pc" && n !== "1 piece" && n !== "1pc";
+          });
+          if (validMetaWp.length > 0) {
+            memoryStore.product_weight_prices.push(...validMetaWp);
+            return validMetaWp;
+          }
         }
-        const defaultMatrix = createDefaultWeightMatrix(productId, prod.price || 649);
-        memoryStore.product_weight_prices.push(...defaultMatrix);
-        ApiEngine.persist();
+        const basePrice = Number(prod.price || prod.selling_price || prod.sale_price || prod.metadata?.price || 0);
+        const defaultMatrix = basePrice > 0 ? createDefaultWeightMatrix(productId, basePrice) : [];
+        if (defaultMatrix.length > 0) {
+          memoryStore.product_weight_prices.push(...defaultMatrix);
+          ApiEngine.persist();
+        }
         return defaultMatrix;
       }
       return [];
@@ -9786,19 +9837,12 @@ export class ApiEngine {
                   (memoryStore.partners || []).find((p: any) => p.id === partnerId || p.partner_number === partnerId);
 
     if (!partner) {
-      partner = {
-        id: partnerId,
-        name: "Delivery Rider",
-        full_name: "Delivery Rider",
-        partner_number: `DLP-${partnerId.slice(-4)}`,
-        phone: "+91 98123 45678",
-        primary_branch_id: orderBranchId || order.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-        associated_branches: [orderBranchId || order.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT"],
-        availability_status: "ONLINE",
-        status: "active",
+      return {
+        success: false,
+        statusCode: 404,
+        error: "PARTNER_NOT_FOUND",
+        message: `Delivery partner '${partnerId}' not found in authoritative records.`,
       };
-      if (!Array.isArray(memoryStore.delivery_partners)) memoryStore.delivery_partners = [];
-      memoryStore.delivery_partners.push(partner);
     }
 
     // Rider Online Status Enforcement Gate
@@ -13882,12 +13926,27 @@ export class ApiEngine {
       theme: page.theme,
     };
 
+    const history = Array.isArray(page.version_history) ? page.version_history : [];
+    const nextVer = (history.length > 0 ? (history[history.length - 1].version || history.length) : 0) + 1;
+    const versionSnapshot = {
+      version: nextVer,
+      version_id: `v_${Date.now()}`,
+      published_at: now,
+      title: page.title,
+      sections_count: (page.sections || []).length,
+      published_config: JSON.parse(JSON.stringify(publishedConfig)),
+      snapshot: JSON.parse(JSON.stringify(publishedConfig)),
+      created_by: "Admin",
+    };
+    const updatedHistory = [...history.slice(-9), versionSnapshot];
+
     pages[idx] = {
       ...page,
       status: "published",
       published_at: now,
       updated_at: now,
       published_config: publishedConfig,
+      version_history: updatedHistory,
     };
     ApiEngine.addAuditLog(`Published CMS Page "${page.title}"`);
     ApiEngine.persist();
@@ -13935,19 +13994,29 @@ export class ApiEngine {
     return copy;
   }
 
-  static async rollbackCmsPage(id: string, version: number) {
+  static async rollbackCmsPage(id: string, version: number | string) {
     const pages = ApiEngine.listCmsPages();
     const idx = pages.findIndex((p: any) => p.id === id || p.slug === id);
     if (idx < 0) return null;
     const page = pages[idx];
     const history = Array.isArray(page.version_history) ? page.version_history : [];
-    const entry = history.find((h: any) => h.version === version);
-    if (!entry || !entry.snapshot) return null;
+    if (history.length === 0) return null;
+
+    const entry = history.find((h: any) =>
+      h.version === Number(version) ||
+      h.version_id === version ||
+      String(h.version) === String(version)
+    ) || (typeof version === "number" && history[version]) || history[history.length - 1];
+
+    if (!entry) return null;
+    const snapshotConfig = entry.published_config || entry.snapshot || {};
+
     const restored: any = {
       ...page,
-      ...entry.snapshot,
+      ...snapshotConfig,
       id: page.id,
-      status: "draft",
+      status: "published",
+      published_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       version_history: history,
     };
@@ -13971,7 +14040,7 @@ export class ApiEngine {
       });
     }
     pages[idx] = restored;
-    ApiEngine.addAuditLog(`Rolled back CMS Page "${page.title}" to v${version}`);
+    ApiEngine.addAuditLog(`Rolled back CMS Page "${page.title}" to version ${entry.version || entry.version_id || version}`);
     ApiEngine.persist();
     await persistCmsPageToDb(restored);
     return restored;
@@ -14403,15 +14472,61 @@ export class ApiEngine {
     const occ = ApiEngine.getOccasionBySlug(occasionSlugOrId) || ApiEngine.getOccasionById(occasionSlugOrId);
     if (!occ) return [];
 
+    const cleanSlug = occ.slug.toLowerCase().trim();
+    const cleanId = occ.id.toLowerCase().trim();
+    const cleanName = occ.name.toLowerCase().trim();
+
     const products = ApiEngine.getProducts(branchId);
+    const matched = products.filter((p: any) => {
+      if (p.branch_status === "HIDDEN" || p.branch_status === "OUT_OF_STOCK" || p.is_out_of_stock_at_branch) {
+        return false;
+      }
+      const occIds: string[] = Array.isArray(p.occasion_ids)
+        ? p.occasion_ids.map((id: any) => String(id).toLowerCase().trim())
+        : [];
+      if (
+        occIds.includes(cleanId) ||
+        occIds.includes(cleanSlug) ||
+        occIds.includes(cleanId.replace("occ_", "")) ||
+        occIds.includes(cleanSlug.replace(/-/g, "_")) ||
+        occIds.includes(`occ_${cleanSlug.replace(/-/g, "_")}`)
+      ) {
+        return true;
+      }
+      if (p.occasion && (p.occasion.toLowerCase() === cleanName || p.occasion.toLowerCase() === cleanSlug)) {
+        return true;
+      }
+      const pText = `${p.title || ""} ${p.name || ""} ${p.description || ""} ${JSON.stringify(p.tags || "")}`.toLowerCase();
+      if (pText.includes(cleanName) || pText.includes(cleanSlug.replace(/-/g, " "))) {
+        return true;
+      }
+      return false;
+    });
+
+    if (matched.length > 0) return matched;
+
+    // Intelligent culinary occasion curation fallback so occasion pages never break
+    const fallbackRules: Record<string, string[]> = {
+      anniversary: ["velvet", "truffle", "gateau", "cream", "heart", "choco"],
+      wedding: ["truffle", "gateau", "pistachio", "velvet", "cream", "cake"],
+      engagement: ["velvet", "pistachio", "choco", "truffle"],
+      "valentines-day": ["velvet", "bee", "choco", "red", "heart"],
+      "mothers-day": ["mango", "mousse", "cream", "fruit", "vanilla"],
+      "fathers-day": ["caramel", "butterscotch", "truffle", "coffee", "tea"],
+      "baby-shower": ["cupcake", "vanilla", "mango", "mousse", "crunch"],
+      "baby-birthday": ["cupcake", "chocolate", "vanilla", "truffle"],
+      graduation: ["truffle", "tea", "dry fruit", "gateau"],
+      retirement: ["tea", "dry fruit", "butterscotch", "gateau"],
+      farewell: ["truffle", "gateau", "croissant", "pastry"],
+    };
+
+    const keywords = fallbackRules[cleanSlug] || [cleanSlug];
     return products.filter((p: any) => {
       if (p.branch_status === "HIDDEN" || p.branch_status === "OUT_OF_STOCK" || p.is_out_of_stock_at_branch) {
         return false;
       }
-      const occIds: string[] = Array.isArray(p.occasion_ids) ? p.occasion_ids : [];
-      if (occIds.includes(occ.id) || occIds.includes(occ.slug)) return true;
-      if (p.occasion && p.occasion.toLowerCase() === occ.name.toLowerCase()) return true;
-      return false;
+      const text = `${p.title || ""} ${p.name || ""} ${p.description || ""}`.toLowerCase();
+      return keywords.some((kw) => text.includes(kw));
     });
   }
 
@@ -14825,7 +14940,7 @@ export class ApiEngine {
       price: Number(data.price) || 99,
       cost_price: Number(data.cost_price) || 40,
       mrp: Number(data.mrp) || 149,
-      stock: Number(data.stock) ?? 50,
+      stock: Number(data.stock || 0),
       low_stock_threshold: Number(data.low_stock_threshold) || 5,
       tax_category_id: data.tax_category_id || "cat_tax_candles",
       hsn_code: data.hsn_code || "34060010",
@@ -15307,9 +15422,13 @@ export class ApiEngine {
     fulfillment_rules?: any;
     capacity_settings?: any;
     delivery_zones?: any[];
+    product_availability?: Record<string, any>;
+    cake_fulfilment?: any;
   }) {
     const branch = ApiEngine.getBranchById(branchId);
     if (!branch) return null;
+    if (data.product_availability) branch.product_availability = { ...(branch.product_availability || {}), ...data.product_availability };
+    if (data.cake_fulfilment) branch.cake_fulfilment = { ...(branch.cake_fulfilment || {}), ...data.cake_fulfilment };
     if (data.weekly_schedule) branch.weekly_schedule = data.weekly_schedule;
     if (data.operating_hours) branch.operating_hours = data.operating_hours;
     if (data.holidays) branch.holidays = data.holidays;
@@ -16026,6 +16145,8 @@ export class ApiEngine {
     orderTotal?: number;
     deliveryType?: "delivery" | "pickup";
     branchId?: string;
+    city?: string;
+    cityName?: string;
   }): {
     branch: BranchItem | null;
     resolvedBy: string;
@@ -16288,7 +16409,53 @@ export class ApiEngine {
         bracketLabel: feeRes.bracket_label,
       };
     } else {
-      // ── PATH B: No coordinates provided — DO NOT silently fall back to pincode ──
+      // ── PATH B: No coordinates provided — Resolve by branchId, city, pincode, or flagship hub ──
+      let fallbackBranch: any = null;
+      if (query.branchId) {
+        fallbackBranch = operational.find((b: any) => b.id === query.branchId || b.code === query.branchId);
+      }
+      if (!fallbackBranch && (query as any).city) {
+        const cLower = String((query as any).city).toLowerCase();
+        fallbackBranch = operational.find((b: any) =>
+          b.city?.toLowerCase() === cLower ||
+          b.name?.toLowerCase().includes(cLower) ||
+          b.address?.toLowerCase().includes(cLower)
+        );
+      }
+      if (!fallbackBranch && query.pincode) {
+        fallbackBranch = operational.find((b: any) =>
+          b.pincode === query.pincode ||
+          (b.delivery_zones || []).some((z: any) => (z.postal_codes || []).includes(query.pincode))
+        );
+      }
+      if (!fallbackBranch && operational.length > 0) {
+        fallbackBranch = operational.find((b: any) => b.code?.toLowerCase().includes("indiranagar")) || operational[0];
+      }
+
+      if (fallbackBranch) {
+        const zone = (fallbackBranch.delivery_zones || []).find((z: any) => z.enabled) || fallbackBranch.delivery_zones?.[0];
+        const feeRes = ApiEngine.calculateDeliveryFee(fallbackBranch, {
+          distance_km: 3.5,
+          is_express: query.isExpress,
+          is_midnight: query.isMidnight,
+          zone_id: zone?.id,
+        });
+        return {
+          branch: fallbackBranch,
+          resolvedBy: "locality_fallback",
+          etaminutes: 40,
+          deliveryFee: feeRes.total_fee,
+          feeBreakdown: feeRes.breakdown,
+          partnerSequence: fallbackBranch.partner_failover?.priority || fallbackBranch.delivery_partner_priority || ["porter", "rapido", "shadowfax", "own_fleet"],
+          candidatesEvaluated: 1,
+          zoneName: feeRes.zone_name || zone?.name || "Standard Area",
+          zone,
+          distanceKm: 3.5,
+          pricingMode: feeRes.pricing_mode,
+          bracketLabel: feeRes.bracket_label,
+        };
+      }
+
       return {
         branch: null as any,
         resolvedBy: "location_required",
@@ -16298,7 +16465,7 @@ export class ApiEngine {
         feeBreakdown: {},
         partnerSequence: [],
         candidatesEvaluated: 0,
-        blockedReason: "Please select your delivery location on the map to verify serviceability.",
+        blockedReason: "Please select your delivery location to verify serviceability.",
         zoneName: "Location Required",
       };
     }
@@ -17332,6 +17499,9 @@ export class ApiEngine {
     }
     ApiEngine.addBranchAuditLog(b.id, "UPDATE_PRODUCT_AVAILABILITY", oldVal, data, "admin", "127.0.0.1", data.reason || "Manual Status Change");
     ApiEngine.persist();
+    persistBranchToDb(b).catch((err) => {
+      console.error("[ApiEngine] Failed to persist branch to PostgreSQL in setBranchProductAvailability:", err.message);
+    });
     return data;
   }
 
@@ -17456,9 +17626,7 @@ export class ApiEngine {
   static getBranchAccessoryStock(branchId: string, accessoryId: string) {
     const b = ApiEngine.getBranchById(branchId);
     if (!b || !b.accessory_inventory || !b.accessory_inventory[accessoryId]) {
-      const globalAcc = ApiEngine.listAccessories().find((a: any) => a.id === accessoryId);
-      const defaultStock = globalAcc ? Number(globalAcc.stock) : 20;
-      return { current_stock: defaultStock, reserved_stock: 0, available_stock: defaultStock, low_stock_threshold: 5, reorder_level: 10 };
+      return { current_stock: 0, reserved_stock: 0, available_stock: 0, low_stock_threshold: 5, reorder_level: 10 };
     }
     return b.accessory_inventory[accessoryId];
   }
@@ -17477,6 +17645,9 @@ export class ApiEngine {
     b.accessory_inventory[accessoryId] = updated;
     ApiEngine.addBranchAuditLog(branchId, "ADJUST_ACCESSORY_STOCK", current, updated, "admin", "127.0.0.1", reason);
     ApiEngine.persist();
+    InventoryService.setStock(branchId, accessoryId, newStock).catch((err) => {
+      console.error("[ApiEngine] Failed to persist adjusted stock to PostgreSQL:", err.message);
+    });
     return updated;
   }
 
@@ -18270,7 +18441,7 @@ export class ApiEngine {
     const cart = ApiEngine.getCart(cartId, customerUid);
     if (!Array.isArray(cart.items)) cart.items = [];
 
-    const targetProdId = item.productId || item.product_id || item.id;
+    const targetProdId = item.productId || item.product_id || (item.id && !String(item.id).startsWith("cart_") && !String(item.id).startsWith("line_") ? item.id : undefined);
     const targetBranchId = item.branchId || item.branch_id || cart.branch_id;
     const targetPincode = item.pincode || cart.delivery_pincode;
 
@@ -18280,6 +18451,8 @@ export class ApiEngine {
       throw new Error(`Unable to add item to cart: Product "${targetProdId}" was not found in catalog.`);
     }
 
+    const resolvedTitle = item.title || item.name || canonicalProduct?.title || canonicalProduct?.name || "Product";
+
     if (targetProdId && (targetBranchId || targetPincode)) {
       let bId = targetBranchId;
       if (!bId && targetPincode) {
@@ -18288,15 +18461,28 @@ export class ApiEngine {
       }
       if (bId) {
         const branch = ApiEngine.resolveBranchRecord(bId);
-        const override = branch?.product_availability?.[targetProdId];
-        const normStatus = (override?.status || "").toUpperCase();
-        if (normStatus === "OUT_OF_STOCK" || normStatus === "UNAVAILABLE" || normStatus === "OUT_TODAY" || normStatus === "HIDDEN") {
-          throw new Error(`Product is out of stock or unavailable for delivery at selected branch.`);
+        if (branch) {
+          const mode = canonicalProduct ? resolveProductInventoryMode(canonicalProduct) : "STOCK_CONTROLLED";
+          if (mode === "MADE_TO_ORDER_AVAILABILITY") {
+            const override = branch?.product_availability?.[targetProdId];
+            const normStatus = (override?.status || "").toUpperCase();
+            if (normStatus === "OUT_OF_STOCK" || normStatus === "UNAVAILABLE" || normStatus === "OUT_TODAY" || normStatus === "HIDDEN") {
+              throw new Error(`Cake "${resolvedTitle}" is currently unavailable for baking at selected kitchen branch.`);
+            }
+            if (branch.cake_fulfilment && branch.cake_fulfilment.can_fulfil === false) {
+              throw new Error(`Kitchen branch cannot fulfill cake orders: ${branch.cake_fulfilment.reason || 'Kitchen closed'}`);
+            }
+          } else if (mode === "STOCK_CONTROLLED") {
+            const accInvRecord = branch?.accessory_inventory?.[targetProdId] ?? branch?.metadata?.accessory_inventory?.[targetProdId];
+            const accStock = typeof accInvRecord === "object" ? Number(accInvRecord.available_stock ?? accInvRecord.current_stock ?? 0) : (typeof accInvRecord === "number" ? accInvRecord : 0);
+            const reqQty = Number(item.quantity || 1);
+            if (accStock < reqQty) {
+              throw new Error(`Insufficient stock for "${resolvedTitle}". Only ${accStock} available at selected branch.`);
+            }
+          }
         }
       }
     }
-
-    const resolvedTitle = item.title || item.name || canonicalProduct?.title || canonicalProduct?.name;
     if (!resolvedTitle) {
       throw new Error(`Unable to add item to cart: Product title is missing and could not be resolved.`);
     }
@@ -18315,7 +18501,16 @@ export class ApiEngine {
         }
       }
       if (!unitPrice || unitPrice <= 0) {
-        unitPrice = Number(canonicalProduct.price || canonicalProduct.selling_price || 0);
+        unitPrice = Number(
+          canonicalProduct.price ||
+          canonicalProduct.selling_price ||
+          (canonicalProduct as any).metadata?.selling_price ||
+          (canonicalProduct as any).metadata?.price ||
+          0
+        );
+      }
+      if ((!unitPrice || unitPrice <= 0) && Number(item.unit_price || item.price || item.metadata?.price || 0) > 0) {
+        unitPrice = Number(item.unit_price || item.price || item.metadata?.price);
       }
 
       // Add Shape surcharge if selected
@@ -18350,14 +18545,30 @@ export class ApiEngine {
       throw new Error(`Unable to add item to cart: Price for "${resolvedTitle}" must be greater than zero.`);
     }
 
-    const itemWeight = item.weight || (canonicalProduct as any)?.weight || "1 kg";
+    const isWeightEligible = canonicalProduct
+      ? (canonicalProduct as any)?.pim_config?.show_weight !== false &&
+        (canonicalProduct as any)?.metadata?.pim_config?.show_weight !== false &&
+        (canonicalProduct as any)?.category_slug !== "pastries" &&
+        (canonicalProduct as any)?.category !== "Pastries"
+      : true;
+
+    let itemWeight = isWeightEligible
+      ? (item.weight || (canonicalProduct as any)?.weight || "1 kg")
+      : null;
+    if (itemWeight === "1 pc" || itemWeight === "1 piece" || itemWeight === "1pc") {
+      itemWeight = null;
+    }
     const canonicalProdId = canonicalProduct?.id || item.product_id || item.productId || targetProdId;
     const variantId = item.variant_id || (canonicalProdId ? `var_${canonicalProdId}` : undefined);
 
     const existingItemIdx = cart.items.findIndex((i: any) => {
       const sameProd = (i.product_id === canonicalProdId || i.id === canonicalProdId);
       const sameVariant = (item.variant_id && i.variant_id === item.variant_id);
-      const sameWeight = (!item.variant_id && (i.weight === itemWeight || parseAndNormalizeWeight(i.weight).normalized_grams === parseAndNormalizeWeight(itemWeight).normalized_grams));
+      const sameWeight = (!item.variant_id && (
+        i.weight === itemWeight ||
+        (i.weight && itemWeight && parseAndNormalizeWeight(i.weight).normalized_grams === parseAndNormalizeWeight(itemWeight).normalized_grams) ||
+        (!i.weight && !itemWeight)
+      ));
       return sameProd && (sameVariant || sameWeight);
     });
 
@@ -18427,7 +18638,10 @@ export class ApiEngine {
   static updateCartItem(cartId: string, lineItemId: string, quantity: number) {
     ApiEngine.ensureCartsStore();
     const carts: any[] = Array.isArray(memoryStore.carts) ? memoryStore.carts : (memoryStore.carts = []);
-    const cart = carts.find((c) => c.id === cartId || c.cart_id === cartId);
+    let cart = carts.find((c) => c.id === cartId || c.cart_id === cartId);
+    if (!cart && cartId) {
+      cart = ApiEngine.getCart(cartId);
+    }
     if (!cart) throw new Error("Cart not found");
 
     if (quantity <= 0) {
@@ -18437,6 +18651,7 @@ export class ApiEngine {
       if (item) {
         item.quantity = quantity;
         item.total_price = item.quantity * (item.unit_price || item.price || 0);
+        item.subtotal = item.total_price;
       }
     }
 
@@ -18447,6 +18662,10 @@ export class ApiEngine {
 
     ApiEngine.persist();
     return cart;
+  }
+
+  static removeCartItem(cartId: string, lineItemId: string) {
+    return ApiEngine.updateCartItem(cartId, lineItemId, 0);
   }
 
   static clearCart(cartId: string) {
@@ -20434,7 +20653,7 @@ export class ApiEngine {
     // Today's orders
     const todayStr = new Date().toISOString().slice(0, 10);
     const todayOrders = branchOrders.filter((o: any) => {
-      const d = (o.created_at || o.delivery_date || "").slice(0, 10);
+      const d = safeDateSlice(o.created_at || o.delivery_date);
       return d === todayStr;
     });
 
@@ -20502,8 +20721,8 @@ export class ApiEngine {
     const todayStr = new Date().toISOString().slice(0, 10);
     const yestDate = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
-    const todayOrders = orders.filter((o: any) => (o.created_at || o.delivery_date || "").slice(0, 10) === todayStr);
-    const yestOrders = orders.filter((o: any) => (o.created_at || o.delivery_date || "").slice(0, 10) === yestDate);
+    const todayOrders = orders.filter((o: any) => safeDateSlice(o.created_at || o.delivery_date) === todayStr);
+    const yestOrders = orders.filter((o: any) => safeDateSlice(o.created_at || o.delivery_date) === yestDate);
 
     const todayGross = todayOrders.reduce((s: number, o: any) => s + (Number(o.total) || 0), 0);
     const todayNet = todayOrders.reduce((s: number, o: any) => s + (Number(o.subtotal) || Number(o.total) || 0) - (Number(o.discount_total) || 0), 0);
@@ -20683,22 +20902,101 @@ export class ApiEngine {
   }
 
   static getReportsInventory(query: Record<string, any> = {}) {
-    const products = ApiEngine.listProducts();
-    let totalVal = 0;
-    for (const p of products) {
-      const price = Number((p as any).price) || 599;
-      const stock = Number((p as any).stock) || 50;
-      totalVal += price * stock;
+    const targetBranchId = query.branch_id || query.branchId;
+    const branches = targetBranchId ? [ApiEngine.getBranchById(targetBranchId)].filter(Boolean) : ApiEngine.listBranches();
+    const accessories = ApiEngine.listAccessories();
+
+    let accessoryVal = 0;
+    let lowStock = 0;
+    let outOfStock = 0;
+    let totalPhysicalUnits = 0;
+    const itemsReport: any[] = [];
+
+    for (const b of branches) {
+      const bInv = (b as any).accessory_inventory || {};
+      for (const a of accessories) {
+        const itemInv = bInv[a.id] || (a.variant_id ? bInv[a.variant_id] : {}) || {};
+        const stock = Number(itemInv.current_stock ?? itemInv.stock ?? 0);
+        const reserved = Number(itemInv.reserved_stock ?? itemInv.reserved ?? 0);
+        const available = Math.max(0, stock - reserved);
+        const cost = Number(a.cost_price || a.price || 0);
+        const lowThreshold = Number(itemInv.low_stock_threshold || a.low_stock_threshold || 5);
+
+        accessoryVal += cost * stock;
+        totalPhysicalUnits += stock;
+
+        if (available <= 0) outOfStock++;
+        else if (available <= lowThreshold) lowStock++;
+
+        itemsReport.push({
+          branch_id: (b as any).id,
+          branch_name: (b as any).name,
+          product_id: a.id,
+          sku: a.sku,
+          name: a.name,
+          stock,
+          reserved,
+          available,
+          cost_price: cost,
+          valuation: cost * stock,
+          low_stock_threshold: lowThreshold,
+          is_low_stock: available <= lowThreshold,
+          status: available === 0 ? "OUT_OF_STOCK" : (available <= lowThreshold ? "LOW_STOCK" : "IN_STOCK"),
+        });
+      }
     }
 
     return {
-      total_valuation: totalVal,
-      ingredient_base_val: Math.round(totalVal * 0.4),
-      accessory_stock_val: Math.round(totalVal * 0.15),
-      low_stock_count: 0,
-      out_of_stock_count: 0,
+      total_valuation: accessoryVal,
+      ingredient_base_val: 0,
+      accessory_stock_val: accessoryVal,
+      total_physical_units: totalPhysicalUnits,
+      total_physical_skus: accessories.length,
+      low_stock_count: lowStock,
+      out_of_stock_count: outOfStock,
       near_expiry_count: 0,
       waste_amount: 0,
+      items: itemsReport,
+    };
+  }
+
+  static getReportsCakeAvailability(query: Record<string, any> = {}) {
+    const branches = ApiEngine.listBranches();
+    const products = ApiEngine.listProducts().filter((p) => {
+      const mode = resolveProductInventoryMode(p);
+      return mode === "MADE_TO_ORDER_AVAILABILITY";
+    });
+
+    const matrix: any[] = [];
+
+    for (const b of branches) {
+      for (const p of products) {
+        const pid = p.id || p.product_id;
+        const override = b.product_availability?.[pid];
+        const status = (override?.status || "AVAILABLE").toUpperCase();
+        const reason = override?.reason || (status === "AVAILABLE" ? "Ready for kitchen baking" : "Unavailable at kitchen");
+        const kitchenClosed = b.cake_fulfilment && b.cake_fulfilment.can_fulfil === false;
+
+        matrix.push({
+          branch_id: b.id,
+          branch_name: b.name,
+          branch_code: b.code,
+          product_id: pid,
+          product_title: p.title || p.name,
+          is_available: status === "AVAILABLE" && !kitchenClosed,
+          status: kitchenClosed ? "KITCHEN_CLOSED" : status,
+          reason: kitchenClosed ? (b.cake_fulfilment?.reason || "Branch kitchen closed") : reason,
+          daily_capacity: null,
+        });
+      }
+    }
+
+    return {
+      total_branches: branches.length,
+      total_cakes: products.length,
+      available_count: matrix.filter((m) => m.is_available).length,
+      unavailable_count: matrix.filter((m) => !m.is_available).length,
+      matrix,
     };
   }
 
@@ -21106,7 +21404,7 @@ export class ApiEngine {
     const now = new Date();
     const todayStr = now.toISOString().slice(0, 10);
 
-    const todaysOrders = branchOrders.filter((o: any) => (o.created_at || "").slice(0, 10) === todayStr || true);
+    const todaysOrders = branchOrders.filter((o: any) => safeDateSlice(o.created_at) === todayStr || true);
     const pendingCount = branchOrders.filter((o: any) => ["pending", "confirmed", "shop_accepted", "kitchen_accepted"].includes(o.status || "") || ["pending", "shop_accepted"].includes(o.delivery_status || "")).length;
     const preparingCount = branchOrders.filter((o: any) => (o.status === "preparing" || o.delivery_status === "shop_preparing")).length;
     const readyCount = branchOrders.filter((o: any) => ["ready_for_pickup", "packed", "ready"].includes(o.status || "") || o.delivery_status === "ready_for_pickup").length;
@@ -21245,7 +21543,7 @@ export class ApiEngine {
 
     // Date Filter
     if (queryParams.date) {
-      orders = orders.filter((o: any) => (o.created_at || "").slice(0, 10) === queryParams.date || (o.delivery_date || "").slice(0, 10) === queryParams.date);
+      orders = orders.filter((o: any) => safeDateSlice(o.created_at) === queryParams.date || safeDateSlice(o.delivery_date) === queryParams.date);
     }
 
     return {
@@ -21710,7 +22008,7 @@ export class ApiEngine {
         title: p.title || p.name,
         name: p.title || p.name,
         thumbnail: p.thumbnail,
-        price: p.price || 599,
+        price: p.price || p.selling_price || 0,
         category: p.category || "Gourmet Cakes",
         branch_status: effectiveStatus,
         reason: override.reason || null,
@@ -21728,19 +22026,37 @@ export class ApiEngine {
     const reason = typeof statusOrData === "object" ? (statusOrData.reason || reasonArg) : reasonArg;
 
     if (!branch.product_availability) branch.product_availability = {};
-    const normStatus = (status || "").toUpperCase();
-    const validStatus = ["AVAILABLE", "OUT_OF_STOCK", "HIDDEN"].includes(normStatus)
-      ? normStatus
-      : status;
+    const rawStatus = (status || "").toUpperCase();
+    let validStatus = rawStatus;
+    if (rawStatus === "ON") validStatus = "AVAILABLE";
+    if (rawStatus === "OFF") validStatus = "UNAVAILABLE";
 
-    branch.product_availability[productId] = {
+    const p = ApiEngine.getProductById(productId) || ApiEngine.getProductBySlug(productId);
+    const cleanId = productId.replace(/^prod_/, "");
+    const keysToSet = Array.from(new Set([productId, `prod_${productId}`, cleanId, `prod_${cleanId}`, p?.id, p?.product_id].filter(Boolean))) as string[];
+
+    const statusObj = {
       status: validStatus as any,
       reason: reason || `Updated by Branch Operations`,
       available_again_time: new Date().toISOString(),
     };
 
+    for (const k of keysToSet) {
+      branch.product_availability[k] = statusObj;
+    }
+
+    if (!branch.cake_fulfilment) branch.cake_fulfilment = {};
+    const canFulfil = validStatus === "AVAILABLE" || validStatus === "EXPRESS_AVAILABLE" || validStatus === "SCHEDULED_ONLY";
+    for (const k of keysToSet) {
+      branch.cake_fulfilment[k] = { can_fulfil: canFulfil, reason: reason || `Branch availability: ${validStatus}` };
+    }
+
     ApiEngine.addAuditLog(`Branch Operations (${branch.name}) updated Product ${productId} availability to '${validStatus}' (${reason || 'No reason'})`);
     ApiEngine.persist();
+
+    persistBranchToDb(branch).catch((err) => {
+      console.error("[ApiEngine] Failed to persist branch product availability to PostgreSQL:", err.message);
+    });
 
     return {
       success: true,
@@ -21748,6 +22064,7 @@ export class ApiEngine {
       productId,
       branchId: branch.id,
       status: validStatus,
+      can_fulfil: canFulfil,
       message: `Product availability updated to '${validStatus}'.`,
     };
   }
@@ -21757,12 +22074,12 @@ export class ApiEngine {
     if (!branch) return { success: false, items: [] };
 
     const branchInv = branch.accessory_inventory || {};
-    const defaultAccessories = DEFAULT_ACCESSORIES;
+    const defaultAccessories = ApiEngine.listAccessories();
 
     const items = defaultAccessories.map((acc: any) => {
-      const custom = branchInv[acc.id] || {};
-      const currentStock = custom.current_stock !== undefined ? custom.current_stock : acc.stock;
-      const lowThreshold = custom.low_stock_threshold !== undefined ? custom.low_stock_threshold : acc.low_stock_threshold;
+      const custom = branchInv[acc.id] || branchInv[acc.variant_id] || {};
+      const currentStock = custom.current_stock !== undefined ? custom.current_stock : 0;
+      const lowThreshold = custom.low_stock_threshold !== undefined ? custom.low_stock_threshold : (acc.low_stock_threshold || 5);
       const isLowStock = currentStock <= lowThreshold;
 
       return {
@@ -21772,6 +22089,8 @@ export class ApiEngine {
         category_name: acc.category_name,
         price: acc.price,
         stock: currentStock,
+        reserved: custom.reserved_stock || 0,
+        available_stock: custom.available_stock !== undefined ? custom.available_stock : currentStock,
         low_stock_threshold: lowThreshold,
         is_low_stock: isLowStock,
         status: currentStock === 0 ? "OUT_OF_STOCK" : (isLowStock ? "LOW_STOCK" : "IN_STOCK"),
@@ -21786,17 +22105,21 @@ export class ApiEngine {
     if (!branch) return { success: false, statusCode: 404, error: "Branch not found" };
 
     if (!branch.accessory_inventory) branch.accessory_inventory = {};
-    const prev = branch.accessory_inventory[itemId] || { current_stock: 50, low_stock_threshold: 10 };
+    const prev = branch.accessory_inventory[itemId] || { current_stock: 0, low_stock_threshold: 5 };
     branch.accessory_inventory[itemId] = {
       current_stock: stock,
       reserved_stock: prev.reserved_stock || 0,
-      available_stock: stock,
+      available_stock: Math.max(0, stock - (prev.reserved_stock || 0)),
       low_stock_threshold: lowStockThreshold !== undefined ? lowStockThreshold : prev.low_stock_threshold,
-      reorder_level: prev.reorder_level || 20,
+      reorder_level: prev.reorder_level || 10,
     };
 
     ApiEngine.addAuditLog(`Branch Manager (${branch.name}) updated Stock for Item ${itemId} to ${stock} (Threshold: ${lowStockThreshold || prev.low_stock_threshold})`);
     ApiEngine.persist();
+
+    InventoryService.setStock(branchId, itemId, stock).catch((err) => {
+      console.error("[ApiEngine] Failed to persist branch inventory to PostgreSQL:", err.message);
+    });
 
     return { success: true, statusCode: 200, itemId, stock, message: "Inventory stock updated." };
   }
@@ -22292,24 +22615,34 @@ export class ApiEngine {
       branchRes = ApiEngine.resolveSmartBranch({ deliveryType: "pickup", branchId: (data as any).branch_id });
       branch = branchRes?.branch;
     } else {
-      if ((!pincode || pincode.length < 6) && (parsedLat === undefined || parsedLng === undefined)) {
-        errors.push({ code: "LOCATION_REQUIRED", message: "Please provide a delivery location or 6-digit pincode.", field: "pincode" });
+      const hasAddress = Boolean(data.address?.line1 || data.address?.address || data.address?.street_address || data.address?.address_1);
+      const hasCity = Boolean(data.address?.city || (data as any).city);
+      const hasCoords = parsedLat !== undefined && parsedLng !== undefined;
+      const hasPincode = Boolean(pincode && pincode.length >= 6);
+
+      if (!hasCoords && !hasPincode && (!hasAddress || !hasCity)) {
+        errors.push({ code: "LOCATION_REQUIRED", message: "Please provide your delivery street address and city.", field: "address" });
       } else {
         branchRes = ApiEngine.resolveSmartBranch({
           pincode: pincode || undefined,
           lat: parsedLat,
           lng: parsedLng,
+          city: data.address?.city || (data as any).city || undefined,
           branchId: (data as any).branch_id || (data as any).branchId || undefined,
           isExpress: data.delivery_slot_id?.includes("EXPRESS"),
           isMidnight: data.delivery_slot_id?.includes("MIDNIGHT"),
         });
         branch = branchRes?.branch;
 
+        if (branch && !pincode && branch.pincode) {
+          pincode = branch.pincode;
+        }
+
         if (!branch || branchRes?.blockedReason || branchRes?.resolvedBy === "unserviceable_pincode" || branchRes?.resolvedBy === "unserviceable_coords" || branchRes?.resolvedBy === "blocked_area") {
           errors.push({
             code: "STORE_NOT_SERVICEABLE",
             message: branchRes?.blockedReason || `Delivery is not currently available for the selected location.`,
-            field: "pincode",
+            field: "address",
           });
         }
       }

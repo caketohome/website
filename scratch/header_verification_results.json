@@ -1,32 +1,512 @@
-[
-  {
-    "module": "Dashboard Overview Health",
-    "endpoint": "/admin/health",
-    "method": "GET",
-    "status": 200,
-    "dataSourceHeader": "json-fallback",
-    "storageProperty": "json-fallback",
-    "persistence": "PASSED",
-    "notes": "Served via json-fallback"
+{
+  "viewports": {
+    "320px-mobile-compact": {
+      "windowWidth": 320,
+      "docScrollWidth": 320,
+      "bodyScrollWidth": 320,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 320,
+        "height": 86,
+        "top": 0,
+        "right": 320
+      },
+      "logo": {
+        "visible": true,
+        "width": 126,
+        "height": 28,
+        "left": 12,
+        "right": 138
+      },
+      "location": {
+        "visible": true,
+        "top": 57,
+        "left": 0,
+        "right": 320,
+        "width": 320,
+        "height": 28
+      },
+      "search": {
+        "hasInput": false,
+        "hasButton": true
+      },
+      "wishlist": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 228
+      },
+      "cart": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 270
+      },
+      "profile": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 312,
+        "isClipped": false
+      },
+      "searchLocationOverlap": false,
+      "mainTop": 86,
+      "headerBottom": 86,
+      "passed": true
+    },
+    "360px-mobile-standard": {
+      "windowWidth": 360,
+      "docScrollWidth": 360,
+      "bodyScrollWidth": 360,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 360,
+        "height": 86,
+        "top": 0,
+        "right": 360
+      },
+      "logo": {
+        "visible": true,
+        "width": 126,
+        "height": 28,
+        "left": 12,
+        "right": 138
+      },
+      "location": {
+        "visible": true,
+        "top": 57,
+        "left": 0,
+        "right": 360,
+        "width": 360,
+        "height": 28
+      },
+      "search": {
+        "hasInput": false,
+        "hasButton": true
+      },
+      "wishlist": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 264
+      },
+      "cart": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 306
+      },
+      "profile": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 348,
+        "isClipped": false
+      },
+      "searchLocationOverlap": false,
+      "mainTop": 86,
+      "headerBottom": 86,
+      "passed": true
+    },
+    "375px-iphone-se-x": {
+      "windowWidth": 375,
+      "docScrollWidth": 375,
+      "bodyScrollWidth": 375,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 375,
+        "height": 86,
+        "top": 0,
+        "right": 375
+      },
+      "logo": {
+        "visible": true,
+        "width": 126,
+        "height": 28,
+        "left": 12,
+        "right": 138
+      },
+      "location": {
+        "visible": true,
+        "top": 57,
+        "left": 0,
+        "right": 375,
+        "width": 375,
+        "height": 28
+      },
+      "search": {
+        "hasInput": false,
+        "hasButton": true
+      },
+      "wishlist": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 279
+      },
+      "cart": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 321
+      },
+      "profile": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 363,
+        "isClipped": false
+      },
+      "searchLocationOverlap": false,
+      "mainTop": 86,
+      "headerBottom": 86,
+      "passed": true
+    },
+    "390px-iphone-14-15": {
+      "windowWidth": 390,
+      "docScrollWidth": 390,
+      "bodyScrollWidth": 390,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 390,
+        "height": 86,
+        "top": 0,
+        "right": 390
+      },
+      "logo": {
+        "visible": true,
+        "width": 126,
+        "height": 28,
+        "left": 12,
+        "right": 138
+      },
+      "location": {
+        "visible": true,
+        "top": 57,
+        "left": 0,
+        "right": 390,
+        "width": 390,
+        "height": 28
+      },
+      "search": {
+        "hasInput": false,
+        "hasButton": true
+      },
+      "wishlist": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 294
+      },
+      "cart": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 336
+      },
+      "profile": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 378,
+        "isClipped": false
+      },
+      "searchLocationOverlap": false,
+      "mainTop": 86,
+      "headerBottom": 86,
+      "passed": true
+    },
+    "414px-iphone-plus-max": {
+      "windowWidth": 414,
+      "docScrollWidth": 414,
+      "bodyScrollWidth": 414,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 414,
+        "height": 86,
+        "top": 0,
+        "right": 414
+      },
+      "logo": {
+        "visible": true,
+        "width": 126,
+        "height": 28,
+        "left": 12,
+        "right": 138
+      },
+      "location": {
+        "visible": true,
+        "top": 57,
+        "left": 0,
+        "right": 414,
+        "width": 414,
+        "height": 28
+      },
+      "search": {
+        "hasInput": false,
+        "hasButton": true
+      },
+      "wishlist": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 318
+      },
+      "cart": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 360
+      },
+      "profile": {
+        "visible": true,
+        "width": 40,
+        "height": 40,
+        "right": 402,
+        "isClipped": false
+      },
+      "searchLocationOverlap": false,
+      "mainTop": 86,
+      "headerBottom": 86,
+      "passed": true
+    },
+    "768px-tablet-portrait": {
+      "windowWidth": 768,
+      "docScrollWidth": 768,
+      "bodyScrollWidth": 768,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 768,
+        "height": 65,
+        "top": 0,
+        "right": 768
+      },
+      "logo": {
+        "visible": true,
+        "width": 156.21875,
+        "height": 28,
+        "left": 32,
+        "right": 188.21875
+      },
+      "location": {
+        "visible": true,
+        "top": 17,
+        "left": 200.21875,
+        "right": 316.859375,
+        "width": 116.640625,
+        "height": 30
+      },
+      "search": {
+        "hasInput": true,
+        "hasButton": false
+      },
+      "wishlist": {
+        "visible": true,
+        "width": 44,
+        "height": 44,
+        "right": 574.5625
+      },
+      "cart": {
+        "visible": true,
+        "width": 44,
+        "height": 44,
+        "right": 626.5625
+      },
+      "profile": {
+        "visible": true,
+        "width": 101.4375,
+        "height": 40,
+        "right": 736,
+        "isClipped": false
+      },
+      "searchLocationOverlap": false,
+      "mainTop": 65,
+      "headerBottom": 65,
+      "passed": true
+    },
+    "1024px-tablet-landscape": {
+      "windowWidth": 1024,
+      "docScrollWidth": 1024,
+      "bodyScrollWidth": 1024,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 1024,
+        "height": 65,
+        "top": 0,
+        "right": 1024
+      },
+      "logo": {
+        "visible": true,
+        "width": 156.21875,
+        "height": 28,
+        "left": 40,
+        "right": 196.21875
+      },
+      "location": {
+        "visible": true,
+        "top": 17,
+        "left": 220.21875,
+        "right": 336.859375,
+        "width": 116.640625,
+        "height": 30
+      },
+      "search": {
+        "hasInput": true,
+        "hasButton": false
+      },
+      "wishlist": {
+        "visible": true,
+        "width": 44,
+        "height": 44,
+        "right": 822.5625
+      },
+      "cart": {
+        "visible": true,
+        "width": 44,
+        "height": 44,
+        "right": 874.5625
+      },
+      "profile": {
+        "visible": true,
+        "width": 101.4375,
+        "height": 40,
+        "right": 984,
+        "isClipped": false
+      },
+      "searchLocationOverlap": false,
+      "mainTop": 65,
+      "headerBottom": 65,
+      "passed": true
+    },
+    "1280px-desktop": {
+      "windowWidth": 1280,
+      "docScrollWidth": 1280,
+      "bodyScrollWidth": 1280,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 1280,
+        "height": 65,
+        "top": 0,
+        "right": 1280
+      },
+      "logo": {
+        "visible": true,
+        "width": 156.21875,
+        "height": 28,
+        "left": 40,
+        "right": 196.21875
+      },
+      "location": {
+        "visible": true,
+        "top": 17,
+        "left": 220.21875,
+        "right": 336.859375,
+        "width": 116.640625,
+        "height": 30
+      },
+      "search": {
+        "hasInput": true,
+        "hasButton": false
+      },
+      "wishlist": {
+        "visible": true,
+        "width": 44,
+        "height": 44,
+        "right": 1078.5625
+      },
+      "cart": {
+        "visible": true,
+        "width": 44,
+        "height": 44,
+        "right": 1130.5625
+      },
+      "profile": {
+        "visible": true,
+        "width": 101.4375,
+        "height": 40,
+        "right": 1240,
+        "isClipped": false
+      },
+      "searchLocationOverlap": false,
+      "mainTop": 65,
+      "headerBottom": 65,
+      "passed": true
+    },
+    "1440px-large-desktop": {
+      "windowWidth": 1440,
+      "docScrollWidth": 1440,
+      "bodyScrollWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 1440,
+        "height": 65,
+        "top": 0,
+        "right": 1440
+      },
+      "logo": {
+        "visible": true,
+        "width": 156.21875,
+        "height": 28,
+        "left": 40,
+        "right": 196.21875
+      },
+      "location": {
+        "visible": true,
+        "top": 17,
+        "left": 220.21875,
+        "right": 336.859375,
+        "width": 116.640625,
+        "height": 30
+      },
+      "search": {
+        "hasInput": true,
+        "hasButton": false
+      },
+      "wishlist": {
+        "visible": true,
+        "width": 44,
+        "height": 44,
+        "right": 1238.5625
+      },
+      "cart": {
+        "visible": true,
+        "width": 44,
+        "height": 44,
+        "right": 1290.5625
+      },
+      "profile": {
+        "visible": true,
+        "width": 101.4375,
+        "height": 40,
+        "right": 1400,
+        "isClipped": false
+      },
+      "searchLocationOverlap": false,
+      "mainTop": 65,
+      "headerBottom": 65,
+      "passed": true
+    }
   },
-  {
-    "module": "Branches (Create & List)",
-    "endpoint": "/admin/branches",
-    "method": "POST / GET",
-    "status": 200,
-    "dataSourceHeader": "json-fallback",
-    "storageProperty": "json-fallback",
-    "persistence": "PASSED",
-    "notes": "Branch created and verified via json-fallback"
+  "interactions": {
+    "mobileSearchOverlay": true,
+    "mobileSearchResultsCount": 124,
+    "mobileLocationModal": true,
+    "desktopSearchAutocomplete": true
   },
-  {
-    "module": "Products & Catalog",
-    "endpoint": "/admin/catalog/products",
-    "method": "POST / GET",
-    "status": 200,
-    "dataSourceHeader": "json-fallback",
-    "storageProperty": "json-fallback",
-    "persistence": "PASSED",
-    "notes": "Product published and verified via json-fallback"
-  }
-]
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+  ],
+  "failedRequests": [
+    {
+      "url": "http://localhost:3000/",
+      "failure": "net::ERR_ABORTED"
+    }
+  ],
+  "allPassed": true
+}

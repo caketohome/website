@@ -1,0 +1,300 @@
+{
+  "tests": {
+    "TEST 1": [
+      {
+        "assertionName": "Login page renders",
+        "passed": true,
+        "details": "http://localhost:3000/login"
+      },
+      {
+        "assertionName": "OTP verification input appears",
+        "passed": true,
+        "details": ""
+      },
+      {
+        "assertionName": "Manager reaches /dashboard/shop interface",
+        "passed": true,
+        "details": "http://localhost:3000/dashboard/shop"
+      },
+      {
+        "assertionName": "Manager sees authorized branch identity (Indiranagar Flagship Bakery)",
+        "passed": true,
+        "details": "Branch verified"
+      },
+      {
+        "assertionName": "Manager sees operational & cake availability controls",
+        "passed": true,
+        "details": "Controls visible"
+      },
+      {
+        "assertionName": "Manager cannot edit another branch (HTTP 403 Forbidden)",
+        "passed": true,
+        "details": "HTTP 403"
+      }
+    ],
+    "TEST 2": [
+      {
+        "assertionName": "Branch A Manager sets Cake ON -> HTTP 200",
+        "passed": true,
+        "details": "can_fulfil: true"
+      },
+      {
+        "assertionName": "Branch B sets Cake OFF -> HTTP 200",
+        "passed": true,
+        "details": "can_fulfil: false"
+      },
+      {
+        "assertionName": "Branch A Cake persisted as AVAILABLE in DB",
+        "passed": true,
+        "details": "DB State: {\"reason\":\"Updated by Branch Operations\",\"status\":\"AVAILABLE\",\"available_again_time\":\"2026-09-19T13:34:03.425Z\"}"
+      },
+      {
+        "assertionName": "Branch B Cake persisted as OUT_OF_STOCK in DB",
+        "passed": true,
+        "details": "DB State: {\"reason\":\"Updated by Branch Operations\",\"status\":\"OUT_OF_STOCK\",\"available_again_time\":\"2026-09-19T13:34:03.648Z\"}"
+      },
+      {
+        "assertionName": "Branch A and Branch B availability states are strictly independent",
+        "passed": true,
+        "details": "Branch Isolation Verified"
+      }
+    ],
+    "TEST 3": [
+      {
+        "assertionName": "Customer Storefront for Branch A: Cake shows AVAILABLE",
+        "passed": true,
+        "details": "Status truthful"
+      },
+      {
+        "assertionName": "Customer Storefront for Branch B: Cake shows UNAVAILABLE",
+        "passed": true,
+        "details": "Status truthful"
+      },
+      {
+        "assertionName": "Availability state preserved after page refresh (no stale override)",
+        "passed": true,
+        "details": "No stale client cache"
+      }
+    ],
+    "TEST 4": [
+      {
+        "assertionName": "Cake PDP contains NO fake physical inventory language (\"15 left\", \"20 left\", etc.)",
+        "passed": true,
+        "details": "Zero fake stock"
+      },
+      {
+        "assertionName": "Cake PDP displays approved kitchen fulfillment wording (\"Freshly Baked on Order • Available for Delivery\")",
+        "passed": true,
+        "details": "Approved wording verified"
+      },
+      {
+        "assertionName": "Physical accessory PDP displays authoritative product details & price",
+        "passed": true,
+        "details": "Accessory truthful"
+      }
+    ],
+    "TEST 5": [
+      {
+        "assertionName": "Cake item appears in cart drawer with correct title",
+        "passed": true,
+        "details": "Chocolate Fudge Cupcake"
+      },
+      {
+        "assertionName": "Cart has no phantom \"1 pc\" variant displayed",
+        "passed": true,
+        "details": "No phantom variant"
+      },
+      {
+        "assertionName": "Cart price is positive and matches authoritative catalog (₹499)",
+        "passed": true,
+        "details": "Authoritative price"
+      },
+      {
+        "assertionName": "Cart items persist server-side across full browser reload",
+        "passed": true,
+        "details": "PostgreSQL server cart verified"
+      }
+    ],
+    "TEST 6": [
+      {
+        "assertionName": "Manager turns Cake OFF at Branch A -> HTTP 200",
+        "passed": true,
+        "details": ""
+      },
+      {
+        "assertionName": "Checkout revalidates kitchen availability and rejects stale cart (HTTP 400)",
+        "passed": true,
+        "details": "HTTP 400"
+      },
+      {
+        "assertionName": "Truthful availability error returned to customer",
+        "passed": true,
+        "details": "Cannot place order: \"Chocolate Fudge Cupcake\" is currently marked as OUT OF STOCK at Indiranagar Flagship Bakery (Updated by Branch Operations)."
+      }
+    ],
+    "TEST 7": [
+      {
+        "assertionName": "Combo Order (Cake + Addon) placed successfully -> HTTP 201/200",
+        "passed": true,
+        "details": "Order ID: undefined"
+      },
+      {
+        "assertionName": "Cake has ZERO rows and received ZERO physical stock deduction in branch_inventory",
+        "passed": true,
+        "details": "Cake rows: 0"
+      },
+      {
+        "assertionName": "Physical accessory inventory accurately deducted by 1 in branch_inventory",
+        "passed": true,
+        "details": "Before: 43 -> After: 42"
+      }
+    ],
+    "TEST 8": [
+      {
+        "assertionName": "Branch A and Branch B have distinct inventory records in PostgreSQL",
+        "passed": true,
+        "details": "Branch A: 42 units, Branch B: 45 units"
+      },
+      {
+        "assertionName": "Branch A stock decremented upon Branch A order",
+        "passed": true,
+        "details": "A: 42 -> 41"
+      },
+      {
+        "assertionName": "Branch B stock remained 100% UNCHANGED",
+        "passed": true,
+        "details": "B: 45 -> 45 (Unchanged)"
+      }
+    ],
+    "TEST 9": [
+      {
+        "assertionName": "Unauthenticated manager mutation rejected with HTTP 401",
+        "passed": true,
+        "details": "HTTP 401"
+      },
+      {
+        "assertionName": "Manager mutating own authorized branch allowed with HTTP 200",
+        "passed": true,
+        "details": "HTTP 200"
+      },
+      {
+        "assertionName": "Manager mutating another branch forbidden with HTTP 403",
+        "passed": true,
+        "details": "HTTP 403"
+      },
+      {
+        "assertionName": "Super Admin mutating any branch allowed with HTTP 200",
+        "passed": true,
+        "details": "HTTP 200"
+      }
+    ],
+    "TEST 10": [
+      {
+        "assertionName": "Storefront PDP has zero horizontal overflow at Mobile Narrow (320px)",
+        "passed": true,
+        "details": "Viewport: 320x568"
+      },
+      {
+        "assertionName": "Manager Dashboard has zero horizontal overflow at Mobile Narrow (320px)",
+        "passed": true,
+        "details": "Viewport: 320x568"
+      },
+      {
+        "assertionName": "Storefront PDP has zero horizontal overflow at Mobile Wide (390px)",
+        "passed": true,
+        "details": "Viewport: 390x844"
+      },
+      {
+        "assertionName": "Manager Dashboard has zero horizontal overflow at Mobile Wide (390px)",
+        "passed": true,
+        "details": "Viewport: 390x844"
+      },
+      {
+        "assertionName": "Storefront PDP has zero horizontal overflow at Tablet (768px)",
+        "passed": true,
+        "details": "Viewport: 768x1024"
+      },
+      {
+        "assertionName": "Manager Dashboard has zero horizontal overflow at Tablet (768px)",
+        "passed": true,
+        "details": "Viewport: 768x1024"
+      },
+      {
+        "assertionName": "Storefront PDP has zero horizontal overflow at Desktop (1280px)",
+        "passed": true,
+        "details": "Viewport: 1280x800"
+      },
+      {
+        "assertionName": "Manager Dashboard has zero horizontal overflow at Desktop (1280px)",
+        "passed": true,
+        "details": "Viewport: 1280x800"
+      },
+      {
+        "assertionName": "Storefront PDP has zero horizontal overflow at Large Desktop (1440px)",
+        "passed": true,
+        "details": "Viewport: 1440x900"
+      },
+      {
+        "assertionName": "Manager Dashboard has zero horizontal overflow at Large Desktop (1440px)",
+        "passed": true,
+        "details": "Viewport: 1440x900"
+      }
+    ],
+    "TEST 11": [
+      {
+        "assertionName": "Inventory Report returns HTTP 200",
+        "passed": true,
+        "details": ""
+      },
+      {
+        "assertionName": "Physical valuation computed strictly from accessories (ingredient_base_val = 0)",
+        "passed": true,
+        "details": "Valuation: ₹36082"
+      },
+      {
+        "assertionName": "Cake Availability Matrix report returns HTTP 200",
+        "passed": true,
+        "details": ""
+      },
+      {
+        "assertionName": "Cake Availability Matrix covers all operational branches (39) and cakes (18)",
+        "passed": true,
+        "details": "Matrix mappings: 702"
+      },
+      {
+        "assertionName": "Item-wise sales report returns HTTP 200",
+        "passed": true,
+        "details": "Products: 26"
+      },
+      {
+        "assertionName": "Branch-wise performance report returns HTTP 200",
+        "passed": true,
+        "details": "Branches: 39"
+      }
+    ],
+    "TEST 12": [
+      {
+        "assertionName": "Database branch_inventory contains strictly ZERO synthetic cake inventory rows",
+        "passed": true,
+        "details": "Count: 0"
+      },
+      {
+        "assertionName": "Database branch_inventory contains authentic physical accessory rows across 53 branches",
+        "passed": true,
+        "details": "Count: 424"
+      },
+      {
+        "assertionName": "PostgreSQL branch_inventory is the single authoritative source of truth in production",
+        "passed": true,
+        "details": "Authoritative PostgreSQL 17.6 active"
+      }
+    ]
+  },
+  "defects": [],
+  "screenshots": [],
+  "summary": {
+    "total": 53,
+    "passed": 53,
+    "failed": 0
+  }
+}

@@ -30,8 +30,8 @@ export async function GET(req: NextRequest) {
 
     if (!customerUid && !userId && !phone && !token) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized", message: "Please log in to view your profile." },
-        { status: 401 }
+        { success: true, customer: null, message: "No active session." },
+        { status: 200 }
       );
     }
 

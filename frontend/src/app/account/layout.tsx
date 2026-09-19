@@ -48,7 +48,7 @@ export default async function AccountLayout({
           </div>
 
           <div className="flex items-center gap-3 bg-neutral-900/80 border border-neutral-800 rounded-2xl px-4 py-2.5 shadow-sm">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-rose-600 text-white font-bold text-sm flex items-center justify-center shadow-md">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-[#D4AF37] text-white font-bold text-sm flex items-center justify-center shadow-md">
               {initials}
             </div>
             <div className="text-left">

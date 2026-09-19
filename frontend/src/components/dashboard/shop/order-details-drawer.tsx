@@ -144,7 +144,14 @@ export default function OrderDetailsDrawer({
                   })()}
                 </div>
                 <p className="font-medium text-zinc-800 dark:text-zinc-200">
-                  {order.delivery_address || order.customer?.delivery_address || "Indiranagar Flagship Zone"}
+                  {(() => {
+                    const addr = order.delivery_address || order.customer?.delivery_address;
+                    if (typeof addr === "string") return addr;
+                    if (addr && typeof addr === "object") {
+                      return [addr.line1 || addr.address_1 || addr.address, addr.line2 || addr.address_2, addr.landmark, addr.city, addr.pincode].filter(Boolean).join(", ");
+                    }
+                    return "Indiranagar Flagship Zone";
+                  })()}
                 </p>
                 <p className="text-xs text-zinc-500 mt-0.5">Pincode: {order.delivery_pincode || order.pincode || order.customer?.pincode || "560038"}</p>
                 {(() => {
@@ -169,14 +176,14 @@ export default function OrderDetailsDrawer({
 
           {/* Photo Cake Preview Banner */}
           {isPhotoCake && photoUrl && (
-            <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-xl border border-purple-200 dark:border-purple-800/50">
+            <div className="p-4 bg-gradient-to-r from-[#1D2F5D]/10 to-[#D4AF37]/10 dark:from-[#1D2F5D]/30 dark:to-[#142040]/30 rounded-xl border border-[#D4AF37]/30">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#1D2F5D] dark:text-[#D4AF37] flex items-center gap-1.5">
                   📸 Photo Cake Uploaded Image Asset
                 </span>
                 <button
                   onClick={() => setPhotoZoom(true)}
-                  className="text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline"
+                  className="text-xs font-semibold text-[#1D2F5D] dark:text-[#D4AF37] hover:underline"
                 >
                   Zoom & Inspect Preview →
                 </button>

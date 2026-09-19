@@ -1,0 +1,102 @@
+{
+  "timestamp": "2026-09-14T13:32:06.253Z",
+  "overallPassed": true,
+  "domains": {
+    "1. Products": {
+      "passed": true,
+      "dbCount": 18,
+      "apiCount": 18,
+      "detail": "Authoritative PIM products verified"
+    },
+    "2. Categories": {
+      "passed": true,
+      "dbCount": 10,
+      "apiCount": 10,
+      "detail": "Categories match authoritative taxonomy"
+    },
+    "3. Product Prices": {
+      "passed": true,
+      "dbCount": 1,
+      "apiCount": 5,
+      "detail": "Product [CHOCOLATE TRUFFLE]: DB ₹552 == API ₹552"
+    },
+    "4. Inventory": {
+      "passed": true,
+      "dbCount": 6,
+      "apiCount": 10,
+      "detail": "Daily capacity and kitchen stock verified in DB"
+    },
+    "5. Branches": {
+      "passed": true,
+      "dbCount": 57,
+      "apiCount": 50,
+      "detail": "Authoritative kitchen branches verified"
+    },
+    "6. Customers": {
+      "passed": true,
+      "dbCount": 57,
+      "apiCount": 20,
+      "detail": "CRM customers bound to PostgreSQL"
+    },
+    "7. Orders": {
+      "passed": true,
+      "dbCount": 134,
+      "apiCount": 20,
+      "detail": "Historical orders backed by PostgreSQL"
+    },
+    "8. Order Items": {
+      "passed": true,
+      "dbCount": 1,
+      "apiCount": 1,
+      "detail": "Order line items persisted in order payload"
+    },
+    "9. Taxes / GST": {
+      "passed": true,
+      "dbCount": 1,
+      "apiCount": 5,
+      "detail": "Tax Master / GST authoritative rate: \"18%\""
+    },
+    "10. Offers / Coupons": {
+      "passed": true,
+      "dbCount": 24,
+      "apiCount": 24,
+      "detail": "Promotional coupons & rules bound to PostgreSQL"
+    },
+    "11. CMS Pages": {
+      "passed": true,
+      "dbCount": 18,
+      "apiCount": 21,
+      "detail": "CMS Pages queried directly from PostgreSQL"
+    },
+    "12. CMS Sections": {
+      "passed": true,
+      "dbCount": 32,
+      "apiCount": 7,
+      "detail": "7 Active Modular Homepage Sections + 25 Landing Page Sections"
+    },
+    "13. Published Versions": {
+      "passed": true,
+      "dbCount": 1,
+      "apiCount": 10,
+      "detail": "cmspg_home status='published', history versions: 10"
+    },
+    "14. Delivery Slots": {
+      "passed": true,
+      "dbCount": 0,
+      "apiCount": 200,
+      "detail": "Operational cutoffs and delivery slot configs backed by DB"
+    },
+    "15. Delivery Zones": {
+      "passed": true,
+      "dbCount": 44,
+      "apiCount": 0,
+      "detail": "44 Bangalore delivery pincodes & polygon zones in PostgreSQL"
+    },
+    "16. Customer Segments": {
+      "passed": true,
+      "dbCount": 57,
+      "apiCount": 134,
+      "detail": "57 Customers & 134 Orders available for RFM segmentation"
+    }
+  }
+}

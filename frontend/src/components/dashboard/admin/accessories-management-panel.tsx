@@ -183,7 +183,7 @@ export function AccessoriesManagementPanel() {
     setPrice(String(item.price || 99));
     setCostPrice(String(item.cost_price || 40));
     setMrp(String(item.mrp || 149));
-    setStock(String(item.stock ?? 50));
+    setStock(String(item.stock ?? 0));
     setLowStockThreshold(String(item.low_stock_threshold || 5));
 
     const matchedTax = TAX_CATEGORIES.find((t) => t.hsn === item.hsn_code || t.rate === item.gst_rate_pct);

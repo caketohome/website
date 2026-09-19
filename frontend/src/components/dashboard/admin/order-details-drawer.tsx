@@ -48,6 +48,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
   const [newDeliveryDate, setNewDeliveryDate] = useState("");
   const [newDeliverySlot, setNewDeliverySlot] = useState("07:00 PM - 09:00 PM (Evening Slot)");
 
+  const [branchesList, setBranchesList] = useState<any[]>([]);
   const [internalNoteInput, setInternalNoteInput] = useState("");
   const [internalNotesList, setInternalNotesList] = useState<string[]>([]);
 
@@ -85,6 +86,9 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
     apiClient.getAdminDeliveryPartners().then((res: any) => {
       setDeliveryPartnersList(res?.partners || []);
     }).catch(() => setDeliveryPartnersList([]));
+    apiClient.getAdminBranches().then((res: any) => {
+      setBranchesList(res?.branches || res?.data || []);
+    }).catch(() => setBranchesList([]));
   }, [orderId]);
 
   const handleAutoAssignDelivery = async () => {
@@ -385,27 +389,34 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
             {showBranchAssign && (
               <div className="p-4 border rounded-xl bg-purple-50 dark:bg-purple-950/40 space-y-3 text-xs">
                 <Text className="font-bold text-purple-900 dark:text-purple-200">Reassign Kitchen Branch Hub &amp; Baking Station:</Text>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {[
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-h-56 overflow-y-auto">
+                  {(branchesList.length > 0 ? branchesList : [
                     { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship", code: "HUB-BLR-01", queue: 4, capacity: "78% Load", bakers: 6, delay: "0 mins" },
                     { id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT", name: "Koramangala Gourmet", code: "HUB-BLR-02", queue: 2, capacity: "45% Load", bakers: 4, delay: "0 mins" },
                     { id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT", name: "Whitefield Central", code: "HUB-BLR-03", queue: 7, capacity: "92% High Load", bakers: 5, delay: "+15 mins" },
-                  ].map((b) => (
-                    <div
-                      key={b.id}
-                      onClick={() => setSelectedBranch(b.id)}
-                      className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                        selectedBranch === b.id ? "bg-purple-600 text-white border-purple-600 shadow-md" : "bg-white dark:bg-slate-800 border-slate-200 hover:border-purple-400"
-                      }`}
-                    >
-                      <p className="font-bold text-xs">{b.name}</p>
-                      <p className={`text-[10px] ${selectedBranch === b.id ? "text-purple-100" : "text-slate-500"}`}>{b.code} &bull; Queue: {b.queue} orders</p>
-                      <div className="mt-1.5 flex items-center justify-between text-[10px]">
-                        <span className="font-mono">{b.capacity}</span>
-                        <span>{b.bakers} Bakers</span>
+                  ]).map((b: any) => {
+                    const bId = b.id;
+                    const bName = b.name || b.branch_name || "Branch Hub";
+                    const bCode = b.code || b.branch_code || `HUB-${b.city || "BLR"}`;
+                    const bCapacity = b.capacity || "Operational";
+                    const bCity = b.city || b.state || "";
+                    return (
+                      <div
+                        key={bId}
+                        onClick={() => setSelectedBranch(bId)}
+                        className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                          selectedBranch === bId ? "bg-purple-600 text-white border-purple-600 shadow-md" : "bg-white dark:bg-slate-800 border-slate-200 hover:border-purple-400"
+                        }`}
+                      >
+                        <p className="font-bold text-xs">{bName}</p>
+                        <p className={`text-[10px] ${selectedBranch === bId ? "text-purple-100" : "text-slate-500"}`}>{bCode} {bCity ? `• ${bCity}` : ""}</p>
+                        <div className="mt-1.5 flex items-center justify-between text-[10px]">
+                          <span className="font-mono">{bCapacity}</span>
+                          <span>{b.status || "Active"}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <div className="flex justify-end gap-2 pt-1">
                   <Button size="small" variant="secondary" onClick={() => setShowBranchAssign(false)}>Cancel</Button>
@@ -566,7 +577,16 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                       );
                     })()}
                   </div>
-                  <p className="font-semibold text-slate-800 dark:text-slate-200">{order.delivery_address || order.customer?.address || order.shipping_address?.address_1}</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">
+                    {(() => {
+                      const addr = order.delivery_address || order.customer?.address || order.shipping_address?.address_1;
+                      if (typeof addr === "string") return addr;
+                      if (addr && typeof addr === "object") {
+                        return [addr.line1 || addr.address_1 || addr.address, addr.line2 || addr.address_2, addr.landmark, addr.city, addr.pincode].filter(Boolean).join(", ");
+                      }
+                      return "Delivery Address on File";
+                    })()}
+                  </p>
                   <p className="text-slate-500">
                     {[order.delivery_area || order.customer?.area || order.shipping_address?.area, order.delivery_city || order.customer?.city || order.shipping_address?.city].filter(Boolean).join(", ")} - {order.delivery_pincode || order.customer?.pincode || order.shipping_address?.postal_code}
                   </p>

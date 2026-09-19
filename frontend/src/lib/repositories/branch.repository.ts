@@ -231,6 +231,13 @@ export class BranchRepository {
   }
 
   /**
+   * Find all active branches (convenience wrapper)
+   */
+  static async findActive(): Promise<BranchDomain[]> {
+    return BranchRepository.findAll({ lifecycle: "active" });
+  }
+
+  /**
    * Find branch by ID or Code
    */
   static async findById(id: string): Promise<BranchDomain | null> {

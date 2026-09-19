@@ -1,0 +1,1369 @@
+{
+  "timestamp": "2026-09-13T04:57:58.377Z",
+  "url": "http://localhost:3000",
+  "viewports": {
+    "mobile-320": {
+      "viewport": {
+        "width": 320,
+        "height": 700,
+        "name": "mobile-320"
+      },
+      "documentStatus": 200,
+      "requests": {
+        "css": [
+          {
+            "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789275478548",
+            "status": 200
+          }
+        ],
+        "js": [
+          {
+            "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789275478548",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/page.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789275478548",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_animation_scroll-frame-hero_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+            "status": 200
+          }
+        ],
+        "api": [
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?device=mobile&city_id=",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?url=%2F&device=mobile",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          }
+        ],
+        "failed": [
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "status": 401,
+            "isCss": false,
+            "isJs": false
+          }
+        ]
+      },
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "consoleWarnings": [
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0"
+      ],
+      "pageErrors": [],
+      "hydrationErrors": [],
+      "horizontalOverflow": false,
+      "scrollWidth": 320,
+      "clientWidth": 320,
+      "headerAudit": {
+        "present": true,
+        "headerHeight": 86,
+        "logoWidth": null,
+        "hasSearch": true,
+        "hasLocation": false,
+        "hasCart": true,
+        "hasWishlist": false,
+        "searchLocationOverlap": false
+      },
+      "cardAudit": {
+        "totalCards": 30,
+        "cardClickable": 30,
+        "hasIsolatedOrderBtn": 0,
+        "hasWishlistHeart": 0
+      },
+      "screenshotPath": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots\\viewport_320x700_mobile-320.png"
+    },
+    "mobile-360": {
+      "viewport": {
+        "width": 360,
+        "height": 740,
+        "name": "mobile-360"
+      },
+      "documentStatus": 200,
+      "requests": {
+        "css": [
+          {
+            "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789275482301",
+            "status": 200
+          }
+        ],
+        "js": [
+          {
+            "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789275482301",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/page.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789275482301",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_animation_scroll-frame-hero_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+            "status": 200
+          }
+        ],
+        "api": [
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?device=mobile&city_id=",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?url=%2F&device=mobile",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          }
+        ],
+        "failed": [
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "status": 401,
+            "isCss": false,
+            "isJs": false
+          }
+        ]
+      },
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "consoleWarnings": [
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0"
+      ],
+      "pageErrors": [],
+      "hydrationErrors": [],
+      "horizontalOverflow": false,
+      "scrollWidth": 360,
+      "clientWidth": 360,
+      "headerAudit": {
+        "present": true,
+        "headerHeight": 86,
+        "logoWidth": null,
+        "hasSearch": true,
+        "hasLocation": false,
+        "hasCart": true,
+        "hasWishlist": false,
+        "searchLocationOverlap": false
+      },
+      "cardAudit": {
+        "totalCards": 30,
+        "cardClickable": 30,
+        "hasIsolatedOrderBtn": 0,
+        "hasWishlistHeart": 0
+      },
+      "screenshotPath": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots\\viewport_360x740_mobile-360.png"
+    },
+    "mobile-375": {
+      "viewport": {
+        "width": 375,
+        "height": 667,
+        "name": "mobile-375"
+      },
+      "documentStatus": 200,
+      "requests": {
+        "css": [
+          {
+            "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789275486242",
+            "status": 200
+          }
+        ],
+        "js": [
+          {
+            "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789275486242",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/page.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789275486242",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_animation_scroll-frame-hero_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+            "status": 200
+          }
+        ],
+        "api": [
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?device=mobile&city_id=",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?url=%2F&device=mobile",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          }
+        ],
+        "failed": [
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "status": 401,
+            "isCss": false,
+            "isJs": false
+          }
+        ]
+      },
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "consoleWarnings": [
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0"
+      ],
+      "pageErrors": [],
+      "hydrationErrors": [],
+      "horizontalOverflow": false,
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "headerAudit": {
+        "present": true,
+        "headerHeight": 86,
+        "logoWidth": null,
+        "hasSearch": true,
+        "hasLocation": false,
+        "hasCart": true,
+        "hasWishlist": false,
+        "searchLocationOverlap": false
+      },
+      "cardAudit": {
+        "totalCards": 30,
+        "cardClickable": 30,
+        "hasIsolatedOrderBtn": 0,
+        "hasWishlistHeart": 0
+      },
+      "screenshotPath": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots\\viewport_375x667_mobile-375.png"
+    },
+    "mobile-390": {
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "name": "mobile-390"
+      },
+      "documentStatus": 200,
+      "requests": {
+        "css": [
+          {
+            "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789275489895",
+            "status": 200
+          }
+        ],
+        "js": [
+          {
+            "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789275489895",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/page.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789275489895",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_animation_scroll-frame-hero_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+            "status": 200
+          }
+        ],
+        "api": [
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?device=mobile&city_id=",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?url=%2F&device=mobile",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          }
+        ],
+        "failed": [
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "status": 401,
+            "isCss": false,
+            "isJs": false
+          }
+        ]
+      },
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "consoleWarnings": [
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0"
+      ],
+      "pageErrors": [],
+      "hydrationErrors": [],
+      "horizontalOverflow": false,
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "headerAudit": {
+        "present": true,
+        "headerHeight": 86,
+        "logoWidth": null,
+        "hasSearch": true,
+        "hasLocation": false,
+        "hasCart": true,
+        "hasWishlist": false,
+        "searchLocationOverlap": false
+      },
+      "cardAudit": {
+        "totalCards": 30,
+        "cardClickable": 30,
+        "hasIsolatedOrderBtn": 0,
+        "hasWishlistHeart": 0
+      },
+      "screenshotPath": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots\\viewport_390x844_mobile-390.png"
+    },
+    "mobile-414": {
+      "viewport": {
+        "width": 414,
+        "height": 896,
+        "name": "mobile-414"
+      },
+      "documentStatus": 200,
+      "requests": {
+        "css": [
+          {
+            "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789275493583",
+            "status": 200
+          }
+        ],
+        "js": [
+          {
+            "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789275493583",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/page.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789275493583",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_animation_scroll-frame-hero_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+            "status": 200
+          }
+        ],
+        "api": [
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?device=mobile&city_id=",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?url=%2F&device=mobile",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          }
+        ],
+        "failed": [
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "status": 401,
+            "isCss": false,
+            "isJs": false
+          }
+        ]
+      },
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "consoleWarnings": [
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0"
+      ],
+      "pageErrors": [],
+      "hydrationErrors": [],
+      "horizontalOverflow": false,
+      "scrollWidth": 414,
+      "clientWidth": 414,
+      "headerAudit": {
+        "present": true,
+        "headerHeight": 86,
+        "logoWidth": null,
+        "hasSearch": true,
+        "hasLocation": false,
+        "hasCart": true,
+        "hasWishlist": false,
+        "searchLocationOverlap": false
+      },
+      "cardAudit": {
+        "totalCards": 30,
+        "cardClickable": 30,
+        "hasIsolatedOrderBtn": 0,
+        "hasWishlistHeart": 0
+      },
+      "screenshotPath": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots\\viewport_414x896_mobile-414.png"
+    },
+    "mobile-430": {
+      "viewport": {
+        "width": 430,
+        "height": 932,
+        "name": "mobile-430"
+      },
+      "documentStatus": 200,
+      "requests": {
+        "css": [
+          {
+            "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789275497261",
+            "status": 200
+          }
+        ],
+        "js": [
+          {
+            "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789275497261",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/page.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789275497261",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_animation_scroll-frame-hero_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+            "status": 200
+          }
+        ],
+        "api": [
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?device=mobile&city_id=",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?url=%2F&device=mobile",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          }
+        ],
+        "failed": [
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "status": 401,
+            "isCss": false,
+            "isJs": false
+          }
+        ]
+      },
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "consoleWarnings": [
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0"
+      ],
+      "pageErrors": [],
+      "hydrationErrors": [],
+      "horizontalOverflow": false,
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "headerAudit": {
+        "present": true,
+        "headerHeight": 86,
+        "logoWidth": null,
+        "hasSearch": true,
+        "hasLocation": false,
+        "hasCart": true,
+        "hasWishlist": false,
+        "searchLocationOverlap": false
+      },
+      "cardAudit": {
+        "totalCards": 30,
+        "cardClickable": 30,
+        "hasIsolatedOrderBtn": 0,
+        "hasWishlistHeart": 0
+      },
+      "screenshotPath": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots\\viewport_430x932_mobile-430.png"
+    },
+    "tablet-768": {
+      "viewport": {
+        "width": 768,
+        "height": 1024,
+        "name": "tablet-768"
+      },
+      "documentStatus": 200,
+      "requests": {
+        "css": [
+          {
+            "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789275500920",
+            "status": 200
+          }
+        ],
+        "js": [
+          {
+            "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789275500920",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/page.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789275500920",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_animation_scroll-frame-hero_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+            "status": 200
+          }
+        ],
+        "api": [
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?device=tablet&city_id=",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?url=%2F&device=desktop",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          }
+        ],
+        "failed": [
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "status": 401,
+            "isCss": false,
+            "isJs": false
+          }
+        ]
+      },
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "consoleWarnings": [
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0"
+      ],
+      "pageErrors": [],
+      "hydrationErrors": [],
+      "horizontalOverflow": false,
+      "scrollWidth": 768,
+      "clientWidth": 768,
+      "headerAudit": {
+        "present": true,
+        "headerHeight": 65,
+        "logoWidth": null,
+        "hasSearch": true,
+        "hasLocation": false,
+        "hasCart": true,
+        "hasWishlist": false,
+        "searchLocationOverlap": false
+      },
+      "cardAudit": {
+        "totalCards": 30,
+        "cardClickable": 30,
+        "hasIsolatedOrderBtn": 0,
+        "hasWishlistHeart": 0
+      },
+      "screenshotPath": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots\\viewport_768x1024_tablet-768.png"
+    },
+    "desktop-1024": {
+      "viewport": {
+        "width": 1024,
+        "height": 768,
+        "name": "desktop-1024"
+      },
+      "documentStatus": 200,
+      "requests": {
+        "css": [
+          {
+            "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789275504716",
+            "status": 200
+          }
+        ],
+        "js": [
+          {
+            "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789275504716",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/page.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789275504716",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_animation_scroll-frame-hero_tsx.js",
+            "status": 200
+          }
+        ],
+        "api": [
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?device=desktop&city_id=",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?url=%2F&device=desktop",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          }
+        ],
+        "failed": [
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "status": 401,
+            "isCss": false,
+            "isJs": false
+          }
+        ]
+      },
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "consoleWarnings": [
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "Image with src \"https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=800\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+        "Image with src \"https://images.unsplash.com/photo-1578985545062-69928b1d9587\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+        "Image with src \"/images/placeholder-cake.jpg\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes"
+      ],
+      "pageErrors": [],
+      "hydrationErrors": [],
+      "horizontalOverflow": false,
+      "scrollWidth": 1024,
+      "clientWidth": 1024,
+      "headerAudit": {
+        "present": true,
+        "headerHeight": 65,
+        "logoWidth": null,
+        "hasSearch": true,
+        "hasLocation": false,
+        "hasCart": true,
+        "hasWishlist": false,
+        "searchLocationOverlap": false
+      },
+      "cardAudit": {
+        "totalCards": 30,
+        "cardClickable": 30,
+        "hasIsolatedOrderBtn": 0,
+        "hasWishlistHeart": 0
+      },
+      "screenshotPath": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots\\viewport_1024x768_desktop-1024.png"
+    },
+    "desktop-1280": {
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "name": "desktop-1280"
+      },
+      "documentStatus": 200,
+      "requests": {
+        "css": [
+          {
+            "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789275508647",
+            "status": 200
+          }
+        ],
+        "js": [
+          {
+            "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789275508647",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/page.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789275508647",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_animation_scroll-frame-hero_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+            "status": 200
+          }
+        ],
+        "api": [
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?device=desktop&city_id=",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?url=%2F&device=desktop",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          }
+        ],
+        "failed": [
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "status": 401,
+            "isCss": false,
+            "isJs": false
+          }
+        ]
+      },
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "consoleWarnings": [
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "Image with src \"https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=800\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+        "Image with src \"https://images.unsplash.com/photo-1578985545062-69928b1d9587\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+        "Image with src \"/images/placeholder-cake.jpg\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes"
+      ],
+      "pageErrors": [],
+      "hydrationErrors": [],
+      "horizontalOverflow": false,
+      "scrollWidth": 1280,
+      "clientWidth": 1280,
+      "headerAudit": {
+        "present": true,
+        "headerHeight": 65,
+        "logoWidth": null,
+        "hasSearch": true,
+        "hasLocation": false,
+        "hasCart": true,
+        "hasWishlist": false,
+        "searchLocationOverlap": false
+      },
+      "cardAudit": {
+        "totalCards": 30,
+        "cardClickable": 30,
+        "hasIsolatedOrderBtn": 0,
+        "hasWishlistHeart": 0
+      },
+      "screenshotPath": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots\\viewport_1280x800_desktop-1280.png"
+    },
+    "desktop-1440": {
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "name": "desktop-1440"
+      },
+      "documentStatus": 200,
+      "requests": {
+        "css": [
+          {
+            "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789275512667",
+            "status": 200
+          }
+        ],
+        "js": [
+          {
+            "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789275512667",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/page.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789275512667",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_animation_scroll-frame-hero_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+            "status": 200
+          },
+          {
+            "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+            "status": 200
+          }
+        ],
+        "api": [
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?device=desktop&city_id=",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/engagement/config?url=%2F&device=desktop",
+            "method": "GET"
+          },
+          {
+            "url": "http://localhost:3000/api/v1/ai/context",
+            "method": "GET"
+          }
+        ],
+        "failed": [
+          {
+            "url": "http://localhost:3000/api/auth/me",
+            "status": 401,
+            "isCss": false,
+            "isJs": false
+          }
+        ]
+      },
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "consoleWarnings": [
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "[ScrollFrameHero] Rendering static fallback for section scroll_frame_main. isAnimationEnabled: false, totalFrames: 0",
+        "Image with src \"https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=800\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+        "Image with src \"/images/placeholder-cake.jpg\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+        "Image with src \"https://images.unsplash.com/photo-1578985545062-69928b1d9587\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes"
+      ],
+      "pageErrors": [],
+      "hydrationErrors": [],
+      "horizontalOverflow": false,
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "headerAudit": {
+        "present": true,
+        "headerHeight": 65,
+        "logoWidth": null,
+        "hasSearch": true,
+        "hasLocation": false,
+        "hasCart": true,
+        "hasWishlist": false,
+        "searchLocationOverlap": false
+      },
+      "cardAudit": {
+        "totalCards": 30,
+        "cardClickable": 30,
+        "hasIsolatedOrderBtn": 0,
+        "hasWishlistHeart": 0
+      },
+      "screenshotPath": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots\\viewport_1440x900_desktop-1440.png"
+    }
+  },
+  "allCssAndJsPassed": true,
+  "totalFailedCssJs": 0,
+  "totalConsoleErrors": 10,
+  "totalHydrationErrors": 0
+}

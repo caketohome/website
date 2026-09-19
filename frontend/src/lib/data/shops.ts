@@ -31,7 +31,7 @@ export async function retrieveShop(shopId: string): Promise<ShopDTO> {
           id: `var_${p.id}`,
           title: "1 kg",
           sku: `SKU_${p.id}`,
-          price: { calculated_amount: String(p.price || 599) },
+          price: { calculated_amount: String(p.price || p.selling_price || 0) },
         },
       ],
     })),

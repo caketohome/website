@@ -80,13 +80,11 @@ export function EnterpriseReportsEngine() {
       setAvailableBranches(branchList);
       setAvailablePartners(Array.isArray(partners) ? partners : []);
       setAvailableCustomers(Array.isArray(customers) ? customers : []);
-      if (orderList.length > 0) {
-        ReportsEngineData.setClientStoreData({
-          orders: orderList,
-          branches: branchList,
-          customers: Array.isArray(customers) ? customers : [],
-        });
-      }
+      ReportsEngineData.setClientStoreData({
+        orders: orderList,
+        branches: branchList,
+        customers: Array.isArray(customers) ? customers : [],
+      });
       setDataVersion((v) => v + 1);
     });
   }, []);
@@ -433,7 +431,7 @@ export function EnterpriseReportsEngine() {
                   <button
                     type="button"
                     onClick={() => setShowBranchPopover(false)}
-                    className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-200"
+                    className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
                   >
                     Done
                   </button>
@@ -446,7 +444,7 @@ export function EnterpriseReportsEngine() {
                     placeholder="Search branches..."
                     value={branchSearch}
                     onChange={(e) => setBranchSearch(e.target.value)}
-                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border rounded-lg"
+                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                   />
                 </div>
 
@@ -454,16 +452,16 @@ export function EnterpriseReportsEngine() {
                   <button
                     type="button"
                     onClick={handleSelectAllBranches}
-                    className="flex-1 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded-md"
+                    className="flex-1 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-md border border-emerald-200 dark:border-emerald-800 transition-colors"
                   >
-                    [ Select All ]
+                    Select All
                   </button>
                   <button
                     type="button"
                     onClick={handleClearAllBranches}
-                    className="flex-1 py-1 text-[11px] font-bold text-slate-700 bg-slate-100 rounded-md"
+                    className="flex-1 py-1 text-[11px] font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md border border-slate-200 dark:border-slate-700 transition-colors"
                   >
-                    [ Clear All ]
+                    Clear All
                   </button>
                 </div>
 
@@ -473,14 +471,14 @@ export function EnterpriseReportsEngine() {
                     .map((b) => {
                       const isChecked = branchIds.includes(b.id);
                       return (
-                        <label key={b.id} className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 cursor-pointer text-xs font-medium">
+                        <label key={b.id} className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer text-xs font-medium text-slate-800 dark:text-slate-200">
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleBranchSelection(b.id)}
-                            className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
+                            className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 accent-emerald-600"
                           />
-                          <span className="truncate flex-1">{b.name}</span>
+                          <span className="truncate flex-1 text-slate-800 dark:text-slate-200">{b.name}</span>
                           {b.code && <span className="text-[10px] text-slate-400 uppercase font-mono">{b.code}</span>}
                         </label>
                       );

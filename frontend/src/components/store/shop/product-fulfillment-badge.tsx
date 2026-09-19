@@ -88,7 +88,7 @@ export function ProductFulfillmentBadge({
       icon = "📅";
       text = fulfillment.message || "Advance pre-order required";
     } else if (fulfillment.reason === "HOLIDAY" || fulfillment.reason === "OPERATIONS_CLOSED" || fulfillment.reason === "BRANCH_CLOSED") {
-      badgeStyle = "bg-rose-50 text-rose-800 border-rose-200";
+      badgeStyle = "bg-brand-gold-soft text-[#1D2F5D] border-[#D4AF37]/30";
       icon = "🛑";
       text = fulfillment.message || "Currently closed";
     } else if (fulfillment.reason === "OUT_OF_STOCK") {

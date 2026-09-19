@@ -18,7 +18,7 @@ export default function GlobalError({
       <body className="bg-slate-50 text-slate-800 font-sans">
         <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
           <div className="max-w-md w-full bg-white shadow-xl rounded-2xl p-8 border border-rose-100 flex flex-col items-center">
-            <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 mb-4">
+            <div className="w-16 h-16 bg-brand-gold-soft rounded-full flex items-center justify-center text-[#D4AF37] mb-4">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -43,7 +43,7 @@ export default function GlobalError({
             <div className="w-full flex flex-col gap-3">
               <button
                 onClick={() => reset()}
-                className="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-medium transition-all shadow-md shadow-rose-100"
+                className="w-full py-3 bg-[#1D2F5D] hover:bg-[#152347] text-white rounded-xl font-medium transition-all shadow-md shadow-rose-100"
               >
                 Reload Application
               </button>

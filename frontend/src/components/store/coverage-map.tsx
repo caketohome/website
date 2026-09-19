@@ -241,12 +241,12 @@ export function DeliveryCoverageMap() {
 
                 {/* Serviceability Result Box */}
                 {result && (
-                    <div className={`mt-4 p-4 rounded-lg border ${result.serviceable ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300" : "bg-rose-50 dark:bg-rose-950/40 border-rose-300"}`}>
+                    <div className={`mt-4 p-4 rounded-lg border ${result.serviceable ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300" : "bg-brand-gold-soft dark:bg-[#0c1326]/40 border-[#D4AF37]/40"}`}>
                         <div className="flex items-start gap-3">
                             {result.serviceable ? (
                                 <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                             ) : (
-                                <XCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                                <XCircle className="w-5 h-5 text-[#1D2F5D] shrink-0 mt-0.5" />
                             )}
                             <div className="flex flex-col gap-1">
                                 <Text className="font-semibold text-sm">

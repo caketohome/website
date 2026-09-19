@@ -21,11 +21,11 @@ export async function GET(req: NextRequest) {
     if (!customerUid && !userId && !phone && !token && !role) {
       const response = NextResponse.json(
         {
-          success: false,
-          error: "Unauthorized",
+          success: true,
+          data: { user: null },
           message: "No active authenticated session found.",
         },
-        { status: 401 }
+        { status: 200 }
       );
       response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
       response.headers.set("Pragma", "no-cache");
@@ -39,11 +39,11 @@ export async function GET(req: NextRequest) {
     if (!user) {
       const response = NextResponse.json(
         {
-          success: false,
-          error: "Unauthorized",
+          success: true,
+          data: { user: null },
           message: "No active authenticated session found.",
         },
-        { status: 401 }
+        { status: 200 }
       );
       response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
       response.headers.set("Pragma", "no-cache");

@@ -40,14 +40,14 @@ export async function GET(req: NextRequest) {
   try {
     const session = getSessionUser(req);
     if (!session.customerUid && !session.userId && !session.phone && !session.token) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ success: true, data: { addresses: [] }, is_guest: true }, { status: 200 });
     }
 
     const store = ApiEngine.getStore();
     const { customer } = findCustomer(store, session);
 
     if (!customer) {
-      return NextResponse.json({ success: false, error: "Customer not found" }, { status: 404 });
+      return NextResponse.json({ success: true, data: { addresses: [] } }, { status: 200 });
     }
 
     const response = NextResponse.json(
@@ -75,9 +75,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { address_1, city, postal_code, landmark, type, is_default, label, name, phone } = body;
 
-    if (!address_1 || !city || !postal_code) {
+    if (!address_1 || !city) {
       return NextResponse.json(
-        { success: false, error: "Invalid Input", message: "Address line, city, and pincode are required." },
+        { success: false, error: "Invalid Input", message: "Address line and city are required." },
         { status: 400 }
       );
     }
@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
     const existingIdx = existingAddresses.findIndex((a) => a.id === newAddressId);
     const parsedLat = body.latitude !== undefined ? Number(body.latitude) : body.lat !== undefined ? Number(body.lat) : undefined;
     const parsedLng = body.longitude !== undefined ? Number(body.longitude) : body.lng !== undefined ? Number(body.lng) : undefined;
+    const cleanPostalCode = (postal_code || body.pincode || "").trim();
 
     const addressObj = {
       id: newAddressId,
@@ -114,7 +115,8 @@ export async function POST(req: NextRequest) {
       landmark: landmark ? landmark.trim() : "",
       city: city.trim(),
       state: body.state || "",
-      postal_code: postal_code.trim(),
+      postal_code: cleanPostalCode,
+      pincode: cleanPostalCode,
       latitude: typeof parsedLat === "number" && !isNaN(parsedLat) ? parsedLat : undefined,
       longitude: typeof parsedLng === "number" && !isNaN(parsedLng) ? parsedLng : undefined,
       instructions: body.instructions ? body.instructions.trim() : "",

@@ -1,0 +1,598 @@
+{
+  "test": "Next.js Runtime Assets & Styling Verification",
+  "timestamp": "2026-09-13T15:34:35.978Z",
+  "routes": {
+    "storefront-home": {
+      "url": "http://localhost:3000/",
+      "documentStatus": 200,
+      "staticAssets": [
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789313687980",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789313687980",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/eaead17c7dbfcd5d-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(store)/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/8e9860b6e62d6359-s.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789313687980",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(checkout)/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_animation_scroll-frame-hero_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789313711862",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/eaead17c7dbfcd5d-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/8e9860b6e62d6359-s.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/webpack/82be1fcf99d284aa.webpack.hot-update.json",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/webpack/app/layout.82be1fcf99d284aa.hot-update.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/webpack/webpack.82be1fcf99d284aa.hot-update.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/react-refresh.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/development/_ssgManifest.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/development/_buildManifest.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/pages/_app.js",
+          "status": 200
+        }
+      ],
+      "failedAssets": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "pageErrors": [],
+      "isStyled": true,
+      "refreshedCleanly": false,
+      "error": "page.reload: Timeout 45000ms exceeded.\nCall log:\n\u001b[2m  - waiting for navigation until \"domcontentloaded\"\u001b[22m\n\u001b[2m    - navigated to \"http://localhost:3000/\"\u001b[22m\n"
+    },
+    "catalog-products": {
+      "url": "http://localhost:3000/products",
+      "documentStatus": 200,
+      "staticAssets": [
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/development/_devMiddlewareManifest.json",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/pages/_error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789313752779",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789313752779",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+          "status": 304
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/eaead17c7dbfcd5d-s.p.woff2",
+          "status": 304
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/8e9860b6e62d6359-s.woff2",
+          "status": 304
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(store)/products/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789313752779",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(checkout)/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789313761818",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789313761818",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/8e9860b6e62d6359-s.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/eaead17c7dbfcd5d-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(store)/products/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789313761818",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(checkout)/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+          "status": 200
+        }
+      ],
+      "failedAssets": [],
+      "consoleErrors": [
+        "Warning: Extra attributes from the server: %s%s style \n    at input\n    at div\n    at div\n    at div\n    at NavSearch (webpack-internal:///(app-pages-browser)/./src/components/store/search/nav-search.tsx:46:80)\n    at div\n    at nav\n    at header\n    at EngagementProvider (webpack-internal:///(app-pages-browser)/./src/components/store/engagement/engagement-provider.tsx:52:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:242:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:340:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:115:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:162:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:152:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:227:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:359:11)\n    at FavoritesProvider (webpack-internal:///(app-pages-browser)/./src/providers/favorites-provider.tsx:30:11)\n    at CustomerErrorBoundary (webpack-internal:///(app-pages-browser)/./src/providers/customer-provider.tsx:37:9)\n    at CustomerProvider (webpack-internal:///(app-pages-browser)/./src/providers/customer-provider.tsx:44:11)\n    at AuthProvider (webpack-internal:///(app-pages-browser)/./src/providers/auth-provider.tsx:26:11)\n    at body\n    at html\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/internal/ReactDevOverlay.js:84:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/hot-reloader-client.js:307:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:182:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:115:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:162:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:542:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:129:11)\n    at RSCComponent\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:145:11)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [
+        "Cannot read properties of null (reading 'useContext')"
+      ],
+      "isStyled": true,
+      "refreshedCleanly": true
+    },
+    "product-detail": {
+      "url": "http://localhost:3000/products/chocolate-truffle",
+      "documentStatus": 200,
+      "staticAssets": [
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789313770509",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789313770509",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/8e9860b6e62d6359-s.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/eaead17c7dbfcd5d-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/28a2004cf8372660-s.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(store)/products/%5Bid%5D/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(checkout)/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789313770509",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_shop_product-reviews-section_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789313781635",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789313781635",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/8e9860b6e62d6359-s.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/eaead17c7dbfcd5d-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/28a2004cf8372660-s.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(store)/products/%5Bid%5D/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789313781635",
+          "status": 200
+        }
+      ],
+      "failedAssets": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "isStyled": true,
+      "refreshedCleanly": true
+    },
+    "compare-page": {
+      "url": "http://localhost:3000/compare",
+      "documentStatus": 200,
+      "staticAssets": [
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(checkout)/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789313787623",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789313787623",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/8e9860b6e62d6359-s.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/eaead17c7dbfcd5d-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(store)/compare/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789313787623",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(checkout)/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_prismjs_components_prism-json_js.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_whatsapp-support-button_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_marketing_exit-intent-popup_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_ai-chat-assistant_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/_app-pages-browser_src_components_store_auth_smart-login-modal_tsx.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1789313790719",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789313790719",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/8e9860b6e62d6359-s.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/eaead17c7dbfcd5d-s.p.woff2",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(store)/compare/page.js",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789313790719",
+          "status": 200
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(checkout)/layout.js",
+          "status": 200
+        }
+      ],
+      "failedAssets": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "isStyled": true,
+      "refreshedCleanly": true
+    }
+  },
+  "allAssetsPassed": true,
+  "totalFailedAssets": 0
+}

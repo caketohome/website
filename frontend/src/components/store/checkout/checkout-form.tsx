@@ -18,7 +18,7 @@ const CheckoutMap = dynamic(
     ssr: false,
     loading: () => (
       <div className="w-full h-[240px] rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-xs text-zinc-500 animate-pulse">
-        <Loader2 className="w-4 h-4 animate-spin text-rose-600 mr-2" />
+        <Loader2 className="w-4 h-4 animate-spin text-[#1D2F5D] mr-2" />
         Loading delivery map...
       </div>
     ),
@@ -50,7 +50,7 @@ function Submit({ disabled }: { disabled?: boolean }) {
   <Button
   type="submit"
   size="large"
-  className="w-full sm:w-auto mt-6 bg-rosegold hover:bg-rosegold/90 text-white font-sans uppercase tracking-[0.15em] text-[13px] font-medium px-8 py-4 rounded-full shadow-ambient-lg border-none transition-all"
+  className="w-full sm:w-auto mt-6 bg-[#1D2F5D] hover:bg-[#152347] text-white font-sans font-bold tracking-wider text-[14px] px-8 py-4 rounded-xl shadow-lg border border-[#D4AF37]/30 transition-all hover:scale-[1.01]"
   isLoading={status.pending}
   disabled={disabled}
   aria-label="Confirm and place your cake order"
@@ -77,8 +77,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
 
  // References for focus management
  const firstNameRef = useRef<HTMLInputElement>(null);
- const zipInputRef = useRef<HTMLInputElement>(null);
  const searchInputRef = useRef<HTMLInputElement>(null);
+ const searchContainerRef = useRef<HTMLDivElement>(null);
  const notesRef = useRef<HTMLTextAreaElement>(null);
 
  // Contact fields (authoritative customer or empty)
@@ -368,6 +368,17 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  const searchAbortControllerRef = useRef<AbortController | null>(null);
  const searchSeqRef = useRef<number>(0);
 
+ // Dismiss autocomplete dropdown when clicking outside search container
+ useEffect(() => {
+ function handleClickOutside(e: MouseEvent) {
+ if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+ setShowLocationDropdown(false);
+ }
+ }
+ document.addEventListener("mousedown", handleClickOutside);
+ return () => document.removeEventListener("mousedown", handleClickOutside);
+ }, []);
+
  const handleSearchLocationInput = (val: string) => {
  setLocationSearchQuery(val);
  if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
@@ -633,7 +644,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  if (step === 1) {
  firstNameRef.current?.focus();
  } else if (step === 2) {
- zipInputRef.current?.focus();
+ searchInputRef.current?.focus();
  } else if (step === 3) {
  notesRef.current?.focus();
  }
@@ -649,69 +660,69 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
 
  return (
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full font-sans">
- {/* LEFT COLUMN: 3-Step Checkout Flow */}
- <div className="lg:col-span-7 flex flex-col gap-6">
- <div className="flex justify-between items-center border-b border-navy-accent/60 pb-3">
- <div>
- <Heading level="h1" className="text-2xl md:text-3xl font-extrabold tracking-tight text-pearl ">
- Cake Delivery Checkout
- </Heading>
- <p className="text-xs text-ash mt-0.5">Direct Bakery Kitchen Fulfillment</p>
- </div>
- <span className="text-xs font-semibold px-3 py-1 rounded-full bg-obsidian-base text-pearl border border-navy-accent/60">
- 🔒 SSL Encrypted
- </span>
- </div>
+  {/* LEFT COLUMN: 3-Step Checkout Flow */}
+  <div className="lg:col-span-7 flex flex-col gap-6">
+    <div className="flex justify-between items-center border-b border-slate-200 dark:border-navy-accent/60 pb-3">
+      <div>
+        <Heading level="h1" className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#1D2F5D] dark:text-pearl">
+          Cake Delivery Checkout
+        </Heading>
+        <p className="text-xs text-slate-600 dark:text-ash mt-0.5 font-medium">Direct Bakery Kitchen Fulfillment</p>
+      </div>
+      <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-obsidian-base text-[#1D2F5D] dark:text-pearl border border-slate-200 dark:border-navy-accent/60">
+        🔒 SSL Encrypted
+      </span>
+    </div>
 
- {/* Stepper Progress Indicator */}
- <div className="flex justify-between items-center w-full bg-obsidian-base p-3.5 rounded-2xl border border-navy-accent/60 shadow-sm" role="progressbar" aria-label="Checkout Progress">
- <button
- type="button"
- onClick={() => setStep(1)}
- className={`flex items-center gap-2 text-xs md:text-sm font-semibold transition-all ${
- step === 1 ? "text-pearl " : "text-ash hover:text-pearl"
- }`}
- >
- <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
- step > 1 ? "bg-rosegold text-white" : step === 1 ? "border-2 border-taupe text-pearl" : "border border-stone/70 text-ash/70"
- }`}>
- {step > 1 ? "✓" : "1"}
- </span>
- <span>1. Contact</span>
- </button>
- <div className="flex-1 h-px bg-rosegold/30 mx-2 hidden sm:block" />
- <button
- type="button"
- disabled={!isStep1Valid}
- onClick={() => setStep(2)}
- className={`flex items-center gap-2 text-xs md:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
- step === 2 ? "text-pearl " : "text-ash hover:text-pearl"
- }`}
- >
- <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
- step > 2 ? "bg-rosegold text-white" : step === 2 ? "border-2 border-taupe text-pearl" : "border border-stone/70 text-ash/70"
- }`}>
- {step > 2 ? "✓" : "2"}
- </span>
- <span>2. Mode & Slots</span>
- </button>
- <div className="flex-1 h-px bg-rosegold/30 mx-2 hidden sm:block" />
- <button
- type="button"
- disabled={!isStep1Valid || !isStep2Valid}
- onClick={() => setStep(3)}
- className={`flex items-center gap-2 text-xs md:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
- step === 3 ? "text-pearl " : "text-ash hover:text-pearl"
- }`}
- >
- <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
- step === 3 ? "border-2 border-taupe text-pearl" : "border border-stone/70 text-ash/70"
- }`}>
- 3
- </span>
- <span>3. Review & Pay</span>
- </button>
- </div>
+    {/* Stepper Progress Indicator */}
+    <div className="flex justify-between items-center w-full bg-white dark:bg-obsidian-base p-3.5 rounded-2xl border border-slate-200 dark:border-navy-accent/60 shadow-sm" role="progressbar" aria-label="Checkout Progress">
+      <button
+        type="button"
+        onClick={() => setStep(1)}
+        className={`flex items-center gap-2 text-xs md:text-sm font-semibold transition-all ${
+          step === 1 ? "text-[#1D2F5D] dark:text-pearl font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-pearl"
+        }`}
+      >
+        <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
+          step > 1 ? "bg-[#1D2F5D] text-[#D4AF37] border border-[#D4AF37]/40" : step === 1 ? "border-2 border-[#D4AF37] text-white bg-[#1D2F5D]" : "border border-slate-300 dark:border-stone/70 text-slate-400"
+        }`}>
+          {step > 1 ? "✓" : "1"}
+        </span>
+        <span>1. Contact</span>
+      </button>
+      <div className="flex-1 h-px bg-[#D4AF37]/40 mx-2 hidden sm:block" />
+      <button
+        type="button"
+        disabled={!isStep1Valid}
+        onClick={() => setStep(2)}
+        className={`flex items-center gap-2 text-xs md:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+          step === 2 ? "text-[#1D2F5D] dark:text-pearl font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-pearl"
+        }`}
+      >
+        <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
+          step > 2 ? "bg-[#1D2F5D] text-[#D4AF37] border border-[#D4AF37]/40" : step === 2 ? "border-2 border-[#D4AF37] text-white bg-[#1D2F5D]" : "border border-slate-300 dark:border-stone/70 text-slate-400"
+        }`}>
+          {step > 2 ? "✓" : "2"}
+        </span>
+        <span>2. Mode & Slots</span>
+      </button>
+      <div className="flex-1 h-px bg-[#D4AF37]/40 mx-2 hidden sm:block" />
+      <button
+        type="button"
+        disabled={!isStep1Valid || !isStep2Valid}
+        onClick={() => setStep(3)}
+        className={`flex items-center gap-2 text-xs md:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+          step === 3 ? "text-[#1D2F5D] dark:text-pearl font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-pearl"
+        }`}
+      >
+        <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
+          step === 3 ? "border-2 border-[#D4AF37] text-white bg-[#1D2F5D]" : "border border-slate-300 dark:border-stone/70 text-slate-400"
+        }`}>
+          3
+        </span>
+        <span>3. Review & Pay</span>
+      </button>
+    </div>
 
  <form className="flex flex-col gap-6 w-full" action={action}>
  {/* STEP 1: Contact & Gifting Details */}
@@ -884,7 +895,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  type="button"
  disabled={!isStep1Valid}
  onClick={() => setStep(2)}
- className="mt-2 w-full sm:w-fit self-end bg-rosegold hover:bg-rose-700 text-white font-bold py-2.5 px-6 rounded-2xl"
+ className="mt-2 w-full sm:w-fit self-end bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold py-2.5 px-6 rounded-2xl border border-[#D4AF37]/30 shadow-md"
  >
  Continue to Delivery Mode & Slots →
  </Button>
@@ -960,7 +971,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  type="button"
  onClick={handleUseCurrentLocation}
  disabled={locatingGps}
- className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-bold text-rose-700 bg-obsidian-base border border-navy-accent/60 hover:bg-rosegold/20 transition shadow-sm"
+ className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-bold text-[#D4AF37] bg-obsidian-base border border-[#D4AF37]/30 hover:bg-[#1D2F5D]/20 transition shadow-sm"
  data-testid="use-current-location-btn"
  >
  {locatingGps ? (
@@ -992,30 +1003,38 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  )}
 
  {/* Search Delivery Location Autocomplete */}
- <div className="relative">
+ <div ref={searchContainerRef} className="relative z-30">
  <Label className="font-semibold text-xs text-pearl mb-1 block">
  Search Area, Landmark, or Complex
  </Label>
  <div className="relative">
- <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ash/70" />
+ <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ash/70 pointer-events-none" />
  <Input
  ref={searchInputRef}
  placeholder="Search area, landmark, street, or city..."
  value={locationSearchQuery}
  onChange={(e) => handleSearchLocationInput(e.target.value)}
  onFocus={() => {
- if (locationSearchResults.length > 0) setShowLocationDropdown(true);
+ if (locationSearchResults.length > 0 || locationSearchQuery.trim().length >= 2) setShowLocationDropdown(true);
  }}
- className="pl-10 text-xs sm:text-sm bg-obsidian-base "
+ style={{ color: "#F4F5F8", caretColor: "#D4AF37" }}
+ className="pl-10 pr-10 text-xs sm:text-sm bg-obsidian-base text-pearl placeholder:text-ash/70 border border-navy-accent/80 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/50 focus:outline-none selection:bg-[#D4AF37]/30 selection:text-white disabled:opacity-50 disabled:cursor-not-allowed [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#07090E_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:#F4F5F8]"
  />
  {isSearchingLocation && (
- <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-ash/70" />
+ <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-[#D4AF37]" />
  )}
  </div>
 
  {/* Autocomplete Results Dropdown */}
- {showLocationDropdown && locationSearchResults.length > 0 && (
- <div className="absolute left-0 right-0 top-full mt-1.5 bg-navy-surface border border-navy-accent/60 rounded-2xl shadow-2xl p-2 z-40 max-h-60 overflow-y-auto space-y-1">
+ {showLocationDropdown && (locationSearchResults.length > 0 || isSearchingLocation || (locationSearchQuery.trim().length >= 2 && !isSearchingLocation)) && (
+ <div className="absolute left-0 right-0 top-full mt-1.5 bg-navy-surface/98 backdrop-blur-md border border-navy-accent/80 rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.6)] p-2 z-50 max-h-60 overflow-y-auto space-y-1">
+ {isSearchingLocation ? (
+ <div className="p-3 text-xs text-ash flex items-center gap-2 justify-center">
+ <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
+ <span>Searching localities...</span>
+ </div>
+ ) : locationSearchResults.length > 0 ? (
+ <>
  <div className="text-[10px] font-bold text-ash/70 px-3 py-1 uppercase tracking-wider">
  Suggested Delivery Localities
  </div>
@@ -1023,22 +1042,28 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <div
  key={loc.id}
  onClick={() => handleSelectSearchResult(loc)}
- className="p-2.5 rounded-2xl hover:bg-obsidian-base :bg-rosegold/40 cursor-pointer flex items-center justify-between gap-3 text-xs transition"
+ className="p-2.5 rounded-2xl hover:bg-obsidian-base hover:bg-navy-accent/80 active:bg-navy-accent cursor-pointer flex items-center justify-between gap-3 text-xs transition"
  >
  <div className="flex items-center gap-2 min-w-0">
- <MapPin className="w-4 h-4 shrink-0 text-pearl" />
+ <MapPin className="w-4 h-4 shrink-0 text-[#D4AF37]" />
  <div className="truncate">
  <p className="font-bold text-pearl truncate">{loc.label}</p>
  <p className="text-[11px] text-ash truncate">{loc.formatted_address}</p>
  </div>
  </div>
  {loc.pincode && (
- <span className="text-[10px] font-mono font-bold text-pearl bg-obsidian-base px-2 py-0.5 rounded shrink-0">
+ <span className="text-[10px] font-mono font-bold text-pearl bg-obsidian-base border border-navy-accent/60 px-2 py-0.5 rounded shrink-0">
  {loc.pincode}
  </span>
  )}
  </div>
  ))}
+ </>
+ ) : (
+ <div className="p-3 text-xs text-ash text-center">
+ No matching localities found. Try another landmark or area.
+ </div>
+ )}
  </div>
  )}
  </div>
@@ -1060,8 +1085,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => handleSelectSavedAddress(addr)}
  className={`px-3 py-1.5 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 transition ${
  isSel
- ? "bg-rosegold text-white border-taupe shadow-sm"
- : "bg-obsidian-base text-pearl border-navy-accent/60 hover:border-rose-300"
+ ? "bg-[#1D2F5D] text-white border-[#D4AF37] shadow-sm"
+ : "bg-obsidian-base text-pearl border-navy-accent/60 hover:border-[#D4AF37]/40"
  }`}
  >
  <span>{addr.label || addr.type || "Address"}</span>
@@ -1091,7 +1116,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  )}
 
  {/* Interactive Customer Location Map */}
- <div className="space-y-1.5">
+ <div className="space-y-1.5 relative z-0">
  <div className="flex items-center justify-between text-xs">
  <Label className="font-semibold text-pearl flex items-center gap-1.5">
  <MapPin className="w-3.5 h-3.5 text-pearl" /> Confirm Pin on Map 📍
@@ -1147,7 +1172,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  ) : (
  <div className="p-4 rounded-2xl bg-obsidian-base border border-navy-accent/60 flex flex-col gap-2">
  <div className="flex items-center justify-between">
- <span className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
+ <span className="text-xs font-bold text-[#1D2F5D] flex items-center gap-1.5">
  <span>❌</span> We currently don't deliver to this location
  </span>
  <div className="flex items-center gap-2">
@@ -1170,13 +1195,13 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  setLocationSearchQuery("");
  searchInputRef.current?.focus();
  }}
- className="text-[11px] font-bold text-rose-700 underline hover:no-underline ml-1"
+ className="text-[11px] font-bold text-[#152347] underline hover:no-underline ml-1"
  >
  Change Location
  </button>
  </div>
  </div>
- <p className="text-[11px] text-rose-700 ">
+ <p className="text-[11px] text-[#152347] ">
  {availability.status_message || "We currently don't deliver to this location. We're coming soon to your town."}
  </p>
  {notifiedLocation && (
@@ -1230,9 +1255,9 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  />
  </div>
  <div>
- <Label className="font-semibold text-xs text-pearl ">Pincode</Label>
+ <Label className="font-semibold text-xs text-pearl ">Pincode <span className="text-[10px] text-ash font-normal">(Optional)</span></Label>
  <Input
- placeholder="e.g. 560038"
+ placeholder="Auto-filled from map"
  name="zip"
  value={zip}
  maxLength={6}
@@ -1272,7 +1297,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  type="button"
  onClick={handleSearchAddressOnMap}
  disabled={isGeocodingAddress || (!address.trim() && !city.trim() && !zip.trim())}
- className="px-3 py-1.5 rounded-2xl border border-navy-accent/60 bg-obsidian-base hover:bg-rosegold/30 :bg-zinc-750 text-xs font-semibold text-pearl flex items-center gap-1.5 transition disabled:opacity-50"
+ className="px-3 py-1.5 rounded-2xl border border-navy-accent/60 bg-obsidian-base hover:bg-[#1D2F5D]/30 :bg-zinc-750 text-xs font-semibold text-pearl flex items-center gap-1.5 transition disabled:opacity-50"
  >
  {isGeocodingAddress ? (
  <>
@@ -1364,10 +1389,10 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => handleDateChange(d.date)}
  className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center ${
  isSelected
- ? "border-taupe bg-rosegold text-white font-bold shadow-md shadow-taupe/20"
+ ? "border-[#D4AF37] bg-[#1D2F5D] text-white font-bold shadow-md shadow-[#1D2F5D]/30"
  : d.is_available
- ? "border-navy-accent/60 bg-obsidian-base text-pearl hover:border-rose-300"
- : "border-navy-accent/60 opacity-40 cursor-not-allowed bg-rosegold/30 text-ash/70"
+ ? "border-navy-accent/60 bg-obsidian-base text-pearl hover:border-[#D4AF37]/40"
+ : "border-navy-accent/60 opacity-40 cursor-not-allowed bg-white/5 text-ash/70"
  }`}
  >
  <span className="text-xs font-bold">{d.label}</span>
@@ -1393,7 +1418,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  {loadingAvailability ? (
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
  {[1, 2, 3, 4].map((i) => (
- <div key={i} className="animate-pulse bg-rosegold/30 rounded-2xl h-16 w-full" />
+ <div key={i} className="animate-pulse bg-navy-accent/40 rounded-2xl h-16 w-full" />
  ))}
  </div>
  ) : currentSlots.length === 0 ? (
@@ -1513,8 +1538,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setStep(3)}
  className={`font-bold py-2.5 px-6 rounded-2xl w-full sm:w-auto transition-all ${
  isStep2Valid
- ? "bg-rosegold hover:bg-rose-700 text-white shadow-md shadow-taupe/20"
- : "bg-rosegold/30 text-ash/70 cursor-not-allowed"
+ ? "bg-[#1D2F5D] hover:bg-[#152347] text-white border border-[#D4AF37]/30 shadow-md"
+ : "bg-navy-accent/40 text-ash/70 cursor-not-allowed"
  }`}
  >
  Continue to Review & Pay →
@@ -1587,14 +1612,14 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setPaymentMethod("razorpay")}
  className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all ${
  paymentMethod === "razorpay"
- ? "border-taupe bg-obsidian-base/60 ring-2 ring-navy-glow/20"
+ ? "border-[#D4AF37] bg-obsidian-base/60 ring-2 ring-[#D4AF37]/20"
  : "border-navy-accent/60 hover:border-navy-glow"
  }`}
  >
  <div className="flex justify-between items-center">
  <span className="text-2xl">💳</span>
  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
- paymentMethod === "razorpay" ? "border-taupe bg-rosegold text-white text-[10px]" : "border-stone/70"
+ paymentMethod === "razorpay" ? "border-[#D4AF37] bg-[#1D2F5D] text-[#D4AF37] text-[10px]" : "border-stone/70"
  }`}>
  {paymentMethod === "razorpay" && "✓"}
  </span>
@@ -1610,14 +1635,14 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setPaymentMethod("cod")}
  className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all ${
  paymentMethod === "cod"
- ? "border-taupe bg-obsidian-base/60 ring-2 ring-navy-glow/20"
+ ? "border-[#D4AF37] bg-obsidian-base/60 ring-2 ring-[#D4AF37]/20"
  : "border-navy-accent/60 hover:border-navy-glow"
  }`}
  >
  <div className="flex justify-between items-center">
  <span className="text-2xl">💵</span>
  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
- paymentMethod === "cod" ? "border-taupe bg-rosegold text-white text-[10px]" : "border-stone/70"
+ paymentMethod === "cod" ? "border-[#D4AF37] bg-[#1D2F5D] text-[#D4AF37] text-[10px]" : "border-stone/70"
  }`}>
  {paymentMethod === "cod" && "✓"}
  </span>
@@ -1633,14 +1658,14 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setPaymentMethod("test_mode")}
  className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all ${
  paymentMethod === "test_mode"
- ? "border-taupe bg-obsidian-base/60 ring-2 ring-navy-glow/20"
+ ? "border-[#D4AF37] bg-obsidian-base/60 ring-2 ring-[#D4AF37]/20"
  : "border-navy-accent/60 hover:border-navy-glow"
  }`}
  >
  <div className="flex justify-between items-center">
  <span className="text-2xl">⚡</span>
  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
- paymentMethod === "test_mode" ? "border-taupe bg-rosegold text-white text-[10px]" : "border-stone/70"
+ paymentMethod === "test_mode" ? "border-[#D4AF37] bg-[#1D2F5D] text-[#D4AF37] text-[10px]" : "border-stone/70"
  }`}>
  {paymentMethod === "test_mode" && "✓"}
  </span>

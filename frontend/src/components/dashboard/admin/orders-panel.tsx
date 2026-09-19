@@ -302,19 +302,19 @@ export const OrdersPanel = memo(function OrdersPanel() {
   const totalPages = Math.ceil(totalCount / limit) || 1;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5 sm:gap-6 w-full min-w-0 max-w-full">
       {/* Top Header Command Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <Heading level="h2" className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full min-w-0">
+        <div className="min-w-0">
+          <Heading level="h2" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2 break-words">
             Enterprise Order Command Center
           </Heading>
-          <Text className="text-ui-fg-subtle text-sm">
+          <Text className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm break-words">
             Live bakery production &amp; delivery operational management hub.
           </Text>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           <Button size="small" onClick={() => setIsCreateOrderOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1 text-xs px-3 py-1.5 shadow-sm">
             <Plus className="w-4 h-4" /> + Create Order
           </Button>
@@ -338,10 +338,10 @@ export const OrdersPanel = memo(function OrdersPanel() {
       )}
 
       {/* Filter & Action Toolbar */}
-      <div className="p-4 border rounded-2xl bg-white dark:bg-slate-900 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="p-3 sm:p-4 border rounded-2xl bg-white dark:bg-slate-900 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 w-full min-w-0">
         {/* Search & Status Filter Pills */}
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          <div className="relative w-full md:w-72">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto min-w-0">
+          <div className="relative w-full md:w-72 min-w-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ui-fg-muted" />
             <Input
               placeholder="Search order #, customer, phone..."
@@ -357,13 +357,13 @@ export const OrdersPanel = memo(function OrdersPanel() {
             />
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs overflow-x-auto">
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs overflow-x-auto scrollbar-thin max-w-full min-w-0">
             {["all", "confirmed", "kitchen_accepted", "preparing", "out_for_delivery", "delivered", "cancelled"].map((st) => (
               <button
                 key={st}
                 onClick={() => { setStatusFilter(st); setPage(1); }}
                 className={`px-2.5 py-1 rounded-lg font-bold capitalize transition-colors whitespace-nowrap ${
-                  statusFilter === st ? "bg-purple-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-300 hover:text-purple-600"
+                  statusFilter === st ? "bg-[#1D2F5D] text-white shadow-xs border border-[#D4AF37]/30" : "text-slate-600 dark:text-slate-300 hover:text-[#1D2F5D] dark:hover:text-[#D4AF37]"
                 }`}
               >
                 {st.replace(/_/g, " ")}
@@ -452,7 +452,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
             <select
               value={datePreset}
               onChange={(e) => handleDatePresetChange(e.target.value)}
-              className="p-2 border rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200 font-extrabold text-xs"
+              className="p-2 border rounded-xl bg-[#1D2F5D]/5 dark:bg-[#1D2F5D]/20 text-[#1D2F5D] dark:text-[#D4AF37] font-extrabold text-xs border-[#1D2F5D]/20"
               data-testid="date-preset-filter"
             >
               <option value="all">📅 All Time (Any Date)</option>
@@ -530,12 +530,12 @@ export const OrdersPanel = memo(function OrdersPanel() {
         {/* Bulk Action & Column Visibility Controls */}
         <div className="flex items-center gap-2 w-full md:w-auto justify-end">
           {selectedOrderIds.length > 0 && (
-            <div className="flex items-center gap-2 bg-purple-50 dark:bg-purple-950/40 p-1.5 rounded-xl border border-purple-200 text-xs">
-              <span className="font-bold text-purple-700 dark:text-purple-300">{selectedOrderIds.length} Selected</span>
+            <div className="flex items-center gap-2 bg-[#1D2F5D]/10 dark:bg-[#1D2F5D]/30 p-1.5 rounded-xl border border-[#1D2F5D]/20 text-xs">
+              <span className="font-bold text-[#1D2F5D] dark:text-[#D4AF37]">{selectedOrderIds.length} Selected</span>
               <select
                 value={bulkStatus}
                 onChange={(e) => setBulkStatus(e.target.value)}
-                className="p-1 rounded border text-xs bg-white dark:bg-slate-800"
+                className="p-1 border rounded-lg bg-white dark:bg-slate-800 text-xs font-semibold"
               >
                 <option value="">Bulk Action...</option>
                 <option value="confirmed">Set Confirmed</option>
@@ -546,7 +546,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
                 <option value="delivered">Set Delivered</option>
                 <option value="cancelled">Set Cancelled</option>
               </select>
-              <Button size="small" onClick={handleBulkStatusChange} className="bg-purple-600 text-white text-xs">Apply</Button>
+              <Button size="small" onClick={handleBulkStatusChange} className="bg-[#1D2F5D] hover:bg-[#152347] text-white text-xs">Apply</Button>
             </div>
           )}
 
@@ -558,7 +558,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
               <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border rounded-xl shadow-xl p-3 z-30 space-y-1.5 text-xs">
                 <p className="font-bold text-slate-500 uppercase text-[10px] mb-1">Toggle Table Columns</p>
                 {Object.keys(visibleColumns).map((col) => (
-                  <label key={col} className="flex items-center gap-2 cursor-pointer font-medium hover:text-purple-600">
+                  <label key={col} className="flex items-center gap-2 cursor-pointer font-medium hover:text-[#1D2F5D] dark:hover:text-[#D4AF37]">
                     <input
                       type="checkbox"
                       checked={visibleColumns[col]}
@@ -580,7 +580,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
           <TableSkeleton rows={8} cols={7} />
         ) : orders.length === 0 ? (
           <Container className="p-12 text-center flex flex-col gap-2 items-center border rounded-2xl bg-white dark:bg-slate-900" data-testid="orders-empty-state">
-            <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-950/40 flex items-center justify-center text-2xl">🎂</div>
+            <div className="w-12 h-12 rounded-full bg-[#1D2F5D]/10 dark:bg-[#1D2F5D]/30 flex items-center justify-center text-2xl">🎂</div>
             <Text className="font-bold text-slate-700 dark:text-slate-200">
               {hasActiveFilters ? "No orders found matching the active filter combination." : "No orders found in the database."}
             </Text>
@@ -598,8 +598,8 @@ export const OrdersPanel = memo(function OrdersPanel() {
             )}
           </Container>
         ) : (
-          <Container className="p-0 overflow-hidden border rounded-2xl shadow-sm">
-            <div className="overflow-x-auto">
+          <Container className="p-0 overflow-hidden border rounded-2xl shadow-sm w-full min-w-0 max-w-full">
+            <div className="overflow-x-auto w-full min-w-0 max-w-full scrollbar-thin">
               <table className="w-full text-xs text-left">
                 {/* Sticky Header */}
                 <thead className="sticky top-0 bg-slate-100 dark:bg-slate-800 border-b border-ui-border-base text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider text-[10px] z-10">
@@ -607,7 +607,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
                     <th className="p-3.5 w-10 text-center">
                       <button onClick={toggleSelectAll}>
                         {selectedOrderIds.length === orders.length ? (
-                          <CheckSquare className="w-4 h-4 text-purple-600" />
+                          <CheckSquare className="w-4 h-4 text-[#1D2F5D] dark:text-[#D4AF37]" />
                         ) : (
                           <Square className="w-4 h-4 text-slate-400" />
                         )}
@@ -631,33 +631,36 @@ export const OrdersPanel = memo(function OrdersPanel() {
                     return (
                       <tr
                         key={o.id}
-                        className={`hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-colors ${
-                          isSelected ? "bg-purple-50 dark:bg-purple-950/30" : ""
+                        className={`hover:bg-[#1D2F5D]/5 dark:hover:bg-[#1D2F5D]/20 transition-colors ${
+                          isSelected ? "bg-[#1D2F5D]/10 dark:bg-[#1D2F5D]/30" : ""
                         }`}
+                        data-testid={`order-row-${o.id}`}
                       >
                         <td className="p-3.5 text-center">
                           <button onClick={() => toggleSelectOrder(o.id)}>
                             {isSelected ? (
-                              <CheckSquare className="w-4 h-4 text-purple-600" />
+                              <CheckSquare className="w-4 h-4 text-[#1D2F5D] dark:text-[#D4AF37]" />
                             ) : (
-                              <Square className="w-4 h-4 text-slate-300 hover:text-slate-500" />
+                              <Square className="w-4 h-4 text-slate-400" />
                             )}
                           </button>
                         </td>
 
                         {visibleColumns.order_number && (
                           <td className="p-3.5">
-                            <span className="font-mono font-extrabold text-purple-700 dark:text-purple-400 block">
-                              {o.order_number || o.id}
+                            <span className="font-mono font-extrabold text-[#1D2F5D] dark:text-[#D4AF37] block">
+                              {o.display_id || o.order_number || o.id.slice(-8)}
                             </span>
-                            <span className="text-[10px] text-slate-400 font-mono">{o.id}</span>
+                            <span className="text-[10px] text-slate-500 block font-mono">
+                              {o.created_at ? new Date(o.created_at).toLocaleDateString() : (o.id || "")}
+                            </span>
                           </td>
                         )}
 
                         {visibleColumns.customer && (
                           <td className="p-3.5">
-                            <p className="font-bold text-slate-900 dark:text-white line-clamp-1">{o.customer_name || o.customer?.name || "Guest Customer"}</p>
-                            <p className="text-[10px] text-purple-600 font-mono font-bold">{o.customer_number || o.customer?.customer_number || "CTH-CUST-GUEST"}</p>
+                            <p className="font-bold text-slate-800 dark:text-slate-100">{o.customer_name || o.customer?.name || "Guest Customer"}</p>
+                            <p className="text-[10px] text-[#1D2F5D] dark:text-[#D4AF37] font-mono font-bold">{o.customer_number || o.customer?.customer_number || "CTH-CUST-GUEST"}</p>
                           </td>
                         )}
 
@@ -716,9 +719,10 @@ export const OrdersPanel = memo(function OrdersPanel() {
                               size="small"
                               variant="secondary"
                               onClick={() => setSelectedOrderId(o.id)}
-                              className="text-xs bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 hover:bg-purple-200 font-bold"
+                              className="text-xs bg-[#1D2F5D]/10 dark:bg-[#1D2F5D]/30 text-[#1D2F5D] dark:text-[#D4AF37] hover:bg-[#1D2F5D]/20 font-bold border border-[#D4AF37]/30"
+                              data-testid={`inspect-order-${o.id}`}
                             >
-                              <Eye className="w-3.5 h-3.5 mr-1" /> View Details
+                              <Eye className="w-3.5 h-3.5 mr-1" /> Inspect
                             </Button>
                           </td>
                         )}

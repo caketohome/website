@@ -236,6 +236,7 @@ let dynamicOrders: any[] | null = null;
 let dynamicProducts: any[] | null = null;
 let dynamicBranches: any[] | null = null;
 let dynamicCustomers: any[] | null = null;
+let isPostgresAuthoritative: boolean = false;
 
 const DEFAULT_SEED_BRANCHES = [
   { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship", code: "HUB-01", city: "Bengaluru", is_open: true, max_orders_per_hour: 30, current_hourly_load: 18 },
@@ -361,15 +362,24 @@ const DEFAULT_SEED_ORDERS = [
 ];
 
 function getAllOrders(): any[] {
-  return dynamicOrders && dynamicOrders.length > 0 ? dynamicOrders : DEFAULT_SEED_ORDERS;
+  if (dynamicOrders !== null) {
+    return dynamicOrders;
+  }
+  return isPostgresAuthoritative ? [] : DEFAULT_SEED_ORDERS;
 }
 
 function getAllProducts(): any[] {
-  return dynamicProducts && dynamicProducts.length > 0 ? dynamicProducts : DEFAULT_SEED_PRODUCTS;
+  if (dynamicProducts !== null) {
+    return dynamicProducts;
+  }
+  return isPostgresAuthoritative ? [] : DEFAULT_SEED_PRODUCTS;
 }
 
 function getAllBranches(): any[] {
-  return dynamicBranches && dynamicBranches.length > 0 ? dynamicBranches : DEFAULT_SEED_BRANCHES;
+  if (dynamicBranches !== null) {
+    return dynamicBranches;
+  }
+  return isPostgresAuthoritative ? [] : DEFAULT_SEED_BRANCHES;
 }
 
 function parseOrderDate(order: any): Date {
@@ -468,10 +478,11 @@ export class ReportsEngineData {
     branches?: any[];
     customers?: any[];
   }): void {
-    if (data.orders) dynamicOrders = data.orders;
-    if (data.products) dynamicProducts = data.products;
-    if (data.branches) dynamicBranches = data.branches;
-    if (data.customers) dynamicCustomers = data.customers;
+    isPostgresAuthoritative = true;
+    if (data.orders !== undefined) dynamicOrders = data.orders;
+    if (data.products !== undefined) dynamicProducts = data.products;
+    if (data.branches !== undefined) dynamicBranches = data.branches;
+    if (data.customers !== undefined) dynamicCustomers = data.customers;
   }
 
   public static getDateRange(filters: ReportFilterState): { start: Date; end: Date; days: number } {
@@ -888,7 +899,8 @@ export class ReportsEngineData {
     }
 
     for (const o of currentOrders) {
-      const dStr = (o.created_at || o.delivery_date || "").slice(0, 10);
+      const dVal = o.created_at || o.delivery_date;
+      const dStr = (dVal instanceof Date ? dVal.toISOString() : String(dVal || "")).slice(0, 10);
       const ex = trendMap.get(dStr);
       if (ex) {
         ex.orders += 1;
@@ -1333,7 +1345,8 @@ export class ReportsEngineData {
 
     for (const o of currentOrders) {
       const invNum = o.invoice_number || `INV-${o.id}`;
-      const oDate = (o.created_at || o.delivery_date || "").slice(0, 10);
+      const oVal = o.created_at || o.delivery_date;
+      const oDate = (oVal instanceof Date ? oVal.toISOString() : String(oVal || "")).slice(0, 10);
       const cName = o.customer_name || "Retail Customer";
       const cGstin = o.customer_gstin || "URP (Unregistered)";
       const city = o.shipping_address?.city || o.branch?.city || "";

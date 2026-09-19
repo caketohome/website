@@ -53,26 +53,53 @@ export function AdminTabs({ activeTab, onTabChange, user }: AdminTabsProps) {
     }
   });
 
+  const currentTabObj = visibleTabs.find((t) => t.id === activeTab) || visibleTabs[0];
+
   return (
-    <div className="flex gap-1 overflow-x-auto pb-1 border-b border-ui-border-base">
-      {visibleTabs.map((tab) => {
-        const Icon = tab.icon;
-        const isActive = activeTab === tab.id;
-        return (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id as AdminTabId)}
-            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-t-lg whitespace-nowrap transition-colors ${
-              isActive
-                ? "bg-ui-bg-base text-ui-fg-base border border-b-0 border-ui-border-base shadow-sm"
-                : "text-ui-fg-subtle hover:text-ui-fg-base hover:bg-ui-bg-base-hover"
-            }`}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {tab.label}
-          </button>
-        );
-      })}
+    <div className="w-full min-w-0 max-w-full flex flex-col gap-2">
+      {/* Mobile / Tablet Quick Module Selector Dropdown (< lg screens) */}
+      <div className="flex lg:hidden items-center justify-between gap-2 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+        <label htmlFor="mobile-admin-module-select" className="text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0 flex items-center gap-1.5">
+          <span>Navigate Module:</span>
+        </label>
+        <select
+          id="mobile-admin-module-select"
+          value={activeTab}
+          onChange={(e) => onTabChange(e.target.value as AdminTabId)}
+          className="flex-1 min-w-0 py-1.5 px-2.5 text-xs font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] cursor-pointer"
+        >
+          {visibleTabs.map((tab) => (
+            <option key={tab.id} value={tab.id} className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 py-1">
+              {tab.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Bounded Navigation Scroller (contained inside viewport bounds) */}
+      <div className="w-full min-w-0 max-w-full overflow-x-auto scrollbar-thin pb-1 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex items-center gap-1 min-w-max">
+          {visibleTabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => onTabChange(tab.id as AdminTabId)}
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg whitespace-nowrap transition-all shrink-0 ${
+                  isActive
+                    ? "bg-[#1D2F5D] text-white border-b-2 border-[#D4AF37] shadow-xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60"
+                }`}
+              >
+                <Icon className={`w-3.5 h-3.5 ${isActive ? "text-[#D4AF37]" : "text-slate-400"}`} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

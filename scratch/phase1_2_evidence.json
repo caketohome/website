@@ -1,0 +1,448 @@
+{
+  "timestamp": "2026-09-13T14:28:45.325Z",
+  "baseUrl": "http://localhost:3001",
+  "totalRoutesTested": 10,
+  "passedCount": 9,
+  "failedCount": 1,
+  "overallResult": "PARTIAL / FAIL",
+  "routes": [
+    {
+      "route": "/",
+      "name": "Homepage",
+      "navStatus": 200,
+      "pass": true,
+      "title": "CakeToHome | Luxury Artisanal Patisserie",
+      "desktopScreenshot": "scratch/screenshots/phase1_2/homepage_desktop.png",
+      "mobileScreenshot": "scratch/screenshots/phase1_2/homepage_mobile.png",
+      "mobileOverflow": {
+        "scrollWidth": 375,
+        "clientWidth": 375,
+        "hasOverflow": false
+      },
+      "domMetrics": {
+        "bodyBg": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(244, 245, 248)",
+        "bodyFont": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "linkCount": 32,
+        "buttonCount": 40,
+        "inputCount": 1,
+        "cardCount": 0,
+        "bodyHeight": 5181,
+        "bodyScrollWidth": 1440,
+        "roguePinkFound": 0,
+        "sampleRogue": []
+      },
+      "counts": {
+        "totalRequests": 27,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 1,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "route": "/products",
+      "name": "Products Catalog",
+      "navStatus": 200,
+      "pass": false,
+      "title": "Gourmet Cakes & Sweets Catalog | CakeToHome Bangalore",
+      "desktopScreenshot": "scratch/screenshots/phase1_2/products_catalog_desktop.png",
+      "mobileScreenshot": "scratch/screenshots/phase1_2/products_catalog_mobile.png",
+      "mobileOverflow": {
+        "scrollWidth": 375,
+        "clientWidth": 375,
+        "hasOverflow": false
+      },
+      "domMetrics": {
+        "bodyBg": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(244, 245, 248)",
+        "bodyFont": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "linkCount": 28,
+        "buttonCount": 40,
+        "inputCount": 4,
+        "cardCount": 0,
+        "bodyHeight": 3800,
+        "bodyScrollWidth": 1440,
+        "roguePinkFound": 0,
+        "sampleRogue": []
+      },
+      "counts": {
+        "totalRequests": 27,
+        "asset404Count": 1,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 1,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [
+        {
+          "url": "http://localhost:3001/_next/static/chunks/app/(store)/products/page.js",
+          "resourceType": "script"
+        }
+      ],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "route": "/products/chocolate-truffle",
+      "name": "Product Detail (PDP)",
+      "navStatus": 200,
+      "pass": true,
+      "title": "CHOCOLATE TRUFFLE 1 Kg | Same Day Cake Delivery | CakeToHome",
+      "desktopScreenshot": "scratch/screenshots/phase1_2/product_detail__pdp__desktop.png",
+      "mobileScreenshot": "scratch/screenshots/phase1_2/product_detail__pdp__mobile.png",
+      "mobileOverflow": {
+        "scrollWidth": 375,
+        "clientWidth": 375,
+        "hasOverflow": false
+      },
+      "domMetrics": {
+        "bodyBg": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(244, 245, 248)",
+        "bodyFont": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "linkCount": 12,
+        "buttonCount": 27,
+        "inputCount": 2,
+        "cardCount": 0,
+        "bodyHeight": 2105,
+        "bodyScrollWidth": 1440,
+        "roguePinkFound": 0,
+        "sampleRogue": []
+      },
+      "counts": {
+        "totalRequests": 35,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 1,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ]
+    },
+    {
+      "route": "/compare",
+      "name": "Compare",
+      "navStatus": 200,
+      "pass": true,
+      "title": "CakeToHome",
+      "desktopScreenshot": "scratch/screenshots/phase1_2/compare_desktop.png",
+      "mobileScreenshot": "scratch/screenshots/phase1_2/compare_mobile.png",
+      "mobileOverflow": {
+        "scrollWidth": 375,
+        "clientWidth": 375,
+        "hasOverflow": false
+      },
+      "domMetrics": {
+        "bodyBg": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(244, 245, 248)",
+        "bodyFont": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "linkCount": 11,
+        "buttonCount": 8,
+        "inputCount": 1,
+        "cardCount": 0,
+        "bodyHeight": 937,
+        "bodyScrollWidth": 1440,
+        "roguePinkFound": 0,
+        "sampleRogue": []
+      },
+      "counts": {
+        "totalRequests": 22,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 1,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ]
+    },
+    {
+      "route": "/cart",
+      "name": "Cart",
+      "navStatus": 200,
+      "pass": true,
+      "title": "Shopping Cart — CakeToHome",
+      "desktopScreenshot": "scratch/screenshots/phase1_2/cart_desktop.png",
+      "mobileScreenshot": "scratch/screenshots/phase1_2/cart_mobile.png",
+      "mobileOverflow": {
+        "scrollWidth": 375,
+        "clientWidth": 375,
+        "hasOverflow": false
+      },
+      "domMetrics": {
+        "bodyBg": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(244, 245, 248)",
+        "bodyFont": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "linkCount": 12,
+        "buttonCount": 7,
+        "inputCount": 1,
+        "cardCount": 0,
+        "bodyHeight": 937,
+        "bodyScrollWidth": 1440,
+        "roguePinkFound": 0,
+        "sampleRogue": []
+      },
+      "counts": {
+        "totalRequests": 22,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 1,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ]
+    },
+    {
+      "route": "/checkout",
+      "name": "Checkout Form",
+      "navStatus": 200,
+      "pass": true,
+      "title": "Checkout — CakeToHome",
+      "desktopScreenshot": "scratch/screenshots/phase1_2/checkout_form_desktop.png",
+      "mobileScreenshot": "scratch/screenshots/phase1_2/checkout_form_mobile.png",
+      "mobileOverflow": {
+        "scrollWidth": 375,
+        "clientWidth": 375,
+        "hasOverflow": false
+      },
+      "domMetrics": {
+        "bodyBg": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(244, 245, 248)",
+        "bodyFont": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "linkCount": 8,
+        "buttonCount": 0,
+        "inputCount": 0,
+        "cardCount": 0,
+        "bodyHeight": 938,
+        "bodyScrollWidth": 1440,
+        "roguePinkFound": 0,
+        "sampleRogue": []
+      },
+      "counts": {
+        "totalRequests": 15,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 1,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ]
+    },
+    {
+      "route": "/login",
+      "name": "Login Page",
+      "navStatus": 200,
+      "pass": true,
+      "title": "Customer Login & Account Access | CakeToHome",
+      "desktopScreenshot": "scratch/screenshots/phase1_2/login_page_desktop.png",
+      "mobileScreenshot": "scratch/screenshots/phase1_2/login_page_mobile.png",
+      "mobileOverflow": {
+        "scrollWidth": 375,
+        "clientWidth": 375,
+        "hasOverflow": false
+      },
+      "domMetrics": {
+        "bodyBg": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(244, 245, 248)",
+        "bodyFont": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "linkCount": 15,
+        "buttonCount": 8,
+        "inputCount": 2,
+        "cardCount": 0,
+        "bodyHeight": 1001,
+        "bodyScrollWidth": 1440,
+        "roguePinkFound": 0,
+        "sampleRogue": []
+      },
+      "counts": {
+        "totalRequests": 24,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 1,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ]
+    },
+    {
+      "route": "/account",
+      "name": "Account Dashboard",
+      "navStatus": 200,
+      "pass": true,
+      "title": "My Account | CakeToHome",
+      "desktopScreenshot": "scratch/screenshots/phase1_2/account_dashboard_desktop.png",
+      "mobileScreenshot": "scratch/screenshots/phase1_2/account_dashboard_mobile.png",
+      "mobileOverflow": {
+        "scrollWidth": 375,
+        "clientWidth": 375,
+        "hasOverflow": false
+      },
+      "domMetrics": {
+        "bodyBg": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(244, 245, 248)",
+        "bodyFont": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "linkCount": 6,
+        "buttonCount": 8,
+        "inputCount": 0,
+        "cardCount": 0,
+        "bodyHeight": 968,
+        "bodyScrollWidth": 1440,
+        "roguePinkFound": 0,
+        "sampleRogue": []
+      },
+      "counts": {
+        "totalRequests": 19,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 3,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "name": "Admin Dashboard Entry",
+      "navStatus": 200,
+      "pass": true,
+      "title": "CakeToHome",
+      "desktopScreenshot": "scratch/screenshots/phase1_2/admin_dashboard_entry_desktop.png",
+      "mobileScreenshot": "scratch/screenshots/phase1_2/admin_dashboard_entry_mobile.png",
+      "mobileOverflow": {
+        "scrollWidth": 375,
+        "clientWidth": 375,
+        "hasOverflow": false
+      },
+      "domMetrics": {
+        "bodyBg": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(244, 245, 248)",
+        "bodyFont": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "linkCount": 5,
+        "buttonCount": 87,
+        "inputCount": 1,
+        "cardCount": 0,
+        "bodyHeight": 2194,
+        "bodyScrollWidth": 1440,
+        "roguePinkFound": 0,
+        "sampleRogue": []
+      },
+      "counts": {
+        "totalRequests": 21,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 2,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "route": "/dashboard?tab=cms",
+      "name": "CMS Page Builder",
+      "navStatus": 200,
+      "pass": true,
+      "title": "CakeToHome",
+      "desktopScreenshot": "scratch/screenshots/phase1_2/cms_page_builder_desktop.png",
+      "mobileScreenshot": "scratch/screenshots/phase1_2/cms_page_builder_mobile.png",
+      "mobileOverflow": {
+        "scrollWidth": 375,
+        "clientWidth": 375,
+        "hasOverflow": false
+      },
+      "domMetrics": {
+        "bodyBg": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(244, 245, 248)",
+        "bodyFont": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "linkCount": 5,
+        "buttonCount": 48,
+        "inputCount": 5,
+        "cardCount": 0,
+        "bodyHeight": 1386,
+        "bodyScrollWidth": 1440,
+        "roguePinkFound": 4,
+        "sampleRogue": [
+          {
+            "tag": "svg",
+            "className": {},
+            "color": "rgb(244, 63, 94)",
+            "bg": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "tag": "path",
+            "className": {},
+            "color": "rgb(244, 63, 94)",
+            "bg": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "tag": "path",
+            "className": {},
+            "color": "rgb(244, 63, 94)",
+            "bg": "rgba(0, 0, 0, 0)"
+          }
+        ]
+      },
+      "counts": {
+        "totalRequests": 23,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 2,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    }
+  ]
+}

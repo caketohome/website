@@ -1,0 +1,247 @@
+{
+  "timestamp": "2026-09-16T08:09:08.424Z",
+  "results": [
+    {
+      "tab": "orders",
+      "status": 200,
+      "elapsed": 3086,
+      "htmlLength": 36616,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "catalog",
+      "status": 200,
+      "elapsed": 183,
+      "htmlLength": 36619,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "search_engine",
+      "status": 200,
+      "elapsed": 131,
+      "htmlLength": 36637,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "branches",
+      "status": 200,
+      "elapsed": 152,
+      "htmlLength": 36622,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "delivery",
+      "status": 200,
+      "elapsed": 112,
+      "htmlLength": 36622,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "fulfillment",
+      "status": 200,
+      "elapsed": 102,
+      "htmlLength": 36631,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "tax_master",
+      "status": 200,
+      "elapsed": 119,
+      "htmlLength": 36628,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "abandoned_carts",
+      "status": 200,
+      "elapsed": 82,
+      "htmlLength": 36643,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "telemarketing",
+      "status": 200,
+      "elapsed": 117,
+      "htmlLength": 36637,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "crm",
+      "status": 200,
+      "elapsed": 114,
+      "htmlLength": 36607,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "login_activity",
+      "status": 200,
+      "elapsed": 120,
+      "htmlLength": 36640,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "marketing",
+      "status": 200,
+      "elapsed": 95,
+      "htmlLength": 36625,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "popups",
+      "status": 200,
+      "elapsed": 161,
+      "htmlLength": 36616,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "seo",
+      "status": 200,
+      "elapsed": 105,
+      "htmlLength": 36607,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "automation",
+      "status": 200,
+      "elapsed": 112,
+      "htmlLength": 36628,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "webhooks",
+      "status": 200,
+      "elapsed": 115,
+      "htmlLength": 36622,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "cms",
+      "status": 200,
+      "elapsed": 125,
+      "htmlLength": 36607,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "analytics",
+      "status": 200,
+      "elapsed": 118,
+      "htmlLength": 36625,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "ai_concierge",
+      "status": 200,
+      "elapsed": 125,
+      "htmlLength": 36634,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "staff_profiles",
+      "status": 200,
+      "elapsed": 87,
+      "htmlLength": 36640,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "notifications",
+      "status": 200,
+      "elapsed": 107,
+      "htmlLength": 36637,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    },
+    {
+      "tab": "settings",
+      "status": 200,
+      "elapsed": 114,
+      "htmlLength": 36622,
+      "hasDashboardHeading": true,
+      "issues": [
+        "NONE"
+      ],
+      "verdict": "PASS"
+    }
+  ]
+}

@@ -220,8 +220,8 @@ export function OtpLoginForm({
     <div className="w-full space-y-5 text-left">
       {/* Error Alert */}
       {error && (
-        <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+        <div className="p-3.5 rounded-xl bg-[#1D2F5D]/10 border border-[#D4AF37]/30 text-[#D4AF37]/80 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
+          <AlertCircle className="w-4 h-4 shrink-0 text-[#D4AF37]" />
           <span>{error}</span>
         </div>
       )}
@@ -412,7 +412,7 @@ export function OtpLoginForm({
 
           <div className="space-y-1">
             <label className="text-[11px] font-bold text-neutral-300">
-              Your Full Name <span className="text-rose-500">*</span>
+              Your Full Name <span className="text-[#D4AF37]">*</span>
             </label>
             <div className="relative flex items-center">
               <User className="w-3.5 h-3.5 absolute left-3.5 text-neutral-500" />

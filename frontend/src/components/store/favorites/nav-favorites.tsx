@@ -11,13 +11,13 @@ export function NavFavorites() {
   return (
     <Link
       href="/account/wishlist"
-      className="relative p-2 rounded-full text-navy-accent/80 hover:text-navy-accent hover:bg-navy-accent/5 transition-colors"
+      className="relative flex items-center justify-center min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px] p-2 rounded-xl text-navy-accent/80 hover:text-navy-accent hover:bg-navy-accent/5 transition-colors focus:outline-none focus:ring-2 focus:ring-navy-accent/20"
       title="My Favorites"
       aria-label={`My Favorites (${favoritesCount} items)`}
     >
-      <Heart className="w-5 h-5" />
+      <Heart className="w-5 h-5 text-navy-accent/80 hover:text-navy-accent" />
       {favoritesCount > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-rose-600 rounded-full shadow-sm">
+        <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-[#1D2F5D] rounded-full shadow-sm pointer-events-none">
           {favoritesCount > 99 ? "99+" : favoritesCount}
         </span>
       )}

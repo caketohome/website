@@ -273,13 +273,15 @@ export const ProfileMenu = memo(function ProfileMenu({
       <Link
         href="/login"
         prefetch={false}
-        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold text-navy-accent bg-navy-accent/5 hover:bg-navy-accent/10 border border-navy-accent/10 transition-all hover:shadow-sm ${className}`}
+        className={`flex items-center justify-center min-w-[40px] min-h-[40px] sm:min-w-0 p-2 sm:px-3.5 sm:py-2 rounded-xl text-sm font-semibold text-navy-accent bg-navy-accent/5 hover:bg-navy-accent/10 border border-navy-accent/10 transition-all hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-navy-accent/20 ${className}`}
+        aria-label="Sign in to your account"
+        title="Sign in"
       >
-        <User className="w-4 h-4 text-navy-accent/70" />
-        <span>Login</span>
-        <span className="relative flex h-2 w-2 ml-0.5">
+        <User className="w-5 h-5 sm:w-4 sm:h-4 text-navy-accent/80" />
+        <span className="hidden sm:inline ml-1.5">Login</span>
+        <span className="hidden sm:inline relative flex h-2 w-2 ml-1">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1D2F5D]"></span>
         </span>
       </Link>
     );
@@ -296,7 +298,7 @@ export const ProfileMenu = memo(function ProfileMenu({
         aria-haspopup="menu"
         aria-label="User profile and account settings menu"
         data-testid="profile-menu-trigger"
-        className={`flex items-center gap-2.5 p-1.5 md:px-3 md:py-1.5 rounded-xl transition-colors duration-100 border select-none focus:outline-none focus:ring-2 focus:ring-navy-accent/20 cursor-pointer ${
+        className={`flex items-center gap-2 min-w-[40px] min-h-[40px] p-1.5 md:px-3 md:py-1.5 rounded-xl transition-colors duration-100 border select-none focus:outline-none focus:ring-2 focus:ring-navy-accent/20 cursor-pointer justify-center ${
           isOpen
             ? "bg-navy-accent/10 border-navy-accent/20 ring-2 ring-navy-accent/10 text-navy-accent"
             : "bg-transparent hover:bg-navy-accent/5 border-transparent text-navy-accent/90 hover:text-navy-accent"
@@ -304,7 +306,7 @@ export const ProfileMenu = memo(function ProfileMenu({
       >
         {/* Avatar */}
         <div
-          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-inner ring-2 ${roleConfig.avatarBg}`}
+          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-inner ring-2 shrink-0 ${roleConfig.avatarBg}`}
         >
           {initials}
         </div>
@@ -328,7 +330,7 @@ export const ProfileMenu = memo(function ProfileMenu({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute right-0 top-full mt-2 w-72 sm:w-80 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 p-2 z-[9999] text-neutral-900 dark:text-neutral-100 shadow-2xl transition-all duration-100 ease-out origin-top-right transform before:content-[''] before:absolute before:-top-3 before:left-0 before:right-0 before:h-3"
+          className="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-20px)] rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 p-2 z-[9999] text-neutral-900 dark:text-neutral-100 shadow-2xl transition-all duration-100 ease-out origin-top-right transform before:content-[''] before:absolute before:-top-3 before:left-0 before:right-0 before:h-3"
           style={{
             boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
           }}
@@ -396,20 +398,20 @@ export const ProfileMenu = memo(function ProfileMenu({
               type="button"
               onClick={handleLogoutClick}
               disabled={isLoggingOut}
-              className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors group focus:outline-none focus:bg-rose-50 dark:focus:bg-rose-950/40 disabled:opacity-50 cursor-pointer"
+              className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold rounded-lg text-[#1D2F5D] dark:text-[#D4AF37] hover:bg-brand-gold-soft dark:hover:bg-rose-950/40 transition-colors group focus:outline-none focus:bg-brand-gold-soft dark:focus:bg-rose-950/40 disabled:opacity-50 cursor-pointer"
               role="menuitem"
               tabIndex={0}
               data-testid="profile-menu-logout-button"
             >
               <div className="flex items-center gap-2.5">
                 {isLoggingOut ? (
-                  <span className="w-4 h-4 border-2 border-rose-600 dark:border-rose-400 border-t-transparent rounded-full animate-spin shrink-0" />
+                  <span className="w-4 h-4 border-2 border-[#1D2F5D] dark:border-[#D4AF37]/60 border-t-transparent rounded-full animate-spin shrink-0" />
                 ) : (
                   <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform shrink-0" />
                 )}
                 <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
               </div>
-              <span className="text-[10px] text-neutral-400 group-hover:text-rose-500 font-normal">Sign out</span>
+              <span className="text-[10px] text-neutral-400 group-hover:text-[#D4AF37] font-normal">Sign out</span>
             </button>
           </div>
         </div>

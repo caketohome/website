@@ -26,8 +26,8 @@ export async function GET(req: NextRequest) {
 
     if (!customerUid && !userId && !phone && !token) {
       return NextResponse.json(
-        { success: false, error: "UNAUTHORIZED", message: "Authentication required." },
-        { status: 401 }
+        { success: true, customer: null, message: "No active authenticated session." },
+        { status: 200 }
       );
     }
 
@@ -35,8 +35,8 @@ export async function GET(req: NextRequest) {
     const customer = ApiEngine.getCustomerMe({ customerUid, userId, phone, token });
     if (!customer) {
       return NextResponse.json(
-        { success: false, error: "NOT_FOUND", message: "Customer profile not found." },
-        { status: 404 }
+        { success: true, customer: null, message: "Customer profile not found." },
+        { status: 200 }
       );
     }
 

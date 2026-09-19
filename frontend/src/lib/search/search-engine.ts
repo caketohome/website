@@ -12,6 +12,8 @@
  * 8. Search & Zero-Result Analytics
  */
 
+import { resolveProductInventoryMode } from "../types/domain";
+
 export interface CanonicalVariant {
   variant_id: string;
   source_variant_id?: string;
@@ -20,7 +22,7 @@ export interface CanonicalVariant {
   compare_at_price?: number;
   sku?: string;
   in_stock: boolean;
-  inventory_quantity: number;
+  inventory_quantity?: number | null;
 }
 
 export interface SourceMapping {
@@ -161,7 +163,7 @@ export const DEFAULT_TAGS: ProductTag[] = [
   { tag_id: "tag_prem", name: "Premium", slug: "premium", type: "style", display_name: "✨ Premium Artisan", search_weight: 40, status: "active" },
   { tag_id: "tag_express", name: "Express Delivery", slug: "express-delivery", type: "delivery", display_name: "⚡ 2-Hour Express", search_weight: 35, status: "active" },
   { tag_id: "tag_mid", name: "Midnight Delivery", slug: "midnight-delivery", type: "delivery", display_name: "🌙 Midnight Delivery", search_weight: 40, status: "active" },
-  { tag_id: "tag_eggless", name: "Eggless", slug: "eggless", type: "dietary", display_name: "🌱 100% Eggless", search_weight: 50, status: "active" },
+  { tag_id: "tag_eggless", name: "Eggless", slug: "eggless", type: "dietary", display_name: "🌱 100% Eggless", search_weight: 50, status: "archived" },
   { tag_id: "tag_fruit", name: "Fresh Fruit", slug: "fresh-fruit", type: "flavour", display_name: "🍓 Fresh Fruit", search_weight: 45, status: "active" },
   { tag_id: "tag_truffle", name: "Belgian Truffle", slug: "belgian-truffle", type: "flavour", display_name: "Belgian Truffle", search_weight: 50, status: "active" },
   { tag_id: "tag_redvelvet", name: "Red Velvet", slug: "red-velvet", type: "flavour", display_name: "Red Velvet", search_weight: 50, status: "active" },
@@ -300,6 +302,9 @@ export class SearchEngine {
     const cleanTags = Array.from(new Set(rawTags.map((t) => (typeof t === "string" ? t : (t as any).name || (t as any).slug)).filter(Boolean)));
 
     // Variants handling
+    const mode = resolveProductInventoryMode(prod);
+    const isCake = mode === "MADE_TO_ORDER_AVAILABILITY";
+
     const rawVariants: any[] = Array.isArray(prod.variants) && prod.variants.length > 0
       ? prod.variants
       : [
@@ -308,7 +313,7 @@ export class SearchEngine {
             weight: (prod as any).weight || "1 kg",
             price: Number(prod.base_price || prod.selling_price || (prod as any).price || 649),
             in_stock: prod.in_stock !== false,
-            inventory_quantity: (prod as any).inventory_quantity ?? 25,
+            inventory_quantity: isCake ? null : ((prod as any).inventory_quantity ?? 0),
           },
         ];
 
@@ -319,8 +324,8 @@ export class SearchEngine {
       price: Number(v.price || v.calculated_price || prod.base_price || 649),
       compare_at_price: v.compare_at_price || (prod as any).compare_at_price,
       sku: v.sku || `${slug}-${i + 1}`,
-      in_stock: v.in_stock !== false && (v.inventory_quantity ?? 10) > 0,
-      inventory_quantity: v.inventory_quantity ?? 15,
+      in_stock: isCake ? (v.in_stock !== false) : (v.in_stock !== false && (v.inventory_quantity ?? 0) > 0),
+      inventory_quantity: isCake ? null : (v.inventory_quantity ?? 0),
     }));
 
     const canonical: CanonicalProduct = {
@@ -347,7 +352,7 @@ export class SearchEngine {
       compare_at_price: prod.compare_at_price || (prod as any).compare_at_price,
       variants,
       in_stock: prod.in_stock !== false && variants.some((v) => v.in_stock),
-      stock_level: prod.stock_level ?? variants.reduce((acc, v) => acc + v.inventory_quantity, 0),
+      stock_level: prod.stock_level ?? variants.reduce((acc, v) => acc + (v.inventory_quantity || 0), 0),
       branch_ids: prod.branch_ids || ["br_koramangala", "br_indiranagar", "br_whitefield"],
       city_ids: prod.city_ids || ["city_bangalore", "bangalore"],
       rating: Number(prod.rating || (prod as any).average_rating || existing?.rating || 4.8),
@@ -559,7 +564,7 @@ export class SearchEngine {
           // Tag Matches (Weighted by Tag Type)
           tagsLower.forEach((pTag) => {
             if (effectiveTokens.includes(pTag) || normalized.includes(pTag)) {
-              const foundTagObj = this.tags.find((t) => t.slug === pTag || t.name.toLowerCase() === pTag);
+              const foundTagObj = this.tags.find((t) => t.status === "active" && (t.slug === pTag || t.name.toLowerCase() === pTag));
               const weight = foundTagObj?.search_weight || this.rankingWeights.tag_match_weight;
               score += weight * 2;
             }
@@ -705,7 +710,7 @@ export class SearchEngine {
     const suggestions: string[] = [];
     if (normalized.length >= 2) {
       this.tags.forEach((t) => {
-        if (t.name.toLowerCase().startsWith(normalized) || t.name.toLowerCase().includes(normalized)) {
+        if (t.status === "active" && (t.name.toLowerCase().startsWith(normalized) || t.name.toLowerCase().includes(normalized))) {
           suggestions.push(t.name);
         }
       });

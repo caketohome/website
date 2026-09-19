@@ -250,7 +250,7 @@ export function CheckoutMap({
 
   // ── Render ─────────────────────────────────────────────────────────────
   return (
-    <div className="relative w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700" style={{ height }}>
+    <div className="relative z-0 isolate w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700" style={{ height }}>
       <div ref={mapContainerRef} className="w-full h-full" style={{ zIndex: 1 }} />
 
       {/* Loading overlay */}
@@ -266,7 +266,7 @@ export function CheckoutMap({
       {/* No location set */}
       {(!latitude || !longitude) && !loading && (
         <div className="absolute inset-0 bg-slate-50/90 dark:bg-zinc-900/90 backdrop-blur-[2px] flex flex-col items-center justify-center z-[400] p-4 text-center">
-          <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/50 flex items-center justify-center text-rose-600 mb-2 shadow-sm">
+          <div className="w-11 h-11 rounded-2xl bg-brand-gold-soft dark:bg-[#0c1326]/60 border border-[#D4AF37]/30 dark:border-[#D4AF37]/20 flex items-center justify-center text-[#1D2F5D] mb-2 shadow-sm">
             <MapPin className="w-5 h-5" />
           </div>
           <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Select Your Delivery Location</p>

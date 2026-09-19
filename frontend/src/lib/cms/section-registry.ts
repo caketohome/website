@@ -521,7 +521,7 @@ export const SECTION_REGISTRY: SectionTypeDefinition[] = [
     category: "conversion",
     description: "Call-to-action block with heading and button",
     editorType: "cta",
-    defaultConfig: { heading: "Ready to Celebrate?", subheading: "", cta_text: "Order Now", cta_url: "/products" },
+    defaultConfig: { heading: "Ready to Celebrate?", subheading: "", cta_text: "Order Now", cta_url: "/products", variant: "navy" },
   },
   {
     value: "shop_now_cta",

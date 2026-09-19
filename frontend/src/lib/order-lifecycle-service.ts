@@ -709,17 +709,12 @@ export class OrderLifecycleService {
     );
 
     if (!partner) {
-      partner = {
-        id: partnerId,
-        name: "Delivery Rider",
-        full_name: "Delivery Rider",
-        partner_number: `DLP-${String(partnerId).slice(-4)}`,
-        phone: "+91 98123 45678",
-        status: "active",
-        availability_status: "ONLINE",
+      return {
+        success: false,
+        statusCode: 404,
+        error: "PARTNER_NOT_FOUND",
+        message: `Delivery partner '${partnerId}' not found in authoritative records.`,
       };
-      if (!Array.isArray(store.delivery_partners)) store.delivery_partners = [];
-      store.delivery_partners.push(partner);
     }
 
     // 1b. Rider Online Status Enforcement Gate
@@ -1040,11 +1035,11 @@ export class OrderLifecycleService {
     );
 
     if (!partner) {
-      partner = {
-        id: partnerId,
-        name: "Delivery Rider",
-        full_name: "Delivery Rider",
-        partner_number: `DLP-${String(partnerId).slice(-4)}`,
+      return {
+        success: false,
+        statusCode: 404,
+        error: "PARTNER_NOT_FOUND",
+        message: `Delivery partner '${partnerId}' not found in authoritative records.`,
       };
     }
 

@@ -2,14 +2,15 @@
 
 import { useState, useEffect, Suspense } from "react";
 import dynamic from "next/dynamic";
-import { Heading, Text } from "@medusajs/ui";
-import { AdminTabs, type AdminTabId } from "@frontend/components/dashboard/admin/admin-tabs";
+import { AdminShell } from "@frontend/components/admin/AdminShell";
+import { AdminSidebar } from "@frontend/components/admin/AdminSidebar";
+import { AdminTopbar } from "@frontend/components/admin/AdminTopbar";
 import { DashboardPanelSkeleton } from "@frontend/components/dashboard/admin/dashboard-skeleton";
 import { DashboardErrorBoundary } from "@frontend/components/dashboard/admin/error-boundary";
 
-// ---------------------------------------------------------------------------
-// Resilient dynamic loader for admin panels with automatic retry on chunk error
-// ---------------------------------------------------------------------------
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Dynamic panel loader with retry on chunk error
+ * ────────────────────────────────────────────────────────────────────────── */
 
 function createDynamicPanel(
   importFn: () => Promise<{ [key: string]: any }>,
@@ -21,7 +22,6 @@ function createDynamicPanel(
         .then((mod) => mod[exportKey] || mod.default)
         .catch((error) => {
           console.warn(`[Dynamic Chunk Load Retry for ${exportKey}]:`, error);
-          // Wait 300ms and retry dynamic import
           return new Promise((resolve) => setTimeout(resolve, 300))
             .then(() => importFn())
             .then((mod) => mod[exportKey] || mod.default);
@@ -32,6 +32,10 @@ function createDynamicPanel(
     }
   );
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Panel registry — all 22 existing panels preserved
+ * ────────────────────────────────────────────────────────────────────────── */
 
 const OrdersPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/orders-panel"),
@@ -121,6 +125,21 @@ const SearchConfigPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/search-config-panel").then((mod) => ({ default: mod.SearchConfigPanel })),
   "SearchConfigPanel"
 );
+const MediaLibraryPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/media-library-panel").then((mod) => ({ default: mod.MediaLibraryPanel })),
+  "MediaLibraryPanel"
+);
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Tab ID type and panel map — backwards compatible
+ * ────────────────────────────────────────────────────────────────────────── */
+
+type AdminTabId =
+  | "orders" | "catalog" | "search_engine" | "branches" | "delivery"
+  | "fulfillment" | "tax_master" | "abandoned_carts" | "telemarketing"
+  | "crm" | "login_activity" | "marketing" | "popups" | "seo"
+  | "automation" | "webhooks" | "cms" | "media" | "analytics" | "ai_concierge"
+  | "staff_profiles" | "notifications" | "settings";
 
 const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   orders: OrdersPanel,
@@ -140,6 +159,7 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   automation: MarketingAutomationPanel,
   webhooks: WebhooksPanel,
   cms: CmsPanel,
+  media: MediaLibraryPanel,
   analytics: AnalyticsPanel,
   ai_concierge: AiConciergePanel,
   staff_profiles: StaffProfilesPanel,
@@ -147,14 +167,12 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   settings: SettingsPanel,
 };
 
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Dashboard Page Component
+ * ────────────────────────────────────────────────────────────────────────── */
+
 export default function SuperAdminDashboardPage() {
-  const [activeTab, setActiveTab] = useState<AdminTabId>(() => {
-    if (typeof window !== "undefined") {
-      const p = new URLSearchParams(window.location.search).get("tab") as AdminTabId;
-      if (p && PANEL_MAP[p]) return p;
-    }
-    return "orders";
-  });
+  const [activeTab, setActiveTab] = useState<AdminTabId>("orders");
   const [user, setUser] = useState<any>(null);
   const [accessDeniedMessage, setAccessDeniedMessage] = useState<string | null>(null);
 
@@ -179,7 +197,6 @@ export default function SuperAdminDashboardPage() {
           const { StaffAccessControl } = require("@frontend/lib/staff-access-control");
           if (!StaffAccessControl.isTabPermitted(userObj, p)) {
             setAccessDeniedMessage(`Access Denied: Your profile does not have permission for "${p}". Showing permitted default.`);
-            // Find first permitted tab
             const permittedTab = (role === "STAFF" || role === "TELECALLER") ? "telemarketing" : "orders";
             setActiveTab(permittedTab as AdminTabId);
             return;
@@ -194,7 +211,8 @@ export default function SuperAdminDashboardPage() {
     }
   }, []);
 
-  const handleTabChange = (tab: AdminTabId) => {
+  const handleTabChange = (tabId: string) => {
+    const tab = tabId as AdminTabId;
     if (user) {
       try {
         const { StaffAccessControl } = require("@frontend/lib/staff-access-control");
@@ -220,18 +238,27 @@ export default function SuperAdminDashboardPage() {
   const ActivePanel = PANEL_MAP[activeTab] || OrdersPanel;
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <div className="flex flex-col gap-1">
-        <Heading level="h1" className="text-2xl font-bold">
-          🛡️ Bakery Management & Operations Control
-        </Heading>
-        <Text className="text-ui-fg-subtle text-sm">
-          Platform-wide management, operations, and role-governed administration dashboard.
-        </Text>
-      </div>
-
+    <AdminShell
+      sidebar={
+        <AdminSidebar
+          activeTabId={activeTab}
+          onNavigate={handleTabChange}
+          user={user}
+        />
+      }
+      topbar={
+        <AdminTopbar
+          user={user}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: activeTab.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) },
+          ]}
+        />
+      }
+    >
+      {/* Access denied banner */}
       {accessDeniedMessage && (
-        <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800 text-red-800 dark:text-red-200 text-xs font-semibold flex items-center justify-between">
+        <div className="mb-4 p-3.5 rounded-xl bg-red-50 border border-red-300 text-red-800 text-xs font-semibold flex items-center justify-between">
           <span>{accessDeniedMessage}</span>
           <button onClick={() => setAccessDeniedMessage(null)} className="text-red-600 hover:text-red-800 font-bold ml-2">
             ✕
@@ -239,15 +266,14 @@ export default function SuperAdminDashboardPage() {
         </div>
       )}
 
-      <AdminTabs activeTab={activeTab} onTabChange={handleTabChange} user={user} />
-
-      <div className="min-h-[400px]">
+      {/* Active panel */}
+      <div className="min-h-[400px] w-full min-w-0">
         <DashboardErrorBoundary key={activeTab} moduleName={`Admin Panel (${activeTab})`}>
           <Suspense fallback={<DashboardPanelSkeleton />}>
             <ActivePanel />
           </Suspense>
         </DashboardErrorBoundary>
       </div>
-    </div>
+    </AdminShell>
   );
 }

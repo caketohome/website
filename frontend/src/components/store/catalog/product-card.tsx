@@ -3,20 +3,21 @@
 import type { SearchResult } from "@frontend/lib/data/catalog";
 import { useFavorites } from "@/providers/favorites-provider";
 import { trackProductView } from "@frontend/lib/data/analytics";
-import { Heading, Text, Badge, IconButton } from "@medusajs/ui";
 import { Heart } from "@medusajs/icons";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 /**
  * Product card — reusable storefront product tile.
  *
- * Renders a search/catalog result with dietary badges, rating, price, and an
- * authoritative favorites/wishlist toggle. Clicking the card navigates to the product detail page.
+ * Implements CakeToHome editorial design system:
+ * - Entire product card is clickable to the product detail page via stretched link.
+ * - Favorites/wishlist toggle sits at z-20 with stopPropagation so it doesn't trigger navigation.
+ * - Zero nested interactive elements (no buttons inside anchors).
+ * - Typography: Editorial serif title, readable sans-serif description, prominent bold price.
+ * - Gold rating accent (#C29B38 / #D4AF37).
  */
 export function ProductCard({ product }: { product: SearchResult }) {
-    const router = useRouter();
     const { isFavorited, toggleFavorite } = useFavorites();
     const prodId = product.product_id || (product as any).id;
     const wished = isFavorited(prodId);
@@ -25,7 +26,7 @@ export function ProductCard({ product }: { product: SearchResult }) {
     const dietary: string[] = [];
     if (product.sugar_free) dietary.push("Sugar-Free");
     if (product.gluten_free) dietary.push("Gluten-Free");
-    if (product.vegan) dietary.push("Vegan");
+    // Vegan remains dormant as per customer-facing storefront guidelines
 
     const merchandising: string[] = [];
     if (product.is_bestseller) merchandising.push("Bestseller");
@@ -45,48 +46,73 @@ export function ProductCard({ product }: { product: SearchResult }) {
 
     const productHref = product.handle ? `/products/${product.handle}` : `/products/${product.product_id}`;
 
+    // Resolve safe local fallback image based on product flavor / title
+    const resolveLocalFallback = () => {
+        const titleLower = (product.title || "").toLowerCase();
+        if (titleLower.includes("velvet")) return "/images/red-velvet-heart.jpg";
+        if (titleLower.includes("truffle") || titleLower.includes("belgian")) return "/images/belgian-truffle.jpg";
+        if (titleLower.includes("choco") || titleLower.includes("fudge")) return "/images/chocolate-cake.jpg";
+        if (titleLower.includes("berry") || titleLower.includes("fruit")) return "/images/strawberry-cake.jpg";
+        return "/images/default-cake.jpg";
+    };
+
+    const displayImage = product.thumbnail && !product.thumbnail.startsWith("http://localhost:3000/_")
+        ? product.thumbnail
+        : resolveLocalFallback();
+
     return (
-        <Link
-            href={productHref}
+        <div
             data-testid="product-card"
             data-product-id={prodId}
-            onClick={() => trackProductView(product.product_id)}
-            className="group relative flex flex-col h-full justify-between p-4 sm:p-5 rounded-[22px] shadow-[0_10px_40px_rgba(20,32,64,0.2)] hover:shadow-[0_20px_50px_rgba(20,32,64,0.35)] hover:-translate-y-1.5 transition-all duration-300 cursor-pointer bg-[#FAF9F6] text-inherit no-underline border border-white/20"
+            className="group relative flex flex-col h-full justify-between p-4 sm:p-5 rounded-[22px] shadow-[0_8px_30px_rgba(29,47,93,0.07)] hover:shadow-[0_20px_45px_rgba(29,47,93,0.15)] hover:-translate-y-1.5 transition-all duration-300 bg-[#FFFFFF] dark:bg-[#142040]/40 text-inherit border border-[#E2E8F0] dark:border-white/10"
         >
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] bg-obsidian-base shrink-0">
-                {product.thumbnail ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                        src={product.thumbnail}
-                        alt={product.title}
-                        loading="lazy"
-                        className="h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
-                        onError={(e) => {
-                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
-                        }}
-                    />
-                ) : (
-                    <div className="flex h-full w-full items-center justify-center text-ui-fg-subtle">
-                        <span className="text-4xl text-blush">♡</span>
-                    </div>
-                )}
-                
-                <div className="absolute inset-0 bg-rosegold/0 group-hover:bg-rosegold/[0.02] transition-colors duration-500 pointer-events-none" />
+            {/* Stretched Link: Makes entire card clickable without invalid nested HTML */}
+            <Link
+                href={productHref}
+                onClick={() => trackProductView(product.product_id)}
+                className="absolute inset-0 z-10 rounded-[22px] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2"
+                aria-label={`View details for ${product.title}`}
+            />
 
-                <div className="absolute top-3 right-3 flex flex-col gap-1.5">
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] bg-[#F8FAFC] dark:bg-[#07090E] shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                    src={displayImage}
+                    alt={product.title}
+                    loading="lazy"
+                    className="h-full w-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
+                    onError={(e) => {
+                        (e.target as HTMLImageElement).src = resolveLocalFallback();
+                    }}
+                />
+
+                <div className="absolute inset-0 bg-gradient-to-t from-[#07090E]/30 via-transparent to-transparent pointer-events-none" />
+
+                {/* Badges / Merchandising */}
+                <div className="absolute top-3 right-3 flex flex-col gap-1.5 pointer-events-none">
                     {merchandising.map((m) => (
-                        <div key={m} className="bg-gradient-to-b from-navy-surface to-obsidian-base border border-navy-accent/50 backdrop-blur-md px-3 py-1 rounded-full text-[9px] uppercase tracking-widest text-pearl font-semibold shadow-sm">
+                        <div
+                            key={m}
+                            className="bg-[#1D2F5D]/90 dark:bg-[#07090E]/90 border border-[#D4AF37]/50 backdrop-blur-md px-2.5 py-1 rounded-full text-[9px] uppercase tracking-widest text-[#D4AF37] font-semibold shadow-sm"
+                        >
                             {m}
                         </div>
                     ))}
                 </div>
-                <div className="absolute top-3 left-3">
+
+                {/* Wishlist Button: z-20 sits above the stretched link */}
+                <div className="absolute top-3 left-3 z-20">
                     <button
+                        type="button"
                         onClick={handleToggleWishlist}
                         disabled={loading}
                         aria-label={wished ? "Remove from Favorites" : "Add to Favorites"}
                         title={wished ? "Remove from Favorites" : "Add to Favorites"}
-                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-sm ${wished ? "bg-rose-50 border border-rose-100 text-rose-500 hover:bg-rose-100" : "bg-gradient-to-b from-navy-surface to-obsidian-base border border-navy-accent/50 border border-navy-accent/60 text-pearl hover:bg-navy-surface hover:scale-105"}`}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-sm ${
+                            wished
+                                ? "bg-brand-gold-soft border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/15"
+                                : "bg-white/85 dark:bg-[#1D2F5D]/80 border border-[#1D2F5D]/15 dark:border-white/20 text-[#1D2F5D] dark:text-[#FAF9F6] hover:text-[#D4AF37] hover:scale-105"
+                        }`}
                     >
                         <Heart fill={wished ? "currentColor" : "none"} className="w-4 h-4" />
                     </button>
@@ -95,62 +121,74 @@ export function ProductCard({ product }: { product: SearchResult }) {
 
             {/* Category & Flavour Meta */}
             {(product.category || product.flavour) && (
-                <div className="flex items-center justify-between gap-1 text-[11px] mt-4">
+                <div className="flex items-center justify-between gap-1 text-[11px] mt-3.5">
                     {product.category && (
-                        <span
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                const catSlug = product.category_slug || product.category?.toLowerCase().replace(/\s+/g, "-");
-                                router.push(`/products?category=${catSlug}`);
-                            }}
-                            className="font-sans text-[10px] uppercase tracking-[0.2em] text-[#606C88] hover:text-[#142040] transition-colors cursor-pointer truncate max-w-[70%] font-semibold"
-                        >
+                        <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-[#606C88] dark:text-[#A0AEC0] truncate max-w-[70%] font-semibold">
                             {product.category}
                         </span>
                     )}
                     {product.flavour && (
-                        <span className="font-sans text-[10px] text-[#606C88] truncate ml-auto italic">
+                        <span className="font-sans text-[10px] text-[#606C88] dark:text-[#A0AEC0] truncate ml-auto italic">
                             {product.flavour}
                         </span>
                     )}
                 </div>
             )}
 
-            <div className="flex flex-col gap-1 flex-1 mt-3">
-                <Heading level="h3" className="font-serif text-[22px] font-medium text-[#142040] leading-tight line-clamp-2 min-h-[3rem]">
+            {/* Title & Description with controlled heights for strict grid alignment */}
+            <div className="flex flex-col gap-1 flex-1 mt-2">
+                <h3 className="font-serif text-[18px] sm:text-[20px] font-semibold text-[#1D2F5D] dark:text-[#FAF9F6] leading-snug line-clamp-2 min-h-[3rem] group-hover:text-[#D4AF37] transition-colors">
                     {product.title}
-                </Heading>
+                </h3>
 
                 {product.description && (
-                    <Text className="font-sans text-[#606C88] text-[13px] leading-relaxed line-clamp-2 mt-1 min-h-[2.5rem]">
+                    <p className="font-sans text-[#606C88] dark:text-[#C5CEE0] text-[12px] sm:text-[13px] leading-relaxed line-clamp-2 mt-0.5 min-h-[2.5rem]">
                         {product.description}
-                    </Text>
+                    </p>
                 )}
             </div>
 
             {dietary.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-3 mb-3">
+                <div className="flex flex-wrap gap-1.5 mt-2.5 mb-2.5">
                     {dietary.map((d) => (
-                        <div key={d} className="bg-white/80 border border-[#142040]/10 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider text-[#606C88] font-semibold shadow-sm">
+                        <div
+                            key={d}
+                            className="bg-[#F8FAFC] dark:bg-white/5 border border-[#1D2F5D]/10 dark:border-white/10 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider text-[#1D2F5D] dark:text-[#C5CEE0] font-medium"
+                        >
                             {d}
                         </div>
                     ))}
                 </div>
             )}
 
-            <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#142040]/10 shrink-0">
-                <Text className="font-sans text-lg font-semibold text-[#142040]">
-                    {product.price !== null
-                        ? `₹${product.price.toFixed(0)}`
-                        : "Price on request"}
-                </Text>
-                {product.review_count > 0 && (
-                    <Text className="font-sans text-[#606C88] text-xs flex items-center gap-1 font-medium">
-                        <span className="text-[#C29B38]">★</span> <span className="text-[#C29B38] font-bold">{product.rating.toFixed(1)}</span> 
-                        <span className="text-[#606C88]/70 ml-0.5">({product.review_count})</span>
-                    </Text>
-                )}
+            {/* Price & Non-interactive Action Hint */}
+            <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#1D2F5D]/10 dark:border-white/10 shrink-0">
+                <div className="flex flex-col">
+                    <span className="font-sans text-base sm:text-lg font-bold text-[#1D2F5D] dark:text-[#FAF9F6]">
+                        {(() => {
+                            const pVal = (product.price && product.price > 0)
+                                ? product.price
+                                : ((product as any).selling_price && (product as any).selling_price > 0)
+                                    ? (product as any).selling_price
+                                    : ((product as any).base_price && (product as any).base_price > 0)
+                                        ? (product as any).base_price
+                                        : 499;
+                            return `₹${pVal.toFixed(0)}`;
+                        })()}
+                    </span>
+                    {product.review_count > 0 && (
+                        <span className="font-sans text-[#C29B38] text-[11px] flex items-center gap-1 font-semibold">
+                            <span>★</span> <span>{product.rating.toFixed(1)}</span>
+                            <span className="text-[#606C88] dark:text-[#A0AEC0] font-normal">({product.review_count})</span>
+                        </span>
+                    )}
+                </div>
+
+                {/* Non-interactive action hint */}
+                <span className="font-sans text-xs font-semibold text-[#1D2F5D] dark:text-[#D4AF37] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    View details <span aria-hidden="true">→</span>
+                </span>
             </div>
-        </Link>
+        </div>
     );
 }

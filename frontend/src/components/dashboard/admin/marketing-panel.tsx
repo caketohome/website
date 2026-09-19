@@ -206,8 +206,8 @@ export const MarketingPanel = memo(function MarketingPanel() {
     <div className="flex flex-col gap-6 p-1">
       {/* Toast Alert */}
       {toastMsg && (
-        <div className="fixed top-5 right-5 z-50 p-3 bg-pink-600 text-white rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2 animate-in fade-in">
-          <Sparkles className="w-4 h-4" />
+        <div className="fixed top-5 right-5 z-50 p-3 bg-[#1D2F5D] text-white rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2 border border-[#D4AF37]/40 animate-in fade-in">
+          <Sparkles className="w-4 h-4 text-[#D4AF37]" />
           <span>{toastMsg}</span>
         </div>
       )}
@@ -216,7 +216,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-pink-500/10 text-pink-400 border border-pink-500/20">
+            <div className="p-2 rounded-xl bg-[#1D2F5D]/10 text-[#1D2F5D] dark:text-[#D4AF37] border border-[#1D2F5D]/20">
               <Tag className="w-5 h-5" />
             </div>
             <h1 className="text-xl font-bold text-white tracking-tight">Enterprise Marketing & Coupon Engine</h1>
@@ -247,9 +247,9 @@ export const MarketingPanel = memo(function MarketingPanel() {
               setSelectedCouponId(null);
               setDrawerOpen(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white text-xs font-bold rounded-lg shadow-lg shadow-pink-500/25 transition-all"
+            className="flex items-center gap-2 px-4 py-2 bg-[#1D2F5D] hover:bg-[#152347] text-white text-xs font-bold rounded-lg shadow-md border border-[#D4AF37]/40 transition-all"
           >
-            <Plus className="w-4 h-4" /> Create Coupon
+            <Plus className="w-4 h-4 text-[#D4AF37]" /> Create Coupon
           </button>
         </div>
       </div>
@@ -335,7 +335,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
               onClick={() => setActiveSubTab(tab.id as any)}
               className={`flex items-center gap-2 px-4 py-3 text-xs font-semibold border-b-2 transition-colors ${
                 isActive
-                  ? "border-pink-500 text-pink-400 bg-pink-500/5"
+                  ? "border-[#D4AF37] text-[#D4AF37] bg-[#1D2F5D]/20"
                   : "border-transparent text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -358,7 +358,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
                 placeholder="Search name, code, terms..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#D4AF37]"
               />
             </div>
 
@@ -366,7 +366,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
               >
                 <option value="all">All Statuses</option>
                 <option value="active">Active Only</option>
@@ -382,7 +382,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
               >
                 <option value="all">All Types</option>
                 <option value="percentage">Percentage (%)</option>
@@ -399,7 +399,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
               <select
                 value={branchFilter}
                 onChange={(e) => setBranchFilter(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
               >
                 <option value="all">All Branches</option>
                 <option value="br_kollam_01">Kollam Central</option>
@@ -413,7 +413,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
               <select
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
               >
                 <option value="all">All Cities</option>
                 <option value="Kollam">Kollam</option>
@@ -426,8 +426,8 @@ export const MarketingPanel = memo(function MarketingPanel() {
 
           {/* Bulk Selection Bar */}
           {selectedIds.length > 0 && (
-            <div className="p-3 bg-pink-500/10 border border-pink-500/30 rounded-xl flex items-center justify-between animate-in fade-in">
-              <span className="text-xs font-semibold text-pink-300">
+            <div className="p-3 bg-[#1D2F5D]/20 border border-[#1D2F5D]/50 rounded-xl flex items-center justify-between animate-in fade-in">
+              <span className="text-xs font-semibold text-slate-200">
                 {selectedIds.length} coupons selected
               </span>
               <div className="flex items-center gap-2">
@@ -439,7 +439,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
                 </button>
                 <button
                   onClick={() => handleBulkAction("paused")}
-                  className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg"
+                  className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg"
                 >
                   Bulk Pause
                 </button>
@@ -467,7 +467,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
                           if (e.target.checked) setSelectedIds(filteredOffers.map((o) => o.id));
                           else setSelectedIds([]);
                         }}
-                        className="w-3.5 h-3.5 rounded bg-slate-900 border-slate-700 text-pink-500"
+                        className="w-3.5 h-3.5 rounded bg-slate-900 border-slate-700 text-[#D4AF37] focus:ring-[#D4AF37]"
                       />
                     </th>
                     <th className="p-3">Coupon Code & Name</th>
@@ -485,7 +485,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
                     <tr>
                       <td colSpan={9} className="p-8 text-center text-slate-400">
                         <div className="flex items-center justify-center gap-2">
-                          <RefreshCw className="w-4 h-4 animate-spin text-pink-400" />
+                          <RefreshCw className="w-4 h-4 animate-spin text-[#D4AF37]" />
                           <span>Loading active coupons & promotions...</span>
                         </div>
                       </td>
@@ -524,14 +524,14 @@ export const MarketingPanel = memo(function MarketingPanel() {
                                 if (e.target.checked) setSelectedIds([...selectedIds, o.id]);
                                 else setSelectedIds(selectedIds.filter((x) => x !== o.id));
                               }}
-                              className="w-3.5 h-3.5 rounded bg-slate-900 border-slate-700 text-pink-500"
+                              className="w-3.5 h-3.5 rounded bg-slate-900 border-slate-700 text-[#D4AF37] focus:ring-[#D4AF37]"
                             />
                           </td>
                           <td className="p-3">
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => handleCopyCode(o.code)}
-                                className="px-2 py-1 rounded bg-slate-950 border border-slate-800 text-pink-400 font-mono font-bold text-xs flex items-center gap-1 hover:border-pink-500/50"
+                                className="px-2 py-1 rounded bg-slate-950 border border-slate-800 text-[#D4AF37] font-mono font-bold text-xs flex items-center gap-1 hover:border-[#D4AF37]/50"
                                 title="Click to copy coupon code"
                               >
                                 {o.code}
@@ -585,7 +585,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
                             {limitCount ? (
                               <div className="w-24 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                                 <div
-                                  className="h-full bg-gradient-to-r from-pink-500 to-rose-500 rounded-full"
+                                  className="h-full bg-gradient-to-r from-[#1D2F5D] to-[#D4AF37] rounded-full"
                                   style={{ width: `${usagePercent}%` }}
                                 />
                               </div>
@@ -667,7 +667,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
               </h3>
               {analytics?.top_coupon ? (
                 <div>
-                  <div className="text-xl font-bold text-white font-mono text-pink-400">
+                  <div className="text-xl font-bold font-mono text-[#D4AF37]">
                     {analytics.top_coupon.code}
                   </div>
                   <div className="text-xs text-slate-300 mt-1">{analytics.top_coupon.name}</div>
@@ -744,7 +744,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
                     <tr key={idx} className="hover:bg-slate-800/30">
                       <td className="p-3 text-slate-400">{new Date(item.created_at || Date.now()).toLocaleString()}</td>
                       <td className="p-3 font-medium text-white">{item.customer_phone || item.customer_id || "Guest"}</td>
-                      <td className="p-3 font-mono text-pink-400">{item.order_number || item.order_id || "—"}</td>
+                      <td className="p-3 font-mono text-[#D4AF37]">{item.order_number || item.order_id || "—"}</td>
                       <td className="p-3">{item.branch_name || item.city || "Kollam"}</td>
                       <td className="p-3">{item.payment_method || "UPI"}</td>
                       <td className="p-3 text-right font-bold text-rose-400">₹{item.discount_amount || 0}</td>
@@ -762,7 +762,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
       {activeSubTab === "import" && (
         <div className="p-6 rounded-xl bg-slate-900/80 border border-slate-800 space-y-4">
           <div className="flex items-center gap-2">
-            <FileSpreadsheet className="w-5 h-5 text-pink-400" />
+            <FileSpreadsheet className="w-5 h-5 text-[#D4AF37]" />
             <h3 className="text-sm font-bold text-white">Bulk Coupon CSV Import</h3>
           </div>
           <p className="text-xs text-slate-400">
@@ -774,14 +774,14 @@ export const MarketingPanel = memo(function MarketingPanel() {
             value={importCsvText}
             onChange={(e) => setImportCsvText(e.target.value)}
             placeholder="code,name,type,discount_value,min_order,usage_limit&#10;SUMMER20,Summer 20% Off,percentage,20,499,1000&#10;SWEET50,Sweet Fifty Flat,flat,50,399,500"
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-white font-mono focus:outline-none focus:border-pink-500"
+            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-white font-mono focus:outline-none focus:border-[#D4AF37]"
           />
 
           <div className="flex justify-end">
             <button
               onClick={handleImportSubmit}
               disabled={importing || !importCsvText.trim()}
-              className="px-5 py-2 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white text-xs font-bold rounded-lg shadow-lg shadow-pink-500/25 transition-all disabled:opacity-50"
+              className="px-5 py-2 bg-[#1D2F5D] hover:bg-[#152347] text-white text-xs font-bold rounded-lg shadow-md border border-[#D4AF37]/40 transition-all disabled:opacity-50"
             >
               {importing ? "Importing Coupons..." : "Execute Bulk Import"}
             </button>

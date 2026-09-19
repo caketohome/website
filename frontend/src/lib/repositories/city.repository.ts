@@ -67,7 +67,7 @@ export class CityRepository {
   static mapRowToDomain(row: any): CityDomain {
     const rawState = row.state || "";
     const matchedState = resolveStateInfo(rawState);
-    const stateId = matchedState?.id || `state_${rawState.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 2)}`;
+    const stateId = row.state_id || matchedState?.id || `state_${rawState.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 2)}`;
     const stateCode = matchedState?.code || rawState.slice(0, 2).toUpperCase();
     const gstCode = matchedState?.gst_state_code || "";
 
@@ -99,8 +99,8 @@ export class CityRepository {
   static async findAll(options?: { includeArchived?: boolean } | boolean): Promise<CityDomain[]> {
     const includeArchived = typeof options === "boolean" ? options : options?.includeArchived;
     const query = includeArchived
-      ? `SELECT id, name, state, is_active, created_at, updated_at FROM "city" WHERE deleted_at IS NULL ORDER BY name ASC`
-      : `SELECT id, name, state, is_active, created_at, updated_at FROM "city" WHERE deleted_at IS NULL AND is_active = true ORDER BY name ASC`;
+      ? `SELECT id, name, state, state_id, is_active, created_at, updated_at FROM "city" WHERE deleted_at IS NULL ORDER BY name ASC`
+      : `SELECT id, name, state, state_id, is_active, created_at, updated_at FROM "city" WHERE deleted_at IS NULL AND is_active = true ORDER BY name ASC`;
 
     const res = await dbQuery(query);
     return (res.rows || []).map((r: any) => CityRepository.mapRowToDomain(r));
@@ -111,7 +111,7 @@ export class CityRepository {
    */
   static async findById(id: string): Promise<CityDomain | null> {
     const res = await dbQuery(
-      `SELECT id, name, state, is_active, created_at, updated_at FROM "city" WHERE id = $1 AND deleted_at IS NULL LIMIT 1`,
+      `SELECT id, name, state, state_id, is_active, created_at, updated_at FROM "city" WHERE id = $1 AND deleted_at IS NULL LIMIT 1`,
       [id]
     );
     if (!res.rows || res.rows.length === 0) return null;
@@ -126,11 +126,214 @@ export class CityRepository {
     const searchName = matchedState ? matchedState.name : stateIdOrCodeOrName.trim();
 
     const query = options?.includeArchived
-      ? `SELECT id, name, state, is_active, created_at, updated_at FROM "city" WHERE deleted_at IS NULL AND state ILIKE $1 ORDER BY name ASC`
-      : `SELECT id, name, state, is_active, created_at, updated_at FROM "city" WHERE deleted_at IS NULL AND is_active = true AND state ILIKE $1 ORDER BY name ASC`;
+      ? `SELECT id, name, state, state_id, is_active, created_at, updated_at FROM "city" WHERE deleted_at IS NULL AND (state ILIKE $1 OR state_id = $2) ORDER BY name ASC`
+      : `SELECT id, name, state, state_id, is_active, created_at, updated_at FROM "city" WHERE deleted_at IS NULL AND is_active = true AND (state ILIKE $1 OR state_id = $2) ORDER BY name ASC`;
 
-    const res = await dbQuery(query, [`%${searchName}%`]);
+    const res = await dbQuery(query, [`%${searchName}%`, matchedState?.id || stateIdOrCodeOrName]);
     return (res.rows || []).map((r: any) => CityRepository.mapRowToDomain(r));
+  }
+
+  /**
+   * Create a new city in PostgreSQL
+   */
+  static async create(payload: {
+    id?: string;
+    name: string;
+    state: string;
+    state_id?: string;
+    stateCode?: string;
+    is_active?: boolean;
+  }): Promise<CityDomain> {
+    const name = (payload.name || "").trim();
+    if (!name) throw new Error("City name is required.");
+
+    const matchedState = resolveStateInfo(payload.state || payload.state_id || payload.stateCode);
+    const stateName = matchedState ? matchedState.name : (payload.state || "").trim();
+    const stateId = payload.state_id || matchedState?.id || `state_${stateName.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 2)}`;
+
+    if (!stateName) throw new Error("State is required for city creation.");
+
+    const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 8);
+    const id = payload.id || `city_${baseSlug}`;
+    const isActive = payload.is_active !== false;
+
+    const existing = await CityRepository.findById(id);
+    if (existing) {
+      throw new Error(`City with ID "${id}" or name "${name}" already exists.`);
+    }
+
+    const res = await dbQuery(
+      `INSERT INTO "city" (id, name, state, state_id, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+       RETURNING id, name, state, state_id, is_active, created_at, updated_at`,
+      [id, name, stateName, stateId, isActive]
+    );
+
+    return CityRepository.mapRowToDomain(res.rows[0]);
+  }
+
+  /**
+   * Update an existing city in PostgreSQL
+   */
+  static async update(
+    id: string,
+    payload: {
+      name?: string;
+      state?: string;
+      state_id?: string;
+      stateCode?: string;
+      is_active?: boolean;
+    }
+  ): Promise<CityDomain | null> {
+    const existing = await CityRepository.findById(id);
+    if (!existing) return null;
+
+    const name = payload.name !== undefined ? payload.name.trim() : existing.name;
+    let stateName = existing.state;
+    let stateId = existing.state_id;
+
+    if (payload.state || payload.state_id || payload.stateCode) {
+      const matchedState = resolveStateInfo(payload.state || payload.state_id || payload.stateCode);
+      stateName = matchedState ? matchedState.name : (payload.state || existing.state).trim();
+      stateId = payload.state_id || matchedState?.id || existing.state_id;
+    }
+
+    const isActive = payload.is_active !== undefined ? payload.is_active : existing.is_active;
+
+    const res = await dbQuery(
+      `UPDATE "city" SET
+        name = $1,
+        state = $2,
+        state_id = $3,
+        is_active = $4,
+        updated_at = NOW()
+       WHERE id = $5 AND deleted_at IS NULL
+       RETURNING id, name, state, state_id, is_active, created_at, updated_at`,
+      [name, stateName, stateId, isActive, id]
+    );
+
+    if (!res.rows || res.rows.length === 0) return null;
+    return CityRepository.mapRowToDomain(res.rows[0]);
+  }
+
+  /**
+   * Archive city (disable for storefront and checkout selection)
+   */
+  static async archive(id: string): Promise<CityDomain | null> {
+    const res = await dbQuery(
+      `UPDATE "city" SET is_active = false, updated_at = NOW()
+       WHERE id = $1 AND deleted_at IS NULL
+       RETURNING id, name, state, state_id, is_active, created_at, updated_at`,
+      [id]
+    );
+    if (!res.rows || res.rows.length === 0) return null;
+    return CityRepository.mapRowToDomain(res.rows[0]);
+  }
+
+  /**
+   * Restore archived city (re-enable for storefront)
+   */
+  static async restore(id: string): Promise<CityDomain | null> {
+    const res = await dbQuery(
+      `UPDATE "city" SET is_active = true, updated_at = NOW()
+       WHERE id = $1 AND deleted_at IS NULL
+       RETURNING id, name, state, state_id, is_active, created_at, updated_at`,
+      [id]
+    );
+    if (!res.rows || res.rows.length === 0) return null;
+    return CityRepository.mapRowToDomain(res.rows[0]);
+  }
+
+  /**
+   * Check dependencies for a city before deletion
+   */
+  static async checkDependencies(id: string): Promise<{
+    branchesCount: number;
+    zonesCount: number;
+    ordersCount: number;
+    canDelete: boolean;
+    cityName: string;
+  }> {
+    const city = await CityRepository.findById(id);
+    if (!city) {
+      return { branchesCount: 0, zonesCount: 0, ordersCount: 0, canDelete: true, cityName: "" };
+    }
+
+    let branchesCount = 0;
+    try {
+      const branchRes = await dbQuery(
+        `SELECT COUNT(*) as count FROM "branch"
+         WHERE (city_id = $1 OR metadata->>'city' ILIKE $2) AND deleted_at IS NULL`,
+        [city.id, `%${city.name}%`]
+      );
+      branchesCount = parseInt(branchRes.rows[0]?.count || "0", 10);
+    } catch {
+      branchesCount = 0;
+    }
+
+    let zonesCount = 0;
+    try {
+      const zoneRes = await dbQuery(
+        `SELECT COUNT(*) as count FROM "delivery_zone"
+         WHERE branch_id IN (
+           SELECT id FROM "branch"
+           WHERE (city_id = $1 OR metadata->>'city' ILIKE $2) AND deleted_at IS NULL
+         ) AND deleted_at IS NULL`,
+        [city.id, `%${city.name}%`]
+      );
+      zonesCount = parseInt(zoneRes.rows[0]?.count || "0", 10);
+    } catch {
+      zonesCount = 0;
+    }
+
+    let ordersCount = 0;
+    try {
+      const orderRes = await dbQuery(
+        `SELECT COUNT(*) as count FROM "order"
+         WHERE (metadata->>'delivery_city' ILIKE $2
+            OR metadata->>'city' ILIKE $2
+            OR metadata->'delivery'->>'city' ILIKE $2
+            OR metadata->'address'->>'city' ILIKE $2
+            OR branch_id IN (
+              SELECT id FROM "branch"
+              WHERE (city_id = $1 OR metadata->>'city' ILIKE $2) AND deleted_at IS NULL
+            ))`,
+        [city.id, `%${city.name}%`]
+      );
+      ordersCount = parseInt(orderRes.rows[0]?.count || "0", 10);
+    } catch {
+      ordersCount = 0;
+    }
+
+    const canDelete = branchesCount === 0 && zonesCount === 0 && ordersCount === 0;
+
+    return {
+      branchesCount,
+      zonesCount,
+      ordersCount,
+      canDelete,
+      cityName: city.name,
+    };
+  }
+
+  /**
+   * Soft delete city ONLY if zero dependencies exist
+   */
+  static async delete(id: string): Promise<{ success: boolean; error?: string }> {
+    const deps = await CityRepository.checkDependencies(id);
+    if (!deps.canDelete) {
+      return {
+        success: false,
+        error: `Cannot delete city "${deps.cityName}". It has ${deps.branchesCount} branches, ${deps.zonesCount} delivery zones, and ${deps.ordersCount} historical orders connected. To protect operational and financial records, disable (archive) the city instead.`,
+      };
+    }
+
+    await dbQuery(
+      `UPDATE "city" SET deleted_at = NOW(), is_active = false WHERE id = $1`,
+      [id]
+    );
+
+    return { success: true };
   }
 
   /**
@@ -175,3 +378,4 @@ export class CityRepository {
     return { valid: true, city };
   }
 }
+

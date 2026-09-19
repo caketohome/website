@@ -1022,26 +1022,40 @@ export function CustomerProfileDrawer({
                       <div>
                         <span className="text-[10px] uppercase text-neutral-400 block">Intelligence Score</span>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-2xl font-black text-amber-400">{profile.customer_intelligence_score ?? 85}/100</span>
+                          <span className="text-2xl font-black text-amber-400">
+                            {profile.customer_intelligence_score !== undefined && profile.customer_intelligence_score !== null
+                              ? `${profile.customer_intelligence_score}/100`
+                              : "—"}
+                          </span>
                         </div>
                       </div>
                       <div>
                         <span className="text-[10px] uppercase text-neutral-400 block">Retention Score</span>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-2xl font-black text-emerald-400">{profile.retention_score ?? 90}/100</span>
+                          <span className="text-2xl font-black text-emerald-400">
+                            {profile.retention_score !== undefined && profile.retention_score !== null
+                              ? `${profile.retention_score}/100`
+                              : "—"}
+                          </span>
                         </div>
                       </div>
                       <div>
                         <span className="text-[10px] uppercase text-neutral-400 block">Winback Probability</span>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-2xl font-black text-blue-400">{profile.winback_probability ?? 78}%</span>
+                          <span className="text-2xl font-black text-blue-400">
+                            {profile.winback_probability !== undefined && profile.winback_probability !== null
+                              ? `${profile.winback_probability}%`
+                              : "—"}
+                          </span>
                         </div>
                       </div>
                       <div>
                         <span className="text-[10px] uppercase text-neutral-400 block">Next Expected Order</span>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className="text-sm font-bold text-neutral-200">
-                            {profile.next_expected_purchase_date ? new Date(profile.next_expected_purchase_date).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "Within 14 Days"}
+                            {profile.next_expected_purchase_date
+                              ? new Date(profile.next_expected_purchase_date).toLocaleDateString("en-IN", { month: "short", day: "numeric" })
+                              : "—"}
                           </span>
                         </div>
                       </div>

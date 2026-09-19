@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { clientListEligiblePopups } from "@frontend/lib/data/marketing-toolkit-client";
+import { cartBus } from "@/lib/cart/cart-event-bus";
 import { useEngagement } from "../engagement/engagement-provider";
 
 /**
@@ -20,19 +21,27 @@ export function ExitIntentPopup() {
     useEffect(() => {
         let cancelled = false;
 
-        const checkCart = () => {
+        const checkCart = async () => {
             try {
-                const storedCart = localStorage.getItem("medusa_cart_items") || localStorage.getItem("_cth_cart_items");
-                if (storedCart) {
-                    const items = JSON.parse(storedCart);
-                    if (Array.isArray(items)) setCartItemsCount(items.length);
+                const res = await fetch("/api/v1/cart");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (!cancelled && data?.cart && Array.isArray(data.cart.items)) {
+                        setCartItemsCount(data.cart.items.length);
+                    }
                 }
             } catch {
-                // Ignore storage errors
+                // Ignore storage/network errors
             }
         };
 
         checkCart();
+
+        const unsubCart = cartBus.onCartUpdated((updatedCart) => {
+            if (!cancelled && updatedCart && Array.isArray(updatedCart.items)) {
+                setCartItemsCount(updatedCart.items.length);
+            }
+        });
 
         const fetchPopups = async () => {
             try {
@@ -65,6 +74,7 @@ export function ExitIntentPopup() {
 
         return () => {
             cancelled = true;
+            unsubCart();
         };
     }, []);
 
@@ -101,11 +111,11 @@ export function ExitIntentPopup() {
                 aria-modal="true"
             >
                 <div
-                    className="relative bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-rose-100 dark:border-rose-950 transform transition-all animate-scale-up"
+                    className="relative bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-[#D4AF37]/20 dark:border-[#0c1326] transform transition-all animate-scale-up"
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Header Banner */}
-                    <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 p-5 text-white text-center relative">
+                    <div className="bg-gradient-to-r from-[#1D2F5D] via-[#1D2F5D] to-amber-500 p-5 text-white text-center relative">
                         <button
                             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/20 text-white flex items-center justify-center hover:bg-black/40 transition focus:outline-none"
                             onClick={() => dismissEngagement("CART_RECOVERY")}
@@ -122,19 +132,19 @@ export function ExitIntentPopup() {
 
                     <div className="p-6 flex flex-col gap-4">
                         <p className="text-sm text-neutral-600 dark:text-neutral-300 text-center">
-                            Complete your order right now and get an extra <strong className="text-rose-600 dark:text-rose-400">10% OFF</strong> + free express delivery slot on us!
+                            Complete your order right now and get an extra <strong className="text-[#1D2F5D] dark:text-[#D4AF37]">10% OFF</strong> + free express delivery slot on us!
                         </p>
 
                         {/* Promo Coupon Box */}
-                        <div className="flex items-center justify-between p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-dashed border-rose-300 dark:border-rose-800">
+                        <div className="flex items-center justify-between p-3 rounded-xl bg-brand-gold-soft dark:bg-[#0c1326]/40 border border-dashed border-[#D4AF37]/40 dark:border-[#D4AF37]/20">
                             <div>
-                                <span className="text-xs text-rose-700 dark:text-rose-300 uppercase font-semibold tracking-wider block">Special Voucher</span>
-                                <span className="text-lg font-mono font-bold text-rose-600 dark:text-rose-400">SWEET10</span>
+                                <span className="text-xs text-[#152347] dark:text-[#D4AF37]/80 uppercase font-semibold tracking-wider block">Special Voucher</span>
+                                <span className="text-lg font-mono font-bold text-[#1D2F5D] dark:text-[#D4AF37]">SWEET10</span>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => handleCopyCode("SWEET10")}
-                                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors"
+                                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#1D2F5D] hover:bg-[#152347] text-white transition-colors"
                             >
                                 {couponCopied ? "✓ Copied!" : "Apply & Copy"}
                             </button>
@@ -144,7 +154,7 @@ export function ExitIntentPopup() {
                         <div className="flex flex-col gap-2 pt-2">
                             <a
                                 href="/checkout?promo=SWEET10"
-                                className="w-full py-3 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 text-white font-bold text-center text-sm shadow-md hover:shadow-lg hover:from-rose-700 hover:to-pink-700 transition"
+                                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#1D2F5D] to-[#D4AF37] text-white font-bold text-center text-sm shadow-md hover:shadow-lg hover:from-[#152347] hover:to-[#c59e2b] transition"
                                 onClick={() => dismissEngagement("CART_RECOVERY")}
                             >
                                 ⚡ Complete Order with 10% Off

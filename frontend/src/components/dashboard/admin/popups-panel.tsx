@@ -217,7 +217,7 @@ export const PopupsPanel = memo(function PopupsPanel() {
             variant="primary"
             size="small"
             onClick={handleCreateNew}
-            className="bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1.5 text-xs shadow-sm"
+            className="bg-[#1D2F5D] hover:bg-[#152347] text-white flex items-center gap-1.5 text-xs shadow-sm font-medium"
           >
             <Plus className="w-4 h-4" />
             Create Popup Campaign
@@ -405,7 +405,7 @@ export const PopupsPanel = memo(function PopupsPanel() {
                       <td className="p-3.5">
                         <div className="flex flex-col gap-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-xs text-ui-fg-base hover:text-rose-600 transition-colors">
+                            <span className="font-semibold text-xs text-ui-fg-base hover:text-[#1D2F5D] dark:hover:text-[#D4AF37] transition-colors">
                               {camp.name}
                             </span>
                             <Badge color="purple" className="text-[10px] px-1.5 py-0">
@@ -426,7 +426,7 @@ export const PopupsPanel = memo(function PopupsPanel() {
                         <div className="flex flex-col gap-1 text-xs text-ui-fg-subtle">
                           <div className="flex items-center gap-1.5">
                             {v?.trigger?.exitIntent && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-medium">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-medium border border-amber-500/20">
                                 Exit Intent
                               </span>
                             )}
@@ -543,7 +543,7 @@ export const PopupsPanel = memo(function PopupsPanel() {
                             size="small"
                             onClick={() => handleDelete(camp.id, camp.name)}
                             title="Delete Campaign"
-                            className="p-1.5 h-7 w-7 text-rose-600 hover:text-rose-700"
+                            className="p-1.5 h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>

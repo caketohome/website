@@ -30,7 +30,7 @@ export function OfferBanner({
 }) {
     return (
         <div
-            className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 md:p-8 ${className}`}
+            className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-[#D4AF37] text-white p-6 md:p-8 ${className}`}
         >
             {imageUrl && (
                 // eslint-disable-next-line @next/next/no-img-element

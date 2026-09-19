@@ -152,9 +152,10 @@ class CakeToHomeApiClient {
       cleanEndpoint = cleanEndpoint.substring("/api".length);
     }
 
+    const serverPort = process.env.PORT || "3000";
     const primaryUrl = typeof window !== "undefined"
       ? `/api/v1${cleanEndpoint}`
-      : `http://localhost:3000/api/v1${cleanEndpoint}`;
+      : `http://localhost:${serverPort}/api/v1${cleanEndpoint}`;
 
     // 1. Metadata Cache Resolution for low-churn GET endpoints
     if (method === "GET" && this.isCacheableEndpoint(cleanEndpoint, method)) {
@@ -653,6 +654,12 @@ class CakeToHomeApiClient {
   async restoreAdminState(id: string) {
     return this.request(`/admin/states/${id}/restore`, { method: "POST", body: JSON.stringify({}) });
   }
+  async getAdminStateDependencies(id: string) {
+    return this.request(`/admin/states/${id}/dependencies`).catch(() => ({ citiesCount: 0, branchesCount: 0, canDelete: false, stateName: "" }));
+  }
+  async deleteAdminState(id: string) {
+    return this.request(`/admin/states/${id}`, { method: "DELETE" });
+  }
 
   // ── Multi-City Methods ──
   async getAdminCities() {
@@ -679,9 +686,16 @@ class CakeToHomeApiClient {
   async restoreAdminCity(id: string) {
     return this.request(`/admin/cities/${id}/restore`, { method: "POST", body: JSON.stringify({}) });
   }
+  async getAdminCityDependencies(id: string) {
+    return this.request(`/admin/cities/${id}/dependencies`).catch(() => ({ branchesCount: 0, zonesCount: 0, ordersCount: 0, canDelete: false, cityName: "" }));
+  }
+  async deleteAdminCity(id: string) {
+    return this.request(`/admin/cities/${id}`, { method: "DELETE" });
+  }
   async migrateToMultiCity() {
     return this.request("/admin/cities/migrate", { method: "POST", body: JSON.stringify({}) });
   }
+
   async resolveDeliveryContext(input: string | { pincode?: string; lat?: number; lng?: number; latitude?: number; longitude?: number }) {
     if (typeof input === "string") {
       return this.request(`/delivery/resolve?pincode=${encodeURIComponent(input)}`).catch(() => ({ serviceable: false }));
@@ -902,7 +916,7 @@ class CakeToHomeApiClient {
     return this.request(`/cms/pages/${id}`, { method: "PUT", body: JSON.stringify(payload), timeoutMs: 60000 });
   }
   async duplicateCmsPage(id: string) {
-    return this.request(`/cms/pages/${id}/duplicate`, { method: "POST", timeoutMs: 60000 });
+    return this.request(`/cms/pages/${id}/duplicate`, { method: "POST", body: JSON.stringify({}), timeoutMs: 60000 });
   }
   async rollbackCmsPage(id: string, version: number) {
     return this.request(`/cms/pages/${id}/rollback`, { method: "POST", body: JSON.stringify({ version }), timeoutMs: 60000 });
@@ -911,10 +925,10 @@ class CakeToHomeApiClient {
     return this.request(`/cms/pages/${id}`, { method: "DELETE", timeoutMs: 30000 });
   }
   async publishCmsPage(id: string) {
-    return this.request(`/cms/pages/${id}/publish`, { method: "POST", timeoutMs: 60000 });
+    return this.request(`/cms/pages/${id}/publish`, { method: "POST", body: JSON.stringify({ published: true }), timeoutMs: 60000 });
   }
   async unpublishCmsPage(id: string) {
-    return this.request(`/cms/pages/${id}/unpublish`, { method: "POST", timeoutMs: 30000 });
+    return this.request(`/cms/pages/${id}/unpublish`, { method: "POST", body: JSON.stringify({ published: false }), timeoutMs: 30000 });
   }
   async reorderCmsPageSections(id: string, sectionIds: string[]) {
     return this.request(`/cms/pages/${id}/reorder-sections`, { method: "POST", body: JSON.stringify({ section_ids: sectionIds }), timeoutMs: 30000 });
@@ -1198,8 +1212,19 @@ class CakeToHomeApiClient {
   }
 
   // ── Enterprise Accessory & Gift Management APIs ──
-  async getAccessories(productId?: string) {
-    const query = productId ? `?productId=${productId}` : "";
+  async getAccessories(params?: string | { productId?: string; branchId?: string; in_stock_only?: boolean; search?: string }) {
+    let query = "";
+    if (typeof params === "string") {
+      query = `?productId=${encodeURIComponent(params)}`;
+    } else if (params && typeof params === "object") {
+      const q = new URLSearchParams();
+      if (params.productId) q.set("productId", params.productId);
+      if (params.branchId) q.set("branchId", params.branchId);
+      if (params.in_stock_only) q.set("in_stock_only", "true");
+      if (params.search) q.set("search", params.search);
+      const qs = q.toString();
+      if (qs) query = `?${qs}`;
+    }
     return this.request(`/accessories${query}`).catch(() => ({ accessories: [] }));
   }
 
@@ -1335,16 +1360,7 @@ class CakeToHomeApiClient {
   // ── Authoritative Cart & Checkout APIs ──
   async getCart(cartId?: string) {
     const q = cartId ? `?cart_id=${encodeURIComponent(cartId)}` : "";
-    return this.request(`/cart${q}`).catch(() => ({
-      success: true,
-      cart: {
-        id: cartId || "cart_guest_100",
-        items: [],
-        subtotal: 0,
-        total: 0,
-        currency_code: "inr",
-      },
-    }));
+    return this.request<{ success: boolean; cart: any }>(`/cart${q}`);
   }
 
   async createCart(data?: any) {
@@ -1411,7 +1427,7 @@ class CakeToHomeApiClient {
     cart_id: string;
     customer_id?: string;
     address: any;
-    pincode: string;
+    pincode?: string;
     delivery_date: string;
     delivery_slot_id: string;
     delivery_type?: string;
@@ -2342,6 +2358,20 @@ class CakeToHomeApiClient {
       ...(options.limit ? { limit: String(options.limit) } : {}),
     }).toString();
     return this.request(`/delivery/search-location?${qs}`);
+  }
+
+  // ── Tax Master ──
+  async getAdminTaxConfigurations() {
+    return this.get("/admin/tax/configurations");
+  }
+  async saveAdminTaxConfiguration(data: any) {
+    return this.post("/admin/tax/configurations", data);
+  }
+  async toggleAdminTaxConfiguration(id: string, isActive: boolean) {
+    return this.post("/admin/tax/configurations/toggle", { id, is_active: isActive });
+  }
+  async getAdminTaxRegions() {
+    return this.get("/admin/tax/regions");
   }
 }
 

@@ -26,46 +26,87 @@ export default async function RootLayout({
 
   return (
     <EngagementProvider>
-      <nav className="flex px-3 sm:px-6 md:px-10 h-16 bg-white text-navy-accent justify-between items-center sticky top-0 z-50 border-b border-navy-accent/10 shadow-sm w-full max-w-full gap-2 sm:gap-4">
-        {/* Brand & Location & CMS Links */}
-        <div className="flex gap-1.5 sm:gap-4 lg:gap-6 items-center shrink-0 min-w-0">
-          <Link
-            href="/"
-            className="flex gap-1.5 sm:gap-2 items-center text-sm sm:text-xl font-bold text-navy-accent hover:text-navy-glow transition-colors opacity-100 shrink-0"
-          >
-            🎂 CakeToHome
-          </Link>
-          <DeliveryLocationHeader />
-          {/* CMS-driven header navigation (renders nothing if no nav configured) */}
-          <Suspense fallback={null}>
-            <HeaderNavigation />
-          </Suspense>
-        </div>
+      <div className="min-h-screen flex flex-col w-full">
+        <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md supports-[backdrop-filter]:bg-white/85 text-navy-accent border-b border-navy-accent/10 shadow-sm transition-colors duration-200">
+          {/* ── DESKTOP & TABLET HEADER (>= 768px / md) ── */}
+          <nav className="hidden md:flex px-4 sm:px-6 md:px-8 lg:px-10 h-16 justify-between items-center w-full max-w-full gap-3 lg:gap-6">
+            {/* Brand & Location & CMS Links */}
+            <div className="flex gap-2 sm:gap-3 lg:gap-6 items-center shrink-0 min-w-0">
+              <Link
+                href="/"
+                className="flex gap-1.5 sm:gap-2 items-center text-lg sm:text-xl font-bold font-serif text-navy-accent hover:text-navy-glow transition-colors opacity-100 shrink-0 select-none"
+              >
+                🎂 CakeToHome
+              </Link>
+              <DeliveryLocationHeader variant="pill" />
+              {/* CMS-driven header navigation (renders nothing if no nav configured) */}
+              <Suspense fallback={null}>
+                <HeaderNavigation />
+              </Suspense>
+            </div>
 
-        {/* Embedded Header Search */}
-        <div className="flex-1 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mx-1 sm:mx-2 min-w-0">
-          <NavSearch />
-        </div>
+            {/* Embedded Header Search */}
+            <div className="flex-1 max-w-xs md:max-w-sm lg:max-w-lg mx-2 min-w-0">
+              <NavSearch mode="embedded" />
+            </div>
 
-        {/* Right Actions: Favorites, Cart, Profile */}
-        <div className="flex gap-1 sm:gap-2 items-center shrink-0">
-          <NavFavorites />
-          <Suspense
-            fallback={
-              <div className="p-2 text-navy-accent/70">
-                <span className="text-xl">🛍️</span>
+            {/* Right Actions: Favorites, Cart, Profile */}
+            <div className="flex gap-1.5 sm:gap-2 items-center shrink-0">
+              <NavFavorites />
+              <Suspense
+                fallback={
+                  <div className="p-2 text-navy-accent/70 min-w-[44px] min-h-[44px] flex items-center justify-center">
+                    <span className="text-xl">🛍️</span>
+                  </div>
+                }
+              >
+                <NavCart device="desktop" />
+              </Suspense>
+              <ProfileBadge user={user} />
+            </div>
+          </nav>
+
+          {/* ── DEDICATED MOBILE HEADER (< 768px / md) ── */}
+          <div className="flex flex-col md:hidden w-full">
+            {/* Top Row: Brand Logo & Mobile Action Toolbar */}
+            <nav className="flex px-3 h-14 justify-between items-center w-full max-w-full gap-2">
+              {/* Brand Logo */}
+              <Link
+                href="/"
+                className="flex items-center gap-1.5 text-base font-bold font-serif text-navy-accent hover:text-navy-glow transition-colors shrink-0 select-none"
+              >
+                <span className="text-lg">🎂</span>
+                <span className="tracking-tight">CakeToHome</span>
+              </Link>
+
+              {/* Mobile Actions: Search, Wishlist, Cart, Profile */}
+              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+                <NavSearch mode="trigger-only" />
+                <NavFavorites />
+                <Suspense
+                  fallback={
+                    <div className="p-2 text-navy-accent/70 min-w-[40px] min-h-[40px] flex items-center justify-center">
+                      <span className="text-lg">🛍️</span>
+                    </div>
+                  }
+                >
+                  <NavCart device="mobile" />
+                </Suspense>
+                <ProfileBadge user={user} />
               </div>
-            }
-          >
-            <NavCart />
-          </Suspense>
-          <ProfileBadge user={user} />
-        </div>
-      </nav>
-      <main className="flex flex-col min-h-[calc(100vh-8rem)] w-full max-w-full min-w-0">
-        {children}
-      </main>
-      <Footer />
+            </nav>
+
+            {/* Sub-Header Row: Full-Width Location Selector Bar */}
+            <div className="w-full border-t border-navy-accent/10">
+              <DeliveryLocationHeader variant="bar" />
+            </div>
+          </div>
+        </header>
+        <main className="flex-1 flex flex-col w-full max-w-full min-w-0">
+          {children}
+        </main>
+        <Footer />
+      </div>
       {/* Floating Customer Help, AI Sommelier & Exit-intent widgets */}
       <StorefrontFloatingWidgets />
     </EngagementProvider>

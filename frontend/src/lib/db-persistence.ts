@@ -124,9 +124,11 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
       offersRes,
       settingsRes,
       popupCampaignsRes,
+      popupVersionsRes,
       variantOptionsRes,
       favoritesRes,
       reviewsRes,
+      branchInventoryRes,
     ] = await Promise.all([
       dbQuery(`SELECT * FROM "branch" WHERE deleted_at IS NULL ORDER BY created_at ASC`),
       dbQuery(`SELECT * FROM "delivery_zone" WHERE deleted_at IS NULL ORDER BY priority DESC`),
@@ -141,9 +143,11 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
       dbQuery(`SELECT * FROM "offer" WHERE deleted_at IS NULL ORDER BY created_at ASC`),
       dbQuery(`SELECT * FROM "setting" WHERE deleted_at IS NULL ORDER BY created_at ASC`),
       dbQuery(`SELECT * FROM "popup_campaigns" WHERE deleted_at IS NULL ORDER BY created_at ASC`),
+      dbQuery(`SELECT * FROM "popup_versions" ORDER BY version_number DESC`).catch(() => ({ rows: [] })),
       dbQuery(`SELECT * FROM "variant_option" WHERE deleted_at IS NULL ORDER BY display_order ASC`).catch(() => ({ rows: [] })),
       dbQuery(`SELECT * FROM "customer_favorite" WHERE deleted_at IS NULL ORDER BY created_at DESC`).catch(() => ({ rows: [] })),
       dbQuery(`SELECT * FROM "product_review" WHERE deleted_at IS NULL ORDER BY created_at DESC`).catch(() => ({ rows: [] })),
+      dbQuery(`SELECT * FROM "branch_inventory" WHERE deleted_at IS NULL ORDER BY created_at ASC`).catch(() => ({ rows: [] })),
     ]);
 
     // 1. Zones Map by Branch
@@ -166,6 +170,25 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
         enabled: z.is_serviceable !== false,
         name: z.pincode ? `Pincode ${z.pincode}` : `Zone ${z.id}`,
       });
+    }
+
+    // 1.b Inventory Map by Branch
+    const inventoryByBranch = new Map<string, Record<string, any>>();
+    for (const inv of branchInventoryRes.rows || []) {
+      const bId = inv.branch_id;
+      if (!inventoryByBranch.has(bId)) {
+        inventoryByBranch.set(bId, {});
+      }
+      const bMap = inventoryByBranch.get(bId)!;
+      const invObj = {
+        current_stock: Number(inv.quantity || 0),
+        reserved_stock: Number(inv.reserved || 0),
+        available_stock: Math.max(0, Number(inv.quantity || 0) - Number(inv.reserved || 0)),
+        low_stock_threshold: 5,
+        reorder_level: 10,
+      };
+      if (inv.product_id) bMap[inv.product_id] = invObj;
+      if (inv.variant_id) bMap[inv.variant_id] = invObj;
     }
 
     // 2. Branches — UNCONDITIONAL HYDRATION FROM POSTGRESQL
@@ -199,6 +222,8 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
         deliverable_areas: meta.deliverable_areas || [meta.city || "Bengaluru"],
         capacity_settings: meta.capacity_settings || {},
         product_availability: meta.product_availability || {},
+        cake_fulfilment: meta.cake_fulfilment || {},
+        accessory_inventory: inventoryByBranch.get(b.id) || meta.accessory_inventory || {},
         created_at: b.created_at,
         updated_at: b.updated_at,
       };
@@ -233,7 +258,11 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
     const weightPricesList: any[] = [];
     targetStore.products = (productsRes.rows || []).map((p) => {
       const meta = p.metadata || {};
-      const price = Number(meta.price || meta.selling_price || 599);
+      const firstWeightPrice = Array.isArray(meta.weight_prices) && meta.weight_prices.length > 0
+        ? (meta.weight_prices[0]?.selling_price ?? meta.weight_prices[0]?.price)
+        : undefined;
+      const rawPrice = meta.selling_price ?? meta.price ?? firstWeightPrice;
+      const price = rawPrice !== undefined && rawPrice !== null ? Number(rawPrice) : 0;
       const pId = p.id;
 
       // Hydrate product-scoped weight pricing matrix from authoritative metadata
@@ -457,16 +486,15 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
         },
         delivery_latitude: typeof o.delivery_latitude === "number" ? o.delivery_latitude : meta.delivery_latitude,
         delivery_longitude: typeof o.delivery_longitude === "number" ? o.delivery_longitude : meta.delivery_longitude,
-        branch_id: o.branch_id || meta.branch_id || "br_indiranagar",
+        branch_id: o.branch_id || meta.branch_id || null,
         items: meta.items || [],
         created_at: o.created_at,
         updated_at: o.updated_at,
       };
     });
 
-    // 10. CMS Pages & Sections — UNCONDITIONAL HYDRATION FROM POSTGRESQL
     targetStore.cms_pages = (cmsPagesRes.rows || []).map((p) => {
-      let blockParsed = { sections: [], draft_config: {}, published_config: null, version_history: [] };
+      let blockParsed: any = { sections: [], draft_config: {}, published_config: null, version_history: [] };
       if (p.blocks) {
         try {
           blockParsed = typeof p.blocks === "string" ? JSON.parse(p.blocks) : p.blocks;
@@ -482,7 +510,30 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
         meta_description: p.meta_description || "",
         canonical_url: p.canonical_url || "",
         og_image: p.og_image || "",
+        subheading: blockParsed.subheading || "",
+        h1: blockParsed.h1 || "",
+        intro_content: blockParsed.intro_content || "",
+        breadcrumb_title: blockParsed.breadcrumb_title || "",
+        announcement_bar: blockParsed.announcement_bar || null,
+        header_config: blockParsed.header_config || null,
+        visibility_rules: blockParsed.visibility_rules || null,
+        robots_tag: blockParsed.robots_tag || "index, follow",
+        keywords: blockParsed.keywords || "",
+        og_title: blockParsed.og_title || "",
+        og_description: blockParsed.og_description || "",
+        og_type: blockParsed.og_type || "website",
+        twitter_card: blockParsed.twitter_card || "summary_large_image",
+        twitter_title: blockParsed.twitter_title || "",
+        twitter_description: blockParsed.twitter_description || "",
+        twitter_image: blockParsed.twitter_image || "",
+        structured_data_type: blockParsed.structured_data_type || "WebPage",
+        sitemap_include: blockParsed.sitemap_include ?? true,
+        sitemap_priority: blockParsed.sitemap_priority || "0.7",
+        sitemap_changefreq: blockParsed.sitemap_changefreq || "weekly",
+        nav_location: blockParsed.nav_location || "none",
+        hide_from_nav: blockParsed.hide_from_nav ?? false,
         sections: blockParsed.sections || [],
+        theme: blockParsed.theme || null,
         draft_config: blockParsed.draft_config || {},
         published_config: blockParsed.published_config || null,
         version_history: blockParsed.version_history || [],
@@ -492,18 +543,31 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
       };
     });
 
-    targetStore.cms_sections = (cmsSectionsRes.rows || []).map((s) => ({
-      id: s.id,
-      section_id: s.id,
-      type: s.type,
-      title: s.title,
-      subtitle: s.subtitle,
-      sort_order: s.sort_order,
-      is_visible: s.is_visible !== false,
-      settings: s.settings || {},
-      created_at: s.created_at,
-      updated_at: s.updated_at,
-    }));
+    targetStore.cms_sections = (cmsSectionsRes.rows || []).map((s) => {
+      let cfg: any = {};
+      if (s.config) {
+        try {
+          cfg = typeof s.config === "string" ? JSON.parse(s.config) : s.config;
+        } catch {}
+      } else if (s.settings) {
+        cfg = s.settings;
+      }
+      return {
+        id: s.id,
+        section_id: s.id,
+        type: s.section_type || s.type || "custom",
+        section_type: s.section_type || s.type || "custom",
+        title: s.title || cfg?.title || "",
+        subtitle: s.subtitle || cfg?.subtitle || "",
+        sort_order: s.sort_order ?? 0,
+        is_visible: s.is_active !== false && s.is_visible !== false,
+        is_active: s.is_active !== false,
+        settings: cfg,
+        config: cfg,
+        created_at: s.created_at,
+        updated_at: s.updated_at,
+      };
+    });
 
     // 11. Offers — UNCONDITIONAL HYDRATION FROM POSTGRESQL
     targetStore.offers = (offersRes.rows || []).map((off) => {
@@ -576,17 +640,51 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
         } catch {}
       }
 
-      // Authoritative Accessories Hydration
-      const accessoriesSetting = settingsRes.rows.find(
-        (s) => (s.key === "accessories" && s.group === "catalog") || s.key === "accessories"
-      );
-      if (accessoriesSetting && accessoriesSetting.value) {
-        try {
-          const val = typeof accessoriesSetting.value === "string" ? JSON.parse(accessoriesSetting.value) : accessoriesSetting.value;
-          if (Array.isArray(val) && val.length > 0) {
-            targetStore.accessories = val;
-          }
-        } catch {}
+      // Authoritative Accessories Hydration directly from PostgreSQL product records
+      const pgAccessories = (productsRes.rows || [])
+        .filter((p: any) => {
+          const meta = p.metadata || {};
+          return meta.pim_config?.inventory_mode === "STOCK_CONTROLLED" || meta.category_slug === "accessories" || p.id?.startsWith("acc_");
+        })
+        .map((p: any) => {
+          const meta = p.metadata || {};
+          return {
+            id: p.id,
+            sku: meta.sku || p.handle || p.id,
+            barcode: meta.barcode || "",
+            name: p.title,
+            category_id: meta.primary_category_id || "cat_acc_cake",
+            category_name: meta.category || "Cake Accessories",
+            price: Number(meta.selling_price || meta.price || 0),
+            cost_price: Number(meta.cost_price || 0),
+            mrp: Number(meta.mrp || 0),
+            stock: 0, // Relational stock belongs strictly to branch_inventory
+            low_stock_threshold: Number(meta.low_stock_threshold || 5),
+            gst_rate: Number(meta.gst_rate || 18),
+            thumbnail: p.thumbnail || "",
+            images: Array.isArray(meta.gallery) && meta.gallery.length > 0 ? meta.gallery : [p.thumbnail || ""],
+            description: p.description || "",
+            status: p.status || "active",
+            weight: p.weight || "50g",
+            created_at: p.created_at,
+            updated_at: p.updated_at,
+          };
+        });
+
+      if (pgAccessories.length > 0) {
+        targetStore.accessories = pgAccessories;
+      } else {
+        const accessoriesSetting = settingsRes.rows.find(
+          (s) => (s.key === "accessories" && s.group === "catalog") || s.key === "accessories"
+        );
+        if (accessoriesSetting && accessoriesSetting.value) {
+          try {
+            const val = typeof accessoriesSetting.value === "string" ? JSON.parse(accessoriesSetting.value) : accessoriesSetting.value;
+            if (Array.isArray(val) && val.length > 0) {
+              targetStore.accessories = val;
+            }
+          } catch {}
+        }
       }
 
       // Authoritative Accessory Categories Hydration
@@ -668,20 +766,50 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
       }
     }
 
-    // 13. Popup Campaigns — UNCONDITIONAL HYDRATION FROM POSTGRESQL
-    targetStore.popup_campaigns = (popupCampaignsRes.rows || []).map((pop) => ({
-      id: pop.id,
-      name: pop.name,
-      title: pop.title,
-      body_text: pop.body_text,
-      status: pop.status,
-      target_page: pop.target_page,
-      start_date: pop.start_date,
-      end_date: pop.end_date,
-      display_rules: pop.display_rules || {},
-      created_at: pop.created_at,
-      updated_at: pop.updated_at,
-    }));
+    // 13. Popup Campaigns & Versions — UNCONDITIONAL HYDRATION FROM POSTGRESQL
+    const versionsByCampaignId = new Map<string, any[]>();
+    for (const v of popupVersionsRes.rows || []) {
+      const cId = v.popup_campaign_id;
+      if (!versionsByCampaignId.has(cId)) versionsByCampaignId.set(cId, []);
+      versionsByCampaignId.get(cId)!.push({
+        id: v.id,
+        popup_campaign_id: v.popup_campaign_id,
+        version_number: v.version_number,
+        content: v.content_json || {},
+        design: v.design_json || {},
+        trigger: v.trigger_json || {},
+        audience: v.audience_json || {},
+        frequency: v.frequency_json || {},
+        schedule: v.schedule_json || {},
+        cta: v.cta_json || {},
+        media: v.media_json || {},
+        rules: v.rules_json || [],
+        created_at: v.created_at,
+        published_at: v.published_at,
+      });
+    }
+
+    targetStore.popup_campaigns = (popupCampaignsRes.rows || []).map((pop) => {
+      const vers = versionsByCampaignId.get(pop.id) || [];
+      const latestVer = vers[0] || null;
+      return {
+        id: pop.id,
+        name: pop.name,
+        slug: pop.slug || pop.id,
+        description: pop.description || "",
+        popup_type: pop.popup_type || "PROMOTIONAL",
+        status: pop.status || "draft",
+        priority: Number(pop.priority) || 100,
+        enabled: pop.enabled !== false,
+        start_at: pop.start_at,
+        end_at: pop.end_at,
+        timezone: pop.timezone || "Asia/Kolkata",
+        current_version: pop.status === "published" ? latestVer : undefined,
+        draft_version: latestVer || undefined,
+        created_at: pop.created_at,
+        updated_at: pop.updated_at,
+      };
+    });
 
     // 14. Customer Favorites / Wishlist — UNCONDITIONAL HYDRATION FROM POSTGRESQL
     targetStore.customer_favorites = (favoritesRes.rows || []).map((fav) => ({
@@ -765,7 +893,9 @@ export async function persistBranchToDb(branch: any): Promise<void> {
     deliverable_areas: branch.deliverable_areas || [branch.city || "Bengaluru"],
     delivery_zones: branch.delivery_zones || [],
     capacity_settings: branch.capacity_settings || {},
-    product_availability: branch.product_availability || {},
+    product_availability: branch.product_availability || branch.metadata?.product_availability || {},
+    cake_fulfilment: branch.cake_fulfilment || branch.metadata?.cake_fulfilment || {},
+    accessory_inventory: branch.accessory_inventory || branch.metadata?.accessory_inventory || {},
     operational_status: branch.operational_status || "operational",
     extended_status: branch.extended_status || "open",
     branch_type: branch.branch_type || "main_hub",
@@ -897,18 +1027,18 @@ export async function persistCityToDb(city: any): Promise<void> {
  */
 export async function persistProductToDb(product: any): Promise<void> {
   const id = product.id || product.product_id;
-  const numPrice = Number(product.price || product.selling_price || 599);
+  const numPrice = Number(product.price || product.selling_price || 0);
 
   const metadata = {
     price: numPrice,
     selling_price: numPrice,
-    cost_price: Number(product.cost_price || 350),
-    mrp: Number(product.mrp || 799),
-    rating: product.rating || 4.9,
-    review_count: product.review_count || 12,
-    category: product.category || "Chocolate Cakes",
-    category_slug: product.category_slug || "chocolate-cakes",
-    primary_category_id: product.primary_category_id || "cat_chocolate",
+    cost_price: Number(product.cost_price || 0),
+    mrp: Number(product.mrp || numPrice),
+    rating: Number(product.rating || 0),
+    review_count: Number(product.review_count || 0),
+    category: product.category || "",
+    category_slug: product.category_slug || "",
+    primary_category_id: product.primary_category_id || null,
     secondary_category_ids: product.secondary_category_ids || [],
     category_ids: product.category_ids || [],
     flavour: product.flavour || "Chocolate",
@@ -1200,7 +1330,7 @@ export async function persistOrderToDb(order: any): Promise<void> {
         delivery_slot_id: order.delivery_slot_id || order.delivery?.slot_id || null,
         delivery_slot_time: order.delivery_slot_time || order.delivery?.slot_time || null,
         delivery_date: order.delivery_date || order.delivery?.date || null,
-        branch_id: order.branch_id || "br_indiranagar",
+        branch_id: order.branch_id || null,
         delivery_zone_id: order.delivery_zone_id || null,
         total_amount: numTotal,
         payment_method: order.payment_method || "cod",
@@ -1221,7 +1351,30 @@ export async function persistOrderToDb(order: any): Promise<void> {
 export async function persistCmsPageToDb(page: any): Promise<void> {
   const id = page.id || `cmspg_${Date.now()}`;
   const blockData = {
+    subheading: page.subheading !== undefined ? page.subheading : "",
+    h1: page.h1 !== undefined ? page.h1 : "",
+    intro_content: page.intro_content !== undefined ? page.intro_content : "",
+    breadcrumb_title: page.breadcrumb_title !== undefined ? page.breadcrumb_title : "",
+    announcement_bar: page.announcement_bar || null,
+    header_config: page.header_config || null,
+    visibility_rules: page.visibility_rules || null,
+    robots_tag: page.robots_tag || "index, follow",
+    keywords: page.keywords || "",
+    og_title: page.og_title || "",
+    og_description: page.og_description || "",
+    og_type: page.og_type || "website",
+    twitter_card: page.twitter_card || "summary_large_image",
+    twitter_title: page.twitter_title || "",
+    twitter_description: page.twitter_description || "",
+    twitter_image: page.twitter_image || "",
+    structured_data_type: page.structured_data_type || "WebPage",
+    sitemap_include: page.sitemap_include ?? true,
+    sitemap_priority: page.sitemap_priority || "0.7",
+    sitemap_changefreq: page.sitemap_changefreq || "weekly",
+    nav_location: page.nav_location || "none",
+    hide_from_nav: page.hide_from_nav ?? false,
     sections: page.sections || [],
+    theme: page.theme || page.published_config?.theme || page.draft_config?.theme || null,
     draft_config: page.draft_config || {},
     published_config: page.published_config || null,
     version_history: page.version_history || [],
@@ -1384,29 +1537,107 @@ export async function persistSettingToDb(
  */
 export async function persistPopupCampaignToDb(campaign: any): Promise<void> {
   const id = campaign.id || `pop_${Date.now()}`;
+  const slug = (campaign.slug || campaign.name || `popup-${Date.now()}`)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  // 1. Persist to popup_campaigns
   await dbQuery(
     `
-    INSERT INTO "popup_campaigns" ("id", "name", "title", "body_text", "status", "target_page", "start_date", "end_date", "display_rules", "created_at", "updated_at")
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+    INSERT INTO "popup_campaigns" ("id", "name", "slug", "description", "popup_type", "status", "priority", "enabled", "start_at", "end_at", "timezone", "created_at", "updated_at")
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
     ON CONFLICT ("id") DO UPDATE SET
       "name" = EXCLUDED.name,
-      "title" = EXCLUDED.title,
-      "body_text" = EXCLUDED.body_text,
+      "slug" = EXCLUDED.slug,
+      "description" = EXCLUDED.description,
+      "popup_type" = EXCLUDED.popup_type,
       "status" = EXCLUDED.status,
-      "target_page" = EXCLUDED.target_page,
-      "display_rules" = EXCLUDED.display_rules,
+      "priority" = EXCLUDED.priority,
+      "enabled" = EXCLUDED.enabled,
+      "start_at" = EXCLUDED.start_at,
+      "end_at" = EXCLUDED.end_at,
+      "timezone" = EXCLUDED.timezone,
       "updated_at" = NOW()
   `,
     [
       id,
-      campaign.name || "Campaign",
-      campaign.title || "Special Offer",
-      campaign.body_text || "",
-      campaign.status || "active",
-      campaign.target_page || "all",
-      campaign.start_date ? new Date(campaign.start_date) : new Date(),
-      campaign.end_date ? new Date(campaign.end_date) : null,
-      JSON.stringify(campaign.display_rules || {}),
+      campaign.name || "Special Campaign",
+      slug,
+      campaign.description || "",
+      campaign.popup_type || "PROMOTIONAL",
+      campaign.status || "draft",
+      Number(campaign.priority) || 100,
+      campaign.enabled !== false,
+      campaign.start_at ? new Date(campaign.start_at) : null,
+      campaign.end_at ? new Date(campaign.end_at) : null,
+      campaign.timezone || "Asia/Kolkata",
+    ]
+  );
+
+  // 2. Persist to popup_versions
+  const version = campaign.current_version || campaign.draft_version || {};
+  const versionId = version.id || `ver_${id}_${Date.now()}`;
+  const versionNumber = Number(version.version_number) || 1;
+
+  const contentJson = version.content || {
+    headline: campaign.title || campaign.name || "Special Celebration Offer",
+    description: campaign.body_text || "",
+    primaryButton: { label: "Claim Offer", action: "OPEN_CART" },
+  };
+  const designJson = version.design || {
+    desktopLayout: "CENTER_MODAL",
+    tabletLayout: "CENTER_MODAL",
+    mobileLayout: "BOTTOM_SHEET",
+    width: 520,
+    borderRadius: 20,
+    backdropOpacity: 0.6,
+    animation: "SLIDE_UP",
+  };
+  const triggerJson = version.trigger || { exitIntent: true, timeOnPageSeconds: 3 };
+  const audienceJson = version.audience || { customerStatus: ["all"], devices: ["mobile", "tablet", "desktop"] };
+  const frequencyJson = version.frequency || { scope: "session", maxShows: 1, cooldownSeconds: 86400 };
+  const scheduleJson = version.schedule || { startAt: campaign.start_at || null, endAt: campaign.end_at || null, timezone: "Asia/Kolkata" };
+  const ctaJson = version.cta || version.content?.primaryButton || { label: "Claim Offer", action: "OPEN_CART" };
+  const mediaJson = version.media || { source: "NO_IMAGE" };
+  const rulesJson = version.rules || [];
+
+  await dbQuery(
+    `
+    INSERT INTO "popup_versions" (
+      "id", "popup_campaign_id", "version_number",
+      "content_json", "design_json", "trigger_json", "audience_json",
+      "frequency_json", "schedule_json", "cta_json", "media_json", "rules_json",
+      "created_at", "published_at"
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), $13)
+    ON CONFLICT ("id") DO UPDATE SET
+      "version_number" = EXCLUDED.version_number,
+      "content_json" = EXCLUDED.content_json,
+      "design_json" = EXCLUDED.design_json,
+      "trigger_json" = EXCLUDED.trigger_json,
+      "audience_json" = EXCLUDED.audience_json,
+      "frequency_json" = EXCLUDED.frequency_json,
+      "schedule_json" = EXCLUDED.schedule_json,
+      "cta_json" = EXCLUDED.cta_json,
+      "media_json" = EXCLUDED.media_json,
+      "rules_json" = EXCLUDED.rules_json,
+      "published_at" = EXCLUDED.published_at
+  `,
+    [
+      versionId,
+      id,
+      versionNumber,
+      JSON.stringify(contentJson),
+      JSON.stringify(designJson),
+      JSON.stringify(triggerJson),
+      JSON.stringify(audienceJson),
+      JSON.stringify(frequencyJson),
+      JSON.stringify(scheduleJson),
+      JSON.stringify(ctaJson),
+      JSON.stringify(mediaJson),
+      JSON.stringify(rulesJson),
+      campaign.status === "published" ? new Date() : null,
     ]
   );
 }

@@ -5,6 +5,7 @@ import { Heading, Text, Input } from "@medusajs/ui";
 import { searchProductsAction } from "@frontend/lib/actions/catalog";
 import { type SearchFilters, type SearchResult } from "@frontend/lib/data/catalog-client";
 import { ProductFilters, ActiveFilterChips } from "@frontend/components/store/catalog/product-filters";
+import { ProductCard } from "@frontend/components/store/catalog/product-card";
 import { trackSearch } from "@frontend/lib/data/analytics";
 import Link from "next/link";
 import Image from "next/image";
@@ -91,7 +92,7 @@ function SearchPageContent() {
                 <div className="flex justify-between items-center">
                     <Heading level="h1" className="text-2xl font-bold">Search Cakes & Gourmet Treats</Heading>
                     {isListening && (
-                        <span className="text-xs font-bold text-rose-600 animate-pulse flex items-center gap-1">
+                        <span className="text-xs font-bold text-[#D4AF37] animate-pulse flex items-center gap-1">
                             <span>🎙️</span> Listening to your voice...
                         </span>
                     )}
@@ -113,7 +114,7 @@ function SearchPageContent() {
                         aria-label="Voice Search"
                         title="Search by Voice"
                         className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition ${
-                            isListening ? "text-rose-600 scale-110 animate-bounce" : "text-zinc-500 hover:text-rose-600"
+                            isListening ? "text-[#D4AF37] scale-110 animate-bounce" : "text-zinc-500 hover:text-[#D4AF37]"
                         }`}
                     >
                         🎙️
@@ -146,39 +147,7 @@ function SearchPageContent() {
                             </Text>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {results.map((r) => (
-                                    <Link
-                                        key={r.product_id}
-                                        href={`/products/${r.handle ?? r.product_id}`}
-                                        className="group border rounded-xl overflow-hidden bg-ui-bg-base hover:shadow-md transition flex flex-col h-full"
-                                    >
-                                        <div className="relative w-full h-48 bg-ui-bg-subtle">
-                                            {r.thumbnail ? (
-                                                <Image
-                                                    src={r.thumbnail}
-                                                    alt={r.title}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                                                    width={300}
-                                                    height={192}
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-4xl">🍰</div>
-                                            )}
-                                        </div>
-                                        <div className="p-4 flex flex-col gap-1 flex-1 justify-between">
-                                            <Heading level="h3" className="text-sm font-bold truncate">{r.title}</Heading>
-                                            <Text className="text-xs text-ui-fg-subtle line-clamp-2">{r.description}</Text>
-                                            <div className="flex justify-between items-center mt-2 pt-2 border-t">
-                                                <span className="text-sm font-extrabold">
-                                                    {r.price ? `₹${r.price.toFixed(0)}` : "—"}
-                                                </span>
-                                                {r.review_count > 0 && (
-                                                    <span className="text-xs text-yellow-500 font-bold">
-                                                        ⭐ {r.rating.toFixed(1)} ({r.review_count})
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </Link>
+                                    <ProductCard key={r.product_id} product={r} />
                                 ))}
                             </div>
                         </div>

@@ -1,0 +1,1880 @@
+{
+  "timestamp": "2026-09-13T07:37:52.449Z",
+  "backendHealth": {
+    "status": 200,
+    "ok": true,
+    "data": "{\"status\":\"healthy\",\"timestamp\":\"2026-09-13T07:37:36.791Z\",\"service\":\"caketohome-backend\",\"database\""
+  },
+  "frontendHealth": {
+    "status": 200,
+    "durationMs": 7652
+  },
+  "requestSummary": {
+    "total": 37,
+    "cssCount": 1,
+    "css404Count": 0,
+    "jsCount": 14,
+    "js404Count": 0,
+    "imageCount": 13,
+    "fetchCount": 5,
+    "failedCount": 0
+  },
+  "css404s": [],
+  "js404s": [],
+  "other404s": [],
+  "errorStatuses": [],
+  "consoleMessages": [
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+      "location": {
+        "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js",
+        "line": 38387,
+        "column": 16,
+        "lineNumber": 38387,
+        "columnNumber": 16
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "location": {
+        "url": "http://localhost:3000/api/auth/me",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "log",
+      "text": "[MOUNT] ScrollFrameHero (sec_home_hero) | device: desktop | frames: 21",
+      "location": {
+        "url": "webpack-internal:///(app-pages-browser)/./src/components/store/animation/scroll-frame-hero.tsx",
+        "line": 237,
+        "column": 20,
+        "lineNumber": 237,
+        "columnNumber": 20
+      }
+    },
+    {
+      "type": "log",
+      "text": "[UNMOUNT] ScrollFrameHero (sec_home_hero)",
+      "location": {
+        "url": "webpack-internal:///(app-pages-browser)/./src/components/store/animation/scroll-frame-hero.tsx",
+        "line": 241,
+        "column": 24,
+        "lineNumber": 241,
+        "columnNumber": 24
+      }
+    },
+    {
+      "type": "log",
+      "text": "[MOUNT] ScrollFrameHero (sec_home_hero) | device: desktop | frames: 21",
+      "location": {
+        "url": "webpack-internal:///(app-pages-browser)/./src/components/store/animation/scroll-frame-hero.tsx",
+        "line": 237,
+        "column": 20,
+        "lineNumber": 237,
+        "columnNumber": 20
+      }
+    },
+    {
+      "type": "log",
+      "text": "[UNMOUNT] ScrollFrameHero (sec_home_hero)",
+      "location": {
+        "url": "webpack-internal:///(app-pages-browser)/./src/components/store/animation/scroll-frame-hero.tsx",
+        "line": 241,
+        "column": 24,
+        "lineNumber": 241,
+        "columnNumber": 24
+      }
+    },
+    {
+      "type": "log",
+      "text": "[MOUNT] ScrollFrameHero (sec_home_hero) | device: mobile | frames: 22",
+      "location": {
+        "url": "webpack-internal:///(app-pages-browser)/./src/components/store/animation/scroll-frame-hero.tsx",
+        "line": 237,
+        "column": 20,
+        "lineNumber": 237,
+        "columnNumber": 20
+      }
+    }
+  ],
+  "pageErrors": [],
+  "failedRequests": [],
+  "assetTags": {
+    "stylesheets": [
+      {
+        "href": "http://localhost:3000/_next/static/css/app/layout.css?v=1789285061401",
+        "rel": "stylesheet",
+        "crossOrigin": null
+      }
+    ],
+    "inlineStylesCount": 10,
+    "scripts": [
+      {
+        "src": "http://localhost:3000/_next/static/chunks/main-app.js?v=1789285061401",
+        "async": true,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+        "async": true,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "http://localhost:3000/_next/static/chunks/app/layout.js",
+        "async": true,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "http://localhost:3000/_next/static/chunks/app/error.js",
+        "async": true,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "http://localhost:3000/_next/static/chunks/app/(store)/layout.js",
+        "async": true,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "http://localhost:3000/_next/static/chunks/app/global-error.js",
+        "async": true,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "http://localhost:3000/_next/static/chunks/app/(store)/page.js",
+        "async": true,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": true,
+        "defer": false,
+        "type": "application/ld+json"
+      },
+      {
+        "src": "(inline)",
+        "async": true,
+        "defer": false,
+        "type": "application/ld+json"
+      },
+      {
+        "src": "http://localhost:3000/_next/static/chunks/polyfills.js",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": true,
+        "defer": false,
+        "type": "application/ld+json"
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "http://localhost:3000/_next/static/chunks/webpack.js?v=1789285061401",
+        "async": true,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      },
+      {
+        "src": "(inline)",
+        "async": false,
+        "defer": false,
+        "type": ""
+      }
+    ]
+  },
+  "styleAudit": {
+    "body": {
+      "display": "block",
+      "position": "static",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "color": "rgb(244, 245, 248)",
+      "fontFamily": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+      "fontSize": "16px",
+      "border": "0px solid rgb(228, 228, 231)",
+      "boxShadow": "none",
+      "width": 1440,
+      "height": 5181
+    },
+    "header": {
+      "display": "block",
+      "position": "sticky",
+      "backgroundColor": "rgba(255, 255, 255, 0.85)",
+      "color": "rgb(20, 32, 64)",
+      "fontFamily": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+      "fontSize": "16px",
+      "border": "",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+      "width": 1440,
+      "height": 65
+    },
+    "main": {
+      "display": "flex",
+      "position": "static",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "color": "rgb(244, 245, 248)",
+      "fontFamily": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+      "fontSize": "16px",
+      "border": "0px solid rgb(228, 228, 231)",
+      "boxShadow": "none",
+      "width": 1440,
+      "height": 5016
+    },
+    "logo": {
+      "display": "flex",
+      "position": "static",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "color": "rgb(20, 32, 64)",
+      "fontFamily": "__Playfair_Display_d59ba8, __Playfair_Display_Fallback_d59ba8, Georgia, serif",
+      "fontSize": "20px",
+      "border": "0px solid rgb(228, 228, 231)",
+      "boxShadow": "none",
+      "width": 156,
+      "height": 28
+    },
+    "hero": {
+      "display": "block",
+      "position": "relative",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "color": "rgb(250, 249, 246)",
+      "fontFamily": "\"Plus Jakarta Sans\", sans-serif",
+      "fontSize": "16px",
+      "border": "0px solid rgb(228, 228, 231)",
+      "boxShadow": "none",
+      "width": 1440,
+      "height": 2520
+    },
+    "productCard": {
+      "display": "flex",
+      "position": "relative",
+      "backgroundColor": "rgba(20, 32, 64, 0.3)",
+      "color": "rgb(250, 249, 246)",
+      "fontFamily": "\"Plus Jakarta Sans\", sans-serif",
+      "fontSize": "16px",
+      "border": "1px solid rgba(255, 255, 255, 0.1)",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(20, 32, 64, 0.3) 0px 15px 40px 0px",
+      "width": 280,
+      "height": 433
+    },
+    "hasTailwindLoaded": true
+  },
+  "diagnosticReport": {
+    "item1_devMode": true,
+    "item2_staleNextBuild": false,
+    "item3_mixedProdDev": false,
+    "item4_nextDynamicBoundariesOk": true,
+    "item5_duplicateFaviconErrors": 0,
+    "item6_cssImportsResolved": true,
+    "item7_jsChunkPathsMatchServer": true,
+    "item8_browserStaleCacheMismatch": false,
+    "item9_frontendPointsToCorrectApi": true,
+    "item10_backendHealthy": true
+  }
+}

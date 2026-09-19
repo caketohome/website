@@ -4,15 +4,16 @@ import { clx } from "@medusajs/ui";
 export function CartCounter({ cart }: { cart: any }) {
   const numberOfItems =
     cart?.items?.reduce(
-      (acc: number, item: CartLineItemDTO) => acc + (item.quantity as number),
+      (acc: number, item: any) => acc + Number(item.quantity || 1),
       0
     ) || 0;
 
   return (
     <span
       key={numberOfItems}
+      data-testid="cart-count-badge"
       className={clx(
-        "absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF4D6D] text-white text-[10px] font-bold shadow-md pointer-events-none",
+        "absolute top-0.5 right-0.5 flex h-4 min-w-[17px] px-1 items-center justify-center rounded-full bg-[#D4AF37] text-[#0F1A36] text-[10px] font-bold shadow-md pointer-events-none",
         {
           "animate-bounce duration-300 repeat-1": numberOfItems > 0,
         }

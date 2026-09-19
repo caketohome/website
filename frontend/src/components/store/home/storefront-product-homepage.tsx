@@ -10,6 +10,7 @@ import { searchProductsAction } from "@frontend/lib/actions/catalog";
 import { type SearchResult } from "@frontend/lib/data/catalog-client";
 import { addToCart } from "@frontend/lib/actions/carts";
 import { ErrorComponent } from "@frontend/components/common/error-component";
+import { ProductCard } from "@frontend/components/store/catalog/product-card";
 import dynamic from "next/dynamic";
 
 const ScrollFrameHero = dynamic(
@@ -17,9 +18,29 @@ const ScrollFrameHero = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full min-h-[500px] flex items-center justify-center bg-zinc-950 text-white/50 text-sm animate-pulse">
-        Loading interactive experience...
-      </div>
+      <section className="relative w-full min-h-[500px] flex items-center justify-center overflow-hidden bg-[#07090E] text-white">
+        <div className="absolute inset-0 bg-gradient-to-t from-[#07090E]/95 via-[#1D2F5D]/30 to-[#07090E]/80 pointer-events-none" />
+        <div className="relative z-10 p-6 sm:p-12 max-w-3xl flex flex-col items-center text-center gap-4">
+          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-1 shadow-xl bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/35">
+            <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+            100% Fresh & Artisanal • Express 2-Hour Delivery
+          </span>
+          <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-[#FAF9F6] drop-shadow-2xl">
+            Freshly Baked Happiness
+          </Heading>
+          <Text className="font-sans text-sm sm:text-base text-stone-200/90 max-w-xl font-normal leading-relaxed drop-shadow-sm">
+            Explore gourmet cakes, handcrafted chocolates, fresh pastries, and savory treats. Delivered directly from our nearest kitchen for maximum freshness.
+          </Text>
+          <div className="flex items-center gap-3 pt-2">
+            <Link
+              href="/search"
+              className="rounded-full px-8 py-3.5 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-[#D4AF37] hover:bg-[#c59e2b] text-[#07090E] shadow-[0_10px_30px_rgba(212,175,55,0.3)] transition-all flex items-center gap-1.5"
+            >
+              Explore Cakes <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
+          </div>
+        </div>
+      </section>
     ),
   }
 );
@@ -95,14 +116,14 @@ export function StorefrontProductHomepage({
         <section className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <Heading level="h2" className="text-xl font-bold flex items-center gap-2">
-              <Tag className="w-5 h-5 text-rose-600" /> Special Offers & Coupons
+              <Tag className="w-5 h-5 text-[#1D2F5D]" /> Special Offers & Coupons
             </Heading>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {offers.map((o) => (
               <div
                 key={o.code || o.id}
-                className={`p-5 rounded-2xl bg-gradient-to-br ${o.bg || "from-rose-500 to-pink-600"} text-white shadow-md flex flex-col justify-between gap-3`}
+                className={`p-5 rounded-2xl bg-gradient-to-br ${o.bg || "from-[#1D2F5D] to-[#D4AF37]"} text-white shadow-md flex flex-col justify-between gap-3`}
               >
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
@@ -130,7 +151,7 @@ export function StorefrontProductHomepage({
             <Heading level="h2" className="text-xl font-bold">
               Explore Categories
             </Heading>
-            <Link href="/search" className="text-xs font-semibold text-rose-600 hover:underline flex items-center gap-1">
+            <Link href="/search" className="text-xs font-semibold text-[#1D2F5D] hover:underline flex items-center gap-1">
               View All Categories <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -139,7 +160,7 @@ export function StorefrontProductHomepage({
               <Link
                 key={cat.slug || cat.id}
                 href={`/category/${cat.slug || cat.id}`}
-                className={`p-3.5 rounded-2xl border ${cat.color || "bg-rose-50 border-rose-200 text-rose-900"} flex flex-col items-center text-center gap-2 hover:scale-105 transition-transform duration-200 shadow-sm`}
+                className={`p-3.5 rounded-2xl border ${cat.color || "bg-brand-gold-soft border-[#D4AF37]/30 text-[#1D2F5D]"} flex flex-col items-center text-center gap-2 hover:scale-105 transition-transform duration-200 shadow-sm`}
               >
                 <span className="text-3xl">{cat.icon || "🎂"}</span>
                 <span className="text-xs font-bold line-clamp-1">{cat.name}</span>
@@ -154,10 +175,10 @@ export function StorefrontProductHomepage({
       <section className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold">Featured Cakes</Heading>
-            <Text className="text-xs text-gray-500">Handcrafted gourmet cakes baked fresh daily</Text>
+            <Heading level="h2" className="text-xl font-bold font-serif text-[#1D2F5D] dark:text-[#FAF9F6]">Featured Cakes</Heading>
+            <Text className="text-xs text-[#606C88] dark:text-[#C5CEE0]">Handcrafted gourmet cakes baked fresh daily</Text>
           </div>
-          <Link href="/search?is_featured=true" className="text-xs font-semibold text-rose-600 hover:underline">
+          <Link href="/search?is_featured=true" className="text-xs font-semibold text-[#1D2F5D] dark:text-[#D4AF37] hover:text-[#D4AF37] transition-colors">
             See All →
           </Link>
         </div>
@@ -168,10 +189,10 @@ export function StorefrontProductHomepage({
       <section className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold">Best Sellers</Heading>
-            <Text className="text-xs text-gray-500">Customer favorites ordered most frequently</Text>
+            <Heading level="h2" className="text-xl font-bold font-serif text-[#1D2F5D] dark:text-[#FAF9F6]">Best Sellers</Heading>
+            <Text className="text-xs text-[#606C88] dark:text-[#C5CEE0]">Customer favorites ordered most frequently</Text>
           </div>
-          <Link href="/search?sort=rating" className="text-xs font-semibold text-rose-600 hover:underline">
+          <Link href="/search?sort=rating" className="text-xs font-semibold text-[#1D2F5D] dark:text-[#D4AF37] hover:text-[#D4AF37] transition-colors">
             See All →
           </Link>
         </div>
@@ -179,15 +200,15 @@ export function StorefrontProductHomepage({
       </section>
 
       {/* Birthday Cakes Collection */}
-      <section className="flex flex-col gap-5 bg-rose-50/50 p-6 rounded-3xl border border-rose-100">
+      <section className="flex flex-col gap-5 bg-[#FDFBF7] dark:bg-[#142040]/30 p-6 rounded-3xl border border-[#1D2F5D]/10 dark:border-white/10">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold text-rose-950 flex items-center gap-2">
+            <Heading level="h2" className="text-xl font-bold font-serif text-[#1D2F5D] dark:text-[#FAF9F6] flex items-center gap-2">
               🎂 Birthday Cakes Collection
             </Heading>
-            <Text className="text-xs text-rose-700/80">Make birthday celebrations extraordinary</Text>
+            <Text className="text-xs text-[#606C88] dark:text-[#C5CEE0]">Make birthday celebrations extraordinary</Text>
           </div>
-          <Link href="/category/birthday-cakes" className="text-xs font-bold text-rose-700 hover:underline">
+          <Link href="/category/birthday-cakes" className="text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37] hover:text-[#D4AF37] transition-colors">
             Explore Birthday Range →
           </Link>
         </div>
@@ -195,15 +216,15 @@ export function StorefrontProductHomepage({
       </section>
 
       {/* Anniversary Cakes Collection */}
-      <section className="flex flex-col gap-5 bg-pink-50/50 p-6 rounded-3xl border border-pink-100">
+      <section className="flex flex-col gap-5 bg-[#FDFBF7] dark:bg-[#142040]/30 p-6 rounded-3xl border border-[#1D2F5D]/10 dark:border-white/10">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold text-pink-950 flex items-center gap-2">
+            <Heading level="h2" className="text-xl font-bold font-serif text-[#1D2F5D] dark:text-[#FAF9F6] flex items-center gap-2">
               💖 Anniversary Cakes Collection
             </Heading>
-            <Text className="text-xs text-pink-700/80">Romantic heart-shaped & premium layered cakes</Text>
+            <Text className="text-xs text-[#606C88] dark:text-[#C5CEE0]">Romantic heart-shaped & premium layered cakes</Text>
           </div>
-          <Link href="/category/anniversary-cakes" className="text-xs font-bold text-pink-700 hover:underline">
+          <Link href="/category/anniversary-cakes" className="text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37] hover:text-[#D4AF37] transition-colors">
             Explore Anniversary Range →
           </Link>
         </div>
@@ -214,10 +235,10 @@ export function StorefrontProductHomepage({
       <section className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold">Pastries & Slices</Heading>
-            <Text className="text-xs text-gray-500">Individual indulgence for sweet cravings</Text>
+            <Heading level="h2" className="text-xl font-bold font-serif text-[#1D2F5D] dark:text-[#FAF9F6]">Pastries & Slices</Heading>
+            <Text className="text-xs text-[#606C88] dark:text-[#C5CEE0]">Individual indulgence for sweet cravings</Text>
           </div>
-          <Link href="/category/pastries" className="text-xs font-semibold text-rose-600 hover:underline">
+          <Link href="/category/pastries" className="text-xs font-semibold text-[#1D2F5D] dark:text-[#D4AF37] hover:text-[#D4AF37] transition-colors">
             See All →
           </Link>
         </div>
@@ -228,10 +249,10 @@ export function StorefrontProductHomepage({
       <section className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold">Cookies & Handcrafted Chocolates</Heading>
-            <Text className="text-xs text-gray-500">Freshly baked cookies and pralines</Text>
+            <Heading level="h2" className="text-xl font-bold font-serif text-[#1D2F5D] dark:text-[#FAF9F6]">Cookies & Handcrafted Chocolates</Heading>
+            <Text className="text-xs text-[#606C88] dark:text-[#C5CEE0]">Freshly baked cookies and pralines</Text>
           </div>
-          <Link href="/category/chocolates" className="text-xs font-semibold text-rose-600 hover:underline">
+          <Link href="/category/chocolates" className="text-xs font-semibold text-[#1D2F5D] dark:text-[#D4AF37] hover:text-[#D4AF37] transition-colors">
             See All →
           </Link>
         </div>
@@ -242,10 +263,10 @@ export function StorefrontProductHomepage({
       <section className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold">New Arrivals ✨</Heading>
-            <Text className="text-xs text-gray-500">Discover our latest baker creations</Text>
+            <Heading level="h2" className="text-xl font-bold font-serif text-[#1D2F5D] dark:text-[#FAF9F6]">New Arrivals ✨</Heading>
+            <Text className="text-xs text-[#606C88] dark:text-[#C5CEE0]">Discover our latest baker creations</Text>
           </div>
-          <Link href="/search?is_new_arrival=true" className="text-xs font-semibold text-rose-600 hover:underline">
+          <Link href="/search?is_new_arrival=true" className="text-xs font-semibold text-[#1D2F5D] dark:text-[#D4AF37] hover:text-[#D4AF37] transition-colors">
             See All →
           </Link>
         </div>
@@ -282,7 +303,7 @@ export function StorefrontProductHomepage({
               </div>
               <div className="flex flex-col truncate">
                 <span className="text-xs font-semibold truncate">{p.title}</span>
-                <span className="text-xs text-rose-600 font-bold">₹{p.price}</span>
+                <span className="text-xs text-[#1D2F5D] font-bold">₹{p.price}</span>
               </div>
             </Link>
           ))}
@@ -293,16 +314,11 @@ export function StorefrontProductHomepage({
 }
 
 function ProductGrid({ products, loading }: { products: SearchResult[]; loading?: boolean }) {
-  const router = useRouter();
-  const { isFavorited, toggleFavorite } = useFavorites();
-  const [addingMap, setAddingMap] = useState<Record<string, boolean>>({});
-  const [errorMap, setErrorMap] = useState<Record<string, string | null>>({});
-
   if (loading && (!products || products.length === 0)) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {[1, 2, 3, 4].map((n) => (
-          <div key={n} className="animate-pulse bg-gray-100 rounded-2xl h-72" />
+          <div key={n} className="animate-pulse bg-gray-100 dark:bg-white/5 rounded-2xl h-80" />
         ))}
       </div>
     );
@@ -312,104 +328,11 @@ function ProductGrid({ products, loading }: { products: SearchResult[]; loading?
     return null;
   }
 
-  const handleQuickAdd = async (e: React.MouseEvent, product: SearchResult) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setAddingMap((prev) => ({ ...prev, [product.product_id]: true }));
-    setErrorMap((prev) => ({ ...prev, [product.product_id]: null }));
-    try {
-      await addToCart(product.variant_id || product.product_id, "default_shop");
-      router.refresh();
-    } catch (err: any) {
-      console.error("Failed quick add to cart", err);
-      setErrorMap((prev) => ({ ...prev, [product.product_id]: err.message || "Failed to add cake to cart. Please try again." }));
-    } finally {
-      setAddingMap((prev) => ({ ...prev, [product.product_id]: false }));
-    }
-  };
-
-  const handleWishlist = async (e: React.MouseEvent, product: SearchResult) => {
-    e.stopPropagation();
-    e.preventDefault();
-    await toggleFavorite(product.product_id, { title: product.title, handle: product.handle || undefined });
-  };
-
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-      {products.map((product) => {
-        const productHandle = product.handle || (product as any).slug || product.product_id || (product as any).id;
-        const productHref = `/products/${productHandle}`;
-        const wished = isFavorited(product.product_id);
-
-        return (
-          <div
-            key={product.product_id}
-            onClick={() => router.push(productHref)}
-            className="group flex flex-col justify-between bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
-          >
-            {errorMap[product.product_id] && (
-              <ErrorComponent
-                compact
-                message={errorMap[product.product_id]}
-                onDismiss={() => setErrorMap((prev) => ({ ...prev, [product.product_id]: null }))}
-                className="m-2"
-              />
-            )}
-            <Link href={productHref} className="relative aspect-square w-full bg-gray-100 overflow-hidden block">
-              {product.thumbnail ? (
-                <Image
-                  src={product.thumbnail}
-                  alt={product.title}
-                  fill
-                  className="object-cover group-hover:scale-108 transition-transform duration-500"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-4xl">🎂</div>
-              )}
-              <div
-                onClick={(e) => handleWishlist(e, product)}
-                className={`absolute top-3 right-3 backdrop-blur-md p-1.5 rounded-full shadow-sm cursor-pointer transition z-10 ${
-                  wished
-                    ? "bg-rose-50 text-rose-600 border border-rose-200"
-                    : "bg-white/80 text-gray-700 hover:text-rose-600 hover:bg-white"
-                }`}
-                title={wished ? "Remove from Favorites" : "Add to Favorites"}
-              >
-                <Heart className="w-4 h-4" fill={wished ? "currentColor" : "none"} />
-              </div>
-            </Link>
-
-            <div className="p-4 flex flex-col gap-2 flex-1 justify-between">
-              <Link href={productHref} className="block group-hover:no-underline">
-                <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                  <span>⭐ {product.rating} ({product.review_count})</span>
-                  {product.is_bestseller && (
-                    <Badge size="small" color="orange">Bestseller</Badge>
-                  )}
-                </div>
-                <h3 className="font-bold text-sm text-gray-900 group-hover:text-rose-600 transition line-clamp-1">
-                  {product.title}
-                </h3>
-                <p className="text-xs text-gray-500 line-clamp-2 mt-1">
-                  {product.description}
-                </p>
-              </Link>
-
-              <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-2">
-                <Link href={productHref} className="text-base font-extrabold text-gray-900 hover:text-rose-600">
-                  ₹{product.price}
-                </Link>
-                <Link
-                  href={productHref}
-                  className="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition duration-200 shadow-sm flex items-center gap-1"
-                >
-                  View Cake →
-                </Link>
-              </div>
-            </div>
-          </div>
-        );
-      })}
+      {products.map((product) => (
+        <ProductCard key={product.product_id || (product as any).id} product={product} />
+      ))}
     </div>
   );
 }

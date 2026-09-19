@@ -119,7 +119,7 @@ export function OrderSummary({
  Qty: <b className="text-pearl ">{quantity}</b> × ₹{unitPrice}
  </span>
  {weight && (
- <span className="text-[10px] font-medium bg-rosegold/30/80 text-pearl px-1.5 py-0.5 rounded-xl">
+ <span className="text-[10px] font-medium bg-[#1D2F5D]/40 border border-[#D4AF37]/30 text-pearl px-1.5 py-0.5 rounded-xl">
  {weight}
  </span>
  )}

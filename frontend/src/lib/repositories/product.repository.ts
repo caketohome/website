@@ -1,5 +1,5 @@
 import { dbQuery, dbTransaction } from "../db";
-import { ProductDomain, VariantOptionDomain } from "../types/domain";
+import { ProductDomain, VariantOptionDomain, resolveProductInventoryMode } from "../types/domain";
 
 export class ProductRepository {
   /**
@@ -7,10 +7,26 @@ export class ProductRepository {
    */
   static mapRowToDomain(p: any): ProductDomain {
     const meta = p.metadata || {};
-    const price = Number(meta.selling_price ?? meta.price ?? 599);
+    const firstWeightPrice = Array.isArray(meta.weight_prices) && meta.weight_prices.length > 0
+      ? (meta.weight_prices[0]?.selling_price ?? meta.weight_prices[0]?.price)
+      : undefined;
+    const rawPrice = meta.selling_price ?? meta.price ?? firstWeightPrice;
+    const price = rawPrice !== undefined && rawPrice !== null ? Number(rawPrice) : 0;
+    const inventoryMode = resolveProductInventoryMode({
+      id: p.id,
+      category: meta.category,
+      category_slug: meta.category_slug,
+      metadata: meta,
+      pim_config: meta.pim_config,
+      prep_time_minutes: meta.prep_time_minutes,
+      weight_prices: meta.weight_prices,
+      weight: meta.weight || p.weight,
+    });
+
     return {
       id: p.id,
       product_id: p.id,
+      inventory_mode: inventoryMode,
       title: p.title,
       name: p.title,
       handle: p.handle,
@@ -22,10 +38,10 @@ export class ProductRepository {
       status: p.status || "published",
       price,
       selling_price: price,
-      cost_price: Number(meta.cost_price || 350),
-      mrp: Number(meta.mrp || 799),
-      rating: Number(meta.rating) || 4.9,
-      review_count: Number(meta.review_count) || 12,
+      cost_price: Number(meta.cost_price || 0),
+      mrp: Number(meta.mrp || price || 0),
+      rating: Number(meta.rating || 0),
+      review_count: Number(meta.review_count || 0),
       category: meta.category || "Cakes",
       category_slug: meta.category_slug || "cakes",
       primary_category_id: meta.primary_category_id || "cat_chocolate",
@@ -36,15 +52,25 @@ export class ProductRepository {
       filling: meta.filling || "Chocolate Ganache",
       cream: meta.cream || "Fresh Cream",
       texture: meta.texture || "Soft & Moist",
-      weight: p.weight || "1 kg",
-      variants_json: meta.variants_json || { weights: ["0.5 kg", "1 kg", "1.5 kg", "2 kg"] },
+      weight: (() => {
+        const rawW = p.weight || meta.weight;
+        if (!rawW || rawW === "1 pc" || rawW === "1 piece" || rawW === "1pc") {
+          return (meta.pim_config?.show_weight === false || meta.category_slug === "pastries" || meta.category === "Pastries") ? null : "1 kg";
+        }
+        return rawW;
+      })(),
+      variants_json: meta.variants_json || (
+        (meta.pim_config?.show_weight === false || meta.category_slug === "pastries" || meta.category === "Pastries")
+          ? { weights: [] }
+          : { weights: ["0.5 kg", "1 kg", "1.5 kg", "2 kg"] }
+      ),
       add_ons_json: meta.add_ons_json || {},
       tags: meta.tags || "",
       occasion: meta.occasion || "Birthday",
       occasion_ids: meta.occasion_ids || ["occ_birthday"],
       brand: meta.brand || "CakeToHome Signature",
       cake_type: meta.cake_type || "Layer Cake",
-      gst_rate: Number(meta.gst_rate || 5),
+      gst_rate: typeof meta.gst_rate === "number" ? meta.gst_rate : (meta.gst_rate ? Number(meta.gst_rate) : 0),
       tax_class: meta.tax_class || "GST_FOOD_5",
       tax_configuration_id: meta.tax_configuration_id || "txcfg_food_5",
       hsn_code: meta.hsn_code || "19059090",
@@ -70,7 +96,12 @@ export class ProductRepository {
       shapes: meta.shapes || [],
       fillings: meta.fillings || [],
       creams: meta.creams || [],
-      weight_prices: meta.weight_prices || [],
+      weight_prices: Array.isArray(meta.weight_prices)
+        ? meta.weight_prices.filter((wp: any) => {
+            const name = String(wp.weight_name || wp.name || "").trim().toLowerCase();
+            return name !== "1 pc" && name !== "1 piece" && name !== "1pc";
+          })
+        : [],
       enable_flavor_selection: meta.enable_flavor_selection,
       enable_shape_selection: meta.enable_shape_selection,
       created_at: p.created_at,
@@ -87,6 +118,8 @@ export class ProductRepository {
     limit?: number;
     offset?: number;
     category_id?: string;
+    occasion?: string;
+    occasion_id?: string;
     q?: string;
     search?: string;
     flavour?: string;
@@ -112,6 +145,18 @@ export class ProductRepository {
     if (params.category_id) {
       values.push(params.category_id);
       conditions.push(`(metadata->>'category_id' = $${values.length} OR metadata->>'category' ILIKE $${values.length} OR metadata->>'category_slug' ILIKE $${values.length})`);
+    }
+
+    if (params.occasion || params.occasion_id) {
+      const occVal = String(params.occasion || params.occasion_id).toLowerCase().trim().replace(/^occ_/, "").replace(/_/g, "-");
+      values.push(`%${occVal}%`);
+      conditions.push(`(
+        LOWER(COALESCE(metadata->>'occasion', '')) LIKE $${values.length}
+        OR LOWER(COALESCE(metadata->>'occasion_ids', '')) LIKE $${values.length}
+        OR LOWER(COALESCE(metadata->>'tags', '')) LIKE $${values.length}
+        OR LOWER(COALESCE(title, '')) LIKE $${values.length}
+        OR LOWER(COALESCE(description, '')) LIKE $${values.length}
+      )`);
     }
 
     const searchTerm = (params.q || params.search || "").trim();
@@ -192,7 +237,29 @@ export class ProductRepository {
       [idOrHandle]
     );
     if (!res.rows || res.rows.length === 0) return null;
-    return ProductRepository.mapRowToDomain(res.rows[0]);
+    const domain = ProductRepository.mapRowToDomain(res.rows[0]);
+
+    try {
+      const varRes = await dbQuery(
+        `SELECT id, product_id, title, sku, weight, metadata FROM "product_variant" WHERE product_id = $1 AND deleted_at IS NULL ORDER BY created_at ASC`,
+        [domain.id]
+      );
+      if (varRes.rows && varRes.rows.length > 0) {
+        (domain as any).variants = varRes.rows.map((v: any) => ({
+          id: v.id,
+          variant_id: v.id,
+          product_id: v.product_id,
+          title: v.title,
+          sku: v.sku || `${domain.handle.toUpperCase()}`,
+          weight: v.weight,
+          price: domain.price,
+        }));
+      }
+    } catch (varErr) {
+      console.warn("[ProductRepository.findById] variant query warning:", varErr);
+    }
+
+    return domain;
   }
 
   /**
@@ -228,20 +295,20 @@ export class ProductRepository {
     const status = product.status || "published";
 
     const metadata = {
-      price: product.price || product.selling_price || 599,
-      selling_price: product.selling_price || product.price || 599,
-      cost_price: product.cost_price || 350,
-      mrp: product.mrp || 799,
-      rating: product.rating || 4.9,
-      review_count: product.review_count || 12,
-      category: product.category || "Cakes",
-      category_slug: product.category_slug || "cakes",
-      primary_category_id: product.primary_category_id || "cat_chocolate",
+      price: product.price || product.selling_price || 0,
+      selling_price: product.selling_price || product.price || 0,
+      cost_price: product.cost_price || 0,
+      mrp: product.mrp || product.selling_price || product.price || 0,
+      rating: product.rating || 0,
+      review_count: product.review_count || 0,
+      category: product.category || "",
+      category_slug: product.category_slug || "",
+      primary_category_id: product.primary_category_id || null,
       secondary_category_ids: product.secondary_category_ids || [],
       category_ids: product.category_ids || [],
-      flavour: product.flavour || "Chocolate",
-      cake_base: product.cake_base || "Chocolate",
-      filling: product.filling || "Chocolate Ganache",
+      flavour: product.flavour || "",
+      cake_base: product.cake_base || "",
+      filling: product.filling || "",
       cream: product.cream || "Fresh Cream",
       texture: product.texture || "Soft & Moist",
       variants_json: product.variants_json || { weights: ["0.5 kg", "1 kg", "1.5 kg", "2 kg"] },
@@ -252,7 +319,7 @@ export class ProductRepository {
       occasion_ids: product.occasion_ids || ["occ_birthday"],
       brand: product.brand || "CakeToHome Signature",
       cake_type: product.cake_type || "Layer Cake",
-      gst_rate: product.gst_rate || 5,
+      gst_rate: typeof product.gst_rate === "number" ? product.gst_rate : (product.gst_rate ? Number(product.gst_rate) : 0),
       tax_class: product.tax_class || "GST_FOOD_5",
       tax_configuration_id: product.tax_configuration_id || "txcfg_food_5",
       hsn_code: product.hsn_code || "19059090",
@@ -273,7 +340,19 @@ export class ProductRepository {
       seo_description: product.seo_description || description || "",
       seo_keywords: product.seo_keywords || "",
       max_delivery_distance_km: product.max_delivery_distance_km || null,
-      pim_config: product.pim_config || {},
+      pim_config: {
+        ...(product.pim_config || {}),
+        inventory_mode: product.inventory_mode || product.pim_config?.inventory_mode || resolveProductInventoryMode({
+          id: product.id,
+          category: product.category,
+          category_slug: product.category_slug,
+          metadata: (product as any).metadata,
+          pim_config: product.pim_config,
+          prep_time_minutes: product.prep_time_minutes,
+          weight_prices: product.weight_prices,
+          weight: product.weight,
+        }),
+      },
       flavors: product.flavors || [],
       shapes: product.shapes || [],
       fillings: product.fillings || [],

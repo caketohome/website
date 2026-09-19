@@ -21,7 +21,7 @@ export function BranchAccessoryInventoryModal({ branch, onClose }: BranchAccesso
   const fetchAccessories = async () => {
     setLoading(true);
     try {
-      const res: any = await apiClient.getAccessories();
+      const res: any = await apiClient.getAccessories({ branchId: branch.id });
       setAccessories(res?.accessories || []);
     } catch {
       // Fallback
@@ -32,7 +32,7 @@ export function BranchAccessoryInventoryModal({ branch, onClose }: BranchAccesso
 
   useEffect(() => {
     fetchAccessories();
-  }, []);
+  }, [branch.id]);
 
   const handleAdjustStock = async (accId: string, delta: number) => {
     setSubmitting(true);
@@ -72,10 +72,10 @@ export function BranchAccessoryInventoryModal({ branch, onClose }: BranchAccesso
           ) : (
             <div className="space-y-3">
               {accessories.map((acc) => {
-                const bStock = (branch.accessory_inventory && branch.accessory_inventory[acc.id]) || {
-                  current_stock: Number(acc.stock || 20),
-                  reserved_stock: 0,
-                  available_stock: Number(acc.stock || 20),
+                const bStock = {
+                  current_stock: Number(acc.stock ?? acc.current_stock ?? 0),
+                  reserved_stock: Number(acc.reserved ?? acc.reserved_stock ?? 0),
+                  available_stock: Number(acc.available_stock ?? (Number(acc.stock || 0) - Number(acc.reserved || 0))),
                   low_stock_threshold: Number(acc.low_stock_threshold || 5),
                 };
 

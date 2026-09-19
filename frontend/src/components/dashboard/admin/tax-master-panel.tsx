@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, memo } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { Container, Heading, Text, Button, Input, Badge, Label } from "@medusajs/ui";
-import { Plus, Percent, CheckCircle, AlertCircle, Edit3, Copy, Power, HelpCircle, RefreshCw, FileText, Search, ShieldCheck } from "lucide-react";
+import { Plus, Percent, CheckCircle, AlertCircle, Edit3, Copy, Power, HelpCircle, RefreshCw, FileText, Search, ShieldCheck, Loader2 } from "lucide-react";
 import { TaxMasterService, TaxConfigurationRecord } from "@frontend/lib/tax-master";
 import { WidgetErrorBoundary } from "./error-boundary";
 
 export const TaxMasterPanel = memo(function TaxMasterPanel() {
-  const [records, setRecords] = useState<TaxConfigurationRecord[]>(TaxMasterService.listTaxConfigurations());
+  const [records, setRecords] = useState<TaxConfigurationRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTaxability, setFilterTaxability] = useState<string>("ALL");
   const [filterActive, setFilterActive] = useState<string>("ALL");
@@ -35,9 +37,22 @@ export const TaxMasterPanel = memo(function TaxMasterPanel() {
 
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const refreshData = () => {
-    setRecords(TaxMasterService.listTaxConfigurations());
-  };
+  const refreshData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const configs = await TaxMasterService.fetchTaxConfigurations();
+      setRecords(configs);
+    } catch (err: any) {
+      setError(err.message || "Failed to load tax configurations.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
 
   const handleOpenCreate = () => {
     setEditingRecord(null);
@@ -81,22 +96,29 @@ export const TaxMasterPanel = memo(function TaxMasterPanel() {
     setShowModal(true);
   };
 
-  const handleDuplicate = (id: string) => {
-    try {
-      const dup = TaxMasterService.duplicateTaxConfiguration(id);
+  const handleDuplicate = async (id: string) => {
+    const original = records.find(r => r.id === id);
+    if (!original) return;
+    const result = await TaxMasterService.saveTaxConfiguration({
+      ...original,
+      id: undefined,
+      name: `${original.name} (Copy)`,
+      code: `${original.code}_COPY`,
+    });
+    if (result.success) {
       refreshData();
-      alert(`Tax configuration duplicated successfully: "${dup.name}" (${dup.code})`);
-    } catch (err: any) {
-      alert(err.message || "Failed to duplicate tax configuration.");
+      alert(`Tax configuration duplicated successfully.`);
+    } else {
+      alert(result.error || "Failed to duplicate tax configuration.");
     }
   };
 
-  const handleToggleActive = (id: string, currentActive: boolean) => {
-    try {
-      TaxMasterService.toggleActive(id, !currentActive);
+  const handleToggleActive = async (id: string, currentActive: boolean) => {
+    const result = await TaxMasterService.toggleActive(id, !currentActive);
+    if (result.success) {
       refreshData();
-    } catch (err: any) {
-      alert(err.message || "Failed to update tax configuration status.");
+    } else {
+      alert(result.error || "Failed to update tax configuration status.");
     }
   };
 
@@ -113,7 +135,7 @@ export const TaxMasterPanel = memo(function TaxMasterPanel() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !code.trim()) {
       setValidationError("Tax Name and Tax Code are required.");
@@ -136,7 +158,7 @@ export const TaxMasterPanel = memo(function TaxMasterPanel() {
     }
 
     try {
-      TaxMasterService.saveTaxConfiguration({
+      const result = await TaxMasterService.saveTaxConfiguration({
         id: editingRecord?.id,
         name,
         code,
@@ -155,8 +177,12 @@ export const TaxMasterPanel = memo(function TaxMasterPanel() {
         effectiveTo: effectiveTo || undefined,
       });
 
-      refreshData();
-      setShowModal(false);
+      if (result.success) {
+        await refreshData();
+        setShowModal(false);
+      } else {
+        setValidationError(result.error || "Failed to save tax configuration.");
+      }
     } catch (err: any) {
       setValidationError(err.message || "Failed to save tax configuration.");
     }

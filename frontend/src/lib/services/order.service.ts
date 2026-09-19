@@ -5,7 +5,7 @@ import { BranchRepository } from "../repositories/branch.repository";
 import { OfferRepository } from "../repositories/offer.repository";
 import { DeliveryService } from "./delivery.service";
 import { InventoryService } from "./inventory.service";
-import { OrderDomain, OrderItemDomain, ProductDomain } from "../types/domain";
+import { OrderDomain, OrderItemDomain, ProductDomain, resolveProductInventoryMode } from "../types/domain";
 
 export interface CreateOrderParams {
   idempotency_key?: string;
@@ -17,9 +17,12 @@ export interface CreateOrderParams {
   branch_id: string;
   items: {
     product_id: string;
+    variant_id?: string;
     weight?: string;
     variant_name?: string;
     quantity: number;
+    unit_price?: number;
+    price?: number;
     customization?: any;
   }[];
   coupon_code?: string;
@@ -37,21 +40,30 @@ export class OrderService {
    * Authoritative, atomic database checkout and order creation
    */
   static async createOrder(params: CreateOrderParams): Promise<{ success: boolean; order?: OrderDomain; error?: string }> {
-    const {
-      customer_name,
-      customer_phone,
-      customer_email,
-      branch_id,
-      items,
-      coupon_code,
-      delivery_type,
-      delivery_date,
-      delivery_slot,
-      delivery_address,
-      delivery_latitude,
-      delivery_longitude,
-      payment_method,
-    } = params;
+    const customer_name = params.customer_name || (params as any).name || "Valued Customer";
+    const customer_phone = params.customer_phone || (params as any).phone || "";
+    const customer_email = params.customer_email || (params as any).email;
+    const branch_id = params.branch_id || (params as any).branchId || "br_indiranagar";
+    const items = params.items || [];
+    const coupon_code = params.coupon_code || (params as any).promo_code || (params as any).coupon;
+    const delivery_type = (params.delivery_type || (params as any).deliveryType || "standard") as any;
+    const delivery_date = params.delivery_date || (params as any).deliveryDate || new Date().toISOString().split("T")[0];
+    const rawDeliveryAddr = params.delivery_address || (params as any).address;
+    const delivery_address = typeof rawDeliveryAddr === "string" && rawDeliveryAddr.trim()
+      ? rawDeliveryAddr.trim()
+      : (rawDeliveryAddr && typeof rawDeliveryAddr === "object"
+          ? [
+              rawDeliveryAddr.line1 || rawDeliveryAddr.address_1 || rawDeliveryAddr.address,
+              rawDeliveryAddr.line2 || rawDeliveryAddr.address_2,
+              rawDeliveryAddr.landmark,
+              rawDeliveryAddr.city,
+              rawDeliveryAddr.state,
+              rawDeliveryAddr.pincode || rawDeliveryAddr.postal_code,
+            ].filter(Boolean).join(", ")
+          : "Delivery Address on File");
+    const delivery_latitude = typeof params.delivery_latitude === "number" ? params.delivery_latitude : (typeof (params as any).latitude === "number" ? (params as any).latitude : undefined);
+    const delivery_longitude = typeof params.delivery_longitude === "number" ? params.delivery_longitude : (typeof (params as any).longitude === "number" ? (params as any).longitude : undefined);
+    const payment_method = (params.payment_method || (params as any).paymentMethod || "cod") as any;
 
     if (params.idempotency_key) {
       const existingRes = await dbQuery(
@@ -116,13 +128,21 @@ export class OrderService {
     }
 
     for (const reqItem of items) {
-      const product = productMap.get(reqItem.product_id);
+      let product = productMap.get(reqItem.product_id);
+      if (!product) {
+        product = (await ProductRepository.findById(reqItem.product_id)) || undefined;
+      }
       if (!product) {
         return { success: false, error: `Product ${reqItem.product_id} not found in catalog.` };
       }
 
-      // Calculate authoritative unit price
-      let unitPrice = product.price || product.selling_price || 599;
+      let unitPrice = Number(product.price || product.selling_price || 0);
+      if (unitPrice <= 0 && ((reqItem as any).unit_price || (reqItem as any).price)) {
+        unitPrice = Number((reqItem as any).unit_price || (reqItem as any).price);
+      }
+      if (unitPrice <= 0) {
+        return { success: false, error: `Product ${reqItem.product_id} has invalid or missing pricing in database.` };
+      }
 
       // Check weight price matrix
       if (reqItem.weight && Array.isArray(product.weight_prices)) {
@@ -133,16 +153,55 @@ export class OrderService {
       }
 
       const qty = Math.max(1, Number(reqItem.quantity || 1));
-      const lineTaxRate = product.gst_rate || 5;
+      const lineTaxRate = typeof product.gst_rate === 'number' ? product.gst_rate : (Number(product.gst_rate) || 0);
       const lineTotal = unitPrice * qty;
       const lineTax = Math.round((lineTotal * lineTaxRate) / 100);
 
       subtotal += lineTotal;
       totalTax += lineTax;
 
+      // Resolve attached accessory addons for this line item
+      const itemCustomization = { ...(reqItem.customization || {}) };
+      let addonsDetail: any[] = Array.isArray(itemCustomization.selected_addons_detail) ? [...itemCustomization.selected_addons_detail] : [];
+
+      if (addonsDetail.length === 0 && Array.isArray(itemCustomization.selected_addons) && itemCustomization.selected_addons.length > 0) {
+        // Resolve legacy string addon names to authentic PostgreSQL accessory products
+        for (const addonName of itemCustomization.selected_addons) {
+          if (typeof addonName === "string") {
+            const accProd = await dbQuery(
+              `SELECT p.id, pv.id as variant_id, p.title, COALESCE((p.metadata->>'selling_price')::numeric, (p.metadata->>'price')::numeric, 0) as price 
+               FROM product p 
+               LEFT JOIN product_variant pv ON pv.product_id = p.id
+               WHERE (p.title ILIKE $1 OR p.id = $1 OR pv.sku = $1)
+                 AND (p.metadata->'pim_config'->>'inventory_mode' = 'STOCK_CONTROLLED' OR p.metadata->>'category_slug' = 'accessories')
+                 AND p.deleted_at IS NULL
+               LIMIT 1`,
+              [addonName]
+            );
+            if (accProd.rows && accProd.rows[0]) {
+              const row = accProd.rows[0];
+              addonsDetail.push({
+                id: row.id,
+                product_id: row.id,
+                variant_id: row.variant_id || `var_${row.id}`,
+                title: row.title,
+                price: Number(row.price || 0),
+                quantity: 1,
+              });
+            }
+          } else if (addonName && typeof addonName === "object") {
+            addonsDetail.push(addonName);
+          }
+        }
+      }
+
+      // Ensure stable IDs are preserved in customization
+      itemCustomization.selected_addons_detail = addonsDetail;
+
       snapshottedItems.push({
         id: `item_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
         product_id: product.id,
+        variant_id: reqItem.variant_id || (reqItem as any).variantId || undefined,
         product_name: product.title || product.name || "Cake",
         title: product.title || product.name || "Cake",
         thumbnail: product.thumbnail || "",
@@ -156,7 +215,7 @@ export class OrderService {
         discount: 0,
         tax_rate: lineTaxRate,
         tax_amount: lineTax,
-        customization: reqItem.customization || {},
+        customization: itemCustomization,
         total_line_amount: lineTotal,
       });
     }
@@ -203,6 +262,9 @@ export class OrderService {
       payment_status: payment_method === "cod" ? "pending" : "captured",
       payment_method: payment_method || "card",
       subtotal,
+      total_amount: finalTotal,
+      grand_total: finalTotal,
+      total: finalTotal,
       discount_amount: discountAmount,
       tax_amount: totalTax,
       delivery: {
@@ -264,14 +326,75 @@ export class OrderService {
 
     try {
       await dbTransaction(async (client) => {
-        // Step A: Atomically deduct inventory for every item in order
+        // Step A: Authoritative Branch Kitchen Availability & Physical Inventory Validation
         for (const item of snapshottedItems) {
-          await InventoryService.deductStockAtomic(
-            client,
-            branch.id,
-            item.product_id,
-            item.quantity
-          );
+          const product = productMap.get(item.product_id) || (await ProductRepository.findById(item.product_id));
+          if (!product) {
+            throw new Error(`Product ${item.product_id} not found in catalog.`);
+          }
+
+          const mode = product.inventory_mode || resolveProductInventoryMode(product);
+
+          if (mode === "MADE_TO_ORDER_AVAILABILITY") {
+            // Validate branch kitchen fulfillment readiness for made-to-order cakes/pastries against live PostgreSQL branch record
+            const liveBranchRes = await client.query(
+              `SELECT metadata FROM branch WHERE id = $1 AND deleted_at IS NULL`,
+              [branch.id]
+            );
+            const liveBranchMeta = liveBranchRes.rows[0]?.metadata || (branch as any).metadata || {};
+            const availRecord = liveBranchMeta.product_availability?.[product.id] || (branch as any).product_availability?.[product.id];
+            const availStatus = (typeof availRecord === "string" ? availRecord : (availRecord?.status || (availRecord?.is_available === false ? "UNAVAILABLE" : "AVAILABLE"))).toUpperCase();
+
+            if (availStatus === "UNAVAILABLE" || availStatus === "OUT_OF_STOCK" || availStatus === "TEMPORARILY_HIDDEN" || availStatus === "OUT_TODAY" || availStatus === "OFF") {
+              const reasonMsg = typeof availRecord === "object" && availRecord?.reason ? ` (${availRecord.reason})` : "";
+              throw new Error(
+                `Cannot place order: "${product.title}" is currently marked as ${availStatus.replace(/_/g, " ")} at ${branch.name}${reasonMsg}.`
+              );
+            }
+
+            const cakeFulfil = liveBranchMeta.cake_fulfilment?.[product.id] || (branch as any).cake_fulfilment?.[product.id] || liveBranchMeta.cake_fulfilment || (branch as any).cake_fulfilment;
+            if (cakeFulfil && cakeFulfil.can_fulfil === false) {
+              const reasonMsg = cakeFulfil.reason ? ` Reason: "${cakeFulfil.reason}"` : "";
+              throw new Error(
+                `Cannot place order: Kitchen at ${branch.name} is not currently fulfilling "${product.title}".${reasonMsg}`
+              );
+            }
+
+            // Fresh cake/pastry: Verified against branch kitchen readiness. No synthetic inventory deduction!
+          } else if (mode === "STOCK_CONTROLLED") {
+            // Physical stock-controlled accessory: Atomically deduct physical inventory
+            await InventoryService.deductStockAtomic(
+              client,
+              branch.id,
+              item.product_id,
+              item.quantity,
+              (item as any).variant_id
+            );
+          } else {
+            // Unknown fulfillment mode guard: fail safely rather than mutate inventory
+            throw new Error(
+              `Cannot process order: Fulfillment mode for item "${product.title}" (${item.product_id}) could not be authoritatively verified.`
+            );
+          }
+
+          // Step A.2: CRITICAL - Deduct any physical accessory addons attached to this item
+          const addons = (item.customization as any)?.selected_addons_detail;
+          if (Array.isArray(addons) && addons.length > 0) {
+            for (const addon of addons) {
+              const addonProdId = addon.product_id || addon.id;
+              const addonVariantId = addon.variant_id;
+              const addonQty = Math.max(1, Number(addon.quantity || 1)) * item.quantity;
+              if (addonProdId) {
+                await InventoryService.deductStockAtomic(
+                  client,
+                  branch.id,
+                  addonProdId,
+                  addonQty,
+                  addonVariantId
+                );
+              }
+            }
+          }
         }
 
         // Step B: Persist order

@@ -19,7 +19,7 @@ export default async function CartPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center font-sans">
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-10 md:p-16 shadow-xl flex flex-col items-center gap-6">
-          <div className="w-24 h-24 rounded-full bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center text-5xl">
+          <div className="w-24 h-24 rounded-full bg-brand-gold-soft dark:bg-[#0c1326]/40 flex items-center justify-center text-5xl">
             🛒
           </div>
           <div className="flex flex-col gap-2 max-w-md">
@@ -34,7 +34,7 @@ export default async function CartPage() {
           <div className="flex flex-wrap gap-4 justify-center mt-2">
             <Link
               href="/products"
-              className="px-8 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm md:text-base shadow-lg shadow-rose-600/20 transition-all hover:scale-[1.02]"
+              className="px-8 py-3.5 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold text-sm md:text-base shadow-lg shadow-rose-600/20 transition-all hover:scale-[1.02]"
             >
               Browse Gourmet Cakes →
             </Link>
@@ -56,56 +56,93 @@ export default async function CartPage() {
     0
   );
 
+  const deliveryFeeCookie = cookieStore.get("delivery_fee")?.value;
+  let resolvedDeliveryFee: number | null = null;
+  if (typeof cart?.delivery_fee === "number") {
+    resolvedDeliveryFee = cart.delivery_fee;
+  } else if (deliveryFeeCookie) {
+    const rawFee = decodeURIComponent(deliveryFeeCookie).trim().toLowerCase();
+    if (rawFee === "free" || rawFee === "0") {
+      resolvedDeliveryFee = 0;
+    } else {
+      const parsed = parseFloat(rawFee.replace(/[^0-9.]/g, ""));
+      resolvedDeliveryFee = isNaN(parsed) ? null : parsed;
+    }
+  }
+
+  let deliveryLabel = "Calculated at checkout";
+  let deliveryClass = "text-zinc-500";
+  if (resolvedDeliveryFee === 0) {
+    deliveryLabel = "FREE";
+    deliveryClass = "text-emerald-600 font-bold";
+  } else if (typeof resolvedDeliveryFee === "number") {
+    deliveryLabel = `₹${resolvedDeliveryFee.toLocaleString("en-IN")}`;
+    deliveryClass = "font-medium text-zinc-900 dark:text-zinc-100";
+  }
+
+  const grandTotal = subtotal + (typeof resolvedDeliveryFee === "number" ? resolvedDeliveryFee : 0);
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 font-sans">
-      <h1 className="text-2xl md:text-3xl font-extrabold text-zinc-900 dark:text-zinc-100 mb-6 flex items-center gap-3">
-        <span>🛒</span> Your Shopping Cart ({items.length} {items.length === 1 ? "item" : "items"})
-      </h1>
+      <div className="flex justify-between items-center mb-8 border-b border-zinc-200 dark:border-zinc-800 pb-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+            Shopping Bag
+          </h1>
+          <p className="text-sm text-zinc-500 mt-1">
+            {items.reduce((sum: number, it: any) => sum + (it.quantity || 1), 0)} items in your cart
+          </p>
+        </div>
+        <Link
+          href="/products"
+          className="text-sm font-semibold text-[#1D2F5D] dark:text-[#D4AF37] hover:underline flex items-center gap-1"
+        >
+          <span>Continue Shopping</span>
+          <span>→</span>
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 flex flex-col gap-4">
           {items.map((item: any) => (
             <div
               key={item.id}
-              className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between"
+              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs"
             >
-              <div className="flex items-center gap-4 min-w-0">
-                <img
-                  src={item.thumbnail || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=200"}
-                  alt={item.title || "Cake"}
-                  className="w-20 h-20 rounded-xl object-cover border border-zinc-100 dark:border-zinc-800 shrink-0"
-                />
-                <div className="flex flex-col gap-1 min-w-0">
-                  <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100 truncate">
+              <div className="flex items-center gap-4">
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-zinc-100 shrink-0 border border-zinc-200/60">
+                  <img
+                    src={item.thumbnail || item.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=200"}
+                    alt={item.title || "Product"}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100">
                     {item.title || item.name}
                   </h3>
-                  <div className="flex flex-wrap gap-2 text-xs">
+                  <div className="flex items-center gap-2 mt-1">
                     {item.weight && (
-                      <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md font-medium text-zinc-700 dark:text-zinc-300">
+                      <span className="text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-600 dark:text-zinc-300 font-medium">
                         {item.weight}
                       </span>
                     )}
-                    {item.shape && (
-                      <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md text-zinc-600 dark:text-zinc-400">
-                        {item.shape}
-                      </span>
-                    )}
+                    <span className="text-xs text-zinc-500">
+                      Qty: {item.quantity || 1}
+                    </span>
                   </div>
-                  {item.cake_message && (
-                    <p className="text-xs text-zinc-500 italic truncate">
-                      "{item.cake_message}"
+                  {item.unit_price && Number(item.quantity || 1) > 1 && (
+                    <p className="text-xs text-zinc-400 mt-0.5">
+                      ₹{Number(item.unit_price).toLocaleString("en-IN")} each
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2">
-                <span className="font-extrabold text-base text-zinc-900 dark:text-zinc-100">
+              <div className="text-right sm:text-right w-full sm:w-auto border-t sm:border-t-0 pt-2 sm:pt-0 border-zinc-100">
+                <div className="text-lg font-bold text-[#1D2F5D] dark:text-[#D4AF37]">
                   ₹{(Number(item.unit_price || item.price || 0) * Number(item.quantity || 1)).toLocaleString("en-IN")}
-                </span>
-                <span className="text-xs text-zinc-500">
-                  Qty: {item.quantity || 1}
-                </span>
+                </div>
               </div>
             </div>
           ))}
@@ -122,21 +159,26 @@ export default async function CartPage() {
               <span className="font-bold text-zinc-900 dark:text-zinc-100">₹{subtotal.toLocaleString("en-IN")}</span>
             </div>
 
-            <div className="flex justify-between text-sm text-emerald-600 font-medium">
-              <span>Standard Delivery</span>
-              <span>{subtotal >= 599 ? "FREE" : "Calculated at checkout"}</span>
+            <div className="flex justify-between text-sm font-medium">
+              <span className="text-zinc-600 dark:text-zinc-400">Standard Delivery</span>
+              <span className={deliveryClass}>{deliveryLabel}</span>
             </div>
 
             <div className="border-t border-zinc-100 dark:border-zinc-800 pt-3 flex justify-between items-center">
-              <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">Estimated Total</span>
-              <span className="font-extrabold text-xl text-rose-600 dark:text-rose-400">
-                ₹{subtotal.toLocaleString("en-IN")}
+              <div className="flex flex-col">
+                <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">Estimated Total</span>
+                {resolvedDeliveryFee === null && (
+                  <span className="text-xs text-zinc-400 font-normal">excl. delivery fee</span>
+                )}
+              </div>
+              <span className="font-extrabold text-xl text-[#1D2F5D] dark:text-[#D4AF37]">
+                ₹{grandTotal.toLocaleString("en-IN")}
               </span>
             </div>
 
             <Link
               href="/checkout"
-              className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-center rounded-xl shadow-lg shadow-rose-600/20 transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold text-center rounded-xl shadow-lg shadow-rose-600/20 transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
             >
               <span>Proceed to Checkout</span>
               <span>→</span>

@@ -1,0 +1,458 @@
+{
+  "viewports": {
+    "320px-mobile-compact": {
+      "viewportWidth": 320,
+      "scrollWidth": 320,
+      "overflow": false,
+      "logoVisible": false,
+      "logoWidth": 0,
+      "locationVisible": false,
+      "searchVisible": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": false,
+      "cartVisible": false,
+      "profileVisible": false,
+      "headerHeight": 86
+    },
+    "360px-mobile-standard": {
+      "viewportWidth": 360,
+      "scrollWidth": 360,
+      "overflow": false,
+      "logoVisible": false,
+      "logoWidth": 0,
+      "locationVisible": false,
+      "searchVisible": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": false,
+      "cartVisible": false,
+      "profileVisible": false,
+      "headerHeight": 86
+    },
+    "375px-iphone-se": {
+      "viewportWidth": 375,
+      "scrollWidth": 375,
+      "overflow": false,
+      "logoVisible": false,
+      "logoWidth": 0,
+      "locationVisible": false,
+      "searchVisible": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": false,
+      "cartVisible": false,
+      "profileVisible": false,
+      "headerHeight": 86
+    },
+    "390px-iphone-14-15": {
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "overflow": false,
+      "logoVisible": false,
+      "logoWidth": 0,
+      "locationVisible": false,
+      "searchVisible": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": false,
+      "cartVisible": false,
+      "profileVisible": false,
+      "headerHeight": 86
+    },
+    "430px-iphone-pro-max": {
+      "viewportWidth": 430,
+      "scrollWidth": 430,
+      "overflow": false,
+      "logoVisible": false,
+      "logoWidth": 0,
+      "locationVisible": false,
+      "searchVisible": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": false,
+      "cartVisible": false,
+      "profileVisible": false,
+      "headerHeight": 86
+    },
+    "768px-tablet-portrait": {
+      "viewportWidth": 768,
+      "scrollWidth": 768,
+      "overflow": false,
+      "logoVisible": true,
+      "logoWidth": 37,
+      "locationVisible": true,
+      "searchVisible": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": false,
+      "cartVisible": false,
+      "profileVisible": false,
+      "headerHeight": 65
+    },
+    "1024px-tablet-landscape": {
+      "viewportWidth": 1024,
+      "scrollWidth": 1024,
+      "overflow": false,
+      "logoVisible": true,
+      "logoWidth": 37,
+      "locationVisible": true,
+      "searchVisible": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": false,
+      "cartVisible": false,
+      "profileVisible": false,
+      "headerHeight": 65
+    },
+    "1280px-desktop": {
+      "viewportWidth": 1280,
+      "scrollWidth": 1280,
+      "overflow": false,
+      "logoVisible": true,
+      "logoWidth": 37,
+      "locationVisible": true,
+      "searchVisible": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": false,
+      "cartVisible": false,
+      "profileVisible": false,
+      "headerHeight": 65
+    },
+    "1440px-desktop-wide": {
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "overflow": false,
+      "logoVisible": true,
+      "logoWidth": 37,
+      "locationVisible": true,
+      "searchVisible": true,
+      "searchLocationOverlap": false,
+      "wishlistVisible": false,
+      "cartVisible": false,
+      "profileVisible": false,
+      "headerHeight": 65
+    }
+  },
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ],
+  "consoleWarnings": [
+    "Image with src \"https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+    "Image with src \"https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+    "Image with src \"https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&q=80&w=400\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+    "Image with src \"https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=400\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+    "Image with src \"https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+    "Image with src \"https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+    "Image with src \"https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&q=80&w=400\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+    "Image with src \"https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=400\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+    "Image with src \"https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+    "Image with src \"https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+    "Image with src \"https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&q=80&w=400\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes",
+    "Image with src \"https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=400\" has \"fill\" but is missing \"sizes\" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes"
+  ],
+  "duplicateKeyWarnings": [],
+  "network4xx5xx": [
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 404,
+      "url": "http://localhost:3000/images/placeholder-cake.jpg",
+      "method": "GET"
+    },
+    {
+      "status": 404,
+      "url": "http://localhost:3000/images/placeholder-cake.jpg",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET"
+    }
+  ],
+  "failedNetworkRequests": [
+    {
+      "url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=1000&q=80",
+      "method": "GET",
+      "failure": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=1000&q=80",
+      "method": "GET",
+      "failure": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=1000&q=80",
+      "method": "GET",
+      "failure": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=1000&q=80",
+      "method": "GET",
+      "failure": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=1000&q=80",
+      "method": "GET",
+      "failure": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=1000&q=80",
+      "method": "GET",
+      "failure": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=1000&q=80",
+      "method": "GET",
+      "failure": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=1000&q=80",
+      "method": "GET",
+      "failure": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=1000&q=80",
+      "method": "GET",
+      "failure": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=1000&q=80",
+      "method": "GET",
+      "failure": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=1000&q=80",
+      "method": "GET",
+      "failure": "net::ERR_BLOCKED_BY_ORB"
+    },
+    {
+      "url": "http://localhost:3000/products/belgian-chocolate-truffle-cake?_rsc=i7vy0",
+      "method": "GET",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=1000&q=80",
+      "method": "GET",
+      "failure": "net::ERR_BLOCKED_BY_ORB"
+    }
+  ],
+  "routes": {
+    "Homepage": {
+      "url": "http://localhost:3000/",
+      "status": 200,
+      "title": "Order Fresh Cakes Online in Bangalore — Delivered in 2 Hours | CakeToHome",
+      "overflow": false
+    },
+    "Product Listing": {
+      "url": "http://localhost:3000/products",
+      "status": 200,
+      "title": "Gourmet Cakes & Sweets Catalog | CakeToHome Bangalore",
+      "overflow": false
+    },
+    "Category Destination": {
+      "url": "http://localhost:3000/products?category=chocolate-cakes",
+      "status": 200,
+      "title": "Gourmet Cakes & Sweets Catalog | CakeToHome Bangalore",
+      "overflow": false
+    },
+    "PDP 1 (Chocolate Truffle)": {
+      "url": "http://localhost:3000/products/chocolate-truffle",
+      "status": 200,
+      "title": "CHOCOLATE TRUFFLE 1 Kg | Same Day Cake Delivery | CakeToHome",
+      "overflow": false
+    },
+    "PDP 2 (Pistachio Gateau)": {
+      "url": "http://localhost:3000/products/pistachio-gateau",
+      "status": 200,
+      "title": "PISTACHIO GATEAU 1 Kg | Same Day Cake Delivery | CakeToHome",
+      "overflow": false
+    },
+    "PDP 3 (Choco Red)": {
+      "url": "http://localhost:3000/products/choco-red",
+      "status": 200,
+      "title": "CHOCO RED 1 Kg | Same Day Cake Delivery | CakeToHome",
+      "overflow": false
+    },
+    "Compare Page": {
+      "url": "http://localhost:3000/compare",
+      "status": 200,
+      "title": "CakeToHome",
+      "overflow": false
+    },
+    "Search Results Page": {
+      "url": "http://localhost:3000/search?q=chocolate",
+      "status": 200,
+      "title": "CakeToHome",
+      "overflow": false
+    },
+    "Checkout Page": {
+      "url": "http://localhost:3000/checkout",
+      "status": 200,
+      "title": "Checkout — CakeToHome",
+      "overflow": false
+    },
+    "Admin Orders": {
+      "url": "http://localhost:3000/dashboard?tab=orders",
+      "status": 200,
+      "title": "Customer Login & Account Access | CakeToHome",
+      "overflow": false
+    },
+    "Admin Catalog": {
+      "url": "http://localhost:3000/dashboard?tab=catalog",
+      "status": 200,
+      "title": "Customer Login & Account Access | CakeToHome",
+      "overflow": false
+    },
+    "Admin Delivery Partners": {
+      "url": "http://localhost:3000/dashboard?tab=delivery",
+      "status": 200,
+      "title": "Customer Login & Account Access | CakeToHome",
+      "overflow": false
+    },
+    "Admin Branches & Operations": {
+      "url": "http://localhost:3000/dashboard?tab=branches",
+      "status": 200,
+      "title": "Customer Login & Account Access | CakeToHome",
+      "overflow": false
+    },
+    "Admin Customers/CRM": {
+      "url": "http://localhost:3000/dashboard?tab=crm",
+      "status": 200,
+      "title": "Customer Login & Account Access | CakeToHome",
+      "overflow": false
+    },
+    "Admin CMS Visual Editor": {
+      "url": "http://localhost:3000/dashboard?tab=cms",
+      "status": 200,
+      "title": "Customer Login & Account Access | CakeToHome",
+      "overflow": false
+    }
+  },
+  "interactions": {
+    "locationModalOpen": true,
+    "locationModalClose": true,
+    "searchModalOpen": true,
+    "productCardNavigation": true
+  }
+}

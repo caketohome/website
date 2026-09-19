@@ -19,6 +19,7 @@ import { selectWinningPopup } from "@frontend/lib/engagement/popup-priority-engi
 import { isFrequencyCapped, recordFrequencyDisplay } from "@frontend/lib/engagement/popup-frequency-manager";
 import { evaluateCampaignTriggers } from "@frontend/lib/engagement/popup-trigger-engine";
 import { hasClientAuthSession } from "@frontend/lib/auth-service";
+import { cartBus } from "@/lib/cart/cart-event-bus";
 
 export type EngagementPopupType =
   | "AUTH_MODAL"
@@ -67,6 +68,32 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
   // Dynamic campaigns fetched from /api/v1/engagement/config
   const [publishedCampaigns, setPublishedCampaigns] = useState<PopupCampaign[]>([]);
   const [configLoaded, setConfigLoaded] = useState(false);
+
+  // Authoritative server cart synchronized via /api/v1/cart & cartBus
+  const [serverCart, setServerCart] = useState<any>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v1/cart")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled && data?.cart) {
+          setServerCart(data.cart);
+        }
+      })
+      .catch(() => {});
+
+    const unsub = cartBus.onCartUpdated((newCart) => {
+      if (!cancelled) {
+        setServerCart(newCart);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, []);
 
   // Authoritative runtime tracking refs
   const sessionStartTimeRef = useRef<number>(Date.now());
@@ -198,7 +225,7 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
       }
     }
 
-    // Cart Context
+    // Cart Context - Authoritative from Server / cartBus
     let hasItems = false;
     let itemCount = 0;
     let cartTotal = 0;
@@ -206,38 +233,24 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
     const cartCategoryIds: string[] = [];
     const cartProductIds: string[] = [];
 
-    if (typeof window !== "undefined") {
-      try {
-        const cartItemsStr = localStorage.getItem("medusa_cart_items") || localStorage.getItem("_cth_cart_items");
-        if (cartItemsStr) {
-          const parsed = JSON.parse(cartItemsStr);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            hasItems = true;
-            itemCount = parsed.reduce((sum: number, item: any) => sum + (Number(item.quantity) || 1), 0);
-            cartTotal = parsed.reduce(
-              (sum: number, item: any) =>
-                sum + (Number(item.price || item.unit_price || 0) * (Number(item.quantity) || 1)),
-              0
-            );
-            cartItems = parsed.map((it: any) => {
-              const pId = it.id || it.product_id;
-              const catId = it.category_id || it.categoryId || it.category;
-              if (pId) cartProductIds.push(pId);
-              if (catId) cartCategoryIds.push(catId);
-              return {
-                id: pId,
-                title: it.title || it.name,
-                thumbnail: it.thumbnail || it.image,
-                price: Number(it.price || it.unit_price || 0),
-                quantity: Number(it.quantity || 1),
-                categoryId: catId,
-              };
-            });
-          }
-        }
-      } catch {
-        // Ignore
-      }
+    if (serverCart && Array.isArray(serverCart.items) && serverCart.items.length > 0) {
+      hasItems = true;
+      itemCount = serverCart.items.reduce((sum: number, item: any) => sum + (Number(item.quantity) || 1), 0);
+      cartTotal = Number(serverCart.subtotal || serverCart.total || 0);
+      cartItems = serverCart.items.map((it: any) => {
+        const pId = it.id || it.product_id || it.variant_id;
+        const catId = it.category_id || it.categoryId || it.category;
+        if (pId) cartProductIds.push(pId);
+        if (catId) cartCategoryIds.push(catId);
+        return {
+          id: pId,
+          title: it.title || it.name,
+          thumbnail: it.thumbnail || it.image,
+          price: Number(it.price || it.unit_price || 0),
+          quantity: Number(it.quantity || 1),
+          categoryId: catId,
+        };
+      });
     }
 
     // Navigation & Time Context
@@ -643,14 +656,13 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
     };
 
     window.addEventListener("cth_cart_updated", handleCartEvent);
-    window.addEventListener("storage", (e) => {
-      if (e.key === "medusa_cart_items" || e.key === "_cth_cart_items") {
-        handleCartEvent();
-      }
+    const unsubCartBus = cartBus.onCartUpdated(() => {
+      handleCartEvent();
     });
 
     return () => {
       window.removeEventListener("cth_cart_updated", handleCartEvent);
+      unsubCartBus();
     };
   }, [triggerCampaignCheck]);
 

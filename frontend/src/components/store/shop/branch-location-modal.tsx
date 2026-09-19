@@ -31,7 +31,7 @@ export function BranchLocationModal({ currentBranch, onSelectBranch, onClose }: 
         onSelectBranch(res.branch, res.resolvedBy || "user_search");
         onClose();
       } else {
-        setErrorMsg(`No operational bakery hub delivers to "${pincodeOrArea}". Please try another pincode.`);
+        setErrorMsg(`No operational bakery hub delivers to "${pincodeOrArea}". Please try another area or city.`);
       }
     } catch {
       setErrorMsg("Failed to resolve delivery hub for this location.");
@@ -63,7 +63,7 @@ export function BranchLocationModal({ currentBranch, onSelectBranch, onClose }: 
       },
       () => {
         setLoading(false);
-        setErrorMsg("GPS permission denied. Please enter your pincode or area name manually.");
+        setErrorMsg("GPS permission was not granted. Please enter your area name or landmark.");
       }
     );
   };
@@ -71,13 +71,13 @@ export function BranchLocationModal({ currentBranch, onSelectBranch, onClose }: 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
-        <div className="p-5 border-b bg-rose-50/60 dark:bg-rose-950/30 flex items-center justify-between">
+        <div className="p-5 border-b bg-brand-gold-soft/60 dark:bg-[#0c1326]/30 flex items-center justify-between">
           <div>
-            <Heading level="h3" className="text-base font-bold flex items-center gap-2 text-rose-900 dark:text-rose-200">
-              <MapPin className="w-5 h-5 text-rose-600" /> Select Delivery Location
+            <Heading level="h3" className="text-base font-bold flex items-center gap-2 text-[#1D2F5D] dark:text-[#D4AF37]/60">
+              <MapPin className="w-5 h-5 text-[#1D2F5D]" /> Select Delivery Location
             </Heading>
-            <Text className="text-xs text-rose-700 dark:text-rose-300">
-              Enter your delivery area or pincode to view active bakery inventory and instant ETAs.
+            <Text className="text-xs text-[#152347] dark:text-[#D4AF37]/80">
+              Enter your area or city to view active bakery inventory and instant ETAs.
             </Text>
           </div>
           <Button size="small" variant="transparent" onClick={onClose}>✕</Button>
@@ -98,7 +98,7 @@ export function BranchLocationModal({ currentBranch, onSelectBranch, onClose }: 
           )}
 
           {errorMsg && (
-            <div className="p-3 bg-rose-100 text-rose-800 text-xs font-semibold rounded-xl">
+            <div className="p-3 bg-brand-gold-soft text-[#1D2F5D] text-xs font-semibold rounded-xl">
               ⚠️ {errorMsg}
             </div>
           )}
@@ -107,14 +107,14 @@ export function BranchLocationModal({ currentBranch, onSelectBranch, onClose }: 
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
               <Input
-                placeholder="Enter Pincode (e.g. 560038) or Area (e.g. Indiranagar)"
+                placeholder="Enter Area (e.g. Indiranagar), Landmark or City"
                 value={pincodeOrArea}
                 onChange={(e) => setPincodeOrArea(e.target.value)}
                 className="pl-9 text-xs py-2.5"
                 required
               />
             </div>
-            <Button type="submit" isLoading={loading} className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5">
+            <Button type="submit" isLoading={loading} className="w-full bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold py-2.5">
               Find Matching Bakery Hub
             </Button>
           </form>
@@ -135,7 +135,7 @@ export function BranchLocationModal({ currentBranch, onSelectBranch, onClose }: 
           </Button>
 
           <div className="pt-2 text-[11px] text-slate-500 flex items-center justify-between">
-            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-rose-500" /> 35-45 Min Express ETA</span>
+            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-[#D4AF37]" /> 35-45 Min Express ETA</span>
             <span className="flex items-center gap-1"><Truck className="w-3.5 h-3.5 text-emerald-500" /> Auto Partner Routing</span>
           </div>
         </div>

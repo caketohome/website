@@ -282,12 +282,12 @@ export const CrmPanel = memo(function CrmPanel() {
 
   return (
     <WidgetErrorBoundary widgetName="CRM Customer & Identity Engine">
-      <div className="flex flex-col gap-6 p-6">
+      <div className="flex flex-col gap-5 sm:gap-6 p-2.5 sm:p-5 md:p-6 w-full min-w-0 max-w-full">
         {/* Header Ribbon */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2.5">
-              <Heading level="h1" className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full min-w-0">
+          <div className="flex flex-col gap-1 min-w-0">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <Heading level="h1" className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white break-words">
                 Customer CRM & Identity Engine
               </Heading>
               <Badge color="purple" className="text-xs font-bold uppercase tracking-wider">
@@ -302,7 +302,7 @@ export const CrmPanel = memo(function CrmPanel() {
             </Text>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
             <Button
               size="small"
               variant="secondary"
@@ -358,7 +358,7 @@ export const CrmPanel = memo(function CrmPanel() {
             <Button
               size="small"
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs"
+              className="flex items-center gap-1.5 bg-[#1D2F5D] hover:bg-[#152347] text-white border border-[#D4AF37]/40 shadow-xs text-xs font-semibold"
             >
               <UserPlus className="w-3.5 h-3.5" /> Add Customer
             </Button>
@@ -366,7 +366,7 @@ export const CrmPanel = memo(function CrmPanel() {
         </div>
 
         {/* Live Analytical KPI Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 w-full min-w-0">
           <div
             onClick={() => {
               setActiveSegment("all");
@@ -374,7 +374,7 @@ export const CrmPanel = memo(function CrmPanel() {
             }}
             className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
               activeSegment === "all" && lifecycleFilter === "all"
-                ? "border-rose-500 bg-rose-50/40 dark:bg-rose-950/20 ring-1 ring-rose-500"
+                ? "border-[#1D2F5D] bg-[#1D2F5D]/5 dark:bg-[#1D2F5D]/20 ring-1 ring-[#1D2F5D] dark:border-[#D4AF37]"
                 : "border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-neutral-300"
             }`}
           >
@@ -491,7 +491,7 @@ export const CrmPanel = memo(function CrmPanel() {
 
         {/* Dynamic Segments Ribbon */}
         {segments.length > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin w-full min-w-0 max-w-full">
             <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
               <Layers className="w-3.5 h-3.5" /> Segments:
             </span>
@@ -499,7 +499,7 @@ export const CrmPanel = memo(function CrmPanel() {
               onClick={() => setActiveSegment("all")}
               className={`py-1.5 px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                 activeSegment === "all"
-                  ? "bg-rose-600 text-white shadow-xs"
+                  ? "bg-[#1D2F5D] text-white border border-[#D4AF37]/40 shadow-xs"
                   : "bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200"
               }`}
             >
@@ -511,7 +511,7 @@ export const CrmPanel = memo(function CrmPanel() {
                 onClick={() => setActiveSegment(seg.id)}
                 className={`py-1.5 px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
                   activeSegment === seg.id
-                    ? "bg-rose-600 text-white shadow-xs"
+                    ? "bg-[#1D2F5D] text-white border border-[#D4AF37]/40 shadow-xs"
                     : "bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200"
                 }`}
               >
@@ -526,22 +526,22 @@ export const CrmPanel = memo(function CrmPanel() {
         )}
 
         {/* Search & Multi-Filter Ribbon */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 p-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50">
-          <div className="md:col-span-2 relative">
-            <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/70 w-full min-w-0 shadow-xs">
+          <div className="md:col-span-2 relative min-w-0">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
               placeholder="Search by Name, Phone, Email, UID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-rose-500"
+              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1D2F5D] dark:focus:ring-[#D4AF37]"
             />
           </div>
 
           <select
             value={lifecycleFilter}
             onChange={(e) => setLifecycleFilter(e.target.value)}
-            className="py-1.5 px-2 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200"
+            className="py-1.5 px-2.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 min-w-0 focus:outline-none focus:ring-2 focus:ring-[#1D2F5D] dark:focus:ring-[#D4AF37]"
           >
             <option value="all">All Lifecycle Stages</option>
             <option value="NEW">New (0 Orders)</option>
@@ -555,7 +555,7 @@ export const CrmPanel = memo(function CrmPanel() {
           <select
             value={tierFilter}
             onChange={(e) => setTierFilter(e.target.value)}
-            className="py-1.5 px-2 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200"
+            className="py-1.5 px-2.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 min-w-0 focus:outline-none focus:ring-2 focus:ring-[#1D2F5D] dark:focus:ring-[#D4AF37]"
           >
             <option value="all">All Loyalty Tiers</option>
             <option value="VIP_PLATINUM">👑 VIP Platinum</option>
@@ -567,7 +567,7 @@ export const CrmPanel = memo(function CrmPanel() {
           <select
             value={branchFilter}
             onChange={(e) => setBranchFilter(e.target.value)}
-            className="py-1.5 px-2 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200"
+            className="py-1.5 px-2.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 min-w-0 focus:outline-none focus:ring-2 focus:ring-[#1D2F5D] dark:focus:ring-[#D4AF37]"
           >
             <option value="all">All Kitchen Hubs</option>
             {branches.map((b) => (
@@ -579,16 +579,16 @@ export const CrmPanel = memo(function CrmPanel() {
         </div>
 
         {/* Master Customer Table */}
-        <Container className="p-0 overflow-hidden border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-xs">
+        <Container className="p-0 overflow-hidden border border-slate-300 dark:border-slate-700 rounded-xl shadow-xs w-full min-w-0 max-w-full">
           {loading ? (
             <TableSkeleton rows={6} />
           ) : customers.length === 0 ? (
             <div className="p-16 text-center flex flex-col items-center gap-2">
-              <Users className="w-10 h-10 text-neutral-400" />
-              <Heading level="h3" className="text-sm font-bold text-neutral-900 dark:text-white">
+              <Users className="w-10 h-10 text-slate-400" />
+              <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-white">
                 No Customer Records Found
               </Heading>
-              <Text className="text-xs text-neutral-500 max-w-sm">
+              <Text className="text-xs text-slate-500 max-w-sm">
                 No customers matched your filter criteria. Try clearing search keywords or segment filters.
               </Text>
             </div>
@@ -596,7 +596,7 @@ export const CrmPanel = memo(function CrmPanel() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/80 text-neutral-500 font-bold uppercase tracking-wider text-[10px]">
+                  <tr className="border-b border-slate-300 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider text-[10px]">
                     <th className="py-3 px-4">Customer Identity</th>
                     <th className="py-3 px-4">Phone & WhatsApp</th>
                     <th className="py-3 px-4">Lifecycle Stage</th>
@@ -607,17 +607,17 @@ export const CrmPanel = memo(function CrmPanel() {
                     <th className="py-3 px-4 text-center">Quick Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                   {customers.map((c) => (
                     <tr
                       key={c.customer_uid || c.id}
-                      className="hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40 transition-colors group cursor-pointer"
+                      className="hover:bg-[#1D2F5D]/5 dark:hover:bg-[#1D2F5D]/20 transition-colors group cursor-pointer"
                       onClick={() => setSelectedCustomerUid(c.customer_uid || c.id)}
                     >
                       {/* Customer Name & Info */}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-bold flex items-center justify-center text-xs shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-[#1D2F5D]/10 dark:bg-[#1D2F5D]/30 text-[#1D2F5D] dark:text-[#D4AF37] font-bold flex items-center justify-center text-xs shrink-0 border border-[#D4AF37]/30">
                             {c.name.slice(0, 2).toUpperCase()}
                           </div>
                           <div className="flex flex-col min-w-0">
@@ -653,7 +653,7 @@ export const CrmPanel = memo(function CrmPanel() {
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-1.5">
                           <span className="font-extrabold text-amber-500 font-mono text-xs">
-                            {c.customer_intelligence_score ?? 85}/100
+                            {c.customer_intelligence_score != null ? `${c.customer_intelligence_score}/100` : "—"}
                           </span>
                           <span className="text-[10px] text-neutral-400">Score</span>
                         </div>
@@ -714,7 +714,7 @@ export const CrmPanel = memo(function CrmPanel() {
                           <button
                             title="View Customer 360 & Lineage"
                             onClick={() => setSelectedCustomerUid(c.customer_uid || c.id)}
-                            className="p-1.5 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-700 dark:text-rose-400 transition-colors"
+                            className="p-1.5 rounded-lg hover:bg-[#1D2F5D]/10 dark:hover:bg-[#1D2F5D]/30 text-[#1D2F5D] dark:text-[#D4AF37] transition-colors"
                           >
                             <ChevronRight className="w-4 h-4" />
                           </button>
@@ -774,7 +774,7 @@ export const CrmPanel = memo(function CrmPanel() {
 
               {healthLoading ? (
                 <div className="p-8 flex items-center justify-center">
-                  <RefreshCw className="w-6 h-6 animate-spin text-rose-600" />
+                  <RefreshCw className="w-6 h-6 animate-spin text-[#1D2F5D] dark:text-[#D4AF37]" />
                 </div>
               ) : healthReport ? (
                 <div className="flex flex-col gap-4 text-xs">
@@ -957,7 +957,7 @@ export const CrmPanel = memo(function CrmPanel() {
                     id="isVip"
                     checked={createIsVip}
                     onChange={(e) => setCreateIsVip(e.target.checked)}
-                    className="rounded border-neutral-300 text-rose-600 focus:ring-rose-500"
+                    className="rounded border-neutral-300 text-[#1D2F5D] focus:ring-[#1D2F5D]"
                   />
                   <Label htmlFor="isVip" className="text-xs cursor-pointer font-medium">
                     Grant VIP Patron Status
@@ -968,7 +968,7 @@ export const CrmPanel = memo(function CrmPanel() {
                   <Button size="small" variant="secondary" type="button" onClick={() => setShowCreateModal(false)}>
                     Cancel
                   </Button>
-                  <Button size="small" type="submit" disabled={submitting} className="bg-rose-600 hover:bg-rose-700 text-white">
+                  <Button size="small" type="submit" disabled={submitting} className="bg-[#1D2F5D] hover:bg-[#152347] text-white border border-[#D4AF37]/30">
                     {submitting ? "Creating..." : "Save Customer"}
                   </Button>
                 </div>

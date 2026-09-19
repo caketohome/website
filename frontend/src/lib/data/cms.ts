@@ -1,3 +1,5 @@
+import { CmsRepository } from "../repositories/cms.repository";
+
 let _cachedApiEngine: any = null;
 async function getServerApiEngine(): Promise<any> {
   if (typeof window !== "undefined") return null;
@@ -76,6 +78,7 @@ export interface CmsPage {
   breadcrumb_title?: string | null;
   draft_config?: any;
   published_config?: any;
+  pdp_config?: any;
   meta_title?: string | null;
   meta_description?: string | null;
   canonical_url?: string | null;
@@ -99,6 +102,15 @@ export interface CmsPage {
     show_header?: boolean;
     style?: string;
   };
+  theme?: {
+    bg_color?: string;
+    text_color?: string;
+    heading_font?: string;
+    font_family?: string;
+    accent_color?: string;
+    radius?: string;
+    card_style?: string;
+  };
 }
 
 export async function getHomepage(lang = "en"): Promise<{
@@ -107,37 +119,50 @@ export async function getHomepage(lang = "en"): Promise<{
   banners: any[];
   announcementBar?: any;
   headerConfig?: any;
+  theme?: any;
 }> {
   // Authoritative Server Data Path: Query PostgreSQL directly
   if (typeof window === "undefined") {
     try {
-      const { CmsRepository } = await import("../repositories/cms.repository");
-      const page = await CmsRepository.findPageBySlug("home");
+      const [page, dbSections] = await Promise.all([
+        CmsRepository.findPageBySlug("home"),
+        CmsRepository.findHomepageSections(),
+      ]);
       if (page) {
         if (page.status === "published") {
           const pubConfig = (page.published_config as any) || {};
-          const sections = Array.isArray(pubConfig.sections) && pubConfig.sections.length > 0
+          const pageSections = Array.isArray(pubConfig.sections) && pubConfig.sections.length > 0
             ? pubConfig.sections
-            : (Array.isArray(page.sections) ? page.sections : []);
+            : (Array.isArray(page.sections) && page.sections.length > 0 ? page.sections : []);
+          const sections = pageSections.length > 0 ? pageSections : dbSections;
           const banners = Array.isArray(pubConfig.banners)
             ? pubConfig.banners
             : (Array.isArray(page.draft_config?.banners) ? page.draft_config.banners : []);
 
           return {
-            page: page as unknown as CmsPage,
+            page: {
+              ...page,
+              meta_title: pubConfig.meta_title || page.meta_title,
+              meta_description: pubConfig.meta_description || page.meta_description,
+              h1: pubConfig.h1 || (page as any).h1,
+              subheading: pubConfig.subheading || (page as any).subheading,
+              intro_content: pubConfig.intro_content || (page as any).intro_content,
+            } as unknown as CmsPage,
             sections,
             banners,
             announcementBar: pubConfig.announcement_bar || (page as any).announcement_bar,
             headerConfig: pubConfig.header_config || (page as any).header_config,
+            theme: pubConfig.theme || (page as any).theme || null,
           };
         }
 
         return {
           page: page as unknown as CmsPage,
-          sections: [],
+          sections: dbSections,
           banners: [],
           announcementBar: (page as any).announcement_bar,
           headerConfig: (page as any).header_config,
+          theme: (page as any).theme || null,
         };
       }
     } catch (err) {
@@ -184,7 +209,6 @@ export async function getCmsPage(slug: string, lang = "en", includeDrafts = fals
   // Authoritative Server Data Path: Query PostgreSQL directly
   if (typeof window === "undefined") {
     try {
-      const { CmsRepository } = await import("../repositories/cms.repository");
       const page = await CmsRepository.findPageBySlug(slug);
       if (page) {
         if (page.status !== "published" && !includeDrafts) {

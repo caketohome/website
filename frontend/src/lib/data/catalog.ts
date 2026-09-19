@@ -4,6 +4,10 @@
  */
 
 import { apiClient } from "../api-client";
+import { ProductRepository } from "../repositories/product.repository";
+import { BranchRepository } from "../repositories/branch.repository";
+import { OfferRepository } from "../repositories/offer.repository";
+import { InventoryService } from "../services/inventory.service";
 
 let _cachedApiEngine: any = null;
 async function getServerApiEngine(): Promise<any> {
@@ -68,6 +72,8 @@ export interface SearchFilters {
   q?: string;
   category?: string;
   category_id?: string | string[];
+  occasion?: string;
+  occasion_id?: string;
   flavour?: string;
   weight?: string;
   min_price?: number;
@@ -159,13 +165,13 @@ export interface Subscription {
 }
 
 export async function searchProducts(filters: SearchFilters = {}): Promise<SearchResponse> {
+  const limit = filters.limit || 48;
+  const offset = filters.offset || 0;
+
   // Authoritative Server Data Path: Query PostgreSQL directly
   if (typeof window === "undefined") {
     try {
-      const { ProductRepository } = await import("../repositories/product.repository");
       const categoryVal = filters.category || (Array.isArray(filters.category_id) ? filters.category_id[0] : filters.category_id);
-      const limit = filters.limit || 48;
-      const offset = filters.offset || 0;
       const page = Math.floor(offset / limit) + 1;
 
       const paginated = await ProductRepository.listProducts({
@@ -174,6 +180,7 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
         limit,
         offset,
         category_id: categoryVal,
+        occasion: filters.occasion || filters.occasion_id,
         q: filters.q,
         flavour: filters.flavour,
         min_price: filters.min_price,
@@ -218,6 +225,13 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
       if (filters.vegan !== undefined) {
         mappedResults = mappedResults.filter((p) => Boolean(p.vegan) === filters.vegan);
       }
+      if (filters.weight && filters.weight !== "all") {
+        const targetW = String(filters.weight).toLowerCase().trim();
+        mappedResults = mappedResults.filter((p) => {
+          const pw = String(p.weight || "").toLowerCase().trim();
+          return pw === targetW || pw.includes(targetW) || targetW.includes(pw);
+        });
+      }
 
       return {
         results: mappedResults,
@@ -226,7 +240,13 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
         limit,
       };
     } catch (err) {
-      console.error("[searchProducts ProductRepository Error]", err);
+      console.error("[searchProducts ProductRepository Error]:", err);
+      return {
+        results: [],
+        count: 0,
+        offset,
+        limit,
+      };
     }
   }
 
@@ -363,8 +383,26 @@ export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
     let maxPrice = -Infinity;
 
     validProducts.forEach((p: any) => {
-      if (p.flavour) flavoursSet.add(p.flavour);
-      if (p.weight) weightsSet.add(p.weight);
+      if (p.flavour) {
+        const fStr = typeof p.flavour === "object" ? (p.flavour.name || p.flavour.flavour || "") : String(p.flavour).trim();
+        if (fStr) flavoursSet.add(fStr);
+      }
+      if (p.weight != null) {
+        const rawW = typeof p.weight === "object" ? (p.weight.weight_name || p.weight.name || "") : p.weight;
+        const num = Number(rawW);
+        if (!isNaN(num) && typeof rawW !== "string") {
+          weightsSet.add(num < 50 ? `${num} kg` : `${num} g`);
+        } else if (rawW) {
+          weightsSet.add(String(rawW).trim());
+        }
+      }
+      if (Array.isArray(p.weight_prices)) {
+        p.weight_prices.forEach((wp: any) => {
+          if (wp?.weight_name && typeof wp.weight_name === "string") {
+            weightsSet.add(wp.weight_name.trim());
+          }
+        });
+      }
       const pPrice = Number(p.price || p.selling_price || 0);
       if (pPrice > 0) {
         if (pPrice < minPrice) minPrice = pPrice;
@@ -372,10 +410,16 @@ export async function getCatalogFilterOptions(): Promise<CatalogFilterOptions> {
       }
     });
 
+    const sortedWeights = Array.from(weightsSet).sort((a, b) => {
+      const numA = parseFloat(a) || 0;
+      const numB = parseFloat(b) || 0;
+      return numA - numB;
+    });
+
     return {
       categories: categoriesList,
-      flavours: Array.from(flavoursSet),
-      weights: Array.from(weightsSet),
+      flavours: Array.from(flavoursSet).sort(),
+      weights: sortedWeights,
       minPrice: isFinite(minPrice) ? minPrice : 0,
       maxPrice: isFinite(maxPrice) ? maxPrice : 0,
     };
@@ -654,7 +698,6 @@ export const DEFAULT_CATALOG_PRODUCTS: any[] = [
 export async function listPublicOffers(): Promise<any[]> {
   if (typeof window === "undefined") {
     try {
-      const { OfferRepository } = await import("../repositories/offer.repository");
       const offers = await OfferRepository.findAll();
       const now = new Date();
       return offers
@@ -694,13 +737,11 @@ export async function listProducts(options?: { branchId?: string; pincode?: stri
   // Authoritative PostgreSQL Data Layer (Server Component path)
   if (typeof window === "undefined") {
     try {
-      const { ProductRepository } = await import("../repositories/product.repository");
       const products = await ProductRepository.findAll(100);
 
       let targetBranchId = options?.branchId;
       if (!targetBranchId && options?.pincode) {
         try {
-          const { BranchRepository } = await import("../repositories/branch.repository");
           const resolved = await BranchRepository.findByPincode(options.pincode);
           if (resolved) {
             targetBranchId = resolved.id;
@@ -711,7 +752,6 @@ export async function listProducts(options?: { branchId?: string; pincode?: stri
       let stockMap = new Map<string, number>();
       if (targetBranchId && products.length > 0) {
         try {
-          const { InventoryService } = await import("../services/inventory.service");
           const productIds = products.map((p: any) => p.id || p.product_id);
           stockMap = await InventoryService.getBatchStock(targetBranchId, productIds);
         } catch (err) {
@@ -765,7 +805,8 @@ export async function listProducts(options?: { branchId?: string; pincode?: stri
         };
       });
     } catch (err) {
-      console.error("[listProducts ProductRepository Error]", err);
+      console.error("[listProducts ProductRepository Error]:", err);
+      return [];
     }
   }
 
@@ -786,17 +827,14 @@ export async function getProductById(id: string, pincode?: string): Promise<any 
   // Authoritative PostgreSQL Data Layer
   if (typeof window === "undefined") {
     try {
-      const { ProductRepository } = await import("../repositories/product.repository");
       const product = await ProductRepository.findById(id);
       if (!product) return null;
 
       let isOos = false;
       if (pincode) {
         try {
-          const { BranchRepository } = await import("../repositories/branch.repository");
           const resolved = await BranchRepository.findByPincode(pincode);
           if (resolved) {
-            const { InventoryService } = await import("../services/inventory.service");
             const stockMap = await InventoryService.getBatchStock(resolved.id, [product.id]);
             const stock = stockMap.get(product.id);
             if (stock !== undefined && stock <= 0) {
@@ -812,7 +850,8 @@ export async function getProductById(id: string, pincode?: string): Promise<any 
         is_out_of_stock_at_branch: isOos,
       };
     } catch (err) {
-      console.error("[getProductById ProductRepository Error]", err);
+      console.error("[getProductById ProductRepository Error]:", err);
+      return null;
     }
   }
 
@@ -828,17 +867,14 @@ export async function getProductBySlug(slug: string, pincode?: string): Promise<
   // Authoritative PostgreSQL Data Layer
   if (typeof window === "undefined") {
     try {
-      const { ProductRepository } = await import("../repositories/product.repository");
       const product = await ProductRepository.findBySlug(slug);
       if (!product) return null;
 
       let isOos = false;
       if (pincode) {
         try {
-          const { BranchRepository } = await import("../repositories/branch.repository");
           const resolved = await BranchRepository.findByPincode(pincode);
           if (resolved) {
-            const { InventoryService } = await import("../services/inventory.service");
             const stockMap = await InventoryService.getBatchStock(resolved.id, [product.id]);
             const stock = stockMap.get(product.id);
             if (stock !== undefined && stock <= 0) {
@@ -965,14 +1001,14 @@ export async function listOccasions(): Promise<any[]> {
           metadata->>'occasion' as name,
           LOWER(REGEXP_REPLACE(metadata->>'occasion', '[^a-zA-Z0-9]+', '-', 'g')) as slug,
           'occ_' || LOWER(REGEXP_REPLACE(metadata->>'occasion', '[^a-zA-Z0-9]+', '_', 'g')) as id,
-          thumbnail as image,
-          thumbnail as cover_image,
+          MAX(thumbnail) as image,
+          MAX(thumbnail) as cover_image,
           COUNT(*)::int as count
         FROM product
         WHERE metadata->>'occasion' IS NOT NULL 
           AND metadata->>'occasion' != ''
           AND deleted_at IS NULL
-        GROUP BY 1, 2, 3, 4, 5, 6
+        GROUP BY 1, 2, 3, 4
         ORDER BY count DESC
       `);
 

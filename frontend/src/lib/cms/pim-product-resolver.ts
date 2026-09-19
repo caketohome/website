@@ -235,10 +235,10 @@ export function resolveProducts(
   if (filter.flavor_filter || (filter.flavors && filter.flavors.length > 0)) {
     const flavors = filter.flavors || (filter.flavor_filter ? [filter.flavor_filter] : []);
     if (flavors.length > 0) {
-      const flavorSet = new Set(flavors.map(f => f.toLowerCase()));
+      const flavorSet = new Set(flavors.map(f => String(f || "").toLowerCase()));
       products = products.filter(p => {
-        const pFlavor = (p.flavor || p.flavour || "").toLowerCase();
-        const pFlavors = (p.flavors || p.flavours || []).map((f: string) => f.toLowerCase());
+        const pFlavor = String(p.flavor || p.flavour || "").toLowerCase();
+        const pFlavors = (p.flavors || p.flavours || []).map((f: any) => String(f || "").toLowerCase());
         return flavorSet.has(pFlavor) || pFlavors.some((f: string) => flavorSet.has(f));
       });
     }
@@ -248,7 +248,7 @@ export function resolveProducts(
   if (filter.weight_filter || (filter.weights && filter.weights.length > 0)) {
     const weights = filter.weights || (filter.weight_filter ? [filter.weight_filter] : []);
     if (weights.length > 0) {
-      const weightSet = new Set(weights.map(w => w.toLowerCase()));
+      const weightSet = new Set(weights.map(w => String(w || "").toLowerCase()));
       products = products.filter(p => {
         const pWeight = String(p.weight || p.base_weight || "").toLowerCase();
         return weightSet.has(pWeight);

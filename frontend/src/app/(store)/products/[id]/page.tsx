@@ -4,6 +4,7 @@ import ProductDetailClient from "../../../../components/store/shop/product-detai
 import { ProductJsonLd } from "../../../../components/store/seo/json-ld";
 import { getProductById, getProductBySlug, listProductReviews } from "../../../../lib/data/catalog";
 import { getCmsPage } from "../../../../lib/data/cms";
+import { ProductRepository } from "../../../../lib/repositories/product.repository";
 import { SeoMetadataBuilder } from "../../../../lib/seo/metadata-builder";
 import type { Metadata } from "next";
 
@@ -77,14 +78,16 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     categories: fetched?.categories || [],
     flavour: fetched?.flavour,
     weight: fetched?.weight,
-    variants: [
-      {
-        id: `var_${productId}`,
-        sku: `${(fetched?.handle || "CAKE").toUpperCase()}-500G`,
-        title: "500g",
-        price: basePrice,
-      },
-    ],
+    variants: Array.isArray(fetched?.variants) && fetched.variants.length > 0
+      ? fetched.variants
+      : [
+          {
+            id: `var_${productId}`,
+            sku: fetched?.sku || `${(fetched?.handle || "PRODUCT").toUpperCase()}`,
+            title: fetched?.title || "Standard",
+            price: basePrice,
+          },
+        ],
     metadata: { shop_id: "br_koramangala" },
   };
 
@@ -111,7 +114,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const ratingDistribution = reviewsData?.aggregate?.rating_distribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   const isWishlistedInitial = false;
   const shopId = "br_koramangala";
-  const variantId = `var_${productId}`;
+  const variantId = (product.variants && product.variants[0]?.id) ? product.variants[0].id : `var_${productId}`;
 
   // Fetch dynamic PIM configuration from database engine
   const weightPrices = (fetched as any)?.weight_prices || (fetched as any)?.weights || [];
@@ -121,14 +124,47 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   // Fetch CMS Product Page (PDP) builder configuration
   let pdpConfig: any = {};
   try {
-    const cmsPage = await getCmsPage("product");
+    const cmsPage = await getCmsPage("product", "en", true);
     if (cmsPage) {
       pdpConfig = cmsPage.status === "published"
-        ? (cmsPage.published_config?.pdp || cmsPage.published_config || cmsPage.draft_config?.pdp || {})
-        : (cmsPage.draft_config?.pdp || cmsPage.draft_config || {});
+        ? (cmsPage.published_config?.pdp || cmsPage.published_config?.pdp_config || cmsPage.pdp_config || cmsPage.draft_config?.pdp || {})
+        : (cmsPage.pdp_config || cmsPage.draft_config?.pdp || cmsPage.draft_config || {});
     }
   } catch {
     pdpConfig = {};
+  }
+
+  // Authoritative Database Related Products (server-side fetched to avoid client waterfalls)
+  let relatedProducts: any[] = [];
+  try {
+    const relatedRes = await ProductRepository.listProducts({
+      category_id: fetched?.primary_category_id || fetched?.category_slug || fetched?.category,
+      limit: 8,
+    });
+    relatedProducts = (relatedRes?.items || [])
+      .filter((p: any) => p.id !== productId && p.product_id !== productId)
+      .slice(0, pdpConfig?.related_limit || 4)
+      .map((p: any) => ({
+        product_id: p.id || p.product_id,
+        id: p.id || p.product_id,
+        title: p.title || p.name,
+        name: p.title || p.name,
+        handle: p.handle || p.slug,
+        price: Number(p.price || p.selling_price || 599),
+        thumbnail: p.thumbnail || "/images/placeholder-cake.jpg",
+        rating: Number(p.rating || 4.9),
+        review_count: Number(p.review_count || 12),
+        category: p.category || "Cakes",
+        category_slug: p.category_slug || "cakes",
+        is_bestseller: Boolean(p.is_bestseller),
+        is_featured: Boolean(p.is_featured),
+        is_new_arrival: Boolean(p.is_new_arrival),
+        sugar_free: Boolean(p.sugar_free),
+        gluten_free: Boolean(p.gluten_free),
+        vegan: Boolean(p.vegan),
+      }));
+  } catch (err) {
+    console.error("[PDP Related Products DB Error]:", err);
   }
 
   return (
@@ -154,6 +190,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         masterVariantOptions={masterVariantOptions}
         pimConfig={pimConfig}
         pdpConfig={pdpConfig}
+        relatedProducts={relatedProducts}
       />
     </>
   );

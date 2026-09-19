@@ -1,0 +1,282 @@
+{
+  "timestamp": "2026-09-15T04:31:39.021Z",
+  "results": [
+    {
+      "step": "1B-Step1Panel",
+      "status": "INFO",
+      "detail": "Step 1 panel found: false, visible: false",
+      "ts": "2026-09-15T04:29:56.530Z"
+    },
+    {
+      "step": "1B-NameInput",
+      "status": "WARN",
+      "detail": "Name input: false",
+      "ts": "2026-09-15T04:29:56.550Z"
+    },
+    {
+      "step": "1B-PhoneInput",
+      "status": "WARN",
+      "detail": "Phone input: false",
+      "ts": "2026-09-15T04:29:56.550Z"
+    },
+    {
+      "step": "1B-EmailInput",
+      "status": "WARN",
+      "detail": "Email input: false",
+      "ts": "2026-09-15T04:29:56.550Z"
+    },
+    {
+      "step": "1B-GPSBtn",
+      "status": "INFO",
+      "detail": "GPS button found: false",
+      "ts": "2026-09-15T04:29:56.567Z"
+    },
+    {
+      "step": "1B-SearchInput",
+      "status": "INFO",
+      "detail": "Location search input: false",
+      "ts": "2026-09-15T04:29:56.568Z"
+    },
+    {
+      "step": "1B-MapComponent",
+      "status": "INFO",
+      "detail": "Map component: false",
+      "ts": "2026-09-15T04:29:56.568Z"
+    },
+    {
+      "step": "1B-DateButtons",
+      "status": "INFO",
+      "detail": "Date buttons: 0",
+      "ts": "2026-09-15T04:29:56.578Z"
+    },
+    {
+      "step": "1B-SelfGiftToggle",
+      "status": "INFO",
+      "detail": "Self/Gift toggle: false",
+      "ts": "2026-09-15T04:29:56.591Z"
+    },
+    {
+      "step": "1B-ContinueBtn",
+      "status": "INFO",
+      "detail": "Continue button: false",
+      "ts": "2026-09-15T04:29:56.595Z"
+    },
+    {
+      "step": "1B-HiddenFields",
+      "status": "INFO",
+      "detail": "Hidden form fields: none",
+      "ts": "2026-09-15T04:29:56.598Z"
+    },
+    {
+      "step": "1B-Screenshot",
+      "status": "PASS",
+      "detail": "Checkout screenshots saved",
+      "ts": "2026-09-15T04:29:56.763Z"
+    },
+    {
+      "step": "3-Bangalore",
+      "status": "PASS",
+      "detail": "Bangalore (12.97, 77.59): HTTP 200, serviceable: true, branch: N/A",
+      "ts": "2026-09-15T04:30:05.092Z"
+    },
+    {
+      "step": "3-Kochi",
+      "status": "PASS",
+      "detail": "Kochi (9.93, 76.27): HTTP 200, serviceable: true",
+      "ts": "2026-09-15T04:30:05.169Z"
+    },
+    {
+      "step": "3-OutOfRange",
+      "status": "PASS",
+      "detail": "Tokyo (out of range): HTTP 200, serviceable: false",
+      "ts": "2026-09-15T04:30:05.222Z"
+    },
+    {
+      "step": "3-Pincode",
+      "status": "PASS",
+      "detail": "Pincode 560038: HTTP 200, serviceable: true",
+      "ts": "2026-09-15T04:30:05.295Z"
+    },
+    {
+      "step": "3-SearchAPI",
+      "status": "PASS",
+      "detail": "Search \"Indiranagar\": HTTP 200, results: 15",
+      "ts": "2026-09-15T04:30:06.602Z"
+    },
+    {
+      "step": "3-CookiePersistence",
+      "status": "PASS",
+      "detail": "Location cookies: lat=true, lng=true, pin=true",
+      "ts": "2026-09-15T04:30:06.612Z"
+    },
+    {
+      "step": "4-ShopDashboard",
+      "status": "WARN",
+      "detail": "GET /api/v1/shop/dashboard: HTTP 404, success: undefined",
+      "ts": "2026-09-15T04:30:12.302Z"
+    },
+    {
+      "step": "4-ShopOrders",
+      "status": "WARN",
+      "detail": "GET /api/v1/shop/orders: HTTP 404, orders: N/A",
+      "ts": "2026-09-15T04:30:12.364Z"
+    },
+    {
+      "step": "4-ShopProducts",
+      "status": "WARN",
+      "detail": "GET /api/v1/shop/products: HTTP 404, products: N/A",
+      "ts": "2026-09-15T04:30:12.416Z"
+    },
+    {
+      "step": "4-FulfillmentPage",
+      "status": "PASS",
+      "detail": "Branch manager page: HTTP 200",
+      "ts": "2026-09-15T04:30:16.788Z"
+    },
+    {
+      "step": "4-ManagerTabs",
+      "status": "INFO",
+      "detail": "Manager tabs found: 0",
+      "ts": "2026-09-15T04:30:16.804Z"
+    },
+    {
+      "step": "5-Desktop/",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:30:24.941Z"
+    },
+    {
+      "step": "5-Desktop/products",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:30:30.484Z"
+    },
+    {
+      "step": "5-Desktop/checkout",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:30:33.216Z"
+    },
+    {
+      "step": "5-Desktop/cart",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:30:35.964Z"
+    },
+    {
+      "step": "5-Laptop/",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:30:44.262Z"
+    },
+    {
+      "step": "5-Laptop/products",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:30:47.794Z"
+    },
+    {
+      "step": "5-Laptop/checkout",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:30:50.113Z"
+    },
+    {
+      "step": "5-Laptop/cart",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:30:52.645Z"
+    },
+    {
+      "step": "5-Tablet/",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:31:00.229Z"
+    },
+    {
+      "step": "5-Tablet/products",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:31:04.427Z"
+    },
+    {
+      "step": "5-Tablet/checkout",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:31:06.841Z"
+    },
+    {
+      "step": "5-Tablet/cart",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:31:09.374Z"
+    },
+    {
+      "step": "5-Mobile/",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:31:15.897Z"
+    },
+    {
+      "step": "5-Mobile/products",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:31:19.848Z"
+    },
+    {
+      "step": "5-Mobile/checkout",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:31:22.153Z"
+    },
+    {
+      "step": "5-Mobile/cart",
+      "status": "PASS",
+      "detail": "HTTP 200, overflow: false",
+      "ts": "2026-09-15T04:31:24.451Z"
+    },
+    {
+      "step": "6-ProductCount",
+      "status": "PASS",
+      "detail": "Products: 18",
+      "ts": "2026-09-15T04:31:30.312Z"
+    },
+    {
+      "step": "6-BranchCount",
+      "status": "PASS",
+      "detail": "Branches: 50",
+      "ts": "2026-09-15T04:31:30.695Z"
+    },
+    {
+      "step": "6-OrderCount",
+      "status": "PASS",
+      "detail": "Orders: 20",
+      "ts": "2026-09-15T04:31:30.837Z"
+    },
+    {
+      "step": "6-CustomerCount",
+      "status": "PASS",
+      "detail": "Customers: 20",
+      "ts": "2026-09-15T04:31:31.006Z"
+    },
+    {
+      "step": "2B-PincodeField",
+      "status": "PASS",
+      "detail": "No pincode field found in checkout — pincode is fully optional",
+      "ts": "2026-09-15T04:31:34.529Z"
+    },
+    {
+      "step": "2B-AddressAPINoPin",
+      "status": "PASS",
+      "detail": "POST /api/customer/address (no pincode): HTTP 401 — auth required (expected for guest)",
+      "ts": "2026-09-15T04:31:39.009Z"
+    }
+  ],
+  "summary": {
+    "passed": 30,
+    "failed": 0,
+    "warned": 6,
+    "info": 9,
+    "total": 45
+  }
+}

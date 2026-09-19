@@ -214,7 +214,7 @@ export function ProductReviewsSection({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6">
         <div>
           <h3 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2.5">
-            <MessageSquare className="w-6 h-6 text-rose-600" />
+            <MessageSquare className="w-6 h-6 text-[#1D2F5D]" />
             <span>Verified Customer Reviews</span>
           </h3>
           <p className="text-xs text-gray-500 mt-1">
@@ -225,17 +225,17 @@ export function ProductReviewsSection({
         <button
           type="button"
           onClick={handleOpenWriteReview}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm active:scale-95 shrink-0"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white text-xs font-bold transition shadow-sm active:scale-95 shrink-0"
         >
           <Plus className="w-4 h-4" /> Write a Review
         </button>
       </div>
 
       {/* ── Rating Overview & Distribution ── */}
-      <div className="bg-gradient-to-br from-rose-50/70 via-white to-amber-50/40 border border-rose-100 rounded-3xl p-6 sm:p-8 mb-8 shadow-sm">
+      <div className="bg-gradient-to-br from-[#FDFBF7]/70 via-white to-amber-50/40 border border-[#D4AF37]/20 rounded-3xl p-6 sm:p-8 mb-8 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
           {/* Left: Big Average Score */}
-          <div className="md:col-span-4 flex flex-col items-center md:items-start text-center md:text-left border-b md:border-b-0 md:border-r border-rose-100 pb-6 md:pb-0 md:pr-8">
+          <div className="md:col-span-4 flex flex-col items-center md:items-start text-center md:text-left border-b md:border-b-0 md:border-r border-[#D4AF37]/20 pb-6 md:pb-0 md:pr-8">
             <div className="flex items-baseline gap-2">
               <span className="text-5xl sm:text-6xl font-black text-gray-900 tracking-tight">
                 {totalCount > 0 ? averageRating.toFixed(1) : "—"}
@@ -278,8 +278,8 @@ export function ProductReviewsSection({
                   <button
                     type="button"
                     onClick={() => setRatingFilter(ratingFilter === stars ? undefined : stars)}
-                    className={`flex items-center gap-1 font-bold w-12 text-left hover:text-rose-600 transition ${
-                      ratingFilter === stars ? "text-rose-600 font-extrabold" : "text-gray-700"
+                    className={`flex items-center gap-1 font-bold w-12 text-left hover:text-[#1D2F5D] transition ${
+                      ratingFilter === stars ? "text-[#1D2F5D] font-extrabold" : "text-gray-700"
                     }`}
                   >
                     <span>{stars}</span>
@@ -289,7 +289,7 @@ export function ProductReviewsSection({
                   <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
-                        ratingFilter === stars ? "bg-rose-600" : "bg-amber-400"
+                        ratingFilter === stars ? "bg-[#1D2F5D]" : "bg-amber-400"
                       }`}
                       style={{ width: `${percent}%` }}
                     />
@@ -331,7 +331,7 @@ export function ProductReviewsSection({
               onClick={() => setRatingFilter(ratingFilter === s ? undefined : s)}
               className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1 transition ${
                 ratingFilter === s
-                  ? "bg-rose-600 text-white border-rose-600"
+                  ? "bg-[#1D2F5D] text-white border-[#1D2F5D]"
                   : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
               }`}
             >
@@ -349,7 +349,7 @@ export function ProductReviewsSection({
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as any)}
-            className="px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-rose-500"
+            className="px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-[#D4AF37]/50"
           >
             <option value="recent">Most Recent</option>
             <option value="highest">Highest Rating</option>
@@ -365,7 +365,7 @@ export function ProductReviewsSection({
         </div>
       ) : reviews.length === 0 ? (
         <div className="bg-gray-50/70 border border-gray-200/80 rounded-3xl p-10 text-center space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 mx-auto flex items-center justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-brand-gold-soft text-[#D4AF37] mx-auto flex items-center justify-center">
             <Sparkles className="w-7 h-7" />
           </div>
           <div className="space-y-1">
@@ -377,7 +377,7 @@ export function ProductReviewsSection({
           <button
             type="button"
             onClick={handleOpenWriteReview}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm"
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white text-xs font-bold transition shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" /> Write a Review
           </button>
@@ -435,7 +435,7 @@ export function ProductReviewsSection({
                 {/* Bottom Bar: Customer Name & Purchased Variant */}
                 <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs text-gray-500">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-rose-100 text-rose-700 font-black text-[11px] flex items-center justify-center">
+                    <span className="w-6 h-6 rounded-full bg-brand-gold-soft text-[#152347] font-black text-[11px] flex items-center justify-center">
                       {reviewerName[0]}
                     </span>
                     <span className="font-semibold text-gray-800">{reviewerName}</span>
@@ -501,7 +501,7 @@ export function ProductReviewsSection({
                   <button
                     type="button"
                     onClick={() => router.push("/login?redirect=" + encodeURIComponent(window.location.pathname))}
-                    className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition"
+                    className="px-4 py-2 rounded-xl bg-[#1D2F5D] text-white text-xs font-bold hover:bg-[#152347] transition"
                   >
                     Log In to Account
                   </button>
@@ -579,7 +579,7 @@ export function ProductReviewsSection({
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
                     placeholder="e.g., Heavenly moist sponge and prompt midnight delivery!"
-                    className="w-full text-xs font-medium p-3 rounded-xl border border-gray-200 focus:outline-hidden focus:ring-2 focus:ring-rose-500"
+                    className="w-full text-xs font-medium p-3 rounded-xl border border-gray-200 focus:outline-hidden focus:ring-2 focus:ring-[#D4AF37]/50"
                   />
                 </div>
 
@@ -596,13 +596,13 @@ export function ProductReviewsSection({
                     value={formReviewText}
                     onChange={(e) => setFormReviewText(e.target.value)}
                     placeholder="Tell us about the texture, sweetness balance, freshness, and packaging..."
-                    className="w-full text-xs font-medium p-3 rounded-xl border border-gray-200 focus:outline-hidden focus:ring-2 focus:ring-rose-500"
+                    className="w-full text-xs font-medium p-3 rounded-xl border border-gray-200 focus:outline-hidden focus:ring-2 focus:ring-[#D4AF37]/50"
                   />
                 </div>
 
                 {/* Error Banner */}
                 {formError && (
-                  <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl flex items-center gap-2">
+                  <div className="p-3 bg-brand-gold-soft border border-[#D4AF37]/30 text-[#152347] text-xs font-bold rounded-xl flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{formError}</span>
                   </div>
@@ -629,7 +629,7 @@ export function ProductReviewsSection({
                   <button
                     type="submit"
                     disabled={submitting || formSuccess}
-                    className="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-sm"
+                    className="px-6 py-2.5 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] disabled:opacity-50 text-white text-xs font-bold transition shadow-sm"
                   >
                     {submitting ? "Submitting..." : "Publish Review"}
                   </button>

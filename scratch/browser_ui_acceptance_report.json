@@ -1,0 +1,317 @@
+{
+  "parts": {
+    "PART1": [
+      {
+        "assertionName": "Login page renders",
+        "passed": true,
+        "details": "http://localhost:3000/login"
+      },
+      {
+        "assertionName": "OTP verification step appears",
+        "passed": true
+      },
+      {
+        "assertionName": "Manager role recognized in session",
+        "passed": true,
+        "details": "role=BRANCH_MANAGER"
+      },
+      {
+        "assertionName": "Manager user ID resolved",
+        "passed": true,
+        "details": "user_id=staff_mgr_01"
+      },
+      {
+        "assertionName": "Manager authorized branch resolved",
+        "passed": true,
+        "details": "branch_id=br_indiranagar"
+      },
+      {
+        "assertionName": "Manager dashboard loads successfully for authorized branch",
+        "passed": true,
+        "details": "http://localhost:3000/dashboard/shop"
+      },
+      {
+        "assertionName": "Manager cannot access/mutate another branch operational controls (HTTP 403)",
+        "passed": true,
+        "details": "HTTP 403"
+      }
+    ],
+    "PART2": [
+      {
+        "assertionName": "UI clearly identifies branch-specific availability context",
+        "passed": true
+      },
+      {
+        "assertionName": "UI contains notice that setting applies to THIS branch only",
+        "passed": true
+      },
+      {
+        "assertionName": "Cake products visible with titles and current availability",
+        "passed": true,
+        "details": "Chocolate Fudge Cupcake"
+      },
+      {
+        "assertionName": "Manager can toggle Cake ON -> OFF (Out of Stock)",
+        "passed": true
+      },
+      {
+        "assertionName": "Manager can toggle Cake OFF -> ON (Available)",
+        "passed": true
+      }
+    ],
+    "PART3": [
+      {
+        "assertionName": "Branch A Cake remains AVAILABLE in DB",
+        "passed": true,
+        "details": "Branch A: {\"reason\":\"Updated by Branch Operations\",\"status\":\"AVAILABLE\",\"available_again_time\":\"2026-09-19T05:29:59.155Z\"}"
+      },
+      {
+        "assertionName": "Branch B Cake is persisted as OUT_OF_STOCK in DB",
+        "passed": true,
+        "details": "Branch B: {\"reason\":\"Updated by Branch Operations\",\"status\":\"OUT_OF_STOCK\",\"available_again_time\":\"2026-09-19T05:29:59.375Z\"}"
+      },
+      {
+        "assertionName": "Complete branch isolation verified (Branch A != Branch B)",
+        "passed": true,
+        "details": "A vs B"
+      }
+    ],
+    "PART4": [
+      {
+        "assertionName": "Cake X shows AVAILABLE for Branch A on Storefront PDP",
+        "passed": true
+      },
+      {
+        "assertionName": "Cake X shows UNAVAILABLE for Branch B after switching branch",
+        "passed": true
+      },
+      {
+        "assertionName": "Availability state preserved after page refresh",
+        "passed": true
+      }
+    ],
+    "PART5": [
+      {
+        "assertionName": "Cake PDP DOES NOT display fabricated capacity numbers (15, 20, 25, 50)",
+        "passed": true
+      },
+      {
+        "assertionName": "Cake PDP displays approved kitchen fulfillment wording",
+        "passed": true
+      },
+      {
+        "assertionName": "Physical accessory PDP displays authentic PostgreSQL stock / pricing",
+        "passed": true
+      }
+    ],
+    "PART6": [
+      {
+        "assertionName": "Branch A (Cake ON): Add to Bag button is ENABLED",
+        "passed": true
+      },
+      {
+        "assertionName": "Branch B (Cake OFF): Add to Bag is DISABLED / Sold Out",
+        "passed": true,
+        "details": "Text: Sold Out"
+      },
+      {
+        "assertionName": "Adding unavailable cake to cart rejected with HTTP 400",
+        "passed": true,
+        "details": "HTTP 400"
+      }
+    ],
+    "PART7": [
+      {
+        "assertionName": "Celebration accessory visible in PDP customization section",
+        "passed": true,
+        "details": "Gold Acrylic Happy Birthday Topper"
+      },
+      {
+        "assertionName": "Cake item visible in customer cart drawer",
+        "passed": true,
+        "details": "Chocolate Fudge Cupcake"
+      },
+      {
+        "assertionName": "Accessory clearly represented with title in cart drawer",
+        "passed": true,
+        "details": "Gold Acrylic Happy Birthday Topper"
+      }
+    ],
+    "PART8": [
+      {
+        "assertionName": "PostgreSQL branch_inventory has record for Branch A",
+        "passed": true,
+        "details": "Stock: 44"
+      },
+      {
+        "assertionName": "PostgreSQL branch_inventory has record for Branch B",
+        "passed": true,
+        "details": "Stock: 45"
+      },
+      {
+        "assertionName": "API reflects Branch A stock accurately from PostgreSQL",
+        "passed": true,
+        "details": "API: 44 vs DB: 44"
+      },
+      {
+        "assertionName": "API reflects Branch B stock accurately from PostgreSQL",
+        "passed": true,
+        "details": "API: 45 vs DB: 45"
+      }
+    ],
+    "PART9": [
+      {
+        "assertionName": "Cake + Addon order placed successfully (HTTP 201/200)",
+        "passed": true,
+        "details": "HTTP 201"
+      },
+      {
+        "assertionName": "Cake has NO inventory rows in branch_inventory",
+        "passed": true,
+        "details": "Rows: 0"
+      },
+      {
+        "assertionName": "Topper stock in branch_inventory accurately deducted by 1",
+        "passed": true,
+        "details": "Before: 44 -> After: 43"
+      }
+    ],
+    "PART10": [
+      {
+        "assertionName": "Order rejected when Cake turned OFF after adding to cart",
+        "passed": true,
+        "details": "HTTP 400"
+      },
+      {
+        "assertionName": "Server-side error explains cake is unavailable at selected store",
+        "passed": true,
+        "details": "Cannot place order: \"Chocolate Fudge Cupcake\" is currently marked as UNAVAILABLE at Indiranagar Flagship Bakery (Updated by Branch Operations)."
+      }
+    ],
+    "PART11": [
+      {
+        "assertionName": "Unauthenticated mutation returns HTTP 401",
+        "passed": true,
+        "details": "HTTP 401"
+      },
+      {
+        "assertionName": "Cross-branch mutation returns HTTP 403 Forbidden",
+        "passed": true,
+        "details": "HTTP 403"
+      }
+    ],
+    "PART12": [
+      {
+        "assertionName": "Storefront PDP has zero horizontal overflow at Mobile Narrow (320px)",
+        "passed": true,
+        "details": "scrollWidth vs innerWidth"
+      },
+      {
+        "assertionName": "Manager Dashboard has zero horizontal overflow at Mobile Narrow (320px)",
+        "passed": true,
+        "details": "scrollWidth vs innerWidth"
+      },
+      {
+        "assertionName": "Storefront PDP has zero horizontal overflow at Mobile Wide (390px)",
+        "passed": true,
+        "details": "scrollWidth vs innerWidth"
+      },
+      {
+        "assertionName": "Manager Dashboard has zero horizontal overflow at Mobile Wide (390px)",
+        "passed": true,
+        "details": "scrollWidth vs innerWidth"
+      },
+      {
+        "assertionName": "Storefront PDP has zero horizontal overflow at Tablet (768px)",
+        "passed": true,
+        "details": "scrollWidth vs innerWidth"
+      },
+      {
+        "assertionName": "Manager Dashboard has zero horizontal overflow at Tablet (768px)",
+        "passed": true,
+        "details": "scrollWidth vs innerWidth"
+      },
+      {
+        "assertionName": "Storefront PDP has zero horizontal overflow at Desktop (1280px)",
+        "passed": true,
+        "details": "scrollWidth vs innerWidth"
+      },
+      {
+        "assertionName": "Manager Dashboard has zero horizontal overflow at Desktop (1280px)",
+        "passed": true,
+        "details": "scrollWidth vs innerWidth"
+      },
+      {
+        "assertionName": "Storefront PDP has zero horizontal overflow at Large Desktop (1440px)",
+        "passed": true,
+        "details": "scrollWidth vs innerWidth"
+      },
+      {
+        "assertionName": "Manager Dashboard has zero horizontal overflow at Large Desktop (1440px)",
+        "passed": true,
+        "details": "scrollWidth vs innerWidth"
+      }
+    ],
+    "PART13": [
+      {
+        "assertionName": "Manager page preserves availability state after full reload",
+        "passed": true
+      },
+      {
+        "assertionName": "Customer PDP immediately reflects updated status after reload",
+        "passed": false
+      }
+    ],
+    "PART15": [
+      {
+        "assertionName": "Inventory Report returns HTTP 200",
+        "passed": true
+      },
+      {
+        "assertionName": "Inventory Report computes valuation strictly on physical accessories",
+        "passed": true,
+        "details": "Total Valuation: ₹36166"
+      },
+      {
+        "assertionName": "Cake Availability Matrix report returns HTTP 200",
+        "passed": true
+      },
+      {
+        "assertionName": "Cake Availability Matrix covers operational branches and cakes",
+        "passed": true,
+        "details": "Total rows: 702"
+      }
+    ],
+    "PART16": [
+      {
+        "assertionName": "Database branch_inventory matches API available_stock",
+        "passed": true,
+        "details": "DB: 43 vs API: 43"
+      },
+      {
+        "assertionName": "Database branch cake status matches storefront PDP status",
+        "passed": true,
+        "details": "DB: {\"reason\":\"Updated by Branch Operations\",\"status\":\"AVAILABLE\",\"available_again_time\":\"2026-09-19T05:31:05.532Z\"}"
+      }
+    ],
+    "PART17": [
+      {
+        "assertionName": "Zero cake rows in branch_inventory (Rule absolute)",
+        "passed": true,
+        "details": "Count: 0"
+      },
+      {
+        "assertionName": "Physical accessories tracked in branch_inventory (Rule absolute)",
+        "passed": true,
+        "details": "Count: 424"
+      }
+    ]
+  },
+  "defects": [
+    {
+      "part": "PART13",
+      "name": "Customer PDP immediately reflects updated status after reload"
+    }
+  ],
+  "summary": {}
+}

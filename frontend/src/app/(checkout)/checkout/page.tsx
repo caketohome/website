@@ -25,35 +25,39 @@ export default async function CheckoutPage() {
   if (!cart || items.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center font-sans">
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-10 md:p-16 shadow-xl flex flex-col items-center gap-6">
-          <div className="w-24 h-24 rounded-full bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center text-5xl">
+        <div className="japandi-card p-10 md:p-16 flex flex-col items-center gap-6 shadow-xl border border-stone-200/80 bg-[#FDFBF7]">
+          <div className="w-24 h-24 rounded-full bg-amber-50/80 border border-amber-200/60 flex items-center justify-center text-5xl shadow-sm">
             🎂
           </div>
           <div className="flex flex-col gap-2 max-w-md">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-zinc-900 dark:text-zinc-100">
-              Your cart is empty.
+            <span className="text-[11px] font-sans uppercase tracking-[0.25em] text-[#997A1E] font-semibold">
+              Bespoke Patisserie
+            </span>
+            <h1 className="text-2xl md:text-3xl font-serif font-bold text-[#1D2F5D]">
+              Your cart is waiting.
             </h1>
-            <p className="text-sm md:text-base text-zinc-600 dark:text-zinc-400">
-              Looks like you haven't added any delicious cakes yet. Browse our handcrafted gourmet creations and delight your celebrations!
+            <p className="text-sm md:text-base text-slate-600 leading-relaxed font-sans">
+              No artisanal cakes selected yet. Browse our handcrafted gourmet creations baked fresh daily for your special moments.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-4 justify-center mt-2">
             <Link
               href="/products"
-              className="px-8 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm md:text-base shadow-lg shadow-rose-600/20 transition-all hover:scale-[1.02]"
+              className="px-8 py-3.5 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold text-sm md:text-base shadow-lg shadow-[#1D2F5D]/20 transition-all hover:scale-[1.02] inline-flex items-center gap-2"
             >
-              Explore Cakes & Delicacies →
+              <span>Explore Cakes & Delicacies</span>
+              <span>→</span>
             </Link>
             <Link
               href="/"
-              className="px-8 py-3.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-semibold text-sm md:text-base hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all"
+              className="px-8 py-3.5 rounded-xl border border-stone-300 bg-white text-slate-700 font-semibold text-sm md:text-base hover:bg-stone-50 transition-all"
             >
               Return Home
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full pt-8 mt-4 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full pt-8 mt-4 border-t border-stone-200/60 text-xs text-slate-500 font-sans">
             <div className="flex items-center gap-2 justify-center">
               <span>🚚</span>
               <span>Free Delivery Above ₹599</span>

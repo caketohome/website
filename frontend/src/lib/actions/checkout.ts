@@ -82,7 +82,7 @@ export async function confirmCheckoutAction(payload: {
   cart_id?: string;
   customer_id?: string;
   address: any;
-  pincode: string;
+  pincode?: string;
   latitude?: number;
   longitude?: number;
   delivery_date: string;
@@ -170,8 +170,8 @@ export async function placeOrder(prevState: any, data: FormData) {
     return { message: "Please fill in all required contact fields (Name and Mobile Phone)." };
   }
 
-  if (deliveryType === "delivery" && (!pincode && (!latitude || !longitude))) {
-    return { message: "Please select your delivery location on the map or enter your address." };
+  if (deliveryType === "delivery" && (!addressLine1 && (!latitude || !longitude))) {
+    return { message: "Please enter your delivery street address or select your location on the map." };
   }
 
   if (deliveryType === "pickup" && !branchId) {

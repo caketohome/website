@@ -78,8 +78,19 @@ export default function InvoiceModal({ orderId, isOpen, onClose }: InvoiceModalP
               <div>
                 <p className="font-bold text-[10px] text-zinc-400 uppercase">Customer Bill To:</p>
                 <p className="font-semibold text-zinc-900 dark:text-white text-sm">{invoice.customer?.name}</p>
-                <p className="text-zinc-600 dark:text-zinc-400">{invoice.customer?.phone}</p>
-                <p className="text-zinc-600 dark:text-zinc-400">{invoice.customer?.delivery_address}</p>
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  {typeof invoice.customer?.delivery_address === "string"
+                    ? invoice.customer?.delivery_address
+                    : (invoice.customer?.delivery_address && typeof invoice.customer?.delivery_address === "object"
+                        ? [
+                            (invoice.customer.delivery_address as any).line1 || (invoice.customer.delivery_address as any).address_1,
+                            (invoice.customer.delivery_address as any).line2 || (invoice.customer.delivery_address as any).address_2,
+                            (invoice.customer.delivery_address as any).landmark,
+                            (invoice.customer.delivery_address as any).city,
+                            (invoice.customer.delivery_address as any).pincode,
+                          ].filter(Boolean).join(", ")
+                        : "Address on File")}
+                </p>
               </div>
               <div>
                 <p className="font-bold text-[10px] text-zinc-400 uppercase">Payment Details:</p>

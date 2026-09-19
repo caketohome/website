@@ -83,8 +83,8 @@ export function WishlistManager({
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-6 border-2 border-dashed border-rose-100 rounded-2xl bg-gradient-to-b from-rose-50/30 to-white text-center">
-        <div className="w-16 h-16 rounded-full bg-rose-100/80 flex items-center justify-center text-rose-500 mb-4 shadow-sm">
+      <div className="flex flex-col items-center justify-center py-16 px-6 border-2 border-dashed border-[#D4AF37]/20 rounded-2xl bg-gradient-to-b from-[#FDFBF7]/30 to-white text-center">
+        <div className="w-16 h-16 rounded-full bg-brand-gold-soft/80 flex items-center justify-center text-[#D4AF37] mb-4 shadow-sm">
           <Heart className="w-8 h-8" />
         </div>
         <h3 className="text-lg font-bold text-gray-900 mb-1">Your Favorites list is empty</h3>
@@ -93,7 +93,7 @@ export function WishlistManager({
         </p>
         <Link
           href="/products"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all hover:shadow hover:-translate-y-0.5"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1D2F5D] hover:bg-[#152347] text-white text-xs font-semibold rounded-lg shadow-sm transition-all hover:shadow hover:-translate-y-0.5"
         >
           <Sparkles className="w-4 h-4" />
           Explore Gourmet Cakes
@@ -109,7 +109,7 @@ export function WishlistManager({
           className={`p-3 rounded-lg border text-xs font-semibold transition-all ${
             notificationMsg.type === "success"
               ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-              : "bg-rose-50 border-rose-200 text-rose-900"
+              : "bg-brand-gold-soft border-[#D4AF37]/30 text-[#1D2F5D]"
           }`}
         >
           {notificationMsg.message}
@@ -119,7 +119,7 @@ export function WishlistManager({
         {items.map((item) => {
           const prodId = item.product_id || item.id;
           const cakeHandle = item.handle || prodId;
-          const displayPrice = item.price || item.selling_price || 599;
+          const displayPrice = item.price || item.selling_price || 0;
           const isAvail = item.is_available !== false;
 
           return (
@@ -138,17 +138,17 @@ export function WishlistManager({
                       height={80}
                     />
                   ) : (
-                    <div className="w-20 h-20 bg-rose-50 rounded-lg flex items-center justify-center text-2xl">🍰</div>
+                    <div className="w-20 h-20 bg-brand-gold-soft rounded-lg flex items-center justify-center text-2xl">🍰</div>
                   )}
                 </Link>
                 <div className="flex flex-col gap-1">
                   {item.category && (
-                    <span className="text-[10px] font-semibold tracking-wider uppercase text-rose-600">
+                    <span className="text-[10px] font-semibold tracking-wider uppercase text-[#1D2F5D]">
                       {item.category}
                     </span>
                   )}
                   <Link href={`/products/${cakeHandle}`}>
-                    <h3 className="text-sm font-bold text-gray-900 hover:text-rose-600 transition-colors line-clamp-1">
+                    <h3 className="text-sm font-bold text-gray-900 hover:text-[#1D2F5D] transition-colors line-clamp-1">
                       {item.title || item.name}
                     </h3>
                   </Link>
@@ -188,7 +188,7 @@ export function WishlistManager({
                   <button
                     onClick={() => handleRemove(prodId)}
                     disabled={loadingMap[prodId]}
-                    className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-50"
+                    className="p-1.5 text-gray-400 hover:text-[#1D2F5D] hover:bg-brand-gold-soft rounded-lg transition-colors disabled:opacity-50"
                     title="Remove from Favorites"
                     aria-label="Remove from Favorites"
                   >
@@ -198,7 +198,7 @@ export function WishlistManager({
                 <button
                   onClick={() => handleAddToCart(item)}
                   disabled={cartLoadingMap[prodId]}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all disabled:opacity-50"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-[#1D2F5D] hover:bg-[#152347] text-white text-xs font-semibold rounded-lg shadow-sm transition-all disabled:opacity-50"
                 >
                   <ShoppingBag className="w-3.5 h-3.5" />
                   Add to Cart

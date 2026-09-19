@@ -74,11 +74,11 @@ export async function HeaderNavigation({ lang = "en" }: { lang?: string }) {
                 <div key={item.id || `${item.label}-${idx}`} className="relative group">
                     <Link
                         href={resolveHref(item)}
-                        className="text-sm font-medium text-navy-accent/85 hover:text-navy-accent transition-colors"
+                        className="font-sans text-xs lg:text-sm font-semibold tracking-tight text-[#1D2F5D]/90 hover:text-[#1D2F5D] transition-colors"
                     >
                         {item.label}
                         {item.badge && (
-                            <span className="ml-1 text-xs bg-[#FF4D6D] text-white font-bold px-1.5 rounded">
+                            <span className="ml-1.5 text-[10px] bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
                                 {item.badge}
                             </span>
                         )}
@@ -118,7 +118,7 @@ export async function FooterNavigation({ lang = "en" }: { lang?: string }) {
                 <Link
                     key={item.id || `${item.label}-${idx}`}
                     href={resolveHref(item)}
-                    className="text-sm text-ui-fg-on-inverted hover:underline"
+                    className="text-xs sm:text-sm text-slate-400 hover:text-[#D4AF37] transition-colors hover:underline"
                 >
                     {item.label}
                 </Link>

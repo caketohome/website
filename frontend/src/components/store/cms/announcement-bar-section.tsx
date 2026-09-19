@@ -414,8 +414,8 @@ export function AnnouncementBarSection({
       className={`cth-announcement-bar w-full max-w-none m-0 rounded-none overflow-hidden transition-all relative ${
         isSticky ? "sticky top-0 z-40" : "relative"
       } ${
-        isSelected ? "ring-2 ring-rose-500 ring-offset-2 cursor-pointer" : ""
-      } ${isPreview ? "hover:outline-dashed hover:outline-2 hover:outline-rose-300" : ""}`}
+        isSelected ? "ring-2 ring-[#D4AF37]/50 ring-offset-2 cursor-pointer" : ""
+      } ${isPreview ? "hover:outline-dashed hover:outline-2 hover:outline-[#D4AF37]/50" : ""}`}
       style={{
         width: "100%",
         maxWidth: "none",

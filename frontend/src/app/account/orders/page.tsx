@@ -131,7 +131,7 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
           </div>
           <Link
             href="/shop"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-rose-600 text-white text-xs font-black hover:opacity-95 transition-all shadow-lg active:scale-95"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-[#D4AF37] text-white text-xs font-black hover:opacity-95 transition-all shadow-lg active:scale-95"
           >
             Explore Gourmet Cakes &rarr;
           </Link>
@@ -230,7 +230,7 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
                         ) : (
                           <Link
                             href={`/products/${firstItemProdId}#customer-reviews-section`}
-                            className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-rose-600/20 active:scale-95"
+                            className="px-3.5 py-1.5 rounded-xl bg-[#1D2F5D] hover:bg-[#1D2F5D] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-rose-600/20 active:scale-95"
                           >
                             <Star className="w-3.5 h-3.5 fill-white text-white" />
                             Write a Review

@@ -20,6 +20,7 @@ export default async function ProductsPage({
 }) {
   const params = searchParams ? await Promise.resolve(searchParams) : {};
   const category = typeof params.category === "string" ? params.category : undefined;
+  const occasion = typeof params.occasion === "string" ? params.occasion : typeof params.occasion_id === "string" ? params.occasion_id : undefined;
   const flavour = typeof params.flavour === "string" ? params.flavour : undefined;
   const weight = typeof params.weight === "string" ? params.weight : undefined;
   const min_price = typeof params.min_price === "string" ? Number(params.min_price) : undefined;
@@ -29,6 +30,7 @@ export default async function ProductsPage({
 
   const initialFilters = {
     category,
+    occasion,
     flavour,
     weight,
     min_price: typeof min_price === "number" && !isNaN(min_price) ? min_price : undefined,

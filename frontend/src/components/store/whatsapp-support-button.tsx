@@ -9,7 +9,7 @@ export function WhatsAppSupportButton() {
   const defaultMessage = encodeURIComponent("Hello CakeToHome, I would like to inquire about cake orders and delivery.");
 
   return (
-    <div className="fixed bottom-4 sm:bottom-6 right-3 sm:right-6 z-40 flex flex-col items-end font-sans">
+    <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:bottom-6 right-3 sm:right-6 z-40 flex flex-col items-end font-sans">
       {isOpen && (
         <div className="mb-3 w-[calc(100vw-24px)] max-w-72 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 p-4 animate-fadeIn">
           <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-3">

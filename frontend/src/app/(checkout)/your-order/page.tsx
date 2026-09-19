@@ -44,7 +44,7 @@ export default async function YourOrderPage({
  </p>
  <Link
  href="/"
- className="mt-4 px-6 py-3 bg-rosegold hover:bg-rose-700 text-white font-bold text-sm rounded-2xl shadow transition"
+ className="mt-4 px-6 py-3 bg-rosegold hover:bg-[#152347] text-white font-bold text-sm rounded-2xl shadow transition"
  >
  Return to Bakery
  </Link>
@@ -141,15 +141,30 @@ export default async function YourOrderPage({
  </div>
  </div>
 
- <div className="border-t border-navy-accent/60 pt-3 text-xs">
- <span className="text-ash font-medium">Delivery Destination</span>
- <p className="font-medium text-pearl mt-0.5">
- {order.delivery_address}
- </p>
- {order.customer_phone && (
- <p className="text-ash mt-0.5">Contact: {order.customer_phone}</p>
- )}
- </div>
+          <div className="border-t border-navy-accent/60 pt-3 text-xs">
+            <span className="text-ash font-medium">Delivery Destination</span>
+            <p className="font-medium text-pearl mt-0.5">
+              {typeof order.delivery_address === "string"
+                ? order.delivery_address
+                : typeof order.delivery_address === "object" && order.delivery_address !== null
+                ? [
+                    order.delivery_address.line1 || order.delivery_address.address_1,
+                    order.delivery_address.line2 || order.delivery_address.address_2,
+                    order.delivery_address.landmark,
+                    order.delivery_address.city,
+                    order.delivery_address.state,
+                    order.delivery_address.pincode || order.delivery_address.postal_code,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")
+                : typeof order.customer?.address === "string"
+                ? order.customer.address
+                : "Delivery Address on File"}
+            </p>
+            {order.customer_phone && (
+              <p className="text-ash mt-0.5">Contact: {order.customer_phone}</p>
+            )}
+          </div>
  </div>
 
  {/* Ordered Items List */}

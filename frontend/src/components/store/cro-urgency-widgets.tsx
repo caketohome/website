@@ -37,12 +37,12 @@ export function CountdownUrgencyTimer() {
   }, []);
 
   return (
-    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-rose-500/10 to-amber-500/10 border border-rose-300 dark:border-rose-800 rounded-xl text-xs">
+    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#1D2F5D]/10 to-amber-500/10 border border-[#D4AF37]/40 dark:border-[#D4AF37]/20 rounded-xl text-xs">
       <div className="flex items-center gap-2">
-        <Clock className="w-4 h-4 text-rose-600 animate-spin" />
+        <Clock className="w-4 h-4 text-[#1D2F5D] animate-spin" />
         <span className="font-medium">Order within next:</span>
       </div>
-      <div className="flex items-center gap-1 font-mono font-bold text-sm text-rose-600 dark:text-rose-400">
+      <div className="flex items-center gap-1 font-mono font-bold text-sm text-[#1D2F5D] dark:text-[#D4AF37]">
         <span>{String(time.minutes).padStart(2, "0")}m</span>
         <span>:</span>
         <span>{String(time.seconds).padStart(2, "0")}s</span>

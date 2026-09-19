@@ -320,11 +320,11 @@ export function OccasionsPanel() {
   return (
     <div className="space-y-6">
       {/* Top Header Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-purple-50 via-indigo-50 to-pink-50 dark:from-purple-950/40 dark:via-indigo-950/40 dark:to-pink-950/40 p-5 rounded-2xl border border-purple-200/80 dark:border-purple-900/60 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-[#1D2F5D]/10 via-[#1D2F5D]/5 to-[#D4AF37]/10 dark:from-[#1D2F5D]/30 dark:via-[#0D152B]/40 dark:to-[#142040]/30 p-5 rounded-2xl border border-[#D4AF37]/30 shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Heading level="h2" className="text-xl font-extrabold flex items-center gap-2 text-purple-950 dark:text-purple-100">
-              <Sparkles className="w-6 h-6 text-purple-600 animate-pulse" /> Structured Occasion Taxonomy & Recommendation Matrix
+            <Heading level="h2" className="text-xl font-extrabold flex items-center gap-2 text-[#1D2F5D] dark:text-[#F4F5F8]">
+              <Sparkles className="w-6 h-6 text-[#D4AF37] animate-pulse" /> Structured Occasion Taxonomy & Recommendation Matrix
             </Heading>
             <Badge color="purple" className="text-xs font-bold">Enterprise PIM</Badge>
           </div>
@@ -721,7 +721,7 @@ export function OccasionsPanel() {
                   <div className="p-3.5 bg-ui-bg-subtle rounded-2xl border border-ui-border-base space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <Layers className="w-3.5 h-3.5 text-pink-600" />
+                        <Layers className="w-3.5 h-3.5 text-[#D4AF37]" />
                         <Text className="text-xs font-bold text-ui-fg-base">Square Thumbnail</Text>
                       </div>
                       {thumbnailImage && (

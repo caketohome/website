@@ -54,6 +54,18 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
     show_premium_packaging: product?.pim_config?.show_premium_packaging ?? true,
   });
 
+  const [inventoryMode, setInventoryMode] = useState<"MADE_TO_ORDER_AVAILABILITY" | "STOCK_CONTROLLED">(() => {
+    if (product?.pim_config?.inventory_mode === "STOCK_CONTROLLED" || product?.pim_config?.inventory_mode === "MADE_TO_ORDER_AVAILABILITY") {
+      return product.pim_config.inventory_mode;
+    }
+    const cat = String(product?.category_slug || product?.category || "").toLowerCase();
+    const id = String(product?.id || "");
+    if (id.startsWith("acc_") || cat.includes("accessories") || cat.includes("topper") || cat.includes("candle")) {
+      return "STOCK_CONTROLLED";
+    }
+    return "MADE_TO_ORDER_AVAILABILITY";
+  });
+
   // General Form State
   const [name, setName] = useState(product?.title || product?.name || "");
   const [sku, setSku] = useState(product?.sku || `SKU-CK-${Math.floor(1000 + Math.random() * 9000)}`);
@@ -313,7 +325,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       const rawPrices = resPrices?.weight_prices;
       const initialPrices = Array.isArray(rawPrices) && rawPrices.length > 0
         ? rawPrices
-        : createDefaultWeightMatrix(product?.id || "prod_new", Number(product?.price) || 649);
+        : createDefaultWeightMatrix(product?.id || "prod_new", Number(product?.price || product?.selling_price || 0));
       const sortedPrices = sortWeightOptions(initialPrices);
       setWeightPrices(sortedPrices);
       if (sortedPrices.length > 0) {
@@ -468,6 +480,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       seo_keywords: seoKeywords,
       pim_config: {
         ...pimConfig,
+        inventory_mode: inventoryMode,
         min_prep_hours: Number(minPrepHours) || 2,
         same_day_allowed: sameDayAllowed,
         express_allowed: expressAllowed,
@@ -1624,6 +1637,57 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                 <Text className="text-xs text-slate-600 dark:text-slate-400">
                   Control which configuration sections customers see on the storefront. Disabled sections will never render on the product page.
                 </Text>
+              </div>
+
+              {/* Operational Inventory & Availability Model */}
+              <div className="p-4 rounded-xl border border-purple-200 dark:border-purple-900 bg-purple-50/50 dark:bg-purple-950/20 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-xs text-purple-950 dark:text-purple-200 flex items-center gap-1.5">
+                      📦 Product Inventory & Branch Fulfillment Model *
+                    </span>
+                    <span className="text-[11px] text-purple-800 dark:text-purple-300 block mt-0.5">
+                      CakeToHome separates physically-stocked accessories from made-to-order baked goods.
+                    </span>
+                  </div>
+                  <Badge color={inventoryMode === "STOCK_CONTROLLED" ? "purple" : "blue"} className="font-bold text-xs">
+                    {inventoryMode === "STOCK_CONTROLLED" ? "Physical Stock Count" : "Kitchen Availability"}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setInventoryMode("MADE_TO_ORDER_AVAILABILITY")}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      inventoryMode === "MADE_TO_ORDER_AVAILABILITY"
+                        ? "border-blue-600 bg-blue-50 dark:bg-blue-950/50 ring-2 ring-blue-500/20"
+                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <div className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                      🎂 Made-To-Order Kitchen Availability
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-1">
+                      For cakes, pastries & fresh bakes. Governed by branch kitchen status (AVAILABLE/UNAVAILABLE), prep hours, and delivery profiles. No artificial quantity counts.
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInventoryMode("STOCK_CONTROLLED")}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      inventoryMode === "STOCK_CONTROLLED"
+                        ? "border-purple-600 bg-purple-50 dark:bg-purple-950/50 ring-2 ring-purple-500/20"
+                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <div className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                      🏷️ Stock-Controlled Physical Inventory
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-1">
+                      For accessories, birthday toppers, magic candles, greeting cards & packaging. Tracks physical integer stock, reservations, and low stock thresholds.
+                    </div>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -18,16 +18,8 @@ export interface PincodeZone {
   serviceable: boolean;
 }
 
-export const SERVICEABLE_ZONES: Record<string, PincodeZone> = {
-  "560034": { pincode: "560034", area_name: "Koramangala 4th Block", branch_id: "br_koramangala", branch_name: "Koramangala Main Hub", distance_km: 2.5, express_available: true, midnight_available: true, delivery_fee: 49, min_order_amount: 299, serviceable: true },
-  "560095": { pincode: "560095", area_name: "Koramangala 1st Block", branch_id: "br_koramangala", branch_name: "Koramangala Main Hub", distance_km: 3.0, express_available: true, midnight_available: true, delivery_fee: 49, min_order_amount: 299, serviceable: true },
-  "560038": { pincode: "560038", area_name: "Indiranagar 100ft Road", branch_id: "br_indiranagar", branch_name: "Indiranagar Cake Studio", distance_km: 4.2, express_available: true, midnight_available: true, delivery_fee: 49, min_order_amount: 349, serviceable: true },
-  "560102": { pincode: "560102", area_name: "HSR Layout Sector 1", branch_id: "br_koramangala", branch_name: "Koramangala Main Hub", distance_km: 5.8, express_available: true, midnight_available: true, delivery_fee: 69, min_order_amount: 399, serviceable: true },
-  "560001": { pincode: "560001", area_name: "MG Road & Commercial St", branch_id: "br_indiranagar", branch_name: "Indiranagar Cake Studio", distance_km: 6.5, express_available: false, midnight_available: true, delivery_fee: 79, min_order_amount: 499, serviceable: true },
-  "560103": { pincode: "560103", area_name: "Bellandur & Outer Ring Rd", branch_id: "br_koramangala", branch_name: "Koramangala Main Hub", distance_km: 9.0, express_available: false, midnight_available: true, delivery_fee: 89, min_order_amount: 499, serviceable: true },
-  "560066": { pincode: "560066", area_name: "Whitefield ITPL Main Rd", branch_id: "br_whitefield", branch_name: "Whitefield Gourmet Hub", distance_km: 14.5, express_available: false, midnight_available: false, delivery_fee: 119, min_order_amount: 599, serviceable: true },
-  "560076": { pincode: "560076", area_name: "BTM Layout 2nd Stage", branch_id: "br_koramangala", branch_name: "Koramangala Main Hub", distance_km: 4.5, express_available: true, midnight_available: true, delivery_fee: 49, min_order_amount: 349, serviceable: true },
-};
+// Authoritative delivery zones must be fetched dynamically from PostgreSQL delivery_zone table or branches API.
+
 
 export async function listDeliveries(filter?: Record<string, string>): Promise<DeliveryDTO[]> {
   let allDeliveries: any[] = [];
@@ -57,26 +49,10 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
           (p: any) => p.id === targetPartnerId || p.partner_number === targetPartnerId || p.phone === targetPartnerId
         );
         if (!partnerObj) {
-          partnerObj = {
-            id: targetPartnerId,
-            partner_number: `DLP-${String(targetPartnerId).slice(-4)}`,
-            full_name: "Delivery Rider",
-            name: "Delivery Rider",
-            primary_branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-            associated_branches: [
-              "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-              "br_indiranagar",
-              "HUB-BLR-01",
-              "res_02KXYMAHGFPRY1G9TZKEVGAGAT",
-              "br_koramangala",
-              "HUB-BLR-02",
-              "res_03KXYMAHGFPRY1G9TZKEVGAGAT",
-              "br_whitefield",
-              "HUB-BLR-03"
-            ],
-          };
+          allOrders = [];
+        } else {
+          allOrders = allOrders.filter((o: any) => ApiEngine.canPartnerAccessOrder(partnerObj, o));
         }
-        allOrders = allOrders.filter((o: any) => ApiEngine.canPartnerAccessOrder(partnerObj, o));
       }
     }
   } catch (e) {
@@ -308,26 +284,11 @@ export async function checkDeliveryAvailability(pincodeInput: string): Promise<{
         };
       }
     }
-  } catch {
-    // API unreachable — fallback to static lookup
+  } catch (err) {
+    console.error("[checkPincodeServiceability Error]:", err);
   }
 
-  // Fallback to static serviceable zones dictionary if API unreachable or returns fallback
-  if (SERVICEABLE_ZONES[cleanPin]) {
-    const zone = SERVICEABLE_ZONES[cleanPin];
-    return {
-      serviceable: true,
-      delivery_fee: zone.delivery_fee,
-      branch_id: zone.branch_id,
-      branch_name: zone.branch_name,
-      area_name: zone.area_name,
-      express_available: zone.express_available,
-      midnight_available: zone.midnight_available,
-      message: zone.express_available
-        ? `⚡ Hyperlocal 45-min Express Delivery Available in ${zone.area_name}!`
-        : `Fresh-baked Cake Delivery Available in ${zone.area_name}.`,
-    };
-  }
+  // PostgreSQL-Only: No silent fallback to static hardcoded dictionary.
 
   return {
     serviceable: false,

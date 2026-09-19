@@ -1,0 +1,254 @@
+{
+  "timestamp": "2026-09-13T11:59:32.211Z",
+  "baseUrl": "http://localhost:3000",
+  "totalRoutesTested": 7,
+  "passedCount": 7,
+  "failedCount": 0,
+  "overallResult": "PASS — FRONTEND VERIFIED",
+  "routes": [
+    {
+      "route": "/",
+      "name": "Homepage",
+      "url": "http://localhost:3000/",
+      "navStatus": 200,
+      "pass": true,
+      "title": "CakeToHome | Luxury Artisanal Patisserie",
+      "screenshot": "scratch/screenshots/phase1/homepage.png",
+      "domAudit": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "color": "rgb(244, 245, 248)",
+        "font": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "links": 32,
+        "buttons": 40,
+        "inputs": 1,
+        "hasMain": true,
+        "hasHeader": true,
+        "bodyHeight": 5181
+      },
+      "counts": {
+        "totalRequests": 20,
+        "cssCount": 1,
+        "jsCount": 15,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/products",
+      "name": "Products Catalog",
+      "url": "http://localhost:3000/products",
+      "navStatus": 200,
+      "pass": true,
+      "title": "Gourmet Cakes & Sweets Catalog | CakeToHome Bangalore",
+      "screenshot": "scratch/screenshots/phase1/products_catalog.png",
+      "domAudit": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "color": "rgb(244, 245, 248)",
+        "font": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "links": 28,
+        "buttons": 40,
+        "inputs": 4,
+        "hasMain": true,
+        "hasHeader": true,
+        "bodyHeight": 3800
+      },
+      "counts": {
+        "totalRequests": 37,
+        "cssCount": 1,
+        "jsCount": 14,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 1,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ]
+    },
+    {
+      "route": "/products/chocolate-truffle",
+      "name": "Product Detail (PDP)",
+      "url": "http://localhost:3000/products/chocolate-truffle",
+      "navStatus": 200,
+      "pass": true,
+      "title": "CHOCOLATE TRUFFLE 1 Kg | Same Day Cake Delivery | CakeToHome",
+      "screenshot": "scratch/screenshots/phase1/product_detail__pdp_.png",
+      "domAudit": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "color": "rgb(244, 245, 248)",
+        "font": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "links": 12,
+        "buttons": 13,
+        "inputs": 2,
+        "hasMain": true,
+        "hasHeader": true,
+        "bodyHeight": 1787
+      },
+      "counts": {
+        "totalRequests": 17,
+        "cssCount": 1,
+        "jsCount": 10,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/compare",
+      "name": "Compare",
+      "url": "http://localhost:3000/compare",
+      "navStatus": 200,
+      "pass": true,
+      "title": "CakeToHome",
+      "screenshot": "scratch/screenshots/phase1/compare.png",
+      "domAudit": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "color": "rgb(244, 245, 248)",
+        "font": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "links": 11,
+        "buttons": 6,
+        "inputs": 1,
+        "hasMain": true,
+        "hasHeader": true,
+        "bodyHeight": 937
+      },
+      "counts": {
+        "totalRequests": 13,
+        "cssCount": 1,
+        "jsCount": 9,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/cart",
+      "name": "Cart",
+      "url": "http://localhost:3000/cart",
+      "navStatus": 200,
+      "pass": true,
+      "title": "Shopping Cart — CakeToHome",
+      "screenshot": "scratch/screenshots/phase1/cart.png",
+      "domAudit": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "color": "rgb(244, 245, 248)",
+        "font": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "links": 12,
+        "buttons": 7,
+        "inputs": 1,
+        "hasMain": true,
+        "hasHeader": true,
+        "bodyHeight": 937
+      },
+      "counts": {
+        "totalRequests": 23,
+        "cssCount": 1,
+        "jsCount": 14,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 1,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ]
+    },
+    {
+      "route": "/checkout",
+      "name": "Checkout Form",
+      "url": "http://localhost:3000/checkout",
+      "navStatus": 200,
+      "pass": true,
+      "title": "Checkout — CakeToHome",
+      "screenshot": "scratch/screenshots/phase1/checkout_form.png",
+      "domAudit": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "color": "rgb(244, 245, 248)",
+        "font": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "links": 8,
+        "buttons": 0,
+        "inputs": 0,
+        "hasMain": true,
+        "hasHeader": false,
+        "bodyHeight": 938
+      },
+      "counts": {
+        "totalRequests": 15,
+        "cssCount": 1,
+        "jsCount": 9,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 1,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ]
+    },
+    {
+      "route": "/dashboard?tab=cms",
+      "name": "CMS Page Builder",
+      "url": "http://localhost:3000/dashboard?tab=cms",
+      "navStatus": 200,
+      "pass": true,
+      "title": "CakeToHome",
+      "screenshot": "scratch/screenshots/phase1/cms_page_builder.png",
+      "domAudit": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "color": "rgb(244, 245, 248)",
+        "font": "__Inter_f367f3, __Inter_Fallback_f367f3, system-ui, sans-serif",
+        "links": 5,
+        "buttons": 24,
+        "inputs": 0,
+        "hasMain": true,
+        "hasHeader": false,
+        "bodyHeight": 1194
+      },
+      "counts": {
+        "totalRequests": 14,
+        "cssCount": 1,
+        "jsCount": 10,
+        "asset404Count": 0,
+        "apiErrorCount": 0,
+        "pageErrorCount": 0,
+        "consoleErrorCount": 0,
+        "hydrationErrorCount": 0
+      },
+      "asset404s": [],
+      "apiErrors": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    }
+  ]
+}

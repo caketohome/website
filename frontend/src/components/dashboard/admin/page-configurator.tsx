@@ -12,7 +12,7 @@ import {
   Image as ImageIcon, ArrowUp, ArrowDown, XCircle, AlertCircle, Check,
   Search, Tag, Monitor, ExternalLink, Send, EyeOff, ShieldCheck, Megaphone,
   List, Sliders, PenLine, Tablet, Upload, Undo2, Redo2, Palette, Box, CheckSquare,
-  GripVertical, Gift, Zap
+  GripVertical, Gift, Zap, X, RefreshCw
 } from "lucide-react";
 import { MediaSelectorModal, MediaSelection } from "./media-selector-modal";
 import { PageRenderer } from "@frontend/components/store/cms/page-renderer";
@@ -112,8 +112,8 @@ function blankPage(): any {
     nav_location: "none",
     hide_from_nav: false,
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
-    announcement_bar: { enabled: false, text: "", cta_text: "", cta_url: "", bg_color: "#e11d48" },
-    theme: { bg_color: "#ffffff", text_color: "#1f2937", heading_color: "#111827", accent_color: "#e11d48" },
+    announcement_bar: { enabled: false, text: "", cta_text: "", cta_url: "", bg_color: "#1D2F5D" },
+    theme: { bg_color: "#FDFBF7", text_color: "#07090E", heading_color: "#1D2F5D", accent_color: "#D4AF37" },
     header_config: { show_header: true, style: "default" },
     sections: [],
     draft_config: { sections: [], banners: [], products_mode: "best_sellers", product_ids: [], category_ids: [] },
@@ -125,9 +125,9 @@ function blankPage(): any {
 function Field({ label, hint, children }: { label: string | React.ReactNode; hint?: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-xs font-semibold text-ui-fg-base">{label}</Label>
+      <label className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center justify-between">{label}</label>
       {children}
-      {hint && <p className="text-[11px] text-ui-fg-muted">{hint}</p>}
+      {hint && <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">{hint}</p>}
     </div>
   );
 }
@@ -137,7 +137,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${checked ? "bg-rose-500" : "bg-ui-bg-component border border-ui-border-base"}`}
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${checked ? "bg-[#1D2F5D]" : "bg-ui-bg-component border border-ui-border-base"}`}
       aria-label={label}
     >
       <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow ${checked ? "translate-x-4" : "translate-x-0.5"}`} />
@@ -186,6 +186,8 @@ export function PageConfigurator() {
   const [activeSectionCategory, setActiveSectionCategory] = useState<SectionCategory | "all">("all");
   const [newPageForm, setNewPageForm] = useState({ title: "", slug: "", page_type: "landing", status: "draft" });
   const [validationResult, setValidationResult] = useState<{ valid: boolean; errors: string[]; warnings: string[] } | null>(null);
+  const [showVersionModal, setShowVersionModal] = useState(false);
+  const [sectionListFilter, setSectionListFilter] = useState("");
 
   // Related API Data
   const [allProducts, setAllProducts] = useState<any[]>([]);
@@ -214,11 +216,13 @@ export function PageConfigurator() {
 
   // Load All Pages & Data
   useEffect(() => {
-    loadAll();
+    loadAll(undefined, true);
   }, []);
 
-  const loadAll = async (targetPageId?: string) => {
-    setLoading(true);
+  const loadAll = async (targetPageId?: string, isInitial = false) => {
+    if (isInitial || pages.length === 0) {
+      setLoading(true);
+    }
     try {
       const [pagesRes, productsRes, catsRes, occsRes] = await Promise.allSettled([
         apiClient.getCmsPages(),
@@ -227,10 +231,18 @@ export function PageConfigurator() {
         apiClient.getAdminOccasions(),
       ]);
       const fetchedPages = (pagesRes.status === "fulfilled" ? (pagesRes.value as any)?.pages : null) || [];
-      setPages(fetchedPages);
-      setAllProducts((productsRes.status === "fulfilled" ? (productsRes.value as any)?.products : null) || []);
-      setAllCategories((catsRes.status === "fulfilled" ? (catsRes.value as any)?.categories : null) || []);
-      setAllOccasions((occsRes.status === "fulfilled" ? (occsRes.value as any)?.occasions : null) || []);
+      if (fetchedPages.length > 0) {
+        setPages(fetchedPages);
+      }
+      if (productsRes.status === "fulfilled" && (productsRes.value as any)?.products) {
+        setAllProducts((productsRes.value as any).products);
+      }
+      if (catsRes.status === "fulfilled" && (catsRes.value as any)?.categories) {
+        setAllCategories((catsRes.value as any).categories);
+      }
+      if (occsRes.status === "fulfilled" && (occsRes.value as any)?.occasions) {
+        setAllOccasions((occsRes.value as any).occasions);
+      }
 
       if (fetchedPages.length > 0) {
         const activeId = targetPageId || selectedPageId;
@@ -507,22 +519,29 @@ export function PageConfigurator() {
     setSaving(true);
     try {
       let res: any;
-      if (editingPage.id && pages.some((p) => p.id === editingPage.id)) {
+      if (editingPage.id) {
         res = await apiClient.updateCmsPage(editingPage.id, editingPage);
       } else {
         res = await apiClient.createCmsPage(editingPage);
       }
       const updated = res?.page || res;
-      setSavedSnapshot(JSON.stringify(updated));
-      showToast("Draft saved successfully!");
-      await loadAll(updated?.id || editingPage.id);
-      if (updated?.id) setSelectedPageId(updated.id);
+      if (updated?.id) {
+        setEditingPage(updated);
+        setPages((prev) => {
+          const exists = prev.some((p) => p.id === updated.id);
+          return exists ? prev.map((p) => (p.id === updated.id ? updated : p)) : [...prev, updated];
+        });
+        setSavedSnapshot(JSON.stringify(updated));
+        setSelectedPageId(updated.id);
+      }
+      showToast("Draft saved successfully to PostgreSQL! 🎉");
+      loadAll(updated?.id || editingPage.id, false);
     } catch (err: any) {
       if (err?.name === "AbortError" && !err?.message?.includes("timed out")) {
         return;
       }
       if (err?.name === "TimeoutError" || err?.message?.includes("timed out")) {
-        showToast("Save draft request timed out. Your changes are persisting in the background; please refresh shortly.", "error");
+        showToast("Save draft request timed out. Your changes are persisting in PostgreSQL; please refresh shortly.", "error");
         return;
       }
       showToast(err?.message || "Failed to save draft", "error");
@@ -533,11 +552,16 @@ export function PageConfigurator() {
 
   const handlePublish = async () => {
     setPublishing(true);
+    console.log("[handlePublish] CLICKED for page:", editingPage.id);
     try {
-      if (editingPage.id && pages.some((p) => p.id === editingPage.id)) {
+      if (editingPage.id) {
+        console.log("[handlePublish] updating page draft first...");
         await apiClient.updateCmsPage(editingPage.id, editingPage);
+        console.log("[handlePublish] update completed successfully.");
       }
+      console.log("[handlePublish] calling publishCmsPage for:", editingPage.id);
       const res: any = await apiClient.publishCmsPage(editingPage.id);
+      console.log("[handlePublish] publish response received:", res);
       if (res?.success === false || res?.errors?.length > 0) {
         const errs = res?.errors || ["Validation failed"];
         setValidationResult({ valid: false, errors: errs, warnings: res?.warnings || [] });
@@ -545,17 +569,20 @@ export function PageConfigurator() {
         setConfiguringSection(null);
         showToast("Fix validation errors before publishing", "error");
       } else {
-        showToast("Page published successfully! Customer storefront updated. 🎉");
+        const published = res?.page || { ...editingPage, status: "published", published_at: new Date().toISOString() };
+        setEditingPage(published);
+        setPages((prev) => prev.map((p) => (p.id === published.id ? published : p)));
+        setSavedSnapshot(JSON.stringify(published));
         setValidationResult(null);
-        setSavedSnapshot(JSON.stringify(res.page));
-        await loadAll(res?.page?.id || editingPage.id);
+        showToast("Page published successfully! Customer storefront updated in PostgreSQL. 🎉");
+        loadAll(published.id, false);
       }
     } catch (err: any) {
       if (err?.name === "AbortError" && !err?.message?.includes("timed out")) {
         return;
       }
       if (err?.name === "TimeoutError" || err?.message?.includes("timed out")) {
-        showToast("Publish request timed out while writing to database. Please refresh shortly to verify status.", "error");
+        showToast("Publish request timed out while writing to PostgreSQL. Please refresh shortly to verify status.", "error");
         return;
       }
       showToast(err?.message || "Failed to publish", "error");
@@ -564,11 +591,36 @@ export function PageConfigurator() {
     }
   };
 
+  const handleRollback = async (version: number | string) => {
+    if (!confirm(`Are you sure you want to rollback to revision #${version}? This will restore the layout and configuration from that version.`)) return;
+    try {
+      const res: any = await apiClient.rollbackCmsPage(editingPage.id, Number(version) || 1);
+      const rolledBack = res?.page || res;
+      if (rolledBack?.id) {
+        setEditingPage(rolledBack);
+        setPages((prev) => prev.map((p) => (p.id === rolledBack.id ? rolledBack : p)));
+        setSavedSnapshot(JSON.stringify(rolledBack));
+        setConfiguringSection(null);
+        setShowVersionModal(false);
+        showToast(`Rolled back to revision #${version} in PostgreSQL! 🎉`);
+        loadAll(rolledBack.id, false);
+      } else {
+        showToast("Rollback did not return updated page data", "error");
+      }
+    } catch (err: any) {
+      showToast(err?.message || "Failed to rollback revision", "error");
+    }
+  };
+
   const handleUnpublish = async () => {
     try {
-      await apiClient.unpublishCmsPage(editingPage.id);
-      showToast("Page unpublished — set back to Draft");
-      await loadAll(editingPage.id);
+      const res: any = await apiClient.unpublishCmsPage(editingPage.id);
+      const unpublished = res?.page || { ...editingPage, status: "draft" };
+      setEditingPage(unpublished);
+      setPages((prev) => prev.map((p) => (p.id === unpublished.id ? unpublished : p)));
+      setSavedSnapshot(JSON.stringify(unpublished));
+      showToast("Page unpublished — set back to Draft in PostgreSQL");
+      loadAll(editingPage.id, false);
     } catch (err: any) {
       if (err?.name === "AbortError" && !err?.message?.includes("timed out")) return;
       showToast(err?.message || "Failed to unpublish", "error");
@@ -681,12 +733,17 @@ export function PageConfigurator() {
               />
             </Field>
             <Field label="Page Type">
-              <Select value={newPageForm.page_type} onValueChange={v => setNewPageForm(prev => ({ ...prev, page_type: v }))}>
-                <Select.Trigger><Select.Value /></Select.Trigger>
-                <Select.Content>
-                  {PAGE_TYPES.map(t => <Select.Item key={t.value} value={t.value}>{t.label}</Select.Item>)}
-                </Select.Content>
-              </Select>
+              <select
+                value={newPageForm.page_type}
+                onChange={e => setNewPageForm(prev => ({ ...prev, page_type: e.target.value }))}
+                className="w-full py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs cursor-pointer"
+              >
+                {PAGE_TYPES.map(t => (
+                  <option key={t.value} value={t.value} className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 py-1">
+                    {t.label}
+                  </option>
+                ))}
+              </select>
             </Field>
             <div className="flex gap-2 pt-2">
               <Button variant="secondary" size="small" onClick={() => setShowCreateModal(false)} className="flex-1">Cancel</Button>
@@ -747,7 +804,7 @@ export function PageConfigurator() {
                     onClick={() => { setActiveSectionCategory("all"); setSectionSearchQuery(""); }}
                     className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeSectionCategory === "all" && !sectionSearchQuery
-                        ? "bg-rose-500 text-white shadow-sm"
+                        ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/40"
                         : "text-ui-fg-muted hover:bg-ui-bg-subtle hover:text-ui-fg-base"
                     }`}
                   >
@@ -761,7 +818,7 @@ export function PageConfigurator() {
                         onClick={() => { setActiveSectionCategory(cat.id); setSectionSearchQuery(""); }}
                         className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-between ${
                           activeSectionCategory === cat.id && !sectionSearchQuery
-                            ? "bg-rose-500 text-white shadow-sm"
+                            ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/40"
                             : "text-ui-fg-muted hover:bg-ui-bg-subtle hover:text-ui-fg-base"
                         }`}
                       >
@@ -791,11 +848,11 @@ export function PageConfigurator() {
                         <button
                           key={st.value}
                           onClick={() => addSection(st.value)}
-                          className="p-3 rounded-xl text-left flex items-start gap-3 transition-all border bg-ui-bg-subtle/30 border-ui-border-base hover:bg-rose-50 hover:border-rose-300 hover:shadow-sm dark:hover:bg-rose-950/20 group"
+                          className="p-3 rounded-xl text-left flex items-start gap-3 transition-all border bg-ui-bg-subtle/30 border-ui-border-base hover:bg-[#1D2F5D]/5 hover:border-[#1D2F5D]/30 hover:shadow-sm dark:hover:bg-[#1D2F5D]/20 group"
                         >
                           <span className="text-xl shrink-0 mt-0.5">{st.icon}</span>
                           <div className="min-w-0">
-                            <Text className="text-xs font-bold group-hover:text-rose-700 dark:group-hover:text-rose-400 truncate">{st.label}</Text>
+                            <Text className="text-xs font-bold group-hover:text-[#1D2F5D] dark:group-hover:text-[#D4AF37] truncate">{st.label}</Text>
                             <Text className="text-[10px] text-ui-fg-muted line-clamp-2 leading-relaxed mt-0.5">{st.description}</Text>
                           </div>
                         </button>
@@ -819,33 +876,115 @@ export function PageConfigurator() {
         );
       })()}
 
+      {/* VERSION HISTORY & ROLLBACK MODAL */}
+      {showVersionModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-ui-bg-base border border-ui-border-base rounded-2xl shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-ui-border-base flex items-center justify-between bg-ui-bg-subtle/40">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-500/10 text-[#D4AF37] border border-[#D4AF37]/30">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-ui-fg-base">Revision History & Rollback</h3>
+                  <p className="text-xs text-ui-fg-muted">Durable snapshots stored in PostgreSQL on every publish</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowVersionModal(false)}
+                className="p-1 rounded-lg text-ui-fg-muted hover:text-ui-fg-base hover:bg-ui-bg-subtle"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
+              {(!editingPage.version_history || editingPage.version_history.length === 0) ? (
+                <div className="text-center py-12 text-ui-fg-muted flex flex-col items-center gap-2">
+                  <Clock className="w-8 h-8 opacity-30" />
+                  <p className="text-xs font-semibold">No revision snapshots recorded yet.</p>
+                  <p className="text-[11px] text-ui-fg-subtle">A new snapshot is automatically captured each time you publish this page.</p>
+                </div>
+              ) : (
+                [...editingPage.version_history].reverse().map((entry: any, i: number) => {
+                  const verNum = entry.version || (editingPage.version_history.length - i);
+                  const pubDate = entry.published_at ? new Date(entry.published_at).toLocaleString() : "Unknown date";
+                  const secCount = entry.sections_count ?? (entry.published_config?.sections?.length || entry.snapshot?.sections?.length || 0);
+
+                  return (
+                    <div
+                      key={entry.version_id || `ver_${i}`}
+                      className="p-3.5 rounded-xl border border-ui-border-base bg-ui-bg-subtle/30 hover:border-ui-border-strong transition-all flex items-center justify-between gap-3"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="px-2 py-1 rounded-md bg-[#1D2F5D] text-[#FAF9F6] text-xs font-mono font-bold">
+                          v{verNum}
+                        </span>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-ui-fg-base">
+                              {entry.title || editingPage.title}
+                            </span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-ui-bg-subtle text-ui-fg-muted">
+                              {secCount} sections
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-ui-fg-muted mt-0.5">
+                            Published {pubDate} by {entry.created_by || "Admin"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="secondary"
+                        size="small"
+                        onClick={() => handleRollback(verNum)}
+                        className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 shrink-0"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5 mr-1" /> Rollback
+                      </Button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="p-3 border-t border-ui-border-base bg-ui-bg-subtle/20 flex justify-end">
+              <Button variant="secondary" size="small" onClick={() => setShowVersionModal(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* STICKY TOP TOOLBAR */}
-      <div className="sticky top-16 z-30 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-ui-bg-base/95 backdrop-blur-md p-3 rounded-xl border border-ui-border-base shadow-sm">
+      <div className="sticky top-16 z-30 flex flex-wrap items-center justify-between gap-2.5 bg-ui-bg-base/95 backdrop-blur-md p-2.5 sm:p-3 rounded-xl border border-ui-border-base shadow-sm w-full min-w-0 max-w-full">
         {/* Left: Page Selector */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap sm:flex-nowrap">
           <select
             value={selectedPageId}
             onChange={e => handleSelectPage(e.target.value)}
-            className="px-3 py-1.5 text-xs font-bold bg-ui-bg-subtle border border-ui-border-base rounded-lg outline-none focus:ring-2 focus:ring-rose-500 max-w-[220px]"
+            className="px-2.5 py-1.5 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs max-w-[180px] sm:max-w-[240px] truncate cursor-pointer"
           >
             {pages.map(p => (
-              <option key={p.id} value={p.id}>
+              <option key={p.id} value={p.id} className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 py-1">
                 {p.title} ({p.status === "published" ? "Live" : "Draft"})
               </option>
             ))}
           </select>
-          <Button variant="secondary" size="small" onClick={() => setShowCreateModal(true)} title="Create New Page">
+          <Button variant="secondary" size="small" onClick={() => setShowCreateModal(true)} title="Create New Page" className="border-slate-300 hover:bg-slate-100 text-slate-800 shrink-0">
             <Plus className="w-3.5 h-3.5" />
           </Button>
 
           {/* Status Indicator */}
-          <div className="flex items-center gap-1.5 ml-2">
+          <div className="flex items-center gap-1.5 ml-1 shrink-0">
             {isDirty ? (
               <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-bold animate-pulse">
                 Unsaved Changes
               </span>
             ) : (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 text-[10px] font-semibold border border-emerald-200 dark:border-emerald-800">
                 All Changes Saved
               </span>
             )}
@@ -853,50 +992,50 @@ export function PageConfigurator() {
         </div>
 
         {/* Center: Device Viewport Switcher */}
-        <div className="flex items-center justify-center gap-1 bg-ui-bg-subtle p-1 rounded-xl border border-ui-border-base self-center">
+        <div className="flex items-center justify-center gap-0.5 sm:gap-1 bg-ui-bg-subtle p-1 rounded-xl border border-ui-border-base self-center shrink-0">
           <button
             onClick={() => setCanvasDevice("desktop")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-              canvasDevice === "desktop" ? "bg-rose-600 text-white shadow-sm" : "text-ui-fg-muted hover:text-ui-fg-base"
+            className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
+              canvasDevice === "desktop" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted hover:text-ui-fg-base"
             }`}
           >
-            <Monitor className="w-3.5 h-3.5" /> Desktop (1440)
+            <Monitor className="w-3.5 h-3.5" /> <span className="hidden md:inline">Desktop</span> <span className="text-[10px] sm:text-xs opacity-75">(1440)</span>
           </button>
           <button
             onClick={() => setCanvasDevice("tablet")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-              canvasDevice === "tablet" ? "bg-rose-600 text-white shadow-sm" : "text-ui-fg-muted hover:text-ui-fg-base"
+            className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
+              canvasDevice === "tablet" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted hover:text-ui-fg-base"
             }`}
           >
-            <Tablet className="w-3.5 h-3.5" /> Tablet (768)
+            <Tablet className="w-3.5 h-3.5" /> <span className="hidden md:inline">Tablet</span> <span className="text-[10px] sm:text-xs opacity-75">(768)</span>
           </button>
           <button
             onClick={() => setCanvasDevice("mobile")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-              canvasDevice === "mobile" ? "bg-rose-600 text-white shadow-sm" : "text-ui-fg-muted hover:text-ui-fg-base"
+            className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
+              canvasDevice === "mobile" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted hover:text-ui-fg-base"
             }`}
           >
-            <Smartphone className="w-3.5 h-3.5" /> Mobile (375)
+            <Smartphone className="w-3.5 h-3.5" /> <span className="hidden md:inline">Mobile</span> <span className="text-[10px] sm:text-xs opacity-75">(375)</span>
           </button>
           <button
             onClick={() => setCanvasDevice("full")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-              canvasDevice === "full" ? "bg-rose-600 text-white shadow-sm" : "text-ui-fg-muted hover:text-ui-fg-base"
+            className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
+              canvasDevice === "full" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted hover:text-ui-fg-base"
             }`}
           >
-            Full Width
+            Full
           </button>
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-2 justify-end">
+        <div className="flex items-center gap-1.5 justify-end flex-wrap shrink-0">
           <button
             onClick={handleUndo}
             disabled={undoStack.length === 0}
             className="p-1.5 rounded-lg border border-ui-border-base bg-ui-bg-subtle text-ui-fg-muted hover:text-ui-fg-base disabled:opacity-30"
             title="Undo (Ctrl+Z)"
           >
-            <Undo2 className="w-4 h-4" />
+            <Undo2 className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleRedo}
@@ -904,25 +1043,90 @@ export function PageConfigurator() {
             className="p-1.5 rounded-lg border border-ui-border-base bg-ui-bg-subtle text-ui-fg-muted hover:text-ui-fg-base disabled:opacity-30"
             title="Redo (Ctrl+Shift+Z)"
           >
-            <Redo2 className="w-4 h-4" />
+            <Redo2 className="w-3.5 h-3.5" />
           </button>
 
-          <Button variant="secondary" size="small" onClick={handleDuplicate}>
+          <Button
+            variant="secondary"
+            size="small"
+            onClick={() => setShowVersionModal(true)}
+            title="Revision History & Rollback"
+            className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold"
+          >
+            <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <span>Revisions ({editingPage.version_history?.length || 0})</span>
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="small"
+            onClick={() => {
+              const slug = editingPage.slug === "home" ? "" : editingPage.slug;
+              window.open(`/${slug}?preview=true`, "_blank");
+            }}
+            title="Open live storefront preview in new tab"
+            className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Preview</span>
+          </Button>
+
+          <Button variant="secondary" size="small" onClick={handleDuplicate} className="text-xs">
             <Copy className="w-3.5 h-3.5 mr-1" /> Duplicate
           </Button>
 
-          <Button variant="secondary" size="small" onClick={handleSaveDraft} isLoading={saving} data-testid="cms-save-draft-btn">
-            <Save className="w-3.5 h-3.5 mr-1" /> Save Draft
+          <Button
+            variant="secondary"
+            size="small"
+            onClick={handleSaveDraft}
+            disabled={!isDirty || saving}
+            data-testid="cms-save-draft-btn"
+            className="border-slate-300 text-[#07090E] dark:text-white dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold disabled:opacity-40 disabled:cursor-not-allowed text-xs flex items-center gap-1.5"
+          >
+            {saving ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#1D2F5D] dark:text-[#D4AF37]" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5 text-[#1D2F5D] dark:text-[#D4AF37]" />
+                <span>Save Draft</span>
+              </>
+            )}
           </Button>
 
           {editingPage.status === "published" && (
-            <Button variant="secondary" size="small" onClick={handleUnpublish} data-testid="cms-unpublish-btn">
-              <EyeOff className="w-3.5 h-3.5 mr-1" /> Unpublish
+            <Button
+              variant="secondary"
+              size="small"
+              onClick={handleUnpublish}
+              data-testid="cms-unpublish-btn"
+              className="border-amber-300 text-amber-800 hover:bg-amber-50 font-semibold text-xs"
+            >
+              <EyeOff className="w-3.5 h-3.5 mr-1 text-amber-600" /> Unpublish
             </Button>
           )}
 
-          <Button variant="primary" size="small" onClick={handlePublish} isLoading={publishing} data-testid="cms-publish-btn">
-            <Send className="w-3.5 h-3.5 mr-1" /> {editingPage.status === "published" ? "Publish Changes" : "Publish"}
+          <Button
+            variant="primary"
+            size="small"
+            onClick={handlePublish}
+            disabled={publishing}
+            data-testid="cms-publish-btn"
+            className="bg-[#1D2F5D] hover:bg-[#152347] text-white border border-[#D4AF37]/50 font-bold shadow-sm disabled:opacity-50 text-xs flex items-center gap-1.5"
+          >
+            {publishing ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
+                <span>Publishing to PostgreSQL...</span>
+              </>
+            ) : (
+              <>
+                <Send className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>{editingPage.status === "published" ? "Publish Changes" : "Publish"}</span>
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -930,52 +1134,279 @@ export function PageConfigurator() {
       {/* MOBILE DASHBOARD RESPONSIVE PANEL TAB SWITCHER */}
       <div className="shrink-0 flex lg:hidden items-center justify-around bg-ui-bg-subtle p-1 rounded-xl border border-ui-border-base text-xs font-bold">
         <button
-          onClick={() => setMobilePanelTab("settings")}
-          className={`flex-1 py-2 text-center rounded-lg ${mobilePanelTab === "settings" ? "bg-rose-500 text-white shadow-sm" : "text-ui-fg-muted"}`}
+          onClick={() => setMobilePanelTab("sections")}
+          className={`flex-1 py-2 text-center rounded-lg ${mobilePanelTab === "sections" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted"}`}
         >
-          ⚙️ Settings
+          📑 Sections ({getSections().length})
         </button>
         <button
           onClick={() => setMobilePanelTab("preview")}
-          className={`flex-1 py-2 text-center rounded-lg ${mobilePanelTab === "preview" ? "bg-rose-500 text-white shadow-sm" : "text-ui-fg-muted"}`}
+          className={`flex-1 py-2 text-center rounded-lg ${mobilePanelTab === "preview" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted"}`}
         >
           👁️ Preview Canvas
         </button>
         <button
-          onClick={() => setMobilePanelTab("sections")}
-          className={`flex-1 py-2 text-center rounded-lg ${mobilePanelTab === "sections" ? "bg-rose-500 text-white shadow-sm" : "text-ui-fg-muted"}`}
+          onClick={() => setMobilePanelTab("settings")}
+          className={`flex-1 py-2 text-center rounded-lg ${mobilePanelTab === "settings" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted"}`}
         >
-          📑 Sections ({getSections().length})
+          ⚙️ Inspector
         </button>
       </div>
 
       {/* MAIN VIEWPORT-CONSTRAINED 3-PANEL WORKSPACE */}
-      <div className="grid grid-cols-12 gap-3 lg:h-[calc(100vh-140px)] min-h-[600px] items-stretch min-w-0 rounded-xl">
+      <div className="grid grid-cols-12 gap-3 lg:h-[calc(100vh-140px)] min-h-[600px] items-stretch min-w-0 max-w-full rounded-xl">
 
-        {/* LEFT PANEL: Controls & Settings (~340px / 3 cols) */}
-        <div className={`col-span-12 lg:col-span-3 bg-ui-bg-base border border-ui-border-base rounded-xl p-4 flex-col gap-4 h-full overflow-y-auto overscroll-y-auto min-h-0 ${mobilePanelTab === "settings" ? "flex" : "hidden lg:flex"}`}>
-          {configuringSection && selectedSection ? (
-                /* SECTION EDITOR MODE */
-                <SectionConfigEditor
-                  section={selectedSection}
+        {/* LEFT PANEL: Section Tree & Layers (~3 cols) */}
+        <div className={`col-span-12 lg:col-span-3 bg-ui-bg-base border border-ui-border-base rounded-xl p-3 flex-col gap-3 h-full overflow-y-auto overscroll-y-auto min-h-0 min-w-0 max-w-full ${mobilePanelTab === "sections" ? "flex" : "hidden lg:flex"}`}>
+          {/* Navigator Header */}
+          <div className="flex items-center justify-between pb-2 border-b border-ui-border-base">
+            <div className="flex items-center gap-1.5">
+              <Layers className="w-4 h-4 text-[#1D2F5D] dark:text-[#D4AF37]" />
+              <Text className="text-xs font-bold text-ui-fg-base">
+                Layers ({getSections().length})
+              </Text>
+            </div>
+            <button
+              onClick={() => setShowAddSectionModal(true)}
+              className="px-2 py-1 rounded-lg bg-[#1D2F5D] text-white hover:bg-[#152347] font-bold text-xs flex items-center gap-1 shadow-sm border border-[#D4AF37]/30 transition-all"
+              title="Add Section"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add
+            </button>
+          </div>
+
+          {/* Quick Page Settings Selector Button */}
+          <button
+            type="button"
+            onClick={() => setConfiguringSection(null)}
+            className={`w-full p-2.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between border transition-all ${
+              configuringSection === null
+                ? "bg-[#1D2F5D]/10 border-[#1D2F5D] text-[#1D2F5D] dark:bg-[#1D2F5D]/30 dark:border-[#D4AF37] dark:text-[#FAF9F6] shadow-sm"
+                : "bg-ui-bg-subtle/50 border-ui-border-base text-ui-fg-muted hover:text-ui-fg-base hover:border-ui-border-strong"
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <Settings className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>Page Global Settings</span>
+            </span>
+            {configuringSection === null && (
+              <Badge color="blue" className="text-[9px] px-1.5 py-0.5 bg-[#1D2F5D] text-[#D4AF37] border border-[#D4AF37]/30">Editing</Badge>
+            )}
+          </button>
+
+          {/* Search / Filter Sections */}
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-ui-fg-muted pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Filter sections..."
+              value={sectionListFilter}
+              onChange={(e) => setSectionListFilter(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-lg outline-none focus:ring-1 focus:ring-[#D4AF37] text-ui-fg-base"
+            />
+          </div>
+
+          {/* Section Items */}
+          {getSections().length === 0 ? (
+            <div className="text-center py-10 text-xs text-ui-fg-muted">
+              No sections added. Click "+ Add" above.
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {getSections()
+                .filter((sec: any) => {
+                  if (!sectionListFilter.trim()) return true;
+                  const q = sectionListFilter.toLowerCase();
+                  return (sec.name && sec.name.toLowerCase().includes(q)) || (sec.type && sec.type.toLowerCase().includes(q));
+                })
+                .map((sec: any) => {
+                  const idx = getSections().findIndex((s: any) => s.id === sec.id);
+                  const isSelected = configuringSection === sec.id;
+                  const isDragOver = dragOverSectionIndex === idx;
+                  return (
+                    <div
+                      key={sec.id}
+                      data-testid={`section-item-${sec.type}`}
+                      data-section-id={sec.id}
+                      data-section-type={sec.type}
+                      draggable={true}
+                      onDragStart={e => handleDragStart(e, idx)}
+                      onDragOver={e => handleDragOver(e, idx)}
+                      onDrop={e => handleDrop(e, idx)}
+                      onDragEnd={() => { setDraggedSectionIndex(null); setDragOverSectionIndex(null); }}
+                      onClick={() => {
+                        setConfiguringSection(sec.id);
+                        scrollToSectionInCanvas(sec.id);
+                      }}
+                      className={`p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col gap-1.5 ${
+                        isDragOver
+                          ? "border-[#D4AF37] border-2 scale-[1.02] shadow-lg bg-[#1D2F5D]/20 dark:bg-[#1D2F5D]/40"
+                          : isSelected
+                          ? "bg-[#1D2F5D]/10 border-[#1D2F5D] shadow-md dark:bg-[#1D2F5D]/30 dark:border-[#D4AF37] ring-1 ring-[#D4AF37]"
+                          : sec.enabled !== false
+                          ? "bg-ui-bg-subtle/50 border-ui-border-base hover:border-[#D4AF37]/40"
+                          : "bg-ui-bg-subtle/20 border-dashed border-ui-border-base opacity-50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-1">
+                        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                          <div className="cursor-grab active:cursor-grabbing text-ui-fg-muted hover:text-ui-fg-base shrink-0" title="Drag to reorder">
+                            <GripVertical className="w-3.5 h-3.5 shrink-0" />
+                          </div>
+                          <SectionIcon type={sec.type} />
+                          <Text className="text-xs font-bold truncate flex-1">{sec.name}</Text>
+                        </div>
+                        <Badge color={sec.enabled !== false ? "green" : "grey"} className="text-[8px] px-1 py-0 shrink-0">
+                          {sec.enabled !== false ? "Active" : "Off"}
+                        </Badge>
+                      </div>
+
+                      {/* Quick Reorder / Actions */}
+                      <div className="flex items-center justify-end gap-1 pt-1 border-t border-ui-border-base/40" onClick={e => e.stopPropagation()}>
+                        <button
+                          onClick={() => toggleSection(sec.id)}
+                          className="p-1 rounded text-ui-fg-muted hover:text-ui-fg-base"
+                          title={sec.enabled ? "Disable section" : "Enable section"}
+                        >
+                          <Eye className={`w-3 h-3 ${sec.enabled !== false ? "text-emerald-600" : "text-ui-fg-muted"}`} />
+                        </button>
+                        <button
+                          onClick={() => moveSectionUp(idx)}
+                          disabled={idx === 0}
+                          className="p-1 rounded text-ui-fg-muted hover:text-ui-fg-base disabled:opacity-20"
+                          title="Move up"
+                        >
+                          <ArrowUp className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => moveSectionDown(idx)}
+                          disabled={idx === getSections().length - 1}
+                          className="p-1 rounded text-ui-fg-muted hover:text-ui-fg-base disabled:opacity-20"
+                          title="Move down"
+                        >
+                          <ArrowDown className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => duplicateSection(sec.id)}
+                          className="p-1 rounded text-ui-fg-muted hover:text-ui-fg-base"
+                          title="Duplicate"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => removeSection(sec.id)}
+                          className="p-1 rounded text-ui-fg-muted hover:text-red-500"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </div>
+
+        {/* CENTER PANEL: Controlled Live Studio Canvas (~6 cols) */}
+        <div className={`col-span-12 lg:col-span-6 bg-ui-bg-subtle/80 rounded-xl border border-ui-border-base h-full flex flex-col min-h-0 min-w-0 max-w-full overflow-hidden ${mobilePanelTab === "preview" ? "flex" : "hidden lg:flex"}`}>
+          {/* Canvas Header */}
+          <div className="shrink-0 p-3 bg-ui-bg-base border-b border-ui-border-base flex items-center justify-between text-xs font-semibold text-ui-fg-muted rounded-t-xl">
+            <span className="flex items-center gap-1.5">
+              <Eye className="w-4 h-4 text-[#1D2F5D] dark:text-[#D4AF37]" />
+              Viewport: {canvasDevice === "mobile" ? "375px (Mobile)" : canvasDevice === "tablet" ? "768px (Tablet)" : canvasDevice === "desktop" ? "1100px (Desktop)" : "Full Width"}
+            </span>
+            <span className="text-[11px] text-ui-fg-subtle">Click any element to inspect & configure</span>
+          </div>
+
+          {/* Internal Scrollable Canvas Container */}
+          <div
+            id="center-canvas-scroll"
+            ref={centerCanvasRef}
+            className="flex-1 overflow-y-auto overscroll-y-auto overflow-x-auto p-4 sm:p-6 flex justify-center items-start scrollbar-thin rounded-b-xl max-w-full w-full"
+          >
+            <div
+              className={`bg-white dark:bg-ui-bg-base rounded-2xl shadow-2xl overflow-hidden border border-ui-border-base transition-all duration-300 my-auto ${
+                canvasDevice === "mobile"
+                  ? "w-[375px]"
+                  : canvasDevice === "tablet"
+                  ? "w-[768px]"
+                  : canvasDevice === "desktop"
+                  ? "w-[1100px]"
+                  : "w-full"
+              }`}
+            >
+              <div className="p-4 sm:p-6">
+                <PageRenderer
+                  sections={editingPage.sections || []}
+                  banners={editingPage.draft_config?.banners || []}
                   allProducts={allProducts}
                   allCategories={allCategories}
-                  allOccasions={allOccasions}
-                  updateSectionField={updateSectionField}
-                  updateSectionConfig={updateSectionConfig}
-                  updateSectionWholeConfig={updateSectionWholeConfig}
-                  updateSectionNestedConfig={updateSectionNestedConfig}
-                  openImagePicker={openImagePicker}
-                  onClose={() => setConfiguringSection(null)}
+                  occasions={allOccasions}
+                  announcementBar={editingPage.announcement_bar}
+                  h1={editingPage.h1 || editingPage.title}
+                  subheading={editingPage.subheading}
+                  introContent={editingPage.intro_content}
+                  theme={editingPage.theme}
+                  isPreview={true}
+                  selectedSectionId={configuringSection}
+                  onSectionClick={(id) => {
+                    setConfiguringSection(id);
+                    scrollToSectionInCanvas(id);
+                  }}
                 />
-              ) : (
-            /* PAGE SETTINGS MODE */
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT PANEL: Contextual Property Inspector (~3 cols) */}
+        <div className={`col-span-12 lg:col-span-3 bg-ui-bg-base border border-ui-border-base rounded-xl p-4 flex-col gap-4 h-full overflow-y-auto overscroll-y-auto min-h-0 min-w-0 max-w-full ${mobilePanelTab === "settings" ? "flex" : "hidden lg:flex"}`}>
+          {configuringSection && selectedSection ? (
+            /* SECTION EDITOR MODE */
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between pb-2 border-b border-ui-border-base">
+                <button
+                  type="button"
+                  onClick={() => setConfiguringSection(null)}
+                  className="text-xs font-bold text-[#1D2F5D] hover:text-[#152347] dark:text-[#D4AF37] flex items-center gap-1 transition-colors"
+                >
+                  ← Page Settings
+                </button>
+                <Badge color="blue" className="text-[10px]">
+                  {selectedSection.type}
+                </Badge>
+              </div>
+              <SectionConfigEditor
+                section={selectedSection}
+                allProducts={allProducts}
+                allCategories={allCategories}
+                allOccasions={allOccasions}
+                updateSectionField={updateSectionField}
+                updateSectionConfig={updateSectionConfig}
+                updateSectionWholeConfig={updateSectionWholeConfig}
+                updateSectionNestedConfig={updateSectionNestedConfig}
+                openImagePicker={openImagePicker}
+                onClose={() => setConfiguringSection(null)}
+              />
+            </div>
+          ) : (
+            /* PAGE GLOBAL SETTINGS MODE */
             <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between pb-1 border-b border-ui-border-base">
+                <Text className="text-xs font-bold uppercase tracking-wider text-ui-fg-subtle">
+                  Page Settings
+                </Text>
+                <Badge color="green" className="text-[9px]">
+                  {editingPage.status === "published" ? "Live" : "Draft"}
+                </Badge>
+              </div>
+
               {/* Tab Navigation Bar */}
               <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-ui-border-base scrollbar-none">
                 {[
                   { id: "general", label: "General" },
-                  ...(editingPage.page_type === "product" ? [{ id: "pdp", label: "PDP Layout" }] : []),
+                  ...((editingPage.page_type === "product" || editingPage.slug === "product") ? [{ id: "pdp", label: "PDP Layout" }] : []),
                   { id: "seo", label: "SEO" },
                   { id: "theme", label: "Theme" },
                   { id: "visibility", label: "Visibility" },
@@ -985,8 +1416,8 @@ export function PageConfigurator() {
                   <button
                     key={t.id}
                     onClick={() => setActiveTab(t.id as PageTab)}
-                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
-                      activeTab === t.id ? "bg-rose-500 text-white shadow-sm" : "text-ui-fg-muted hover:bg-ui-bg-subtle"
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                      activeTab === t.id ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted hover:bg-ui-bg-subtle"
                     }`}
                   >
                     {t.label}
@@ -998,115 +1429,139 @@ export function PageConfigurator() {
               {activeTab === "general" && (
                 <div className="flex flex-col gap-3">
                   <Field label="Page Title">
-                    <Input
+                    <input
+                      type="text"
                       value={editingPage.title || ""}
                       onChange={e => updateField("title", e.target.value)}
+                      placeholder="Page Title"
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs"
                     />
                   </Field>
                   <Field label="URL Slug">
-                    <Input
+                    <input
+                      type="text"
                       value={editingPage.slug || ""}
                       onChange={e => updateField("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                      placeholder="e.g. birthday-cakes"
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs"
                     />
                   </Field>
                   <Field label="Page Type">
-                    <Select value={editingPage.page_type || "landing"} onValueChange={v => updateField("page_type", v)}>
-                      <Select.Trigger><Select.Value /></Select.Trigger>
-                      <Select.Content>
-                        {PAGE_TYPES.map(t => <Select.Item key={t.value} value={t.value}>{t.label}</Select.Item>)}
-                      </Select.Content>
-                    </Select>
+                    <select
+                      value={editingPage.page_type || "landing"}
+                      onChange={e => updateField("page_type", e.target.value)}
+                      className="w-full py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs cursor-pointer"
+                    >
+                      {PAGE_TYPES.map(t => (
+                        <option key={t.value} value={t.value} className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 py-1">
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
                   </Field>
-                  <Field label="Page Heading (H1)">
-                    <Input
-                      value={editingPage.h1 || editingPage.title || ""}
+                  <Field label="H1 Headline">
+                    <input
+                      type="text"
+                      value={editingPage.h1 || ""}
                       onChange={e => updateField("h1", e.target.value)}
+                      placeholder={editingPage.title || "Page H1 Headline"}
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs"
                     />
                   </Field>
                   <Field label="Subheading">
-                    <Input
+                    <input
+                      type="text"
                       value={editingPage.subheading || ""}
                       onChange={e => updateField("subheading", e.target.value)}
+                      placeholder="Descriptive subheading"
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs"
                     />
                   </Field>
-                  <Field label="Intro Paragraph">
-                    <Textarea
+                  <Field label="Intro Content">
+                    <textarea
                       value={editingPage.intro_content || ""}
                       onChange={e => updateField("intro_content", e.target.value)}
                       rows={3}
+                      placeholder="Introductory body text..."
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs resize-y"
                     />
                   </Field>
                 </div>
               )}
 
-              {/* PDP Layout Tab */}
-              {activeTab === "pdp" && (
+              {/* PDP Tab */}
+              {activeTab === "pdp" && (editingPage.page_type === "product" || editingPage.slug === "product") && (
                 <PdpBuilderEditor
-                  config={editingPage.draft_config?.pdp || editingPage.published_config?.pdp || editingPage.pdp_config || {}}
-                  onChange={(key, val) => {
-                    setEditingPage((prev: any) => {
-                      if (!prev) return prev;
-                      const currentPdp = prev.draft_config?.pdp || prev.pdp_config || {};
-                      const updatedPdp = { ...currentPdp, [key]: val };
-                      return {
-                        ...prev,
-                        pdp_config: updatedPdp,
-                        draft_config: {
-                          ...(prev.draft_config || {}),
-                          pdp: updatedPdp,
-                        },
-                      };
-                    });
-                  }}
+                  config={editingPage.pdp_config || {}}
+                  onChange={(key, val) =>
+                    updateField("pdp_config", {
+                      ...(editingPage.pdp_config || {}),
+                      [key]: val,
+                    })
+                  }
                 />
               )}
 
               {/* SEO Tab */}
               {activeTab === "seo" && (
                 <div className="flex flex-col gap-3">
-                  <div className={`p-2.5 rounded-xl border flex items-center justify-between ${seoScore.score >= 80 ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"}`}>
-                    <span className="text-xs font-bold">SEO Score: {seoScore.score}/100</span>
-                    <Badge color={seoScore.score >= 80 ? "green" : "orange"}>{seoScore.label}</Badge>
-                  </div>
                   <Field label="Meta Title">
-                    <Input
+                    <input
+                      type="text"
                       value={editingPage.meta_title || ""}
                       onChange={e => updateField("meta_title", e.target.value)}
+                      placeholder="Page title for search engines (50-60 chars)"
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs"
                     />
                   </Field>
                   <Field label="Meta Description">
-                    <Textarea
+                    <textarea
                       value={editingPage.meta_description || ""}
                       onChange={e => updateField("meta_description", e.target.value)}
                       rows={3}
-                    />
-                  </Field>
-                  <Field label="Keywords">
-                    <Input
-                      value={editingPage.keywords || ""}
-                      onChange={e => updateField("keywords", e.target.value)}
+                      placeholder="Brief summary for search snippets (120-160 chars)"
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs resize-y"
                     />
                   </Field>
                   <Field label="Canonical URL">
-                    <Input
+                    <input
+                      type="text"
                       value={editingPage.canonical_url || ""}
                       onChange={e => updateField("canonical_url", e.target.value)}
+                      placeholder="https://caketohome.com/..."
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs"
                     />
                   </Field>
-                  <Field label="Robots Tag">
-                    <Select value={editingPage.robots_tag || "index, follow"} onValueChange={v => updateField("robots_tag", v)}>
-                      <Select.Trigger><Select.Value /></Select.Trigger>
-                      <Select.Content>
-                        {ROBOTS_OPTIONS.map(r => <Select.Item key={r} value={r}>{r}</Select.Item>)}
-                      </Select.Content>
-                    </Select>
+                  <Field label="Robots Meta">
+                    <select
+                      value={editingPage.robots || "index, follow"}
+                      onChange={e => updateField("robots", e.target.value)}
+                      className="w-full py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs cursor-pointer"
+                    >
+                      {ROBOTS_OPTIONS.map(r => (
+                        <option key={r} value={r} className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 py-1">
+                          {r}
+                        </option>
+                      ))}
+                    </select>
                   </Field>
-
-                  {/* OpenGraph Image Picker */}
-                  <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex items-center justify-between">
+                  <Field label="Structured Data Type">
+                    <select
+                      value={editingPage.structured_data_type || "WebPage"}
+                      onChange={e => updateField("structured_data_type", e.target.value)}
+                      className="w-full py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs cursor-pointer"
+                    >
+                      {STRUCTURED_DATA_TYPES.map(s => (
+                        <option key={s} value={s} className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 py-1">
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <div className="flex items-center justify-between pt-2 border-t border-ui-border-base">
                     <div>
-                      <Label className="text-xs font-semibold">Social OG Image</Label>
-                      <Text className="text-[10px] text-ui-fg-muted truncate max-w-[140px]">{editingPage.og_image || "Not set"}</Text>
+                      <Text className="text-xs font-bold">Social Share Image (OG)</Text>
+                      <Text className="text-[10px] text-ui-fg-muted">{editingPage.og_image ? "Image set" : "Using default"}</Text>
                     </div>
                     <Button
                       variant="secondary"
@@ -1122,13 +1577,139 @@ export function PageConfigurator() {
               {/* Theme Tab */}
               {activeTab === "theme" && (
                 <div className="flex flex-col gap-3">
-                  <Text className="text-xs font-bold text-rose-600">Page Color Theme</Text>
+                  <div className="flex flex-col gap-2 pb-2 border-b border-ui-border-base">
+                    <Text className="text-xs font-bold text-rose-600">Style & Theme Presets</Text>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const royalNavyTheme = {
+                            bg_color: "#FDFBF7",
+                            text_color: "#07090E",
+                            heading_color: "#1D2F5D",
+                            accent_color: "#D4AF37",
+                            font_family: "'Plus Jakarta Sans', sans-serif",
+                            heading_font: "'Playfair Display', serif",
+                            card_style: "luxury",
+                          };
+                          setEditingPage((prev: any) => ({ ...prev, theme: royalNavyTheme }));
+                        }}
+                        className="text-[10px] px-2 py-1 rounded-md bg-[#1D2F5D] text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#142040] font-semibold transition-all shadow-sm"
+                      >
+                        👑 Royal Navy & Gold (#1D2F5D)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const tenebrismTheme = {
+                            bg_color: "radial-gradient(ellipse at top right, #1d2f5d 0%, #0d152b 50%, #07090E 100%)",
+                            text_color: "#FAF9F6",
+                            heading_color: "#D4AF37",
+                            accent_color: "#D4AF37",
+                            font_family: "'Outfit', sans-serif",
+                            heading_font: "'Playfair Display', serif",
+                            card_style: "tenebrism",
+                          };
+                          setEditingPage((prev: any) => ({ ...prev, theme: tenebrismTheme }));
+                        }}
+                        className="text-[10px] px-2 py-1 rounded-md bg-[#07090E] text-[#D4AF37] border border-[#D4AF37]/40 hover:bg-[#142040] font-medium transition-all"
+                      >
+                        🕯️ Tenebrism Chiaroscuro
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const coquetteTheme = {
+                            bg_color: "#FFF5F7",
+                            text_color: "#4A044E",
+                            heading_color: "#BE185D",
+                            accent_color: "#F472B6",
+                            font_family: "'Plus Jakarta Sans', sans-serif",
+                            heading_font: "'Playfair Display', serif",
+                            card_style: "coquette",
+                          };
+                          setEditingPage((prev: any) => ({ ...prev, theme: coquetteTheme }));
+                        }}
+                        className="text-[10px] px-2 py-1 rounded-md bg-[#FFF5F7] text-[#BE185D] border border-pink-200 hover:bg-pink-100 font-medium transition-all"
+                      >
+                        🎀 Coquette Blush
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const scrapbookTheme = {
+                            bg_color: "#FDFBF7",
+                            text_color: "#1E293B",
+                            heading_color: "#1D2F5D",
+                            accent_color: "#D4AF37",
+                            font_family: "'Plus Jakarta Sans', sans-serif",
+                            heading_font: "'Playfair Display', serif",
+                            card_style: "scrapbook",
+                          };
+                          setEditingPage((prev: any) => ({ ...prev, theme: scrapbookTheme }));
+                        }}
+                        className="text-[10px] px-2 py-1 rounded-md bg-[#FDFBF7] text-[#997A1E] border border-[#D4AF37]/30 hover:bg-amber-50 font-medium transition-all"
+                      >
+                        📖 Memory Scrapbook
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const japandiTheme = {
+                            bg_color: "#FDFBF7",
+                            text_color: "#1E293B",
+                            heading_color: "#0F172A",
+                            accent_color: "#64748B",
+                            font_family: "'Plus Jakarta Sans', sans-serif",
+                            heading_font: "'Plus Jakarta Sans', sans-serif",
+                            card_style: "japandi",
+                          };
+                          setEditingPage((prev: any) => ({ ...prev, theme: japandiTheme }));
+                        }}
+                        className="text-[10px] px-2 py-1 rounded-md bg-[#F8FAFC] text-slate-700 border border-slate-200 hover:bg-slate-100 font-medium transition-all"
+                      >
+                        🌿 Japandi Wabi-Sabi
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="Card Visual Style">
+                      <Select
+                        value={editingPage.theme?.card_style || "default"}
+                        onValueChange={v => updateNestedField("theme", "card_style", v)}
+                      >
+                        <Select.Trigger><Select.Value /></Select.Trigger>
+                        <Select.Content>
+                          <Select.Item value="default">Default Clean Solid</Select.Item>
+                          <Select.Item value="glass">🪟 Glassmorphism (Frosted)</Select.Item>
+                          <Select.Item value="scrapbook">📖 Scrapbook (Polaroid + Washi)</Select.Item>
+                          <Select.Item value="coquette">🎀 Coquette (Blush + Ribbon)</Select.Item>
+                          <Select.Item value="tenebrism">🕯️ Tenebrism (Spotlight Glow)</Select.Item>
+                          <Select.Item value="japandi">🌿 Japandi (Minimal Calm)</Select.Item>
+                          <Select.Item value="luxury">✨ Luxury Patisserie</Select.Item>
+                        </Select.Content>
+                      </Select>
+                    </Field>
+                    <Field label="Surface Glass Blur">
+                      <Select
+                        value={editingPage.theme?.glass_mode ? "active" : "disabled"}
+                        onValueChange={v => updateNestedField("theme", "glass_mode", v === "active")}
+                      >
+                        <Select.Trigger><Select.Value /></Select.Trigger>
+                        <Select.Content>
+                          <Select.Item value="disabled">Opaque Solid Surfaces</Select.Item>
+                          <Select.Item value="active">Backdrop Blur Enabled</Select.Item>
+                        </Select.Content>
+                      </Select>
+                    </Field>
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
                     <Field label="Page Background">
                       <div className="flex gap-2">
                         <input
                           type="color"
-                          value={editingPage.theme?.bg_color || "#ffffff"}
+                          value={editingPage.theme?.bg_color?.startsWith("#") ? editingPage.theme.bg_color : "#ffffff"}
                           onChange={e => updateNestedField("theme", "bg_color", e.target.value)}
                           className="h-8 w-10 rounded border border-ui-border-base cursor-pointer"
                         />
@@ -1172,19 +1753,19 @@ export function PageConfigurator() {
                       <div className="flex gap-2">
                         <input
                           type="color"
-                          value={editingPage.theme?.accent_color || "#e11d48"}
+                          value={editingPage.theme?.accent_color || "#D4AF37"}
                           onChange={e => updateNestedField("theme", "accent_color", e.target.value)}
                           className="h-8 w-10 rounded border border-ui-border-base cursor-pointer"
                         />
                         <Input
-                          value={editingPage.theme?.accent_color || "#e11d48"}
+                          value={editingPage.theme?.accent_color || "#D4AF37"}
                           onChange={e => updateNestedField("theme", "accent_color", e.target.value)}
                         />
                       </div>
                     </Field>
                   </div>
 
-                  <Text className="text-xs font-bold text-rose-600 pt-2">Typography & Style</Text>
+                  <Text className="text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37] pt-2">Typography & Style</Text>
                   <div className="grid grid-cols-2 gap-2">
                     <Field label="Body Font Family">
                       <Select
@@ -1270,7 +1851,7 @@ export function PageConfigurator() {
               {/* Publish Tab */}
               {activeTab === "publish" && (
                 <div className="flex flex-col gap-3">
-                  <Text className="text-xs font-bold text-rose-600">Pre-Publish Checklist</Text>
+                  <Text className="text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37]">Pre-Publish Checklist</Text>
                   <div className="flex flex-col gap-1.5 text-xs">
                     <div className={`p-2 rounded-lg flex items-center justify-between ${editingPage.title ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
                       <span>Page Title Set</span>
@@ -1289,166 +1870,26 @@ export function PageConfigurator() {
                       {getSections().length > 0 ? <Check className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
                     </div>
                   </div>
-                  <Button variant="primary" size="small" onClick={handlePublish} isLoading={publishing} className="w-full mt-2">
-                    <Send className="w-3.5 h-3.5 mr-1" /> Publish Storefront Now
-                  </Button>
+                  <button
+                    type="button"
+                    disabled={publishing || saving}
+                    onClick={handlePublish}
+                    className="w-full mt-2 inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg bg-[#1D2F5D] text-white hover:bg-[#152347] active:scale-[0.99] disabled:opacity-50 transition shadow-sm border border-[#1D2F5D]"
+                  >
+                    {publishing ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
+                        <span>Publishing to PostgreSQL...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>Publish Storefront Now</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               )}
-            </div>
-          )}
-        </div>
-
-        {/* CENTER PANEL: Controlled Live Canvas Container (~7 cols) */}
-        <div className={`col-span-12 lg:col-span-7 bg-ui-bg-subtle/80 rounded-xl border border-ui-border-base h-full flex flex-col min-h-0 min-w-0 ${mobilePanelTab === "preview" ? "flex" : "hidden lg:flex"}`}>
-          {/* Canvas Header */}
-          <div className="shrink-0 p-3 bg-ui-bg-base border-b border-ui-border-base flex items-center justify-between text-xs font-semibold text-ui-fg-muted rounded-t-xl">
-            <span className="flex items-center gap-1.5">
-              <Eye className="w-4 h-4 text-rose-600" />
-              Canvas Viewport: {canvasDevice === "mobile" ? "375px (Mobile)" : canvasDevice === "tablet" ? "768px (Tablet)" : canvasDevice === "desktop" ? "1440px (Desktop)" : "Full Width"}
-            </span>
-            <span className="text-[11px] text-ui-fg-subtle">Click section to edit</span>
-          </div>
-
-          {/* Internal Scrollable Canvas Container */}
-          <div
-            id="center-canvas-scroll"
-            ref={centerCanvasRef}
-            className="flex-1 overflow-y-auto overscroll-y-auto overflow-x-auto p-4 sm:p-6 flex justify-center items-start scrollbar-thin rounded-b-xl"
-          >
-            <div
-              className={`bg-white dark:bg-ui-bg-base rounded-2xl shadow-2xl overflow-hidden border border-ui-border-base transition-all duration-300 my-auto ${
-                canvasDevice === "mobile"
-                  ? "w-[375px]"
-                  : canvasDevice === "tablet"
-                  ? "w-[768px]"
-                  : canvasDevice === "desktop"
-                  ? "w-[1100px]"
-                  : "w-full"
-              }`}
-            >
-              <div className="p-4 sm:p-6">
-                <PageRenderer
-                  sections={editingPage.sections || []}
-                  banners={editingPage.draft_config?.banners || []}
-                  allProducts={allProducts}
-                  allCategories={allCategories}
-                  occasions={allOccasions}
-                  announcementBar={editingPage.announcement_bar}
-                  h1={editingPage.h1 || editingPage.title}
-                  subheading={editingPage.subheading}
-                  introContent={editingPage.intro_content}
-                  theme={editingPage.theme}
-                  isPreview={true}
-                  selectedSectionId={configuringSection}
-                  onSectionClick={(id) => scrollToSectionInCanvas(id)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT PANEL: Section Navigator (~240px / 2 cols) */}
-        <div className={`col-span-12 lg:col-span-2 bg-ui-bg-base border border-ui-border-base rounded-xl p-3 flex-col gap-3 h-full overflow-y-auto overscroll-y-auto min-h-0 ${mobilePanelTab === "sections" ? "flex" : "hidden lg:flex"}`}>
-          <div className="flex items-center justify-between pb-2 border-b border-ui-border-base">
-            <Text className="text-[11px] font-bold uppercase tracking-wider text-ui-fg-subtle">
-              Sections ({getSections().length})
-            </Text>
-            <button
-              onClick={() => setShowAddSectionModal(true)}
-              className="p-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-xs flex items-center gap-0.5"
-              title="Add Section"
-            >
-              <Plus className="w-3.5 h-3.5" /> Add
-            </button>
-          </div>
-
-          {getSections().length === 0 ? (
-            <div className="text-center py-10 text-xs text-ui-fg-muted">
-              No sections added. Click "+ Add" above.
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {getSections().map((sec: any, idx: number) => {
-                const isSelected = configuringSection === sec.id;
-                const isDragOver = dragOverSectionIndex === idx;
-                return (
-                  <div
-                    key={sec.id}
-                    data-testid={`section-item-${sec.type}`}
-                    data-section-id={sec.id}
-                    data-section-type={sec.type}
-                    draggable={true}
-                    onDragStart={e => handleDragStart(e, idx)}
-                    onDragOver={e => handleDragOver(e, idx)}
-                    onDrop={e => handleDrop(e, idx)}
-                    onDragEnd={() => { setDraggedSectionIndex(null); setDragOverSectionIndex(null); }}
-                    onClick={() => scrollToSectionInCanvas(sec.id)}
-                    className={`p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col gap-1.5 ${
-                      isDragOver
-                        ? "border-rose-500 border-2 scale-[1.02] shadow-lg bg-rose-50/50 dark:bg-rose-950/40"
-                        : isSelected
-                        ? "bg-rose-50 border-rose-400 shadow-md dark:bg-rose-950/40"
-                        : sec.enabled !== false
-                        ? "bg-ui-bg-subtle/50 border-ui-border-base hover:border-rose-300"
-                        : "bg-ui-bg-subtle/20 border-dashed border-ui-border-base opacity-50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-1">
-                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                        <div className="cursor-grab active:cursor-grabbing text-ui-fg-muted hover:text-ui-fg-base shrink-0" title="Drag to reorder">
-                          <GripVertical className="w-3.5 h-3.5 shrink-0" />
-                        </div>
-                        <SectionIcon type={sec.type} />
-                        <Text className="text-xs font-bold truncate flex-1">{sec.name}</Text>
-                      </div>
-                      <Badge color={sec.enabled !== false ? "green" : "grey"} className="text-[8px] px-1 py-0 shrink-0">
-                        {sec.enabled !== false ? "Active" : "Off"}
-                      </Badge>
-                    </div>
-
-                    {/* Quick Reorder / Actions */}
-                    <div className="flex items-center justify-end gap-1 pt-1 border-t border-ui-border-base/40" onClick={e => e.stopPropagation()}>
-                      <button
-                        onClick={() => toggleSection(sec.id)}
-                        className="p-1 rounded text-ui-fg-muted hover:text-ui-fg-base"
-                        title={sec.enabled ? "Disable section" : "Enable section"}
-                      >
-                        <Eye className={`w-3 h-3 ${sec.enabled !== false ? "text-emerald-600" : "text-ui-fg-muted"}`} />
-                      </button>
-                      <button
-                        onClick={() => moveSectionUp(idx)}
-                        disabled={idx === 0}
-                        className="p-1 rounded text-ui-fg-muted hover:text-ui-fg-base disabled:opacity-20"
-                        title="Move up"
-                      >
-                        <ArrowUp className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => moveSectionDown(idx)}
-                        disabled={idx === getSections().length - 1}
-                        className="p-1 rounded text-ui-fg-muted hover:text-ui-fg-base disabled:opacity-20"
-                        title="Move down"
-                      >
-                        <ArrowDown className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => duplicateSection(sec.id)}
-                        className="p-1 rounded text-ui-fg-muted hover:text-ui-fg-base"
-                        title="Duplicate"
-                      >
-                        <Copy className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => removeSection(sec.id)}
-                        className="p-1 rounded text-ui-fg-muted hover:text-red-500"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
             </div>
           )}
         </div>

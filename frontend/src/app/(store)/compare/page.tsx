@@ -64,7 +64,6 @@ export default function ComparePage() {
         { label: "Rating", render: (p) => (p.review_count > 0 ? `⭐ ${p.rating.toFixed(1)} (${p.review_count})` : "New") },
         { label: "Sugar-Free", render: (p) => (p.sugar_free ? "✅" : "—") },
         { label: "Gluten-Free", render: (p) => (p.gluten_free ? "✅" : "—") },
-        { label: "Vegan", render: (p) => (p.vegan ? "✅" : "—") },
         { label: "Bestseller", render: (p) => (p.is_bestseller ? "✅" : "—") },
         { label: "New Arrival", render: (p) => (p.is_new_arrival ? "✅" : "—") },
         { label: "Description", render: (p) => p.description ?? "—" },

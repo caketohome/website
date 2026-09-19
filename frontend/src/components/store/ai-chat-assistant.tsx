@@ -175,7 +175,7 @@ export function AiChatAssistant() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-4 sm:bottom-6 left-3 sm:left-6 z-50 flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs sm:text-sm rounded-full shadow-2xl hover:shadow-amber-500/30 transition-all hover:scale-105 active:scale-95 group"
+          className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:bottom-6 left-3 sm:left-6 z-50 flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs sm:text-sm rounded-full shadow-2xl hover:shadow-amber-500/30 transition-all hover:scale-105 active:scale-95 group"
           aria-label="Open AI Bakery Concierge"
         >
           <div className="w-5 h-5 rounded-full bg-slate-950/20 flex items-center justify-center">
@@ -191,7 +191,7 @@ export function AiChatAssistant() {
 
       {/* Interactive Chat Dialog Modal */}
       {isOpen && (
-        <div className="fixed bottom-16 sm:bottom-20 left-3 sm:left-6 z-[100] w-[calc(100vw-24px)] max-w-[390px] md:max-w-[420px] h-[520px] sm:h-[560px] bg-slate-900 border-2 border-amber-500/30 text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] sm:bottom-20 left-3 sm:left-6 z-[100] w-[calc(100vw-24px)] max-w-[390px] md:max-w-[420px] h-[520px] sm:h-[560px] bg-slate-900 border-2 border-amber-500/30 text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5">
           {/* Header */}
           <div className="p-3.5 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
             <div className="flex items-center gap-2.5">

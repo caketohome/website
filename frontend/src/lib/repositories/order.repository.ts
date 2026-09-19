@@ -5,9 +5,10 @@ import { InventoryService } from "../services/inventory.service";
 export class OrderRepository {
   private static readonly VALID_TRANSITIONS: Record<string, string[]> = {
     pending: ["confirmed", "cancelled"],
-    confirmed: ["kitchen_accepted", "preparing", "cancelled"],
-    kitchen_accepted: ["preparing", "baking_inspection", "cancelled"],
+    confirmed: ["kitchen_accepted", "preparing", "in_preparation", "cancelled"],
+    kitchen_accepted: ["preparing", "in_preparation", "baking_inspection", "cancelled"],
     preparing: ["baking_inspection", "packed", "ready_for_pickup", "cancelled"],
+    in_preparation: ["baking_inspection", "packed", "ready_for_pickup", "cancelled"],
     baking_inspection: ["packed", "ready_for_pickup", "cancelled"],
     packed: ["ready_for_pickup", "out_for_delivery", "delivered", "cancelled"],
     ready_for_pickup: ["out_for_delivery", "delivered", "cancelled"],
@@ -185,7 +186,18 @@ export class OrderRepository {
       name: meta.customer_name || "Valued Customer",
       email: o.email || meta.customer_email || "customer@caketohome.internal",
       phone: meta.customer_phone || "+91 98765 43210",
-      address: meta.delivery_address || meta.delivery?.address || "Delivery Address on File",
+      address: typeof meta.delivery_address === "string" && meta.delivery_address.trim()
+        ? meta.delivery_address.trim()
+        : (meta.delivery_address && typeof meta.delivery_address === "object"
+            ? [
+                meta.delivery_address.line1 || meta.delivery_address.address_1 || meta.delivery_address.address,
+                meta.delivery_address.line2 || meta.delivery_address.address_2,
+                meta.delivery_address.landmark,
+                meta.delivery_address.city,
+                meta.delivery_address.state,
+                meta.delivery_address.pincode || meta.delivery_address.postal_code,
+              ].filter(Boolean).join(", ")
+            : (typeof meta.delivery?.address === "string" ? meta.delivery.address : "Delivery Address on File")),
       city: meta.delivery_city || meta.city || "Bengaluru",
       area: meta.delivery_area || meta.area || "Central Zone",
       pincode: meta.delivery_pincode || meta.pincode || "560038",
@@ -193,15 +205,16 @@ export class OrderRepository {
       delivery_instructions: meta.delivery_instructions || "",
     };
 
-    const branch = {
-      id: o.branch_id || meta.branch_id || "br_indiranagar",
-      name: meta.branch_name || (o.branch_id === "br_koramangala" ? "Koramangala Gourmet Hub" : "Indiranagar Flagship Bakery"),
-      code: meta.branch_code || (o.branch_id === "br_koramangala" ? "HUB-BLR-02" : "HUB-BLR-01"),
-      address: meta.branch_address || (o.branch_id === "br_koramangala" ? "80 Feet Rd, Koramangala 4th Block, Bengaluru" : "100 Feet Rd, Indiranagar, Bengaluru"),
-      phone: meta.branch_phone || "+91 80 4912 8800",
-      manager: meta.branch_manager || "Branch Operations Lead",
-      capacity: meta.branch_capacity || "Operational (78% Load)",
-    };
+    const branchId = o.branch_id || meta.branch_id || null;
+    const branch = branchId ? {
+      id: branchId,
+      name: meta.branch_name || "Assigned Kitchen Branch",
+      code: meta.branch_code || "",
+      address: meta.branch_address || "",
+      phone: meta.branch_phone || "",
+      manager: meta.branch_manager || "",
+      capacity: meta.branch_capacity || "",
+    } : null;
 
     const firstItemCakeMsg = items[0]?.cake_message;
     const kitchen = {
@@ -287,8 +300,8 @@ export class OrderRepository {
       customer_name: customer.name,
       customer_email: customer.email,
       customer_phone: customer.phone,
-      branch_id: branch.id,
-      branch_name: branch.name,
+      branch_id: branch ? branch.id : (o.branch_id || meta.branch_id || ""),
+      branch_name: branch ? branch.name : (meta.branch_name || ""),
       total_amount: totalAmount,
       total: totalAmount,
       subtotal,
@@ -956,11 +969,11 @@ export class OrderRepository {
       // Step A: Restore inventory in PostgreSQL branch_inventory for canceled items
       if (Array.isArray(existing.items)) {
         for (const item of existing.items) {
-          if (item.product_id && item.quantity > 0) {
+          if (item.product_id && item.quantity > 0 && existing.branch_id) {
             try {
               await InventoryService.restoreStock(
                 client,
-                existing.branch_id || "br_indiranagar",
+                existing.branch_id,
                 item.product_id,
                 item.quantity
               );
@@ -1054,7 +1067,7 @@ export class OrderRepository {
         [
           refundTxnId,
           "comp_cth_india",
-          existing.branch_id || "br_indiranagar",
+          existing.branch_id || null,
           existing.id,
           existing.customer_id || "guest",
           Math.round(refundAmt || 0),

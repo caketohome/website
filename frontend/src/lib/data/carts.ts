@@ -22,11 +22,23 @@ export async function retrieveCart(cartId?: string) {
     try {
       const { ApiEngine } = await import("../api-engine");
       const cart = ApiEngine.getCart(resolvedCartId);
+      if (cart && Array.isArray(cart.items) && cart.items.length > 0) {
+        return cart;
+      }
+
+      // Check authoritative PostgreSQL database
+      const { CartRepository } = await import("../repositories/cart.repository");
+      const pgCart = await CartRepository.findCartById(resolvedCartId);
+      if (pgCart && Array.isArray(pgCart.items) && pgCart.items.length > 0) {
+        ApiEngine.saveCart(pgCart);
+        return pgCart;
+      }
+
       if (cart) {
         return cart;
       }
-    } catch {
-      // Fallback to apiClient if ApiEngine throws
+    } catch (err: any) {
+      console.warn("[retrieveCart] Server data error:", err.message);
     }
   }
 

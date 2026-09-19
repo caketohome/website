@@ -1,0 +1,48 @@
+{
+  "test": "PDP CMS Configuration Live Roundtrip Persistence",
+  "timestamp": "2026-09-17T09:43:33.181Z",
+  "steps": [
+    {
+      "step": "Read Baseline CMS",
+      "status": "PASS",
+      "pageId": "cmspg_product",
+      "originalAddToCartText": "Add to Cart",
+      "originalBuyNowText": "Buy Now",
+      "showTrustBadges": true
+    },
+    {
+      "step": "Storefront Baseline Render",
+      "status": "PASS",
+      "foundButtonText": "ADD TO CART • ₹649"
+    },
+    {
+      "step": "Mutate CMS Configuration in PostgreSQL",
+      "status": "PASS",
+      "mutation": {
+        "add_to_cart_text": "Add to Gourmet Bag",
+        "buy_now_text": "Express Gourmet Order",
+        "show_trust_badges": false
+      }
+    },
+    {
+      "step": "Verify Mutated Storefront PDP",
+      "status": "PASS",
+      "details": {
+        "mutatedAddToCartText": "ADD TO GOURMET BAG • ₹649",
+        "matchesExpectedAddToCart": true,
+        "mutatedBuyNowText": "EXPRESS GOURMET ORDER",
+        "matchesExpectedBuyNow": true,
+        "trustBadgesHidden": true
+      }
+    },
+    {
+      "step": "Restore Baseline CMS and Verify Storefront",
+      "status": "PASS",
+      "details": {
+        "restoredText": "ADD TO CART • ₹649",
+        "trustBadgesRestored": true
+      }
+    }
+  ],
+  "overall": "SUCCESS"
+}

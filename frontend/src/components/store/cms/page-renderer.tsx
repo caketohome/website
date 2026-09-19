@@ -17,9 +17,29 @@ const ScrollFrameHero = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full min-h-[500px] flex items-center justify-center bg-zinc-950 text-white/50 text-sm animate-pulse">
-        Loading interactive experience...
-      </div>
+      <section className="relative w-full min-h-[500px] flex items-center justify-center overflow-hidden bg-[#07090E] text-white">
+        <div className="absolute inset-0 bg-gradient-to-t from-[#07090E]/95 via-[#1D2F5D]/30 to-[#07090E]/80 pointer-events-none" />
+        <div className="relative z-10 p-6 sm:p-12 max-w-3xl flex flex-col items-center text-center gap-4">
+          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-1 shadow-xl bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/35">
+            <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+            Artisanal Cakes • Express Delivery
+          </span>
+          <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-[#FAF9F6] drop-shadow-2xl">
+            Freshly Baked Happiness
+          </Heading>
+          <Text className="font-sans text-sm sm:text-base text-stone-200/90 max-w-xl font-normal leading-relaxed drop-shadow-sm">
+            Handcrafted gourmet cakes, chocolates, and pastries baked fresh from scratch and delivered to your doorstep.
+          </Text>
+          <div className="flex items-center gap-3 pt-2">
+            <Link
+              href="/search"
+              className="rounded-full px-8 py-3.5 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-[#D4AF37] hover:bg-[#c59e2b] text-[#07090E] shadow-[0_10px_30px_rgba(212,175,55,0.3)] transition-all flex items-center gap-1.5"
+            >
+              Explore Cakes <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
+          </div>
+        </div>
+      </section>
     ),
   }
 );
@@ -60,6 +80,8 @@ export interface PageRendererProps {
     font_family?: string;
     heading_font?: string;
     border_radius?: string;
+    card_style?: string;
+    [key: string]: any;
   };
 }
 
@@ -261,7 +283,7 @@ function CarouselContainer({
             type="button"
             onClick={() => scroll("left")}
             aria-label="Scroll left"
-            className="absolute -left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 dark:bg-ui-bg-base shadow-lg border border-ui-border-base flex items-center justify-center text-ui-fg-base hover:bg-rose-50 hover:text-rose-600 transition-all opacity-0 group-hover:opacity-100 z-20 cursor-pointer"
+            className="absolute -left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 dark:bg-ui-bg-base shadow-lg border border-ui-border-base flex items-center justify-center text-ui-fg-base hover:bg-brand-gold-soft hover:text-[#1D2F5D] transition-all opacity-0 group-hover:opacity-100 z-20 cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -269,7 +291,7 @@ function CarouselContainer({
             type="button"
             onClick={() => scroll("right")}
             aria-label="Scroll right"
-            className="absolute -right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 dark:bg-ui-bg-base shadow-lg border border-ui-border-base flex items-center justify-center text-ui-fg-base hover:bg-rose-50 hover:text-rose-600 transition-all opacity-0 group-hover:opacity-100 z-20 cursor-pointer"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 dark:bg-ui-bg-base shadow-lg border border-ui-border-base flex items-center justify-center text-ui-fg-base hover:bg-brand-gold-soft hover:text-[#1D2F5D] transition-all opacity-0 group-hover:opacity-100 z-20 cursor-pointer"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -290,7 +312,7 @@ function CarouselContainer({
                 container.scrollTo({ left: dotIdx * cardWidth, behavior: "smooth" });
               }}
               className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                activeIndex === dotIdx ? "w-6 bg-rose-600" : "w-1.5 bg-ui-border-base hover:bg-ui-fg-muted"
+                activeIndex === dotIdx ? "w-6 bg-[#D4AF37]" : "w-1.5 bg-ui-border-base hover:bg-ui-fg-muted"
               }`}
               aria-label={`Go to slide ${dotIdx + 1}`}
             />
@@ -339,7 +361,7 @@ function BeforeAfterSlider({
 
       {/* Draggable Divider line */}
       <div className="absolute top-0 bottom-0 z-20 w-1 bg-white shadow-xl cursor-ew-resize flex items-center justify-center" style={{ left: `calc(${sliderPos}% - 2px)` }}>
-        <div className="w-8 h-8 rounded-full bg-white text-rose-600 shadow-xl flex items-center justify-center text-xs font-black">
+        <div className="w-8 h-8 rounded-full bg-white text-[#1D2F5D] shadow-xl flex items-center justify-center text-xs font-black">
           ⇄
         </div>
       </div>
@@ -467,7 +489,7 @@ function InteractiveLeadForm({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Priya Sharma"
-                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -478,7 +500,7 @@ function InteractiveLeadForm({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+91 98765 43210"
-                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
               />
             </div>
           </div>
@@ -490,7 +512,7 @@ function InteractiveLeadForm({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="priya@example.com"
-                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
               />
             </div>
           )}
@@ -502,7 +524,7 @@ function InteractiveLeadForm({
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 placeholder="Cake flavour, size (kg), date of celebration, delivery area..."
-                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
               />
             </div>
           )}
@@ -511,7 +533,7 @@ function InteractiveLeadForm({
             size="large"
             variant="primary"
             disabled={status === "loading"}
-            className="rounded-xl font-bold bg-rose-600 hover:bg-rose-700 text-white mt-1"
+            className="rounded-xl font-bold bg-[#1D2F5D] hover:bg-[#152347] text-white mt-1"
           >
             {status === "loading" ? (
               <span className="flex items-center gap-2">Submitting...</span>
@@ -582,10 +604,10 @@ function PincodeServiceabilityWidget({
           value={pincode}
           onChange={(e) => setPincode(e.target.value)}
           placeholder="e.g. 560038"
-          className="flex-1 px-4 py-2.5 text-sm font-mono font-bold bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-rose-500"
+          className="flex-1 px-4 py-2.5 text-sm font-mono font-bold bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
           onKeyDown={(e) => { if (e.key === "Enter") handleCheck(); }}
         />
-        <Button onClick={handleCheck} variant="primary" className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold">
+        <Button onClick={handleCheck} variant="primary" className="bg-[#1D2F5D] hover:bg-[#152347] text-white rounded-xl font-bold">
           Check Speed
         </Button>
       </div>
@@ -633,19 +655,19 @@ function DeliveryTimeSlotPicker({
             key={s.id}
             onClick={() => setSelectedSlot(s.id)}
             className={`p-3.5 rounded-2xl border cursor-pointer flex items-center justify-between transition-all ${
-              selectedSlot === s.id ? "bg-rose-50 dark:bg-rose-950/30 border-rose-500 shadow-sm" : "hover:bg-ui-bg-subtle border-ui-border-base"
+              selectedSlot === s.id ? "bg-brand-gold-soft dark:bg-[#D4AF37]/10 border-[#D4AF37] shadow-sm" : "hover:bg-ui-bg-subtle border-ui-border-base"
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectedSlot === s.id ? "border-rose-600" : "border-ui-border-base"}`}>
-                {selectedSlot === s.id && <div className="w-2 h-2 rounded-full bg-rose-600" />}
+              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectedSlot === s.id ? "border-[#D4AF37]" : "border-ui-border-base"}`}>
+                {selectedSlot === s.id && <div className="w-2 h-2 rounded-full bg-[#D4AF37]" />}
               </div>
               <div className="flex flex-col">
                 <span className="text-xs font-bold text-ui-fg-base">{s.name}</span>
                 <span className="text-[10px] text-ui-fg-muted">{s.time}</span>
               </div>
             </div>
-            <span className="text-xs font-black text-rose-600">{s.fee}</span>
+            <span className="text-xs font-black text-[#1D2F5D] dark:text-[#D4AF37]">{s.fee}</span>
           </div>
         ))}
       </div>
@@ -674,7 +696,7 @@ function StoreBranchLocator({
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8 rounded-3xl bg-ui-bg-base border border-ui-border-base shadow-lg flex flex-col gap-5">
       <div className="text-center flex flex-col gap-1">
-        <span className="text-xs font-bold text-rose-600 uppercase tracking-wider">Live Hubs</span>
+        <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">Live Hubs</span>
         <h3 className="text-xl font-bold text-ui-fg-base">{heading}</h3>
       </div>
       <div className="flex flex-wrap gap-2 justify-center">
@@ -683,7 +705,7 @@ function StoreBranchLocator({
             key={b.id}
             onClick={() => setSelectedBranch(b.id)}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${
-              selectedBranch === b.id ? "bg-rose-600 text-white border-rose-600 shadow-md" : "bg-ui-bg-subtle text-ui-fg-muted border-ui-border-base hover:text-ui-fg-base"
+              selectedBranch === b.id ? "bg-[#1D2F5D] text-white border-[#1D2F5D] shadow-md" : "bg-ui-bg-subtle text-ui-fg-muted border-ui-border-base hover:text-ui-fg-base"
             }`}
           >
             {b.name.split(" ")[0]} Hub
@@ -697,7 +719,7 @@ function StoreBranchLocator({
           </span>
           <h4 className="font-bold text-sm text-ui-fg-base">{cur.name}</h4>
           <p className="text-xs text-ui-fg-muted flex items-center justify-center sm:justify-start gap-1">
-            <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" /> {cur.addr}
+            <MapPin className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" /> {cur.addr}
           </p>
           <p className="text-xs text-ui-fg-muted flex items-center justify-center sm:justify-start gap-1">
             <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" /> {cur.hours}
@@ -705,7 +727,7 @@ function StoreBranchLocator({
         </div>
         <a
           href={`tel:${cur.phone}`}
-          className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-2 shadow whitespace-nowrap"
+          className="px-4 py-2.5 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold text-xs flex items-center gap-2 shadow whitespace-nowrap"
         >
           <Phone className="w-3.5 h-3.5" /> Call Hub ({cur.phone})
         </a>
@@ -725,16 +747,16 @@ function ProductComparisonTable({
   subheading?: string;
 }) {
   const items = [
-    { title: "Belgian Dark Truffle", price: "₹699", servings: "4 - 6 guests", eggless: "100% Eggless", prep: "2 Hours Express", rating: "4.9 ★" },
-    { title: "Royal Red Velvet Heart", price: "₹749", servings: "4 - 6 guests", eggless: "100% Eggless", prep: "2 Hours Express", rating: "4.8 ★" },
-    { title: "Classic Black Forest", price: "₹599", servings: "4 - 6 guests", eggless: "100% Eggless", prep: "2 Hours Express", rating: "4.7 ★" },
-    { title: "Berry Bliss Gateau", price: "₹799", servings: "6 - 8 guests", eggless: "100% Eggless", prep: "3 Hours Express", rating: "4.9 ★" },
+    { title: "Belgian Dark Truffle", price: "₹699", servings: "4 - 6 guests", prep: "2 Hours Express", rating: "4.9 ★" },
+    { title: "Royal Red Velvet Heart", price: "₹749", servings: "4 - 6 guests", prep: "2 Hours Express", rating: "4.8 ★" },
+    { title: "Classic Black Forest", price: "₹599", servings: "4 - 6 guests", prep: "2 Hours Express", rating: "4.7 ★" },
+    { title: "Berry Bliss Gateau", price: "₹799", servings: "6 - 8 guests", prep: "3 Hours Express", rating: "4.9 ★" },
   ];
 
   return (
     <div className="w-full max-w-5xl mx-auto p-6 rounded-3xl bg-ui-bg-base border border-ui-border-base shadow-md flex flex-col gap-6 overflow-x-auto">
       <div className="text-center flex flex-col gap-1">
-        <span className="text-xs font-bold text-rose-600 uppercase tracking-wider">Comparison</span>
+        <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">Comparison</span>
         <h3 className="text-2xl font-bold text-ui-fg-base">{heading}</h3>
         <p className="text-xs text-ui-fg-muted">{subheading}</p>
       </div>
@@ -751,7 +773,7 @@ function ProductComparisonTable({
           <tr>
             <td className="p-3 font-semibold text-ui-fg-muted">Starting Price</td>
             {items.map((it, i) => (
-              <td key={i} className="p-3 font-black text-rose-600 text-sm">{it.price}</td>
+              <td key={i} className="p-3 font-black text-[#1D2F5D] dark:text-[#D4AF37] text-sm">{it.price}</td>
             ))}
           </tr>
           <tr>
@@ -760,12 +782,7 @@ function ProductComparisonTable({
               <td key={i} className="p-3 text-ui-fg-base">{it.servings}</td>
             ))}
           </tr>
-          <tr>
-            <td className="p-3 font-semibold text-ui-fg-muted">Dietary Status</td>
-            {items.map((it, i) => (
-              <td key={i} className="p-3 text-emerald-600 font-bold">🌱 {it.eggless}</td>
-            ))}
-          </tr>
+
           <tr>
             <td className="p-3 font-semibold text-ui-fg-muted">Preparation & Delivery</td>
             {items.map((it, i) => (
@@ -783,8 +800,8 @@ function ProductComparisonTable({
             {items.map((_, i) => (
               <td key={i} className="p-3">
                 <Link href="/products">
-                  <Button size="small" variant="primary" className="bg-rose-600 text-white rounded-lg text-xs font-bold">
-                    Order Now
+                  <Button size="small" variant="primary" className="bg-[#1D2F5D] hover:bg-[#152347] text-white rounded-lg text-xs font-bold border border-[#D4AF37]/30 shadow-xs">
+                    View Product
                   </Button>
                 </Link>
               </td>
@@ -819,21 +836,29 @@ export function PageRenderer({
     .filter((s) => s.enabled !== false && (!hasTopAnnouncement || (s.type !== "announcement_bar" && s.type !== "announcement")))
     .sort((a, b) => (a.order || 0) - (b.order || 0));
 
+  // Luxury Theme detection for elevated styling
+  const isLuxuryTheme =
+    theme?.card_style === "luxury" ||
+    (typeof theme?.bg_color === "string" && (theme.bg_color.includes("142040") || theme.bg_color.includes("0c1326") || theme.bg_color.includes("gradient"))) ||
+    theme?.text_color === "#FAF9F6" ||
+    (typeof theme?.heading_font === "string" && theme.heading_font.includes("Playfair"));
+
   return (
     <div
       className="flex flex-col gap-10 w-full transition-colors duration-200"
       style={{
-        backgroundColor: theme?.bg_color || "transparent",
+        background: theme?.bg_color || undefined,
+        backgroundColor: (!theme?.bg_color || !theme.bg_color.includes("gradient")) ? (theme?.bg_color || "transparent") : undefined,
         color: theme?.text_color || "inherit",
         fontFamily: theme?.font_family && theme.font_family !== "inherit" ? theme.font_family : undefined,
-        ["--theme-primary" as any]: theme?.accent_color || "#e11d48",
-        ["--theme-secondary" as any]: theme?.heading_color || "#111827",
-        ["--theme-accent" as any]: theme?.accent_color || "#e11d48",
-        ["--theme-background" as any]: theme?.bg_color || "#ffffff",
-        ["--theme-surface" as any]: "#f8fafc",
-        ["--theme-text" as any]: theme?.text_color || "#1f2937",
-        ["--theme-muted" as any]: "#64748b",
-        ["--theme-border" as any]: "#e2e8f0",
+        ["--theme-primary" as any]: theme?.accent_color || "#1D2F5D",
+        ["--theme-secondary" as any]: theme?.heading_color || "#07090E",
+        ["--theme-accent" as any]: theme?.accent_color || "#D4AF37",
+        ["--theme-background" as any]: theme?.bg_color || "#FDFBF7",
+        ["--theme-surface" as any]: "#FFFFFF",
+        ["--theme-text" as any]: theme?.text_color || "#07090E",
+        ["--theme-muted" as any]: "#64748B",
+        ["--theme-border" as any]: "#E2E8F0",
         ["--theme-heading-font" as any]: theme?.heading_font && theme.heading_font !== "inherit" ? theme.heading_font : "inherit",
         ["--theme-body-font" as any]: theme?.font_family && theme.font_family !== "inherit" ? theme.font_family : "inherit",
         ["--theme-button-radius" as any]: theme?.border_radius || "12px",
@@ -1060,7 +1085,9 @@ export function PageRenderer({
                   `,
                     }}
                   />
-                  <div className={`hero-container-${sectionKey} relative w-full rounded-2xl sm:rounded-3xl overflow-hidden flex items-center justify-center shadow-xl border border-ui-border-base`}>
+                  <div className={`hero-container-${sectionKey} relative w-full rounded-2xl sm:rounded-3xl overflow-hidden flex items-center justify-center ${
+                    isLuxuryTheme ? "shadow-[0_20px_50px_rgba(20,32,64,0.35)] border border-white/10" : "shadow-xl border border-ui-border-base"
+                  }`}>
                     {/* Responsive background image */}
                     <picture className="absolute inset-0 w-full h-full">
                       {mobileImage && <source media="(max-width: 639px)" srcSet={mobileImage} />}
@@ -1092,20 +1119,24 @@ export function PageRenderer({
                     >
                       {badgeText && (
                         <span
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-semibold text-white tracking-wide uppercase shadow-sm"
+                          className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] font-semibold tracking-wider uppercase shadow-sm ${
+                            isLuxuryTheme
+                              ? "bg-[#142040]/70 backdrop-blur-md text-[#D4AF37] border border-[#D4AF37]/30"
+                              : "bg-white/20 backdrop-blur-md text-white"
+                          }`}
                           style={{
                             backgroundColor: config.badge_bg || undefined,
                             color: config.badge_color || undefined,
                           }}
                         >
-                          <Sparkles className="w-3 h-3 text-amber-300" /> {badgeText}
+                          <Sparkles className={`w-3.5 h-3.5 ${isLuxuryTheme ? "text-[#D4AF37]" : "text-amber-300"}`} /> {badgeText}
                         </span>
                       )}
-                      <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight drop-shadow-md leading-tight">
+                      <h1 className={`text-3xl sm:text-5xl lg:text-6xl tracking-tight drop-shadow-md leading-tight ${isLuxuryTheme ? "font-serif font-normal text-[#FAF9F6]" : "font-extrabold text-white"}`}>
                         {headline}
                       </h1>
                       {subheadline && (
-                        <p className="text-sm sm:text-lg text-white/90 drop-shadow max-w-xl font-medium">
+                        <p className={`text-sm sm:text-lg max-w-xl ${isLuxuryTheme ? "text-[#C5CEE0] font-light leading-relaxed" : "text-white/90 drop-shadow font-medium"}`}>
                           {subheadline}
                         </p>
                       )}
@@ -1115,11 +1146,15 @@ export function PageRenderer({
                             <Button
                               variant="primary"
                               size="large"
-                              className="bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-lg shadow-rose-900/30 px-6 py-2.5 rounded-xl border-none"
-                              style={{
+                              className={
+                                isLuxuryTheme
+                                  ? "bg-[#D4AF37]/20 hover:bg-[#D4AF37] text-[#FAF9F6] hover:text-[#0c1326] font-sans rounded-full px-8 py-3.5 text-[13px] uppercase tracking-[0.15em] font-medium transition-all duration-500 shadow-[0_20px_50px_rgba(20,32,64,0.35)] border border-[#D4AF37]/40"
+                                  : "bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold shadow-lg shadow-[#1D2F5D]/30 px-6 py-2.5 rounded-xl border-none"
+                              }
+                              style={!isLuxuryTheme ? {
                                 backgroundColor: config.cta_primary_bg || theme?.accent_color || undefined,
                                 color: config.cta_primary_color || undefined,
-                              }}
+                              } : undefined}
                             >
                               {primaryCtaText} →
                             </Button>
@@ -1130,11 +1165,15 @@ export function PageRenderer({
                             <Button
                               variant="secondary"
                               size="large"
-                              className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-semibold px-5 py-2.5 rounded-xl border border-white/40"
-                              style={{
+                              className={
+                                isLuxuryTheme
+                                  ? "bg-[#142040]/50 hover:bg-[#142040]/80 text-[#FAF9F6] font-sans rounded-full px-8 py-3.5 text-[13px] uppercase tracking-[0.15em] font-medium border border-white/20 backdrop-blur-lg transition-all"
+                                  : "bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-semibold px-5 py-2.5 rounded-xl border border-white/40"
+                              }
+                              style={!isLuxuryTheme ? {
                                 backgroundColor: config.cta_secondary_bg || undefined,
                                 color: config.cta_secondary_color || undefined,
-                              }}
+                              } : undefined}
                             >
                               {secondaryCtaText}
                             </Button>
@@ -1201,7 +1240,7 @@ export function PageRenderer({
                     </Text>
                     <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                       <Link href={primaryCtaUrl}>
-                        <Button size="large" className="bg-rose-600 hover:bg-rose-700 text-white font-extrabold px-8 py-3 rounded-xl shadow-lg border-none">
+                        <Button size="large" className="bg-[#1D2F5D] hover:bg-[#152347] text-white font-extrabold px-8 py-3 rounded-xl shadow-lg border-none">
                           {primaryCtaText} →
                         </Button>
                       </Link>
@@ -1293,25 +1332,29 @@ export function PageRenderer({
                   <div className={`${vertAlignClass} gap-8 lg:gap-12 ${stackClass}`}>
                     <div className={`${contentRatioClass} flex flex-col ${alignClasses} gap-4 w-full`}>
                       {eyebrow && (
-                        <span className="text-xs font-bold tracking-wider uppercase text-rose-600">
+                        <span className={isLuxuryTheme ? "font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block" : "text-xs font-bold tracking-wider uppercase text-[#D4AF37]"}>
                           {eyebrow}
                         </span>
                       )}
                       {badgeText && (
-                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-600 border border-rose-200 shadow-sm">
+                        <span className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold shadow-sm ${
+                          isLuxuryTheme
+                            ? "bg-[#0c1326]/80 text-[#D4AF37] border border-[#D4AF37]/40 backdrop-blur-md font-sans uppercase tracking-wider"
+                            : "bg-brand-gold-soft text-[#1D2F5D] border border-[#D4AF37]/30"
+                        }`}>
                           <Sparkles className="w-3.5 h-3.5" /> {badgeText}
                         </span>
                       )}
-                      <Heading level="h1" className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-ui-fg-base leading-tight">
+                      <Heading level="h1" className={`text-3xl sm:text-4xl lg:text-5xl leading-tight ${isLuxuryTheme ? "font-serif text-[#FAF9F6] font-normal" : "font-extrabold text-ui-fg-base"}`}>
                         {headline}
                       </Heading>
                       {subheadline && (
-                        <Text className="text-base sm:text-lg font-medium text-ui-fg-subtle leading-relaxed">
+                        <Text className={`text-base sm:text-lg leading-relaxed ${isLuxuryTheme ? "text-[#C5CEE0] font-light" : "font-medium text-ui-fg-subtle"}`}>
                           {subheadline}
                         </Text>
                       )}
                       {description && (
-                        <Text className="text-xs sm:text-sm text-ui-fg-muted leading-relaxed">
+                        <Text className={`text-xs sm:text-sm leading-relaxed ${isLuxuryTheme ? "text-[#C5CEE0]/80 font-light" : "text-ui-fg-muted"}`}>
                           {description}
                         </Text>
                       )}
@@ -1322,20 +1365,26 @@ export function PageRenderer({
                           {embeddedFeatures.slice(0, 6).map((feat: any, fi: number) => (
                             <div
                               key={feat.id || fi}
-                              className="p-2.5 rounded-xl bg-ui-bg-subtle/70 border border-ui-border-base flex items-start gap-2.5 text-left"
+                              className={`p-2.5 rounded-xl flex items-start gap-2.5 text-left ${
+                                isLuxuryTheme
+                                  ? "bg-[#142040]/30 backdrop-blur-xl border border-white/10"
+                                  : "bg-ui-bg-subtle/70 border border-ui-border-base"
+                              }`}
                             >
                               <div
-                                className="p-1.5 rounded-lg shrink-0 flex items-center justify-center"
-                                style={{ backgroundColor: feat.icon_color ? `${feat.icon_color}15` : "#fff1f2", color: feat.icon_color || "#e11d48" }}
+                                className={`p-1.5 rounded-lg shrink-0 flex items-center justify-center ${
+                                  isLuxuryTheme ? "bg-[#0c1326]/60 text-[#D4AF37]" : ""
+                                }`}
+                                style={!isLuxuryTheme ? { backgroundColor: feat.icon_color ? `${feat.icon_color}15` : "#fff1f2", color: feat.icon_color || "#e11d48" } : undefined}
                               >
                                 <Sparkles className="w-4 h-4" />
                               </div>
                               <div className="min-w-0">
-                                <span className="text-xs font-bold text-ui-fg-base block truncate" style={{ color: feat.text_color || undefined }}>
+                                <span className={`text-xs block truncate ${isLuxuryTheme ? "font-serif text-[#FAF9F6] font-medium" : "font-bold text-ui-fg-base"}`} style={!isLuxuryTheme ? { color: feat.text_color || undefined } : undefined}>
                                   {feat.title}
                                 </span>
                                 {feat.description && (
-                                  <span className="text-[11px] text-ui-fg-muted line-clamp-1 block">
+                                  <span className={`text-[11px] line-clamp-1 block ${isLuxuryTheme ? "text-[#C5CEE0] font-light" : "text-ui-fg-muted"}`}>
                                     {feat.description}
                                   </span>
                                 )}
@@ -1352,7 +1401,14 @@ export function PageRenderer({
                             target={primaryCta.new_tab ? "_blank" : undefined}
                             rel={primaryCta.new_tab ? "noopener noreferrer" : undefined}
                           >
-                            <Button size="large" className="bg-rose-600 hover:bg-rose-700 text-white font-extrabold px-6 py-3 rounded-xl shadow-lg border-none">
+                            <Button
+                              size="large"
+                              className={
+                                isLuxuryTheme
+                                  ? "bg-[#D4AF37]/20 hover:bg-[#D4AF37] text-[#FAF9F6] hover:text-[#0c1326] font-sans rounded-full px-8 py-3.5 text-[13px] uppercase tracking-[0.15em] font-medium transition-all duration-500 shadow-[0_20px_50px_rgba(20,32,64,0.35)] border border-[#D4AF37]/40"
+                                  : "bg-[#1D2F5D] hover:bg-[#152347] text-white font-extrabold px-6 py-3 rounded-xl shadow-lg border-none"
+                              }
+                            >
                               {primaryCta.text} →
                             </Button>
                           </Link>
@@ -1363,7 +1419,15 @@ export function PageRenderer({
                             target={secondaryCta.new_tab ? "_blank" : undefined}
                             rel={secondaryCta.new_tab ? "noopener noreferrer" : undefined}
                           >
-                            <Button size="large" variant="secondary" className="px-6 py-3 rounded-xl font-bold">
+                            <Button
+                              size="large"
+                              variant="secondary"
+                              className={
+                                isLuxuryTheme
+                                  ? "bg-[#142040]/50 hover:bg-[#142040]/80 text-[#FAF9F6] font-sans rounded-full px-8 py-3.5 text-[13px] uppercase tracking-[0.15em] font-medium border border-white/20 backdrop-blur-lg transition-all"
+                                  : "px-6 py-3 rounded-xl font-bold"
+                              }
+                            >
                               {secondaryCta.text}
                             </Button>
                           </Link>
@@ -1372,7 +1436,11 @@ export function PageRenderer({
                     </div>
 
                     <div className={`${mediaRatioClass} w-full relative`}>
-                      <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-ui-border-base aspect-[4/3] bg-ui-bg-subtle">
+                      <div className={`relative rounded-3xl overflow-hidden shadow-2xl aspect-[4/3] ${
+                        isLuxuryTheme
+                          ? "border border-white/10 bg-[#0c1326]/50 shadow-[0_25px_60px_rgba(12,19,38,0.5)]"
+                          : "border border-ui-border-base bg-ui-bg-subtle"
+                      }`}>
                         {videoUrl ? (
                           <video
                             src={videoUrl}
@@ -1398,9 +1466,16 @@ export function PageRenderer({
                           </picture>
                         )}
                         {showFloatingBadge && (
-                          <div className="absolute bottom-4 left-4 right-4 p-3 rounded-2xl bg-white/90 backdrop-blur-md shadow-lg border border-white/40 flex items-center justify-between text-xs font-bold text-ui-fg-base">
-                            <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-rose-600" /> {trustText}</span>
-                            <span className="text-emerald-600 flex items-center gap-1">{ratingText}</span>
+                          <div className={`absolute bottom-4 left-4 right-4 p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold ${
+                            isLuxuryTheme
+                              ? "bg-[#0c1326]/85 backdrop-blur-md border border-white/15 text-[#FAF9F6] shadow-[0_15px_35px_rgba(0,0,0,0.4)]"
+                              : "bg-white/90 backdrop-blur-md shadow-lg border border-white/40 text-ui-fg-base"
+                          }`}>
+                            <span className="flex items-center gap-2">
+                              <Clock className={`w-4 h-4 ${isLuxuryTheme ? "text-[#D4AF37]" : "text-[#D4AF37]"}`} />
+                              <span className={isLuxuryTheme ? "text-[#C5CEE0] font-light text-xs" : ""}>{trustText}</span>
+                            </span>
+                            <span className={`flex items-center gap-1 ${isLuxuryTheme ? "text-[#D4AF37] font-semibold" : "text-emerald-600"}`}>{ratingText}</span>
                           </div>
                         )}
                       </div>
@@ -1429,7 +1504,7 @@ export function PageRenderer({
                       {subheadline && <Text className="text-sm sm:text-base text-white/90">{subheadline}</Text>}
                       {ctaText && (
                         <Link href={ctaUrl} className="pt-2">
-                          <Button size="large" className="bg-white hover:bg-white/90 text-rose-600 font-extrabold px-6 py-2.5 rounded-xl shadow-md border-none">
+                          <Button size="large" className="bg-white hover:bg-white/90 text-[#1D2F5D] font-extrabold px-6 py-2.5 rounded-xl shadow-md border-none">
                             {ctaText} →
                           </Button>
                         </Link>
@@ -1461,7 +1536,7 @@ export function PageRenderer({
                       <Heading level="h2" className="text-2xl sm:text-3xl font-extrabold text-ui-fg-base">{headline}</Heading>
                       <Text className="text-sm text-ui-fg-subtle leading-relaxed">{subheadline}</Text>
                       <Link href={primaryCtaUrl} className="pt-2">
-                        <Button className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl px-6 py-2.5">
+                        <Button className="bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold rounded-xl px-6 py-2.5">
                           {primaryCtaText} →
                         </Button>
                       </Link>
@@ -1513,11 +1588,19 @@ export function PageRenderer({
               const tbGap = tabletConfig.gap || 14;
               const mbGap = mobileConfig.gap || 12;
 
-              const renderCategoryCard = (cat: any) => (
+              const renderCategoryCard = (cat: any) => {
+                const catSlug = cat.slug || cat.handle || (cat.id ? String(cat.id).replace(/^cat_/, "").replace(/^pcat_/, "") : "");
+                const catHref = catSlug ? `/category/${catSlug}` : (cat.id ? `/products?category=${cat.id}` : "/products");
+
+                return (
                 <Link
                   key={cat.id}
-                  href={`/products?category=${cat.slug || cat.id}`}
-                  className={`group relative rounded-2xl overflow-hidden aspect-[4/3] bg-ui-bg-subtle border border-ui-border-base hover:shadow-lg hover:border-rose-300 transition-all flex flex-col justify-end p-4 shrink-0 ${
+                  href={catHref}
+                  className={`group relative rounded-2xl overflow-hidden aspect-[4/3] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 ${
+                    isLuxuryTheme
+                      ? "bg-[#142040]/30 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 shadow-[0_20px_50px_rgba(20,32,64,0.35)]"
+                      : "bg-[#07090E] border border-[#1D2F5D]/20 hover:border-[#D4AF37]/50 shadow-lg hover:shadow-xl"
+                  } transition-all duration-500 flex flex-col justify-end p-5 shrink-0 ${
                     layoutMode === "carousel" ? "w-[240px] sm:w-[280px] snap-start" : ""
                   }`}
                 >
@@ -1525,24 +1608,28 @@ export function PageRenderer({
                   <img
                     src={cat.image_url || cat.banner_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600"}
                     alt={cat.name || "Cake Category"}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#07090E]/95 via-[#1D2F5D]/35 to-transparent" />
                   <div className="relative z-10 text-white">
-                    <h3 className="font-bold text-sm sm:text-base leading-tight group-hover:text-rose-200 transition-colors">
+                    <span className="font-sans text-[10px] uppercase tracking-[0.25em] text-[#D4AF37] font-semibold mb-1 block">
+                      Category
+                    </span>
+                    <h3 className="font-serif text-base sm:text-lg leading-tight transition-colors text-[#FAF9F6] font-semibold group-hover:text-[#D4AF37]">
                       {cat.name}
                     </h3>
                     {cat.description && (
-                      <p className="text-[11px] text-white/80 line-clamp-1 mt-0.5">
+                      <p className="font-sans text-[11px] line-clamp-1 mt-0.5 text-[#C5CEE0] font-light">
                         {cat.description}
                       </p>
                     )}
                   </div>
                 </Link>
               );
+            };
 
-              return (
+            return (
                 <section key={sectionKey} className="flex flex-col gap-6">
                   <style
                     dangerouslySetInnerHTML={{
@@ -1569,13 +1656,16 @@ export function PageRenderer({
                   />
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col gap-1">
-                      <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
+                      <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block">
+                        Our Offerings
+                      </span>
+                      <Heading level="h2" className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-[#1D2F5D] dark:text-[#FAF9F6] font-bold">
                         {heading}
                       </Heading>
-                      {subheading && <Text className="text-xs sm:text-sm text-ui-fg-subtle">{subheading}</Text>}
+                      {subheading && <Text className="font-sans text-xs sm:text-sm text-[#606C88] dark:text-[#C5CEE0] font-normal">{subheading}</Text>}
                     </div>
                     {config.view_all_url && (
-                      <Link href={config.view_all_url} className="text-xs font-bold text-rose-600 hover:underline flex items-center gap-1">
+                      <Link href={config.view_all_url} className="font-sans text-xs font-bold flex items-center gap-1 text-[#1D2F5D] dark:text-[#D4AF37] hover:text-[#D4AF37] transition-colors">
                         {config.view_all_text || "View All"} <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     )}
@@ -1656,22 +1746,26 @@ export function PageRenderer({
 
               const getResolvedOccasionImage = (occ: any): string => {
                 if (!occ) return "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=800&q=80";
-                // 1. Dedicated cover image from PIM
+                // 1. Direct custom image (from manual editor or upload)
+                if (typeof occ.image === "string" && occ.image.trim() !== "") {
+                  return occ.image.trim();
+                }
+                // 2. Dedicated cover image from PIM
                 if (typeof occ.cover_image === "string" && occ.cover_image.trim() !== "") {
                   return occ.cover_image.trim();
                 }
-                // 2. Thumbnail or secondary image
+                // 3. Thumbnail or secondary image
                 if (typeof occ.thumbnail_image === "string" && occ.thumbnail_image.trim() !== "") {
                   return occ.thumbnail_image.trim();
                 }
                 if (typeof occ.secondary_image === "string" && occ.secondary_image.trim() !== "") {
                   return occ.secondary_image.trim();
                 }
-                // 3. Check legacy image_url if not the generic chocolate cake
+                // 4. Check legacy image_url if not the generic chocolate cake
                 if (typeof occ.image_url === "string" && occ.image_url.trim() !== "" && !occ.image_url.includes("photo-1578985545062-69928b1d9587")) {
                   return occ.image_url.trim();
                 }
-                // 4. Slug-based curated fallback map
+                // 5. Slug-based curated fallback map
                 const slugKey = (occ.slug || occ.id || occ.name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
                 for (const [key, url] of Object.entries(OCCASION_FALLBACK_IMAGES)) {
                   if (slugKey === key || slugKey.includes(key) || key.includes(slugKey)) {
@@ -1681,11 +1775,11 @@ export function PageRenderer({
                 if (typeof occ.image_url === "string" && occ.image_url.trim() !== "") {
                   return occ.image_url.trim();
                 }
-                // 5. Safe global celebration cake image
+                // 6. Safe global celebration cake image
                 return "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=800&q=80";
               };
 
-              // Resolve occasions from live PIM database
+              // Resolve occasions from live PIM database or manual cards
               let displayOccasions: any[] = [];
               if (dataSource === "pim") {
                 const liveList = (occasions && occasions.length > 0) ? occasions : [];
@@ -1710,11 +1804,40 @@ export function PageRenderer({
 
                 // Sort by display order
                 displayOccasions.sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0));
-              } else if (Array.isArray(config.manual_occasions) && config.manual_occasions.length > 0) {
-                displayOccasions = config.manual_occasions;
+              } else {
+                const manualList = Array.isArray(config.manual_occasions) && config.manual_occasions.length > 0
+                  ? config.manual_occasions
+                  : Array.isArray(config.occasion_cards) && config.occasion_cards.length > 0
+                  ? config.occasion_cards
+                  : Array.isArray(config.manual_cards) && config.manual_cards.length > 0
+                  ? config.manual_cards
+                  : [];
+                displayOccasions = manualList.filter((occ: any) => occ && occ.is_active !== false && occ.active !== false);
               }
 
+              // Deduplicate displayOccasions defensively by identity
+              const seenOccKeys = new Set<string>();
+              displayOccasions = displayOccasions.filter((occ: any) => {
+                const identity = String(occ.id || occ.slug || occ.name || "");
+                if (!identity || seenOccKeys.has(identity)) return false;
+                seenOccKeys.add(identity);
+                return true;
+              });
+
               if (displayOccasions.length === 0) {
+                if (isPreview) {
+                  return (
+                    <section className="py-12 px-4 text-center border-2 border-dashed border-ui-border-base rounded-2xl my-6 bg-ui-bg-subtle/40 mx-auto max-w-4xl">
+                      <div className="w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center mx-auto mb-3 text-xl">
+                        🎁
+                      </div>
+                      <h3 className="font-bold text-sm text-[#1D2F5D] dark:text-[#D4AF37]">{heading}</h3>
+                      <p className="text-xs text-ui-fg-muted mt-1 max-w-md mx-auto">
+                        No manual occasion cards selected yet. Choose or add occasion cards in the right configuration panel.
+                      </p>
+                    </section>
+                  );
+                }
                 return null;
               }
 
@@ -1729,18 +1852,235 @@ export function PageRenderer({
                 columns === 6 ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6" :
                 "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4";
 
-              const renderOccasionCard = (occ: any) => {
+              const cardStyle = config.card_style || theme?.card_style || (isLuxuryTheme ? "luxury" : "default");
+
+              const renderOccasionCard = (occ: any, occIdx?: number) => {
+                const cardKey = `occ-${section.id || "sec"}-${occ.id || occ.slug || "item"}-${occIdx ?? 0}`;
                 const cardImg = getResolvedOccasionImage(occ);
                 const emojiIcon = occ.emoji || occ.icon || "🎂";
                 const cardTitle = occ.name || occ.title || "Occasion";
                 const cardDesc = occ.short_description || occ.description || occ.desc || "";
                 const focalPos = occ.image_position || imagePosition || "center";
+                const cleanOccSlug = (occ.slug || occ.id || "").toLowerCase().replace(/^occ_/, "").replace(/_/g, "-");
+                const isCustomExternal = typeof occ.url === "string" && (occ.url.startsWith("http://") || occ.url.startsWith("https://"));
+                const isExplicitCustomPath = typeof occ.url === "string" && occ.url.startsWith("/") && !occ.url.startsWith("/products?occasion=") && !occ.url.startsWith("/products") && occ.url !== "/occasions";
+                const cardHref = isCustomExternal
+                  ? occ.url
+                  : isExplicitCustomPath
+                  ? occ.url
+                  : cleanOccSlug
+                  ? `/occasions/${cleanOccSlug}`
+                  : (occ.url || occ.link || "/occasions");
 
+                // 1. Scrapbook Style: Memory Polaroid Card with Washi Tape and Brass Pin
+                if (cardStyle === "scrapbook") {
+                  return (
+                    <Link
+                      key={cardKey}
+                      href={cardHref}
+                      className={`group relative flex flex-col justify-between shrink-0 transition-all duration-500 hover:-translate-y-1.5 ${
+                        isCarousel ? "w-[240px] sm:w-[280px] snap-start" : ""
+                      }`}
+                    >
+                      <div className="scrapbook-polaroid relative flex flex-col h-full bg-[#FFFFFF]">
+                        <span className="scrapbook-tape" />
+                        <span className="scrapbook-pin" />
+                        <div className={`relative w-full ${aspectRatio} overflow-hidden rounded-sm mb-3 bg-[#FDFBF7]`}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={cardImg}
+                            alt={occ.alt_text || occ.name || "Occasion Cake"}
+                            className="w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out"
+                            style={{ objectFit: imageFit as any, objectPosition: focalPos }}
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                          <div className="absolute bottom-2 left-2">
+                            <span className="scrapbook-stamp">Moments</span>
+                          </div>
+                        </div>
+                        <div className="px-1 pb-1">
+                          <div className="flex items-center justify-between gap-1">
+                            {showTitle && (
+                              <h3 className="font-serif font-bold text-[#1D2F5D] text-base group-hover:text-[#AA771C] transition-colors leading-tight">
+                                {cardTitle}
+                              </h3>
+                            )}
+                            {showEmoji && emojiIcon && <span className="text-base">{emojiIcon}</span>}
+                          </div>
+                          {showDescription && cardDesc && (
+                            <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5 font-sans">
+                              {cardDesc}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                }
+
+                // 2. Coquette Style: Refined Patisserie Rose & Gold Card
+                if (cardStyle === "coquette") {
+                  return (
+                    <Link
+                      key={cardKey}
+                      href={cardHref}
+                      className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} coquette-blush-card transition-all duration-500 flex flex-col justify-end p-5 shrink-0 hover:shadow-[0_15px_35px_rgba(29,47,93,0.2)] hover:border-[#D4AF37]/50 ${
+                        isCarousel ? "w-[240px] sm:w-[280px] snap-start" : ""
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={cardImg}
+                        alt={occ.alt_text || occ.name || "Occasion Cake"}
+                        className="absolute inset-0 w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out"
+                        style={{ objectFit: imageFit as any, objectPosition: focalPos }}
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1D2F5D]/95 via-[#0D152B]/50 to-transparent" />
+                      <div className="relative z-10 text-white">
+                        <span className="inline-flex items-center gap-1 text-[10px] uppercase font-sans tracking-wider px-2.5 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 mb-1.5 shadow-sm font-semibold">
+                          🎀 Special Occasion
+                        </span>
+                        {showTitle && (
+                          <h3 className="font-serif text-base sm:text-lg text-[#FAF9F6] font-bold group-hover:text-[#D4AF37] transition-colors leading-tight">
+                            {cardTitle}
+                          </h3>
+                        )}
+                        {showDescription && cardDesc && (
+                          <p className="text-[11px] text-[#C5CEE0] line-clamp-1 mt-0.5">
+                            {cardDesc}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                }
+
+                // 3. Tenebrism Style: Chiaroscuro Dramatic Spotlight with Antique Gold Rim
+                if (cardStyle === "tenebrism") {
+                  return (
+                    <Link
+                      key={cardKey}
+                      href={cardHref}
+                      className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} tenebrism-contrast-card transition-all duration-500 flex flex-col justify-end p-5 shrink-0 hover:border-[#D4AF37]/60 ${
+                        isCarousel ? "w-[240px] sm:w-[280px] snap-start" : ""
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={cardImg}
+                        alt={occ.alt_text || occ.name || "Occasion Cake"}
+                        className="absolute inset-0 w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out"
+                        style={{ objectFit: imageFit as any, objectPosition: focalPos }}
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#07090E] via-[#0D152B]/75 to-transparent" />
+                      <div className="relative z-10 text-white">
+                        <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#D4AF37] font-semibold mb-1 block">
+                          🕯️ Artisanal Spotlight
+                        </span>
+                        {showTitle && (
+                          <h3 className="font-serif text-base sm:text-lg text-[#FAF9F6] font-medium group-hover:text-[#D4AF37] transition-colors leading-tight">
+                            {cardTitle}
+                          </h3>
+                        )}
+                        {showDescription && cardDesc && (
+                          <p className="text-[11px] text-[#C5CEE0] font-light line-clamp-1 mt-0.5">
+                            {cardDesc}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                }
+
+                // 4. Japandi Style: Wabi-Sabi Quiet Minimalist Surface
+                if (cardStyle === "japandi") {
+                  return (
+                    <Link
+                      key={cardKey}
+                      href={cardHref}
+                      className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} japandi-card transition-all duration-500 flex flex-col justify-end p-5 shrink-0 hover:border-slate-400 ${
+                        isCarousel ? "w-[240px] sm:w-[280px] snap-start" : ""
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={cardImg}
+                        alt={occ.alt_text || occ.name || "Occasion Cake"}
+                        className="absolute inset-0 w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out"
+                        style={{ objectFit: imageFit as any, objectPosition: focalPos }}
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/85 via-slate-800/35 to-transparent" />
+                      <div className="relative z-10 text-white">
+                        <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-stone-300 font-medium mb-1 block">
+                          🌿 Handcrafted Form
+                        </span>
+                        {showTitle && (
+                          <h3 className="font-sans text-base sm:text-lg text-stone-100 font-semibold group-hover:text-stone-300 transition-colors tracking-tight leading-tight">
+                            {cardTitle}
+                          </h3>
+                        )}
+                        {showDescription && cardDesc && (
+                          <p className="text-[11px] text-stone-300 font-light line-clamp-1 mt-0.5">
+                            {cardDesc}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                }
+
+                // 5. Glassmorphic Style: Frosted Crystal Surface
+                if (cardStyle === "glass") {
+                  return (
+                    <Link
+                      key={cardKey}
+                      href={cardHref}
+                      className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} bg-[#0D152B]/40 backdrop-blur-xl border border-white/20 hover:border-white/40 shadow-2xl transition-all duration-500 flex flex-col justify-end p-5 shrink-0 ${
+                        isCarousel ? "w-[240px] sm:w-[280px] snap-start" : ""
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={cardImg}
+                        alt={occ.alt_text || occ.name || "Occasion Cake"}
+                        className="absolute inset-0 w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out"
+                        style={{ objectFit: imageFit as any, objectPosition: focalPos }}
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0D152B]/90 via-[#0D152B]/40 to-transparent backdrop-blur-[2px]" />
+                      <div className="relative z-10 text-white">
+                        <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-white/80 font-medium mb-1 block">
+                          🪟 Frosted Selection
+                        </span>
+                        {showTitle && (
+                          <h3 className="font-serif text-base sm:text-lg text-white font-medium group-hover:text-[#D4AF37] transition-colors leading-tight">
+                            {cardTitle}
+                          </h3>
+                        )}
+                        {showDescription && cardDesc && (
+                          <p className="text-[11px] text-white/80 font-light line-clamp-1 mt-0.5">
+                            {cardDesc}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                }
+
+                // 6. Default / Luxury Patisserie Style
                 return (
                   <Link
-                    key={occ.id || occ.slug}
-                    href={`/products?occasion=${occ.slug || occ.id}`}
-                    className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} bg-ui-bg-subtle border border-ui-border-base hover:shadow-2xl hover:border-pink-300 transition-all flex flex-col justify-end p-4 shrink-0 ${
+                    key={cardKey}
+                    href={cardHref}
+                    className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 ${
+                      isLuxuryTheme
+                        ? "bg-[#142040]/30 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 shadow-[0_20px_50px_rgba(20,32,64,0.35)]"
+                        : "bg-[#07090E] border border-[#1D2F5D]/20 hover:shadow-2xl hover:border-[#D4AF37]/50"
+                    } transition-all duration-500 flex flex-col justify-end p-5 shrink-0 ${
                       isCarousel ? "w-[240px] sm:w-[280px] snap-start" : ""
                     }`}
                   >
@@ -1748,34 +2088,31 @@ export function PageRenderer({
                     <img
                       src={cardImg}
                       alt={occ.alt_text || occ.name || "Occasion Cake"}
-                      className="absolute inset-0 w-full h-full group-hover:scale-105 transition-transform duration-500"
+                      className="absolute inset-0 w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out"
                       style={{ objectFit: imageFit as any, objectPosition: focalPos }}
                       loading="lazy"
                     />
                     <div
-                      className="absolute inset-0 bg-gradient-to-t transition-opacity duration-300"
+                      className="absolute inset-0 transition-opacity duration-300"
                       style={{
-                        background: `linear-gradient(to top, rgba(0,0,0,${overlayOpacity / 100}) 0%, rgba(0,0,0,${Math.max(0, overlayOpacity / 100 - 0.45)}) 50%, transparent 100%)`
+                        background: isLuxuryTheme
+                          ? "linear-gradient(to top, rgba(12,19,38,0.92) 0%, rgba(20,32,64,0.4) 50%, transparent 100%)"
+                          : `linear-gradient(to top, rgba(7,9,14,0.92) 0%, rgba(29,47,93,${overlayOpacity / 100 * 0.4}) 50%, transparent 100%)`
                       }}
                     />
                     <div className="relative z-10 text-white">
-                      {showEmoji && emojiIcon && (
-                        <span className="text-xl mb-1 block drop-shadow-sm">{emojiIcon}</span>
-                      )}
+                      <span className="font-sans text-[10px] uppercase tracking-[0.25em] text-[#D4AF37] font-semibold mb-1 block">
+                        Celebration
+                      </span>
                       {showTitle && (
-                        <h3 className="font-extrabold text-sm sm:text-base leading-tight group-hover:text-pink-200 transition-colors drop-shadow-sm">
+                        <h3 className="font-serif text-base sm:text-lg font-semibold text-[#FAF9F6] group-hover:text-[#D4AF37] leading-tight transition-colors drop-shadow-sm">
                           {cardTitle}
                         </h3>
                       )}
                       {showDescription && cardDesc && (
-                        <p className="text-[11px] text-white/90 line-clamp-1 mt-0.5 drop-shadow-sm font-medium">
+                        <p className="text-[11px] line-clamp-1 mt-0.5 text-[#C5CEE0] font-light">
                           {cardDesc}
                         </p>
-                      )}
-                      {showCta && (
-                        <span className="text-[10px] font-bold text-pink-300 group-hover:text-white group-hover:underline mt-1 inline-flex items-center gap-0.5 transition-colors">
-                          Explore Cakes →
-                        </span>
                       )}
                     </div>
                   </Link>
@@ -1786,19 +2123,17 @@ export function PageRenderer({
                 <section key={sectionKey} className="flex flex-col gap-6">
                   <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
                     <div className="flex flex-col gap-1">
-                      {sectionLabel && (
-                        <span className="text-xs font-bold uppercase tracking-wider text-pink-600">
-                          {sectionLabel}
-                        </span>
-                      )}
-                      <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight text-ui-fg-base" style={{ color: theme?.heading_color }}>
+                      <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block">
+                        {sectionLabel || "Curated Moments"}
+                      </span>
+                      <Heading level="h2" className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-[#1D2F5D] dark:text-[#FAF9F6] font-bold">
                         {heading}
                       </Heading>
-                      {subheading && <Text className="text-xs sm:text-sm text-ui-fg-muted mt-0.5">{subheading}</Text>}
+                      {subheading && <Text className="font-sans text-xs sm:text-sm text-[#606C88] dark:text-[#C5CEE0] font-normal">{subheading}</Text>}
                     </div>
                     {viewAllUrl && (
-                      <Link href={viewAllUrl} className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1">
-                        {viewAllText}
+                      <Link href={viewAllUrl} className="font-sans text-xs font-bold flex items-center gap-1 text-[#1D2F5D] dark:text-[#D4AF37] hover:text-[#D4AF37] transition-colors">
+                        {viewAllText} <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     )}
                   </div>
@@ -1807,11 +2142,11 @@ export function PageRenderer({
                       carouselConfig={config.carousel}
                       itemsCount={displayOccasions.length}
                     >
-                      {displayOccasions.map((occ: any) => renderOccasionCard(occ))}
+                      {displayOccasions.map((occ: any, idx: number) => renderOccasionCard(occ, idx))}
                     </CarouselContainer>
                   ) : (
                     <div className={`grid ${colsClass} gap-4`}>
-                      {displayOccasions.map((occ: any) => renderOccasionCard(occ))}
+                      {displayOccasions.map((occ: any, idx: number) => renderOccasionCard(occ, idx))}
                     </div>
                   )}
                 </section>
@@ -1909,10 +2244,6 @@ export function PageRenderer({
               const showFlavour = config.show_flavour !== false;
               const showWishlist = config.show_wishlist !== false;
               const showStock = config.show_stock !== false;
-              const showQuickAdd = config.show_quick_add !== false;
-              const showCta = config.show_cta !== false;
-              const ctaText = config.cta_text || "Order";
-              const ctaBg = config.cta_bg || theme?.accent_color;
               const cardRadius = config.card_radius || "16px";
 
               const renderProductCard = (product: any) => {
@@ -1929,35 +2260,58 @@ export function PageRenderer({
                 return (
                   <div
                     key={pid}
-                    className={`product-card-${sectionKey} bg-ui-bg-base border border-ui-border-base overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-rose-300 transition-all duration-300 group shrink-0 ${
+                    data-testid="product-card"
+                    data-product-id={pid}
+                    className={`product-card-${sectionKey} group relative overflow-hidden flex flex-col justify-between transition-all duration-300 shrink-0 ${
+                      isLuxuryTheme
+                        ? "bg-[#142040]/30 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 shadow-[0_15px_40px_rgba(20,32,64,0.3)]"
+                        : "bg-white border border-[#E2E8F0] hover:border-[#D4AF37]/50 shadow-[0_8px_30px_rgba(29,47,93,0.06)] hover:shadow-[0_18px_45px_rgba(29,47,93,0.12)]"
+                    } ${
                       layoutMode === "carousel" ? "w-[240px] sm:w-[280px] snap-start" : ""
                     }`}
                     style={{ borderRadius: cardRadius }}
                   >
+                    {/* Stretched Link: Makes entire product card clickable to PDP with accessible focus */}
+                    <Link
+                      href={`/products/${slug}`}
+                      className="absolute inset-0 z-10 rounded-[inherit] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2"
+                      aria-label={`View details for ${product.title}`}
+                    />
+
                     {showImage && (
-                      <div className={`product-img-box-${sectionKey} relative w-full overflow-hidden bg-ui-bg-subtle`}>
+                      <div className={`product-img-box-${sectionKey} relative w-full overflow-hidden ${isLuxuryTheme ? "bg-[#0c1326]/50" : "bg-[#F8FAFC]"}`}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={image}
                           alt={product.title || "Cake"}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                           loading="lazy"
                         />
                         {showBadge && (product.is_bestseller || product.is_featured || product.is_new_arrival) && (
-                          <div className="absolute top-2 left-2">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-500 text-white shadow-sm">
+                          <div className="absolute top-2.5 left-2.5 pointer-events-none">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold uppercase tracking-wider shadow-sm bg-[#1D2F5D]/90 text-[#D4AF37] border border-[#D4AF37]/40 backdrop-blur-md">
                               {product.is_bestseller ? "Bestseller" : product.is_new_arrival ? "New" : "Featured"}
                             </span>
                           </div>
                         )}
                         {showWishlist && (
-                          <button
-                            type="button"
-                            className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white text-ui-fg-muted hover:text-rose-600 shadow-sm transition-all"
-                            aria-label="Wishlist"
-                          >
-                            <Heart className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="absolute top-2.5 right-2.5 z-20">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                              className={`p-1.5 rounded-full shadow-sm transition-all ${
+                                isLuxuryTheme
+                                  ? "bg-[#0c1326]/70 hover:bg-[#0c1326] text-[#C5CEE0] hover:text-[#D4AF37] border border-white/10"
+                                  : "bg-white/85 hover:bg-white text-[#1D2F5D] hover:text-[#BE185D] border border-[#1D2F5D]/10"
+                              }`}
+                              aria-label="Add to Wishlist"
+                            >
+                              <Heart className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         )}
                       </div>
                     )}
@@ -1966,68 +2320,72 @@ export function PageRenderer({
                       <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-2 flex-wrap">
                           {showRating && (
-                            <div className="flex items-center gap-1 text-[11px] font-semibold text-amber-500">
-                              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            <div className="flex items-center gap-1 text-[11px] font-semibold text-[#C29B38]">
+                              <Star className="w-3 h-3 fill-[#C29B38] text-[#C29B38]" />
                               <span>{rating}</span>
-                              {showReviewCount && <span className="text-ui-fg-muted font-normal">({reviewCount})</span>}
+                              {showReviewCount && <span className={`${isLuxuryTheme ? "text-[#C5CEE0]/60" : "text-[#606C88]"} font-normal`}>({reviewCount})</span>}
                             </div>
                           )}
                           {showFlavour && flavour && (
-                            <span className="text-[10px] font-semibold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded text-[#1D2F5D] dark:text-[#D4AF37] bg-[#1D2F5D]/10 dark:bg-[#D4AF37]/10 border border-[#1D2F5D]/20 dark:border-[#D4AF37]/30">
                               {flavour}
                             </span>
                           )}
                           {showWeight && weight && (
-                            <span className="text-[10px] text-ui-fg-muted font-medium bg-ui-bg-subtle px-1.5 py-0.5 rounded border border-ui-border-base">
+                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${
+                              isLuxuryTheme ? "text-[#C5CEE0] bg-white/5 border-white/10" : "text-[#606C88] bg-[#F8FAFC] border-[#E2E8F0]"
+                            }`}>
                               {weight}
                             </span>
                           )}
                         </div>
 
                         {showTitle && (
-                          <Link href={`/products/${slug}`}>
-                            <h3 className="font-bold text-xs sm:text-sm text-ui-fg-base hover:text-rose-600 transition-colors line-clamp-1">
-                              {product.title}
-                            </h3>
-                          </Link>
+                          <h3 className={`text-sm sm:text-base transition-colors line-clamp-2 min-h-[2.5rem] leading-snug ${
+                            isLuxuryTheme
+                              ? "font-serif text-[#FAF9F6] font-semibold group-hover:text-[#D4AF37]"
+                              : "font-serif text-[#1D2F5D] font-semibold group-hover:text-[#D4AF37]"
+                          }`}>
+                            {product.title}
+                          </h3>
                         )}
                         {showDesc && product.description && (
-                          <p className="text-[11px] text-ui-fg-muted line-clamp-2 leading-relaxed">
+                          <p className={`text-[11px] line-clamp-2 leading-relaxed min-h-[2rem] ${
+                            isLuxuryTheme ? "text-[#C5CEE0] font-light" : "text-[#606C88]"
+                          }`}>
                             {product.description}
                           </p>
                         )}
                         {showStock && (
-                          <span className={`text-[10px] font-semibold ${product.in_stock !== false ? "text-emerald-600" : "text-amber-600"}`}>
+                          <span className={`text-[10px] font-semibold ${
+                            product.in_stock !== false
+                              ? (isLuxuryTheme ? "text-emerald-400" : "text-emerald-600")
+                              : (isLuxuryTheme ? "text-amber-400" : "text-amber-600")
+                          }`}>
                             {product.in_stock !== false ? "● In Stock" : "● Made to Order"}
                           </span>
                         )}
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-ui-border-base">
+                      <div className={`flex items-center justify-between pt-2 border-t ${isLuxuryTheme ? "border-white/10" : "border-[#E2E8F0]"}`}>
                         {showPrice && (
-                          <div>
-                            <span className="text-sm sm:text-base font-extrabold text-ui-fg-base">
+                          <div className="flex flex-col">
+                            <span className={`text-sm sm:text-base font-bold font-sans ${isLuxuryTheme ? "text-[#FAF9F6]" : "text-[#1D2F5D]"}`}>
                               ₹{price.toLocaleString()}
                             </span>
                             {showComparePrice && originalPrice > price && (
-                              <span className="text-[10px] sm:text-xs text-ui-fg-muted line-through ml-1 font-normal">
+                              <span className={`text-[10px] sm:text-xs line-through font-sans ${isLuxuryTheme ? "text-[#C5CEE0]/60" : "text-[#606C88]"}`}>
                                 ₹{originalPrice.toLocaleString()}
                               </span>
                             )}
                           </div>
                         )}
-                        {(showCta || showQuickAdd) && (
-                          <Link href={`/products/${slug}`}>
-                            <Button
-                              variant="primary"
-                              size="small"
-                              className="rounded-xl px-2.5 py-1 text-[11px] sm:text-xs font-bold"
-                              style={ctaBg ? { backgroundColor: ctaBg } : undefined}
-                            >
-                              <ShoppingBag className="w-3 h-3 mr-1" /> {showQuickAdd ? "Quick Add" : ctaText}
-                            </Button>
-                          </Link>
-                        )}
+                        {/* Non-interactive Action Hint instead of separate Order button */}
+                        <span className={`inline-flex items-center gap-1 text-xs font-sans font-semibold tracking-wide transition-transform group-hover:translate-x-1 ${
+                          isLuxuryTheme ? "text-[#D4AF37]" : "text-[#1D2F5D]"
+                        }`}>
+                          Explore cake <ArrowRight className="w-3 h-3" />
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -2068,13 +2426,16 @@ export function PageRenderer({
                   />
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col gap-1">
-                      <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
+                      <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block">
+                        Patisserie Selection
+                      </span>
+                      <Heading level="h2" className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-[#1D2F5D] dark:text-[#FAF9F6] font-bold">
                         {heading}
                       </Heading>
-                      {subheading && <Text className="text-xs sm:text-sm text-ui-fg-subtle">{subheading}</Text>}
+                      {subheading && <Text className="font-sans text-xs sm:text-sm text-[#606C88] dark:text-[#C5CEE0] font-normal">{subheading}</Text>}
                     </div>
                     {config.view_all_url && (
-                      <Link href={config.view_all_url} className="text-xs font-bold text-rose-600 hover:underline flex items-center gap-1">
+                      <Link href={config.view_all_url} className="font-sans text-xs font-bold flex items-center gap-1 text-[#1D2F5D] dark:text-[#D4AF37] hover:text-[#D4AF37] transition-colors">
                         {config.view_all_text || "View All"} <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     )}
@@ -2104,37 +2465,36 @@ export function PageRenderer({
               const phone = config.phone || "+91 98765 43210";
 
               return (
-                <header key={sectionKey} className="w-full bg-white/95 backdrop-blur-md sticky top-0 z-40 border-b border-ui-border-base py-3 px-4 sm:px-6 shadow-sm rounded-2xl mb-4">
+                <header key={sectionKey} className="w-full bg-white/95 dark:bg-[#07090E]/95 backdrop-blur-md sticky top-0 z-40 border-b border-[#E2E8F0] dark:border-white/10 py-3 px-4 sm:px-6 shadow-sm rounded-2xl mb-4">
                   <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
                     <Link href="/" className="flex items-center gap-2">
-                      <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
+                      <span className="text-xl sm:text-2xl font-bold font-sans tracking-tight text-[#1D2F5D] dark:text-[#FAF9F6]">
                         🎂 {brandName}
                       </span>
                     </Link>
 
                     {/* Navigation items */}
-                    <nav className="hidden md:flex items-center gap-6 text-xs sm:text-sm font-bold text-ui-fg-base">
-                      <Link href="/products" className="hover:text-rose-600 transition-colors">All Cakes</Link>
-                      <Link href="/products?mode=best_sellers" className="hover:text-rose-600 transition-colors">Best Sellers</Link>
-                      <Link href="/products?egg_type=eggless" className="hover:text-emerald-600 transition-colors">100% Eggless</Link>
-                      <Link href="/products?occasion=birthday" className="hover:text-rose-600 transition-colors">Birthday Cakes</Link>
-                      <Link href="/products?occasion=anniversary" className="hover:text-rose-600 transition-colors">Anniversary</Link>
+                    <nav className="hidden md:flex items-center gap-6 text-xs sm:text-sm font-semibold font-sans text-[#1D2F5D] dark:text-[#FAF9F6]">
+                      <Link href="/products" className="hover:text-[#D4AF37] transition-colors">All Cakes</Link>
+                      <Link href="/products?mode=best_sellers" className="hover:text-[#D4AF37] transition-colors">Best Sellers</Link>
+                      <Link href="/occasions/birthday" className="hover:text-[#D4AF37] transition-colors">Birthday Cakes</Link>
+                      <Link href="/occasions/anniversary" className="hover:text-[#D4AF37] transition-colors">Anniversary</Link>
                     </nav>
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-3">
                       {showSearch && (
-                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-ui-bg-subtle text-xs text-ui-fg-muted border border-ui-border-base">
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F8FAFC] dark:bg-white/5 text-xs text-[#606C88] dark:text-[#A0AEC0] border border-[#E2E8F0] dark:border-white/10">
                           <Search className="w-3.5 h-3.5" /> Search cakes...
                         </div>
                       )}
-                      <a href={`tel:${phone}`} className="hidden lg:flex items-center gap-1.5 text-xs font-bold text-ui-fg-subtle hover:text-rose-600">
-                        <Phone className="w-3.5 h-3.5 text-rose-600" /> {phone}
+                      <a href={`tel:${phone}`} className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-[#1D2F5D] dark:text-[#FAF9F6] hover:text-[#D4AF37]">
+                        <Phone className="w-3.5 h-3.5 text-[#D4AF37]" /> {phone}
                       </a>
                       {showCart && (
-                        <Link href="/cart" className="relative p-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors">
+                        <Link href="/cart" className="relative p-2 rounded-xl bg-[#F8FAFC] dark:bg-white/10 text-[#1D2F5D] dark:text-[#FAF9F6] hover:bg-[#F1F5F9] transition-colors">
                           <ShoppingBag className="w-5 h-5" />
-                          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center">2</span>
+                          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#D4AF37] text-[#07090E] text-[10px] font-bold flex items-center justify-center">2</span>
                         </Link>
                       )}
                     </div>
@@ -2147,46 +2507,44 @@ export function PageRenderer({
             case "mega_menu": {
               const heading = config.heading || "Explore Our Complete Bakery Catalog";
               return (
-                <section key={sectionKey} className="w-full bg-ui-bg-base border border-ui-border-base rounded-2xl p-6 shadow-md mb-4">
-                  <div className="flex items-center justify-between border-b border-ui-border-base pb-3 mb-4">
-                    <span className="font-extrabold text-sm text-ui-fg-base">{heading}</span>
-                    <span className="text-xs font-bold text-rose-600">⚡ 2-Hour Express Delivery Available</span>
+                <section key={sectionKey} className="w-full bg-white dark:bg-[#142040]/30 border border-[#E2E8F0] dark:border-white/10 rounded-2xl p-6 shadow-md mb-4">
+                  <div className="flex items-center justify-between border-b border-[#E2E8F0] dark:border-white/10 pb-3 mb-4">
+                    <span className="font-serif font-bold text-base text-[#1D2F5D] dark:text-[#FAF9F6]">{heading}</span>
+                    <span className="font-sans text-xs font-semibold text-[#1D2F5D] dark:text-[#D4AF37]">⚡ 2-Hour Express Delivery Available</span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-xs">
                     <div>
-                      <span className="font-bold text-ui-fg-base mb-2 block uppercase tracking-wider text-[11px] text-rose-600">By Occasion</span>
-                      <ul className="flex flex-col gap-2 text-ui-fg-subtle">
-                        <li><Link href="/products?occasion=birthday" className="hover:text-rose-600">Birthday Cakes</Link></li>
-                        <li><Link href="/products?occasion=anniversary" className="hover:text-rose-600">Anniversary Cakes</Link></li>
-                        <li><Link href="/products?occasion=wedding" className="hover:text-rose-600">Wedding Cakes</Link></li>
-                        <li><Link href="/products?occasion=kids" className="hover:text-rose-600">Kids Cartoon Cakes</Link></li>
+                      <span className="font-sans font-bold text-[#1D2F5D] dark:text-[#FAF9F6] mb-2 block uppercase tracking-wider text-[11px]">By Occasion</span>
+                      <ul className="flex flex-col gap-2 text-[#606C88] dark:text-[#A0AEC0]">
+                        <li><Link href="/occasions/birthday" className="hover:text-[#D4AF37] transition-colors">Birthday Cakes</Link></li>
+                        <li><Link href="/occasions/anniversary" className="hover:text-[#D4AF37] transition-colors">Anniversary Cakes</Link></li>
+                        <li><Link href="/occasions/wedding" className="hover:text-[#D4AF37] transition-colors">Wedding Cakes</Link></li>
+                        <li><Link href="/occasions/birthday" className="hover:text-[#D4AF37] transition-colors">Kids Cartoon Cakes</Link></li>
                       </ul>
                     </div>
                     <div>
-                      <span className="font-bold text-ui-fg-base mb-2 block uppercase tracking-wider text-[11px] text-purple-600">By Flavour</span>
-                      <ul className="flex flex-col gap-2 text-ui-fg-subtle">
-                        <li><Link href="/products?flavor=chocolate" className="hover:text-purple-600">Belgian Chocolate</Link></li>
-                        <li><Link href="/products?flavor=red-velvet" className="hover:text-purple-600">Red Velvet Heart</Link></li>
-                        <li><Link href="/products?flavor=butterscotch" className="hover:text-purple-600">Crunchy Butterscotch</Link></li>
-                        <li><Link href="/products?flavor=fruit" className="hover:text-purple-600">Fresh Exotic Fruit</Link></li>
+                      <span className="font-sans font-bold text-[#1D2F5D] dark:text-[#FAF9F6] mb-2 block uppercase tracking-wider text-[11px]">By Flavour</span>
+                      <ul className="flex flex-col gap-2 text-[#606C88] dark:text-[#A0AEC0]">
+                        <li><Link href="/products?flavor=chocolate" className="hover:text-[#D4AF37] transition-colors">Belgian Chocolate</Link></li>
+                        <li><Link href="/products?flavor=red-velvet" className="hover:text-[#D4AF37] transition-colors">Red Velvet Heart</Link></li>
+                        <li><Link href="/products?flavor=butterscotch" className="hover:text-[#D4AF37] transition-colors">Crunchy Butterscotch</Link></li>
+                        <li><Link href="/products?flavor=fruit" className="hover:text-[#D4AF37] transition-colors">Fresh Exotic Fruit</Link></li>
                       </ul>
                     </div>
                     <div>
-                      <span className="font-bold text-ui-fg-base mb-2 block uppercase tracking-wider text-[11px] text-emerald-600">Special Diet</span>
-                      <ul className="flex flex-col gap-2 text-ui-fg-subtle">
-                        <li><Link href="/products?egg_type=eggless" className="hover:text-emerald-600">100% Eggless Cakes</Link></li>
-                        <li><Link href="/products?diet=sugar-free" className="hover:text-emerald-600">Sugar-Free Delights</Link></li>
-                        <li><Link href="/products?diet=vegan" className="hover:text-emerald-600">Vegan Sponge Cakes</Link></li>
-                        <li><Link href="/products?diet=gluten-free" className="hover:text-emerald-600">Gluten-Free Cakes</Link></li>
+                      <span className="font-sans font-bold text-[#1D2F5D] dark:text-[#FAF9F6] mb-2 block uppercase tracking-wider text-[11px]">Special Diet</span>
+                      <ul className="flex flex-col gap-2 text-[#606C88] dark:text-[#A0AEC0]">
+                        <li><Link href="/products?diet=sugar-free" className="hover:text-[#D4AF37] transition-colors">Sugar-Free Delights</Link></li>
+                        <li><Link href="/products?diet=gluten-free" className="hover:text-[#D4AF37] transition-colors">Gluten-Free Cakes</Link></li>
                       </ul>
                     </div>
-                    <div className="bg-gradient-to-br from-rose-50 to-pink-50 p-3 rounded-xl border border-rose-100 flex flex-col justify-between">
+                    <div className="bg-[#FDFBF7] dark:bg-white/5 p-3.5 rounded-xl border border-[#E2E8F0] dark:border-white/10 flex flex-col justify-between">
                       <div>
-                        <span className="text-[10px] font-black uppercase text-rose-600 tracking-wider">Chef Special</span>
-                        <p className="font-bold text-xs text-ui-fg-base mt-1">Midnight Surprise Hamper</p>
-                        <p className="text-[11px] text-ui-fg-muted mt-0.5">Cake + Rose Bouquet + Candles</p>
+                        <span className="text-[10px] font-bold uppercase text-[#D4AF37] tracking-wider">Chef Special</span>
+                        <p className="font-serif font-semibold text-xs text-[#1D2F5D] dark:text-[#FAF9F6] mt-1">Midnight Surprise Hamper</p>
+                        <p className="font-sans text-[11px] text-[#606C88] dark:text-[#A0AEC0] mt-0.5">Cake + Rose Bouquet + Candles</p>
                       </div>
-                      <Link href="/products" className="text-xs font-bold text-rose-600 mt-2 hover:underline">Shop Special →</Link>
+                      <Link href="/products" className="font-sans text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37] mt-2 hover:underline">Shop Special →</Link>
                     </div>
                   </div>
                 </section>
@@ -2212,7 +2570,7 @@ export function PageRenderer({
                           {isLast || !item.url ? (
                             <span className="font-bold text-ui-fg-base">{item.label}</span>
                           ) : (
-                            <Link href={item.url} className="hover:text-rose-600 transition-colors">
+                            <Link href={item.url} className="hover:text-[#D4AF37] transition-colors">
                               {item.label}
                             </Link>
                           )}
@@ -2291,8 +2649,17 @@ export function PageRenderer({
               const objectPosition = config.image_position_align || "center";
 
               return (
-                <section key={sectionKey} className={`grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-ui-bg-subtle/40 p-6 sm:p-10 rounded-3xl border border-ui-border-base ${imagePosition === "right" ? "md:grid-flow-dense" : ""}`}>
-                  <div className={`relative aspect-[4/3] rounded-2xl overflow-hidden shadow-md ${imagePosition === "right" ? "md:col-start-2" : ""}`}>
+                <section
+                  key={sectionKey}
+                  className={`grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center p-6 sm:p-12 rounded-3xl transition-all duration-500 ${
+                    isLuxuryTheme
+                      ? "bg-gradient-to-br from-[#142040]/70 via-[#0c1326] to-[#1D2F5D]/80 border border-white/15 shadow-[0_25px_60px_rgba(12,19,38,0.5)] text-[#FAF9F6]"
+                      : "bg-ui-bg-subtle/40 border border-ui-border-base text-ui-fg-base"
+                  } ${imagePosition === "right" ? "lg:grid-flow-dense" : ""}`}
+                >
+                  <div className={`relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl ${
+                    isLuxuryTheme ? "border border-white/10 shadow-[0_20px_50px_rgba(20,32,64,0.4)]" : "border border-ui-border-base"
+                  } ${imagePosition === "right" ? "lg:col-start-2" : ""}`}>
                     <picture>
                       {mobileImageUrl && <source media="(max-width: 640px)" srcSet={mobileImageUrl} />}
                       {tabletImageUrl && <source media="(max-width: 1024px)" srcSet={tabletImageUrl} />}
@@ -2300,7 +2667,7 @@ export function PageRenderer({
                       <img
                         src={desktopImageUrl}
                         alt={imageAlt}
-                        className="w-full h-full"
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 ease-out"
                         style={{ objectFit, objectPosition }}
                         loading="lazy"
                       />
@@ -2308,19 +2675,52 @@ export function PageRenderer({
                   </div>
                   <div className="flex flex-col gap-4">
                     {badgeText && (
-                      <span className="text-xs font-bold uppercase tracking-wider text-rose-600">
-                        {badgeText}
+                      <span className={`inline-flex items-center gap-1.5 self-start px-3.5 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase ${
+                        isLuxuryTheme
+                          ? "bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30"
+                          : "bg-brand-gold-soft text-[#1D2F5D] border border-[#D4AF37]/30"
+                      }`}>
+                        <Sparkles className="w-3.5 h-3.5" /> {badgeText}
                       </span>
                     )}
-                    <Heading level="h2" className="text-2xl sm:text-3xl font-extrabold tracking-tight" style={{ color: theme?.heading_color }}>
+                    <Heading
+                      level="h2"
+                      className={`text-2xl sm:text-4xl tracking-tight leading-tight ${
+                        isLuxuryTheme ? "font-serif text-[#FAF9F6] font-normal" : "font-extrabold"
+                      }`}
+                      style={{ color: isLuxuryTheme ? "#FAF9F6" : theme?.heading_color }}
+                    >
                       {heading}
                     </Heading>
-                    <p className="text-sm text-ui-fg-muted leading-relaxed whitespace-pre-line">
+                    <p className={`text-sm sm:text-base leading-relaxed whitespace-pre-line ${
+                      isLuxuryTheme ? "text-[#C5CEE0] font-light" : "text-ui-fg-muted"
+                    }`}>
                       {body}
                     </p>
+
+                    {/* Artisanal Quality Pillars */}
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      <div className={`p-3 rounded-xl flex items-center gap-2.5 ${isLuxuryTheme ? "bg-white/5 border border-white/10" : "bg-white border border-ui-border-base"}`}>
+                        <Award className={`w-4 h-4 shrink-0 ${isLuxuryTheme ? "text-[#D4AF37]" : "text-[#D4AF37]"}`} />
+                        <span className={`text-xs font-medium ${isLuxuryTheme ? "text-[#FAF9F6]" : "text-ui-fg-base"}`}>100% Belgian Cocoa</span>
+                      </div>
+                      <div className={`p-3 rounded-xl flex items-center gap-2.5 ${isLuxuryTheme ? "bg-white/5 border border-white/10" : "bg-white border border-ui-border-base"}`}>
+                        <Clock className={`w-4 h-4 shrink-0 ${isLuxuryTheme ? "text-[#D4AF37]" : "text-[#D4AF37]"}`} />
+                        <span className={`text-xs font-medium ${isLuxuryTheme ? "text-[#FAF9F6]" : "text-ui-fg-base"}`}>Baked Fresh on Order</span>
+                      </div>
+                    </div>
+
                     {ctaText && (
                       <Link href={ctaUrl} className="pt-2">
-                        <Button variant="primary" size="large" className="rounded-xl px-6 font-bold">
+                        <Button
+                          variant="primary"
+                          size="large"
+                          className={
+                            isLuxuryTheme
+                              ? "bg-[#D4AF37] hover:bg-[#c59e2b] text-[#0c1326] font-sans font-medium uppercase tracking-[0.15em] text-xs px-8 py-3.5 rounded-full shadow-lg border-none transition-all duration-300"
+                              : "rounded-xl px-6 font-bold"
+                          }
+                        >
                           {ctaText} →
                         </Button>
                       </Link>
@@ -2470,13 +2870,18 @@ export function PageRenderer({
                 <section key={sectionKey} className={`flex flex-col gap-6 w-full ${alignClass}`}>
                   {(heading || subtitle) && (
                     <div className={`flex flex-col gap-1.5 w-full ${alignClass}`}>
+                      {isLuxuryTheme && (
+                        <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block">
+                          The Patisserie Standard
+                        </span>
+                      )}
                       {heading && (
-                        <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
+                        <Heading level="h2" className={`text-xl sm:text-2xl lg:text-3xl tracking-tight ${isLuxuryTheme ? "font-serif text-[#FAF9F6] font-normal" : "font-bold"}`} style={{ color: isLuxuryTheme ? "#FAF9F6" : theme?.heading_color }}>
                           {heading}
                         </Heading>
                       )}
                       {subtitle && (
-                        <Text className="text-xs sm:text-sm text-ui-fg-muted max-w-2xl">
+                        <Text className={`text-xs sm:text-sm max-w-2xl ${isLuxuryTheme ? "text-[#C5CEE0] font-light" : "text-ui-fg-muted"}`}>
                           {subtitle}
                         </Text>
                       )}
@@ -2490,34 +2895,42 @@ export function PageRenderer({
                         borderColor: feat.border_color || undefined,
                       };
                       const titleStyle: React.CSSProperties = {
-                        color: feat.title_color || undefined,
+                        color: isLuxuryTheme ? undefined : (feat.title_color || undefined),
                       };
                       const descStyle: React.CSSProperties = {
-                        color: feat.description_color || undefined,
+                        color: isLuxuryTheme ? undefined : (feat.description_color || undefined),
                       };
 
                       const cardContent = (
                         <div
                           key={feat.id || i}
-                          className="p-5 rounded-2xl bg-ui-bg-base border border-ui-border-base flex flex-col gap-2.5 shadow-sm hover:shadow-md transition-all h-full"
-                          style={cardStyle}
+                          className={`p-6 rounded-2xl flex flex-col gap-3 transition-all duration-500 h-full ${
+                            isLuxuryTheme
+                              ? "bg-[#142040]/30 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 shadow-[0_20px_50px_rgba(20,32,64,0.35)]"
+                              : "bg-ui-bg-base border border-ui-border-base shadow-sm hover:shadow-md"
+                          }`}
+                          style={!isLuxuryTheme ? cardStyle : undefined}
                         >
                           <div
-                            className="p-3 rounded-xl w-fit"
-                            style={{
+                            className={`p-3.5 rounded-xl w-fit ${
+                              isLuxuryTheme
+                                ? "bg-[#0c1326]/60 border border-white/10 text-[#D4AF37]"
+                                : "bg-slate-100"
+                            }`}
+                            style={!isLuxuryTheme ? {
                               backgroundColor: feat.bg_color ? "rgba(0,0,0,0.05)" : "#f8fafc",
-                            }}
+                            } : undefined}
                           >
-                            {getIcon(feat.icon, feat.icon_color)}
+                            {getIcon(feat.icon, isLuxuryTheme ? "#D4AF37" : feat.icon_color)}
                           </div>
-                          <h4 className="font-bold text-sm text-ui-fg-base" style={titleStyle}>
+                          <h4 className={`text-sm sm:text-base leading-tight ${isLuxuryTheme ? "font-serif text-[#FAF9F6] font-medium" : "font-bold text-ui-fg-base"}`} style={titleStyle}>
                             {feat.title}
                           </h4>
-                          <p className="text-xs text-ui-fg-muted leading-relaxed" style={descStyle}>
+                          <p className={`text-xs leading-relaxed ${isLuxuryTheme ? "text-[#C5CEE0] font-light" : "text-ui-fg-muted"}`} style={descStyle}>
                             {feat.description || feat.desc}
                           </p>
                           {feat.link_url && (
-                            <span className="text-xs font-bold text-rose-600 hover:underline mt-auto pt-1 flex items-center gap-1">
+                            <span className={`text-xs font-bold mt-auto pt-1 flex items-center gap-1 ${isLuxuryTheme ? "text-[#D4AF37] hover:underline uppercase tracking-wider text-[11px] font-medium" : "text-[#1D2F5D] hover:underline"}`}>
                               {feat.link_text || "Learn more"} →
                             </span>
                           )}
@@ -2648,7 +3061,7 @@ export function PageRenderer({
               return (
                 <section key={sectionKey} className="flex flex-col gap-5 p-6 sm:p-8 bg-ui-bg-subtle/60 rounded-3xl border border-ui-border-base text-center">
                   <div className="max-w-xl mx-auto flex flex-col gap-1.5">
-                    <span className="text-xs font-bold text-rose-600 uppercase tracking-wider">{config.badge || "Coverage Area"}</span>
+                    <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">{config.badge || "Coverage Area"}</span>
                     <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
                       {heading}
                     </Heading>
@@ -2660,9 +3073,9 @@ export function PageRenderer({
                     {areas.map((area: string, ai: number) => (
                       <span
                         key={ai}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-ui-bg-base border border-ui-border-base shadow-xs text-ui-fg-base hover:border-rose-400 hover:text-rose-600 transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-ui-bg-base border border-ui-border-base shadow-xs text-ui-fg-base hover:border-[#D4AF37] hover:text-[#1D2F5D] transition-colors"
                       >
-                        <MapPin className="w-3 h-3 text-rose-500" />
+                        <MapPin className="w-3 h-3 text-[#D4AF37]" />
                         {area}
                       </span>
                     ))}
@@ -2739,13 +3152,13 @@ export function PageRenderer({
                 },
                 {
                   id: "b3",
-                  title: "Top 7 Eggless Cake Flavors That Taste Even Richer Than Traditional Cakes",
-                  excerpt: "Discover how Belgian cocoa, condensed dairy, and slow aeration create our signature fluffy eggless texture.",
+                  title: "Top 7 Celebration Cake Flavors for Special Occasions",
+                  excerpt: "Discover how Belgian cocoa, vanilla bean infusion, and slow aeration create our signature fluffy cake texture.",
                   author: "Pastry Guild",
                   date: "Aug 20, 2026",
                   read_time: "5 min read",
                   image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=600&q=80",
-                  slug: "top-eggless-cake-flavors",
+                  slug: "top-celebration-cake-flavors",
                 },
               ];
 
@@ -2759,7 +3172,7 @@ export function PageRenderer({
                       <div className="relative aspect-[16/10] rounded-2xl overflow-hidden shadow-md">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={article.image} alt={article.title} className="w-full h-full object-cover" loading="lazy" />
-                        <span className="absolute top-3 left-3 px-2.5 py-1 bg-rose-600 text-white text-[10px] font-bold uppercase rounded-full">Featured Article</span>
+                        <span className="absolute top-3 left-3 px-2.5 py-1 bg-[#1D2F5D] text-white text-[10px] font-bold uppercase rounded-full">Featured Article</span>
                       </div>
                       <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-2 text-xs text-ui-fg-muted">
@@ -2771,7 +3184,7 @@ export function PageRenderer({
                         </div>
                         <h3 className="text-xl sm:text-2xl font-extrabold text-ui-fg-base">{article.title}</h3>
                         <p className="text-sm text-ui-fg-muted leading-relaxed">{article.excerpt}</p>
-                        <Link href={`/blog/${article.slug}`} className="text-xs font-bold text-rose-600 hover:text-rose-700 pt-2 flex items-center gap-1">
+                        <Link href={`/blog/${article.slug}`} className="text-xs font-bold text-[#1D2F5D] hover:text-[#152347] pt-2 flex items-center gap-1">
                           Read Full Article →
                         </Link>
                       </div>
@@ -2789,7 +3202,7 @@ export function PageRenderer({
                       </Heading>
                       {subheading && <Text className="text-xs sm:text-sm text-ui-fg-muted mt-1">{subheading}</Text>}
                     </div>
-                    <Link href="/blog" className="text-xs font-bold text-rose-600 hover:text-rose-700">
+                    <Link href="/blog" className="text-xs font-bold text-[#1D2F5D] hover:text-[#152347]">
                       View All Articles →
                     </Link>
                   </div>
@@ -2809,7 +3222,7 @@ export function PageRenderer({
                           <h4 className="font-bold text-sm text-ui-fg-base line-clamp-2 leading-snug">{art.title}</h4>
                           <p className="text-xs text-ui-fg-muted line-clamp-2 mt-1">{art.excerpt}</p>
                         </div>
-                        <Link href={`/blog/${art.slug}`} className="text-xs font-bold text-rose-600 hover:underline mt-3 block">
+                        <Link href={`/blog/${art.slug}`} className="text-xs font-bold text-[#1D2F5D] hover:underline mt-3 block">
                           Read More →
                         </Link>
                       </article>
@@ -2836,7 +3249,7 @@ export function PageRenderer({
                       <Link
                         key={ii}
                         href={it.url}
-                        className="px-3 py-1.5 rounded-full bg-white dark:bg-ui-bg-base border border-ui-border-base text-xs font-semibold text-ui-fg-base hover:border-rose-400 hover:text-rose-600 transition-colors shadow-xs"
+                        className="px-3 py-1.5 rounded-full bg-white dark:bg-ui-bg-base border border-ui-border-base text-xs font-semibold text-ui-fg-base hover:border-[#D4AF37] hover:text-[#1D2F5D] transition-colors shadow-xs"
                       >
                         {it.label}
                       </Link>
@@ -2846,13 +3259,83 @@ export function PageRenderer({
               );
             }
 
-            // ── 11. Call to Action Block ────────────────────────────────
+            // ── 11. Bespoke Custom Cake Studio Section ─────────────────
+            case "custom_cake_cta": {
+              const heading = config.heading || "Bespoke & Custom Cake Studio";
+              const subheading = config.subheading || "From whimsical birthday tiers to grand multi-tiered wedding showpieces, our executive pastry chefs bring your imagination to life.";
+              const ctaText = config.cta_text || "Enquire for Custom Cake";
+              const ctaUrl = config.cta_url || "/products";
+              const steps = [
+                { step: "01", title: "Choose Architecture", desc: "Round, Romantic Heart, Sculpted 3D, or Grand Multi-Tier Designer" },
+                { step: "02", title: "Select Flavour", desc: "Belgian Ganache, Red Velvet Cream Cheese, Mango Fruit, or Biscoff Crunch" },
+                { step: "03", title: "Personalize Details", desc: "Handcrafted fondant accents, edible photo prints, and custom name toppers" },
+                { step: "04", title: "Chilled Delivery", desc: "Hand-delivered in specialized climate-controlled vans directly to your venue" },
+              ];
+
+              return (
+                <section key={sectionKey} className={`w-full p-6 sm:p-10 lg:p-12 rounded-3xl flex flex-col gap-8 transition-all duration-500 ${
+                  isLuxuryTheme
+                    ? "bg-gradient-to-b from-[#142040]/50 to-[#0c1326] border border-white/10 shadow-[0_20px_50px_rgba(20,32,64,0.3)] text-[#FAF9F6]"
+                    : "bg-ui-bg-subtle/40 border border-ui-border-base text-ui-fg-base"
+                }`}>
+                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div className="flex flex-col gap-2 max-w-2xl">
+                      <span className={`font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-semibold ${isLuxuryTheme ? "text-[#D4AF37]" : "text-[#D4AF37]"}`}>
+                        Artisan Commissions
+                      </span>
+                      <Heading level="h2" className={`text-2xl sm:text-3xl lg:text-4xl tracking-tight leading-tight ${isLuxuryTheme ? "font-serif font-normal text-[#FAF9F6]" : "font-extrabold"}`}>
+                        {heading}
+                      </Heading>
+                      <Text className={`text-xs sm:text-sm leading-relaxed ${isLuxuryTheme ? "text-[#C5CEE0] font-light" : "text-ui-fg-muted"}`}>
+                        {subheading}
+                      </Text>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0 flex-wrap">
+                      <Link href={ctaUrl}>
+                        <Button className={isLuxuryTheme ? "bg-[#D4AF37] hover:bg-[#c59e2b] text-[#0c1326] font-medium font-sans uppercase tracking-wider text-xs px-6 py-3 rounded-full shadow-md border-none" : "btn-brand-primary text-xs px-5 py-2.5"}>
+                          {ctaText} →
+                        </Button>
+                      </Link>
+                      <Link href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
+                        <Button variant="secondary" className={isLuxuryTheme ? "bg-white/10 hover:bg-white/15 text-white border-white/20 rounded-full px-5 py-3 text-xs" : "rounded-xl text-xs px-4 py-2.5"}>
+                          <MessageCircle className="w-4 h-4 mr-1.5 text-emerald-400" /> WhatsApp Concierge
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                    {steps.map((st, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-5 rounded-2xl flex flex-col gap-2 transition-all duration-300 ${
+                          isLuxuryTheme
+                            ? "bg-[#142040]/30 border border-white/10 hover:border-[#D4AF37]/40 shadow-sm"
+                            : "bg-white border border-ui-border-base shadow-xs"
+                        }`}
+                      >
+                        <span className={`text-xs font-mono font-bold ${isLuxuryTheme ? "text-[#D4AF37]" : "text-[#D4AF37]"}`}>
+                          {st.step}
+                        </span>
+                        <h4 className={`text-sm font-semibold ${isLuxuryTheme ? "text-[#FAF9F6]" : "text-ui-fg-base"}`}>
+                          {st.title}
+                        </h4>
+                        <p className={`text-xs leading-relaxed ${isLuxuryTheme ? "text-[#C5CEE0]/70" : "text-ui-fg-muted"}`}>
+                          {st.desc}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            }
+
+            // ── 11b. Standard CTA / Promotional Blocks ──────────────────
             case "cta":
             case "shop_now_cta":
             case "free_delivery_banner":
             case "same_day_delivery_cta":
             case "midnight_delivery_cta":
-            case "custom_cake_cta":
             case "corporate_orders_cta":
             case "whatsapp_cta":
             case "whatsapp_cta_lead":
@@ -2862,7 +3345,6 @@ export function PageRenderer({
                 section.type === "free_delivery_banner" ? "🚚 Free Express Delivery" :
                 section.type === "midnight_delivery_cta" ? "🌙 Midnight Cake Surprise Delivery" :
                 section.type === "same_day_delivery_cta" ? "⚡ Same-Day Delivery in 2 Hours" :
-                section.type === "custom_cake_cta" ? "🎨 Design Your Dream Cake" :
                 section.type === "corporate_orders_cta" ? "🏢 Corporate Bulk Gifting & Events" :
                 section.type === "whatsapp_cta" ? "💬 Order Directly on WhatsApp" :
                 "Ready to Celebrate?"
@@ -2876,22 +3358,131 @@ export function PageRenderer({
               const ctaUrl = config.cta_url || (section.type === "whatsapp_cta" ? "https://wa.me/919876543210" : "/products");
               const isWhatsapp = section.type === "whatsapp_cta" || config.style === "whatsapp";
 
+              const secondaryCtaText = config.secondary_cta_text || config.secondary_cta?.text;
+              const secondaryCtaUrl = config.secondary_cta_url || config.secondary_cta?.url || "/products";
+              const deliveryContext = config.delivery_context || "⚡ 2-Hour Express Delivery & Midnight Slots Available Across Bangalore";
+
+              const variant = config.variant || config.style_preset || config.style || (isLuxuryTheme ? "navy" : "navy");
+
+              const variantStyles: Record<string, {
+                container: string;
+                overline: string;
+                heading: string;
+                subheading: string;
+                primaryBtn: string;
+                secondaryBtn: string;
+                context: string;
+              }> = {
+                navy: {
+                  container: "bg-gradient-to-br from-[#142040] via-[#0c1326] to-[#1D2F5D] border border-[#D4AF37]/30 text-[#FAF9F6] shadow-[0_25px_60px_rgba(12,19,38,0.5)]",
+                  overline: "text-[#D4AF37]",
+                  heading: "text-[#FAF9F6]",
+                  subheading: "text-[#C5CEE0]",
+                  primaryBtn: "bg-[#D4AF37] hover:bg-[#c59e2b] text-[#0c1326] font-sans font-bold shadow-[0_15px_35px_rgba(212,175,55,0.3)]",
+                  secondaryBtn: "bg-[#142040]/60 hover:bg-[#142040] text-[#FAF9F6] font-sans border border-white/20",
+                  context: "text-[#C5CEE0]/80",
+                },
+                cream: {
+                  container: "bg-[#FDFBF7] border border-[#E8E1D5] text-[#1D2F5D] shadow-[0_20px_50px_rgba(29,47,93,0.08)]",
+                  overline: "text-[#AA771C]",
+                  heading: "text-[#1D2F5D]",
+                  subheading: "text-[#4A5568]",
+                  primaryBtn: "bg-[#1D2F5D] hover:bg-[#142040] text-[#FAF9F6] font-sans font-bold shadow-[0_15px_35px_rgba(29,47,93,0.2)]",
+                  secondaryBtn: "bg-white hover:bg-[#F4EFE6] text-[#1D2F5D] font-sans border border-[#DCD3C1]",
+                  context: "text-[#606C88]",
+                },
+                chocolate: {
+                  container: "bg-gradient-to-br from-[#2D1B18] via-[#1A0E0D] to-[#3B221E] border border-[#8C6D62]/40 text-[#FFF8F0] shadow-2xl",
+                  overline: "text-[#D4AF37]",
+                  heading: "text-[#FFF8F0]",
+                  subheading: "text-[#D8C7C4]",
+                  primaryBtn: "bg-[#D4AF37] hover:bg-[#c59e2b] text-[#1A0E0D] font-sans font-bold shadow-[0_15px_35px_rgba(212,175,55,0.25)]",
+                  secondaryBtn: "bg-white/10 hover:bg-white/20 text-[#FFF8F0] font-sans border border-white/20",
+                  context: "text-[#D8C7C4]/80",
+                },
+                minimal_gold: {
+                  container: "bg-[#07090E] border-2 border-[#D4AF37]/50 text-white shadow-2xl",
+                  overline: "text-[#D4AF37]",
+                  heading: "text-white",
+                  subheading: "text-[#C5CEE0]",
+                  primaryBtn: "bg-[#D4AF37] hover:bg-[#c59e2b] text-[#07090E] font-sans font-bold",
+                  secondaryBtn: "bg-transparent hover:bg-white/5 text-[#D4AF37] font-sans border border-[#D4AF37]/60",
+                  context: "text-[#C5CEE0]/70",
+                },
+                soft_pink: {
+                  container: "bg-[#FFF5F7] border border-[#FBCFE8] text-[#1D2F5D] shadow-xl",
+                  overline: "text-[#BE185D]",
+                  heading: "text-[#1D2F5D]",
+                  subheading: "text-[#4A5568]",
+                  primaryBtn: "bg-[#BE185D] hover:bg-[#9D174D] text-white font-sans font-bold shadow-[0_15px_35px_rgba(190,24,93,0.2)]",
+                  secondaryBtn: "bg-white hover:bg-[#FDFBF7] text-[#BE185D] font-sans border border-[#FBCFE8]",
+                  context: "text-[#606C88]",
+                },
+                celebration: {
+                  container: "bg-gradient-to-br from-[#142040] via-[#0c1326] to-[#1D2F5D] border border-white/20 text-white shadow-2xl",
+                  overline: "text-[#D4AF37]",
+                  heading: "text-white",
+                  subheading: "text-[#E2E8F0]",
+                  primaryBtn: "bg-[#D4AF37] hover:bg-[#c59e2b] text-[#0c1326] font-sans font-bold shadow-[0_15px_35px_rgba(212,175,55,0.3)]",
+                  secondaryBtn: "bg-white/15 hover:bg-white/25 text-white font-sans border border-white/30",
+                  context: "text-white/80",
+                },
+              };
+
+              const activeStyle = isWhatsapp
+                ? {
+                    container: "bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-2xl",
+                    overline: "text-emerald-100",
+                    heading: "text-white",
+                    subheading: "text-white/90",
+                    primaryBtn: "bg-white hover:bg-white/90 text-emerald-700 font-sans font-bold",
+                    secondaryBtn: "bg-white/10 hover:bg-white/20 text-white font-sans border border-white/30",
+                    context: "text-white/80",
+                  }
+                : variantStyles[variant] || variantStyles.navy;
+
               return (
-                <section key={sectionKey} className={`w-full p-8 sm:p-12 rounded-3xl text-white text-center flex flex-col items-center gap-4 shadow-xl ${
-                  isWhatsapp ? "bg-gradient-to-r from-emerald-600 to-teal-700" : "bg-gradient-to-r from-rose-600 to-pink-600"
-                }`}>
+                <section key={sectionKey} className={`w-full p-8 sm:p-14 rounded-3xl text-center flex flex-col items-center gap-5 relative overflow-hidden transition-all duration-300 ${activeStyle.container}`}>
+                  <span className={`font-sans text-[10px] md:text-xs uppercase tracking-[0.3em] font-semibold ${activeStyle.overline}`}>
+                    Bakery Concierge & Bespoke Commissions
+                  </span>
                   {isWhatsapp && <MessageCircle className="w-10 h-10 text-white animate-bounce" />}
-                  <Heading level="h2" className="text-2xl sm:text-4xl font-extrabold text-white">
+                  <Heading level="h2" className={`font-serif text-2xl sm:text-4xl lg:text-5xl leading-tight font-bold tracking-tight ${activeStyle.heading}`}>
                     {heading}
                   </Heading>
-                  <Text className="text-sm sm:text-base text-white/90 max-w-xl">
+                  <Text className={`font-sans text-sm sm:text-base max-w-xl leading-relaxed ${activeStyle.subheading}`}>
                     {subheading}
                   </Text>
-                  <Link href={ctaUrl} className="pt-2">
-                    <Button size="large" className="bg-white hover:bg-white/90 text-rose-600 font-extrabold px-8 py-3 rounded-xl shadow-lg border-none">
-                      {ctaText} →
-                    </Button>
-                  </Link>
+
+                  {/* Dual CTA Group */}
+                  <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
+                    <Link href={ctaUrl}>
+                      <Button
+                        size="large"
+                        className={`rounded-full px-8 sm:px-10 py-3 sm:py-4 text-xs sm:text-sm uppercase tracking-[0.12em] transition-all duration-300 border-none ${activeStyle.primaryBtn}`}
+                      >
+                        {ctaText} →
+                      </Button>
+                    </Link>
+                    {secondaryCtaText && (
+                      <Link href={secondaryCtaUrl}>
+                        <Button
+                          size="large"
+                          variant="secondary"
+                          className={`rounded-full px-7 py-3 text-xs sm:text-sm uppercase tracking-[0.12em] transition-all ${activeStyle.secondaryBtn}`}
+                        >
+                          {secondaryCtaText}
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+
+                  {/* Delivery Promise Reassurance */}
+                  {deliveryContext && (
+                    <p className={`font-sans text-xs mt-2 ${activeStyle.context}`}>
+                      {deliveryContext}
+                    </p>
+                  )}
                 </section>
               );
             }
@@ -2910,7 +3501,7 @@ export function PageRenderer({
               const ctaUrl = config.cta_url || "/products";
 
               return (
-                <section key={sectionKey} className="w-full p-6 sm:p-10 rounded-3xl bg-gradient-to-br from-amber-500 via-rose-600 to-purple-700 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+                <section key={sectionKey} className="w-full p-6 sm:p-10 rounded-3xl bg-gradient-to-br from-[#D4AF37] via-[#1D2F5D] to-[#0c1326] text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
                   <div className="flex flex-col gap-2 max-w-xl text-center md:text-left z-10">
                     <div className="flex items-center gap-2 justify-center md:justify-start">
                       <span className="px-3 py-1 rounded-full text-xs font-black bg-white/20 backdrop-blur-md uppercase tracking-wider text-white">
@@ -2936,7 +3527,7 @@ export function PageRenderer({
                       </div>
                     )}
                     <Link href={ctaUrl}>
-                      <Button size="large" className="bg-white hover:bg-white/90 text-rose-600 font-extrabold px-6 py-2.5 rounded-xl shadow-lg border-none whitespace-nowrap">
+                      <Button size="large" className="bg-white hover:bg-white/90 text-[#1D2F5D] font-extrabold px-6 py-2.5 rounded-xl shadow-lg border-none whitespace-nowrap">
                         {ctaText} →
                       </Button>
                     </Link>
@@ -2964,7 +3555,7 @@ export function PageRenderer({
                 <section key={sectionKey} className="w-full bg-ui-bg-subtle/50 p-6 sm:p-10 rounded-3xl border border-ui-border-base flex flex-col gap-6">
                   {heading && (
                     <div className="text-center max-w-xl mx-auto flex flex-col gap-1">
-                      <span className="text-xs font-bold text-rose-600 uppercase tracking-wider">Spotlight</span>
+                      <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">Spotlight</span>
                       <Heading level="h2" className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
                         {heading}
                       </Heading>
@@ -2974,7 +3565,7 @@ export function PageRenderer({
                     <div className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow-lg border border-ui-border-base group">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={image} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                      <div className="absolute top-3 left-3 bg-rose-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-md">
+                      <div className="absolute top-3 left-3 bg-[#1D2F5D] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-md">
                         Signature Recipe
                       </div>
                     </div>
@@ -3000,12 +3591,11 @@ export function PageRenderer({
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2 pt-1 text-xs text-ui-fg-subtle">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-ui-bg-base border">🌱 100% Eggless Option</span>
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-ui-bg-base border">⚡ 2-Hour Express Delivery</span>
                       </div>
                       <div className="pt-2">
                         <Link href={`/products/${slug}`}>
-                          <Button variant="primary" size="large" className="rounded-xl px-8 font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-md">
+                          <Button variant="primary" size="large" className="rounded-xl px-8 font-bold bg-[#1D2F5D] hover:bg-[#152347] text-white shadow-md">
                             <ShoppingBag className="w-4 h-4 mr-2" /> Order This Cake
                           </Button>
                         </Link>
@@ -3052,7 +3642,7 @@ export function PageRenderer({
                         <tr>
                           <td className="p-4 font-semibold text-ui-fg-muted">Starting Price</td>
                           {compareProducts.map((p: any) => (
-                            <td key={p.id} className="p-4 text-center font-black text-rose-600">
+                            <td key={p.id} className="p-4 text-center font-black text-[#1D2F5D] dark:text-[#D4AF37]">
                               ₹{(p.price || p.base_price || 499).toLocaleString()}
                             </td>
                           ))}
@@ -3073,14 +3663,7 @@ export function PageRenderer({
                             </td>
                           ))}
                         </tr>
-                        <tr>
-                          <td className="p-4 font-semibold text-ui-fg-muted">Dietary Option</td>
-                          {compareProducts.map((p: any) => (
-                            <td key={p.id} className="p-4 text-center text-emerald-600 font-semibold">
-                              ✓ Eggless Available
-                            </td>
-                          ))}
-                        </tr>
+
                         <tr>
                           <td className="p-4 font-semibold text-ui-fg-muted">Delivery Speed</td>
                           {compareProducts.map((p: any) => (
@@ -3094,8 +3677,8 @@ export function PageRenderer({
                           {compareProducts.map((p: any) => (
                             <td key={p.id} className="p-4 text-center">
                               <Link href={`/products/${p.slug || p.id}`}>
-                                <Button size="small" variant="primary" className="rounded-xl px-4 text-xs font-bold">
-                                  Order Now
+                                <Button size="small" variant="primary" className="rounded-xl px-4 text-xs font-bold bg-[#1D2F5D] hover:bg-[#152347] text-white border border-[#D4AF37]/30 shadow-xs">
+                                  View Details
                                 </Button>
                               </Link>
                             </td>
@@ -3130,7 +3713,7 @@ export function PageRenderer({
                     <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
                       {heading}
                     </Heading>
-                    <Link href="/products" className="text-xs font-bold text-rose-600 hover:underline flex items-center gap-1">
+                    <Link href="/products" className="text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37] hover:underline flex items-center gap-1">
                       View Catalog <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
@@ -3139,9 +3722,9 @@ export function PageRenderer({
                       <Link
                         key={cat.id}
                         href={`/products?category=${cat.slug || cat.id}`}
-                        className="px-4 py-2 rounded-2xl bg-ui-bg-base border border-ui-border-base hover:border-rose-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20 text-xs sm:text-sm font-semibold transition-all shadow-xs flex items-center gap-2 group"
+                        className="px-4 py-2 rounded-2xl bg-ui-bg-base border border-ui-border-base hover:border-[#D4AF37]/60 hover:bg-[#1D2F5D]/5 hover:text-[#1D2F5D] dark:hover:bg-[#1D2F5D]/20 dark:hover:text-[#D4AF37] text-xs sm:text-sm font-semibold transition-all shadow-xs flex items-center gap-2 group"
                       >
-                        <Sparkles className="w-3.5 h-3.5 text-rose-500 group-hover:rotate-12 transition-transform" />
+                        <Sparkles className="w-3.5 h-3.5 text-[#D4AF37] group-hover:rotate-12 transition-transform" />
                         <span>{cat.name}</span>
                       </Link>
                     ))}
@@ -3163,40 +3746,68 @@ export function PageRenderer({
               const reviewsList = (config.testimonials && config.testimonials.length > 0) ? config.testimonials : defaultReviews;
 
               return (
-                <section key={sectionKey} className="w-full flex flex-col gap-6">
-                  <div className="text-center max-w-xl mx-auto flex flex-col gap-1">
-                    <div className="flex items-center justify-center gap-1 text-amber-500 text-xs font-bold">
-                      <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      <span className="text-ui-fg-base ml-1">4.9 / 5.0 Rating</span>
+                <section key={sectionKey} className="w-full flex flex-col gap-8 py-6">
+                  <div className="text-center max-w-xl mx-auto flex flex-col gap-2">
+                    {isLuxuryTheme && (
+                      <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block">
+                        Verified Experiences
+                      </span>
+                    )}
+                    <div className="flex items-center justify-center gap-1.5 text-amber-500 text-xs font-bold">
+                      {Array.from({ length: 5 }).map((_, si) => (
+                        <Star key={si} className={`w-4 h-4 ${isLuxuryTheme ? "fill-[#D4AF37] text-[#D4AF37]" : "fill-amber-400 text-amber-400"}`} />
+                      ))}
+                      <span className={`ml-1 text-xs font-medium ${isLuxuryTheme ? "text-[#C5CEE0]" : "text-ui-fg-base"}`}>4.9 / 5.0 Rating (1,200+ Reviews)</span>
                     </div>
-                    <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
+                    <Heading
+                      level="h2"
+                      className={`text-2xl sm:text-3xl lg:text-4xl tracking-tight ${
+                        isLuxuryTheme ? "font-serif text-[#FAF9F6] font-normal" : "font-bold"
+                      }`}
+                      style={{ color: isLuxuryTheme ? "#FAF9F6" : theme?.heading_color }}
+                    >
                       {heading}
                     </Heading>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {reviewsList.map((rev: any, ri: number) => (
-                      <div key={ri} className="p-6 rounded-2xl bg-ui-bg-base border border-ui-border-base flex flex-col justify-between gap-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div
+                        key={ri}
+                        className={`p-6 sm:p-7 rounded-3xl flex flex-col justify-between gap-5 transition-all duration-500 ${
+                          isLuxuryTheme
+                            ? "bg-[#142040]/40 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/40 shadow-[0_15px_35px_rgba(20,32,64,0.35)] hover:-translate-y-1"
+                            : "bg-ui-bg-base border border-ui-border-base shadow-sm hover:shadow-md"
+                        }`}
+                      >
                         <div className="flex flex-col gap-3">
-                          <div className="flex items-center gap-1 text-amber-400">
+                          <div className="flex items-center gap-1">
                             {Array.from({ length: rev.rating || 5 }).map((_, si) => (
-                              <Star key={si} className="w-3.5 h-3.5 fill-amber-400" />
+                              <Star key={si} className={`w-3.5 h-3.5 ${isLuxuryTheme ? "fill-[#D4AF37] text-[#D4AF37]" : "fill-amber-400 text-amber-400"}`} />
                             ))}
                           </div>
-                          <p className="text-xs sm:text-sm text-ui-fg-muted leading-relaxed italic">
+                          <p className={`text-xs sm:text-sm leading-relaxed italic ${
+                            isLuxuryTheme ? "text-[#C5CEE0] font-light" : "text-ui-fg-muted"
+                          }`}>
                             &ldquo;{rev.quote}&rdquo;
                           </p>
                         </div>
-                        <div className="flex items-center gap-3 pt-2 border-t border-ui-border-base/50">
-                          <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs">
+                        <div className={`flex items-center gap-3 pt-3 border-t ${
+                          isLuxuryTheme ? "border-white/10" : "border-ui-border-base/50"
+                        }`}>
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${
+                            isLuxuryTheme
+                              ? "bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30"
+                              : "bg-brand-gold-soft text-[#1D2F5D]"
+                          }`}>
                             {rev.name ? rev.name.charAt(0) : "C"}
                           </div>
                           <div>
-                            <h4 className="font-bold text-xs text-ui-fg-base">{rev.name || "Happy Customer"}</h4>
-                            <p className="text-[10px] text-ui-fg-subtle">{rev.occasion || "Verified Buyer"}</p>
+                            <h4 className={`font-semibold text-xs ${isLuxuryTheme ? "text-[#FAF9F6]" : "text-ui-fg-base"}`}>
+                              {rev.name || "Happy Customer"}
+                            </h4>
+                            <p className={`text-[10px] ${isLuxuryTheme ? "text-[#C5CEE0]/70" : "text-ui-fg-subtle"}`}>
+                              {rev.occasion || "Verified Celebration"}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -3218,11 +3829,11 @@ export function PageRenderer({
               const statsList = (config.stats && config.stats.length > 0) ? config.stats : defaultStats;
 
               return (
-                <section key={sectionKey} className="w-full py-8 px-6 bg-gradient-to-r from-rose-50 via-pink-50 to-amber-50 dark:from-rose-950/20 dark:via-pink-950/20 dark:to-amber-950/20 rounded-3xl border border-ui-border-base">
+                <section key={sectionKey} className="w-full py-8 px-6 bg-gradient-to-r from-[#FDFBF7] via-[#FFF8E7] to-amber-50 dark:from-[#0c1326] dark:via-[#142040] dark:to-[#1D2F5D]/20 rounded-3xl border border-ui-border-base">
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
                     {statsList.map((st: any, idx: number) => (
                       <div key={idx} className="flex flex-col gap-1">
-                        <span className="text-2xl sm:text-4xl font-black text-rose-600 tracking-tight">
+                        <span className="text-2xl sm:text-4xl font-black text-[#1D2F5D] dark:text-[#D4AF37] tracking-tight">
                           {st.value}
                         </span>
                         <span className="text-xs sm:text-sm font-semibold text-ui-fg-muted">
@@ -3250,19 +3861,19 @@ export function PageRenderer({
               return (
                 <section key={sectionKey} className="w-full flex flex-col gap-8 max-w-4xl mx-auto">
                   <div className="text-center flex flex-col gap-1">
-                    <span className="text-xs font-bold text-rose-600 uppercase tracking-wider">Heritage</span>
+                    <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">Heritage</span>
                     <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
                       {heading}
                     </Heading>
                   </div>
-                  <div className="flex flex-col gap-6 relative before:absolute before:left-4 md:before:left-1/2 before:top-2 before:bottom-2 before:w-0.5 before:bg-rose-200 dark:before:bg-rose-900">
+                  <div className="flex flex-col gap-6 relative before:absolute before:left-4 md:before:left-1/2 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#D4AF37]/30 dark:before:bg-[#D4AF37]/20">
                     {events.map((ev: any, ei: number) => (
                       <div key={ei} className="flex items-start gap-4 md:gap-8 relative">
-                        <div className="w-8 h-8 rounded-full bg-rose-600 text-white font-bold text-xs flex items-center justify-center shrink-0 z-10 shadow-md">
+                        <div className="w-8 h-8 rounded-full bg-[#1D2F5D] text-white font-bold text-xs flex items-center justify-center shrink-0 z-10 shadow-md">
                           {ei + 1}
                         </div>
                         <div className="flex-1 p-5 rounded-2xl bg-ui-bg-base border border-ui-border-base shadow-sm">
-                          <span className="text-xs font-black text-rose-600">{ev.year}</span>
+                          <span className="text-xs font-black text-[#D4AF37]">{ev.year}</span>
                           <h4 className="font-bold text-sm text-ui-fg-base mt-0.5">{ev.title}</h4>
                           <p className="text-xs text-ui-fg-muted mt-1 leading-relaxed">{ev.desc}</p>
                         </div>
@@ -3322,7 +3933,7 @@ export function PageRenderer({
 
               return (
                 <section key={sectionKey} className="max-w-3xl mx-auto w-full p-8 rounded-3xl bg-ui-bg-subtle/50 border border-ui-border-base text-center flex flex-col items-center gap-4">
-                  <QuoteIcon className="w-8 h-8 text-rose-400 rotate-180 opacity-60" />
+                  <QuoteIcon className="w-8 h-8 text-[#D4AF37] rotate-180 opacity-60" />
                   <p className="text-base sm:text-xl font-serif italic text-ui-fg-base leading-relaxed">
                     {quoteText}
                   </p>
@@ -3391,7 +4002,7 @@ export function PageRenderer({
                 <section key={sectionKey} className="w-full py-8 border-t border-ui-border-base text-center flex flex-col items-center gap-3 text-xs text-ui-fg-muted">
                   <span className="font-bold text-sm text-ui-fg-base">{heading}</span>
                   <div className="flex items-center gap-4">
-                    <Link href="https://instagram.com" className="p-2 rounded-full bg-ui-bg-subtle hover:text-rose-600 transition-colors">Instagram</Link>
+                    <Link href="https://instagram.com" className="p-2 rounded-full bg-ui-bg-subtle hover:text-[#D4AF37] transition-colors">Instagram</Link>
                     <Link href="https://wa.me/919876543210" className="p-2 rounded-full bg-ui-bg-subtle hover:text-emerald-600 transition-colors">WhatsApp</Link>
                     <Link href="https://facebook.com" className="p-2 rounded-full bg-ui-bg-subtle hover:text-blue-600 transition-colors">Facebook</Link>
                   </div>
@@ -3420,8 +4031,8 @@ export function PageRenderer({
             data-section-id={sectionKey}
             onClick={() => onSectionClick?.(sectionKey)}
             className={`transition-all ${
-              isSelected ? "ring-2 ring-rose-500 ring-offset-2 rounded-2xl cursor-pointer" : ""
-            } ${isPreview ? "hover:outline-dashed hover:outline-2 hover:outline-rose-300" : ""}`}
+              isSelected ? "ring-2 ring-[#1D2F5D] ring-offset-2 rounded-2xl cursor-pointer shadow-md" : ""
+            } ${isPreview ? "hover:outline-dashed hover:outline-2 hover:outline-[#D4AF37]" : ""}`}
           >
             {wrapperStyle}
             <div className={`sec-wrap-${sectionKey}`}>

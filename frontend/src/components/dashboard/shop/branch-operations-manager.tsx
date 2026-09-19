@@ -552,9 +552,9 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
 
                       {/* Photo Cake Badge */}
                       {isPhoto && (
-                        <div className="mt-3 p-2 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/40 rounded-lg border border-purple-200 dark:border-purple-800/40 flex items-center gap-2">
+                        <div className="mt-3 p-2 bg-gradient-to-r from-[#1D2F5D]/10 to-[#D4AF37]/10 dark:from-[#1D2F5D]/30 dark:to-[#142040]/30 rounded-lg border border-[#D4AF37]/30 flex items-center gap-2">
                           <span className="text-xs">📸</span>
-                          <span className="text-[11px] font-bold text-purple-800 dark:text-purple-300">
+                          <span className="text-[11px] font-bold text-[#1D2F5D] dark:text-[#D4AF37]">
                             Photo Cake Asset Attached
                           </span>
                         </div>
@@ -815,7 +815,13 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                       </span>
                     </div>
                     <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 font-semibold">{del.customer_name}</p>
-                    <p className="text-xs text-zinc-500 truncate">{del.delivery_address}</p>
+                    <p className="text-xs text-zinc-500 truncate">
+                      {typeof del.delivery_address === "string"
+                        ? del.delivery_address
+                        : (del.delivery_address && typeof del.delivery_address === "object"
+                            ? [(del.delivery_address as any).line1 || (del.delivery_address as any).address_1, (del.delivery_address as any).city].filter(Boolean).join(", ")
+                            : "Delivery Address on File")}
+                    </p>
                     <div className="mt-3 pt-2 border-t border-zinc-200 dark:border-zinc-800 text-xs flex justify-between">
                       <span>Rider: <b className="text-zinc-800 dark:text-zinc-200">{del.rider_name}</b></span>
                       <span className="text-rose-600 font-bold">ETA: {del.eta}</span>

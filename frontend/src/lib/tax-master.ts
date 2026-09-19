@@ -1,6 +1,9 @@
 /**
  * CakeToHome — Client-Side Tax Master Service
- * Manages statutory GST tax configurations for the Admin dashboard.
+ * Manages statutory GST tax configurations via the Admin API → PostgreSQL.
+ *
+ * IMPORTANT: All data is fetched from and persisted to PostgreSQL via /api/v1/admin/tax/*
+ * No in-memory storage or hardcoded business data.
  */
 
 export interface TaxConfigurationRecord {
@@ -21,82 +24,122 @@ export interface TaxConfigurationRecord {
   effectiveFrom: string;
   effectiveTo?: string;
   usageCount?: number;
+  isDefault?: boolean;
+  countryCode?: string;
+  regionId?: string;
 }
 
-export class TaxMasterService {
-  private static masterRecords: Map<string, TaxConfigurationRecord> = new Map([
-    ["txcfg_food_5", { id: "txcfg_food_5", name: "GST Food 5%", code: "GST_FOOD_5", description: "Standard 5% GST for Cakes, Pastries & Bakery Items", taxability: "Taxable", gstRatePct: 5, cgstRatePct: 2.5, sgstRatePct: 2.5, igstRatePct: 5, cessRatePct: 0, taxInclusive: true, applicableSupplyType: "BOTH", applicableCustomerType: "BOTH", isActive: true, effectiveFrom: "2026-04-01", usageCount: 142 }],
-    ["txcfg_food_12", { id: "txcfg_food_12", name: "GST Food 12%", code: "GST_FOOD_12", description: "12% GST for Premium Bakery Products & Preserves", taxability: "Taxable", gstRatePct: 12, cgstRatePct: 6, sgstRatePct: 6, igstRatePct: 12, cessRatePct: 0, taxInclusive: true, applicableSupplyType: "BOTH", applicableCustomerType: "BOTH", isActive: true, effectiveFrom: "2026-04-01", usageCount: 28 }],
-    ["txcfg_food_18", { id: "txcfg_food_18", name: "GST Accessories 18%", code: "GST_FOOD_18", description: "18% GST for Candles, Party Supplies & Greeting Cards", taxability: "Taxable", gstRatePct: 18, cgstRatePct: 9, sgstRatePct: 9, igstRatePct: 18, cessRatePct: 0, taxInclusive: true, applicableSupplyType: "BOTH", applicableCustomerType: "BOTH", isActive: true, effectiveFrom: "2026-04-01", usageCount: 35 }],
-    ["txcfg_exempt", { id: "txcfg_exempt", name: "GST Exempt", code: "GST_EXEMPT", description: "Exempted Items & Unprocessed Raw Ingredients", taxability: "Exempt", gstRatePct: 0, cgstRatePct: 0, sgstRatePct: 0, igstRatePct: 0, cessRatePct: 0, taxInclusive: true, applicableSupplyType: "BOTH", applicableCustomerType: "BOTH", isActive: true, effectiveFrom: "2026-04-01", usageCount: 5 }],
-    ["txcfg_nil", { id: "txcfg_nil", name: "GST Nil Rated", code: "GST_NIL", description: "Nil Rated Items under GST schedule", taxability: "Nil Rated", gstRatePct: 0, cgstRatePct: 0, sgstRatePct: 0, igstRatePct: 0, cessRatePct: 0, taxInclusive: true, applicableSupplyType: "BOTH", applicableCustomerType: "BOTH", isActive: true, effectiveFrom: "2026-04-01", usageCount: 2 }],
-    ["txcfg_nongst", { id: "txcfg_nongst", name: "Non-GST Supplies", code: "NON_GST", description: "Items outside the purview of GST", taxability: "Non-GST", gstRatePct: 0, cgstRatePct: 0, sgstRatePct: 0, igstRatePct: 0, cessRatePct: 0, taxInclusive: true, applicableSupplyType: "BOTH", applicableCustomerType: "BOTH", isActive: true, effectiveFrom: "2026-04-01", usageCount: 1 }],
-  ]);
+const API_BASE = "/api/v1";
 
+export class TaxMasterService {
+  /**
+   * Fetch all tax configurations from PostgreSQL via the API.
+   */
+  public static async fetchTaxConfigurations(): Promise<TaxConfigurationRecord[]> {
+    try {
+      const res = await fetch(`${API_BASE}/admin/tax/configurations`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      return data?.configurations || [];
+    } catch (err) {
+      console.error("[TaxMasterService] Failed to fetch tax configurations:", err);
+      return [];
+    }
+  }
+
+  /**
+   * Save (create or update) a tax configuration to PostgreSQL.
+   */
+  public static async saveTaxConfiguration(
+    record: Partial<TaxConfigurationRecord>
+  ): Promise<{ success: boolean; id?: string; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/admin/tax/configurations`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: record.id || undefined,
+          name: record.name,
+          code: record.code,
+          rate: record.gstRatePct,
+          is_default: record.isDefault ?? false,
+          tax_region_id: record.regionId,
+          metadata: {
+            description: record.description,
+            cess_rate: record.cessRatePct ?? 0,
+            tax_inclusive: record.taxInclusive !== false,
+            supply_type: record.applicableSupplyType || "BOTH",
+            customer_type: record.applicableCustomerType || "BOTH",
+            effective_from: record.effectiveFrom,
+            effective_to: record.effectiveTo,
+            taxability: record.taxability,
+          },
+        }),
+      });
+      const data = await res.json();
+      return { success: data?.success === true, id: data?.id, error: data?.error };
+    } catch (err: any) {
+      console.error("[TaxMasterService] Failed to save tax configuration:", err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Toggle active/inactive status for a tax configuration.
+   */
+  public static async toggleActive(
+    id: string,
+    isActive: boolean
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/admin/tax/configurations/toggle`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, is_active: isActive }),
+      });
+      const data = await res.json();
+      return { success: data?.success === true, error: data?.error };
+    } catch (err: any) {
+      console.error("[TaxMasterService] Failed to toggle tax configuration:", err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Fetch tax regions from PostgreSQL.
+   */
+  public static async fetchTaxRegions(): Promise<any[]> {
+    try {
+      const res = await fetch(`${API_BASE}/admin/tax/regions`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      return data?.regions || [];
+    } catch (err) {
+      console.error("[TaxMasterService] Failed to fetch tax regions:", err);
+      return [];
+    }
+  }
+
+  // ── Deprecated synchronous methods for backward compatibility ──
+  // These now return empty arrays. Use the async methods above.
   public static listTaxConfigurations(): TaxConfigurationRecord[] {
-    return Array.from(this.masterRecords.values());
+    console.warn("[TaxMasterService] listTaxConfigurations() is deprecated. Use fetchTaxConfigurations() instead.");
+    return [];
   }
 
   public static getTaxConfigurationById(id: string): TaxConfigurationRecord | undefined {
-    return this.masterRecords.get(id);
+    console.warn("[TaxMasterService] getTaxConfigurationById() is deprecated.");
+    return undefined;
   }
 
   public static getTaxConfigurationByCode(code: string): TaxConfigurationRecord | undefined {
-    return Array.from(this.masterRecords.values()).find((r) => r.code === code);
-  }
-
-  public static saveTaxConfiguration(record: Partial<TaxConfigurationRecord>): TaxConfigurationRecord {
-    const id = record.id || `txcfg_${Date.now()}`;
-    const existing = this.masterRecords.get(id);
-
-    const gstRatePct = typeof record.gstRatePct === "number" ? record.gstRatePct : existing?.gstRatePct ?? 5;
-    const cgstRatePct = typeof record.cgstRatePct === "number" ? record.cgstRatePct : gstRatePct / 2;
-    const sgstRatePct = typeof record.sgstRatePct === "number" ? record.sgstRatePct : gstRatePct / 2;
-    const igstRatePct = typeof record.igstRatePct === "number" ? record.igstRatePct : gstRatePct;
-
-    const saved: TaxConfigurationRecord = {
-      id,
-      name: record.name || existing?.name || `GST Tax ${gstRatePct}%`,
-      code: record.code || existing?.code || `GST_TAX_${gstRatePct}`,
-      description: record.description || existing?.description || "",
-      taxability: record.taxability || existing?.taxability || "Taxable",
-      gstRatePct,
-      cgstRatePct,
-      sgstRatePct,
-      igstRatePct,
-      cessRatePct: record.cessRatePct ?? existing?.cessRatePct ?? 0,
-      taxInclusive: record.taxInclusive !== false,
-      applicableSupplyType: record.applicableSupplyType || existing?.applicableSupplyType || "BOTH",
-      applicableCustomerType: record.applicableCustomerType || existing?.applicableCustomerType || "BOTH",
-      isActive: record.isActive !== false,
-      effectiveFrom: record.effectiveFrom || existing?.effectiveFrom || new Date().toISOString().split("T")[0],
-      effectiveTo: record.effectiveTo || existing?.effectiveTo,
-      usageCount: existing?.usageCount ?? 0,
-    };
-
-    this.masterRecords.set(id, saved);
-    return saved;
-  }
-
-  public static duplicateTaxConfiguration(id: string, newName?: string, newCode?: string): TaxConfigurationRecord {
-    const original = this.masterRecords.get(id);
-    if (!original) throw new Error(`Tax Configuration with id ${id} not found.`);
-    const dup: TaxConfigurationRecord = {
-      ...original,
-      id: `txcfg_${Date.now()}`,
-      name: newName || `${original.name} (Copy)`,
-      code: newCode || `${original.code}_COPY`,
-      usageCount: 0,
-    };
-    this.masterRecords.set(dup.id, dup);
-    return dup;
-  }
-
-  public static toggleActive(id: string, isActive: boolean): TaxConfigurationRecord {
-    const record = this.masterRecords.get(id);
-    if (!record) throw new Error(`Tax Configuration with id ${id} not found.`);
-    record.isActive = isActive;
-    this.masterRecords.set(id, record);
-    return record;
+    console.warn("[TaxMasterService] getTaxConfigurationByCode() is deprecated.");
+    return undefined;
   }
 }

@@ -1,0 +1,187 @@
+{
+  "test": "PDP Multi-Viewport Responsive & Flow Verification",
+  "timestamp": "2026-09-17T12:35:49.003Z",
+  "viewports": [
+    {
+      "name": "iphone_se",
+      "device": "iPhone SE",
+      "resolution": "320x568",
+      "overflow": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "hasOverflow": false
+      },
+      "titleFound": true,
+      "priceFound": true,
+      "stickyBarPresent": false,
+      "addToBagSuccess": true,
+      "cartDrawerOpened": true,
+      "bodyScrollLocked": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\3002f95e-032a-416b-b5d6-0b0e5cba2669\\screenshots_pdp\\pdp_iphone_se.png",
+      "status": "PASS"
+    },
+    {
+      "name": "android_compact",
+      "device": "Android Compact",
+      "resolution": "360x640",
+      "overflow": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "hasOverflow": false
+      },
+      "titleFound": true,
+      "priceFound": true,
+      "stickyBarPresent": false,
+      "addToBagSuccess": true,
+      "cartDrawerOpened": true,
+      "bodyScrollLocked": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\3002f95e-032a-416b-b5d6-0b0e5cba2669\\screenshots_pdp\\pdp_android_compact.png",
+      "status": "PASS"
+    },
+    {
+      "name": "iphone_8",
+      "device": "iPhone 8",
+      "resolution": "375x667",
+      "overflow": {
+        "scrollWidth": 375,
+        "clientWidth": 375,
+        "hasOverflow": false
+      },
+      "titleFound": true,
+      "priceFound": true,
+      "stickyBarPresent": false,
+      "addToBagSuccess": true,
+      "cartDrawerOpened": true,
+      "bodyScrollLocked": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\3002f95e-032a-416b-b5d6-0b0e5cba2669\\screenshots_pdp\\pdp_iphone_8.png",
+      "status": "PASS"
+    },
+    {
+      "name": "iphone_14",
+      "device": "iPhone 14",
+      "resolution": "390x844",
+      "overflow": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "hasOverflow": false
+      },
+      "titleFound": true,
+      "priceFound": true,
+      "stickyBarPresent": false,
+      "addToBagSuccess": true,
+      "cartDrawerOpened": true,
+      "bodyScrollLocked": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\3002f95e-032a-416b-b5d6-0b0e5cba2669\\screenshots_pdp\\pdp_iphone_14.png",
+      "status": "PASS"
+    },
+    {
+      "name": "pixel_7",
+      "device": "Pixel 7",
+      "resolution": "412x915",
+      "overflow": {
+        "scrollWidth": 412,
+        "clientWidth": 412,
+        "hasOverflow": false
+      },
+      "titleFound": true,
+      "priceFound": true,
+      "stickyBarPresent": false,
+      "addToBagSuccess": true,
+      "cartDrawerOpened": true,
+      "bodyScrollLocked": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\3002f95e-032a-416b-b5d6-0b0e5cba2669\\screenshots_pdp\\pdp_pixel_7.png",
+      "status": "PASS"
+    },
+    {
+      "name": "iphone_14_pro_max",
+      "device": "iPhone 14 Pro Max",
+      "resolution": "430x932",
+      "overflow": {
+        "scrollWidth": 430,
+        "clientWidth": 430,
+        "hasOverflow": false
+      },
+      "titleFound": true,
+      "priceFound": true,
+      "stickyBarPresent": false,
+      "addToBagSuccess": true,
+      "cartDrawerOpened": true,
+      "bodyScrollLocked": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\3002f95e-032a-416b-b5d6-0b0e5cba2669\\screenshots_pdp\\pdp_iphone_14_pro_max.png",
+      "status": "PASS"
+    },
+    {
+      "name": "ipad_portrait",
+      "device": "iPad Portrait",
+      "resolution": "768x1024",
+      "overflow": {
+        "scrollWidth": 768,
+        "clientWidth": 768,
+        "hasOverflow": false
+      },
+      "titleFound": true,
+      "priceFound": true,
+      "stickyBarPresent": false,
+      "addToBagSuccess": true,
+      "cartDrawerOpened": true,
+      "bodyScrollLocked": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\3002f95e-032a-416b-b5d6-0b0e5cba2669\\screenshots_pdp\\pdp_ipad_portrait.png",
+      "status": "PASS"
+    },
+    {
+      "name": "ipad_landscape",
+      "device": "iPad Landscape",
+      "resolution": "1024x768",
+      "overflow": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "hasOverflow": false
+      },
+      "titleFound": true,
+      "priceFound": true,
+      "stickyBarPresent": null,
+      "addToBagSuccess": true,
+      "cartDrawerOpened": true,
+      "bodyScrollLocked": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\3002f95e-032a-416b-b5d6-0b0e5cba2669\\screenshots_pdp\\pdp_ipad_landscape.png",
+      "status": "PASS"
+    },
+    {
+      "name": "macbook_laptop",
+      "device": "MacBook Laptop",
+      "resolution": "1280x800",
+      "overflow": {
+        "scrollWidth": 1280,
+        "clientWidth": 1280,
+        "hasOverflow": false
+      },
+      "titleFound": true,
+      "priceFound": true,
+      "stickyBarPresent": null,
+      "addToBagSuccess": true,
+      "cartDrawerOpened": true,
+      "bodyScrollLocked": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\3002f95e-032a-416b-b5d6-0b0e5cba2669\\screenshots_pdp\\pdp_macbook_laptop.png",
+      "status": "PASS"
+    },
+    {
+      "name": "desktop_full_hd",
+      "device": "Desktop Full HD",
+      "resolution": "1440x900",
+      "overflow": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "hasOverflow": false
+      },
+      "titleFound": true,
+      "priceFound": true,
+      "stickyBarPresent": null,
+      "addToBagSuccess": true,
+      "cartDrawerOpened": true,
+      "bodyScrollLocked": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\3002f95e-032a-416b-b5d6-0b0e5cba2669\\screenshots_pdp\\pdp_desktop_full_hd.png",
+      "status": "PASS"
+    }
+  ],
+  "overallStatus": "PASS"
+}

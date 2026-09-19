@@ -71,12 +71,12 @@ export function SpinWheel({
     };
 
     return (
-        <div className="flex flex-col items-center gap-4 p-6 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="flex flex-col items-center gap-4 p-6 rounded-xl bg-gradient-to-br from-purple-50 to-[#FDFBF7]">
             <h3 className="text-lg font-bold">🎡 {name}</h3>
             <button
                 onClick={handleSpin}
                 disabled={spinning}
-                className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold flex items-center justify-center shadow-lg hover:scale-105 transition disabled:opacity-50"
+                className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-600 to-[#D4AF37] text-white text-sm font-bold flex items-center justify-center shadow-lg hover:scale-105 transition disabled:opacity-50"
             >
                 {spinning ? "Spinning…" : "SPIN"}
             </button>

@@ -12,8 +12,10 @@ import {
   createStockNotification,
   createSubscription,
   searchProducts,
+  getCatalogFilterOptions,
 } from "../data/catalog";
 import type { SearchFilters, SearchResponse, SearchResult } from "../data/catalog";
+import { ProductRepository } from "../repositories/product.repository";
 
 export async function pauseSubscriptionAction(id: string) {
   return pauseSubscription(id);
@@ -91,14 +93,12 @@ export async function searchProductsAction(filters: SearchFilters = {}): Promise
 }
 
 export async function getCatalogFilterOptionsAction() {
-  const { getCatalogFilterOptions } = await import("../data/catalog");
   return getCatalogFilterOptions();
 }
 
 export async function getCompareProductsAction(ids: string[]): Promise<SearchResult[]> {
   if (!ids || ids.length === 0) return [];
   try {
-    const { ProductRepository } = await import("../repositories/product.repository");
     const products = await ProductRepository.findByIds(ids);
     return products.map((p) => ({
       product_id: p.id || p.product_id || "",

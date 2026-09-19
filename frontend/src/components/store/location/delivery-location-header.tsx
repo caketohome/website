@@ -13,18 +13,27 @@ import { Button, Input, Label, Text } from "@medusajs/ui";
  * 2. GPS Auto-detection (with non-destructive consent)
  * 3. State -> City Cascade Selector
  */
-export function DeliveryLocationHeader() {
+export interface DeliveryLocationHeaderProps {
+  variant?: "pill" | "bar" | "auto";
+  className?: string;
+}
+
+export function DeliveryLocationHeader({
+  variant = "auto",
+  className = "",
+}: DeliveryLocationHeaderProps = {}) {
   const [pincode, setPincode] = useState("");
   const [cityName, setCityName] = useState("");
   const [stateName, setStateName] = useState("");
-  const [locationName, setLocationName] = useState("Set your location");
+  const [locationName, setLocationName] = useState("Select delivery location");
   const [eta, setEta] = useState("");
   const [fee, setFee] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"pincode" | "search" | "browse">("pincode");
+  const [activeTab, setActiveTab] = useState<"search" | "browse" | "pincode">("search");
   const [inputPin, setInputPin] = useState("");
   const [isLocating, setIsLocating] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Search location state
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,6 +85,20 @@ export function DeliveryLocationHeader() {
     if (savedState) setStateName(decodeURIComponent(savedState));
   }, []);
 
+  // Click outside listener for modal
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
   // Fetch states and cities when modal opens
   useEffect(() => {
     if (isOpen && states.length === 0) {
@@ -107,7 +130,9 @@ export function DeliveryLocationHeader() {
         const newPin = pinInput || data.pincode || "";
         const resolvedCity = data.cityName || "";
         const resolvedState = data.stateName || "";
-        const newLoc = resolvedCity ? `${resolvedCity}${resolvedState ? `, ${resolvedState}` : ""} — ${newPin}` : `Pincode ${newPin}`;
+        const newLoc = resolvedCity
+          ? `${resolvedCity}${resolvedState ? `, ${resolvedState}` : ""}${newPin ? ` — ${newPin}` : ""}`
+          : (newPin ? `Pincode ${newPin}` : "Bangalore");
         const newEta = `${data.etaMinutes || 40} min`;
         const newFee = data.deliveryFee === 0 ? "FREE" : `₹${data.deliveryFee ?? 49}`;
 
@@ -122,15 +147,15 @@ export function DeliveryLocationHeader() {
         setIsOpen(false);
         return;
       } else if (data && !data.serviceable) {
-        setErrorMsg(data.blockedReason || "We currently don't deliver to this location. Please select your location on the map.");
+        setErrorMsg(data.blockedReason || "We currently don't deliver to this location. Please select another area or city.");
         return;
       }
     } catch {
-      setErrorMsg("Unable to verify delivery serviceability. Please try again or use GPS.");
+      setErrorMsg("Unable to verify delivery serviceability. Please select your area or city.");
       return;
     }
 
-    setErrorMsg("Delivery serviceability is map-first. Please use 'Use Current Location' or search on the map.");
+    setErrorMsg("Please select your area or use GPS to set delivery location.");
   };
 
   const handleSubmitPincode = (e: React.FormEvent) => {
@@ -158,7 +183,7 @@ export function DeliveryLocationHeader() {
       },
       () => {
         setIsLocating(false);
-        setErrorMsg("GPS permission denied. Please enter your PIN code manually.");
+        setErrorMsg("GPS permission was not granted. You can search your area or select your city above.");
       },
       { timeout: 8000 }
     );
@@ -172,73 +197,136 @@ export function DeliveryLocationHeader() {
     setStateName(city.state);
     
     // Resolve location for this city
-    fetch(`/api/v1/cities/${city.slug}`).then(r => r.json()).then(data => {
-      const branch = data?.branches?.[0];
-      const pin = branch?.pincode || (city as any).pincode || "";
-      if (pin) {
-        handleResolveLocation(pin);
-      } else {
+    fetch(`/api/v1/cities/${city.slug}`)
+      .then((r) => r.json())
+      .then((data) => {
+        const branch = data?.branches?.[0];
+        const pin = branch?.pincode || (city as any).pincode || "";
+        if (pin) {
+          handleResolveLocation(pin);
+        } else {
+          // Resolve dynamically via delivery resolve API using city name
+          fetch(`/api/v1/delivery/resolve?city=${encodeURIComponent(city.name)}`)
+            .then((r) => r.json())
+            .then((delData) => {
+              const isServ = delData && delData.serviceable === true;
+              const newLoc = `${city.name}, ${city.state}`;
+              const newEta = isServ && delData.etaMinutes ? `${delData.etaMinutes} min` : "";
+              const newFee = isServ && typeof delData.deliveryFee === "number" ? (delData.deliveryFee === 0 ? "FREE" : `₹${delData.deliveryFee}`) : "";
+              setLocationName(newLoc);
+              setEta(newEta);
+              setFee(newFee);
+              setDeliverySessionCookies("", newLoc, newEta, newFee, city.name, city.state);
+              setIsOpen(false);
+            })
+            .catch(() => {
+              const newLoc = `${city.name}, ${city.state}`;
+              setLocationName(newLoc);
+              setEta("");
+              setFee("");
+              setDeliverySessionCookies("", newLoc, "", "", city.name, city.state);
+              setIsOpen(false);
+            });
+        }
+      })
+      .catch(() => {
         const newLoc = `${city.name}, ${city.state}`;
         setLocationName(newLoc);
-        setDeliverySessionCookies("", newLoc, "40 min", "₹49", city.name, city.state);
+        setEta("");
+        setFee("");
+        setDeliverySessionCookies("", newLoc, "", "", city.name, city.state);
         setIsOpen(false);
-      }
-    }).catch(() => {
-      const newLoc = `${city.name}, ${city.state}`;
-      setLocationName(newLoc);
-      setDeliverySessionCookies("", newLoc, "40 min", "₹49", city.name, city.state);
-      setIsOpen(false);
-    });
+      });
   };
 
   const filteredCities = selectedStateCode
     ? cities.filter(c => c.stateCode === selectedStateCode || c.state_id === selectedStateCode)
     : cities;
 
+  const displayLocationText = pincode
+    ? `Deliver to ${pincode}`
+    : cityName
+    ? `Deliver to ${cityName}`
+    : "Select delivery location";
+
   return (
-    <div className="relative z-50 shrink-0">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-navy-accent/20 bg-navy-accent/5 text-navy-accent hover:bg-navy-accent/10 transition-colors font-medium text-xs shadow-sm max-w-[160px] sm:max-w-none"
-      >
-        <MapPin className="w-3.5 h-3.5 text-[#FF4D6D] animate-pulse shrink-0" />
-        <div className="flex flex-col text-left overflow-hidden">
-          <span className="font-semibold text-[11px] sm:text-xs text-navy-accent truncate max-w-[95px] sm:max-w-[170px]">
-            {pincode ? `Deliver to ${pincode}` : (cityName ? `${cityName}` : "Set location")}
+    <div ref={containerRef} className={`relative z-50 ${variant === "bar" ? "w-full" : "shrink-0"} ${className}`}>
+      {variant === "bar" ? (
+        /* Mobile Full-Width Sub-Header Bar */
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Select delivery location"
+          className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-navy-accent bg-[#FDFBF7]/90 hover:bg-navy-accent/[0.04] transition-colors focus:outline-none focus:bg-navy-accent/[0.06]"
+        >
+          <div className="flex items-center gap-2 min-w-0 pr-2">
+            <MapPin className="w-3.5 h-3.5 text-[#D4AF37] animate-pulse shrink-0" />
+            <span className="font-semibold text-xs text-navy-accent truncate">
+              {displayLocationText}
+            </span>
+            {eta && (
+              <span className="text-[10px] text-navy-accent/75 font-medium shrink-0 bg-navy-accent/5 px-1.5 py-0.5 rounded">
+                ⚡ {eta}{fee ? ` • ${fee}` : ""}
+              </span>
+            )}
+          </div>
+          <span className="text-[11px] font-semibold text-[#1D2F5D] dark:text-[#D4AF37] hover:underline shrink-0 ml-1">
+            Change ›
           </span>
-          <span className="text-[9px] sm:text-[10px] text-navy-accent/75 truncate hidden sm:inline">
-            {cityName && `${cityName}${stateName ? `, ${stateName}` : ""} • `}{eta && `ETA: ${eta}`}{fee && ` • ${fee}`}
-          </span>
-        </div>
-      </button>
+        </button>
+      ) : (
+        /* Desktop / Standard Pill Button */
+        <button
+          type="button"
+          onClick={() => {
+            console.log("[DeliveryLocationHeader] CLICKED! Previous isOpen:", isOpen);
+            setIsOpen((prev) => !prev);
+          }}
+          aria-label="Select delivery location"
+          className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-navy-accent/20 bg-navy-accent/5 text-navy-accent hover:bg-navy-accent/10 transition-colors font-medium text-xs shadow-sm max-w-[200px] lg:max-w-none focus:outline-none focus:ring-2 focus:ring-navy-accent/20"
+        >
+          <MapPin className="w-3.5 h-3.5 text-[#D4AF37] animate-pulse shrink-0" />
+          <div className="flex flex-col text-left overflow-hidden">
+            <span className="font-semibold text-[11px] sm:text-xs text-navy-accent truncate max-w-[110px] sm:max-w-[170px]">
+              {pincode ? `Deliver to ${pincode}` : (cityName ? `${cityName}` : "Select location")}
+            </span>
+            <span className="text-[9px] sm:text-[10px] text-navy-accent/75 truncate hidden sm:inline">
+              {cityName ? `${cityName}${stateName ? `, ${stateName}` : ""}` : "Check serviceability"}
+              {eta ? ` • ETA: ${eta}` : ""}
+              {fee ? ` • ${fee}` : ""}
+            </span>
+          </div>
+        </button>
+      )}
 
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-[calc(100vw-24px)] sm:w-88 max-w-96 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xl p-4 flex flex-col gap-3 z-[1000] opacity-100 popover-solid-panel">
-          <div className="flex justify-between items-center">
-            <h3 className="font-semibold text-sm">Select Delivery Location</h3>
-            <button onClick={() => setIsOpen(false)} className="text-ui-fg-muted hover:text-ui-fg-base">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+        <>
+          {/* Mobile Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/40 z-[999] backdrop-blur-[2px] sm:hidden"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="fixed inset-x-3 top-24 sm:absolute sm:inset-x-auto sm:left-0 sm:top-full sm:mt-2 w-[calc(100vw-24px)] sm:w-88 max-w-96 rounded-2xl border border-navy-accent/15 dark:border-white/15 bg-white/95 dark:bg-[#0D152B]/90 backdrop-blur-xl supports-[backdrop-filter]:bg-white/90 supports-[backdrop-filter]:dark:bg-[#0D152B]/85 text-slate-900 dark:text-white shadow-[0_20px_50px_rgba(20,32,64,0.25)] p-4 flex flex-col gap-3 z-[1000] opacity-100 popover-solid-panel">
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-sm text-[#1D2F5D] dark:text-white">Select Delivery Location</h3>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                aria-label="Close location selector"
+                className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
           {/* Mode Switcher Tabs */}
           <div className="flex rounded-lg bg-slate-100 dark:bg-slate-800 p-1 text-xs">
             <button
-              onClick={() => setActiveTab("pincode")}
-              className={`flex-1 py-1.5 rounded-md font-medium transition-all ${
-                activeTab === "pincode"
-                  ? "bg-white dark:bg-slate-900 text-pink-600 shadow-sm font-semibold"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
-              }`}
-            >
-              PIN & GPS
-            </button>
-            <button
               onClick={() => setActiveTab("search")}
               className={`flex-1 py-1.5 rounded-md font-medium transition-all ${
                 activeTab === "search"
-                  ? "bg-white dark:bg-slate-900 text-pink-600 shadow-sm font-semibold"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                  ? "bg-white dark:bg-slate-900 text-[#1D2F5D] dark:text-[#D4AF37] shadow-sm font-semibold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               Search Area
@@ -247,19 +335,50 @@ export function DeliveryLocationHeader() {
               onClick={() => setActiveTab("browse")}
               className={`flex-1 py-1.5 rounded-md font-medium transition-all ${
                 activeTab === "browse"
-                  ? "bg-white dark:bg-slate-900 text-pink-600 shadow-sm font-semibold"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                  ? "bg-white dark:bg-slate-900 text-[#1D2F5D] dark:text-[#D4AF37] shadow-sm font-semibold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              Select State & City
+              State & City
+            </button>
+            <button
+              onClick={() => setActiveTab("pincode")}
+              className={`flex-1 py-1.5 rounded-md font-medium transition-all ${
+                activeTab === "pincode"
+                  ? "bg-white dark:bg-slate-900 text-[#1D2F5D] dark:text-[#D4AF37] shadow-sm font-semibold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              PIN (Optional)
             </button>
           </div>
 
           {/* Search Location Tab */}
           {activeTab === "search" && (
-            <div className="flex flex-col gap-2">
-              <Label className="text-xs flex items-center gap-1">
-                <Search className="w-3.5 h-3.5 text-pink-500" />
+            <div className="flex flex-col gap-2.5">
+              <Button
+                size="small"
+                variant="secondary"
+                disabled={isLocating}
+                onClick={handleGPSLocation}
+                className="w-full flex items-center justify-center gap-2 text-xs font-bold py-2.5 bg-[#1D2F5D] hover:bg-[#152347] text-white rounded-xl shadow-sm transition-all active:scale-[0.98] border-none"
+              >
+                {isLocating ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-[#D4AF37]" />
+                ) : (
+                  <Navigation className="w-4 h-4 text-[#D4AF37]" />
+                )}
+                {isLocating ? "Detecting GPS location..." : "Use Current GPS Location"}
+              </Button>
+
+              <div className="flex items-center gap-2 my-0.5">
+                <div className="border-t border-slate-200 dark:border-slate-800 flex-1" />
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">or search</span>
+                <div className="border-t border-slate-200 dark:border-slate-800 flex-1" />
+              </div>
+
+              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1">
+                <Search className="w-3.5 h-3.5 text-[#D4AF37]" />
                 Search by Area or Landmark
               </Label>
               <div className="relative">
@@ -291,7 +410,7 @@ export function DeliveryLocationHeader() {
                     }, 300);
                   }}
                   placeholder="e.g. Indiranagar, Koramangala, MG Road..."
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-400/50"
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
                   autoFocus
                 />
                 {searchLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 animate-spin" />}
@@ -310,9 +429,9 @@ export function DeliveryLocationHeader() {
                         setSearchQuery("");
                         setSearchResults([]);
                       }}
-                      className="w-full text-left px-3 py-2 text-xs hover:bg-pink-50 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 flex items-center gap-2"
+                      className="w-full text-left px-3 py-2 text-xs hover:bg-brand-gold-soft dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 flex items-center gap-2"
                     >
-                      <MapPin className="w-3 h-3 text-pink-500 flex-shrink-0" />
+                      <MapPin className="w-3 h-3 text-[#D4AF37] flex-shrink-0" />
                       <div className="min-w-0">
                         <div className="font-medium text-slate-700 dark:text-slate-200 truncate">{r.displayName}</div>
                         {r.city && <div className="text-[10px] text-slate-400">{r.city}{r.pincode ? ` — ${r.pincode}` : ""}</div>}
@@ -321,14 +440,81 @@ export function DeliveryLocationHeader() {
                   ))}
                 </div>
               )}
+              {/* Bangalore Quick-Pick Area Chips */}
+              <div className="flex flex-col gap-1.5 mt-2">
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Popular Delivery Hubs:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { name: "Indiranagar", pin: "560038" },
+                    { name: "Koramangala", pin: "560034" },
+                    { name: "Whitefield", pin: "560066" },
+                    { name: "HSR Layout", pin: "560102" },
+                    { name: "Jayanagar", pin: "560041" }
+                  ].map((area) => (
+                    <button
+                      key={area.name}
+                      type="button"
+                      onClick={() => handleResolveLocation(area.pin)}
+                      className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 hover:bg-amber-50 hover:text-[#1D2F5D] hover:border-[#D4AF37]/50 border border-slate-200 transition-all"
+                    >
+                      📍 {area.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
-          {activeTab === "pincode" ? (
+          {activeTab === "browse" && (
+            <div className="flex flex-col gap-3">
+              <div>
+                <Label className="text-xs flex items-center gap-1 mb-1">
+                  <Globe2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  Select State
+                </Label>
+                <select
+                  value={selectedStateCode}
+                  onChange={(e) => {
+                    setSelectedStateCode(e.target.value);
+                    setSelectedCityId("");
+                  }}
+                  className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-white"
+                >
+                  <option value="">All States ({states.length})</option>
+                  {states.map((s) => (
+                    <option key={s.id} value={s.code}>
+                      {s.name} ({s.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label className="text-xs flex items-center gap-1 mb-1">
+                  <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  Select City
+                </Label>
+                <select
+                  value={selectedCityId}
+                  onChange={(e) => handleCitySelect(e.target.value)}
+                  className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-white"
+                >
+                  <option value="">Choose a city...</option>
+                  {filteredCities.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} — {c.state}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "pincode" && (
             <>
               <form onSubmit={handleSubmitPincode} className="flex flex-col gap-2">
                 <Label htmlFor="header-pincode" className="text-xs">
-                  Enter Delivery PIN Code
+                  Enter Delivery PIN Code (Optional)
                 </Label>
                 <div className="flex gap-2">
                   <Input
@@ -363,53 +549,11 @@ export function DeliveryLocationHeader() {
                 {isLocating ? "Detecting GPS location..." : "Use GPS Current Location"}
               </Button>
             </>
-          ) : (
-            <div className="flex flex-col gap-3">
-              <div>
-                <Label className="text-xs flex items-center gap-1 mb-1">
-                  <Globe2 className="w-3.5 h-3.5 text-pink-500" />
-                  Select State
-                </Label>
-                <select
-                  value={selectedStateCode}
-                  onChange={(e) => {
-                    setSelectedStateCode(e.target.value);
-                    setSelectedCityId("");
-                  }}
-                  className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-white"
-                >
-                  <option value="">All States ({states.length})</option>
-                  {states.map((s) => (
-                    <option key={s.id} value={s.code}>
-                      {s.name} ({s.code})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <Label className="text-xs flex items-center gap-1 mb-1">
-                  <Building2 className="w-3.5 h-3.5 text-pink-500" />
-                  Select City
-                </Label>
-                <select
-                  value={selectedCityId}
-                  onChange={(e) => handleCitySelect(e.target.value)}
-                  className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-white"
-                >
-                  <option value="">Choose a city...</option>
-                  {filteredCities.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} — {c.state}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
           )}
 
           {errorMsg && <Text className="text-xs text-red-500 font-medium text-center">{errorMsg}</Text>}
         </div>
+        </>
       )}
     </div>
   );

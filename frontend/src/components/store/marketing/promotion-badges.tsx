@@ -12,11 +12,11 @@ const BADGE_STYLES: Record<string, { bg: string; text: string; label: string }> 
     combo: { bg: "bg-purple-600", text: "text-white", label: "🎁 Combo" },
     buy_x_get_y: { bg: "bg-orange-500", text: "text-white", label: "BOGO" },
     free_delivery: { bg: "bg-green-600", text: "text-white", label: "Free Delivery" },
-    free_gift: { bg: "bg-pink-600", text: "text-white", label: "Free Gift" },
+    free_gift: { bg: "bg-[#1D2F5D]", text: "text-white", label: "Free Gift" },
     coupon: { bg: "bg-blue-600", text: "text-white", label: "Coupon" },
     promo_code: { bg: "bg-blue-600", text: "text-white", label: "Promo" },
     first_order_offer: { bg: "bg-indigo-600", text: "text-white", label: "First Order" },
-    birthday_offer: { bg: "bg-pink-500", text: "text-white", label: "🎂 Birthday" },
+    birthday_offer: { bg: "bg-[#1D2F5D]", text: "text-white", label: "🎂 Birthday" },
     festival_campaign: { bg: "bg-yellow-500", text: "text-white", label: "🎉 Festival" },
 };
 

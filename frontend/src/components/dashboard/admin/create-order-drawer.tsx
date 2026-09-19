@@ -1009,7 +1009,7 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
                       </div>
 
                       <Button size="small" className="bg-emerald-600 hover:bg-emerald-700 text-white w-full" onClick={handleAddProductToCart}>
-                        Add Item to Cart (₹{((customizingProduct.price || 599) + (customForm.is_artisan ? 50 : 0)) * customForm.quantity})
+                        Add Item to Cart (₹{((customizingProduct.price || customizingProduct.selling_price || 0) + (customForm.is_artisan ? 50 : 0)) * customForm.quantity})
                       </Button>
                     </div>
                   )}

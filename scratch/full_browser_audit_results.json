@@ -1,0 +1,582 @@
+{
+  "viewports": {
+    "320px-mobile-compact": {
+      "windowWidth": 320,
+      "docScrollWidth": 320,
+      "bodyScrollWidth": 320,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 320,
+        "height": 86,
+        "top": 0,
+        "bottom": 86
+      },
+      "mainTop": 86,
+      "logo": {
+        "width": 126,
+        "height": 28,
+        "left": 12,
+        "right": 138,
+        "isClipped": false
+      },
+      "location": {
+        "width": 320,
+        "height": 28,
+        "top": 57,
+        "isClipped": false
+      },
+      "wishlist": {
+        "width": 40,
+        "height": 40,
+        "right": 228,
+        "isClipped": false
+      },
+      "cart": {
+        "width": 40,
+        "height": 40,
+        "right": 270,
+        "isClipped": false
+      },
+      "cartBadge": {
+        "width": 17,
+        "height": 16,
+        "top": 10,
+        "right": 268
+      },
+      "profile": {
+        "width": 40,
+        "height": 40,
+        "right": 312,
+        "isClipped": false
+      },
+      "interactions": {
+        "locationModalOpened": true,
+        "locationModalClosed": true,
+        "locationModalEscape": false,
+        "searchTriggerWorked": true,
+        "searchInputTyped": true,
+        "searchResultsCount": 8,
+        "searchEscapeClosed": true,
+        "profileMenuOpened": false,
+        "profileMenuClosed": false
+      }
+    },
+    "360px-mobile-standard": {
+      "windowWidth": 360,
+      "docScrollWidth": 360,
+      "bodyScrollWidth": 360,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 360,
+        "height": 86,
+        "top": 0,
+        "bottom": 86
+      },
+      "mainTop": 86,
+      "logo": {
+        "width": 126,
+        "height": 28,
+        "left": 12,
+        "right": 138,
+        "isClipped": false
+      },
+      "location": {
+        "width": 360,
+        "height": 28,
+        "top": 57,
+        "isClipped": false
+      },
+      "wishlist": {
+        "width": 40,
+        "height": 40,
+        "right": 264,
+        "isClipped": false
+      },
+      "cart": {
+        "width": 40,
+        "height": 40,
+        "right": 306,
+        "isClipped": false
+      },
+      "cartBadge": {
+        "width": 17,
+        "height": 16,
+        "top": 10,
+        "right": 304
+      },
+      "profile": {
+        "width": 40,
+        "height": 40,
+        "right": 348,
+        "isClipped": false
+      },
+      "interactions": {
+        "locationModalOpened": true,
+        "locationModalClosed": true,
+        "locationModalEscape": false,
+        "searchTriggerWorked": true,
+        "searchInputTyped": true,
+        "searchResultsCount": 8,
+        "searchEscapeClosed": true,
+        "profileMenuOpened": false,
+        "profileMenuClosed": false
+      }
+    },
+    "375px-iphone-se-x": {
+      "windowWidth": 375,
+      "docScrollWidth": 375,
+      "bodyScrollWidth": 375,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 375,
+        "height": 86,
+        "top": 0,
+        "bottom": 86
+      },
+      "mainTop": 86,
+      "logo": {
+        "width": 126,
+        "height": 28,
+        "left": 12,
+        "right": 138,
+        "isClipped": false
+      },
+      "location": {
+        "width": 375,
+        "height": 28,
+        "top": 57,
+        "isClipped": false
+      },
+      "wishlist": {
+        "width": 40,
+        "height": 40,
+        "right": 279,
+        "isClipped": false
+      },
+      "cart": {
+        "width": 40,
+        "height": 40,
+        "right": 321,
+        "isClipped": false
+      },
+      "cartBadge": {
+        "width": 17,
+        "height": 16,
+        "top": 10,
+        "right": 319
+      },
+      "profile": {
+        "width": 40,
+        "height": 40,
+        "right": 363,
+        "isClipped": false
+      },
+      "interactions": {
+        "locationModalOpened": true,
+        "locationModalClosed": true,
+        "locationModalEscape": false,
+        "searchTriggerWorked": true,
+        "searchInputTyped": true,
+        "searchResultsCount": 14,
+        "searchEscapeClosed": true,
+        "profileMenuOpened": false,
+        "profileMenuClosed": false
+      }
+    },
+    "390px-iphone-14-15": {
+      "windowWidth": 390,
+      "docScrollWidth": 390,
+      "bodyScrollWidth": 390,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 390,
+        "height": 86,
+        "top": 0,
+        "bottom": 86
+      },
+      "mainTop": 86,
+      "logo": {
+        "width": 126,
+        "height": 28,
+        "left": 12,
+        "right": 138,
+        "isClipped": false
+      },
+      "location": {
+        "width": 390,
+        "height": 28,
+        "top": 57,
+        "isClipped": false
+      },
+      "wishlist": {
+        "width": 40,
+        "height": 40,
+        "right": 294,
+        "isClipped": false
+      },
+      "cart": {
+        "width": 40,
+        "height": 40,
+        "right": 336,
+        "isClipped": false
+      },
+      "cartBadge": {
+        "width": 17,
+        "height": 16,
+        "top": 10,
+        "right": 334
+      },
+      "profile": {
+        "width": 40,
+        "height": 40,
+        "right": 378,
+        "isClipped": false
+      },
+      "interactions": {
+        "locationModalOpened": true,
+        "locationModalClosed": true,
+        "locationModalEscape": false,
+        "searchTriggerWorked": true,
+        "searchInputTyped": true,
+        "searchResultsCount": 14,
+        "searchEscapeClosed": true,
+        "profileMenuOpened": false,
+        "profileMenuClosed": false
+      }
+    },
+    "414px-iphone-plus-max": {
+      "windowWidth": 414,
+      "docScrollWidth": 414,
+      "bodyScrollWidth": 414,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 414,
+        "height": 86,
+        "top": 0,
+        "bottom": 86
+      },
+      "mainTop": 86,
+      "logo": {
+        "width": 126,
+        "height": 28,
+        "left": 12,
+        "right": 138,
+        "isClipped": false
+      },
+      "location": {
+        "width": 414,
+        "height": 28,
+        "top": 57,
+        "isClipped": false
+      },
+      "wishlist": {
+        "width": 40,
+        "height": 40,
+        "right": 318,
+        "isClipped": false
+      },
+      "cart": {
+        "width": 40,
+        "height": 40,
+        "right": 360,
+        "isClipped": false
+      },
+      "cartBadge": {
+        "width": 17,
+        "height": 16,
+        "top": 10,
+        "right": 358
+      },
+      "profile": {
+        "width": 40,
+        "height": 40,
+        "right": 402,
+        "isClipped": false
+      },
+      "interactions": {
+        "locationModalOpened": true,
+        "locationModalClosed": true,
+        "locationModalEscape": false,
+        "searchTriggerWorked": true,
+        "searchInputTyped": true,
+        "searchResultsCount": 14,
+        "searchEscapeClosed": true,
+        "profileMenuOpened": false,
+        "profileMenuClosed": false
+      }
+    },
+    "768px-tablet-portrait": {
+      "windowWidth": 768,
+      "docScrollWidth": 768,
+      "bodyScrollWidth": 768,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 768,
+        "height": 65,
+        "top": 0,
+        "bottom": 65
+      },
+      "mainTop": 65,
+      "logo": {
+        "width": 156.21875,
+        "height": 28,
+        "left": 32,
+        "right": 188.21875,
+        "isClipped": false
+      },
+      "location": {
+        "width": 116.640625,
+        "height": 30,
+        "top": 17,
+        "isClipped": false
+      },
+      "wishlist": {
+        "width": 44,
+        "height": 44,
+        "right": 574.5625,
+        "isClipped": false
+      },
+      "cart": {
+        "width": 44,
+        "height": 44,
+        "right": 626.5625,
+        "isClipped": false
+      },
+      "cartBadge": {
+        "width": 17,
+        "height": 16,
+        "top": 12,
+        "right": 624.5625
+      },
+      "profile": {
+        "width": 101.4375,
+        "height": 40,
+        "right": 736,
+        "isClipped": false
+      },
+      "interactions": {
+        "locationModalOpened": true,
+        "locationModalClosed": true,
+        "locationModalEscape": false,
+        "searchTriggerWorked": true,
+        "searchInputTyped": true,
+        "searchResultsCount": 8,
+        "searchEscapeClosed": true,
+        "profileMenuOpened": false,
+        "profileMenuClosed": false
+      }
+    },
+    "1024px-tablet-landscape": {
+      "windowWidth": 1024,
+      "docScrollWidth": 1024,
+      "bodyScrollWidth": 1024,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 1024,
+        "height": 65,
+        "top": 0,
+        "bottom": 65
+      },
+      "mainTop": 65,
+      "logo": {
+        "width": 156.21875,
+        "height": 28,
+        "left": 40,
+        "right": 196.21875,
+        "isClipped": false
+      },
+      "location": {
+        "width": 116.640625,
+        "height": 30,
+        "top": 17,
+        "isClipped": false
+      },
+      "wishlist": {
+        "width": 44,
+        "height": 44,
+        "right": 822.5625,
+        "isClipped": false
+      },
+      "cart": {
+        "width": 44,
+        "height": 44,
+        "right": 874.5625,
+        "isClipped": false
+      },
+      "cartBadge": {
+        "width": 17,
+        "height": 16,
+        "top": 12,
+        "right": 872.5625
+      },
+      "profile": {
+        "width": 101.4375,
+        "height": 40,
+        "right": 984,
+        "isClipped": false
+      },
+      "interactions": {
+        "locationModalOpened": true,
+        "locationModalClosed": true,
+        "locationModalEscape": false,
+        "searchTriggerWorked": true,
+        "searchInputTyped": true,
+        "searchResultsCount": 14,
+        "searchEscapeClosed": true,
+        "profileMenuOpened": false,
+        "profileMenuClosed": false
+      }
+    },
+    "1280px-desktop": {
+      "windowWidth": 1280,
+      "docScrollWidth": 1280,
+      "bodyScrollWidth": 1280,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 1280,
+        "height": 65,
+        "top": 0,
+        "bottom": 65
+      },
+      "mainTop": 65,
+      "logo": {
+        "width": 156.21875,
+        "height": 28,
+        "left": 40,
+        "right": 196.21875,
+        "isClipped": false
+      },
+      "location": {
+        "width": 116.640625,
+        "height": 30,
+        "top": 17,
+        "isClipped": false
+      },
+      "wishlist": {
+        "width": 44,
+        "height": 44,
+        "right": 1078.5625,
+        "isClipped": false
+      },
+      "cart": {
+        "width": 44,
+        "height": 44,
+        "right": 1130.5625,
+        "isClipped": false
+      },
+      "cartBadge": {
+        "width": 17,
+        "height": 16,
+        "top": 12,
+        "right": 1128.5625
+      },
+      "profile": {
+        "width": 101.4375,
+        "height": 40,
+        "right": 1240,
+        "isClipped": false
+      },
+      "interactions": {
+        "locationModalOpened": true,
+        "locationModalClosed": true,
+        "locationModalEscape": false,
+        "searchTriggerWorked": true,
+        "searchInputTyped": true,
+        "searchResultsCount": 14,
+        "searchEscapeClosed": true,
+        "profileMenuOpened": false,
+        "profileMenuClosed": false
+      }
+    },
+    "1440px-large-desktop": {
+      "windowWidth": 1440,
+      "docScrollWidth": 1440,
+      "bodyScrollWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "headerRect": {
+        "width": 1440,
+        "height": 65,
+        "top": 0,
+        "bottom": 65
+      },
+      "mainTop": 65,
+      "logo": {
+        "width": 156.21875,
+        "height": 28,
+        "left": 40,
+        "right": 196.21875,
+        "isClipped": false
+      },
+      "location": {
+        "width": 116.640625,
+        "height": 30,
+        "top": 17,
+        "isClipped": false
+      },
+      "wishlist": {
+        "width": 44,
+        "height": 44,
+        "right": 1238.5625,
+        "isClipped": false
+      },
+      "cart": {
+        "width": 44,
+        "height": 44,
+        "right": 1290.5625,
+        "isClipped": false
+      },
+      "cartBadge": {
+        "width": 17,
+        "height": 16,
+        "top": 12,
+        "right": 1288.5625
+      },
+      "profile": {
+        "width": 101.4375,
+        "height": 40,
+        "right": 1400,
+        "isClipped": false
+      },
+      "interactions": {
+        "locationModalOpened": true,
+        "locationModalClosed": true,
+        "locationModalEscape": false,
+        "searchTriggerWorked": true,
+        "searchInputTyped": true,
+        "searchResultsCount": 14,
+        "searchEscapeClosed": true,
+        "profileMenuOpened": false,
+        "profileMenuClosed": false
+      }
+    }
+  },
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ],
+  "consoleWarnings": [],
+  "network4xx5xx": [
+    {
+      "status": 401,
+      "url": "http://localhost:3000/api/auth/me",
+      "statusText": "Unauthorized",
+      "method": "GET"
+    }
+  ],
+  "failedNetworkRequests": [
+    {
+      "url": "http://localhost:3000/",
+      "method": "POST",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "url": "http://localhost:3000/?_rsc=5wg1t",
+      "method": "GET",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "url": "http://localhost:3000/",
+      "method": "POST",
+      "failure": "net::ERR_ABORTED"
+    }
+  ]
+}

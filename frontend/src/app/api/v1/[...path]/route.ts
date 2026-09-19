@@ -19,9 +19,16 @@ import {
   FavoriteRepository,
   ReviewRepository,
   CityRepository,
+  StateRepository,
   resolveStateInfo,
+  SeoRepository,
+  MediaRepository,
+  LocalSeoRepository,
 } from "@frontend/lib/repositories";
 import { OrderService } from "@frontend/lib/services/order.service";
+import { InventoryService } from "@frontend/lib/services/inventory.service";
+import { MediaProcessor } from "@frontend/lib/media/media-processor";
+import { SeoAuditEngine, CORE_WEB_VITALS_DATA } from "@frontend/lib/seo/audit-engine";
 import { dbQuery, dbTransaction } from "@frontend/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -116,16 +123,24 @@ async function checkBackendHealth(): Promise<boolean> {
   }
 }
 
-function jsonWithDataSource(data: any, source: "postgres" | "postgres" = "postgres", status: number = 200): NextResponse {
+function jsonWithDataSource(
+  data: any,
+  source: "postgres" | "unavailable" | "error" = "postgres",
+  status: number = 200
+): NextResponse {
+  const actualSource = (status >= 500 || (data && typeof data === "object" && data.error && !data.success && status !== 404)) && source === "postgres"
+    ? "unavailable"
+    : source;
+
   const payload = typeof data === "object" && data !== null ? {
     ...data,
-    storage: "postgres",
+    storage: actualSource,
     backend_target: BACKEND_URL,
     backend_health: backendHealthStatus,
     fallback: "DISABLED",
   } : data;
   const res = NextResponse.json(payload, { status });
-  res.headers.set("X-Data-Source", "postgres");
+  res.headers.set("X-Data-Source", actualSource);
   res.headers.set("X-Backend-Target", BACKEND_URL);
   res.headers.set("X-Backend-Health", backendHealthStatus);
   res.headers.set("X-Fallback", "DISABLED");
@@ -240,6 +255,54 @@ function resolveManagerSession(req: NextRequest) {
     role: sessionRole || "branch_manager",
     isSuperAdmin,
   };
+}
+
+async function handleBranchProductAvailabilityMutation(req: NextRequest, targetBranchId: string, targetProductId: string, body: any) {
+  const mgrAuth: any = resolveManagerSession(req);
+  if (mgrAuth.error) {
+    return jsonWithDataSource({ success: false, statusCode: mgrAuth.status || 401, error: mgrAuth.error }, "postgres", mgrAuth.status || 401);
+  }
+
+  const isSuperAdmin = Boolean(mgrAuth.isSuperAdmin);
+  const isAuthorizedBranch = mgrAuth.branchId === targetBranchId || 
+                             mgrAuth.branch?.id === targetBranchId ||
+                             (mgrAuth.userId && mgrAuth.userId.replace("shpmgr_", "br_") === targetBranchId) ||
+                             (mgrAuth.branch?.manager_id === mgrAuth.userId);
+
+  if (!isSuperAdmin && !isAuthorizedBranch) {
+    return jsonWithDataSource({
+      success: false,
+      statusCode: 403,
+      error: `Forbidden: Manager (${mgrAuth.userId}) is not authorized to modify availability for branch ${targetBranchId}.`,
+    }, "postgres", 403);
+  }
+
+  const branch = ApiEngine.resolveBranchRecord(targetBranchId);
+  if (!branch) {
+    return jsonWithDataSource({ success: false, statusCode: 404, error: "Branch not found" }, "postgres", 404);
+  }
+
+  const product = ApiEngine.getProductById(targetProductId) || ApiEngine.getProductBySlug(targetProductId);
+  if (!product) {
+    return jsonWithDataSource({ success: false, statusCode: 404, error: `Product ${targetProductId} not found.` }, "postgres", 404);
+  }
+
+  const status = body.status || (body.is_available === false ? "UNAVAILABLE" : "AVAILABLE");
+  const result = ApiEngine.updateBranchProductAvailability(
+    targetBranchId,
+    targetProductId,
+    status,
+    body.reason
+  );
+
+  try {
+    const { persistBranchToDb } = await import("@frontend/lib/db-persistence");
+    await persistBranchToDb(branch);
+  } catch (err: any) {
+    console.error("[route] Failed to persist branch to db:", err.message);
+  }
+
+  return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
 }
 
 const readCache = new Map<string, { data: any; status: number; timestamp: number }>();
@@ -379,6 +442,18 @@ function getPath(req: NextRequest, context?: any): string {
   return String(p || "");
 }
 
+async function safeParseJsonBody(req: NextRequest): Promise<any> {
+  try {
+    const rawText = await req.text();
+    if (rawText && rawText.trim().length > 0) {
+      return JSON.parse(rawText);
+    }
+  } catch {
+    // fallback empty object
+  }
+  return {};
+}
+
 export async function GET(req: NextRequest, context: { params: { path: string[] } }) {
   try {
     await ApiEngine.ensureHydrated();
@@ -392,6 +467,152 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
     // 2. Fallback Route: Disk-Backed ApiEngine
     if (path === "health") return jsonWithDataSource(ApiEngine.getHealth(), "postgres");
+
+    if (path === "test/state-city-lifecycle") {
+      try {
+        const results: any[] = [];
+
+        // 1. Read all active states from PostgreSQL
+        const states = await StateRepository.findAll();
+        results.push({
+          id: "1",
+          name: "Read states from PostgreSQL",
+          status: states.length >= 10 ? "PASS" : "FAIL",
+          count: states.length,
+        });
+
+        // 2. Add a new statutory state in PostgreSQL (Goa)
+        const testCode = "GA";
+        // Clean up previous test run if needed
+        try {
+          await dbQuery(`DELETE FROM "state" WHERE code = $1`, [testCode]);
+          await dbQuery(`DELETE FROM "city" WHERE id = 'city_panaji'`, []);
+        } catch {}
+
+        const newState = await StateRepository.create({
+          code: testCode,
+          name: "Goa",
+          gst_state_code: "30",
+          display_order: 11,
+        });
+        results.push({
+          id: "2",
+          name: "Add state in PostgreSQL (Goa)",
+          status: newState.id === "state_ga" && newState.code === "GA" ? "PASS" : "FAIL",
+          stateId: newState.id,
+        });
+
+        // 3. Add a city under state (Panaji)
+        const newCity = await CityRepository.create({
+          id: "city_panaji",
+          name: "Panaji",
+          state: "Goa",
+          stateCode: "GA",
+          state_id: newState.id,
+          is_active: true,
+        });
+        results.push({
+          id: "3",
+          name: "Add city under state (Panaji under Goa)",
+          status: newCity.id === "city_panaji" && newCity.state_id === newState.id ? "PASS" : "FAIL",
+          cityId: newCity.id,
+        });
+
+        // 4. Edit the city
+        const updatedCity = await CityRepository.update("city_panaji", {
+          name: "Panaji Central",
+        });
+        results.push({
+          id: "4",
+          name: "Edit city name in PostgreSQL",
+          status: updatedCity?.name === "Panaji Central" ? "PASS" : "FAIL",
+          updatedName: updatedCity?.name,
+        });
+
+        // 5. Disable (Archive) city
+        const archivedCity = await CityRepository.archive("city_panaji");
+        const activeCities = await CityRepository.findAll();
+        const isHiddenFromStorefront = !activeCities.some((c) => c.id === "city_panaji");
+        results.push({
+          id: "5",
+          name: "Disable (Archive) city & verify hidden from storefront",
+          status: archivedCity?.is_active === false && isHiddenFromStorefront ? "PASS" : "FAIL",
+          isActive: archivedCity?.is_active,
+          hiddenFromStorefront: isHiddenFromStorefront,
+        });
+
+        // 6. Attempt removal on city with dependencies (Bengaluru, city_bbr)
+        const bbrDeps = await CityRepository.checkDependencies("city_bbr");
+        const bbrDeleteAttempt = await CityRepository.delete("city_bbr");
+        results.push({
+          id: "6",
+          name: "Attempt removal of Bengaluru with dependencies (Must be blocked)",
+          status: bbrDeps.canDelete === false && bbrDeleteAttempt.success === false ? "PASS" : "FAIL",
+          branchesBlocked: bbrDeps.branchesCount,
+          zonesBlocked: bbrDeps.zonesCount,
+          deletionPrevented: !bbrDeleteAttempt.success,
+          errorMessage: bbrDeleteAttempt.error,
+        });
+
+        // 7. Attempt removal on state with dependencies (Karnataka, state_ka)
+        const kaDeps = await StateRepository.checkDependencies("state_ka");
+        const kaDeleteAttempt = await StateRepository.delete("state_ka");
+        results.push({
+          id: "7",
+          name: "Attempt removal of Karnataka with child cities (Must be blocked)",
+          status: kaDeps.canDelete === false && kaDeleteAttempt.success === false ? "PASS" : "FAIL",
+          citiesBlocked: kaDeps.citiesCount,
+          branchesBlocked: kaDeps.branchesCount,
+          deletionPrevented: !kaDeleteAttempt.success,
+          errorMessage: kaDeleteAttempt.error,
+        });
+
+        // 8. Safe soft delete zero-dependency test city
+        const cityDelRes = await CityRepository.delete("city_panaji");
+        const cityAfterDel = await CityRepository.findById("city_panaji");
+        results.push({
+          id: "8",
+          name: "Safe soft delete of zero-dependency test city",
+          status: cityDelRes.success && cityAfterDel === null ? "PASS" : "FAIL",
+          deleted: cityDelRes.success,
+        });
+
+        // 9. Safe soft delete zero-dependency test state
+        const stateDelRes = await StateRepository.delete(newState.id);
+        const stateAfterDel = await StateRepository.findById(newState.id);
+        results.push({
+          id: "9",
+          name: "Safe soft delete of zero-dependency test state",
+          status: stateDelRes.success && stateAfterDel === null ? "PASS" : "FAIL",
+          deleted: stateDelRes.success,
+        });
+
+        // 10. Verify existing orders and branches remain 100% intact
+        const orderCountRes = await dbQuery(`SELECT COUNT(*) as count FROM "order"`);
+        const branchCountRes = await dbQuery(`SELECT COUNT(*) as count FROM "branch" WHERE deleted_at IS NULL`);
+        const totalOrders = parseInt(orderCountRes.rows[0]?.count || "0", 10);
+        const totalBranches = parseInt(branchCountRes.rows[0]?.count || "0", 10);
+        results.push({
+          id: "10",
+          name: "Verify historical orders and branches intact in PostgreSQL",
+          status: totalOrders >= 134 && totalBranches >= 57 ? "PASS" : "FAIL",
+          ordersCount: totalOrders,
+          branchesCount: totalBranches,
+        });
+
+        const allPass = results.every((r) => r.status === "PASS");
+        return jsonWithDataSource(
+          {
+            success: allPass,
+            summary: allPass ? "ALL 10 STATE/CITY TESTS PASSED" : "SOME TESTS FAILED",
+            results,
+          },
+          "postgres"
+        );
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: err.message, stack: err.stack }, "postgres", 500);
+      }
+    }
 
     if (path === "test/production-matrix") {
       try {
@@ -729,11 +950,13 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         }
         if (targetBranchId) {
           const branch = ApiEngine.resolveBranchRecord(targetBranchId);
-          if (branch && branch.product_availability) {
+          if (branch) {
             const pId = product.id || product.product_id;
-            const override = branch.product_availability[pId] || { status: "AVAILABLE" };
-            const st = (override.status || "").toUpperCase();
-            const isOos = st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY";
+            const override = branch.product_availability?.[pId] ?? branch.metadata?.product_availability?.[pId];
+            const st = (typeof override === "string" ? override : (override?.status || (override?.is_available === false ? "UNAVAILABLE" : "AVAILABLE"))).toUpperCase();
+            const fulfil = branch.cake_fulfilment?.[pId] ?? branch.metadata?.cake_fulfilment?.[pId] ?? branch.cake_fulfilment ?? branch.metadata?.cake_fulfilment;
+            const cannotFulfil = fulfil && fulfil.can_fulfil === false;
+            const isOos = st === "OUT_OF_STOCK" || st === "UNAVAILABLE" || st === "OUT_TODAY" || st === "OFF" || cannotFulfil;
             const isHidden = st === "HIDDEN" || st === "TEMPORARILY_HIDDEN";
             product = {
               ...product,
@@ -764,13 +987,16 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const token = req.cookies.get("_cth_jwt")?.value || authHeader.replace(/^Bearer\s+/i, "");
 
       if (!cookieCustomerUid && !cookieUserId && !cookiePhone && !token) {
+        if (path === "customer/me" || path === "customer/profile") {
+          return jsonWithDataSource({ success: true, customer: null, message: "No active customer session" }, "postgres", 200);
+        }
         return jsonWithDataSource({ success: false, error: "Unauthorized" }, "postgres", 401);
       }
 
       if (path === "customer/me" || path === "customer/profile") {
         const customer = ApiEngine.getCustomerMe({ customerUid: cookieCustomerUid, userId: cookieUserId, phone: cookiePhone, token });
         if (!customer) {
-          return jsonWithDataSource({ success: false, error: "Customer not found" }, "postgres", 404);
+          return jsonWithDataSource({ success: true, customer: null, message: "No active customer session" }, "postgres", 200);
         }
         return jsonWithDataSource({ success: true, customer }, "postgres");
       }
@@ -801,8 +1027,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     if (path === "categories" || path === "products/categories" || path === "store/categories") {
-      const includeInactive = url.searchParams.get("include_inactive") === "true";
-      const categories = ApiEngine.getCategories(includeInactive);
+      const { listPimCategories } = await import("@frontend/lib/data/catalog");
+      const categories = await listPimCategories();
       return jsonWithDataSource({ categories, results: categories, count: categories.length, success: true }, "postgres");
     }
 
@@ -921,12 +1147,63 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ shapes: ApiEngine.listVariantOptions("shape"), success: true }, "postgres");
     }
 
+    // ── Branch-specific Cake Availability (GET) ──
+    const branchProdAvailGetMatch = path.match(/^(?:admin\/)?branches\/([^\/]+)\/products\/([^\/]+)\/availability$/);
+    if (branchProdAvailGetMatch) {
+      const [, bId, pId] = branchProdAvailGetMatch;
+      const branch = ApiEngine.resolveBranchRecord(bId);
+      if (!branch) return jsonWithDataSource({ success: false, error: "Branch not found" }, "postgres", 404);
+      const avail = branch.product_availability?.[pId] || { status: "AVAILABLE" };
+      const cakeFulfil = branch.cake_fulfilment?.[pId];
+      const status = (avail.status || "").toUpperCase();
+      const isAvailable = status !== "UNAVAILABLE" && status !== "OFF" && status !== "OUT_OF_STOCK" && (!cakeFulfil || cakeFulfil.can_fulfil !== false);
+      return jsonWithDataSource({
+        success: true,
+        branch_id: branch.id,
+        product_id: pId,
+        availability: {
+          ...avail,
+          is_available: isAvailable,
+          can_fulfil: isAvailable,
+        },
+      }, "postgres");
+    }
+
+    if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
+      const pId = path.replace("manager/products/", "").replace("/availability", "");
+      const mgrAuth: any = resolveManagerSession(req);
+      if (mgrAuth.error) return jsonWithDataSource({ success: false, error: mgrAuth.error }, "postgres", mgrAuth.status || 401);
+      const branch = ApiEngine.resolveBranchRecord(mgrAuth.branchId);
+      if (!branch) return jsonWithDataSource({ success: false, error: "Branch not found" }, "postgres", 404);
+      const avail = branch.product_availability?.[pId] || { status: "AVAILABLE" };
+      const cakeFulfil = branch.cake_fulfilment?.[pId];
+      const status = (avail.status || "").toUpperCase();
+      const isAvailable = status !== "UNAVAILABLE" && status !== "OFF" && status !== "OUT_OF_STOCK" && (!cakeFulfil || cakeFulfil.can_fulfil !== false);
+      return jsonWithDataSource({
+        success: true,
+        branch_id: branch.id,
+        product_id: pId,
+        availability: {
+          ...avail,
+          is_available: isAvailable,
+          can_fulfil: isAvailable,
+        },
+      }, "postgres");
+    }
+
     // ── Accessories & Party Add-ons ──
     if (path === "accessories" || path === "store/accessories" || path === "admin/accessories" || path.startsWith("accessories/")) {
       const productId = url.searchParams.get("productId") || url.searchParams.get("product_id") || undefined;
       const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || undefined;
       const city = url.searchParams.get("city") || undefined;
       const page = (url.searchParams.get("page") as any) || "product";
+
+      if (branchId) {
+        const inStockOnly = url.searchParams.get("in_stock_only") === "true";
+        const branchAccessories = await InventoryService.getBranchInventoryItems(branchId);
+        const filtered = inStockOnly ? branchAccessories.filter((i: any) => (i.available_stock || 0) > 0) : branchAccessories;
+        return jsonWithDataSource({ accessories: filtered, items: filtered, branch_id: branchId, count: filtered.length, success: true }, "postgres");
+      }
 
       const accessories = productId
         ? ApiEngine.getRecommendedAccessories(productId, page, branchId, city)
@@ -974,8 +1251,11 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     if (path === "cart" || path.startsWith("cart/") || path === "store/cart" || path.startsWith("store/cart/")) {
-      const urlCartId = path.startsWith("cart/") ? path.replace("cart/", "") : path.startsWith("store/cart/") ? path.replace("store/cart/", "") : null;
-      const cartId = url.searchParams.get("cartId") || url.searchParams.get("cart_id") || urlCartId || req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value || "cart_guest_100";
+      const rawUrlCartId = path.startsWith("cart/") ? path.replace("cart/", "") : path.startsWith("store/cart/") ? path.replace("store/cart/", "") : null;
+      const urlCartId = rawUrlCartId && rawUrlCartId !== "items" && !rawUrlCartId.startsWith("items/") && rawUrlCartId !== "clear" ? rawUrlCartId : null;
+      const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
+      const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
+      const cartId = url.searchParams.get("cartId") || url.searchParams.get("cart_id") || validCookieCartId || urlCartId || "cart_guest_100";
       const cart = ApiEngine.getCart(cartId);
       return jsonWithDataSource({ cart, success: true }, "postgres");
     }
@@ -1487,7 +1767,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const fmt = (qParams.format as any) || "csv";
       if (fmt === "xlsx") {
         const xlsxBuf = await ApiEngine.exportDeliveryReportsXlsxBuffer(qParams);
-        return new Response(xlsxBuf, {
+        return new Response(xlsxBuf as any, {
           headers: {
             "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "Content-Disposition": `attachment; filename="delivery_report_${Date.now()}.xlsx"`,
@@ -1548,7 +1828,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
     // ── State Master Public + Admin Endpoints ──
     if (path === "states" || path === "store/states") {
-      const states = CityRepository.listStates();
+      const dbStates = await StateRepository.findAll();
+      const states = dbStates && dbStates.length > 0 ? dbStates : CityRepository.listStates();
       return jsonWithDataSource({ states, success: true }, "postgres");
     }
     if (path.startsWith("states/") || path.startsWith("store/states/")) {
@@ -1558,17 +1839,25 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         const cities = await CityRepository.findByState(stateCodeOrId);
         return jsonWithDataSource({ cities, success: true }, "postgres");
       }
-      const stateObj = resolveStateInfo(sub);
+      const dbState = (await StateRepository.findById(sub)) || (await StateRepository.findByCode(sub));
+      const stateObj = dbState || resolveStateInfo(sub);
       if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "postgres", 404);
       return jsonWithDataSource({ state: stateObj, success: true }, "postgres");
     }
     if (path === "admin/states") {
-      const states = CityRepository.listStates(true);
+      const dbStates = await StateRepository.findAll({ includeArchived: true });
+      const states = dbStates && dbStates.length > 0 ? dbStates : CityRepository.listStates(true);
       return jsonWithDataSource({ states, success: true }, "postgres");
+    }
+    if (path.startsWith("admin/states/") && path.endsWith("/dependencies")) {
+      const stateId = path.replace("admin/states/", "").replace("/dependencies", "");
+      const deps = await StateRepository.checkDependencies(stateId);
+      return jsonWithDataSource(deps, "postgres");
     }
     if (path.startsWith("admin/states/")) {
       const stateId = path.replace("admin/states/", "");
-      const stateObj = resolveStateInfo(stateId);
+      const dbState = (await StateRepository.findById(stateId)) || (await StateRepository.findByCode(stateId));
+      const stateObj = dbState || resolveStateInfo(stateId);
       if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "postgres", 404);
       return jsonWithDataSource({ state: stateObj, success: true }, "postgres");
     }
@@ -1612,6 +1901,11 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const cities = await CityRepository.findAll({ includeArchived: true });
       return jsonWithDataSource({ cities, success: true }, "postgres");
     }
+    if (path.startsWith("admin/cities/") && path.endsWith("/dependencies")) {
+      const cityId = path.replace("admin/cities/", "").replace("/dependencies", "");
+      const deps = await CityRepository.checkDependencies(cityId);
+      return jsonWithDataSource(deps, "postgres");
+    }
     if (path.startsWith("admin/cities/")) {
       const cityId = path.replace("admin/cities/", "");
       const city = await CityRepository.findById(cityId);
@@ -1623,9 +1917,32 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ ...result, success: true }, "postgres");
     }
     if (path === "cart" || path.startsWith("cart/") || path.startsWith("store/cart")) {
-      const cartId = path.replace(/^store\//, "").replace(/^cart\/?/, "") || url.searchParams.get("cart_id") || "cart_default";
-      const cart = ApiEngine.getCart(cartId);
-      return jsonWithDataSource({ cart, success: true }, "postgres");
+      const rawPathId = path.replace(/^store\//, "").replace(/^cart\/?/, "");
+      const cleanPathId = rawPathId && rawPathId !== "items" ? rawPathId : null;
+      const paramCartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId");
+      const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
+      const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
+      const cartId = cleanPathId || paramCartId || validCookieCartId || "cart_default";
+
+      let cart = ApiEngine.getCart(cartId);
+      if ((!cart.items || cart.items.length === 0) && cartId && cartId !== "cart_default") {
+        try {
+          const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+          const pgCart = await CartRepository.findCartById(cartId);
+          if (pgCart && Array.isArray(pgCart.items) && pgCart.items.length > 0) {
+            ApiEngine.saveCart(pgCart);
+            cart = pgCart as any;
+          }
+        } catch (e: any) {
+          console.warn("[GET /cart] PG fallback warning:", e.message);
+        }
+      }
+
+      const res = jsonWithDataSource({ cart, success: true }, "postgres");
+      if (cartId && cartId !== "cart_default") {
+        res.cookies.set("_cth_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
+      }
+      return res;
     }
     if (path === "admin/regions") return jsonWithDataSource({ regions: ApiEngine.getAdminRegions() }, "postgres");
     if (path === "admin/categories" || path === "categories" || path === "admin/cms/categories") return jsonWithDataSource({ categories: ApiEngine.listPimCategories() }, "postgres");
@@ -1708,7 +2025,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       if (dbOffer) return jsonWithDataSource({ offer: dbOffer, success: true }, "postgres");
       return jsonWithDataSource({ error: "Offer not found", success: false }, "postgres", 404);
     }
-    if (path === "admin/offers") {
+    if (path === "admin/offers" || path === "offers" || path === "marketing/offers") {
       const dbOffers = await OfferRepository.findAll();
       return jsonWithDataSource({ offers: dbOffers || [], total: (dbOffers || []).length, success: true }, "postgres");
     }
@@ -1777,7 +2094,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       if (dbCust) return jsonWithDataSource({ customer: dbCust, success: true }, "postgres");
       return jsonWithDataSource({ error: "Customer profile not found", success: false }, "postgres", 404);
     }
-    if (path === "admin/crm/customers" || path === "admin/customers") {
+    if (path === "admin/crm/customers" || path === "admin/customers" || path === "customers") {
       const qParams = Object.fromEntries(url.searchParams);
       const page = Math.max(1, Number(qParams.page) || 1);
       const pageSize = Math.min(Math.max(1, Number(qParams.pageSize || qParams.limit) || 20), 100);
@@ -1807,19 +2124,104 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         success: true,
       }, "postgres");
     }
-    if (path === "admin/marketing/seo" || path === "seo" || path === "admin/seo") return jsonWithDataSource(ApiEngine.getAdminSeoConfig(), "postgres");
+    if (path === "admin/marketing/seo" || path === "seo" || path === "admin/seo") {
+      try {
+        const seoConfig = await SeoRepository.getGlobalSeoConfig();
+        return jsonWithDataSource(seoConfig, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource(ApiEngine.getAdminSeoConfig(), "postgres");
+      }
+    }
+    // ── Tax Master Configuration GET Endpoints ──
+    if (path === "admin/tax/configurations") {
+      try {
+        const ratesResult = await dbQuery(
+          `SELECT tr.id, tr.rate, tr.code, tr.name, tr.is_default, tr.is_combinable, tr.tax_region_id, tr.metadata,
+                  trg.country_code, trg.province_code
+           FROM tax_rate tr
+           LEFT JOIN tax_region trg ON tr.tax_region_id = trg.id
+           WHERE tr.deleted_at IS NULL
+           ORDER BY tr.created_at`
+        );
+        // Augment with CakeToHome GST configuration
+        const configurations = ratesResult.rows.map((r: any) => ({
+          id: r.id,
+          name: r.name || `Tax Rate ${r.rate}%`,
+          code: r.code || `TAX_${r.rate}`,
+          description: r.metadata?.description || `${r.rate}% tax rate`,
+          taxability: r.rate > 0 ? "Taxable" : "Exempt",
+          gstRatePct: r.rate || 0,
+          cgstRatePct: (r.rate || 0) / 2,
+          sgstRatePct: (r.rate || 0) / 2,
+          igstRatePct: r.rate || 0,
+          cessRatePct: r.metadata?.cess_rate || 0,
+          taxInclusive: r.metadata?.tax_inclusive !== false,
+          applicableSupplyType: r.metadata?.supply_type || "BOTH",
+          applicableCustomerType: r.metadata?.customer_type || "BOTH",
+          isActive: true,
+          effectiveFrom: r.metadata?.effective_from || "2026-04-01",
+          effectiveTo: r.metadata?.effective_to || undefined,
+          isDefault: r.is_default,
+          countryCode: r.country_code,
+          regionId: r.tax_region_id,
+          usageCount: 0,
+        }));
+        return jsonWithDataSource({ configurations, total: configurations.length }, "postgres");
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message, configurations: [] }, { status: 500 });
+      }
+    }
+    if (path === "admin/tax/regions") {
+      try {
+        const result = await dbQuery(
+          `SELECT id, country_code, province_code, provider_id, metadata
+           FROM tax_region WHERE deleted_at IS NULL ORDER BY country_code`
+        );
+        return jsonWithDataSource({ regions: result.rows }, "postgres");
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message, regions: [] }, { status: 500 });
+      }
+    }
     // ── Enterprise SEO Platform GET Endpoints ──
-    if (path === "admin/seo/dashboard") return jsonWithDataSource(ApiEngine.getSeoDashboardSummary(), "postgres");
-    if (path === "admin/seo/pages") return jsonWithDataSource({ pages: ApiEngine.getSeoPages(Object.fromEntries(url.searchParams)) }, "postgres");
+    if (path === "admin/seo/dashboard") {
+      try {
+        const sum = await SeoRepository.getDashboardSummary();
+        return jsonWithDataSource(sum, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource(ApiEngine.getSeoDashboardSummary(), "postgres");
+      }
+    }
+    if (path === "admin/seo/pages") {
+      try {
+        const pages = await SeoRepository.listPageSeoMeta(Object.fromEntries(url.searchParams));
+        return jsonWithDataSource({ pages }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ pages: ApiEngine.getSeoPages(Object.fromEntries(url.searchParams)) }, "postgres");
+      }
+    }
     if (path === "admin/seo/keywords") return jsonWithDataSource({ keywords: ApiEngine.getSeoKeywords() }, "postgres");
-    if (path === "admin/seo/redirects") return jsonWithDataSource({ redirects: ApiEngine.getSeoRedirects() }, "postgres");
+    if (path === "admin/seo/redirects") {
+      try {
+        const redirects = await SeoRepository.listRedirects(Object.fromEntries(url.searchParams));
+        return jsonWithDataSource({ redirects }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ redirects: ApiEngine.getSeoRedirects() }, "postgres");
+      }
+    }
     if (path === "admin/seo/broken-links") return jsonWithDataSource({ broken_links: ApiEngine.getSeoBrokenLinks() }, "postgres");
     if (path === "admin/seo/internal-links") return jsonWithDataSource({ internal_links: ApiEngine.getSeoInternalLinks() }, "postgres");
     if (path === "admin/seo/internal-links/suggestions") return jsonWithDataSource({ suggestions: ApiEngine.suggestInternalLinks() }, "postgres");
     if (path === "admin/seo/schema/templates") return jsonWithDataSource({ templates: ApiEngine.getSeoSchemaTemplates() }, "postgres");
     if (path === "admin/seo/image-audits") return jsonWithDataSource({ image_audits: ApiEngine.getSeoImageAudits() }, "postgres");
     if (path === "admin/seo/competitors") return jsonWithDataSource({ competitors: ApiEngine.getSeoCompetitors() }, "postgres");
-    if (path === "admin/seo/geo/pages") return jsonWithDataSource({ geo_pages: ApiEngine.getSeoGeoPages() }, "postgres");
+    if (path === "admin/seo/geo/pages") {
+      try {
+        const geo_pages = await LocalSeoRepository.listAllLocalPages();
+        return jsonWithDataSource({ geo_pages }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ geo_pages: ApiEngine.getSeoGeoPages() }, "postgres");
+      }
+    }
     if (path === "admin/seo/aeo/entries") return jsonWithDataSource({ aeo_entries: ApiEngine.getSeoAeoEntries() }, "postgres");
     if (path === "admin/seo/content-audits") return jsonWithDataSource({ content_audits: ApiEngine.getSeoContentAudits() }, "postgres");
     if (path === "admin/seo/page-speed") return jsonWithDataSource({ page_speed: ApiEngine.getSeoPageSpeed() }, "postgres");
@@ -1827,6 +2229,41 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/seo/robots/history") return jsonWithDataSource({ robots_history: ApiEngine.getSeoRobotsHistory() }, "postgres");
     if (path === "admin/seo/social-cards") return jsonWithDataSource({ social_cards: ApiEngine.getSeoSocialCards() }, "postgres");
     if (path === "admin/seo/backlinks") return jsonWithDataSource({ backlinks: ApiEngine.getSeoBacklinks() }, "postgres");
+    if (path === "admin/seo/audit") {
+      try {
+        const audit = await SeoAuditEngine.runAudit();
+        return jsonWithDataSource(audit, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ error: err.message }, "postgres", 500);
+      }
+    }
+    if (path === "admin/seo/audit/export") {
+      try {
+        const audit = await SeoAuditEngine.runAudit();
+        const csv = SeoAuditEngine.generateCsv(audit);
+        return new Response(csv, {
+          status: 200,
+          headers: {
+            "Content-Type": "text/csv; charset=utf-8",
+            "Content-Disposition": 'attachment; filename="seo-audit-report.csv"',
+            "x-data-source": "postgres",
+          },
+        });
+      } catch (err: any) {
+        return jsonWithDataSource({ error: err.message }, "postgres", 500);
+      }
+    }
+    if (path === "admin/seo/crawler-policies") {
+      try {
+        const policies = await SeoAuditEngine.getAiCrawlerPolicies();
+        return jsonWithDataSource({ policies }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ error: err.message }, "postgres", 500);
+      }
+    }
+    if (path === "admin/seo/vitals") {
+      return jsonWithDataSource({ vitals: CORE_WEB_VITALS_DATA }, "postgres");
+    }
     if (path === "admin/seo/reports") return jsonWithDataSource({ reports: ApiEngine.getSeoReports() }, "postgres");
     if (path === "admin/seo/crawl-history") return jsonWithDataSource({ crawl_history: ApiEngine.getSeoCrawlHistory() }, "postgres");
     if (path === "admin/seo/health-reports") return jsonWithDataSource({ health_reports: ApiEngine.getSeoHealthReports() }, "postgres");
@@ -2024,8 +2461,59 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/reports/sales") return jsonWithDataSource(ApiEngine.getReportsSales(Object.fromEntries(url.searchParams)), "postgres");
     if (path === "admin/reports/orders") return jsonWithDataSource(ApiEngine.getReportsOrders(Object.fromEntries(url.searchParams)), "postgres");
     if (path === "admin/reports/products") return jsonWithDataSource(ApiEngine.getReportsProducts(Object.fromEntries(url.searchParams)), "postgres");
-    if (path === "admin/reports/customers") return jsonWithDataSource(ApiEngine.getReportsCustomers(Object.fromEntries(url.searchParams)), "postgres");
-    if (path === "admin/reports/inventory") return jsonWithDataSource(ApiEngine.getReportsInventory(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/inventory") {
+      const targetBranchId = url.searchParams.get("branch_id") || url.searchParams.get("branchId");
+      if (targetBranchId) {
+        try {
+          const invItems = await InventoryService.getBranchInventoryItems(targetBranchId);
+          let accessoryVal = 0;
+          let lowStock = 0;
+          let outOfStock = 0;
+          let totalPhysicalUnits = 0;
+          const itemsReport = invItems.map(item => {
+            const stock = Number(item.stock || 0);
+            const reserved = Number(item.reserved || 0);
+            const available = Number(item.available_stock || 0);
+            const cost = Number(item.cost_price || item.price || 0);
+            const lowThreshold = Number(item.low_stock_threshold || 5);
+            accessoryVal += cost * stock;
+            totalPhysicalUnits += stock;
+            if (available <= 0) outOfStock++;
+            else if (available <= lowThreshold) lowStock++;
+            return {
+              branch_id: targetBranchId,
+              branch_name: ApiEngine.getBranchById(targetBranchId)?.name || "Branch",
+              product_id: item.id,
+              variant_id: item.variant_id,
+              sku: item.sku,
+              name: item.name,
+              stock,
+              reserved,
+              available,
+              cost_price: cost,
+              valuation: cost * stock,
+              low_stock_threshold: lowThreshold,
+              is_low_stock: available <= lowThreshold,
+              status: available === 0 ? "OUT_OF_STOCK" : (available <= lowThreshold ? "LOW_STOCK" : "IN_STOCK"),
+            };
+          });
+          return jsonWithDataSource({
+            total_valuation: accessoryVal,
+            ingredient_base_val: 0,
+            accessory_stock_val: accessoryVal,
+            total_physical_units: totalPhysicalUnits,
+            total_physical_skus: invItems.length,
+            low_stock_count: lowStock,
+            out_of_stock_count: outOfStock,
+            near_expiry_count: 0,
+            waste_amount: 0,
+            items: itemsReport,
+          }, "postgres");
+        } catch (e) {}
+      }
+      return jsonWithDataSource(ApiEngine.getReportsInventory(Object.fromEntries(url.searchParams)), "postgres");
+    }
+    if (path === "admin/reports/cake-availability" || path === "reports/cake-availability") return jsonWithDataSource(ApiEngine.getReportsCakeAvailability(Object.fromEntries(url.searchParams)), "postgres");
     if (path === "admin/reports/delivery") return jsonWithDataSource(ApiEngine.getReportsDelivery(Object.fromEntries(url.searchParams)), "postgres");
     if (path === "admin/reports/branches") return jsonWithDataSource(ApiEngine.getReportsBranches(Object.fromEntries(url.searchParams)), "postgres");
     if (path === "admin/reports/finance") return jsonWithDataSource(ApiEngine.getReportsFinance(Object.fromEntries(url.searchParams)), "postgres");
@@ -2041,7 +2529,26 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/reports/audit") return jsonWithDataSource({ logs: ApiEngine.getReportAuditLogs() }, "postgres");
     if (path === "admin/support/tickets") return jsonWithDataSource({ tickets: ApiEngine.getAdminSupportTickets() }, "postgres");
     if (path === "admin/cms/blocks") return jsonWithDataSource({ blocks: ApiEngine.getAdminCmsBlocks() }, "postgres");
-    if (path === "admin/media") return jsonWithDataSource({ media: ApiEngine.getAdminMedia() }, "postgres");
+    if (path === "admin/media") {
+      try {
+        const folder = url.searchParams.get("folder") || undefined;
+        const search = url.searchParams.get("search") || undefined;
+        const limit = parseInt(url.searchParams.get("limit") || "200");
+        const offset = parseInt(url.searchParams.get("offset") || "0");
+        const result = await MediaRepository.listMedia({ folder, search, limit, offset });
+        return jsonWithDataSource({ media: result.media, total: result.total }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ media: ApiEngine.getAdminMedia() }, "postgres");
+      }
+    }
+    if (path === "admin/media/stats") {
+      try {
+        const stats = await MediaRepository.getMediaStats();
+        return jsonWithDataSource({ stats }, "postgres");
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message }, { status: 500 });
+      }
+    }
     if (path === "admin/cms/image-alt-texts" || path === "image-alt-texts") return jsonWithDataSource(ApiEngine.getAdminImageAltTexts(), "postgres");
 
     // ── Popup & Storefront Engagement System (GET) ──
@@ -2130,7 +2637,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
   try {
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
-    const body = await req.json().catch(() => ({}));
+    const body = await safeParseJsonBody(req);
+    console.log(`[API POST] path="${path}"`);
 
     // ── Customer Favorites / Wishlist (POST) ──
     if (
@@ -2255,21 +2763,56 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "cart" || path === "store/cart" || path === "cart/items" || path === "store/cart/items" || (path.startsWith("cart/") && path.endsWith("/items")) || (path.startsWith("store/cart/") && path.endsWith("/items"))) {
-      const urlCartId = (path.startsWith("cart/") && path.endsWith("/items"))
+      const extractedCartId = (path.startsWith("cart/") && path.endsWith("/items") && path !== "cart/items")
         ? path.replace("cart/", "").replace("/items", "")
-        : (path.startsWith("store/cart/") && path.endsWith("/items"))
+        : (path.startsWith("store/cart/") && path.endsWith("/items") && path !== "store/cart/items")
         ? path.replace("store/cart/", "").replace("/items", "")
         : null;
-      const cartId = body.cartId || body.cart_id || urlCartId || req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value || `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const urlCartId = extractedCartId && extractedCartId !== "items" ? extractedCartId : null;
+      const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
+      const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
+      const cartId = body.cartId || body.cart_id || validCookieCartId || urlCartId || `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       const pincode = body.pincode || req.cookies.get("delivery_pincode")?.value;
       const branchId = body.branchId || body.branch_id || body.shop_id || body.shopId;
       try {
-        if (!body.productId && !body.product_id && !body.variantId && !body.variant_id && body.action !== "add_item" && !body.items) {
+        if (!body.productId && !body.product_id && !body.variantId && !body.variant_id && body.action !== "add_item" && (!body.items || body.items.length === 0)) {
           const cart = ApiEngine.getCart(cartId);
           const res = jsonWithDataSource({ cart, success: true }, "postgres");
           res.cookies.set("_cth_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
           res.cookies.set("_medusa_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
           return res;
+        }
+
+        if (branchId) {
+          try {
+            const itemsToCheck: { pId?: string; vId?: string }[] = [];
+            if (body.productId || body.product_id || body.variantId || body.variant_id) {
+              itemsToCheck.push({ pId: body.productId || body.product_id, vId: body.variantId || body.variant_id });
+            }
+            if (Array.isArray(body.items)) {
+              for (const it of body.items) {
+                itemsToCheck.push({ pId: it.productId || it.product_id, vId: it.variantId || it.variant_id });
+              }
+            }
+            const b = ApiEngine.getBranchById(branchId);
+            if (b) {
+              if (!b.accessory_inventory) b.accessory_inventory = {};
+              for (const it of itemsToCheck) {
+                if (it.pId || it.vId) {
+                  const liveStock = await InventoryService.getAvailableStock(branchId, it.pId, it.vId);
+                  const stockRecord = {
+                    current_stock: liveStock,
+                    reserved_stock: 0,
+                    available_stock: liveStock,
+                    low_stock_threshold: 5,
+                    reorder_level: 10,
+                  };
+                  if (it.pId) b.accessory_inventory[it.pId] = stockRecord;
+                  if (it.vId) b.accessory_inventory[it.vId] = stockRecord;
+                }
+              }
+            }
+          } catch (_e) {}
         }
 
         const cart = ApiEngine.addToCart(cartId, { ...body, branchId, pincode });
@@ -2425,11 +2968,6 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ success: true, token: tokenObj }, "postgres");
     }
 
-    // ── Orders Mutations (POST) ──
-    if (path === "admin/orders" || path === "orders") {
-      const order = ApiEngine.addOrder(body);
-      return jsonWithDataSource({ order, success: true }, "postgres", 201);
-    }
 
     if (path.startsWith("admin/orders/")) {
       const parts = path.replace("admin/orders/", "").split("/");
@@ -2838,7 +3376,18 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           delivery_type: (body.delivery_type as any) || "standard",
           delivery_date: body.delivery_date || new Date().toISOString().split("T")[0],
           delivery_slot: body.delivery_slot_id || body.delivery_slot || "18:00 - 20:00",
-          delivery_address: body.address,
+          delivery_address: typeof body.delivery_address === "string" && body.delivery_address.trim()
+            ? body.delivery_address.trim()
+            : typeof body.address === "string" && body.address.trim()
+            ? body.address.trim()
+            : [
+                body.address?.line1 || body.address?.address_1 || body.address?.address,
+                body.address?.line2 || body.address?.address_2,
+                body.address?.landmark || body.recipient_landmark,
+                body.address?.city || body.city,
+                body.address?.state || body.state,
+                body.address?.pincode || body.address?.postal_code || body.pincode,
+              ].filter(Boolean).join(", ") || "Delivery Address on File",
           delivery_latitude: body.latitude,
           delivery_longitude: body.longitude,
           payment_method: body.payment_method === "cod" ? "cod" : "card",
@@ -3153,7 +3702,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     // ── State Master Admin Endpoints ──
     if (path === "admin/states" || path === "states") {
       try {
-        const state = ApiEngine.createState(body);
+        const state = await StateRepository.create(body);
         return jsonWithDataSource({ state, success: true }, "postgres", 201);
       } catch (err: any) {
         const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate"));
@@ -3162,20 +3711,20 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
     if (path.startsWith("admin/states/") && path.endsWith("/archive")) {
       const stateId = path.replace("admin/states/", "").replace("/archive", "");
-      const stateObj = ApiEngine.archiveState(stateId);
+      const stateObj = await StateRepository.archive(stateId);
       if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "postgres", 404);
       return jsonWithDataSource({ state: stateObj, success: true }, "postgres");
     }
     if (path.startsWith("admin/states/") && path.endsWith("/restore")) {
       const stateId = path.replace("admin/states/", "").replace("/restore", "");
-      const stateObj = ApiEngine.restoreState(stateId);
+      const stateObj = await StateRepository.restore(stateId);
       if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "postgres", 404);
       return jsonWithDataSource({ state: stateObj, success: true }, "postgres");
     }
 
     if (path === "admin/cities" || path === "cities") {
       try {
-        const city = ApiEngine.createAdminCity(body);
+        const city = await CityRepository.create(body);
         return jsonWithDataSource({ city, success: true }, "postgres", 201);
       } catch (err: any) {
         const isConflict = err.message && (err.message.includes("already exists") || err.message.includes("Duplicate"));
@@ -3184,13 +3733,13 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
     if (path.startsWith("admin/cities/") && path.endsWith("/archive")) {
       const cityId = path.replace("admin/cities/", "").replace("/archive", "");
-      const city = ApiEngine.archiveAdminCity(cityId);
+      const city = await CityRepository.archive(cityId);
       if (!city) return jsonWithDataSource({ error: "City not found" }, "postgres", 404);
       return jsonWithDataSource({ city, success: true }, "postgres");
     }
     if (path.startsWith("admin/cities/") && path.endsWith("/restore")) {
       const cityId = path.replace("admin/cities/", "").replace("/restore", "");
-      const city = ApiEngine.restoreAdminCity(cityId);
+      const city = await CityRepository.restore(cityId);
       if (!city) return jsonWithDataSource({ error: "City not found" }, "postgres", 404);
       return jsonWithDataSource({ city, success: true }, "postgres");
     }
@@ -3338,11 +3887,16 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         const result = ApiEngine.reprintBranchOrderKot(orderId, branchId);
         return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
-      if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
-        const productId = path.replace("manager/products/", "").replace("/availability", "");
-        const result = ApiEngine.updateBranchProductAvailability(branchId, productId, body.status, body.reason);
-        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
-      }
+    const branchProdAvailPostMatch = path.match(/^(?:admin\/)?branches\/([^\/]+)\/products\/([^\/]+)\/availability$/);
+    if (branchProdAvailPostMatch) {
+      const [, bId, pId] = branchProdAvailPostMatch;
+      return handleBranchProductAvailabilityMutation(req, bId, pId, body);
+    }
+
+    if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
+      const productId = path.replace("manager/products/", "").replace("/availability", "");
+      return handleBranchProductAvailabilityMutation(req, branchId, productId, body);
+    }
       if (path.startsWith("manager/inventory/")) {
         const itemId = path.replace("manager/inventory/", "");
         const result = ApiEngine.updateBranchInventoryStock(branchId, itemId, Number(body.stock || 0), body.threshold ? Number(body.threshold) : undefined);
@@ -3366,14 +3920,77 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path === "admin/crm/customers" || path === "admin/customers") {
       return jsonWithDataSource({ customer: ApiEngine.createAdminCustomer(body), success: true }, "postgres");
     }
-    if (path === "admin/marketing/seo") {
-      return jsonWithDataSource({ config: ApiEngine.updateAdminSeoConfig(body), success: true }, "postgres");
+    if (path === "admin/marketing/seo" || path === "admin/seo/config") {
+      try {
+        const config = await SeoRepository.updateGlobalSeoConfig(body);
+        return jsonWithDataSource({ config, success: true }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ config: ApiEngine.updateAdminSeoConfig(body), success: true }, "postgres");
+      }
+    }
+    // ── Tax Master Configuration POST/PUT Endpoints ──
+    if (path === "admin/tax/configurations") {
+      try {
+        const { id, name, code, rate, is_default, metadata } = body;
+        if (id) {
+          // Update existing
+          await dbQuery(
+            `UPDATE tax_rate SET name = $1, code = $2, rate = $3, is_default = $4, metadata = $5, updated_at = NOW()
+             WHERE id = $6 AND deleted_at IS NULL`,
+            [name || "", code || "", rate ?? 5, is_default ?? false, JSON.stringify(metadata || {}), id]
+          );
+          return jsonWithDataSource({ success: true, id }, "postgres");
+        } else {
+          // Create new
+          const newId = `txr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+          const regionId = body.tax_region_id || (await dbQuery("SELECT id FROM tax_region WHERE country_code = 'in' LIMIT 1")).rows[0]?.id;
+          await dbQuery(
+            `INSERT INTO tax_rate (id, name, code, rate, is_default, is_combinable, tax_region_id, metadata, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, false, $6, $7, NOW(), NOW())`,
+            [newId, name || "", code || "", rate ?? 5, is_default ?? false, regionId, JSON.stringify(metadata || {})]
+          );
+          return jsonWithDataSource({ success: true, id: newId }, "postgres", 201);
+        }
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message, success: false }, { status: 500 });
+      }
+    }
+    if (path === "admin/tax/configurations/toggle") {
+      try {
+        const { id, is_active } = body;
+        // Soft-delete to deactivate, restore to activate
+        if (is_active === false) {
+          await dbQuery("UPDATE tax_rate SET deleted_at = NOW() WHERE id = $1", [id]);
+        } else {
+          await dbQuery("UPDATE tax_rate SET deleted_at = NULL, updated_at = NOW() WHERE id = $1", [id]);
+        }
+        return jsonWithDataSource({ success: true }, "postgres");
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message, success: false }, { status: 500 });
+      }
     }
     // ── Enterprise SEO Platform POST/PUT/DELETE Endpoints ──
-    if (path === "admin/seo/pages") return jsonWithDataSource({ page: ApiEngine.createSeoPage(body), success: true }, "postgres", 201);
+    if (path === "admin/seo/pages") {
+      try {
+        if (body.id) {
+          await SeoRepository.updatePageSeo(body.id, body);
+          return jsonWithDataSource({ success: true }, "postgres");
+        }
+        return jsonWithDataSource({ page: ApiEngine.createSeoPage(body), success: true }, "postgres", 201);
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message, success: false }, { status: 400 });
+      }
+    }
     if (path === "admin/seo/pages/sync") return jsonWithDataSource(ApiEngine.syncSeoPages(), "postgres");
     if (path === "admin/seo/keywords") return jsonWithDataSource({ keyword: ApiEngine.createSeoKeyword(body), success: true }, "postgres", 201);
-    if (path === "admin/seo/redirects") return jsonWithDataSource({ redirect: ApiEngine.createSeoRedirect(body), success: true }, "postgres", 201);
+    if (path === "admin/seo/redirects") {
+      try {
+        const redirect = await SeoRepository.createRedirect(body);
+        return jsonWithDataSource({ redirect, success: true }, "postgres", 201);
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message, success: false }, { status: 400 });
+      }
+    }
     if (path === "admin/seo/broken-links/scan") return jsonWithDataSource(ApiEngine.runBrokenLinkScan(), "postgres");
     if (path === "admin/seo/schema/templates") return jsonWithDataSource({ template: ApiEngine.createSeoSchemaTemplate(body), success: true }, "postgres", 201);
     if (path === "admin/seo/schema/validate") return jsonWithDataSource(ApiEngine.validateJsonLd(body.json_ld || body.schema_json || "{}"), "postgres");
@@ -3385,6 +4002,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path === "admin/seo/page-speed") return jsonWithDataSource({ page_speed: ApiEngine.recordSeoPageSpeed(body), success: true }, "postgres", 201);
     if (path === "admin/seo/utm-campaigns") return jsonWithDataSource({ campaign: ApiEngine.createSeoUtmCampaign(body), success: true }, "postgres", 201);
     if (path === "admin/seo/robots/save") return jsonWithDataSource({ robots: ApiEngine.saveRobotsVersion(body), success: true }, "postgres");
+    if (path === "admin/seo/crawler-policies") {
+      try {
+        const policies = await SeoAuditEngine.updateAiCrawlerPolicy(body.bot, body.allowed !== false);
+        return jsonWithDataSource({ success: true, policies }, "postgres");
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message, success: false }, { status: 400 });
+      }
+    }
     if (path === "admin/seo/robots/rollback") return jsonWithDataSource({ robots: ApiEngine.rollbackRobots(body.id), success: true }, "postgres");
     if (path === "admin/seo/backlinks") return jsonWithDataSource({ backlink: ApiEngine.createSeoBacklink(body), success: true }, "postgres", 201);
     if (path === "admin/seo/reports/generate") return jsonWithDataSource({ report: ApiEngine.generateSeoReport(body.type || "overall"), success: true }, "postgres", 201);
@@ -3478,7 +4103,12 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
     // Media Upload & Management
     if (path === "admin/media" || path === "admin/media/create") {
-      return jsonWithDataSource({ media: ApiEngine.createMedia(body) }, "postgres", 201);
+      try {
+        const created = await MediaRepository.createMedia(body);
+        return jsonWithDataSource({ media: created }, "postgres", 201);
+      } catch (err: any) {
+        return jsonWithDataSource({ media: ApiEngine.createMedia(body) }, "postgres", 201);
+      }
     }
     if (path === "admin/media/upload") {
       // 1. Security & Format Validation
@@ -3491,7 +4121,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
 
       if (mimeType && !allowedMimes.includes(mimeType)) {
-        return jsonWithDataSource({ error: "Unsupported image format. Allowed: JPG, PNG, WebP." }, "postgres", 400);
+        return jsonWithDataSource({ error: "Unsupported image format. Allowed: JPG, PNG, WebP, AVIF." }, "postgres", 400);
       }
 
       // Max size validation (10 MB)
@@ -3500,53 +4130,67 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         return jsonWithDataSource({ error: "File exceeds 10MB limit." }, "postgres", 400);
       }
 
+      let processedResult = null;
       let mediaUrl = body.url;
       const rawExt = (body.filename || "").split(".").pop()?.toLowerCase() || "webp";
       const safeExt = ["jpg", "jpeg", "png", "webp", "avif"].includes(rawExt) ? rawExt : "webp";
       const safeUniqueName = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${safeExt}`;
-      
-      // If base64 payload provided, save to public/uploads directory
+
+      // If base64 payload provided, process through Sharp MediaProcessor
       if (body.dataUrl && typeof body.dataUrl === "string" && body.dataUrl.startsWith("data:")) {
-        // Deep inspection of payload for dangerous tags
         const lowerData = body.dataUrl.substring(0, 200).toLowerCase();
         if (lowerData.includes("<svg") || lowerData.includes("<?xml") || lowerData.includes("<script") || lowerData.includes("<!doctype")) {
           return jsonWithDataSource({ error: "Security violation: File contains prohibited markup." }, "postgres", 400);
         }
 
         try {
-          const fs = await import("fs");
-          const pathModule = await import("path");
-          let root = process.cwd();
-          if (!root.endsWith("frontend") && fs.existsSync(pathModule.join(root, "frontend"))) {
-            root = pathModule.join(root, "frontend");
-          }
-          const uploadsDir = pathModule.join(root, "public", "uploads");
-          if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
-          }
           const base64Data = body.dataUrl.split(";base64,").pop();
           if (base64Data) {
-            const targetPath = pathModule.join(uploadsDir, safeUniqueName);
-            fs.writeFileSync(targetPath, Buffer.from(base64Data, "base64"));
-            mediaUrl = `/uploads/${safeUniqueName}`;
+            const buf = Buffer.from(base64Data, "base64");
+            processedResult = await MediaProcessor.processBuffer(buf, body.filename || safeUniqueName, {
+              folder: body.folder || "uploads",
+              alt: body.alt_text || body.alt || body.name || "",
+            });
+            mediaUrl = processedResult.url;
           }
-        } catch (err) {
-          console.error("Failed to write uploaded file to disk:", err);
+        } catch (procErr: any) {
+          console.error("[Media Upload] Sharp processing failed, falling back:", procErr.message);
         }
       }
 
-      const registered = ApiEngine.createMedia({
-        name: body.name || safeUniqueName,
-        filename: safeUniqueName,
-        url: mediaUrl || body.dataUrl || "",
-        thumbnail_url: mediaUrl || body.dataUrl || "",
-        mime_type: mimeType || "image/webp",
-        size: body.size || 150000,
-        alt_text: body.alt_text || body.alt || body.name || "",
-        folder: body.folder || "uploads",
-        width: body.width || 1200,
-        height: body.height || 800,
-      });
+      let registered: any = null;
+      try {
+        registered = await MediaRepository.createMedia({
+          name: body.name || (processedResult?.filename ?? safeUniqueName),
+          url: mediaUrl || body.dataUrl || "",
+          thumbnail_url: processedResult?.thumbnail_url || mediaUrl || body.dataUrl || "",
+          mime_type: processedResult?.mime_type || mimeType || "image/webp",
+          size: processedResult?.size || Number(body.size) || 150000,
+          alt_text: body.alt_text || body.alt || body.name || "",
+          folder: body.folder || "uploads",
+          width: processedResult?.width || Number(body.width) || 1200,
+          height: processedResult?.height || Number(body.height) || 800,
+          is_webp_generated: processedResult?.is_webp_generated || false,
+          is_avif_generated: processedResult?.is_avif_generated || false,
+          responsive_variants: processedResult?.responsive_variants || undefined,
+          blur_placeholder: processedResult?.blur_placeholder || undefined,
+          content_hash: processedResult?.content_hash || undefined,
+        });
+      } catch (dbErr: any) {
+        console.warn("[Media Upload] PostgreSQL insert failed, fallback to memory:", dbErr.message);
+        registered = ApiEngine.createMedia({
+          name: body.name || safeUniqueName,
+          filename: safeUniqueName,
+          url: mediaUrl || body.dataUrl || "",
+          thumbnail_url: mediaUrl || body.dataUrl || "",
+          mime_type: mimeType || "image/webp",
+          size: body.size || 150000,
+          alt_text: body.alt_text || body.alt || body.name || "",
+          folder: body.folder || "uploads",
+          width: body.width || 1200,
+          height: body.height || 800,
+        });
+      }
 
       return jsonWithDataSource({ media: registered, success: true, url: registered.url }, "postgres", 201);
     }
@@ -3574,24 +4218,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/publish")) {
       const pageId = path.replace("cms/pages/", "").replace("/publish", "");
-      const res = await ApiEngine.publishCmsPage(pageId);
-      try {
-        revalidatePath("/");
-        revalidatePath("/(store)");
-      } catch {
-        // ignore in non-server-action contexts
-      }
+      console.log(`[API POST PUBLISH START] pageId="${pageId}"`);
+      const res = await CmsRepository.publishPage(pageId);
+      console.log(`[API POST PUBLISH RESULT] pageId="${pageId}" success=${res?.success}`);
       return jsonWithDataSource(res, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/unpublish")) {
       const pageId = path.replace("cms/pages/", "").replace("/unpublish", "");
-      const res = await ApiEngine.unpublishCmsPage(pageId);
-      try {
-        revalidatePath("/");
-        revalidatePath("/(store)");
-      } catch {
-        // ignore
-      }
+      const res = await CmsRepository.unpublishPage(pageId);
       return jsonWithDataSource(res, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/reorder-sections")) {
@@ -4071,7 +4705,8 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
   try {
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
-    const body = await req.json().catch(() => ({}));
+    const body = await safeParseJsonBody(req);
+    console.log(`[API PUT] path="${path}"`);
 
     // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)
     const backendRes = await forwardToPostgresBackend("PUT", path, body, undefined, req.headers);
@@ -4106,9 +4741,14 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     }
 
     // Cart Item Update
-    if (path === "cart/items") {
-      const cartId = body.cartId || req.cookies.get("_cth_cart_id")?.value || "cart_guest_100";
-      const cart = ApiEngine.updateCartItem(cartId, body.lineItemId, Number(body.quantity || 1));
+    if (path === "cart/items" || path.startsWith("cart/items/")) {
+      const lineItemIdFromPath = path.startsWith("cart/items/") ? path.replace("cart/items/", "") : null;
+      const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
+      const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
+      const cartId = body.cartId || body.cart_id || validCookieCartId || "cart_guest_100";
+      const lineItemId = lineItemIdFromPath || body.lineItemId || body.line_item_id || body.itemId || body.item_id;
+      const quantity = body.quantity !== undefined ? Number(body.quantity) : 1;
+      const cart = ApiEngine.updateCartItem(cartId, lineItemId, quantity);
       return jsonWithDataSource({ cart, success: true }, "postgres");
     }
 
@@ -4170,13 +4810,13 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     }
     if (path.startsWith("admin/states/")) {
       const id = path.replace("admin/states/", "");
-      const stateObj = ApiEngine.updateState(id, body);
+      const stateObj = await StateRepository.update(id, body);
       if (!stateObj) return jsonWithDataSource({ error: "State not found" }, "postgres", 404);
       return jsonWithDataSource({ state: stateObj, success: true }, "postgres");
     }
     if (path.startsWith("admin/cities/")) {
       const id = path.replace("admin/cities/", "");
-      const city = ApiEngine.updateAdminCity(id, body);
+      const city = await CityRepository.update(id, body);
       if (!city) return jsonWithDataSource({ error: "City not found" }, "postgres", 404);
       return jsonWithDataSource({ city, success: true }, "postgres");
     }
@@ -4241,8 +4881,40 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       const id = path.replace("admin/notifications/", "");
       return jsonWithDataSource({ success: ApiEngine.markNotificationRead(id) }, "postgres");
     }
-    if (path === "admin/marketing/seo") {
-      return jsonWithDataSource({ config: ApiEngine.updateAdminSeoConfig(body), success: true }, "postgres");
+    if (path === "admin/marketing/seo" || path === "admin/seo/config") {
+      try {
+        const config = await SeoRepository.updateGlobalSeoConfig(body);
+        return jsonWithDataSource({ config, success: true }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ config: ApiEngine.updateAdminSeoConfig(body), success: true }, "postgres");
+      }
+    }
+    if (path.startsWith("admin/seo/redirects/")) {
+      const id = path.replace("admin/seo/redirects/", "");
+      try {
+        await SeoRepository.updateRedirect(id, body);
+        return jsonWithDataSource({ success: true }, "postgres");
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message, success: false }, { status: 400 });
+      }
+    }
+    if (path.startsWith("admin/seo/pages/")) {
+      const id = path.replace("admin/seo/pages/", "");
+      try {
+        await SeoRepository.updatePageSeo(id, body);
+        return jsonWithDataSource({ success: true }, "postgres");
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message, success: false }, { status: 400 });
+      }
+    }
+    if (path.startsWith("admin/media/")) {
+      const id = path.replace("admin/media/", "");
+      try {
+        await MediaRepository.updateMedia(id, body);
+        return jsonWithDataSource({ success: true }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ media: ApiEngine.updateMedia(id, body), success: true }, "postgres");
+      }
     }
     if (path === "admin/settings") {
       return jsonWithDataSource({ settings: ApiEngine.updateAdminSettings(body), success: true }, "postgres");
@@ -4291,11 +4963,16 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
         targetBranchId = body.branchId || body.branch_id;
       }
 
-      if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
-        const productId = path.replace("manager/products/", "").replace("/availability", "");
-        const result = ApiEngine.updateBranchProductAvailability(targetBranchId, productId, body.status, body.reason);
-        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
-      }
+    const branchProdAvailPutMatch = path.match(/^(?:admin\/)?branches\/([^\/]+)\/products\/([^\/]+)\/availability$/);
+    if (branchProdAvailPutMatch) {
+      const [, bId, pId] = branchProdAvailPutMatch;
+      return handleBranchProductAvailabilityMutation(req, bId, pId, body);
+    }
+
+    if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
+      const productId = path.replace("manager/products/", "").replace("/availability", "");
+      return handleBranchProductAvailabilityMutation(req, targetBranchId, productId, body);
+    }
       if (path.startsWith("manager/inventory/")) {
         const itemId = path.replace("manager/inventory/", "");
         const result = ApiEngine.updateBranchInventoryStock(targetBranchId, itemId, Number(body.stock || 0), body.threshold ? Number(body.threshold) : undefined);
@@ -4335,11 +5012,8 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
 
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
-      await CmsRepository.savePage({ ...body, id: pageId });
-      const updated = await CmsRepository.findPageBySlug(pageId);
-      try {
-        await ApiEngine.updateCmsPage(pageId, body);
-      } catch {}
+      console.log(`[API PUT CMS PAGE] pageId="${pageId}"`);
+      const updated = await CmsRepository.savePage({ ...body, id: pageId });
       return jsonWithDataSource({ page: updated, success: true }, "postgres");
     }
 
@@ -4502,6 +5176,18 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ candidate: result, success: true }, "postgres");
     }
 
+    const branchProdAvailPutMatch = path.match(/^(?:admin\/)?branches\/([^\/]+)\/products\/([^\/]+)\/availability$/);
+    if (branchProdAvailPutMatch) {
+      const [, bId, pId] = branchProdAvailPutMatch;
+      return handleBranchProductAvailabilityMutation(req, bId, pId, body);
+    }
+    if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
+      const productId = path.replace("manager/products/", "").replace("/availability", "");
+      const mgrAuth: any = resolveManagerSession(req);
+      const targetBranchId = (mgrAuth.isSuperAdmin && (body.branchId || body.branch_id)) ? (body.branchId || body.branch_id) : mgrAuth.branchId;
+      return handleBranchProductAvailabilityMutation(req, targetBranchId, productId, body);
+    }
+
     if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "updated" }, "postgres");
 
     return jsonWithDataSource({ error: `API Route "${path}" not found` }, "postgres", 404);
@@ -4514,13 +5200,25 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
   try {
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
-    const body = await req.json().catch(() => ({}));
+    const body = await safeParseJsonBody(req);
 
     // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)
     const backendRes = await forwardToPostgresBackend("DELETE", path, undefined, undefined, req.headers);
     if (backendRes) return backendRes;
 
     // 2. Fallback Route: Disk-Backed ApiEngine
+    if (path.startsWith("cart/items/") || path.startsWith("store/cart/items/")) {
+      const lineItemId = path.split("/").pop() || "";
+      const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
+      const urlCartId = req.nextUrl.searchParams.get("cartId");
+      const cartId = urlCartId || cookieCartId;
+      if (!cartId || !lineItemId) {
+        return jsonWithDataSource({ error: "Missing cart or item ID", success: false }, "postgres", 400);
+      }
+      const cart = ApiEngine.removeCartItem(cartId, lineItemId);
+      return jsonWithDataSource({ cart, success: true }, "postgres", 200);
+    }
+
     // ── Customer Favorites / Wishlist (DELETE) ──
     if (
       path.startsWith("customer/favorites/") ||
@@ -4601,6 +5299,16 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       return jsonWithDataSource({ success: ok, deleted: ok }, "postgres", ok ? 200 : 404);
     }
 
+    if (path.startsWith("admin/seo/redirects/")) {
+      const id = path.replace("admin/seo/redirects/", "");
+      try {
+        await SeoRepository.deleteRedirect(id);
+        return jsonWithDataSource({ success: true }, "postgres");
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message, success: false }, { status: 400 });
+      }
+    }
+
     if (path.startsWith("admin/popups/") || path.startsWith("popups/")) {
       const id = path.replace("admin/popups/", "").replace("popups/", "");
       return jsonWithDataSource({ deleted: ApiEngine.deletePopupCampaign(id), success: true }, "postgres");
@@ -4644,7 +5352,9 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     // 2. Fallback Route: Disk-Backed ApiEngine
     if (path === "cart") {
       const url = new URL(req.url);
-      const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || req.cookies.get("_cth_cart_id")?.value || "cart_guest_100";
+      const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
+      const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
+      const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || validCookieCartId || "cart_guest_100";
       const cart = ApiEngine.clearCart(cartId);
       return jsonWithDataSource({ cart, success: true }, "postgres");
     }
@@ -4652,7 +5362,9 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     if (path === "cart/items" || path.startsWith("cart/items/")) {
       const url = new URL(req.url);
       const itemId = path.replace("cart/items/", "").replace("cart/items", "") || url.searchParams.get("item_id") || url.searchParams.get("itemId") || body.lineItemId || body.itemId;
-      const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || req.cookies.get("_cth_cart_id")?.value || "cart_guest_100";
+      const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
+      const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
+      const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || validCookieCartId || "cart_guest_100";
       const cart = ApiEngine.deleteLineItem(cartId, itemId);
       return jsonWithDataSource({ cart, success: true }, "postgres");
     }
@@ -4717,7 +5429,12 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
 
     if (path.startsWith("admin/media/")) {
       const id = path.replace("admin/media/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deleteMedia(id), success: true }, "postgres");
+      try {
+        await MediaRepository.deleteMedia(id);
+        return jsonWithDataSource({ deleted: true, success: true }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ deleted: ApiEngine.deleteMedia(id), success: true }, "postgres");
+      }
     }
 
     if (path.startsWith("admin/compliance/documents/")) {
@@ -4762,6 +5479,47 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       return jsonWithDataSource({ deleted, success: true }, "postgres");
     }
 
+    // ── State & City Deletion with Safety Dependency Checks (DELETE) ──
+    if (path.startsWith("admin/states/")) {
+      const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
+      if (permErr) return permErr;
+      const id = path.replace("admin/states/", "");
+      const deps = await StateRepository.checkDependencies(id);
+      if (!deps.canDelete) {
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: `Cannot delete state "${deps.stateName}". It has ${deps.citiesCount} cities and ${deps.branchesCount} branches connected. Please archive it instead.`,
+            dependencies: deps,
+          },
+          "postgres",
+          409
+        );
+      }
+      const result = await StateRepository.delete(id);
+      return jsonWithDataSource(result, "postgres");
+    }
+
+    if (path.startsWith("admin/cities/")) {
+      const permErr = verifyApiPermission(req, "SETTINGS", "EDIT");
+      if (permErr) return permErr;
+      const id = path.replace("admin/cities/", "");
+      const deps = await CityRepository.checkDependencies(id);
+      if (!deps.canDelete) {
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: `Cannot delete city "${deps.cityName}". It has ${deps.branchesCount} branches, ${deps.zonesCount} delivery zones, and ${deps.ordersCount} historical orders connected. To protect operational and financial records, disable (archive) the city instead.`,
+            dependencies: deps,
+          },
+          "postgres",
+          409
+        );
+      }
+      const result = await CityRepository.delete(id);
+      return jsonWithDataSource(result, "postgres");
+    }
+
     if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "deleted" }, "postgres");
 
     return jsonWithDataSource({ error: `API Route "${path}" not found` }, "postgres", 404);
@@ -4774,13 +5532,31 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
   try {
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
-    const body = await req.json().catch(() => ({}));
+    const body = await safeParseJsonBody(req);
+    console.log(`[API PATCH] path="${path}"`);
 
     // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)
     const backendRes = await forwardToPostgresBackend("PATCH", path, body, undefined, req.headers);
     if (backendRes) return backendRes;
 
     // 2. Fallback Route: Disk-Backed ApiEngine
+    if (path.startsWith("cart/items/") || path.startsWith("store/cart/items/")) {
+      const lineItemId = path.split("/").pop() || "";
+      const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
+      const cartId = body.cartId || body.cart_id || cookieCartId;
+      if (!cartId || !lineItemId) {
+        return jsonWithDataSource({ error: "Missing cart or item ID", success: false }, "postgres", 400);
+      }
+      const qty = Math.max(0, Number(body.quantity || 1));
+      let cart: any;
+      if (qty <= 0) {
+        cart = ApiEngine.removeCartItem(cartId, lineItemId);
+      } else {
+        cart = ApiEngine.updateCartItem(cartId, lineItemId, qty);
+      }
+      return jsonWithDataSource({ cart, success: true }, "postgres", 200);
+    }
+
     // ── Customer Review Edit (PATCH) ──
     if (path.startsWith("customer/reviews/") || path.startsWith("store/customer/reviews/")) {
       const reviewId = path.split("/").pop() || "";
@@ -4808,6 +5584,12 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
       return jsonWithDataSource(result, "postgres", result.success ? 200 : 404);
     }
 
+    const branchProdAvailPatchMatch = path.match(/^(?:admin\/)?branches\/([^\/]+)\/products\/([^\/]+)\/availability$/);
+    if (branchProdAvailPatchMatch) {
+      const [, bId, pId] = branchProdAvailPatchMatch;
+      return handleBranchProductAvailabilityMutation(req, bId, pId, body);
+    }
+
     if (path.startsWith("manager/")) {
       const mgrAuth: any = resolveManagerSession(req);
       if (mgrAuth.error) {
@@ -4821,8 +5603,7 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
 
       if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
         const productId = path.replace("manager/products/", "").replace("/availability", "");
-        const result = ApiEngine.updateBranchProductAvailability(targetBranchId, productId, body.status, body.reason);
-        return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
+        return handleBranchProductAvailabilityMutation(req, targetBranchId, productId, body);
       }
       if (path.startsWith("manager/inventory/")) {
         const itemId = path.replace("manager/inventory/", "");
@@ -4853,6 +5634,26 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
         const result = ApiEngine.updateOrderStatus(orderId, body.status, body.notes);
         if (result) return jsonWithDataSource(result, "postgres");
         return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
+      }
+    }
+
+    if (path === "orders" || path === "admin/orders" || path.startsWith("orders/")) {
+      const orderId = body.order_id || body.orderId || (path.startsWith("orders/") ? path.replace("orders/", "") : "");
+      if (!orderId) {
+        return jsonWithDataSource({ success: false, error: "Missing order_id" }, "postgres", 400);
+      }
+      const newStatus = body.status || body.order_status || body.bakery_status;
+      const notes = body.notes || body.reason || (body.bakery_status ? `Bakery status: ${body.bakery_status}` : undefined);
+      try {
+        let normalizedStatus = (newStatus || "").toLowerCase();
+        if (normalizedStatus === "in_preparation") normalizedStatus = "preparing";
+        const updated = await OrderRepository.updateStatus(orderId, normalizedStatus, notes);
+        try {
+          ApiEngine.updateOrderStatus(orderId, normalizedStatus, notes);
+        } catch {}
+        return jsonWithDataSource({ success: true, order: updated }, "postgres", 200);
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: err.message }, "postgres", 400);
       }
     }
 

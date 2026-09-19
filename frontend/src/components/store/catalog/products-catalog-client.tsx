@@ -33,6 +33,9 @@ export function ProductsCatalogClient({
     const cat = searchParams.get("category");
     if (cat) params.category = cat;
 
+    const occ = searchParams.get("occasion") || searchParams.get("occasion_id");
+    if (occ) params.occasion = occ;
+
     const flav = searchParams.get("flavour");
     if (flav) params.flavour = flav;
 
@@ -73,6 +76,7 @@ export function ProductsCatalogClient({
       const p = new URLSearchParams();
       if (newFilters.q) p.set("q", newFilters.q);
       if (newFilters.category && newFilters.category !== "all") p.set("category", newFilters.category);
+      if (newFilters.occasion && newFilters.occasion !== "all") p.set("occasion", newFilters.occasion);
       if (newFilters.flavour && newFilters.flavour !== "all") p.set("flavour", newFilters.flavour);
       if (newFilters.weight && newFilters.weight !== "all") p.set("weight", newFilters.weight);
       if (newFilters.min_price !== undefined) p.set("min_price", String(newFilters.min_price));
@@ -154,6 +158,7 @@ export function ProductsCatalogClient({
 
     const qParam = searchParams.get("search") || searchParams.get("q") || undefined;
     const catParam = searchParams.get("category") || undefined;
+    const occParam = searchParams.get("occasion") || searchParams.get("occasion_id") || undefined;
     const flavParam = searchParams.get("flavour") || undefined;
     const weightParam = searchParams.get("weight") || undefined;
     const minPParam = searchParams.get("min_price") ? Number(searchParams.get("min_price")) : undefined;
@@ -163,6 +168,7 @@ export function ProductsCatalogClient({
     const next = {
       q: qParam,
       category: catParam,
+      occasion: occParam,
       flavour: flavParam,
       weight: weightParam,
       min_price: minPParam,
@@ -202,6 +208,7 @@ export function ProductsCatalogClient({
   // Compute active filter count (excluding default/empty values)
   const activeCount = [
     filters.category && filters.category !== "all" ? "category" : undefined,
+    filters.occasion && filters.occasion !== "all" ? "occasion" : undefined,
     filters.flavour && filters.flavour !== "all" ? "flavour" : undefined,
     filters.weight && filters.weight !== "all" ? "weight" : undefined,
     filters.min_price !== undefined || filters.max_price !== undefined ? "price" : undefined,
@@ -222,12 +229,12 @@ export function ProductsCatalogClient({
       {/* Top Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
         <div>
-          <Heading level="h1" className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <Cake className="w-7 h-7 text-rose-600" /> Handcrafted Gourmet Cakes
-          </Heading>
-          <Text className="text-slate-500 text-sm mt-1">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <Cake className="w-7 h-7 text-[#1D2F5D] dark:text-[#D4AF37]" /> Handcrafted Gourmet Cakes
+          </h1>
+          <p className="text-slate-600 dark:text-slate-300 text-sm mt-1">
             Freshly baked in Bangalore with 100% real ingredients • Express & Midnight Delivery Available
-          </Text>
+          </p>
         </div>
 
         {/* Search Input & Mobile Filter Toggle */}
@@ -240,6 +247,7 @@ export function ProductsCatalogClient({
               placeholder="Search cakes by name, flavour..."
               value={qInput}
               onChange={(e) => setQInput(e.target.value)}
+              suppressHydrationWarning
               className="pl-9 h-10 text-xs rounded-xl"
             />
             {qInput && (
@@ -259,10 +267,10 @@ export function ProductsCatalogClient({
             onClick={() => setMobileDrawerOpen(true)}
             className="md:hidden flex items-center gap-1.5 h-10 px-4 rounded-xl text-xs font-bold shrink-0 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 hover:bg-slate-50 transition shadow-sm"
           >
-            <SlidersHorizontal className="w-4 h-4 text-rose-600" />
+            <SlidersHorizontal className="w-4 h-4 text-[#1D2F5D]" />
             <span>Filters</span>
             {activeCount > 0 && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full ml-0.5 bg-rose-600 text-white font-bold">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full ml-0.5 bg-[#1D2F5D] text-white font-bold">
                 {activeCount}
               </span>
             )}
@@ -276,7 +284,7 @@ export function ProductsCatalogClient({
         <aside className="hidden md:flex w-64 shrink-0 flex-col gap-4 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm h-fit sticky top-24">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <span className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-              <SlidersHorizontal className="w-4 h-4 text-rose-600" /> Filters
+              <SlidersHorizontal className="w-4 h-4 text-[#1D2F5D]" /> Filters
             </span>
             {activeCount > 0 && (
               <Badge color="grey" className="text-[10px] px-2 py-0.5 rounded-full font-bold">
@@ -291,13 +299,13 @@ export function ProductsCatalogClient({
         <main className="flex-1 flex flex-col gap-4">
           {/* Active Filter Chips & Counter Header */}
           <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+            <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 font-medium">
               <span>
-                Showing <strong className="text-slate-900 dark:text-white">{results.length}</strong> of{" "}
-                <strong className="text-slate-900 dark:text-white">{count}</strong> cakes
+                Showing <strong className="text-slate-900 dark:text-amber-300 font-bold">{results.length}</strong> of{" "}
+                <strong className="text-slate-900 dark:text-amber-300 font-bold">{count || results.length}</strong> artisan cakes & treats
               </span>
-              <span className="hidden sm:inline-flex items-center gap-1 text-[11px]">
-                <MapPin className="w-3.5 h-3.5 text-rose-500" /> Serviceable in Bangalore
+              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300">
+                <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" /> Serviceable in Bangalore
               </span>
             </div>
 
@@ -315,7 +323,7 @@ export function ProductsCatalogClient({
             </div>
           ) : results.length === 0 ? (
             <div data-testid="catalog-empty-state" className="flex flex-col items-center justify-center py-20 px-4 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl bg-slate-50/50 dark:bg-slate-900/50 text-center">
-              <div className="w-16 h-16 rounded-full bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center text-3xl mb-4">
+              <div className="w-16 h-16 rounded-full bg-brand-gold-soft dark:bg-[#0c1326]/40 flex items-center justify-center text-3xl mb-4">
                 🎂
               </div>
               <Heading level="h3" className="text-lg font-bold text-slate-900 dark:text-white mb-1">
@@ -327,7 +335,7 @@ export function ProductsCatalogClient({
               <Button
                 variant="secondary"
                 onClick={() => handleFilterChange({})}
-                className="text-xs font-bold px-6 py-2 rounded-xl bg-rose-600 text-white hover:bg-rose-700"
+                className="text-xs font-bold px-6 py-2 rounded-xl bg-[#1D2F5D] text-white hover:bg-[#152347]"
               >
                 Clear All Filters
               </Button>
