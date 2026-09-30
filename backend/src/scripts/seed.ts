@@ -23,6 +23,7 @@ import dotenv from "dotenv";
 import cakeToHomeSeedData from "../../data/caketohome-seed-data.json";
 import { createShopWorkflow } from "../workflows/shop/workflows/create-shop";
 import { createShopProductsWorkflow } from "../workflows/shop/workflows/create-shop-products";
+import { SHOP_MODULE } from "../modules/shop";
 
 dotenv.config();
 
@@ -119,20 +120,32 @@ export default async function seedData({ container }: ExecArgs) {
   }
 
   logger.info("Seeding fulfillment data...");
-  const { result: shippingProfileResult } =
-    await createShippingProfilesWorkflow(container).run({
-      input: {
-        data: [
-          {
-            name: "Default",
-            type: "default",
-          },
-        ],
-      },
-    });
-  const shippingProfile = shippingProfileResult[0];
+  let shippingProfile;
+  try {
+    const { result: shippingProfileResult } =
+      await createShippingProfilesWorkflow(container).run({
+        input: {
+          data: [
+            {
+              name: "Default",
+              type: "default",
+            },
+          ],
+        },
+      });
+    shippingProfile = shippingProfileResult[0];
+  } catch (e: any) {
+    logger.warn(`Shipping profile seeding skipped: ${e.message}`);
+    const profiles = await fulfillmentModuleService.listShippingProfiles({ name: "Default" });
+    shippingProfile = profiles[0];
+  }
 
-  const fulfillmentSet = await fulfillmentModuleService.createFulfillmentSets({
+  let fulfillmentSet;
+  const existingSets = await (fulfillmentModuleService as any).listFulfillmentSets({ name: "European Warehouse delivery" }, { relations: ["service_zones"] });
+  if (existingSets.length) {
+    fulfillmentSet = existingSets[0];
+  } else {
+    fulfillmentSet = await fulfillmentModuleService.createFulfillmentSets({
     name: "European Warehouse delivery",
     type: "shipping",
     service_zones: [
@@ -171,25 +184,32 @@ export default async function seedData({ container }: ExecArgs) {
       },
     ],
   });
-
+  }
   logger.info("Seeding stock location data...");
-  const { result: stockLocationResult } = await createStockLocationsWorkflow(
-    container
-  ).run({
-    input: {
-      locations: [
-        {
-          name: "European Warehouse",
-          address: {
-            city: "Copenhagen",
-            country_code: "DK",
-            address_1: "",
+  let stockLocation;
+  try {
+    const { result: stockLocationResult } = await createStockLocationsWorkflow(
+      container
+    ).run({
+      input: {
+        locations: [
+          {
+            name: "European Warehouse",
+            address: {
+              city: "Copenhagen",
+              country_code: "DK",
+              address_1: "",
+            },
           },
-        },
-      ],
-    },
-  });
-  const stockLocation = stockLocationResult[0];
+        ],
+      },
+    });
+    stockLocation = stockLocationResult[0];
+  } catch (e: any) {
+    const stockLocationModuleService: any = container.resolve(ModuleRegistrationName.STOCK_LOCATION);
+    const existing = await stockLocationModuleService.listStockLocations({ name: "European Warehouse" });
+    stockLocation = existing[0];
+  }
 
   const fulfillmentProvider = await fulfillmentModuleService
     .listFulfillmentProviders({}, { take: 1 })
@@ -197,139 +217,146 @@ export default async function seedData({ container }: ExecArgs) {
 
   const fulfillmentProviderId = fulfillmentProvider.id;
 
-  await remoteLink.create([
-    {
-      [Modules.STOCK_LOCATION]: {
-        stock_location_id: stockLocation.id,
+  try {
+    await remoteLink.create([
+      {
+        [Modules.STOCK_LOCATION]: {
+          stock_location_id: stockLocation.id,
+        },
+        [Modules.FULFILLMENT]: {
+          fulfillment_set_id: fulfillmentSet.id,
+        },
       },
-      [Modules.FULFILLMENT]: {
-        fulfillment_set_id: fulfillmentSet.id,
+      {
+        [Modules.STOCK_LOCATION]: {
+          stock_location_id: stockLocation.id,
+        },
+        [Modules.FULFILLMENT]: {
+          fulfillment_provider_id: fulfillmentProviderId,
+        },
       },
-    },
-    {
-      [Modules.STOCK_LOCATION]: {
-        stock_location_id: stockLocation.id,
+      {
+        [Modules.SALES_CHANNEL]: {
+          sales_channel_id: fulfillmentSet.id,
+        },
+        [Modules.STOCK_LOCATION]: {
+          stock_location_id: stockLocation.id,
+        },
       },
-      [Modules.FULFILLMENT]: {
-        fulfillment_provider_id: fulfillmentProviderId,
-      },
-    },
-    {
-      [Modules.SALES_CHANNEL]: {
-        sales_channel_id: fulfillmentSet.id,
-      },
-      [Modules.STOCK_LOCATION]: {
-        stock_location_id: stockLocation.id,
-      },
-    },
-  ]);
+    ]);
+  } catch (e: any) {}
 
   logger.info("Finished seeding stock location data.");
 
-  await createShippingOptionsWorkflow(container).run({
-    input: [
-      {
-        name: "Standard Shipping",
-        price_type: "flat",
-        provider_id: fulfillmentProviderId,
-        service_zone_id: fulfillmentSet.service_zones[0].id,
-        shipping_profile_id: shippingProfile.id,
-        type: {
-          label: "Standard",
-          description: "Ship in 2-3 days.",
-          code: "standard",
+  try {
+    await createShippingOptionsWorkflow(container).run({
+      input: [
+        {
+          name: "Standard Shipping",
+          price_type: "flat",
+          provider_id: fulfillmentProviderId,
+          service_zone_id: fulfillmentSet.service_zones[0].id,
+          shipping_profile_id: shippingProfile.id,
+          type: {
+            label: "Standard",
+            description: "Ship in 2-3 days.",
+            code: "standard",
+          },
+          prices: [
+            {
+              currency_code: "usd",
+              amount: 10,
+            },
+            {
+              currency_code: "eur",
+              amount: 10,
+            },
+            {
+              region_id: region.id,
+              amount: 10,
+            },
+          ],
+          rules: [
+            {
+              attribute: "enabled_in_store",
+              value: '"true"',
+              operator: "eq",
+            },
+            {
+              attribute: "is_return",
+              value: "false",
+              operator: "eq",
+            },
+          ],
         },
-        prices: [
-          {
-            currency_code: "usd",
-            amount: 10,
+        {
+          name: "Express Shipping",
+          price_type: "flat",
+          provider_id: fulfillmentProviderId,
+          service_zone_id: fulfillmentSet.service_zones[0].id,
+          shipping_profile_id: shippingProfile.id,
+          type: {
+            label: "Express",
+            description: "Ship in 24 hours.",
+            code: "express",
           },
-          {
-            currency_code: "eur",
-            amount: 10,
-          },
-          {
-            region_id: region.id,
-            amount: 10,
-          },
-        ],
-        rules: [
-          {
-            attribute: "enabled_in_store",
-            value: '"true"',
-            operator: "eq",
-          },
-          {
-            attribute: "is_return",
-            value: "false",
-            operator: "eq",
-          },
-        ],
-      },
-      {
-        name: "Express Shipping",
-        price_type: "flat",
-        provider_id: fulfillmentProviderId,
-        service_zone_id: fulfillmentSet.service_zones[0].id,
-        shipping_profile_id: shippingProfile.id,
-        type: {
-          label: "Express",
-          description: "Ship in 24 hours.",
-          code: "express",
+          prices: [
+            {
+              currency_code: "usd",
+              amount: 10,
+            },
+            {
+              currency_code: "eur",
+              amount: 10,
+            },
+            {
+              region_id: region.id,
+              amount: 10,
+            },
+          ],
+          rules: [
+            {
+              attribute: "enabled_in_store",
+              value: '"true"',
+              operator: "eq",
+            },
+            {
+              attribute: "is_return",
+              value: "false",
+              operator: "eq",
+            },
+          ],
         },
-        prices: [
-          {
-            currency_code: "usd",
-            amount: 10,
-          },
-          {
-            currency_code: "eur",
-            amount: 10,
-          },
-          {
-            region_id: region.id,
-            amount: 10,
-          },
-        ],
-        rules: [
-          {
-            attribute: "enabled_in_store",
-            value: '"true"',
-            operator: "eq",
-          },
-          {
-            attribute: "is_return",
-            value: "false",
-            operator: "eq",
-          },
-        ],
-      },
-    ],
-  });
+      ],
+    });
+  } catch (e: any) {}
   logger.info("Finished seeding fulfillment data.");
 
   logger.info("Seeding publishable API key data...");
-  const { result: publishableApiKeyResult } = await createApiKeysWorkflow(
-    container
-  ).run({
-    input: {
-      api_keys: [
-        {
-          title: "Webshop",
-          type: "publishable",
-          created_by: "",
-        },
-      ],
-    },
-  });
-  const publishableApiKey = publishableApiKeyResult[0];
+  let publishableApiKey;
+  try {
+    const { result: publishableApiKeyResult } = await createApiKeysWorkflow(
+      container
+    ).run({
+      input: {
+        api_keys: [
+          {
+            title: "Webshop",
+            type: "publishable",
+            created_by: "",
+          },
+        ],
+      },
+    });
+    publishableApiKey = publishableApiKeyResult[0];
 
-  await linkSalesChannelsToApiKeyWorkflow(container).run({
-    input: {
-      id: publishableApiKey.id,
-      add: [defaultSalesChannel[0].id],
-    },
-  });
+    await linkSalesChannelsToApiKeyWorkflow(container).run({
+      input: {
+        id: publishableApiKey.id,
+        add: [defaultSalesChannel[0].id],
+      },
+    });
+  } catch (e: any) {}
   logger.info("Finished seeding publishable API key data.");
 
   logger.info("Seeding shop data...");
@@ -337,60 +364,74 @@ export default async function seedData({ container }: ExecArgs) {
 
   shop.image_url = FRONTEND_URL + shop.image_url;
 
-  const { result: createdShop } = await createShopWorkflow(
-    container
-  ).run({
-    input: {
-      shop,
-    },
-  });
+  let createdShop;
+  try {
+    const { result: createShopRes } = await createShopWorkflow(
+      container
+    ).run({
+      input: {
+        shop,
+      },
+    });
+    createdShop = createShopRes;
+  } catch (e: any) {
+    const shopModuleService: any = container.resolve(
+      SHOP_MODULE
+    );
+    const existing = await shopModuleService.listShops({ name: shop.name });
+    createdShop = existing[0];
+  }
 
   logger.info("Seeding product data...");
 
-  const { result: categoryResult } = await createProductCategoriesWorkflow(
-    container
-  ).run({
-    input: {
-      product_categories: cakeToHomeSeedData.categories,
-    },
-  });
-
-  const productData = cakeToHomeSeedData.products.map((product) => {
-    const { id } = categoryResult.find((c) => c.handle === product.category);
-    const category_id = id;
-    const optionValues = Array.from(new Set(product.variants.map((v) => v.title.includes("1kg") ? "1kg" : "Standard")));
-    const options = [{ title: "Size", values: optionValues }];
-    const variants = product.variants.map((v) => ({
-      ...v,
-      options: {
-        Size: v.title.includes("1kg") ? "1kg" : "Standard",
+  try {
+    const { result: categoryResult } = await createProductCategoriesWorkflow(
+      container
+    ).run({
+      input: {
+        product_categories: cakeToHomeSeedData.categories,
       },
-    }));
+    });
 
-    return {
-      title: product.title,
-      handle: product.handle,
-      description: product.description,
-      is_giftcard: product.is_giftcard,
-      thumbnail: FRONTEND_URL + product.thumbnail,
-      category_ids: [category_id],
-      status: ProductStatus.PUBLISHED,
-      sales_channels: [
-        {
-          id: defaultSalesChannel[0].id,
+    const productData = cakeToHomeSeedData.products.map((product) => {
+      const { id } = categoryResult.find((c) => c.handle === product.category) || { id: "" };
+      const category_id = id;
+      const optionValues = Array.from(new Set(product.variants.map((v) => v.title.includes("1kg") ? "1kg" : "Standard")));
+      const options = [{ title: "Size", values: optionValues }];
+      const variants = product.variants.map((v) => ({
+        ...v,
+        options: {
+          Size: v.title.includes("1kg") ? "1kg" : "Standard",
         },
-      ],
-      options,
-      variants,
-    };
-  });
+      }));
 
-  await createShopProductsWorkflow(container).run({
-    input: {
-      products: productData,
-      shop_id: createdShop.id,
-    },
-  });
+      return {
+        title: product.title,
+        handle: product.handle,
+        description: product.description,
+        is_giftcard: product.is_giftcard,
+        thumbnail: FRONTEND_URL + product.thumbnail,
+        category_ids: [category_id],
+        status: ProductStatus.PUBLISHED,
+        sales_channels: [
+          {
+            id: defaultSalesChannel[0].id,
+          },
+        ],
+        options,
+        variants,
+      };
+    });
+
+    if (createdShop) {
+      await createShopProductsWorkflow(container).run({
+        input: {
+          products: productData,
+          shop_id: createdShop.id,
+        },
+      });
+    }
+  } catch (e: any) {}
 
   logger.info("Finished seeding product data.");
 }

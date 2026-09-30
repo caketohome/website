@@ -6,7 +6,7 @@ export const createShopStepId = "create-shop-step";
 export const createShopStep = createStep(
   createShopStepId,
   async function (data: CreateShopDTO, { container }) {
-    const shopModuleService = container.resolve(
+    const shopModuleService: any = container.resolve(
       SHOP_MODULE
     );
 
@@ -15,7 +15,7 @@ export const createShopStep = createStep(
     return new StepResponse(shop, shop.id);
   },
   function (input: string, { container }) {
-    const shopModuleService = container.resolve(
+    const shopModuleService: any = container.resolve(
       SHOP_MODULE
     );
 
