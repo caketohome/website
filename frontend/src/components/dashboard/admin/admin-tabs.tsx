@@ -5,7 +5,8 @@ import { Text } from "@medusajs/ui";
 import {
   ShoppingCart, Package, Building2, Truck,
   Users, Megaphone, Sparkles, FileText, BarChart3, Bell, Settings, Globe, Zap, Percent, ShieldCheck, KeyRound,
-  PhoneCall, Plug, Clock, Search
+  PhoneCall, Plug, Clock, Search, ShoppingBag, Building, Receipt, Landmark, BookOpen, Settings2, TrendingUp, Scale,
+  Waves
 } from "lucide-react";
 
 const TABS = [
@@ -15,6 +16,17 @@ const TABS = [
   { id: "branches", label: "Branches", icon: Building2 },
   { id: "delivery", label: "Delivery", icon: Truck },
   { id: "fulfillment", label: "🕒 Operations & Cutoff", icon: Clock },
+  { id: "suppliers", label: "Suppliers", icon: Building },
+  { id: "purchases", label: "Purchases", icon: ShoppingBag },
+  { id: "expenses", label: "Expenses", icon: Receipt },
+  { id: "gateway_settlements", label: "Gateway Settlements", icon: Receipt },
+  { id: "bank_reconciliation", label: "Bank Reconciliation", icon: Landmark },
+  { id: "general_ledger", label: "General Ledger", icon: BookOpen },
+  { id: "profit_loss", label: "Profit & Loss", icon: TrendingUp },
+  { id: "balance_sheet", label: "Balance Sheet", icon: Scale },
+  { id: "cash_flow", label: "Cash Flow", icon: Waves },
+  { id: "accounting_setup", label: "Accounting Setup", icon: Settings2 },
+  { id: "fleet", label: "Fleet & Fuel", icon: Truck },
   { id: "tax_master", label: "Tax Master", icon: Percent },
   { id: "abandoned_carts", label: "Cart Recovery", icon: ShoppingCart },
   { id: "telemarketing", label: "📞 Reorder Outreach", icon: PhoneCall },

@@ -12,7 +12,7 @@ import {
   BarChart3, TrendingUp, PieChart,
   Shield, KeyRound, ScrollText, Plug, Settings,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeft,
-  Search,
+  Search, Receipt, Landmark,
 } from "lucide-react";
 import { useAdminShell } from "./AdminShell";
 
@@ -66,6 +66,15 @@ const NAV_GROUPS: NavGroup[] = [
       { id: "branches", label: "Branches", icon: Building2, tabId: "branches" },
       { id: "delivery", label: "Delivery", icon: Truck, tabId: "delivery" },
       { id: "fulfillment", label: "Operations & Cutoff", icon: Clock, tabId: "fulfillment" },
+    ],
+  },
+  {
+    id: "finance",
+    label: "Finance & Treasury",
+    icon: Receipt,
+    items: [
+      { id: "gateway_settlements", label: "Gateway Settlements", icon: Receipt, tabId: "gateway_settlements" },
+      { id: "bank_reconciliation", label: "Bank Reconciliation (BRS)", icon: Landmark, tabId: "bank_reconciliation" },
     ],
   },
   {

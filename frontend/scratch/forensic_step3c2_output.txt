@@ -1,0 +1,968 @@
+================================================================================
+Phase 4F Step 3C.2 ΓÇö PACKAGING MASTER-DATA FORENSIC INSPECTION
+READ-ONLY ΓÇö NO MUTATIONS
+Timestamp: 2026-09-24T11:03:27.691Z
+================================================================================
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+A. PUBLIC.PRODUCT ΓÇö SCHEMA & DATA
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+A.1 Columns:
+  id: text NOT NULL 
+  title: text NOT NULL 
+  handle: text NOT NULL 
+  subtitle: text NULLABLE 
+  description: text NULLABLE 
+  is_giftcard: boolean NOT NULL DEFAULT false
+  status: text NOT NULL DEFAULT 'draft'::text
+  thumbnail: text NULLABLE 
+  weight: real NULLABLE 
+  length: real NULLABLE 
+  height: real NULLABLE 
+  width: real NULLABLE 
+  origin_country: text NULLABLE 
+  hs_code: text NULLABLE 
+  mid_code: text NULLABLE 
+  material: text NULLABLE 
+  collection_id: text NULLABLE 
+  type_id: text NULLABLE 
+  discountable: boolean NOT NULL DEFAULT true
+  external_id: text NULLABLE 
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  updated_at: timestamp with time zone NOT NULL DEFAULT now()
+  deleted_at: timestamp with time zone NULLABLE 
+  metadata: jsonb NULLABLE 
+  merchandise_type: character varying(20) NOT NULL DEFAULT 'CAKE'::character varying
+
+A.2 Constraints:
+  [FK] product_collection_id_foreign: FOREIGN KEY (collection_id) REFERENCES product_collection(id) ON UPDATE CASCADE ON DELETE SET NULL
+  [CHECK] product_merchandise_type_check: CHECK (((merchandise_type)::text = ANY ((ARRAY['CAKE'::character varying, 'ACCESSORY'::character varying, 'PACKAGING'::character varying])::text[])))
+  [PK] product_pkey: PRIMARY KEY (id)
+  [CHECK] product_status_check: CHECK ((status = ANY (ARRAY['draft'::text, 'proposed'::text, 'published'::text, 'rejected'::text])))
+  [FK] product_type_id_foreign: FOREIGN KEY (type_id) REFERENCES product_type(id) ON UPDATE CASCADE ON DELETE SET NULL
+
+A.3 Indexes:
+  IDX_product_collection_id: CREATE INDEX "IDX_product_collection_id" ON public.product USING btree (collection_id) WHERE (deleted_at IS NULL)
+  IDX_product_deleted_at: CREATE INDEX "IDX_product_deleted_at" ON public.product USING btree (deleted_at)
+  IDX_product_handle_unique: CREATE UNIQUE INDEX "IDX_product_handle_unique" ON public.product USING btree (handle) WHERE (deleted_at IS NULL)
+  IDX_product_status: CREATE INDEX "IDX_product_status" ON public.product USING btree (status) WHERE (deleted_at IS NULL)
+  IDX_product_type_id: CREATE INDEX "IDX_product_type_id" ON public.product USING btree (type_id) WHERE (deleted_at IS NULL)
+  product_pkey: CREATE UNIQUE INDEX product_pkey ON public.product USING btree (id)
+
+A.4 Product count by merchandise_type:
+  ACCESSORY: 8
+  CAKE: 57
+
+A.5 Total products: 65
+A.6 Soft-deleted products: 45
+A.7 Active products: 20
+
+A.8 Sample CAKE:
+  id: prod_01KXYMAJKNWZCFXJHESPTZE01G
+  title: Classic Chocolate Truffle Cake
+  handle: classic-chocolate-truffle-cake
+  merchandise_type: CAKE
+  status: published
+  hs_code: null
+  metadata_text: {"mrp": 541, "uqc": "NOS", "tags": "chocolate, celebration, birthday", "brand": "CakeToHome Signature", "cream": "Fresh Cream", "price": 433, "vegan": false, "creams": [], "rating": 4.9, "shapes": [], "filling": "Chocolate Ganache", "flavors": [], "flavour": "Chocolate", "gallery": ["http://localhost:3000/_1ed747de-53f1-4915-aaba-92c046039beb.jpeg"], "texture": "Soft & Moist", "alt_text": "Freshly baked celebration cake", "category": "Chocolate Cakes", "fillings": [], "gst_rate": 5, "hsn_code": "19059090", "occasion": "Birthday", "cake_base": "Chocolate", "cake_type": "Layer Cake", "seo_title": "Classic Chocolate Truffle Cake - CakeToHome", "tax_class": "GST_FOOD_5", "video_url": "", "cost_price": 350, "pim_config": {"show_cream": false, "show_knife": true, "show_shape": false, "show_weight": true, "show_candles": true, "show_dietary": true, "show_filling": true, "show_flavour": false, "show_balloons": true, "min_prep_hours": 2, "required_cream": false, "required_shape": false, "express_allowed": true, "required_weight": true, "show_photo_cake": false, "midnight_allowed": false, "required_dietary": false, "required_filling": false, "required_flavour": false, "same_day_allowed": true, "scheduled_allowed": true, "show_cake_message": true, "show_greeting_card": true, "required_photo_cake": false, "required_cake_message": false, "show_premium_packaging": true, "max_delivery_distance_km": 15}, "sugar_free": false, "taxability": "Taxable", "gluten_free": false, "is_featured": false, "add_ons_json": {"add_on_card": true, "is_photo_cake": false, "message_limit": "40", "add_on_candles": true, "add_on_flowers": false, "allow_custom_message": true}, "category_ids": [], "occasion_ids": ["occ_birthday", "occ_anniversary", "occ_graduation"], "review_count": 12, "seo_keywords": "cake delivery, fresh cakes, birthday cake online", "category_slug": "chocolate-cakes", "is_bestseller": false, "selling_price": 433, "tax_inclusive": true, "variants_json": {"shapes": [], "weights": ["0.5 kg", "1 kg", "1.5 kg", "2 kg"], "flavours": []}, "weight_prices": [{"id": "wp_prod_01KXYMAJKNWZCFXJHESPTZE01G_500", "mrp": 541, "weight_id": "wp_prod_01KXYMAJKNWZCFXJHESPTZE01G_500", "cost_price": 195, "is_enabled": true, "product_id": "prod_01KXYMAJKNWZCFXJHESPTZE01G", "sort_order": 1, "updated_at": "2026-09-10T05:50:48.391Z", "weight_name": "0.5 kg", "weight_unit": "kg", "weight_value": 0.5, "selling_price": 433, "normalized_grams": 500, "prep_time_minutes": 60}, {"id": "wp_prod_01KXYMAJKNWZCFXJHESPTZE01G_1000", "mrp": 636, "weight_id": "wp_prod_01KXYMAJKNWZCFXJHESPTZE01G_1000", "cost_price": 229, "is_enabled": true, "product_id": "prod_01KXYMAJKNWZCFXJHESPTZE01G", "sort_order": 2, "updated_at": "2026-09-10T05:50:48.391Z", "weight_name": "1 kg", "weight_unit": "kg", "weight_value": 1, "selling_price": 509, "normalized_grams": 1000, "prep_time_minutes": 60}, {"id": "wp_prod_01KXYMAJKNWZCFXJHESPTZE01G_1500", "mrp": 923, "weight_id": "wp_prod_01KXYMAJKNWZCFXJHESPTZE01G_1500", "cost_price": 332, "is_enabled": true, "product_id": "prod_01KXYMAJKNWZCFXJHESPTZE01G", "sort_order": 3, "updated_at": "2026-09-10T05:50:48.391Z", "weight_name": "1.5 kg", "weight_unit": "kg", "weight_value": 1.5, "selling_price": 738, "normalized_grams": 1500, "prep_time_minutes": 120}, {"id": "wp_prod_01KXYMAJKNWZCFXJHESPTZE01G_2000", "mrp": 1178, "weight_id": "wp_prod_01KXYMAJKNWZCFXJHESPTZE01G_2000", "cost_price": 424, "is_enabled": true, "product_id": "prod_01KXYMAJKNWZCFXJHESPTZE01G", "sort_order": 4, "updated_at": "2026-09-10T05:50:48.391Z", "weight_name": "2 kg", "weight_unit": "kg", "weight_value": 2, "selling_price": 942, "normalized_grams": 2000, "prep_time_minutes": 120}], "daily_capacity": 50, "is_new_arrival": false, "hsn_description": "Cakes, Pastries & Bakery Goods", "seo_description": "Rich and indulgent chocolate truffle cake with layers of dark chocolate ganache.", "shelf_life_days": 3, "prep_time_minutes": 60, "primary_category_id": "cat_chocolate", "tax_configuration_id": "txcfg_food_5", "enable_shape_selection": false, "secondary_category_ids": [], "enable_flavor_selection": false, "max_delivery_distance_km": 15}
+  created_at: Mon Jul 20 2026 07:35:20 GMT+0530 (India Standard Time)
+  deleted_at: null
+
+A.9 Sample ACCESSORY:
+  id: acc_01
+  title: Gold Acrylic Happy Birthday Topper
+  handle: gold-acrylic-happy-birthday-topper
+  merchandise_type: ACCESSORY
+  status: published
+  hs_code: null
+  metadata_text: {"mrp": 149, "sku": "ACC-TOP-GOLD", "uqc": "NOS", "price": 99, "weight": "50g", "category": "Cake Accessories", "gst_rate": 18, "hsn_code": "95059000", "tax_class": "GST_STANDARD_18", "cost_price": 42, "pim_config": {"show_shape": false, "show_weight": false, "show_flavour": false, "inventory_mode": "STOCK_CONTROLLED", "required_weight": false}, "taxability": "Taxable", "category_slug": "accessories", "selling_price": 99, "tax_inclusive": true, "low_stock_threshold": 5, "primary_category_id": "cat_accessories"}
+  created_at: Fri Sep 18 2026 19:57:55 GMT+0530 (India Standard Time)
+  deleted_at: null
+
+A.10 Distinct metadata JSON keys:
+  add_ons_json
+  alt_text
+  brand
+  cake_base
+  cake_type
+  category
+  category_ids
+  category_slug
+  cost_price
+  cream
+  creams
+  daily_capacity
+  eggless
+  enable_flavor_selection
+  enable_shape_selection
+  filling
+  fillings
+  flavors
+  flavour
+  gallery
+  gluten_free
+  gst_rate
+  hsn_code
+  hsn_description
+  is_bestseller
+  is_featured
+  is_new_arrival
+  low_stock_threshold
+  max_delivery_distance_km
+  mrp
+  occasion
+  occasion_ids
+  pim_config
+  prep_time_minutes
+  price
+  price_correction_source
+  price_updated_at
+  primary_category_id
+  rating
+  review_count
+  secondary_category_ids
+  selling_price
+  seo_description
+  seo_keywords
+  seo_title
+  shapes
+  shelf_life_days
+  sku
+  sugar_free
+  tags
+  tax_class
+  tax_configuration_id
+  tax_inclusive
+  taxability
+  texture
+  uqc
+  variants_json
+  vegan
+  video_url
+  weight
+  weight_prices
+
+A.11 Product status distribution:
+  draft: 17
+  published: 48
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+B. PUBLIC.PRODUCT_VARIANT ΓÇö SCHEMA & DATA
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+B.1 Columns:
+  id: text NOT NULL 
+  title: text NOT NULL 
+  sku: text NULLABLE 
+  barcode: text NULLABLE 
+  ean: text NULLABLE 
+  upc: text NULLABLE 
+  allow_backorder: boolean NOT NULL DEFAULT false
+  manage_inventory: boolean NOT NULL DEFAULT true
+  hs_code: text NULLABLE 
+  origin_country: text NULLABLE 
+  mid_code: text NULLABLE 
+  material: text NULLABLE 
+  weight: real NULLABLE 
+  length: real NULLABLE 
+  height: real NULLABLE 
+  width: real NULLABLE 
+  metadata: jsonb NULLABLE 
+  variant_rank: integer NULLABLE DEFAULT 0
+  product_id: text NULLABLE 
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  updated_at: timestamp with time zone NOT NULL DEFAULT now()
+  deleted_at: timestamp with time zone NULLABLE 
+  thumbnail: text NULLABLE 
+
+B.2 Constraints:
+  [PK] product_variant_pkey: PRIMARY KEY (id)
+  [FK] product_variant_product_id_foreign: FOREIGN KEY (product_id) REFERENCES product(id) ON UPDATE CASCADE ON DELETE CASCADE
+
+B.3 Indexes:
+  IDX_product_variant_barcode_unique: CREATE UNIQUE INDEX "IDX_product_variant_barcode_unique" ON public.product_variant USING btree (barcode) WHERE (deleted_at IS NULL)
+  IDX_product_variant_deleted_at: CREATE INDEX "IDX_product_variant_deleted_at" ON public.product_variant USING btree (deleted_at)
+  IDX_product_variant_ean_unique: CREATE UNIQUE INDEX "IDX_product_variant_ean_unique" ON public.product_variant USING btree (ean) WHERE (deleted_at IS NULL)
+  IDX_product_variant_id_product_id: CREATE INDEX "IDX_product_variant_id_product_id" ON public.product_variant USING btree (id, product_id) WHERE (deleted_at IS NULL)
+  IDX_product_variant_product_id: CREATE INDEX "IDX_product_variant_product_id" ON public.product_variant USING btree (product_id) WHERE (deleted_at IS NULL)
+  IDX_product_variant_sku_unique: CREATE UNIQUE INDEX "IDX_product_variant_sku_unique" ON public.product_variant USING btree (sku) WHERE (deleted_at IS NULL)
+  IDX_product_variant_upc_unique: CREATE UNIQUE INDEX "IDX_product_variant_upc_unique" ON public.product_variant USING btree (upc) WHERE (deleted_at IS NULL)
+  product_variant_pkey: CREATE UNIQUE INDEX product_variant_pkey ON public.product_variant USING btree (id)
+
+B.4 Total variants: 27
+B.5 Soft-deleted variants: 0
+B.6 Active products WITHOUT active variants: 4
+B.7 Active products WITH active variants: 16
+
+B.8 Sample variants:
+  [0]
+    id: var_acc_01
+    product_id: acc_01
+    title: Default
+    sku: ACC-TOP-GOLD
+    barcode: null
+    weight: 0.05
+    hs_code: null
+    manage_inventory: true
+    allow_backorder: false
+    metadata_text: {"price": 99, "cost_price": 42, "low_stock_threshold": 5}
+    created_at: Fri Sep 18 2026 19:57:55 GMT+0530 (India Standard Time)
+  [1]
+    id: var_acc_02
+    product_id: acc_02
+    title: Default
+    sku: ACC-CAN-MAGIC
+    barcode: null
+    weight: 0.03
+    hs_code: null
+    manage_inventory: true
+    allow_backorder: false
+    metadata_text: {"price": 49, "cost_price": 18, "low_stock_threshold": 10}
+    created_at: Fri Sep 18 2026 19:57:55 GMT+0530 (India Standard Time)
+
+B.9 Weight unit: column does not exist ΓÇö column "weight_unit" does not exist
+  Variants with weight set: 8
+
+B.10 Variant distribution by merchandise_type:
+  ACCESSORY: 2 products, 2 variants
+  CAKE: 14 products, 14 variants
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+C. PUBLIC.PRODUCT_CATEGORY
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+C.1 Columns:
+  id: text NOT NULL
+  name: text NOT NULL
+  description: text NOT NULL
+  handle: text NOT NULL
+  mpath: text NOT NULL
+  is_active: boolean NOT NULL
+  is_internal: boolean NOT NULL
+  rank: integer NOT NULL
+  parent_category_id: text NULLABLE
+  created_at: timestamp with time zone NOT NULL
+  updated_at: timestamp with time zone NOT NULL
+  deleted_at: timestamp with time zone NULLABLE
+  metadata: jsonb NULLABLE
+  external_id: text NULLABLE
+
+C.2 Total categories: 11
+
+C.3 Categories:
+  {"id":"cat_accessories","name":"Accessories","description":"Celebration & Cake Accessories","handle":"accessories","mpath":"cat_accessories","is_active":true,"is_internal":false,"rank":99,"parent_category_id":null,"created_at":"2026-09-18T14:27:55.015Z","updated_at":"2026-09-18T14:27:55.015Z","deleted_at":null,"metadata":null,"external_id":null}
+  {"id":"cat_bestsellers","name":"Best Sellers","description":"Bangalore's most-ordered gourmet celebratory cakes.","handle":"bestsellers","mpath":"","is_active":true,"is_internal":false,"rank":0,"parent_category_id":null,"created_at":"2026-08-28T04:07:08.740Z","updated_at":"2026-08-28T04:07:08.740Z","deleted_at":null,"metadata":null,"external_id":null}
+  {"id":"cat_black_forest","name":"Black Forest Cakes","description":"Traditional German gateau with cherries and chocolate shavings.","handle":"black-forest-cakes","mpath":"","is_active":true,"is_internal":false,"rank":0,"parent_category_id":null,"created_at":"2026-08-28T04:07:08.740Z","updated_at":"2026-08-28T04:07:08.740Z","deleted_at":null,"metadata":null,"external_id":null}
+  {"id":"cat_butterscotch","name":"Butterscotch & Caramel Cakes","description":"Crunchy praline, butterscotch chips, and salted golden caramel.","handle":"butterscotch-caramel-cakes","mpath":"","is_active":true,"is_internal":false,"rank":0,"parent_category_id":null,"created_at":"2026-08-28T04:07:08.740Z","updated_at":"2026-08-28T04:07:08.740Z","deleted_at":null,"metadata":null,"external_id":null}
+  {"id":"cat_cheesecakes","name":"Cheesecakes & Artisanal","description":"Baked New York cheesecakes and chef-crafted artisanal creations.","handle":"cheesecakes","mpath":"","is_active":true,"is_internal":false,"rank":0,"parent_category_id":null,"created_at":"2026-08-28T04:07:08.740Z","updated_at":"2026-08-28T04:07:08.740Z","deleted_at":null,"metadata":null,"external_id":null}
+  {"id":"cat_chocolate","name":"Chocolate Cakes","description":"Rich, decadent Belgian chocolate, fudge, and truffle cakes.","handle":"chocolate-cakes","mpath":"","is_active":true,"is_internal":false,"rank":0,"parent_category_id":null,"created_at":"2026-08-28T04:07:08.740Z","updated_at":"2026-08-28T04:07:08.740Z","deleted_at":null,"metadata":null,"external_id":null}
+  {"id":"cat_fruit_mousse","name":"Fruit & Mousse Cakes","description":"Fresh seasonal Alphonso mango, berries, and airy mousse layers.","handle":"fruit-mousse-cakes","mpath":"","is_active":true,"is_internal":false,"rank":0,"parent_category_id":null,"created_at":"2026-08-28T04:07:08.740Z","updated_at":"2026-08-28T04:07:08.740Z","deleted_at":null,"metadata":null,"external_id":null}
+  {"id":"cat_red_velvet","name":"Red Velvet Cakes","description":"Classic crimson velvet layers with rich cream cheese frosting.","handle":"red-velvet-cakes","mpath":"","is_active":true,"is_internal":false,"rank":0,"parent_category_id":null,"created_at":"2026-08-28T04:07:08.740Z","updated_at":"2026-08-28T04:07:08.740Z","deleted_at":null,"metadata":null,"external_id":null}
+  {"id":"pcat_01KXYMAJ0T01BWMZYRVP96Y74H","name":"Birthday Cakes","description":"Beautiful birthday cakes for every celebration.","handle":"birthday-cakes","mpath":"pcat_01KXYMAJ0T01BWMZYRVP96Y74H","is_active":true,"is_internal":false,"rank":0,"parent_category_id":null,"created_at":"2026-07-20T02:05:20.427Z","updated_at":"2026-07-20T02:05:20.427Z","deleted_at":null,"metadata":null,"external_id":null}
+  {"id":"pcat_01KXYMAJ2W3HTY68D0N4S4DTF3","name":"Pastries","description":"Freshly baked pastries and desserts.","handle":"pastries","mpath":"pcat_01KXYMAJ2W3HTY68D0N4S4DTF3","is_active":true,"is_internal":false,"rank":1,"parent_category_id":null,"created_at":"2026-07-20T02:05:20.428Z","updated_at":"2026-07-20T02:05:20.428Z","deleted_at":null,"metadata":null,"external_id":null}
+  {"id":"pcat_01KXYMAJ594FW8E5ZNFVQGCZAK","name":"Cupcakes","description":"Delightful cupcakes in a variety of flavors.","handle":"cupcakes","mpath":"pcat_01KXYMAJ594FW8E5ZNFVQGCZAK","is_active":true,"is_internal":false,"rank":2,"parent_category_id":null,"created_at":"2026-07-20T02:05:20.428Z","updated_at":"2026-07-20T02:05:20.428Z","deleted_at":null,"metadata":null,"external_id":null}
+
+C.4 Constraints:
+  [f] product_category_parent_category_id_foreign: FOREIGN KEY (parent_category_id) REFERENCES product_category(id) ON UPDATE CASCADE ON DELETE CASCADE
+  [p] product_category_pkey: PRIMARY KEY (id)
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+D. PRODUCT-CATEGORY JUNCTION / RELATIONSHIP
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+D.1 Junction tables found:
+  product_category
+  product_category_product
+
+D.2 Category columns on product table:
+  (none)
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+E. PUBLIC.BRANCH_INVENTORY ΓÇö SCHEMA & DATA
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+E.1 Columns:
+  id: text NOT NULL 
+  product_id: text NOT NULL 
+  variant_id: text NOT NULL 
+  quantity: integer NOT NULL DEFAULT 0
+  reserved: integer NOT NULL DEFAULT 0
+  branch_id: text NOT NULL 
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  updated_at: timestamp with time zone NOT NULL DEFAULT now()
+  deleted_at: timestamp with time zone NULLABLE 
+
+E.2 Constraints:
+  [FK] branch_inventory_branch_id_foreign: FOREIGN KEY (branch_id) REFERENCES branch(id) ON UPDATE CASCADE ON DELETE CASCADE
+  [PK] branch_inventory_pkey: PRIMARY KEY (id)
+
+E.3 Indexes:
+  IDX_branch_inventory_branch_id: CREATE INDEX "IDX_branch_inventory_branch_id" ON public.branch_inventory USING btree (branch_id) WHERE (deleted_at IS NULL)
+  IDX_branch_inventory_branch_variant: CREATE UNIQUE INDEX "IDX_branch_inventory_branch_variant" ON public.branch_inventory USING btree (branch_id, variant_id) WHERE (deleted_at IS NULL)
+  IDX_branch_inventory_variant_id: CREATE INDEX "IDX_branch_inventory_variant_id" ON public.branch_inventory USING btree (variant_id) WHERE (deleted_at IS NULL)
+  branch_inventory_pkey: CREATE UNIQUE INDEX branch_inventory_pkey ON public.branch_inventory USING btree (id)
+
+E.4 Total rows: 424
+E.5 NULL product_id rows: 0
+E.6 NULL variant_id rows: 0
+
+E.7 Inventory by merchandise_type:
+  ACCESSORY: 424 rows, total qty=20053
+
+E.8 Sample rows:
+  {"id":"binv_br_01KYWH5SXYWVPHC73TZN245CKR_var_acc_02","product_id":"acc_02","variant_id":"var_acc_02","quantity":80,"reserved":0,"branch_id":"br_01KYWH5SXYWVPHC73TZN245CKR","created_at":"2026-09-18T14:28:31.230Z","updated_at":"2026-09-18T14:28:31.230Z","deleted_at":null}
+  {"id":"binv_br_01KYWH5SXYWVPHC73TZN245CKR_var_acc_03","product_id":"acc_03","variant_id":"var_acc_03","quantity":120,"reserved":0,"branch_id":"br_01KYWH5SXYWVPHC73TZN245CKR","created_at":"2026-09-18T14:28:31.230Z","updated_at":"2026-09-18T14:28:31.230Z","deleted_at":null}
+  {"id":"binv_br_01KYWH5SXYWVPHC73TZN245CKR_var_acc_04","product_id":"acc_04","variant_id":"var_acc_04","quantity":25,"reserved":0,"branch_id":"br_01KYWH5SXYWVPHC73TZN245CKR","created_at":"2026-09-18T14:28:31.230Z","updated_at":"2026-09-18T14:28:31.230Z","deleted_at":null}
+
+E.9 Negative quantity rows: 0
+
+E.10 Stock by branch:
+  branch br_01KYWH5SXYWVPHC73TZN245CKR: 8 items, qty=344
+  branch br_01KYWH6N9KF1FZBJ252K82TE82: 8 items, qty=335
+  branch br_01KYWH9YFVV5AK15D6313HB1NC: 8 items, qty=380
+  branch br_01KYWHBCDMVT74MM27BTJFRSNB: 8 items, qty=380
+  branch br_01KYWHZY9KHRFB7MKTH1XJ3R4A: 8 items, qty=380
+  branch br_01KYWJ16081QW1RWANZ6TXVCGA: 8 items, qty=380
+  branch br_01KYWJ6N07HQ27NSX08TKTZ796: 8 items, qty=380
+  branch br_01KYWJBB97D59J26J1DSQ50QCM: 8 items, qty=380
+  branch br_01KYWJVYN9F2VEVVNHW53CCNGA: 8 items, qty=380
+  branch br_01KYXBT3K3MW97W66FEB6H1QMD: 8 items, qty=380
+  branch br_01KYXBTX7J15F9BKS841MSTRX2: 8 items, qty=380
+  branch br_01KYXBYEXVJ2Y74CV5MD6TWM7G: 8 items, qty=380
+  branch br_01KYXHX7ZSQ35F1H2V14E730MX: 8 items, qty=380
+  branch br_01KYXJNXKVAV15KCSTT30F5NMZ: 8 items, qty=380
+  branch br_01KYXK06T8RKVGTGTVPBBV8BKQ: 8 items, qty=380
+  branch br_01KYXKJYFXJQCQ8RD9CJXNV0MJ: 8 items, qty=380
+  branch br_01KYXMRTGV4AWTEWP0R3KY37SE: 8 items, qty=380
+  branch br_01KYYNSFW9E1NW46WZDWFNP9Q9: 8 items, qty=380
+  branch br_01KYYNW14GG45A8KRES0FXT2TD: 8 items, qty=380
+  branch br_01KYYXJPG8GCJX8CDSEGRPQTCP: 8 items, qty=380
+  branch br_01KYYZ4SYFXPYJ0HMV8PJFRYGA: 8 items, qty=380
+  branch br_01KYYZ6PRQ78BKEBZMEPT3D08N: 8 items, qty=380
+  branch br_01KYYZ8FNYFNMEH361A7K3W0T8: 8 items, qty=380
+  branch br_01KYZ4ANQQA050PNED6F2AR7ND: 8 items, qty=380
+  branch br_1787668807283: 8 items, qty=380
+  branch br_1787676189375: 8 items, qty=380
+  branch br_1787676208729: 8 items, qty=380
+  branch br_1787676222530: 8 items, qty=380
+  branch br_1787677023822: 8 items, qty=380
+  branch br_1787677037513: 8 items, qty=380
+  branch br_1787677407085: 8 items, qty=380
+  branch br_1787677427386: 8 items, qty=380
+  branch br_1787678841932: 8 items, qty=380
+  branch br_1787678886087: 8 items, qty=380
+  branch br_1787717633262: 8 items, qty=380
+  branch br_1787717642299: 8 items, qty=380
+  branch br_1788949580698: 8 items, qty=380
+  branch br_chennai_tnagar: 8 items, qty=380
+  branch br_e2e_nojson_559042: 8 items, qty=380
+  branch br_e2e_nojson_584558: 8 items, qty=380
+  branch br_e2e_nojson_640130: 8 items, qty=380
+  branch br_e2e_nojson_678478: 8 items, qty=380
+  branch br_e2e_nojson_706484: 8 items, qty=380
+  branch br_hsr: 8 items, qty=380
+  branch br_indiranagar: 8 items, qty=376
+  branch br_kochi_ernakulam: 8 items, qty=380
+  branch br_kollam_central: 8 items, qty=380
+  branch br_koramangala: 8 items, qty=378
+  branch br_mumbai_bandra: 8 items, qty=380
+  branch br_search_test_1788955318258: 8 items, qty=380
+  branch br_search_test_1788957821141: 8 items, qty=380
+  branch br_whitefield: 8 items, qty=380
+  branch test_branch_e2e_1787894282691: 8 items, qty=380
+
+E.11 branch_inventory.product_id column exists: YES
+  Nullability: NOT NULL
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+F. PUBLIC.INVENTORY_MOVEMENT
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+F.1 Columns:
+  id: text NOT NULL DEFAULT (gen_random_uuid())::text
+  branch_id: text NOT NULL 
+  product_id: text NULLABLE 
+  variant_id: text NULLABLE 
+  movement_type: text NOT NULL 
+  quantity: numeric NOT NULL 
+  direction: text NOT NULL 
+  order_id: text NULLABLE 
+  purchase_id: text NULLABLE 
+  voucher_id: text NULLABLE 
+  reference_no: text NULLABLE 
+  narration: text NULLABLE 
+  created_by: text NOT NULL DEFAULT 'SYSTEM'::text
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+
+F.2 Constraints:
+  [FK] inventory_movement_branch_id_fkey: FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT
+  [CHECK] inventory_movement_direction_check: CHECK ((direction = ANY (ARRAY['IN'::text, 'OUT'::text])))
+  [CHECK] inventory_movement_movement_type_check: CHECK ((movement_type = ANY (ARRAY['PURCHASE_RECEIPT'::text, 'SALES_FULFILLMENT'::text, 'PURCHASE_RETURN'::text, 'SALES_RETURN'::text, 'STOCK_ADJUSTMENT_UP'::text, 'STOCK_ADJUSTMENT_DOWN'::text, 'TRANSFER_IN'::text, 'TRANSFER_OUT'::text, 'DAMAGE_WRITEOFF'::text, 'INVOICE_REVERSAL'::text])))
+  [FK] inventory_movement_order_id_fkey: FOREIGN KEY (order_id) REFERENCES "order"(id) ON DELETE RESTRICT
+  [PK] inventory_movement_pkey: PRIMARY KEY (id)
+  [FK] inventory_movement_product_id_fkey: FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE RESTRICT
+  [FK] inventory_movement_purchase_id_fkey: FOREIGN KEY (purchase_id) REFERENCES purchase(id) ON DELETE RESTRICT
+  [CHECK] inventory_movement_quantity_check: CHECK ((quantity > (0)::numeric))
+  [FK] inventory_movement_variant_id_fkey: FOREIGN KEY (variant_id) REFERENCES product_variant(id) ON DELETE RESTRICT
+  [FK] inventory_movement_voucher_id_fkey: FOREIGN KEY (voucher_id) REFERENCES accounting_voucher(id) ON DELETE RESTRICT
+
+F.3 Total rows: 0
+
+F.4 product_id/variant_id nullability:
+  product_id: NULLABLE
+  variant_id: NULLABLE
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+G. PUBLIC.INVENTORY_COST_LOT
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+G.1 Columns:
+  id: text NOT NULL DEFAULT (gen_random_uuid())::text
+  branch_id: text NOT NULL 
+  product_id: text NULLABLE 
+  variant_id: text NULLABLE 
+  item_type: text NOT NULL 
+  purchase_id: text NOT NULL 
+  purchase_item_id: text NOT NULL 
+  supplier_id: text NOT NULL 
+  received_quantity: numeric NOT NULL 
+  remaining_quantity: numeric NOT NULL 
+  unit_cost: numeric NOT NULL 
+  total_cost: numeric NOT NULL 
+  currency: character varying NOT NULL DEFAULT 'INR'::character varying
+  received_at: date NOT NULL 
+  status: text NOT NULL DEFAULT 'ACTIVE'::text
+  created_by: text NOT NULL DEFAULT 'SYSTEM'::text
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  updated_at: timestamp with time zone NOT NULL DEFAULT now()
+
+G.2 Constraints:
+  [CHECK] chk_cost_lot_cost_consistency: CHECK ((abs((total_cost - round((received_quantity * unit_cost), 2))) <= 0.05))
+  [CHECK] chk_cost_lot_qty_bound: CHECK ((remaining_quantity <= received_quantity))
+  [FK] inventory_cost_lot_branch_id_fkey: FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT
+  [CHECK] inventory_cost_lot_item_type_check: CHECK ((item_type = ANY (ARRAY['CAKE'::text, 'ACCESSORY'::text, 'PACKAGING'::text])))
+  [PK] inventory_cost_lot_pkey: PRIMARY KEY (id)
+  [FK] inventory_cost_lot_product_id_fkey: FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE RESTRICT
+  [FK] inventory_cost_lot_purchase_id_fkey: FOREIGN KEY (purchase_id) REFERENCES purchase(id) ON DELETE RESTRICT
+  [FK] inventory_cost_lot_purchase_item_id_fkey: FOREIGN KEY (purchase_item_id) REFERENCES purchase_item(id) ON DELETE RESTRICT
+  [CHECK] inventory_cost_lot_received_quantity_check: CHECK ((received_quantity > (0)::numeric))
+  [CHECK] inventory_cost_lot_remaining_quantity_check: CHECK ((remaining_quantity >= (0)::numeric))
+  [CHECK] inventory_cost_lot_status_check: CHECK ((status = ANY (ARRAY['ACTIVE'::text, 'DEPLETED'::text, 'REVERSED'::text])))
+  [FK] inventory_cost_lot_supplier_id_fkey: FOREIGN KEY (supplier_id) REFERENCES supplier(id) ON DELETE RESTRICT
+  [CHECK] inventory_cost_lot_total_cost_check: CHECK ((total_cost >= (0)::numeric))
+  [CHECK] inventory_cost_lot_unit_cost_check: CHECK ((unit_cost >= (0)::numeric))
+  [FK] inventory_cost_lot_variant_id_fkey: FOREIGN KEY (variant_id) REFERENCES product_variant(id) ON DELETE RESTRICT
+  [UNIQUE] uq_inventory_cost_lot_purchase_item: UNIQUE (purchase_item_id)
+
+G.3 Indexes:
+  idx_inventory_cost_lot_branch: CREATE INDEX idx_inventory_cost_lot_branch ON public.inventory_cost_lot USING btree (branch_id)
+  idx_inventory_cost_lot_fifo: CREATE INDEX idx_inventory_cost_lot_fifo ON public.inventory_cost_lot USING btree (branch_id, product_id, variant_id, received_at, created_at) WHERE ((status = 'ACTIVE'::text) AND (remaining_quantity > (0)::numeric))
+  idx_inventory_cost_lot_purchase: CREATE INDEX idx_inventory_cost_lot_purchase ON public.inventory_cost_lot USING btree (purchase_id)
+  idx_inventory_cost_lot_purchase_item: CREATE INDEX idx_inventory_cost_lot_purchase_item ON public.inventory_cost_lot USING btree (purchase_item_id)
+  idx_inventory_cost_lot_supplier: CREATE INDEX idx_inventory_cost_lot_supplier ON public.inventory_cost_lot USING btree (supplier_id)
+  inventory_cost_lot_pkey: CREATE UNIQUE INDEX inventory_cost_lot_pkey ON public.inventory_cost_lot USING btree (id)
+  uq_inventory_cost_lot_purchase_item: CREATE UNIQUE INDEX uq_inventory_cost_lot_purchase_item ON public.inventory_cost_lot USING btree (purchase_item_id)
+
+G.4 Total rows: 0
+
+G.5 product_id/variant_id nullability:
+  product_id: NULLABLE
+  variant_id: NULLABLE
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+H. PUBLIC.INVENTORY_COST_CONSUMPTION
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+H.1 Columns:
+  id: text NOT NULL DEFAULT (gen_random_uuid())::text
+  movement_id: text NOT NULL 
+  lot_id: text NOT NULL 
+  quantity: numeric NOT NULL 
+  unit_cost: numeric NOT NULL 
+  total_cost: numeric NOT NULL 
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+
+H.2 Constraints:
+  [CHECK] chk_cost_consumption_math: CHECK ((abs((total_cost - round((quantity * unit_cost), 2))) <= 0.05))
+  [FK] inventory_cost_consumption_lot_id_fkey: FOREIGN KEY (lot_id) REFERENCES inventory_cost_lot(id) ON DELETE RESTRICT
+  [FK] inventory_cost_consumption_movement_id_fkey: FOREIGN KEY (movement_id) REFERENCES inventory_movement(id) ON DELETE RESTRICT
+  [PK] inventory_cost_consumption_pkey: PRIMARY KEY (id)
+  [CHECK] inventory_cost_consumption_quantity_check: CHECK ((quantity > (0)::numeric))
+  [CHECK] inventory_cost_consumption_total_cost_check: CHECK ((total_cost >= (0)::numeric))
+  [CHECK] inventory_cost_consumption_unit_cost_check: CHECK ((unit_cost >= (0)::numeric))
+
+H.3 Total rows: 0
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+I. PUBLIC.PURCHASE_ITEM
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+I.1 Columns:
+  id: text NOT NULL 
+  purchase_id: text NOT NULL 
+  product_id: text NULLABLE 
+  variant_id: text NULLABLE 
+  description: text NOT NULL 
+  quantity: numeric NOT NULL 
+  rate: numeric NOT NULL 
+  discount: numeric NOT NULL DEFAULT 0
+  taxable_value: numeric NOT NULL DEFAULT 0
+  cgst_rate: numeric NULLABLE 
+  sgst_rate: numeric NULLABLE 
+  igst_rate: numeric NULLABLE 
+  cgst: numeric NULLABLE 
+  sgst: numeric NULLABLE 
+  igst: numeric NULLABLE 
+  total: numeric NOT NULL DEFAULT 0
+  hsn_code: text NULLABLE 
+  created_at: timestamp with time zone NOT NULL DEFAULT now()
+  updated_at: timestamp with time zone NOT NULL DEFAULT now()
+  deleted_at: timestamp with time zone NULLABLE 
+  item_type: character varying NOT NULL DEFAULT 'CAKE'::character varying
+
+I.2 Constraints:
+  [CHECK] purchase_item_discount_check: CHECK ((discount >= (0)::numeric))
+  [CHECK] purchase_item_item_type_check: CHECK (((item_type)::text = ANY ((ARRAY['CAKE'::character varying, 'ACCESSORY'::character varying, 'PACKAGING'::character varying])::text[])))
+  [PK] purchase_item_pkey: PRIMARY KEY (id)
+  [FK] purchase_item_purchase_id_fkey: FOREIGN KEY (purchase_id) REFERENCES purchase(id) ON DELETE CASCADE
+  [CHECK] purchase_item_quantity_check: CHECK ((quantity > (0)::numeric))
+  [CHECK] purchase_item_rate_check: CHECK ((rate >= (0)::numeric))
+
+I.3 Total rows: 0
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+J. ACCOUNTING ACCOUNTS ΓÇö INVENTORY & COGS
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+J.2 accounting_account columns:
+  id
+  code
+  name
+  type
+  subtype
+  parent_id
+  level
+  is_group
+  is_system
+  is_active
+  tax_rate
+  tax_class
+  description
+  metadata
+  created_by
+  created_at
+  updated_at
+  deleted_at
+
+J.3 Inventory/COGS/GST/AP accounts:
+  {"id":"bed01f54-1300-44a7-996b-b5c2f405fd83","code":"1130","name":"Inventories","type":"ASSET","subtype":"CURRENT_ASSET","parent_id":"30e76f8a-b1f5-451d-a8e6-49748beafdd8","level":3,"is_group":true,"is_system":true,"is_active":true,"tax_rate":null,"tax_class":null,"description":"Stock and physical inventory group","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-23T16:07:50.116Z","deleted_at":null}
+  {"id":"62392d0f-e0d6-4b42-9a44-7d7bae1f1d3b","code":"1131","name":"Merchandise Inventory - Accessories","type":"ASSET","subtype":"INVENTORY","parent_id":"bed01f54-1300-44a7-996b-b5c2f405fd83","level":4,"is_group":false,"is_system":true,"is_active":true,"tax_rate":null,"tax_class":null,"description":"Physical quantity-controlled party accessories (candles, toppers)","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-23T16:07:50.116Z","deleted_at":null}
+  {"id":"4f0da609-a160-4197-84cb-0bb41c065ed3","code":"1132","name":"Merchandise Inventory - Cakes","type":"ASSET","subtype":"INVENTORY","parent_id":"bed01f54-1300-44a7-996b-b5c2f405fd83","level":4,"is_group":false,"is_system":true,"is_active":true,"tax_rate":null,"tax_class":null,"description":"Authoritative balance sheet asset account for physically held cake merchandise purchased from commercial bakeries for resale.","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-24T04:33:17.285Z","deleted_at":null}
+  {"id":"b223a4f8-c391-4947-a3a7-30dd25556130","code":"1133","name":"Packaging Supplies Stock","type":"ASSET","subtype":"INVENTORY","parent_id":"bed01f54-1300-44a7-996b-b5c2f405fd83","level":4,"is_group":false,"is_system":true,"is_active":true,"tax_rate":null,"tax_class":null,"description":"Unused cake boxes, ribbons, boards, cutlery bags","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-23T16:07:50.116Z","deleted_at":null}
+  {"id":"c0ca4fe6-4ab8-48b9-86cf-4f31f3faa1d2","code":"1140","name":"Duties & Taxes - Input Tax Credit","type":"ASSET","subtype":"CURRENT_ASSET","parent_id":"30e76f8a-b1f5-451d-a8e6-49748beafdd8","level":3,"is_group":true,"is_system":true,"is_active":true,"tax_rate":null,"tax_class":null,"description":"GST Input Tax Credits (ITC) summary group","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-23T16:07:50.116Z","deleted_at":null}
+  {"id":"0043846b-ea1d-4c00-8edc-c32a9af78f08","code":"1141","name":"Input CGST 2.5% (Food/Bakery)","type":"ASSET","subtype":"INPUT_TAX","parent_id":"c0ca4fe6-4ab8-48b9-86cf-4f31f3faa1d2","level":4,"is_group":false,"is_system":true,"is_active":true,"tax_rate":"2.50","tax_class":"GST_FOOD_5","description":"Intrastate CGST credit on 5% food/bakery purchases (2.5%)","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-23T16:07:50.116Z","deleted_at":null}
+  {"id":"9b0e318b-6ab3-40c3-9c4a-28e17d851b00","code":"1142","name":"Input SGST 2.5% (Food/Bakery)","type":"ASSET","subtype":"INPUT_TAX","parent_id":"c0ca4fe6-4ab8-48b9-86cf-4f31f3faa1d2","level":4,"is_group":false,"is_system":true,"is_active":true,"tax_rate":"2.50","tax_class":"GST_FOOD_5","description":"Intrastate SGST credit on 5% food/bakery purchases (2.5%)","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-23T16:07:50.116Z","deleted_at":null}
+  {"id":"6b482aec-7656-4d14-a872-acad8524e21f","code":"1143","name":"Input CGST 9.0% (Accessories/General)","type":"ASSET","subtype":"INPUT_TAX","parent_id":"c0ca4fe6-4ab8-48b9-86cf-4f31f3faa1d2","level":4,"is_group":false,"is_system":true,"is_active":true,"tax_rate":"9.00","tax_class":"GST_STANDARD_18","description":"Intrastate CGST credit on 18% accessories/services (9.0%)","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-23T16:07:50.116Z","deleted_at":null}
+  {"id":"83018034-29b2-4df1-abb4-d6c938530d4f","code":"1144","name":"Input SGST 9.0% (Accessories/General)","type":"ASSET","subtype":"INPUT_TAX","parent_id":"c0ca4fe6-4ab8-48b9-86cf-4f31f3faa1d2","level":4,"is_group":false,"is_system":true,"is_active":true,"tax_rate":"9.00","tax_class":"GST_STANDARD_18","description":"Intrastate SGST credit on 18% accessories/services (9.0%)","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-23T16:07:50.116Z","deleted_at":null}
+  {"id":"7500ac22-cb02-48cc-889b-2aafab7eedb8","code":"2110","name":"Trade Payables","type":"LIABILITY","subtype":"CURRENT_LIABILITY","parent_id":"dedf9b0f-104d-495f-a06f-b3519955c449","level":3,"is_group":true,"is_system":true,"is_active":true,"tax_rate":null,"tax_class":null,"description":"Creditors and trade payables group","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-23T16:07:50.116Z","deleted_at":null}
+  {"id":"22feb699-d65a-486a-bee0-3b060d7c0c46","code":"2111","name":"Accounts Payable","type":"LIABILITY","subtype":"PAYABLE","parent_id":"7500ac22-cb02-48cc-889b-2aafab7eedb8","level":4,"is_group":false,"is_system":true,"is_active":true,"tax_rate":null,"tax_class":null,"description":"Trade payables control ledger [Supplier Dimension Required]","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-23T16:07:50.116Z","deleted_at":null}
+  {"id":"25988c8d-ba97-41f1-8b01-ae7737f5977d","code":"5100","name":"Cost of Goods Sold (COGS)","type":"EXPENSE","subtype":"COGS","parent_id":"03259507-b718-46b1-9eef-197c417c7878","level":2,"is_group":true,"is_system":true,"is_active":true,"tax_rate":null,"tax_class":null,"description":"Direct kitchen production costs group","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-23T16:07:50.116Z","deleted_at":null}
+  {"id":"f89f2d9a-aa0f-4147-9330-c283e0c6c347","code":"5110","name":"COGS - Cakes","type":"EXPENSE","subtype":"COGS","parent_id":"25988c8d-ba97-41f1-8b01-ae7737f5977d","level":3,"is_group":false,"is_system":true,"is_active":true,"tax_rate":null,"tax_class":null,"description":"Cost of Goods Sold recognized upon fulfillment of purchased cake merchandise to customers.","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-24T04:33:17.285Z","deleted_at":null}
+  {"id":"f442bf38-e8d5-4161-88f2-e5e62bf3c7aa","code":"5120","name":"Accessory Merchandise Sold (Cost of Accessories)","type":"EXPENSE","subtype":"COGS","parent_id":"25988c8d-ba97-41f1-8b01-ae7737f5977d","level":3,"is_group":false,"is_system":true,"is_active":true,"tax_rate":null,"tax_class":null,"description":"Cost of candles, toppers, and novelties sold to customers","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-23T16:07:50.116Z","deleted_at":null}
+  {"id":"de05ba04-da74-47fe-8150-9e0a9f8d9235","code":"5130","name":"Packaging Materials Consumed","type":"EXPENSE","subtype":"COGS","parent_id":"25988c8d-ba97-41f1-8b01-ae7737f5977d","level":3,"is_group":false,"is_system":true,"is_active":true,"tax_rate":null,"tax_class":null,"description":"Printed cake boxes, cake base boards, ribbons, knives, tissue","metadata":null,"created_by":"system_phase4d_seed","created_at":"2026-09-23T16:07:34.409Z","updated_at":"2026-09-23T16:07:50.116Z","deleted_at":null}
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+K. PUBLIC.BRANCH
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+K.1 Total branches: 57
+
+K.2 Sample branches:
+  {"id":"br_01KYWH05FY08YH6XJKATV0NXDR","name":"PostgreSQL Authenticated Branch","code":"HUB-777","is_open":true,"phone":"+91 98765 88888","email":"auth_hub_1785516266686@cakes2home.com","address":"100 Feet Road, Indiranagar, Bengaluru","latitude":12.9716,"longitude":77.6412,"shop_id":"res_01KXYMAHGFPRY1G9TZKEVGAGAT","city_id":"city_bbr","region_id":null,"metadata":{"city":"Bengaluru","state":"Karnataka","city_id":"city_bbr","pincode":"","state_id":"state_ka","manager_id":null,"state_code":"KA","branch_type":"main_hub","delivery_zones":[],"extended_status":"open","location_source":"GPS","manager_account":null,"weekly_schedule":{},"capacity_settings":{},"deliverable_areas":["Bengaluru"],"formatted_address":"100 Feet Road, Indiranagar, Bengaluru","fulfillment_rules":{},"temporary_closure":null,"operational_status":"operational","product_availability":{},"max_delivery_radius_km":15},"created_at":"2026-07-31T16:44:27.013Z","updated_at":"2026-09-16T10:53:35.007Z","deleted_at":"2026-09-16T10:53:34.965Z"}
+  {"id":"br_01KYWH0RTHVHRD04J79T28RAHN","name":"Full Pipeline PostgreSQL Hub 1785516286194","code":"HUB-365","is_open":true,"phone":"+91 98765 88888","email":"pipeline_hub_1785516286194@cakes2home.com","address":"100 Feet Road, Indiranagar, Bengaluru","latitude":12.9716,"longitude":77.6412,"shop_id":"res_01KXYMAHGFPRY1G9TZKEVGAGAT","city_id":"city_bbr","region_id":null,"metadata":{"city":"Bengaluru","state":"Karnataka","city_id":"city_bbr","pincode":"","state_id":"state_ka","manager_id":null,"state_code":"KA","branch_type":"main_hub","delivery_zones":[],"extended_status":"open","location_source":"GPS","manager_account":null,"weekly_schedule":{},"capacity_settings":{},"deliverable_areas":["Bengaluru"],"formatted_address":"100 Feet Road, Indiranagar, Bengaluru","fulfillment_rules":{},"temporary_closure":null,"operational_status":"operational","product_availability":{},"max_delivery_radius_km":15},"created_at":"2026-07-31T16:44:46.805Z","updated_at":"2026-09-16T10:53:39.824Z","deleted_at":"2026-09-16T10:53:39.706Z"}
+  {"id":"br_01KYWH5SXYWVPHC73TZN245CKR","name":"Postgres Pipeline Branch 1785516451109","code":"HUB-687","is_open":true,"phone":"+91 98765 88888","email":"pg_branch_1785516451109@cakes2home.com","address":"100 Feet Road, Indiranagar, Bengaluru","latitude":12.9716,"longitude":77.6412,"shop_id":"res_01KXYMAHGFPRY1G9TZKEVGAGAT","city_id":"city_bbr","region_id":null,"metadata":{"city":"Bengaluru","state":"Karnataka","city_id":"city_bbr","pincode":"","state_id":"state_ka","manager_id":null,"state_code":"KA","branch_type":"main_hub","delivery_zones":[],"cake_fulfilment":{"acc_01":{"reason":"Branch availability: UNAVAILABLE","can_fulfil":false},"prod_acc_01":{"reason":"Branch availability: UNAVAILABLE","can_fulfil":false}},"extended_status":"open","location_source":"GPS","manager_account":null,"weekly_schedule":{},"capacity_settings":{},"deliverable_areas":["Bengaluru"],"formatted_address":"100 Feet Road, Indiranagar, Bengaluru","fulfillment_rules":{},"temporary_closure":null,"operational_status":"operational","accessory_inventory":{"acc_01":{"current_stock":9,"reorder_level":10,"reserved_stock":0,"available_stock":9,"low_stock_threshold":5},"acc_02":{"current_stock":80,"reorder_level":10,"reserved_stock":0,"available_stock":80,"low_stock_threshold":5},"acc_03":{"current_stock":120,"reorder_level":10,"reserved_stock":0,"available_stock":120,"low_stock_threshold":5},"acc_04":{"current_stock":25,"reorder_level":10,"reserved_stock":0,"available_stock":25,"low_stock_threshold":5},"acc_05":{"current_stock":18,"reorder_level":10,"reserved_stock":0,"available_stock":18,"low_stock_threshold":5},"acc_06":{"current_stock":30,"reorder_level":10,"reserved_stock":0,"available_stock":30,"low_stock_threshold":5},"acc_07":{"current_stock":50,"reorder_level":10,"reserved_stock":0,"available_stock":50,"low_stock_threshold":5},"acc_08":{"current_stock":12,"reorder_level":10,"reserved_stock":0,"available_stock":12,"low_stock_threshold":5},"var_acc_01":{"current_stock":9,"reorder_level":10,"reserved_stock":0,"available_stock":9,"low_stock_threshold":5},"var_acc_02":{"current_stock":80,"reorder_level":10,"reserved_stock":0,"available_stock":80,"low_stock_threshold":5},"var_acc_03":{"current_stock":120,"reorder_level":10,"reserved_stock":0,"available_stock":120,"low_stock_threshold":5},"var_acc_04":{"current_stock":25,"reorder_level":10,"reserved_stock":0,"available_stock":25,"low_stock_threshold":5},"var_acc_05":{"current_stock":18,"reorder_level":10,"reserved_stock":0,"available_stock":18,"low_stock_threshold":5},"var_acc_06":{"current_stock":30,"reorder_level":10,"reserved_stock":0,"available_stock":30,"low_stock_threshold":5},"var_acc_07":{"current_stock":50,"reorder_level":10,"reserved_stock":0,"available_stock":50,"low_stock_threshold":5},"var_acc_08":{"current_stock":12,"reorder_level":10,"reserved_stock":0,"available_stock":12,"low_stock_threshold":5}},"product_availability":{"acc_01":{"reason":"Updated by Branch Operations","status":"UNAVAILABLE","available_again_time":"2026-09-20T12:34:41.054Z"},"prod_acc_01":{"reason":"Updated by Branch Operations","status":"UNAVAILABLE","available_again_time":"2026-09-20T12:34:41.054Z"}},"max_delivery_radius_km":15},"created_at":"2026-07-31T16:47:31.774Z","updated_at":"2026-09-20T12:34:40.745Z","deleted_at":null}
+  {"id":"br_01KYWH6N9KF1FZBJ252K82TE82","name":"Postgres Pipeline Branch 1785516479519","code":"HUB-196","is_open":true,"phone":"+91 98765 88888","email":"pg_branch_1785516479519@cakes2home.com","address":"100 Feet Road, Indiranagar, Bengaluru","latitude":12.9716,"longitude":77.6412,"shop_id":"res_01KXYMAHGFPRY1G9TZKEVGAGAT","city_id":"city_bbr","region_id":null,"metadata":{"city":"Bengaluru","state":"Kerala","city_id":"city_bbr","pincode":"","state_id":"state_kl","manager_id":null,"state_code":"KL","branch_type":"main_hub","delivery_zones":[{"id":"zone_br_01KYWH6N9KF1FZBJ252K82TE82_primary","name":"Pincode 560038","enabled":true,"pincode":"560038","base_fee":49,"priority":10,"branch_id":"br_01KYWH6N9KF1FZBJ252K82TE82","radius_km":15,"delivery_fee":49,"polygon_coordinates":[],"estimated_delivery_minutes":35}],"cake_fulfilment":{"acc_01":{"reason":"Branch availability: UNAVAILABLE","can_fulfil":false},"prod_acc_01":{"reason":"Branch availability: UNAVAILABLE","can_fulfil":false},"01KXYMAJKNDZ4T2YVA7K144XP5":{"reason":"Oven cleaning completed","can_fulfil":true},"prod_01KXYMAJKNDZ4T2YVA7K144XP5":{"reason":"Oven cleaning completed","can_fulfil":true},"prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5":{"reason":"Oven cleaning completed","can_fulfil":true}},"extended_status":"open","location_source":"GPS","manager_account":{"name":"Branch Manager","email":"pg_branch_1785516479519@cakes2home.com","phone":"+91 98765 88888","status":"active"},"weekly_schedule":{},"capacity_settings":{"current_load":0,"busy_threshold":80,"emergency_stop":false,"is_auto_paused":false,"max_hourly_orders":25,"auto_pause_enabled":true,"max_express_orders":20,"max_midnight_orders":15,"max_scheduled_orders":50,"max_simultaneous_orders":15},"deliverable_areas":["Bengaluru"],"formatted_address":"100 Feet Road, Indiranagar, Bengaluru","fulfillment_rules":{},"temporary_closure":null,"operational_status":"operational","accessory_inventory":{"acc_01":{"current_stock":0,"reorder_level":10,"reserved_stock":0,"available_stock":0,"low_stock_threshold":5},"acc_02":{"current_stock":80,"reorder_level":10,"reserved_stock":0,"available_stock":80,"low_stock_threshold":5},"acc_03":{"current_stock":120,"reorder_level":10,"reserved_stock":0,"available_stock":120,"low_stock_threshold":5},"acc_04":{"current_stock":25,"reorder_level":10,"reserved_stock":0,"available_stock":25,"low_stock_threshold":5},"acc_05":{"current_stock":18,"reorder_level":10,"reserved_stock":0,"available_stock":18,"low_stock_threshold":5},"acc_06":{"current_stock":30,"reorder_level":10,"reserved_stock":0,"available_stock":30,"low_stock_threshold":5},"acc_07":{"current_stock":50,"reorder_level":10,"reserved_stock":0,"available_stock":50,"low_stock_threshold":5},"acc_08":{"current_stock":12,"reorder_level":10,"reserved_stock":0,"available_stock":12,"low_stock_threshold":5},"var_acc_01":{"current_stock":0,"reorder_level":10,"reserved_stock":0,"available_stock":0,"low_stock_threshold":5},"var_acc_02":{"current_stock":80,"reorder_level":10,"reserved_stock":0,"available_stock":80,"low_stock_threshold":5},"var_acc_03":{"current_stock":120,"reorder_level":10,"reserved_stock":0,"available_stock":120,"low_stock_threshold":5},"var_acc_04":{"current_stock":25,"reorder_level":10,"reserved_stock":0,"available_stock":25,"low_stock_threshold":5},"var_acc_05":{"current_stock":18,"reorder_level":10,"reserved_stock":0,"available_stock":18,"low_stock_threshold":5},"var_acc_06":{"current_stock":30,"reorder_level":10,"reserved_stock":0,"available_stock":30,"low_stock_threshold":5},"var_acc_07":{"current_stock":50,"reorder_level":10,"reserved_stock":0,"available_stock":50,"low_stock_threshold":5},"var_acc_08":{"current_stock":12,"reorder_level":10,"reserved_stock":0,"available_stock":12,"low_stock_threshold":5}},"product_availability":{"acc_01":{"reason":"Updated by Branch Operations","status":"UNAVAILABLE","available_again_time":"2026-09-20T12:34:41.271Z"},"prod_acc_01":{"reason":"Updated by Branch Operations","status":"UNAVAILABLE","available_again_time":"2026-09-20T12:34:41.271Z"},"01KXYMAJKNDZ4T2YVA7K144XP5":{"reason":"Oven cleaning completed","status":"AVAILABLE","available_again_time":"2026-09-19T13:26:55.962Z"},"prod_01KXYMAJKNDZ4T2YVA7K144XP5":{"reason":"Oven cleaning completed","status":"AVAILABLE","available_again_time":"2026-09-19T13:26:55.962Z"},"prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5":{"reason":"Oven cleaning completed","status":"AVAILABLE","available_again_time":"2026-09-19T13:26:55.962Z"}},"max_delivery_radius_km":24},"created_at":"2026-07-31T16:47:59.795Z","updated_at":"2026-09-20T12:34:40.961Z","deleted_at":null}
+  {"id":"br_01KYWH9YFVV5AK15D6313HB1NC","name":"Postgres Pipeline Branch 1785516587008","code":"HUB-976","is_open":true,"phone":"+91 98765 88888","email":"pg_branch_1785516587008@cakes2home.com","address":"100 Feet Road, Indiranagar, Bengaluru","latitude":12.9716,"longitude":77.6412,"shop_id":"res_01KXYMAHGFPRY1G9TZKEVGAGAT","city_id":null,"region_id":null,"metadata":null,"created_at":"2026-07-31T16:49:47.515Z","updated_at":"2026-07-31T16:49:47.515Z","deleted_at":null}
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+L. UQC / UNIT-OF-MEASURE
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+L.1 UOM tables:
+  NONE
+
+L.2 UQC/UOM/weight_unit columns:
+  NONE
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+M. MERCHANDISE_TYPE CONSTRAINT
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+M.1 merchandise_type constraint:
+  product_merchandise_type_check: CHECK (((merchandise_type)::text = ANY ((ARRAY['CAKE'::character varying, 'ACCESSORY'::character varying, 'PACKAGING'::character varying])::text[])))
+
+M.2 PACKAGING products: 0
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+N. HSN / TAX CLASSIFICATION
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+N.1 HSN/Tax tables:
+  cart_line_item_tax_line
+  order_line_item_tax_line
+  cart_shipping_method_tax_line
+  order_shipping_method_tax_line
+  tax_provider
+  tax_rate
+  tax_rate_rule
+  tax_region
+
+N.2 Tax/GST columns across all tables:
+  accounting_account.tax_rate: numeric
+  accounting_journal_line.tax_rate: numeric
+  cart_line_item_tax_line.tax_rate_id: text
+  cart_shipping_method_tax_line.tax_rate_id: text
+  expense.cgst: numeric
+  expense.igst: numeric
+  expense.sgst: numeric
+  order_line_item_tax_line.tax_rate_id: text
+  order_shipping_method_tax_line.tax_rate_id: text
+  purchase.cgst: numeric
+  purchase.igst: numeric
+  purchase.sgst: numeric
+  purchase_item.cgst: numeric
+  purchase_item.cgst_rate: numeric
+  purchase_item.hsn_code: text
+  purchase_item.igst: numeric
+  purchase_item.igst_rate: numeric
+  purchase_item.sgst: numeric
+  purchase_item.sgst_rate: numeric
+  state.gst_state_code: text
+  supplier.gstin: text
+  tax_rate_rule.tax_rate_id: text
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+INDEPENDENT VERIFICATION ΓÇö BASELINE COUNTS
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  product (total): 65
+  product (CAKE): 57
+  product (ACCESSORY): 8
+  product (PACKAGING): 0
+  product_variant: 27
+  branch_inventory: 424
+  branch_inventory (NULL product): 0
+  inventory_cost_lot: 0
+  inventory_movement: 0
+  inventory_cost_consumption: 0
+  accounting_account: 98
+  accounting_voucher: 0
+  accounting_journal_entry: 0
+  accounting_fiscal_period: 0
+  purchase: 0
+  purchase_item: 0
+  order: 173
+  payment_transaction: 53
+  accounting_start_date setting: 0
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+COMPLETE TABLE LIST (public schema)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+Total tables: 292
+  account_holder
+  accounting_account
+  accounting_fiscal_period
+  accounting_journal_entry
+  accounting_journal_line
+  accounting_voucher
+  ai_circuit_breaker_state
+  ai_knowledge_base
+  ai_memory_state
+  ai_model_config
+  ai_prompt_registry
+  ai_provider_config
+  ai_request_log
+  analytics_event
+  analytics_expense
+  analytics_franchise
+  api_key
+  application_method_buy_rules
+  application_method_target_rules
+  audit_log
+  auth_identity
+  auth_mfa_factor
+  auth_mfa_recovery_code
+  auth_password_reset_token
+  auth_verification
+  branch
+  branch_capacity
+  branch_inventory
+  branch_price
+  branch_region
+  branch_settings
+  branch_staff
+  cake_option
+  capture
+  cart
+  cart_address
+  cart_line_item
+  cart_line_item_adjustment
+  cart_line_item_tax_line
+  cart_payment_collection
+  cart_promotion
+  cart_shipping_method
+  cart_shipping_method_adjustment
+  cart_shipping_method_tax_line
+  chat_message
+  chat_session
+  city
+  cms_asset_reference
+  cms_banner
+  cms_block
+  cms_category
+  cms_homepage_section
+  cms_navigation
+  cms_page
+  cms_redirect
+  cms_revision
+  cms_tag
+  cms_template
+  config_audit_log
+  connector_config
+  contact_submission
+  credit_line
+  crm_ab_test
+  crm_automation_execution
+  crm_automation_flow
+  crm_automation_log
+  crm_campaign
+  crm_customer_blacklist
+  crm_customer_note
+  crm_customer_rfm
+  crm_customer_segment
+  crm_email_template
+  crm_segment
+  currency
+  cust_address
+  customer
+  customer_account_holder
+  customer_address
+  customer_favorite
+  customer_group
+  customer_group_customer
+  customer_phone
+  delivery
+  delivery_delivery_partner
+  delivery_partner
+  delivery_proof
+  delivery_slot
+  delivery_zone
+  deliverymodule_delivery_cart_cart
+  deliverymodule_delivery_order_order
+  driver_attendance
+  driver_location
+  driver_profile
+  driver_transaction
+  driver_wallet
+  expense
+  expense_category
+  fleet_fuel
+  fulfillment
+  fulfillment_address
+  fulfillment_item
+  fulfillment_label
+  fulfillment_provider
+  fulfillment_set
+  geo_zone
+  image
+  inventory_cost_consumption
+  inventory_cost_lot
+  inventory_item
+  inventory_level
+  inventory_movement
+  inventory_transfer
+  invite
+  invite_rbac_role
+  language
+  layout_configuration
+  lead_enquiry
+  link_module_migrations
+  loc_currency
+  location_fulfillment_provider
+  location_fulfillment_set
+  login_event
+  marketing_campaign
+  marketing_campaign_event
+  marketing_campaign_metric
+  marketing_gamification_reward
+  marketing_newsletter_subscriber
+  marketing_popup
+  marketing_qr_code
+  marketing_recovery_job
+  media
+  mikro_orm_migrations
+  notification
+  notification_log
+  notification_provider
+  notification_template
+  offer
+  offer_redemption
+  order
+  order_address
+  order_cart
+  order_change
+  order_change_action
+  order_claim
+  order_claim_item
+  order_claim_item_image
+  order_credit_line
+  order_event
+  order_exchange
+  order_exchange_item
+  order_fulfillment
+  order_item
+  order_lifecycle_refund
+  order_line_item
+  order_line_item_adjustment
+  order_line_item_tax_line
+  order_note
+  order_payment_collection
+  order_promotion
+  order_shipping
+  order_shipping_method
+  order_shipping_method_adjustment
+  order_shipping_method_tax_line
+  order_staff_assignment
+  order_status_history
+  order_summary
+  order_transaction
+  payment
+  payment_audit_trail
+  payment_collection
+  payment_collection_payment_providers
+  payment_provider
+  payment_session
+  payment_transaction
+  popup_audience_rules
+  popup_campaigns
+  popup_conversions
+  popup_frequency_rules
+  popup_impressions
+  popup_rules
+  popup_versions
+  price
+  price_list
+  price_list_rule
+  price_preference
+  price_rule
+  price_set
+  product
+  product_category
+  product_category_product
+  product_collection
+  product_meta
+  product_option
+  product_option_value
+  product_product_option
+  product_product_option_value
+  product_review
+  product_reviews
+  product_sales_channel
+  product_shipping_profile
+  product_tag
+  product_tags
+  product_type
+  product_variant
+  product_variant_inventory_item
+  product_variant_option
+  product_variant_price_set
+  product_variant_product_image
+  promotion
+  promotion_application_method
+  promotion_campaign
+  promotion_campaign_budget
+  promotion_campaign_budget_usage
+  promotion_promotion_rule
+  promotion_rule
+  promotion_rule_value
+  property_label
+  provider_identity
+  publishable_api_key_sales_channel
+  purchase
+  purchase_item
+  purchase_payment
+  refund
+  refund_reason
+  region
+  region_country
+  region_payment_provider
+  report_schedule
+  reschedule_request
+  reservation_item
+  return
+  return_fulfillment
+  return_item
+  return_reason
+  rewards_fraud_review
+  rewards_gift_card
+  rewards_gift_card_transaction
+  rewards_loyalty_ledger
+  rewards_loyalty_rule
+  rewards_loyalty_transaction
+  rewards_referral_code
+  rewards_referral_event
+  rewards_referral_program
+  rewards_referral_qualification
+  rewards_wallet
+  rewards_wallet_transaction
+  sales_channel
+  sales_channel_stock_location
+  script_migrations
+  security_blocked_ip
+  security_event
+  security_ip_whitelist
+  security_user_two_factor
+  service_zone
+  setting
+  shipping_option
+  shipping_option_price_set
+  shipping_option_rule
+  shipping_option_type
+  shipping_profile
+  shop
+  shop_manager
+  shopmodule_shop_deliverymodule_delivery
+  shopmodule_shop_product_product
+  slot_reservation
+  state
+  stock_location
+  stock_location_address
+  stock_notification
+  store
+  store_currency
+  store_locale
+  subscription
+  supplier
+  support_ticket
+  tax_provider
+  tax_rate
+  tax_rate_rule
+  tax_region
+  ticket_message
+  translation
+  user
+  user_preference
+  user_rbac_role
+  variant_option
+  vehicle
+  vehicle_trip
+  view_configuration
+  webhook_delivery
+  webhook_endpoint
+  wishlist_item
+  workflow_execution
+
+================================================================================
+FORENSIC INSPECTION COMPLETE ΓÇö NO MUTATIONS PERFORMED
+================================================================================

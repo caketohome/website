@@ -1,0 +1,147 @@
+{
+  "catalog_counts": {
+    "total_active_products": 20,
+    "total_categories": 11,
+    "total_variants": 27
+  },
+  "zero_price_products": [],
+  "invalid_categories": [],
+  "unpublished_products": [],
+  "sample_products": [
+    {
+      "id": "acc_01",
+      "title": "Gold Acrylic Happy Birthday Topper",
+      "handle": "gold-acrylic-happy-birthday-topper",
+      "status": "published",
+      "selling_price": 99,
+      "category": "Cake Accessories",
+      "inventory_mode": "STOCK_CONTROLLED"
+    },
+    {
+      "id": "acc_02",
+      "title": "Magic Re-Lighting Birthday Candles (Pack of 10)",
+      "handle": "magic-re-lighting-birthday-candles-pack-of-10",
+      "status": "published",
+      "selling_price": 49,
+      "category": "Cake Accessories",
+      "inventory_mode": "STOCK_CONTROLLED"
+    },
+    {
+      "id": "prod_1788960674375",
+      "title": "CHOCOLATE TRUFFLE",
+      "handle": "chocolate-truffle",
+      "status": "published",
+      "selling_price": 552,
+      "category": "Chocolate Cakes",
+      "occasion": "Birthday",
+      "inventory_mode": "KITCHEN_PREPARED"
+    },
+    {
+      "id": "prod_1788960554491",
+      "title": "PISTACHIO GATEAU",
+      "handle": "pistachio-gateau",
+      "status": "published",
+      "selling_price": 552,
+      "category": "Chocolate Cakes",
+      "occasion": "Wedding",
+      "inventory_mode": "KITCHEN_PREPARED"
+    },
+    {
+      "id": "prod_1788960313218",
+      "title": "CHOCO RED",
+      "handle": "choco-red",
+      "status": "published",
+      "selling_price": 552,
+      "category": "Chocolate Cakes",
+      "occasion": "Birthday",
+      "inventory_mode": "KITCHEN_PREPARED"
+    }
+  ],
+  "hardcoded_scans": [
+    {
+      "pattern": "hardcoded_prices",
+      "file": "frontend/src/components/dashboard/admin/popup-editor-drawer.tsx",
+      "classification": "REVIEW_NEEDED"
+    },
+    {
+      "pattern": "hardcoded_prices",
+      "file": "frontend/src/lib/api-engine.ts",
+      "classification": "REVIEW_NEEDED"
+    },
+    {
+      "pattern": "hardcoded_prices",
+      "file": "frontend/src/lib/data/catalog.ts",
+      "classification": "REVIEW_NEEDED"
+    },
+    {
+      "pattern": "hardcoded_prices",
+      "file": "frontend/src/lib/reports-engine-data.ts",
+      "classification": "REVIEW_NEEDED"
+    }
+  ],
+  "summary": {
+    "total_products_in_db": 20,
+    "zero_price_products_found": 0,
+    "unpublished_products_found": 0,
+    "total_categories_in_db": 11,
+    "total_variants_in_db": 27,
+    "hardcoded_scans_matched": 4
+  },
+  "categories": [
+    {
+      "id": "cat_accessories",
+      "name": "Accessories",
+      "handle": "accessories"
+    },
+    {
+      "id": "cat_bestsellers",
+      "name": "Best Sellers",
+      "handle": "bestsellers"
+    },
+    {
+      "id": "pcat_01KXYMAJ0T01BWMZYRVP96Y74H",
+      "name": "Birthday Cakes",
+      "handle": "birthday-cakes"
+    },
+    {
+      "id": "cat_black_forest",
+      "name": "Black Forest Cakes",
+      "handle": "black-forest-cakes"
+    },
+    {
+      "id": "cat_butterscotch",
+      "name": "Butterscotch & Caramel Cakes",
+      "handle": "butterscotch-caramel-cakes"
+    },
+    {
+      "id": "cat_cheesecakes",
+      "name": "Cheesecakes & Artisanal",
+      "handle": "cheesecakes"
+    },
+    {
+      "id": "cat_chocolate",
+      "name": "Chocolate Cakes",
+      "handle": "chocolate-cakes"
+    },
+    {
+      "id": "pcat_01KXYMAJ594FW8E5ZNFVQGCZAK",
+      "name": "Cupcakes",
+      "handle": "cupcakes"
+    },
+    {
+      "id": "cat_fruit_mousse",
+      "name": "Fruit & Mousse Cakes",
+      "handle": "fruit-mousse-cakes"
+    },
+    {
+      "id": "pcat_01KXYMAJ2W3HTY68D0N4S4DTF3",
+      "name": "Pastries",
+      "handle": "pastries"
+    },
+    {
+      "id": "cat_red_velvet",
+      "name": "Red Velvet Cakes",
+      "handle": "red-velvet-cakes"
+    }
+  ]
+}

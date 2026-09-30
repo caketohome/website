@@ -129,6 +129,50 @@ const MediaLibraryPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/media-library-panel").then((mod) => ({ default: mod.MediaLibraryPanel })),
   "MediaLibraryPanel"
 );
+const SupplierPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/supplier-panel"),
+  "SupplierPanel"
+);
+const PurchasePanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/purchase-panel"),
+  "PurchasePanel"
+);
+const ExpensePanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/expense-panel"),
+  "ExpensePanel"
+);
+const FleetPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/fleet-panel"),
+  "FleetPanel"
+);
+const GatewaySettlementPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/gateway-settlement-panel"),
+  "GatewaySettlementPanel"
+);
+const BankReconciliationPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/bank-reconciliation-panel"),
+  "BankReconciliationPanel"
+);
+const GeneralLedgerPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/general-ledger-panel"),
+  "GeneralLedgerPanel"
+);
+const AccountingSetupPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/accounting-setup-panel"),
+  "AccountingSetupPanel"
+);
+const ProfitLossPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/profit-loss-panel"),
+  "ProfitLossPanel"
+);
+const BalanceSheetPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/balance-sheet-panel"),
+  "BalanceSheetPanel"
+);
+const CashFlowPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/cash-flow-panel").then((mod) => ({ default: mod.CashFlowPanel })),
+  "CashFlowPanel"
+);
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Tab ID type and panel map — backwards compatible
@@ -136,7 +180,7 @@ const MediaLibraryPanel = createDynamicPanel(
 
 type AdminTabId =
   | "orders" | "catalog" | "search_engine" | "branches" | "delivery"
-  | "fulfillment" | "tax_master" | "abandoned_carts" | "telemarketing"
+  | "fulfillment" | "suppliers" | "purchases" | "expenses" | "gateway_settlements" | "bank_reconciliation" | "general_ledger" | "profit_loss" | "balance_sheet" | "cash_flow" | "accounting_setup" | "fleet" | "tax_master" | "abandoned_carts" | "telemarketing"
   | "crm" | "login_activity" | "marketing" | "popups" | "seo"
   | "automation" | "webhooks" | "cms" | "media" | "analytics" | "ai_concierge"
   | "staff_profiles" | "notifications" | "settings";
@@ -148,6 +192,17 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   branches: BranchesPanel,
   delivery: DeliveryPanel,
   fulfillment: FulfillmentConfigPanel,
+  suppliers: SupplierPanel,
+  purchases: PurchasePanel,
+  expenses: ExpensePanel,
+  gateway_settlements: GatewaySettlementPanel,
+  bank_reconciliation: BankReconciliationPanel,
+  general_ledger: GeneralLedgerPanel,
+  profit_loss: ProfitLossPanel,
+  balance_sheet: BalanceSheetPanel,
+  cash_flow: CashFlowPanel,
+  accounting_setup: AccountingSetupPanel,
+  fleet: FleetPanel,
   tax_master: TaxMasterPanel,
   abandoned_carts: AbandonedCartPanel,
   telemarketing: TelemarketingPanel,

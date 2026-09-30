@@ -1,0 +1,572 @@
+{
+  "order_stats": {
+    "total_orders": "173",
+    "earliest_order": "2026-08-01T15:29:10.530Z",
+    "latest_order": "2026-09-19T14:08:18.012Z",
+    "distinct_customers": "42",
+    "distinct_currencies": "2"
+  },
+  "order_statuses": [
+    {
+      "status": "pending",
+      "count": "173"
+    }
+  ],
+  "sample_orders": [
+    {
+      "id": "order_1789826897986_0955",
+      "display_id": 897986,
+      "customer_id": "admin_01",
+      "email": "alexclicks15@gmail.com",
+      "currency_code": "INR",
+      "status": "pending",
+      "is_draft_order": false,
+      "metadata": {
+        "items": [
+          {
+            "id": "item_1789826897986_aoxv",
+            "mrp": 199,
+            "price": 149,
+            "title": "Butter Croissant",
+            "weight": "1 kg",
+            "discount": 0,
+            "quantity": 3,
+            "tax_rate": 0,
+            "thumbnail": "/images/strawberry-cake.jpg",
+            "product_id": "prod_01KXYMAJKNS8AGWCN5S1WEGKSD",
+            "tax_amount": 0,
+            "unit_price": 149,
+            "product_name": "Butter Croissant",
+            "variant_name": "1 kg",
+            "customization": {
+              "selected_addons_detail": []
+            },
+            "selling_price": 149,
+            "total_line_amount": 447
+          }
+        ],
+        "total": 447,
+        "delivery": {
+          "fee": 0,
+          "date": "2026-09-20",
+          "slot": "SLOT_DELIVERY_1600_1700",
+          "type": "delivery",
+          "pickup_otp": "657926",
+          "delivery_otp": "410752"
+        },
+        "subtotal": 447,
+        "branch_id": "br_kollam_central",
+        "pickup_otp": "657926",
+        "tax_amount": 0,
+        "branch_name": "Kollam Central Cake Studio",
+        "grand_total": 447,
+        "customer_uid": "admin_01",
+        "delivery_otp": "410752",
+        "order_number": "ORD-897986",
+        "total_amount": 447,
+        "bakery_status": "confirmed",
+        "customer_name": "ALEX ASHOK",
+        "delivery_date": "2026-09-20",
+        "customer_phone": "09876590888",
+        "payment_method": "cod",
+        "payment_status": "pending",
+        "discount_amount": 0,
+        "idempotency_key": null,
+        "delivery_address": {
+          "city": "Kollam",
+          "email": "alexclicks15@gmail.com",
+          "line1": "Anil Cottage",
+          "line2": "",
+          "phone": "09876590888",
+          "state": "",
+          "pincode": "691001",
+          "landmark": "",
+          "last_name": "ASHOK",
+          "first_name": "ALEX"
+        },
+        "delivery_slot_time": "SLOT_DELIVERY_1600_1700"
+      },
+      "created_at": "2026-09-19T14:08:18.012Z"
+    },
+    {
+      "id": "order_1789824877427_2kci",
+      "display_id": 877427,
+      "customer_id": "guest",
+      "email": "isolation@caketohome.com",
+      "currency_code": "INR",
+      "status": "pending",
+      "is_draft_order": false,
+      "metadata": {
+        "items": [
+          {
+            "id": "item_1789824877427_k1rw",
+            "mrp": 149,
+            "price": 99,
+            "title": "Gold Acrylic Happy Birthday Topper",
+            "weight": 0.05,
+            "discount": 0,
+            "quantity": 1,
+            "tax_rate": 18,
+            "thumbnail": "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400",
+            "product_id": "acc_01",
+            "tax_amount": 18,
+            "unit_price": 99,
+            "variant_id": "var_acc_01",
+            "product_name": "Gold Acrylic Happy Birthday Topper",
+            "variant_name": 0.05,
+            "customization": {
+              "selected_addons_detail": []
+            },
+            "selling_price": 99,
+            "total_line_amount": 99
+          }
+        ],
+        "total": 117,
+        "delivery": {
+          "fee": 0,
+          "date": "2026-09-20",
+          "slot": "6:00 PM - 8:00 PM",
+          "type": "standard",
+          "pickup_otp": "658484",
+          "delivery_otp": "606666"
+        },
+        "subtotal": 99,
+        "branch_id": "br_indiranagar",
+        "pickup_otp": "658484",
+        "tax_amount": 18,
+        "branch_name": "Indiranagar Flagship Bakery",
+        "grand_total": 117,
+        "customer_uid": "guest",
+        "delivery_otp": "606666",
+        "order_number": "ORD-877427",
+        "total_amount": 117,
+        "bakery_status": "confirmed",
+        "customer_name": "Isolation Test Customer",
+        "delivery_date": "2026-09-20",
+        "customer_phone": "+91 98765 33445",
+        "payment_method": "cod",
+        "payment_status": "pending",
+        "discount_amount": 0,
+        "idempotency_key": null,
+        "delivery_address": "101 Indiranagar 1st Cross, Bengaluru",
+        "delivery_slot_time": "6:00 PM - 8:00 PM"
+      },
+      "created_at": "2026-09-19T13:34:37.432Z"
+    },
+    {
+      "id": "order_1789824876823_ffru",
+      "display_id": 876823,
+      "customer_id": "guest",
+      "email": "combo@caketohome.com",
+      "currency_code": "INR",
+      "status": "pending",
+      "is_draft_order": false,
+      "metadata": {
+        "items": [
+          {
+            "id": "item_1789824876823_34f9",
+            "mrp": 599,
+            "price": 499,
+            "title": "Chocolate Fudge Cupcake",
+            "weight": "Box of 6",
+            "discount": 0,
+            "quantity": 1,
+            "tax_rate": 0,
+            "thumbnail": "/images/chocolate-cake.jpg",
+            "product_id": "prod_01KXYMAJKNDZ4T2YVA7K144XP5",
+            "tax_amount": 0,
+            "unit_price": 499,
+            "variant_id": "variant_01KXYMAN40MW6VZV49HJA15CXE",
+            "product_name": "Chocolate Fudge Cupcake",
+            "variant_name": "Box of 6",
+            "customization": {
+              "selected_addons": [
+                "Gold Acrylic Happy Birthday Topper"
+              ],
+              "selected_addons_detail": [
+                {
+                  "title": "Gold Acrylic Happy Birthday Topper",
+                  "quantity": 1,
+                  "product_id": "acc_01",
+                  "unit_price": 99,
+                  "variant_id": "var_acc_01"
+                }
+              ]
+            },
+            "selling_price": 499,
+            "total_line_amount": 499
+          }
+        ],
+        "total": 499,
+        "delivery": {
+          "fee": 0,
+          "date": "2026-09-20",
+          "slot": "2:00 PM - 4:00 PM",
+          "type": "standard",
+          "pickup_otp": "327738",
+          "delivery_otp": "881770"
+        },
+        "subtotal": 499,
+        "branch_id": "br_indiranagar",
+        "pickup_otp": "327738",
+        "tax_amount": 0,
+        "branch_name": "Indiranagar Flagship Bakery",
+        "grand_total": 499,
+        "customer_uid": "guest",
+        "delivery_otp": "881770",
+        "order_number": "ORD-876823",
+        "total_amount": 499,
+        "bakery_status": "confirmed",
+        "customer_name": "Combo Customization Customer",
+        "delivery_date": "2026-09-20",
+        "customer_phone": "+91 98765 99887",
+        "payment_method": "cod",
+        "payment_status": "pending",
+        "discount_amount": 0,
+        "idempotency_key": null,
+        "delivery_address": "456 Indiranagar Double Road, Bengaluru",
+        "delivery_slot_time": "2:00 PM - 4:00 PM"
+      },
+      "created_at": "2026-09-19T13:34:36.827Z"
+    }
+  ],
+  "order_metadata_analysis": {
+    "has_metadata": "173",
+    "has_items_in_meta": "172",
+    "has_total_in_meta": "37",
+    "has_tax_in_meta": "45",
+    "has_branch_in_meta": "172",
+    "has_pay_status_in_meta": "172"
+  },
+  "line_item_table_counts": {
+    "order_item": 0,
+    "order_line_item": 0,
+    "line_item": "TABLE_NOT_FOUND"
+  },
+  "payment_stats": {
+    "total_payments": "53",
+    "earliest_payment": "2026-08-01T15:20:08.000Z",
+    "latest_payment": "2026-09-20T12:52:05.994Z",
+    "distinct_order_ids": "53",
+    "distinct_customers": "14"
+  },
+  "payment_breakdown": [
+    {
+      "status": "pending",
+      "provider": "cod",
+      "settlement_status": "pending",
+      "count": "42",
+      "total_amount": "19068"
+    },
+    {
+      "status": "partially_refunded",
+      "provider": "cod",
+      "settlement_status": "settled",
+      "count": "3",
+      "total_amount": "6500"
+    },
+    {
+      "status": "captured",
+      "provider": "upi",
+      "settlement_status": "settled",
+      "count": "2",
+      "total_amount": "2138"
+    },
+    {
+      "status": "captured",
+      "provider": "card",
+      "settlement_status": "settled",
+      "count": "2",
+      "total_amount": "1068"
+    },
+    {
+      "status": "captured",
+      "provider": "cod",
+      "settlement_status": "settled",
+      "count": "2",
+      "total_amount": "1596"
+    },
+    {
+      "status": "refunded",
+      "provider": "cod",
+      "settlement_status": "settled",
+      "count": "1",
+      "total_amount": "2000"
+    },
+    {
+      "status": "pending",
+      "provider": "cod",
+      "settlement_status": "unsettled",
+      "count": "1",
+      "total_amount": "1500"
+    }
+  ],
+  "payment_order_link": {
+    "total_payments": "53",
+    "matching_orders": "41",
+    "orphaned_payments": "12"
+  },
+  "gst_output_accounts": [
+    {
+      "code": "2120",
+      "name": "Duties & Taxes - Output Tax Liability",
+      "type": "LIABILITY",
+      "is_group": true,
+      "parent_id": "dedf9b0f-104d-495f-a06f-b3519955c449"
+    },
+    {
+      "code": "2121",
+      "name": "Output CGST 2.5% (Food/Bakery)",
+      "type": "LIABILITY",
+      "is_group": false,
+      "parent_id": "1e439049-0f92-4f0e-ae61-357b740f988b"
+    },
+    {
+      "code": "2122",
+      "name": "Output SGST 2.5% (Food/Bakery)",
+      "type": "LIABILITY",
+      "is_group": false,
+      "parent_id": "1e439049-0f92-4f0e-ae61-357b740f988b"
+    },
+    {
+      "code": "2123",
+      "name": "Output CGST 9.0% (Accessories)",
+      "type": "LIABILITY",
+      "is_group": false,
+      "parent_id": "1e439049-0f92-4f0e-ae61-357b740f988b"
+    },
+    {
+      "code": "2124",
+      "name": "Output SGST 9.0% (Accessories)",
+      "type": "LIABILITY",
+      "is_group": false,
+      "parent_id": "1e439049-0f92-4f0e-ae61-357b740f988b"
+    },
+    {
+      "code": "2125",
+      "name": "Output IGST 5.0% (Interstate Food)",
+      "type": "LIABILITY",
+      "is_group": false,
+      "parent_id": "1e439049-0f92-4f0e-ae61-357b740f988b"
+    },
+    {
+      "code": "2126",
+      "name": "Output IGST 18.0% (Interstate Accessories)",
+      "type": "LIABILITY",
+      "is_group": false,
+      "parent_id": "1e439049-0f92-4f0e-ae61-357b740f988b"
+    },
+    {
+      "code": "2127",
+      "name": "Output CGST 6.0% (Toys)",
+      "type": "LIABILITY",
+      "is_group": false,
+      "parent_id": "1e439049-0f92-4f0e-ae61-357b740f988b"
+    },
+    {
+      "code": "2128",
+      "name": "Output SGST 6.0% (Toys)",
+      "type": "LIABILITY",
+      "is_group": false,
+      "parent_id": "1e439049-0f92-4f0e-ae61-357b740f988b"
+    },
+    {
+      "code": "2129",
+      "name": "Output IGST 12.0% (Interstate Toys)",
+      "type": "LIABILITY",
+      "is_group": false,
+      "parent_id": "1e439049-0f92-4f0e-ae61-357b740f988b"
+    }
+  ],
+  "ar_accounts": [
+    {
+      "code": "1120",
+      "name": "Receivables and Advances",
+      "type": "ASSET",
+      "is_group": true,
+      "parent_id": "30e76f8a-b1f5-451d-a8e6-49748beafdd8"
+    },
+    {
+      "code": "1121",
+      "name": "Accounts Receivable",
+      "type": "ASSET",
+      "is_group": false,
+      "parent_id": "888b0bbe-d9c9-44d5-b832-b0a2adb65249"
+    },
+    {
+      "code": "1122",
+      "name": "Undeposited COD",
+      "type": "ASSET",
+      "is_group": false,
+      "parent_id": "888b0bbe-d9c9-44d5-b832-b0a2adb65249"
+    },
+    {
+      "code": "1123",
+      "name": "Staff Advances",
+      "type": "ASSET",
+      "is_group": false,
+      "parent_id": "888b0bbe-d9c9-44d5-b832-b0a2adb65249"
+    },
+    {
+      "code": "1124",
+      "name": "Security Deposits - Leases",
+      "type": "ASSET",
+      "is_group": false,
+      "parent_id": "888b0bbe-d9c9-44d5-b832-b0a2adb65249"
+    }
+  ],
+  "movement_constraints": [
+    {
+      "conname": "inventory_movement_voucher_id_fkey",
+      "def": "FOREIGN KEY (voucher_id) REFERENCES accounting_voucher(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_movement_variant_id_fkey",
+      "def": "FOREIGN KEY (variant_id) REFERENCES product_variant(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_movement_quantity_check",
+      "def": "CHECK ((quantity > (0)::numeric))"
+    },
+    {
+      "conname": "inventory_movement_purchase_id_fkey",
+      "def": "FOREIGN KEY (purchase_id) REFERENCES purchase(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_movement_product_id_fkey",
+      "def": "FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_movement_pkey",
+      "def": "PRIMARY KEY (id)"
+    },
+    {
+      "conname": "inventory_movement_order_id_fkey",
+      "def": "FOREIGN KEY (order_id) REFERENCES \"order\"(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_movement_movement_type_check",
+      "def": "CHECK ((movement_type = ANY (ARRAY['PURCHASE_RECEIPT'::text, 'SALES_FULFILLMENT'::text, 'PURCHASE_RETURN'::text, 'SALES_RETURN'::text, 'STOCK_ADJUSTMENT_UP'::text, 'STOCK_ADJUSTMENT_DOWN'::text, 'TRANSFER_IN'::text, 'TRANSFER_OUT'::text, 'DAMAGE_WRITEOFF'::text, 'INVOICE_REVERSAL'::text])))"
+    },
+    {
+      "conname": "inventory_movement_direction_check",
+      "def": "CHECK ((direction = ANY (ARRAY['IN'::text, 'OUT'::text])))"
+    },
+    {
+      "conname": "inventory_movement_branch_id_fkey",
+      "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+    }
+  ],
+  "lot_constraints": [
+    {
+      "conname": "uq_inventory_cost_lot_purchase_item",
+      "def": "UNIQUE (purchase_item_id)"
+    },
+    {
+      "conname": "inventory_cost_lot_variant_id_fkey",
+      "def": "FOREIGN KEY (variant_id) REFERENCES product_variant(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_cost_lot_unit_cost_check",
+      "def": "CHECK ((unit_cost >= (0)::numeric))"
+    },
+    {
+      "conname": "inventory_cost_lot_total_cost_check",
+      "def": "CHECK ((total_cost >= (0)::numeric))"
+    },
+    {
+      "conname": "inventory_cost_lot_supplier_id_fkey",
+      "def": "FOREIGN KEY (supplier_id) REFERENCES supplier(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_cost_lot_status_check",
+      "def": "CHECK ((status = ANY (ARRAY['ACTIVE'::text, 'DEPLETED'::text, 'REVERSED'::text])))"
+    },
+    {
+      "conname": "inventory_cost_lot_remaining_quantity_check",
+      "def": "CHECK ((remaining_quantity >= (0)::numeric))"
+    },
+    {
+      "conname": "inventory_cost_lot_received_quantity_check",
+      "def": "CHECK ((received_quantity > (0)::numeric))"
+    },
+    {
+      "conname": "inventory_cost_lot_purchase_item_id_fkey",
+      "def": "FOREIGN KEY (purchase_item_id) REFERENCES purchase_item(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_cost_lot_purchase_id_fkey",
+      "def": "FOREIGN KEY (purchase_id) REFERENCES purchase(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_cost_lot_product_id_fkey",
+      "def": "FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_cost_lot_pkey",
+      "def": "PRIMARY KEY (id)"
+    },
+    {
+      "conname": "inventory_cost_lot_item_type_check",
+      "def": "CHECK ((item_type = ANY (ARRAY['CAKE'::text, 'ACCESSORY'::text, 'PACKAGING'::text])))"
+    },
+    {
+      "conname": "inventory_cost_lot_branch_id_fkey",
+      "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "chk_cost_lot_qty_bound",
+      "def": "CHECK ((remaining_quantity <= received_quantity))"
+    },
+    {
+      "conname": "chk_cost_lot_cost_consistency",
+      "def": "CHECK ((abs((total_cost - round((received_quantity * unit_cost), 2))) <= 0.05))"
+    }
+  ],
+  "voucher_constraints": [
+    {
+      "conname": "accounting_voucher_branch_id_fkey",
+      "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "accounting_voucher_pkey",
+      "def": "PRIMARY KEY (id)"
+    },
+    {
+      "conname": "accounting_voucher_reversal_of_voucher_id_fkey",
+      "def": "FOREIGN KEY (reversal_of_voucher_id) REFERENCES accounting_voucher(id) ON DELETE SET NULL"
+    },
+    {
+      "conname": "accounting_voucher_reversed_by_voucher_id_fkey",
+      "def": "FOREIGN KEY (reversed_by_voucher_id) REFERENCES accounting_voucher(id) ON DELETE SET NULL"
+    },
+    {
+      "conname": "chk_voucher_posted_immutable",
+      "def": "CHECK ((((status)::text <> 'CANCELLED'::text) OR (posted_at IS NULL)))"
+    },
+    {
+      "conname": "chk_voucher_reversal_limit",
+      "def": "CHECK (((reversal_of_voucher_id IS NULL) OR (reversed_by_voucher_id IS NULL)))"
+    },
+    {
+      "conname": "chk_voucher_segregation",
+      "def": "CHECK (((approved_by IS NULL) OR (approved_by <> created_by)))"
+    },
+    {
+      "conname": "chk_voucher_status",
+      "def": "CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'SUBMITTED'::character varying, 'APPROVED'::character varying, 'POSTED'::character varying, 'CANCELLED'::character varying])::text[])))"
+    },
+    {
+      "conname": "chk_voucher_total",
+      "def": "CHECK ((total_amount >= 0.00))"
+    },
+    {
+      "conname": "chk_voucher_type",
+      "def": "CHECK (((voucher_type)::text = ANY ((ARRAY['SALES'::character varying, 'PURCHASE'::character varying, 'PAYMENT'::character varying, 'RECEIPT'::character varying, 'EXPENSE'::character varying, 'JOURNAL'::character varying, 'CONTRA'::character varying, 'CREDIT_NOTE'::character varying, 'DEBIT_NOTE'::character varying, 'OPENING_BALANCE'::character varying])::text[])))"
+    },
+    {
+      "conname": "uq_accounting_voucher_no",
+      "def": "UNIQUE (voucher_no)"
+    }
+  ]
+}

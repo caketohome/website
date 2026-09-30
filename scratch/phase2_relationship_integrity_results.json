@@ -1,0 +1,1074 @@
+{
+  "orphan_orders": [
+    {
+      "order_id": "order_1789826897986_0955",
+      "display_id": 897986,
+      "issue": "customer_id 'admin_01' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789824877427_2kci",
+      "display_id": 877427,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789824876823_ffru",
+      "display_id": 876823,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789824428113_yax6",
+      "display_id": 428113,
+      "issue": "customer_id 'cust_e2e_phase5' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789824416354_qlb1",
+      "display_id": 416354,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789824415402_dvwt",
+      "display_id": 415402,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789824375814_llhx",
+      "display_id": 375814,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789824374956_pf5m",
+      "display_id": 374956,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789795833416_oqas",
+      "display_id": 833416,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789792949898_cu6t",
+      "display_id": 949898,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789747251702_gajc",
+      "display_id": 251702,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789747250671_vwc4",
+      "display_id": 250671,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789747241529_wp2j",
+      "display_id": 241529,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789747240562_tz19",
+      "display_id": 240562,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789747225843_ol8b",
+      "display_id": 225843,
+      "issue": "customer_id 'cust_e2e_phase5' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789747163629_he88",
+      "display_id": 163629,
+      "issue": "customer_id 'cust_e2e_phase5' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789747154207_66s7",
+      "display_id": 154207,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789747153202_imk7",
+      "display_id": 153202,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789747143656_yz4k",
+      "display_id": 143656,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789747142714_m9sy",
+      "display_id": 142714,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789746763897_klqj",
+      "display_id": 763897,
+      "issue": "customer_id 'cust_e2e_phase5' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789746725219_eiad",
+      "display_id": 725219,
+      "issue": "customer_id 'cust_e2e_phase5' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789746533175_s4z4",
+      "display_id": 533175,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789746532149_gj2p",
+      "display_id": 532149,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789746524734_4m95",
+      "display_id": 524734,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789746523927_cll9",
+      "display_id": 523927,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789746512889_25cq",
+      "display_id": 512889,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789746511847_bfji",
+      "display_id": 511847,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789745110322_n3e8",
+      "display_id": 110322,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789745109746_t4s6",
+      "display_id": 109746,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789745109372_y41b",
+      "display_id": 109372,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789745075870_w62a",
+      "display_id": 75870,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789745074794_637e",
+      "display_id": 74794,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789744881268_edtx",
+      "display_id": 881268,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789744880016_qryc",
+      "display_id": 880016,
+      "issue": "customer_id 'guest' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789738881238_23gy",
+      "display_id": 881238,
+      "issue": "customer_id 'cust_e2e_phase5' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789738437161_bsm0",
+      "display_id": 437161,
+      "issue": "customer_id 'cust_e2e_phase5' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1789722145768_vqpj",
+      "display_id": 1001,
+      "issue": "customer_id 'cus_e2e_1789722145504' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1789719665974_s4cz",
+      "display_id": 1001,
+      "issue": "customer_id 'cus_e2e_1789719665637' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789044972279_lmcg",
+      "display_id": 972279,
+      "issue": "customer_id 'cust_idemp_user' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789044948631_uu0h",
+      "display_id": 948631,
+      "issue": "customer_id 'cust_concurrency_8_1789044948302' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789037790284_fwya",
+      "display_id": 790284,
+      "issue": "customer_id 'cust_idemp_user' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1789037709600_0r5n",
+      "display_id": 709600,
+      "issue": "customer_id 'cust_concurrency_1_1789037709129' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1788862305751_y8eh",
+      "display_id": 305751,
+      "issue": "customer_id 'cust_idemp_user' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1788862275108_72q5",
+      "display_id": 275108,
+      "issue": "customer_id 'cust_concurrency_3_1788862274569' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1788832706568_4t35",
+      "display_id": 706568,
+      "issue": "customer_id 'cust_idemp_user' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1788832636403_ua8h",
+      "display_id": 636403,
+      "issue": "customer_id 'cust_concurrency_1_1788832635994' does not exist in customer table"
+    },
+    {
+      "order_id": "order_1788832606353_t1hn",
+      "display_id": 606353,
+      "issue": "customer_id 'cust_concurrency_8_1788832605790' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787987782845_uen52",
+      "display_id": 1001,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787921723978_3ibo9",
+      "display_id": 1001,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787910986723_tdtqa",
+      "display_id": 1001,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787909175508_8k2e5",
+      "display_id": 1001,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787907079251_3qx4x",
+      "display_id": 1001,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787903174695_yztpv",
+      "display_id": 1001,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787900766743_gtr5x",
+      "display_id": 1001,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787898849846_nf6h0",
+      "display_id": 984660,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787895804793_jrmeg",
+      "display_id": 804793,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787655765838_x9w71",
+      "display_id": 838971,
+      "issue": "customer_id 'cth_cus_9820044332' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787655720923_qbiie",
+      "display_id": 720923,
+      "issue": "customer_id 'cth_cus_9840033221' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787655681810_x4iti",
+      "display_id": 818104,
+      "issue": "customer_id 'cth_cus_9847055443' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787655564908_2roes",
+      "display_id": 649082,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787655105153_4lrqw",
+      "display_id": 51534,
+      "issue": "customer_id 'cth_cus_9847099999' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787654945892_9f449",
+      "display_id": 929449,
+      "issue": "customer_id 'cth_cus_9820044332' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787654929760_hs086",
+      "display_id": 760086,
+      "issue": "customer_id 'cth_cus_9840033221' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787654913262_pk6uj",
+      "display_id": 132626,
+      "issue": "customer_id 'cth_cus_9847055443' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787654884164_g31z6",
+      "display_id": 164316,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787654503908_rbmrr",
+      "display_id": 503908,
+      "issue": "customer_id 'cth_cus_9847012345' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787653372874_9ktj9",
+      "display_id": 287499,
+      "issue": "customer_id 'cth_cus_9112240553' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787653333888_8nkye",
+      "display_id": 338888,
+      "issue": "customer_id 'cth_cus_9840033221' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787653238705_i6me1",
+      "display_id": 870561,
+      "issue": "customer_id 'cth_cus_9847055443' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787653202926_eow6v",
+      "display_id": 29266,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787653160292_0t8ot",
+      "display_id": 29208,
+      "issue": "customer_id 'cth_cus_9820044332' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787653143467_yywir",
+      "display_id": 143467,
+      "issue": "customer_id 'cth_cus_9840033221' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787653119764_wstdw",
+      "display_id": 119764,
+      "issue": "customer_id 'cth_cus_9847055443' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787653097025_fdhh6",
+      "display_id": 970256,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787652905464_8tj6l",
+      "display_id": 546486,
+      "issue": "customer_id 'cth_cus_9847099999' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787652885317_x8eiz",
+      "display_id": 853178,
+      "issue": "customer_id 'cth_cus_9820044332' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787652868743_h2y72",
+      "display_id": 743272,
+      "issue": "customer_id 'cth_cus_9840033221' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787652856105_qk065",
+      "display_id": 105065,
+      "issue": "customer_id 'cth_cus_9847055443' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787652839236_2o4q2",
+      "display_id": 236242,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644637759_uckgi",
+      "display_id": 637759,
+      "issue": "customer_id 'cth_cus_1984500005' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644629619_f5r9t",
+      "display_id": 961959,
+      "issue": "customer_id 'cth_cus_1984500004' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644621651_3whk9",
+      "display_id": 165139,
+      "issue": "customer_id 'cth_cus_1984500001' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644610759_f56vo",
+      "display_id": 75956,
+      "issue": "customer_id 'cth_cus_1984500002' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644601303_jjpaw",
+      "display_id": 601303,
+      "issue": "customer_id 'cth_cus_1984500003' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644592469_7srz8",
+      "display_id": 246978,
+      "issue": "customer_id 'cth_cus_1984500000' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644583113_8sq9d",
+      "display_id": 311389,
+      "issue": "customer_id 'cth_cus_1984500014' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644574179_wb4og",
+      "display_id": 741794,
+      "issue": "customer_id 'cth_cus_1984500013' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644565571_lfxnv",
+      "display_id": 565571,
+      "issue": "customer_id 'cth_cus_1984500010' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644557792_dcjwe",
+      "display_id": 557792,
+      "issue": "customer_id 'cth_cus_1984500007' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644548833_5cx10",
+      "display_id": 833510,
+      "issue": "customer_id 'cth_cus_1984500006' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644540502_mk968",
+      "display_id": 502968,
+      "issue": "customer_id 'cth_cus_1984500008' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644532909_vdw85",
+      "display_id": 290985,
+      "issue": "customer_id 'cth_cus_1984500012' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644525694_uhgpu",
+      "display_id": 525694,
+      "issue": "customer_id 'cth_cus_1984500009' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644516588_z0lav",
+      "display_id": 165880,
+      "issue": "customer_id 'cth_cus_1984500011' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644479487_lkbpy",
+      "display_id": 479487,
+      "issue": "customer_id 'cth_cus_9847099999' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644465461_atvwp",
+      "display_id": 465461,
+      "issue": "customer_id 'cth_cus_9847055443' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787644456244_4lw24",
+      "display_id": 244424,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787643479766_jori4",
+      "display_id": 797664,
+      "issue": "customer_id 'cth_cus_9847012345' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787643334689_8yqoo",
+      "display_id": 346898,
+      "issue": "customer_id 'cth_cus_9847012345' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787479527402_2hqrt",
+      "display_id": 274022,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787480610651_kzx4q",
+      "display_id": 106514,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787480610651_kzx4q",
+      "display_id": 106514,
+      "issue": "branch_id 'res_01KXYMAHGFPRY1G9TZKEVGAGAT' in metadata does not exist in branch table"
+    },
+    {
+      "order_id": "ord_1787479739727_gwve4",
+      "display_id": 397274,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787479739727_gwve4",
+      "display_id": 397274,
+      "issue": "branch_id 'res_01KXYMAHGFPRY1G9TZKEVGAGAT' in metadata does not exist in branch table"
+    },
+    {
+      "order_id": "ord_1787479724193_nk8i1",
+      "display_id": 419381,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787479724193_nk8i1",
+      "display_id": 419381,
+      "issue": "branch_id 'res_01KXYMAHGFPRY1G9TZKEVGAGAT' in metadata does not exist in branch table"
+    },
+    {
+      "order_id": "ord_1787479691845_cmcim",
+      "display_id": 691845,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787479691845_cmcim",
+      "display_id": 691845,
+      "issue": "branch_id 'res_01KXYMAHGFPRY1G9TZKEVGAGAT' in metadata does not exist in branch table"
+    },
+    {
+      "order_id": "ord_1787479674377_wyyo9",
+      "display_id": 743779,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787479674377_wyyo9",
+      "display_id": 743779,
+      "issue": "branch_id 'res_01KXYMAHGFPRY1G9TZKEVGAGAT' in metadata does not exist in branch table"
+    },
+    {
+      "order_id": "ord_1787479651923_sg8g0",
+      "display_id": 192380,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787479651923_sg8g0",
+      "display_id": 192380,
+      "issue": "branch_id 'res_01KXYMAHGFPRY1G9TZKEVGAGAT' in metadata does not exist in branch table"
+    },
+    {
+      "order_id": "ord_1787479633570_vp2uv",
+      "display_id": 335702,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787479633570_vp2uv",
+      "display_id": 335702,
+      "issue": "branch_id 'res_01KXYMAHGFPRY1G9TZKEVGAGAT' in metadata does not exist in branch table"
+    },
+    {
+      "order_id": "ord_1787479618848_wm9jv",
+      "display_id": 188489,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787479618848_wm9jv",
+      "display_id": 188489,
+      "issue": "branch_id 'res_01KXYMAHGFPRY1G9TZKEVGAGAT' in metadata does not exist in branch table"
+    },
+    {
+      "order_id": "ord_1787479599824_yv0kb",
+      "display_id": 998240,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787479599824_yv0kb",
+      "display_id": 998240,
+      "issue": "branch_id 'res_01KXYMAHGFPRY1G9TZKEVGAGAT' in metadata does not exist in branch table"
+    },
+    {
+      "order_id": "ord_1787479578499_61pqq",
+      "display_id": 849961,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787481449234_1imc3",
+      "display_id": 923413,
+      "issue": "customer_id 'cth_cus_9876599999' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787481449234_1imc3",
+      "display_id": 923413,
+      "issue": "branch_id 'res_01KXYMAHGFPRY1G9TZKEVGAGAT' in metadata does not exist in branch table"
+    },
+    {
+      "order_id": "ord_1787838004487_zmjqi",
+      "display_id": 4487,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660870019_24tg8",
+      "display_id": 19248,
+      "issue": "customer_id 'cth_cus_1984500004' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660847418_j7ago",
+      "display_id": 474187,
+      "issue": "customer_id 'cth_cus_1984500003' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660748812_pnx64",
+      "display_id": 881264,
+      "issue": "customer_id 'cth_cus_1984500009' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660693399_tjbfp",
+      "display_id": 693399,
+      "issue": "customer_id 'cth_cus_1984500007' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660680276_m74ft",
+      "display_id": 27674,
+      "issue": "customer_id 'cth_cus_1984500002' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660672636_b3h0m",
+      "display_id": 263630,
+      "issue": "customer_id 'cth_cus_1984500005' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787754354809_50hc2",
+      "display_id": 809502,
+      "issue": "customer_id 'cth_cus_9845012345' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787754336135_53wv6",
+      "display_id": 135536,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787752752809_na9xt",
+      "display_id": 528099,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660920478_a90op",
+      "display_id": 47890,
+      "issue": "customer_id 'cth_cus_1984500013' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660915109_ijq57",
+      "display_id": 510957,
+      "issue": "customer_id 'cth_cus_1984500012' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660907979_q02nv",
+      "display_id": 797902,
+      "issue": "customer_id 'cth_cus_1984500010' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660897473_q6w82",
+      "display_id": 473682,
+      "issue": "customer_id 'cth_cus_1984500011' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660883610_veyo2",
+      "display_id": 836102,
+      "issue": "customer_id 'cth_cus_1984500008' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787837996509_xu41t",
+      "display_id": 650941,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787836111863_npg83",
+      "display_id": 186383,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787838196886_h8gmy",
+      "display_id": 968868,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787831657646_zwb1r",
+      "display_id": 576461,
+      "issue": "customer_id 'cth_cus_9447123456' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787812951325_iyayh",
+      "display_id": 951325,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787812763116_j39ew",
+      "display_id": 311639,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787812586872_jqdf3",
+      "display_id": 868723,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787811955913_3ufvv",
+      "display_id": 559133,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787811846921_ty70b",
+      "display_id": 692170,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787811360892_u4oum",
+      "display_id": 608924,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787757508830_hoau1",
+      "display_id": 88301,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787754636163_a9nbq",
+      "display_id": 361639,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787754551417_1wf72",
+      "display_id": 417172,
+      "issue": "customer_id 'cth_cus_01' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787754402085_lj8fx",
+      "display_id": 20858,
+      "issue": "customer_id 'cth_cus_9123456789' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787754388407_hx6wr",
+      "display_id": 884076,
+      "issue": "customer_id 'cth_cus_9999988888' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787754371869_91k5j",
+      "display_id": 869915,
+      "issue": "customer_id 'cth_cus_9740055555' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660665603_qpkej",
+      "display_id": 665603,
+      "issue": "customer_id 'cth_cus_1984500006' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660660266_zv549",
+      "display_id": 266549,
+      "issue": "customer_id 'cth_cus_1984500014' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660654218_gmmzh",
+      "display_id": 654218,
+      "issue": "customer_id 'cth_cus_1984500000' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660647005_fh0fi",
+      "display_id": 470050,
+      "issue": "customer_id 'cth_cus_1984500001' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660561695_wm4aw",
+      "display_id": 616954,
+      "issue": "customer_id 'cth_cus_9847099999' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660474001_1lle9",
+      "display_id": 400119,
+      "issue": "customer_id 'cth_cus_9820044332' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660419619_2nrbl",
+      "display_id": 196192,
+      "issue": "customer_id 'cth_cus_9840033221' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660400183_r0grx",
+      "display_id": 1830,
+      "issue": "customer_id 'cth_cus_9847055443' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787660379570_ivmlg",
+      "display_id": 379570,
+      "issue": "customer_id 'cth_cus_9845011223' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656389838_1f4np",
+      "display_id": 983814,
+      "issue": "customer_id 'cth_cus_1984500002' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656324144_sstyl",
+      "display_id": 324144,
+      "issue": "customer_id 'cth_cus_1984500011' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656310718_5vlxu",
+      "display_id": 107185,
+      "issue": "customer_id 'cth_cus_1984500012' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656301341_e6isn",
+      "display_id": 13416,
+      "issue": "customer_id 'cth_cus_1984500014' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656294193_1ih93",
+      "display_id": 193193,
+      "issue": "customer_id 'cth_cus_1984500008' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656286964_jx1ml",
+      "display_id": 869641,
+      "issue": "customer_id 'cth_cus_1984500010' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656281209_r8sqy",
+      "display_id": 812098,
+      "issue": "customer_id 'cth_cus_1984500013' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656274480_42usc",
+      "display_id": 448042,
+      "issue": "customer_id 'cth_cus_1984500006' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656263882_781b7",
+      "display_id": 827817,
+      "issue": "customer_id 'cth_cus_1984500009' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656251907_myxde",
+      "display_id": 251907,
+      "issue": "customer_id 'cth_cus_1984500003' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656241811_9rgxi",
+      "display_id": 418119,
+      "issue": "customer_id 'cth_cus_1984500007' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656225748_w0033",
+      "display_id": 480033,
+      "issue": "customer_id 'cth_cus_1984500004' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656213172_vkotw",
+      "display_id": 213172,
+      "issue": "customer_id 'cth_cus_1984500000' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656200274_sgxwt",
+      "display_id": 200274,
+      "issue": "customer_id 'cth_cus_1984500001' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787656179066_wf9wk",
+      "display_id": 790669,
+      "issue": "customer_id 'cth_cus_1984500005' does not exist in customer table"
+    },
+    {
+      "order_id": "ord_1787655787829_xx611",
+      "display_id": 829611,
+      "issue": "customer_id 'cth_cus_9847099999' does not exist in customer table"
+    }
+  ],
+  "orphan_addresses": [],
+  "orphan_variants": [],
+  "orphan_category_links": [],
+  "orphan_inventory": [],
+  "duplicate_customers": [],
+  "duplicate_branches": [
+    {
+      "name": "E2E TN Anna Nagar Bakery",
+      "cnt": "3"
+    },
+    {
+      "name": "E2E Tamil Nadu Store",
+      "cnt": "2"
+    },
+    {
+      "name": "E2E Kerala Store",
+      "cnt": "3"
+    },
+    {
+      "name": "E2E MH Bandra Bakery",
+      "cnt": "3"
+    },
+    {
+      "name": "Kollam Central Cake Studio",
+      "cnt": "2"
+    }
+  ],
+  "jsonb_structure_audit": {},
+  "summary": {
+    "total_orders_audited": 173,
+    "orders_with_missing_customer": 168,
+    "orders_with_missing_branch": 10,
+    "orders_without_metadata_items": 4,
+    "orphan_customer_addresses": 0,
+    "orphan_product_variants": 0,
+    "orphan_category_product_links": 0,
+    "orphan_branch_inventory_rows": 0,
+    "duplicate_customers_count": 0,
+    "duplicate_branches_count": 5,
+    "order_metadata_distinct_keys": [
+      "items",
+      "total",
+      "delivery",
+      "subtotal",
+      "branch_id",
+      "pickup_otp",
+      "tax_amount",
+      "branch_name",
+      "grand_total",
+      "customer_uid",
+      "delivery_otp",
+      "order_number",
+      "total_amount",
+      "bakery_status",
+      "customer_name",
+      "delivery_date",
+      "customer_phone",
+      "payment_method",
+      "payment_status",
+      "discount_amount",
+      "idempotency_key",
+      "delivery_address",
+      "delivery_slot_time",
+      "delivery_slot_id",
+      "delivery_zone_id",
+      "delivery_latitude",
+      "delivery_longitude",
+      "delivery_partner_id",
+      "delivery_partner_name"
+    ],
+    "customer_metadata_distinct_keys": [
+      "role",
+      "addresses",
+      "customer_uid",
+      "wallet_balance",
+      "normalized_phone",
+      "total_spent",
+      "total_orders",
+      "preferences",
+      "total_spend",
+      "orders_count",
+      "date_of_birth"
+    ],
+    "product_metadata_distinct_keys": [
+      "mrp",
+      "price",
+      "weight",
+      "category",
+      "occasion",
+      "occasion_ids",
+      "category_slug",
+      "selling_price",
+      "weight_prices",
+      "price_updated_at",
+      "primary_category_id",
+      "price_correction_source",
+      "pim_config",
+      "sku",
+      "uqc",
+      "gst_rate",
+      "hsn_code",
+      "tax_class",
+      "cost_price",
+      "taxability",
+      "tax_inclusive",
+      "low_stock_threshold",
+      "tags",
+      "brand",
+      "cream",
+      "vegan",
+      "creams",
+      "rating",
+      "shapes",
+      "filling",
+      "flavors",
+      "flavour",
+      "gallery",
+      "texture",
+      "alt_text",
+      "fillings",
+      "cake_base",
+      "cake_type",
+      "seo_title",
+      "video_url",
+      "sugar_free",
+      "gluten_free",
+      "is_featured",
+      "add_ons_json",
+      "category_ids",
+      "review_count",
+      "seo_keywords",
+      "is_bestseller",
+      "variants_json",
+      "daily_capacity",
+      "is_new_arrival",
+      "hsn_description",
+      "seo_description",
+      "shelf_life_days",
+      "prep_time_minutes",
+      "tax_configuration_id",
+      "enable_shape_selection",
+      "secondary_category_ids",
+      "enable_flavor_selection",
+      "max_delivery_distance_km",
+      "eggless"
+    ],
+    "branch_metadata_distinct_keys": [
+      "city",
+      "state",
+      "city_id",
+      "pincode",
+      "state_id",
+      "manager_id",
+      "state_code",
+      "branch_type",
+      "delivery_zones",
+      "extended_status",
+      "location_source",
+      "manager_account",
+      "weekly_schedule",
+      "capacity_settings",
+      "deliverable_areas",
+      "formatted_address",
+      "fulfillment_rules",
+      "temporary_closure",
+      "operational_status",
+      "product_availability",
+      "max_delivery_radius_km",
+      "test_suite",
+      "verified_at",
+      "cake_fulfilment",
+      "accessory_inventory",
+      "manager_name"
+    ],
+    "outreach_table_counts": {
+      "crm_campaign": 0,
+      "popup_campaigns": 5,
+      "lead_enquiry": 1
+    }
+  }
+}

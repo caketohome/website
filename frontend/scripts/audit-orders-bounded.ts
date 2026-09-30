@@ -2,9 +2,11 @@ import { Client } from "pg";
 import { OrderRepository } from "../src/lib/repositories/order.repository";
 import { closeDbPool } from "../src/lib/db";
 
-const connectionString =
-  process.env.DATABASE_URL ||
-  "postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres";
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error("DATABASE_URL environment variable is required.");
+  process.exit(1);
+}
 
 // Parse CLI argument for limit (default: 5)
 const limitArg = process.argv.find((a) => a.startsWith("--limit="));

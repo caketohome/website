@@ -1,8 +1,10 @@
 import { Client } from "pg";
 
-const connectionString =
-  process.env.DATABASE_URL ||
-  "postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres";
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error("DATABASE_URL environment variable is required.");
+  process.exit(1);
+}
 
 const safetyTimeout = setTimeout(() => {
   console.error("[TIMEOUT] inspect-order-relations timed out after 15s");

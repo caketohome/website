@@ -1,0 +1,326 @@
+{
+  "local_storage_usage": [
+    {
+      "file": "frontend/src/components/store/ai-chat-assistant.tsx",
+      "line": 112,
+      "snippet": "const loc = localStorage.getItem(\"caketohome_location\");"
+    },
+    {
+      "file": "frontend/src/components/store/auth/otp-login-form.tsx",
+      "line": 181,
+      "snippet": "localStorage.setItem(\"cth_access_token\", result.token);"
+    },
+    {
+      "file": "frontend/src/components/store/auth/otp-login-form.tsx",
+      "line": 182,
+      "snippet": "localStorage.setItem(\"cth_user\", JSON.stringify(result.user || {}));"
+    },
+    {
+      "file": "frontend/src/components/store/engagement/engagement-provider.tsx",
+      "line": 166,
+      "snippet": "const cityId = localStorage.getItem(\"selected_city_id\") || undefined;"
+    },
+    {
+      "file": "frontend/src/components/store/engagement/engagement-provider.tsx",
+      "line": 211,
+      "snippet": "cityId = localStorage.getItem(\"selected_city_id\") || undefined;"
+    },
+    {
+      "file": "frontend/src/components/store/engagement/engagement-provider.tsx",
+      "line": 212,
+      "snippet": "branchId = localStorage.getItem(\"selected_branch_id\") || undefined;"
+    },
+    {
+      "file": "frontend/src/components/store/engagement/engagement-provider.tsx",
+      "line": 216,
+      "snippet": "const userStr = localStorage.getItem(\"cth_user\") || localStorage.getItem(\"_cth_customer\");"
+    },
+    {
+      "file": "frontend/src/components/store/engagement/engagement-provider.tsx",
+      "line": 493,
+      "snippet": "localStorage.setItem(\"applied_discount_code\", meta.couponCode);"
+    },
+    {
+      "file": "frontend/src/components/store/engagement/engagement-provider.tsx",
+      "line": 494,
+      "snippet": "localStorage.setItem(\"_cth_pending_coupon\", meta.couponCode);"
+    },
+    {
+      "file": "frontend/src/components/store/engagement/storefront-popup-modal.tsx",
+      "line": 251,
+      "snippet": "localStorage.setItem(\"cth_access_token\", token);"
+    },
+    {
+      "file": "frontend/src/components/store/engagement/storefront-popup-modal.tsx",
+      "line": 252,
+      "snippet": "localStorage.setItem(\"cth_user\", JSON.stringify(res.user || { id: userId, phone: userPhone, role: serverRole }));"
+    },
+    {
+      "file": "frontend/src/components/store/engagement/storefront-popup-modal.tsx",
+      "line": 254,
+      "snippet": "localStorage.setItem(\"applied_discount_code\", resolvedCouponCode);"
+    },
+    {
+      "file": "frontend/src/components/store/engagement/storefront-popup-modal.tsx",
+      "line": 255,
+      "snippet": "localStorage.setItem(\"_cth_pending_coupon\", resolvedCouponCode);"
+    },
+    {
+      "file": "frontend/src/components/store/engagement/storefront-popup-modal.tsx",
+      "line": 392,
+      "snippet": "localStorage.setItem(\"applied_discount_code\", resolvedCouponCode);"
+    },
+    {
+      "file": "frontend/src/components/store/engagement/storefront-popup-modal.tsx",
+      "line": 393,
+      "snippet": "localStorage.setItem(\"_cth_pending_coupon\", resolvedCouponCode);"
+    },
+    {
+      "file": "frontend/src/components/store/marketing/exit-intent-popup.tsx",
+      "line": 61,
+      "snippet": "const lastShown = Number(localStorage.getItem(lastShownKey) ?? 0);"
+    },
+    {
+      "file": "frontend/src/components/store/search/nav-search.tsx",
+      "line": 60,
+      "snippet": "const stored = localStorage.getItem(recentSearchesKey) || localStorage.getItem(\"cth_recent_searches\");"
+    },
+    {
+      "file": "frontend/src/components/store/search/nav-search.tsx",
+      "line": 78,
+      "snippet": "localStorage.setItem(recentSearchesKey, JSON.stringify(updated));"
+    },
+    {
+      "file": "frontend/src/components/store/search/nav-search.tsx",
+      "line": 90,
+      "snippet": "localStorage.removeItem(recentSearchesKey);"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 26,
+      "snippet": "this.token = localStorage.getItem(\"cth_access_token\")"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 27,
+      "snippet": "|| localStorage.getItem(\"cth_admin_token\")"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 28,
+      "snippet": "|| localStorage.getItem(\"admin_token\")"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 29,
+      "snippet": "|| localStorage.getItem(\"medusa_access_token\");"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 38,
+      "snippet": "localStorage.setItem(\"cth_access_token\", token);"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 39,
+      "snippet": "localStorage.setItem(\"cth_admin_token\", token);"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 47,
+      "snippet": "localStorage.removeItem(\"cth_access_token\");"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 48,
+      "snippet": "localStorage.removeItem(\"cth_admin_token\");"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 49,
+      "snippet": "localStorage.removeItem(\"admin_token\");"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 50,
+      "snippet": "localStorage.removeItem(\"medusa_access_token\");"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 58,
+      "snippet": "const t = localStorage.getItem(\"cth_access_token\")"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 59,
+      "snippet": "|| localStorage.getItem(\"cth_admin_token\")"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 60,
+      "snippet": "|| localStorage.getItem(\"admin_token\")"
+    },
+    {
+      "file": "frontend/src/lib/api-client.ts",
+      "line": 61,
+      "snippet": "|| localStorage.getItem(\"medusa_access_token\");"
+    },
+    {
+      "file": "frontend/src/lib/auth-service.ts",
+      "line": 105,
+      "snippet": "window.localStorage.removeItem(key);"
+    },
+    {
+      "file": "frontend/src/lib/auth-service.ts",
+      "line": 138,
+      "snippet": "window.localStorage.setItem(\"_cth_logout_event\", String(Date.now()));"
+    },
+    {
+      "file": "frontend/src/lib/auth-service.ts",
+      "line": 139,
+      "snippet": "window.localStorage.removeItem(\"_cth_logout_event\");"
+    },
+    {
+      "file": "frontend/src/lib/data/catalog-client.ts",
+      "line": 32,
+      "snippet": "return JSON.parse(localStorage.getItem(COMPARE_KEY) || \"[]\");"
+    },
+    {
+      "file": "frontend/src/lib/data/catalog-client.ts",
+      "line": 45,
+      "snippet": "localStorage.setItem(COMPARE_KEY, JSON.stringify(ids));"
+    },
+    {
+      "file": "frontend/src/lib/data/catalog-client.ts",
+      "line": 52,
+      "snippet": "localStorage.setItem(COMPARE_KEY, JSON.stringify(ids));"
+    },
+    {
+      "file": "frontend/src/lib/data/catalog-client.ts",
+      "line": 58,
+      "snippet": "localStorage.removeItem(COMPARE_KEY);"
+    },
+    {
+      "file": "frontend/src/lib/engagement/popup-frequency-manager.ts",
+      "line": 29,
+      "snippet": "if (!localStorage.getItem(migrationFlag)) {"
+    },
+    {
+      "file": "frontend/src/lib/engagement/popup-frequency-manager.ts",
+      "line": 30,
+      "snippet": "for (let i = localStorage.length - 1; i >= 0; i--) {"
+    },
+    {
+      "file": "frontend/src/lib/engagement/popup-frequency-manager.ts",
+      "line": 31,
+      "snippet": "const key = localStorage.key(i);"
+    },
+    {
+      "file": "frontend/src/lib/engagement/popup-frequency-manager.ts",
+      "line": 34,
+      "snippet": "localStorage.removeItem(key);"
+    },
+    {
+      "file": "frontend/src/lib/engagement/popup-frequency-manager.ts",
+      "line": 37,
+      "snippet": "localStorage.removeItem(key);"
+    },
+    {
+      "file": "frontend/src/lib/engagement/popup-frequency-manager.ts",
+      "line": 41,
+      "snippet": "localStorage.setItem(migrationFlag, \"true\");"
+    },
+    {
+      "file": "frontend/src/lib/engagement/popup-frequency-manager.ts",
+      "line": 102,
+      "snippet": "const localRaw = localStorage.getItem(`${FREQUENCY_STORAGE_PREFIX}${campaignId}`);"
+    },
+    {
+      "file": "frontend/src/lib/engagement/popup-frequency-manager.ts",
+      "line": 144,
+      "snippet": "localStorage.setItem("
+    },
+    {
+      "file": "frontend/src/providers/customer-provider.tsx",
+      "line": 157,
+      "snippet": "localStorage.removeItem(\"cth_access_token\");"
+    },
+    {
+      "file": "frontend/src/providers/customer-provider.tsx",
+      "line": 158,
+      "snippet": "localStorage.removeItem(\"cth_user\");"
+    }
+  ],
+  "session_storage_usage": [
+    {
+      "file": "frontend/src/components/store/cms/announcement-bar-section.tsx",
+      "line": 142,
+      "snippet": "const isDismissed = sessionStorage.getItem(`cth_announcement_dismissed_${sectionId}`);"
+    },
+    {
+      "file": "frontend/src/components/store/cro-urgency-widgets.tsx",
+      "line": 101,
+      "snippet": "if (e.clientY <= 0 && !sessionStorage.getItem(\"exit_intent_shown\")) {"
+    },
+    {
+      "file": "frontend/src/components/store/cro-urgency-widgets.tsx",
+      "line": 103,
+      "snippet": "sessionStorage.setItem(\"exit_intent_shown\", \"true\");"
+    },
+    {
+      "file": "frontend/src/lib/auth-service.ts",
+      "line": 106,
+      "snippet": "window.sessionStorage.removeItem(key);"
+    },
+    {
+      "file": "frontend/src/lib/engagement/popup-frequency-manager.ts",
+      "line": 103,
+      "snippet": "const sessionRaw = sessionStorage.getItem(`${FREQUENCY_STORAGE_PREFIX}${campaignId}_session`);"
+    },
+    {
+      "file": "frontend/src/lib/engagement/popup-frequency-manager.ts",
+      "line": 155,
+      "snippet": "sessionStorage.setItem(`${FREQUENCY_STORAGE_PREFIX}${campaignId}_session`, String(updated.sessionShows));"
+    }
+  ],
+  "mock_or_dummy_constants": [
+    {
+      "file": "frontend/src/lib/data/catalog.ts",
+      "line": 555,
+      "snippet": "export const DEFAULT_CATALOG_PRODUCTS: any[] = ["
+    }
+  ],
+  "fallback_arrays": [],
+  "classifications": [
+    {
+      "target": "localStorage cart fallback in frontend/src/lib/store/cart-store.ts or components",
+      "classification": "REFACTOR / VERIFIED",
+      "rationale": "Cart state in Zustand cart-store uses localStorage for client UI session continuity (drawer open state/anonymous guest session ID), while the authoritative cart and line items are validated and persisted to PostgreSQL Cart table via API.",
+      "action": "KEEP client session cache, ENSURE API / DB is strictly authoritative for prices, stock, and orders (Verified in Phase 8 & 9)."
+    },
+    {
+      "target": "DEFAULT_CATALOG_PRODUCTS in frontend/src/lib/data/catalog.ts",
+      "classification": "REMOVE (DEAD CODE)",
+      "rationale": "Exported in catalog.ts but 0 runtime usages exist. All catalog products are loaded from PostgreSQL via ProductRepository.listProducts().",
+      "action": "Candidate for safe removal in Phase 17."
+    },
+    {
+      "target": "memoryStore in frontend/src/lib/api-engine.ts",
+      "classification": "REFACTOR / KEEP SAFEGUARDS",
+      "rationale": "Historical in-memory cache from early prototypes. Now guarded by Postgres fallbacks and fallback: DISABLED in production routes.",
+      "action": "KEEP file intact as it provides routing adapters and SEO utilities, but verify fallback: 'DISABLED' flags remain active."
+    },
+    {
+      "target": "Scratch test scripts in scratch/",
+      "classification": "TEST-ONLY",
+      "rationale": "Used exclusively for empirical verification across Phases 1-15.",
+      "action": "KEEP in scratch/ directory for audit reproducibility and checkpoint verification."
+    },
+    {
+      "target": "Unused Medusa migration tables (e.g., stg_*, temp_*)",
+      "classification": "KEEP (DO NOT DROP)",
+      "rationale": "In accordance with Safety Rule 6 ('DO NOT drop a table simply because it appears unused') and Rule 7 (Zero destructive schema operations).",
+      "action": "Retain all 275 public tables in PostgreSQL with RLS enabled."
+    }
+  ]
+}

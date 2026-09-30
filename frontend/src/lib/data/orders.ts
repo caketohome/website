@@ -107,30 +107,13 @@ export async function getOrder(orderId: string): Promise<{ order: OrderDetail }>
         },
       };
     }
-  } catch (e) {
-    console.warn("Failed to fetch order from API:", e);
+  } catch (e: any) {
+    throw new Error(e?.message || `Failed to fetch order ${orderId}`);
   }
 
-  const dummy: OrderDetail = {
-    order_id: orderId,
-    status: "CONFIRMED",
-    current_status_since: new Date().toISOString(),
-    display_number: `CTH-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-101`,
-    total_amount: 599,
-    currency_code: "INR",
-    placed_at: new Date().toISOString(),
-    item_count: 1,
-    delivery_date: new Date().toISOString().slice(0, 10),
-    delivery_slot_id: "Evening Slot",
-    timeline: [
-      { id: "tl_1", type: "status", timestamp: new Date().toISOString(), title: "Order Confirmed", is_customer_visible: true },
-      { id: "tl_2", type: "status", timestamp: new Date().toISOString(), title: "Baking Started in Kitchen", is_customer_visible: true },
-    ],
-    delivery_proofs: [],
-    refunds: [],
-  };
-  return { order: dummy };
+  throw new Error(`Order ${orderId} not found`);
 }
+
 
 export async function cancelOrder(orderId: string, reason: string): Promise<{ id: string; status: string }> {
   return { id: orderId, status: "CANCELLED" };

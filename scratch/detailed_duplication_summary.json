@@ -1,0 +1,254 @@
+{
+  "haversine_distance": [
+    {
+      "file": "frontend/src/lib/api-engine.ts",
+      "line": 6405,
+      "snippet": "const R = 6371;"
+    },
+    {
+      "file": "frontend/src/lib/api-engine.ts",
+      "line": 6409,
+      "snippet": "Math.sin(dLat / 2) * Math.sin(dLat / 2) +"
+    },
+    {
+      "file": "frontend/src/lib/api-engine.ts",
+      "line": 6411,
+      "snippet": "const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));"
+    },
+    {
+      "file": "frontend/src/lib/api-engine.ts",
+      "line": 6647,
+      "snippet": "Math.sin(dLat / 2) * Math.sin(dLat / 2) +"
+    },
+    {
+      "file": "frontend/src/lib/api-engine.ts",
+      "line": 6649,
+      "snippet": "const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));"
+    },
+    {
+      "file": "frontend/src/lib/services/delivery.service.ts",
+      "line": 44,
+      "snippet": "Math.sin(dLat / 2) * Math.sin(dLat / 2) +"
+    },
+    {
+      "file": "frontend/src/lib/services/delivery.service.ts",
+      "line": 49,
+      "snippet": "const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));"
+    }
+  ],
+  "order_totals": [],
+  "jwt_and_token": [
+    {
+      "file": "frontend/src/lib/security/auth-session.ts",
+      "line": 81,
+      "snippet": "function base64UrlEncode(str: string): string {"
+    },
+    {
+      "file": "frontend/src/lib/security/auth-session.ts",
+      "line": 82,
+      "snippet": "return Buffer.from(str, \"utf8\").toString(\"base64url\");"
+    },
+    {
+      "file": "frontend/src/lib/security/auth-session.ts",
+      "line": 85,
+      "snippet": "function base64UrlDecode(str: string): string {"
+    },
+    {
+      "file": "frontend/src/lib/security/auth-session.ts",
+      "line": 86,
+      "snippet": "return Buffer.from(str, \"base64url\").toString(\"utf8\");"
+    },
+    {
+      "file": "frontend/src/lib/security/auth-session.ts",
+      "line": 113,
+      "snippet": "const headerB64 = base64UrlEncode(JSON.stringify(header));"
+    },
+    {
+      "file": "frontend/src/lib/security/auth-session.ts",
+      "line": 114,
+      "snippet": "const payloadB64 = base64UrlEncode(JSON.stringify(fullPayload));"
+    },
+    {
+      "file": "frontend/src/lib/security/auth-session.ts",
+      "line": 117,
+      "snippet": "const signature = crypto.createHmac(\"sha256\", secret).update(data).digest(\"base64url\");"
+    },
+    {
+      "file": "frontend/src/lib/security/auth-session.ts",
+      "line": 153,
+      "snippet": ".digest(\"base64url\");"
+    },
+    {
+      "file": "frontend/src/lib/security/auth-session.ts",
+      "line": 155,
+      "snippet": "const sigBuf = Buffer.from(signatureB64, \"base64url\");"
+    },
+    {
+      "file": "frontend/src/lib/security/auth-session.ts",
+      "line": 156,
+      "snippet": "const expBuf = Buffer.from(expectedSig, \"base64url\");"
+    },
+    {
+      "file": "frontend/src/lib/security/auth-session.ts",
+      "line": 162,
+      "snippet": "const decodedPayload = JSON.parse(base64UrlDecode(payloadB64));"
+    }
+  ],
+  "delivery_slots": [
+    {
+      "file": "frontend/src/app/api/v1/branches/route.ts",
+      "line": 16,
+      "snippet": "const slots = ApiEngine.getDeliverySlots(branchId, date, mode);"
+    },
+    {
+      "file": "frontend/src/app/api/v1/[...path]/route.ts",
+      "line": 694,
+      "snippet": "const pausedSlots = ApiEngine.getDeliverySlots(bA.id, todayIso, \"delivery\");"
+    },
+    {
+      "file": "frontend/src/app/api/v1/[...path]/route.ts",
+      "line": 698,
+      "snippet": "const activeSlots = ApiEngine.getDeliverySlots(bA.id, todayIso, \"delivery\");"
+    },
+    {
+      "file": "frontend/src/app/api/v1/[...path]/route.ts",
+      "line": 704,
+      "snippet": "const tomSlots = ApiEngine.getDeliverySlots(bA.id, tomorrowIso, \"delivery\");"
+    },
+    {
+      "file": "frontend/src/app/api/v1/[...path]/route.ts",
+      "line": 1261,
+      "snippet": "const slots = ApiEngine.getDeliverySlots(branchId, date, mode);"
+    },
+    {
+      "file": "frontend/src/app/api/v1/[...path]/route.ts",
+      "line": 1367,
+      "snippet": "const slotsRes = ApiEngine.getDeliverySlots(branchId, date, mode, {"
+    },
+    {
+      "file": "frontend/src/components/dashboard/admin/create-order-drawer.tsx",
+      "line": 161,
+      "snippet": "const fetchSlots = apiClient?.getDeliverySlots ? apiClient.getDeliverySlots(selectedBranchId, deliveryDate) : Promise.reject(\"getDeliverySlots missing\");"
+    },
+    {
+      "file": "frontend/src/lib/actions/deliveries.ts",
+      "line": 115,
+      "snippet": "export async function getDeliverySlotsAction(branchId: string, date: string) {"
+    },
+    {
+      "file": "frontend/src/lib/api-engine.ts",
+      "line": 6630,
+      "snippet": "const slots = ApiEngine.getDeliverySlots(branch.id, new Date().toISOString().slice(0, 10));"
+    },
+    {
+      "file": "frontend/src/lib/api-engine.ts",
+      "line": 17101,
+      "snippet": "const todaySlotsRes = ApiEngine.getDeliverySlots(servicingBranch.id, todayIso, deliveryType, { zone: resolvedZone });"
+    },
+    {
+      "file": "frontend/src/lib/api-engine.ts",
+      "line": 22974,
+      "snippet": "const slotsRes = this.getDeliverySlots(branch?.id || \"br_default\", deliveryDate, data.delivery_type === \"pickup\" ? \"pickup\" : \"delivery\");"
+    },
+    {
+      "file": "frontend/src/lib/data/deliveries.ts",
+      "line": 361,
+      "snippet": "export async function getDeliverySlots(branchId: string, date: string, mode: \"delivery\" | \"pickup\" = \"delivery\"): Promise<{ delivery_slots: Array<any>; status?: string; message?: string; is_open?: boolean }> {"
+    }
+  ],
+  "data_imports": {
+    "../../../lib/data/carts": [
+      "frontend/src/app/(checkout)/checkout/page.tsx"
+    ],
+    "@frontend/lib/data/cms": [
+      "frontend/src/app/(store)/blog/page.tsx",
+      "frontend/src/app/(store)/blog/[slug]/page.tsx",
+      "frontend/src/app/(store)/[slug]/page.tsx",
+      "frontend/src/components/store/cms/homepage-section-renderer.tsx",
+      "frontend/src/components/store/cms/navigation.tsx"
+    ],
+    "@frontend/lib/data/analytics": [
+      "frontend/src/app/(store)/blog/[slug]/page.tsx",
+      "frontend/src/app/(store)/search/page.tsx",
+      "frontend/src/components/store/catalog/product-card.tsx",
+      "frontend/src/components/store/cms/navigation.tsx"
+    ],
+    "@frontend/lib/data/marketing": [
+      "frontend/src/app/(store)/campaigns/page.tsx",
+      "frontend/src/app/(store)/campaigns/[id]/page.tsx"
+    ],
+    "@frontend/lib/data/carts": [
+      "frontend/src/app/(store)/cart/page.tsx",
+      "frontend/src/components/store/cart/nav-cart.tsx"
+    ],
+    "@frontend/lib/data/catalog-client": [
+      "frontend/src/app/(store)/compare/page.tsx",
+      "frontend/src/app/(store)/search/page.tsx",
+      "frontend/src/components/store/catalog/category-client-page.tsx",
+      "frontend/src/components/store/home/storefront-product-homepage.tsx"
+    ],
+    "@frontend/lib/data/users": [
+      "frontend/src/app/(store)/layout.tsx"
+    ],
+    "../../lib/data/cms": [
+      "frontend/src/app/(store)/page.tsx"
+    ],
+    "../../lib/data/catalog": [
+      "frontend/src/app/(store)/page.tsx"
+    ],
+    "../../../lib/data/catalog": [
+      "frontend/src/app/(store)/products/page.tsx"
+    ],
+    "../../../../lib/data/catalog": [
+      "frontend/src/app/(store)/products/[id]/page.tsx"
+    ],
+    "../../../../lib/data/cms": [
+      "frontend/src/app/(store)/products/[id]/page.tsx"
+    ],
+    "@frontend/lib/data/marketing-toolkit-client": [
+      "frontend/src/app/(store)/qr/[code]/page.tsx",
+      "frontend/src/components/store/marketing/exit-intent-popup.tsx",
+      "frontend/src/components/store/marketing/gamification-widgets.tsx",
+      "frontend/src/components/store/marketing/newsletter-form.tsx"
+    ],
+    "@frontend/lib/data/catalog": [
+      "frontend/src/app/(store)/[slug]/page.tsx",
+      "frontend/src/app/account/wishlist/page.tsx",
+      "frontend/src/components/store/account/subscriptions-manager.tsx",
+      "frontend/src/components/store/catalog/product-card.tsx",
+      "frontend/src/components/store/catalog/product-filters.tsx",
+      "frontend/src/components/store/catalog/products-catalog-client.tsx",
+      "frontend/src/components/store/search/nav-search.tsx",
+      "frontend/src/components/store/shop/product-detail-client.tsx"
+    ],
+    "@frontend/lib/data/branches": [
+      "frontend/src/components/dashboard/admin/enterprise-reports-engine.tsx",
+      "frontend/src/components/store/shop/product-detail-client.tsx"
+    ],
+    "@frontend/lib/data/manager": [
+      "frontend/src/components/dashboard/shop/assign-rider-modal.tsx",
+      "frontend/src/components/dashboard/shop/branch-operations-manager.tsx",
+      "frontend/src/components/dashboard/shop/invoice-modal.tsx",
+      "frontend/src/components/dashboard/shop/kot-modal.tsx",
+      "frontend/src/components/dashboard/shop/order-details-drawer.tsx"
+    ],
+    "../../../lib/data/orders-client": [
+      "frontend/src/components/store/account/order-detail-client.tsx",
+      "frontend/src/components/store/account/order-tracking-client.tsx"
+    ],
+    "../../../lib/data/orders": [
+      "frontend/src/components/store/account/order-detail-client.tsx",
+      "frontend/src/components/store/account/order-tracking-client.tsx"
+    ],
+    "@frontend/lib/data/customer": [
+      "frontend/src/components/store/auth/otp-login-form.tsx",
+      "frontend/src/components/store/engagement/storefront-popup-modal.tsx"
+    ],
+    "@frontend/lib/data/deliveries": [
+      "frontend/src/components/store/coverage-map.tsx"
+    ],
+    "../../lib/data/sessions": [
+      "frontend/src/lib/actions/users.ts"
+    ]
+  }
+}

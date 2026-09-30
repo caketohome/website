@@ -50,6 +50,10 @@ export class DeliveryService {
     return Number((R * c).toFixed(2));
   }
 
+  static calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    return DeliveryService.calculateDistanceKm(lat1, lon1, lat2, lon2);
+  }
+
   /**
    * Get current business time in Asia/Kolkata timezone
    */

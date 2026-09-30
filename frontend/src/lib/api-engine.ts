@@ -33,6 +33,7 @@ import {
   deleteProductReviewFromDb,
 } from "./db-persistence";
 import { InventoryService } from "./services/inventory.service";
+import { DeliveryService } from "./services/delivery.service";
 import { SeoIntegrationsEngine } from "./integrations/seo-integrations";
 import { LiveHttpCrawler } from "./crawler/live-crawler";
 import { SeoAuditEngine } from "./audit/seo-audit-engine";
@@ -49,6 +50,7 @@ import { SeoRbacGuard, UserRole } from "./auth/seo-rbac-guard";
 import { WebhookEngine } from "./webhook-engine";
 import { TelemarketingEngine } from "./telemarketing-engine";
 import { StaffAccessControl } from "./staff-access-control";
+import { signAuthToken, registerServerSession } from "./security/auth-session";
 import { OrderLifecycleService, OrderLifecycleState, DeliveryLifecycleState, ActorContext } from "./order-lifecycle-service";
 import {
   FulfillmentEngine,
@@ -6400,15 +6402,7 @@ export class ApiEngine {
     if (centerLat !== undefined && centerLng !== undefined && (zone.radius_km || zone.max_km)) {
       const configuredRadius = zone.radius_km || zone.max_km || effectiveMax;
       const maxRadius = Math.min(configuredRadius, effectiveMax);
-      const toRad = (v: number) => (v * Math.PI) / 180;
-      const R = 6371;
-      const dLat = toRad(centerLat - lat);
-      const dLng = toRad(centerLng - lng);
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(lat)) * Math.cos(toRad(centerLat)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      const distance = R * c;
+      const distance = ApiEngine.calculateHaversineDistance(lat, lng, centerLat, centerLng);
 
       // Exact boundary precision: inclusive <= maxRadius (with 0.001km tolerance for floating point calculations)
       if (distance <= maxRadius + 0.001) {
@@ -6639,14 +6633,7 @@ export class ApiEngine {
    * Calculates great-circle distance between two GPS coordinates in kilometers (Haversine formula).
    */
   static calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Earth's radius in km
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+    return DeliveryService.calculateDistance(lat1, lon1, lat2, lon2);
   }
 
   /**
@@ -16547,6 +16534,15 @@ export class ApiEngine {
       }
     }
 
+    if (dateIso < todayIso) {
+      return {
+        status: "PAST_DATE",
+        message: "Delivery cannot be scheduled for a past date.",
+        is_open: false,
+        delivery_slots: [],
+      };
+    }
+
     const isToday = todayIso === dateIso;
     const targetDateObj = new Date(`${dateIso}T12:00:00Z`);
     const dayOfWeek = targetDateObj.toLocaleDateString("en-US", { weekday: "long", timeZone: timezone });
@@ -17875,9 +17871,17 @@ export class ApiEngine {
     }
 
     const check = ApiEngine.checkAccountByPhone(phone);
-    const token = `cth_jwt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
     if (check.role === "SUPER_ADMIN") {
+      const adminPayload = {
+        userId: "admin_01",
+        role: "SUPER_ADMIN",
+        phone: cleanPhone,
+        customerUid: `cth_cus_${cleanPhone}`,
+      };
+      const token = signAuthToken(adminPayload);
+      registerServerSession(token, adminPayload);
+
       if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
       memoryStore.login_events.unshift({
         id: `log_${Date.now()}_admin`,
@@ -17904,6 +17908,16 @@ export class ApiEngine {
     }
 
     if (check.role === "BRANCH_MANAGER") {
+      const mgrUserId = (check.user as any)?.id || check.branch_id || "mgr_01";
+      const mgrPayload = {
+        userId: mgrUserId,
+        role: "BRANCH_MANAGER",
+        phone: cleanPhone,
+        branchId: check.branch_id,
+      };
+      const token = signAuthToken(mgrPayload);
+      registerServerSession(token, mgrPayload);
+
       if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
       memoryStore.login_events.unshift({
         id: `log_${Date.now()}_mgr`,
@@ -17911,7 +17925,7 @@ export class ApiEngine {
         phone,
         email: (check.user as any)?.email || "manager@caketohome.com",
         role: "BRANCH_MANAGER",
-        user_id: (check.user as any)?.id || check.branch_id || "mgr_01",
+        user_id: mgrUserId,
         user_name: (check.user as any)?.name || "Branch Manager",
         status: "SUCCESS",
         authentication_method: "OTP_SMS",
@@ -17931,6 +17945,16 @@ export class ApiEngine {
     }
 
     if (check.role === "DELIVERY_PARTNER") {
+      const dlpUserId = check.partner_id || (check.user as any)?.id || "dlp_01";
+      const dlpPayload = {
+        userId: dlpUserId,
+        role: "DELIVERY_PARTNER",
+        phone: cleanPhone,
+        partnerId: check.partner_id,
+      };
+      const token = signAuthToken(dlpPayload);
+      registerServerSession(token, dlpPayload);
+
       if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
       memoryStore.login_events.unshift({
         id: `log_${Date.now()}_partner`,
@@ -17938,7 +17962,7 @@ export class ApiEngine {
         phone,
         email: (check.user as any)?.email || "partner@caketohome.com",
         role: "DELIVERY_PARTNER",
-        user_id: check.partner_id || (check.user as any)?.id || "dlp_01",
+        user_id: dlpUserId,
         user_name: (check.user as any)?.name || "Delivery Partner",
         status: "SUCCESS",
         authentication_method: "OTP_SMS",
@@ -17958,6 +17982,16 @@ export class ApiEngine {
     }
 
     if (check.role === "STAFF") {
+      const staffUserId = (check.user as any)?.id || "staff_01";
+      const staffPayload = {
+        userId: staffUserId,
+        role: "STAFF",
+        phone: cleanPhone,
+        branchId: check.branch_id,
+      };
+      const token = signAuthToken(staffPayload);
+      registerServerSession(token, staffPayload);
+
       if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
       memoryStore.login_events.unshift({
         id: `log_${Date.now()}_staff`,
@@ -17965,7 +17999,7 @@ export class ApiEngine {
         phone,
         email: (check.user as any)?.email || "staff@caketohome.com",
         role: "STAFF",
-        user_id: (check.user as any)?.id || "staff_01",
+        user_id: staffUserId,
         user_name: (check.user as any)?.name || "Staff Member",
         status: "SUCCESS",
         authentication_method: "OTP_SMS",
@@ -18129,6 +18163,16 @@ export class ApiEngine {
       { customer_uid: resolvedCustomer.customer_uid, name: resolvedCustomer.name, phone: resolvedCustomer.phone, email: resolvedCustomer.email, city: resolvedCustomer.city_name },
       { type: "customer", id: resolvedCustomer.id, city_id: resolvedCustomer.city_id, branch_id: resolvedCustomer.branch_id }
     );
+
+    const customerPayload = {
+      userId: resolvedCustomer.id,
+      role: "CUSTOMER" as const,
+      phone: cleanPhone,
+      customerUid: resolvedCustomer.customer_uid,
+      customerId: resolvedCustomer.id,
+    };
+    const token = signAuthToken(customerPayload);
+    registerServerSession(token, customerPayload);
 
     ApiEngine.persist();
 

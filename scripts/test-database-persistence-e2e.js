@@ -3,7 +3,11 @@ const fs = require("fs");
 const crypto = require("crypto");
 const { Pool } = require(path.join(__dirname, "..", "frontend", "node_modules", "pg"));
 
-const DATABASE_URL = process.env.DATABASE_URL || "postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres";
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  console.warn("DATABASE_URL not set; skipping live DB test.");
+  process.exit(0);
+}
 const DB_STORE_PATH = path.join(process.cwd(), "frontend", "data", "db-store.json");
 
 function getFileSha256(filePath) {

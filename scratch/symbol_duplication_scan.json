@@ -1,0 +1,1424 @@
+[
+  {
+    "name": "generateMetadata",
+    "count": 12,
+    "occurrences": [
+      {
+        "file": "frontend/src/app/(checkout)/checkout/page.tsx",
+        "line": 11,
+        "kind": "function",
+        "signature": "export async function generateMetadata(): Promise<Metadata> {"
+      },
+      {
+        "file": "frontend/src/app/(store)/blog/[slug]/page.tsx",
+        "line": 9,
+        "kind": "function",
+        "signature": "export async function generateMetadata({"
+      },
+      {
+        "file": "frontend/src/app/(store)/campaigns/[id]/page.tsx",
+        "line": 13,
+        "kind": "function",
+        "signature": "export async function generateMetadata({ params }: PageProps): Promise<Metadata> {"
+      },
+      {
+        "file": "frontend/src/app/(store)/categories/page.tsx",
+        "line": 9,
+        "kind": "function",
+        "signature": "export async function generateMetadata(): Promise<Metadata> {"
+      },
+      {
+        "file": "frontend/src/app/(store)/category/[slug]/page.tsx",
+        "line": 8,
+        "kind": "function",
+        "signature": "export async function generateMetadata({ params }: { params: Promise<{ slug: string }> | { slug: string } }): Promise<Metadata> {"
+      },
+      {
+        "file": "frontend/src/app/(store)/city/[slug]/page.tsx",
+        "line": 17,
+        "kind": "function",
+        "signature": "export async function generateMetadata({ params }: CityPageProps) {"
+      },
+      {
+        "file": "frontend/src/app/(store)/login/page.tsx",
+        "line": 7,
+        "kind": "function",
+        "signature": "export async function generateMetadata(): Promise<Metadata> {"
+      },
+      {
+        "file": "frontend/src/app/(store)/occasions/[slug]/page.tsx",
+        "line": 12,
+        "kind": "function",
+        "signature": "export async function generateMetadata({ params }: OccasionPageProps) {"
+      },
+      {
+        "file": "frontend/src/app/(store)/page.tsx",
+        "line": 12,
+        "kind": "function",
+        "signature": "export async function generateMetadata(): Promise<Metadata> {"
+      },
+      {
+        "file": "frontend/src/app/(store)/products/page.tsx",
+        "line": 7,
+        "kind": "function",
+        "signature": "export async function generateMetadata(): Promise<Metadata> {"
+      },
+      {
+        "file": "frontend/src/app/(store)/products/[id]/page.tsx",
+        "line": 11,
+        "kind": "function",
+        "signature": "export async function generateMetadata({ params }: { params: Promise<{ id: string }> | { id: string } }): Promise<Metadata> {"
+      },
+      {
+        "file": "frontend/src/app/(store)/[slug]/page.tsx",
+        "line": 11,
+        "kind": "function",
+        "signature": "export async function generateMetadata({"
+      }
+    ]
+  },
+  {
+    "name": "RootLayout",
+    "count": 4,
+    "occurrences": [
+      {
+        "file": "frontend/src/app/(checkout)/layout.tsx",
+        "line": 15,
+        "kind": "function",
+        "signature": "export default async function RootLayout({"
+      },
+      {
+        "file": "frontend/src/app/(store)/layout.tsx",
+        "line": 20,
+        "kind": "function",
+        "signature": "export default async function RootLayout({"
+      },
+      {
+        "file": "frontend/src/app/(store)/signup/layout.tsx",
+        "line": 8,
+        "kind": "function",
+        "signature": "export default function RootLayout({"
+      },
+      {
+        "file": "frontend/src/app/layout.tsx",
+        "line": 33,
+        "kind": "function",
+        "signature": "export default function RootLayout({"
+      }
+    ]
+  },
+  {
+    "name": "Field",
+    "count": 11,
+    "occurrences": [
+      {
+        "file": "frontend/src/components/dashboard/admin/announcement-bar-editor.tsx",
+        "line": 31,
+        "kind": "function",
+        "signature": "function Field({"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/features-section-editor.tsx",
+        "line": 31,
+        "kind": "function",
+        "signature": "function Field({ label, hint, children }: { label: string | React.ReactNode; hint?: string; children: React.ReactNode }) {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/occasions-grid-editor.tsx",
+        "line": 38,
+        "kind": "function",
+        "signature": "function Field({ label, hint, children }: { label: string | React.ReactNode; hint?: string; children: React.ReactNode }) {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/page-configurator.tsx",
+        "line": 125,
+        "kind": "function",
+        "signature": "function Field({ label, hint, children }: { label: string | React.ReactNode; hint?: string; children: React.ReactNode }) {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/pdp-builder-editor.tsx",
+        "line": 14,
+        "kind": "function",
+        "signature": "function Field({ label, hint, children }: { label: string | React.ReactNode; hint?: string; children: React.ReactNode }) {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/product-grid-editor.tsx",
+        "line": 19,
+        "kind": "function",
+        "signature": "function Field({ label, hint, children }: { label: string | React.ReactNode; hint?: string; children: React.ReactNode }) {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/promotional-banner-editor.tsx",
+        "line": 40,
+        "kind": "function",
+        "signature": "function Field({"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/scroll-frame-editor.tsx",
+        "line": 53,
+        "kind": "function",
+        "signature": "function Field({"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/section-config-editor.tsx",
+        "line": 37,
+        "kind": "function",
+        "signature": "function Field({ label, hint, children }: { label: string | React.ReactNode; hint?: string; children: React.ReactNode }) {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/split-hero-editor.tsx",
+        "line": 17,
+        "kind": "function",
+        "signature": "function Field({ label, hint, children }: { label: string | React.ReactNode; hint?: string; children: React.ReactNode }) {"
+      },
+      {
+        "file": "backend/src/admin/routes/marketing-toolkit/page.tsx",
+        "line": 1009,
+        "kind": "function",
+        "signature": "function Field({"
+      }
+    ]
+  },
+  {
+    "name": "ColorInput",
+    "count": 3,
+    "occurrences": [
+      {
+        "file": "frontend/src/components/dashboard/admin/announcement-bar-editor.tsx",
+        "line": 49,
+        "kind": "function",
+        "signature": "function ColorInput({"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/promotional-banner-editor.tsx",
+        "line": 58,
+        "kind": "function",
+        "signature": "function ColorInput({"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/section-config-editor.tsx",
+        "line": 60,
+        "kind": "function",
+        "signature": "function ColorInput({"
+      }
+    ]
+  },
+  {
+    "name": "Toggle",
+    "count": 8,
+    "occurrences": [
+      {
+        "file": "frontend/src/components/dashboard/admin/announcement-bar-editor.tsx",
+        "line": 81,
+        "kind": "function",
+        "signature": "function Toggle({"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/occasions-grid-editor.tsx",
+        "line": 48,
+        "kind": "function",
+        "signature": "function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/page-configurator.tsx",
+        "line": 135,
+        "kind": "function",
+        "signature": "function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/pdp-builder-editor.tsx",
+        "line": 24,
+        "kind": "function",
+        "signature": "function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/product-grid-editor.tsx",
+        "line": 29,
+        "kind": "function",
+        "signature": "function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/promotional-banner-editor.tsx",
+        "line": 90,
+        "kind": "function",
+        "signature": "function Toggle({"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/scroll-frame-editor.tsx",
+        "line": 71,
+        "kind": "function",
+        "signature": "function Toggle({"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/section-config-editor.tsx",
+        "line": 47,
+        "kind": "function",
+        "signature": "function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {"
+      }
+    ]
+  },
+  {
+    "name": "handleClickOutside",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "frontend/src/components/dashboard/admin/category-select-dropdown.tsx",
+        "line": 40,
+        "kind": "function",
+        "signature": "function handleClickOutside(event: MouseEvent) {"
+      },
+      {
+        "file": "frontend/src/components/store/checkout/checkout-form.tsx",
+        "line": 373,
+        "kind": "function",
+        "signature": "function handleClickOutside(e: MouseEvent) {"
+      }
+    ]
+  },
+  {
+    "name": "onClick",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "frontend/src/components/dashboard/admin/map-fence-editor.tsx",
+        "line": 602,
+        "kind": "function",
+        "signature": "function onClick(e: any) {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/map-fence-editor.tsx",
+        "line": 644,
+        "kind": "function",
+        "signature": "function onClick(e: any) {"
+      }
+    ]
+  },
+  {
+    "name": "onDblClick",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "frontend/src/components/dashboard/admin/map-fence-editor.tsx",
+        "line": 614,
+        "kind": "function",
+        "signature": "function onDblClick() {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/map-fence-editor.tsx",
+        "line": 656,
+        "kind": "function",
+        "signature": "function onDblClick() {"
+      }
+    ]
+  },
+  {
+    "name": "OrderDetailsDrawer",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "frontend/src/components/dashboard/admin/order-details-drawer.tsx",
+        "line": 21,
+        "kind": "function",
+        "signature": "export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetailsDrawerProps) {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/shop/order-details-drawer.tsx",
+        "line": 23,
+        "kind": "function",
+        "signature": "export default function OrderDetailsDrawer({"
+      }
+    ]
+  },
+  {
+    "name": "PopupsPanel",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "frontend/src/components/dashboard/admin/popups-panel.tsx",
+        "line": 38,
+        "kind": "function",
+        "signature": "export const PopupsPanel = memo(function PopupsPanel() {"
+      },
+      {
+        "file": "backend/src/admin/routes/marketing-toolkit/page.tsx",
+        "line": 529,
+        "kind": "function",
+        "signature": "function PopupsPanel() {"
+      }
+    ]
+  },
+  {
+    "name": "CreateCategoryDrawer",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "frontend/src/components/dashboard/delivery-partner/create-category-drawer.tsx",
+        "line": 7,
+        "kind": "function",
+        "signature": "export function CreateCategoryDrawer({"
+      },
+      {
+        "file": "frontend/src/components/dashboard/menu/create-category-drawer.tsx",
+        "line": 7,
+        "kind": "function",
+        "signature": "export function CreateCategoryDrawer({"
+      }
+    ]
+  },
+  {
+    "name": "Submit",
+    "count": 3,
+    "occurrences": [
+      {
+        "file": "frontend/src/components/dashboard/login-form.tsx",
+        "line": 8,
+        "kind": "function",
+        "signature": "function Submit() {"
+      },
+      {
+        "file": "frontend/src/components/dashboard/signup-form.tsx",
+        "line": 10,
+        "kind": "function",
+        "signature": "function Submit() {"
+      },
+      {
+        "file": "frontend/src/components/store/checkout/checkout-form.tsx",
+        "line": 46,
+        "kind": "function",
+        "signature": "function Submit({ disabled }: { disabled?: boolean }) {"
+      }
+    ]
+  },
+  {
+    "name": "SummaryCard",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "frontend/src/components/store/account/order-detail-client.tsx",
+        "line": 374,
+        "kind": "function",
+        "signature": "function SummaryCard({ label, value }: { label: string; value: string }) {"
+      },
+      {
+        "file": "frontend/src/components/store/account/order-tracking-client.tsx",
+        "line": 138,
+        "kind": "function",
+        "signature": "function SummaryCard({ label, value }: { label: string; value: string }) {"
+      }
+    ]
+  },
+  {
+    "name": "statusColor",
+    "count": 3,
+    "occurrences": [
+      {
+        "file": "frontend/src/components/store/account/order-detail-client.tsx",
+        "line": 385,
+        "kind": "function",
+        "signature": "function statusColor(status: string): \"purple\" | \"blue\" | \"green\" | \"orange\" | \"red\" | \"grey\" {"
+      },
+      {
+        "file": "frontend/src/components/store/account/order-tracking-client.tsx",
+        "line": 147,
+        "kind": "function",
+        "signature": "function statusColor(status: string): \"purple\" | \"blue\" | \"green\" | \"orange\" | \"red\" | \"grey\" {"
+      },
+      {
+        "file": "backend/src/admin/routes/order-lifecycle/page.tsx",
+        "line": 694,
+        "kind": "function",
+        "signature": "function statusColor(status: string): \"purple\" | \"blue\" | \"green\" | \"orange\" | \"red\" | \"grey\" {"
+      }
+    ]
+  },
+  {
+    "name": "SeoAuditEngine",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "frontend/src/lib/audit/seo-audit-engine.ts",
+        "line": 28,
+        "kind": "class",
+        "signature": "export class SeoAuditEngine {"
+      },
+      {
+        "file": "frontend/src/lib/seo/audit-engine.ts",
+        "line": 118,
+        "kind": "class",
+        "signature": "export class SeoAuditEngine {"
+      }
+    ]
+  },
+  {
+    "name": "normalizePhone",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "frontend/src/lib/crm/crm-engine.ts",
+        "line": 28,
+        "kind": "function",
+        "signature": "export function normalizePhone(raw?: string | null): string {"
+      },
+      {
+        "file": "backend/src/modules/customer/service.ts",
+        "line": 358,
+        "kind": "function",
+        "signature": "function normalizePhone(phone: string): string {"
+      }
+    ]
+  },
+  {
+    "name": "getServerApiEngine",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "frontend/src/lib/data/catalog.ts",
+        "line": 13,
+        "kind": "function",
+        "signature": "async function getServerApiEngine(): Promise<any> {"
+      },
+      {
+        "file": "frontend/src/lib/data/cms.ts",
+        "line": 4,
+        "kind": "function",
+        "signature": "async function getServerApiEngine(): Promise<any> {"
+      }
+    ]
+  },
+  {
+    "name": "verifyOtp",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "frontend/src/lib/data/customer.ts",
+        "line": 133,
+        "kind": "function",
+        "signature": "export async function verifyOtp(phone: string, otp: string, extra?: { name?: string; email?: string }): Promise<OtpVerifyResponse> {"
+      },
+      {
+        "file": "frontend/src/lib/fulfillment/api-engine-provider.ts",
+        "line": 205,
+        "kind": "function",
+        "signature": "export function verifyOtp("
+      }
+    ]
+  },
+  {
+    "name": "TaxMasterService",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "frontend/src/lib/tax-master.ts",
+        "line": 34,
+        "kind": "class",
+        "signature": "export class TaxMasterService {"
+      },
+      {
+        "file": "backend/src/services/tax-engine.ts",
+        "line": 27,
+        "kind": "class",
+        "signature": "export class TaxMasterService {"
+      }
+    ]
+  },
+  {
+    "name": "assert",
+    "count": 37,
+    "occurrences": [
+      {
+        "file": "frontend/src/scripts/verify-full-db-persistence.mjs",
+        "line": 31,
+        "kind": "function",
+        "signature": "function assert(condition, name, details = \"\") {"
+      },
+      {
+        "file": "frontend/src/scripts/verify-persistence-and-pim.mjs",
+        "line": 15,
+        "kind": "function",
+        "signature": "function assert(condition, testName, details = \"\") {"
+      },
+      {
+        "file": "scripts/audit-erp-reporting-v3-acceptance.ts",
+        "line": 17,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, section: string, test: string, details: string) {"
+      },
+      {
+        "file": "scripts/test-accessory-tax-and-image.ts",
+        "line": 3,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, message: string) {"
+      },
+      {
+        "file": "scripts/test-authentication-e2e.ts",
+        "line": 18,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, testId: number, testName: string, failureDetails?: string) {"
+      },
+      {
+        "file": "scripts/test-branch-manager-complete-order-flow-e2e.ts",
+        "line": 23,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, step: number, name: string, details?: any) {"
+      },
+      {
+        "file": "scripts/test-branch-operations-complete.ts",
+        "line": 3,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, message: string) {"
+      },
+      {
+        "file": "scripts/test-checkout-pickup-map-location-e2e.ts",
+        "line": 20,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, testName: string, details?: string) {"
+      },
+      {
+        "file": "scripts/test-delivery-partner-system.ts",
+        "line": 11,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, testName: string, detail?: string) {"
+      },
+      {
+        "file": "scripts/test-erp-analytics-v2.ts",
+        "line": 28,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, msg: string) {"
+      },
+      {
+        "file": "scripts/test-erp-reporting-v3.ts",
+        "line": 12,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, message: string) {"
+      },
+      {
+        "file": "scripts/test-global-navigation-integrity-e2e.ts",
+        "line": 27,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, message: string) {"
+      },
+      {
+        "file": "scripts/test-global-profile-menu-logout-e2e.ts",
+        "line": 11,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, message: string) {"
+      },
+      {
+        "file": "scripts/test-global-ui-integrity.ts",
+        "line": 13,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, message: string) {"
+      },
+      {
+        "file": "scripts/test-map-first-checkout-location-and-pickup-e2e.ts",
+        "line": 25,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, testName: string, details?: string) {"
+      },
+      {
+        "file": "scripts/test-map-first-delivery-e2e.ts",
+        "line": 24,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, name: string, details?: string) {"
+      },
+      {
+        "file": "scripts/test-master-identity-delivery-logout-e2e.ts",
+        "line": 38,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, description: string, num: number) {"
+      },
+      {
+        "file": "scripts/test-master-order-lifecycle-e2e.ts",
+        "line": 62,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, description: string, num: number) {"
+      },
+      {
+        "file": "scripts/test-mobile-overflow.ts",
+        "line": 4,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, message: string) {"
+      },
+      {
+        "file": "scripts/test-no-json-persistence.js",
+        "line": 43,
+        "kind": "function",
+        "signature": "function assert(condition, passMsg, failMsg) {"
+      },
+      {
+        "file": "scripts/test-order-cross-panel-integrity-e2e.ts",
+        "line": 28,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, message: string) {"
+      },
+      {
+        "file": "scripts/test-order-filter-engine-e2e.ts",
+        "line": 14,
+        "kind": "function",
+        "signature": "function assert(num: number, name: string, condition: boolean, details: string) {"
+      },
+      {
+        "file": "scripts/test-persistence-architecture-audit-e2e.ts",
+        "line": 28,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, message: string) {"
+      },
+      {
+        "file": "scripts/test-pickup-otp-to-out-for-delivery-e2e.ts",
+        "line": 13,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, message: string) {"
+      },
+      {
+        "file": "scripts/test-pim-single-option-source-e2e.ts",
+        "line": 22,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, testName: string, details?: string) {"
+      },
+      {
+        "file": "scripts/test-popup-auth-integration.ts",
+        "line": 26,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, msg: string) {"
+      },
+      {
+        "file": "scripts/test-product-catalog-browser-e2e.ts",
+        "line": 13,
+        "kind": "function",
+        "signature": "function assert(id: number, description: string, condition: boolean, details: string) {"
+      },
+      {
+        "file": "scripts/test-product-category-filter-e2e.ts",
+        "line": 17,
+        "kind": "function",
+        "signature": "function assert(id: number, name: string, condition: boolean, details: string) {"
+      },
+      {
+        "file": "scripts/test-product-distance-map-delivery-e2e.ts",
+        "line": 28,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, name: string, expected: any, actual: any, detail?: string) {"
+      },
+      {
+        "file": "scripts/test-product-filter-ui-e2e.ts",
+        "line": 16,
+        "kind": "function",
+        "signature": "function assert(id: number, name: string, condition: boolean, details: string) {"
+      },
+      {
+        "file": "scripts/test-production-checkout-engine.ts",
+        "line": 14,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, msg: string) {"
+      },
+      {
+        "file": "scripts/test-rider-assignment-sync-e2e.ts",
+        "line": 29,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, testName: string, detail?: string) {"
+      },
+      {
+        "file": "scripts/test-smart-login-cart-recovery-e2e.ts",
+        "line": 17,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, testName: string, details?: any) {"
+      },
+      {
+        "file": "scripts/test-staff-auth-e2e.ts",
+        "line": 3,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, message: string) {"
+      },
+      {
+        "file": "scripts/test-store-archiving.ts",
+        "line": 3,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, message: string) {"
+      },
+      {
+        "file": "scripts/test-structured-occasions-pipeline.ts",
+        "line": 11,
+        "kind": "function",
+        "signature": "function assert(condition: boolean, testName: string, detail?: string) {"
+      },
+      {
+        "file": "scripts/verify-services-and-repositories.mjs",
+        "line": 30,
+        "kind": "function",
+        "signature": "function assert(condition, message) {"
+      }
+    ]
+  },
+  {
+    "name": "runVerification",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "frontend/src/scripts/verify-persistence-and-pim.mjs",
+        "line": 7,
+        "kind": "function",
+        "signature": "async function runVerification() {"
+      },
+      {
+        "file": "scripts/test-database-persistence-e2e.js",
+        "line": 19,
+        "kind": "function",
+        "signature": "async function runVerification() {"
+      }
+    ]
+  },
+  {
+    "name": "StatCard",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "backend/src/admin/routes/cms/page.tsx",
+        "line": 529,
+        "kind": "function",
+        "signature": "function StatCard({ label, value, hint }: { label: string; value: number | string; hint?: string }) {"
+      },
+      {
+        "file": "backend/src/admin/routes/marketing/page.tsx",
+        "line": 163,
+        "kind": "function",
+        "signature": "function StatCard({ label, value }: { label: string; value: string | number }) {"
+      }
+    ]
+  },
+  {
+    "name": "handleSave",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "backend/src/admin/routes/deliveries/page.tsx",
+        "line": 104,
+        "kind": "function",
+        "signature": "async function handleSave() {"
+      },
+      {
+        "file": "backend/src/admin/routes/deliveries/page.tsx",
+        "line": 207,
+        "kind": "function",
+        "signature": "async function handleSave() {"
+      }
+    ]
+  },
+  {
+    "name": "Migration20260719083140",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "backend/src/modules/audit/migrations/Migration20260719083140.ts",
+        "line": 3,
+        "kind": "class",
+        "signature": "export class Migration20260719083140 extends Migration {"
+      },
+      {
+        "file": "backend/src/modules/payment/migrations/Migration20260719083140.ts",
+        "line": 3,
+        "kind": "class",
+        "signature": "export class Migration20260719083140 extends Migration {"
+      }
+    ]
+  },
+  {
+    "name": "stringifyJson",
+    "count": 4,
+    "occurrences": [
+      {
+        "file": "backend/src/modules/catalog/service.ts",
+        "line": 29,
+        "kind": "function",
+        "signature": "function stringifyJson(value: unknown): string | null {"
+      },
+      {
+        "file": "backend/src/modules/cms/service.ts",
+        "line": 23,
+        "kind": "function",
+        "signature": "function stringifyJson(value: unknown): string | null {"
+      },
+      {
+        "file": "backend/src/modules/media/service.ts",
+        "line": 5,
+        "kind": "function",
+        "signature": "function stringifyJson(value: unknown): string | null {"
+      },
+      {
+        "file": "backend/src/modules/order-lifecycle/service.ts",
+        "line": 26,
+        "kind": "function",
+        "signature": "function stringifyJson(value: unknown): string | null {"
+      }
+    ]
+  },
+  {
+    "name": "createMockService",
+    "count": 12,
+    "occurrences": [
+      {
+        "file": "backend/src/modules/catalog/__tests__/catalog.unit.spec.ts",
+        "line": 25,
+        "kind": "function",
+        "signature": "function createMockService("
+      },
+      {
+        "file": "backend/src/modules/cms/__tests__/cms.unit.spec.ts",
+        "line": 18,
+        "kind": "function",
+        "signature": "function createMockService(stores: {"
+      },
+      {
+        "file": "backend/src/modules/customer/__tests__/customer.unit.spec.ts",
+        "line": 19,
+        "kind": "function",
+        "signature": "function createMockService("
+      },
+      {
+        "file": "backend/src/modules/delivery/__tests__/delivery-slot.unit.spec.ts",
+        "line": 3,
+        "kind": "function",
+        "signature": "function createMockService(stores: {"
+      },
+      {
+        "file": "backend/src/modules/delivery/__tests__/delivery-zone.unit.spec.ts",
+        "line": 3,
+        "kind": "function",
+        "signature": "function createMockService(stores: {"
+      },
+      {
+        "file": "backend/src/modules/marketing/__tests__/campaign.unit.spec.ts",
+        "line": 18,
+        "kind": "function",
+        "signature": "function createMockService() {"
+      },
+      {
+        "file": "backend/src/modules/order-lifecycle/__tests__/order-lifecycle.unit.spec.ts",
+        "line": 24,
+        "kind": "function",
+        "signature": "function createMockService(): {"
+      },
+      {
+        "file": "backend/src/modules/payment/__tests__/payment.unit.spec.ts",
+        "line": 3,
+        "kind": "function",
+        "signature": "function createMockService() {"
+      },
+      {
+        "file": "backend/src/modules/rules/__tests__/helpers.unit.spec.ts",
+        "line": 20,
+        "kind": "function",
+        "signature": "function createMockService("
+      },
+      {
+        "file": "backend/src/modules/rules/__tests__/rules.unit.spec.ts",
+        "line": 36,
+        "kind": "function",
+        "signature": "function createMockService("
+      },
+      {
+        "file": "backend/src/modules/shop/__tests__/branch-verification.integration.spec.ts",
+        "line": 3,
+        "kind": "function",
+        "signature": "function createMockService() {"
+      },
+      {
+        "file": "backend/src/modules/shop/__tests__/branch.unit.spec.ts",
+        "line": 3,
+        "kind": "function",
+        "signature": "function createMockService() {"
+      }
+    ]
+  },
+  {
+    "name": "body",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "backend/src/modules/marketing/toolkit.ts",
+        "line": 44,
+        "kind": "class",
+        "signature": "* service.ts class body."
+      },
+      {
+        "file": "backend/src/modules/rules/helpers.ts",
+        "line": 20,
+        "kind": "class",
+        "signature": "* without modifying the existing service.ts class body."
+      }
+    ]
+  },
+  {
+    "name": "is",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "backend/src/modules/marketing/__tests__/campaign.unit.spec.ts",
+        "line": 11,
+        "kind": "class",
+        "signature": "* The MedusaService base class is mocked via Object.create + manual stubs,"
+      },
+      {
+        "file": "backend/src/modules/rules/__tests__/helpers.unit.spec.ts",
+        "line": 11,
+        "kind": "class",
+        "signature": "* The MedusaService base class is mocked via Object.create + manual stubs,"
+      }
+    ]
+  },
+  {
+    "name": "check",
+    "count": 3,
+    "occurrences": [
+      {
+        "file": "scripts/check-server-assets.ts",
+        "line": 3,
+        "kind": "function",
+        "signature": "async function check() {"
+      },
+      {
+        "file": "scripts/seo-local-test.ts",
+        "line": 33,
+        "kind": "function",
+        "signature": "function check(pass: boolean, message: string, isWarning = false) {"
+      },
+      {
+        "file": "scripts/seo-production-test.ts",
+        "line": 32,
+        "kind": "function",
+        "signature": "function check(pass: boolean, message: string, isWarning = false) {"
+      }
+    ]
+  },
+  {
+    "name": "loadEnv",
+    "count": 3,
+    "occurrences": [
+      {
+        "file": "scripts/disable-rls.js",
+        "line": 4,
+        "kind": "function",
+        "signature": "function loadEnv() {"
+      },
+      {
+        "file": "scripts/enable-rls.js",
+        "line": 5,
+        "kind": "function",
+        "signature": "function loadEnv() {"
+      },
+      {
+        "file": "scripts/verify-rls.js",
+        "line": 4,
+        "kind": "function",
+        "signature": "function loadEnv() {"
+      }
+    ]
+  },
+  {
+    "name": "main",
+    "count": 8,
+    "occurrences": [
+      {
+        "file": "scripts/inspect-order-schema.js",
+        "line": 10,
+        "kind": "function",
+        "signature": "async function main() {"
+      },
+      {
+        "file": "scripts/inspect-table-details.js",
+        "line": 10,
+        "kind": "function",
+        "signature": "async function main() {"
+      },
+      {
+        "file": "scripts/test-delivery-pickup-transition-e2e.ts",
+        "line": 36,
+        "kind": "function",
+        "signature": "async function main() {"
+      },
+      {
+        "file": "scripts/test-erp-analytics-v2.ts",
+        "line": 759,
+        "kind": "function",
+        "signature": "async function main() {"
+      },
+      {
+        "file": "scripts/test-map-first-delivery-e2e.ts",
+        "line": 208,
+        "kind": "function",
+        "signature": "async function main() {"
+      },
+      {
+        "file": "scripts/verify-database-first.mjs",
+        "line": 56,
+        "kind": "function",
+        "signature": "async function main() {"
+      },
+      {
+        "file": "scripts/verify-no-json-runtime.mjs",
+        "line": 38,
+        "kind": "function",
+        "signature": "function main() {"
+      },
+      {
+        "file": "scripts/verify-restart-persistence.mjs",
+        "line": 34,
+        "kind": "function",
+        "signature": "async function main() {"
+      }
+    ]
+  },
+  {
+    "name": "searchInDir",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "scripts/search-backend.js",
+        "line": 4,
+        "kind": "function",
+        "signature": "function searchInDir(dir, terms) {"
+      },
+      {
+        "file": "scripts/search-queries.js",
+        "line": 4,
+        "kind": "function",
+        "signature": "function searchInDir(dir, terms) {"
+      }
+    ]
+  },
+  {
+    "name": "testEndpoint",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "scripts/seo-local-test.ts",
+        "line": 47,
+        "kind": "function",
+        "signature": "async function testEndpoint(url: string, isPrivate = false) {"
+      },
+      {
+        "file": "scripts/seo-real-test.ts",
+        "line": 14,
+        "kind": "function",
+        "signature": "async function testEndpoint(url: string, isPrivate = false) {"
+      }
+    ]
+  },
+  {
+    "name": "testRobotsTxt",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "scripts/seo-local-test.ts",
+        "line": 174,
+        "kind": "function",
+        "signature": "async function testRobotsTxt() {"
+      },
+      {
+        "file": "scripts/seo-real-test.ts",
+        "line": 152,
+        "kind": "function",
+        "signature": "async function testRobotsTxt() {"
+      }
+    ]
+  },
+  {
+    "name": "testSitemapXml",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "scripts/seo-local-test.ts",
+        "line": 190,
+        "kind": "function",
+        "signature": "async function testSitemapXml() {"
+      },
+      {
+        "file": "scripts/seo-real-test.ts",
+        "line": 186,
+        "kind": "function",
+        "signature": "async function testSitemapXml() {"
+      }
+    ]
+  },
+  {
+    "name": "runBrowserE2E",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "scripts/test-browser-popup-e2e.ts",
+        "line": 22,
+        "kind": "function",
+        "signature": "async function runBrowserE2E() {"
+      },
+      {
+        "file": "scripts/test-product-catalog-browser-e2e.ts",
+        "line": 19,
+        "kind": "function",
+        "signature": "async function runBrowserE2E() {"
+      }
+    ]
+  },
+  {
+    "name": "runTests",
+    "count": 4,
+    "occurrences": [
+      {
+        "file": "scripts/test-category-image-upload-pipeline.ts",
+        "line": 5,
+        "kind": "function",
+        "signature": "async function runTests() {"
+      },
+      {
+        "file": "scripts/test-checkout-pickup-map-location-e2e.ts",
+        "line": 31,
+        "kind": "function",
+        "signature": "async function runTests() {"
+      },
+      {
+        "file": "scripts/test-pim-single-option-source-e2e.ts",
+        "line": 33,
+        "kind": "function",
+        "signature": "async function runTests() {"
+      },
+      {
+        "file": "scripts/test-production-checkout-engine.ts",
+        "line": 23,
+        "kind": "function",
+        "signature": "async function runTests() {"
+      }
+    ]
+  },
+  {
+    "name": "runTestSuite",
+    "count": 3,
+    "occurrences": [
+      {
+        "file": "scripts/test-delivery-radius-limit-e2e.ts",
+        "line": 68,
+        "kind": "function",
+        "signature": "async function runTestSuite() {"
+      },
+      {
+        "file": "scripts/test-order-filter-engine-e2e.ts",
+        "line": 20,
+        "kind": "function",
+        "signature": "async function runTestSuite() {"
+      },
+      {
+        "file": "scripts/test-smart-login-cart-recovery-e2e.ts",
+        "line": 28,
+        "kind": "function",
+        "signature": "async function runTestSuite() {"
+      }
+    ]
+  },
+  {
+    "name": "heading",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "scripts/test-erp-analytics-v2.ts",
+        "line": 43,
+        "kind": "function",
+        "signature": "function heading(test: string) {"
+      },
+      {
+        "file": "scripts/test-popup-auth-integration.ts",
+        "line": 37,
+        "kind": "function",
+        "signature": "function heading(test: string) {"
+      }
+    ]
+  },
+  {
+    "name": "runSuite",
+    "count": 3,
+    "occurrences": [
+      {
+        "file": "scripts/test-map-first-checkout-location-and-pickup-e2e.ts",
+        "line": 37,
+        "kind": "function",
+        "signature": "async function runSuite() {"
+      },
+      {
+        "file": "scripts/test-product-category-filter-e2e.ts",
+        "line": 38,
+        "kind": "function",
+        "signature": "async function runSuite() {"
+      },
+      {
+        "file": "scripts/test-product-distance-map-delivery-e2e.ts",
+        "line": 45,
+        "kind": "function",
+        "signature": "async function runSuite() {"
+      }
+    ]
+  },
+  {
+    "name": "pass",
+    "count": 7,
+    "occurrences": [
+      {
+        "file": "scripts/test-multi-product-cart-integrity-e2e.ts",
+        "line": 21,
+        "kind": "function",
+        "signature": "function pass(name: string) {"
+      },
+      {
+        "file": "scripts/test-no-json-persistence.js",
+        "line": 33,
+        "kind": "function",
+        "signature": "function pass(msg) {"
+      },
+      {
+        "file": "scripts/test-pim-map-first-delivery-e2e.ts",
+        "line": 10,
+        "kind": "function",
+        "signature": "function pass(msg: string) {"
+      },
+      {
+        "file": "scripts/test-product-pim-cart-order-integrity-e2e.ts",
+        "line": 10,
+        "kind": "function",
+        "signature": "function pass(msg: string) {"
+      },
+      {
+        "file": "scripts/verify-database-first.mjs",
+        "line": 25,
+        "kind": "function",
+        "signature": "function pass(name, detail = \"\") {"
+      },
+      {
+        "file": "scripts/verify-no-json-runtime.mjs",
+        "line": 11,
+        "kind": "function",
+        "signature": "function pass(name, detail = \"\") {"
+      },
+      {
+        "file": "scripts/verify-restart-persistence.mjs",
+        "line": 24,
+        "kind": "function",
+        "signature": "function pass(name, detail = \"\") {"
+      }
+    ]
+  },
+  {
+    "name": "fail",
+    "count": 7,
+    "occurrences": [
+      {
+        "file": "scripts/test-multi-product-cart-integrity-e2e.ts",
+        "line": 26,
+        "kind": "function",
+        "signature": "function fail(name: string, details?: any) {"
+      },
+      {
+        "file": "scripts/test-no-json-persistence.js",
+        "line": 38,
+        "kind": "function",
+        "signature": "function fail(msg) {"
+      },
+      {
+        "file": "scripts/test-pim-map-first-delivery-e2e.ts",
+        "line": 15,
+        "kind": "function",
+        "signature": "function fail(msg: string, error?: any) {"
+      },
+      {
+        "file": "scripts/test-product-pim-cart-order-integrity-e2e.ts",
+        "line": 15,
+        "kind": "function",
+        "signature": "function fail(msg: string, error?: any) {"
+      },
+      {
+        "file": "scripts/verify-database-first.mjs",
+        "line": 30,
+        "kind": "function",
+        "signature": "function fail(name, error = \"\") {"
+      },
+      {
+        "file": "scripts/verify-no-json-runtime.mjs",
+        "line": 16,
+        "kind": "function",
+        "signature": "function fail(name, error = \"\") {"
+      },
+      {
+        "file": "scripts/verify-restart-persistence.mjs",
+        "line": 29,
+        "kind": "function",
+        "signature": "function fail(name, error = \"\") {"
+      }
+    ]
+  },
+  {
+    "name": "scanDir",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "scripts/test-no-json-persistence.js",
+        "line": 72,
+        "kind": "function",
+        "signature": "function scanDir(dir, fileList = []) {"
+      },
+      {
+        "file": "scripts/verify-no-json-runtime.mjs",
+        "line": 21,
+        "kind": "function",
+        "signature": "function scanDir(dir, fileList = []) {"
+      }
+    ]
+  },
+  {
+    "name": "runBrowserVerification",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "scripts/test-order-filter-browser-e2e.ts",
+        "line": 18,
+        "kind": "function",
+        "signature": "async function runBrowserVerification() {"
+      },
+      {
+        "file": "scripts/test-rider-assignment-browser-e2e.ts",
+        "line": 7,
+        "kind": "function",
+        "signature": "async function runBrowserVerification() {"
+      }
+    ]
+  },
+  {
+    "name": "runAudit",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "scripts/test-persistence-architecture-audit-e2e.ts",
+        "line": 38,
+        "kind": "function",
+        "signature": "async function runAudit() {"
+      },
+      {
+        "file": "scripts/test-real-backend-paths.ts",
+        "line": 60,
+        "kind": "function",
+        "signature": "async function runAudit() {"
+      }
+    ]
+  },
+  {
+    "name": "verifyPostgresSafety",
+    "count": 2,
+    "occurrences": [
+      {
+        "file": "scripts/verify-postgres-safety.js",
+        "line": 10,
+        "kind": "function",
+        "signature": "async function verifyPostgresSafety() {"
+      },
+      {
+        "file": "scripts/verify-postgres-safety.ts",
+        "line": 10,
+        "kind": "function",
+        "signature": "async function verifyPostgresSafety() {"
+      }
+    ]
+  }
+]

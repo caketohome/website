@@ -175,6 +175,48 @@ export const PERMISSION_CATALOG: PermissionDefinition[] = [
   { id: "SETTINGS.VIEW", module: "SETTINGS", action: "VIEW", label: "View Store Settings", description: "Browse operational preferences and system configuration", category: "Administration & Security" },
   { id: "SETTINGS.EDIT", module: "SETTINGS", action: "EDIT", label: "Modify Store Settings", description: "Update store policies, currencies, and integrations", category: "Administration & Security" },
   { id: "NOTIFICATIONS.VIEW", module: "NOTIFICATIONS", action: "VIEW", label: "View Notifications", description: "Inspect system notification queues and delivery alerts", category: "Messaging & Automation" },
+
+  // PURCHASE MANAGEMENT (Phase 1+ ERP)
+  { id: "PURCHASE.VIEW",    module: "PURCHASE", action: "VIEW",    label: "View Purchases",          description: "Browse purchase invoices, supplier bills, and purchase register", category: "Purchase & Procurement" },
+  { id: "PURCHASE.CREATE",  module: "PURCHASE", action: "CREATE",  label: "Create Purchase Entry",   description: "Record new supplier purchase invoice within authorized branch", category: "Purchase & Procurement" },
+  { id: "PURCHASE.EDIT",    module: "PURCHASE", action: "EDIT",    label: "Edit Purchase Entry",     description: "Modify draft or submitted purchase entries within authorized branch", category: "Purchase & Procurement" },
+  { id: "PURCHASE.APPROVE", module: "PURCHASE", action: "APPROVE", label: "Approve Purchases",       description: "Approve submitted purchase invoices (enterprise-wide — Super Admin only)", category: "Purchase & Procurement" },
+  { id: "PURCHASE.DELETE",  module: "PURCHASE", action: "DELETE",  label: "Delete Purchase Entry",   description: "Soft-delete purchase entries (enterprise-wide — Super Admin only)", category: "Purchase & Procurement" },
+  { id: "PURCHASE.EXPORT",  module: "PURCHASE", action: "EXPORT",  label: "Export Purchase Reports", description: "Download purchase register, GST, supplier-wise and item-wise reports", category: "Purchase & Procurement" },
+
+  // EXPENSE MANAGEMENT (Phase 3+ ERP)
+  { id: "EXPENSE.VIEW",    module: "EXPENSE", action: "VIEW",    label: "View Expenses",          description: "Browse expense entries, categories, and branch-wise spend", category: "Expense Management" },
+  { id: "EXPENSE.CREATE",  module: "EXPENSE", action: "CREATE",  label: "Record Expense",         description: "Submit new expense entry within authorized branch", category: "Expense Management" },
+  { id: "EXPENSE.EDIT",    module: "EXPENSE", action: "EDIT",    label: "Edit Expense",           description: "Modify draft expense entries within authorized branch", category: "Expense Management" },
+  { id: "EXPENSE.APPROVE", module: "EXPENSE", action: "APPROVE", label: "Approve Expenses",       description: "Approve submitted expense entries (Super Admin or authorized manager)", category: "Expense Management" },
+  { id: "EXPENSE.EXPORT",  module: "EXPENSE", action: "EXPORT",  label: "Export Expense Reports", description: "Download expense register and category-wise reports", category: "Expense Management" },
+
+  // FLEET & FUEL MANAGEMENT (Phase 5+ ERP)
+  { id: "FLEET.VIEW",   module: "FLEET", action: "VIEW",   label: "View Fleet Operations",  description: "Browse vehicles, drivers, trips, and fuel records", category: "Fleet & Logistics" },
+  { id: "FLEET.MANAGE", module: "FLEET", action: "MANAGE", label: "Manage Fleet Records",   description: "Create/edit vehicle trips, fuel entries, and odometer logs", category: "Fleet & Logistics" },
+  { id: "FLEET.EXPORT", module: "FLEET", action: "EXPORT", label: "Export Fleet Reports",   description: "Download KM, fuel efficiency, and driver performance reports", category: "Fleet & Logistics" },
+
+  // ACCOUNTING (Phase 6+ ERP — Foundation required before activation)
+  { id: "ACCOUNTING.VIEW",    module: "ACCOUNTING", action: "VIEW",    label: "View Accounting Ledger", description: "Read-only access to chart of accounts, journals, vouchers, and ledger", category: "Accounting & Finance" },
+  { id: "ACCOUNTING.POST",    module: "ACCOUNTING", action: "POST",    label: "Post Journal Entries",   description: "Create and post manual journal entries and vouchers", category: "Accounting & Finance" },
+  { id: "ACCOUNTING.APPROVE", module: "ACCOUNTING", action: "APPROVE", label: "Approve Vouchers",       description: "Approve vouchers before general ledger posting (Super Admin)", category: "Accounting & Finance" },
+  { id: "ACCOUNTING.EXPORT",  module: "ACCOUNTING", action: "EXPORT",  label: "Export Financial Reports", description: "Download Day Book, Cash Book, Trial Balance, P&L, Balance Sheet", category: "Accounting & Finance" },
+  
+  // BANK & CASH DEPOSITS (Phase 4F Step 4.10)
+  { id: "BANK.VIEW",            module: "BANK", action: "VIEW",            label: "View Bank & Deposits",       description: "View bank account masters and cash deposit slips", category: "Accounting & Finance" },
+  { id: "BANK.MANAGE",          module: "BANK", action: "MANAGE",          label: "Manage Bank Accounts",       description: "Create, update, and manage bank account masters", category: "Accounting & Finance" },
+  { id: "BANK.DEPOSIT_PREPARE", module: "BANK", action: "DEPOSIT_PREPARE", label: "Prepare Cash Deposits",     description: "Count cash, record denominations, and create deposit slips", category: "Accounting & Finance" },
+  { id: "BANK.DEPOSIT_APPROVE", module: "BANK", action: "DEPOSIT_APPROVE", label: "Approve Cash Deposits",     description: "Verify cash handover and approve deposit slips for dispatch", category: "Accounting & Finance" },
+  { id: "BANK.DEPOSIT_POST",    module: "BANK", action: "DEPOSIT_POST",    label: "Post Cash Deposits",        description: "Post transit and bank credit accounting vouchers", category: "Accounting & Finance" },
+  { id: "BANK.RECON_VIEW",      module: "BANK", action: "RECON_VIEW",      label: "View Bank Reconciliation",   description: "View statement imports, reconciliation sessions, and match records", category: "Accounting & Finance" },
+  { id: "BANK.RECON_MATCH",     module: "BANK", action: "RECON_MATCH",     label: "Run Reconciliation Matching", description: "Execute automated candidate matching and propose statement line matches", category: "Accounting & Finance" },
+  { id: "BANK.RECON_CONFIRM",   module: "BANK", action: "RECON_CONFIRM",   label: "Confirm Reconciliation Matches", description: "Confirm matched lines and authorize manual match overrides", category: "Accounting & Finance" },
+
+  // GATEWAY SETTLEMENT (Phase 4F Step 4.10 Substep 4.10.3)
+  { id: "GATEWAY.VIEW",           module: "GATEWAY", action: "VIEW",           label: "View Gateway Settlements",  description: "View gateway payout batches and settlement allocations", category: "Accounting & Finance" },
+  { id: "GATEWAY.SETTLE_PREPARE", module: "GATEWAY", action: "SETTLE_PREPARE", label: "Prepare Gateway Settlement", description: "Ingest gateway payout reports, validate transactions and calculate allocations", category: "Accounting & Finance" },
+  { id: "GATEWAY.SETTLE_APPROVE", module: "GATEWAY", action: "SETTLE_APPROVE", label: "Approve Gateway Settlement", description: "Review and approve gateway payout allocations and fee deductions", category: "Accounting & Finance" },
+  { id: "GATEWAY.SETTLE_POST",    module: "GATEWAY", action: "SETTLE_POST",    label: "Post Gateway Settlement",   description: "Post branch-partitioned gateway settlement vouchers to GL", category: "Accounting & Finance" },
 ];
 
 // ── PRE-SEEDED SYSTEM ACCESS PROFILES ──────────────────────────────────────
@@ -326,10 +368,44 @@ export const SYSTEM_ACCESS_PROFILES: AccessProfile[] = [
     created_at: "2026-08-01T00:00:00.000Z",
     updated_at: "2026-08-18T08:00:00.000Z",
   },
+  {
+    id: "prof_catalog_admin",
+    name: "Catalog Administrator",
+    slug: "catalog-admin",
+    description: "Master catalog management, product creation, packaging items, and specifications.",
+    status: "ACTIVE",
+    is_system: true,
+    permissions: [
+      "PRODUCTS.VIEW",
+      "PRODUCTS.CREATE",
+      "PRODUCTS.EDIT",
+      "INVENTORY.VIEW",
+    ],
+    created_at: "2026-08-01T00:00:00.000Z",
+    updated_at: "2026-08-16T08:00:00.000Z",
+  },
 ];
 
 // ── PRE-SEEDED REALISTIC STAFF ACCOUNTS ────────────────────────────────────
 export const INITIAL_STAFF_MEMBERS: StaffMember[] = [
+  {
+    id: "staff_cat_01",
+    user_id: "usr_amit_catalog",
+    name: "Amit Patel",
+    phone: "+91 98765 11223",
+    email: "amit.patel@cakes2home.com",
+    role: "STAFF",
+    profile_id: "prof_catalog_admin",
+    profile_name: "Catalog Administrator",
+    profile_ids: ["prof_catalog_admin"],
+    profile_names: ["Catalog Administrator"],
+    branch_id: null,
+    city: "Bengaluru",
+    status: "ACTIVE",
+    overrides: {},
+    created_at: "2026-08-01T00:00:00.000Z",
+    updated_at: "2026-08-16T08:00:00.000Z",
+  },
   {
     id: "staff_01",
     user_id: "usr_priya_telecaller",
@@ -566,9 +642,24 @@ class StaffAccessControlStore {
       phone = (userOrId.phone || "").replace(/\D/g, "").slice(-10);
     }
 
-    // SUPER_ADMIN has full, unrestricted access
-    if (role === "SUPER_ADMIN" || userId === "admin_01" || userId.includes("admin")) {
+    // SUPER_ADMIN has full, unrestricted access (Exact role or canonical admin ID only; zero substring matching)
+    if (role === "SUPER_ADMIN" || userId === "admin_01") {
       return true;
+    }
+
+    // Check direct permissions array on user context if present
+    if (typeof userOrId === "object" && userOrId !== null) {
+      const directPerms = userOrId.permissions || userOrId.session?.permissions;
+      if (Array.isArray(directPerms)) {
+        if (
+          directPerms.includes(permissionKey) ||
+          directPerms.includes("*") ||
+          directPerms.includes("*.*") ||
+          directPerms.includes(wildcardKey)
+        ) {
+          return true;
+        }
+      }
     }
 
     // 2. Find Staff Record (by userId, id, or phone)
@@ -578,8 +669,13 @@ class StaffAccessControlStore {
 
     if (!staff || staff.status === "SUSPENDED") {
       // If role is Branch Manager or Delivery Partner, check baseline roles
-      if (role === "BRANCH_MANAGER" && (normalizedModule === "BRANCHES" || normalizedModule === "ORDERS" || normalizedModule === "INVENTORY")) {
-        return true;
+      if (role === "BRANCH_MANAGER") {
+        if (normalizedModule === "BRANCHES" || normalizedModule === "ORDERS" || normalizedModule === "INVENTORY") {
+          return true;
+        }
+        if ((normalizedModule === "GATEWAY" || normalizedModule === "BANK") && normalizedAction === "VIEW") {
+          return true;
+        }
       }
       if (role === "DELIVERY_PARTNER" && normalizedModule === "DELIVERY") {
         return true;
@@ -710,7 +806,19 @@ class StaffAccessControlStore {
       notifications: { module: "NOTIFICATIONS", action: "VIEW" },
       settings: { module: "SETTINGS", action: "VIEW" },
       fulfillment: { module: "BRANCHES", action: "VIEW" },
+      suppliers: { module: "PURCHASE", action: "VIEW" },
+      purchases: { module: "PURCHASE", action: "VIEW" },
+      expenses: { module: "EXPENSE", action: "VIEW" },
+      fleet: { module: "FLEET", action: "VIEW" },
       staff_profiles: { module: "STAFF_MANAGEMENT", action: "VIEW" },
+      gateway_settlements: { module: "GATEWAY", action: "VIEW" },
+      bank_accounts: { module: "BANK", action: "VIEW" },
+      bank_reconciliation: { module: "BANK", action: "RECON_VIEW" },
+      general_ledger: { module: "ACCOUNTING", action: "VIEW" },
+      accounting_setup: { module: "ACCOUNTING", action: "MANAGE" },
+      profit_loss: { module: "ACCOUNTING", action: "VIEW" },
+      balance_sheet: { module: "ACCOUNTING", action: "VIEW" },
+      cash_flow: { module: "ACCOUNTING", action: "VIEW" },
     };
 
     const req = TAB_PERMISSION_MAP[tabId];
@@ -1316,3 +1424,27 @@ class StaffAccessControlStore {
 }
 
 export const StaffAccessControl = new StaffAccessControlStore();
+
+/**
+ * Convenience helper that evaluates permissions via StaffAccessControl.
+ */
+export function hasEffectivePermission(userOrId: any, permissionKey: string): boolean {
+  if (!permissionKey) return false;
+  if (typeof userOrId === "object" && userOrId !== null) {
+    const directPerms = userOrId.permissions || userOrId.session?.permissions;
+    if (Array.isArray(directPerms)) {
+      if (
+        directPerms.includes(permissionKey) ||
+        directPerms.includes("*") ||
+        directPerms.includes("*.*") ||
+        directPerms.includes(`${permissionKey.split(".")[0]}.*`)
+      ) {
+        return true;
+      }
+    }
+  }
+  const parts = permissionKey.split(".");
+  const module = parts[0] || "";
+  const action = parts[1] || "VIEW";
+  return StaffAccessControl.hasPermission(userOrId, module, action);
+}

@@ -37,7 +37,7 @@ const SECTIONS: Array<{ id: ReportSection; label: string; icon: any }> = [
   { id: "products", label: "Products & Profitability", icon: Package },
   { id: "branches", label: "Branch Performance", icon: Building2 },
   { id: "city_sales", label: "City & Regional Sales", icon: MapPin },
-  { id: "area_pincode", label: "Area & Pincode", icon: MapPin },
+  { id: "area_pincode", label: "Service Areas", icon: MapPin },
   { id: "tax_gst", label: "Tax & GST Register", icon: FileText },
   { id: "orders", label: "Order Register", icon: ShoppingBag },
   { id: "payments", label: "Payments & Refunds", icon: DollarSign },
@@ -73,18 +73,11 @@ export function EnterpriseReportsEngine() {
       listBranches(),
       apiClient.get<any[]>("/admin/delivery/partners").catch(() => []),
       apiClient.get<any[]>("/admin/customers").catch(() => []),
-      apiClient.get<any>("/admin/orders?pageSize=100").catch(() => ({ orders: [] })),
-    ]).then(([branches, partners, customers, orderRes]) => {
+    ]).then(([branches, partners, customers]) => {
       const branchList = Array.isArray(branches) ? branches : [];
-      const orderList = Array.isArray(orderRes?.orders) ? orderRes.orders : (Array.isArray(orderRes?.items) ? orderRes.items : []);
       setAvailableBranches(branchList);
       setAvailablePartners(Array.isArray(partners) ? partners : []);
       setAvailableCustomers(Array.isArray(customers) ? customers : []);
-      ReportsEngineData.setClientStoreData({
-        orders: orderList,
-        branches: branchList,
-        customers: Array.isArray(customers) ? customers : [],
-      });
       setDataVersion((v) => v + 1);
     });
   }, []);
@@ -155,28 +148,256 @@ export function EnterpriseReportsEngine() {
     topProductsMetric,
   }), [timeRange, customStartDate, customEndDate, compareMode, branchIds, cityFilter, searchQuery, productSortBy, topProductsMetric]);
 
-  // Authoritative Derived Data Sets (from ReportsEngineData V3)
-  const kpis = useMemo(() => ReportsEngineData.getExecutiveKpis(filters), [filters, dataVersion]);
-  const stats = useMemo(() => ReportsEngineData.getTransactionalMetrics(filters), [filters, dataVersion]);
-  const dailyData = useMemo(() => ReportsEngineData.getDailySalesReport(filters), [filters, dataVersion]);
-  const weeklyData = useMemo(() => ReportsEngineData.getWeeklySalesReport(filters), [filters, dataVersion]);
-  const monthlyData = useMemo(() => ReportsEngineData.getMonthlySalesReport(filters), [filters, dataVersion]);
-  const products = useMemo(() => ReportsEngineData.getProductPerformance(filters), [filters, dataVersion]);
-  const orders = useMemo(() => ReportsEngineData.getOrderLifecycle(filters), [filters, dataVersion]);
-  const branchPerformance = useMemo(() => ReportsEngineData.getBranchPerformance(filters, availableBranches), [filters, availableBranches, dataVersion]);
-  const cityPerformance = useMemo(() => ReportsEngineData.getCityPerformance(filters), [filters, dataVersion]);
-  const areaPincodePerformance = useMemo(() => ReportsEngineData.getAreaPincodePerformance(filters), [filters, dataVersion]);
-  const gstSummary = useMemo(() => ReportsEngineData.getGstHsnSummary(filters), [filters, dataVersion]);
-  const gstDetailedRegister = useMemo(() => ReportsEngineData.getGstDetailedRegister(filters), [filters, dataVersion]);
-  const gstItems = useMemo(() => ReportsEngineData.getGstReport(filters), [filters, dataVersion]);
-  const taxSummary = useMemo(() => ReportsEngineData.getTaxSummaryReport(filters), [filters, dataVersion]);
-  const rawExceptions = useMemo(() => ReportsEngineData.getExceptionCenterAudit(filters, products, orders), [filters, products, orders, dataVersion]);
+  // ── Date Resolution: Convert UI timeRange to ISO start/end dates ──
+  const resolvedDates = useMemo(() => {
+    const now = new Date();
+    const today = now.toISOString().split("T")[0];
+    let start = today;
+    let end = today;
+
+    switch (timeRange) {
+      case "today":
+        start = end = today;
+        break;
+      case "yesterday": {
+        const y = new Date(now); y.setDate(y.getDate() - 1);
+        start = end = y.toISOString().split("T")[0];
+        break;
+      }
+      case "last_7_days": {
+        const d = new Date(now); d.setDate(d.getDate() - 7);
+        start = d.toISOString().split("T")[0];
+        end = today;
+        break;
+      }
+      case "last_30_days": {
+        const d = new Date(now); d.setDate(d.getDate() - 30);
+        start = d.toISOString().split("T")[0];
+        end = today;
+        break;
+      }
+      case "last_90_days": {
+        const d = new Date(now); d.setDate(d.getDate() - 90);
+        start = d.toISOString().split("T")[0];
+        end = today;
+        break;
+      }
+      case "this_week": {
+        const dow = now.getDay();
+        const d = new Date(now); d.setDate(d.getDate() - dow);
+        start = d.toISOString().split("T")[0];
+        end = today;
+        break;
+      }
+      case "last_week": {
+        const dow = now.getDay();
+        const endD = new Date(now); endD.setDate(endD.getDate() - dow - 1);
+        const startD = new Date(endD); startD.setDate(startD.getDate() - 6);
+        start = startD.toISOString().split("T")[0];
+        end = endD.toISOString().split("T")[0];
+        break;
+      }
+      case "this_month": {
+        start = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+        end = today;
+        break;
+      }
+      case "last_month": {
+        const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lme = new Date(now.getFullYear(), now.getMonth(), 0);
+        start = lm.toISOString().split("T")[0];
+        end = lme.toISOString().split("T")[0];
+        break;
+      }
+      case "this_quarter": {
+        const q = Math.floor(now.getMonth() / 3);
+        start = `${now.getFullYear()}-${String(q * 3 + 1).padStart(2, "0")}-01`;
+        end = today;
+        break;
+      }
+      case "last_quarter": {
+        const q = Math.floor(now.getMonth() / 3) - 1;
+        const y = q < 0 ? now.getFullYear() - 1 : now.getFullYear();
+        const qn = q < 0 ? 3 : q;
+        const qs = new Date(y, qn * 3, 1);
+        const qe = new Date(y, qn * 3 + 3, 0);
+        start = qs.toISOString().split("T")[0];
+        end = qe.toISOString().split("T")[0];
+        break;
+      }
+      case "this_year":
+        start = `${now.getFullYear()}-01-01`;
+        end = today;
+        break;
+      case "last_year": {
+        const ly = now.getFullYear() - 1;
+        start = `${ly}-01-01`;
+        end = `${ly}-12-31`;
+        break;
+      }
+      case "financial_year": {
+        const fy = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+        start = `${fy}-04-01`;
+        end = `${fy + 1}-03-31`;
+        break;
+      }
+      case "custom":
+        start = customStartDate || today;
+        end = customEndDate || today;
+        break;
+    }
+    return { startDate: start, endDate: end };
+  }, [timeRange, customStartDate, customEndDate]);
+
+  // Build API query params from filters
+  const apiQueryParams = useMemo(() => {
+    const p = new URLSearchParams();
+    p.set("startDate", resolvedDates.startDate);
+    p.set("endDate", resolvedDates.endDate);
+    if (branchIds.length > 0) p.set("branchIds", branchIds.join(","));
+    if (cityFilter && cityFilter !== "all") p.set("city", cityFilter);
+    if (searchQuery) p.set("search", searchQuery);
+    return p.toString();
+  }, [resolvedDates, branchIds, cityFilter, searchQuery]);
+
+  // ── Server-Side Report Data State ──
+  const [kpis, setKpis] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>({});
+  const [dailyData, setDailyData] = useState<any>({});
+  const [weeklyData, setWeeklyData] = useState<any>({});
+  const [monthlyData, setMonthlyData] = useState<any>({});
+  const [products, setProducts] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [branchPerformance, setBranchPerformance] = useState<any[]>([]);
+  const [cityPerformance, setCityPerformance] = useState<any[]>([]);
+  const [serviceAreaPerformance, setServiceAreaPerformance] = useState<any[]>([]);
+  const [gstSummary, setGstSummary] = useState<any>({ items: [], totals: {} });
+  const [gstDetailedRegister, setGstDetailedRegister] = useState<any[]>([]);
+  const [gstItems, setGstItems] = useState<any[]>([]);
+  const [taxSummary, setTaxSummary] = useState<any>({});
+  const [rawExceptions, setRawExceptions] = useState<any[]>([]);
+  const [deliveryData, setDeliveryData] = useState<any>({});
+  const [customerData, setCustomerData] = useState<any>({});
+  const [paymentData, setPaymentData] = useState<any>({ breakdown: [] });
+  const [geoData, setGeoData] = useState<any>({});
+  const [crossSellData, setCrossSellData] = useState<any[]>([]);
+  const [reportLoading, setReportLoading] = useState<boolean>(false);
+
+  // ── Fetch Reports from Server-Side API ──
+  useEffect(() => {
+    let cancelled = false;
+    setReportLoading(true);
+
+    const fetchReports = async () => {
+      try {
+        // Fetch reports based on active section (load only what's needed)
+        const baseUrl = `/admin/reports`;
+        const q = apiQueryParams;
+
+        // Always fetch KPIs and stats for executive summary
+        const [kpiRes, statsRes] = await Promise.all([
+          apiClient.get<any>(`${baseUrl}/kpis?${q}`).catch(() => ({ kpis: [] })),
+          apiClient.get<any>(`${baseUrl}/transactional?${q}`).catch(() => ({ data: {} })),
+        ]);
+
+        if (cancelled) return;
+        setKpis(kpiRes?.kpis || []);
+        setStats(statsRes?.data || statsRes || {});
+
+        // Fetch section-specific data
+        const sectionFetches: Promise<void>[] = [];
+
+        if (["executive_summary", "products", "profitability"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/products?${q}`).then((r) => { if (!cancelled) setProducts(r?.data || []); }).catch(() => {})
+          );
+        }
+        if (["executive_summary", "orders"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/orders?${q}`).then((r) => { if (!cancelled) setOrders(r?.data || []); }).catch(() => {})
+          );
+        }
+        if (["executive_summary", "branches"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/branches?${q}`).then((r) => { if (!cancelled) setBranchPerformance(r?.data || []); }).catch(() => {})
+          );
+        }
+        if (["executive_summary", "city_sales"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/cities?${q}`).then((r) => { if (!cancelled) setCityPerformance(r?.data || []); }).catch(() => {})
+          );
+        }
+        if (["area_pincode"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/service-areas?${q}`).then((r) => { if (!cancelled) setServiceAreaPerformance(r?.data || []); }).catch(() => {})
+          );
+        }
+        if (["executive_summary", "payments", "refunds"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/payments?${q}`).then((r) => { if (!cancelled) setPaymentData(r?.data || { breakdown: [] }); }).catch(() => {})
+          );
+        }
+        if (["tax_gst", "invoices"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/gst?${q}`).then((r) => {
+              if (!cancelled) {
+                setGstSummary(r?.data || { items: [], totals: {} });
+                setGstItems(r?.data?.items || []);
+                setTaxSummary(r?.data?.totals || {});
+                setGstDetailedRegister(r?.data?.items || []);
+              }
+            }).catch(() => {})
+          );
+        }
+        if (["delivery"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/delivery?${q}`).then((r) => { if (!cancelled) setDeliveryData(r?.data || {}); }).catch(() => {})
+          );
+        }
+        if (["customers"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/customers?${q}`).then((r) => { if (!cancelled) setCustomerData(r?.data || {}); }).catch(() => {})
+          );
+        }
+        if (["cross_sell"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/cross-sell?${q}`).then((r) => { if (!cancelled) setCrossSellData(r?.data || []); }).catch(() => {})
+          );
+        }
+        if (["exceptions"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/exceptions?${q}`).then((r) => { if (!cancelled) setRawExceptions(r?.data || []); }).catch(() => {})
+          );
+        }
+        if (["daily_sales", "sales"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/daily?${q}`).then((r) => { if (!cancelled) setDailyData(r?.data || {}); }).catch(() => {})
+          );
+        }
+        if (["weekly_sales"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/weekly?${q}`).then((r) => { if (!cancelled) setWeeklyData(r?.data || {}); }).catch(() => {})
+          );
+        }
+        if (["monthly_sales"].includes(activeSection)) {
+          sectionFetches.push(
+            apiClient.get<any>(`${baseUrl}/monthly?${q}`).then((r) => { if (!cancelled) setMonthlyData(r?.data || {}); }).catch(() => {})
+          );
+        }
+
+        await Promise.all(sectionFetches);
+      } catch (err) {
+        console.error("[Enterprise Reports] Failed to fetch report data:", err);
+      } finally {
+        if (!cancelled) setReportLoading(false);
+      }
+    };
+
+    fetchReports();
+    return () => { cancelled = true; };
+  }, [apiQueryParams, activeSection, dataVersion]);
+
   const exceptions = useMemo(() => rawExceptions.filter((e: any) => !resolvedExceptionIds.includes(e.id)), [rawExceptions, resolvedExceptionIds]);
-  const deliveryData = useMemo(() => ReportsEngineData.getDeliveryFleetPerformance(filters, availablePartners), [filters, availablePartners, dataVersion]);
-  const customerData = useMemo(() => ReportsEngineData.getCustomerAnalytics(filters, availableCustomers), [filters, availableCustomers, dataVersion]);
-  const paymentData = useMemo(() => ReportsEngineData.getPaymentsRefunds(filters), [filters, dataVersion]);
-  const geoData = useMemo(() => ReportsEngineData.getGeographicSales(filters), [filters, dataVersion]);
-  const crossSellData = useMemo(() => ReportsEngineData.getCrossSellUpsell(filters), [filters, dataVersion]);
 
   // Top 3 & Bottom 3 Products for Executive Summary
   const top3Products = useMemo(() => {
@@ -242,7 +463,7 @@ export function EnterpriseReportsEngine() {
           await ExcelExportService.exportCityPerformance({ cities: cityPerformance, filters });
           break;
         case "area_pincode":
-          await ExcelExportService.exportAreaPincodeSales({ areaPincodes: areaPincodePerformance, filters });
+          await ExcelExportService.exportAreaPincodeSales({ areaPincodes: serviceAreaPerformance, filters });
           break;
         case "branches":
           await ExcelExportService.exportBranchPerformance({ cities: branchPerformance, filters });
@@ -281,7 +502,7 @@ export function EnterpriseReportsEngine() {
         products,
         branches: branchPerformance,
         cities: cityPerformance,
-        areaPincodes: areaPincodePerformance,
+        areaPincodes: serviceAreaPerformance,
         payments: paymentData,
         delivery: deliveryData,
         customers: customerData,
@@ -1094,9 +1315,9 @@ export function EnterpriseReportsEngine() {
                     <td className="p-3 font-sans font-bold text-ui-fg-base">{c.city}</td>
                     <td className="p-3 text-right font-medium">{c.orders}</td>
                     <td className="p-3 text-right font-medium">{c.units}</td>
-                    <td className="p-3 text-right font-medium">₹{c.grossSales.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-bold text-emerald-700">₹{c.netSales.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-medium">₹{c.aov.toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-medium">₹{(c.grossSales || 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-bold text-emerald-700">₹{(c.netSales || 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-medium">{c.aov != null ? `₹${c.aov.toLocaleString("en-IN")}` : '—'}</td>
                     <td className="p-3 text-right text-emerald-600 font-bold">{c.delivered}</td>
                     <td className="p-3 text-right text-rose-600">{c.cancelled}</td>
                   </tr>
@@ -1107,25 +1328,26 @@ export function EnterpriseReportsEngine() {
         </div>
       )}
 
-      {/* ── SECTION: 6. AREA & PINCODE SALES ────────────────────────────── */}
+
+      {/* -- SECTION: 6. SERVICE AREA / MAP FENCE PERFORMANCE -- */}
       {activeSection === "area_pincode" && (
         <div className="flex flex-col gap-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-ui-bg-base border border-ui-border-base rounded-2xl shadow-sm">
             <div>
               <Heading level="h2" className="text-base font-bold text-ui-fg-base flex items-center gap-2">
-                📍 Area & Pincode Sales Density
+                📍 Service Area Performance
               </Heading>
               <Text className="text-xs text-ui-fg-subtle">
-                Granular delivery locality, postal code revenue density, and kitchen hub attribution.
+                Orders and revenue by delivery zone / service area. Grouped by map fence, not pincode.
               </Text>
             </div>
             <Button
               variant="secondary"
               size="small"
-              onClick={() => ExcelExportService.exportAreaPincodeSales({ areaPincodes: areaPincodePerformance, filters })}
+              onClick={() => ExcelExportService.exportAreaPincodeSales({ areaPincodes: serviceAreaPerformance, filters })}
               className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
             >
-              <Download className="w-3.5 h-3.5 text-teal-600" /> Export Area Pincode (XLSX)
+              <Download className="w-3.5 h-3.5 text-teal-600" /> Export Service Areas (XLSX)
             </Button>
           </div>
 
@@ -1133,10 +1355,10 @@ export function EnterpriseReportsEngine() {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-ui-bg-subtle border-b text-[11px] uppercase font-bold text-ui-fg-subtle">
-                  <th className="p-3">Pincode</th>
-                  <th className="p-3">Area / Locality</th>
+                  <th className="p-3">Service Area / Zone</th>
+                  <th className="p-3">Branch</th>
                   <th className="p-3">City</th>
-                  <th className="p-3">Kitchen Hub</th>
+                  <th className="p-3">Fence Type</th>
                   <th className="p-3 text-right">Orders</th>
                   <th className="p-3 text-right">Revenue</th>
                   <th className="p-3 text-right">AOV</th>
@@ -1144,15 +1366,20 @@ export function EnterpriseReportsEngine() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-ui-border-base font-mono">
-                {areaPincodePerformance.map((a: any, idx: number) => (
+                {serviceAreaPerformance.length === 0 && (
+                  <tr><td colSpan={8} className="p-6 text-center text-ui-fg-subtle text-xs">
+                    No service area data. Zones need human-readable names configured in admin.
+                  </td></tr>
+                )}
+                {serviceAreaPerformance.map((a: any, idx: number) => (
                   <tr key={idx} className="hover:bg-ui-bg-subtle/50">
-                    <td className="p-3 font-mono font-bold text-slate-800">{a.pincode}</td>
-                    <td className="p-3 font-sans font-bold text-rose-700">{a.area}</td>
+                    <td className="p-3 font-sans font-bold text-rose-700">{a.zoneName || a.zoneId}</td>
+                    <td className="p-3 font-sans text-ui-fg-subtle">{a.branchName}</td>
                     <td className="p-3 font-sans text-ui-fg-subtle">{a.city}</td>
-                    <td className="p-3 font-sans text-ui-fg-subtle">{a.branch}</td>
+                    <td className="p-3 font-sans text-xs">{a.hasPolygon ? '🔷 Polygon' : a.radiusKm ? `⭕ ${a.radiusKm}km radius` : '—'}</td>
                     <td className="p-3 text-right font-medium">{a.orders}</td>
-                    <td className="p-3 text-right font-bold text-emerald-700">₹{a.revenue.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-medium">₹{a.aov.toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-bold text-emerald-700">₹{(a.revenue || 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-medium">{a.aov != null ? `₹${a.aov.toLocaleString("en-IN")}` : '—'}</td>
                     <td className="p-3 text-right text-emerald-600 font-bold">{a.delivered}</td>
                   </tr>
                 ))}
@@ -1409,7 +1636,7 @@ export function EnterpriseReportsEngine() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-ui-border-base font-mono">
-                {paymentData.breakdown.map((p, idx) => (
+                {paymentData.breakdown.map((p: any, idx: number) => (
                   <tr key={idx} className="hover:bg-ui-bg-subtle/50">
                     <td className="p-3 font-sans font-bold text-ui-fg-base">{p.method}</td>
                     <td className="p-3 text-right font-medium">{p.count}</td>

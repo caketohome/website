@@ -6,6 +6,7 @@
  */
 
 import crypto from "crypto";
+import { validateWebhookUrl } from "./security/ssrf-validator";
 
 export type WebhookEventType =
   // AUTH
@@ -843,6 +844,12 @@ export class WebhookEngineStore {
               });
               deliverySuccess = true;
             } else {
+              // SSRF Defense: Validate destination before dispatch
+              const ssrfCheck = validateWebhookUrl(ep.url);
+              if (!ssrfCheck.safe) {
+                throw new Error(`SSRF Blocked: Destination URL is prohibited (${ssrfCheck.reason})`);
+              }
+
               const controller = new AbortController();
               const timeoutId = setTimeout(() => controller.abort(), ep.timeout_ms || 8000);
 
@@ -851,6 +858,7 @@ export class WebhookEngineStore {
                 headers,
                 body: bodyStr,
                 signal: controller.signal,
+                redirect: "error", // Prevent open-redirect bypass to internal networks
               });
               clearTimeout(timeoutId);
 
@@ -1052,6 +1060,14 @@ export class WebhookEngineStore {
   }
 
   public createEndpoint(payload: Partial<WebhookEndpoint>): WebhookEndpoint {
+    const targetUrl = payload.url || "https://n8n.caketohome.com/webhook/v1/custom";
+
+    // SSRF Defense: Validate URL before registering endpoint
+    const ssrfCheck = validateWebhookUrl(targetUrl);
+    if (!ssrfCheck.safe) {
+      throw new Error(`SSRF Blocked: Invalid webhook endpoint URL (${ssrfCheck.reason})`);
+    }
+
     const newId = payload.id || `ep_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
     const env = payload.environment || "production";
     const isPrimary = payload.is_primary ?? (this.endpoints.filter((e) => e.environment === env).length === 0);
@@ -1066,7 +1082,7 @@ export class WebhookEngineStore {
     const newEp: WebhookEndpoint = {
       id: newId,
       name: payload.name || "Custom Automation Webhook",
-      url: payload.url || "https://n8n.caketohome.com/webhook/v1/custom",
+      url: targetUrl,
       signing_secret: payload.signing_secret || `cth_whsec_${crypto.randomBytes(16).toString("hex")}`,
       environment: env,
       is_primary: isPrimary,
@@ -1089,6 +1105,13 @@ export class WebhookEngineStore {
   }
 
   public updateEndpoint(id: string, updates: Partial<WebhookEndpoint>): WebhookEndpoint {
+    if (updates.url) {
+      const ssrfCheck = validateWebhookUrl(updates.url);
+      if (!ssrfCheck.safe) {
+        throw new Error(`SSRF Blocked: Invalid webhook endpoint URL (${ssrfCheck.reason})`);
+      }
+    }
+
     const idx = this.endpoints.findIndex((e) => e.id === id);
     if (idx === -1) {
       return this.createEndpoint({ id, ...updates });

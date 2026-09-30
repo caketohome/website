@@ -4,16 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Heading, Text, Button, Input, Textarea, Label, Badge, StatusBadge, Container } from "@medusajs/ui";
 import {
- clientGetOrder as getOrder,
- clientCancelOrder as cancelOrder,
- clientRequestReschedule as requestReschedule,
- clientAddOrderNote as addOrderNote,
- clientDownloadInvoice as downloadInvoice,
-} from "../../../lib/data/orders-client";
-import {
- type OrderDetail,
- type TimelineEntry,
+  getOrder,
+  cancelOrder,
+  requestReschedule,
+  addOrderNote,
+  downloadInvoice,
+  type OrderDetail,
+  type TimelineEntry,
 } from "../../../lib/data/orders";
+
 import { apiClient } from "../../../lib/api-client";
 
 /**

@@ -103,8 +103,8 @@ export interface ReportFilterState {
 export interface ReportKpiCard {
   id: string;
   label: string;
-  currentValue: number;
-  previousValue: number;
+  currentValue: number | null;  // null = data unavailable
+  previousValue: number | null; // null = no prior period data
   growthPct: number;
   isPositive: boolean;
   unit: "currency" | "number" | "percentage";
@@ -127,10 +127,10 @@ export interface ProductPerformanceItem {
   taxableValue: number;
   gstAmount: number;
   totalWithTax: number;
-  unitCost: number;
-  totalCogs: number;
-  grossProfit: number;
-  grossMarginPct: number;
+  unitCost: number | null;      // null if no cost data in product metadata
+  totalCogs: number | null;     // null if unitCost unavailable
+  grossProfit: number | null;   // null if COGS unavailable
+  grossMarginPct: number | null; // null if COGS unavailable
   refundQuantity: number;
   refundAmount: number;
   avgSellingPrice: number;
@@ -162,13 +162,13 @@ export interface OrderReportItem {
   paymentStatus: string;
   orderStatus: string;
   deliveryStatus: string;
-  cogs: number;
-  profit: number;
-  marginPct: number;
-  prepTimeMins: number;
-  dispatchTimeMins: number;
-  deliveryTimeMins: number;
-  totalCycleTimeMins: number;
+  cogs: number | null;          // null if no cost data
+  profit: number | null;        // null if COGS unavailable
+  marginPct: number | null;     // null if COGS unavailable
+  prepTimeMins: number | null;  // null if not tracked
+  dispatchTimeMins: number | null;
+  deliveryTimeMins: number | null;
+  totalCycleTimeMins: number | null;
 }
 
 export interface GstReportItem {
@@ -453,12 +453,13 @@ function flattenOrderItems(orders: any[]): any[] {
   return items;
 }
 
-function getProductCogs(item: any, product?: any): number {
+function getProductCogs(item: any, product?: any): number | null {
+  // NOTE: Only use actual cost data. Do NOT fabricate COGS from price percentages.
   if (item.unit_cost && item.unit_cost > 0) return item.unit_cost;
   if (product?.metadata?.cost_price) return Number(product.metadata.cost_price);
   if (product?.metadata?.cogs) return Number(product.metadata.cogs);
-  const price = Number(item.unit_price || item.subtotal || 0);
-  return Math.round(price * 0.35);
+  // No cost data available — return null. Do NOT use price * 0.35 (fabricated).
+  return null;
 }
 
 export const HSN_MASTER_DESCRIPTIONS: Record<string, { description: string; defaultUqc: string }> = {
@@ -589,17 +590,23 @@ export class ReportsEngineData {
     const productMap = new Map<string, any>();
     for (const p of products) { productMap.set(p.id || p.product_id, p); }
 
-    let totalCogs = 0;
+    let totalCogs: number | null = 0;
+    let cogsFullyUnavailable = true;
     for (const item of allItems) {
       const product = productMap.get(item.product_id || item.id);
       const qty = Number(item.quantity) || 1;
-      totalCogs += getProductCogs(item, product) * qty;
+      const itemCogs = getProductCogs(item, product);
+      if (itemCogs != null) {
+        totalCogs = (totalCogs ?? 0) + itemCogs * qty;
+        cogsFullyUnavailable = false;
+      }
     }
+    if (cogsFullyUnavailable) totalCogs = null;
 
-    const packagingCosts = Math.round(netSalesExclTax * 0.038);
-    const totalDirectCosts = totalCogs + packagingCosts + deliveryFleetRevenue;
-    const grossProfit = netSalesExclTax - totalDirectCosts;
-    const grossMarginPct = netSalesExclTax > 0 ? (grossProfit / netSalesExclTax) * 100 : 0;
+    const packagingCosts = null; // Packaging cost not available — do NOT fabricate at 3.8% of net sales
+    const totalDirectCosts = totalCogs + deliveryFleetRevenue; // packaging excluded (unavailable)
+    const grossProfit = totalCogs != null ? netSalesExclTax - totalDirectCosts : null;
+    const grossMarginPct = grossProfit != null && netSalesExclTax > 0 ? (grossProfit / netSalesExclTax) * 100 : null;
     const aov = validOrdersCount > 0 ? Math.round(netSalesExclTax / validOrdersCount) : (totalOrders > 0 ? Math.round(netSalesExclTax / totalOrders) : 0);
 
     // Previous period
@@ -636,7 +643,7 @@ export class ReportsEngineData {
       deliveryFleetCosts: deliveryFleetRevenue,
       deliveryRevenue: deliveryFleetRevenue,
       grossProfit,
-      grossMarginPct: Number(grossMarginPct.toFixed(2)),
+      grossMarginPct: grossMarginPct != null ? Number(grossMarginPct.toFixed(2)) : null,
       aov,
       taxCollected,
       // Previous period
@@ -715,20 +722,20 @@ export class ReportsEngineData {
       {
         id: "kpi_profit",
         label: "Gross Contribution Profit",
-        currentValue: stats.grossProfit,
-        previousValue: 0,
+        currentValue: stats.grossProfit ?? null, // null = COGS unavailable, not zero
+        previousValue: null,
         growthPct: 0,
         isPositive: true,
         unit: "currency",
-        description: "Net sales minus COGS, packaging & fleet costs",
+        description: "Net sales minus COGS & fleet costs. Null if cost data unavailable.",
       },
       {
         id: "kpi_margin",
         label: "Gross Margin %",
-        currentValue: stats.grossMarginPct,
-        previousValue: 0,
+        currentValue: stats.grossMarginPct ?? null, // null = COGS unavailable
+        previousValue: null,
         growthPct: 0,
-        isPositive: stats.grossMarginPct >= 50,
+        isPositive: stats.grossMarginPct != null ? stats.grossMarginPct >= 50 : true,
         unit: "percentage",
         description: "Percentage of revenue retained as contribution profit",
       },
@@ -1069,7 +1076,7 @@ export class ReportsEngineData {
     const productAgg = new Map<string, {
       id: string; name: string; sku: string; category: string; occasion: string;
       hsnCode: string; uqc: string; gstRatePct: number; qty: number; grossSales: number;
-      discounts: number; taxAmount: number; unitCost: number;
+      discounts: number; taxAmount: number; unitCost: number | null;
       refundQty: number; refundAmt: number; branchName: string; sellingPrice: number;
     }>();
 
@@ -1123,9 +1130,9 @@ export class ReportsEngineData {
       const gstRatePct = p.gstRatePct || 5;
       const taxable = Math.round((net / (1 + gstRatePct / 100)) * 100) / 100;
       const gst = Math.round((net - taxable) * 100) / 100;
-      const cogs = p.unitCost * p.qty;
-      const profit = net - cogs;
-      const margin = net > 0 ? (profit / net) * 100 : 0;
+      const cogs = p.unitCost != null ? p.unitCost * p.qty : null;
+      const profit = cogs != null ? net - cogs : null;
+      const margin = profit != null && net > 0 ? (profit / net) * 100 : null;
 
       return {
         id: p.id,
@@ -1147,7 +1154,7 @@ export class ReportsEngineData {
         unitCost: p.unitCost,
         totalCogs: cogs,
         grossProfit: profit,
-        grossMarginPct: Number(margin.toFixed(2)),
+        grossMarginPct: margin != null ? Number(margin.toFixed(2)) : null,
         refundQuantity: p.refundQty,
         refundAmount: p.refundAmt,
         avgSellingPrice: p.sellingPrice || (p.qty > 0 ? Math.round(p.grossSales / p.qty) : 0),
@@ -1170,8 +1177,8 @@ export class ReportsEngineData {
     return filtered.sort((a, b) => {
       if (sort === "revenue") return b.netSales - a.netSales;
       if (sort === "quantity") return b.quantitySold - a.quantitySold;
-      if (sort === "profit") return b.grossProfit - a.grossProfit;
-      if (sort === "margin") return b.grossMarginPct - a.grossMarginPct;
+      if (sort === "profit") return (b.grossProfit ?? -Infinity) - (a.grossProfit ?? -Infinity);
+      if (sort === "margin") return (b.grossMarginPct ?? -Infinity) - (a.grossMarginPct ?? -Infinity);
       if (sort === "refunded") return b.refundAmount - a.refundAmount;
       if (sort === "discounted") return b.discounts - a.discounts;
       return b.netSales - a.netSales;
@@ -1199,14 +1206,17 @@ export class ReportsEngineData {
       const deliveryFee = Number(o.delivery_fee) || Number(o.shipping_total) || 0;
       const netAmount = grossAmount;
 
-      let cogs = 0;
+      let cogs: number | null = 0;
+      let cogsUnavailable = true;
       for (const item of items) {
         const product = productMap.get(item.product_id || item.id);
-        cogs += getProductCogs(item, product) * (Number(item.quantity) || 1);
+        const itemCogs = getProductCogs(item, product);
+        if (itemCogs != null) { cogs = (cogs ?? 0) + itemCogs * (Number(item.quantity) || 1); cogsUnavailable = false; }
       }
-      const profit = (grossAmount - discount - taxAmount) - cogs;
-      const marginBase = grossAmount - discount - taxAmount;
-      const marginPct = marginBase > 0 ? (profit / marginBase) * 100 : 0;
+      if (cogsUnavailable) cogs = null;
+      const netBase = grossAmount - discount - taxAmount;
+      const profit = cogs != null ? netBase - cogs : null;
+      const marginPct = profit != null && netBase > 0 ? (profit / netBase) * 100 : null;
 
       return {
         id: o.order_number || o.id,
@@ -1232,11 +1242,13 @@ export class ReportsEngineData {
         deliveryStatus: (o.delivery_status || o.deliveryStatus || "PENDING").toUpperCase(),
         cogs,
         profit,
-        marginPct: Number(marginPct.toFixed(2)),
-        prepTimeMins: Number(o.prep_time_mins) || 25,
-        dispatchTimeMins: Number(o.dispatch_time_mins) || 15,
-        deliveryTimeMins: Number(o.delivery_time_mins) || 20,
-        totalCycleTimeMins: (Number(o.prep_time_mins) || 25) + (Number(o.dispatch_time_mins) || 15) + (Number(o.delivery_time_mins) || 20),
+        marginPct: marginPct != null ? Number(marginPct.toFixed(2)) : null,
+        prepTimeMins: Number(o.prep_time_mins) || null,       // null if not tracked
+        dispatchTimeMins: Number(o.dispatch_time_mins) || null, // null if not tracked
+        deliveryTimeMins: Number(o.delivery_time_mins) || null, // null if not tracked
+        totalCycleTimeMins: (Number(o.prep_time_mins) > 0 && Number(o.dispatch_time_mins) > 0 && Number(o.delivery_time_mins) > 0)
+          ? Number(o.prep_time_mins) + Number(o.dispatch_time_mins) + Number(o.delivery_time_mins)
+          : null, // Do NOT invent 25+15+20 = 60 min cycle time
       };
     });
   }
@@ -1445,16 +1457,19 @@ export class ReportsEngineData {
       const discTotal = branchOrders.reduce((sum, o) => sum + (Number(o.discount_total) || Number(o.discount) || 0), 0);
       const netSales = Math.max(0, grossSales - taxTotal - discTotal);
 
-      let cogs = 0;
+      let cogs: number | null = 0;
+      let branchCogsUnavailable = true;
       for (const o of branchOrders) {
         for (const item of (o.items || [])) {
           const product = productMap.get(item.product_id || item.id);
-          cogs += getProductCogs(item, product) * (Number(item.quantity) || 1);
+          const ic = getProductCogs(item, product);
+          if (ic != null) { cogs = (cogs ?? 0) + ic * (Number(item.quantity) || 1); branchCogsUnavailable = false; }
         }
       }
+      if (branchCogsUnavailable) cogs = null;
 
-      const profit = netSales - cogs;
-      const margin = netSales > 0 ? Number(((profit / netSales) * 100).toFixed(2)) : 0;
+      const profit = cogs != null ? netSales - cogs : null;
+      const margin = profit != null && netSales > 0 ? Number(((profit / netSales) * 100).toFixed(2)) : null;
       const aov = orders > 0 ? Math.round(netSales / orders) : 0;
       const customerSet = new Set(branchOrders.map((o) => o.customer_phone || o.customer_name).filter(Boolean));
 

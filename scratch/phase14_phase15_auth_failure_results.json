@@ -1,0 +1,165 @@
+{
+  "phase14_auth_matrix": [
+    {
+      "test": "Unauthenticated Profile Access",
+      "path": "/api/customer/profile",
+      "method": "GET",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "status": "PASS"
+    },
+    {
+      "test": "Unauthenticated Manager Dashboard Access",
+      "path": "/api/v1/manager/dashboard",
+      "method": "GET",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "status": "PASS"
+    },
+    {
+      "test": "Unauthenticated Admin Telemarketing Access",
+      "path": "/api/v1/admin/telemarketing/candidates",
+      "method": "GET",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "status": "PASS"
+    },
+    {
+      "test": "Unauthenticated Admin Reports Access",
+      "path": "/api/v1/admin/reports/sales",
+      "method": "GET",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "status": "PASS"
+    },
+    {
+      "test": "Customer Access to Own Profile",
+      "path": "/api/customer/profile",
+      "method": "GET",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "status": "PASS"
+    },
+    {
+      "test": "Customer Access to Manager Dashboard (Forbidden)",
+      "path": "/api/v1/manager/dashboard",
+      "method": "GET",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "status": "PASS"
+    },
+    {
+      "test": "Customer Access to Admin Telemarketing (Forbidden)",
+      "path": "/api/v1/admin/telemarketing/candidates",
+      "method": "GET",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "status": "PASS"
+    },
+    {
+      "test": "Customer Access to Admin Reports (Forbidden)",
+      "path": "/api/v1/admin/reports/sales",
+      "method": "GET",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "status": "PASS"
+    },
+    {
+      "test": "Manager A Access to Own Branch Dashboard",
+      "path": "/api/v1/manager/dashboard",
+      "method": "GET",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "status": "PASS"
+    },
+    {
+      "test": "Manager A Cross-Branch Availability Edit to Branch B (Forbidden)",
+      "path": "/api/v1/branches/br_mumbai_bandra/products/acc_01/availability",
+      "method": "POST",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "status": "PASS"
+    },
+    {
+      "test": "Manager B Access to Own Branch Dashboard",
+      "path": "/api/v1/manager/dashboard",
+      "method": "GET",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "status": "PASS"
+    },
+    {
+      "test": "Manager B Cross-Branch Availability Edit to Branch A (Forbidden)",
+      "path": "/api/v1/branches/br_koramangala/products/acc_01/availability",
+      "method": "POST",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "status": "PASS"
+    },
+    {
+      "test": "Manager A Access to Admin Telemarketing (Forbidden)",
+      "path": "/api/v1/admin/telemarketing/candidates",
+      "method": "GET",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "status": "PASS"
+    },
+    {
+      "test": "Manager A Access to Global Admin Reports (Forbidden)",
+      "path": "/api/v1/admin/reports/sales",
+      "method": "GET",
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "status": "PASS"
+    },
+    {
+      "test": "Super Admin Access to Manager Dashboard",
+      "path": "/api/v1/manager/dashboard",
+      "method": "GET",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "status": "PASS"
+    },
+    {
+      "test": "Super Admin Cross-Branch Product Availability Edit",
+      "path": "/api/v1/branches/br_mumbai_bandra/products/acc_01/availability",
+      "method": "POST",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "status": "PASS"
+    },
+    {
+      "test": "Super Admin Access to Admin Telemarketing Candidates",
+      "path": "/api/v1/admin/telemarketing/candidates",
+      "method": "GET",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "status": "PASS"
+    },
+    {
+      "test": "Super Admin Access to Admin Sales Reports",
+      "path": "/api/v1/admin/reports/sales",
+      "method": "GET",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "status": "PASS"
+    }
+  ],
+  "phase15_resilience_and_mock_inspection": {
+    "catch_block_mock_fallbacks_found": [],
+    "error_handling_verified": [
+      {
+        "test": "Non-existent Product Query returns 404 (No synthetic fallback)",
+        "expectedStatus": 404,
+        "actualStatus": 404,
+        "status": "PASS"
+      },
+      {
+        "test": "Non-existent Branch Inventory Query handles gracefully (No synthetic inventory generated)",
+        "status": "PASS",
+        "actualStatus": 404
+      }
+    ]
+  },
+  "overall_status": "PASS"
+}

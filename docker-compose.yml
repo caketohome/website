@@ -8,9 +8,9 @@ services:
     ports:
       - "9000:9000"
     environment:
-      - DATABASE_URL=postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres
-      - JWT_SECRET=supersecret
-      - COOKIE_SECRET=supersecret
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - COOKIE_SECRET=${COOKIE_SECRET}
     restart: always
 
   frontend:
@@ -20,9 +20,9 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_59553f4aa2d9d80a3bb784566d8f76c043c37a0059fbea0b2e09a7cfa6215a92
-      - NEXT_PUBLIC_BACKEND_URL=http://backend:9000
-      - JWT_SECRET=supersecret
+      - NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY}
+      - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL:-http://backend:9000}
+      - JWT_SECRET=${JWT_SECRET}
     restart: always
     depends_on:
       - backend

@@ -1025,16 +1025,16 @@ export class ExcelExportService {
     this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_City_Sales_Report_${fromDate}`);
   }
 
-  // ── 9. AREA & PINCODE SALES EXPORT ──
+  // ── 9. SERVICE AREA / MAP FENCE EXPORT ──
   public static async exportAreaPincodeSales(data: { areaPincodes: any[]; filters?: any }, filename?: string): Promise<void> {
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Area Pincode Sales");
+    const sheet = workbook.addWorksheet("Service Area Performance");
     sheet.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
 
     const fromDate = data.filters?.customStartDate || "Current";
-    this.styleWorksheetHeader(sheet, "AREA & PINCODE SALES DISTRIBUTION", fromDate, data.filters, 8);
+    this.styleWorksheetHeader(sheet, "SERVICE AREA / MAP FENCE PERFORMANCE", fromDate, data.filters, 9);
 
-    const headers = ["Pincode", "Area / Locality", "City", "Kitchen Hub", "Orders", "Total Revenue", "AOV", "Delivered"];
+    const headers = ["Zone Name", "Zone ID", "Branch", "City", "Fence Type", "Orders", "Revenue", "AOV", "Delivered"];
     sheet.getRow(6).values = headers;
     sheet.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
     sheet.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
@@ -1042,15 +1042,16 @@ export class ExcelExportService {
     const items = data.areaPincodes || [];
     let rIdx = 7;
     for (const a of items) {
-      sheet.getRow(rIdx).values = [a.pincode, a.area, a.city, a.branch, a.orders, a.revenue, a.aov, a.delivered];
-      sheet.getCell(`F${rIdx}`).numFmt = "₹#,##0.00";
+      const fenceType = a.hasPolygon ? "Polygon" : (a.radiusKm ? `Radius (${a.radiusKm}km)` : "Radius");
+      sheet.getRow(rIdx).values = [a.zoneName, a.zoneId, a.branchName, a.city, fenceType, a.orders, a.revenue, a.aov, a.delivered];
       sheet.getCell(`G${rIdx}`).numFmt = "₹#,##0.00";
+      sheet.getCell(`H${rIdx}`).numFmt = "₹#,##0.00";
       rIdx++;
     }
 
-    sheet.columns = [{ width: 14 }, { width: 24 }, { width: 16 }, { width: 24 }, { width: 12 }, { width: 18 }, { width: 16 }, { width: 12 }];
+    sheet.columns = [{ width: 28 }, { width: 20 }, { width: 24 }, { width: 16 }, { width: 18 }, { width: 10 }, { width: 18 }, { width: 16 }, { width: 12 }];
     const buffer = await workbook.xlsx.writeBuffer();
-    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Area_Pincode_Sales_${fromDate}`);
+    this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_ServiceArea_Performance_${fromDate}`);
   }
 
   // ── 10. BRANCH PERFORMANCE EXPORT ──
@@ -1715,21 +1716,22 @@ export class ExcelExportService {
     s10.getCell("D8").numFmt = "₹#,##0.00";
     s10.columns = [{ width: 24 }, { width: 16 }, { width: 20 }, { width: 18 }, { width: 14 }];
 
-    // Sheet 11: Area-Pincode Sales
-    const s11 = workbook.addWorksheet("Area Pincode Sales");
+    // Sheet 11: Service Area / Map Fence Performance
+    const s11 = workbook.addWorksheet("Service Area Performance");
     s11.views = [{ state: "frozen", xSplit: 0, ySplit: 6, showGridLines: true }];
-    this.styleWorksheetHeader(s11, "AREA & PINCODE SALES BREAKDOWN", periodStr, data.filters, 8);
-    s11.getRow(6).values = ["Pincode", "Area", "City", "Kitchen Hub", "Orders", "Revenue", "AOV", "Delivered"];
+    this.styleWorksheetHeader(s11, "SERVICE AREA / MAP FENCE PERFORMANCE", periodStr, data.filters, 9);
+    s11.getRow(6).values = ["Zone Name", "Zone ID", "Branch", "City", "Fence Type", "Orders", "Revenue", "AOV", "Delivered"];
     s11.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
     s11.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
     let r11 = 7;
     (data.areaPincodes || []).forEach((a) => {
-      s11.getRow(r11).values = [a.pincode, a.area, a.city, a.branch, a.orders, a.revenue, a.aov, a.delivered];
-      s11.getCell(`F${r11}`).numFmt = "₹#,##0.00";
+      const fenceType11 = a.hasPolygon ? "Polygon" : (a.radiusKm ? `Radius (${a.radiusKm}km)` : "Radius");
+      s11.getRow(r11).values = [a.zoneName, a.zoneId, a.branchName, a.city, fenceType11, a.orders, a.revenue, a.aov, a.delivered];
       s11.getCell(`G${r11}`).numFmt = "₹#,##0.00";
+      s11.getCell(`H${r11}`).numFmt = "₹#,##0.00";
       r11++;
     });
-    s11.columns = [{ width: 14 }, { width: 22 }, { width: 16 }, { width: 24 }, { width: 12 }, { width: 18 }, { width: 16 }, { width: 12 }];
+    s11.columns = [{ width: 28 }, { width: 20 }, { width: 24 }, { width: 16 }, { width: 18 }, { width: 10 }, { width: 18 }, { width: 16 }, { width: 12 }];
 
     // Sheet 12: GST HSN Summary
     const s12 = workbook.addWorksheet("GST HSN Summary");

@@ -1306,19 +1306,22 @@ export async function persistOrderToDb(order: any): Promise<void> {
     : "pending";
 
   const numTotal = Number(order.total_amount || order.total || order.grand_total || 0);
+  const customerId = order.customer_id || order.customer_uid || null;
 
   await dbQuery(
     `
-    INSERT INTO "order" ("id", "display_id", "email", "currency_code", "status", "metadata", "created_at", "updated_at")
-    VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+    INSERT INTO "order" ("id", "display_id", "customer_id", "email", "currency_code", "status", "metadata", "created_at", "updated_at")
+    VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
     ON CONFLICT ("id") DO UPDATE SET
       "status" = EXCLUDED.status,
+      "customer_id" = COALESCE(EXCLUDED.customer_id, "order"."customer_id"),
       "metadata" = EXCLUDED.metadata,
       "updated_at" = NOW()
   `,
     [
       id,
       typeof order.display_id === "number" ? order.display_id : (parseInt(String(order.display_id || "").replace(/\D/g, "").slice(-6), 10) || 1001),
+      customerId,
       order.email || order.customer_email || "customer@caketohome.com",
       "inr",
       validPgStatus,
