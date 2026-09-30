@@ -1,24 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { retrieveUser } from "@/lib/data/users";
+import { resolveServerSession } from "@frontend/lib/security/auth-session";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    const cookieHeader = req.headers.get("cookie") || "";
-    const cookiesObj: Record<string, string> = {};
-    cookieHeader.split(";").forEach((c) => {
-      const [k, ...v] = c.trim().split("=");
-      if (k) cookiesObj[k] = decodeURIComponent(v.join("="));
-    });
+    const session = resolveServerSession(req);
 
-    const customerUid = req.cookies.get("_cth_customer_uid")?.value || cookiesObj["_cth_customer_uid"] || "";
-    const userId = req.cookies.get("_cth_user_id")?.value || cookiesObj["_cth_user_id"] || "";
-    const phone = req.cookies.get("_cth_phone")?.value || cookiesObj["_cth_phone"] || "";
-    const role = req.cookies.get("_cth_role")?.value || cookiesObj["_cth_role"] || "";
-    const token = req.cookies.get("_cth_jwt")?.value || cookiesObj["_cth_jwt"] || "";
-
-    if (!customerUid && !userId && !phone && !token && !role) {
+    if (!session) {
       const response = NextResponse.json(
         {
           success: true,
@@ -32,6 +22,8 @@ export async function GET(req: NextRequest) {
       response.headers.set("Expires", "0");
       return response;
     }
+
+    const { customerUid, userId, phone, role } = session;
 
     const { ApiEngine } = await import("@/lib/api-engine");
     const user = ApiEngine.resolveUserAccount({ userId, phone, role, customerUid }) || (await retrieveUser());

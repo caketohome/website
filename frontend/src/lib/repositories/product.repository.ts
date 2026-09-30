@@ -1,5 +1,12 @@
+import crypto from "crypto";
 import { dbQuery, dbTransaction } from "../db";
-import { ProductDomain, VariantOptionDomain, resolveProductInventoryMode } from "../types/domain";
+import {
+  ProductDomain,
+  VariantOptionDomain,
+  resolveProductInventoryMode,
+  CreatePackagingProductInput,
+  CreatePackagingProductResult,
+} from "../types/domain";
 
 export class ProductRepository {
   /**
@@ -452,5 +459,177 @@ export class ProductRepository {
    */
   static async deleteVariantOption(id: string): Promise<void> {
     await dbQuery(`UPDATE "variant_option" SET deleted_at = NOW(), status = 'inactive' WHERE id = $1`, [id]);
+  }
+
+  /**
+   * Atomically create a packaging master product and its default variant.
+   * Enforces:
+   * - merchandise_type = 'PACKAGING'
+   * - mandatory title and SKU
+   * - variant uniqueness (unique SKU constraint)
+   * - handle uniqueness
+   * - manage_inventory = true
+   * - transactional atomicity (all or nothing)
+   * - audit log trail in public.audit_log
+   */
+  static async createPackagingProductWithVariant(
+    input: CreatePackagingProductInput,
+    actorUserId?: string,
+    externalClient?: any
+  ): Promise<CreatePackagingProductResult> {
+    if (!input || typeof input !== "object") {
+      throw new Error("Validation error: input object is required.");
+    }
+    const title = (input.title || "").trim();
+    if (!title) {
+      throw new Error("Validation error: 'title' is required and must not be empty.");
+    }
+    const rawSku = (input.sku || "").trim();
+    if (!rawSku) {
+      throw new Error("Validation error: 'sku' is required and must not be empty.");
+    }
+    const sku = rawSku.toUpperCase();
+
+    // Validate status
+    const allowedStatuses = ["draft", "proposed", "published", "rejected"];
+    const status = input.status ? input.status.toLowerCase() : "draft";
+    if (!allowedStatuses.includes(status)) {
+      throw new Error(`Validation error: invalid status '${input.status}'. Allowed: ${allowedStatuses.join(", ")}`);
+    }
+
+    // Generate or validate handle
+    const handle = (input.handle || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""))
+      .trim()
+      .toLowerCase();
+    if (!handle) {
+      throw new Error("Validation error: valid 'handle' could not be derived.");
+    }
+
+    const runner = async (client: any) => {
+      // 1. Check SKU uniqueness
+      const existingSku = await client.query(
+        `SELECT id, product_id FROM public.product_variant WHERE sku = $1 AND deleted_at IS NULL LIMIT 1`,
+        [sku]
+      );
+      if (existingSku.rows.length > 0) {
+        const err = new Error(`DUPLICATE_SKU: SKU '${sku}' is already in use by variant '${existingSku.rows[0].id}'.`);
+        (err as any).code = "DUPLICATE_SKU";
+        throw err;
+      }
+
+      // 2. Check handle uniqueness
+      const existingHandle = await client.query(
+        `SELECT id FROM public.product WHERE handle = $1 AND deleted_at IS NULL LIMIT 1`,
+        [handle]
+      );
+      if (existingHandle.rows.length > 0) {
+        const err = new Error(`DUPLICATE_HANDLE: Handle '${handle}' is already in use by product '${existingHandle.rows[0].id}'.`);
+        (err as any).code = "DUPLICATE_HANDLE";
+        throw err;
+      }
+
+      // 3. Generate IDs
+      const prodId = `prod_pkg_${crypto.randomBytes(8).toString("hex")}`;
+      const varId = `var_pkg_${crypto.randomBytes(8).toString("hex")}`;
+
+      // 4. Construct metadata (cost_price is explicitly non-authoritative for accounting)
+      const costPrice = typeof input.cost_price === "number" ? input.cost_price : (input.cost_price ? Number(input.cost_price) : null);
+      const gstRate = typeof input.gst_rate === "number" ? input.gst_rate : (input.gst_rate ? Number(input.gst_rate) : null);
+
+      const metadata: Record<string, any> = {
+        sku,
+        uqc: (input.uqc || "NOS").trim().toUpperCase(),
+        hsn_code: input.hsn_code ? input.hsn_code.trim() : null,
+        gst_rate: gstRate,
+        tax_class: input.tax_class ? input.tax_class.trim() : null,
+        cost_price: costPrice, // Informational / non-authoritative
+        pim_config: { inventory_mode: "STOCK_CONTROLLED" },
+        category: "Packaging",
+        category_slug: "packaging",
+        ...(input.metadata || {}),
+      };
+
+      // 5. Insert Product
+      const prodRes = await client.query(
+        `
+        INSERT INTO public.product (
+          id, title, handle, description, status, merchandise_type,
+          is_giftcard, discountable, metadata, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, 'PACKAGING',
+          false, true, $6, NOW(), NOW()
+        )
+        RETURNING id, title, handle, status, merchandise_type, created_at;
+        `,
+        [prodId, title, handle, input.description?.trim() || null, status, JSON.stringify(metadata)]
+      );
+
+      const createdProduct = prodRes.rows[0];
+
+      // 6. Insert Product Variant (Default 1:1 variant with manage_inventory = true)
+      const varRes = await client.query(
+        `
+        INSERT INTO public.product_variant (
+          id, product_id, title, sku, manage_inventory, allow_backorder,
+          created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, true, false,
+          NOW(), NOW()
+        )
+        RETURNING id, product_id, title, sku, manage_inventory, created_at;
+        `,
+        [varId, prodId, `${title} - Standard`, sku]
+      );
+
+      const createdVariant = varRes.rows[0];
+
+      // 7. Audit log trail
+      const auditId = `aud_${crypto.randomBytes(12).toString("hex")}`;
+      await client.query(
+        `
+        INSERT INTO public.audit_log (
+          id, actor_id, actor_type, action, entity, entity_id, metadata, created_at, updated_at
+        ) VALUES (
+          $1, $2, 'staff', 'catalog.packaging_product_created', 'product', $3, $4, NOW(), NOW()
+        );
+        `,
+        [
+          auditId,
+          actorUserId || "system",
+          prodId,
+          JSON.stringify({
+            sku,
+            handle,
+            merchandise_type: "PACKAGING",
+            variant_id: varId,
+            status,
+          }),
+        ]
+      );
+
+      return {
+        product: {
+          id: createdProduct.id,
+          title: createdProduct.title,
+          handle: createdProduct.handle,
+          merchandise_type: "PACKAGING" as const,
+          status: createdProduct.status,
+          created_at: createdProduct.created_at?.toISOString ? createdProduct.created_at.toISOString() : String(createdProduct.created_at),
+        },
+        variant: {
+          id: createdVariant.id,
+          product_id: createdVariant.product_id,
+          title: createdVariant.title,
+          sku: createdVariant.sku,
+          manage_inventory: Boolean(createdVariant.manage_inventory),
+          created_at: createdVariant.created_at?.toISOString ? createdVariant.created_at.toISOString() : String(createdVariant.created_at),
+        },
+      };
+    };
+
+    if (externalClient) {
+      return runner(externalClient);
+    }
+    return dbTransaction(runner);
   }
 }

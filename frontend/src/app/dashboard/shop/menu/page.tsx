@@ -1,22 +1,53 @@
 import { MenuActions } from "@frontend/components/dashboard/menu/menu-actions";
 import { MenuProductActions } from "@frontend/components/dashboard/menu/menu-product-actions";
-import {
-  listCategories,
-  retrieveShop,
-  retrieveUser,
-} from "@frontend/lib/data";
-import { ShopManagerDTO, ProductDTO, ProductVariantDTO } from "@frontend/lib/types";
+import { retrieveUser } from "@frontend/lib/data";
+import { BranchRepository } from "@frontend/lib/repositories/branch.repository";
+import { ApiEngine } from "@frontend/lib/api-engine";
+import { ShopManagerDTO, ProductDTO, ProductVariantDTO, ShopDTO } from "@frontend/lib/types";
 import { Heading, Table, Text } from "@medusajs/ui";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function MenuPage() {
   const user = (await retrieveUser()) as ShopManagerDTO;
-  const shopId = user?.shop_id;
+  if (!user || (user.role !== "BRANCH_MANAGER" && user.role !== "SUPER_ADMIN")) {
+    redirect("/login");
+  }
 
-  const shop = await retrieveShop(shopId);
-  const categories = await listCategories();
+  const shopId = user?.shop_id || user?.branch_id || "br_indiranagar";
+  const branch = await BranchRepository.findById(shopId);
+  const categories = ApiEngine.getCategories();
+  const branchProds = ApiEngine.getBranchProducts(branch?.id || shopId);
+
+  const shop: ShopDTO = {
+    id: branch?.id || shopId,
+    name: branch?.name || "CakeToHome Bakery Hub",
+    description: "Bakery Branch & Fulfillment Center",
+    handle: branch?.code?.toLowerCase() || "caketohome",
+    is_open: branch?.is_open !== false,
+    address: branch?.address || "Bakery Hub",
+    phone: branch?.phone || "+91 98765 43210",
+    email: branch?.email || "branch@cakes2home.com",
+    deliveries: [],
+    products: (branchProds.products || []).map((p: any) => ({
+      id: p.id,
+      title: p.title || p.name,
+      description: p.description || "Artisanal gourmet cake made fresh daily",
+      thumbnail: p.thumbnail,
+      categories: [{ id: p.category_id || "cat_bestseller", name: p.category || "Gourmet Cakes" }],
+      variants: [
+        {
+          id: `var_${p.id}`,
+          title: "1 kg",
+          sku: `SKU_${p.id}`,
+          price: { calculated_amount: String(p.price || p.selling_price || 599) },
+        },
+      ],
+    })),
+  } as any;
+
 
   const categoryProductMap = new Map();
 

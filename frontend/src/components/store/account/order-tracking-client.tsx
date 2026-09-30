@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Heading, Text, Input, Button, Badge, StatusBadge, Container } from "@medusajs/ui";
-import { clientGetOrder } from "../../../lib/data/orders-client";
-import { type OrderDetail, type TimelineEntry } from "../../../lib/data/orders";
+import { getOrder as clientGetOrder, type OrderDetail, type TimelineEntry } from "../../../lib/data/orders";
+
 
 /**
  * Public order tracking client — lets a customer enter an order id (or follow

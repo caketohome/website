@@ -1,0 +1,566 @@
+{
+  "acc4190": [
+    {
+      "id": "ed6dd19a-9f8c-45cb-b5d1-5effd0388dab",
+      "code": "4190",
+      "name": "Sales Returns, Refunds & Allowances",
+      "type": "REVENUE",
+      "subtype": "DIRECT_REVENUE",
+      "level": 3,
+      "is_group": false,
+      "is_system": true,
+      "is_active": true,
+      "tax_rate": null,
+      "tax_class": null
+    }
+  ],
+  "relatedCoa": [
+    {
+      "code": "1111",
+      "name": "Cash in Hand",
+      "type": "ASSET",
+      "subtype": "CASH",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "1112",
+      "name": "Bank Operating A/c",
+      "type": "ASSET",
+      "subtype": "BANK",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "1113",
+      "name": "Gateway Clearing",
+      "type": "ASSET",
+      "subtype": "GATEWAY_CLEARING",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "1121",
+      "name": "Accounts Receivable",
+      "type": "ASSET",
+      "subtype": "RECEIVABLE",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "1122",
+      "name": "Undeposited COD",
+      "type": "ASSET",
+      "subtype": "CURRENT_ASSET",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "1131",
+      "name": "Merchandise Inventory - Accessories",
+      "type": "ASSET",
+      "subtype": "INVENTORY",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "1132",
+      "name": "Merchandise Inventory - Cakes",
+      "type": "ASSET",
+      "subtype": "INVENTORY",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "1133",
+      "name": "Packaging Supplies Stock",
+      "type": "ASSET",
+      "subtype": "INVENTORY",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "2111",
+      "name": "Accounts Payable",
+      "type": "LIABILITY",
+      "subtype": "PAYABLE",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "2121",
+      "name": "Output CGST 2.5% (Food/Bakery)",
+      "type": "LIABILITY",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "2122",
+      "name": "Output SGST 2.5% (Food/Bakery)",
+      "type": "LIABILITY",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "2123",
+      "name": "Output CGST 9.0% (Accessories)",
+      "type": "LIABILITY",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "2124",
+      "name": "Output SGST 9.0% (Accessories)",
+      "type": "LIABILITY",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "2125",
+      "name": "Output IGST 5.0% (Interstate Food)",
+      "type": "LIABILITY",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "2126",
+      "name": "Output IGST 18.0% (Interstate Accessories)",
+      "type": "LIABILITY",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "2127",
+      "name": "Output CGST 6.0% (Toys)",
+      "type": "LIABILITY",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "2128",
+      "name": "Output SGST 6.0% (Toys)",
+      "type": "LIABILITY",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "2129",
+      "name": "Output IGST 12.0% (Interstate Toys)",
+      "type": "LIABILITY",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "4110",
+      "name": "Cake & Bakery Sales Revenue (5% GST)",
+      "type": "REVENUE",
+      "subtype": "DIRECT_REVENUE",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "4120",
+      "name": "Accessory & Merchandise Sales Revenue (18% GST)",
+      "type": "REVENUE",
+      "subtype": "DIRECT_REVENUE",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "4130",
+      "name": "Delivery & Shipping Charges Collected",
+      "type": "REVENUE",
+      "subtype": "DELIVERY_REVENUE",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "4190",
+      "name": "Sales Returns, Refunds & Allowances",
+      "type": "REVENUE",
+      "subtype": "DIRECT_REVENUE",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "5110",
+      "name": "COGS - Cakes",
+      "type": "EXPENSE",
+      "subtype": "COGS",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "5120",
+      "name": "Accessory Merchandise Sold (Cost of Accessories)",
+      "type": "EXPENSE",
+      "subtype": "COGS",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "5130",
+      "name": "Packaging Materials Consumed",
+      "type": "EXPENSE",
+      "subtype": "COGS",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    },
+    {
+      "code": "5290",
+      "name": "Payment Gateway MDR Fees",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true
+    }
+  ],
+  "ptCons": [
+    {
+      "conname": "payment_transaction_pkey",
+      "def": "PRIMARY KEY (id)"
+    }
+  ],
+  "avCons": [
+    {
+      "conname": "accounting_voucher_branch_id_fkey",
+      "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "accounting_voucher_pkey",
+      "def": "PRIMARY KEY (id)"
+    },
+    {
+      "conname": "accounting_voucher_reversal_of_voucher_id_fkey",
+      "def": "FOREIGN KEY (reversal_of_voucher_id) REFERENCES accounting_voucher(id) ON DELETE SET NULL"
+    },
+    {
+      "conname": "accounting_voucher_reversed_by_voucher_id_fkey",
+      "def": "FOREIGN KEY (reversed_by_voucher_id) REFERENCES accounting_voucher(id) ON DELETE SET NULL"
+    },
+    {
+      "conname": "chk_voucher_posted_immutable",
+      "def": "CHECK ((((status)::text <> 'CANCELLED'::text) OR (posted_at IS NULL)))"
+    },
+    {
+      "conname": "chk_voucher_reversal_limit",
+      "def": "CHECK (((reversal_of_voucher_id IS NULL) OR (reversed_by_voucher_id IS NULL)))"
+    },
+    {
+      "conname": "chk_voucher_segregation",
+      "def": "CHECK (((approved_by IS NULL) OR (approved_by <> created_by)))"
+    },
+    {
+      "conname": "chk_voucher_status",
+      "def": "CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'SUBMITTED'::character varying, 'APPROVED'::character varying, 'POSTED'::character varying, 'CANCELLED'::character varying])::text[])))"
+    },
+    {
+      "conname": "chk_voucher_total",
+      "def": "CHECK ((total_amount >= 0.00))"
+    },
+    {
+      "conname": "chk_voucher_type",
+      "def": "CHECK (((voucher_type)::text = ANY ((ARRAY['SALES'::character varying, 'PURCHASE'::character varying, 'PAYMENT'::character varying, 'RECEIPT'::character varying, 'EXPENSE'::character varying, 'JOURNAL'::character varying, 'CONTRA'::character varying, 'CREDIT_NOTE'::character varying, 'DEBIT_NOTE'::character varying, 'OPENING_BALANCE'::character varying])::text[])))"
+    },
+    {
+      "conname": "uq_accounting_voucher_no",
+      "def": "UNIQUE (voucher_no)"
+    }
+  ],
+  "imCons": [
+    {
+      "conname": "inventory_movement_branch_id_fkey",
+      "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_movement_direction_check",
+      "def": "CHECK ((direction = ANY (ARRAY['IN'::text, 'OUT'::text])))"
+    },
+    {
+      "conname": "inventory_movement_movement_type_check",
+      "def": "CHECK ((movement_type = ANY (ARRAY['PURCHASE_RECEIPT'::text, 'SALES_FULFILLMENT'::text, 'PURCHASE_RETURN'::text, 'SALES_RETURN'::text, 'STOCK_ADJUSTMENT_UP'::text, 'STOCK_ADJUSTMENT_DOWN'::text, 'TRANSFER_IN'::text, 'TRANSFER_OUT'::text, 'DAMAGE_WRITEOFF'::text, 'INVOICE_REVERSAL'::text])))"
+    },
+    {
+      "conname": "inventory_movement_order_id_fkey",
+      "def": "FOREIGN KEY (order_id) REFERENCES \"order\"(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_movement_pkey",
+      "def": "PRIMARY KEY (id)"
+    },
+    {
+      "conname": "inventory_movement_product_id_fkey",
+      "def": "FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_movement_purchase_id_fkey",
+      "def": "FOREIGN KEY (purchase_id) REFERENCES purchase(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_movement_quantity_check",
+      "def": "CHECK ((quantity > (0)::numeric))"
+    },
+    {
+      "conname": "inventory_movement_variant_id_fkey",
+      "def": "FOREIGN KEY (variant_id) REFERENCES product_variant(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "inventory_movement_voucher_id_fkey",
+      "def": "FOREIGN KEY (voucher_id) REFERENCES accounting_voucher(id) ON DELETE RESTRICT"
+    }
+  ],
+  "ptTypes": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "company_id",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "branch_id",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "order_id",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "customer_id",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "amount",
+      "data_type": "integer",
+      "udt_name": "int4"
+    },
+    {
+      "column_name": "currency",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "idempotency_key",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "status",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "settlement_status",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "provider",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "provider_ref",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz"
+    },
+    {
+      "column_name": "deleted_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz"
+    }
+  ],
+  "avTypes": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "voucher_no",
+      "data_type": "character varying",
+      "udt_name": "varchar"
+    },
+    {
+      "column_name": "voucher_type",
+      "data_type": "character varying",
+      "udt_name": "varchar"
+    },
+    {
+      "column_name": "voucher_date",
+      "data_type": "date",
+      "udt_name": "date"
+    },
+    {
+      "column_name": "branch_id",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "fiscal_year",
+      "data_type": "character varying",
+      "udt_name": "varchar"
+    },
+    {
+      "column_name": "status",
+      "data_type": "character varying",
+      "udt_name": "varchar"
+    },
+    {
+      "column_name": "total_amount",
+      "data_type": "numeric",
+      "udt_name": "numeric"
+    },
+    {
+      "column_name": "currency",
+      "data_type": "character varying",
+      "udt_name": "varchar"
+    },
+    {
+      "column_name": "reference_type",
+      "data_type": "character varying",
+      "udt_name": "varchar"
+    },
+    {
+      "column_name": "reference_id",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "reference_event",
+      "data_type": "character varying",
+      "udt_name": "varchar"
+    },
+    {
+      "column_name": "narration",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "created_by",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "submitted_by",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "submitted_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz"
+    },
+    {
+      "column_name": "approved_by",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "approved_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz"
+    },
+    {
+      "column_name": "posted_by",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "posted_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz"
+    },
+    {
+      "column_name": "cancelled_by",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "cancelled_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz"
+    },
+    {
+      "column_name": "reversed_by_voucher_id",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "reversal_of_voucher_id",
+      "data_type": "text",
+      "udt_name": "text"
+    },
+    {
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "udt_name": "jsonb"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz"
+    },
+    {
+      "column_name": "deleted_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz"
+    }
+  ]
+}

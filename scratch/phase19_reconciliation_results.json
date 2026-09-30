@@ -1,0 +1,104 @@
+{
+  "timestamp": "2026-09-20T14:00:25.167Z",
+  "metrics_reconciliation": {
+    "total_customers": 57,
+    "total_orders": 173,
+    "total_products": 20,
+    "total_variants": 27,
+    "total_branches": 53,
+    "total_inventory_records": 424,
+    "total_campaigns": 5,
+    "total_categories": 11
+  },
+  "relational_integrity_checks": [
+    {
+      "check": "Orphan Product Variants",
+      "count": 0,
+      "passed": true
+    },
+    {
+      "check": "Orphan Branch Inventory Records",
+      "count": 0,
+      "passed": true
+    },
+    {
+      "check": "Invalid Physical Inventory Stock (Negative or Over-reserved)",
+      "count": 0,
+      "passed": true
+    },
+    {
+      "check": "Orders with Unresolvable Branch",
+      "count": 10,
+      "details": [
+        {
+          "id": "ord_1787481449234_1imc3",
+          "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": null
+        },
+        {
+          "id": "ord_1787480610651_kzx4q",
+          "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": null
+        },
+        {
+          "id": "ord_1787479739727_gwve4",
+          "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": null
+        },
+        {
+          "id": "ord_1787479724193_nk8i1",
+          "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": null
+        },
+        {
+          "id": "ord_1787479691845_cmcim",
+          "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": null
+        },
+        {
+          "id": "ord_1787479674377_wyyo9",
+          "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": null
+        },
+        {
+          "id": "ord_1787479651923_sg8g0",
+          "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": null
+        },
+        {
+          "id": "ord_1787479633570_vp2uv",
+          "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": null
+        },
+        {
+          "id": "ord_1787479618848_wm9jv",
+          "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": null
+        },
+        {
+          "id": "ord_1787479599824_yv0kb",
+          "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          "branch_name": null
+        }
+      ],
+      "passed": false
+    },
+    {
+      "check": "Zero Synthetic Cake Inventory Records in branch_inventory",
+      "count": 0,
+      "passed": true
+    },
+    {
+      "check": "All Order Bakery Statuses Belong to Recognized State Machine",
+      "invalid_statuses": [],
+      "passed": true
+    }
+  ],
+  "anomalies_detected": [],
+  "status": "FAIL",
+  "financial_integrity": {
+    "total_active_orders": 173,
+    "calculated_total_revenue": 124174,
+    "orders_with_missing_totals": 1
+  }
+}

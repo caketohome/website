@@ -1,0 +1,3159 @@
+{
+  "counts": {
+    "purchase": 0,
+    "purchase_item": 0,
+    "purchase_payment": 0,
+    "supplier": 0,
+    "branch_inventory": 424,
+    "product": 65,
+    "product_variant": 27,
+    "branch": 57,
+    "accounting_account": 98,
+    "accounting_voucher": 0,
+    "accounting_journal_entry": 0,
+    "accounting_journal_line": 0,
+    "accounting_fiscal_period": 0,
+    "order": 173,
+    "payment_transaction": 53
+  },
+  "table_details": {
+    "purchase": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "supplier_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "branch_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "invoice_no",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "invoice_date",
+          "data_type": "date",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "subtotal",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "discount",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "taxable_value",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "cgst",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "sgst",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "igst",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "total",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "payment_method",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "credit_terms_days",
+          "data_type": "integer",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "due_date",
+          "data_type": "date",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "status",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": "'DRAFT'::text"
+        },
+        {
+          "column_name": "created_by",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "approved_by",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "posted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column_name": "branch_id",
+          "foreign_table_name": "branch",
+          "foreign_column_name": "id",
+          "delete_rule": "RESTRICT",
+          "update_rule": "NO ACTION"
+        },
+        {
+          "column_name": "supplier_id",
+          "foreign_table_name": "supplier",
+          "foreign_column_name": "id",
+          "delete_rule": "RESTRICT",
+          "update_rule": "NO ACTION"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "purchase_pkey",
+          "indexdef": "CREATE UNIQUE INDEX purchase_pkey ON public.purchase USING btree (id)"
+        },
+        {
+          "indexname": "uq_purchase_invoice_supplier_branch",
+          "indexdef": "CREATE UNIQUE INDEX uq_purchase_invoice_supplier_branch ON public.purchase USING btree (branch_id, supplier_id, invoice_no) NULLS NOT DISTINCT"
+        },
+        {
+          "indexname": "idx_purchase_branch_id",
+          "indexdef": "CREATE INDEX idx_purchase_branch_id ON public.purchase USING btree (branch_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_purchase_supplier_id",
+          "indexdef": "CREATE INDEX idx_purchase_supplier_id ON public.purchase USING btree (supplier_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_purchase_status",
+          "indexdef": "CREATE INDEX idx_purchase_status ON public.purchase USING btree (status) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_purchase_invoice_date",
+          "indexdef": "CREATE INDEX idx_purchase_invoice_date ON public.purchase USING btree (invoice_date) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_purchase_due_date",
+          "indexdef": "CREATE INDEX idx_purchase_due_date ON public.purchase USING btree (due_date) WHERE ((deleted_at IS NULL) AND (status <> 'POSTED'::text))"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "purchase_branch_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+        },
+        {
+          "conname": "purchase_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        },
+        {
+          "conname": "purchase_status_check",
+          "contype": "c",
+          "def": "CHECK ((status = ANY (ARRAY['DRAFT'::text, 'SUBMITTED'::text, 'APPROVED'::text, 'POSTED'::text])))"
+        },
+        {
+          "conname": "purchase_supplier_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (supplier_id) REFERENCES supplier(id) ON DELETE RESTRICT"
+        },
+        {
+          "conname": "uq_purchase_invoice_supplier_branch",
+          "contype": "u",
+          "def": "UNIQUE NULLS NOT DISTINCT (branch_id, supplier_id, invoice_no)"
+        }
+      ]
+    },
+    "purchase_item": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "purchase_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "product_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "variant_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "description",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "quantity",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "rate",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "discount",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "taxable_value",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "cgst_rate",
+          "data_type": "numeric",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "sgst_rate",
+          "data_type": "numeric",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "igst_rate",
+          "data_type": "numeric",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "cgst",
+          "data_type": "numeric",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "sgst",
+          "data_type": "numeric",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "igst",
+          "data_type": "numeric",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "total",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "hsn_code",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column_name": "purchase_id",
+          "foreign_table_name": "purchase",
+          "foreign_column_name": "id",
+          "delete_rule": "CASCADE",
+          "update_rule": "NO ACTION"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "purchase_item_pkey",
+          "indexdef": "CREATE UNIQUE INDEX purchase_item_pkey ON public.purchase_item USING btree (id)"
+        },
+        {
+          "indexname": "idx_purchase_item_purchase_id",
+          "indexdef": "CREATE INDEX idx_purchase_item_purchase_id ON public.purchase_item USING btree (purchase_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_purchase_item_product_id",
+          "indexdef": "CREATE INDEX idx_purchase_item_product_id ON public.purchase_item USING btree (product_id) WHERE ((product_id IS NOT NULL) AND (deleted_at IS NULL))"
+        },
+        {
+          "indexname": "idx_purchase_item_hsn",
+          "indexdef": "CREATE INDEX idx_purchase_item_hsn ON public.purchase_item USING btree (hsn_code) WHERE (hsn_code IS NOT NULL)"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "purchase_item_discount_check",
+          "contype": "c",
+          "def": "CHECK ((discount >= (0)::numeric))"
+        },
+        {
+          "conname": "purchase_item_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        },
+        {
+          "conname": "purchase_item_purchase_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (purchase_id) REFERENCES purchase(id) ON DELETE CASCADE"
+        },
+        {
+          "conname": "purchase_item_quantity_check",
+          "contype": "c",
+          "def": "CHECK ((quantity > (0)::numeric))"
+        },
+        {
+          "conname": "purchase_item_rate_check",
+          "contype": "c",
+          "def": "CHECK ((rate >= (0)::numeric))"
+        }
+      ]
+    },
+    "purchase_payment": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "purchase_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "amount",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "method",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "payment_date",
+          "data_type": "date",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "reference",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_by",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column_name": "purchase_id",
+          "foreign_table_name": "purchase",
+          "foreign_column_name": "id",
+          "delete_rule": "CASCADE",
+          "update_rule": "NO ACTION"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "purchase_payment_pkey",
+          "indexdef": "CREATE UNIQUE INDEX purchase_payment_pkey ON public.purchase_payment USING btree (id)"
+        },
+        {
+          "indexname": "idx_purchase_payment_purchase_id",
+          "indexdef": "CREATE INDEX idx_purchase_payment_purchase_id ON public.purchase_payment USING btree (purchase_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_purchase_payment_date",
+          "indexdef": "CREATE INDEX idx_purchase_payment_date ON public.purchase_payment USING btree (payment_date) WHERE (deleted_at IS NULL)"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "purchase_payment_amount_check",
+          "contype": "c",
+          "def": "CHECK ((amount > (0)::numeric))"
+        },
+        {
+          "conname": "purchase_payment_method_check",
+          "contype": "c",
+          "def": "CHECK ((method = ANY (ARRAY['CASH'::text, 'UPI'::text, 'BANK_TRANSFER'::text, 'CHEQUE'::text, 'CARD'::text, 'OTHER'::text])))"
+        },
+        {
+          "conname": "purchase_payment_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        },
+        {
+          "conname": "purchase_payment_purchase_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (purchase_id) REFERENCES purchase(id) ON DELETE CASCADE"
+        }
+      ]
+    },
+    "supplier": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "name",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "gstin",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "phone",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "email",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "address",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "city",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "state",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "branch_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "is_active",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": "true"
+        },
+        {
+          "column_name": "created_by",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column_name": "branch_id",
+          "foreign_table_name": "branch",
+          "foreign_column_name": "id",
+          "delete_rule": "SET NULL",
+          "update_rule": "NO ACTION"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "supplier_pkey",
+          "indexdef": "CREATE UNIQUE INDEX supplier_pkey ON public.supplier USING btree (id)"
+        },
+        {
+          "indexname": "idx_supplier_branch_id",
+          "indexdef": "CREATE INDEX idx_supplier_branch_id ON public.supplier USING btree (branch_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_supplier_gstin",
+          "indexdef": "CREATE INDEX idx_supplier_gstin ON public.supplier USING btree (gstin) WHERE ((gstin IS NOT NULL) AND (deleted_at IS NULL))"
+        },
+        {
+          "indexname": "idx_supplier_is_active",
+          "indexdef": "CREATE INDEX idx_supplier_is_active ON public.supplier USING btree (is_active) WHERE (deleted_at IS NULL)"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "supplier_branch_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE SET NULL"
+        },
+        {
+          "conname": "supplier_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        }
+      ]
+    },
+    "branch_inventory": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "product_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "variant_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "quantity",
+          "data_type": "integer",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "reserved",
+          "data_type": "integer",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "branch_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column_name": "branch_id",
+          "foreign_table_name": "branch",
+          "foreign_column_name": "id",
+          "delete_rule": "CASCADE",
+          "update_rule": "CASCADE"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "branch_inventory_pkey",
+          "indexdef": "CREATE UNIQUE INDEX branch_inventory_pkey ON public.branch_inventory USING btree (id)"
+        },
+        {
+          "indexname": "IDX_branch_inventory_branch_id",
+          "indexdef": "CREATE INDEX \"IDX_branch_inventory_branch_id\" ON public.branch_inventory USING btree (branch_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_branch_inventory_variant_id",
+          "indexdef": "CREATE INDEX \"IDX_branch_inventory_variant_id\" ON public.branch_inventory USING btree (variant_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_branch_inventory_branch_variant",
+          "indexdef": "CREATE UNIQUE INDEX \"IDX_branch_inventory_branch_variant\" ON public.branch_inventory USING btree (branch_id, variant_id) WHERE (deleted_at IS NULL)"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "branch_inventory_branch_id_foreign",
+          "contype": "f",
+          "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "conname": "branch_inventory_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        }
+      ]
+    },
+    "product": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "title",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "handle",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "subtitle",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "description",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "is_giftcard",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "status",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": "'draft'::text"
+        },
+        {
+          "column_name": "thumbnail",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "weight",
+          "data_type": "real",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "length",
+          "data_type": "real",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "height",
+          "data_type": "real",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "width",
+          "data_type": "real",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "origin_country",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "hs_code",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "mid_code",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "material",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "collection_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "type_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "discountable",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": "true"
+        },
+        {
+          "column_name": "external_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column_name": "collection_id",
+          "foreign_table_name": "product_collection",
+          "foreign_column_name": "id",
+          "delete_rule": "SET NULL",
+          "update_rule": "CASCADE"
+        },
+        {
+          "column_name": "type_id",
+          "foreign_table_name": "product_type",
+          "foreign_column_name": "id",
+          "delete_rule": "SET NULL",
+          "update_rule": "CASCADE"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "product_pkey",
+          "indexdef": "CREATE UNIQUE INDEX product_pkey ON public.product USING btree (id)"
+        },
+        {
+          "indexname": "IDX_product_handle_unique",
+          "indexdef": "CREATE UNIQUE INDEX \"IDX_product_handle_unique\" ON public.product USING btree (handle) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_product_type_id",
+          "indexdef": "CREATE INDEX \"IDX_product_type_id\" ON public.product USING btree (type_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_product_collection_id",
+          "indexdef": "CREATE INDEX \"IDX_product_collection_id\" ON public.product USING btree (collection_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_product_deleted_at",
+          "indexdef": "CREATE INDEX \"IDX_product_deleted_at\" ON public.product USING btree (deleted_at)"
+        },
+        {
+          "indexname": "IDX_product_status",
+          "indexdef": "CREATE INDEX \"IDX_product_status\" ON public.product USING btree (status) WHERE (deleted_at IS NULL)"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "product_collection_id_foreign",
+          "contype": "f",
+          "def": "FOREIGN KEY (collection_id) REFERENCES product_collection(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        },
+        {
+          "conname": "product_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        },
+        {
+          "conname": "product_status_check",
+          "contype": "c",
+          "def": "CHECK ((status = ANY (ARRAY['draft'::text, 'proposed'::text, 'published'::text, 'rejected'::text])))"
+        },
+        {
+          "conname": "product_type_id_foreign",
+          "contype": "f",
+          "def": "FOREIGN KEY (type_id) REFERENCES product_type(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        }
+      ]
+    },
+    "product_variant": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "title",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "sku",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "barcode",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "ean",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "upc",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "allow_backorder",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "manage_inventory",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": "true"
+        },
+        {
+          "column_name": "hs_code",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "origin_country",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "mid_code",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "material",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "weight",
+          "data_type": "real",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "length",
+          "data_type": "real",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "height",
+          "data_type": "real",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "width",
+          "data_type": "real",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "variant_rank",
+          "data_type": "integer",
+          "is_nullable": "YES",
+          "column_default": "0"
+        },
+        {
+          "column_name": "product_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "thumbnail",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column_name": "product_id",
+          "foreign_table_name": "product",
+          "foreign_column_name": "id",
+          "delete_rule": "CASCADE",
+          "update_rule": "CASCADE"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "product_variant_pkey",
+          "indexdef": "CREATE UNIQUE INDEX product_variant_pkey ON public.product_variant USING btree (id)"
+        },
+        {
+          "indexname": "IDX_product_variant_ean_unique",
+          "indexdef": "CREATE UNIQUE INDEX \"IDX_product_variant_ean_unique\" ON public.product_variant USING btree (ean) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_product_variant_upc_unique",
+          "indexdef": "CREATE UNIQUE INDEX \"IDX_product_variant_upc_unique\" ON public.product_variant USING btree (upc) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_product_variant_sku_unique",
+          "indexdef": "CREATE UNIQUE INDEX \"IDX_product_variant_sku_unique\" ON public.product_variant USING btree (sku) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_product_variant_barcode_unique",
+          "indexdef": "CREATE UNIQUE INDEX \"IDX_product_variant_barcode_unique\" ON public.product_variant USING btree (barcode) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_product_variant_product_id",
+          "indexdef": "CREATE INDEX \"IDX_product_variant_product_id\" ON public.product_variant USING btree (product_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_product_variant_deleted_at",
+          "indexdef": "CREATE INDEX \"IDX_product_variant_deleted_at\" ON public.product_variant USING btree (deleted_at)"
+        },
+        {
+          "indexname": "IDX_product_variant_id_product_id",
+          "indexdef": "CREATE INDEX \"IDX_product_variant_id_product_id\" ON public.product_variant USING btree (id, product_id) WHERE (deleted_at IS NULL)"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "product_variant_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        },
+        {
+          "conname": "product_variant_product_id_foreign",
+          "contype": "f",
+          "def": "FOREIGN KEY (product_id) REFERENCES product(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        }
+      ]
+    },
+    "branch": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "name",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "code",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "is_open",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "phone",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "email",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "address",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "latitude",
+          "data_type": "double precision",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "longitude",
+          "data_type": "double precision",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "shop_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "city_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "region_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column_name": "city_id",
+          "foreign_table_name": "city",
+          "foreign_column_name": "id",
+          "delete_rule": "SET NULL",
+          "update_rule": "CASCADE"
+        },
+        {
+          "column_name": "region_id",
+          "foreign_table_name": "branch_region",
+          "foreign_column_name": "id",
+          "delete_rule": "SET NULL",
+          "update_rule": "CASCADE"
+        },
+        {
+          "column_name": "shop_id",
+          "foreign_table_name": "shop",
+          "foreign_column_name": "id",
+          "delete_rule": "CASCADE",
+          "update_rule": "CASCADE"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "branch_pkey",
+          "indexdef": "CREATE UNIQUE INDEX branch_pkey ON public.branch USING btree (id)"
+        },
+        {
+          "indexname": "IDX_branch_code",
+          "indexdef": "CREATE UNIQUE INDEX \"IDX_branch_code\" ON public.branch USING btree (code) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_branch_shop_id",
+          "indexdef": "CREATE INDEX \"IDX_branch_shop_id\" ON public.branch USING btree (shop_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_branch_city_id",
+          "indexdef": "CREATE INDEX \"IDX_branch_city_id\" ON public.branch USING btree (city_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_branch_region_id",
+          "indexdef": "CREATE INDEX \"IDX_branch_region_id\" ON public.branch USING btree (region_id) WHERE (deleted_at IS NULL)"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "branch_city_id_foreign",
+          "contype": "f",
+          "def": "FOREIGN KEY (city_id) REFERENCES city(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        },
+        {
+          "conname": "branch_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        },
+        {
+          "conname": "branch_region_id_foreign",
+          "contype": "f",
+          "def": "FOREIGN KEY (region_id) REFERENCES branch_region(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        },
+        {
+          "conname": "branch_shop_id_foreign",
+          "contype": "f",
+          "def": "FOREIGN KEY (shop_id) REFERENCES shop(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        }
+      ]
+    },
+    "accounting_account": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": "(gen_random_uuid())::text"
+        },
+        {
+          "column_name": "code",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "name",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "type",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "subtype",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "parent_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "level",
+          "data_type": "integer",
+          "is_nullable": "NO",
+          "column_default": "1"
+        },
+        {
+          "column_name": "is_group",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "is_system",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "is_active",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": "true"
+        },
+        {
+          "column_name": "tax_rate",
+          "data_type": "numeric",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "tax_class",
+          "data_type": "character varying",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "description",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_by",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column_name": "parent_id",
+          "foreign_table_name": "accounting_account",
+          "foreign_column_name": "id",
+          "delete_rule": "RESTRICT",
+          "update_rule": "NO ACTION"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "accounting_account_pkey",
+          "indexdef": "CREATE UNIQUE INDEX accounting_account_pkey ON public.accounting_account USING btree (id)"
+        },
+        {
+          "indexname": "uq_accounting_account_code",
+          "indexdef": "CREATE UNIQUE INDEX uq_accounting_account_code ON public.accounting_account USING btree (code)"
+        },
+        {
+          "indexname": "idx_accounting_account_code",
+          "indexdef": "CREATE UNIQUE INDEX idx_accounting_account_code ON public.accounting_account USING btree (code) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_accounting_account_type",
+          "indexdef": "CREATE INDEX idx_accounting_account_type ON public.accounting_account USING btree (type, subtype)"
+        },
+        {
+          "indexname": "idx_accounting_account_parent",
+          "indexdef": "CREATE INDEX idx_accounting_account_parent ON public.accounting_account USING btree (parent_id)"
+        },
+        {
+          "indexname": "idx_accounting_account_active",
+          "indexdef": "CREATE INDEX idx_accounting_account_active ON public.accounting_account USING btree (is_active) WHERE (deleted_at IS NULL)"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "accounting_account_parent_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (parent_id) REFERENCES accounting_account(id) ON DELETE RESTRICT"
+        },
+        {
+          "conname": "accounting_account_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        },
+        {
+          "conname": "chk_account_level",
+          "contype": "c",
+          "def": "CHECK (((level >= 1) AND (level <= 5)))"
+        },
+        {
+          "conname": "chk_account_subtype",
+          "contype": "c",
+          "def": "CHECK (((subtype)::text = ANY ((ARRAY['CURRENT_ASSET'::character varying, 'CASH'::character varying, 'BANK'::character varying, 'GATEWAY_CLEARING'::character varying, 'RECEIVABLE'::character varying, 'INVENTORY'::character varying, 'INPUT_TAX'::character varying, 'FIXED_ASSET'::character varying, 'CURRENT_LIABILITY'::character varying, 'PAYABLE'::character varying, 'OUTPUT_TAX'::character varying, 'STAFF_PAYABLE'::character varying, 'CUSTOMER_ADVANCE'::character varying, 'LONG_TERM_LIABILITY'::character varying, 'CAPITAL'::character varying, 'RETAINED_EARNINGS'::character varying, 'OPENING_OFFSET'::character varying, 'DIRECT_REVENUE'::character varying, 'INDIRECT_REVENUE'::character varying, 'DELIVERY_REVENUE'::character varying, 'COGS'::character varying, 'OPERATING_EXPENSE'::character varying, 'FINANCIAL_EXPENSE'::character varying])::text[])))"
+        },
+        {
+          "conname": "chk_account_type",
+          "contype": "c",
+          "def": "CHECK (((type)::text = ANY ((ARRAY['ASSET'::character varying, 'LIABILITY'::character varying, 'EQUITY'::character varying, 'REVENUE'::character varying, 'EXPENSE'::character varying])::text[])))"
+        },
+        {
+          "conname": "uq_accounting_account_code",
+          "contype": "u",
+          "def": "UNIQUE (code)"
+        }
+      ]
+    },
+    "accounting_voucher": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": "(gen_random_uuid())::text"
+        },
+        {
+          "column_name": "voucher_no",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "voucher_type",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "voucher_date",
+          "data_type": "date",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "branch_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "fiscal_year",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "status",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": "'DRAFT'::character varying"
+        },
+        {
+          "column_name": "total_amount",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0.00"
+        },
+        {
+          "column_name": "currency",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": "'INR'::character varying"
+        },
+        {
+          "column_name": "reference_type",
+          "data_type": "character varying",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "reference_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "reference_event",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": "'PRIMARY'::character varying"
+        },
+        {
+          "column_name": "narration",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "created_by",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "submitted_by",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "submitted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "approved_by",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "approved_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "posted_by",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "posted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "cancelled_by",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "cancelled_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "reversed_by_voucher_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "reversal_of_voucher_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column_name": "branch_id",
+          "foreign_table_name": "branch",
+          "foreign_column_name": "id",
+          "delete_rule": "RESTRICT",
+          "update_rule": "NO ACTION"
+        },
+        {
+          "column_name": "reversal_of_voucher_id",
+          "foreign_table_name": "accounting_voucher",
+          "foreign_column_name": "id",
+          "delete_rule": "SET NULL",
+          "update_rule": "NO ACTION"
+        },
+        {
+          "column_name": "reversed_by_voucher_id",
+          "foreign_table_name": "accounting_voucher",
+          "foreign_column_name": "id",
+          "delete_rule": "SET NULL",
+          "update_rule": "NO ACTION"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "accounting_voucher_pkey",
+          "indexdef": "CREATE UNIQUE INDEX accounting_voucher_pkey ON public.accounting_voucher USING btree (id)"
+        },
+        {
+          "indexname": "uq_accounting_voucher_no",
+          "indexdef": "CREATE UNIQUE INDEX uq_accounting_voucher_no ON public.accounting_voucher USING btree (voucher_no)"
+        },
+        {
+          "indexname": "idx_accounting_voucher_no",
+          "indexdef": "CREATE UNIQUE INDEX idx_accounting_voucher_no ON public.accounting_voucher USING btree (voucher_no)"
+        },
+        {
+          "indexname": "idx_accounting_voucher_branch_date",
+          "indexdef": "CREATE INDEX idx_accounting_voucher_branch_date ON public.accounting_voucher USING btree (branch_id, voucher_date DESC)"
+        },
+        {
+          "indexname": "idx_accounting_voucher_type_status",
+          "indexdef": "CREATE INDEX idx_accounting_voucher_type_status ON public.accounting_voucher USING btree (voucher_type, status)"
+        },
+        {
+          "indexname": "idx_accounting_voucher_ref",
+          "indexdef": "CREATE INDEX idx_accounting_voucher_ref ON public.accounting_voucher USING btree (reference_type, reference_id)"
+        },
+        {
+          "indexname": "idx_accounting_voucher_source_idempotency",
+          "indexdef": "CREATE UNIQUE INDEX idx_accounting_voucher_source_idempotency ON public.accounting_voucher USING btree (reference_type, reference_id, reference_event) WHERE (((status)::text <> 'CANCELLED'::text) AND ((reference_type)::text <> 'MANUAL'::text))"
+        },
+        {
+          "indexname": "idx_accounting_voucher_fiscal",
+          "indexdef": "CREATE INDEX idx_accounting_voucher_fiscal ON public.accounting_voucher USING btree (fiscal_year)"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "accounting_voucher_branch_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+        },
+        {
+          "conname": "accounting_voucher_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        },
+        {
+          "conname": "accounting_voucher_reversal_of_voucher_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (reversal_of_voucher_id) REFERENCES accounting_voucher(id) ON DELETE SET NULL"
+        },
+        {
+          "conname": "accounting_voucher_reversed_by_voucher_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (reversed_by_voucher_id) REFERENCES accounting_voucher(id) ON DELETE SET NULL"
+        },
+        {
+          "conname": "chk_voucher_posted_immutable",
+          "contype": "c",
+          "def": "CHECK ((((status)::text <> 'CANCELLED'::text) OR (posted_at IS NULL)))"
+        },
+        {
+          "conname": "chk_voucher_reversal_limit",
+          "contype": "c",
+          "def": "CHECK (((reversal_of_voucher_id IS NULL) OR (reversed_by_voucher_id IS NULL)))"
+        },
+        {
+          "conname": "chk_voucher_segregation",
+          "contype": "c",
+          "def": "CHECK (((approved_by IS NULL) OR (approved_by <> created_by)))"
+        },
+        {
+          "conname": "chk_voucher_status",
+          "contype": "c",
+          "def": "CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'SUBMITTED'::character varying, 'APPROVED'::character varying, 'POSTED'::character varying, 'CANCELLED'::character varying])::text[])))"
+        },
+        {
+          "conname": "chk_voucher_total",
+          "contype": "c",
+          "def": "CHECK ((total_amount >= 0.00))"
+        },
+        {
+          "conname": "chk_voucher_type",
+          "contype": "c",
+          "def": "CHECK (((voucher_type)::text = ANY ((ARRAY['SALES'::character varying, 'PURCHASE'::character varying, 'PAYMENT'::character varying, 'RECEIPT'::character varying, 'EXPENSE'::character varying, 'JOURNAL'::character varying, 'CONTRA'::character varying, 'CREDIT_NOTE'::character varying, 'DEBIT_NOTE'::character varying, 'OPENING_BALANCE'::character varying])::text[])))"
+        },
+        {
+          "conname": "uq_accounting_voucher_no",
+          "contype": "u",
+          "def": "UNIQUE (voucher_no)"
+        }
+      ]
+    },
+    "accounting_journal_entry": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": "(gen_random_uuid())::text"
+        },
+        {
+          "column_name": "entry_no",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "voucher_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "entry_date",
+          "data_type": "date",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "branch_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "fiscal_year",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "total_debit",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "total_credit",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "is_reversed",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "reversed_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "narration",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_by",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column_name": "branch_id",
+          "foreign_table_name": "branch",
+          "foreign_column_name": "id",
+          "delete_rule": "RESTRICT",
+          "update_rule": "NO ACTION"
+        },
+        {
+          "column_name": "voucher_id",
+          "foreign_table_name": "accounting_voucher",
+          "foreign_column_name": "id",
+          "delete_rule": "RESTRICT",
+          "update_rule": "NO ACTION"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "accounting_journal_entry_pkey",
+          "indexdef": "CREATE UNIQUE INDEX accounting_journal_entry_pkey ON public.accounting_journal_entry USING btree (id)"
+        },
+        {
+          "indexname": "accounting_journal_entry_voucher_id_key",
+          "indexdef": "CREATE UNIQUE INDEX accounting_journal_entry_voucher_id_key ON public.accounting_journal_entry USING btree (voucher_id)"
+        },
+        {
+          "indexname": "uq_accounting_journal_entry_no",
+          "indexdef": "CREATE UNIQUE INDEX uq_accounting_journal_entry_no ON public.accounting_journal_entry USING btree (entry_no)"
+        },
+        {
+          "indexname": "idx_accounting_journal_entry_no",
+          "indexdef": "CREATE UNIQUE INDEX idx_accounting_journal_entry_no ON public.accounting_journal_entry USING btree (entry_no)"
+        },
+        {
+          "indexname": "idx_accounting_journal_voucher",
+          "indexdef": "CREATE UNIQUE INDEX idx_accounting_journal_voucher ON public.accounting_journal_entry USING btree (voucher_id)"
+        },
+        {
+          "indexname": "idx_accounting_journal_branch_date",
+          "indexdef": "CREATE INDEX idx_accounting_journal_branch_date ON public.accounting_journal_entry USING btree (branch_id, entry_date DESC)"
+        },
+        {
+          "indexname": "idx_accounting_journal_fiscal",
+          "indexdef": "CREATE INDEX idx_accounting_journal_fiscal ON public.accounting_journal_entry USING btree (fiscal_year)"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "accounting_journal_entry_branch_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+        },
+        {
+          "conname": "accounting_journal_entry_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        },
+        {
+          "conname": "accounting_journal_entry_voucher_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (voucher_id) REFERENCES accounting_voucher(id) ON DELETE RESTRICT"
+        },
+        {
+          "conname": "accounting_journal_entry_voucher_id_key",
+          "contype": "u",
+          "def": "UNIQUE (voucher_id)"
+        },
+        {
+          "conname": "chk_journal_balanced",
+          "contype": "c",
+          "def": "CHECK ((total_debit = total_credit))"
+        },
+        {
+          "conname": "chk_journal_positive",
+          "contype": "c",
+          "def": "CHECK ((total_debit > 0.00))"
+        },
+        {
+          "conname": "uq_accounting_journal_entry_no",
+          "contype": "u",
+          "def": "UNIQUE (entry_no)"
+        }
+      ]
+    },
+    "accounting_journal_line": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": "(gen_random_uuid())::text"
+        },
+        {
+          "column_name": "journal_entry_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "line_no",
+          "data_type": "integer",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "account_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "debit_amount",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0.00"
+        },
+        {
+          "column_name": "credit_amount",
+          "data_type": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0.00"
+        },
+        {
+          "column_name": "branch_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "customer_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "supplier_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "tax_rate",
+          "data_type": "numeric",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "tax_class",
+          "data_type": "character varying",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "narration",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column_name": "account_id",
+          "foreign_table_name": "accounting_account",
+          "foreign_column_name": "id",
+          "delete_rule": "RESTRICT",
+          "update_rule": "NO ACTION"
+        },
+        {
+          "column_name": "branch_id",
+          "foreign_table_name": "branch",
+          "foreign_column_name": "id",
+          "delete_rule": "RESTRICT",
+          "update_rule": "NO ACTION"
+        },
+        {
+          "column_name": "customer_id",
+          "foreign_table_name": "customer",
+          "foreign_column_name": "id",
+          "delete_rule": "RESTRICT",
+          "update_rule": "NO ACTION"
+        },
+        {
+          "column_name": "journal_entry_id",
+          "foreign_table_name": "accounting_journal_entry",
+          "foreign_column_name": "id",
+          "delete_rule": "RESTRICT",
+          "update_rule": "NO ACTION"
+        },
+        {
+          "column_name": "supplier_id",
+          "foreign_table_name": "supplier",
+          "foreign_column_name": "id",
+          "delete_rule": "RESTRICT",
+          "update_rule": "NO ACTION"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "accounting_journal_line_pkey",
+          "indexdef": "CREATE UNIQUE INDEX accounting_journal_line_pkey ON public.accounting_journal_line USING btree (id)"
+        },
+        {
+          "indexname": "uq_journal_line_order",
+          "indexdef": "CREATE UNIQUE INDEX uq_journal_line_order ON public.accounting_journal_line USING btree (journal_entry_id, line_no)"
+        },
+        {
+          "indexname": "idx_accounting_jline_entry",
+          "indexdef": "CREATE INDEX idx_accounting_jline_entry ON public.accounting_journal_line USING btree (journal_entry_id)"
+        },
+        {
+          "indexname": "idx_accounting_jline_account_branch",
+          "indexdef": "CREATE INDEX idx_accounting_jline_account_branch ON public.accounting_journal_line USING btree (account_id, branch_id)"
+        },
+        {
+          "indexname": "idx_accounting_jline_customer",
+          "indexdef": "CREATE INDEX idx_accounting_jline_customer ON public.accounting_journal_line USING btree (customer_id) WHERE (customer_id IS NOT NULL)"
+        },
+        {
+          "indexname": "idx_accounting_jline_supplier",
+          "indexdef": "CREATE INDEX idx_accounting_jline_supplier ON public.accounting_journal_line USING btree (supplier_id) WHERE (supplier_id IS NOT NULL)"
+        },
+        {
+          "indexname": "idx_accounting_jline_branch",
+          "indexdef": "CREATE INDEX idx_accounting_jline_branch ON public.accounting_journal_line USING btree (branch_id)"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "accounting_journal_line_account_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (account_id) REFERENCES accounting_account(id) ON DELETE RESTRICT"
+        },
+        {
+          "conname": "accounting_journal_line_branch_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+        },
+        {
+          "conname": "accounting_journal_line_customer_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE RESTRICT"
+        },
+        {
+          "conname": "accounting_journal_line_journal_entry_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (journal_entry_id) REFERENCES accounting_journal_entry(id) ON DELETE RESTRICT"
+        },
+        {
+          "conname": "accounting_journal_line_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        },
+        {
+          "conname": "accounting_journal_line_supplier_id_fkey",
+          "contype": "f",
+          "def": "FOREIGN KEY (supplier_id) REFERENCES supplier(id) ON DELETE RESTRICT"
+        },
+        {
+          "conname": "chk_jline_credit_nonneg",
+          "contype": "c",
+          "def": "CHECK ((credit_amount >= 0.00))"
+        },
+        {
+          "conname": "chk_jline_debit_nonneg",
+          "contype": "c",
+          "def": "CHECK ((debit_amount >= 0.00))"
+        },
+        {
+          "conname": "chk_jline_single_sided",
+          "contype": "c",
+          "def": "CHECK ((((debit_amount > 0.00) AND (credit_amount = 0.00)) OR ((credit_amount > 0.00) AND (debit_amount = 0.00))))"
+        },
+        {
+          "conname": "trg_check_journal_balance",
+          "contype": "t",
+          "def": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+        },
+        {
+          "conname": "uq_journal_line_order",
+          "contype": "u",
+          "def": "UNIQUE (journal_entry_id, line_no)"
+        }
+      ]
+    },
+    "accounting_fiscal_period": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": "(gen_random_uuid())::text"
+        },
+        {
+          "column_name": "fiscal_year",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "period_name",
+          "data_type": "character varying",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "start_date",
+          "data_type": "date",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "end_date",
+          "data_type": "date",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "is_locked",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "locked_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "locked_by",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "indexname": "accounting_fiscal_period_pkey",
+          "indexdef": "CREATE UNIQUE INDEX accounting_fiscal_period_pkey ON public.accounting_fiscal_period USING btree (id)"
+        },
+        {
+          "indexname": "uq_fiscal_period",
+          "indexdef": "CREATE UNIQUE INDEX uq_fiscal_period ON public.accounting_fiscal_period USING btree (fiscal_year, period_name)"
+        },
+        {
+          "indexname": "idx_accounting_fiscal_year",
+          "indexdef": "CREATE INDEX idx_accounting_fiscal_year ON public.accounting_fiscal_period USING btree (fiscal_year)"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "accounting_fiscal_period_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        },
+        {
+          "conname": "chk_fiscal_dates",
+          "contype": "c",
+          "def": "CHECK ((end_date >= start_date))"
+        },
+        {
+          "conname": "uq_fiscal_period",
+          "contype": "u",
+          "def": "UNIQUE (fiscal_year, period_name)"
+        }
+      ]
+    },
+    "order": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "region_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "display_id",
+          "data_type": "integer",
+          "is_nullable": "YES",
+          "column_default": "nextval('order_display_id_seq'::regclass)"
+        },
+        {
+          "column_name": "customer_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "version",
+          "data_type": "integer",
+          "is_nullable": "NO",
+          "column_default": "1"
+        },
+        {
+          "column_name": "sales_channel_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "status",
+          "data_type": "USER-DEFINED",
+          "is_nullable": "NO",
+          "column_default": "'pending'::order_status_enum"
+        },
+        {
+          "column_name": "is_draft_order",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "email",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "currency_code",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "shipping_address_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "billing_address_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "no_notification",
+          "data_type": "boolean",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "canceled_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "custom_display_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "locale",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column_name": "billing_address_id",
+          "foreign_table_name": "order_address",
+          "foreign_column_name": "id",
+          "delete_rule": "SET NULL",
+          "update_rule": "CASCADE"
+        },
+        {
+          "column_name": "shipping_address_id",
+          "foreign_table_name": "order_address",
+          "foreign_column_name": "id",
+          "delete_rule": "SET NULL",
+          "update_rule": "CASCADE"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "order_pkey",
+          "indexdef": "CREATE UNIQUE INDEX order_pkey ON public.\"order\" USING btree (id)"
+        },
+        {
+          "indexname": "IDX_order_deleted_at",
+          "indexdef": "CREATE INDEX \"IDX_order_deleted_at\" ON public.\"order\" USING btree (deleted_at)"
+        },
+        {
+          "indexname": "IDX_order_display_id",
+          "indexdef": "CREATE INDEX \"IDX_order_display_id\" ON public.\"order\" USING btree (display_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_region_id",
+          "indexdef": "CREATE INDEX \"IDX_order_region_id\" ON public.\"order\" USING btree (region_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_customer_id",
+          "indexdef": "CREATE INDEX \"IDX_order_customer_id\" ON public.\"order\" USING btree (customer_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_sales_channel_id",
+          "indexdef": "CREATE INDEX \"IDX_order_sales_channel_id\" ON public.\"order\" USING btree (sales_channel_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_currency_code",
+          "indexdef": "CREATE INDEX \"IDX_order_currency_code\" ON public.\"order\" USING btree (currency_code) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_shipping_address_id",
+          "indexdef": "CREATE INDEX \"IDX_order_shipping_address_id\" ON public.\"order\" USING btree (shipping_address_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_billing_address_id",
+          "indexdef": "CREATE INDEX \"IDX_order_billing_address_id\" ON public.\"order\" USING btree (billing_address_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_is_draft_order",
+          "indexdef": "CREATE INDEX \"IDX_order_is_draft_order\" ON public.\"order\" USING btree (is_draft_order) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_custom_display_id",
+          "indexdef": "CREATE UNIQUE INDEX \"IDX_order_custom_display_id\" ON public.\"order\" USING btree (custom_display_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_order_created_at_desc",
+          "indexdef": "CREATE INDEX idx_order_created_at_desc ON public.\"order\" USING btree (created_at DESC) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_order_customer_created_at",
+          "indexdef": "CREATE INDEX idx_order_customer_created_at ON public.\"order\" USING btree (customer_id, created_at DESC) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_order_status_created_at",
+          "indexdef": "CREATE INDEX idx_order_status_created_at ON public.\"order\" USING btree (status, created_at DESC) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_order_email_lookup",
+          "indexdef": "CREATE INDEX idx_order_email_lookup ON public.\"order\" USING btree (email, created_at DESC) WHERE ((deleted_at IS NULL) AND (email IS NOT NULL))"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "order_billing_address_id_foreign",
+          "contype": "f",
+          "def": "FOREIGN KEY (billing_address_id) REFERENCES order_address(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        },
+        {
+          "conname": "order_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        },
+        {
+          "conname": "order_shipping_address_id_foreign",
+          "contype": "f",
+          "def": "FOREIGN KEY (shipping_address_id) REFERENCES order_address(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        }
+      ]
+    },
+    "payment_transaction": {
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "company_id",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "branch_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "order_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "customer_id",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "amount",
+          "data_type": "integer",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "currency",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "idempotency_key",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "status",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": "'pending'::text"
+        },
+        {
+          "column_name": "settlement_status",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": "'unsettled'::text"
+        },
+        {
+          "column_name": "provider",
+          "data_type": "text",
+          "is_nullable": "NO",
+          "column_default": "'cod'::text"
+        },
+        {
+          "column_name": "provider_ref",
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "indexname": "payment_transaction_pkey",
+          "indexdef": "CREATE UNIQUE INDEX payment_transaction_pkey ON public.payment_transaction USING btree (id)"
+        },
+        {
+          "indexname": "IDX_payment_transaction_deleted_at",
+          "indexdef": "CREATE INDEX \"IDX_payment_transaction_deleted_at\" ON public.payment_transaction USING btree (deleted_at) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_payment_transaction_order_id",
+          "indexdef": "CREATE INDEX idx_payment_transaction_order_id ON public.payment_transaction USING btree (order_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_payment_transaction_idempotency",
+          "indexdef": "CREATE INDEX idx_payment_transaction_idempotency ON public.payment_transaction USING btree (idempotency_key) WHERE ((deleted_at IS NULL) AND (idempotency_key IS NOT NULL))"
+        }
+      ],
+      "constraints": [
+        {
+          "conname": "payment_transaction_pkey",
+          "contype": "p",
+          "def": "PRIMARY KEY (id)"
+        }
+      ]
+    }
+  },
+  "coa_inspection": [
+    {
+      "id": "62392d0f-e0d6-4b42-9a44-7d7bae1f1d3b",
+      "code": "1131",
+      "name": "Merchandise Inventory - Accessories",
+      "type": "ASSET",
+      "subtype": "INVENTORY",
+      "is_group": false,
+      "level": 4,
+      "is_active": true
+    },
+    {
+      "id": "4f0da609-a160-4197-84cb-0bb41c065ed3",
+      "code": "1132",
+      "name": "Bakery Raw Materials & Ingredients",
+      "type": "ASSET",
+      "subtype": "INVENTORY",
+      "is_group": false,
+      "level": 4,
+      "is_active": true
+    },
+    {
+      "id": "b223a4f8-c391-4947-a3a7-30dd25556130",
+      "code": "1133",
+      "name": "Packaging Supplies Stock",
+      "type": "ASSET",
+      "subtype": "INVENTORY",
+      "is_group": false,
+      "level": 4,
+      "is_active": true
+    },
+    {
+      "id": "f89f2d9a-aa0f-4147-9330-c283e0c6c347",
+      "code": "5110",
+      "name": "Raw Material Consumption / Bakery Ingredients",
+      "type": "EXPENSE",
+      "subtype": "COGS",
+      "is_group": false,
+      "level": 3,
+      "is_active": true
+    },
+    {
+      "id": "f442bf38-e8d5-4161-88f2-e5e62bf3c7aa",
+      "code": "5120",
+      "name": "Accessory Merchandise Sold (Cost of Accessories)",
+      "type": "EXPENSE",
+      "subtype": "COGS",
+      "is_group": false,
+      "level": 3,
+      "is_active": true
+    },
+    {
+      "id": "de05ba04-da74-47fe-8150-9e0a9f8d9235",
+      "code": "5130",
+      "name": "Packaging Materials Consumed",
+      "type": "EXPENSE",
+      "subtype": "COGS",
+      "is_group": false,
+      "level": 3,
+      "is_active": true
+    }
+  ],
+  "product_categories": [],
+  "sample_products": [
+    {
+      "id": "prod_01KXYMAJKNXGS5WT4R0QNQGV5F",
+      "title": "Red Velvet Dream Cake",
+      "handle": "red-velvet-dream-cake",
+      "metadata": {
+        "mrp": 541,
+        "uqc": "NOS",
+        "tags": "chocolate, celebration, birthday",
+        "brand": "CakeToHome Signature",
+        "cream": "Fresh Cream",
+        "price": 433,
+        "vegan": false,
+        "creams": [],
+        "rating": 4.9,
+        "shapes": [],
+        "filling": "Chocolate Ganache",
+        "flavors": [],
+        "flavour": "Chocolate",
+        "gallery": [
+          "http://localhost:3000/_35841975-1e89-4c07-adb8-208cc8c59e17.jpeg"
+        ],
+        "texture": "Soft & Moist",
+        "alt_text": "Freshly baked celebration cake",
+        "category": "Chocolate Cakes",
+        "fillings": [],
+        "gst_rate": 5,
+        "hsn_code": "19059090",
+        "occasion": "Birthday",
+        "cake_base": "Chocolate",
+        "cake_type": "Layer Cake",
+        "seo_title": "Red Velvet Dream Cake [FORENSIC_DB_AUDIT_1788796324311] - CakeToHome",
+        "tax_class": "GST_FOOD_5",
+        "video_url": "",
+        "cost_price": 350,
+        "pim_config": {
+          "show_cream": false,
+          "show_knife": true,
+          "show_shape": false,
+          "show_weight": true,
+          "show_candles": true,
+          "show_dietary": true,
+          "show_filling": true,
+          "show_flavour": false,
+          "show_balloons": true,
+          "min_prep_hours": 2,
+          "required_cream": false,
+          "required_shape": false,
+          "express_allowed": true,
+          "required_weight": true,
+          "show_photo_cake": false,
+          "midnight_allowed": false,
+          "required_dietary": false,
+          "required_filling": false,
+          "required_flavour": false,
+          "same_day_allowed": true,
+          "scheduled_allowed": true,
+          "show_cake_message": true,
+          "show_greeting_card": true,
+          "required_photo_cake": false,
+          "required_cake_message": false,
+          "show_premium_packaging": true,
+          "max_delivery_distance_km": 5
+        },
+        "sugar_free": false,
+        "taxability": "Taxable",
+        "gluten_free": false,
+        "is_featured": false,
+        "add_ons_json": {
+          "add_on_card": true,
+          "is_photo_cake": false,
+          "message_limit": "40",
+          "add_on_candles": true,
+          "add_on_flowers": false,
+          "allow_custom_message": true
+        },
+        "category_ids": [],
+        "occasion_ids": [
+          "occ_birthday",
+          "occ_anniversary",
+          "occ_valentines_day",
+          "occ_engagement"
+        ],
+        "review_count": 12,
+        "seo_keywords": "cake delivery, fresh cakes, birthday cake online",
+        "category_slug": "chocolate-cakes",
+        "is_bestseller": false,
+        "selling_price": 433,
+        "tax_inclusive": true,
+        "variants_json": {
+          "shapes": [],
+          "weights": [
+            "0.5 kg",
+            "1 kg",
+            "1.5 kg",
+            "2 kg"
+          ],
+          "flavours": []
+        },
+        "weight_prices": [
+          {
+            "id": "wp_prod_01KXYMAJKNXGS5WT4R0QNQGV5F_500",
+            "mrp": 541,
+            "weight_id": "wp_prod_01KXYMAJKNXGS5WT4R0QNQGV5F_500",
+            "cost_price": 195,
+            "is_enabled": true,
+            "product_id": "prod_01KXYMAJKNXGS5WT4R0QNQGV5F",
+            "sort_order": 1,
+            "updated_at": "2026-09-10T05:51:03.405Z",
+            "weight_name": "0.5 kg",
+            "weight_unit": "kg",
+            "weight_value": 0.5,
+            "selling_price": 433,
+            "normalized_grams": 500,
+            "prep_time_minutes": 60
+          },
+          {
+            "id": "wp_prod_01KXYMAJKNXGS5WT4R0QNQGV5F_1000",
+            "mrp": 636,
+            "weight_id": "wp_prod_01KXYMAJKNXGS5WT4R0QNQGV5F_1000",
+            "cost_price": 229,
+            "is_enabled": true,
+            "product_id": "prod_01KXYMAJKNXGS5WT4R0QNQGV5F",
+            "sort_order": 2,
+            "updated_at": "2026-09-10T05:51:03.405Z",
+            "weight_name": "1 kg",
+            "weight_unit": "kg",
+            "weight_value": 1,
+            "selling_price": 509,
+            "normalized_grams": 1000,
+            "prep_time_minutes": 60
+          },
+          {
+            "id": "wp_prod_01KXYMAJKNXGS5WT4R0QNQGV5F_1500",
+            "mrp": 923,
+            "weight_id": "wp_prod_01KXYMAJKNXGS5WT4R0QNQGV5F_1500",
+            "cost_price": 332,
+            "is_enabled": true,
+            "product_id": "prod_01KXYMAJKNXGS5WT4R0QNQGV5F",
+            "sort_order": 3,
+            "updated_at": "2026-09-10T05:51:03.405Z",
+            "weight_name": "1.5 kg",
+            "weight_unit": "kg",
+            "weight_value": 1.5,
+            "selling_price": 738,
+            "normalized_grams": 1500,
+            "prep_time_minutes": 120
+          },
+          {
+            "id": "wp_prod_01KXYMAJKNXGS5WT4R0QNQGV5F_2000",
+            "mrp": 1178,
+            "weight_id": "wp_prod_01KXYMAJKNXGS5WT4R0QNQGV5F_2000",
+            "cost_price": 424,
+            "is_enabled": true,
+            "product_id": "prod_01KXYMAJKNXGS5WT4R0QNQGV5F",
+            "sort_order": 4,
+            "updated_at": "2026-09-10T05:51:03.405Z",
+            "weight_name": "2 kg",
+            "weight_unit": "kg",
+            "weight_value": 2,
+            "selling_price": 942,
+            "normalized_grams": 2000,
+            "prep_time_minutes": 120
+          }
+        ],
+        "daily_capacity": 50,
+        "is_new_arrival": false,
+        "hsn_description": "Cakes, Pastries & Bakery Goods",
+        "seo_description": "Stunning red velvet cake with cream cheese frosting, perfect for special occasions.",
+        "shelf_life_days": 3,
+        "prep_time_minutes": 60,
+        "primary_category_id": "cat_chocolate",
+        "tax_configuration_id": "txcfg_food_5",
+        "enable_shape_selection": false,
+        "secondary_category_ids": [],
+        "enable_flavor_selection": false,
+        "max_delivery_distance_km": 5
+      },
+      "variant_id": "variant_01KXYMAN3TDHE4KB7ARM7R5N9C",
+      "variant_title": "Red Velvet Dream Cake - 1kg",
+      "sku": "RED-VELVET-1KG",
+      "barcode": null
+    },
+    {
+      "id": "prod_01KXYMAJKNS8AGWCN5S1WEGKSD",
+      "title": "Butter Croissant",
+      "handle": "butter-croissant",
+      "metadata": {
+        "mrp": 199,
+        "price": 149,
+        "category": "Pastries",
+        "occasion": "Farewell",
+        "pim_config": {
+          "show_weight": false,
+          "required_weight": false,
+          "show_photo_cake": false,
+          "show_cake_message": false,
+          "required_photo_cake": false,
+          "required_cake_message": false
+        },
+        "occasion_ids": [
+          "occ_farewell"
+        ],
+        "category_slug": "pastries",
+        "selling_price": 149,
+        "weight_prices": [],
+        "price_updated_at": "2026-09-18T05:12:18.925Z",
+        "primary_category_id": "cat_pastries",
+        "price_correction_source": "canonical_catalog_integrity_fix"
+      },
+      "variant_id": "variant_01KXYMAN3V20SZ3SR5HX46Q9NC",
+      "variant_title": "Butter Croissant",
+      "sku": "BUTTER-CROISSANT",
+      "barcode": null
+    },
+    {
+      "id": "prod_01KXYMAJKNH99E1TMWYGQGT61D",
+      "title": "Danish Pastry Assortment",
+      "handle": "danish-pastry-assortment",
+      "metadata": {
+        "mrp": 499,
+        "price": 399,
+        "weight": "Box of 4",
+        "category": "Pastries",
+        "occasion": "Farewell",
+        "occasion_ids": [
+          "occ_farewell"
+        ],
+        "category_slug": "pastries",
+        "selling_price": 399,
+        "weight_prices": [
+          {
+            "id": "wp_danish_4",
+            "mrp": 499,
+            "is_enabled": true,
+            "weight_name": "Box of 4",
+            "selling_price": 399,
+            "normalized_grams": 250
+          }
+        ],
+        "price_updated_at": "2026-09-17T13:22:00.836Z",
+        "primary_category_id": "cat_pastries",
+        "price_correction_source": "canonical_inr_seed_fix"
+      },
+      "variant_id": "variant_01KXYMAN3V5966CS0G5VRZJY42",
+      "variant_title": "Danish Pastry Assortment - Box of 4",
+      "sku": "DANISH-PASTRY-4",
+      "barcode": null
+    },
+    {
+      "id": "prod_01KXYMAJKNV48P1B9CM7C022YM",
+      "title": "Vanilla Bean Cupcake",
+      "handle": "vanilla-bean-cupcake",
+      "metadata": {
+        "mrp": 549,
+        "price": 449,
+        "weight": "Box of 6",
+        "category": "Cupcakes",
+        "occasion": "Baby shower",
+        "occasion_ids": [
+          "occ_baby_shower",
+          "occ_baby_birthday"
+        ],
+        "category_slug": "cupcakes",
+        "selling_price": 449,
+        "weight_prices": [
+          {
+            "id": "wp_cupcake_vanilla_6",
+            "mrp": 549,
+            "is_enabled": true,
+            "weight_name": "Box of 6",
+            "selling_price": 449,
+            "normalized_grams": 300
+          }
+        ],
+        "price_updated_at": "2026-09-17T13:22:00.586Z",
+        "primary_category_id": "cat_cupcakes",
+        "price_correction_source": "canonical_inr_seed_fix"
+      },
+      "variant_id": "variant_01KXYMAN3Y6K3Z7TH1ZRFEY97N",
+      "variant_title": "Vanilla Bean Cupcake - Box of 6",
+      "sku": "VANILLA-CUPCAKE-6",
+      "barcode": null
+    },
+    {
+      "id": "prod_01KXYMAJKNDZ4T2YVA7K144XP5",
+      "title": "Chocolate Fudge Cupcake",
+      "handle": "chocolate-fudge-cupcake",
+      "metadata": {
+        "mrp": 599,
+        "price": 499,
+        "weight": "Box of 6",
+        "category": "Cupcakes",
+        "occasion": "Birthday",
+        "occasion_ids": [
+          "occ_birthday",
+          "occ_baby_birthday"
+        ],
+        "category_slug": "cupcakes",
+        "selling_price": 499,
+        "weight_prices": [
+          {
+            "id": "wp_cupcake_choc_6",
+            "mrp": 599,
+            "is_enabled": true,
+            "weight_name": "Box of 6",
+            "selling_price": 499,
+            "normalized_grams": 300
+          }
+        ],
+        "price_updated_at": "2026-09-17T13:22:00.435Z",
+        "primary_category_id": "cat_cupcakes",
+        "price_correction_source": "canonical_inr_seed_fix"
+      },
+      "variant_id": "variant_01KXYMAN40MW6VZV49HJA15CXE",
+      "variant_title": "Chocolate Fudge Cupcake - Box of 6",
+      "sku": "CHOC-FUDGE-CUPCAKE-6",
+      "barcode": null
+    },
+    {
+      "id": "acc_01",
+      "title": "Gold Acrylic Happy Birthday Topper",
+      "handle": "gold-acrylic-happy-birthday-topper",
+      "metadata": {
+        "mrp": 149,
+        "sku": "ACC-TOP-GOLD",
+        "uqc": "NOS",
+        "price": 99,
+        "weight": "50g",
+        "category": "Cake Accessories",
+        "gst_rate": 18,
+        "hsn_code": "95059000",
+        "tax_class": "GST_STANDARD_18",
+        "cost_price": 42,
+        "pim_config": {
+          "show_shape": false,
+          "show_weight": false,
+          "show_flavour": false,
+          "inventory_mode": "STOCK_CONTROLLED",
+          "required_weight": false
+        },
+        "taxability": "Taxable",
+        "category_slug": "accessories",
+        "selling_price": 99,
+        "tax_inclusive": true,
+        "low_stock_threshold": 5,
+        "primary_category_id": "cat_accessories"
+      },
+      "variant_id": "var_acc_01",
+      "variant_title": "Default",
+      "sku": "ACC-TOP-GOLD",
+      "barcode": null
+    },
+    {
+      "id": "acc_02",
+      "title": "Magic Re-Lighting Birthday Candles (Pack of 10)",
+      "handle": "magic-re-lighting-birthday-candles-pack-of-10",
+      "metadata": {
+        "mrp": 79,
+        "sku": "ACC-CAN-MAGIC",
+        "uqc": "NOS",
+        "price": 49,
+        "weight": "30g",
+        "category": "Cake Accessories",
+        "gst_rate": 18,
+        "hsn_code": "95059000",
+        "tax_class": "GST_STANDARD_18",
+        "cost_price": 18,
+        "pim_config": {
+          "show_shape": false,
+          "show_weight": false,
+          "show_flavour": false,
+          "inventory_mode": "STOCK_CONTROLLED",
+          "required_weight": false
+        },
+        "taxability": "Taxable",
+        "category_slug": "accessories",
+        "selling_price": 49,
+        "tax_inclusive": true,
+        "low_stock_threshold": 10,
+        "primary_category_id": "cat_accessories"
+      },
+      "variant_id": "var_acc_02",
+      "variant_title": "Default",
+      "sku": "ACC-CAN-MAGIC",
+      "barcode": null
+    },
+    {
+      "id": "prod_1",
+      "title": "Belgian Chocolate Truffle Cake",
+      "handle": "belgian-chocolate-truffle-cake",
+      "metadata": {
+        "price": 649,
+        "rating": 4.9,
+        "flavour": "Chocolate",
+        "category": "Chocolate Cakes",
+        "occasion": "Birthday",
+        "is_featured": true,
+        "category_ids": [
+          "cat_chocolate",
+          "cat_bestsellers"
+        ],
+        "occasion_ids": [
+          "occ_birthday",
+          "occ_anniversary",
+          "occ_wedding",
+          "occ_celebration"
+        ],
+        "review_count": 142,
+        "category_slug": "chocolate-cakes",
+        "is_bestseller": true,
+        "selling_price": 649,
+        "variants_json": {
+          "weights": [
+            "1 kg"
+          ]
+        },
+        "is_new_arrival": false,
+        "primary_category_id": "cat_chocolate"
+      },
+      "variant_id": "variant_def_prod_1",
+      "variant_title": "Belgian Chocolate Truffle Cake - Standard",
+      "sku": null,
+      "barcode": null
+    },
+    {
+      "id": "prod_4",
+      "title": "Black Forest Gateau Special",
+      "handle": "black-forest-gateau",
+      "metadata": {
+        "price": 549,
+        "rating": 4.7,
+        "flavour": "Black Forest",
+        "category": "Black Forest Cakes",
+        "occasion": "Birthday",
+        "is_featured": false,
+        "category_ids": [
+          "cat_black_forest",
+          "cat_chocolate",
+          "cat_bestsellers"
+        ],
+        "occasion_ids": [
+          "occ_birthday",
+          "occ_anniversary",
+          "occ_farewell",
+          "occ_celebration"
+        ],
+        "review_count": 210,
+        "category_slug": "black-forest-cakes",
+        "is_bestseller": true,
+        "selling_price": 549,
+        "variants_json": {
+          "weights": [
+            "1 kg"
+          ]
+        },
+        "is_new_arrival": false,
+        "primary_category_id": "cat_black_forest"
+      },
+      "variant_id": "variant_def_prod_4",
+      "variant_title": "Black Forest Gateau Special - Standard",
+      "sku": null,
+      "barcode": null
+    },
+    {
+      "id": "prod_5",
+      "title": "Butterscotch Caramel Crunch Cake",
+      "handle": "butterscotch-caramel-cake",
+      "metadata": {
+        "price": 599,
+        "rating": 4.8,
+        "flavour": "Butterscotch",
+        "category": "Butterscotch & Caramel Cakes",
+        "occasion": "Birthday",
+        "is_featured": true,
+        "category_ids": [
+          "cat_butterscotch"
+        ],
+        "occasion_ids": [
+          "occ_birthday",
+          "occ_fathers_day",
+          "occ_retirement"
+        ],
+        "review_count": 115,
+        "category_slug": "butterscotch-caramel-cakes",
+        "is_bestseller": false,
+        "selling_price": 599,
+        "variants_json": {
+          "weights": [
+            "1 kg"
+          ]
+        },
+        "is_new_arrival": false,
+        "primary_category_id": "cat_butterscotch"
+      },
+      "variant_id": "variant_def_prod_5",
+      "variant_title": "Butterscotch Caramel Crunch Cake - Standard",
+      "sku": null,
+      "barcode": null
+    }
+  ],
+  "accounting_start_date": []
+}

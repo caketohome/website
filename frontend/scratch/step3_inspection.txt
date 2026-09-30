@@ -1,0 +1,199 @@
+
+=== TABLE: purchase ===
+  id: text NOT NULL
+  supplier_id: text
+  branch_id: text NOT NULL
+  invoice_no: text
+  invoice_date: date
+  subtotal: numeric NOT NULL
+  discount: numeric NOT NULL
+  taxable_value: numeric NOT NULL
+  cgst: numeric NOT NULL
+  sgst: numeric NOT NULL
+  igst: numeric NOT NULL
+  total: numeric NOT NULL
+  payment_method: text
+  credit_terms_days: integer
+  due_date: date
+  status: text NOT NULL
+  created_by: text
+  approved_by: text
+  posted_at: timestamp with time zone
+  metadata: jsonb
+  created_at: timestamp with time zone NOT NULL
+  updated_at: timestamp with time zone NOT NULL
+  deleted_at: timestamp with time zone
+  Constraints:
+    [f] purchase_branch_id_fkey: FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT
+    [p] purchase_pkey: PRIMARY KEY (id)
+    [c] purchase_status_check: CHECK ((status = ANY (ARRAY['DRAFT'::text, 'SUBMITTED'::text, 'APPROVED'::text, 'POSTED'::text])))
+    [f] purchase_supplier_id_fkey: FOREIGN KEY (supplier_id) REFERENCES supplier(id) ON DELETE RESTRICT
+    [u] uq_purchase_invoice_supplier_branch: UNIQUE NULLS NOT DISTINCT (branch_id, supplier_id, invoice_no)
+
+=== TABLE: purchase_item ===
+  id: text NOT NULL
+  purchase_id: text NOT NULL
+  product_id: text
+  variant_id: text
+  description: text NOT NULL
+  quantity: numeric NOT NULL
+  rate: numeric NOT NULL
+  discount: numeric NOT NULL
+  taxable_value: numeric NOT NULL
+  cgst_rate: numeric
+  sgst_rate: numeric
+  igst_rate: numeric
+  cgst: numeric
+  sgst: numeric
+  igst: numeric
+  total: numeric NOT NULL
+  hsn_code: text
+  created_at: timestamp with time zone NOT NULL
+  updated_at: timestamp with time zone NOT NULL
+  deleted_at: timestamp with time zone
+  Constraints:
+    [c] purchase_item_discount_check: CHECK ((discount >= (0)::numeric))
+    [p] purchase_item_pkey: PRIMARY KEY (id)
+    [f] purchase_item_purchase_id_fkey: FOREIGN KEY (purchase_id) REFERENCES purchase(id) ON DELETE CASCADE
+    [c] purchase_item_quantity_check: CHECK ((quantity > (0)::numeric))
+    [c] purchase_item_rate_check: CHECK ((rate >= (0)::numeric))
+
+=== TABLE: purchase_payment ===
+  id: text NOT NULL
+  purchase_id: text NOT NULL
+  amount: numeric NOT NULL
+  method: text NOT NULL
+  payment_date: date NOT NULL
+  reference: text
+  created_by: text
+  created_at: timestamp with time zone NOT NULL
+  updated_at: timestamp with time zone NOT NULL
+  deleted_at: timestamp with time zone
+  Constraints:
+    [c] purchase_payment_amount_check: CHECK ((amount > (0)::numeric))
+    [c] purchase_payment_method_check: CHECK ((method = ANY (ARRAY['CASH'::text, 'UPI'::text, 'BANK_TRANSFER'::text, 'CHEQUE'::text, 'CARD'::text, 'OTHER'::text])))
+    [p] purchase_payment_pkey: PRIMARY KEY (id)
+    [f] purchase_payment_purchase_id_fkey: FOREIGN KEY (purchase_id) REFERENCES purchase(id) ON DELETE CASCADE
+
+=== TABLE: supplier ===
+  id: text NOT NULL
+  name: text NOT NULL
+  gstin: text
+  phone: text
+  email: text
+  address: text
+  city: text
+  state: text
+  branch_id: text
+  is_active: boolean NOT NULL
+  created_by: text
+  metadata: jsonb
+  created_at: timestamp with time zone NOT NULL
+  updated_at: timestamp with time zone NOT NULL
+  deleted_at: timestamp with time zone
+  Constraints:
+    [f] supplier_branch_id_fkey: FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE SET NULL
+    [p] supplier_pkey: PRIMARY KEY (id)
+
+=== TABLE: branch_inventory ===
+  id: text NOT NULL
+  product_id: text NOT NULL
+  variant_id: text NOT NULL
+  quantity: integer NOT NULL
+  reserved: integer NOT NULL
+  branch_id: text NOT NULL
+  created_at: timestamp with time zone NOT NULL
+  updated_at: timestamp with time zone NOT NULL
+  deleted_at: timestamp with time zone
+  Constraints:
+    [f] branch_inventory_branch_id_foreign: FOREIGN KEY (branch_id) REFERENCES branch(id) ON UPDATE CASCADE ON DELETE CASCADE
+    [p] branch_inventory_pkey: PRIMARY KEY (id)
+
+=== RELEVANT CHART OF ACCOUNTS ===
+  1000     | level 1 | [GROUP]   | ASSET      | CURRENT_ASSET        | Assets
+  1100     | level 2 | [GROUP]   | ASSET      | CURRENT_ASSET        | Current Assets
+  1110     | level 3 | [GROUP]   | ASSET      | CURRENT_ASSET        | Cash and Cash Equivalents
+  1111     | level 4 | [LEAF]    | ASSET      | CASH                 | Cash in Hand
+  1112     | level 4 | [LEAF]    | ASSET      | BANK                 | Bank Operating A/c
+  1113     | level 4 | [LEAF]    | ASSET      | GATEWAY_CLEARING     | Gateway Clearing
+  1114     | level 4 | [LEAF]    | ASSET      | CASH                 | Petty Cash - Branches
+  1119     | level 4 | [LEAF]    | ASSET      | CURRENT_ASSET        | Unclassified Suspense
+  1120     | level 3 | [GROUP]   | ASSET      | CURRENT_ASSET        | Receivables and Advances
+  1121     | level 4 | [LEAF]    | ASSET      | RECEIVABLE           | Accounts Receivable
+  1122     | level 4 | [LEAF]    | ASSET      | CURRENT_ASSET        | Undeposited COD
+  1123     | level 4 | [LEAF]    | ASSET      | CURRENT_ASSET        | Staff Advances
+  1124     | level 4 | [LEAF]    | ASSET      | CURRENT_ASSET        | Security Deposits - Leases
+  1130     | level 3 | [GROUP]   | ASSET      | CURRENT_ASSET        | Inventories
+  1131     | level 4 | [LEAF]    | ASSET      | INVENTORY            | Merchandise Inventory - Accessories
+  1132     | level 4 | [LEAF]    | ASSET      | INVENTORY            | Bakery Raw Materials & Ingredients
+  1133     | level 4 | [LEAF]    | ASSET      | INVENTORY            | Packaging Supplies Stock
+  1140     | level 3 | [GROUP]   | ASSET      | CURRENT_ASSET        | Duties & Taxes - Input Tax Credit
+  1141     | level 4 | [LEAF]    | ASSET      | INPUT_TAX            | Input CGST 2.5% (Food/Bakery)
+  1142     | level 4 | [LEAF]    | ASSET      | INPUT_TAX            | Input SGST 2.5% (Food/Bakery)
+  1143     | level 4 | [LEAF]    | ASSET      | INPUT_TAX            | Input CGST 9.0% (Accessories/General)
+  1144     | level 4 | [LEAF]    | ASSET      | INPUT_TAX            | Input SGST 9.0% (Accessories/General)
+  1145     | level 4 | [LEAF]    | ASSET      | INPUT_TAX            | Input IGST 5.0% (Interstate Food)
+  1146     | level 4 | [LEAF]    | ASSET      | INPUT_TAX            | Input IGST 18.0% (Interstate Accessories)
+  1147     | level 4 | [LEAF]    | ASSET      | INPUT_TAX            | Input CGST 6.0% (Toys/Novelties)
+  1148     | level 4 | [LEAF]    | ASSET      | INPUT_TAX            | Input SGST 6.0% (Toys/Novelties)
+  1149     | level 4 | [LEAF]    | ASSET      | INPUT_TAX            | Input IGST 12.0% (Interstate Toys)
+  1500     | level 2 | [GROUP]   | ASSET      | FIXED_ASSET          | Fixed Assets (PP&E)
+  1510     | level 3 | [LEAF]    | ASSET      | FIXED_ASSET          | Bakery & Kitchen Equipment
+  1520     | level 3 | [LEAF]    | ASSET      | FIXED_ASSET          | Delivery Vehicles & Fleet
+  1530     | level 3 | [LEAF]    | ASSET      | FIXED_ASSET          | Computers & POS Hardware
+  1540     | level 3 | [LEAF]    | ASSET      | FIXED_ASSET          | Furniture & Fixtures
+  1590     | level 3 | [LEAF]    | ASSET      | FIXED_ASSET          | Accumulated Depreciation
+  2000     | level 1 | [GROUP]   | LIABILITY  | CURRENT_LIABILITY    | Liabilities
+  2100     | level 2 | [GROUP]   | LIABILITY  | CURRENT_LIABILITY    | Current Liabilities
+  2110     | level 3 | [GROUP]   | LIABILITY  | CURRENT_LIABILITY    | Trade Payables
+  2111     | level 4 | [LEAF]    | LIABILITY  | PAYABLE              | Accounts Payable
+  2120     | level 3 | [GROUP]   | LIABILITY  | CURRENT_LIABILITY    | Duties & Taxes - Output Tax Liability
+  2121     | level 4 | [LEAF]    | LIABILITY  | OUTPUT_TAX           | Output CGST 2.5% (Food/Bakery)
+  2122     | level 4 | [LEAF]    | LIABILITY  | OUTPUT_TAX           | Output SGST 2.5% (Food/Bakery)
+  2123     | level 4 | [LEAF]    | LIABILITY  | OUTPUT_TAX           | Output CGST 9.0% (Accessories)
+  2124     | level 4 | [LEAF]    | LIABILITY  | OUTPUT_TAX           | Output SGST 9.0% (Accessories)
+  2125     | level 4 | [LEAF]    | LIABILITY  | OUTPUT_TAX           | Output IGST 5.0% (Interstate Food)
+  2126     | level 4 | [LEAF]    | LIABILITY  | OUTPUT_TAX           | Output IGST 18.0% (Interstate Accessories)
+  2127     | level 4 | [LEAF]    | LIABILITY  | OUTPUT_TAX           | Output CGST 6.0% (Toys)
+  2128     | level 4 | [LEAF]    | LIABILITY  | OUTPUT_TAX           | Output SGST 6.0% (Toys)
+  2129     | level 4 | [LEAF]    | LIABILITY  | OUTPUT_TAX           | Output IGST 12.0% (Interstate Toys)
+  2130     | level 3 | [LEAF]    | LIABILITY  | CURRENT_LIABILITY    | TDS Payable
+  2140     | level 3 | [GROUP]   | LIABILITY  | CURRENT_LIABILITY    | Advances & Unearned Revenue
+  2141     | level 4 | [LEAF]    | LIABILITY  | CUSTOMER_ADVANCE     | Customer Advances
+  2142     | level 4 | [LEAF]    | LIABILITY  | CURRENT_LIABILITY    | Gift Card / Wallet Liabilities
+  2150     | level 3 | [GROUP]   | LIABILITY  | CURRENT_LIABILITY    | Operating Accruals & Staff Payables
+  2151     | level 4 | [LEAF]    | LIABILITY  | STAFF_PAYABLE        | Salaries & Wages Payable
+  2152     | level 4 | [LEAF]    | LIABILITY  | CURRENT_LIABILITY    | Rent Payable
+  2153     | level 4 | [LEAF]    | LIABILITY  | CURRENT_LIABILITY    | Accrued Operating Expenses
+  2500     | level 2 | [GROUP]   | LIABILITY  | LONG_TERM_LIABILITY  | Long-Term Liabilities
+  2510     | level 3 | [LEAF]    | LIABILITY  | LONG_TERM_LIABILITY  | Bank Loans & Borrowings
+  5000     | level 1 | [GROUP]   | EXPENSE    | OPERATING_EXPENSE    | Expenses
+  5100     | level 2 | [GROUP]   | EXPENSE    | COGS                 | Cost of Goods Sold (COGS)
+  5110     | level 3 | [LEAF]    | EXPENSE    | COGS                 | Raw Material Consumption / Bakery Ingredients
+  5120     | level 3 | [LEAF]    | EXPENSE    | COGS                 | Accessory Merchandise Sold (Cost of Accessories)
+  5130     | level 3 | [LEAF]    | EXPENSE    | COGS                 | Packaging Materials Consumed
+  5140     | level 3 | [LEAF]    | EXPENSE    | COGS                 | Kitchen Direct Labour / Chef Wages
+  5190     | level 3 | [LEAF]    | EXPENSE    | COGS                 | Purchase Discounts Received
+  5200     | level 2 | [GROUP]   | EXPENSE    | OPERATING_EXPENSE    | Operational & Administrative Expenses
+  5210     | level 3 | [LEAF]    | EXPENSE    | OPERATING_EXPENSE    | Store & Kitchen Rent
+  5220     | level 3 | [LEAF]    | EXPENSE    | OPERATING_EXPENSE    | Electricity, Gas & Utilities
+  5230     | level 3 | [LEAF]    | EXPENSE    | OPERATING_EXPENSE    | Vehicle Fuel & Fleet Maintenance
+  5240     | level 3 | [LEAF]    | EXPENSE    | OPERATING_EXPENSE    | Freight & Cartage Inward
+  5250     | level 3 | [LEAF]    | EXPENSE    | OPERATING_EXPENSE    | Staff Salaries & Store Personnel
+  5260     | level 3 | [LEAF]    | EXPENSE    | OPERATING_EXPENSE    | Marketing & Customer Promotion
+  5270     | level 3 | [LEAF]    | EXPENSE    | OPERATING_EXPENSE    | Repairs & Kitchen Maintenance
+  5280     | level 3 | [LEAF]    | EXPENSE    | OPERATING_EXPENSE    | Software, Internet & Tech Infrastructure
+  5290     | level 3 | [LEAF]    | EXPENSE    | OPERATING_EXPENSE    | Payment Gateway MDR Fees
+  5295     | level 3 | [LEAF]    | EXPENSE    | OPERATING_EXPENSE    | Cash Rounding / Variance
+  5299     | level 3 | [LEAF]    | EXPENSE    | OPERATING_EXPENSE    | Miscellaneous Operating Expenses
+  5300     | level 2 | [GROUP]   | EXPENSE    | FINANCIAL_EXPENSE    | Financial & Depreciation Expenses
+  5310     | level 3 | [LEAF]    | EXPENSE    | FINANCIAL_EXPENSE    | Bank Charges & Processing Fees
+  5320     | level 3 | [LEAF]    | EXPENSE    | FINANCIAL_EXPENSE    | Loan Interest Expense
+  5330     | level 3 | [LEAF]    | EXPENSE    | OPERATING_EXPENSE    | Depreciation & Amortization
+
+=== ROW COUNTS === {
+  purchase_count: '0',
+  purchase_item_count: '0',
+  purchase_payment_count: '0',
+  supplier_count: '0'
+}

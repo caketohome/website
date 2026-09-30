@@ -3,38 +3,22 @@ import { retrieveUser } from "@/lib/data/users";
 import { ApiEngine } from "@frontend/lib/api-engine";
 import { persistCustomerToDb } from "@frontend/lib/db-persistence";
 import { dbQuery } from "@frontend/lib/db";
+import { resolveVerifiedCustomer } from "@frontend/lib/security/auth-session";
 
 export const dynamic = "force-dynamic";
 
-function getSessionUser(req: NextRequest) {
-  const cookieHeader = req.headers.get("cookie") || "";
-  const authHeader = req.headers.get("authorization") || "";
-
-  const cookiesObj: Record<string, string> = {};
-  cookieHeader.split(";").forEach((c) => {
-    const [k, ...v] = c.trim().split("=");
-    if (k) cookiesObj[k] = decodeURIComponent(v.join("="));
-  });
-
-  const customerUid = req.cookies.get("_cth_customer_uid")?.value || cookiesObj["_cth_customer_uid"] || req.headers.get("x-customer-uid") || "";
-  const userId = req.cookies.get("_cth_user_id")?.value || cookiesObj["_cth_user_id"] || req.headers.get("x-user-id") || "";
-  const phone = req.cookies.get("_cth_phone")?.value || cookiesObj["_cth_phone"] || req.headers.get("x-phone") || "";
-  const token = req.cookies.get("_cth_jwt")?.value || cookiesObj["_cth_jwt"] || authHeader.replace(/^Bearer\s+/i, "");
-
-  return { customerUid, userId, phone, token };
-}
-
 export async function GET(req: NextRequest) {
   try {
-    const { customerUid, userId, phone, token } = getSessionUser(req);
+    const verified = resolveVerifiedCustomer(req);
 
-    if (!customerUid && !userId && !phone && !token) {
+    if (!verified) {
       return NextResponse.json(
-        { success: true, customer: null, message: "No active session." },
-        { status: 200 }
+        { success: false, error: "Unauthorized", message: "Please log in to view your profile." },
+        { status: 401 }
       );
     }
 
+    const { customerUid, userId, phone } = verified;
     const store = ApiEngine.getStore();
     const customers = store.customers || [];
     const normPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
@@ -171,16 +155,25 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const { customerUid, userId, phone, token } = getSessionUser(req);
+    const verified = resolveVerifiedCustomer(req);
 
-    if (!customerUid && !userId && !phone && !token) {
+    if (!verified) {
       return NextResponse.json(
         { success: false, error: "Unauthorized", message: "Please log in to update your profile." },
         { status: 401 }
       );
     }
 
+    const { customerUid, userId, phone } = verified;
     const body = await req.json();
+
+    // Sanitize body: prevent tampering with verified identity identifiers
+    delete body.id;
+    delete body.customer_uid;
+    delete body.phone;
+    delete body.normalized_phone;
+    delete body.role;
+
     const { full_name, email, date_of_birth, preferences } = body;
 
     // Field-level Validation

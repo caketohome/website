@@ -1,25 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ApiEngine } from "@frontend/lib/api-engine";
 import { persistCustomerAddressToDb, deleteCustomerAddressFromDb, persistCustomerToDb } from "@frontend/lib/db-persistence";
+import { resolveVerifiedCustomer } from "@frontend/lib/security/auth-session";
 
 export const dynamic = "force-dynamic";
 
 function getSessionUser(req: NextRequest) {
-  const cookieHeader = req.headers.get("cookie") || "";
-  const authHeader = req.headers.get("authorization") || "";
+  const verified = resolveVerifiedCustomer(req);
+  if (!verified) {
+    return { customerUid: "", userId: "", phone: "", token: "" };
+  }
 
-  const cookiesObj: Record<string, string> = {};
-  cookieHeader.split(";").forEach((c) => {
-    const [k, ...v] = c.trim().split("=");
-    if (k) cookiesObj[k] = decodeURIComponent(v.join("="));
-  });
-
-  const customerUid = req.cookies.get("_cth_customer_uid")?.value || cookiesObj["_cth_customer_uid"] || req.headers.get("x-customer-uid") || "";
-  const userId = req.cookies.get("_cth_user_id")?.value || cookiesObj["_cth_user_id"] || req.headers.get("x-user-id") || "";
-  const phone = req.cookies.get("_cth_phone")?.value || cookiesObj["_cth_phone"] || req.headers.get("x-phone") || "";
-  const token = req.cookies.get("_cth_jwt")?.value || cookiesObj["_cth_jwt"] || authHeader.replace(/^Bearer\s+/i, "");
-
-  return { customerUid, userId, phone, token };
+  return {
+    customerUid: verified.customerUid,
+    userId: verified.userId,
+    phone: verified.phone,
+    token: "",
+  };
 }
 
 function findCustomer(store: any, session: any) {

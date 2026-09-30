@@ -4,7 +4,7 @@ import { DeliveryDTO, DeliveryStatus } from "@frontend/lib/types";
 import { revalidateTag } from "next/cache";
 import { apiClient } from "../api-client";
 import { getCacheTag } from "../data/cookies";
-import { checkDeliveryAvailability, getDeliverySlots } from "../data/deliveries";
+import { checkDeliveryAvailability } from "../data/deliveries";
 
 export async function proceedDelivery(delivery: DeliveryDTO, delivery_partnerId?: string) {
   const { ApiEngine } = await import("../api-engine");
@@ -110,10 +110,6 @@ export async function preparationReady(deliveryId: string): Promise<any> {
 
 export async function checkDeliveryAvailabilityAction(pincode: string) {
   return checkDeliveryAvailability(pincode);
-}
-
-export async function getDeliverySlotsAction(branchId: string, date: string) {
-  return getDeliverySlots(branchId, date);
 }
 
 export async function validateOrderEligibilityAction(query: {

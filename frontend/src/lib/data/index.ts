@@ -1,15 +1,14 @@
 export * from "./analytics";
 export * from "./carts";
 export * from "./catalog";
-export * from "./categories";
 export * from "./cms";
 export * from "./customer";
 export * from "./deliveries";
 export * from "./delivery-partners";
 export * from "./orders";
-export * from "./shops";
 export * from "./sessions";
 export * from "./users";
 export * from "./branches";
 export * from "./marketing";
-export * from "./marketing-client";
+
+

@@ -63,6 +63,7 @@ export class OrderService {
           : "Delivery Address on File");
     const delivery_latitude = typeof params.delivery_latitude === "number" ? params.delivery_latitude : (typeof (params as any).latitude === "number" ? (params as any).latitude : undefined);
     const delivery_longitude = typeof params.delivery_longitude === "number" ? params.delivery_longitude : (typeof (params as any).longitude === "number" ? (params as any).longitude : undefined);
+    const delivery_slot = params.delivery_slot || (params as any).delivery_slot_id || (params as any).slot || "Standard Slot";
     const payment_method = (params.payment_method || (params as any).paymentMethod || "cod") as any;
 
     if (params.idempotency_key) {
@@ -316,7 +317,7 @@ export class OrderService {
         delivery_otp: deliveryOtp,
         pickup_otp: pickupOtp,
       },
-      delivery_address,
+      delivery_address: delivery_address as any,
       delivery_latitude,
       delivery_longitude,
       items: snapshottedItems,
@@ -399,9 +400,9 @@ export class OrderService {
 
         // Step B: Persist order
         await client.query(
-          `INSERT INTO "order" (id, display_id, email, currency_code, status, metadata, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, 'pending', $5, NOW(), NOW())`,
-          [orderId, displayIdNum, email, "INR", JSON.stringify(metadata)]
+          `INSERT INTO "order" (id, display_id, customer_id, email, currency_code, status, metadata, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, 'pending', $6, NOW(), NOW())`,
+          [orderId, displayIdNum, custUid || null, email, "INR", JSON.stringify(metadata)]
         );
 
         // Step C: Insert initial order status history
@@ -448,11 +449,7 @@ export class OrderService {
 
         // Step E: Insert into PostgreSQL delivery table
         const deliveryRecordId = `del_${orderId}`;
-        const formattedAddress = typeof delivery_address === "string"
-          ? delivery_address
-          : (delivery_address?.address_1
-              ? `${delivery_address.address_1}, ${delivery_address.city || "Bengaluru"}`
-              : (customer_name ? `Delivery address for ${customer_name}` : "Address on File"));
+        const formattedAddress = delivery_address || (customer_name ? `Delivery address for ${customer_name}` : "Address on File");
         await client.query(
           `INSERT INTO "delivery" (
              id, transaction_id, delivery_status, delivery_date, delivery_slot_id,

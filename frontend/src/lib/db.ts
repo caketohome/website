@@ -1,8 +1,14 @@
 import { Pool, PoolClient, QueryResult, QueryResultRow } from "pg";
 
-const connectionString =
-  process.env.DATABASE_URL ||
-  "postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres";
+const connectionString = process.env.DATABASE_URL;
+
+// Fail safely if DATABASE_URL is not configured
+if (!connectionString) {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("FATAL: DATABASE_URL environment variable is required.");
+  }
+  console.warn("[PostgreSQL] Warning: DATABASE_URL environment variable is not set.");
+}
 
 // Singleton pool across Next.js hot reloads
 declare global {
@@ -12,9 +18,10 @@ declare global {
 
 export function getDbPool(): Pool {
   if (!globalThis.__cth_pg_pool__) {
+    const isSupabase = Boolean(connectionString && connectionString.includes("supabase"));
     globalThis.__cth_pg_pool__ = new Pool({
-      connectionString,
-      ssl: connectionString.includes("supabase") ? { rejectUnauthorized: false } : false,
+      connectionString: connectionString || undefined,
+      ssl: isSupabase ? { rejectUnauthorized: false } : false,
       min: 2,
       max: 20,
       idleTimeoutMillis: 30000,

@@ -1,0 +1,536 @@
+{
+  "ASSET": [
+    {
+      "code": "1000",
+      "name": "Assets",
+      "subtype": "CURRENT_ASSET",
+      "is_group": true,
+      "level": 1,
+      "parent": null
+    },
+    {
+      "code": "1100",
+      "name": "Current Assets",
+      "subtype": "CURRENT_ASSET",
+      "is_group": true,
+      "level": 2,
+      "parent": "1000 - Assets"
+    },
+    {
+      "code": "1110",
+      "name": "Cash and Cash Equivalents",
+      "subtype": "CURRENT_ASSET",
+      "is_group": true,
+      "level": 3,
+      "parent": "1100 - Current Assets"
+    },
+    {
+      "code": "1111",
+      "name": "Cash in Hand",
+      "subtype": "CASH",
+      "is_group": false,
+      "level": 4,
+      "parent": "1110 - Cash and Cash Equivalents"
+    },
+    {
+      "code": "1112",
+      "name": "Bank Operating A/c",
+      "subtype": "BANK",
+      "is_group": false,
+      "level": 4,
+      "parent": "1110 - Cash and Cash Equivalents"
+    },
+    {
+      "code": "1113",
+      "name": "Gateway Clearing",
+      "subtype": "GATEWAY_CLEARING",
+      "is_group": false,
+      "level": 4,
+      "parent": "1110 - Cash and Cash Equivalents"
+    },
+    {
+      "code": "1114",
+      "name": "Petty Cash - Branches",
+      "subtype": "CASH",
+      "is_group": false,
+      "level": 4,
+      "parent": "1110 - Cash and Cash Equivalents"
+    },
+    {
+      "code": "1118",
+      "name": "Deposit in Transit",
+      "subtype": "CURRENT_ASSET",
+      "is_group": false,
+      "level": 4,
+      "parent": "1110 - Cash and Cash Equivalents"
+    },
+    {
+      "code": "1119",
+      "name": "Unclassified Suspense",
+      "subtype": "CURRENT_ASSET",
+      "is_group": false,
+      "level": 4,
+      "parent": "1110 - Cash and Cash Equivalents"
+    },
+    {
+      "code": "1120",
+      "name": "Receivables and Advances",
+      "subtype": "CURRENT_ASSET",
+      "is_group": true,
+      "level": 3,
+      "parent": "1100 - Current Assets"
+    },
+    {
+      "code": "1121",
+      "name": "Accounts Receivable",
+      "subtype": "RECEIVABLE",
+      "is_group": false,
+      "level": 4,
+      "parent": "1120 - Receivables and Advances"
+    },
+    {
+      "code": "1122",
+      "name": "Undeposited COD",
+      "subtype": "CURRENT_ASSET",
+      "is_group": false,
+      "level": 4,
+      "parent": "1120 - Receivables and Advances"
+    },
+    {
+      "code": "1123",
+      "name": "Staff Advances",
+      "subtype": "CURRENT_ASSET",
+      "is_group": false,
+      "level": 4,
+      "parent": "1120 - Receivables and Advances"
+    },
+    {
+      "code": "1124",
+      "name": "Security Deposits - Leases",
+      "subtype": "CURRENT_ASSET",
+      "is_group": false,
+      "level": 4,
+      "parent": "1120 - Receivables and Advances"
+    },
+    {
+      "code": "1130",
+      "name": "Inventories",
+      "subtype": "CURRENT_ASSET",
+      "is_group": true,
+      "level": 3,
+      "parent": "1100 - Current Assets"
+    },
+    {
+      "code": "1131",
+      "name": "Merchandise Inventory - Accessories",
+      "subtype": "INVENTORY",
+      "is_group": false,
+      "level": 4,
+      "parent": "1130 - Inventories"
+    },
+    {
+      "code": "1132",
+      "name": "Merchandise Inventory - Cakes",
+      "subtype": "INVENTORY",
+      "is_group": false,
+      "level": 4,
+      "parent": "1130 - Inventories"
+    },
+    {
+      "code": "1133",
+      "name": "Packaging Supplies Stock",
+      "subtype": "INVENTORY",
+      "is_group": false,
+      "level": 4,
+      "parent": "1130 - Inventories"
+    },
+    {
+      "code": "1140",
+      "name": "Duties & Taxes - Input Tax Credit",
+      "subtype": "CURRENT_ASSET",
+      "is_group": true,
+      "level": 3,
+      "parent": "1100 - Current Assets"
+    },
+    {
+      "code": "1141",
+      "name": "Input CGST 2.5% (Food/Bakery)",
+      "subtype": "INPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "1140 - Duties & Taxes - Input Tax Credit"
+    },
+    {
+      "code": "1142",
+      "name": "Input SGST 2.5% (Food/Bakery)",
+      "subtype": "INPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "1140 - Duties & Taxes - Input Tax Credit"
+    },
+    {
+      "code": "1143",
+      "name": "Input CGST 9.0% (Accessories/General)",
+      "subtype": "INPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "1140 - Duties & Taxes - Input Tax Credit"
+    },
+    {
+      "code": "1144",
+      "name": "Input SGST 9.0% (Accessories/General)",
+      "subtype": "INPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "1140 - Duties & Taxes - Input Tax Credit"
+    },
+    {
+      "code": "1145",
+      "name": "Input IGST 5.0% (Interstate Food)",
+      "subtype": "INPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "1140 - Duties & Taxes - Input Tax Credit"
+    },
+    {
+      "code": "1146",
+      "name": "Input IGST 18.0% (Interstate Accessories)",
+      "subtype": "INPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "1140 - Duties & Taxes - Input Tax Credit"
+    },
+    {
+      "code": "1147",
+      "name": "Input CGST 6.0% (Toys/Novelties)",
+      "subtype": "INPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "1140 - Duties & Taxes - Input Tax Credit"
+    },
+    {
+      "code": "1148",
+      "name": "Input SGST 6.0% (Toys/Novelties)",
+      "subtype": "INPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "1140 - Duties & Taxes - Input Tax Credit"
+    },
+    {
+      "code": "1149",
+      "name": "Input IGST 12.0% (Interstate Toys)",
+      "subtype": "INPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "1140 - Duties & Taxes - Input Tax Credit"
+    },
+    {
+      "code": "1500",
+      "name": "Fixed Assets (PP&E)",
+      "subtype": "FIXED_ASSET",
+      "is_group": true,
+      "level": 2,
+      "parent": "1000 - Assets"
+    },
+    {
+      "code": "1510",
+      "name": "Bakery & Kitchen Equipment",
+      "subtype": "FIXED_ASSET",
+      "is_group": false,
+      "level": 3,
+      "parent": "1500 - Fixed Assets (PP&E)"
+    },
+    {
+      "code": "1520",
+      "name": "Delivery Vehicles & Fleet",
+      "subtype": "FIXED_ASSET",
+      "is_group": false,
+      "level": 3,
+      "parent": "1500 - Fixed Assets (PP&E)"
+    },
+    {
+      "code": "1530",
+      "name": "Computers & POS Hardware",
+      "subtype": "FIXED_ASSET",
+      "is_group": false,
+      "level": 3,
+      "parent": "1500 - Fixed Assets (PP&E)"
+    },
+    {
+      "code": "1540",
+      "name": "Furniture & Fixtures",
+      "subtype": "FIXED_ASSET",
+      "is_group": false,
+      "level": 3,
+      "parent": "1500 - Fixed Assets (PP&E)"
+    },
+    {
+      "code": "1590",
+      "name": "Accumulated Depreciation",
+      "subtype": "FIXED_ASSET",
+      "is_group": false,
+      "level": 3,
+      "parent": "1500 - Fixed Assets (PP&E)"
+    }
+  ],
+  "LIABILITY": [
+    {
+      "code": "2000",
+      "name": "Liabilities",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": true,
+      "level": 1,
+      "parent": null
+    },
+    {
+      "code": "2100",
+      "name": "Current Liabilities",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": true,
+      "level": 2,
+      "parent": "2000 - Liabilities"
+    },
+    {
+      "code": "2110",
+      "name": "Trade Payables",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": true,
+      "level": 3,
+      "parent": "2100 - Current Liabilities"
+    },
+    {
+      "code": "2111",
+      "name": "Accounts Payable",
+      "subtype": "PAYABLE",
+      "is_group": false,
+      "level": 4,
+      "parent": "2110 - Trade Payables"
+    },
+    {
+      "code": "2120",
+      "name": "Duties & Taxes - Output Tax Liability",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": true,
+      "level": 3,
+      "parent": "2100 - Current Liabilities"
+    },
+    {
+      "code": "2121",
+      "name": "Output CGST 2.5% (Food/Bakery)",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "2120 - Duties & Taxes - Output Tax Liability"
+    },
+    {
+      "code": "2122",
+      "name": "Output SGST 2.5% (Food/Bakery)",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "2120 - Duties & Taxes - Output Tax Liability"
+    },
+    {
+      "code": "2123",
+      "name": "Output CGST 9.0% (Accessories)",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "2120 - Duties & Taxes - Output Tax Liability"
+    },
+    {
+      "code": "2124",
+      "name": "Output SGST 9.0% (Accessories)",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "2120 - Duties & Taxes - Output Tax Liability"
+    },
+    {
+      "code": "2125",
+      "name": "Output IGST 5.0% (Interstate Food)",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "2120 - Duties & Taxes - Output Tax Liability"
+    },
+    {
+      "code": "2126",
+      "name": "Output IGST 18.0% (Interstate Accessories)",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "2120 - Duties & Taxes - Output Tax Liability"
+    },
+    {
+      "code": "2127",
+      "name": "Output CGST 6.0% (Toys)",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "2120 - Duties & Taxes - Output Tax Liability"
+    },
+    {
+      "code": "2128",
+      "name": "Output SGST 6.0% (Toys)",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "2120 - Duties & Taxes - Output Tax Liability"
+    },
+    {
+      "code": "2129",
+      "name": "Output IGST 12.0% (Interstate Toys)",
+      "subtype": "OUTPUT_TAX",
+      "is_group": false,
+      "level": 4,
+      "parent": "2120 - Duties & Taxes - Output Tax Liability"
+    },
+    {
+      "code": "2130",
+      "name": "TDS Payable",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": false,
+      "level": 3,
+      "parent": "2100 - Current Liabilities"
+    },
+    {
+      "code": "2140",
+      "name": "Advances & Unearned Revenue",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": true,
+      "level": 3,
+      "parent": "2100 - Current Liabilities"
+    },
+    {
+      "code": "2141",
+      "name": "Customer Advances",
+      "subtype": "CUSTOMER_ADVANCE",
+      "is_group": false,
+      "level": 4,
+      "parent": "2140 - Advances & Unearned Revenue"
+    },
+    {
+      "code": "2142",
+      "name": "Gift Card / Wallet Liabilities",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": false,
+      "level": 4,
+      "parent": "2140 - Advances & Unearned Revenue"
+    },
+    {
+      "code": "2150",
+      "name": "Operating Accruals & Staff Payables",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": true,
+      "level": 3,
+      "parent": "2100 - Current Liabilities"
+    },
+    {
+      "code": "2151",
+      "name": "Salaries & Wages Payable",
+      "subtype": "STAFF_PAYABLE",
+      "is_group": false,
+      "level": 4,
+      "parent": "2150 - Operating Accruals & Staff Payables"
+    },
+    {
+      "code": "2152",
+      "name": "Rent Payable",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": false,
+      "level": 4,
+      "parent": "2150 - Operating Accruals & Staff Payables"
+    },
+    {
+      "code": "2153",
+      "name": "Accrued Operating Expenses",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": false,
+      "level": 4,
+      "parent": "2150 - Operating Accruals & Staff Payables"
+    },
+    {
+      "code": "2500",
+      "name": "Long-Term Liabilities",
+      "subtype": "LONG_TERM_LIABILITY",
+      "is_group": true,
+      "level": 2,
+      "parent": "2000 - Liabilities"
+    },
+    {
+      "code": "2510",
+      "name": "Bank Loans & Borrowings",
+      "subtype": "LONG_TERM_LIABILITY",
+      "is_group": false,
+      "level": 3,
+      "parent": "2500 - Long-Term Liabilities"
+    }
+  ],
+  "EQUITY": [
+    {
+      "code": "3000",
+      "name": "Equity",
+      "subtype": "CAPITAL",
+      "is_group": true,
+      "level": 1,
+      "parent": null
+    },
+    {
+      "code": "3100",
+      "name": "Capital & Reserves",
+      "subtype": "CAPITAL",
+      "is_group": true,
+      "level": 2,
+      "parent": "3000 - Equity"
+    },
+    {
+      "code": "3110",
+      "name": "Partner / Shareholder Capital",
+      "subtype": "CAPITAL",
+      "is_group": false,
+      "level": 3,
+      "parent": "3100 - Capital & Reserves"
+    },
+    {
+      "code": "3120",
+      "name": "Drawings / Distributions",
+      "subtype": "CAPITAL",
+      "is_group": false,
+      "level": 3,
+      "parent": "3100 - Capital & Reserves"
+    },
+    {
+      "code": "3200",
+      "name": "Retained Earnings Group",
+      "subtype": "RETAINED_EARNINGS",
+      "is_group": true,
+      "level": 2,
+      "parent": "3000 - Equity"
+    },
+    {
+      "code": "3210",
+      "name": "Retained Earnings (Prior Years)",
+      "subtype": "RETAINED_EARNINGS",
+      "is_group": false,
+      "level": 3,
+      "parent": "3200 - Retained Earnings Group"
+    },
+    {
+      "code": "3220",
+      "name": "Current Year Net Earnings",
+      "subtype": "RETAINED_EARNINGS",
+      "is_group": false,
+      "level": 3,
+      "parent": "3200 - Retained Earnings Group"
+    },
+    {
+      "code": "3300",
+      "name": "Opening Balance Offset / Capital Reserve",
+      "subtype": "OPENING_OFFSET",
+      "is_group": false,
+      "level": 2,
+      "parent": "3000 - Equity"
+    }
+  ]
+}

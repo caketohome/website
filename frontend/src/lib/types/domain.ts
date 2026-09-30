@@ -70,6 +70,7 @@ export interface ProductDomain {
   id: string;
   product_id?: string;
   inventory_mode?: InventoryMode;
+  merchandise_type?: "CAKE" | "ACCESSORY" | "PACKAGING";
   metadata?: Record<string, any>;
   title: string;
   name?: string;
@@ -461,4 +462,37 @@ export interface ProductReviewDomain {
   created_at: string;
   updated_at: string;
   published_at?: string | null;
+}
+
+export interface CreatePackagingProductInput {
+  title: string;
+  sku: string;
+  handle?: string;
+  description?: string;
+  status?: "draft" | "proposed" | "published" | "rejected";
+  uqc?: string;
+  hsn_code?: string;
+  gst_rate?: number;
+  tax_class?: string;
+  cost_price?: number; // NON-AUTHORITATIVE / INFORMATIONAL ONLY
+  metadata?: Record<string, any>;
+}
+
+export interface CreatePackagingProductResult {
+  product: {
+    id: string;
+    title: string;
+    handle: string;
+    merchandise_type: "PACKAGING";
+    status: string;
+    created_at: string;
+  };
+  variant: {
+    id: string;
+    product_id: string;
+    title: string;
+    sku: string;
+    manage_inventory: boolean;
+    created_at: string;
+  };
 }

@@ -1,0 +1,78 @@
+{
+  "phase5_branch_isolation": [
+    {
+      "test": "Manager A can access Branch A operational dashboard",
+      "status": "PASS",
+      "statusCode": 200
+    },
+    {
+      "test": "Manager A CANNOT modify Branch B availability (Expect 403)",
+      "status": "PASS",
+      "statusCode": 403,
+      "message": "Forbidden: Manager (shpmgr_koramangala) is not authorized to modify availability for branch br_mumbai_bandra."
+    },
+    {
+      "test": "Manager B CANNOT modify Branch A availability (Expect 403)",
+      "status": "PASS",
+      "statusCode": 403,
+      "message": "Forbidden: Manager (shpmgr_mumbai_bandra) is not authorized to modify availability for branch br_koramangala."
+    },
+    {
+      "test": "Manager A cannot tamper via body.branch_id in manager route (Expect 403)",
+      "status": "PASS",
+      "statusCode": 403
+    },
+    {
+      "test": "Super Admin can perform authorized cross-branch operations",
+      "status": "PASS",
+      "statusCode": 200
+    },
+    {
+      "test": "Unauthenticated request to manager endpoint returns 401",
+      "status": "PASS",
+      "statusCode": 401
+    }
+  ],
+  "phase6_timing_audit": {
+    "answers_to_20_questions": {
+      "q1_where_stored": "PostgreSQL 'branch' table inside JSONB column 'metadata' ('weekly_schedule', 'fulfillment_rules', 'temporary_closure', 'special_dates', 'holidays')",
+      "q2_is_database_driven": "YES. Synced and loaded from PostgreSQL branch records with runtime caching in ApiEngine store",
+      "q3_which_timezone": "'Asia/Kolkata' (IST, UTC+5:30) configured via global_config.business_timezone with fallback",
+      "q4_is_utc_converted": "YES. UTC timestamps are converted to local IST using getNowInTimezone('Asia/Kolkata') and Intl.DateTimeFormat",
+      "q5_independent_timing": "YES. Each branch has its own isolated 'weekly_schedule' dictionary and operational windows in branch.metadata",
+      "q6_does_changing_a_affect_b": "NO. Mutating weekly_schedule or availability for Branch A only modifies branch A's metadata row",
+      "q7_frontend_vs_backend_calculation": "Backend (/api/v1/fulfillment/delivery-slots) is authoritative. Frontend components invoke the backend endpoint",
+      "q8_can_client_bypass_timing": "NO. Server-side validateDeliverySlot/ApiEngine re-validates cutoff, date, and availability on checkout mutation",
+      "q9_are_cutoffs_enforced_server_side": "YES. ApiEngine.getDeliverySlots filters out windows whose cutoff time (order_cutoff_mins) has elapsed",
+      "q10_are_slots_validated_on_checkout": "YES. Order submission re-validates delivery_slot against current branch operational state",
+      "q11_what_happens_around_midnight": "Date string rolls over to the next day in IST (+05:30) using getNowInTimezone, switching daily schedule cleanly",
+      "q12_dst_handling": "IST (Asia/Kolkata) has no Daylight Saving Time (fixed UTC+5:30 offset), preventing DST shift regressions",
+      "q13_closed_days": "Day schedules with is_open: false return status 'CLOSED_ON_DAY' with empty delivery_slots array",
+      "q14_temporarily_disabled": "temporary_closure.is_paused sets status 'PAUSED' and returns pauseMessage until pause_until timestamp",
+      "q15_manager_turns_cake_off": "Availability is toggled in branch.metadata.product_availability; subsequent cart checkout rejects disabled cake",
+      "q16_can_stale_cart_order_unavailable": "NO. Checkout pipeline validates every line item against branch availability at order creation time",
+      "q17_can_customer_select_unsupported_slot": "NO. Slots are filtered by branch delivery zone and delivery mode (pickup vs delivery)",
+      "q18_can_customer_order_after_cutoff": "NO. Server rejects orders placed after the designated slot cutoff",
+      "q19_can_customer_select_past_date": "NO. Delivery slots API and checkout validator reject dates prior to current date in IST",
+      "q20_accidental_config_reuse": "NO. Branch metadata is keyed by unique branch ID in PostgreSQL and isolated in queries"
+    },
+    "boundary_tests": [
+      {
+        "test": "Delivery slots query for today in Asia/Kolkata",
+        "status": "PASS",
+        "slotCount": 17
+      },
+      {
+        "test": "Delivery slots query for future date (+3 days)",
+        "status": "PASS",
+        "slotCount": 15
+      },
+      {
+        "test": "Past delivery date rejects slots or marks branch closed",
+        "status": "PASS",
+        "slotsReturned": 0
+      }
+    ]
+  },
+  "overall_status": "PASS"
+}

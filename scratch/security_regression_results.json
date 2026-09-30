@@ -1,0 +1,154 @@
+{
+  "total": 21,
+  "passed": 21,
+  "failed": 0,
+  "tests": [
+    {
+      "id": "CRIT-01-A",
+      "name": "verifyApiPermission fails closed on unauthenticated caller",
+      "expected": "HTTP 401 UNAUTHORIZED",
+      "actual": "HTTP 401 UNAUTHORIZED",
+      "status": "PASS"
+    },
+    {
+      "id": "CRIT-01-B",
+      "name": "resolveUserContext ignores raw x-user-role header",
+      "expected": "Header ignored; uses resolveServerSession",
+      "actual": "Header ignored; uses resolveServerSession",
+      "status": "PASS"
+    },
+    {
+      "id": "CRIT-02-A",
+      "name": "JWT signature verification uses timingSafeEqual",
+      "expected": "timingSafeEqual HMAC comparison",
+      "actual": "timingSafeEqual HMAC comparison",
+      "status": "PASS"
+    },
+    {
+      "id": "CRIT-02-B",
+      "name": "Forged tokens without valid HMAC signature rejected",
+      "expected": "Returns null on invalid signature",
+      "actual": "Returns null on invalid signature",
+      "status": "PASS"
+    },
+    {
+      "id": "CRIT-02-C",
+      "name": "resolveManagerSession derives role strictly from verified session",
+      "expected": "resolveServerSession required",
+      "actual": "resolveServerSession required",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-03-A",
+      "name": "Eliminate userId.includes('admin') substring escalation",
+      "expected": "Zero substring admin checks",
+      "actual": "Zero substring admin checks",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-03-B",
+      "name": "Enforce exact SUPER_ADMIN role check",
+      "expected": "role === 'SUPER_ADMIN'",
+      "actual": "role === 'SUPER_ADMIN'",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-03-C",
+      "name": "Canonical super-admin identity check enforced",
+      "expected": "Canonical admin_01 check present",
+      "actual": "Canonical admin_01 check present",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-04-A",
+      "name": "Customer orders requires server-verified session",
+      "expected": "resolveVerifiedCustomer enforced",
+      "actual": "resolveVerifiedCustomer enforced",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-04-B",
+      "name": "Unauthenticated customer orders query returns 401",
+      "expected": "HTTP 401 Unauthorized",
+      "actual": "HTTP 401 Unauthorized",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-04-C",
+      "name": "Orders queried strictly matching verified customer identity",
+      "expected": "Strict customer identity filter",
+      "actual": "Strict customer identity filter",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-05-A",
+      "name": "Profile GET requires server-verified session",
+      "expected": "resolveVerifiedCustomer enforced",
+      "actual": "resolveVerifiedCustomer enforced",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-05-B",
+      "name": "Profile PUT requires server-verified session",
+      "expected": "resolveVerifiedCustomer enforced",
+      "actual": "resolveVerifiedCustomer enforced",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-05-C",
+      "name": "Profile PUT sanitizes body identity tampering",
+      "expected": "Immutable fields deleted from body",
+      "actual": "Immutable fields deleted from body",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-06-A",
+      "name": "Hardcoded credentials eliminated from db.ts",
+      "expected": "No hardcoded credentials",
+      "actual": "No hardcoded credentials",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-06-B",
+      "name": "db.ts relies strictly on process.env.DATABASE_URL",
+      "expected": "process.env.DATABASE_URL used",
+      "actual": "process.env.DATABASE_URL used",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-06-C",
+      "name": "Fail-safe termination if DATABASE_URL is missing",
+      "expected": "Throws fatal configuration exception",
+      "actual": "Throws fatal configuration exception",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-07-A",
+      "name": "SSRF validator blocks localhost and 127.0.0.1",
+      "expected": "Loopback addresses rejected",
+      "actual": "Loopback addresses rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-07-B",
+      "name": "SSRF validator blocks RFC 1918 & cloud metadata (169.254.169.254)",
+      "expected": "Private IPv4 & metadata rejected",
+      "actual": "Private IPv4 & metadata rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-07-C",
+      "name": "SSRF validator allows only http/https protocols",
+      "expected": "Non-http protocols rejected",
+      "actual": "Non-http protocols rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "HIGH-07-D",
+      "name": "WebhookEngine enforces SSRF validation and blocks redirect chaining",
+      "expected": "Validated on save/dispatch with redirect: 'error'",
+      "actual": "Validated on save/dispatch with redirect: 'error'",
+      "status": "PASS"
+    }
+  ]
+}

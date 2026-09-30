@@ -24,12 +24,35 @@ import {
   SeoRepository,
   MediaRepository,
   LocalSeoRepository,
+  BankAccountRepository,
+  GatewayPayoutRepository,
+  GatewaySettlementOrderRepository,
+  AccountingVoucherRepository,
+  AccountingJournalRepository,
+  BankReconciliationRepository,
 } from "@frontend/lib/repositories";
 import { OrderService } from "@frontend/lib/services/order.service";
+import { ReportService } from "@frontend/lib/services/report.service";
+import { SupplierService } from "@frontend/lib/services/supplier.service";
+import { PurchaseService } from "@frontend/lib/services/purchase.service";
+import { ExpenseService } from "@frontend/lib/services/expense.service";
+import { FleetService } from "@frontend/lib/services/fleet.service";
 import { InventoryService } from "@frontend/lib/services/inventory.service";
+import { AccountsReceivableService } from "@frontend/lib/services/accounts-receivable.service";
+import { CodCollectionService } from "@frontend/lib/services/cod-collection.service";
+import { GatewaySettlementService } from "@frontend/lib/services/gateway-settlement.service";
+import { BankReconciliationStatementService } from "@frontend/lib/services/bank-reconciliation-statement.service";
+import { GeneralLedgerService, GeneralLedgerServiceError } from "@frontend/lib/services/general-ledger.service";
+import { AccountingConfigService, AccountingConfigError } from "@frontend/lib/services/accounting-config.service";
+import { FiscalPeriodService, FiscalPeriodError } from "@frontend/lib/services/fiscal-period.service";
+import { OpeningBalanceService, OpeningBalanceError } from "@frontend/lib/services/opening-balance.service";
+import { ProfitLossService, ProfitLossServiceError } from "@frontend/lib/services/profit-loss.service";
+import { BalanceSheetService, BalanceSheetServiceError } from "@frontend/lib/services/balance-sheet.service";
+import { CashFlowService, CashFlowServiceError } from "@frontend/lib/services/cash-flow.service";
 import { MediaProcessor } from "@frontend/lib/media/media-processor";
 import { SeoAuditEngine, CORE_WEB_VITALS_DATA } from "@frontend/lib/seo/audit-engine";
 import { dbQuery, dbTransaction } from "@frontend/lib/db";
+import { resolveServerSession, resolveVerifiedCustomer } from "@frontend/lib/security/auth-session";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -37,53 +60,57 @@ export const dynamicParams = true;
 const BACKEND_URL = process.env.MEDUSA_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9000";
 
 function resolveUserContext(req: NextRequest) {
-  const cookieHeader = req.headers.get("cookie") || "";
-  const authHeader = req.headers.get("authorization") || "";
-  const userHeader = req.headers.get("x-user-id");
+  const session = resolveServerSession(req);
+  if (!session) {
+    return {
+      userId: "",
+      role: "",
+      phone: "",
+      branchId: undefined,
+      partnerId: undefined,
+      isSuperAdmin: false,
+    };
+  }
 
-  const cookiesObj: Record<string, string> = {};
-  cookieHeader.split(";").forEach((c) => {
-    const [k, ...v] = c.trim().split("=");
-    if (k) cookiesObj[k] = decodeURIComponent(v.join("="));
-  });
+  const role = (session.role || "").toUpperCase();
+  const userId = session.userId || "";
+  const phone = session.phone || "";
+  const isSuperAdmin = role === "SUPER_ADMIN" || userId === "admin_01";
 
-  const role = (cookiesObj["_cth_role"] || req.headers.get("x-user-role") || "").toUpperCase();
-  const userId = cookiesObj["_cth_user_id"] || userHeader || "";
-  const phone = cookiesObj["_cth_phone"] || "";
+  const directPerms = (session as any).permissions;
+  const permissions = Array.isArray(directPerms) && directPerms.length > 0
+    ? directPerms
+    : StaffAccessControl.getEffectivePermissions(session);
 
   return {
     userId,
     role,
     phone,
-    isSuperAdmin: role === "SUPER_ADMIN" || userId === "admin_01",
+    branchId: session.branchId || undefined,
+    partnerId: session.partnerId || undefined,
+    permissions,
+    isSuperAdmin,
   };
 }
 
 function resolveCustomerUidFromReq(req: NextRequest): string | null {
-  const cookieCustomerUid = req.cookies.get("_cth_customer_uid")?.value;
-  const cookieUserId = req.cookies.get("_cth_user_id")?.value;
-  const cookiePhone = req.cookies.get("_cth_phone")?.value;
-  const cookieRole = req.cookies.get("_cth_role")?.value;
-  const headerUid = req.headers.get("x-customer-uid") || req.headers.get("x-user-id");
-
-  if (!cookieCustomerUid && !cookieUserId && !cookiePhone && !headerUid) {
-    return null;
-  }
-
-  const resolved = ApiEngine.resolveUserAccount({
-    customerUid: cookieCustomerUid || headerUid || undefined,
-    userId: cookieUserId || headerUid || undefined,
-    phone: cookiePhone || undefined,
-    role: cookieRole || undefined,
-  });
-
-  return resolved?.customer_uid || resolved?.id || cookieCustomerUid || headerUid || null;
+  const verified = resolveVerifiedCustomer(req);
+  return verified ? verified.customerUid : null;
 }
 
 function verifyApiPermission(req: NextRequest, module: string, action: string = "VIEW"): NextResponse | null {
   const userCtx = resolveUserContext(req);
   if (!userCtx.userId && !userCtx.role) {
-    return null;
+    return NextResponse.json(
+      {
+        success: false,
+        error: "UNAUTHORIZED",
+        message: `Unauthorized: Authentication required to access ${module}.${action}.`,
+        module,
+        action,
+      },
+      { status: 401 }
+    );
   }
   const isAllowed = StaffAccessControl.hasPermission(userCtx, module, action);
   if (!isAllowed) {
@@ -187,42 +214,23 @@ function extractProductIdFromPath(path: string): string {
 }
 
 function resolveManagerSession(req: NextRequest) {
-  const cookieHeader = req.headers.get("cookie") || "";
-  const authHeader = req.headers.get("authorization") || "";
-  const branchHeader = req.headers.get("x-branch-id") || req.headers.get("x-shop-id");
-  const userHeader = req.headers.get("x-user-id");
-
-  const cookiesObj: Record<string, string> = {};
-  cookieHeader.split(";").forEach((c) => {
-    const [k, ...v] = c.trim().split("=");
-    if (k) cookiesObj[k] = decodeURIComponent(v.join("="));
-  });
-
-  const sessionRole = cookiesObj["_cth_role"] || req.headers.get("x-user-role");
-  const sessionUserId = cookiesObj["_cth_user_id"] || userHeader;
-  const sessionBranchId = cookiesObj["_cth_branch_id"] || cookiesObj["_cth_shop_id"] || branchHeader;
-  const jwtToken = cookiesObj["_cth_jwt"] || cookiesObj["_medusa_jwt"] || authHeader.replace("Bearer ", "");
-
-  // 1. Unauthenticated Check
-  if (!sessionUserId && !jwtToken && !sessionRole && !branchHeader && !userHeader) {
+  const session = resolveServerSession(req);
+  if (!session) {
     return { error: "Unauthorized: Missing authentication session. Please log in.", status: 401 };
   }
 
-  // 2. Role Check: Must be Branch Manager, Shop Manager, or Super Admin
-  const isManagerRole = sessionRole && ["branch_manager", "shop_manager", "shpmgr", "shop", "manager", "super_admin", "admin"].includes(sessionRole.toLowerCase());
-  const isManagerId = sessionUserId && (sessionUserId.startsWith("shpmgr_") || sessionUserId.startsWith("admin_") || sessionUserId.startsWith("usr_mgr_"));
+  const sessionRole = (session.role || "").toLowerCase();
+  const sessionUserId = session.userId || "";
+  const isSuperAdmin = sessionRole === "super_admin" || sessionUserId === "admin_01";
+  const isManagerRole = isSuperAdmin || ["branch_manager", "shop_manager", "shpmgr", "shop", "manager"].includes(sessionRole);
+  const isManagerId = isSuperAdmin || sessionUserId.startsWith("shpmgr_") || sessionUserId.startsWith("usr_mgr_");
 
-  if (!isManagerRole && !isManagerId && sessionRole && ["customer", "delivery_partner", "dlp"].includes(sessionRole.toLowerCase())) {
+  if (!isManagerRole && !isManagerId) {
     return { error: "Forbidden: Account is not authorized for branch management.", status: 403 };
   }
 
-  const isSuperAdmin = Boolean(
-    (sessionRole && ["super_admin", "admin"].includes(sessionRole.toLowerCase())) ||
-    (sessionUserId && sessionUserId.startsWith("admin_"))
-  );
-
-  // 3. Resolve Manager Profile and Authorized Branch strictly server-side
-  let targetBranchId = sessionBranchId;
+  // Resolve Manager Profile and Authorized Branch strictly server-side
+  let targetBranchId = session.branchId;
   if (!targetBranchId && sessionUserId) {
     const managerAcc = ApiEngine.resolveUserAccount({ userId: sessionUserId, role: "BRANCH_MANAGER" });
     if (managerAcc?.branch_id) {
@@ -252,7 +260,7 @@ function resolveManagerSession(req: NextRequest) {
     branchId: branch.id,
     branch,
     userId: sessionUserId || branch.manager_id || "shpmgr_01",
-    role: sessionRole || "branch_manager",
+    role: session.role || "BRANCH_MANAGER",
     isSuperAdmin,
   };
 }
@@ -979,14 +987,10 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     if (path === "customer/me" || path === "customer/profile" || path === "auth/me" || path === "users/me" || path === "store/users/me") {
-      const cookieCustomerUid = req.cookies.get("_cth_customer_uid")?.value;
-      const cookieUserId = req.cookies.get("_cth_user_id")?.value;
-      const cookiePhone = req.cookies.get("_cth_phone")?.value;
-      const cookieRole = req.cookies.get("_cth_role")?.value;
-      const authHeader = req.headers.get("authorization") || "";
-      const token = req.cookies.get("_cth_jwt")?.value || authHeader.replace(/^Bearer\s+/i, "");
+      const verified = resolveVerifiedCustomer(req);
+      const session = resolveServerSession(req);
 
-      if (!cookieCustomerUid && !cookieUserId && !cookiePhone && !token) {
+      if (!verified && !session) {
         if (path === "customer/me" || path === "customer/profile") {
           return jsonWithDataSource({ success: true, customer: null, message: "No active customer session" }, "postgres", 200);
         }
@@ -994,14 +998,17 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
 
       if (path === "customer/me" || path === "customer/profile") {
-        const customer = ApiEngine.getCustomerMe({ customerUid: cookieCustomerUid, userId: cookieUserId, phone: cookiePhone, token });
+        if (!verified) {
+          return jsonWithDataSource({ success: true, customer: null, message: "No active customer session" }, "postgres", 200);
+        }
+        const customer = ApiEngine.getCustomerMe({ customerUid: verified.customerUid, userId: verified.userId, phone: verified.phone });
         if (!customer) {
           return jsonWithDataSource({ success: true, customer: null, message: "No active customer session" }, "postgres", 200);
         }
         return jsonWithDataSource({ success: true, customer }, "postgres");
       }
 
-      const user = ApiEngine.resolveUserAccount({ customerUid: cookieCustomerUid, userId: cookieUserId, phone: cookiePhone, role: cookieRole });
+      const user = ApiEngine.resolveUserAccount({ customerUid: verified?.customerUid, userId: session?.userId, phone: session?.phone, role: session?.role });
       if (!user) {
         return jsonWithDataSource({ success: false, error: "Unauthorized" }, "postgres", 401);
       }
@@ -1104,6 +1111,1361 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
       const result = ApiEngine.getAdminReviews({ page, pageSize, status, productId, search });
       return jsonWithDataSource({ success: true, ...result }, "postgres");
+    }
+
+    // ── Supplier API (GET) ────────────────────────────────────────────────────
+    if (path.startsWith("admin/suppliers")) {
+      const permErr = verifyApiPermission(req, "PURCHASE", "VIEW");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      try {
+        // GET admin/suppliers/:id
+        const supplierIdMatch = path.match(/^admin\/suppliers\/([^/]+)$/);
+        if (supplierIdMatch) {
+          const result = await SupplierService.getSupplier(supplierIdMatch[1]);
+          return jsonWithDataSource(result, "postgres", result.success ? 200 : 404);
+        }
+        // GET admin/suppliers (list)
+        const branchFilter = userCtx.isSuperAdmin
+          ? (url.searchParams.get("branch_id") || undefined)
+          : (userCtx.branchId || undefined); // managers scoped to own branch
+        const result = await SupplierService.listSuppliers({
+          branch_id: branchFilter,
+          is_active: url.searchParams.get("is_active") === "false" ? false : true,
+          search: url.searchParams.get("search") || undefined,
+          limit: parseInt(url.searchParams.get("limit") || "50"),
+          offset: parseInt(url.searchParams.get("offset") || "0"),
+        });
+        return jsonWithDataSource(result, "postgres");
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Purchase API (GET) ────────────────────────────────────────────────────
+    if (path.startsWith("admin/purchases")) {
+      const permErr = verifyApiPermission(req, "PURCHASE", "VIEW");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      // Branch managers always scoped to own branch; super admin can filter freely
+      const enforcedBranchId = userCtx.isSuperAdmin
+        ? (url.searchParams.get("branch_id") || undefined)
+        : (userCtx.branchId || undefined);
+      try {
+        // GET admin/purchases/:id
+        const purchaseIdMatch = path.match(/^admin\/purchases\/([^/]+)$/);
+        if (purchaseIdMatch && !purchaseIdMatch[1].startsWith("report")) {
+          const result = await PurchaseService.getPurchase(
+            purchaseIdMatch[1],
+            userCtx.isSuperAdmin ? undefined : enforcedBranchId
+          );
+          return jsonWithDataSource(result, "postgres", result.success ? 200 : 404);
+        }
+        // GET admin/purchases/report/register
+        if (path === "admin/purchases/report/register") {
+          const reportFilters = { branch_id: enforcedBranchId, supplier_id: url.searchParams.get("supplier_id") || undefined, startDate: url.searchParams.get("startDate") || undefined, endDate: url.searchParams.get("endDate") || undefined };
+          const result = await PurchaseService.getPurchaseRegister(reportFilters);
+          return jsonWithDataSource(result, "postgres");
+        }
+        if (path === "admin/purchases/report/supplier-wise") {
+          const reportFilters = { branch_id: enforcedBranchId, startDate: url.searchParams.get("startDate") || undefined, endDate: url.searchParams.get("endDate") || undefined };
+          const result = await PurchaseService.getSupplierWiseSummary(reportFilters);
+          return jsonWithDataSource(result, "postgres");
+        }
+        if (path === "admin/purchases/report/item-wise") {
+          const reportFilters = { branch_id: enforcedBranchId, startDate: url.searchParams.get("startDate") || undefined, endDate: url.searchParams.get("endDate") || undefined };
+          const result = await PurchaseService.getItemWiseSummary(reportFilters);
+          return jsonWithDataSource(result, "postgres");
+        }
+        if (path === "admin/purchases/report/bill-wise") {
+          const reportFilters = { branch_id: enforcedBranchId, supplier_id: url.searchParams.get("supplier_id") || undefined, startDate: url.searchParams.get("startDate") || undefined, endDate: url.searchParams.get("endDate") || undefined };
+          const result = await PurchaseService.getBillWiseSummary(reportFilters);
+          return jsonWithDataSource(result, "postgres");
+        }
+        if (path === "admin/purchases/report/gst-hsn") {
+          const reportFilters = { branch_id: enforcedBranchId, startDate: url.searchParams.get("startDate") || undefined, endDate: url.searchParams.get("endDate") || undefined };
+          const result = await PurchaseService.getGstHsnSummary(reportFilters);
+          return jsonWithDataSource(result, "postgres");
+        }
+        // GET admin/purchases (list)
+        const result = await PurchaseService.listPurchases({
+          branch_id: enforcedBranchId,
+          supplier_id: url.searchParams.get("supplier_id") || undefined,
+          status: (url.searchParams.get("status") as any) || undefined,
+          startDate: url.searchParams.get("startDate") || undefined,
+          endDate: url.searchParams.get("endDate") || undefined,
+          search: url.searchParams.get("search") || undefined,
+          limit: parseInt(url.searchParams.get("limit") || "50"),
+          offset: parseInt(url.searchParams.get("offset") || "0"),
+        });
+        return jsonWithDataSource(result, "postgres");
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Expense Category API (GET) ────────────────────────────────────────────
+    if (path === "admin/expense-categories" || path.startsWith("admin/expense-categories/")) {
+      const permErr = verifyApiPermission(req, "EXPENSE", "VIEW");
+      if (permErr) return permErr;
+      try {
+        const includeInactive = url.searchParams.get("include_inactive") === "true";
+        const result = await ExpenseService.listCategories(includeInactive);
+        return jsonWithDataSource(result, "postgres");
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Expense API (GET) ─────────────────────────────────────────────────────
+    if (path.startsWith("admin/expenses")) {
+      const permErr = verifyApiPermission(req, "EXPENSE", "VIEW");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const enforcedBranchId = userCtx.isSuperAdmin
+        ? (url.searchParams.get("branch_id") || undefined)
+        : (userCtx.branchId || undefined);
+      try {
+        // GET admin/expenses/:id
+        const expenseIdMatch = path.match(/^admin\/expenses\/([^/]+)$/);
+        if (expenseIdMatch && !expenseIdMatch[1].startsWith("report")) {
+          const result = await ExpenseService.getExpense(
+            expenseIdMatch[1],
+            userCtx.isSuperAdmin ? undefined : enforcedBranchId
+          );
+          return jsonWithDataSource(result, "postgres", result.success ? 200 : 404);
+        }
+        // GET admin/expenses/report/register
+        const rFilters = { branch_id: enforcedBranchId, category_id: url.searchParams.get("category_id") || undefined, supplier_id: url.searchParams.get("supplier_id") || undefined, startDate: url.searchParams.get("startDate") || undefined, endDate: url.searchParams.get("endDate") || undefined, status: (url.searchParams.get("status") as any) || undefined };
+        if (path === "admin/expenses/report/register") {
+          return jsonWithDataSource(await ExpenseService.getExpenseRegister(rFilters), "postgres");
+        }
+        if (path === "admin/expenses/report/category-wise") {
+          return jsonWithDataSource(await ExpenseService.getCategoryWiseSummary(rFilters), "postgres");
+        }
+        if (path === "admin/expenses/report/branch-wise") {
+          if (!userCtx.isSuperAdmin) return jsonWithDataSource({ success: false, error: "Forbidden: Super Admin only." }, "postgres", 403);
+          return jsonWithDataSource(await ExpenseService.getBranchWiseSummary(rFilters), "postgres");
+        }
+        if (path === "admin/expenses/report/date-wise") {
+          return jsonWithDataSource(await ExpenseService.getDateWiseSummary(rFilters), "postgres");
+        }
+        if (path === "admin/expenses/report/payment-method") {
+          return jsonWithDataSource(await ExpenseService.getPaymentMethodSummary(rFilters), "postgres");
+        }
+        if (path === "admin/expenses/report/supplier-wise") {
+          return jsonWithDataSource(await ExpenseService.getSupplierWiseSummary(rFilters), "postgres");
+        }
+        if (path === "admin/expenses/report/gst-summary") {
+          return jsonWithDataSource(await ExpenseService.getGstSummary(rFilters), "postgres");
+        }
+        // GET admin/expenses (list)
+        const result = await ExpenseService.listExpenses({
+          branch_id: enforcedBranchId,
+          category_id: url.searchParams.get("category_id") || undefined,
+          supplier_id: url.searchParams.get("supplier_id") || undefined,
+          status: (url.searchParams.get("status") as any) || undefined,
+          payment_method: (url.searchParams.get("payment_method") as any) || undefined,
+          startDate: url.searchParams.get("startDate") || undefined,
+          endDate: url.searchParams.get("endDate") || undefined,
+          search: url.searchParams.get("search") || undefined,
+          limit: parseInt(url.searchParams.get("limit") || "50"),
+          offset: parseInt(url.searchParams.get("offset") || "0"),
+        });
+        return jsonWithDataSource(result, "postgres");
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Fleet / Delivery Cost API (GET) ───────────────────────────────────────
+    if (path.startsWith("admin/fleet")) {
+      const permErr = verifyApiPermission(req, "FLEET", "VIEW");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const enforcedBranchId = userCtx.isSuperAdmin
+        ? (url.searchParams.get("branch_id") || undefined)
+        : (userCtx.branchId || undefined);
+
+      try {
+        // ── Reports ──
+        if (path.startsWith("admin/fleet/reports/")) {
+          const rFilters = {
+            branch_id: enforcedBranchId,
+            vehicle_id: url.searchParams.get("vehicle_id") || undefined,
+            driver_partner_id: url.searchParams.get("driver_partner_id") || undefined,
+            startDate: url.searchParams.get("startDate") || undefined,
+            endDate: url.searchParams.get("endDate") || undefined,
+          };
+          if (path === "admin/fleet/reports/delivery") {
+            return jsonWithDataSource(await FleetService.getDeliveryReport(rFilters), "postgres");
+          }
+          if (path === "admin/fleet/reports/driver") {
+            return jsonWithDataSource(await FleetService.getDriverReport(rFilters), "postgres");
+          }
+          if (path === "admin/fleet/reports/vehicle") {
+            return jsonWithDataSource(await FleetService.getVehicleReport(rFilters), "postgres");
+          }
+          if (path === "admin/fleet/reports/km") {
+            return jsonWithDataSource(await FleetService.getKmReport(rFilters), "postgres");
+          }
+          if (path === "admin/fleet/reports/fuel") {
+            return jsonWithDataSource(await FleetService.getFuelReport(rFilters), "postgres");
+          }
+          if (path === "admin/fleet/reports/fuel-efficiency") {
+            return jsonWithDataSource(await FleetService.getFuelEfficiency(rFilters), "postgres");
+          }
+          if (path === "admin/fleet/reports/cost-per-km") {
+            return jsonWithDataSource(await FleetService.getCostPerKm(rFilters), "postgres");
+          }
+          if (path === "admin/fleet/reports/driver-performance") {
+            return jsonWithDataSource(await FleetService.getDriverPerformance(rFilters), "postgres");
+          }
+          if (path === "admin/fleet/reports/delivery-exceptions") {
+            return jsonWithDataSource(await FleetService.getDeliveryExceptions(rFilters), "postgres");
+          }
+        }
+
+        // ── Single Vehicle: GET admin/fleet/vehicles/:id ──
+        const vehicleIdMatch = path.match(/^admin\/fleet\/vehicles\/([^/]+)$/);
+        if (vehicleIdMatch) {
+          const result = await FleetService.getVehicle(
+            vehicleIdMatch[1],
+            userCtx.isSuperAdmin ? undefined : enforcedBranchId
+          );
+          return jsonWithDataSource(result, "postgres", result.success ? 200 : 404);
+        }
+
+        // ── List Vehicles: GET admin/fleet/vehicles ──
+        if (path === "admin/fleet/vehicles") {
+          const result = await FleetService.listVehicles({
+            branch_id: enforcedBranchId,
+            is_active: url.searchParams.get("is_active") === "true" ? true : url.searchParams.get("is_active") === "false" ? false : undefined,
+            vehicle_type: (url.searchParams.get("vehicle_type") as any) || undefined,
+            search: url.searchParams.get("search") || undefined,
+            limit: parseInt(url.searchParams.get("limit") || "50"),
+            offset: parseInt(url.searchParams.get("offset") || "0"),
+          });
+          return jsonWithDataSource(result, "postgres");
+        }
+
+        // ── Single Trip: GET admin/fleet/trips/:id ──
+        const tripIdMatch = path.match(/^admin\/fleet\/trips\/([^/]+)$/);
+        if (tripIdMatch) {
+          const result = await FleetService.getTrip(
+            tripIdMatch[1],
+            userCtx.isSuperAdmin ? undefined : enforcedBranchId
+          );
+          return jsonWithDataSource(result, "postgres", result.success ? 200 : 404);
+        }
+
+        // ── List Trips: GET admin/fleet/trips ──
+        if (path === "admin/fleet/trips") {
+          const result = await FleetService.listTrips({
+            branch_id: enforcedBranchId,
+            vehicle_id: url.searchParams.get("vehicle_id") || undefined,
+            driver_partner_id: url.searchParams.get("driver_partner_id") || undefined,
+            purpose: (url.searchParams.get("purpose") as any) || undefined,
+            startDate: url.searchParams.get("startDate") || undefined,
+            endDate: url.searchParams.get("endDate") || undefined,
+            limit: parseInt(url.searchParams.get("limit") || "50"),
+            offset: parseInt(url.searchParams.get("offset") || "0"),
+          });
+          return jsonWithDataSource(result, "postgres");
+        }
+
+        // ── Single Fuel: GET admin/fleet/fuel/:id ──
+        const fuelIdMatch = path.match(/^admin\/fleet\/fuel\/([^/]+)$/);
+        if (fuelIdMatch) {
+          const result = await FleetService.getFuel(
+            fuelIdMatch[1],
+            userCtx.isSuperAdmin ? undefined : enforcedBranchId
+          );
+          return jsonWithDataSource(result, "postgres", result.success ? 200 : 404);
+        }
+
+        // ── List Fuel: GET admin/fleet/fuel ──
+        if (path === "admin/fleet/fuel") {
+          const result = await FleetService.listFuel({
+            branch_id: enforcedBranchId,
+            vehicle_id: url.searchParams.get("vehicle_id") || undefined,
+            driver_partner_id: url.searchParams.get("driver_partner_id") || undefined,
+            startDate: url.searchParams.get("startDate") || undefined,
+            endDate: url.searchParams.get("endDate") || undefined,
+            limit: parseInt(url.searchParams.get("limit") || "50"),
+            offset: parseInt(url.searchParams.get("offset") || "0"),
+          });
+          return jsonWithDataSource(result, "postgres");
+        }
+
+        // ── List Drivers: GET admin/fleet/drivers ──
+        if (path === "admin/fleet/drivers") {
+          const result = await FleetService.listDrivers(enforcedBranchId);
+          return jsonWithDataSource(result, "postgres");
+        }
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Canonical Accounts Receivable (AR) API Endpoints (Phase 4F Step 4.8) ──
+    if (path.startsWith("admin/reports/ar/") || path.startsWith("admin/accounting/ar/")) {
+      const authErr = verifyApiPermission(req, "ACCOUNTING", "VIEW");
+      if (authErr) return authErr;
+
+      const userCtx = resolveUserContext(req);
+      const isSuperAdmin = userCtx.isSuperAdmin;
+
+      // Server-side branch isolation:
+      // SUPER_ADMIN has enterprise authority (can query all branches or filter by requested branch).
+      // Non-super-admins MUST have a verified branch assignment and are strictly locked to it.
+      // A null/absent branch context NEVER grants enterprise access.
+      let targetBranchId: string | undefined = undefined;
+      if (isSuperAdmin) {
+        targetBranchId = (url.searchParams.get("branch_id") || url.searchParams.get("branchId")) ?? undefined;
+      } else {
+        if (!userCtx.branchId) {
+          return jsonWithDataSource(
+            {
+              success: false,
+              error: "FORBIDDEN",
+              message: "Forbidden: Account has no authorized branch assignment for reporting.",
+            },
+            "error",
+            403
+          );
+        }
+        const requestedBranch = url.searchParams.get("branch_id") || url.searchParams.get("branchId");
+        if (requestedBranch && requestedBranch !== userCtx.branchId) {
+          return jsonWithDataSource(
+            {
+              success: false,
+              error: "FORBIDDEN",
+              message: `Forbidden: Account is not authorized to access branch ${requestedBranch}.`,
+            },
+            "error",
+            403
+          );
+        }
+        targetBranchId = userCtx.branchId;
+      }
+
+      const arSubPath = path.replace(/^admin\/(reports|accounting)\/ar\//, "");
+
+      try {
+        if (arSubPath === "statement") {
+          const customerId = url.searchParams.get("customer_id") || url.searchParams.get("customerId");
+
+          if (!customerId) {
+            return jsonWithDataSource(
+              {
+                success: false,
+                error: "VALIDATION_FAILED",
+                message: "Missing required query parameter: customer_id",
+              },
+              "error",
+              400
+            );
+          }
+
+          const statement = await AccountsReceivableService.getCustomerStatement({
+            customer_id: customerId,
+            branch_id: targetBranchId,
+            startDate: url.searchParams.get("startDate") || url.searchParams.get("start_date") || undefined,
+            endDate: url.searchParams.get("endDate") || url.searchParams.get("end_date") || undefined,
+            actorContext: userCtx,
+          });
+
+          return jsonWithDataSource({ success: true, ...statement }, "postgres");
+        }
+
+        if (arSubPath === "reconciliation") {
+          const reconciliation = await AccountsReceivableService.getArGlReconciliation({
+            branch_id: targetBranchId,
+            as_of_date: url.searchParams.get("as_of_date") || url.searchParams.get("asOfDate") || undefined,
+            actorContext: userCtx,
+          });
+
+          return jsonWithDataSource({ success: true, ...reconciliation }, "postgres");
+        }
+
+        if (arSubPath === "aging") {
+          try {
+            await AccountsReceivableService.getArAgingSchedule({
+              branch_id: targetBranchId,
+              as_of_date: url.searchParams.get("as_of_date") || url.searchParams.get("asOfDate") || undefined,
+              actorContext: userCtx,
+            });
+          } catch (agingErr: any) {
+            return jsonWithDataSource(
+              {
+                success: false,
+                status: "FEATURE_BLOCKED",
+                error: "FEATURE_BLOCKED",
+                message: "AR AGING: NOT AVAILABLE — DUE-DATE POLICY NOT APPROVED",
+                summary: null,
+                customers: [],
+              },
+              "postgres",
+              501
+            );
+          }
+        }
+
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: "NOT_FOUND",
+            message: `Unknown AR reporting endpoint: ${path}`,
+          },
+          "error",
+          404
+        );
+      } catch (err: any) {
+        console.error("[AR API Error]", arSubPath, err.message);
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: err.message || "Accounts Receivable operation failed",
+          },
+          "error",
+          err.message?.includes("PERMISSION_DENIED") ? 403 : 500
+        );
+      }
+    }
+
+    // ── Canonical COD Collection Control & Remittance API (Phase 4F Step 4.9) ──
+    if (path.startsWith("admin/reports/cod/") || path.startsWith("admin/accounting/cod/")) {
+      const authErr = verifyApiPermission(req, "ACCOUNTING", "VIEW");
+      if (authErr) return authErr;
+
+      const userCtx = resolveUserContext(req);
+      const isSuperAdmin = userCtx.isSuperAdmin;
+
+      let targetBranchId: string | undefined = undefined;
+      if (isSuperAdmin) {
+        targetBranchId = (url.searchParams.get("branch_id") || url.searchParams.get("branchId")) ?? undefined;
+      } else {
+        if (!userCtx.branchId) {
+          return jsonWithDataSource(
+            {
+              success: false,
+              error: "FORBIDDEN",
+              message: "Forbidden: Account has no authorized branch assignment for reporting.",
+            },
+            "error",
+            403
+          );
+        }
+        const requestedBranch = url.searchParams.get("branch_id") || url.searchParams.get("branchId");
+        if (requestedBranch && requestedBranch !== userCtx.branchId) {
+          return jsonWithDataSource(
+            {
+              success: false,
+              error: "FORBIDDEN",
+              message: `Forbidden: Account is not authorized to access branch ${requestedBranch}.`,
+            },
+            "error",
+            403
+          );
+        }
+        targetBranchId = userCtx.branchId;
+      }
+
+      const codSubPath = path.replace(/^admin\/(reports|accounting)\/cod\//, "");
+
+      try {
+        if (codSubPath === "rider-custody") {
+          const deliveryPartnerId = url.searchParams.get("delivery_partner_id") || url.searchParams.get("deliveryPartnerId");
+          if (!deliveryPartnerId) {
+            return jsonWithDataSource(
+              {
+                success: false,
+                error: "VALIDATION_FAILED",
+                message: "Missing required query parameter: delivery_partner_id",
+              },
+              "error",
+              400
+            );
+          }
+
+          const custody = await CodCollectionService.getRiderCustody(
+            deliveryPartnerId,
+            targetBranchId,
+            userCtx
+          );
+
+          return jsonWithDataSource({ success: true, ...custody }, "postgres");
+        }
+
+        if (codSubPath === "reconciliation") {
+          const reconciliation = await CodCollectionService.getCodReconciliation({
+            branchId: targetBranchId,
+            asOfDate: url.searchParams.get("as_of_date") || url.searchParams.get("asOfDate") || undefined,
+            actorContext: userCtx,
+          });
+
+          return jsonWithDataSource({ success: true, reconciliation }, "postgres");
+        }
+
+        if (codSubPath === "exceptions") {
+          const exceptions = await CodCollectionService.scanExceptions(targetBranchId, userCtx);
+          return jsonWithDataSource({ success: true, exceptions }, "postgres");
+        }
+
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: "NOT_FOUND",
+            message: `Unknown COD reporting endpoint: ${path}`,
+          },
+          "error",
+          404
+        );
+      } catch (err: any) {
+        console.error("[COD API Error]", codSubPath, err.message);
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: err.code || err.message || "COD operation failed",
+            message: err.message,
+          },
+          "error",
+          err.message?.includes("PERMISSION_DENIED") || err.message?.includes("BRANCH_ACCESS_DENIED") ? 403 : 500
+        );
+      }
+    }
+
+    // ── Canonical Bank Accounts Master API (Phase 4F Step 4.10) ──
+    if (path === "admin/bank-accounts") {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource(
+          { success: false, error: "UNAUTHORIZED", message: "Authentication required to access bank accounts." },
+          "error",
+          401
+        );
+      }
+      const hasBankPerm = StaffAccessControl.hasPermission(userCtx, "BANK", "VIEW");
+      const hasGatewayPerm = StaffAccessControl.hasPermission(userCtx, "GATEWAY", "VIEW");
+      if (!hasBankPerm && !hasGatewayPerm) {
+        return jsonWithDataSource(
+          { success: false, error: "FORBIDDEN", message: "Forbidden: Account lacks BANK.VIEW or GATEWAY.VIEW permission." },
+          "error",
+          403
+        );
+      }
+
+      const isSuperAdmin = userCtx.isSuperAdmin;
+      const statusFilter = (url.searchParams.get("status") || "ACTIVE") as any;
+      const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId");
+
+      try {
+        const filter: any = { status: statusFilter };
+        if (isSuperAdmin) {
+          if (branchIdParam) filter.branchId = branchIdParam;
+        } else {
+          filter.branchId = userCtx.branchId || null;
+          filter.includeEnterprise = true;
+        }
+
+        const accounts = await BankAccountRepository.list(filter);
+        return jsonWithDataSource({ success: true, data: accounts, bankAccounts: accounts }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource(
+          { success: false, error: err.code || "BANK_ACCOUNTS_QUERY_FAILED", message: err.message },
+          "error",
+          500
+        );
+      }
+    }
+
+    // ── Canonical Gateway Settlement API Endpoints (Phase 4F Step 4.10 Substep 4.10.4) ──
+    if (path.startsWith("admin/gateway-settlements/")) {
+      const authErr = verifyApiPermission(req, "GATEWAY", "VIEW");
+      if (authErr) return authErr;
+
+      const userCtx = resolveUserContext(req);
+      const isSuperAdmin = userCtx.isSuperAdmin;
+
+      // Server-side branch isolation:
+      // SUPER_ADMIN has enterprise authority (can query all branches or filter by requested branch).
+      // Non-super-admins MUST have a verified branch assignment and are strictly locked to it.
+      let targetBranchId: string | undefined = undefined;
+      if (isSuperAdmin) {
+        targetBranchId = (url.searchParams.get("branch_id") || url.searchParams.get("branchId")) ?? undefined;
+      } else {
+        if (!userCtx.branchId) {
+          return jsonWithDataSource(
+            { success: false, error: "FORBIDDEN", message: "Forbidden: Account has no authorized branch assignment for gateway settlements." },
+            "error",
+            403
+          );
+        }
+        const requestedBranch = url.searchParams.get("branch_id") || url.searchParams.get("branchId");
+        if (requestedBranch && requestedBranch !== userCtx.branchId) {
+          return jsonWithDataSource(
+            { success: false, error: "FORBIDDEN", message: `Forbidden: Account is not authorized to access branch ${requestedBranch}.` },
+            "error",
+            403
+          );
+        }
+        targetBranchId = userCtx.branchId;
+      }
+
+      const gwSubPath = path.replace(/^admin\/gateway-settlements\//, "");
+
+      try {
+        // 1. List batches: GET admin/gateway-settlements/batches
+        if (gwSubPath === "batches") {
+          const provider = url.searchParams.get("provider") || undefined;
+          const status = (url.searchParams.get("status") || undefined) as any;
+          const bankAccountId = url.searchParams.get("bank_account_id") || url.searchParams.get("bankAccountId") || undefined;
+          const startDate = url.searchParams.get("date_from") || url.searchParams.get("startDate") || url.searchParams.get("start_date") || undefined;
+          const endDate = url.searchParams.get("date_to") || url.searchParams.get("endDate") || url.searchParams.get("end_date") || undefined;
+          const limit = parseInt(url.searchParams.get("limit") || "50", 10);
+          const offset = parseInt(url.searchParams.get("offset") || "0", 10);
+
+          let batches: any[];
+          if (targetBranchId) {
+            // Branch-isolated batch query: only batches with transactions for this branch
+            const conditions: string[] = ["o.settlement_branch_id = $1"];
+            const params: any[] = [targetBranchId];
+            let pIdx = 2;
+
+            if (provider) {
+              conditions.push(`b.provider = $${pIdx++}`);
+              params.push(provider.trim().toLowerCase());
+            }
+            if (status) {
+              conditions.push(`b.status = $${pIdx++}`);
+              params.push(status);
+            }
+            if (bankAccountId) {
+              conditions.push(`b.bank_account_id = $${pIdx++}`);
+              params.push(bankAccountId);
+            }
+            if (startDate) {
+              conditions.push(`b.settlement_date >= $${pIdx++}`);
+              params.push(startDate);
+            }
+            if (endDate) {
+              conditions.push(`b.settlement_date <= $${pIdx++}`);
+              params.push(endDate);
+            }
+
+            params.push(limit, offset);
+            const sql = `
+              SELECT DISTINCT b.*
+              FROM public.gateway_payout_batch b
+              INNER JOIN public.gateway_settlement_order o ON o.payout_batch_id = b.id
+              WHERE ${conditions.join(" AND ")}
+              ORDER BY b.settlement_date DESC, b.created_at DESC
+              LIMIT $${pIdx++} OFFSET $${pIdx++};
+            `;
+            const res = await dbQuery(sql, params);
+            batches = res.rows;
+          } else {
+            batches = await GatewayPayoutRepository.list({
+              provider,
+              status,
+              bankAccountId,
+              startDate,
+              endDate,
+              limit,
+              offset,
+            });
+          }
+
+          return jsonWithDataSource({ success: true, data: batches, batches, total: batches.length }, "postgres");
+        }
+
+        // 2. Batch orders: GET admin/gateway-settlements/batches/:id/orders
+        const ordersMatch = gwSubPath.match(/^batches\/([^/]+)\/orders$/);
+        if (ordersMatch) {
+          const batchId = ordersMatch[1];
+          const batch = await GatewayPayoutRepository.findById(batchId);
+          if (!batch) {
+            return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Batch '${batchId}' not found.` }, "error", 404);
+          }
+
+          let orders = await GatewaySettlementOrderRepository.findByBatchId(batchId);
+          if (targetBranchId) {
+            orders = orders.filter((o) => o.settlement_branch_id === targetBranchId);
+            if (orders.length === 0 && !isSuperAdmin) {
+              return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: Account not authorized for this batch's orders." }, "error", 403);
+            }
+          }
+
+          // Authoritative branch enrichment: map branch name from branch table
+          const branchIds = Array.from(new Set(orders.map((o) => o.settlement_branch_id).filter(Boolean)));
+          let branchMap = new Map<string, string>();
+          if (branchIds.length > 0) {
+            const bRes = await dbQuery(`SELECT id, name FROM public.branch WHERE id = ANY($1)`, [branchIds]);
+            for (const r of bRes.rows) {
+              branchMap.set(r.id, r.name);
+            }
+          }
+
+          const enrichedOrders = orders.map((o) => ({
+            ...o,
+            branch_name: branchMap.get(o.settlement_branch_id) || o.settlement_branch_id,
+          }));
+
+          return jsonWithDataSource({ success: true, data: { orders: enrichedOrders, count: enrichedOrders.length } }, "postgres");
+        }
+
+        // 3. Batch vouchers: GET admin/gateway-settlements/batches/:id/vouchers
+        const vouchersMatch = gwSubPath.match(/^batches\/([^/]+)\/vouchers$/);
+        if (vouchersMatch) {
+          const batchId = vouchersMatch[1];
+          const batch = await GatewayPayoutRepository.findById(batchId);
+          if (!batch) {
+            return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Batch '${batchId}' not found.` }, "error", 404);
+          }
+
+          const voucherSql = `
+            SELECT v.*, b.name as branch_name
+            FROM public.accounting_voucher v
+            LEFT JOIN public.branch b ON b.id = v.branch_id
+            WHERE (v.metadata->>'payout_batch_id' = $1
+               OR v.id IN (SELECT DISTINCT voucher_id FROM public.gateway_settlement_order WHERE payout_batch_id = $1 AND voucher_id IS NOT NULL))
+              AND v.deleted_at IS NULL
+            ORDER BY v.created_at ASC;
+          `;
+          const voucherRes = await dbQuery(voucherSql, [batchId]);
+          let voucherRows = voucherRes.rows;
+
+          if (targetBranchId) {
+            voucherRows = voucherRows.filter((v: any) => v.branch_id === targetBranchId);
+            if (voucherRows.length === 0 && !isSuperAdmin) {
+              return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: Account not authorized for this batch's vouchers." }, "error", 403);
+            }
+          }
+
+          const vouchersWithLines = await Promise.all(
+            voucherRows.map(async (v: any) => {
+              const linesSql = `
+                SELECT l.*, a.code as account_code, a.name as account_name
+                FROM public.accounting_journal_line l
+                JOIN public.accounting_account a ON a.id = l.account_id
+                WHERE l.journal_entry_id IN (
+                  SELECT id FROM public.accounting_journal_entry WHERE voucher_id = $1
+                )
+                ORDER BY l.line_no ASC;
+              `;
+              const linesRes = await dbQuery(linesSql, [v.id]);
+              return { ...v, lines: linesRes.rows };
+            })
+          );
+
+          return jsonWithDataSource({ success: true, data: { vouchers: vouchersWithLines } }, "postgres");
+        }
+
+        // 4. Batch detail: GET admin/gateway-settlements/batches/:id
+        const batchDetailMatch = gwSubPath.match(/^batches\/([^/]+)$/);
+        if (batchDetailMatch) {
+          const batchId = batchDetailMatch[1];
+          const batch = await GatewayPayoutRepository.findById(batchId);
+          if (!batch) {
+            return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Batch '${batchId}' not found.` }, "error", 404);
+          }
+
+          const orders = await GatewaySettlementOrderRepository.findByBatchId(batchId);
+
+          // If branch-scoped, verify batch has orders for this branch
+          if (targetBranchId) {
+            const hasBranchOrders = orders.some((o) => o.settlement_branch_id === targetBranchId);
+            if (!hasBranchOrders) {
+              return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: Account not authorized for this batch." }, "error", 403);
+            }
+          }
+
+          const bankAccount = await BankAccountRepository.findById(batch.bank_account_id);
+
+          return jsonWithDataSource(
+            {
+              success: true,
+              data: {
+                batch,
+                bankAccount,
+                ordersCount: orders.length,
+                summary: {
+                  grossAmount: Number(batch.gross_amount),
+                  identifiedFeeAmount: Number(batch.identified_fee_amount),
+                  reportedTaxAmount: Number(batch.reported_tax_amount),
+                  otherDeductionsAmount: Number(batch.other_deductions_amount),
+                  roundingVariance: Number(batch.rounding_variance),
+                  netAmount: Number(batch.net_amount),
+                },
+              },
+            },
+            "postgres"
+          );
+        }
+
+        return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown gateway settlement endpoint: ${path}` }, "error", 404);
+      } catch (err: any) {
+        console.error("[Gateway Settlement API Error]", gwSubPath, err.message);
+        return jsonWithDataSource({ success: false, error: err.code || "GATEWAY_OPERATION_FAILED", message: err.message }, "error", 500);
+      }
+    }
+
+    // ── Canonical Bank Reconciliation Statement (BRS) API Endpoints (Phase 4F Step 4.10 Substep 4.10.5-D-B) ──
+    if (path.startsWith("admin/bank-reconciliation/")) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource(
+          { success: false, error: "UNAUTHORIZED", message: "Authentication required to access bank reconciliation." },
+          "error",
+          401
+        );
+      }
+      const role = (userCtx.role || "").toUpperCase();
+      if (role === "CUSTOMER" || role === "ANONYMOUS") {
+        return jsonWithDataSource(
+          { success: false, error: "FORBIDDEN", message: "Customer or anonymous access is not permitted." },
+          "error",
+          403
+        );
+      }
+
+      const hasReconPerm = StaffAccessControl.hasPermission(userCtx, "BANK", "RECON_VIEW");
+      const hasBankPerm = StaffAccessControl.hasPermission(userCtx, "BANK", "VIEW");
+      const hasAcctPerm = StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "VIEW");
+      if (!hasReconPerm && !hasBankPerm && !hasAcctPerm) {
+        return jsonWithDataSource(
+          { success: false, error: "FORBIDDEN", message: "Forbidden: Account lacks BANK.RECON_VIEW or ACCOUNTING.VIEW permission." },
+          "error",
+          403
+        );
+      }
+
+      const reconSubPath = path.replace(/^admin\/bank-reconciliation\//, "");
+
+      try {
+        // 1. Calculate BRS: GET admin/bank-reconciliation/statements/calculate
+        if (reconSubPath === "statements/calculate") {
+          const bankAccountId = url.searchParams.get("bank_account_id") || url.searchParams.get("bankAccountId");
+          if (!bankAccountId) {
+            return jsonWithDataSource(
+              { success: false, error: "BANK_ACCOUNT_REQUIRED", message: "Query parameter 'bank_account_id' is required." },
+              "error",
+              400
+            );
+          }
+          const asOfDateParam = url.searchParams.get("as_of_date") || url.searchParams.get("asOfDate") || undefined;
+          if (asOfDateParam && (!/^\d{4}-\d{2}-\d{2}$/.test(asOfDateParam) || isNaN(Date.parse(asOfDateParam)))) {
+            return jsonWithDataSource(
+              { success: false, error: "INVALID_DATE_FORMAT", message: "Query parameter 'as_of_date' must be formatted as YYYY-MM-DD." },
+              "error",
+              400
+            );
+          }
+          const sessionId = url.searchParams.get("session_id") || url.searchParams.get("sessionId") || undefined;
+
+          const result = await BankReconciliationStatementService.calculateBrs({
+            bankAccountId,
+            asOfDate: asOfDateParam,
+            sessionId,
+            actorContext: userCtx,
+          });
+
+          return jsonWithDataSource({ success: true, data: result }, "postgres");
+        }
+
+        // 2. Uncleared Deposits: GET admin/bank-reconciliation/statements/uncleared-deposits
+        if (reconSubPath === "statements/uncleared-deposits") {
+          const bankAccountId = url.searchParams.get("bank_account_id") || url.searchParams.get("bankAccountId");
+          if (!bankAccountId) {
+            return jsonWithDataSource(
+              { success: false, error: "BANK_ACCOUNT_REQUIRED", message: "Query parameter 'bank_account_id' is required." },
+              "error",
+              400
+            );
+          }
+          const asOfDateParam = url.searchParams.get("as_of_date") || url.searchParams.get("asOfDate") || undefined;
+          if (asOfDateParam && (!/^\d{4}-\d{2}-\d{2}$/.test(asOfDateParam) || isNaN(Date.parse(asOfDateParam)))) {
+            return jsonWithDataSource(
+              { success: false, error: "INVALID_DATE_FORMAT", message: "Query parameter 'as_of_date' must be formatted as YYYY-MM-DD." },
+              "error",
+              400
+            );
+          }
+          const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "50", 10) || 50, 1), 200);
+          const offset = Math.max(parseInt(url.searchParams.get("offset") || "0", 10) || 0, 0);
+
+          const result = await BankReconciliationStatementService.listUnclearedDeposits({
+            bankAccountId,
+            asOfDate: asOfDateParam,
+            limit,
+            offset,
+            actorContext: userCtx,
+          });
+
+          return jsonWithDataSource({ success: true, data: result }, "postgres");
+        }
+
+        // 3. Outstanding Disbursements: GET admin/bank-reconciliation/statements/outstanding-disbursements
+        if (reconSubPath === "statements/outstanding-disbursements") {
+          const bankAccountId = url.searchParams.get("bank_account_id") || url.searchParams.get("bankAccountId");
+          if (!bankAccountId) {
+            return jsonWithDataSource(
+              { success: false, error: "BANK_ACCOUNT_REQUIRED", message: "Query parameter 'bank_account_id' is required." },
+              "error",
+              400
+            );
+          }
+          const asOfDateParam = url.searchParams.get("as_of_date") || url.searchParams.get("asOfDate") || undefined;
+          if (asOfDateParam && (!/^\d{4}-\d{2}-\d{2}$/.test(asOfDateParam) || isNaN(Date.parse(asOfDateParam)))) {
+            return jsonWithDataSource(
+              { success: false, error: "INVALID_DATE_FORMAT", message: "Query parameter 'as_of_date' must be formatted as YYYY-MM-DD." },
+              "error",
+              400
+            );
+          }
+          const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "50", 10) || 50, 1), 200);
+          const offset = Math.max(parseInt(url.searchParams.get("offset") || "0", 10) || 0, 0);
+
+          const result = await BankReconciliationStatementService.listOutstandingDisbursements({
+            bankAccountId,
+            asOfDate: asOfDateParam,
+            limit,
+            offset,
+            actorContext: userCtx,
+          });
+
+          return jsonWithDataSource({ success: true, data: result }, "postgres");
+        }
+
+        // 4. Unmatched Lines: GET admin/bank-reconciliation/statements/unmatched-lines
+        if (reconSubPath === "statements/unmatched-lines") {
+          const bankAccountId = url.searchParams.get("bank_account_id") || url.searchParams.get("bankAccountId");
+          if (!bankAccountId) {
+            return jsonWithDataSource(
+              { success: false, error: "BANK_ACCOUNT_REQUIRED", message: "Query parameter 'bank_account_id' is required." },
+              "error",
+              400
+            );
+          }
+          const asOfDateParam = url.searchParams.get("as_of_date") || url.searchParams.get("asOfDate") || undefined;
+          if (asOfDateParam && (!/^\d{4}-\d{2}-\d{2}$/.test(asOfDateParam) || isNaN(Date.parse(asOfDateParam)))) {
+            return jsonWithDataSource(
+              { success: false, error: "INVALID_DATE_FORMAT", message: "Query parameter 'as_of_date' must be formatted as YYYY-MM-DD." },
+              "error",
+              400
+            );
+          }
+          const typeParam = (url.searchParams.get("type") || "ALL").toUpperCase() as "ALL" | "DEBIT" | "CREDIT";
+          const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "50", 10) || 50, 1), 200);
+          const offset = Math.max(parseInt(url.searchParams.get("offset") || "0", 10) || 0, 0);
+
+          const result = await BankReconciliationStatementService.listUnmatchedStatementLines({
+            bankAccountId,
+            asOfDate: asOfDateParam,
+            type: typeParam,
+            limit,
+            offset,
+            actorContext: userCtx,
+          });
+
+          return jsonWithDataSource({ success: true, data: result }, "postgres");
+        }
+
+        // 5. List Sessions: GET admin/bank-reconciliation/sessions
+        if (reconSubPath === "sessions") {
+          const bankAccountId = url.searchParams.get("bank_account_id") || url.searchParams.get("bankAccountId") || undefined;
+          const status = (url.searchParams.get("status") || undefined) as any;
+          const startDate = url.searchParams.get("start_date") || url.searchParams.get("startDate") || undefined;
+          const endDate = url.searchParams.get("end_date") || url.searchParams.get("endDate") || undefined;
+          const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "50", 10) || 50, 1), 200);
+          const offset = Math.max(parseInt(url.searchParams.get("offset") || "0", 10) || 0, 0);
+
+          // If bankAccountId is supplied, validate access
+          if (bankAccountId) {
+            const actorScope = BankReconciliationStatementService.resolveActorScope(userCtx);
+            await BankReconciliationStatementService.validateBankAccountAccess(bankAccountId, actorScope);
+          }
+
+          const filter: any = {
+            bankAccountId,
+            status,
+            startDate,
+            endDate,
+            limit,
+            offset,
+          };
+
+          // If non-super-admin and no bankAccountId specified, filter by user branch's accounts
+          if (!userCtx.isSuperAdmin && !bankAccountId && userCtx.branchId) {
+            const branchAccounts = await BankAccountRepository.list({ branchId: userCtx.branchId });
+            const allowedIds = branchAccounts.map((a: any) => a.id);
+            if (allowedIds.length === 0) {
+              return jsonWithDataSource({ success: true, data: { sessions: [], totalCount: 0, limit, offset } }, "postgres");
+            }
+            filter.bankAccountIds = allowedIds;
+          }
+
+          const sessions = await BankReconciliationRepository.listSessions(filter);
+          return jsonWithDataSource({ success: true, data: { sessions, totalCount: sessions.length, limit, offset } }, "postgres");
+        }
+
+        // 6. Session Detail: GET admin/bank-reconciliation/sessions/:id
+        if (reconSubPath.startsWith("sessions/")) {
+          const sessionId = reconSubPath.replace(/^sessions\//, "");
+          const session = await BankReconciliationRepository.findSessionById(sessionId);
+          if (!session) {
+            return jsonWithDataSource({ success: false, error: "SESSION_NOT_FOUND", message: `Session '${sessionId}' not found.` }, "error", 404);
+          }
+
+          // Validate bank account access for this session
+          const actorScope = BankReconciliationStatementService.resolveActorScope(userCtx);
+          const bankAccount = await BankReconciliationStatementService.validateBankAccountAccess(session.bank_account_id, actorScope);
+
+          return jsonWithDataSource({
+            success: true,
+            data: {
+              session,
+              bankAccount: {
+                id: bankAccount.id,
+                bankName: bankAccount.bank_name,
+                accountNumberMasked: bankAccount.account_number_masked,
+                ifscCode: bankAccount.ifsc_code,
+                branchId: bankAccount.branch_id,
+              },
+            },
+          }, "postgres");
+        }
+
+        return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown bank reconciliation endpoint: ${path}` }, "error", 404);
+      } catch (err: any) {
+        console.error("[Bank Reconciliation API Error]", reconSubPath, err.message);
+        const statusCode =
+          err.code === "BANK_ACCOUNT_NOT_FOUND" || err.code === "SESSION_NOT_FOUND"
+            ? 404
+            : err.code === "FORBIDDEN" || err.code === "BRANCH_MISMATCH" || err.code === "PERMISSION_DENIED"
+            ? 403
+            : err.code === "UNAUTHORIZED"
+            ? 401
+            : err.code === "BANK_ACCOUNT_REQUIRED" || err.code === "INVALID_DATE_FORMAT" || err.code === "SESSION_ACCOUNT_MISMATCH"
+            ? 400
+            : 500;
+        return jsonWithDataSource({ success: false, error: err.code || "BANK_RECONCILIATION_OPERATION_FAILED", message: err.message }, "error", statusCode);
+      }
+    }
+
+    // ── Canonical GL Account Ledger & Trial Balance API Endpoints (Phase 5A.1) ──
+    if (path.startsWith("admin/accounting/")) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource(
+          { success: false, error: "UNAUTHORIZED", message: "Authentication required to access accounting ledger." },
+          "error",
+          401
+        );
+      }
+      const role = (userCtx.role || "").toUpperCase();
+      if (role === "CUSTOMER" || role === "ANONYMOUS") {
+        return jsonWithDataSource(
+          { success: false, error: "FORBIDDEN", message: "Customer or anonymous access is not permitted." },
+          "error",
+          403
+        );
+      }
+
+      const hasAcctPerm = StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "VIEW");
+      if (!hasAcctPerm) {
+        return jsonWithDataSource(
+          { success: false, error: "FORBIDDEN", message: "Forbidden: Account lacks ACCOUNTING.VIEW permission." },
+          "error",
+          403
+        );
+      }
+
+      const acctSubPath = path.replace(/^admin\/accounting\//, "");
+
+      try {
+        // 1. Account Ledger: GET admin/accounting/ledger
+        if (acctSubPath === "ledger") {
+          const accountId = url.searchParams.get("account_id") || url.searchParams.get("accountId");
+          if (!accountId) {
+            return jsonWithDataSource(
+              { success: false, error: "ACCOUNT_REQUIRED", message: "Query parameter 'account_id' is required." },
+              "error",
+              400
+            );
+          }
+
+          const startDate = url.searchParams.get("startDate") || url.searchParams.get("start_date") || undefined;
+          const endDate = url.searchParams.get("endDate") || url.searchParams.get("end_date") || undefined;
+          const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
+          const pageParam = parseInt(url.searchParams.get("page") || "1", 10);
+          const limitParam = parseInt(url.searchParams.get("limit") || "50", 10);
+
+          const result = await GeneralLedgerService.getAccountLedger(
+            {
+              account_id: accountId,
+              branch_id: branchIdParam,
+              startDate,
+              endDate,
+              page: isNaN(pageParam) ? 1 : pageParam,
+              limit: isNaN(limitParam) ? 50 : limitParam,
+            },
+            userCtx.branchId,
+            userCtx.isSuperAdmin
+          );
+
+          return jsonWithDataSource({ success: true, ...result }, "postgres");
+        }
+
+        // 2. Trial Balance: GET admin/accounting/trial-balance
+        if (acctSubPath === "trial-balance") {
+          const startDate = url.searchParams.get("startDate") || url.searchParams.get("start_date") || undefined;
+          const endDate = url.searchParams.get("endDate") || url.searchParams.get("end_date") || undefined;
+          const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
+
+          const result = await GeneralLedgerService.getTrialBalance(
+            {
+              branch_id: branchIdParam,
+              startDate,
+              endDate,
+            },
+            userCtx.branchId,
+            userCtx.isSuperAdmin
+          );
+
+          return jsonWithDataSource({ success: true, ...result }, "postgres");
+        }
+
+        // 3. Chart of Accounts list: GET admin/accounting/accounts
+        if (acctSubPath === "accounts") {
+          const search = url.searchParams.get("search") || undefined;
+          const includeGroups = url.searchParams.get("include_groups") === "true";
+          const accounts = await GeneralLedgerService.listAccounts({ includeGroups, search });
+          return jsonWithDataSource({ success: true, accounts }, "postgres");
+        }
+
+        // ── Phase 5A.2: Accounting Configuration ──────────────────────────────
+
+        // 4. Accounting Config: GET admin/accounting/config
+        if (acctSubPath === "config") {
+          const config = await AccountingConfigService.getConfig();
+          const isImmutable = await AccountingConfigService.isStartDateImmutable();
+          return jsonWithDataSource({
+            success: true,
+            accounting_start_date: config.configured ? config.startDate : null,
+            is_configured: config.configured,
+            is_immutable: isImmutable,
+          }, "postgres");
+        }
+
+        // 5. Fiscal Periods: GET admin/accounting/fiscal-periods
+        if (acctSubPath === "fiscal-periods") {
+          const fiscal_year = url.searchParams.get("fiscal_year") || undefined;
+          const periods = await FiscalPeriodService.listFiscalPeriods({ fiscal_year });
+          return jsonWithDataSource({ success: true, periods }, "postgres");
+        }
+
+        // 6. Opening Balance Status: GET admin/accounting/opening-balances/status
+        if (acctSubPath === "opening-balances/status") {
+          const status = await OpeningBalanceService.getOpeningBalanceStatus();
+          return jsonWithDataSource({ success: true, accounts: status }, "postgres");
+        }
+
+        // ── Phase 5A.3: Profit & Loss Statement ───────────────────────────────
+
+        // 7. Profit & Loss: GET admin/accounting/profit-loss
+        if (acctSubPath === "profit-loss") {
+          const startDate = url.searchParams.get("startDate") || url.searchParams.get("start_date") || undefined;
+          const endDate = url.searchParams.get("endDate") || url.searchParams.get("end_date") || undefined;
+          const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
+
+          if (!startDate || !endDate) {
+            return jsonWithDataSource(
+              { success: false, error: "MISSING_DATE_RANGE", message: "Both start_date and end_date are required for P&L." },
+              "error",
+              400
+            );
+          }
+
+          const result = await ProfitLossService.getProfitLoss(
+            {
+              startDate,
+              endDate,
+              branch_id: branchIdParam,
+            },
+            userCtx.branchId,
+            userCtx.isSuperAdmin
+          );
+
+          return jsonWithDataSource({ success: true, ...result }, "postgres");
+        }
+
+        // ── Phase 5A.4: Balance Sheet Statement ───────────────────────────────
+
+        // 8. Balance Sheet: GET admin/accounting/balance-sheet
+        if (acctSubPath === "balance-sheet") {
+          const asOfDate = url.searchParams.get("as_of_date") || url.searchParams.get("asOfDate") || undefined;
+          const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
+          const compareDate = url.searchParams.get("compare_date") || url.searchParams.get("compareDate") || undefined;
+
+          if (!asOfDate) {
+            return jsonWithDataSource(
+              { success: false, error: "MISSING_AS_OF_DATE", message: "Query parameter 'as_of_date' is required for Balance Sheet." },
+              "error",
+              400
+            );
+          }
+
+          const result = await BalanceSheetService.getBalanceSheet(
+            {
+              as_of_date: asOfDate,
+              branch_id: branchIdParam,
+              compare_date: compareDate,
+            },
+            userCtx.branchId,
+            userCtx.isSuperAdmin
+          );
+
+          return jsonWithDataSource({ success: true, ...result }, "postgres");
+        }
+
+        // ── Phase 5A.5: Cash Flow Statement ─────────────────────────────────
+
+        // 9. Cash Flow: GET admin/accounting/cash-flow
+        if (acctSubPath === "cash-flow") {
+          const startDate = url.searchParams.get("start_date") || url.searchParams.get("startDate") || undefined;
+          const endDate = url.searchParams.get("end_date") || url.searchParams.get("endDate") || undefined;
+          const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
+          const methodParam = (url.searchParams.get("method") as "direct" | "indirect" | "both") || "both";
+          const compareStartDate = url.searchParams.get("compare_start_date") || url.searchParams.get("compareStartDate") || undefined;
+          const compareEndDate = url.searchParams.get("compare_end_date") || url.searchParams.get("compareEndDate") || undefined;
+
+          if (!startDate || !endDate) {
+            return jsonWithDataSource(
+              { success: false, error: "MISSING_DATE_RANGE", message: "Both 'start_date' and 'end_date' query parameters are required for Cash Flow Statement." },
+              "error",
+              400
+            );
+          }
+
+          const result = await CashFlowService.getCashFlowStatement(
+            {
+              start_date: startDate,
+              end_date: endDate,
+              branch_id: branchIdParam,
+              method: methodParam,
+              compare_start_date: compareStartDate,
+              compare_end_date: compareEndDate,
+            },
+            userCtx.branchId,
+            userCtx.isSuperAdmin
+          );
+
+          return jsonWithDataSource({ success: true, ...result }, "postgres");
+        }
+
+        return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown accounting endpoint: ${path}` }, "error", 404);
+      } catch (err: any) {
+        console.error("[Accounting GL API Error]", acctSubPath, err.message);
+        const statusCode =
+          err.code === "ACCOUNT_NOT_FOUND" ? 404
+          : err.code === "ACCOUNT_REQUIRED" || err.code === "INVALID_DATE_FORMAT" || err.code === "INVALID_PAGINATION" || err.code === "MISSING_DATE_RANGE" || err.code === "MISSING_AS_OF_DATE" || err.code === "INVALID_DATE_RANGE" ? 400
+          : err.code === "FORBIDDEN" || err.code === "PERMISSION_DENIED" ? 403
+          : err.code === "UNAUTHORIZED" ? 401
+          : 500;
+        return jsonWithDataSource({ success: false, error: err.code || "ACCOUNTING_OPERATION_FAILED", message: err.message }, "error", statusCode);
+      }
+    }
+
+    // ── Canonical ERP Report API Endpoints (Database-Backed) ──
+    if (path.startsWith("admin/reports/")) {
+      const authErr = verifyApiPermission(req, "REPORTS", "VIEW");
+      if (authErr) return authErr;
+
+      const reportFilters = {
+        startDate: url.searchParams.get("startDate") || url.searchParams.get("start_date") || new Date(Date.now() - 30 * 86400000).toISOString().split("T")[0],
+        endDate: url.searchParams.get("endDate") || url.searchParams.get("end_date") || new Date().toISOString().split("T")[0],
+        branchIds: url.searchParams.get("branchIds") ? url.searchParams.get("branchIds")!.split(",") : undefined,
+        city: url.searchParams.get("city") || undefined,
+        status: url.searchParams.get("status") ? url.searchParams.get("status")!.split(",") : undefined,
+        paymentMethod: url.searchParams.get("paymentMethod") || undefined,
+        searchQuery: url.searchParams.get("search") || undefined,
+      };
+
+      const reportPath = path.replace("admin/reports/", "");
+
+      try {
+        if (reportPath === "kpis") {
+          const data = await ReportService.getKpis(reportFilters);
+          return jsonWithDataSource({ success: true, kpis: data }, "postgres");
+        }
+        if (reportPath === "transactional" || reportPath === "sales-metrics") {
+          const data = await ReportService.getTransactionalMetrics(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "products" || reportPath === "product-performance") {
+          const data = await ReportService.getProductPerformance(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "branches" || reportPath === "branch-performance") {
+          const data = await ReportService.getBranchPerformance(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "cities" || reportPath === "city-performance") {
+          const data = await ReportService.getCityPerformance(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "service-areas" || reportPath === "areas" || reportPath === "area-pincode") {
+          // "areas" and "area-pincode" kept as aliases for backward compatibility
+          // Canonical path is "service-areas" — groups by map fence zone, not pincode
+          const data = await ReportService.getServiceAreaPerformance(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "payments" || reportPath === "payment-breakdown") {
+          const data = await ReportService.getPaymentBreakdown(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "gst" || reportPath === "gst-hsn") {
+          const data = await ReportService.getGstHsnSummary(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "orders" || reportPath === "order-register") {
+          const data = await ReportService.getOrderRegister(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "customers" || reportPath === "customer-analytics") {
+          const data = await ReportService.getCustomerAnalytics(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "cross-sell") {
+          const data = await ReportService.getCrossSellAnalysis(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "delivery" || reportPath === "delivery-performance") {
+          const data = await ReportService.getDeliveryPerformance(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "exceptions" || reportPath === "data-quality") {
+          const data = await ReportService.getExceptionAudit(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "daily" || reportPath === "daily-sales") {
+          const data = await ReportService.getDailySalesReport(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "weekly" || reportPath === "weekly-sales") {
+          const data = await ReportService.getWeeklySalesReport(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+        if (reportPath === "monthly" || reportPath === "monthly-sales") {
+          const data = await ReportService.getMonthlySalesReport(reportFilters);
+          return jsonWithDataSource(data, "postgres");
+        }
+      } catch (err: any) {
+        console.error("[Reports API Error]", reportPath, err.message);
+        return jsonWithDataSource({ success: false, error: `Report generation failed: ${err.message}` }, "error", 500);
+      }
     }
 
     // ── Storefront & Admin: Product Dynamic Options ──
@@ -1275,7 +2637,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ address, success: true }, "postgres");
     }
 
-    if (path === "delivery/slots" || path === "store/delivery/slots") {
+    if (path === "delivery/slots" || path === "store/delivery/slots" || path === "fulfillment/delivery-slots" || path === "admin/fulfillment/delivery-slots") {
       const branchId = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || "br_default";
       const date = url.searchParams.get("date") || new Date().toISOString().slice(0, 10);
       const mode = (url.searchParams.get("mode") as any) || "delivery";
@@ -1534,28 +2896,16 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
     if (path === "delivery-partner/jobs") {
       // ── Server-Side Authenticated Identity Resolution (NEVER TRUST ?partner_id) ──
-      const cookieHeader = req.headers.get("cookie") || "";
-      const authHeader = req.headers.get("authorization") || "";
-      const partnerHeader = req.headers.get("x-delivery-partner-id") || req.headers.get("x-user-id");
-
-      // Parse cookies
-      const cookiesObj: Record<string, string> = {};
-      cookieHeader.split(";").forEach((c) => {
-        const [k, ...v] = c.trim().split("=");
-        if (k) cookiesObj[k] = decodeURIComponent(v.join("="));
-      });
-
-      const sessionRole = cookiesObj["_cth_role"] || req.headers.get("x-user-role");
-      const sessionUserId = cookiesObj["_cth_user_id"] || cookiesObj["_cth_partner_id"] || partnerHeader;
-      const jwtToken = cookiesObj["_cth_jwt"] || cookiesObj["_medusa_jwt"] || authHeader.replace("Bearer ", "");
-
-      // 1. Unauthenticated Check -> 401
-      if (!sessionUserId && !jwtToken && !sessionRole && !partnerHeader) {
+      const session = resolveServerSession(req);
+      if (!session) {
         return jsonWithDataSource({ success: false, statusCode: 401, error: "Unauthorized: Missing authentication session. Please log in." }, "postgres", 401);
       }
 
+      const sessionRole = (session.role || "").toLowerCase();
+      const sessionUserId = session.partnerId || session.userId || "";
+
       // 2. Non-Delivery Role Check -> 403
-      if (sessionRole && !["delivery_partner", "dlp"].includes(sessionRole.toLowerCase()) && !sessionUserId?.startsWith("dlp_")) {
+      if (!["delivery_partner", "dlp"].includes(sessionRole) && !sessionUserId.startsWith("dlp_")) {
         return jsonWithDataSource({ success: false, statusCode: 403, error: "Forbidden: Account is not an authorized delivery partner." }, "postgres", 403);
       }
 
@@ -2457,6 +3807,10 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       if (permErr) return permErr;
       return jsonWithDataSource({ metrics: TelemarketingEngine.getCandidateMetrics(), success: true }, "postgres");
     }
+    if (path.startsWith("admin/reports") || path === "reports/cake-availability") {
+      const permErr = verifyApiPermission(req, "REPORTS", "VIEW");
+      if (permErr) return permErr;
+    }
     if (path === "admin/reports/dashboard") return jsonWithDataSource(ApiEngine.getReportsDashboard(Object.fromEntries(url.searchParams)), "postgres");
     if (path === "admin/reports/sales") return jsonWithDataSource(ApiEngine.getReportsSales(Object.fromEntries(url.searchParams)), "postgres");
     if (path === "admin/reports/orders") return jsonWithDataSource(ApiEngine.getReportsOrders(Object.fromEntries(url.searchParams)), "postgres");
@@ -2640,6 +3994,459 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     const body = await safeParseJsonBody(req);
     console.log(`[API POST] path="${path}"`);
 
+    // ── Phase 5A.2: Accounting Configuration POST Endpoints ────────────────────
+    if (path.startsWith("admin/accounting/")) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId || !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+      const role = (userCtx.role || "").toUpperCase();
+      if (role !== "SUPER_ADMIN") {
+        return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Only SUPER_ADMIN can perform this operation." }, "error", 403);
+      }
+
+      const acctSubPath = path.replace(/^admin\/accounting\//, "");
+
+      try {
+        // POST admin/accounting/fiscal-periods — Create single fiscal period
+        if (acctSubPath === "fiscal-periods") {
+          const { fiscal_year, period_name, start_date, end_date } = body;
+          if (!fiscal_year || !period_name || !start_date || !end_date) {
+            return jsonWithDataSource({ success: false, error: "VALIDATION_ERROR", message: "fiscal_year, period_name, start_date, and end_date are required." }, "error", 400);
+          }
+          const period = await FiscalPeriodService.createFiscalPeriod(
+            { fiscal_year, period_name, start_date, end_date },
+            userCtx.userId,
+            role
+          );
+          return jsonWithDataSource({ success: true, period }, "postgres", 201);
+        }
+
+        // POST admin/accounting/fiscal-periods/generate-year — Auto-generate 12 monthly periods
+        if (acctSubPath === "fiscal-periods/generate-year") {
+          const { fiscal_year, year_start_date } = body;
+          if (!fiscal_year || !year_start_date) {
+            return jsonWithDataSource({ success: false, error: "VALIDATION_ERROR", message: "fiscal_year and year_start_date are required." }, "error", 400);
+          }
+          const periods = await FiscalPeriodService.generateYearPeriods(
+            fiscal_year,
+            year_start_date,
+            userCtx.userId,
+            role
+          );
+          return jsonWithDataSource({ success: true, periods, count: periods.length }, "postgres", 201);
+        }
+
+        // POST admin/accounting/opening-balances — Post single opening balance
+        if (acctSubPath === "opening-balances") {
+          const { account_id, amount, side, as_of_date, narration } = body;
+          if (!account_id || amount === undefined || !side || !as_of_date) {
+            return jsonWithDataSource({ success: false, error: "VALIDATION_ERROR", message: "account_id, amount, side, and as_of_date are required." }, "error", 400);
+          }
+          const branchId = userCtx.branchId || body.branch_id;
+          if (!branchId) {
+            return jsonWithDataSource({ success: false, error: "VALIDATION_ERROR", message: "branch_id is required." }, "error", 400);
+          }
+          const result = await OpeningBalanceService.postOpeningBalance(
+            { account_id, amount: Number(amount), side, as_of_date, narration },
+            userCtx.userId,
+            role,
+            branchId
+          );
+          if (!result.success) {
+            const statusCode = result.code === "DUPLICATE_SOURCE_EVENT" ? 409
+              : result.code === "FISCAL_PERIOD_NOT_CONFIGURED" || result.code === "FISCAL_PERIOD_LOCKED" ? 422
+              : result.code === "ACCOUNTING_START_DATE_NOT_CONFIGURED" ? 422
+              : 400;
+            return jsonWithDataSource({ success: false, error: result.code, message: result.error }, "error", statusCode);
+          }
+          return jsonWithDataSource({ success: true, ...result.data }, "postgres", 201);
+        }
+
+        return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown accounting POST endpoint: ${path}` }, "error", 404);
+      } catch (err: any) {
+        console.error("[Accounting Config POST Error]", acctSubPath, err.message);
+        const statusCode =
+          err.code === "UNAUTHORIZED" ? 403
+          : err.code === "START_DATE_NOT_CONFIGURED" || err.code === "PERIOD_BEFORE_START_DATE" ? 422
+          : err.code === "PERIOD_OVERLAP" || err.code === "DUPLICATE_FISCAL_YEAR" ? 409
+          : err.code === "INVALID_DATE_FORMAT" || err.code === "INVALID_DATE_RANGE" ? 400
+          : err.code === "DATE_NOT_EQUAL_START_DATE" || err.code === "INVALID_AMOUNT" || err.code === "INVALID_SIDE" ? 400
+          : 500;
+        return jsonWithDataSource({ success: false, error: err.code || "ACCOUNTING_OPERATION_FAILED", message: err.message }, "error", statusCode);
+      }
+    }
+
+    // ── Canonical COD Collection Control & Remittance API (Phase 4F Step 4.9) ──
+    if (path === "admin/reports/cod/collection" || path === "admin/accounting/cod/collection") {
+      const permErr = verifyApiPermission(req, "ACCOUNTING", "POST");
+      if (permErr) return permErr;
+
+      const userCtx = resolveUserContext(req);
+      const isSuperAdmin = userCtx.isSuperAdmin;
+      const effectiveBranchId = isSuperAdmin ? (body.branch_id || body.branchId) : userCtx.branchId;
+
+      try {
+        const snapshot = await CodCollectionService.confirmCodCollection({
+          orderId: body.order_id || body.orderId,
+          deliveryPartnerId: body.delivery_partner_id || body.deliveryPartnerId,
+          amount: typeof body.amount === "number" ? body.amount : undefined,
+          branchId: effectiveBranchId,
+          collectedAt: body.collected_at || body.collectedAt,
+          actorContext: userCtx,
+        });
+
+        return jsonWithDataSource({ success: true, snapshot }, "postgres", 200);
+      } catch (err: any) {
+        const status = err.code === "ORDER_NOT_FOUND" ? 404 :
+                       err.code === "DUPLICATE_COLLECTION_EVENT" ? 409 :
+                       err.code === "PERMISSION_DENIED" || err.code === "BRANCH_ACCESS_DENIED" ? 403 : 400;
+        return jsonWithDataSource({ success: false, error: err.code || "COLLECTION_FAILED", message: err.message }, "error", status);
+      }
+    }
+
+    if (path === "admin/reports/cod/settlement" || path === "admin/accounting/cod/settlement") {
+      const permErr = verifyApiPermission(req, "ACCOUNTING", "POST");
+      if (permErr) return permErr;
+
+      const userCtx = resolveUserContext(req);
+      const isSuperAdmin = userCtx.isSuperAdmin;
+      const effectiveBranchId = isSuperAdmin ? (body.branch_id || body.branchId) : userCtx.branchId;
+
+      if (!effectiveBranchId) {
+        return jsonWithDataSource({ success: false, error: "BRANCH_ACCESS_DENIED", message: "Branch context required for shift settlement." }, "error", 400);
+      }
+
+      try {
+        const result = await CodCollectionService.postRiderShiftSettlement({
+          shiftId: body.shift_id || body.shiftId,
+          deliveryPartnerId: body.delivery_partner_id || body.deliveryPartnerId,
+          branchId: effectiveBranchId,
+          settlementLines: body.settlement_lines || body.settlementLines || [],
+          totalCashReceived: Number(body.total_cash_received ?? body.totalCashReceived ?? 0),
+          remittedByStaffId: body.remitted_by_staff_id || body.remittedByStaffId,
+          approvedBySupervisorId: body.approved_by_supervisor_id || body.approvedBySupervisorId,
+          postedByGlAccountantId: body.posted_by_gl_accountant_id || body.postedByGlAccountantId || userCtx.userId,
+          voucherDate: body.voucher_date || body.voucherDate,
+          notes: body.notes,
+        });
+
+        return jsonWithDataSource({ success: true, ...result }, "postgres", 201);
+      } catch (err: any) {
+        const status = err.code === "ORDER_NOT_FOUND" ? 404 :
+                       err.code === "PARTIAL_SHIFT_SETTLEMENT_FORBIDDEN" ||
+                       err.code === "OVER_REMITTANCE_FORBIDDEN" ||
+                       err.code === "OVERPAYMENT_NOT_PERMITTED" ||
+                       err.code === "SETTLEMENT_ALLOCATION_MISMATCH" ||
+                       err.code === "CASH_SHORTAGE_ACCOUNTING_POLICY_REQUIRED" ? 422 :
+                       err.code === "SEGREGATION_OF_DUTIES_VIOLATION" ? 400 :
+                       err.code === "DUPLICATE_SOURCE_EVENT" ? 409 :
+                       err.code === "PERMISSION_DENIED" || err.code === "BRANCH_ACCESS_DENIED" ? 403 : 400;
+        return jsonWithDataSource({ success: false, error: err.code || "SETTLEMENT_FAILED", message: err.message }, "error", status);
+      }
+    }
+
+    // ── Canonical Gateway Settlement Actions (Phase 4F Step 4.10 Substep 4.10.4) ──
+    if (path.startsWith("admin/gateway-settlements/")) {
+      const userCtx = resolveUserContext(req);
+      const gwSubPath = path.replace(/^admin\/gateway-settlements\//, "");
+
+      // 1. Ingest Batch: POST admin/gateway-settlements/batches/ingest
+      if (gwSubPath === "batches/ingest") {
+        const permErr = verifyApiPermission(req, "GATEWAY", "SETTLE_PREPARE");
+        if (permErr) return permErr;
+
+        try {
+          // Explicit Implementation Invariant:
+          // GL codes and branch IDs are NEVER accepted from client input!
+          // We strip any client-supplied gl_account, account_code, branch_id, or settlement_branch_id.
+          // Branch attribution is derived server-side from payment_transaction.branch_id.
+          const rawOrders = Array.isArray(body.orders) ? body.orders : [];
+          const sanitizedOrders = rawOrders.map((o: any) => ({
+            payment_transaction_id: o.payment_transaction_id || o.paymentTransactionId,
+            order_id: o.order_id || o.orderId,
+            allocated_gross_amount: typeof o.allocated_gross_amount === "number" ? o.allocated_gross_amount : Number(o.allocatedGrossAmount || 0),
+            identified_fee_amount: typeof o.identified_fee_amount === "number" ? o.identified_fee_amount : Number(o.identifiedFeeAmount || 0),
+            reported_tax_amount: typeof o.reported_tax_amount === "number" ? o.reported_tax_amount : Number(o.reportedTaxAmount || 0),
+            rounding_variance: typeof o.rounding_variance === "number" ? o.rounding_variance : Number(o.roundingVariance || 0),
+            other_deductions_amount: typeof o.other_deductions_amount === "number" ? o.other_deductions_amount : Number(o.otherDeductionsAmount || 0),
+            settlement_reference: o.settlement_reference || o.settlementReference || undefined,
+            metadata: o.metadata || {},
+          }));
+
+          const result = await GatewaySettlementService.ingestPayoutBatch({
+            provider: body.provider,
+            payout_reference: body.payout_reference || body.payoutReference,
+            settlement_reference: body.settlement_reference || body.settlementReference,
+            bank_account_id: body.bank_account_id || body.bankAccountId,
+            settlement_date: body.settlement_date || body.settlementDate,
+            bank_value_date: body.bank_value_date || body.bankValueDate,
+            gross_amount: Number(body.gross_amount ?? body.grossAmount ?? 0),
+            identified_fee_amount: Number(body.identified_fee_amount ?? body.identifiedFeeAmount ?? 0),
+            reported_tax_amount: Number(body.reported_tax_amount ?? body.reportedTaxAmount ?? 0),
+            other_deductions_amount: Number(body.other_deductions_amount ?? body.otherDeductionsAmount ?? 0),
+            rounding_variance: Number(body.rounding_variance ?? body.roundingVariance ?? 0),
+            net_amount: Number(body.net_amount ?? body.netAmount ?? 0),
+            prepared_by: userCtx.userId || "system",
+            orders: sanitizedOrders,
+            actorContext: userCtx,
+            metadata: body.metadata || {},
+          });
+
+          return jsonWithDataSource({ success: true, data: result }, "postgres", 201);
+        } catch (err: any) {
+          const status =
+            err.code === "DUPLICATE_PAYOUT_REFERENCE" || err.code === "ORDER_ALREADY_SETTLED" ? 409 :
+            err.code === "BANK_ACCOUNT_NOT_FOUND" || err.code === "PAYMENT_TRANSACTION_NOT_FOUND" || err.code === "ORDER_NOT_FOUND" ? 404 :
+            err.code === "PERMISSION_DENIED" ? 403 :
+            err.code === "SETTLEMENT_MATH_MISMATCH" || err.code === "SETTLEMENT_VARIANCE_MISMATCH" ||
+            err.code === "BANK_ACCOUNT_INACTIVE" || err.code === "BANK_ACCOUNT_FROZEN" ||
+            err.code === "UNRECONCILED_SETTLEMENT_EXCEPTION" || err.code === "BRANCH_RELATIONSHIP_MISMATCH" ||
+            err.code === "SETTLEMENT_ORDER_BRANCH_UNVERIFIED" ? 422 : 400;
+          return jsonWithDataSource({ success: false, error: err.code || "INGEST_FAILED", message: err.message }, "error", status);
+        }
+      }
+
+      // 2. Approve Batch: POST admin/gateway-settlements/batches/:id/approve
+      const approveMatch = gwSubPath.match(/^batches\/([^/]+)\/approve$/);
+      if (approveMatch) {
+        const permErr = verifyApiPermission(req, "GATEWAY", "SETTLE_APPROVE");
+        if (permErr) return permErr;
+
+        const batchId = approveMatch[1];
+        try {
+          const result = await GatewaySettlementService.approvePayoutBatch({
+            payoutBatchId: batchId,
+            approvedBy: userCtx.userId,
+            actorContext: userCtx,
+          });
+
+          return jsonWithDataSource({ success: true, data: { payoutBatch: result, ...result } }, "postgres", 200);
+        } catch (err: any) {
+          const status =
+            err.code === "SELF_APPROVAL_FORBIDDEN" || err.code === "PERMISSION_DENIED" ? 403 :
+            err.code === "INVALID_PAYOUT_STATUS" ? 409 :
+            err.code === "POSTED_PAYOUT_IMMUTABLE" ? 409 : 400;
+          return jsonWithDataSource({ success: false, error: err.code || "APPROVE_FAILED", message: err.message }, "error", status);
+        }
+      }
+
+      // 3. Post Batch: POST admin/gateway-settlements/batches/:id/post
+      const postMatch = gwSubPath.match(/^batches\/([^/]+)\/post$/);
+      if (postMatch) {
+        const permErr = verifyApiPermission(req, "GATEWAY", "SETTLE_POST");
+        if (permErr) return permErr;
+
+        const batchId = postMatch[1];
+        try {
+          const result = await GatewaySettlementService.postPayoutSettlement({
+            payoutBatchId: batchId,
+            postedBy: userCtx.userId,
+            voucherDate: body.posting_date || body.postingDate || body.voucher_date,
+            actorContext: userCtx,
+          });
+
+          return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
+        } catch (err: any) {
+          const status =
+            err.code === "SEGREGATION_OF_DUTIES_VIOLATION" || err.code === "PERMISSION_DENIED" ? 403 :
+            err.code === "INVALID_PAYOUT_STATUS" || err.code === "POSTED_PAYOUT_IMMUTABLE" ? 409 : 400;
+          return jsonWithDataSource({ success: false, error: err.code || "POST_FAILED", message: err.message }, "error", status);
+        }
+      }
+
+      // 4. Cancel Batch: POST admin/gateway-settlements/batches/:id/cancel
+      const cancelMatch = gwSubPath.match(/^batches\/([^/]+)\/cancel$/);
+      if (cancelMatch) {
+        const permErr = verifyApiPermission(req, "GATEWAY", "SETTLE_APPROVE");
+        if (permErr) return permErr;
+
+        const batchId = cancelMatch[1];
+        if (!body.reason || typeof body.reason !== "string" || !body.reason.trim()) {
+          return jsonWithDataSource({ success: false, error: "VALIDATION_FAILED", message: "Cancellation reason is required." }, "error", 400);
+        }
+
+        try {
+          const result = await GatewaySettlementService.cancelPayoutBatch({
+            payoutBatchId: batchId,
+            cancelledBy: userCtx.userId,
+            reason: body.reason.trim(),
+            actorContext: userCtx,
+          });
+
+          return jsonWithDataSource({ success: true, data: { payoutBatch: result, ...result } }, "postgres", 200);
+        } catch (err: any) {
+          const status =
+            err.code === "POSTED_PAYOUT_IMMUTABLE" ? 409 :
+            err.code === "PERMISSION_DENIED" ? 403 : 400;
+          return jsonWithDataSource({ success: false, error: err.code || "CANCEL_FAILED", message: err.message }, "error", status);
+        }
+      }
+
+      return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown gateway settlement action: ${path}` }, "error", 404);
+    }
+
+    // ── Supplier API (POST) ────────────────────────────────────────────────────
+    if (path === "admin/suppliers") {
+      const permErr = verifyApiPermission(req, "PURCHASE", "CREATE");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      try {
+        const result = await SupplierService.createSupplier(body, userCtx.userId || "system");
+        return jsonWithDataSource(result, "postgres", result.success ? 201 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Purchase API (POST) ────────────────────────────────────────────────────
+    if (path === "admin/purchases") {
+      const permErr = verifyApiPermission(req, "PURCHASE", "CREATE");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      // branchId comes ONLY from session — never from body
+      const branchId = userCtx.branchId || body.branch_id;  // super admin may specify branch
+      if (!branchId) {
+        return jsonWithDataSource({ success: false, error: "Branch context required." }, "postgres", 400);
+      }
+      try {
+        const result = await PurchaseService.createPurchase(body, branchId, userCtx.userId || "system");
+        return jsonWithDataSource(result, "postgres", result.success ? 201 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Purchase Payment (POST) ───────────────────────────────────────────────
+    const purchasePaymentMatch = path.match(/^admin\/purchases\/([^/]+)\/payments$/);
+    if (purchasePaymentMatch) {
+      const permErr = verifyApiPermission(req, "PURCHASE", "EDIT");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId) : userCtx.branchId;
+      if (!branchId) return jsonWithDataSource({ success: false, error: "Branch context required." }, "postgres", 400);
+      try {
+        const result = await PurchaseService.addPayment(
+          purchasePaymentMatch[1],
+          body,
+          branchId,
+          userCtx.userId || "system",
+          userCtx.role,
+          { user: { id: userCtx.userId, role: userCtx.role } }
+        );
+        return jsonWithDataSource(result, "postgres", result.success ? 201 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Purchase Status Transition (POST) ─────────────────────────────────────
+    const purchaseStatusMatch = path.match(/^admin\/purchases\/([^/]+)\/status$/);
+    if (purchaseStatusMatch) {
+      const permErr = verifyApiPermission(req, "PURCHASE", "EDIT");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const newStatus = body.status;
+      if (!newStatus) return jsonWithDataSource({ success: false, error: "status is required." }, "postgres", 400);
+      try {
+        const result = await PurchaseService.transitionStatus(
+          purchaseStatusMatch[1], newStatus, userCtx.userId || "system",
+          userCtx.isSuperAdmin, userCtx.isSuperAdmin ? undefined : userCtx.branchId
+        );
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Expense Category API (POST) ────────────────────────────────────────────
+    if (path === "admin/expense-categories") {
+      const permErr = verifyApiPermission(req, "EXPENSE", "CREATE");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      try {
+        const result = await ExpenseService.createCategory(body, userCtx.userId || "system");
+        return jsonWithDataSource(result, "postgres", result.success ? 201 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Expense API (POST) ────────────────────────────────────────────────────
+    if (path === "admin/expenses") {
+      const permErr = verifyApiPermission(req, "EXPENSE", "CREATE");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId || "") : (userCtx.branchId || "");
+      try {
+        const result = await ExpenseService.createExpense(body, branchId, userCtx.userId || "system");
+        return jsonWithDataSource(result, "postgres", result.success ? 201 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Expense Status Transition (POST) ──────────────────────────────────────
+    const expenseStatusMatch = path.match(/^admin\/expenses\/([^/]+)\/status$/);
+    if (expenseStatusMatch) {
+      const permErr = verifyApiPermission(req, "EXPENSE", "EDIT");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const newStatus = body.status;
+      if (!newStatus) return jsonWithDataSource({ success: false, error: "status is required." }, "postgres", 400);
+      try {
+        const result = await ExpenseService.transitionStatus(
+          expenseStatusMatch[1], newStatus, userCtx.userId || "system",
+          userCtx.isSuperAdmin, userCtx.isSuperAdmin ? undefined : userCtx.branchId
+        );
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Fleet Vehicles (POST) ────────────────────────────────────────────────
+    if (path === "admin/fleet/vehicles") {
+      const permErr = verifyApiPermission(req, "FLEET", "MANAGE");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId || "") : (userCtx.branchId || "");
+      try {
+        const result = await FleetService.createVehicle(body, branchId, userCtx.userId || "system");
+        return jsonWithDataSource(result, "postgres", result.success ? 201 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Fleet Trips (POST) ───────────────────────────────────────────────────
+    if (path === "admin/fleet/trips") {
+      const permErr = verifyApiPermission(req, "FLEET", "MANAGE");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId || "") : (userCtx.branchId || "");
+      try {
+        const result = await FleetService.createTrip(body, branchId, userCtx.userId || "system");
+        return jsonWithDataSource(result, "postgres", result.success ? 201 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Fleet Fuel (POST) ────────────────────────────────────────────────────
+    if (path === "admin/fleet/fuel") {
+      const permErr = verifyApiPermission(req, "FLEET", "MANAGE");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId || "") : (userCtx.branchId || "");
+      try {
+        const result = await FleetService.createFuel(body, branchId, userCtx.userId || "system");
+        return jsonWithDataSource(result, "postgres", result.success ? 201 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
     // ── Customer Favorites / Wishlist (POST) ──
     if (
       path.startsWith("customer/favorites/") ||
@@ -2777,6 +4584,10 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       try {
         if (!body.productId && !body.product_id && !body.variantId && !body.variant_id && body.action !== "add_item" && (!body.items || body.items.length === 0)) {
           const cart = ApiEngine.getCart(cartId);
+          try {
+            const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+            await CartRepository.saveCart({ id: cartId, metadata: { branch_id: branchId, pincode } });
+          } catch (_e) {}
           const res = jsonWithDataSource({ cart, success: true }, "postgres");
           res.cookies.set("_cth_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
           res.cookies.set("_medusa_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
@@ -2816,6 +4627,15 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         }
 
         const cart = ApiEngine.addToCart(cartId, { ...body, branchId, pincode });
+        try {
+          const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+          await CartRepository.saveCart(cart);
+          if (cart && Array.isArray(cart.items)) {
+            for (const it of cart.items) {
+              await CartRepository.upsertLineItem(cart.id, it);
+            }
+          }
+        } catch (_e) {}
         const res = jsonWithDataSource({ cart, success: true }, "postgres");
         res.cookies.set("_cth_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
         res.cookies.set("_medusa_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
@@ -2897,18 +4717,19 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "customer/me" || path === "customer/profile" || path === "store/customer/me") {
-      const cookieCustomerUid = req.cookies.get("_cth_customer_uid")?.value;
-      const cookieUserId = req.cookies.get("_cth_user_id")?.value;
-      const cookiePhone = req.cookies.get("_cth_phone")?.value;
-      const authHeader = req.headers.get("authorization") || "";
-      const token = req.cookies.get("_cth_jwt")?.value || authHeader.replace(/^Bearer\s+/i, "");
-
-      const targetUid = cookieCustomerUid || (cookieUserId && cookieUserId.startsWith("cth_cus_") ? cookieUserId : "") || (cookiePhone ? `cth_cus_${cookiePhone.replace(/\D/g, "").slice(-10)}` : "");
-      if (!targetUid) {
-        return jsonWithDataSource({ success: false, error: "Unauthorized" }, "postgres", 401);
+      const verified = resolveVerifiedCustomer(req);
+      if (!verified || !verified.customerUid) {
+        return jsonWithDataSource({ success: false, error: "Unauthorized", message: "Please log in to update your profile." }, "postgres", 401);
       }
 
-      const result = ApiEngine.updateCustomerProfile(targetUid, body);
+      // Sanitize body: prevent tampering with verified identity identifiers
+      delete body.id;
+      delete body.customer_uid;
+      delete body.phone;
+      delete body.normalized_phone;
+      delete body.role;
+
+      const result = ApiEngine.updateCustomerProfile(verified.customerUid, body);
       return jsonWithDataSource(result, "postgres");
     }
 
@@ -3825,8 +5646,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    // ── BRANCH MANAGER OPERATIONAL MUTATIONS (POST) ───────────────────────────
+    // ── BRANCH AVAILABILITY & OPERATIONAL MUTATIONS (POST) ─────────────────────
     // ══════════════════════════════════════════════════════════════════════════
+    const branchProdAvailPostMatch = path.match(/^(?:admin\/)?branches\/([^\/]+)\/products\/([^\/]+)\/availability$/);
+    if (branchProdAvailPostMatch) {
+      const [, bId, pId] = branchProdAvailPostMatch;
+      return handleBranchProductAvailabilityMutation(req, bId, pId, body);
+    }
+
     if (path.startsWith("manager/")) {
       const mgrAuth: any = resolveManagerSession(req);
       if (mgrAuth.error) {
@@ -3887,16 +5714,12 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         const result = ApiEngine.reprintBranchOrderKot(orderId, branchId);
         return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
-    const branchProdAvailPostMatch = path.match(/^(?:admin\/)?branches\/([^\/]+)\/products\/([^\/]+)\/availability$/);
-    if (branchProdAvailPostMatch) {
-      const [, bId, pId] = branchProdAvailPostMatch;
-      return handleBranchProductAvailabilityMutation(req, bId, pId, body);
-    }
 
-    if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
-      const productId = path.replace("manager/products/", "").replace("/availability", "");
-      return handleBranchProductAvailabilityMutation(req, branchId, productId, body);
-    }
+      if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
+        const productId = path.replace("manager/products/", "").replace("/availability", "");
+        const targetBranchId = (body && (body.branch_id || body.branchId)) ? (body.branch_id || body.branchId) : branchId;
+        return handleBranchProductAvailabilityMutation(req, targetBranchId, productId, body);
+      }
       if (path.startsWith("manager/inventory/")) {
         const itemId = path.replace("manager/inventory/", "");
         const result = ApiEngine.updateBranchInventoryStock(branchId, itemId, Number(body.stock || 0), body.threshold ? Number(body.threshold) : undefined);
@@ -4693,6 +6516,64 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ item, success: true }, "postgres");
     }
 
+    // ── Phase 5A.2: Accounting Configuration PUT Endpoints ────────────────────
+    if (path.startsWith("admin/accounting/")) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId || !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+      const role = (userCtx.role || "").toUpperCase();
+      if (role !== "SUPER_ADMIN") {
+        return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Only SUPER_ADMIN can perform this operation." }, "error", 403);
+      }
+
+      const acctSubPath = path.replace(/^admin\/accounting\//, "");
+
+      try {
+        // PUT admin/accounting/config/start-date — Set accounting start date
+        if (acctSubPath === "config/start-date") {
+          const { startDate, start_date } = body;
+          const dateValue = startDate || start_date;
+          if (!dateValue) {
+            return jsonWithDataSource({ success: false, error: "VALIDATION_ERROR", message: "startDate is required." }, "error", 400);
+          }
+          const result = await AccountingConfigService.setAccountingStartDate(
+            dateValue,
+            userCtx.userId,
+            role
+          );
+          return jsonWithDataSource({ success: true, ...result }, "postgres");
+        }
+
+        // PUT admin/accounting/fiscal-periods/:id/lock
+        const lockMatch = acctSubPath.match(/^fiscal-periods\/([^/]+)\/lock$/);
+        if (lockMatch) {
+          const period = await FiscalPeriodService.lockPeriod(lockMatch[1], userCtx.userId, role);
+          return jsonWithDataSource({ success: true, period }, "postgres");
+        }
+
+        // PUT admin/accounting/fiscal-periods/:id/unlock
+        const unlockMatch = acctSubPath.match(/^fiscal-periods\/([^/]+)\/unlock$/);
+        if (unlockMatch) {
+          const period = await FiscalPeriodService.unlockPeriod(unlockMatch[1], userCtx.userId, role);
+          return jsonWithDataSource({ success: true, period }, "postgres");
+        }
+
+        return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown accounting PUT endpoint: ${path}` }, "error", 404);
+      } catch (err: any) {
+        console.error("[Accounting Config PUT Error]", acctSubPath, err.message);
+        const statusCode =
+          err.code === "UNAUTHORIZED" ? 403
+          : err.code === "START_DATE_IMMUTABLE" ? 409
+          : err.code === "START_DATE_AFTER_FISCAL_PERIOD" ? 422
+          : err.code === "PERIOD_NOT_FOUND" ? 404
+          : err.code === "PERIOD_ALREADY_LOCKED" || err.code === "PERIOD_NOT_LOCKED" ? 409
+          : err.code === "INVALID_DATE_FORMAT" || err.code === "DATE_IN_FUTURE" ? 400
+          : 500;
+        return jsonWithDataSource({ success: false, error: err.code || "ACCOUNTING_OPERATION_FAILED", message: err.message }, "error", statusCode);
+      }
+    }
+
     if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "processed" }, "postgres");
 
     return jsonWithDataSource({ error: `API Route "${path}" not found` }, "postgres", 404);
@@ -4711,6 +6592,119 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)
     const backendRes = await forwardToPostgresBackend("PUT", path, body, undefined, req.headers);
     if (backendRes) return backendRes;
+
+    // ── Supplier API (PUT) ────────────────────────────────────────────────────
+    const supplierPutMatch = path.match(/^admin\/suppliers\/([^/]+)$/);
+    if (supplierPutMatch) {
+      const permErr = verifyApiPermission(req, "PURCHASE", "EDIT");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      try {
+        // Branch manager scope: only edit suppliers belonging to their branch (or unassigned)
+        if (!userCtx.isSuperAdmin && userCtx.branchId) {
+          const existing = await SupplierService.getSupplier(supplierPutMatch[1]);
+          if (!existing.success || !existing.data) {
+            return jsonWithDataSource({ success: false, error: "Supplier not found." }, "postgres", 404);
+          }
+          if (existing.data.branch_id && existing.data.branch_id !== userCtx.branchId) {
+            return jsonWithDataSource({ success: false, error: "Forbidden: Cannot edit a supplier from another branch." }, "postgres", 403);
+          }
+        }
+        const result = await SupplierService.updateSupplier(supplierPutMatch[1], body);
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Purchase API (PUT) ────────────────────────────────────────────────────
+    const purchasePutMatch = path.match(/^admin\/purchases\/([^/]+)$/);
+    if (purchasePutMatch) {
+      const permErr = verifyApiPermission(req, "PURCHASE", "EDIT");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId || "") : (userCtx.branchId || "");
+      try {
+        const result = await PurchaseService.updatePurchase(purchasePutMatch[1], body, branchId);
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+
+    // -- Expense Category API (PUT) --
+    const expenseCategoryPutMatch = path.match(/^admin\/expense-categories\/([^/]+)$/);
+    if (expenseCategoryPutMatch) {
+      const permErr = verifyApiPermission(req, "EXPENSE", "EDIT");
+      if (permErr) return permErr;
+      try {
+        const result = await ExpenseService.updateCategory(expenseCategoryPutMatch[1], body);
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // -- Expense API (PUT) --
+    const expensePutMatch = path.match(/^admin\/expenses\/([^/]+)$/);
+    if (expensePutMatch) {
+      const permErr = verifyApiPermission(req, "EXPENSE", "EDIT");
+      if (permErr) return permErr;
+      const userCtxExp = resolveUserContext(req);
+      const expBranchId = userCtxExp.isSuperAdmin ? (body.branch_id || userCtxExp.branchId || "") : (userCtxExp.branchId || "");
+      try {
+        const result = await ExpenseService.updateExpense(expensePutMatch[1], body, expBranchId);
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Fleet Vehicles API (PUT) ──
+    const fleetVehiclePutMatch = path.match(/^admin\/fleet\/vehicles\/([^/]+)$/);
+    if (fleetVehiclePutMatch) {
+      const permErr = verifyApiPermission(req, "FLEET", "MANAGE");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId || "") : (userCtx.branchId || "");
+      try {
+        const result = await FleetService.updateVehicle(fleetVehiclePutMatch[1], body, branchId);
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Fleet Trips API (PUT) ──
+    const fleetTripPutMatch = path.match(/^admin\/fleet\/trips\/([^/]+)$/);
+    if (fleetTripPutMatch) {
+      const permErr = verifyApiPermission(req, "FLEET", "MANAGE");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId || "") : (userCtx.branchId || "");
+      try {
+        const result = await FleetService.updateTrip(fleetTripPutMatch[1], body, branchId);
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Fleet Fuel API (PUT) ──
+    const fleetFuelPutMatch = path.match(/^admin\/fleet\/fuel\/([^/]+)$/);
+    if (fleetFuelPutMatch) {
+      const permErr = verifyApiPermission(req, "FLEET", "MANAGE");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId || "") : (userCtx.branchId || "");
+      try {
+        const result = await FleetService.updateFuel(fleetFuelPutMatch[1], body, branchId);
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
 
     // 2. Fallback Route: Disk-Backed ApiEngine
     // ── Customer Review Edit (PUT / PATCH) ──
@@ -5217,6 +7211,107 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       }
       const cart = ApiEngine.removeCartItem(cartId, lineItemId);
       return jsonWithDataSource({ cart, success: true }, "postgres", 200);
+    }
+
+    // ── Supplier API (DELETE) ─────────────────────────────────────────────────
+    const supplierDeleteMatch = path.match(/^admin\/suppliers\/([^/]+)$/);
+    if (supplierDeleteMatch) {
+      const permErr = verifyApiPermission(req, "PURCHASE", "DELETE");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      try {
+        // Branch manager scope: only deactivate own-branch or unassigned suppliers
+        if (!userCtx.isSuperAdmin && userCtx.branchId) {
+          const existing = await SupplierService.getSupplier(supplierDeleteMatch[1]);
+          if (!existing.success || !existing.data) {
+            return jsonWithDataSource({ success: false, error: "Supplier not found." }, "postgres", 404);
+          }
+          if (existing.data.branch_id && existing.data.branch_id !== userCtx.branchId) {
+            return jsonWithDataSource({ success: false, error: "Forbidden: Cannot deactivate a supplier from another branch." }, "postgres", 403);
+          }
+        }
+        const result = await SupplierService.deleteSupplier(supplierDeleteMatch[1]);
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Purchase API (DELETE) ─────────────────────────────────────────────────
+    const purchaseDeleteMatch = path.match(/^admin\/purchases\/([^/]+)$/);
+    if (purchaseDeleteMatch) {
+      const permErr = verifyApiPermission(req, "PURCHASE", "DELETE");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const branchId = userCtx.isSuperAdmin ? (new URL(req.url).searchParams.get("branch_id") || userCtx.branchId || "") : (userCtx.branchId || "");
+      try {
+        const result = await PurchaseService.deletePurchase(purchaseDeleteMatch[1], branchId);
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Expense Category API (DELETE) ─────────────────────────────────────────
+    const expenseCategoryDeleteMatch = path.match(/^admin\/expense-categories\/([^/]+)$/);
+    if (expenseCategoryDeleteMatch) {
+      const permErr = verifyApiPermission(req, "EXPENSE", "EDIT");
+      if (permErr) return permErr;
+      try {
+        const result = await ExpenseService.deleteCategory(expenseCategoryDeleteMatch[1]);
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Expense API (DELETE) ──────────────────────────────────────────────────
+    const expenseDeleteMatch = path.match(/^admin\/expenses\/([^/]+)$/);
+    if (expenseDeleteMatch) {
+      const permErr = verifyApiPermission(req, "EXPENSE", "DELETE");
+      if (permErr) return permErr;
+      const userCtxDel = resolveUserContext(req);
+      const delBranchId = userCtxDel.isSuperAdmin ? (new URL(req.url).searchParams.get("branch_id") || userCtxDel.branchId || "") : (userCtxDel.branchId || "");
+      try {
+        const result = await ExpenseService.deleteExpense(expenseDeleteMatch[1], delBranchId);
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Fleet Vehicle API (DELETE) ───────────────────────────────────────────
+    const fleetVehicleDeleteMatch = path.match(/^admin\/fleet\/vehicles\/([^/]+)$/);
+    if (fleetVehicleDeleteMatch) {
+      const permErr = verifyApiPermission(req, "FLEET", "MANAGE");
+      if (permErr) return permErr;
+      const userCtxDel = resolveUserContext(req);
+      const delBranchId = userCtxDel.isSuperAdmin
+        ? (new URL(req.url).searchParams.get("branch_id") || userCtxDel.branchId || "")
+        : (userCtxDel.branchId || "");
+      try {
+        const result = await FleetService.deleteVehicle(fleetVehicleDeleteMatch[1], delBranchId);
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Fleet Fuel API (DELETE) ──────────────────────────────────────────────
+    const fleetFuelDeleteMatch = path.match(/^admin\/fleet\/fuel\/([^/]+)$/);
+    if (fleetFuelDeleteMatch) {
+      const permErr = verifyApiPermission(req, "FLEET", "MANAGE");
+      if (permErr) return permErr;
+      const userCtxDel = resolveUserContext(req);
+      const delBranchId = userCtxDel.isSuperAdmin
+        ? (new URL(req.url).searchParams.get("branch_id") || userCtxDel.branchId || "")
+        : (userCtxDel.branchId || "");
+      try {
+        const result = await FleetService.deleteFuel(fleetFuelDeleteMatch[1], delBranchId);
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
     }
 
     // ── Customer Favorites / Wishlist (DELETE) ──

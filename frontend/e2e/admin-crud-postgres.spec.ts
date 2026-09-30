@@ -352,9 +352,12 @@ test.describe('Master Admin PostgreSQL Pipeline E2E Playwright Suite — 100% Re
 
   test('16. Full KDS Order Lifecycle Progression: Real Order through all 6 statuses (200 OK + History Audit)', async ({ request }) => {
     // 1. Create a fresh order directly in PostgreSQL for clean lifecycle testing
-    const orderId = `order_e2e_kds_${Date.now()}`;
-    const { Client } = require('../../backend/node_modules/pg');
-    const client = new Client({ connectionString: 'postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres', ssl: { rejectUnauthorized: false } });
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      test.skip(true, "DATABASE_URL environment variable required for direct DB lifecycle test");
+      return;
+    }
+    const client = new Client({ connectionString, ssl: { rejectUnauthorized: false } });
     await client.connect();
     await client.query(`
       INSERT INTO "order" (id, status, currency_code, display_id, email, customer_id, created_at, updated_at)

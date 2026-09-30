@@ -1,9 +1,11 @@
 import { Client } from "pg";
 import { OrderRepository } from "../src/lib/repositories/order.repository";
 
-const connectionString =
-  process.env.DATABASE_URL ||
-  "postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres";
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error("DATABASE_URL environment variable is required.");
+  process.exit(1);
+}
 
 async function run() {
   const client = new Client({

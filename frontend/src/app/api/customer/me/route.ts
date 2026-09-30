@@ -1,30 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resolveVerifiedCustomer } from "@frontend/lib/security/auth-session";
 
 export const dynamic = "force-dynamic";
 
-function getSessionParams(req: NextRequest) {
-  const cookieHeader = req.headers.get("cookie") || "";
-  const authHeader = req.headers.get("authorization") || "";
-
-  const cookiesObj: Record<string, string> = {};
-  cookieHeader.split(";").forEach((c) => {
-    const [k, ...v] = c.trim().split("=");
-    if (k) cookiesObj[k] = decodeURIComponent(v.join("="));
-  });
-
-  const customerUid = req.cookies.get("_cth_customer_uid")?.value || cookiesObj["_cth_customer_uid"] || req.headers.get("x-customer-uid") || "";
-  const userId = req.cookies.get("_cth_user_id")?.value || cookiesObj["_cth_user_id"] || req.headers.get("x-user-id") || "";
-  const phone = req.cookies.get("_cth_phone")?.value || cookiesObj["_cth_phone"] || req.headers.get("x-phone") || "";
-  const token = req.cookies.get("_cth_jwt")?.value || cookiesObj["_cth_jwt"] || authHeader.replace(/^Bearer\s+/i, "");
-
-  return { customerUid, userId, phone, token };
-}
-
 export async function GET(req: NextRequest) {
   try {
-    const { customerUid, userId, phone, token } = getSessionParams(req);
+    const verified = resolveVerifiedCustomer(req);
 
-    if (!customerUid && !userId && !phone && !token) {
+    if (!verified) {
       return NextResponse.json(
         { success: true, customer: null, message: "No active authenticated session." },
         { status: 200 }
@@ -32,7 +15,7 @@ export async function GET(req: NextRequest) {
     }
 
     const { ApiEngine } = await import("@frontend/lib/api-engine");
-    const customer = ApiEngine.getCustomerMe({ customerUid, userId, phone, token });
+    const customer = ApiEngine.getCustomerMe({ customerUid: verified.customerUid, userId: verified.userId, phone: verified.phone });
     if (!customer) {
       return NextResponse.json(
         { success: true, customer: null, message: "Customer profile not found." },
@@ -54,9 +37,9 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const { customerUid, userId, phone, token } = getSessionParams(req);
+    const verified = resolveVerifiedCustomer(req);
 
-    if (!customerUid && !userId && !phone && !token) {
+    if (!verified) {
       return NextResponse.json(
         { success: false, error: "UNAUTHORIZED", message: "Authentication required." },
         { status: 401 }
@@ -64,16 +47,15 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const targetUid = customerUid || (userId && userId.startsWith("cth_cus_") ? userId : "") || (phone ? `cth_cus_${phone.replace(/\D/g, "").slice(-10)}` : "");
-    if (!targetUid) {
-      return NextResponse.json(
-        { success: false, error: "BAD_REQUEST", message: "Unable to identify customer account." },
-        { status: 400 }
-      );
-    }
+    // Sanitize body: prevent tampering with verified identity
+    delete body.id;
+    delete body.customer_uid;
+    delete body.phone;
+    delete body.normalized_phone;
+    delete body.role;
 
     const { ApiEngine } = await import("@frontend/lib/api-engine");
-    const result: any = ApiEngine.updateCustomerProfile(targetUid, body);
+    const result: any = ApiEngine.updateCustomerProfile(verified.customerUid, body);
     if (!result || !result.success) {
       return NextResponse.json(
         { success: false, error: "UPDATE_FAILED", message: result?.error || "Failed to update profile." },

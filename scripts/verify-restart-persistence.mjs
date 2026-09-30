@@ -7,9 +7,10 @@ const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
 const { Pool } = require(path.join(__dirname, "../frontend/node_modules/pg"));
 
-const DATABASE_URL =
-  process.env.DATABASE_URL ||
-  "postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres";
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  throw new Error("FATAL: DATABASE_URL environment variable is required.");
+}
 
 const pool = new Pool({
   connectionString: DATABASE_URL,

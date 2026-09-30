@@ -2,11 +2,8 @@
  * CakeToHome Storefront Session Cookie Management
  */
 
-import { jwtVerify } from "jose";
 import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
-
-const jwtSecret = process.env.JWT_SECRET || "supersecret";
 
 export function createSession(token: string) {
   if (!token) return;
@@ -53,16 +50,4 @@ export function destroySession() {
 
   revalidateTag("user");
   revalidateTag("users");
-}
-
-export async function decrypt(session: string | undefined = ""): Promise<object | { message: string }> {
-  try {
-    const encoder = new TextEncoder();
-    const keyData = encoder.encode(jwtSecret);
-    const cryptoKey = await crypto.subtle.importKey("raw", keyData, { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
-    const { payload } = await jwtVerify(session, cryptoKey, { algorithms: ["HS256"] });
-    return payload;
-  } catch (error) {
-    return { message: "Error decrypting session" };
-  }
 }

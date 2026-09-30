@@ -1,0 +1,766 @@
+{
+  "payment_transaction_columns": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "company_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "branch_id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "order_id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "customer_id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "amount",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "currency",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "idempotency_key",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "status",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "'pending'::text"
+    },
+    {
+      "column_name": "settlement_status",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "'unsettled'::text"
+    },
+    {
+      "column_name": "provider",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "'cod'::text"
+    },
+    {
+      "column_name": "provider_ref",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "column_name": "deleted_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    }
+  ],
+  "payment_transaction_constraints": [
+    {
+      "conname": "payment_transaction_pkey",
+      "def": "PRIMARY KEY (id)"
+    }
+  ],
+  "payment_transaction_indexes": [
+    {
+      "indexname": "payment_transaction_pkey",
+      "indexdef": "CREATE UNIQUE INDEX payment_transaction_pkey ON public.payment_transaction USING btree (id)"
+    },
+    {
+      "indexname": "IDX_payment_transaction_deleted_at",
+      "indexdef": "CREATE INDEX \"IDX_payment_transaction_deleted_at\" ON public.payment_transaction USING btree (deleted_at) WHERE (deleted_at IS NULL)"
+    },
+    {
+      "indexname": "idx_payment_transaction_order_id",
+      "indexdef": "CREATE INDEX idx_payment_transaction_order_id ON public.payment_transaction USING btree (order_id) WHERE (deleted_at IS NULL)"
+    },
+    {
+      "indexname": "idx_payment_transaction_idempotency",
+      "indexdef": "CREATE INDEX idx_payment_transaction_idempotency ON public.payment_transaction USING btree (idempotency_key) WHERE ((deleted_at IS NULL) AND (idempotency_key IS NOT NULL))"
+    }
+  ],
+  "payment_transaction_distribution": [
+    {
+      "status": "captured",
+      "provider": "card",
+      "cnt": "2",
+      "min_amt": 534,
+      "max_amt": 534
+    },
+    {
+      "status": "captured",
+      "provider": "cod",
+      "cnt": "2",
+      "min_amt": 798,
+      "max_amt": 798
+    },
+    {
+      "status": "captured",
+      "provider": "upi",
+      "cnt": "2",
+      "min_amt": 1069,
+      "max_amt": 1069
+    },
+    {
+      "status": "partially_refunded",
+      "provider": "cod",
+      "cnt": "3",
+      "min_amt": 1500,
+      "max_amt": 2500
+    },
+    {
+      "status": "pending",
+      "provider": "cod",
+      "cnt": "43",
+      "min_amt": 117,
+      "max_amt": 1500
+    },
+    {
+      "status": "refunded",
+      "provider": "cod",
+      "cnt": "1",
+      "min_amt": 2000,
+      "max_amt": 2000
+    }
+  ],
+  "payment_transaction_samples": [
+    {
+      "id": "paytxn_01KYYYJG204KACE7PGWMVCCRGN",
+      "company_id": "default_company",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "order_id": "order_real_100",
+      "customer_id": "cus_01KYWJADM819171B7VST0JKQWR",
+      "amount": 1500,
+      "currency": "INR",
+      "idempotency_key": null,
+      "status": "partially_refunded",
+      "settlement_status": "settled",
+      "provider": "cod",
+      "provider_ref": "cod_order_real_100_1785597607948",
+      "created_at": "2026-08-01T15:20:08.000Z",
+      "updated_at": "2026-08-01T15:20:13.118Z",
+      "deleted_at": null
+    },
+    {
+      "id": "paytxn_01KYYZ76HB0FP96XYDQY8TAR2R",
+      "company_id": "default_company",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "order_id": "order_pay_test_1785598286186",
+      "customer_id": "cus_01KYWJADM819171B7VST0JKQWR",
+      "amount": 2500,
+      "currency": "INR",
+      "idempotency_key": null,
+      "status": "partially_refunded",
+      "settlement_status": "settled",
+      "provider": "cod",
+      "provider_ref": "cod_order_pay_test_1785598286186_1785598286326",
+      "created_at": "2026-08-01T15:31:26.380Z",
+      "updated_at": "2026-08-01T15:31:27.430Z",
+      "deleted_at": null
+    },
+    {
+      "id": "paytxn_01KYYZ8WFVF85FARSRP8TEH6JH",
+      "company_id": "default_company",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "order_id": "order_pay_test_1785598341458",
+      "customer_id": "cus_01KYWJADM819171B7VST0JKQWR",
+      "amount": 2500,
+      "currency": "INR",
+      "idempotency_key": null,
+      "status": "partially_refunded",
+      "settlement_status": "settled",
+      "provider": "cod",
+      "provider_ref": "cod_order_pay_test_1785598341458_1785598341581",
+      "created_at": "2026-08-01T15:32:21.627Z",
+      "updated_at": "2026-08-01T15:32:22.681Z",
+      "deleted_at": null
+    },
+    {
+      "id": "paytxn_01KYYZYEYXQ43Z3T83SBQ3GBQZ",
+      "company_id": "default_company",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "order_id": "order_audit_100",
+      "customer_id": "cus_01KYWJADM819171B7VST0JKQWR",
+      "amount": 2000,
+      "currency": "INR",
+      "idempotency_key": "idem_key_1785599048435",
+      "status": "refunded",
+      "settlement_status": "settled",
+      "provider": "cod",
+      "provider_ref": "cod_order_audit_100_1785599048624",
+      "created_at": "2026-08-01T15:44:08.669Z",
+      "updated_at": "2026-08-01T15:44:10.351Z",
+      "deleted_at": null
+    },
+    {
+      "id": "paytxn_01KYZ0CHE5G8RS5JD74KXGK3S3",
+      "company_id": "default_company",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "order_id": "order_conc_1785599509595",
+      "customer_id": "cus_01KYWJADM819171B7VST0JKQWR",
+      "amount": 1500,
+      "currency": "INR",
+      "idempotency_key": "concurrency_idem_1785599509595",
+      "status": "pending",
+      "settlement_status": "unsettled",
+      "provider": "cod",
+      "provider_ref": "cod_order_conc_1785599509595_1785599509910",
+      "created_at": "2026-08-01T15:51:49.958Z",
+      "updated_at": "2026-08-01T15:51:49.958Z",
+      "deleted_at": null
+    }
+  ],
+  "coa_accounts": [
+    {
+      "id": "afdd90ab-7096-41fd-a268-7df89f7ed9b0",
+      "code": "1111",
+      "name": "Cash in Hand",
+      "type": "ASSET",
+      "subtype": "CASH",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true,
+      "parent_id": "5ca4950b-0617-4969-adc3-bbfb7797fe19"
+    },
+    {
+      "id": "e1138b91-246c-4411-8da4-bdfa2ac6c3ad",
+      "code": "1112",
+      "name": "Bank Operating A/c",
+      "type": "ASSET",
+      "subtype": "BANK",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true,
+      "parent_id": "5ca4950b-0617-4969-adc3-bbfb7797fe19"
+    },
+    {
+      "id": "2ca1f612-9b0d-4d20-a075-4acd2b1330ab",
+      "code": "1113",
+      "name": "Gateway Clearing",
+      "type": "ASSET",
+      "subtype": "GATEWAY_CLEARING",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true,
+      "parent_id": "5ca4950b-0617-4969-adc3-bbfb7797fe19"
+    },
+    {
+      "id": "bf1f8d20-8ad7-4a1b-bc0a-2870c1cca62f",
+      "code": "1121",
+      "name": "Accounts Receivable",
+      "type": "ASSET",
+      "subtype": "RECEIVABLE",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true,
+      "parent_id": "888b0bbe-d9c9-44d5-b832-b0a2adb65249"
+    },
+    {
+      "id": "c69f13a4-2f99-4b1a-8851-04236c9ff0ed",
+      "code": "1122",
+      "name": "Undeposited COD",
+      "type": "ASSET",
+      "subtype": "CURRENT_ASSET",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true,
+      "parent_id": "888b0bbe-d9c9-44d5-b832-b0a2adb65249"
+    },
+    {
+      "id": "bc207ba6-0ce6-43c1-8994-f1a92a6b5934",
+      "code": "5290",
+      "name": "Payment Gateway MDR Fees",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_system": true,
+      "is_active": true,
+      "parent_id": "a6e839b5-5748-45b2-9726-5664f5e8345c"
+    }
+  ],
+  "expense_accounts": [
+    {
+      "id": "03259507-b718-46b1-9eef-197c417c7878",
+      "code": "5000",
+      "name": "Expenses",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": true,
+      "is_active": true
+    },
+    {
+      "id": "25988c8d-ba97-41f1-8b01-ae7737f5977d",
+      "code": "5100",
+      "name": "Cost of Goods Sold (COGS)",
+      "type": "EXPENSE",
+      "subtype": "COGS",
+      "is_group": true,
+      "is_active": true
+    },
+    {
+      "id": "f89f2d9a-aa0f-4147-9330-c283e0c6c347",
+      "code": "5110",
+      "name": "COGS - Cakes",
+      "type": "EXPENSE",
+      "subtype": "COGS",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "f442bf38-e8d5-4161-88f2-e5e62bf3c7aa",
+      "code": "5120",
+      "name": "Accessory Merchandise Sold (Cost of Accessories)",
+      "type": "EXPENSE",
+      "subtype": "COGS",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "de05ba04-da74-47fe-8150-9e0a9f8d9235",
+      "code": "5130",
+      "name": "Packaging Materials Consumed",
+      "type": "EXPENSE",
+      "subtype": "COGS",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "08fa354d-e5f6-48d5-9492-52a15d263bb3",
+      "code": "5140",
+      "name": "Kitchen Direct Labour / Chef Wages",
+      "type": "EXPENSE",
+      "subtype": "COGS",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "3eef0e45-81cc-4e7e-91f9-844408497656",
+      "code": "5190",
+      "name": "Purchase Discounts Received",
+      "type": "EXPENSE",
+      "subtype": "COGS",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "a6e839b5-5748-45b2-9726-5664f5e8345c",
+      "code": "5200",
+      "name": "Operational & Administrative Expenses",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": true,
+      "is_active": true
+    },
+    {
+      "id": "3e4507b6-ee96-43ad-8cde-8153a65af80d",
+      "code": "5210",
+      "name": "Store & Kitchen Rent",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "57c72c3a-a31b-4daa-b113-54a54039a1d0",
+      "code": "5220",
+      "name": "Electricity, Gas & Utilities",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "a2abd1b7-b62f-424b-bbbb-16ec65064bb5",
+      "code": "5230",
+      "name": "Vehicle Fuel & Fleet Maintenance",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "5f868702-aa8b-4fd7-b503-759996d916c7",
+      "code": "5240",
+      "name": "Freight & Cartage Inward",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "875c307d-7d39-41a3-a24c-f5646e586538",
+      "code": "5250",
+      "name": "Staff Salaries & Store Personnel",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "6731a292-d8a9-419e-a7bd-48ade07a3d21",
+      "code": "5260",
+      "name": "Marketing & Customer Promotion",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "3f4a8a46-5fe6-475f-935c-f72d4ba3d499",
+      "code": "5270",
+      "name": "Repairs & Kitchen Maintenance",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "3cdd647d-8bea-4d36-a4ff-63c990ec3a7b",
+      "code": "5280",
+      "name": "Software, Internet & Tech Infrastructure",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "bc207ba6-0ce6-43c1-8994-f1a92a6b5934",
+      "code": "5290",
+      "name": "Payment Gateway MDR Fees",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "d493deda-377e-4a5e-8104-8b29303e56eb",
+      "code": "5295",
+      "name": "Cash Rounding / Variance",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "0bdebe82-6544-4172-9328-c4a9466f694b",
+      "code": "5299",
+      "name": "Miscellaneous Operating Expenses",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "c7ffe881-d999-4fb0-b1b8-40f550e059f3",
+      "code": "5300",
+      "name": "Financial & Depreciation Expenses",
+      "type": "EXPENSE",
+      "subtype": "FINANCIAL_EXPENSE",
+      "is_group": true,
+      "is_active": true
+    },
+    {
+      "id": "f087b654-c7e6-4c74-b7f7-2305972ea44c",
+      "code": "5310",
+      "name": "Bank Charges & Processing Fees",
+      "type": "EXPENSE",
+      "subtype": "FINANCIAL_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "6c349101-8491-48bc-a2ff-b1c1ac216cad",
+      "code": "5320",
+      "name": "Loan Interest Expense",
+      "type": "EXPENSE",
+      "subtype": "FINANCIAL_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    },
+    {
+      "id": "f707b1aa-806b-43c0-8543-3ae5f81df0d2",
+      "code": "5330",
+      "name": "Depreciation & Amortization",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": false,
+      "is_active": true
+    }
+  ],
+  "voucher_type_constraint": [
+    {
+      "conname": "chk_voucher_type",
+      "def": "CHECK (((voucher_type)::text = ANY ((ARRAY['SALES'::character varying, 'PURCHASE'::character varying, 'PAYMENT'::character varying, 'RECEIPT'::character varying, 'EXPENSE'::character varying, 'JOURNAL'::character varying, 'CONTRA'::character varying, 'CREDIT_NOTE'::character varying, 'DEBIT_NOTE'::character varying, 'OPENING_BALANCE'::character varying])::text[])))"
+    }
+  ],
+  "journal_entry_constraints": [
+    {
+      "conname": "accounting_journal_entry_branch_id_fkey",
+      "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "accounting_journal_entry_pkey",
+      "def": "PRIMARY KEY (id)"
+    },
+    {
+      "conname": "accounting_journal_entry_voucher_id_fkey",
+      "def": "FOREIGN KEY (voucher_id) REFERENCES accounting_voucher(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "accounting_journal_entry_voucher_id_key",
+      "def": "UNIQUE (voucher_id)"
+    },
+    {
+      "conname": "chk_journal_balanced",
+      "def": "CHECK ((total_debit = total_credit))"
+    },
+    {
+      "conname": "chk_journal_positive",
+      "def": "CHECK ((total_debit > 0.00))"
+    },
+    {
+      "conname": "uq_accounting_journal_entry_no",
+      "def": "UNIQUE (entry_no)"
+    }
+  ],
+  "journal_line_constraints": [
+    {
+      "conname": "accounting_journal_line_account_id_fkey",
+      "def": "FOREIGN KEY (account_id) REFERENCES accounting_account(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "accounting_journal_line_branch_id_fkey",
+      "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "accounting_journal_line_customer_id_fkey",
+      "def": "FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "accounting_journal_line_journal_entry_id_fkey",
+      "def": "FOREIGN KEY (journal_entry_id) REFERENCES accounting_journal_entry(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "accounting_journal_line_pkey",
+      "def": "PRIMARY KEY (id)"
+    },
+    {
+      "conname": "accounting_journal_line_supplier_id_fkey",
+      "def": "FOREIGN KEY (supplier_id) REFERENCES supplier(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "chk_jline_credit_nonneg",
+      "def": "CHECK ((credit_amount >= 0.00))"
+    },
+    {
+      "conname": "chk_jline_debit_nonneg",
+      "def": "CHECK ((debit_amount >= 0.00))"
+    },
+    {
+      "conname": "chk_jline_single_sided",
+      "def": "CHECK ((((debit_amount > 0.00) AND (credit_amount = 0.00)) OR ((credit_amount > 0.00) AND (debit_amount = 0.00))))"
+    },
+    {
+      "conname": "trg_check_journal_balance",
+      "def": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "conname": "uq_journal_line_order",
+      "def": "UNIQUE (journal_entry_id, line_no)"
+    }
+  ],
+  "order_columns": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "region_id",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "display_id",
+      "data_type": "integer",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "customer_id",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "version",
+      "data_type": "integer",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "sales_channel_id",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "status",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "is_draft_order",
+      "data_type": "boolean",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "email",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "currency_code",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "shipping_address_id",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "billing_address_id",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "no_notification",
+      "data_type": "boolean",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "deleted_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "canceled_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "custom_display_id",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "locale",
+      "data_type": "text",
+      "is_nullable": "YES"
+    }
+  ],
+  "order_status_distribution": [
+    {
+      "status": "pending",
+      "meta_payment_status": "PAID",
+      "meta_payment_method": "cod",
+      "cnt": "4"
+    },
+    {
+      "status": "pending",
+      "meta_payment_status": null,
+      "meta_payment_method": null,
+      "cnt": "1"
+    },
+    {
+      "status": "pending",
+      "meta_payment_status": "captured",
+      "meta_payment_method": "upi",
+      "cnt": "4"
+    },
+    {
+      "status": "pending",
+      "meta_payment_status": "captured",
+      "meta_payment_method": "Online UPI (Razorpay)",
+      "cnt": "1"
+    },
+    {
+      "status": "pending",
+      "meta_payment_status": "captured",
+      "meta_payment_method": "Online Verified",
+      "cnt": "6"
+    },
+    {
+      "status": "pending",
+      "meta_payment_status": "pending",
+      "meta_payment_method": "cod",
+      "cnt": "38"
+    },
+    {
+      "status": "pending",
+      "meta_payment_status": "captured",
+      "meta_payment_method": "Cash on Delivery (COD)",
+      "cnt": "2"
+    },
+    {
+      "status": "pending",
+      "meta_payment_status": "pending",
+      "meta_payment_method": "Cash on Delivery (COD)",
+      "cnt": "111"
+    },
+    {
+      "status": "pending",
+      "meta_payment_status": "captured",
+      "meta_payment_method": "card",
+      "cnt": "6"
+    }
+  ]
+}

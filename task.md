@@ -1,9 +1,9 @@
 # CakeToHome — Task Master Status & Phase Matrix
 
-**Last Updated:** September 16, 2026 — 14:00:00 UTC+05:30  
-**Operating Branch:** `task/dev` (Head: `3081621`)  
+**Last Updated:** September 24, 2026 — 09:50:00 UTC+05:30  
+**Operating Branch:** `task/dev` (Head: `f7d9a47`)  
 **Project Path:** `E:\vig\cakes2home-main\cakes2home-main`  
-**Current Status:** **VERIFIED COMPLETE — POST-CRASH FULL RECOVERY & AUDIT PASSED**
+**Current Status:** **PHASE 4F STEP 3A COMPLETE — INVENTORY COSTING & PURCHASE ACCOUNTING DESIGN ONLY**
 
 ---
 
@@ -111,4 +111,53 @@
 
 **Overall Acceptance Result:** **53/53 Assertions Passed (100% Success, 0 Defects)**  
 **Conclusion:** `NO CODE CHANGE REQUIRED — BROWSER/UI ACCEPTANCE PASSED`
+
+---
+
+## 5. ERP Modernization & Accounting Foundation Phases (Sept 22–23, 2026)
+
+| Phase | Description | Status | Evidence |
+| :---: | :--- | :---: | :--- |
+| **Phase 0** | Reporting Cleanup & Legacy Purge | [x] COMPLETE | `CHECKPOINTS/phase0-final-verification-01.md` |
+| **Phase 1** | Supplier & Purchase Ledger Foundation | [x] COMPLETE | `CHECKPOINTS/phase1-final-verification-02.md` |
+| **Phase 2** | Operational Expense Management Module | [x] COMPLETE | `CHECKPOINTS/phase2-final-reconciliation-01.md` |
+| **Phase 3** | Fleet & Logistics Delivery Cost Engine | [x] COMPLETE | `CHECKPOINTS/phase3-final-reconciliation-01.md` |
+| **Phase 4** | Accounting Forensic Audit & Discovery | [x] COMPLETE | `CHECKPOINTS/phase4-accounting-forensic-audit-01.md` |
+| **Phase 4A**| Accounting Schema Architecture & Design | [x] COMPLETE | `CHECKPOINTS/phase4a-accounting-schema-design-01.md` |
+| **Phase 4A-V**| Independent Accounting Schema Verification | [x] VERIFIED & CORRECTED | `CHECKPOINTS/phase4a-schema-verification-01.md` |
+| **Phase 4B**| Accounting Foundation Schema Migration | [x] COMPLETE | `CHECKPOINTS/phase4b-accounting-schema-migration-01.md` |
+| **Phase 4C**| Chart of Accounts Design & Purchase Accounting Mapping | [x] COMPLETE | `CHECKPOINTS/phase4c-chart-of-accounts-design-01.md` |
+| **Phase 4D**| Chart of Accounts Master Data Seeding | [x] COMPLETE | `CHECKPOINTS/phase4d-chart-of-accounts-seeding-01.md` |
+| **Phase 4E**| Posting Engine Architecture & Design | [x] COMPLETE | `CHECKPOINTS/phase4e-posting-engine-design-01.md` |
+| **Phase 4F Step 1**| Accounting Data Access Foundation (Repositories) | [x] COMPLETE | `CHECKPOINTS/phase4f-step1-accounting-repositories-01.md` |
+| **Phase 4F Step 1B**| Reversal Lifecycle Aligned with Live DB & Phase 4A | [x] COMPLETE | `CHECKPOINTS/phase4f-step1b-reversal-lifecycle-alignment-01.md` |
+| **Phase 4F Step 2**| PostingService Foundation & Transaction Safety | [x] COMPLETE | `CHECKPOINTS/phase4f-step2-posting-service-foundation-01.md` |
+| **Phase 4F Step 3A**| Inventory Costing & Purchase Accounting Design | [x] COMPLETE | `CHECKPOINTS/phase4f-step3a-inventory-purchase-accounting-design-01.md` |
+| **Phase 4F Step 3B**| Inventory Cost Ledger + CoA Semantic Alignment | [x] COMPLETE | `CHECKPOINTS/phase4f-step3b-inventory-cost-ledger-coa-alignment-01.md` |
+| **Phase 4F Step 3B (Final Gate)**| Cost-Lot Architecture Forensic Review & Invariants | [x] RESOLVED IN 3B.1 | `CHECKPOINTS/phase4f-step3b-final-forensic-gate-01.md` |
+| **Phase 4F Step 3B.1**| Inventory Ledger & Cost-Lot Hardening (5 Blockers) | [x] PASS | `CHECKPOINTS/phase4f-step3b1-inventory-ledger-hardening-01.md` |
+| **Phase 4F Step 3C**| Purchase Posting Service Controlled Implementation | [x] PASS | `CHECKPOINTS/phase4f-step3c-purchase-posting-service-01.md` |
+| **Phase 4F Step 3C.1**| Accounting Voucher Lifecycle & Packaging Review | [x] PASS | `CHECKPOINTS/phase4f-step3c1-accounting-lifecycle-packaging-review-01.md` |
+| **Phase 4F Step 3C.2**| Packaging Master-Data & Quantity-Controlled Inventory Design | [x] PASS | `CHECKPOINTS/phase4f-step3c2-packaging-master-data-design-01.md` |
+| **Phase 4F Step 3C.2.1**| Branch Inventory Hardening & Catalog Integrity | [x] PASS | `CHECKPOINTS/phase4f-step3c21-branch-inventory-hardening-01.md` |
+| **Phase 4F Step 3C.2.2**| Catalog Master-Data Authorization & Packaging Workflow | [x] PASS | `CHECKPOINTS/phase4f-step3c22-packaging-catalog-workflow-01.md` |
+| **Phase 4F Step 3D.1**| Purchase Tax & Total Calculation Engine | [x] PASS | `CHECKPOINTS/phase4f-step3d1-purchase-tax-engine-01.md` |
+| **Phase 4F Step 3D.2**| Purchase Accounting Voucher Construction | [x] PASS | `CHECKPOINTS/phase4f-step3d2-voucher-construction-01.md` |
+| **Phase 4F Step 3D.3**| Voucher Accounting Approval & Segregation of Duties | [x] PASS | `CHECKPOINTS/phase4f-step3d3-voucher-approval-sod-01.md` |
+
+### Current Gate Status:
+- **STATUS:** `PHASE 4F STEP 3D.3: PASS ✅ | VOUCHER ACCOUNTING APPROVAL & SOD COMPLETE`
+- **Purchase Accounting Voucher Approval & SoD (`purchase-posting.service.ts`):** Canonical permission check (`ACCOUNTING.APPROVE` resolved via `hasEffectivePermission`), 5 distinct audit identities (`purchase.created_by`, `purchase.approved_by`, `voucher.created_by`, `voucher.submitted_by`, `voucher.approved_by`), strict multi-identity Segregation of Duties (SoD) validation, and lifecycle transition `SUBMITTED` → `APPROVED`. Vouchers in `APPROVED` status stop prior to financial/physical posting (Step 3D.4). 82/82 tests pass.
+- **Physical Inventory Intact:** `branch_inventory` remains physical quantity layer at exactly 424 rows (0 synthetic rows created).
+- **Accounting Tables:** `accounting_account = 98`, `accounting_voucher = 0`, `accounting_journal_entry = 0`, `accounting_journal_line = 0`, `accounting_fiscal_period = 0`, `purchase = 0`, `purchase_item = 0`, `purchase_payment = 0`, `inventory_cost_lot = 0`, `inventory_movement = 0`, `inventory_cost_consumption = 0`.
+- **TypeScript:** `tsc --noEmit` exits 0 errors, 0 diagnostics.
+- **Security:** 21/21 regression tests PASS.
+- **Historical Data:** 100% UNCHANGED (173 orders, 53 payments untouched).
+- **Git:** 0 commits, 0 pushes.
+- **Next Step:** Ready for Phase 4F Step 3D.4 (Atomic Financial & Physical Posting Gate).
+
+
+
+
+
 

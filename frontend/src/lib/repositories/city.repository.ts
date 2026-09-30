@@ -294,7 +294,7 @@ export class CityRepository {
             OR metadata->>'city' ILIKE $2
             OR metadata->'delivery'->>'city' ILIKE $2
             OR metadata->'address'->>'city' ILIKE $2
-            OR branch_id IN (
+            OR metadata->>'branch_id' IN (
               SELECT id FROM "branch"
               WHERE (city_id = $1 OR metadata->>'city' ILIKE $2) AND deleted_at IS NULL
             ))`,
