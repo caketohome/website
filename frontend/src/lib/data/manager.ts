@@ -254,3 +254,227 @@ export async function markBranchNotificationRead(notifId: string): Promise<any> 
   });
   return res.json();
 }
+
+// ══════════════════════════════════════════════════════════════════════════
+// ── BRANCH PURCHASES & GRN ───────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════
+
+export async function fetchBranchPurchases(params: Record<string, string> = {}): Promise<{ success: boolean; data?: { purchases: any[]; total: number }; error?: string }> {
+  const query = new URLSearchParams(params).toString();
+  const res = await fetch(`/api/v1/admin/purchases${query ? `?${query}` : ""}`, {
+    headers: { "Cache-Control": "no-cache" },
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function fetchBranchPurchaseDetails(id: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  const res = await fetch(`/api/v1/admin/purchases/${id}`, {
+    headers: { "Cache-Control": "no-cache" },
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function createBranchPurchase(data: any): Promise<any> {
+  const res = await fetch(`/api/v1/admin/purchases`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function submitBranchPurchase(id: string): Promise<any> {
+  const res = await fetch(`/api/v1/admin/purchases/${id}/status`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "SUBMITTED" }),
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function recordBranchGrnReceipt(purchaseId: string, grnData: any): Promise<any> {
+  const res = await fetch(`/api/v1/manager/purchases/${purchaseId}/grn`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(grnData),
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function fetchSuppliers(): Promise<{ success: boolean; data?: { suppliers: any[]; total: number }; error?: string }> {
+  const res = await fetch(`/api/v1/admin/suppliers?limit=200`, {
+    headers: { "Cache-Control": "no-cache" },
+    credentials: "include",
+  });
+  return res.json();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ── BRANCH EXPENSES ──────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════
+
+export async function fetchBranchExpenses(params: Record<string, string> = {}): Promise<{ success: boolean; data?: { expenses: any[]; total: number }; error?: string }> {
+  const query = new URLSearchParams(params).toString();
+  const res = await fetch(`/api/v1/admin/expenses${query ? `?${query}` : ""}`, {
+    headers: { "Cache-Control": "no-cache" },
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function createBranchExpense(data: any): Promise<any> {
+  const res = await fetch(`/api/v1/admin/expenses`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function submitBranchExpense(id: string): Promise<any> {
+  const res = await fetch(`/api/v1/admin/expenses/${id}/status`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "SUBMITTED" }),
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function fetchExpenseCategories(): Promise<{ success: boolean; data?: { categories: any[] }; error?: string }> {
+  const res = await fetch(`/api/v1/admin/expense-categories`, {
+    headers: { "Cache-Control": "no-cache" },
+    credentials: "include",
+  });
+  return res.json();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ── CASH, TELLER & BANK DEPOSIT SLIPS ────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════
+
+export async function fetchBranchCashPosition(): Promise<any> {
+  const res = await fetch(`/api/v1/manager/cash/position`, {
+    headers: { "Cache-Control": "no-cache" },
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function recordDrawerOpeningFloat(openingFloat: number, notes?: string): Promise<any> {
+  const res = await fetch(`/api/v1/manager/cash/drawer/open`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ opening_float: openingFloat, notes }),
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function recordDrawerClosingCount(closingAmount: number, notes?: string): Promise<any> {
+  const res = await fetch(`/api/v1/manager/cash/drawer/close`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ closing_amount: closingAmount, notes }),
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function fetchBranchRiderCodCustody(): Promise<{ success: boolean; riders: any[] }> {
+  const res = await fetch(`/api/v1/manager/cod/custody`, {
+    headers: { "Cache-Control": "no-cache" },
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function settleRiderCodShift(data: any): Promise<any> {
+  const res = await fetch(`/api/v1/admin/reports/cod/settlement`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function reportCodShortage(data: {
+  rider_id: string;
+  expected_amount: number;
+  cash_presented: number;
+  shortage_amount: number;
+  reason?: string;
+  notes: string;
+}): Promise<any> {
+  const res = await fetch(`/api/v1/manager/cash/cod/shortage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function fetchBranchBankDepositSlips(params: Record<string, string> = {}): Promise<{ success: boolean; slips: any[]; total: number }> {
+  const query = new URLSearchParams(params).toString();
+  const res = await fetch(`/api/v1/admin/bank-deposit-slips${query ? `?${query}` : ""}`, {
+    headers: { "Cache-Control": "no-cache" },
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function prepareBankDepositSlip(data: {
+  bank_account_id: string;
+  amount: number;
+  deposit_date?: string;
+  slip_number?: string;
+  denominations?: Record<string, number>;
+  metadata?: Record<string, unknown>;
+}): Promise<any> {
+  const res = await fetch(`/api/v1/admin/bank-deposit-slips`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  return res.json();
+}
+
+export async function fetchBranchBankAccounts(): Promise<{ success: boolean; bankAccounts: any[] }> {
+  const res = await fetch(`/api/v1/admin/bank-accounts?status=ACTIVE`, {
+    headers: { "Cache-Control": "no-cache" },
+    credentials: "include",
+  });
+  return res.json();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ── STOCK DAMAGE & SPOILAGE ──────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════
+
+export async function reportBranchStockDamage(data: {
+  item_id: string;
+  sku?: string;
+  item_name: string;
+  item_type?: string;
+  quantity: number;
+  reason_code: string;
+  notes?: string;
+}): Promise<any> {
+  const res = await fetch(`/api/v1/manager/inventory/damage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  });
+  return res.json();
+}
+

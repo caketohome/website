@@ -25,3 +25,4 @@ export * from "./gateway-settlement.service";
 export * from "./bank-statement-import.service";
 export * from "./bank-reconciliation-matching.service";
 export * from "./bank-reconciliation-statement.service";
+export * from "./period-close.service";

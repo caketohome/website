@@ -146,7 +146,7 @@ async function runTests() {
         (SELECT count(*)::int FROM public.setting WHERE key = 'accounting_start_date') AS start_date_cnt
     `);
     const rPre = bPre.rows[0];
-    assert(rPre.acc_cnt === 98, `Pre-test accounting_account === 98 (actual: ${rPre.acc_cnt})`);
+    assert(rPre.acc_cnt === 99, `Pre-test accounting_account === 99 (actual: ${rPre.acc_cnt})`);
     assert(rPre.vch_cnt === 0, `Pre-test accounting_voucher === 0 (actual: ${rPre.vch_cnt})`);
     assert(rPre.je_cnt === 0, `Pre-test accounting_journal_entry === 0 (actual: ${rPre.je_cnt})`);
     assert(rPre.jl_cnt === 0, `Pre-test accounting_journal_line === 0 (actual: ${rPre.jl_cnt})`);
@@ -1261,7 +1261,7 @@ async function runTests() {
         (SELECT count(*)::int FROM public.setting WHERE key = 'accounting_start_date') AS start_date_cnt
     `);
     const rPost = bPost.rows[0];
-    assert(rPost.acc_cnt === 98, `Post-test accounting_account === 98 (actual: ${rPost.acc_cnt})`);
+    assert(rPost.acc_cnt === 99, `Post-test accounting_account === 99 (actual: ${rPost.acc_cnt})`);
     assert(rPost.vch_cnt === 0, `Post-test accounting_voucher === 0 (actual: ${rPost.vch_cnt})`);
     assert(rPost.je_cnt === 0, `Post-test accounting_journal_entry === 0 (actual: ${rPost.je_cnt})`);
     assert(rPost.jl_cnt === 0, `Post-test accounting_journal_line === 0 (actual: ${rPost.jl_cnt})`);

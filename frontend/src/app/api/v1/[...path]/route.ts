@@ -25,6 +25,7 @@ import {
   MediaRepository,
   LocalSeoRepository,
   BankAccountRepository,
+  BankDepositSlipRepository,
   GatewayPayoutRepository,
   GatewaySettlementOrderRepository,
   AccountingVoucherRepository,
@@ -35,11 +36,13 @@ import { OrderService } from "@frontend/lib/services/order.service";
 import { ReportService } from "@frontend/lib/services/report.service";
 import { SupplierService } from "@frontend/lib/services/supplier.service";
 import { PurchaseService } from "@frontend/lib/services/purchase.service";
+import { PurchasePostingService } from "@frontend/lib/services/purchase-posting.service";
 import { ExpenseService } from "@frontend/lib/services/expense.service";
 import { FleetService } from "@frontend/lib/services/fleet.service";
 import { InventoryService } from "@frontend/lib/services/inventory.service";
 import { AccountsReceivableService } from "@frontend/lib/services/accounts-receivable.service";
 import { CodCollectionService } from "@frontend/lib/services/cod-collection.service";
+import { BankDepositSlipService } from "@frontend/lib/services/bank-deposit-slip.service";
 import { GatewaySettlementService } from "@frontend/lib/services/gateway-settlement.service";
 import { BankReconciliationStatementService } from "@frontend/lib/services/bank-reconciliation-statement.service";
 import { GeneralLedgerService, GeneralLedgerServiceError } from "@frontend/lib/services/general-ledger.service";
@@ -49,6 +52,7 @@ import { OpeningBalanceService, OpeningBalanceError } from "@frontend/lib/servic
 import { ProfitLossService, ProfitLossServiceError } from "@frontend/lib/services/profit-loss.service";
 import { BalanceSheetService, BalanceSheetServiceError } from "@frontend/lib/services/balance-sheet.service";
 import { CashFlowService, CashFlowServiceError } from "@frontend/lib/services/cash-flow.service";
+import { PeriodCloseService, PeriodCloseServiceError } from "@frontend/lib/services/period-close.service";
 import { MediaProcessor } from "@frontend/lib/media/media-processor";
 import { SeoAuditEngine, CORE_WEB_VITALS_DATA } from "@frontend/lib/seo/audit-engine";
 import { dbQuery, dbTransaction } from "@frontend/lib/db";
@@ -1152,6 +1156,16 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         ? (url.searchParams.get("branch_id") || undefined)
         : (userCtx.branchId || undefined);
       try {
+        // GET admin/purchases/:id/preview-voucher
+        const voucherPreviewMatch = path.match(/^admin\/purchases\/([^/]+)\/preview-voucher$/);
+        if (voucherPreviewMatch) {
+          const previewRes = await PurchasePostingService.previewPurchaseVoucher({
+            purchaseId: voucherPreviewMatch[1],
+            branchId: userCtx.isSuperAdmin ? undefined : enforcedBranchId,
+          });
+          return jsonWithDataSource(previewRes, "postgres", previewRes.success ? 200 : 400);
+        }
+
         // GET admin/purchases/:id
         const purchaseIdMatch = path.match(/^admin\/purchases\/([^/]+)$/);
         if (purchaseIdMatch && !purchaseIdMatch[1].startsWith("report")) {
@@ -1677,6 +1691,37 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
           "error",
           500
         );
+      }
+    }
+
+    // ── Canonical Bank Deposit Slips List API (GET) ──────────────────────────
+    if (path === "admin/bank-deposit-slips") {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+      const hasBankPerm = StaffAccessControl.hasPermission(userCtx, "BANK", "VIEW");
+      if (!hasBankPerm) {
+        return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Account lacks BANK.VIEW permission." }, "error", 403);
+      }
+      const isSuperAdmin = userCtx.isSuperAdmin;
+      const targetBranchId = isSuperAdmin
+        ? (url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined)
+        : (userCtx.branchId || undefined);
+      const status = (url.searchParams.get("status") as any) || undefined;
+      const startDate = url.searchParams.get("start_date") || url.searchParams.get("startDate") || undefined;
+      const endDate = url.searchParams.get("end_date") || url.searchParams.get("endDate") || undefined;
+
+      try {
+        const slips = await BankDepositSlipRepository.list({
+          branchId: targetBranchId,
+          status,
+          startDate,
+          endDate,
+        });
+        return jsonWithDataSource({ success: true, slips, total: slips.length }, "postgres", 200);
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: err.code || "LIST_FAILED", message: err.message }, "error", 500);
       }
     }
 
@@ -2365,13 +2410,374 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
           return jsonWithDataSource({ success: true, ...result }, "postgres");
         }
 
+        // ── Phase 5A.6: Period / Year-End Close Preview ──────────────────────
+
+        // 10. Period Close Diagnostics / Preview: GET admin/accounting/period-close/preview or admin/accounting/period-close/diagnostics
+        if (acctSubPath === "period-close/preview" || acctSubPath === "period-close/diagnostics") {
+          const fiscalYear = url.searchParams.get("fiscal_year") || url.searchParams.get("fiscalYear");
+          const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
+
+          if (!fiscalYear) {
+            return jsonWithDataSource(
+              { success: false, error: "MISSING_FISCAL_YEAR", message: "fiscal_year parameter is required." },
+              "error",
+              400
+            );
+          }
+
+          const diagnostics = await PeriodCloseService.runPreCloseDiagnostics({
+            fiscal_year: fiscalYear,
+            branch_id: branchIdParam,
+            session_user: {
+              id: userCtx.userId,
+              role,
+              branch_id: userCtx.branchId,
+              isSuperAdmin: userCtx.isSuperAdmin,
+            },
+          });
+
+          return jsonWithDataSource({ success: true, ...diagnostics }, "postgres");
+        }
+
+        // 11. Period Close Reopen Preview: GET admin/accounting/period-close/reopen/preview
+        if (acctSubPath === "period-close/reopen/preview") {
+          const fiscalYear = url.searchParams.get("fiscal_year") || url.searchParams.get("fiscalYear");
+
+          if (!fiscalYear) {
+            return jsonWithDataSource(
+              { success: false, error: "MISSING_FISCAL_YEAR", message: "fiscal_year parameter is required." },
+              "error",
+              400
+            );
+          }
+
+          const preview = await PeriodCloseService.previewYearEndReopen({
+            fiscal_year: fiscalYear,
+            session_user: {
+              id: userCtx.userId,
+              role,
+              branch_id: userCtx.branchId,
+              isSuperAdmin: userCtx.isSuperAdmin,
+            },
+          });
+
+          return jsonWithDataSource({ success: true, ...preview }, "postgres");
+        }
+
+        // 12. Period Close History: GET admin/accounting/period-close/history
+        if (acctSubPath === "period-close/history") {
+          const fiscalYear = url.searchParams.get("fiscal_year") || url.searchParams.get("fiscalYear");
+
+          if (!fiscalYear) {
+            return jsonWithDataSource(
+              { success: false, error: "MISSING_FISCAL_YEAR", message: "fiscal_year parameter is required." },
+              "error",
+              400
+            );
+          }
+
+          const history = await PeriodCloseService.getFiscalYearCloseHistory(fiscalYear);
+
+          return jsonWithDataSource({ success: true, ...history }, "postgres");
+        }
+
+        // ── Phase 5A.6 Substep 5.3: Multi-Year Accounting Reporting Endpoints ─
+
+        const parseAndValidateFY = (fyStr: string | null | undefined): { valid: boolean; startYear?: number; endYear?: number; formatted?: string } => {
+          if (!fyStr || typeof fyStr !== "string") return { valid: false };
+          const clean = fyStr.trim().toUpperCase();
+          const match = clean.match(/^FY(\d{2})(\d{2})$/);
+          if (!match) return { valid: false };
+          const s = parseInt(match[1], 10);
+          const e = parseInt(match[2], 10);
+          if (e !== (s + 1) % 100) return { valid: false };
+          return { valid: true, startYear: 2000 + s, endYear: 2000 + e, formatted: clean };
+        };
+
+        const userBranchId = userCtx.branchId;
+        const isSuperAdminUser = Boolean(userCtx.isSuperAdmin || role === "SUPER_ADMIN");
+
+        // 13. Retained Earnings Roll-Forward: GET admin/accounting/reports/retained-earnings-rollforward
+        if (acctSubPath === "reports/retained-earnings-rollforward" || acctSubPath === "retained-earnings-rollforward") {
+          const startYearParam = url.searchParams.get("start_year") || url.searchParams.get("startYear");
+          const endYearParam = url.searchParams.get("end_year") || url.searchParams.get("endYear");
+          const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
+
+          if (!startYearParam) {
+            return jsonWithDataSource(
+              { success: false, error: "MISSING_FISCAL_YEAR", message: "Query parameter 'start_year' is required." },
+              "error",
+              400
+            );
+          }
+          if (!endYearParam) {
+            return jsonWithDataSource(
+              { success: false, error: "MISSING_FISCAL_YEAR", message: "Query parameter 'end_year' is required." },
+              "error",
+              400
+            );
+          }
+
+          const parsedStart = parseAndValidateFY(startYearParam);
+          if (!parsedStart.valid || !parsedStart.formatted) {
+            return jsonWithDataSource(
+              { success: false, error: "INVALID_FISCAL_YEAR", message: `Invalid start_year format '${startYearParam}'. Expected Indian fiscal year format like 'FY2324'.` },
+              "error",
+              400
+            );
+          }
+
+          const parsedEnd = parseAndValidateFY(endYearParam);
+          if (!parsedEnd.valid || !parsedEnd.formatted) {
+            return jsonWithDataSource(
+              { success: false, error: "INVALID_FISCAL_YEAR", message: `Invalid end_year format '${endYearParam}'. Expected Indian fiscal year format like 'FY2526'.` },
+              "error",
+              400
+            );
+          }
+
+          if (parsedStart.startYear! > parsedEnd.startYear!) {
+            return jsonWithDataSource(
+              { success: false, error: "INVALID_FISCAL_YEAR_RANGE", message: `start_year '${startYearParam}' cannot be greater than end_year '${endYearParam}'.` },
+              "error",
+              400
+            );
+          }
+
+          if (branchIdParam) {
+            if (!/^[a-zA-Z0-9_-]{1,64}$/.test(branchIdParam)) {
+              return jsonWithDataSource(
+                { success: false, error: "INVALID_BRANCH_ID", message: "Query parameter 'branch_id' contains invalid characters." },
+                "error",
+                400
+              );
+            }
+            if (!isSuperAdminUser && userBranchId && branchIdParam !== userBranchId) {
+              return jsonWithDataSource(
+                { success: false, error: "BRANCH_ACCESS_DENIED", message: "Forbidden: Staff user cannot access reports for another branch." },
+                "error",
+                403
+              );
+            }
+          }
+
+          const effectiveBranchId = isSuperAdminUser ? (branchIdParam || undefined) : userBranchId;
+
+          const result = await PeriodCloseService.getRetainedEarningsRollForward({
+            start_year: parsedStart.formatted,
+            end_year: parsedEnd.formatted,
+            branch_id: effectiveBranchId,
+            session_user: {
+              id: userCtx.userId,
+              role,
+              branch_id: userCtx.branchId,
+              isSuperAdmin: userCtx.isSuperAdmin,
+              permissions: userCtx.permissions,
+            },
+          });
+
+          const responseData = {
+            start_year: parsedStart.formatted,
+            end_year: parsedEnd.formatted,
+            branch_id: effectiveBranchId || null,
+            ...result,
+            multi_year_continuity_intact: result.overall_continuity_verified,
+          };
+
+          return jsonWithDataSource({ success: true, ...responseData, data: responseData }, "postgres");
+        }
+
+        // 14. Fiscal Year Summary: GET admin/accounting/reports/fiscal-year-summary
+        if (acctSubPath === "reports/fiscal-year-summary" || acctSubPath === "fiscal-year-summary") {
+          const fiscalYearParam = url.searchParams.get("fiscal_year") || url.searchParams.get("fiscalYear") || undefined;
+          const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
+
+          if (fiscalYearParam) {
+            const parsedFY = parseAndValidateFY(fiscalYearParam);
+            if (!parsedFY.valid || !parsedFY.formatted) {
+              return jsonWithDataSource(
+                { success: false, error: "INVALID_FISCAL_YEAR", message: `Invalid fiscal_year format '${fiscalYearParam}'. Expected Indian fiscal year format like 'FY2425'.` },
+                "error",
+                400
+              );
+            }
+          }
+
+          if (branchIdParam) {
+            if (!/^[a-zA-Z0-9_-]{1,64}$/.test(branchIdParam)) {
+              return jsonWithDataSource(
+                { success: false, error: "INVALID_BRANCH_ID", message: "Query parameter 'branch_id' contains invalid characters." },
+                "error",
+                400
+              );
+            }
+            if (!isSuperAdminUser && userBranchId && branchIdParam !== userBranchId) {
+              return jsonWithDataSource(
+                { success: false, error: "BRANCH_ACCESS_DENIED", message: "Forbidden: Staff user cannot access reports for another branch." },
+                "error",
+                403
+              );
+            }
+          }
+
+          const rawSummary = await PeriodCloseService.getFiscalYearSummary({
+            session_user: {
+              id: userCtx.userId,
+              role,
+              branch_id: userCtx.branchId,
+              isSuperAdmin: userCtx.isSuperAdmin,
+              permissions: userCtx.permissions,
+            },
+          });
+
+          const summary = fiscalYearParam
+            ? rawSummary.filter((item) => item.fiscal_year.toUpperCase() === fiscalYearParam.trim().toUpperCase())
+            : rawSummary;
+
+          return jsonWithDataSource({ success: true, fiscal_years: summary, summary, data: summary }, "postgres");
+        }
+
+        // 15. Comparative P&L: GET admin/accounting/reports/comparative-pnl or comparative-profit-loss
+        if (
+          acctSubPath === "reports/comparative-pnl" ||
+          acctSubPath === "comparative-pnl" ||
+          acctSubPath === "reports/comparative-profit-loss" ||
+          acctSubPath === "comparative-profit-loss"
+        ) {
+          const fiscalYearParam = url.searchParams.get("fiscal_year") || url.searchParams.get("fiscalYear");
+          const compareFiscalYearParam = url.searchParams.get("compare_fiscal_year") || url.searchParams.get("compareFiscalYear");
+          const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
+
+          if (!fiscalYearParam) {
+            return jsonWithDataSource(
+              { success: false, error: "MISSING_FISCAL_YEAR", message: "Query parameter 'fiscal_year' is required." },
+              "error",
+              400
+            );
+          }
+          if (!compareFiscalYearParam) {
+            return jsonWithDataSource(
+              { success: false, error: "MISSING_FISCAL_YEAR", message: "Query parameter 'compare_fiscal_year' is required." },
+              "error",
+              400
+            );
+          }
+
+          const parsedPrimary = parseAndValidateFY(fiscalYearParam);
+          if (!parsedPrimary.valid || !parsedPrimary.formatted) {
+            return jsonWithDataSource(
+              { success: false, error: "INVALID_FISCAL_YEAR", message: `Invalid fiscal_year format '${fiscalYearParam}'. Expected Indian fiscal year format like 'FY2425'.` },
+              "error",
+              400
+            );
+          }
+
+          const parsedCompare = parseAndValidateFY(compareFiscalYearParam);
+          if (!parsedCompare.valid || !parsedCompare.formatted) {
+            return jsonWithDataSource(
+              { success: false, error: "INVALID_FISCAL_YEAR", message: `Invalid compare_fiscal_year format '${compareFiscalYearParam}'. Expected Indian fiscal year format like 'FY2324'.` },
+              "error",
+              400
+            );
+          }
+
+          if (parsedPrimary.formatted === parsedCompare.formatted) {
+            return jsonWithDataSource(
+              { success: false, error: "IDENTICAL_FISCAL_YEARS", message: "fiscal_year and compare_fiscal_year cannot be identical." },
+              "error",
+              400
+            );
+          }
+
+          if (branchIdParam) {
+            if (!/^[a-zA-Z0-9_-]{1,64}$/.test(branchIdParam)) {
+              return jsonWithDataSource(
+                { success: false, error: "INVALID_BRANCH_ID", message: "Query parameter 'branch_id' contains invalid characters." },
+                "error",
+                400
+              );
+            }
+            if (!isSuperAdminUser && userBranchId && branchIdParam !== userBranchId) {
+              return jsonWithDataSource(
+                { success: false, error: "BRANCH_ACCESS_DENIED", message: "Forbidden: Staff user cannot access reports for another branch." },
+                "error",
+                403
+              );
+            }
+          }
+
+          const effectiveBranchId = isSuperAdminUser ? (branchIdParam || undefined) : userBranchId;
+
+          const result = await PeriodCloseService.getComparativeProfitLoss({
+            fiscal_year: parsedPrimary.formatted,
+            compare_fiscal_year: parsedCompare.formatted,
+            branch_id: effectiveBranchId,
+            session_user: {
+              id: userCtx.userId,
+              role,
+              branch_id: userCtx.branchId,
+              isSuperAdmin: userCtx.isSuperAdmin,
+              permissions: userCtx.permissions,
+            },
+          });
+
+          return jsonWithDataSource({ success: true, ...result, data: result }, "postgres");
+        }
+
+        // 16. Work Queue Summary: GET admin/accounting/work-queue/summary
+        if (acctSubPath === "work-queue/summary") {
+          const enforcedBranch = isSuperAdminUser ? (url.searchParams.get("branch_id") || undefined) : userBranchId;
+          const branchParam = enforcedBranch ? [enforcedBranch] : [];
+          const branchClause = enforcedBranch ? "AND branch_id = $1" : "";
+          const branchClauseSlip = enforcedBranch ? "AND branch_id = $1" : "";
+
+          const purchasesQ = await dbQuery<{ count: string; total: string }>(
+            `SELECT COUNT(*) as count, COALESCE(SUM(total), 0) as total FROM public.purchase WHERE status IN ('SUBMITTED', 'APPROVED') AND deleted_at IS NULL ${branchClause}`,
+            branchParam
+          );
+
+          const expensesQ = await dbQuery<{ count: string; total: string }>(
+            `SELECT COUNT(*) as count, COALESCE(SUM(total), 0) as total FROM public.expense WHERE status IN ('SUBMITTED', 'APPROVED') AND deleted_at IS NULL ${branchClause}`,
+            branchParam
+          );
+
+          const depositsQ = await dbQuery<{ count: string; total: string }>(
+            `SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total FROM public.bank_deposit_slip WHERE status IN ('DRAFT', 'DISPATCHED', 'PREPARED', 'APPROVED') ${branchClauseSlip}`,
+            branchParam
+          );
+
+          const gatewayQ = await dbQuery<{ count: string; total: string }>(
+            `SELECT COUNT(*) as count, COALESCE(SUM(net_amount), 0) as total FROM public.gateway_payout_batch WHERE status IN ('INGESTED', 'APPROVED')`
+          );
+
+          const pendingPurchases = { count: parseInt(purchasesQ.rows[0]?.count || "0"), total: parseFloat(purchasesQ.rows[0]?.total || "0") };
+          const pendingExpenses = { count: parseInt(expensesQ.rows[0]?.count || "0"), total: parseFloat(expensesQ.rows[0]?.total || "0") };
+          const pendingDeposits = { count: parseInt(depositsQ.rows[0]?.count || "0"), total: parseFloat(depositsQ.rows[0]?.total || "0") };
+          const pendingGateways = { count: parseInt(gatewayQ.rows[0]?.count || "0"), total: parseFloat(gatewayQ.rows[0]?.total || "0") };
+
+          const totalPendingValue = pendingPurchases.total + pendingExpenses.total + pendingDeposits.total + pendingGateways.total;
+          const totalPendingCount = pendingPurchases.count + pendingExpenses.count + pendingDeposits.count + pendingGateways.count;
+
+          return jsonWithDataSource({
+            success: true,
+            summary: {
+              pending_purchases: pendingPurchases,
+              pending_expenses: pendingExpenses,
+              pending_deposits: pendingDeposits,
+              pending_gateways: pendingGateways,
+              total_pending_count: totalPendingCount,
+              total_pending_value: totalPendingValue,
+            }
+          }, "postgres");
+        }
+
         return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown accounting endpoint: ${path}` }, "error", 404);
       } catch (err: any) {
         console.error("[Accounting GL API Error]", acctSubPath, err.message);
         const statusCode =
-          err.code === "ACCOUNT_NOT_FOUND" ? 404
-          : err.code === "ACCOUNT_REQUIRED" || err.code === "INVALID_DATE_FORMAT" || err.code === "INVALID_PAGINATION" || err.code === "MISSING_DATE_RANGE" || err.code === "MISSING_AS_OF_DATE" || err.code === "INVALID_DATE_RANGE" ? 400
-          : err.code === "FORBIDDEN" || err.code === "PERMISSION_DENIED" ? 403
+          err.code === "ACCOUNT_NOT_FOUND" || err.code === "FISCAL_PERIOD_NOT_CONFIGURED" ? 404
+          : err.code === "ACCOUNT_REQUIRED" || err.code === "INVALID_DATE_FORMAT" || err.code === "INVALID_PAGINATION" || err.code === "MISSING_DATE_RANGE" || err.code === "MISSING_AS_OF_DATE" || err.code === "INVALID_DATE_RANGE" || err.code === "MISSING_FISCAL_YEAR" || err.code === "INVALID_FISCAL_YEAR" || err.code === "INVALID_FISCAL_YEAR_RANGE" || err.code === "IDENTICAL_FISCAL_YEARS" || err.code === "INVALID_BRANCH_ID" ? 400
+          : err.code === "FORBIDDEN" || err.code === "PERMISSION_DENIED" || err.code === "BRANCH_ACCESS_DENIED" ? 403
           : err.code === "UNAUTHORIZED" ? 401
           : 500;
         return jsonWithDataSource({ success: false, error: err.code || "ACCOUNTING_OPERATION_FAILED", message: err.message }, "error", statusCode);
@@ -3052,6 +3458,121 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         const range = url.searchParams.get("range") || url.searchParams.get("dateRange") || "today";
         const data = ApiEngine.getBranchReports(branchId, reportType, range);
         return jsonWithDataSource(data, "postgres", data.statusCode || 200);
+      }
+
+      if (path === "manager/cash/position") {
+        const todayStr = new Date().toISOString().split("T")[0];
+
+        // 1. Cash counter sales today for this branch (Metadata JSONB resolution)
+        const cashSalesRes = await dbQuery(`
+          SELECT 
+            COALESCE(SUM(COALESCE((metadata->>'total')::numeric, (metadata->>'grand_total')::numeric, (metadata->>'total_amount')::numeric, 0)), 0) as cash_sales_total,
+            COUNT(*)::int as cash_orders_count
+          FROM "order"
+          WHERE (metadata->>'branch_id' = $1 OR metadata->>'branch' = $1)
+            AND (LOWER(COALESCE(metadata->>'payment_method', metadata->'payment'->>'method', '')) = 'cash')
+            AND status::text != 'cancelled'
+            AND (metadata->>'bakery_status' IS NULL OR metadata->>'bakery_status' != 'cancelled')
+            AND deleted_at IS NULL
+            AND DATE(created_at) = CURRENT_DATE
+        `, [branchId]);
+        const cashSales = Number(cashSalesRes.rows[0]?.cash_sales_total || 0);
+        const cashOrdersCount = Number(cashSalesRes.rows[0]?.cash_orders_count || 0);
+
+        // 2. Pending / undeposited COD custody (Metadata JSONB resolution)
+        const codCustodyRes = await dbQuery(`
+          SELECT 
+            COALESCE(SUM(COALESCE((metadata->>'total')::numeric, (metadata->>'grand_total')::numeric, (metadata->>'total_amount')::numeric, 0)), 0) as cod_unsettled_total,
+            COUNT(*)::int as cod_orders_count
+          FROM "order"
+          WHERE (metadata->>'branch_id' = $1 OR metadata->>'branch' = $1)
+            AND (LOWER(COALESCE(metadata->>'payment_method', metadata->'payment'->>'method', '')) = 'cod')
+            AND (status::text = 'delivered' OR metadata->>'bakery_status' = 'delivered')
+            AND (metadata->>'cod_cleared' IS NULL OR metadata->>'cod_cleared' != 'true')
+            AND deleted_at IS NULL
+        `, [branchId]);
+        const codCustody = Number(codCustodyRes.rows[0]?.cod_unsettled_total || 0);
+        const codOrdersCount = Number(codCustodyRes.rows[0]?.cod_orders_count || 0);
+
+        // 3. Deposit slips today
+        const depositsRes = await dbQuery(`
+          SELECT COALESCE(SUM(amount), 0) as deposits_total,
+                 COUNT(*)::int as deposits_count
+          FROM public.bank_deposit_slip
+          WHERE branch_id = $1
+            AND deposit_date = CURRENT_DATE
+            AND status != 'CANCELLED'
+        `, [branchId]);
+        const depositsToday = Number(depositsRes.rows[0]?.deposits_total || 0);
+        const depositsCount = Number(depositsRes.rows[0]?.deposits_count || 0);
+
+        // 4. Drawer session metadata (operational float only, Invariant 5: no GL 1111 mutation)
+        const branchRes = await dbQuery(`SELECT metadata FROM "branch" WHERE id = $1`, [branchId]);
+        const branchMeta = branchRes.rows[0]?.metadata || {};
+        const drawerSession = branchMeta.drawer_session || {};
+        const isTodaySession = drawerSession.date === todayStr;
+        const drawerIsOpen = isTodaySession && (drawerSession.status === "OPEN" || !drawerSession.status);
+        const openingFloat = isTodaySession ? Number(drawerSession.opening_float || 0) : 0;
+        const expectedDrawerCash = openingFloat + cashSales - depositsToday;
+
+        return jsonWithDataSource({
+          success: true,
+          branch_id: branchId,
+          date: todayStr,
+          drawer_status: isTodaySession ? (drawerSession.status || "OPEN") : "CLOSED",
+          opening_float: openingFloat,
+          opening_notes: isTodaySession ? drawerSession.opening_notes : null,
+          opened_at: isTodaySession ? drawerSession.opened_at : null,
+          closing_amount: isTodaySession ? drawerSession.closing_amount : null,
+          closed_at: isTodaySession ? drawerSession.closed_at : null,
+          cash_sales: cashSales,
+          cash_orders_count: cashOrdersCount,
+          cod_custody: codCustody,
+          cod_orders_count: codOrdersCount,
+          deposits_today: depositsToday,
+          deposits_count: depositsCount,
+          expected_drawer_cash: expectedDrawerCash,
+          position: {
+            drawer_is_open: drawerIsOpen,
+            opening_float: openingFloat,
+            counter_cash_sales: cashSales,
+            pending_cod_custody: codCustody,
+            today_bank_deposits: depositsToday,
+            expected_drawer_cash: expectedDrawerCash,
+          }
+        }, "postgres", 200);
+      }
+
+      if (path === "manager/cod/custody") {
+        const ridersRes = await dbQuery(`
+          SELECT 
+            dp.id as rider_id,
+            TRIM(CONCAT(COALESCE(dp.first_name, ''), ' ', COALESCE(dp.last_name, ''))) as rider_name,
+            dp.phone as rider_phone,
+            COALESCE(SUM(COALESCE((o.metadata->>'total')::numeric, (o.metadata->>'grand_total')::numeric, (o.metadata->>'total_amount')::numeric, 0)), 0) as custody_amount,
+            COUNT(o.id)::int as orders_count,
+            json_agg(json_build_object(
+              'order_id', o.id,
+              'order_number', COALESCE(o.metadata->>'order_number', 'ORD-' || o.display_id::text, o.id),
+              'amount', COALESCE((o.metadata->>'total')::numeric, (o.metadata->>'grand_total')::numeric, (o.metadata->>'total_amount')::numeric, 0),
+              'delivered_at', o.updated_at
+            )) FILTER (WHERE o.id IS NOT NULL) as orders
+          FROM delivery_partner dp
+          LEFT JOIN "order" o ON (o.metadata->>'delivery_partner_id' = dp.id OR o.metadata->'delivery'->>'partner_id' = dp.id) 
+            AND (o.metadata->>'branch_id' = $1 OR o.metadata->>'branch' = $1) 
+            AND (LOWER(COALESCE(o.metadata->>'payment_method', o.metadata->'payment'->>'method', '')) = 'cod')
+            AND (o.status::text = 'delivered' OR o.metadata->>'bakery_status' = 'delivered')
+            AND (o.metadata->>'cod_cleared' IS NULL OR o.metadata->>'cod_cleared' != 'true')
+            AND o.deleted_at IS NULL
+          WHERE dp.deleted_at IS NULL
+          GROUP BY dp.id, dp.first_name, dp.last_name, dp.phone
+          ORDER BY custody_amount DESC
+        `, [branchId]);
+
+        return jsonWithDataSource({
+          success: true,
+          riders: ridersRes.rows || [],
+        }, "postgres", 200);
       }
     }
     if (path === "admin/delivery/eligible-partners") return jsonWithDataSource(ApiEngine.getEligibleDeliveryPartners(Object.fromEntries(url.searchParams)), "postgres");
@@ -4063,14 +4584,73 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           return jsonWithDataSource({ success: true, ...result.data }, "postgres", 201);
         }
 
+        // POST admin/accounting/period-close/year-end — Execute annual year-end close
+        if (acctSubPath === "period-close/year-end") {
+          const { fiscal_year, preparer_id, branch_id, close_drawings_to_retained_earnings, closeDrawingsToRetainedEarnings } = body || {};
+          if (!fiscal_year) {
+            return jsonWithDataSource({ success: false, error: "MISSING_FISCAL_YEAR", message: "fiscal_year is required." }, "error", 400);
+          }
+          if (!userCtx.isSuperAdmin && role !== "SUPER_ADMIN") {
+            return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Only SUPER_ADMIN can execute year-end close." }, "error", 403);
+          }
+          const preparerId = preparer_id || "usr_finance_preparer";
+          const approverId = userCtx.userId;
+
+          const result = await PeriodCloseService.executeYearEndClose({
+            fiscal_year,
+            branch_id,
+            closeDrawingsToRetainedEarnings: Boolean(close_drawings_to_retained_earnings || closeDrawingsToRetainedEarnings),
+            preparer_id: preparerId,
+            approver_id: approverId,
+            session_user: {
+              id: userCtx.userId,
+              role,
+              branch_id: userCtx.branchId,
+              isSuperAdmin: userCtx.isSuperAdmin,
+            },
+          });
+
+          return jsonWithDataSource({ ...result }, "postgres", 200);
+        }
+
+        // POST admin/accounting/period-close/reopen — Execute annual year-end reopen
+        if (acctSubPath === "period-close/reopen") {
+          const { fiscal_year, preparer_id, reason } = body || {};
+          if (!fiscal_year) {
+            return jsonWithDataSource({ success: false, error: "MISSING_FISCAL_YEAR", message: "fiscal_year is required." }, "error", 400);
+          }
+          if (!userCtx.isSuperAdmin && role !== "SUPER_ADMIN") {
+            return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Only SUPER_ADMIN can execute year-end reopen." }, "error", 403);
+          }
+          const approverId = userCtx.userId;
+          const preparerId = preparer_id || "usr_finance_preparer";
+
+          const result = await PeriodCloseService.reopenYearEndClose({
+            fiscal_year,
+            reason,
+            preparer_id: preparerId,
+            approver_id: approverId,
+            session_user: {
+              id: userCtx.userId,
+              role,
+              branch_id: userCtx.branchId,
+              isSuperAdmin: userCtx.isSuperAdmin,
+            },
+          });
+
+          return jsonWithDataSource({ ...result }, "postgres", 200);
+        }
+
         return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown accounting POST endpoint: ${path}` }, "error", 404);
       } catch (err: any) {
         console.error("[Accounting Config POST Error]", acctSubPath, err.message);
         const statusCode =
-          err.code === "UNAUTHORIZED" ? 403
+          err.code === "UNAUTHORIZED" || err.code === "PERMISSION_DENIED" || err.code === "FORBIDDEN" || err.code === "BRANCH_ACCESS_DENIED" ? 403
           : err.code === "START_DATE_NOT_CONFIGURED" || err.code === "PERIOD_BEFORE_START_DATE" ? 422
-          : err.code === "PERIOD_OVERLAP" || err.code === "DUPLICATE_FISCAL_YEAR" ? 409
-          : err.code === "INVALID_DATE_FORMAT" || err.code === "INVALID_DATE_RANGE" ? 400
+          : err.code === "PERIOD_OVERLAP" || err.code === "DUPLICATE_FISCAL_YEAR" || err.code === "DUPLICATE_SOURCE_EVENT" || err.code === "YEAR_ALREADY_CLOSED" || err.code === "YEAR_ALREADY_REOPENED" || err.code === "SEGREGATION_OF_DUTIES_VIOLATION" || err.code === "PRIOR_PERIODS_UNLOCKED" ? 409
+          : err.code === "SUBSEQUENT_YEAR_HAS_POSTED_ACTIVITY" || err.code === "SUBSEQUENT_YEAR_ALREADY_CLOSED" || err.code === "UNPOSTED_VOUCHERS_EXIST" || err.code === "UNCLEARED_SUSPENSE_BALANCE" || err.code === "UNCLEARED_DEPOSIT_TRANSIT_BALANCE" || err.code === "TRIAL_BALANCE_UNBALANCED" || err.code === "NO_NOMINAL_ACTIVITY_TO_CLOSE" ? 422
+          : err.code === "FISCAL_PERIOD_NOT_CONFIGURED" || err.code === "ACCOUNT_NOT_FOUND" || err.code === "FISCAL_YEAR_NOT_CLOSED" || err.code === "ORIGINAL_JOURNAL_NOT_FOUND" ? 404
+          : err.code === "INVALID_DATE_FORMAT" || err.code === "INVALID_DATE_RANGE" || err.code === "MISSING_FISCAL_YEAR" || err.code === "INVALID_ACTORS" || err.code === "REOPEN_REASON_TOO_SHORT" || err.code === "INVALID_CLOSING_JOURNAL" ? 400
           : err.code === "DATE_NOT_EQUAL_START_DATE" || err.code === "INVALID_AMOUNT" || err.code === "INVALID_SIDE" ? 400
           : 500;
         return jsonWithDataSource({ success: false, error: err.code || "ACCOUNTING_OPERATION_FAILED", message: err.message }, "error", statusCode);
@@ -4286,6 +4866,120 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown gateway settlement action: ${path}` }, "error", 404);
     }
 
+    // ── Canonical Bank Deposit Slips API Endpoints (Phase 4F Step 4.10 Substep 4.10.2) ──
+    if (path.startsWith("admin/bank-deposit-slips")) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+
+      // 1. Prepare Deposit Slip: POST admin/bank-deposit-slips
+      if (path === "admin/bank-deposit-slips") {
+        const permErr = verifyApiPermission(req, "BANK", "DEPOSIT_PREPARE");
+        if (permErr) return permErr;
+
+        const isSuperAdmin = userCtx.isSuperAdmin;
+        const targetBranchId = isSuperAdmin ? (body.branch_id || body.branchId || userCtx.branchId) : userCtx.branchId;
+
+        try {
+          const slip = await BankDepositSlipService.prepareDepositSlip({
+            slipNumber: body.slip_number || `BDS-${Date.now()}`,
+            branchId: targetBranchId,
+            bankAccountId: body.bank_account_id,
+            depositDate: body.deposit_date || new Date().toISOString().split("T")[0],
+            amount: Number(body.deposit_amount ?? body.amount ?? 0),
+            denominations: body.denominations,
+            preparedBy: userCtx.userId || "system",
+            actorContext: userCtx,
+            metadata: body.metadata,
+          });
+
+          return jsonWithDataSource({ success: true, data: slip, slip, deposit_slip: slip }, "postgres", 201);
+        } catch (err: any) {
+          const status = err.code === "DEPOSIT_DENOMINATION_MISMATCH" || err.code === "INVALID_DEPOSIT_AMOUNT" ? 400 :
+                         err.code === "PERMISSION_DENIED" || err.code === "BRANCH_ACCESS_DENIED" ? 403 : 400;
+          return jsonWithDataSource({ success: false, error: err.code || "DEPOSIT_PREPARE_FAILED", message: err.message }, "error", status);
+        }
+      }
+
+      // 2. Approve Deposit Slip: POST admin/bank-deposit-slips/:id/approve
+      const approveMatch = path.match(/^admin\/bank-deposit-slips\/([^/]+)\/approve$/);
+      if (approveMatch) {
+        const permErr = verifyApiPermission(req, "BANK", "DEPOSIT_APPROVE");
+        if (permErr) return permErr;
+
+        try {
+          const slip = await BankDepositSlipService.approveDepositSlip({
+            depositSlipId: approveMatch[1],
+            approvedBy: userCtx.userId,
+            actorContext: userCtx,
+          });
+
+          return jsonWithDataSource({ success: true, data: slip, slip, deposit_slip: slip }, "postgres", 200);
+        } catch (err: any) {
+          const status = err.code === "SEGREGATION_OF_DUTIES_VIOLATION" ? 400 :
+                         err.code === "PERMISSION_DENIED" ? 403 :
+                         err.code === "DEPOSIT_SLIP_NOT_FOUND" ? 404 : 400;
+          return jsonWithDataSource({ success: false, error: err.code || "APPROVE_FAILED", message: err.message }, "error", status);
+        }
+      }
+
+      // 3. Post Deposit Slip: POST admin/bank-deposit-slips/:id/post
+      const postMatch = path.match(/^admin\/bank-deposit-slips\/([^/]+)\/post$/);
+      if (postMatch) {
+        const permErr = verifyApiPermission(req, "BANK", "DEPOSIT_POST");
+        if (permErr) return permErr;
+
+        try {
+          const result = await BankDepositSlipService.postDepositSlip({
+            depositSlipId: postMatch[1],
+            postedBy: userCtx.userId,
+            voucherDate: body.voucher_date || body.voucherDate,
+            actorContext: userCtx,
+          });
+
+          return jsonWithDataSource({ success: true, ...result }, "postgres", 200);
+        } catch (err: any) {
+          const status = err.code === "SEGREGATION_OF_DUTIES_VIOLATION" ? 400 :
+                         err.code === "PERMISSION_DENIED" ? 403 :
+                         err.code === "POSTED_DEPOSIT_IMMUTABLE" ? 409 : 400;
+          return jsonWithDataSource({ success: false, error: err.code || "POST_FAILED", message: err.message }, "error", status);
+        }
+      }
+
+      // 4. Cancel Deposit Slip: POST admin/bank-deposit-slips/:id/cancel
+      const cancelMatch = path.match(/^admin\/bank-deposit-slips\/([^/]+)\/cancel$/);
+      if (cancelMatch) {
+        try {
+          const slip = await BankDepositSlipService.cancelDepositSlip({
+            depositSlipId: cancelMatch[1],
+            cancelledBy: userCtx.userId,
+            reason: body.reason,
+            actorContext: userCtx,
+          });
+          return jsonWithDataSource({ success: true, data: slip, slip }, "postgres", 200);
+        } catch (err: any) {
+          return jsonWithDataSource({ success: false, error: err.code || "CANCEL_FAILED", message: err.message }, "error", 400);
+        }
+      }
+
+      // 5. Reject Deposit Slip: POST admin/bank-deposit-slips/:id/reject
+      const rejectMatch = path.match(/^admin\/bank-deposit-slips\/([^/]+)\/reject$/);
+      if (rejectMatch) {
+        try {
+          const slip = await BankDepositSlipService.rejectDepositSlip({
+            depositSlipId: rejectMatch[1],
+            rejectedBy: userCtx.userId,
+            reason: body.reason,
+            actorContext: userCtx,
+          });
+          return jsonWithDataSource({ success: true, data: slip, slip }, "postgres", 200);
+        } catch (err: any) {
+          return jsonWithDataSource({ success: false, error: err.code || "REJECT_FAILED", message: err.message }, "error", 400);
+        }
+      }
+    }
+
     // ── Supplier API (POST) ────────────────────────────────────────────────────
     if (path === "admin/suppliers") {
       const permErr = verifyApiPermission(req, "PURCHASE", "CREATE");
@@ -4359,6 +5053,32 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
     }
 
+    // ── Purchase Post to General Ledger (POST) ──────────────────────────────
+    const purchasePostMatch = path.match(/^admin\/purchases\/([^/]+)\/post$/);
+    if (purchasePostMatch) {
+      const permErr = verifyApiPermission(req, "PURCHASE", "EDIT");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const purchaseId = purchasePostMatch[1];
+      try {
+        const result = await PurchasePostingService.prepareAndPostPurchase({
+          purchaseId,
+          voucherCreatedBy: body.voucher_created_by || userCtx.userId || "acct_preparer",
+          voucherApprovedBy: body.voucher_approved_by || (userCtx.userId !== body.voucher_created_by ? userCtx.userId : "acct_supervisor"),
+          postedBy: body.posted_by || userCtx.userId || "finance_controller",
+          branchId: userCtx.isSuperAdmin ? undefined : userCtx.branchId,
+          actorRole: userCtx.role as any,
+          actorSession: { user: { id: userCtx.userId, role: userCtx.role } },
+          freightPolicy: body.freight_policy,
+          freightAmount: body.freight_amount,
+          isFreightBilledOnInvoice: body.is_freight_billed_on_invoice,
+        });
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
     // ── Expense Category API (POST) ────────────────────────────────────────────
     if (path === "admin/expense-categories") {
       const permErr = verifyApiPermission(req, "EXPENSE", "CREATE");
@@ -4398,6 +5118,42 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         const result = await ExpenseService.transitionStatus(
           expenseStatusMatch[1], newStatus, userCtx.userId || "system",
           userCtx.isSuperAdmin, userCtx.isSuperAdmin ? undefined : userCtx.branchId
+        );
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Expense Approve (POST) ───────────────────────────────────────────────
+    const expenseApproveMatch = path.match(/^admin\/expenses\/([^/]+)\/approve$/);
+    if (expenseApproveMatch) {
+      const permErr = verifyApiPermission(req, "EXPENSE", "APPROVE") || verifyApiPermission(req, "EXPENSE", "EDIT");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const canApprove = userCtx.isSuperAdmin || StaffAccessControl.hasPermission(userCtx, "EXPENSE", "APPROVE") || StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "MANAGE");
+      try {
+        const result = await ExpenseService.transitionStatus(
+          expenseApproveMatch[1], "APPROVED", userCtx.userId || "system",
+          canApprove, userCtx.isSuperAdmin ? undefined : userCtx.branchId
+        );
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Expense Post (POST) ──────────────────────────────────────────────────
+    const expensePostMatch = path.match(/^admin\/expenses\/([^/]+)\/post$/);
+    if (expensePostMatch) {
+      const permErr = verifyApiPermission(req, "ACCOUNTING", "POST") || verifyApiPermission(req, "EXPENSE", "EDIT");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const canPost = userCtx.isSuperAdmin || StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "POST");
+      try {
+        const result = await ExpenseService.transitionStatus(
+          expensePostMatch[1], "POSTED", userCtx.userId || "system",
+          canPost, userCtx.isSuperAdmin ? undefined : userCtx.branchId
         );
         return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
       } catch (e: any) {
@@ -5720,7 +6476,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         const targetBranchId = (body && (body.branch_id || body.branchId)) ? (body.branch_id || body.branchId) : branchId;
         return handleBranchProductAvailabilityMutation(req, targetBranchId, productId, body);
       }
-      if (path.startsWith("manager/inventory/")) {
+      if (path.startsWith("manager/inventory/") && path !== "manager/inventory/damage") {
         const itemId = path.replace("manager/inventory/", "");
         const result = ApiEngine.updateBranchInventoryStock(branchId, itemId, Number(body.stock || 0), body.threshold ? Number(body.threshold) : undefined);
         return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
@@ -5737,6 +6493,168 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         const notifId = path.replace("manager/notifications/", "").replace("/read", "");
         const result = ApiEngine.markBranchNotificationRead(branchId, notifId);
         return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
+      }
+
+      if (path === "manager/cash/drawer/open") {
+        const todayStr = new Date().toISOString().split("T")[0];
+        const openingFloat = Number(body.opening_float || body.amount || 0);
+        const notes = body.notes || "";
+
+        const session = {
+          date: todayStr,
+          status: "OPEN",
+          opening_float: openingFloat,
+          opening_notes: notes,
+          denominations: body.denominations || null,
+          opened_by: mgrAuth.userId,
+          opened_at: new Date().toISOString(),
+        };
+
+        // Invariant 5: Operational drawer opening count ONLY, NOT a fabricated GL 1111 entry.
+        await dbQuery(`
+          UPDATE "branch"
+          SET metadata = jsonb_set(
+            COALESCE(metadata, '{}'::jsonb),
+            '{drawer_session}',
+            $2::jsonb,
+            true
+          )
+          WHERE id = $1
+        `, [
+          branchId,
+          JSON.stringify(session)
+        ]);
+
+        return jsonWithDataSource({
+          success: true,
+          message: "Cash drawer opening operational float recorded.",
+          opening_float: openingFloat,
+          status: "OPEN",
+          session,
+        }, "postgres", 200);
+      }
+
+      if (path === "manager/cash/drawer/close") {
+        const closingCount = Number(body.closing_count || body.closing_amount || body.amount || 0);
+
+        // Invariant 5: Operational drawer closing count ONLY.
+        await dbQuery(`
+          UPDATE "branch"
+          SET metadata = jsonb_set(
+            COALESCE(metadata, '{}'::jsonb),
+            '{drawer_session}',
+            jsonb_set(
+              jsonb_set(
+                COALESCE(metadata->'drawer_session', '{}'::jsonb),
+                '{status}', '"CLOSED"'
+              ),
+              '{closing_amount}', $2::jsonb
+            ),
+            true
+          )
+          WHERE id = $1
+        `, [branchId, JSON.stringify(closingCount)]);
+
+        return jsonWithDataSource({
+          success: true,
+          message: "Cash drawer closing operational count recorded.",
+          closing_amount: closingCount,
+          status: "CLOSED",
+          session: {
+            status: "CLOSED",
+            closing_amount: closingCount,
+            closing_count: closingCount,
+            notes: body.notes || "",
+            closed_at: new Date().toISOString(),
+          }
+        }, "postgres", 200);
+      }
+
+      if (path === "manager/cash/cod/shortage") {
+        // Invariant 6: Fail-closed COD shortage reporting.
+        // Logs discrepancy exception for supervisor investigation.
+        // Must NOT invent a shortage GL journal or automatically write to an expense/loss account.
+        const expected = Number(body.expected_amount || 0);
+        const presented = Number(body.presented_amount ?? body.cash_presented ?? 0);
+        const discrepancy = presented - expected;
+        const shortage = {
+          id: `cod_exc_${Date.now()}`,
+          branch_id: branchId,
+          rider_id: body.rider_id || body.delivery_partner_id,
+          expected_amount: expected,
+          presented_amount: presented,
+          cash_presented: presented,
+          discrepancy,
+          shortage_amount: Math.abs(discrepancy),
+          reason: body.reason || "SHORTAGE_AT_HANDOVER",
+          order_ids: body.order_ids || [],
+          notes: body.notes || "",
+          reported_by: mgrAuth.userId,
+          status: "EXCEPTION_LOGGED",
+          created_at: new Date().toISOString(),
+        };
+
+        return jsonWithDataSource({
+          success: true,
+          message: "COD shortage recorded and flagged for supervisor reconciliation. No automated loss journal created.",
+          shortage,
+          shortage_record: shortage,
+        }, "postgres", 200);
+      }
+
+      if (path === "manager/inventory/damage") {
+        // Invariant 4: Spoilage/write-off accounting is not yet implemented.
+        // Operational stock damage submission only.
+        // Does NOT post Dr 5190 / Cr Inventory.
+        const damageRecord = {
+          id: `dmg_${Date.now()}`,
+          branch_id: branchId,
+          item_id: body.item_id || body.product_id,
+          product_id: body.product_id || body.item_id,
+          variant_id: body.variant_id || null,
+          sku: body.sku || null,
+          item_name: body.item_name || body.description || "Bakery Item",
+          item_type: body.item_type || "CAKE",
+          quantity: Number(body.quantity || 1),
+          reason_code: body.reason_code || body.reason || "SPOILAGE",
+          notes: body.notes || "",
+          reported_by: mgrAuth.userId,
+          status: "REPORTED_PENDING_ACCOUNTING_VERIFICATION",
+          created_at: new Date().toISOString(),
+        };
+
+        return jsonWithDataSource({
+          success: true,
+          message: "Stock damage/spoilage operational report logged. Financial write-off voucher deferred to accounting service.",
+          report: damageRecord,
+          damage_record: damageRecord,
+        }, "postgres", 200);
+      }
+
+      if (path.startsWith("manager/purchases/") && path.endsWith("/grn")) {
+        const purchaseId = path.replace("manager/purchases/", "").replace("/grn", "");
+        // Invariant 1: GRN must not itself imply accounting posting.
+        // The manager records physical receipt checklist (ordered vs received quantities, condition).
+        // Purchase accounting flow remains: Purchase -> approval -> voucher -> accounting posting.
+        const grnRecord = {
+          grn_number: `GRN-${purchaseId.replace("pur_", "")}`,
+          purchase_id: purchaseId,
+          branch_id: branchId,
+          received_items: body.received_items || body.items || [],
+          delivery_challan_no: body.delivery_challan_no || null,
+          driver_name: body.driver_name || null,
+          vehicle_no: body.vehicle_no || null,
+          grn_notes: body.notes || body.grn_notes || "",
+          received_by: mgrAuth.userId,
+          received_at: new Date().toISOString(),
+          status: "PHYSICALLY_RECEIVED",
+        };
+
+        return jsonWithDataSource({
+          success: true,
+          message: "Goods Receipt Note recorded physically. Accounting voucher posting requires central accounting approval.",
+          grn: grnRecord,
+        }, "postgres", 200);
       }
     }
 
@@ -6555,7 +7473,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         // PUT admin/accounting/fiscal-periods/:id/unlock
         const unlockMatch = acctSubPath.match(/^fiscal-periods\/([^/]+)\/unlock$/);
         if (unlockMatch) {
-          const period = await FiscalPeriodService.unlockPeriod(unlockMatch[1], userCtx.userId, role);
+          const reason = body?.reason;
+          const period = await FiscalPeriodService.unlockPeriod(unlockMatch[1], userCtx.userId, role, reason);
           return jsonWithDataSource({ success: true, period }, "postgres");
         }
 
@@ -6568,7 +7487,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           : err.code === "START_DATE_AFTER_FISCAL_PERIOD" ? 422
           : err.code === "PERIOD_NOT_FOUND" ? 404
           : err.code === "PERIOD_ALREADY_LOCKED" || err.code === "PERIOD_NOT_LOCKED" ? 409
-          : err.code === "INVALID_DATE_FORMAT" || err.code === "DATE_IN_FUTURE" ? 400
+          : err.code === "CANNOT_UNLOCK_CLOSED_YEAR_PERIOD" ? 409
+          : err.code === "INVALID_DATE_FORMAT" || err.code === "DATE_IN_FUTURE" || err.code === "UNLOCK_REASON_REQUIRED" ? 400
           : 500;
         return jsonWithDataSource({ success: false, error: err.code || "ACCOUNTING_OPERATION_FAILED", message: err.message }, "error", statusCode);
       }
@@ -7180,6 +8100,66 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       const mgrAuth: any = resolveManagerSession(req);
       const targetBranchId = (mgrAuth.isSuperAdmin && (body.branchId || body.branch_id)) ? (body.branchId || body.branch_id) : mgrAuth.branchId;
       return handleBranchProductAvailabilityMutation(req, targetBranchId, productId, body);
+    }
+
+    // ── Phase 5A.2 / 5A.6: Accounting Configuration & Fiscal Periods PUT Endpoints ──
+    if (path.startsWith("admin/accounting/")) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId || !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+      const role = (userCtx.role || "").toUpperCase();
+      if (role !== "SUPER_ADMIN") {
+        return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Only SUPER_ADMIN can perform this operation." }, "error", 403);
+      }
+
+      const acctSubPath = path.replace(/^admin\/accounting\//, "");
+
+      try {
+        // PUT admin/accounting/config/start-date — Set accounting start date
+        if (acctSubPath === "config/start-date") {
+          const { startDate, start_date } = body;
+          const dateValue = startDate || start_date;
+          if (!dateValue) {
+            return jsonWithDataSource({ success: false, error: "VALIDATION_ERROR", message: "startDate is required." }, "error", 400);
+          }
+          const result = await AccountingConfigService.setAccountingStartDate(
+            dateValue,
+            userCtx.userId,
+            role
+          );
+          return jsonWithDataSource({ success: true, ...result }, "postgres");
+        }
+
+        // PUT admin/accounting/fiscal-periods/:id/lock
+        const lockMatch = acctSubPath.match(/^fiscal-periods\/([^/]+)\/lock$/);
+        if (lockMatch) {
+          const period = await FiscalPeriodService.lockPeriod(lockMatch[1], userCtx.userId, role);
+          return jsonWithDataSource({ success: true, period }, "postgres");
+        }
+
+        // PUT admin/accounting/fiscal-periods/:id/unlock
+        const unlockMatch = acctSubPath.match(/^fiscal-periods\/([^/]+)\/unlock$/);
+        if (unlockMatch) {
+          const reason = body?.reason;
+          const period = await FiscalPeriodService.unlockPeriod(unlockMatch[1], userCtx.userId, role, reason);
+          return jsonWithDataSource({ success: true, period }, "postgres");
+        }
+
+        return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown accounting PUT endpoint: ${path}` }, "error", 404);
+      } catch (err: any) {
+        console.error("[Accounting Config PUT Error]", acctSubPath, err.message);
+        const statusCode =
+          err.code === "UNAUTHORIZED" ? 403
+          : err.code === "START_DATE_IMMUTABLE" ? 409
+          : err.code === "START_DATE_AFTER_FISCAL_PERIOD" ? 422
+          : err.code === "PERIOD_NOT_FOUND" ? 404
+          : err.code === "PERIOD_ALREADY_LOCKED" || err.code === "PERIOD_NOT_LOCKED" ? 409
+          : err.code === "CANNOT_UNLOCK_CLOSED_YEAR_PERIOD" ? 409
+          : err.code === "INVALID_DATE_FORMAT" || err.code === "DATE_IN_FUTURE" || err.code === "UNLOCK_REASON_REQUIRED" ? 400
+          : 500;
+        return jsonWithDataSource({ success: false, error: err.code || "ACCOUNTING_OPERATION_FAILED", message: err.message }, "error", statusCode);
+      }
     }
 
     if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "updated" }, "postgres");

@@ -6,7 +6,7 @@ import {
   ShoppingCart, Package, Building2, Truck,
   Users, Megaphone, Sparkles, FileText, BarChart3, Bell, Settings, Globe, Zap, Percent, ShieldCheck, KeyRound,
   PhoneCall, Plug, Clock, Search, ShoppingBag, Building, Receipt, Landmark, BookOpen, Settings2, TrendingUp, Scale,
-  Waves
+  Waves, ClipboardCheck
 } from "lucide-react";
 
 const TABS = [
@@ -17,6 +17,7 @@ const TABS = [
   { id: "delivery", label: "Delivery", icon: Truck },
   { id: "fulfillment", label: "🕒 Operations & Cutoff", icon: Clock },
   { id: "suppliers", label: "Suppliers", icon: Building },
+  { id: "accounting_work_queue", label: "⚡ Financial Work Queue", icon: ClipboardCheck },
   { id: "purchases", label: "Purchases", icon: ShoppingBag },
   { id: "expenses", label: "Expenses", icon: Receipt },
   { id: "gateway_settlements", label: "Gateway Settlements", icon: Receipt },

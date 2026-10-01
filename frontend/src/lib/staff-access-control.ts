@@ -809,6 +809,7 @@ class StaffAccessControlStore {
       suppliers: { module: "PURCHASE", action: "VIEW" },
       purchases: { module: "PURCHASE", action: "VIEW" },
       expenses: { module: "EXPENSE", action: "VIEW" },
+      accounting_work_queue: { module: "ACCOUNTING", action: "VIEW" },
       fleet: { module: "FLEET", action: "VIEW" },
       staff_profiles: { module: "STAFF_MANAGEMENT", action: "VIEW" },
       gateway_settlements: { module: "GATEWAY", action: "VIEW" },

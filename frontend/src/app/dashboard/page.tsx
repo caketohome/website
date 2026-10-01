@@ -173,6 +173,10 @@ const CashFlowPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/cash-flow-panel").then((mod) => ({ default: mod.CashFlowPanel })),
   "CashFlowPanel"
 );
+const AccountingWorkQueuePanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/accounting-work-queue-panel"),
+  "AccountingWorkQueuePanel"
+);
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Tab ID type and panel map — backwards compatible
@@ -180,7 +184,7 @@ const CashFlowPanel = createDynamicPanel(
 
 type AdminTabId =
   | "orders" | "catalog" | "search_engine" | "branches" | "delivery"
-  | "fulfillment" | "suppliers" | "purchases" | "expenses" | "gateway_settlements" | "bank_reconciliation" | "general_ledger" | "profit_loss" | "balance_sheet" | "cash_flow" | "accounting_setup" | "fleet" | "tax_master" | "abandoned_carts" | "telemarketing"
+  | "fulfillment" | "suppliers" | "purchases" | "expenses" | "accounting_work_queue" | "gateway_settlements" | "bank_reconciliation" | "general_ledger" | "profit_loss" | "balance_sheet" | "cash_flow" | "accounting_setup" | "fleet" | "tax_master" | "abandoned_carts" | "telemarketing"
   | "crm" | "login_activity" | "marketing" | "popups" | "seo"
   | "automation" | "webhooks" | "cms" | "media" | "analytics" | "ai_concierge"
   | "staff_profiles" | "notifications" | "settings";
@@ -195,6 +199,7 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   suppliers: SupplierPanel,
   purchases: PurchasePanel,
   expenses: ExpensePanel,
+  accounting_work_queue: AccountingWorkQueuePanel,
   gateway_settlements: GatewaySettlementPanel,
   bank_reconciliation: BankReconciliationPanel,
   general_ledger: GeneralLedgerPanel,

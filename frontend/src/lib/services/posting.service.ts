@@ -177,7 +177,8 @@ export class PostingService {
    */
   static async validateFiscalPeriod(
     voucherDate: string,
-    client?: PoolClient
+    client?: PoolClient,
+    allowLockedForClosing: boolean = false
   ): Promise<AccountingFiscalPeriodRow> {
     const periodStatus = await AccountingFiscalPeriodRepository.getPeriodStatusForDate(
       voucherDate,
@@ -192,10 +193,38 @@ export class PostingService {
     }
 
     if (periodStatus.status === "PERIOD_LOCKED") {
-      throw new PostingServiceError(
-        "FISCAL_PERIOD_LOCKED",
-        `Fiscal period '${periodStatus.period.period_name}' (${periodStatus.period.start_date} to ${periodStatus.period.end_date}) is locked. Postings to locked periods are rejected.`
-      );
+      if (!allowLockedForClosing) {
+        throw new PostingServiceError(
+          "FISCAL_PERIOD_LOCKED",
+          `Fiscal period '${periodStatus.period.period_name}' (${periodStatus.period.start_date} to ${periodStatus.period.end_date}) is locked. Postings to locked periods are rejected.`
+        );
+      }
+    }
+
+    // ── Historical Lockout Guard: Defense-in-Depth (Phase 5A.6 Step 5.1) ────────
+    // If the parent fiscal year is closed by an active unreversed YEAR_END_CLOSE voucher,
+    // operational postings are strictly rejected even if the monthly period row is unlocked.
+    // Only internal year-end close/reopen processes (allowLockedForClosing = true) may proceed.
+    if (!allowLockedForClosing) {
+      const closeSql = `
+        SELECT id, voucher_no FROM public.accounting_voucher
+        WHERE reference_type = 'YEAR_END_CLOSE'
+          AND reference_id = $1
+          AND status = 'POSTED'
+          AND reversed_by_voucher_id IS NULL
+          AND deleted_at IS NULL
+        LIMIT 1
+      `;
+      const closeRes = client
+        ? await client.query<{ id: string; voucher_no: string }>(closeSql, [periodStatus.period.fiscal_year])
+        : await dbQuery<{ id: string; voucher_no: string }>(closeSql, [periodStatus.period.fiscal_year]);
+
+      if (closeRes.rows.length > 0) {
+        throw new PostingServiceError(
+          "FISCAL_PERIOD_LOCKED",
+          `Fiscal year '${periodStatus.period.fiscal_year}' is closed by voucher ${closeRes.rows[0].voucher_no}. Postings into closed fiscal years are strictly rejected.`
+        );
+      }
     }
 
     return periodStatus.period;
@@ -375,7 +404,10 @@ export class PostingService {
         await PostingService.validateAccountingStartDate(voucher.voucher_date, client);
 
         // 3. Validate Fiscal Period (HARD BLOCK)
-        await PostingService.validateFiscalPeriod(voucher.voucher_date, client);
+        const isClosingVoucher =
+          voucher.reference_type === "YEAR_END_CLOSE" ||
+          voucher.reference_type === "YEAR_END_REOPEN";
+        await PostingService.validateFiscalPeriod(voucher.voucher_date, client, isClosingVoucher);
 
         // 4. Validate Posting Accounts
         const accountIds = params.lines.map((l) => l.account_id);

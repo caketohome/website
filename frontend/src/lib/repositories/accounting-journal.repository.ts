@@ -343,11 +343,15 @@ export class AccountingJournalRepository {
    * @param branchId   Optional branch scope. Omit for company-wide trial balance.
    * @param startDate  Period start (YYYY-MM-DD). Omit for all-time.
    * @param endDate    Period end (YYYY-MM-DD). Omit for all-time.
+   * @param excludeClosingVouchers Optional flag to exclude YEAR_END_CLOSE vouchers.
+   * @param client   Optional PoolClient for running within an atomic transaction.
    */
   static async getTrialBalance(
     branchId?: string,
     startDate?: string,
-    endDate?: string
+    endDate?: string,
+    excludeClosingVouchers: boolean = false,
+    client?: PoolClient
   ): Promise<TrialBalanceRow[]> {
     const lineConditions: string[] = [];
     const params: unknown[] = [];
@@ -364,6 +368,9 @@ export class AccountingJournalRepository {
     if (endDate) {
       lineConditions.push(`je.entry_date <= $${idx++}`);
       params.push(endDate);
+    }
+    if (excludeClosingVouchers) {
+      lineConditions.push(`(v.reference_type IS NULL OR v.reference_type NOT IN ('YEAR_END_CLOSE', 'YEAR_END_REOPEN'))`);
     }
 
     const lineWhere = lineConditions.length > 0 ? `WHERE ${lineConditions.join(" AND ")}` : "";
@@ -392,6 +399,7 @@ export class AccountingJournalRepository {
             SUM(jl.credit_amount) AS total_credit
           FROM public.accounting_journal_line jl
           JOIN public.accounting_journal_entry je ON je.id = jl.journal_entry_id
+          JOIN public.accounting_voucher v ON v.id = je.voucher_id
           ${lineWhere}
           GROUP BY jl.account_id
         ) filtered ON filtered.account_id = a.id
@@ -419,7 +427,9 @@ export class AccountingJournalRepository {
         ORDER BY a.code ASC
       `;
 
-    const res = await dbQuery<TrialBalanceRow>(sql, params as unknown[]);
+    const res = client
+      ? await client.query<TrialBalanceRow>(sql, params as unknown[])
+      : await dbQuery<TrialBalanceRow>(sql, params as unknown[]);
     return res.rows;
   }
 }

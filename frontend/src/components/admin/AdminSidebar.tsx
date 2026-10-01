@@ -12,7 +12,7 @@ import {
   BarChart3, TrendingUp, PieChart,
   Shield, KeyRound, ScrollText, Plug, Settings,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeft,
-  Search, Receipt, Landmark,
+  Search, Receipt, Landmark, ClipboardCheck, BookOpen, Scale, Waves, Settings2,
 } from "lucide-react";
 import { useAdminShell } from "./AdminShell";
 
@@ -66,6 +66,9 @@ const NAV_GROUPS: NavGroup[] = [
       { id: "branches", label: "Branches", icon: Building2, tabId: "branches" },
       { id: "delivery", label: "Delivery", icon: Truck, tabId: "delivery" },
       { id: "fulfillment", label: "Operations & Cutoff", icon: Clock, tabId: "fulfillment" },
+      { id: "suppliers", label: "Suppliers", icon: Building2, tabId: "suppliers" },
+      { id: "purchases", label: "Purchases", icon: ShoppingBag, tabId: "purchases" },
+      { id: "expenses", label: "Expenses", icon: Receipt, tabId: "expenses" },
     ],
   },
   {
@@ -73,8 +76,14 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Finance & Treasury",
     icon: Receipt,
     items: [
+      { id: "work_queue", label: "⚡ Financial Work Queue", icon: ClipboardCheck, tabId: "accounting_work_queue" },
       { id: "gateway_settlements", label: "Gateway Settlements", icon: Receipt, tabId: "gateway_settlements" },
       { id: "bank_reconciliation", label: "Bank Reconciliation (BRS)", icon: Landmark, tabId: "bank_reconciliation" },
+      { id: "general_ledger", label: "General Ledger", icon: BookOpen, tabId: "general_ledger" },
+      { id: "profit_loss", label: "Profit & Loss", icon: TrendingUp, tabId: "profit_loss" },
+      { id: "balance_sheet", label: "Balance Sheet", icon: Scale, tabId: "balance_sheet" },
+      { id: "cash_flow", label: "Cash Flow", icon: Waves, tabId: "cash_flow" },
+      { id: "accounting_setup", label: "Accounting Setup", icon: Settings2, tabId: "accounting_setup" },
     ],
   },
   {

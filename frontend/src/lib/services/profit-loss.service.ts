@@ -36,6 +36,7 @@
  * PostgreSQL → Repository → Service → API → UI
  */
 
+import type { PoolClient } from "pg";
 import { AccountingJournalRepository } from "../repositories/accounting-journal.repository";
 import { AccountingAccountRepository } from "../repositories/accounting-account.repository";
 import type {
@@ -153,6 +154,7 @@ export interface ProfitLossParams {
   startDate: string;
   endDate: string;
   branch_id?: string;
+  exclude_closing_vouchers?: boolean;
 }
 
 // ─── ProfitLossService ──────────────────────────────────────────────────────────
@@ -175,7 +177,8 @@ export class ProfitLossService {
   static async getProfitLoss(
     params: ProfitLossParams,
     branchIdFromSession: string | undefined,
-    isSuperAdmin: boolean
+    isSuperAdmin: boolean,
+    client?: PoolClient
   ): Promise<ProfitLossResult> {
     // ── Validate required date range ────────────────────────────────────
     if (!params.startDate || !params.endDate) {
@@ -203,16 +206,19 @@ export class ProfitLossService {
       : branchIdFromSession || undefined;
 
     // ── 1. Fetch Trial Balance from existing repository ─────────────────
+    const excludeClosing = params.exclude_closing_vouchers !== false;
     const tbRows: TrialBalanceRow[] = await AccountingJournalRepository.getTrialBalance(
       effectiveBranchId,
       params.startDate,
-      params.endDate
+      params.endDate,
+      excludeClosing,
+      client
     );
 
     // ── 2. Fetch full CoA for parent_id hierarchy resolution ────────────
     const allAccounts: AccountingAccountRow[] = await AccountingAccountRepository.listAccounts({
       is_active: true,
-    });
+    }, client);
 
     // Build lookup maps
     const accountById = new Map<string, AccountingAccountRow>();

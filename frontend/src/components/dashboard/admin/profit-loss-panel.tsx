@@ -17,6 +17,10 @@
  */
 
 import { useState, useCallback } from "react";
+import { TrendingUp, Scale, Calendar, ShieldCheck } from "lucide-react";
+import { ComparativePnLView } from "./comparative-pnl-view";
+import { FiscalYearSummaryView } from "./fiscal-year-summary-view";
+import { RetainedEarningsRollForwardView } from "./retained-earnings-rollforward-view";
 
 // ─── Types (client-side mirrors) ────────────────────────────────────────────────
 
@@ -111,6 +115,8 @@ function getDefaultDates(): { start: string; end: string } {
 // ─── Component ──────────────────────────────────────────────────────────────────
 
 export function ProfitLossPanel() {
+  type ReportingSubTab = "standard" | "comparative" | "fy_summary" | "re_rollforward";
+  const [activeSubTab, setActiveSubTab] = useState<ReportingSubTab>("standard");
   const defaults = getDefaultDates();
   const [startDate, setStartDate] = useState(defaults.start);
   const [endDate, setEndDate] = useState(defaults.end);
@@ -160,25 +166,87 @@ export function ProfitLossPanel() {
 
   return (
     <div className="space-y-6">
-      {/* ── Header ── */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* ── Header & Reporting Hub Navigation ── */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-            Profit &amp; Loss Statement
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>Accounting &amp; Financial Reporting</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Read-only P&amp;L derived from the authoritative General Ledger.
+            Read-only financial statements derived directly from the authoritative PostgreSQL General Ledger.
           </p>
+        </div>
+
+        {/* Sub-tab switcher */}
+        <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 max-w-full overflow-x-auto scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setActiveSubTab("standard")}
+            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all shrink-0 ${
+              activeSubTab === "standard"
+                ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs"
+                : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>Annual P&amp;L</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab("comparative")}
+            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all shrink-0 ${
+              activeSubTab === "comparative"
+                ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs"
+                : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <Scale className="w-3.5 h-3.5" />
+            <span>Comparative P&amp;L</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab("fy_summary")}
+            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all shrink-0 ${
+              activeSubTab === "fy_summary"
+                ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs"
+                : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Fiscal Year Summary</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab("re_rollforward")}
+            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all shrink-0 ${
+              activeSubTab === "re_rollforward"
+                ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs"
+                : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Retained Earnings Roll-Forward</span>
+          </button>
         </div>
       </div>
 
-      {/* ── Date Filters ── */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <div>
-            <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wide">
-              Start Date
-            </label>
+      {/* ── View Routing ── */}
+      {activeSubTab === "comparative" && <ComparativePnLView />}
+      {activeSubTab === "fy_summary" && <FiscalYearSummaryView />}
+      {activeSubTab === "re_rollforward" && <RetainedEarningsRollForwardView />}
+
+      {activeSubTab === "standard" && (
+        <div className="space-y-6">
+          {/* ── Date Filters ── */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-4">
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wide">
+                  Start Date
+                </label>
             <input
               type="date"
               value={startDate}
@@ -409,6 +477,8 @@ export function ProfitLossPanel() {
               </div>
             </div>
           </div>
+        </div>
+      )}
         </div>
       )}
     </div>

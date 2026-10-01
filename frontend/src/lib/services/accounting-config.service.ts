@@ -50,8 +50,8 @@ export class AccountingConfigService {
    * Read the current accounting start date configuration.
    * Delegates to the existing frozen repository method.
    */
-  static async getConfig(): Promise<AccountingStartDateConfig> {
-    return AccountingFiscalPeriodRepository.getAccountingStartDateConfig();
+  static async getConfig(client?: PoolClient): Promise<AccountingStartDateConfig> {
+    return AccountingFiscalPeriodRepository.getAccountingStartDateConfig(client);
   }
 
   /**

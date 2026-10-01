@@ -22,6 +22,7 @@
 
 import { dbQuery, dbTransaction } from "../db";
 import type { PoolClient } from "pg";
+import crypto from "crypto";
 import { AccountingFiscalPeriodRepository } from "../repositories/accounting-fiscal-period.repository";
 import type { AccountingFiscalPeriodRow } from "../types/accounting.types";
 import { AccountingConfigService } from "./accounting-config.service";
@@ -38,7 +39,9 @@ export type FiscalPeriodErrorCode =
   | "PERIOD_NOT_FOUND"
   | "PERIOD_ALREADY_LOCKED"
   | "PERIOD_NOT_LOCKED"
+  | "UNLOCK_REASON_REQUIRED"
   | "DUPLICATE_FISCAL_YEAR"
+  | "CANNOT_UNLOCK_CLOSED_YEAR_PERIOD"
   | "FISCAL_PERIOD_OPERATION_FAILED";
 
 export class FiscalPeriodError extends Error {
@@ -167,20 +170,21 @@ export class FiscalPeriodService {
   static async lockPeriod(
     periodId: string,
     actorId: string,
-    actorRole: string
+    actorRole: string,
+    client?: PoolClient
   ): Promise<AccountingFiscalPeriodRow> {
     if (actorRole !== "SUPER_ADMIN") {
       throw new FiscalPeriodError("UNAUTHORIZED", "Only SUPER_ADMIN can lock fiscal periods.");
     }
 
-    return dbTransaction(async (client: PoolClient) => {
-      // Lock the row for update
+    const runWithClient = async (c: PoolClient) => {
+      // Lock the row for update (concurrency protection)
       const lockSql = `
         SELECT * FROM public.accounting_fiscal_period
         WHERE id = $1
         FOR UPDATE
       `;
-      const lockRes = await client.query<AccountingFiscalPeriodRow>(lockSql, [periodId]);
+      const lockRes = await c.query<AccountingFiscalPeriodRow>(lockSql, [periodId]);
       const period = lockRes.rows[0];
 
       if (!period) {
@@ -200,9 +204,32 @@ export class FiscalPeriodService {
         WHERE id = $1
         RETURNING *
       `;
-      const res = await client.query<AccountingFiscalPeriodRow>(updateSql, [periodId, actorId]);
+      const res = await c.query<AccountingFiscalPeriodRow>(updateSql, [periodId, actorId]);
+
+      // Audit trail logging
+      const auditId = `aud_${crypto.randomBytes(12).toString("hex")}`;
+      await c.query(
+        `INSERT INTO public.audit_log (
+          id, actor_id, actor_type, action, entity, entity_id, metadata, created_at, updated_at
+        ) VALUES ($1, $2, 'staff', 'accounting.fiscal_period_locked', 'fiscal_period', $3, $4, NOW(), NOW())`,
+        [
+          auditId,
+          actorId,
+          periodId,
+          JSON.stringify({
+            fiscal_year: period.fiscal_year,
+            period_name: period.period_name,
+            start_date: period.start_date,
+            end_date: period.end_date,
+            action: "MONTHLY_LOCK",
+          }),
+        ]
+      );
+
       return res.rows[0];
-    });
+    };
+
+    return client ? runWithClient(client) : dbTransaction(runWithClient);
   }
 
   // ── UNLOCK ──────────────────────────────────────────────────────────────────
@@ -210,24 +237,33 @@ export class FiscalPeriodService {
   /**
    * Unlock a fiscal period (for correction only — audit-logged).
    *
-   * @throws {FiscalPeriodError} UNAUTHORIZED, PERIOD_NOT_FOUND, PERIOD_NOT_LOCKED
+   * @throws {FiscalPeriodError} UNAUTHORIZED, UNLOCK_REASON_REQUIRED, PERIOD_NOT_FOUND, PERIOD_NOT_LOCKED
    */
   static async unlockPeriod(
     periodId: string,
     actorId: string,
-    actorRole: string
+    actorRole: string,
+    reason?: string,
+    client?: PoolClient
   ): Promise<AccountingFiscalPeriodRow> {
     if (actorRole !== "SUPER_ADMIN") {
       throw new FiscalPeriodError("UNAUTHORIZED", "Only SUPER_ADMIN can unlock fiscal periods.");
     }
 
-    return dbTransaction(async (client: PoolClient) => {
+    if (!reason || typeof reason !== "string" || reason.trim().length < 20) {
+      throw new FiscalPeriodError(
+        "UNLOCK_REASON_REQUIRED",
+        "A mandatory audit reason of at least 20 characters is required to unlock a closed fiscal period."
+      );
+    }
+
+    const runWithClient = async (c: PoolClient) => {
       const lockSql = `
         SELECT * FROM public.accounting_fiscal_period
         WHERE id = $1
         FOR UPDATE
       `;
-      const lockRes = await client.query<AccountingFiscalPeriodRow>(lockSql, [periodId]);
+      const lockRes = await c.query<AccountingFiscalPeriodRow>(lockSql, [periodId]);
       const period = lockRes.rows[0];
 
       if (!period) {
@@ -241,6 +277,29 @@ export class FiscalPeriodService {
         );
       }
 
+      // ── Historical Lockout Guard (Phase 5A.6 Step 5.1) ──────────────────────
+      // Canonical Path Security: Prohibit unlocking any monthly period if the
+      // parent fiscal year has an active, unreversed YEAR_END_CLOSE voucher.
+      // Callers must execute Step 4 Year-End Reopen (reopenYearEndClose) first.
+      const activeCloseRes = await c.query<{ id: string; voucher_no: string }>(
+        `SELECT id, voucher_no FROM public.accounting_voucher
+         WHERE reference_type = 'YEAR_END_CLOSE'
+           AND reference_id = $1
+           AND status = 'POSTED'
+           AND reversed_by_voucher_id IS NULL
+           AND deleted_at IS NULL
+         LIMIT 1`,
+        [period.fiscal_year]
+      );
+
+      if (activeCloseRes.rows.length > 0) {
+        const closeV = activeCloseRes.rows[0];
+        throw new FiscalPeriodError(
+          "CANNOT_UNLOCK_CLOSED_YEAR_PERIOD",
+          `Cannot unlock fiscal period '${period.period_name}' because fiscal year '${period.fiscal_year}' is closed by voucher ${closeV.voucher_no}. Reopen the fiscal year first via year-end reopen.`
+        );
+      }
+
       // Unlock and record who/when (audit trail via locked_by and locked_at being cleared)
       const updateSql = `
         UPDATE public.accounting_fiscal_period
@@ -248,9 +307,33 @@ export class FiscalPeriodService {
         WHERE id = $1
         RETURNING *
       `;
-      const res = await client.query<AccountingFiscalPeriodRow>(updateSql, [periodId, actorId]);
+      const res = await c.query<AccountingFiscalPeriodRow>(updateSql, [periodId]);
+
+      // Audit trail logging
+      const auditId = `aud_${crypto.randomBytes(12).toString("hex")}`;
+      await c.query(
+        `INSERT INTO public.audit_log (
+          id, actor_id, actor_type, action, entity, entity_id, metadata, created_at, updated_at
+        ) VALUES ($1, $2, 'staff', 'accounting.fiscal_period_unlocked', 'fiscal_period', $3, $4, NOW(), NOW())`,
+        [
+          auditId,
+          actorId,
+          periodId,
+          JSON.stringify({
+            fiscal_year: period.fiscal_year,
+            period_name: period.period_name,
+            start_date: period.start_date,
+            end_date: period.end_date,
+            action: "MONTHLY_UNLOCK",
+            reason: reason.trim(),
+          }),
+        ]
+      );
+
       return res.rows[0];
-    });
+    };
+
+    return client ? runWithClient(client) : dbTransaction(runWithClient);
   }
 
   // ── AUTO-GENERATE YEAR ──────────────────────────────────────────────────────
@@ -272,7 +355,8 @@ export class FiscalPeriodService {
     fiscal_year: string,
     yearStartDate: string,
     actorId: string,
-    actorRole: string
+    actorRole: string,
+    client?: PoolClient
   ): Promise<AccountingFiscalPeriodRow[]> {
     if (actorRole !== "SUPER_ADMIN") {
       throw new FiscalPeriodError("UNAUTHORIZED", "Only SUPER_ADMIN can generate fiscal year periods.");
@@ -289,9 +373,9 @@ export class FiscalPeriodService {
       );
     }
 
-    return dbTransaction(async (client: PoolClient) => {
+    const runWithClient = async (c: PoolClient) => {
       // Accounting start date must be configured
-      const config = await AccountingConfigService.getConfig();
+      const config = await AccountingConfigService.getConfig(c);
       if (!config.configured) {
         throw new FiscalPeriodError(
           "START_DATE_NOT_CONFIGURED",
@@ -310,7 +394,7 @@ export class FiscalPeriodService {
       // Check if any periods already exist for this fiscal year
       const existing = await AccountingFiscalPeriodRepository.list(
         fiscal_year,
-        client
+        c
       );
       if (existing.length > 0) {
         throw new FiscalPeriodError(
@@ -345,7 +429,7 @@ export class FiscalPeriodService {
           startStr,
           endStr,
           undefined,
-          client
+          c
         );
         if (overlap) {
           throw new FiscalPeriodError(
@@ -360,7 +444,7 @@ export class FiscalPeriodService {
           VALUES ($1, $2, $3::date, $4::date, false, NOW())
           RETURNING *
         `;
-        const res = await client.query<AccountingFiscalPeriodRow>(sql, [
+        const res = await c.query<AccountingFiscalPeriodRow>(sql, [
           fiscal_year,
           periodName,
           startStr,
@@ -371,7 +455,9 @@ export class FiscalPeriodService {
       }
 
       return periods;
-    });
+    };
+
+    return client ? runWithClient(client) : dbTransaction(runWithClient);
   }
 
   // ── PRIVATE HELPERS ─────────────────────────────────────────────────────────
