@@ -11,6 +11,7 @@
  */
 
 import { WebhookEngine } from "./webhook-engine";
+import { DeliveryInvoicingService } from "./services/delivery-invoicing.service";
 
 export type OrderLifecycleState =
   | "CREATED"
@@ -543,6 +544,20 @@ export class OrderLifecycleService {
             rp.last_seen_at = now;
           }
         }
+      }
+
+      // ── Phase 5B.3: Statutory Invoice Generation ──────────────────────────
+      // Invoice is allocated EXACTLY once at DELIVERED (Order ≠ Bill invariant)
+      try {
+        const invoiceResult = await DeliveryInvoicingService.generateInvoiceOnDelivery(apiEngine, order);
+        if (invoiceResult.success) {
+          console.log(`[OrderLifecycleService] Invoice ${invoiceResult.invoice_number} generated for ${order.order_number}`);
+        } else {
+          console.warn(`[OrderLifecycleService] Invoice generation warning: ${invoiceResult.error}`);
+        }
+      } catch (invoiceErr: any) {
+        // Non-blocking: invoice failure must NOT block delivery confirmation
+        console.error(`[OrderLifecycleService] Invoice generation error (non-blocking): ${invoiceErr?.message}`);
       }
 
       timelineTitle = "Order Delivered Successfully";

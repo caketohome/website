@@ -23626,7 +23626,10 @@ export class ApiEngine {
     const orderNumber = `CTH-${dateCode}-${orderSeq}`;
     const orderId = `ord_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const kotNumber = `KOT-${orderNumber}`;
-    const invoiceNumber = `CTH/26-27/${String(orderSeq).padStart(6, "0")}`;
+    // Phase 5B.3: invoice_number is NOT allocated at order creation.
+    // Statutory invoice number is allocated only when order transitions to DELIVERED.
+    // This enforces the Order ≠ Bill invariant.
+    const invoiceNumber: string | null = null;
 
     const branch = validation.branch || {
       id: "br_indiranagar",
