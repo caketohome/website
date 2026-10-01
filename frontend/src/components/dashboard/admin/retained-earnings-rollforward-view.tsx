@@ -15,7 +15,8 @@
  */
 
 import React, { useState, useEffect, useCallback } from "react";
-import { ShieldCheck, AlertTriangle, ArrowRight, RefreshCw, AlertCircle, FileText, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, AlertTriangle, ArrowRight, RefreshCw, AlertCircle, FileText, CheckCircle2, Download, Printer } from "lucide-react";
+import { exportRetainedEarningsRollForwardCsv, triggerPrint } from "@frontend/lib/data/accounting-exports";
 
 export interface RetainedEarningsYearRollForward {
   fiscal_year: string;
@@ -217,7 +218,7 @@ export function RetainedEarningsRollForwardView({ branchId }: { branchId?: strin
 
           {/* ── Retained Earnings Roll-Forward Table ── */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
-            <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+            <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-wrap justify-between items-center gap-3">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                   Account 3210 (Retained Earnings) Multi-Year Schedule
@@ -226,9 +227,27 @@ export function RetainedEarningsRollForwardView({ branchId }: { branchId?: strin
                   Opening Balance + Operating Profit + Transfers − Drawings − Reversals = Closing Balance
                 </p>
               </div>
-              <span className="text-xs text-slate-400 font-mono">
-                {data.years?.length || 0} Fiscal Years
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400 font-mono mr-2 hidden sm:inline">
+                  {data.years?.length || 0} Fiscal Years
+                </span>
+                <button
+                  type="button"
+                  onClick={() => exportRetainedEarningsRollForwardCsv(data, branchId)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition shadow-xs"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export CSV</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={triggerPrint}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition shadow-xs"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print / PDF</span>
+                </button>
+              </div>
             </div>
 
             <div className="overflow-x-auto">

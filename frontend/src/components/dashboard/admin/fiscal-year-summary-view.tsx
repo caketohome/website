@@ -15,7 +15,8 @@
  */
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Lock, Unlock, Shield, Calendar, RefreshCw, AlertCircle, FileText, CheckCircle2 } from "lucide-react";
+import { Lock, Unlock, Shield, Calendar, RefreshCw, AlertCircle, FileText, CheckCircle2, Download, Printer } from "lucide-react";
+import { exportFiscalYearSummaryCsv, triggerPrint } from "@frontend/lib/data/accounting-exports";
 
 export interface FiscalYearSummaryItem {
   fiscal_year: string;
@@ -121,7 +122,7 @@ export function FiscalYearSummaryView({ branchId }: { branchId?: string }) {
               </select>
             </div>
 
-            <div className="pt-5">
+            <div className="pt-5 flex items-center gap-2">
               <button
                 type="button"
                 onClick={fetchData}
@@ -130,6 +131,23 @@ export function FiscalYearSummaryView({ branchId }: { branchId?: string }) {
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
                 <span>{loading ? "Loading…" : "Refresh"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => exportFiscalYearSummaryCsv(summaryList as any, branchId)}
+                disabled={summaryList.length === 0}
+                className="inline-flex items-center gap-1.5 py-1.5 px-3 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition shadow-xs disabled:opacity-50"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export CSV</span>
+              </button>
+              <button
+                type="button"
+                onClick={triggerPrint}
+                className="inline-flex items-center gap-1.5 py-1.5 px-3 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition shadow-xs"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print / PDF</span>
               </button>
             </div>
           </div>

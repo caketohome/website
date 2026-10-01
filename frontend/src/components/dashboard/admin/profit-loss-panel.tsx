@@ -17,7 +17,8 @@
  */
 
 import { useState, useCallback } from "react";
-import { TrendingUp, Scale, Calendar, ShieldCheck } from "lucide-react";
+import { TrendingUp, Scale, Calendar, ShieldCheck, Download, Printer } from "lucide-react";
+import { exportStandardProfitLossCsv, triggerPrint } from "@frontend/lib/data/accounting-exports";
 import { ComparativePnLView } from "./comparative-pnl-view";
 import { FiscalYearSummaryView } from "./fiscal-year-summary-view";
 import { RetainedEarningsRollForwardView } from "./retained-earnings-rollforward-view";
@@ -322,13 +323,33 @@ export function ProfitLossPanel() {
       {data && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
           {/* Report Header */}
-          <div className="bg-[#1D2F5D] px-6 py-4 text-white">
-            <h3 className="text-sm font-bold tracking-wide">PROFIT &amp; LOSS STATEMENT</h3>
-            <p className="text-[11px] text-slate-300 mt-0.5">
-              For the period: {data.period.start_date} to {data.period.end_date}
-              {" | "}
-              {data.branch.name}
-            </p>
+          <div className="bg-[#1D2F5D] px-6 py-4 text-white flex flex-wrap justify-between items-center gap-3">
+            <div>
+              <h3 className="text-sm font-bold tracking-wide">PROFIT &amp; LOSS STATEMENT</h3>
+              <p className="text-[11px] text-slate-300 mt-0.5">
+                For the period: {data.period.start_date} to {data.period.end_date}
+                {" | "}
+                {data.branch.name}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => exportStandardProfitLossCsv(data)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition shadow-xs"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export CSV</span>
+              </button>
+              <button
+                type="button"
+                onClick={triggerPrint}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition shadow-xs"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print / PDF</span>
+              </button>
+            </div>
           </div>
 
           {/* Report Body */}

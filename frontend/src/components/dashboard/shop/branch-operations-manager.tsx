@@ -67,7 +67,14 @@ import {
   Info,
   DollarSign,
   TrendingUp,
+  Download,
 } from "lucide-react";
+import {
+  exportBranchDailySalesCsv,
+  exportBranchCashPositionCsv,
+  exportBranchInventoryDamageCsv,
+  triggerPrint,
+} from "@frontend/lib/data/accounting-exports";
 
 export type ManagerTab =
   | "dashboard"
@@ -1171,15 +1178,37 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   Daily physical drawer float controls. (Invariant 5: Operational drawer count only — does not alter GL Account 1111).
                 </p>
               </div>
-              <span
-                className={`px-3 py-1 rounded-xl text-xs font-bold ${
-                  cashPosition?.drawer_status === "OPEN"
-                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                    : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                }`}
-              >
-                Drawer Mode: {cashPosition?.drawer_status || "CLOSED"}
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`px-3 py-1 rounded-xl text-xs font-bold ${
+                    cashPosition?.drawer_status === "OPEN"
+                      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                      : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                  }`}
+                >
+                  Drawer Mode: {cashPosition?.drawer_status || "CLOSED"}
+                </span>
+                {cashPosition && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => exportBranchCashPositionCsv(cashPosition, branch?.code || "BR01")}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 transition shadow-xs"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Export CSV</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={triggerPrint}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 transition shadow-xs"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>Print / PDF</span>
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
@@ -1554,19 +1583,67 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               ))}
             </div>
 
-            <button
-              onClick={() => {
-                setDamageItem(null);
-                setDamageQty(1);
-                setDamageReason("EXPIRED");
-                setDamageNotes("");
-                setIsDamageModalOpen(true);
-              }}
-              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2"
-            >
-              <ShieldAlert className="w-4 h-4" />
-              Report Damaged / Spoiled Stock
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const damageItems = (inventory || [])
+                    .filter((item: any) => (item.damaged_quantity || 0) > 0)
+                    .map((item: any) => ({
+                      sku: item.sku || item.product_id,
+                      name: item.product_name || item.name || "Item",
+                      category: item.account_code || "1131",
+                      damaged_quantity: item.damaged_quantity || 0,
+                      reason_code: item.reason_code || "EXPIRED",
+                      notes: item.notes || "Operational Spoilage",
+                      reported_at: new Date().toISOString(),
+                      reported_by: "Branch Staff",
+                    }));
+                  exportBranchInventoryDamageCsv(
+                    damageItems.length > 0
+                      ? damageItems
+                      : [
+                          {
+                            sku: "STOCK-01",
+                            name: "Regular Inventory Inspection",
+                            category: "1132",
+                            damaged_quantity: 0,
+                            reason_code: "NO_DAMAGE",
+                            notes: "Zero current damaged units",
+                            reported_at: new Date().toISOString(),
+                            reported_by: "Branch Manager",
+                          },
+                        ],
+                    branch?.code || "BR01"
+                  );
+                }}
+                className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-bold rounded-xl border border-zinc-200 dark:border-zinc-700 transition flex items-center gap-1.5"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export Log</span>
+              </button>
+              <button
+                type="button"
+                onClick={triggerPrint}
+                className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-bold rounded-xl border border-zinc-200 dark:border-zinc-700 transition flex items-center gap-1.5"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print</span>
+              </button>
+              <button
+                onClick={() => {
+                  setDamageItem(null);
+                  setDamageQty(1);
+                  setDamageReason("EXPIRED");
+                  setDamageNotes("");
+                  setIsDamageModalOpen(true);
+                }}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2"
+              >
+                <ShieldAlert className="w-4 h-4" />
+                Report Damaged / Spoiled Stock
+              </button>
+            </div>
           </div>
 
           {/* Inventory Grid */}
@@ -1681,30 +1758,23 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                 <option value="monthly">This Month</option>
               </select>
               <button
+                type="button"
                 onClick={() => {
                   if (!reportsData || !reportsData.rows) return;
-                  const headers = ["Order Number", "Customer Name", "Total", "Status", "Created At"];
-                  const rows = reportsData.rows.map((r: any) => [
-                    r.order_number,
-                    `"${r.customer_name || ""}"`,
-                    r.total,
-                    r.status,
-                    r.created_at,
-                  ]);
-                  const csvContent =
-                    "data:text/csv;charset=utf-8," +
-                    [headers.join(","), ...rows.map((e: any) => e.join(","))].join("\n");
-                  const encodedUri = encodeURI(csvContent);
-                  const link = document.createElement("a");
-                  link.setAttribute("href", encodedUri);
-                  link.setAttribute("download", `Branch_Sales_${branch.code}_${reportRange}.csv`);
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
+                  exportBranchDailySalesCsv(reportsData.rows, branch?.code || "BR01", reportRange);
                 }}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition"
               >
-                📥 Export CSV
+                <Download className="w-3.5 h-3.5" />
+                <span>Export CSV</span>
+              </button>
+              <button
+                type="button"
+                onClick={triggerPrint}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-bold text-xs rounded-xl border border-zinc-200 dark:border-zinc-700 transition"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print / PDF</span>
               </button>
             </div>
           </div>
