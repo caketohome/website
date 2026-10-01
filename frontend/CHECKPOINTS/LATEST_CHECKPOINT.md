@@ -1,34 +1,34 @@
 # LATEST CHECKPOINT — CakeToHome ERP
 
-## Phase 5A.6 Substep 5.5 — Report Exports & Final ERP Completion
-**Status**: 🔒 PHASE 5A.6 COMPLETE, VERIFIED & FROZEN  
+## Phase 5B Substep 5B.2 — Online Order → Delivery → Final Billing Forensic & Design Gate
+**Status**: 🔒 PHASE 5B.2 COMPLETE & DESIGN LOCKED (FORENSIC GATE ONLY — IMPLEMENTATION STOP APPLIED)  
 **Date**: 2026-10-01  
-**Checkpoint**: `CHECKPOINTS/phase5a-step6-period-year-end-close-step5-5-reporting-export-implementation-01.md`  
-**Prior Checkpoint**: `CHECKPOINTS/phase5a-step6-period-year-end-close-step5-5-reporting-export-design-01.md`
+**Current Checkpoint**: `CHECKPOINTS/phase5b-step2-online-order-delivery-billing-forensic-design-gate.md`  
+**Prior Checkpoint**: `CHECKPOINTS/phase5b-step1-pos-barcode-forensic-design-gate.md`  
+**Prior Milestone**: Phase 5A.6 Period & Year-End Close (🔒 100% COMPLETE & FROZEN)
 
-### Cumulative Verification Chain
-| Step | Focus Area | Tests | Status |
-|------|------------|:---:|:---:|
-| Step 1 | Pre-Close Diagnostics Engine | 75/75 | 🔒 FROZEN |
-| Step 2 | Monthly Period Lock / Unlock Engine | 84/84 | 🔒 FROZEN |
-| Step 3 | Year-End Close Engine | 85/85 | 🔒 FROZEN |
-| Step 4 | Year-End Reopen / Reversal Engine | 100/100 | 🔒 FROZEN |
-| Substep 5.1 | Canonical Historical Lockout Guard | 36/36 | 🔒 FROZEN |
-| Substep 5.2 | Retained Earnings Roll-Forward Engine | 97/97 | 🔒 FROZEN |
-| Substep 5.3 | Reporting REST API Route Wiring | 175/175 | 🔒 FROZEN |
-| Substep 5.4 | UI Implementation & Operational Workflow Integration | 57/57 | 🔒 FROZEN |
-| Substep 5.5 | Report Exports & Final ERP Audit | 29/29 | 🔒 FROZEN |
-| **Cumulative** | **All Phase 5A.6 Verified Suites** | **738/738** | **100% FROZEN 🔒** |
+### Critical Business Correction Applied
+- **REJECTED**: Walk-in counter POS, barcode scanning for cakes, cashier shifts
+- **CONFIRMED**: CakeToHome is 100% online-order-only
+- **LOCKED**: Order ≠ Bill — DELIVERED is sole idempotent invoicing trigger
 
-### Historical Regression Baseline
-- Sales Invoice Reversal Suite: **156/156 PASS**
-- Purchase Reversal Suite: **101/101 PASS**
-- Security Regression Suite: **21/21 PASS**
-- **Total Cumulative Verified System Tests**: **1,016/1,016 PASS**
+### Phase 5B Implementation Roadmap (Corrected)
+| Substep | Focus Area | Status | Deliverable |
+|:---:|---|:---:|---|
+| **5B.1** | POS + Barcode Forensic & Design Gate | 🔒 **LOCKED** | `CHECKPOINTS/phase5b-step1-pos-barcode-forensic-design-gate.md` |
+| **5B.2** | **Online Order → Delivery → Billing Forensic & Design Gate** | 🔒 **LOCKED** | `CHECKPOINTS/phase5b-step2-online-order-delivery-billing-forensic-design-gate.md` |
+| **5B.3** | Online Order → Delivery → Final Billing Implementation | ⏸️ PENDING | Fix premature invoicing, delivery-triggers-invoice, accounting bridge |
+| **5C** | Cake Production Workflow (Recipe/BOM/Kitchen) | ⏸️ PENDING | Production tables, kitchen lifecycle |
+| **5D** | Accessory Barcode & Inventory (optional) | ⏸️ PENDING | Barcode scanning for stocked items only |
+
+### Key Findings
+- **Premature Invoicing Flaw**: `ApiEngine` line 23629 allocates `invoice_number` at order creation (WRONG)
+- **Missing Accounting Bridge**: `OrderLifecycleService` DELIVERED transition does NOT call `SalesPostingService`
+- **No Invoice Table**: No dedicated invoice/bill table exists in PostgreSQL
+- **No Production Tables**: Zero recipe/BOM/ingredient tables — 5C must design from scratch
+
+### Baseline Integrity Audit
+- **PostgreSQL Mutation Audit**: **0 rows added, updated, or deleted** (Purity Confirmed)
 - **TypeScript Compiler (`npx tsc --noEmit`)**: **0 errors**
-- **PostgreSQL Audit**: **18/18 Pristine Tables** (Active CoA = 99, 0 leaked test rows)
-
-### Final Phase 5A.6 Execution Boundary
-- Steps 1 – 4: 🔒 COMPLETE & FROZEN (Core Close Engine)
-- Substeps 5.1 – 5.5: 🔒 COMPLETE & FROZEN (Reporting, Workflow & Exports)
-- **Phase 5A.6 Period & Year-End Close**: 🔒 **100% COMPLETE & FROZEN**
+- **Git Working Tree**: Clean (no production code changes)
+- **Frozen Accounting Engine**: 100% Preserved & Untouched
