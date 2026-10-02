@@ -45,6 +45,7 @@ import {
   X,
   CreditCard,
   Lock,
+  FileCheck,
 } from "lucide-react";
 import {
   fetchWorkQueueSummary,
@@ -52,6 +53,7 @@ import {
   fetchExpensesForQueue,
   fetchDepositSlipsForQueue,
   fetchGatewayBatchesForQueue,
+  fetchSalesForQueue,
   previewPurchaseVoucher,
   approvePurchase,
   postPurchaseToGL,
@@ -64,14 +66,17 @@ import {
   approveGatewayBatch,
   postGatewayBatchToGL,
   cancelGatewayBatch,
+  approveSalesVoucher,
+  postSalesVoucherToGL,
   type WorkQueueSummary,
   type PurchaseQueueItem,
   type ExpenseQueueItem,
   type DepositSlipQueueItem,
   type GatewayBatchQueueItem,
+  type SalesQueueItem,
 } from "@frontend/lib/data/accounting-work-queue";
 
-type QueueStream = "purchases" | "expenses" | "deposits" | "gateways";
+type QueueStream = "purchases" | "expenses" | "deposits" | "gateways" | "sales";
 
 export default function AccountingWorkQueuePanel() {
   const [activeStream, setActiveStream] = useState<QueueStream>("purchases");
@@ -88,6 +93,7 @@ export default function AccountingWorkQueuePanel() {
   const [expenses, setExpenses] = useState<ExpenseQueueItem[]>([]);
   const [deposits, setDeposits] = useState<DepositSlipQueueItem[]>([]);
   const [gateways, setGateways] = useState<GatewayBatchQueueItem[]>([]);
+  const [sales, setSales] = useState<SalesQueueItem[]>([]);
 
   // Simulation persona context for testing SoD compliance
   const [simulatedActor, setSimulatedActor] = useState({
@@ -116,18 +122,20 @@ export default function AccountingWorkQueuePanel() {
     setLoading(true);
     setError(null);
     try {
-      const [sumRes, purRes, expRes, depRes, gwRes] = await Promise.all([
+      const [sumRes, purRes, expRes, depRes, gwRes, salesRes] = await Promise.all([
         fetchWorkQueueSummary().catch(() => null),
         fetchPurchasesForQueue().catch(() => []),
         fetchExpensesForQueue().catch(() => []),
         fetchDepositSlipsForQueue().catch(() => []),
         fetchGatewayBatchesForQueue().catch(() => []),
+        fetchSalesForQueue().catch(() => []),
       ]);
       if (sumRes) setSummary(sumRes);
       setPurchases(purRes);
       setExpenses(expRes);
       setDeposits(depRes);
       setGateways(gwRes);
+      setSales(salesRes);
     } catch (err: any) {
       setError(err.message || "Failed to load accounting work queue data");
     } finally {
@@ -347,6 +355,41 @@ export default function AccountingWorkQueuePanel() {
     }
   };
 
+  // Sales Vouchers (Phase 5C)
+  const handleApproveSales = async (voucherId: string) => {
+    setActionLoading(true);
+    try {
+      const res = await approveSalesVoucher(voucherId, simulatedActor.id);
+      if (res.success) {
+        showSuccess(`Sales voucher ${voucherId} approved successfully.`);
+        loadData();
+      } else {
+        showError(res.error || "Approval failed.");
+      }
+    } catch (e: any) {
+      showError(e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handlePostSales = async (voucherId: string) => {
+    setActionLoading(true);
+    try {
+      const res = await postSalesVoucherToGL(voucherId, simulatedActor.id);
+      if (res.success) {
+        showSuccess(`Sales voucher ${voucherId} posted to General Ledger (Dr 1121 AR / Cr 4110 Revenue & Cr 212x GST).`);
+        loadData();
+      } else {
+        showError(res.error || "Posting failed.");
+      }
+    } catch (e: any) {
+      showError(e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   const fmtCurrency = (n: number | string | null | undefined) => {
@@ -453,7 +496,7 @@ export default function AccountingWorkQueuePanel() {
       </div>
 
       {/* ── KPI Metrics Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Purchases */}
         <div
           onClick={() => setActiveStream("purchases")}
@@ -549,6 +592,30 @@ export default function AccountingWorkQueuePanel() {
           </div>
           <p className="text-[11px] text-slate-400 mt-1">Aggregator clearing &amp; fee vouchers</p>
         </div>
+
+        {/* Sales Vouchers (Phase 5C) */}
+        <div
+          onClick={() => setActiveStream("sales")}
+          className={`cursor-pointer rounded-2xl p-5 border transition-all ${
+            activeStream === "sales"
+              ? "bg-teal-50/60 dark:bg-teal-950/30 border-teal-300 dark:border-teal-700 shadow-md ring-2 ring-teal-500/20"
+              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300"
+          }`}
+        >
+          <div className="flex items-center justify-between text-xs text-slate-500 font-bold mb-2">
+            <span className="flex items-center gap-1.5">
+              <FileCheck className="w-3.5 h-3.5 text-teal-600" />
+              <span>Sales Vouchers</span>
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 text-[10px]">
+              {summary?.pending_sales?.count ?? sales.filter(s => s.status === "DRAFT" || s.status === "SUBMITTED").length} pending
+            </span>
+          </div>
+          <div className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            {fmtCurrency(summary?.pending_sales?.total ?? sales.reduce((acc, s) => acc + (s.status !== "POSTED" ? Number(s.total_amount) : 0), 0))}
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1">Delivered orders awaiting GL posting</p>
+        </div>
       </div>
 
       {/* ── Navigation Stream Tabs ── */}
@@ -558,6 +625,7 @@ export default function AccountingWorkQueuePanel() {
           { id: "expenses", label: "Petty Cash & Expense Claims", icon: Receipt, count: expenses.length },
           { id: "deposits", label: "Bank Deposit Slips (Transit)", icon: Landmark, count: deposits.length },
           { id: "gateways", label: "Gateway Settlement Batches", icon: CreditCard, count: gateways.length },
+          { id: "sales", label: "Delivered Order Sales Vouchers", icon: FileCheck, count: sales.length },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeStream === tab.id;
@@ -642,6 +710,14 @@ export default function AccountingWorkQueuePanel() {
                 <option value="APPROVED">APPROVED</option>
                 <option value="POSTED">POSTED</option>
                 <option value="EXCEPTION">EXCEPTION</option>
+              </>
+            )}
+            {activeStream === "sales" && (
+              <>
+                <option value="DRAFT">DRAFT (Delivered Order)</option>
+                <option value="SUBMITTED">SUBMITTED</option>
+                <option value="APPROVED">APPROVED (Awaiting GL Post)</option>
+                <option value="POSTED">POSTED (GL Complete)</option>
               </>
             )}
           </select>
@@ -1171,6 +1247,142 @@ export default function AccountingWorkQueuePanel() {
                               <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
                                 <CheckCircle2 className="w-3.5 h-3.5" />
                                 <span>Settled</span>
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Stream 5: Sales Vouchers Queue (Phase 5C) ── */}
+      {activeStream === "sales" && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                Delivered Online Order Sales Vouchers Pipeline
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Statutory invoice billing bridge: Dr 1121 Accounts Receivable / Cr 4110 Cake Sales, Cr 4120 Accessories, Cr 4130 Delivery Fee, Cr 212x GST.
+              </p>
+            </div>
+            <span className="text-xs font-mono font-bold text-slate-500">
+              {sales.length} total entries
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                <tr>
+                  <th className="py-3 px-4">Voucher / Order Ref</th>
+                  <th className="py-3 px-4">Statutory Bill #</th>
+                  <th className="py-3 px-4">Date</th>
+                  <th className="py-3 px-4">Customer</th>
+                  <th className="py-3 px-4">Branch</th>
+                  <th className="py-3 px-4 text-right">Invoice Amount</th>
+                  <th className="py-3 px-4 text-center">Status</th>
+                  <th className="py-3 px-4">Actors (SoD)</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {sales
+                  .filter((s) => statusFilter === "ALL" || s.status === statusFilter)
+                  .filter((s) => !searchTerm || s.voucher_number.toLowerCase().includes(searchTerm.toLowerCase()) || s.order_id.toLowerCase().includes(searchTerm.toLowerCase()) || (s.invoice_number && s.invoice_number.toLowerCase().includes(searchTerm.toLowerCase())) || (s.customer_name && s.customer_name.toLowerCase().includes(searchTerm.toLowerCase())))
+                  .map((s) => {
+                    const isSelfAction = s.created_by === simulatedActor.id;
+                    return (
+                      <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                        <td className="py-3 px-4">
+                          <div className="font-mono font-bold text-slate-900 dark:text-white">
+                            {s.voucher_number}
+                          </div>
+                          <div className="font-mono text-[10px] text-slate-400">
+                            {s.order_id}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 font-mono font-semibold text-slate-800 dark:text-slate-200">
+                          {s.invoice_number ? (
+                            <span className="px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold">
+                              {s.invoice_number}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic">Bill Pending</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
+                          {s.voucher_date ? new Date(s.voucher_date).toLocaleDateString("en-IN") : "—"}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="font-medium text-slate-800 dark:text-slate-200">{s.customer_name}</div>
+                          {s.customer_phone && <div className="text-[10px] text-slate-400 font-mono">{s.customer_phone}</div>}
+                        </td>
+                        <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
+                          {s.branch_name || s.branch_id}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono font-black text-slate-900 dark:text-white">
+                          {fmtCurrency(s.total_amount)}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <span
+                            className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              s.status === "POSTED"
+                                ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                : s.status === "APPROVED"
+                                ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
+                                : "bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300"
+                            }`}
+                          >
+                            {s.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-[11px] text-slate-500 font-mono">
+                          <div>Prep: {s.created_by.replace("system:", "")}</div>
+                          {s.approved_by && <div className="text-blue-600">Appr: {s.approved_by}</div>}
+                          {s.posted_by && <div className="text-emerald-600">Post: {s.posted_by}</div>}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {s.status === "DRAFT" && (
+                              <button
+                                onClick={() => handleApproveSales(s.id)}
+                                disabled={actionLoading || isSelfAction}
+                                title={isSelfAction ? "Segregation of Duties: Creator cannot approve own voucher" : "Approve Sales Voucher"}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                                  isSelfAction
+                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                    : "bg-teal-600 text-white hover:bg-teal-700 shadow-xs"
+                                }`}
+                              >
+                                {isSelfAction ? "SoD Locked" : "Approve"}
+                              </button>
+                            )}
+                            {s.status === "APPROVED" && (
+                              <button
+                                onClick={() => handlePostSales(s.id)}
+                                disabled={actionLoading || isSelfAction}
+                                title={isSelfAction ? "Segregation of Duties: Creator cannot post own voucher" : "Post to General Ledger"}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 ${
+                                  isSelfAction
+                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                    : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs"
+                                }`}
+                              >
+                                <Send className="w-3 h-3" />
+                                <span>{isSelfAction ? "SoD Locked" : "Post to GL"}</span>
+                              </button>
+                            )}
+                            {s.status === "POSTED" && (
+                              <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Posted to GL</span>
                               </span>
                             )}
                           </div>

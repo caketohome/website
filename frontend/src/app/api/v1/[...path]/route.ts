@@ -37,6 +37,7 @@ import { ReportService } from "@frontend/lib/services/report.service";
 import { SupplierService } from "@frontend/lib/services/supplier.service";
 import { PurchaseService } from "@frontend/lib/services/purchase.service";
 import { PurchasePostingService } from "@frontend/lib/services/purchase-posting.service";
+import { SalesPostingService } from "@frontend/lib/services/sales-posting.service";
 import { ExpenseService } from "@frontend/lib/services/expense.service";
 import { FleetService } from "@frontend/lib/services/fleet.service";
 import { InventoryService } from "@frontend/lib/services/inventory.service";
@@ -2750,13 +2751,19 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
             `SELECT COUNT(*) as count, COALESCE(SUM(net_amount), 0) as total FROM public.gateway_payout_batch WHERE status IN ('INGESTED', 'APPROVED')`
           );
 
+          const salesQ = await dbQuery<{ count: string; total: string }>(
+            `SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as total FROM public.accounting_voucher WHERE voucher_type = 'SALES' AND status = 'DRAFT' ${branchClause}`,
+            branchParam
+          );
+
           const pendingPurchases = { count: parseInt(purchasesQ.rows[0]?.count || "0"), total: parseFloat(purchasesQ.rows[0]?.total || "0") };
           const pendingExpenses = { count: parseInt(expensesQ.rows[0]?.count || "0"), total: parseFloat(expensesQ.rows[0]?.total || "0") };
           const pendingDeposits = { count: parseInt(depositsQ.rows[0]?.count || "0"), total: parseFloat(depositsQ.rows[0]?.total || "0") };
           const pendingGateways = { count: parseInt(gatewayQ.rows[0]?.count || "0"), total: parseFloat(gatewayQ.rows[0]?.total || "0") };
+          const pendingSales = { count: parseInt(salesQ.rows[0]?.count || "0"), total: parseFloat(salesQ.rows[0]?.total || "0") };
 
-          const totalPendingValue = pendingPurchases.total + pendingExpenses.total + pendingDeposits.total + pendingGateways.total;
-          const totalPendingCount = pendingPurchases.count + pendingExpenses.count + pendingDeposits.count + pendingGateways.count;
+          const totalPendingValue = pendingPurchases.total + pendingExpenses.total + pendingDeposits.total + pendingGateways.total + pendingSales.total;
+          const totalPendingCount = pendingPurchases.count + pendingExpenses.count + pendingDeposits.count + pendingGateways.count + pendingSales.count;
 
           return jsonWithDataSource({
             success: true,
@@ -2765,8 +2772,76 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
               pending_expenses: pendingExpenses,
               pending_deposits: pendingDeposits,
               pending_gateways: pendingGateways,
+              pending_sales: pendingSales,
               total_pending_count: totalPendingCount,
               total_pending_value: totalPendingValue,
+            }
+          }, "postgres");
+        }
+
+        // 17. Work Queue Sales: GET admin/accounting/work-queue/sales
+        if (acctSubPath === "work-queue/sales") {
+          const enforcedBranch = isSuperAdminUser ? (url.searchParams.get("branch_id") || undefined) : userBranchId;
+          const branchParam = enforcedBranch ? [enforcedBranch] : [];
+          const branchClause = enforcedBranch ? "AND av.branch_id = $1" : "";
+          const statusParam = url.searchParams.get("status");
+          let statusClause = "AND av.status = 'DRAFT'";
+          if (statusParam && statusParam !== "ALL") {
+            statusClause = `AND av.status = '${statusParam.replace(/'/g, "")}'`;
+          }
+
+          const salesVouchersQ = await dbQuery<{
+            id: string;
+            voucher_number: string;
+            reference_id: string;
+            branch_id: string;
+            branch_name?: string;
+            voucher_date: string;
+            total_amount: string;
+            status: string;
+            created_by: string;
+            approved_by?: string;
+            posted_by?: string;
+            created_at: string;
+            customer_name?: string;
+            customer_phone?: string;
+            invoice_number?: string;
+          }>(
+            `SELECT av.id, av.voucher_no as voucher_number, av.reference_id, av.branch_id, b.name as branch_name,
+                    av.voucher_date, av.total_amount, av.status, av.created_by, av.approved_by, av.posted_by, av.created_at,
+                    COALESCE(o.metadata->>'customer_name', 'Online Customer') as customer_name,
+                    COALESCE(o.metadata->>'customer_phone', '') as customer_phone,
+                    i.invoice_number
+             FROM public.accounting_voucher av
+             LEFT JOIN public.branch b ON b.id = av.branch_id
+             LEFT JOIN public.order o ON o.id = av.reference_id
+             LEFT JOIN public.invoice i ON i.order_id = av.reference_id
+             WHERE av.voucher_type = 'SALES' ${statusClause} ${branchClause}
+             ORDER BY av.created_at DESC
+             LIMIT 100`,
+            branchParam
+          );
+
+          return jsonWithDataSource({
+            success: true,
+            data: {
+              sales: salesVouchersQ.rows.map(row => ({
+                id: row.id,
+                voucher_number: row.voucher_number,
+                order_id: row.reference_id,
+                customer_name: row.customer_name || "Online Customer",
+                customer_phone: row.customer_phone || "",
+                branch_id: row.branch_id,
+                branch_name: row.branch_name || "Primary Branch",
+                voucher_date: row.voucher_date,
+                total_amount: parseFloat(row.total_amount || "0"),
+                status: row.status,
+                created_by: row.created_by,
+                approved_by: row.approved_by,
+                posted_by: row.posted_by,
+                created_at: row.created_at,
+                invoice_number: row.invoice_number || null,
+              }))
             }
           }, "postgres");
         }
@@ -4639,6 +4714,38 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           });
 
           return jsonWithDataSource({ ...result }, "postgres", 200);
+        }
+
+        // POST admin/accounting/sales-vouchers/:id/approve
+        if (acctSubPath.startsWith("sales-vouchers/") && acctSubPath.endsWith("/approve")) {
+          const voucherId = acctSubPath.split("/")[1];
+          const result = await SalesPostingService.approveSalesVoucher({
+            voucherId,
+            approvedBy: userCtx.userId || "admin_01",
+            actorContext: {
+              id: userCtx.userId || "admin_01",
+              user_id: userCtx.userId || "admin_01",
+              role: role || "SUPER_ADMIN",
+              branch_id: userCtx.branchId,
+            }
+          });
+          return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
+        }
+
+        // POST admin/accounting/sales-vouchers/:id/post
+        if (acctSubPath.startsWith("sales-vouchers/") && acctSubPath.endsWith("/post")) {
+          const voucherId = acctSubPath.split("/")[1];
+          const result = await SalesPostingService.postSalesVoucher({
+            voucherId,
+            postedBy: userCtx.userId || "admin_01",
+            actorContext: {
+              id: userCtx.userId || "admin_01",
+              user_id: userCtx.userId || "admin_01",
+              role: role || "SUPER_ADMIN",
+              branch_id: userCtx.branchId,
+            }
+          });
+          return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
         }
 
         return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown accounting POST endpoint: ${path}` }, "error", 404);

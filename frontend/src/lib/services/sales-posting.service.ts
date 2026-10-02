@@ -315,9 +315,13 @@ export class SalesPostingService {
     // 4. Resolve delivery state
     const deliveryAddress = orderMeta.delivery_address || orderMeta.delivery?.address || {};
     const customerState =
-      typeof deliveryAddress === "string"
-        ? deliveryAddress
-        : (deliveryAddress.state || orderMeta.state || orderMeta.customer_state);
+      (typeof deliveryAddress === "object" && deliveryAddress !== null && deliveryAddress.state ? deliveryAddress.state : null) ||
+      orderMeta.delivery_state ||
+      orderMeta.state ||
+      orderMeta.customer_state ||
+      orderMeta.delivery?.state ||
+      (typeof deliveryAddress === "string" && !deliveryAddress.includes(" ") ? deliveryAddress : null) ||
+      branchState;
 
     if (!customerState) {
       throw new SalesPostingError(
@@ -509,7 +513,13 @@ export class SalesPostingService {
       if (payMethod === "cod") {
         paymentClassification = "COD";
         arAccountCode = "1122";
-      } else if (["card", "upi", "wallet", "netbanking", "online", "stripe", "razorpay"].includes(payMethod)) {
+      } else if (
+        ["card", "upi", "wallet", "netbanking", "online", "stripe", "razorpay", "online_upi", "online_card", "online_netbanking"].includes(payMethod) ||
+        payMethod.startsWith("online") ||
+        payMethod.includes("upi") ||
+        payMethod.includes("card") ||
+        payMethod.includes("gateway")
+      ) {
         paymentClassification = "PREPAID";
         arAccountCode = "1121";
       } else {

@@ -97,6 +97,7 @@ export interface InvoiceResult {
   invoice_number?: string;
   invoice_id?: string;
   invoice?: InvoiceRecord;
+  accounting_voucher_id?: string | null;
   idempotent_replay?: boolean;
   error?: string;
 }
@@ -124,6 +125,7 @@ export class DeliveryInvoicingService {
         invoice_number: order.invoice_number,
         invoice_id: order.invoice_id,
         invoice: order.invoice,
+        accounting_voucher_id: order.accounting_voucher_id || order.metadata?.accounting_voucher_id || null,
         idempotent_replay: true,
       };
     }
@@ -215,9 +217,31 @@ export class DeliveryInvoicingService {
       console.warn("[DeliveryInvoicingService] DB persist error:", e?.message);
     }
 
+    // ── Phase 5C: Accounting Bridge — Create Sales Voucher Draft ──────
+    let accountingVoucherId: string | null = null;
+    try {
+      const { SalesPostingService } = await import("./sales-posting.service");
+      const voucherRes = await SalesPostingService.createSalesVoucherDraft({
+        orderId: order.id,
+        branchId: order.branch_id || invoice.branch_id,
+        createdBy: "system:delivery_invoicing",
+      });
+      if (voucherRes.success) {
+        accountingVoucherId = voucherRes.data.id;
+        order.accounting_voucher_id = accountingVoucherId;
+        if (!order.metadata) order.metadata = {};
+        order.metadata.accounting_voucher_id = accountingVoucherId;
+        console.log(`[DeliveryInvoicingService] Sales voucher draft ${voucherRes.data.voucher_no} (${accountingVoucherId}) created for Order ${order.order_number}`);
+      } else {
+        console.warn(`[DeliveryInvoicingService] Sales voucher draft notice: ${voucherRes.error} (${voucherRes.code})`);
+      }
+    } catch (acctErr: any) {
+      console.warn("[DeliveryInvoicingService] Sales voucher draft notice (non-blocking):", acctErr?.message);
+    }
+
     // ── Audit Log ────────────────────────────────────────────────────────
     engine.addAuditLog?.(
-      `INVOICE_GENERATED: Statutory invoice ${invoiceNumber} (${invoiceId}) generated for Order ${order.order_number} upon delivery confirmation.`
+      `INVOICE_GENERATED: Statutory invoice ${invoiceNumber} (${invoiceId}) generated for Order ${order.order_number} upon delivery confirmation.${accountingVoucherId ? ` Accounting Voucher Draft: ${accountingVoucherId}.` : ""}`
     );
 
     return {
@@ -225,6 +249,7 @@ export class DeliveryInvoicingService {
       invoice_number: invoiceNumber,
       invoice_id: invoiceId,
       invoice,
+      accounting_voucher_id: accountingVoucherId,
     };
   }
 

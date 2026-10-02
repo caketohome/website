@@ -23687,6 +23687,7 @@ export class ApiEngine {
       order_number: orderNumber,
       invoice_number: invoiceNumber,
       kot_number: kotNumber,
+      is_ledger_eligible: true, // Phase 5C: Certified online order for canonical accounting bridge
       customer_id: canonicalCustomer?.id || payload.customer_id || "cus_guest",
       customer_uid: customerUid,
       customer_name: customerName,

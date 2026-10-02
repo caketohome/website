@@ -16,8 +16,27 @@ export interface WorkQueueSummary {
   pending_expenses: { count: number; total: number };
   pending_deposits: { count: number; total: number };
   pending_gateways: { count: number; total: number };
+  pending_sales: { count: number; total: number };
   total_pending_count: number;
   total_pending_value: number;
+}
+
+export interface SalesQueueItem {
+  id: string;
+  voucher_number: string;
+  order_id: string;
+  customer_name?: string;
+  customer_phone?: string;
+  branch_id: string;
+  branch_name?: string;
+  voucher_date: string;
+  total_amount: number;
+  status: "DRAFT" | "SUBMITTED" | "APPROVED" | "POSTED";
+  created_by: string;
+  approved_by?: string | null;
+  posted_by?: string | null;
+  created_at: string;
+  invoice_number?: string | null;
 }
 
 export interface PurchaseQueueItem {
@@ -341,6 +360,50 @@ export async function cancelGatewayBatch(
     {
       method: "POST",
       body: JSON.stringify({ reason }),
+    }
+  );
+}
+
+// ── Sales Vouchers Queue (Phase 5C) ──────────────────────────────────────────
+
+export async function fetchSalesForQueue(filters?: {
+  branchId?: string;
+  status?: string;
+}): Promise<SalesQueueItem[]> {
+  const params = new URLSearchParams();
+  params.set("limit", "100");
+  if (filters?.branchId) params.set("branch_id", filters.branchId);
+  if (filters?.status) params.set("status", filters.status);
+
+  const data = await apiFetch<{ success: boolean; data?: { sales: SalesQueueItem[] }; error?: string }>(
+    `admin/accounting/work-queue/sales?${params}`
+  );
+  if (!data.success) throw new Error(data.error || "Failed to load sales vouchers queue");
+  return data.data?.sales || [];
+}
+
+export async function approveSalesVoucher(
+  voucherId: string,
+  approvedBy?: string
+): Promise<{ success: boolean; data?: any; error?: string }> {
+  return apiFetch<{ success: boolean; data?: any; error?: string }>(
+    `admin/accounting/sales-vouchers/${voucherId}/approve`,
+    {
+      method: "POST",
+      body: JSON.stringify({ approved_by: approvedBy || "acct_supervisor" }),
+    }
+  );
+}
+
+export async function postSalesVoucherToGL(
+  voucherId: string,
+  postedBy?: string
+): Promise<{ success: boolean; data?: any; error?: string }> {
+  return apiFetch<{ success: boolean; data?: any; error?: string }>(
+    `admin/accounting/sales-vouchers/${voucherId}/post`,
+    {
+      method: "POST",
+      body: JSON.stringify({ posted_by: postedBy || "finance_controller" }),
     }
   );
 }
