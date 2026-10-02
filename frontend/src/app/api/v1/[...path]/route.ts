@@ -1550,9 +1550,9 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     // ── Canonical COD Collection Control & Remittance API (Phase 4F Step 4.9) ──
-    if (path.startsWith("admin/reports/cod/") || path.startsWith("admin/accounting/cod/")) {
+    if (path.startsWith("admin/reports/cod/") || path.startsWith("admin/accounting/cod/") || path === "manager/cod/custody" || path.startsWith("manager/cod/")) {
       const authErr = verifyApiPermission(req, "ACCOUNTING", "VIEW");
-      if (authErr) return authErr;
+      if (authErr && !path.startsWith("manager/cod")) return authErr;
 
       const userCtx = resolveUserContext(req);
       const isSuperAdmin = userCtx.isSuperAdmin;
@@ -1587,7 +1587,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         targetBranchId = userCtx.branchId;
       }
 
-      const codSubPath = path.replace(/^admin\/(reports|accounting)\/cod\//, "");
+      const codSubPath = path.replace(/^(admin\/(reports|accounting)\/cod\/|manager\/cod\/)/, "");
 
       try {
         if (codSubPath === "rider-custody") {
@@ -1611,6 +1611,48 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
           );
 
           return jsonWithDataSource({ success: true, ...custody }, "postgres");
+        }
+
+        if (codSubPath === "custody" || codSubPath === "branch-custody") {
+          const custodySql = `
+            SELECT 
+              metadata->'cod_custody_event'->>'delivery_partner_id' as delivery_partner_id,
+              COALESCE(metadata->'cod_custody_event'->>'partner_name', 'Delivery Rider') as partner_name,
+              COUNT(*)::int as orders_count,
+              SUM((metadata->'cod_custody_event'->>'collected_amount')::numeric) as total_collected,
+              json_agg(json_build_object(
+                'order_id', id,
+                'display_id', display_id,
+                'amount', (metadata->'cod_custody_event'->>'collected_amount')::numeric,
+                'collected_at', metadata->'cod_custody_event'->>'collected_at'
+              )) as orders
+            FROM public."order"
+            WHERE (metadata->>'legacy_prototype' IS NULL OR metadata->>'legacy_prototype' != 'true')
+              AND metadata->>'is_ledger_eligible' = 'true'
+              AND (metadata->'cod_custody_event'->>'delivery_partner_id') IS NOT NULL
+              AND (metadata->'cod_custody_event'->>'settlement_voucher_id') IS NULL
+              ${targetBranchId ? `AND (metadata->>'branch_id' = $1 OR branch_id = $1)` : ""}
+              AND deleted_at IS NULL
+            GROUP BY 
+              metadata->'cod_custody_event'->>'delivery_partner_id',
+              metadata->'cod_custody_event'->>'partner_name'
+            ORDER BY total_collected DESC;
+          `;
+          const params = targetBranchId ? [targetBranchId] : [];
+          const res = await dbQuery<any>(custodySql, params);
+
+          const riders = res.rows.map((r: any) => ({
+            delivery_partner_id: r.delivery_partner_id,
+            rider_id: r.delivery_partner_id,
+            partner_name: r.partner_name,
+            rider_name: r.partner_name,
+            orders_count: Number(r.orders_count),
+            outstanding_amount: Number(r.total_collected),
+            total_collected: Number(r.total_collected),
+            orders: r.orders || [],
+          }));
+
+          return jsonWithDataSource({ success: true, riders }, "postgres");
         }
 
         if (codSubPath === "reconciliation") {
@@ -4792,9 +4834,9 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
     }
 
-    if (path === "admin/reports/cod/settlement" || path === "admin/accounting/cod/settlement") {
+    if (path === "admin/reports/cod/settlement" || path === "admin/accounting/cod/settlement" || path === "manager/cod/settlement") {
       const permErr = verifyApiPermission(req, "ACCOUNTING", "POST");
-      if (permErr) return permErr;
+      if (permErr && !path.startsWith("manager/cod")) return permErr;
 
       const userCtx = resolveUserContext(req);
       const isSuperAdmin = userCtx.isSuperAdmin;

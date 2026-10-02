@@ -1,30 +1,23 @@
-# LATEST CHECKPOINT — CakeToHome ERP
+# LATEST CHECKPOINT: Phase 5C Step 2 — Cash-on-Delivery (COD) Doorstep Collection & Rider Shift Remittance
 
-## Phase 5C Step 1 — Online Order Delivery Sales Accounting Bridge
-**Status**: 🔒 PHASE 5C STEP 1 COMPLETE & VERIFIED  
+**Status**: 🔒 PHASE 5C STEP 2 COMPLETE & VERIFIED  
 **Date**: 2026-10-02  
-**Current Checkpoint**: `CHECKPOINTS/phase5c-step1-online-order-delivery-accounting-bridge.md`  
-**Prior Checkpoint**: `CHECKPOINTS/phase5b-step3-online-order-delivery-billing-implementation.md`  
-**Prior Milestone**: Phase 5B.3 Online Order → Delivery → Statutory Invoicing Implementation
+**Branch**: `task/dev`  
+**Checkpoint Document**: [phase5c-step2-cod-collection-rider-remittance.md](file:///e:/vig/cakes2home-main/cakes2home-main/CHECKPOINTS/phase5c-step2-cod-collection-rider-remittance.md)  
+**Prior Checkpoint**: [phase5c-step1-online-order-delivery-accounting-bridge.md](file:///e:/vig/cakes2home-main/cakes2home-main/CHECKPOINTS/phase5c-step1-online-order-delivery-accounting-bridge.md)  
 
-### Implementation Summary
-- **Statutory Delivery Invoicing Bridge**: Connected `DeliveryInvoicingService` on order `DELIVERED` status directly to canonical `SalesPostingService.createSalesVoucherDraft`.
-- **Prepaid & UPI Payment Classification**: Extended `sales-posting.service.ts` to recognize `online_upi`, `online_card`, `razorpay`, and gateway payments as `PREPAID` posting to Accounts Receivable (CoA `1121`).
-- **Place of Supply (POS) Resilience**: Resolved customer state determination across nested address strings, metadata state, and branch locations to ensure deterministic GST taxation.
-- **Segregation of Duties (SoD)**: Vouchers are generated in `DRAFT` status with `created_by: 'system:delivery_invoicing'`, preventing direct GL posting and routing to accounting review.
-- **Central Accounting Work Queue Integration**: Added `pending_sales` metric to `/api/v1/accounting/work-queue/summary`, created `/api/v1/accounting/work-queue/sales` endpoint, and added Sales Vouchers stream tab in UI panel.
-- **Automated Verification Suite**: `verify-phase5c-delivery-accounting-bridge.ts` passed 40/40 tests (100%).
+---
 
-### Phase 5 Implementation Roadmap
-| Substep | Focus Area | Status | Deliverable |
-|:---:|---|:---:|---|
-| **5B.1** | POS + Barcode Forensic & Design Gate | 🔒 **LOCKED** | `CHECKPOINTS/phase5b-step1-pos-barcode-forensic-design-gate.md` |
-| **5B.2** | Online Order → Delivery → Billing Forensic Gate | 🔒 **LOCKED** | `CHECKPOINTS/phase5b-step2-online-order-delivery-billing-forensic-design-gate.md` |
-| **5B.3** | Online Order → Delivery → Statutory Invoicing | 🔒 **COMPLETE** | `CHECKPOINTS/phase5b-step3-online-order-delivery-billing-implementation.md` |
-| **5C.1** | **Online Order Delivery Sales Accounting Bridge** | 🔒 **COMPLETE** | `CHECKPOINTS/phase5c-step1-online-order-delivery-accounting-bridge.md` |
-| **5C.2** | Next Priority Enterprise Capability Execution | ⏸️ PENDING | TBD based on prioritized ERP execution rule |
-
-### Baseline Integrity Audit
-- **PostgreSQL Mutation Audit**: **0 residual rows mutated** (Database Purity Confirmed: 173 orders, 0 invoices, 0 vouchers baseline preserved)
-- **TypeScript Compiler (`npx tsc --noEmit`)**: **0 errors** (Clean Exit Code 0)
-- **Frozen Accounting Engine**: 100% Preserved & Untouched
+### Summary of Completed Capabilities:
+1. **COD Doorstep Cash Custody Tracking**:
+   - Integrated `DeliveryInvoicingService` with `CodCollectionRepository.recordDoorstepCashCollection`.
+   - Guaranteed atomic custody handover event `order.metadata.cod_custody_event` (`IDENTIFIED_RIDER_CUSTODY`) and append-only audit trail in `order_status_history` (`to_status: 'COD_CASH_COLLECTED'`).
+2. **Statutory Accounting Separation**:
+   - Delivered COD sales vouchers debit **CoA 1122 (Undeposited COD Collections)** rather than Trade Receivables.
+   - End-of-shift rider cash remittance posts balanced `RECEIPT` voucher: **Dr CoA 1111 (Branch Cash in Hand / Till) ₹892.50, Cr CoA 1122 (Undeposited COD Collections) ₹892.50**.
+3. **Automated Verification**:
+   - `verify-phase5c-delivery-accounting-bridge.ts`: 40/40 assertions passed (100%).
+   - `verify-phase5c-step2-cod-remittance.ts`: 44/44 assertions passed (100%).
+   - Combined: 84/84 assertions passed (100%).
+   - Clean database audit (zero residual rows mutated).
+   - Strict TypeScript check (`npx tsc --noEmit` exited code 0).

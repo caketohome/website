@@ -213,6 +213,21 @@ export class DeliveryInvoicingService {
     // ── Persist to PostgreSQL (Best Effort, Awaited) ───────────────────
     try {
       await DeliveryInvoicingService.persistToDatabase(invoice);
+      const { dbQuery } = await import("../db");
+      await dbQuery(
+        `UPDATE public."order" 
+         SET status = 'completed', 
+             metadata = jsonb_set(
+               jsonb_set(
+                 jsonb_set(COALESCE(metadata, '{}'::jsonb), '{invoice_number}', $1::jsonb),
+                 '{invoice_id}', $2::jsonb
+               ),
+               '{delivery_status}', '"delivered"'::jsonb
+             ),
+             updated_at = NOW() 
+         WHERE id = $3`,
+        [JSON.stringify(invoiceNumber), JSON.stringify(invoiceId), order.id]
+      );
     } catch (e: any) {
       console.warn("[DeliveryInvoicingService] DB persist error:", e?.message);
     }
@@ -237,6 +252,40 @@ export class DeliveryInvoicingService {
       }
     } catch (acctErr: any) {
       console.warn("[DeliveryInvoicingService] Sales voucher draft notice (non-blocking):", acctErr?.message);
+    }
+
+    // ── Phase 5C: COD Cash Custody Handover Bridge ──────────────────────
+    const isCod =
+      String(order.payment_method || "").toLowerCase() === "cod" ||
+      String(order.metadata?.payment_method || "").toLowerCase() === "cod" ||
+      order.metadata?.payment_classification === "COD";
+
+    if (isCod) {
+      try {
+        const { CodCollectionService } = await import("./cod-collection.service");
+        const partnerId =
+          order.delivery_partner_id ||
+          order.metadata?.delivery_partner_id ||
+          order.metadata?.delivery?.partner_id ||
+          null;
+        const custodySnapshot = await CodCollectionService.confirmCodCollection({
+          orderId: order.id,
+          deliveryPartnerId: partnerId,
+          amount: parseFloat(String(invoice.grand_total || order.total || 0)),
+          branchId: order.branch_id || invoice.branch_id,
+          collectedAt: now,
+          actorContext: {
+            user_id: partnerId || "system:delivery_invoicing",
+            role: "DELIVERY_PARTNER",
+            permissions: ["DELIVERY.UPDATE"],
+          },
+        });
+        if (!order.metadata) order.metadata = {};
+        order.metadata.cod_custody_event = custodySnapshot;
+        console.log(`[DeliveryInvoicingService] COD cash custody confirmed for Order ${order.order_number}: ₹${custodySnapshot.collected_amount} (Rider: ${partnerId || "Unassigned"})`);
+      } catch (codErr: any) {
+        console.warn("[DeliveryInvoicingService] COD custody notice (non-blocking):", codErr?.message);
+      }
     }
 
     // ── Audit Log ────────────────────────────────────────────────────────

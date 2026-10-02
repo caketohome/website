@@ -108,26 +108,41 @@ export class CodCollectionRepository {
       }
 
       // 6. Resolve Invoiced Commercial Amount
-      // Query posted sales voucher for this order
-      const vSql = `
-        SELECT id, total_amount, metadata
-        FROM public.accounting_voucher
-        WHERE reference_type = 'SALE'
-          AND reference_id = $1
-          AND voucher_type = 'SALES'
-          AND status = 'POSTED'
-          AND deleted_at IS NULL;
+      // Query statutory invoice, sales voucher, or order metadata for this order
+      let invoicedAmount: number | null = null;
+      const invSql = `
+        SELECT grand_total, invoice_number 
+        FROM public.invoice 
+        WHERE order_id = $1 AND deleted_at IS NULL
+        LIMIT 1;
       `;
-      const vRes = await client.query(vSql, [order.id]);
-      const salesVoucher = vRes.rows[0];
-      if (!salesVoucher) {
-        throw new CodCollectionError(
-          "SALES_INVOICE_NOT_POSTED",
-          `Order '${order.id}' has not been posted to the General Ledger. A sales invoice voucher is required before cash collection.`
-        );
+      const invRes = await client.query(invSql, [order.id]);
+      if (invRes.rows.length > 0 && invRes.rows[0].grand_total !== null && invRes.rows[0].grand_total !== undefined) {
+        invoicedAmount = Math.round(Number(invRes.rows[0].grand_total) * 100) / 100;
+      } else {
+        const vSql = `
+          SELECT id, total_amount, status
+          FROM public.accounting_voucher
+          WHERE reference_type IN ('SALE', 'ORDER')
+            AND reference_id = $1
+            AND voucher_type = 'SALES'
+            AND deleted_at IS NULL
+          LIMIT 1;
+        `;
+        const vRes = await client.query(vSql, [order.id]);
+        if (vRes.rows.length > 0 && vRes.rows[0].total_amount !== null && vRes.rows[0].total_amount !== undefined) {
+          invoicedAmount = Math.round(Number(vRes.rows[0].total_amount) * 100) / 100;
+        } else if (meta.grand_total || meta.total) {
+          invoicedAmount = Math.round(Number(meta.grand_total || meta.total) * 100) / 100;
+        }
       }
 
-      const invoicedAmount = Math.round(Number(salesVoucher.total_amount) * 100) / 100;
+      if (invoicedAmount === null || isNaN(invoicedAmount) || invoicedAmount <= 0) {
+        throw new CodCollectionError(
+          "SALES_INVOICE_NOT_POSTED",
+          `Order '${order.id}' has no valid statutory invoice, sales voucher, or order total. A statutory billing record is required before cash collection.`
+        );
+      }
       const collectedAmount =
         typeof params.amount === "number" && !isNaN(params.amount) && params.amount > 0
           ? Math.round(params.amount * 100) / 100

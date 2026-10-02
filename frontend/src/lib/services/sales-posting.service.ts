@@ -309,7 +309,17 @@ export class SalesPostingService {
     }
 
     const branchMeta = branch.metadata || {};
-    const branchState = branchMeta.state || branch.address;
+    const branchState =
+      branchMeta.state ||
+      branch.state ||
+      (branch.address && /bengaluru|bangalore|karnataka/i.test(branch.address) ? "Karnataka" : null) ||
+      (branch.address && /mumbai|pune|maharashtra/i.test(branch.address) ? "Maharashtra" : null) ||
+      (branch.address && /delhi/i.test(branch.address) ? "Delhi" : null) ||
+      (branch.address && /chennai|tamil nadu/i.test(branch.address) ? "Tamil Nadu" : null) ||
+      (branch.address && /hyderabad|telangana/i.test(branch.address) ? "Telangana" : null) ||
+      (branch.address && /kochi|kerala/i.test(branch.address) ? "Kerala" : null) ||
+      branch.city ||
+      "Karnataka";
     const branchGstin = branchMeta.gstin;
 
     // 4. Resolve delivery state
