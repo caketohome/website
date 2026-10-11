@@ -30,14 +30,16 @@ export class ExpenseCategoryRepository {
     const id = generateCategoryId();
     const sql = `
       INSERT INTO public.expense_category
-        (id, name, description, is_active, created_by, created_at, updated_at)
-      VALUES ($1,$2,$3,$4,$5,NOW(),NOW())
+        (id, name, description, gl_account_id, gl_account_code, is_active, created_by, created_at, updated_at)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(),NOW())
       RETURNING *
     `;
     const result = await dbQuery<ExpenseCategoryRow>(sql, [
       id,
       input.name.trim(),
       input.description ?? null,
+      input.gl_account_id ?? null,
+      input.gl_account_code ?? null,
       input.is_active !== false,
       createdBy,
     ]);
@@ -58,9 +60,11 @@ export class ExpenseCategoryRepository {
       params.push(val);
     };
 
-    if (input.name !== undefined)        addField("name",        input.name.trim());
-    if (input.description !== undefined) addField("description", input.description ?? null);
-    if (input.is_active !== undefined)   addField("is_active",   input.is_active);
+    if (input.name !== undefined)            addField("name",            input.name.trim());
+    if (input.description !== undefined)     addField("description",     input.description ?? null);
+    if (input.gl_account_id !== undefined)   addField("gl_account_id",   input.gl_account_id ?? null);
+    if (input.gl_account_code !== undefined) addField("gl_account_code", input.gl_account_code ?? null);
+    if (input.is_active !== undefined)       addField("is_active",       input.is_active);
 
     if (sets.length === 0) return this.findById(id);
 

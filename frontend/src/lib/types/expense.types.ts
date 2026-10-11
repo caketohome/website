@@ -12,18 +12,24 @@
 
 // ─── Expense Status Lifecycle ─────────────────────────────────────────────────
 
-export type ExpenseStatus = "DRAFT" | "SUBMITTED" | "APPROVED" | "POSTED";
+export type ExpenseStatus = "DRAFT" | "SUBMITTED" | "APPROVED" | "POSTED" | "REVERSED" | "CANCELLED";
 
 export const EXPENSE_TRANSITIONS: Record<ExpenseStatus, ExpenseStatus[]> = {
-  DRAFT:     ["SUBMITTED"],
-  SUBMITTED: ["APPROVED", "DRAFT"],
-  APPROVED:  ["POSTED"],
-  POSTED:    [],
+  DRAFT:     ["SUBMITTED", "CANCELLED"],
+  SUBMITTED: ["APPROVED", "DRAFT", "CANCELLED"],
+  APPROVED:  ["POSTED", "CANCELLED"],
+  POSTED:    ["REVERSED"],
+  REVERSED:  [],
+  CANCELLED: [],
 };
 
-// ─── Payment Method ────────────────────────────────────────────────────────────
+// ─── Payment & Settlement ─────────────────────────────────────────────────────
 
 export type ExpensePaymentMethod = "CASH" | "UPI" | "BANK_TRANSFER" | "CHEQUE" | "CARD" | "OTHER";
+
+export type ExpenseSettlementType = "DIRECT_PAYMENT" | "CREDIT_ACCRUAL";
+
+export type ExpenseItcEligibility = "ITC_ELIGIBLE" | "ITC_INELIGIBLE";
 
 // ─── Expense Category ─────────────────────────────────────────────────────────
 
@@ -31,6 +37,8 @@ export interface ExpenseCategoryRow {
   id: string;
   name: string;
   description: string | null;
+  gl_account_id: string | null;
+  gl_account_code: string | null;
   is_active: boolean;
   created_by: string | null;
   created_at: string;
@@ -41,12 +49,16 @@ export interface ExpenseCategoryRow {
 export interface ExpenseCategoryCreateInput {
   name: string;
   description?: string | null;
+  gl_account_id?: string | null;
+  gl_account_code?: string | null;
   is_active?: boolean;
 }
 
 export interface ExpenseCategoryUpdateInput {
   name?: string;
   description?: string | null;
+  gl_account_id?: string | null;
+  gl_account_code?: string | null;
   is_active?: boolean;
 }
 
@@ -68,19 +80,36 @@ export interface ExpenseRow {
   igst: number;
   total: number;
   payment_method: ExpensePaymentMethod | null;
+  settlement_type: ExpenseSettlementType;
+  bank_account_id: string | null;
+  teller_session_id: string | null;
+  company_id: string | null;
+  voucher_id: string | null;
+  itc_eligibility: ExpenseItcEligibility;
+  rcm_applicable: boolean;
+  hsn_sac_code: string | null;
+  vendor_gstin: string | null;
   notes: string | null;
   status: ExpenseStatus;
   created_by: string | null;
   approved_by: string | null;
   posted_at: string | null;
+  reversal_voucher_id: string | null;
+  reversed_at: string | null;
+  reversed_by: string | null;
+  reversal_reason: string | null;
   metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
   // Joined fields
   category_name?: string | null;
+  category_gl_code?: string | null;
   supplier_name?: string | null;
   branch_name?: string | null;
+  voucher_no?: string | null;
+  reversal_voucher_no?: string | null;
+  bank_account_name?: string | null;
 }
 
 export interface ExpenseCreateInput {
@@ -97,6 +126,14 @@ export interface ExpenseCreateInput {
   igst?: number;
   total: number;
   payment_method?: ExpensePaymentMethod | null;
+  settlement_type?: ExpenseSettlementType;
+  bank_account_id?: string | null;
+  teller_session_id?: string | null;
+  company_id?: string | null;
+  itc_eligibility?: ExpenseItcEligibility;
+  rcm_applicable?: boolean;
+  hsn_sac_code?: string | null;
+  vendor_gstin?: string | null;
   notes?: string | null;
   metadata?: Record<string, unknown> | null;
 }
@@ -108,6 +145,7 @@ export interface ExpenseListFilters {
   category_id?: string;
   supplier_id?: string;
   status?: ExpenseStatus;
+  settlement_type?: ExpenseSettlementType;
   startDate?: string;
   endDate?: string;
   search?: string;

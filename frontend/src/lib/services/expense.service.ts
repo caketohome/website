@@ -11,8 +11,15 @@
  * - Empty DB returns empty arrays — never fabricated data
  */
 
+import { dbQuery } from "../db";
 import { ExpenseRepository } from "../repositories/expense.repository";
 import { ExpenseCategoryRepository } from "../repositories/expense-category.repository";
+import { ExpensePostingService } from "./expense-posting.service";
+import { ExpenseReversalService } from "./expense-reversal.service";
+import type {
+  AccountingVoucherRow,
+  AccountingJournalEntryRow,
+} from "../types/accounting.types";
 import type {
   ExpenseRow,
   ExpenseCreateInput,
@@ -132,24 +139,183 @@ export class ExpenseService {
   // ── STATUS LIFECYCLE ────────────────────────────────────────────────────────
 
   /**
-   * Transition expense status.
-   * Non-admin can only SUBMIT (DRAFT → SUBMITTED).
-   * Only SUPER_ADMIN can APPROVE or POST.
+   * Transition expense status with genuine accounting integration.
+   * - SUBMITTED: creates/submits accounting voucher draft
+   * - APPROVED: approves accounting voucher draft (enforcing SoD: approvedBy !== createdBy)
+   * - POSTED: executes atomic General Ledger posting via ExpensePostingService (enforcing SoD: postedBy !== createdBy)
+   * - DRAFT / CANCELLED: updates operational record
    */
   static async transitionStatus(
     id: string,
     newStatus: ExpenseStatus,
     userId: string,
     isSuperAdmin: boolean,
-    branchId?: string
+    branchId?: string,
+    reversalReason?: string
   ): Promise<ExpenseApiResponse<null>> {
-    if (!isSuperAdmin && (newStatus === "APPROVED" || newStatus === "POSTED")) {
-      return { success: false, error: "Only Super Admin can approve or post expenses." };
-    }
     const scopedBranchId = isSuperAdmin ? undefined : branchId;
-    const result = await ExpenseRepository.transitionStatus(id, newStatus, userId, scopedBranchId);
-    if (!result.success) return { success: false, error: result.error };
-    return { success: true, message: `Expense status updated to ${newStatus}.` };
+
+    try {
+      if (newStatus === "SUBMITTED") {
+        await ExpensePostingService.submitExpense(id, userId, scopedBranchId);
+        return { success: true, message: "Expense submitted for approval." };
+      }
+
+      if (newStatus === "APPROVED") {
+        await ExpensePostingService.approveExpense(id, userId, scopedBranchId);
+        return { success: true, message: "Expense approved." };
+      }
+
+      if (newStatus === "POSTED") {
+        await ExpensePostingService.postExpenseToGL(id, userId, scopedBranchId);
+        return { success: true, message: "Expense posted to General Ledger." };
+      }
+
+      if (newStatus === "REVERSED") {
+        await ExpenseReversalService.reverseExpense({
+          expenseId: id,
+          reversedBy: userId,
+          reversalReason: reversalReason || "Manager reversal",
+          branchId: scopedBranchId,
+        });
+        return { success: true, message: "Expense reversed in General Ledger." };
+      }
+
+      const result = await ExpenseRepository.transitionStatus(id, newStatus, userId, scopedBranchId);
+      if (!result.success) return { success: false, error: result.error };
+      return { success: true, message: `Expense status updated to ${newStatus}.` };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Failed to update expense status." };
+    }
+  }
+
+  /**
+   * Reverse a posted expense.
+   */
+  static async reverseExpense(
+    id: string,
+    reversedBy: string,
+    reversalReason: string,
+    branchId?: string,
+    targetTellerSessionId?: string,
+    cashReturnDestination?: "TELLER_DRAWER" | "PETTY_CASH"
+  ): Promise<ExpenseApiResponse<any>> {
+    try {
+      const result = await ExpenseReversalService.reverseExpense({
+        expenseId: id,
+        reversedBy,
+        reversalReason,
+        branchId,
+        targetTellerSessionId,
+        cashReturnDestination,
+      });
+      return { success: true, data: result, message: "Expense reversed successfully." };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Failed to reverse expense." };
+    }
+  }
+
+  /**
+   * Retrieves full accounting details for an expense:
+   * - Accounting Voucher
+   * - Journal Entry & Lines
+   * - Reversal Voucher & Lines (if reversed)
+   */
+  static async getExpenseAccounting(
+    id: string,
+    branchId?: string
+  ): Promise<ExpenseApiResponse<any>> {
+    const expense = await ExpenseRepository.findById(id, branchId);
+    if (!expense) return { success: false, error: "Expense not found or access denied." };
+
+    if (!expense.voucher_id) {
+      return {
+        success: true,
+        data: {
+          expense,
+          voucher: null,
+          journal_entry: null,
+          journal_lines: [],
+          reversal_voucher: null,
+          reversal_journal_entry: null,
+          reversal_journal_lines: [],
+        },
+      };
+    }
+
+    const voucherRes = await dbQuery<AccountingVoucherRow>(
+      `SELECT * FROM public.accounting_voucher WHERE id = $1 AND deleted_at IS NULL`,
+      [expense.voucher_id]
+    );
+    const voucher = voucherRes.rows[0] || null;
+
+    let journalEntry = null;
+    let journalLines: any[] = [];
+
+    if (voucher) {
+      const jeRes = await dbQuery<AccountingJournalEntryRow>(
+        `SELECT * FROM public.accounting_journal_entry WHERE voucher_id = $1`,
+        [voucher.id]
+      );
+      journalEntry = jeRes.rows[0] || null;
+
+      if (journalEntry) {
+        const jlRes = await dbQuery(
+          `SELECT jl.*, jl.debit_amount AS debit, jl.credit_amount AS credit, aa.code AS account_code, aa.name AS account_name, aa.type AS account_type
+           FROM public.accounting_journal_line jl
+           JOIN public.accounting_account aa ON aa.id = jl.account_id
+           WHERE jl.journal_entry_id = $1
+           ORDER BY jl.line_no ASC`,
+          [journalEntry.id]
+        );
+        journalLines = jlRes.rows;
+      }
+    }
+
+    let reversalVoucher = null;
+    let reversalJournalEntry = null;
+    let reversalJournalLines: any[] = [];
+
+    if (expense.reversal_voucher_id) {
+      const rvRes = await dbQuery<AccountingVoucherRow>(
+        `SELECT * FROM public.accounting_voucher WHERE id = $1 AND deleted_at IS NULL`,
+        [expense.reversal_voucher_id]
+      );
+      reversalVoucher = rvRes.rows[0] || null;
+
+      if (reversalVoucher) {
+        const rjeRes = await dbQuery<AccountingJournalEntryRow>(
+          `SELECT * FROM public.accounting_journal_entry WHERE voucher_id = $1`,
+          [reversalVoucher.id]
+        );
+        reversalJournalEntry = rjeRes.rows[0] || null;
+
+        if (reversalJournalEntry) {
+          const rjlRes = await dbQuery(
+            `SELECT jl.*, jl.debit_amount AS debit, jl.credit_amount AS credit, aa.code AS account_code, aa.name AS account_name, aa.type AS account_type
+             FROM public.accounting_journal_line jl
+             JOIN public.accounting_account aa ON aa.id = jl.account_id
+             WHERE jl.journal_entry_id = $1
+             ORDER BY jl.line_no ASC`,
+            [reversalJournalEntry.id]
+          );
+          reversalJournalLines = rjlRes.rows;
+        }
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        expense,
+        voucher,
+        journal_entry: journalEntry,
+        journal_lines: journalLines,
+        reversal_voucher: reversalVoucher,
+        reversal_journal_entry: reversalJournalEntry,
+        reversal_journal_lines: reversalJournalLines,
+      },
+    };
   }
 
   // ── DELETE ──────────────────────────────────────────────────────────────────

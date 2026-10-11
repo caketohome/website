@@ -53,10 +53,12 @@ export class ExpenseRepository {
         (id, branch_id, category_id, supplier_id,
          expense_date, reference_no, description,
          subtotal, discount, taxable_value, cgst, sgst, igst, total,
-         payment_method, notes, status, created_by, metadata,
+         payment_method, settlement_type, bank_account_id, teller_session_id, company_id,
+         itc_eligibility, rcm_applicable, hsn_sac_code, vendor_gstin,
+         notes, status, created_by, metadata,
          created_at, updated_at)
       VALUES
-        ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'DRAFT',$17,$18,NOW(),NOW())
+        ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,'DRAFT',$25,$26,NOW(),NOW())
       RETURNING *
     `;
     const params = [
@@ -75,6 +77,14 @@ export class ExpenseRepository {
       input.igst ?? 0,
       input.total,
       input.payment_method ?? null,
+      input.settlement_type ?? "DIRECT_PAYMENT",
+      input.bank_account_id ?? null,
+      input.teller_session_id ?? null,
+      input.company_id ?? null,
+      input.itc_eligibility ?? "ITC_ELIGIBLE",
+      Boolean(input.rcm_applicable),
+      input.hsn_sac_code ?? null,
+      input.vendor_gstin ?? null,
       input.notes ?? null,
       createdBy,
       input.metadata ? JSON.stringify(input.metadata) : null,
@@ -99,12 +109,19 @@ export class ExpenseRepository {
     const sql = `
       SELECT e.*,
              ec.name  AS category_name,
+             ec.gl_account_code AS category_gl_code,
              s.name   AS supplier_name,
-             b.name   AS branch_name
+             b.name   AS branch_name,
+             v.voucher_no AS voucher_no,
+             rv.voucher_no AS reversal_voucher_no,
+             ba.account_name AS bank_account_name
       FROM   public.expense          e
       LEFT JOIN public.expense_category ec ON ec.id = e.category_id
       LEFT JOIN public.supplier         s  ON s.id  = e.supplier_id
       LEFT JOIN public.branch           b  ON b.id  = e.branch_id
+      LEFT JOIN public.accounting_voucher v ON v.id = e.voucher_id
+      LEFT JOIN public.accounting_voucher rv ON rv.id = e.reversal_voucher_id
+      LEFT JOIN public.bank_account     ba ON ba.id = e.bank_account_id
       WHERE  ${conditions.join(" AND ")}
     `;
     const result = await dbQuery<ExpenseRow>(sql, params as any[]);
@@ -121,6 +138,7 @@ export class ExpenseRepository {
     if (filters.category_id)  { conditions.push(`e.category_id = $${idx++}`);  params.push(filters.category_id); }
     if (filters.supplier_id)  { conditions.push(`e.supplier_id = $${idx++}`);  params.push(filters.supplier_id); }
     if (filters.status)       { conditions.push(`e.status = $${idx++}`);        params.push(filters.status); }
+    if (filters.settlement_type) { conditions.push(`e.settlement_type = $${idx++}`); params.push(filters.settlement_type); }
     if (filters.payment_method) { conditions.push(`e.payment_method = $${idx++}`); params.push(filters.payment_method); }
     if (filters.startDate)    { conditions.push(`e.expense_date >= $${idx++}`); params.push(filters.startDate); }
     if (filters.endDate)      { conditions.push(`e.expense_date <= $${idx++}`); params.push(filters.endDate); }
@@ -136,11 +154,21 @@ export class ExpenseRepository {
 
     const [dataResult, countResult] = await Promise.all([
       dbQuery<ExpenseRow>(
-        `SELECT e.*, ec.name AS category_name, s.name AS supplier_name, b.name AS branch_name
+        `SELECT e.*, 
+                ec.name AS category_name, 
+                ec.gl_account_code AS category_gl_code,
+                s.name AS supplier_name, 
+                b.name AS branch_name,
+                v.voucher_no AS voucher_no,
+                rv.voucher_no AS reversal_voucher_no,
+                ba.account_name AS bank_account_name
          FROM public.expense e
          LEFT JOIN public.expense_category ec ON ec.id = e.category_id
          LEFT JOIN public.supplier s ON s.id = e.supplier_id
          LEFT JOIN public.branch   b ON b.id = e.branch_id
+         LEFT JOIN public.accounting_voucher v ON v.id = e.voucher_id
+         LEFT JOIN public.accounting_voucher rv ON rv.id = e.reversal_voucher_id
+         LEFT JOIN public.bank_account     ba ON ba.id = e.bank_account_id
          WHERE ${where}
          ORDER BY e.expense_date DESC, e.created_at DESC
          LIMIT $${idx++} OFFSET $${idx++}`,
@@ -190,6 +218,14 @@ export class ExpenseRepository {
     if (input.igst         !== undefined) addField("igst",           input.igst ?? 0);
     if (input.total        !== undefined) addField("total",          input.total);
     if (input.payment_method !== undefined) addField("payment_method", input.payment_method ?? null);
+    if (input.settlement_type !== undefined) addField("settlement_type", input.settlement_type);
+    if (input.bank_account_id !== undefined) addField("bank_account_id", input.bank_account_id ?? null);
+    if (input.teller_session_id !== undefined) addField("teller_session_id", input.teller_session_id ?? null);
+    if (input.company_id   !== undefined) addField("company_id",     input.company_id ?? null);
+    if (input.itc_eligibility !== undefined) addField("itc_eligibility", input.itc_eligibility);
+    if (input.rcm_applicable !== undefined) addField("rcm_applicable", Boolean(input.rcm_applicable));
+    if (input.hsn_sac_code !== undefined) addField("hsn_sac_code", input.hsn_sac_code ?? null);
+    if (input.vendor_gstin !== undefined) addField("vendor_gstin", input.vendor_gstin ?? null);
     if (input.notes        !== undefined) addField("notes",          input.notes ?? null);
     if (input.metadata     !== undefined) addField("metadata",       input.metadata ? JSON.stringify(input.metadata) : null);
 
@@ -230,10 +266,12 @@ export class ExpenseRepository {
 
     const currentStatus = existing.rows[0].status;
     const VALID_TRANSITIONS: Record<ExpenseStatus, ExpenseStatus[]> = {
-      DRAFT:     ["SUBMITTED"],
-      SUBMITTED: ["APPROVED", "DRAFT"],
-      APPROVED:  ["POSTED"],
-      POSTED:    [],
+      DRAFT:     ["SUBMITTED", "CANCELLED"],
+      SUBMITTED: ["APPROVED", "DRAFT", "CANCELLED"],
+      APPROVED:  ["POSTED", "CANCELLED"],
+      POSTED:    ["REVERSED"],
+      REVERSED:  [],
+      CANCELLED: [],
     };
 
     if (!VALID_TRANSITIONS[currentStatus].includes(newStatus)) {
