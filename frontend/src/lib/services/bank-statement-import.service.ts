@@ -34,6 +34,7 @@ import {
   type ListLinesFilter,
 } from "../repositories/bank-statement-import.repository";
 import { BankAccountRepository } from "../repositories/bank-account.repository";
+import { CompanyRepository } from "../repositories/company.repository";
 import type {
   BankStatementImportRow,
   BankStatementLineRow,
@@ -253,7 +254,7 @@ export class BankStatementImportService {
       const importParams: CreateImportParams = {
         id: importId,
         bank_account_id: params.bankAccountId.trim(),
-        company_id: params.companyId || bankAccount.company_id || "company_default",
+        company_id: params.companyId || bankAccount.company_id || await CompanyRepository.resolveCompanyId(),
         source_filename: params.sourceFilename.trim(),
         source_format: sourceFormat,
         file_sha256: fileSha256,

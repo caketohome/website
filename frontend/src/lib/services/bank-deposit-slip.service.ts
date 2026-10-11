@@ -35,6 +35,7 @@ import {
   BankDepositSlipError,
 } from "../repositories/bank-deposit-slip.repository";
 import { BankAccountRepository } from "../repositories/bank-account.repository";
+import { CompanyRepository } from "../repositories/company.repository";
 import { AccountingAccountRepository } from "../repositories/accounting-account.repository";
 import { PostingService, PostingServiceError } from "./posting.service";
 import { hasEffectivePermission } from "../staff-access-control";
@@ -237,13 +238,7 @@ export class BankDepositSlipService {
         );
       }
 
-      // Branch match check
-      if (bankAccount.branch_id && bankAccount.branch_id !== targetBranchId) {
-        throw new BankDepositServiceError(
-          "BANK_ACCOUNT_BRANCH_MISMATCH",
-          `Bank account '${bankAccount.id}' belongs to branch '${bankAccount.branch_id}', which does not match deposit branch '${targetBranchId}'.`
-        );
-      }
+      // Bank accounts belong to the company and are shared across branches for cash deposits.
 
       // Unique slip number check
       const slipNumber =
@@ -266,7 +261,7 @@ export class BankDepositSlipService {
       return await BankDepositSlipRepository.create(
         {
           slip_number: slipNumber,
-          company_id: params.companyId || "company_default",
+          company_id: params.companyId || await CompanyRepository.resolveCompanyId(),
           branch_id: targetBranchId,
           bank_account_id: bankAccount.id,
           deposit_date: params.depositDate,

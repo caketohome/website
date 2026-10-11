@@ -57,7 +57,10 @@ export class BankReconciliationRepository {
     client?: PoolClient
   ): Promise<BankReconciliationSessionRow> {
     const id = params.id || `brs_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    const companyId = params.companyId || "company_default";
+    const companyId = params.companyId;
+    if (!companyId) {
+      throw new Error("companyId is required for bank reconciliation session. Configure Company Master in Admin → Company Settings.");
+    }
     const status = params.status || "DRAFT";
     const metadata = params.metadata || {};
 

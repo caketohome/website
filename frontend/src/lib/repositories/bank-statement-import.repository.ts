@@ -103,7 +103,10 @@ export class BankStatementImportRepository {
     client?: PoolClient
   ): Promise<BankStatementImportRow> {
     const id = params.id || `bsi_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    const companyId = params.company_id || "company_default";
+    const companyId = params.company_id;
+    if (!companyId) {
+      throw new BankStatementImportError("IMPORT_VALIDATION", "company_id is required. Configure Company Master in Admin → Company Settings.");
+    }
     const sourceFormat = params.source_format || "CSV";
     const status = params.status || "IMPORTED";
     const metadata = params.metadata || {};

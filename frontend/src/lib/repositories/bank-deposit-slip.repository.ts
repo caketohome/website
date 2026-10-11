@@ -55,7 +55,10 @@ export class BankDepositSlipRepository {
     client?: PoolClient
   ): Promise<BankDepositSlipRow> {
     const id = params.id || `bds_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    const companyId = params.company_id || "company_default";
+    const companyId = params.company_id;
+    if (!companyId) {
+      throw new BankDepositSlipError("DEPOSIT_SLIP_VALIDATION", "company_id is required. Configure Company Master in Admin → Company Settings.");
+    }
     const status = params.status || "DRAFT";
     const denominations = params.denominations || {};
     const metadata = params.metadata || {};

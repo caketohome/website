@@ -133,26 +133,12 @@ export class BankReconciliationStatementService {
       );
     }
 
-    // Enterprise account check:
-    if (account.branch_id === null) {
-      if (!actorScope.isSuperAdmin && actorScope.actorBranch !== null) {
-        throw new BankReconciliationStatementError(
-          "FORBIDDEN",
-          "Branch staff cannot access enterprise bank accounts."
-        );
-      }
-    } else {
-      // Branch-specific account check:
-      if (
-        !actorScope.isSuperAdmin &&
-        actorScope.actorBranch !== null &&
-        actorScope.actorBranch !== account.branch_id
-      ) {
-        throw new BankReconciliationStatementError(
-          "BRANCH_MISMATCH",
-          `User branch '${actorScope.actorBranch}' does not match bank account branch '${account.branch_id}'.`
-        );
-      }
+    // Company bank accounts are enterprise accounts: branch staff cannot access company reconciliation
+    if (!actorScope.isSuperAdmin && actorScope.actorBranch !== null) {
+      throw new BankReconciliationStatementError(
+        "FORBIDDEN",
+        "Branch staff cannot access enterprise bank accounts or reconciliation."
+      );
     }
 
     return account;
@@ -217,8 +203,8 @@ export class BankReconciliationStatementService {
       asOfDate = formatDateOnly(new Date());
     }
 
-    // Branch isolation: derived from DB bank account, not client params
-    const effectiveBranchId = bankAccount.branch_id;
+    // Bank accounts are company-wide; branch isolation applies at ledger entry level
+    const effectiveBranchId = null;
 
     // 1. Bank closing balance (B_bank)
     let closingBalancePaise = 0;
@@ -233,14 +219,15 @@ export class BankReconciliationStatementService {
       closingBalancePaise = bankClosing.closingBalancePaise;
     }
 
-    // 2. GL 1112 Balance (B_gl)
-    const gl1112 = await BankReconciliationRepository.getGlAccountBalance(
-      "1112",
+    // 2. Bank-Specific GL Balance (B_gl)
+    const glCode = bankAccount.gl_account_code || "1112";
+    const glBal = await BankReconciliationRepository.getGlAccountBalance(
+      glCode,
       asOfDate,
       effectiveBranchId,
       client
     );
-    const bGlPaise = gl1112.netDebitPaise;
+    const bGlPaise = glBal.netDebitPaise;
 
     // 3. GL 1118 Balance (Uncleared transit deposits ledger position)
     const gl1118 = await BankReconciliationRepository.getGlAccountBalance(
@@ -336,7 +323,7 @@ export class BankReconciliationStatementService {
         bankName: bankAccount.bank_name,
         accountNumberMasked: bankAccount.account_number_masked,
         ifscCode: bankAccount.ifsc_code,
-        branchId: bankAccount.branch_id,
+        branchId: null,
       },
       asOfDate,
       summary,
@@ -368,7 +355,7 @@ export class BankReconciliationStatementService {
     const result = await BankReconciliationRepository.getUnclearedDepositSlips(
       bankAccount.id,
       asOfDate,
-      { limit, offset, branchId: bankAccount.branch_id },
+      { limit, offset },
       client
     );
 
@@ -416,7 +403,7 @@ export class BankReconciliationStatementService {
     const result = await BankReconciliationRepository.getOutstandingDisbursements(
       bankAccount.id,
       asOfDate,
-      { limit, offset, branchId: bankAccount.branch_id },
+      { limit, offset },
       client
     );
 

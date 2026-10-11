@@ -1,0 +1,424 @@
+/**
+ * CakeToHome ERP — Teller Movement Domain Service
+ * Phase C3: Teller & Session Domain Services + Repositories
+ *
+ * Implements physical cash custody projection and controlled manual adjustments:
+ * 1. Physical cash projection from authoritative sources (ORDER, COD, REFUND, EXPENSE, BANK_DEPOSIT).
+ * 2. Idempotency guarantees: (source_type, source_id) projects at most once.
+ * 3. Fail-closed defense: rejects projection if no valid open session exists (never fallback to 1114).
+ * 4. Pre-settlement only: movements cannot be added once a session is settled or cancelled.
+ */
+
+import { dbTransaction } from "../db";
+import type { PoolClient } from "pg";
+import { TellerMovementRepository } from "../repositories/teller-movement.repository";
+import { TellerSessionRepository } from "../repositories/teller-session.repository";
+import { hasEffectivePermission } from "../staff-access-control";
+import {
+  TellerMovementRow,
+  TellerMovementDirection,
+  TellerMovementType,
+  ProjectSystemMovementParams,
+  MovementProjectionResult,
+  AuthenticatedActor,
+  TellerDomainError,
+} from "../types/teller.types";
+
+function round2(num: number): number {
+  return Math.round((num + Number.EPSILON) * 100) / 100;
+}
+
+export class TellerMovementService {
+  /**
+   * Records a controlled manual cash adjustment (petty handover, float correction).
+   * Requires: TELLER.MOVEMENT_CREATE.
+   */
+  static async recordManualAdjustment(
+    params: {
+      session_id: string;
+      branch_id: string;
+      direction: TellerMovementDirection;
+      amount: number;
+      narration: string;
+      adjustment_reference_id?: string;
+    },
+    actor: AuthenticatedActor,
+    client?: PoolClient
+  ): Promise<TellerMovementRow> {
+    if (!hasEffectivePermission(actor, "TELLER.MOVEMENT_CREATE")) {
+      throw new TellerDomainError(
+        "PERMISSION_DENIED",
+        "Actor does not possess TELLER.MOVEMENT_CREATE permission."
+      );
+    }
+
+    if (actor.role !== "SUPER_ADMIN" && actor.branchId && actor.branchId !== params.branch_id) {
+      throw new TellerDomainError(
+        "UNAUTHORIZED_BRANCH",
+        `Actor does not have access to branch '${params.branch_id}'.`
+      );
+    }
+
+    const amount = round2(params.amount);
+    if (amount <= 0) {
+      throw new TellerDomainError(
+        "INVALID_AMOUNT",
+        `Adjustment amount must be positive. Got ${amount}.`
+      );
+    }
+
+    if (!params.narration || params.narration.trim().length < 3) {
+      throw new TellerDomainError(
+        "INVALID_AMOUNT",
+        "Explicit narration of at least 3 characters is required for manual adjustments."
+      );
+    }
+
+    const execute = async (txClient: PoolClient) => {
+      // 1. Lock session row
+      const session = await TellerSessionRepository.findById(params.session_id, txClient, true);
+      if (!session) {
+        throw new TellerDomainError("SESSION_NOT_FOUND", `Session '${params.session_id}' not found.`);
+      }
+
+      if (session.branch_id !== params.branch_id) {
+        throw new TellerDomainError(
+          "UNAUTHORIZED_BRANCH",
+          `Session '${session.id}' belongs to branch '${session.branch_id}', not '${params.branch_id}'.`
+        );
+      }
+
+      if (session.status === "SETTLED") {
+        throw new TellerDomainError(
+          "SESSION_ALREADY_SETTLED",
+          `Session '${session.id}' is SETTLED. Movements cannot be added to settled sessions.`
+        );
+      }
+      if (session.status === "CANCELLED") {
+        throw new TellerDomainError(
+          "SESSION_ALREADY_CANCELLED",
+          `Session '${session.id}' is CANCELLED. Movements cannot be added to cancelled sessions.`
+        );
+      }
+      if (session.status !== "OPEN") {
+        throw new TellerDomainError(
+          "INVALID_SESSION_STATE",
+          `Session '${session.id}' is in ${session.status} status. Movements can only be added to OPEN sessions.`
+        );
+      }
+
+      const sourceId = params.adjustment_reference_id || `man_adj_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+      return TellerMovementRepository.create(
+        {
+          session_id: session.id,
+          branch_id: session.branch_id,
+          direction: params.direction,
+          movement_type: "ADJUSTMENT",
+          amount: amount,
+          source_type: "MANUAL",
+          source_id: sourceId,
+          narration: params.narration.trim(),
+          created_by: actor.userId,
+        },
+        txClient
+      );
+    };
+
+    if (client) {
+      return execute(client);
+    }
+    return dbTransaction(execute);
+  }
+
+  /**
+   * Projects an authoritative financial source event into the teller cash custody ledger.
+   * Enforces:
+   * 1. Idempotency on (source_type, source_id).
+   * 2. Fail-closed defense: requires an active OPEN session at the requested branch.
+   * 3. Row-level concurrency locking on the session.
+   * 4. Zero duplicate GL entries.
+   */
+  static async projectSystemMovement(
+    params: ProjectSystemMovementParams,
+    client?: PoolClient
+  ): Promise<MovementProjectionResult> {
+    const sourceType = params.source_type.trim();
+    const sourceId = params.source_id.trim();
+    const amount = round2(params.amount);
+    const branchId = params.branch_id.trim();
+
+    if (!sourceType || !sourceId) {
+      throw new TellerDomainError(
+        "MISSING_AUTHORITATIVE_SOURCE",
+        "Authoritative source_type and source_id are required for system projections."
+      );
+    }
+
+    if (amount <= 0) {
+      throw new TellerDomainError(
+        "INVALID_AMOUNT",
+        `Projection amount must be positive. Got ${amount}.`
+      );
+    }
+
+    const execute = async (txClient: PoolClient): Promise<MovementProjectionResult> => {
+      // 1. Fast idempotency check
+      const existing = await TellerMovementRepository.findBySource(sourceType, sourceId, txClient);
+      if (existing) {
+        return {
+          movement: existing,
+          wasDuplicate: true,
+        };
+      }
+
+      // 2. Resolve target session
+      let targetSessionId = params.teller_session_id;
+      if (!targetSessionId) {
+        const activeSessions = await TellerSessionRepository.findActiveByBranchId(branchId, txClient);
+        const openSessions = activeSessions.filter((s) => s.status === "OPEN");
+
+        if (openSessions.length === 0) {
+          throw new TellerDomainError(
+            "NO_OPEN_SESSION_FOUND",
+            `No open teller session found at branch '${branchId}' to receive cash projection '${sourceType}:${sourceId}'. Fail closed: physical cash must not be received without an active teller drawer.`
+          );
+        }
+
+        // Anchor to the single active open session
+        targetSessionId = openSessions[0].id;
+      }
+
+      // 3. Pessimistic row-lock on target session
+      const session = await TellerSessionRepository.findById(targetSessionId, txClient, true);
+      if (!session) {
+        throw new TellerDomainError(
+          "SESSION_NOT_FOUND",
+          `Target teller session '${targetSessionId}' not found.`
+        );
+      }
+
+      if (session.branch_id !== branchId) {
+        throw new TellerDomainError(
+          "UNAUTHORIZED_BRANCH",
+          `Session '${session.id}' belongs to branch '${session.branch_id}', not '${branchId}'.`
+        );
+      }
+
+      if (session.status !== "OPEN") {
+        throw new TellerDomainError(
+          "INVALID_SESSION_STATE",
+          `Cannot project cash into session '${session.id}': session is currently ${session.status} (expected OPEN).`
+        );
+      }
+
+      // 4. Create movement with duplicate rescue
+      try {
+        const movement = await TellerMovementRepository.create(
+          {
+            session_id: session.id,
+            branch_id: session.branch_id,
+            direction: params.direction,
+            movement_type: params.movement_type,
+            amount: amount,
+            source_type: sourceType,
+            source_id: sourceId,
+            narration: params.narration || `${params.movement_type} from ${sourceType} ${sourceId}`,
+            created_by: params.created_by || "system_projection",
+          },
+          txClient
+        );
+        return {
+          movement,
+          wasDuplicate: false,
+        };
+      } catch (err: any) {
+        if (err.code === "DUPLICATE_SOURCE_MOVEMENT" || err.constraint === "uq_teller_movement_system_source") {
+          const rescued = await TellerMovementRepository.findBySource(sourceType, sourceId, txClient);
+          if (rescued) {
+            return {
+              movement: rescued,
+              wasDuplicate: true,
+            };
+          }
+        }
+        throw err;
+      }
+    };
+
+    if (client) {
+      return execute(client);
+    }
+    return dbTransaction(execute);
+  }
+
+  // ── Authoritative Domain Projection Helpers ───────────────────────────────
+
+  /**
+   * Cash Sale projection from Retail Order (Section 21).
+   * Direction: IN
+   */
+  static async projectCashSale(
+    orderId: string,
+    branchId: string,
+    amount: number,
+    actorUserId?: string,
+    sessionId?: string,
+    client?: PoolClient
+  ): Promise<MovementProjectionResult> {
+    return this.projectSystemMovement(
+      {
+        branch_id: branchId,
+        teller_session_id: sessionId,
+        direction: "IN",
+        movement_type: "CASH_SALE",
+        amount,
+        source_type: "ORDER",
+        source_id: orderId,
+        narration: `Cash sale collection for order ${orderId}`,
+        created_by: actorUserId,
+      },
+      client
+    );
+  }
+
+  /**
+   * COD Handover projection from Rider Shift Settlement (Section 17).
+   * Direction: IN
+   */
+  static async projectCodHandover(
+    shiftSettlementId: string,
+    branchId: string,
+    amount: number,
+    actorUserId?: string,
+    sessionId?: string,
+    client?: PoolClient
+  ): Promise<MovementProjectionResult> {
+    return this.projectSystemMovement(
+      {
+        branch_id: branchId,
+        teller_session_id: sessionId,
+        direction: "IN",
+        movement_type: "COD_HANDOVER",
+        amount,
+        source_type: "RIDER_SHIFT_SETTLEMENT",
+        source_id: shiftSettlementId,
+        narration: `COD shift remittance from settlement ${shiftSettlementId}`,
+        created_by: actorUserId,
+      },
+      client
+    );
+  }
+
+  /**
+   * Cash Customer Refund projection from Credit Note / Refund (Section 18).
+   * Direction: OUT
+   */
+  static async projectCustomerRefund(
+    refundId: string,
+    branchId: string,
+    amount: number,
+    actorUserId?: string,
+    sessionId?: string,
+    client?: PoolClient
+  ): Promise<MovementProjectionResult> {
+    return this.projectSystemMovement(
+      {
+        branch_id: branchId,
+        teller_session_id: sessionId,
+        direction: "OUT",
+        movement_type: "CUSTOMER_REFUND",
+        amount,
+        source_type: "REFUND",
+        source_id: refundId,
+        narration: `Customer cash refund disbursement for refund ${refundId}`,
+        created_by: actorUserId,
+      },
+      client
+    );
+  }
+
+  /**
+   * Bank Deposit projection from Bank Deposit Slip (Section 19).
+   * Direction: OUT (physical custody leaving the drawer).
+   */
+  static async projectBankDeposit(
+    depositSlipId: string,
+    branchId: string,
+    amount: number,
+    actorUserId?: string,
+    sessionId?: string,
+    client?: PoolClient
+  ): Promise<MovementProjectionResult> {
+    return this.projectSystemMovement(
+      {
+        branch_id: branchId,
+        teller_session_id: sessionId,
+        direction: "OUT",
+        movement_type: "BANK_DEPOSIT",
+        amount,
+        source_type: "BANK_DEPOSIT_SLIP",
+        source_id: depositSlipId,
+        narration: `Cash drawer dispatch for bank deposit slip ${depositSlipId}`,
+        created_by: actorUserId,
+      },
+      client
+    );
+  }
+
+  /**
+   * Cash Expense projection from Branch Expense Voucher (Section 20).
+   * Direction: OUT
+   */
+  static async projectExpensePayment(
+    expenseId: string,
+    branchId: string,
+    amount: number,
+    actorUserId?: string,
+    sessionId?: string,
+    client?: PoolClient
+  ): Promise<MovementProjectionResult> {
+    return this.projectSystemMovement(
+      {
+        branch_id: branchId,
+        teller_session_id: sessionId,
+        direction: "OUT",
+        movement_type: "EXPENSE_PAYMENT",
+        amount,
+        source_type: "EXPENSE",
+        source_id: expenseId,
+        narration: `Cash drawer disbursement for expense ${expenseId}`,
+        created_by: actorUserId,
+      },
+      client
+    );
+  }
+
+  /**
+   * Retrieves all movements for a session in chronological order.
+   * Requires: TELLER.VIEW.
+   */
+  static async getSessionMovements(
+    sessionId: string,
+    actor: AuthenticatedActor,
+    client?: PoolClient
+  ): Promise<TellerMovementRow[]> {
+    if (!hasEffectivePermission(actor, "TELLER.VIEW") && !hasEffectivePermission(actor, "TELLER.REPORT_VIEW")) {
+      throw new TellerDomainError(
+        "PERMISSION_DENIED",
+        "Actor does not possess TELLER.VIEW or TELLER.REPORT_VIEW permission."
+      );
+    }
+    const session = await TellerSessionRepository.findById(sessionId, client);
+    if (!session) {
+      throw new TellerDomainError("SESSION_NOT_FOUND", `Session '${sessionId}' not found.`);
+    }
+    if (actor.role !== "SUPER_ADMIN" && actor.branchId && actor.branchId !== session.branch_id) {
+      throw new TellerDomainError(
+        "UNAUTHORIZED_BRANCH",
+        `Actor does not have access to branch '${session.branch_id}'. Authorized branch is '${actor.branchId}'.`
+      );
+    }
+    return TellerMovementRepository.listBySession(sessionId, client);
+  }
+}

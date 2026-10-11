@@ -693,13 +693,6 @@ export class BankReconciliationMatchingEngine {
       }
 
       const acc1112 = accMap.get("1112");
-      if (!acc1112 || !acc1112.is_active || acc1112.is_group) {
-        throw new BankReconciliationServiceError(
-          "CONTROL_ACCOUNT_INACTIVE",
-          "Control Account 1112 (Bank Operating A/c) is missing, inactive, or a group account."
-        );
-      }
-
       const acc1118 = accMap.get("1118");
       if (!acc1118 || !acc1118.is_active || acc1118.is_group) {
         throw new BankReconciliationServiceError(
@@ -708,15 +701,36 @@ export class BankReconciliationMatchingEngine {
         );
       }
 
+      // Phase B: Resolve Bank-Specific GL Account from bankAccount.gl_account_id (fallback to 1112)
+      let bankGlAccount = acc1112;
+      if (bankAccount.gl_account_id) {
+        const bgRes = await c.query(
+          `SELECT id, code, name, is_active, is_group
+           FROM public.accounting_account
+           WHERE id = $1 AND deleted_at IS NULL`,
+          [bankAccount.gl_account_id]
+        );
+        if (bgRes.rows[0] && bgRes.rows[0].is_active && !bgRes.rows[0].is_group) {
+          bankGlAccount = bgRes.rows[0];
+        }
+      }
+
+      if (!bankGlAccount || !bankGlAccount.is_active || bankGlAccount.is_group) {
+        throw new BankReconciliationServiceError(
+          "CONTROL_ACCOUNT_INACTIVE",
+          "Destination bank account has no valid active leaf GL account configured."
+        );
+      }
+
       // ────────────────────────────────────────────────────────────────────────
       // DOUBLE-ENTRY JOURNAL LINES CONSTRUCTION:
-      // Line 1: Dr 1112 Bank Operating A/c
+      // Line 1: Dr Specific Company Bank GL Account
       // Line 2: Cr 1118 Deposit in Transit
       // ────────────────────────────────────────────────────────────────────────
       const amountNum = Number(slip.amount);
       const lines: JournalLineInput[] = [
         {
-          account_id: acc1112.id,
+          account_id: bankGlAccount.id,
           debit_amount: amountNum,
           credit_amount: 0,
           narration: `Bank credit acknowledged - Slip ${slip.slip_number} to ${bankAccount.bank_name} (${bankAccount.account_number_masked})`,
