@@ -27,6 +27,7 @@
 
 import { dbQuery } from "../db";
 import type { PoolClient } from "pg";
+import { AccountGovernanceService } from "../services/account-governance.service";
 import type {
   AccountingJournalEntryRow,
   AccountingJournalLineRow,
@@ -110,6 +111,9 @@ export class AccountingJournalRepository {
       );
     }
 
+    // Authoritative Account Governance & Dimensional Policy Validation (Phase C7.6 Step 3)
+    await AccountGovernanceService.validateJournalLines(lines, client);
+
     const entryId = generateJournalEntryId();
     const entryNo = generateEntryNo(fiscalYear);
 
@@ -149,9 +153,9 @@ export class AccountingJournalRepository {
           (id, journal_entry_id, line_no, account_id,
            debit_amount, credit_amount,
            branch_id, customer_id, supplier_id,
-           tax_rate, tax_class, narration, metadata)
+           cost_centre_id, tax_rate, tax_class, narration, metadata)
         VALUES
-          ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+          ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
         RETURNING *
       `;
       const lineParams = [
@@ -164,6 +168,7 @@ export class AccountingJournalRepository {
         line.branch_id ?? branchId,
         line.customer_id ?? null,
         line.supplier_id ?? null,
+        line.cost_centre_id ?? null,
         line.tax_rate ?? null,
         line.tax_class ?? null,
         line.narration ?? null,
@@ -209,9 +214,12 @@ export class AccountingJournalRepository {
       SELECT jl.*,
              a.code AS account_code,
              a.name AS account_name,
-             a.type AS account_type
+             a.type AS account_type,
+             cc.code AS cost_centre_code,
+             cc.name AS cost_centre_name
       FROM public.accounting_journal_line jl
       JOIN public.accounting_account a ON a.id = jl.account_id
+      LEFT JOIN public.cost_centre cc ON cc.id = jl.cost_centre_id
       WHERE jl.journal_entry_id = $1
       ORDER BY jl.line_no ASC
     `;

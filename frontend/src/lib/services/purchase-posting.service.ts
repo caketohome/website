@@ -1649,12 +1649,13 @@ export class PurchasePostingService {
         const updatePurchaseSql = `
           UPDATE public.purchase
           SET status = 'POSTED',
+              voucher_id = $2,
               posted_at = NOW(),
               updated_at = NOW()
           WHERE id = $1
           RETURNING *;
         `;
-        const updatedPurchaseRes = await client.query<PurchaseRow>(updatePurchaseSql, [purchase.id]);
+        const updatedPurchaseRes = await client.query<PurchaseRow>(updatePurchaseSql, [purchase.id, postedVoucher.id]);
         const updatedPurchase = updatedPurchaseRes.rows[0];
 
         return {

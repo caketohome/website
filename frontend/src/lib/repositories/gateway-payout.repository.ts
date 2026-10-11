@@ -64,7 +64,10 @@ export class GatewayPayoutRepository {
     client?: PoolClient
   ): Promise<GatewayPayoutBatchRow> {
     const id = params.id || `gpb_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    const companyId = params.company_id || "company_default";
+    const companyId = params.company_id;
+    if (!companyId) {
+      throw new GatewayPayoutError("GATEWAY_PAYOUT_VALIDATION", "company_id is required. Configure Company Master in Admin → Company Settings.");
+    }
     const provider = params.provider.trim().toLowerCase();
     const payoutRef = params.payout_reference.trim();
     const settlementRef = params.settlement_reference ? params.settlement_reference.trim() : null;

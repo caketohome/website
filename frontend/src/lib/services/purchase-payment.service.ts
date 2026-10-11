@@ -48,6 +48,7 @@ import { dbTransaction } from "../db";
 import type { PoolClient } from "pg";
 import { AccountingAccountRepository } from "../repositories/accounting-account.repository";
 import { AccountingVoucherRepository } from "../repositories/accounting-voucher.repository";
+import { BankAccountRepository } from "../repositories/bank-account.repository";
 import { hasEffectivePermission } from "../staff-access-control";
 import { PostingService, PostingServiceError } from "./posting.service";
 import type {
@@ -175,7 +176,8 @@ export class PurchasePaymentService {
   static async resolvePaymentAccount(
     method: PurchasePaymentMethod,
     explicitAccountId?: string,
-    client?: PoolClient
+    client?: PoolClient,
+    bankAccountId?: string
   ): Promise<AccountingAccountRow> {
     if (method === "CASH") {
       const acc = await AccountingAccountRepository.findByCode("1111", client);
@@ -194,6 +196,44 @@ export class PurchasePaymentService {
       method === "CHEQUE" ||
       method === "CARD"
     ) {
+      // Phase B: Resolve dedicated Bank GL if bank_account_id is provided
+      if (bankAccountId) {
+        const bankAccount = await BankAccountRepository.findById(bankAccountId, client);
+        if (!bankAccount) {
+          throw new PurchasePaymentError(
+            "PAYMENT_ACCOUNT_UNRESOLVED",
+            `Specified bank account '${bankAccountId}' was not found.`
+          );
+        }
+        if (bankAccount.status !== "ACTIVE") {
+          throw new PurchasePaymentError(
+            "PAYMENT_ACCOUNT_UNRESOLVED",
+            `Specified bank account '${bankAccount.account_name}' is ${bankAccount.status} and cannot disburse funds.`
+          );
+        }
+        if (!bankAccount.gl_account_id) {
+          throw new PurchasePaymentError(
+            "PAYMENT_ACCOUNT_UNRESOLVED",
+            `Bank account '${bankAccount.account_name}' has no mapped GL account.`
+          );
+        }
+        const acc = await AccountingAccountRepository.findById(bankAccount.gl_account_id, client);
+        if (!acc || !acc.is_active || acc.is_group) {
+          throw new PurchasePaymentError(
+            "PAYMENT_ACCOUNT_UNRESOLVED",
+            `Mapped GL account for bank '${bankAccount.account_name}' is not configured, inactive, or is a summary group.`
+          );
+        }
+        return acc;
+      }
+
+      // If an explicit GL account ID is provided, use it
+      if (explicitAccountId) {
+        const acc = await AccountingAccountRepository.findById(explicitAccountId, client);
+        if (acc && acc.is_active && !acc.is_group) return acc;
+      }
+
+      // Fallback: If 1112 exists as leaf account, resolve it
       const acc = await AccountingAccountRepository.findByCode("1112", client);
       if (!acc || !acc.is_active || acc.is_group) {
         throw new PurchasePaymentError(
@@ -415,11 +455,12 @@ export class PurchasePaymentService {
         }
 
         // ── 9. RESOLVE ACCOUNTS ────────────────────────────────────────────────
-        // Credit Account: Cash/Bank
+        // Credit Account: Cash/Bank (Specific Bank GL if bank_account_id provided)
         const creditAccount = await PurchasePaymentService.resolvePaymentAccount(
           payment.method,
           payment.accountId,
-          client
+          client,
+          (payment as any).bank_account_id || (payment as any).bankAccountId
         );
 
         // Debit Account: 2111 (Accounts Payable)
@@ -433,10 +474,11 @@ export class PurchasePaymentService {
 
         // ── 10. INSERT PURCHASE_PAYMENT RECORD ─────────────────────────────────
         const paymentId = generatePurchasePaymentId();
+        const bankAccId = (payment as any).bank_account_id || (payment as any).bankAccountId || null;
         const insertPaymentSql = `
           INSERT INTO public.purchase_payment
-            (id, purchase_id, amount, method, payment_date, reference, created_by, created_at, updated_at)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+            (id, purchase_id, amount, method, payment_date, reference, created_by, bank_account_id, branch_id, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
           RETURNING *
         `;
         const insertRes = await client.query<PurchasePaymentRow>(insertPaymentSql, [
@@ -447,6 +489,8 @@ export class PurchasePaymentService {
           payment.payment_date,
           payment.reference ?? null,
           paidBy,
+          bankAccId,
+          branchId,
         ]);
         const createdPayment = insertRes.rows[0];
 
@@ -554,10 +598,29 @@ export class PurchasePaymentService {
           );
         }
 
-        // ── 13. RETURN RESULT ──────────────────────────────────────────────────
-        const newTotalPaid = Math.round((alreadyPaid + amount) * 100) / 100;
-        const remainingBalance = Math.round((purchaseTotal - newTotalPaid) * 100) / 100;
+        // ── 13. LINK VOUCHER, RECORD ALLOCATION & UPDATE STATUS ──────────────
+        await client.query(
+          `UPDATE public.purchase_payment SET voucher_id = $1 WHERE id = $2`,
+          [voucherDraft.id, paymentId]
+        );
+        createdPayment.voucher_id = voucherDraft.id;
 
+        const allocId = `ppa_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 6)}`;
+        await client.query(
+          `INSERT INTO public.purchase_payment_allocation
+             (id, payment_id, purchase_id, allocated_amount, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, NOW(), NOW())`,
+          [allocId, paymentId, purchaseId, amount]
+        );
+
+        const newTotalPaid = Math.round((alreadyPaid + amount) * 100) / 100;
+        const remainingBalance = Math.max(0, Math.round((purchaseTotal - newTotalPaid) * 100) / 100);
+        await client.query(
+          `UPDATE public.purchase SET updated_at = NOW() WHERE id = $1`,
+          [purchaseId]
+        );
+
+        // ── 14. RETURN RESULT ──────────────────────────────────────────────────
         return {
           payment: createdPayment,
           voucher: postRes.data.voucher,
@@ -565,7 +628,7 @@ export class PurchasePaymentService {
           purchase_total: purchaseTotal,
           total_paid: newTotalPaid,
           remaining_balance: remainingBalance,
-          is_fully_settled: remainingBalance === 0,
+          is_fully_settled: remainingBalance <= 0.005,
         };
       };
 

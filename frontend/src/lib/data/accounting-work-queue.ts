@@ -83,6 +83,14 @@ export interface ExpenseQueueItem {
   description: string;
   expense_date: string;
   payment_method: string;
+  settlement_type?: "DIRECT_PAYMENT" | "CREDIT_ACCRUAL";
+  bank_account_id?: string | null;
+  teller_session_id?: string | null;
+  voucher_id?: string | null;
+  reversal_voucher_id?: string | null;
+  reversal_reason?: string | null;
+  itc_eligibility?: "ITC_ELIGIBLE" | "ITC_INELIGIBLE";
+  rcm_applicable?: boolean;
   reference_no: string | null;
   subtotal: number;
   discount: number;
@@ -91,7 +99,7 @@ export interface ExpenseQueueItem {
   sgst: number;
   igst: number;
   total: number;
-  status: "DRAFT" | "SUBMITTED" | "APPROVED" | "POSTED";
+  status: "DRAFT" | "SUBMITTED" | "APPROVED" | "POSTED" | "REVERSED" | "CANCELLED";
   created_by: string;
   approved_by?: string | null;
   notes?: string | null;
@@ -241,6 +249,24 @@ export async function returnExpenseToDraft(expenseId: string): Promise<{ success
   return apiFetch<{ success: boolean; error?: string }>(`admin/expenses/${expenseId}/status`, {
     method: "POST",
     body: JSON.stringify({ status: "DRAFT" }),
+  });
+}
+
+export async function fetchExpenseAccounting(expenseId: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  return apiFetch<{ success: boolean; data?: any; error?: string }>(`admin/expenses/${expenseId}/accounting`);
+}
+
+export async function reverseExpense(
+  expenseId: string,
+  payload: {
+    reversal_reason: string;
+    target_teller_session_id?: string;
+    cash_return_destination?: "TELLER_DRAWER" | "PETTY_CASH";
+  }
+): Promise<{ success: boolean; data?: any; error?: string }> {
+  return apiFetch<{ success: boolean; data?: any; error?: string }>(`admin/expenses/${expenseId}/reverse`, {
+    method: "POST",
+    body: JSON.stringify(payload),
   });
 }
 

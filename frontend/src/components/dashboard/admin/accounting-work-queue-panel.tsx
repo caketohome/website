@@ -46,6 +46,7 @@ import {
   CreditCard,
   Lock,
   FileCheck,
+  RotateCcw,
 } from "lucide-react";
 import {
   fetchWorkQueueSummary,
@@ -60,6 +61,8 @@ import {
   approveExpense,
   postExpenseToGL,
   returnExpenseToDraft,
+  fetchExpenseAccounting,
+  reverseExpense,
   approveBankDeposit,
   postBankDepositToGL,
   rejectBankDeposit,
@@ -106,6 +109,18 @@ export default function AccountingWorkQueuePanel() {
   const [previewVoucherData, setPreviewVoucherData] = useState<any | null>(null);
   const [rejectModalData, setRejectModalData] = useState<{ id: string; type: "deposit" | "gateway" } | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+
+  // Expense Reversal Modal state
+  const [expenseReversalModal, setExpenseReversalModal] = useState<{
+    id: string;
+    description: string;
+    total: number;
+    payment_method: string;
+    created_by: string;
+    approved_by?: string | null;
+  } | null>(null);
+  const [expenseReversalReason, setExpenseReversalReason] = useState("");
+  const [cashReturnDest, setCashReturnDest] = useState<"TELLER_DRAWER" | "PETTY_CASH">("PETTY_CASH");
 
   const showSuccess = (msg: string) => {
     setSuccess(msg);
@@ -248,6 +263,60 @@ export default function AccountingWorkQueuePanel() {
       }
     } catch (e: any) {
       showError(e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handlePreviewExpense = async (e: ExpenseQueueItem) => {
+    setActionLoading(true);
+    try {
+      const res = await fetchExpenseAccounting(e.id);
+      if (res.success && res.data) {
+        const d = res.data;
+        const jlines = (d.journal_lines || []).map((jl: any) => ({
+          account_id: `${jl.account_code || ""} ${jl.account_name || jl.account_id}`.trim(),
+          narration: jl.narration || (jl.supplier_name ? `Party: ${jl.supplier_name}` : e.description),
+          debit_amount: Number(jl.debit || 0),
+          credit_amount: Number(jl.credit || 0),
+        }));
+
+        setPreviewVoucherData({
+          title: d.voucher ? `Expense Voucher: ${d.voucher.voucher_no || d.voucher.id}` : `Expense Claim: ${e.description}`,
+          refLabel: "Expense Ref",
+          ref: e.reference_no || `EXP-${e.id.slice(0, 8)}`,
+          branch: e.branch_name || e.branch_id,
+          total_payable: Number(e.total),
+          journal_lines: jlines,
+        });
+      } else {
+        showError(res.error || "Failed to load expense accounting details.");
+      }
+    } catch (err: any) {
+      showError(err.message || "Failed to load expense accounting details.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleExecuteExpenseReversal = async () => {
+    if (!expenseReversalModal || !expenseReversalReason.trim()) return;
+    setActionLoading(true);
+    try {
+      const res = await reverseExpense(expenseReversalModal.id, {
+        reversal_reason: expenseReversalReason.trim(),
+        cash_return_destination: expenseReversalModal.payment_method === "CASH" ? cashReturnDest : undefined,
+      });
+      if (res.success) {
+        showSuccess("Expense successfully reversed in General Ledger.");
+        setExpenseReversalModal(null);
+        setExpenseReversalReason("");
+        loadData();
+      } else {
+        showError(res.error || "Failed to reverse expense.");
+      }
+    } catch (err: any) {
+      showError(err.message || "Failed to reverse expense.");
     } finally {
       setActionLoading(false);
     }
@@ -973,25 +1042,84 @@ export default function AccountingWorkQueuePanel() {
                             )}
 
                             {e.status === "APPROVED" && (
-                              <button
-                                onClick={() => handlePostExpense(e.id)}
-                                disabled={actionLoading || isSelfAction}
-                                title={isSelfAction ? "SoD Blocked: Self-posting" : "Post Expense"}
-                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
-                                  isSelfAction
-                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                    : "bg-emerald-600 text-white hover:bg-emerald-700"
-                                }`}
-                              >
-                                Post Expense
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => handlePreviewExpense(e)}
+                                  disabled={actionLoading}
+                                  className="px-2 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition flex items-center gap-1"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                  <span>Preview</span>
+                                </button>
+                                <button
+                                  onClick={() => handlePostExpense(e.id)}
+                                  disabled={actionLoading || isSelfAction}
+                                  title={isSelfAction ? "SoD Blocked: Self-posting" : "Post Expense"}
+                                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                                    isSelfAction
+                                      ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                      : "bg-emerald-600 text-white hover:bg-emerald-700"
+                                  }`}
+                                >
+                                  <Send className="w-3 h-3" />
+                                  <span>Post to GL</span>
+                                </button>
+                              </>
                             )}
 
                             {e.status === "POSTED" && (
-                              <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                <span>Posted</span>
-                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => handlePreviewExpense(e)}
+                                  disabled={actionLoading}
+                                  className="px-2 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition flex items-center gap-1"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                  <span>GL Voucher</span>
+                                </button>
+                                {(() => {
+                                  const isReversalBlocked = Boolean(e.created_by === simulatedActor.id || (e.approved_by && e.approved_by === simulatedActor.id));
+                                  return (
+                                    <button
+                                      onClick={() => setExpenseReversalModal({
+                                        id: e.id,
+                                        description: e.description,
+                                        total: Number(e.total),
+                                        payment_method: e.payment_method,
+                                        created_by: e.created_by,
+                                        approved_by: e.approved_by,
+                                      })}
+                                      disabled={actionLoading || isReversalBlocked}
+                                      title={isReversalBlocked ? "SoD Blocked: Creator and approver cannot reverse" : "Reverse posted expense"}
+                                      className={`px-2 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                                        isReversalBlocked
+                                          ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                          : "bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-950/60 dark:text-rose-300"
+                                      }`}
+                                    >
+                                      <RotateCcw className="w-3 h-3" />
+                                      <span>Reverse</span>
+                                    </button>
+                                  );
+                                })()}
+                              </div>
+                            )}
+
+                            {e.status === "REVERSED" && (
+                              <div className="flex items-center gap-1.5">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300">
+                                  <RotateCcw className="w-3 h-3" />
+                                  <span>Reversed</span>
+                                </span>
+                                <button
+                                  onClick={() => handlePreviewExpense(e)}
+                                  disabled={actionLoading}
+                                  className="px-2 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition flex items-center gap-1"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                  <span>Audit</span>
+                                </button>
+                              </div>
                             )}
                           </div>
                         </td>
@@ -1563,6 +1691,99 @@ export default function AccountingWorkQueuePanel() {
                 className="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white transition shadow-md shadow-rose-600/20"
               >
                 Confirm Rejection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: Expense GL Reversal ── */}
+      {expenseReversalModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in duration-200">
+            <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-black text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                  <RotateCcw className="w-5 h-5" />
+                  <span>Reverse General Ledger Expense</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                  Generates an exact inverted double-entry compensating voucher in GL.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setExpenseReversalModal(null);
+                  setExpenseReversalReason("");
+                }}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-bold text-slate-500"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 text-xs space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-semibold">Expense Claim:</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{expenseReversalModal.description}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-semibold">Total Amount:</span>
+                  <span className="font-mono font-bold text-rose-600">{fmtCurrency(expenseReversalModal.total)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-semibold">Payment Method:</span>
+                  <span className="font-bold text-slate-700 dark:text-slate-300">{expenseReversalModal.payment_method}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Reason for GL Reversal <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  value={expenseReversalReason}
+                  onChange={(e) => setExpenseReversalReason(e.target.value)}
+                  placeholder="e.g. Duplicate claim, wrong tax rate applied, cancelled vendor invoice..."
+                  className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-rose-500 min-h-[80px]"
+                />
+              </div>
+
+              {expenseReversalModal.payment_method === "CASH" && (
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Cash Return Destination
+                  </label>
+                  <select
+                    value={cashReturnDest}
+                    onChange={(e) => setCashReturnDest(e.target.value as any)}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none"
+                  >
+                    <option value="PETTY_CASH">Petty Cash Safe / Cash in Hand (GL 1114 / 1111)</option>
+                    <option value="TELLER_DRAWER">Active Teller Drawer (Redeposit Movement)</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-3">
+              <button
+                onClick={() => {
+                  setExpenseReversalModal(null);
+                  setExpenseReversalReason("");
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExecuteExpenseReversal}
+                disabled={actionLoading || !expenseReversalReason.trim()}
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white transition shadow-md shadow-rose-600/20 flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Confirm GL Reversal</span>
               </button>
             </div>
           </div>

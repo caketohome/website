@@ -26,3 +26,26 @@ export * from "./bank-statement-import.service";
 export * from "./bank-reconciliation-matching.service";
 export * from "./bank-reconciliation-statement.service";
 export * from "./period-close.service";
+// Phase C: Teller & Cash Custody Services
+export * from "./teller.service";
+export * from "./teller-session.service";
+export * from "./teller-movement.service";
+// Phase C5: Expense Accounting Services
+export * from "./expense-posting.service";
+export * from "./expense-reversal.service";
+// Phase C7: Bills Payable & Branch Cash Services
+export * from "./bills-payable.service";
+export * from "./branch-cash.service";
+// Phase C7.4: Corporate AR & Bills Receivable Services
+export * from "./bills-receivable.service";
+// Phase C7.5: Branch Cash Control & Vault Custody Services
+export * from "./vault-custody.service";
+export * from "./petty-cash.service";
+// Phase C7.6: Cost Centre & Allocation Services
+export * from "./cost-centre.service";
+export * from "./account-governance.service";
+export * from "./manual-journal.service";
+export * from "./cost-allocation-engine.service";
+export * from "./cost-allocation-workflow.service";
+// Phase C7.7: Corporate Gifting Service
+export * from "./corporate-gifting.service";

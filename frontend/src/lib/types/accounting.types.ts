@@ -196,6 +196,18 @@ export interface AccountingJournalLineRow {
   cost_centre_name?: string;
 }
 
+export interface AccountingFiscalPeriodRow {
+  id: string;
+  fiscal_year: string;
+  period_name: string;
+  start_date: string;
+  end_date: string;
+  is_locked: boolean;
+  locked_at: string | null;
+  locked_by: string | null;
+  created_at: string;
+}
+
 export interface CostCentreRow {
   id: string;
   code: string;
@@ -259,17 +271,76 @@ export interface CostCentreActor {
   isSuperAdmin?: boolean;
 }
 
+// ─── Cost Centre Governance Policy Types (Phase C7.6 Step 3) ───────────────────
 
-export interface AccountingFiscalPeriodRow {
+export type CostCentrePolicy = "REQUIRED" | "OPTIONAL" | "PROHIBITED";
+
+export type AccountGovernanceErrorCode =
+  | "COST_CENTRE_PROHIBITED"
+  | "COST_CENTRE_REQUIRED"
+  | "COST_CENTRE_INVALID"
+  | "ACCOUNT_NOT_FOUND"
+  | "ACCOUNT_INACTIVE"
+  | "ACCOUNT_GROUP_NON_POSTABLE";
+
+export class AccountGovernanceError extends Error {
+  readonly code: AccountGovernanceErrorCode;
+  readonly accountCode?: string;
+  readonly accountName?: string;
+
+  constructor(
+    code: AccountGovernanceErrorCode,
+    message: string,
+    details?: { accountCode?: string; accountName?: string }
+  ) {
+    super(message);
+    this.name = "AccountGovernanceError";
+    this.code = code;
+    this.accountCode = details?.accountCode;
+    this.accountName = details?.accountName;
+  }
+}
+
+
+export interface CustomerReceiptAllocationRow {
   id: string;
-  fiscal_year: string;
-  period_name: string;
-  start_date: string;
-  end_date: string;
-  is_locked: boolean;
-  locked_at: string | null;
-  locked_by: string | null;
+  invoice_id: string;
+  voucher_id: string | null;
+  payment_transaction_id: string | null;
+  allocated_amount: number;
+  metadata?: Record<string, unknown> | null;
   created_at: string;
+  updated_at: string;
+}
+
+export interface InvoiceRow {
+  id: string;
+  invoice_number: string;
+  order_id: string;
+  branch_id?: string | null;
+  customer_id?: string | null;
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  subtotal: number;
+  tax_total: number;
+  delivery_fee: number;
+  discount_total: number;
+  grand_total: number;
+  currency_code: string;
+  payment_method?: string | null;
+  payment_status?: string | null;
+  status: string;
+  voucher_id?: string | null;
+  due_date?: string | null;
+  paid_amount: number;
+  outstanding_amount: number;
+  is_corporate: boolean;
+  delivered_at?: string | null;
+  delivered_by?: string | null;
+  metadata?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
 }
 
 export interface InventoryCostLotRow {
@@ -744,6 +815,7 @@ export interface PostCustomerRefundParams {
   orderId: string;
   amount: number;
   refundMethod: "GATEWAY" | "CASH" | "BANK";
+  bankAccountId?: string;
   postedBy?: string;
   disbursedBy?: string;
   creditNoteVoucherId?: string;
@@ -1000,7 +1072,6 @@ export interface BankAccountRow {
   ifsc_code: string;
   account_type: BankAccountType;
   branch_name?: string | null;
-  branch_id?: string | null;
   gl_account_id: string;
   status: BankAccountStatus;
   metadata?: Record<string, unknown> | null;
@@ -1177,7 +1248,8 @@ export interface ListBankAccountsFilter {
   status?: BankAccountStatus;
   search?: string;
   branchId?: string | null; // Ignored for company accounts, kept for backwards compatibility
-  actorContext?: { id?: string; user_id?: string; role?: string; branch_id?: string | null; branchId?: string | null; permissions?: string[]; [key: string]: unknown };
+  includeEnterprise?: boolean;
+  actorContext?: { id?: string; user_id?: string; role?: string; permissions?: string[]; [key: string]: unknown };
 }
 
 export type BankDepositErrorCode =
@@ -2008,36 +2080,6 @@ export interface ListBrsUnmatchedLinesParams {
   };
 }
 
-// ─── Cost Centre Governance Policy Types (Phase C7.6 Step 3) ───────────────────
-
-export type CostCentrePolicy = "REQUIRED" | "OPTIONAL" | "PROHIBITED";
-
-export type AccountGovernanceErrorCode =
-  | "COST_CENTRE_PROHIBITED"
-  | "COST_CENTRE_REQUIRED"
-  | "COST_CENTRE_INVALID"
-  | "ACCOUNT_NOT_FOUND"
-  | "ACCOUNT_INACTIVE"
-  | "ACCOUNT_GROUP_NON_POSTABLE";
-
-export class AccountGovernanceError extends Error {
-  readonly code: AccountGovernanceErrorCode;
-  readonly accountCode?: string;
-  readonly accountName?: string;
-
-  constructor(
-    code: AccountGovernanceErrorCode,
-    message: string,
-    details?: { accountCode?: string; accountName?: string }
-  ) {
-    super(message);
-    this.name = "AccountGovernanceError";
-    this.code = code;
-    this.accountCode = details?.accountCode;
-    this.accountName = details?.accountName;
-  }
-}
-
 // ─── Phase C6: Manual Journal / Journal Voucher (JV) Types ───────────────────
 
 export interface ManualJournalLineItem {
@@ -2125,7 +2167,6 @@ export interface ManualJournalListResult {
   limit: number;
   totalPages: number;
 }
-
 
 // ─── Cost Allocation Domain Types (Phase C7.6 Step 4) ─────────────────────────
 
@@ -2518,6 +2559,8 @@ export interface CostAllocationReversalResult {
   reversal_voucher: AccountingVoucherRow;
   reversal_journal_entry: AccountingJournalEntryRow & { lines: AccountingJournalLineRow[] };
 }
+
+
 // ─── Phase C7.7: Corporate Gifting Types ──────────────────────────────────────
 
 export type CorporateGiftingBatchStatus =
@@ -2600,3 +2643,6 @@ export interface CorporateGiftingRecipientRow {
   updated_at: string;
   deleted_at: string | null;
 }
+
+export * from "./teller.types";
+

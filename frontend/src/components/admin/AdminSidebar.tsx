@@ -12,7 +12,7 @@ import {
   BarChart3, TrendingUp, PieChart,
   Shield, KeyRound, ScrollText, Plug, Settings,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeft,
-  Search, Receipt, Landmark, ClipboardCheck, BookOpen, Scale, Waves, Settings2,
+  Search, Receipt, Landmark, ClipboardCheck, BookOpen, Scale, Waves, Settings2, Wallet, Gift,
 } from "lucide-react";
 import { useAdminShell } from "./AdminShell";
 
@@ -68,6 +68,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id: "fulfillment", label: "Operations & Cutoff", icon: Clock, tabId: "fulfillment" },
       { id: "suppliers", label: "Suppliers", icon: Building2, tabId: "suppliers" },
       { id: "purchases", label: "Purchases", icon: ShoppingBag, tabId: "purchases" },
+      { id: "bills_payable", label: "Bills Payable (AP)", icon: Receipt, tabId: "bills_payable" },
       { id: "expenses", label: "Expenses", icon: Receipt, tabId: "expenses" },
     ],
   },
@@ -77,6 +78,11 @@ const NAV_GROUPS: NavGroup[] = [
     icon: Receipt,
     items: [
       { id: "work_queue", label: "⚡ Financial Work Queue", icon: ClipboardCheck, tabId: "accounting_work_queue" },
+      { id: "bills_payable_fin", label: "Bills Payable (AP)", icon: Receipt, tabId: "bills_payable" },
+      { id: "bills_receivable_fin", label: "Bills Receivable (AR)", icon: Receipt, tabId: "bills_receivable" },
+      { id: "teller_custody", label: "Teller Cash Custody", icon: Wallet, tabId: "teller_custody" },
+      { id: "manual_journals", label: "Manual Journals", icon: FileText, tabId: "manual_journals" },
+      { id: "cost_allocations", label: "Cost Allocations", icon: PieChart, tabId: "cost_allocations" },
       { id: "gateway_settlements", label: "Gateway Settlements", icon: Receipt, tabId: "gateway_settlements" },
       { id: "bank_reconciliation", label: "Bank Reconciliation (BRS)", icon: Landmark, tabId: "bank_reconciliation" },
       { id: "general_ledger", label: "General Ledger", icon: BookOpen, tabId: "general_ledger" },
@@ -92,6 +98,7 @@ const NAV_GROUPS: NavGroup[] = [
     icon: Users,
     items: [
       { id: "crm", label: "Customers / CRM", icon: Users, tabId: "crm" },
+      { id: "corporate_gifting", label: "Corporate Gifting", icon: Gift, tabId: "corporate_gifting" },
       { id: "login_security", label: "Login Security", icon: Shield, tabId: "login_activity" },
     ],
   },

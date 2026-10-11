@@ -149,6 +149,10 @@ const GatewaySettlementPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/gateway-settlement-panel"),
   "GatewaySettlementPanel"
 );
+const BankAccountsPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/bank-accounts-panel"),
+  "BankAccountsPanel"
+);
 const BankReconciliationPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/bank-reconciliation-panel"),
   "BankReconciliationPanel"
@@ -177,6 +181,30 @@ const AccountingWorkQueuePanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/accounting-work-queue-panel"),
   "AccountingWorkQueuePanel"
 );
+const TellerCustodyPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/teller-custody-panel"),
+  "TellerCustodyPanel"
+);
+const ManualJournalsPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/manual-journals-panel"),
+  "ManualJournalsPanel"
+);
+const BillsPayablePanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/bills-payable-panel").then((mod) => ({ default: mod.BillsPayablePanel })),
+  "BillsPayablePanel"
+);
+const BillsReceivablePanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/bills-receivable-panel").then((mod) => ({ default: mod.BillsReceivablePanel })),
+  "BillsReceivablePanel"
+);
+const CostAllocationPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/cost-allocation-panel").then((mod) => ({ default: mod.CostAllocationPanel })),
+  "CostAllocationPanel"
+);
+const CorporateGiftingPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/corporate-gifting-panel").then((mod) => ({ default: mod.CorporateGiftingPanel })),
+  "CorporateGiftingPanel"
+);
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Tab ID type and panel map — backwards compatible
@@ -184,7 +212,7 @@ const AccountingWorkQueuePanel = createDynamicPanel(
 
 type AdminTabId =
   | "orders" | "catalog" | "search_engine" | "branches" | "delivery"
-  | "fulfillment" | "suppliers" | "purchases" | "expenses" | "accounting_work_queue" | "gateway_settlements" | "bank_reconciliation" | "general_ledger" | "profit_loss" | "balance_sheet" | "cash_flow" | "accounting_setup" | "fleet" | "tax_master" | "abandoned_carts" | "telemarketing"
+  | "fulfillment" | "suppliers" | "purchases" | "bills_payable" | "bills_receivable" | "expenses" | "accounting_work_queue" | "teller_custody" | "manual_journals" | "cost_allocations" | "corporate_gifting" | "gateway_settlements" | "bank_accounts" | "bank_reconciliation" | "general_ledger" | "profit_loss" | "balance_sheet" | "cash_flow" | "accounting_setup" | "fleet" | "tax_master" | "abandoned_carts" | "telemarketing"
   | "crm" | "login_activity" | "marketing" | "popups" | "seo"
   | "automation" | "webhooks" | "cms" | "media" | "analytics" | "ai_concierge"
   | "staff_profiles" | "notifications" | "settings";
@@ -198,9 +226,16 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   fulfillment: FulfillmentConfigPanel,
   suppliers: SupplierPanel,
   purchases: PurchasePanel,
+  bills_payable: BillsPayablePanel,
+  bills_receivable: BillsReceivablePanel,
   expenses: ExpensePanel,
   accounting_work_queue: AccountingWorkQueuePanel,
+  teller_custody: TellerCustodyPanel,
+  manual_journals: ManualJournalsPanel,
+  cost_allocations: CostAllocationPanel,
+  corporate_gifting: CorporateGiftingPanel,
   gateway_settlements: GatewaySettlementPanel,
+  bank_accounts: BankAccountsPanel,
   bank_reconciliation: BankReconciliationPanel,
   general_ledger: GeneralLedgerPanel,
   profit_loss: ProfitLossPanel,

@@ -196,10 +196,14 @@ export const PERMISSION_CATALOG: PermissionDefinition[] = [
   { id: "FLEET.MANAGE", module: "FLEET", action: "MANAGE", label: "Manage Fleet Records",   description: "Create/edit vehicle trips, fuel entries, and odometer logs", category: "Fleet & Logistics" },
   { id: "FLEET.EXPORT", module: "FLEET", action: "EXPORT", label: "Export Fleet Reports",   description: "Download KM, fuel efficiency, and driver performance reports", category: "Fleet & Logistics" },
 
-  // ACCOUNTING (Phase 6+ ERP — Foundation required before activation)
+  // ACCOUNTING (Phase 6+ ERP — Manual Journals & GL)
   { id: "ACCOUNTING.VIEW",    module: "ACCOUNTING", action: "VIEW",    label: "View Accounting Ledger", description: "Read-only access to chart of accounts, journals, vouchers, and ledger", category: "Accounting & Finance" },
-  { id: "ACCOUNTING.POST",    module: "ACCOUNTING", action: "POST",    label: "Post Journal Entries",   description: "Create and post manual journal entries and vouchers", category: "Accounting & Finance" },
-  { id: "ACCOUNTING.APPROVE", module: "ACCOUNTING", action: "APPROVE", label: "Approve Vouchers",       description: "Approve vouchers before general ledger posting (Super Admin)", category: "Accounting & Finance" },
+  { id: "ACCOUNTING.CREATE",  module: "ACCOUNTING", action: "CREATE",  label: "Create Journal Vouchers", description: "Create and edit draft manual journal entries", category: "Accounting & Finance" },
+  { id: "ACCOUNTING.SUBMIT",  module: "ACCOUNTING", action: "SUBMIT",  label: "Submit Journal Vouchers", description: "Submit manual journal drafts for approval", category: "Accounting & Finance" },
+  { id: "ACCOUNTING.APPROVE", module: "ACCOUNTING", action: "APPROVE", label: "Approve Vouchers",       description: "Approve vouchers before general ledger posting", category: "Accounting & Finance" },
+  { id: "ACCOUNTING.POST",    module: "ACCOUNTING", action: "POST",    label: "Post Journal Entries",   description: "Post approved manual journal entries and vouchers to General Ledger", category: "Accounting & Finance" },
+  { id: "ACCOUNTING.CANCEL",  module: "ACCOUNTING", action: "CANCEL",  label: "Cancel Journal Vouchers", description: "Cancel pre-posted manual journal vouchers", category: "Accounting & Finance" },
+  { id: "ACCOUNTING.REVERSE", module: "ACCOUNTING", action: "REVERSE", label: "Reverse Journal Vouchers", description: "Authorize compensating reversal of posted manual journals", category: "Accounting & Finance" },
   { id: "ACCOUNTING.EXPORT",  module: "ACCOUNTING", action: "EXPORT",  label: "Export Financial Reports", description: "Download Day Book, Cash Book, Trial Balance, P&L, Balance Sheet", category: "Accounting & Finance" },
   
   // BANK & CASH DEPOSITS (Phase 4F Step 4.10)
@@ -217,6 +221,39 @@ export const PERMISSION_CATALOG: PermissionDefinition[] = [
   { id: "GATEWAY.SETTLE_PREPARE", module: "GATEWAY", action: "SETTLE_PREPARE", label: "Prepare Gateway Settlement", description: "Ingest gateway payout reports, validate transactions and calculate allocations", category: "Accounting & Finance" },
   { id: "GATEWAY.SETTLE_APPROVE", module: "GATEWAY", action: "SETTLE_APPROVE", label: "Approve Gateway Settlement", description: "Review and approve gateway payout allocations and fee deductions", category: "Accounting & Finance" },
   { id: "GATEWAY.SETTLE_POST",    module: "GATEWAY", action: "SETTLE_POST",    label: "Post Gateway Settlement",   description: "Post branch-partitioned gateway settlement vouchers to GL", category: "Accounting & Finance" },
+
+  // TELLER & CASH CUSTODY (Phase C)
+  { id: "TELLER.VIEW",            module: "TELLER", action: "VIEW",            label: "View Tellers & Sessions",    description: "View teller counters, shift status, and cash drawer custody", category: "Cash & Teller Operations" },
+  { id: "TELLER.SESSION_OPEN",    module: "TELLER", action: "SESSION_OPEN",    label: "Open Teller Session",        description: "Open cash drawer shift and acknowledge physical opening float", category: "Cash & Teller Operations" },
+  { id: "TELLER.MOVEMENT_CREATE", module: "TELLER", action: "MOVEMENT_CREATE", label: "Record Cash Movement",       description: "Record physical cash movements (handover, petty expense, adjustment)", category: "Cash & Teller Operations" },
+  { id: "TELLER.SESSION_CLOSE",   module: "TELLER", action: "SESSION_CLOSE",   label: "Close Teller Session",       description: "Submit physical closing cash count and initiate shift closure", category: "Cash & Teller Operations" },
+  { id: "TELLER.SESSION_VERIFY",  module: "TELLER", action: "SESSION_VERIFY",  label: "Verify Cash Count",          description: "Supervisor verification of physical count and variance determination", category: "Cash & Teller Operations" },
+  { id: "TELLER.SETTLE",          module: "TELLER", action: "SETTLE",          label: "Settle Teller Session",      description: "Authorize final session settlement and post Cash Over/Short to GL", category: "Cash & Teller Operations" },
+  { id: "TELLER.MANAGE",          module: "TELLER", action: "MANAGE",          label: "Manage Teller Stations",     description: "Configure teller counters and assign active staff teller records", category: "Cash & Teller Operations" },
+  { id: "TELLER.REPORT_VIEW",     module: "TELLER", action: "REPORT_VIEW",     label: "View Cash Custody Reports",  description: "Access teller audit trails, variance history, and custody reports", category: "Cash & Teller Operations" },
+  { id: "TELLER.SAFE_DROP",       module: "TELLER", action: "SAFE_DROP",       label: "Record Safe Drop",           description: "Transfer surplus cash from till drawer to branch safe with four-eyes witness", category: "Cash & Teller Operations" },
+  { id: "TELLER.SAFE_TO_TILL",    module: "TELLER", action: "SAFE_TO_TILL",    label: "Safe to Till Float",         description: "Transfer cash float replenishment from branch vault to till drawer", category: "Cash & Teller Operations" },
+  { id: "ACCOUNTING.PETTY_CASH_CREATE",   module: "ACCOUNTING", action: "PETTY_CASH_CREATE",   label: "Create Petty Cash Request", description: "Submit branch petty cash imprest funding and local expense claims", category: "Accounting & Financial Governance" },
+  { id: "ACCOUNTING.PETTY_CASH_APPROVE",  module: "ACCOUNTING", action: "PETTY_CASH_APPROVE",  label: "Approve Petty Cash Claim",  description: "Verify and approve branch petty cash claims with SoD", category: "Accounting & Financial Governance" },
+  { id: "ACCOUNTING.PETTY_CASH_DISBURSE", module: "ACCOUNTING", action: "PETTY_CASH_DISBURSE", label: "Disburse/Reimburse Petty Cash", description: "Disburse initial float and bank reimbursements for petty cash", category: "Accounting & Financial Governance" },
+  
+  // COST CENTRES (Phase C7.6 Step 1)
+  { id: "COST_CENTRE.VIEW",   module: "COST_CENTRE", action: "VIEW",   label: "View Cost Centres",   description: "Read cost centre master list, department structure, and hierarchy", category: "Accounting & Finance" },
+  { id: "COST_CENTRE.MANAGE", module: "COST_CENTRE", action: "MANAGE", label: "Manage Cost Centres", description: "Create, update, deactivate, and configure cost centre masters", category: "Accounting & Finance" },
+
+  // COST ALLOCATION (Phase C7.6 Step 4)
+  { id: "COST_ALLOCATION.VIEW",         module: "COST_ALLOCATION", action: "VIEW",         label: "View Cost Allocations",   description: "Read allocation rules, preview calculations, and run history", category: "Accounting & Finance" },
+  { id: "COST_ALLOCATION.MANAGE_RULES", module: "COST_ALLOCATION", action: "MANAGE_RULES", label: "Manage Allocation Rules", description: "Create, edit, activate, and deactivate cost allocation rules", category: "Accounting & Finance" },
+  { id: "COST_ALLOCATION.RUN_PREVIEW",  module: "COST_ALLOCATION", action: "RUN_PREVIEW",  label: "Preview Cost Allocation", description: "Dry-run allocation calculations without mutating the ledger", category: "Accounting & Finance" },
+  { id: "COST_ALLOCATION.EXECUTE",      module: "COST_ALLOCATION", action: "EXECUTE",      label: "Execute Cost Allocation", description: "Create and submit cost allocation runs (Maker)", category: "Accounting & Finance" },
+  { id: "COST_ALLOCATION.APPROVE",      module: "COST_ALLOCATION", action: "APPROVE",      label: "Approve Cost Allocation", description: "Approve and post cost allocation runs to General Ledger (Checker)", category: "Accounting & Finance" },
+  { id: "COST_ALLOCATION.REVERSE",      module: "COST_ALLOCATION", action: "REVERSE",      label: "Reverse Cost Allocation", description: "Authorize compensating reversal of posted cost allocation runs", category: "Accounting & Finance" },
+
+  // CORPORATE GIFTING (Phase C7.7)
+  { id: "CORPORATE_GIFTING.VIEW",       module: "CORPORATE_GIFTING", action: "VIEW",       label: "View Corporate Gifting",     description: "Read corporate gifting batches, recipients, and status", category: "Corporate & Institutional" },
+  { id: "CORPORATE_GIFTING.TEMPLATE",   module: "CORPORATE_GIFTING", action: "TEMPLATE",   label: "Download Gifting Template", description: "Download official Excel ingestion template", category: "Corporate & Institutional" },
+  { id: "CORPORATE_GIFTING.VALIDATE",   module: "CORPORATE_GIFTING", action: "VALIDATE",   label: "Validate Gifting Batches",  description: "Execute read-only dry-run validation of recipient workbooks", category: "Corporate & Institutional" },
+  { id: "CORPORATE_GIFTING.EXECUTE",    module: "CORPORATE_GIFTING", action: "EXECUTE",    label: "Execute Gifting Batches",   description: "Execute approved corporate gifting batch import and invoice generation", category: "Corporate & Institutional" },
 ];
 
 // ── PRE-SEEDED SYSTEM ACCESS PROFILES ──────────────────────────────────────
@@ -808,8 +845,14 @@ class StaffAccessControlStore {
       fulfillment: { module: "BRANCHES", action: "VIEW" },
       suppliers: { module: "PURCHASE", action: "VIEW" },
       purchases: { module: "PURCHASE", action: "VIEW" },
+      bills_payable: { module: "PURCHASE", action: "VIEW" },
+      bills_receivable: { module: "ACCOUNTING", action: "VIEW" },
       expenses: { module: "EXPENSE", action: "VIEW" },
       accounting_work_queue: { module: "ACCOUNTING", action: "VIEW" },
+      teller_custody: { module: "TELLER", action: "VIEW" },
+      manual_journals: { module: "ACCOUNTING", action: "VIEW" },
+      cost_allocations: { module: "COST_ALLOCATION", action: "VIEW" },
+      corporate_gifting: { module: "CORPORATE_GIFTING", action: "VIEW" },
       fleet: { module: "FLEET", action: "VIEW" },
       staff_profiles: { module: "STAFF_MANAGEMENT", action: "VIEW" },
       gateway_settlements: { module: "GATEWAY", action: "VIEW" },

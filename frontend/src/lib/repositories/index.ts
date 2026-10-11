@@ -34,3 +34,18 @@ export * from "./gateway-payout.repository";
 export * from "./gateway-settlement-order.repository";
 export * from "./bank-statement-import.repository";
 export * from "./bank-reconciliation.repository";
+// Phase A: Company & GST Registration
+export * from "./company.repository";
+export * from "./gst-registration.repository";
+// Phase C: Teller & Cash Custody Repositories
+export * from "./teller.repository";
+export * from "./teller-session.repository";
+export * from "./teller-movement.repository";
+// Phase C7.5: Branch Cash Control & Vault Custody Repositories
+export * from "./vault-custody.repository";
+export * from "./petty-cash.repository";
+// Phase C7.6: Cost Centre & Cost Allocation Repositories
+export * from "./cost-centre.repository";
+export * from "./cost-allocation.repository";
+// Phase C7.7: Corporate Gifting Repository
+export * from "./corporate-gifting.repository";

@@ -524,8 +524,9 @@ export class SalesPostingService {
         paymentClassification = "COD";
         arAccountCode = "1122";
       } else if (
-        ["card", "upi", "wallet", "netbanking", "online", "stripe", "razorpay", "online_upi", "online_card", "online_netbanking"].includes(payMethod) ||
+        ["card", "upi", "wallet", "netbanking", "online", "prepaid", "prepaid_online", "stripe", "razorpay", "online_upi", "online_card", "online_netbanking"].includes(payMethod) ||
         payMethod.startsWith("online") ||
+        payMethod.includes("prepaid") ||
         payMethod.includes("upi") ||
         payMethod.includes("card") ||
         payMethod.includes("gateway")

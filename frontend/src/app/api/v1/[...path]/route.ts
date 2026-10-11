@@ -31,6 +31,11 @@ import {
   AccountingVoucherRepository,
   AccountingJournalRepository,
   BankReconciliationRepository,
+  TellerRepository,
+  TellerSessionRepository,
+  TellerMovementRepository,
+  VaultCustodyRepository,
+  PettyCashRepository,
 } from "@frontend/lib/repositories";
 import { OrderService } from "@frontend/lib/services/order.service";
 import { ReportService } from "@frontend/lib/services/report.service";
@@ -43,6 +48,7 @@ import { FleetService } from "@frontend/lib/services/fleet.service";
 import { InventoryService } from "@frontend/lib/services/inventory.service";
 import { AccountsReceivableService } from "@frontend/lib/services/accounts-receivable.service";
 import { CodCollectionService } from "@frontend/lib/services/cod-collection.service";
+import { CustomerReceiptService } from "@frontend/lib/services/customer-receipt.service";
 import { BankDepositSlipService } from "@frontend/lib/services/bank-deposit-slip.service";
 import { GatewaySettlementService } from "@frontend/lib/services/gateway-settlement.service";
 import { BankReconciliationStatementService } from "@frontend/lib/services/bank-reconciliation-statement.service";
@@ -54,10 +60,26 @@ import { ProfitLossService, ProfitLossServiceError } from "@frontend/lib/service
 import { BalanceSheetService, BalanceSheetServiceError } from "@frontend/lib/services/balance-sheet.service";
 import { CashFlowService, CashFlowServiceError } from "@frontend/lib/services/cash-flow.service";
 import { PeriodCloseService, PeriodCloseServiceError } from "@frontend/lib/services/period-close.service";
+import { CompanyService } from "@frontend/lib/services/company.service";
+import { GstRegistrationService } from "@frontend/lib/services/gst-registration.service";
+import { BankAccountService, BankAccountServiceError } from "@frontend/lib/services/bank-account.service";
+import { TellerService } from "@frontend/lib/services/teller.service";
+import { TellerSessionService } from "@frontend/lib/services/teller-session.service";
+import { TellerMovementService } from "@frontend/lib/services/teller-movement.service";
+import { TellerDomainError, AuthenticatedActor } from "@frontend/lib/types/teller.types";
+import { ManualJournalService, ManualJournalDomainError } from "@frontend/lib/services/manual-journal.service";
+import { BillsPayableService, BillsPayableError } from "@frontend/lib/services/bills-payable.service";
+import { BillsReceivableService, BillsReceivableError } from "@frontend/lib/services/bills-receivable.service";
+import { BranchCashService, BranchCashServiceError } from "@frontend/lib/services/branch-cash.service";
+import { VaultCustodyService, VaultCustodyError } from "@frontend/lib/services/vault-custody.service";
+import { PettyCashService, PettyCashServiceError } from "@frontend/lib/services/petty-cash.service";
+import { AccountsPayableService } from "@frontend/lib/services/accounts-payable.service";
 import { MediaProcessor } from "@frontend/lib/media/media-processor";
 import { SeoAuditEngine, CORE_WEB_VITALS_DATA } from "@frontend/lib/seo/audit-engine";
 import { dbQuery, dbTransaction } from "@frontend/lib/db";
 import { resolveServerSession, resolveVerifiedCustomer } from "@frontend/lib/security/auth-session";
+import { CostAllocationController } from "@frontend/lib/controllers/cost-allocation.controller";
+import { CorporateGiftingController } from "@frontend/lib/controllers/corporate-gifting.controller";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -91,11 +113,396 @@ function resolveUserContext(req: NextRequest) {
     userId,
     role,
     phone,
+    customerId: (session as any).customerId || undefined,
     branchId: session.branchId || undefined,
     partnerId: session.partnerId || undefined,
     permissions,
     isSuperAdmin,
   };
+}
+
+function toAuthenticatedActor(userCtx: ReturnType<typeof resolveUserContext>): AuthenticatedActor {
+  return {
+    userId: userCtx.userId,
+    role: userCtx.role,
+    branchId: userCtx.branchId || null,
+    permissions: userCtx.permissions,
+  };
+}
+
+function handleTellerError(err: any): NextResponse {
+  if (err instanceof TellerDomainError) {
+    let status = 400;
+    switch (err.code) {
+      case "PERMISSION_DENIED":
+      case "UNAUTHORIZED_BRANCH":
+      case "SOD_VIOLATION":
+        status = 403;
+        break;
+      case "TELLER_NOT_FOUND":
+      case "SESSION_NOT_FOUND":
+        status = 404;
+        break;
+      case "ACTIVE_SESSION_EXISTS":
+      case "INVALID_SESSION_STATE":
+      case "SESSION_ALREADY_SETTLED":
+      case "SESSION_ALREADY_CANCELLED":
+      case "CONCURRENT_STATE_TRANSITION":
+      case "TELLER_DUPLICATE_ACTIVE_USER":
+      case "TELLER_CODE_COLLISION":
+      case "DUPLICATE_SOURCE_MOVEMENT":
+        status = 409;
+        break;
+      case "INVALID_AMOUNT":
+      case "SESSION_NOT_VERIFIED":
+      case "MISSING_AUTHORITATIVE_SOURCE":
+      case "NO_OPEN_SESSION_FOUND":
+        status = 422;
+        break;
+      case "SETTLEMENT_POSTING_FAILED":
+        status = 500;
+        break;
+      default:
+        status = 400;
+    }
+
+    return jsonWithDataSource(
+      {
+        success: false,
+        error: err.code,
+        message: err.message,
+        details: err.details,
+      },
+      "error",
+      status
+    );
+  }
+
+  const message = err?.message || "Internal server error";
+  if (message.includes("Fiscal period is closed") || message.includes("Accounting start date guard")) {
+    return jsonWithDataSource(
+      { success: false, error: "PERIOD_CLOSED_OR_GUARD_VIOLATION", message },
+      "error",
+      422
+    );
+  }
+
+  console.error("[Teller API] Unexpected error:", err);
+  return jsonWithDataSource(
+    {
+      success: false,
+      error: "INTERNAL_SERVER_ERROR",
+      message: "An internal server error occurred while processing teller operation.",
+    },
+    "error",
+    500
+  );
+}
+
+function handleManualJournalError(err: any): NextResponse {
+  if (err instanceof ManualJournalDomainError || err?.name === "ManualJournalDomainError") {
+    let status = 400;
+    switch (err.code) {
+      case "VOUCHER_NOT_FOUND":
+      case "ACCOUNT_NOT_FOUND":
+        status = 404;
+        break;
+      case "BRANCH_ACCESS_DENIED":
+      case "PERMISSION_DENIED":
+        status = 403;
+        break;
+      case "SEGREGATION_OF_DUTIES_VIOLATION":
+        status = 409;
+        break;
+      case "DUPLICATE_SOURCE_EVENT":
+      case "VOUCHER_ALREADY_POSTED":
+      case "REVERSAL_VIOLATION":
+      case "INVALID_VOUCHER_STATE":
+        status = 409;
+        break;
+      case "JOURNAL_UNBALANCED":
+      case "GROUP_ACCOUNT_NOT_POSTABLE":
+      case "POSTING_ACCOUNT_INVALID":
+      case "PARTY_DIMENSION_INVALID":
+      case "JOURNAL_LINE_INVALID":
+        status = 400;
+        break;
+      case "POSTING_BEFORE_ACCOUNTING_START_DATE":
+      case "FISCAL_PERIOD_NOT_CONFIGURED":
+      case "FISCAL_PERIOD_LOCKED":
+        status = 422;
+        break;
+      default:
+        status = 400;
+    }
+
+    return jsonWithDataSource(
+      {
+        success: false,
+        error: err.code,
+        message: err.message,
+      },
+      "error",
+      status
+    );
+  }
+
+  const message = err?.message || "Internal server error";
+  console.error("[Manual Journal API Error]", err);
+  return jsonWithDataSource(
+    {
+      success: false,
+      error: err?.code || "OPERATION_FAILED",
+      message,
+    },
+    "error",
+    500
+  );
+}
+
+function handleBillsPayableError(err: any): NextResponse {
+  if (err instanceof BillsPayableError || err?.name === "BillsPayableError") {
+    let status = 400;
+    switch (err.code) {
+      case "PERMISSION_DENIED":
+      case "BRANCH_ACCESS_DENIED":
+      case "SEGREGATION_OF_DUTIES_VIOLATION":
+        status = 403;
+        break;
+      case "BILL_NOT_FOUND":
+      case "SESSION_NOT_FOUND":
+        status = 404;
+        break;
+      case "BILL_ALREADY_SETTLED":
+      case "INVALID_BILL_STATUS":
+      case "CONCURRENT_SETTLEMENT_LOCK":
+        status = 409;
+        break;
+      case "ALLOCATION_EXCEEDS_OUTSTANDING":
+      case "INVALID_PAYMENT_AMOUNT":
+      case "TOTAL_ALLOCATION_MISMATCH":
+      case "PAYMENT_ACCOUNT_UNRESOLVED":
+      case "CONFIG_GUARD_FAILED":
+      case "INVALID_SESSION_STATE":
+        status = 422;
+        break;
+      default:
+        status = 400;
+    }
+    return jsonWithDataSource(
+      { success: false, error: err.code, message: err.message },
+      "error",
+      status
+    );
+  }
+
+  const message = err?.message || "Internal server error";
+  console.error("[Bills Payable API Error]", err);
+  return jsonWithDataSource(
+    { success: false, error: err?.code || "OPERATION_FAILED", message },
+    "error",
+    500
+  );
+}
+
+function handleBillsReceivableError(err: any): NextResponse {
+  if (err instanceof BillsReceivableError || err?.name === "BillsReceivableError") {
+    let status = 400;
+    switch (err.code) {
+      case "PERMISSION_DENIED":
+      case "BRANCH_ACCESS_DENIED":
+      case "SEGREGATION_OF_DUTIES_VIOLATION":
+        status = 403;
+        break;
+      case "INVOICE_NOT_FOUND":
+      case "CUSTOMER_NOT_FOUND":
+      case "ORDER_NOT_FOUND":
+        status = 404;
+        break;
+      case "INVOICE_ALREADY_SETTLED":
+      case "INVALID_INVOICE_STATUS":
+      case "CONCURRENT_SETTLEMENT_LOCK":
+      case "CREDIT_LIMIT_EXCEEDED":
+      case "ORDER_ALREADY_INVOICED":
+        status = 409;
+        break;
+      case "ALLOCATION_EXCEEDS_OUTSTANDING":
+      case "INVALID_RECEIPT_AMOUNT":
+      case "TOTAL_ALLOCATION_MISMATCH":
+      case "PAYMENT_ACCOUNT_UNRESOLVED":
+      case "REFERENCE_MANDATORY":
+      case "CREDIT_NOT_PERMITTED":
+      case "CREDIT_APPROVAL_REQUIRED":
+      case "ORDER_REQUIRED":
+      case "ORDER_STATUS_INVALID":
+      case "CUSTOMER_MISMATCH":
+      case "BRANCH_MISMATCH":
+        status = 422;
+        break;
+      default:
+        status = 400;
+    }
+    return jsonWithDataSource(
+      { success: false, error: err.code, message: err.message },
+      "error",
+      status
+    );
+  }
+
+  const message = err?.message || "Internal server error";
+  console.error("[Bills Receivable API Error]", err);
+  return jsonWithDataSource(
+    { success: false, error: err?.code || "OPERATION_FAILED", message },
+    "error",
+    500
+  );
+}
+
+function handleBranchCashError(err: any): NextResponse {
+  if (err instanceof BranchCashServiceError || err?.name === "BranchCashServiceError") {
+    let status = 400;
+    switch (err.code) {
+      case "BRANCH_ACCESS_DENIED":
+      case "PERMISSION_DENIED":
+        status = 403;
+        break;
+      case "BRANCH_NOT_FOUND":
+        status = 404;
+        break;
+      default:
+        status = 400;
+    }
+    return jsonWithDataSource(
+      { success: false, error: err.code, message: err.message },
+      "error",
+      status
+    );
+  }
+
+  const message = err?.message || "Internal server error";
+  console.error("[Branch Cash API Error]", err);
+  return jsonWithDataSource(
+    { success: false, error: err?.code || "OPERATION_FAILED", message },
+    "error",
+    500
+  );
+}
+
+function handleVaultCustodyError(err: any): NextResponse {
+  if (err instanceof VaultCustodyError || err?.name === "VaultCustodyError") {
+    let status = 400;
+    switch (err.code) {
+      case "PERMISSION_DENIED":
+      case "UNAUTHORIZED_BRANCH":
+      case "BRANCH_ACCESS_DENIED":
+      case "SOD_VIOLATION":
+      case "WITNESS_SELF_VALIDATION":
+        status = 403;
+        break;
+      case "SESSION_NOT_FOUND":
+      case "WITNESS_NOT_FOUND":
+      case "DEPOSIT_SLIP_NOT_FOUND":
+        status = 404;
+        break;
+      case "INVALID_AMOUNT":
+      case "WITNESS_REQUIRED":
+        status = 422;
+        break;
+      case "SESSION_NOT_OPEN":
+      case "INVALID_SESSION_STATE":
+      case "INSUFFICIENT_DRAWER_CASH":
+      case "INSUFFICIENT_VAULT_CASH":
+      case "DUPLICATE_SAFE_DROP":
+      default:
+        status = 400;
+    }
+    return jsonWithDataSource(
+      { success: false, error: err.code, message: err.message },
+      "error",
+      status
+    );
+  }
+
+  const message = err?.message || "Internal server error";
+  console.error("[Vault Custody API Error]", err);
+  return jsonWithDataSource(
+    { success: false, error: err?.code || "OPERATION_FAILED", message },
+    "error",
+    500
+  );
+}
+
+function handlePettyCashError(err: any): NextResponse {
+  if (err instanceof PettyCashServiceError || err?.name === "PettyCashServiceError") {
+    let status = 400;
+    switch (err.code) {
+      case "PERMISSION_DENIED":
+      case "UNAUTHORIZED_BRANCH":
+      case "BRANCH_ACCESS_DENIED":
+      case "SEGREGATION_OF_DUTIES_VIOLATION":
+        status = 403;
+        break;
+      case "REQUEST_NOT_FOUND":
+      case "ACCOUNT_NOT_FOUND":
+      case "BANK_ACCOUNT_NOT_FOUND":
+        status = 404;
+        break;
+      case "INVALID_AMOUNT":
+        status = 422;
+        break;
+      case "INVALID_REQUEST_STATUS":
+      case "IMPREST_LIMIT_EXCEEDED":
+      case "PETTY_CASH_LIMIT_UNCONFIGURED":
+      case "POSTING_FAILED":
+      default:
+        status = 400;
+    }
+    return jsonWithDataSource(
+      { success: false, error: err.code, message: err.message },
+      "error",
+      status
+    );
+  }
+
+  const message = err?.message || "Internal server error";
+  console.error("[Petty Cash API Error]", err);
+  return jsonWithDataSource(
+    { success: false, error: err?.code || "OPERATION_FAILED", message },
+    "error",
+    500
+  );
+}
+
+async function verifyVoucherBranchAccess(
+  voucherId: string,
+  userCtx: ReturnType<typeof resolveUserContext>
+): Promise<{ errorResponse: NextResponse | null; voucher: any }> {
+  const vQ = await dbQuery<{ id: string; branch_id: string; status: string; created_by: string }>(
+    `SELECT id, branch_id, status, created_by FROM public.accounting_voucher WHERE id = $1 AND deleted_at IS NULL`,
+    [voucherId]
+  );
+  if (vQ.rows.length === 0) {
+    return {
+      errorResponse: jsonWithDataSource(
+        { success: false, error: "VOUCHER_NOT_FOUND", message: `Manual journal voucher '${voucherId}' not found.` },
+        "error",
+        404
+      ),
+      voucher: null,
+    };
+  }
+  const voucher = vQ.rows[0];
+  if (!userCtx.isSuperAdmin && userCtx.branchId && voucher.branch_id && voucher.branch_id !== userCtx.branchId) {
+    return {
+      errorResponse: jsonWithDataSource(
+        { success: false, error: "BRANCH_ACCESS_DENIED", message: "Forbidden: Voucher belongs to another branch." },
+        "error",
+        403
+      ),
+      voucher,
+    };
+  }
+  return { errorResponse: null, voucher };
 }
 
 function resolveCustomerUidFromReq(req: NextRequest): string | null {
@@ -1124,6 +1531,20 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       if (permErr) return permErr;
       const userCtx = resolveUserContext(req);
       try {
+        // GET admin/suppliers/:id/ledger
+        const supplierLedgerMatch = path.match(/^admin\/suppliers\/([^/]+)\/ledger$/);
+        if (supplierLedgerMatch) {
+          const supplierId = supplierLedgerMatch[1];
+          const result = await AccountsPayableService.getSupplierStatement({
+            supplier_id: supplierId,
+            branch_id: userCtx.isSuperAdmin ? (url.searchParams.get("branch_id") || undefined) : userCtx.branchId,
+            startDate: url.searchParams.get("startDate") || undefined,
+            endDate: url.searchParams.get("endDate") || undefined,
+            actorContext: userCtx,
+          });
+          return jsonWithDataSource({ success: true, data: result }, "postgres");
+        }
+
         // GET admin/suppliers/:id
         const supplierIdMatch = path.match(/^admin\/suppliers\/([^/]+)$/);
         if (supplierIdMatch) {
@@ -1219,7 +1640,355 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
     }
 
-    // ── Expense Category API (GET) ────────────────────────────────────────────
+    // ── Bills Payable API (GET) ────────────────────────────────────────────────
+    if (path.startsWith("admin/bills-payable")) {
+      const permErr = verifyApiPermission(req, "PURCHASE", "VIEW");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+
+      try {
+        // GET admin/bills-payable/summary
+        if (path === "admin/bills-payable/summary") {
+          const listRes = await BillsPayableService.listBills({
+            branch_id: userCtx.isSuperAdmin ? (url.searchParams.get("branch_id") || undefined) : userCtx.branchId,
+            supplier_id: url.searchParams.get("supplier_id") || undefined,
+            actorContext: userCtx,
+          });
+          return jsonWithDataSource({ success: true, ...listRes.summary, summary: listRes.summary }, "postgres");
+        }
+
+        // GET admin/bills-payable/:id
+        const billIdMatch = path.match(/^admin\/bills-payable\/([^/]+)$/);
+        if (billIdMatch && billIdMatch[1] !== "summary") {
+          const detail = await BillsPayableService.getBillDetail(billIdMatch[1], userCtx);
+          return jsonWithDataSource({ success: true, ...detail, data: detail }, "postgres");
+        }
+
+        // GET admin/bills-payable (list)
+        const listRes = await BillsPayableService.listBills({
+          supplier_id: url.searchParams.get("supplier_id") || undefined,
+          branch_id: userCtx.isSuperAdmin ? (url.searchParams.get("branch_id") || undefined) : userCtx.branchId,
+          status: (url.searchParams.get("status") as any) || undefined,
+          startDate: url.searchParams.get("startDate") || undefined,
+          endDate: url.searchParams.get("endDate") || undefined,
+          dueBefore: url.searchParams.get("dueBefore") || undefined,
+          search: url.searchParams.get("search") || undefined,
+          limit: parseInt(url.searchParams.get("limit") || "100"),
+          offset: parseInt(url.searchParams.get("offset") || "0"),
+          actorContext: userCtx,
+        });
+        return jsonWithDataSource({
+          success: true,
+          items: listRes.bills,
+          bills: listRes.bills,
+          total: listRes.total_count,
+          total_count: listRes.total_count,
+          summary: listRes.summary,
+        }, "postgres");
+      } catch (err: any) {
+        return handleBillsPayableError(err);
+      }
+    }
+
+    // ── Phase C7.4: Bills Receivable API (GET) ──────────────────────────────────
+    if (path.startsWith("admin/bills-receivable")) {
+      const permErr = verifyApiPermission(req, "ACCOUNTING", "VIEW");
+      if (permErr) {
+        const custPermErr = verifyApiPermission(req, "CUSTOMER", "VIEW");
+        if (custPermErr) return permErr;
+      }
+      const userCtx = resolveUserContext(req);
+
+      try {
+        // GET admin/bills-receivable/summary
+        if (path === "admin/bills-receivable/summary") {
+          const listRes = await BillsReceivableService.listBillsReceivable({
+            branch_id: userCtx.isSuperAdmin ? (url.searchParams.get("branch_id") || undefined) : userCtx.branchId,
+            customer_id: url.searchParams.get("customer_id") || undefined,
+            actorContext: userCtx,
+          });
+          return jsonWithDataSource({ success: true, ...listRes.summary, summary: listRes.summary }, "postgres");
+        }
+
+        // GET admin/bills-receivable/:id/reminders
+        const remindersMatch = path.match(/^admin\/bills-receivable\/([^/]+)\/reminders$/);
+        if (remindersMatch) {
+          const reminders = await BillsReceivableService.listInvoiceReminders(remindersMatch[1]);
+          return jsonWithDataSource({ success: true, items: reminders, reminders }, "postgres");
+        }
+
+        // GET admin/bills-receivable/:id
+        const billIdMatch = path.match(/^admin\/bills-receivable\/([^/]+)$/);
+        if (billIdMatch && billIdMatch[1] !== "summary") {
+          const detail = await BillsReceivableService.getBillReceivableDetail(billIdMatch[1], userCtx);
+          return jsonWithDataSource({ success: true, ...detail, data: detail }, "postgres");
+        }
+
+        // GET admin/bills-receivable (list)
+        const listRes = await BillsReceivableService.listBillsReceivable({
+          customer_id: url.searchParams.get("customer_id") || undefined,
+          branch_id: userCtx.isSuperAdmin ? (url.searchParams.get("branch_id") || undefined) : userCtx.branchId,
+          status: (url.searchParams.get("status") as any) || undefined,
+          ageing_bucket: (url.searchParams.get("ageing_bucket") as any) || undefined,
+          startDate: url.searchParams.get("startDate") || undefined,
+          endDate: url.searchParams.get("endDate") || undefined,
+          dueBefore: url.searchParams.get("dueBefore") || undefined,
+          search: url.searchParams.get("search") || undefined,
+          limit: parseInt(url.searchParams.get("limit") || "100"),
+          offset: parseInt(url.searchParams.get("offset") || "0"),
+          actorContext: userCtx,
+        });
+        return jsonWithDataSource({
+          success: true,
+          items: listRes.bills,
+          bills: listRes.bills,
+          total: listRes.total_count,
+          total_count: listRes.total_count,
+          summary: listRes.summary,
+        }, "postgres");
+      } catch (err: any) {
+        return handleBillsReceivableError(err);
+      }
+    }
+
+    // ── Phase C7.4: Corporate Customers Subledger & Ageing (GET) ────────────────
+    if (path.startsWith("admin/corporate-customers")) {
+      const permErr = verifyApiPermission(req, "ACCOUNTING", "VIEW");
+      if (permErr) {
+        const custPermErr = verifyApiPermission(req, "CUSTOMER", "VIEW");
+        if (custPermErr) return permErr;
+      }
+      const userCtx = resolveUserContext(req);
+
+      try {
+        // GET admin/corporate-customers/:id/ledger
+        const ledgerMatch = path.match(/^admin\/corporate-customers\/([^/]+)\/ledger$/);
+        if (ledgerMatch) {
+          const ledger = await BillsReceivableService.getCustomerLedger(
+            ledgerMatch[1],
+            {
+              startDate: url.searchParams.get("startDate") || undefined,
+              endDate: url.searchParams.get("endDate") || undefined,
+              branchId: userCtx.isSuperAdmin ? (url.searchParams.get("branch_id") || undefined) : userCtx.branchId,
+            },
+            userCtx
+          );
+          return jsonWithDataSource({ success: true, ...ledger, data: ledger }, "postgres");
+        }
+
+        // GET admin/corporate-customers/:id/ar-ageing
+        const ageingMatch = path.match(/^admin\/corporate-customers\/([^/]+)\/ar-ageing$/);
+        if (ageingMatch) {
+          const ageing = await BillsReceivableService.getArAgeingSummary(
+            userCtx.isSuperAdmin ? (url.searchParams.get("branch_id") || undefined) : userCtx.branchId,
+            userCtx
+          );
+          return jsonWithDataSource({ success: true, ...ageing, data: ageing }, "postgres");
+        }
+      } catch (err: any) {
+        return handleBillsReceivableError(err);
+      }
+    }
+
+    // ── Phase C7.3: Branch Cash Position & Reconciliation (GET) ──────────────
+    if (path.startsWith("admin/accounting/branch-cash-position")) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource(
+          { success: false, error: "UNAUTHORIZED", message: "Authentication required to access branch cash position." },
+          "error",
+          401
+        );
+      }
+      const hasAccounting = StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "VIEW");
+      const hasTeller = StaffAccessControl.hasPermission(userCtx, "TELLER", "VIEW");
+      if (!hasAccounting && !hasTeller) {
+        return jsonWithDataSource(
+          { success: false, error: "FORBIDDEN", message: "Forbidden: Account does not have permission for ACCOUNTING.VIEW or TELLER.VIEW." },
+          "error",
+          403
+        );
+      }
+
+      try {
+        const branchCashDetailMatch = path.match(/^admin\/accounting\/branch-cash-position\/([^/]+)$/);
+        if (branchCashDetailMatch) {
+          const targetBranchId = branchCashDetailMatch[1];
+          const result = await BranchCashService.getBranchCashReconciliation(targetBranchId, userCtx);
+          return jsonWithDataSource({ success: true, data: result, ...result }, "postgres");
+        }
+
+        const requestedBranchId = url.searchParams.get("branch_id") || undefined;
+        const summary = await BranchCashService.getBranchCashSummary({
+          branchId: requestedBranchId,
+          actorContext: userCtx,
+        });
+        return jsonWithDataSource({ success: true, data: summary, ...summary }, "postgres");
+      } catch (err: any) {
+        return handleBranchCashError(err);
+      }
+    }
+
+    // ── Phase C7.5: Petty Cash Management (GET) ──────────────────────────────
+    if (path === "admin/accounting/petty-cash" || path === "admin/petty-cash" || path.startsWith("admin/accounting/petty-cash/")) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource(
+          { success: false, error: "UNAUTHORIZED", message: "Authentication required to access petty cash." },
+          "error",
+          401
+        );
+      }
+      const hasPettyCashView = StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "PETTY_CASH_VIEW");
+      const hasAccountingView = StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "VIEW");
+      if (!hasPettyCashView && !hasAccountingView) {
+        return jsonWithDataSource(
+          { success: false, error: "FORBIDDEN", message: "Forbidden: Account does not have permission for ACCOUNTING.PETTY_CASH_VIEW or ACCOUNTING.VIEW." },
+          "error",
+          403
+        );
+      }
+
+      try {
+        const pettyDetailMatch = path.match(/^(?:admin\/accounting\/petty-cash|admin\/petty-cash)\/([^/]+)$/);
+        if (pettyDetailMatch) {
+          const requestId = pettyDetailMatch[1];
+          const request = await PettyCashRepository.findById(requestId);
+          if (!request) {
+            return jsonWithDataSource(
+              { success: false, error: "REQUEST_NOT_FOUND", message: `Petty cash request '${requestId}' not found.` },
+              "error",
+              404
+            );
+          }
+          if (!userCtx.isSuperAdmin && userCtx.branchId && request.branch_id !== userCtx.branchId) {
+            return jsonWithDataSource(
+              { success: false, error: "BRANCH_ACCESS_DENIED", message: "Forbidden: Request belongs to another branch." },
+              "error",
+              403
+            );
+          }
+          return jsonWithDataSource({ success: true, request, data: request }, "postgres", 200);
+        }
+
+        const requestedBranchId = url.searchParams.get("branch_id") || undefined;
+        const branchId = userCtx.isSuperAdmin ? requestedBranchId : (userCtx.branchId || requestedBranchId);
+        const status = (url.searchParams.get("status") || undefined) as any;
+        const requestType = (url.searchParams.get("request_type") || undefined) as any;
+        const limit = Number(url.searchParams.get("limit") || 50);
+        const offset = Number(url.searchParams.get("offset") || 0);
+
+        const requests = await PettyCashRepository.list({
+          branch_id: branchId,
+          status,
+          request_type: requestType,
+          limit,
+          offset,
+        });
+        return jsonWithDataSource({ success: true, requests, total: requests.length, data: requests }, "postgres", 200);
+      } catch (err: any) {
+        return handlePettyCashError(err);
+      }
+    }
+
+    // ── Phase C7.5: Branch Vault Movements (GET) ─────────────────────────────
+    if (path === "admin/teller/vault-movements" || path === "teller/vault-movements") {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource(
+          { success: false, error: "UNAUTHORIZED", message: "Authentication required to access vault movements." },
+          "error",
+          401
+        );
+      }
+      const hasTellerView = StaffAccessControl.hasPermission(userCtx, "TELLER", "VIEW");
+      const hasAccountingView = StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "VIEW");
+      if (!hasTellerView && !hasAccountingView) {
+        return jsonWithDataSource(
+          { success: false, error: "FORBIDDEN", message: "Forbidden: Account does not have permission for TELLER.VIEW or ACCOUNTING.VIEW." },
+          "error",
+          403
+        );
+      }
+
+      const requestedBranchId = url.searchParams.get("branch_id") || userCtx.branchId;
+      if (!requestedBranchId) {
+        return jsonWithDataSource(
+          { success: false, error: "BRANCH_REQUIRED", message: "Branch context required." },
+          "error",
+          400
+        );
+      }
+      if (!userCtx.isSuperAdmin && userCtx.branchId && requestedBranchId !== userCtx.branchId) {
+        return jsonWithDataSource(
+          { success: false, error: "BRANCH_ACCESS_DENIED", message: "Forbidden: Cannot access vault movements of another branch." },
+          "error",
+          403
+        );
+      }
+
+      try {
+        const limit = Number(url.searchParams.get("limit") || 50);
+        const offset = Number(url.searchParams.get("offset") || 0);
+        const movements = await VaultCustodyRepository.listByBranch(requestedBranchId, { limit, offset });
+        const derivedBalance = await VaultCustodyRepository.getDerivedVaultCustody(requestedBranchId);
+        return jsonWithDataSource(
+          { success: true, branch_id: requestedBranchId, derived_vault_balance: derivedBalance, movements, total: movements.length },
+          "postgres",
+          200
+        );
+      } catch (err: any) {
+        return handleVaultCustodyError(err);
+      }
+    }
+
+    // ── Phase C7.5: Cash Tender Threshold Status (GET) ───────────────────────
+    if (path === "admin/teller/cash-tender-status" || path === "teller/cash-tender-status") {
+      const userCtx = resolveUserContext(req);
+      const requestedBranchId = url.searchParams.get("branch_id") || userCtx.branchId;
+      if (!requestedBranchId) {
+        return jsonWithDataSource(
+          { success: false, error: "BRANCH_REQUIRED", message: "Branch context required." },
+          "error",
+          400
+        );
+      }
+      if (!userCtx.isSuperAdmin && userCtx.branchId && requestedBranchId !== userCtx.branchId) {
+        return jsonWithDataSource(
+          { success: false, error: "BRANCH_ACCESS_DENIED", message: "Forbidden: Cannot query status of another branch." },
+          "error",
+          403
+        );
+      }
+
+      try {
+        const recon = await BranchCashService.getBranchCashReconciliation(requestedBranchId, userCtx);
+        return jsonWithDataSource(
+          {
+            success: true,
+            branch_id: requestedBranchId,
+            branch_name: recon.branch_name,
+            active_drawer_cash: recon.active_drawer_cash,
+            vault_cash: recon.vault_cash,
+            drawer_cash_custody: recon.active_drawer_cash,
+            vault_cash_custody: recon.vault_cash,
+            max_drawer_cash_limit: recon.max_drawer_cash_limit,
+            warning_threshold: recon.warning_threshold,
+            critical_threshold: recon.critical_threshold,
+            threshold_warning: recon.warning_threshold,
+            threshold_critical: recon.critical_threshold,
+            drawer_threshold_status: recon.drawer_threshold_status,
+            threshold_status: recon.drawer_threshold_status,
+            is_cash_tender_blocked: recon.is_cash_tender_blocked,
+          },
+          "postgres",
+          200
+        );
+      } catch (err: any) {
+        return handleBranchCashError(err);
+      }
+    }
+
     if (path === "admin/expense-categories" || path.startsWith("admin/expense-categories/")) {
       const permErr = verifyApiPermission(req, "EXPENSE", "VIEW");
       if (permErr) return permErr;
@@ -1241,6 +2010,16 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         ? (url.searchParams.get("branch_id") || undefined)
         : (userCtx.branchId || undefined);
       try {
+        // GET admin/expenses/:id/accounting
+        const expenseAccountingMatch = path.match(/^admin\/expenses\/([^/]+)\/accounting$/);
+        if (expenseAccountingMatch) {
+          const result = await ExpenseService.getExpenseAccounting(
+            expenseAccountingMatch[1],
+            userCtx.isSuperAdmin ? undefined : enforcedBranchId
+          );
+          return jsonWithDataSource(result, "postgres", result.success ? 200 : (result.error?.includes("not found") ? 404 : 400));
+        }
+
         // GET admin/expenses/:id
         const expenseIdMatch = path.match(/^admin\/expenses\/([^/]+)$/);
         if (expenseIdMatch && !expenseIdMatch[1].startsWith("report")) {
@@ -1631,7 +2410,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
               AND metadata->>'is_ledger_eligible' = 'true'
               AND (metadata->'cod_custody_event'->>'delivery_partner_id') IS NOT NULL
               AND (metadata->'cod_custody_event'->>'settlement_voucher_id') IS NULL
-              ${targetBranchId ? `AND (metadata->>'branch_id' = $1 OR branch_id = $1)` : ""}
+              ${targetBranchId ? `AND (metadata->>'branch_id' = $1 OR metadata->>'branch' = $1)` : ""}
               AND deleted_at IS NULL
             GROUP BY 
               metadata->'cod_custody_event'->>'delivery_partner_id',
@@ -1694,7 +2473,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     // ── Canonical Bank Accounts Master API (Phase 4F Step 4.10) ──
-    if (path === "admin/bank-accounts") {
+    // ── Phase B: Company Bank Account Master API (GET List & Detail) ───────────
+    if (path === "admin/bank-accounts" || path === "admin/accounting/bank-accounts") {
       const userCtx = resolveUserContext(req);
       if (!userCtx.userId && !userCtx.role) {
         return jsonWithDataSource(
@@ -1705,35 +2485,193 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
       const hasBankPerm = StaffAccessControl.hasPermission(userCtx, "BANK", "VIEW");
       const hasGatewayPerm = StaffAccessControl.hasPermission(userCtx, "GATEWAY", "VIEW");
-      if (!hasBankPerm && !hasGatewayPerm) {
+      const hasAcctPerm = StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "VIEW");
+      if (!hasBankPerm && !hasGatewayPerm && !hasAcctPerm && !userCtx.isSuperAdmin) {
         return jsonWithDataSource(
-          { success: false, error: "FORBIDDEN", message: "Forbidden: Account lacks BANK.VIEW or GATEWAY.VIEW permission." },
+          { success: false, error: "FORBIDDEN", message: "Forbidden: Account lacks BANK.VIEW or ACCOUNTING.VIEW permission." },
           "error",
           403
         );
       }
 
-      const isSuperAdmin = userCtx.isSuperAdmin;
-      const statusFilter = (url.searchParams.get("status") || "ACTIVE") as any;
-      const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId");
+      const statusFilter = (url.searchParams.get("status") || undefined) as any;
+      const searchQuery = url.searchParams.get("search") || undefined;
 
       try {
-        const filter: any = { status: statusFilter };
-        if (isSuperAdmin) {
-          if (branchIdParam) filter.branchId = branchIdParam;
-        } else {
-          filter.branchId = userCtx.branchId || null;
-          filter.includeEnterprise = true;
-        }
-
-        const accounts = await BankAccountRepository.list(filter);
+        const accounts = await BankAccountService.listBankAccounts({
+          status: statusFilter,
+          search: searchQuery,
+          actorContext: userCtx,
+        });
         return jsonWithDataSource({ success: true, data: accounts, bankAccounts: accounts }, "postgres");
       } catch (err: any) {
         return jsonWithDataSource(
           { success: false, error: err.code || "BANK_ACCOUNTS_QUERY_FAILED", message: err.message },
           "error",
-          500
+          err.code === "PERMISSION_DENIED" ? 403 : 500
         );
+      }
+    }
+
+    const bankAccountGetDetailMatch = path.match(/^admin\/(accounting\/)?bank-accounts\/([^/]+)$/);
+    if (bankAccountGetDetailMatch) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource(
+          { success: false, error: "UNAUTHORIZED", message: "Authentication required to access bank accounts." },
+          "error",
+          401
+        );
+      }
+      const accountId = bankAccountGetDetailMatch[2];
+      try {
+        const account = await BankAccountService.getBankAccount(accountId, userCtx);
+        return jsonWithDataSource({ success: true, data: account, bankAccount: account }, "postgres");
+      } catch (err: any) {
+        const status = err.code === "BANK_ACCOUNT_NOT_FOUND" ? 404 : err.code === "PERMISSION_DENIED" ? 403 : 500;
+        return jsonWithDataSource(
+          { success: false, error: err.code || "BANK_ACCOUNT_QUERY_FAILED", message: err.message },
+          "error",
+          status
+        );
+      }
+    }
+
+    // ── Phase C4.1: Teller & Cash Custody (GET Endpoints) ────────────────────
+
+    // 1. GET (admin/)?tellers: List tellers matching filters
+    if (path === "admin/tellers" || path === "tellers") {
+      const authErr = verifyApiPermission(req, "TELLER", "VIEW");
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
+      const statusParam = url.searchParams.get("status") || undefined;
+      const userIdParam = url.searchParams.get("user_id") || url.searchParams.get("userId") || undefined;
+      try {
+        const tellers = await TellerService.listTellers(
+          { branchId: branchIdParam, status: statusParam, userId: userIdParam },
+          actor
+        );
+        return jsonWithDataSource({ success: true, tellers, total: tellers.length }, "postgres", 200);
+      } catch (err: any) {
+        return handleTellerError(err);
+      }
+    }
+
+    // 2. GET (admin/)?teller/sessions/active: Get active session for user or teller
+    if (path === "admin/teller/sessions/active" || path === "teller/sessions/active") {
+      const authErr = verifyApiPermission(req, "TELLER", "VIEW");
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      const tellerIdParam = url.searchParams.get("teller_id") || url.searchParams.get("tellerId");
+      try {
+        let tellerId = tellerIdParam;
+        if (!tellerId) {
+          const activeTeller = await TellerRepository.findActiveByUserId(userCtx.userId);
+          if (!activeTeller) {
+            return jsonWithDataSource({ success: true, session: null, message: "No active teller found for user." }, "postgres", 200);
+          }
+          tellerId = activeTeller.id;
+        }
+        const session = await TellerSessionService.getActiveSession(tellerId, actor);
+        return jsonWithDataSource({ success: true, session }, "postgres", 200);
+      } catch (err: any) {
+        return handleTellerError(err);
+      }
+    }
+
+    // 3. GET (admin/)?teller/sessions: List teller sessions matching filters
+    if (path === "admin/teller/sessions" || path === "teller/sessions") {
+      let authErr = verifyApiPermission(req, "TELLER", "VIEW");
+      if (authErr && !verifyApiPermission(req, "TELLER", "REPORT_VIEW")) {
+        authErr = null;
+      }
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
+      const tellerIdParam = url.searchParams.get("teller_id") || url.searchParams.get("tellerId") || undefined;
+      const statusParam = (url.searchParams.get("status") || undefined) as any;
+      try {
+        const sessions = await TellerSessionService.listSessions(
+          { branchId: branchIdParam, tellerId: tellerIdParam, status: statusParam },
+          actor
+        );
+        return jsonWithDataSource({ success: true, sessions, total: sessions.length }, "postgres", 200);
+      } catch (err: any) {
+        return handleTellerError(err);
+      }
+    }
+
+    // 4. GET (admin/)?teller/sessions/:id/prepare-settlement: Read-only settlement preview
+    const prepareSettlementMatch = path.match(/^(?:admin\/)?teller\/sessions\/([^/]+)\/prepare-settlement$/);
+    if (prepareSettlementMatch) {
+      const authErr = verifyApiPermission(req, "TELLER", "SETTLE");
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      const sessionId = prepareSettlementMatch[1];
+      try {
+        const preview = await TellerSessionService.prepareSettlement({ session_id: sessionId }, actor);
+        return jsonWithDataSource({ success: true, ...preview }, "postgres", 200);
+      } catch (err: any) {
+        return handleTellerError(err);
+      }
+    }
+
+    // 5. GET (admin/)?teller/sessions/:id/movements: List session movements
+    const sessionMovementsMatch = path.match(/^(?:admin\/)?teller\/sessions\/([^/]+)\/movements$/);
+    if (sessionMovementsMatch) {
+      let authErr = verifyApiPermission(req, "TELLER", "VIEW");
+      if (authErr && !verifyApiPermission(req, "TELLER", "REPORT_VIEW")) {
+        authErr = null;
+      }
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      const sessionId = sessionMovementsMatch[1];
+      try {
+        const movements = await TellerMovementService.getSessionMovements(sessionId, actor);
+        return jsonWithDataSource({ success: true, movements, total: movements.length }, "postgres", 200);
+      } catch (err: any) {
+        return handleTellerError(err);
+      }
+    }
+
+    // 6. GET (admin/)?teller/sessions/:id: Get session details by ID
+    const sessionDetailMatch = path.match(/^(?:admin\/)?teller\/sessions\/([^/]+)$/);
+    if (sessionDetailMatch) {
+      let authErr = verifyApiPermission(req, "TELLER", "VIEW");
+      if (authErr && !verifyApiPermission(req, "TELLER", "REPORT_VIEW")) {
+        authErr = null;
+      }
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      const sessionId = sessionDetailMatch[1];
+      try {
+        const session = await TellerSessionService.getSession(sessionId, actor);
+        return jsonWithDataSource({ success: true, session }, "postgres", 200);
+      } catch (err: any) {
+        return handleTellerError(err);
+      }
+    }
+
+    // 7. GET (admin/)?tellers/:id: Get teller details by ID
+    const tellerDetailMatch = path.match(/^(?:admin\/)?tellers\/([^/]+)$/);
+    if (tellerDetailMatch) {
+      const authErr = verifyApiPermission(req, "TELLER", "VIEW");
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      const tellerId = tellerDetailMatch[1];
+      try {
+        const teller = await TellerService.getTellerById(tellerId, actor);
+        return jsonWithDataSource({ success: true, teller }, "postgres", 200);
+      } catch (err: any) {
+        return handleTellerError(err);
       }
     }
 
@@ -2219,7 +3157,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
                 bankName: bankAccount.bank_name,
                 accountNumberMasked: bankAccount.account_number_masked,
                 ifscCode: bankAccount.ifsc_code,
-                branchId: bankAccount.branch_id,
+                branchId: null,
               },
             },
           }, "postgres");
@@ -2239,6 +3177,118 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
             ? 400
             : 500;
         return jsonWithDataSource({ success: false, error: err.code || "BANK_RECONCILIATION_OPERATION_FAILED", message: err.message }, "error", statusCode);
+      }
+    }
+
+    // ── Phase C7.6 Step 4D: Cost Allocation Subsystem GET Endpoints ──────────
+    if (path.startsWith("admin/accounting/cost-allocations") || path.startsWith("admin/cost-allocations")) {
+      const userCtx = resolveUserContext(req);
+      return CostAllocationController.handleGet(req, path, userCtx);
+    }
+
+    // ── Phase C7.7 Step 7C: Corporate Gifting Subsystem GET Endpoints ─────────
+    if (path.startsWith("admin/corporate-gifting") || path.startsWith("corporate-gifting")) {
+      const userCtx = resolveUserContext(req);
+      return CorporateGiftingController.handleGet(req, path, userCtx);
+    }
+
+    // ── Phase C6.3: Manual Journal Subsystem GET Endpoints ───────────────────
+    if (path.startsWith("admin/accounting/journals")) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource(
+          { success: false, error: "UNAUTHORIZED", message: "Authentication required to access manual journals." },
+          "error",
+          401
+        );
+      }
+      const role = (userCtx.role || "").toUpperCase();
+      if (role === "CUSTOMER" || role === "ANONYMOUS") {
+        return jsonWithDataSource(
+          { success: false, error: "FORBIDDEN", message: "Customer or anonymous access is not permitted." },
+          "error",
+          403
+        );
+      }
+
+      const hasViewPerm = userCtx.isSuperAdmin || StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "VIEW");
+      if (!hasViewPerm) {
+        return jsonWithDataSource(
+          { success: false, error: "FORBIDDEN", message: "Forbidden: Account lacks ACCOUNTING.VIEW permission." },
+          "error",
+          403
+        );
+      }
+
+      try {
+        // 1. GET admin/accounting/journals/:id
+        const detailMatch = path.match(/^admin\/accounting\/journals\/([^/]+)$/);
+        if (detailMatch) {
+          const voucherId = detailMatch[1];
+          const detail = await ManualJournalService.getDetail(voucherId);
+          if (!detail) {
+            return jsonWithDataSource(
+              { success: false, error: "VOUCHER_NOT_FOUND", message: `Manual journal voucher '${voucherId}' not found.` },
+              "error",
+              404
+            );
+          }
+
+          // Branch Scoping
+          if (!userCtx.isSuperAdmin && userCtx.branchId && detail.voucher.branch_id && detail.voucher.branch_id !== userCtx.branchId) {
+            return jsonWithDataSource(
+              { success: false, error: "BRANCH_ACCESS_DENIED", message: "Forbidden: Voucher belongs to another branch." },
+              "error",
+              403
+            );
+          }
+
+          return jsonWithDataSource({ success: true, data: detail }, "postgres", 200);
+        }
+
+        // 2. GET admin/accounting/journals (List)
+        if (path === "admin/accounting/journals") {
+          const requestedBranchId = url.searchParams.get("branch_id") || url.searchParams.get("branchId");
+
+          if (!userCtx.isSuperAdmin && userCtx.branchId) {
+            if (requestedBranchId && requestedBranchId !== userCtx.branchId) {
+              return jsonWithDataSource(
+                { success: false, error: "BRANCH_ACCESS_DENIED", message: "Forbidden: Cannot query manual journals for another branch." },
+                "error",
+                403
+              );
+            }
+          }
+
+          const effectiveBranchId = (!userCtx.isSuperAdmin && userCtx.branchId) ? userCtx.branchId : (requestedBranchId || undefined);
+
+          const status = url.searchParams.get("status") || undefined;
+          const search = url.searchParams.get("search") || undefined;
+          const fromDate = url.searchParams.get("from_date") || url.searchParams.get("fromDate") || undefined;
+          const toDate = url.searchParams.get("to_date") || url.searchParams.get("toDate") || undefined;
+          const page = parseInt(url.searchParams.get("page") || "1", 10) || 1;
+          const limit = parseInt(url.searchParams.get("limit") || "50", 10) || 50;
+
+          const result = await ManualJournalService.list({
+            branch_id: effectiveBranchId,
+            status: status as any,
+            search,
+            startDate: fromDate,
+            endDate: toDate,
+            page,
+            limit,
+          });
+
+          return jsonWithDataSource({ success: true, ...result }, "postgres", 200);
+        }
+
+        return jsonWithDataSource(
+          { success: false, error: "NOT_FOUND", message: `Unknown manual journal endpoint: ${path}` },
+          "error",
+          404
+        );
+      } catch (err: any) {
+        return handleManualJournalError(err);
       }
     }
 
@@ -2346,6 +3396,30 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
             is_immutable: isImmutable,
           }, "postgres");
         }
+
+        // ── Phase A: Company Master & GST Registration ────────────────────────
+
+        // 4a. Company Master: GET admin/accounting/company
+        if (acctSubPath === "company") {
+          const result = await CompanyService.getCompany();
+          return jsonWithDataSource(result, "postgres");
+        }
+
+        // 4b. GST Registrations: GET admin/accounting/gst-registrations
+        if (acctSubPath === "gst-registrations") {
+          const companyResult = await CompanyService.getCompany();
+          if (!companyResult.success || !companyResult.data) {
+            return jsonWithDataSource(
+              { success: false, error: "Company master not configured. Create the company first." },
+              "postgres",
+              400
+            );
+          }
+          const activeOnly = url.searchParams.get("active_only") === "true";
+          const result = await GstRegistrationService.listRegistrations(companyResult.data.id, activeOnly);
+          return jsonWithDataSource(result, "postgres");
+        }
+
 
         // 5. Fiscal Periods: GET admin/accounting/fiscal-periods
         if (acctSubPath === "fiscal-periods") {
@@ -2886,6 +3960,13 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
               }))
             }
           }, "postgres");
+        }
+
+        // 18. Order AR Status: GET admin/accounting/orders/:id/ar-status
+        if (acctSubPath.startsWith("orders/") && acctSubPath.endsWith("/ar-status")) {
+          const orderId = acctSubPath.split("/")[1];
+          const arStatus = await CustomerReceiptService.getOrderOutstandingAr(orderId);
+          return jsonWithDataSource({ success: true, data: arStatus }, "postgres");
         }
 
         return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown accounting endpoint: ${path}` }, "error", 404);
@@ -4617,7 +5698,17 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ workflows, total: workflows.length, success: true }, "postgres");
     }
 
-    if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, message: `Admin path ${path} operational` }, "postgres");
+    if (path.startsWith("admin/")) {
+      // Security: require SUPER_ADMIN authentication for any unmatched admin/* paths
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId || !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+      if ((userCtx.role || "").toUpperCase() !== "SUPER_ADMIN") {
+        return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Admin access required." }, "error", 403);
+      }
+      return jsonWithDataSource({ error: `Admin API route "${path}" not found`, success: false }, "postgres", 404);
+    }
 
     return jsonWithDataSource({ error: `API Route "${path}" not found` }, "postgres", 404);
   } catch (err: any) {
@@ -4629,8 +5720,281 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
   try {
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
-    const body = await safeParseJsonBody(req);
+    const contentType = (req.headers.get("content-type") || "").toLowerCase();
+    const isMultipart = contentType.includes("multipart/form-data");
+    const body = isMultipart ? {} : await safeParseJsonBody(req);
     console.log(`[API POST] path="${path}"`);
+
+    // ── Phase C7.6 Step 4D: Cost Allocation Subsystem POST Endpoints ─────────
+    if (path.startsWith("admin/accounting/cost-allocations") || path.startsWith("admin/cost-allocations")) {
+      const userCtx = resolveUserContext(req);
+      return CostAllocationController.handlePost(req, path, userCtx, body);
+    }
+
+    // ── Phase C7.7 Step 7C: Corporate Gifting Subsystem POST Endpoints ────────
+    if (path.startsWith("admin/corporate-gifting") || path.startsWith("corporate-gifting")) {
+      const userCtx = resolveUserContext(req);
+      return CorporateGiftingController.handlePost(req, path, userCtx, body);
+    }
+
+    // ── Phase C6.3: Manual Journal Subsystem POST Endpoints ──────────────────
+    if (path.startsWith("admin/accounting/journals")) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource(
+          { success: false, error: "UNAUTHORIZED", message: "Authentication required to access manual journals." },
+          "error",
+          401
+        );
+      }
+      const role = (userCtx.role || "").toUpperCase();
+      if (role === "CUSTOMER" || role === "ANONYMOUS") {
+        return jsonWithDataSource(
+          { success: false, error: "FORBIDDEN", message: "Customer or anonymous access is not permitted." },
+          "error",
+          403
+        );
+      }
+
+      try {
+        // 1. POST admin/accounting/journals/draft (Create or update draft)
+        if (path === "admin/accounting/journals/draft") {
+          const canCreate =
+            userCtx.isSuperAdmin ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "CREATE") ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "POST");
+          if (!canCreate) {
+            return jsonWithDataSource(
+              { success: false, error: "FORBIDDEN", message: "Forbidden: Account lacks ACCOUNTING.CREATE permission." },
+              "error",
+              403
+            );
+          }
+
+          // Authoritative Actor Resolution (NEVER trust client-supplied identity)
+          const actorId = userCtx.userId;
+
+          // Branch Scoping
+          const requestedBranchId = body?.branch_id || body?.branchId;
+          if (!userCtx.isSuperAdmin && userCtx.branchId) {
+            if (requestedBranchId && requestedBranchId !== userCtx.branchId) {
+              return jsonWithDataSource(
+                { success: false, error: "BRANCH_ACCESS_DENIED", message: "Forbidden: Cannot create or update manual journal for another branch." },
+                "error",
+                403
+              );
+            }
+          }
+          const effectiveBranchId = (!userCtx.isSuperAdmin && userCtx.branchId) ? userCtx.branchId : requestedBranchId;
+          if (!effectiveBranchId) {
+            return jsonWithDataSource(
+              { success: false, error: "BRANCH_REQUIRED", message: "branch_id is required." },
+              "error",
+              400
+            );
+          }
+
+          // If updating existing draft
+          const voucherId = body?.voucher_id || body?.voucherId || body?.id;
+          if (voucherId) {
+            const branchCheck = await verifyVoucherBranchAccess(voucherId, userCtx);
+            if (branchCheck.errorResponse) return branchCheck.errorResponse;
+
+            const updated = await ManualJournalService.updateDraft({
+              voucherId,
+              voucherDate: body?.voucher_date || body?.voucherDate,
+              narration: body?.narration,
+              lines: body?.lines,
+              updatedBy: actorId,
+              branchId: effectiveBranchId,
+            });
+            return jsonWithDataSource({ success: true, data: updated }, "postgres", 200);
+          }
+
+          // Create new draft
+          if (!body?.lines || !Array.isArray(body.lines) || body.lines.length < 2) {
+            return jsonWithDataSource(
+              { success: false, error: "JOURNAL_LINE_INVALID", message: "Double-entry accounting requires at least 2 balanced journal lines." },
+              "error",
+              400
+            );
+          }
+
+          const created = await ManualJournalService.createDraft({
+            voucherDate: body?.voucher_date || body?.voucherDate || new Date(),
+            branchId: effectiveBranchId,
+            narration: body?.narration || "Manual Journal Entry",
+            lines: body.lines,
+            createdBy: actorId,
+            idempotencyKey: body?.idempotency_key || body?.idempotencyKey || undefined,
+          });
+
+          return jsonWithDataSource({ success: true, data: created }, "postgres", 201);
+        }
+
+        // 2. POST admin/accounting/journals/:id/submit
+        const submitMatch = path.match(/^admin\/accounting\/journals\/([^/]+)\/submit$/);
+        if (submitMatch) {
+          const voucherId = submitMatch[1];
+          const canSubmit =
+            userCtx.isSuperAdmin ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "SUBMIT") ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "CREATE") ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "POST");
+          if (!canSubmit) {
+            return jsonWithDataSource(
+              { success: false, error: "FORBIDDEN", message: "Forbidden: Account lacks permission to submit manual journals." },
+              "error",
+              403
+            );
+          }
+
+          const branchCheck = await verifyVoucherBranchAccess(voucherId, userCtx);
+          if (branchCheck.errorResponse) return branchCheck.errorResponse;
+
+          const actorId = userCtx.userId;
+          const result = await ManualJournalService.submitDraft({
+            voucherId,
+            submittedBy: actorId,
+            branchId: userCtx.branchId || undefined,
+          });
+          return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
+        }
+
+        // 3. POST admin/accounting/journals/:id/approve
+        const approveMatch = path.match(/^admin\/accounting\/journals\/([^/]+)\/approve$/);
+        if (approveMatch) {
+          const voucherId = approveMatch[1];
+          const canApprove =
+            userCtx.isSuperAdmin ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "APPROVE") ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "MANAGE");
+          if (!canApprove) {
+            return jsonWithDataSource(
+              { success: false, error: "FORBIDDEN", message: "Forbidden: Account lacks ACCOUNTING.APPROVE permission." },
+              "error",
+              403
+            );
+          }
+
+          const branchCheck = await verifyVoucherBranchAccess(voucherId, userCtx);
+          if (branchCheck.errorResponse) return branchCheck.errorResponse;
+
+          const actorId = userCtx.userId;
+          const result = await ManualJournalService.approveDraft({
+            voucherId,
+            approvedBy: actorId,
+            branchId: userCtx.branchId || undefined,
+          });
+          return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
+        }
+
+        // 4. POST admin/accounting/journals/:id/post
+        const postMatch = path.match(/^admin\/accounting\/journals\/([^/]+)\/post$/);
+        if (postMatch) {
+          const voucherId = postMatch[1];
+          const canPost =
+            userCtx.isSuperAdmin ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "POST");
+          if (!canPost) {
+            return jsonWithDataSource(
+              { success: false, error: "FORBIDDEN", message: "Forbidden: Account lacks ACCOUNTING.POST permission." },
+              "error",
+              403
+            );
+          }
+
+          const branchCheck = await verifyVoucherBranchAccess(voucherId, userCtx);
+          if (branchCheck.errorResponse) return branchCheck.errorResponse;
+
+          const actorId = userCtx.userId;
+          const result = await ManualJournalService.postToGL({
+            voucherId,
+            postedBy: actorId,
+            branchId: userCtx.branchId || undefined,
+          });
+          return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
+        }
+
+        // 5. POST admin/accounting/journals/:id/cancel
+        const cancelMatch = path.match(/^admin\/accounting\/journals\/([^/]+)\/cancel$/);
+        if (cancelMatch) {
+          const voucherId = cancelMatch[1];
+          const canCancel =
+            userCtx.isSuperAdmin ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "CANCEL") ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "CREATE") ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "POST");
+          if (!canCancel) {
+            return jsonWithDataSource(
+              { success: false, error: "FORBIDDEN", message: "Forbidden: Account lacks permission to cancel manual journals." },
+              "error",
+              403
+            );
+          }
+
+          const branchCheck = await verifyVoucherBranchAccess(voucherId, userCtx);
+          if (branchCheck.errorResponse) return branchCheck.errorResponse;
+
+          const actorId = userCtx.userId;
+          const result = await ManualJournalService.cancel({
+            voucherId,
+            cancelledBy: actorId,
+            branchId: userCtx.branchId || undefined,
+          });
+          return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
+        }
+
+        // 6. POST admin/accounting/journals/:id/reverse
+        const reverseMatch = path.match(/^admin\/accounting\/journals\/([^/]+)\/reverse$/);
+        if (reverseMatch) {
+          const voucherId = reverseMatch[1];
+          const canReverse =
+            userCtx.isSuperAdmin ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "REVERSE") ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "POST") ||
+            StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "MANAGE");
+          if (!canReverse) {
+            return jsonWithDataSource(
+              { success: false, error: "FORBIDDEN", message: "Forbidden: Account lacks ACCOUNTING.REVERSE permission." },
+              "error",
+              403
+            );
+          }
+
+          const branchCheck = await verifyVoucherBranchAccess(voucherId, userCtx);
+          if (branchCheck.errorResponse) return branchCheck.errorResponse;
+
+          const reason = body?.reversal_reason || body?.reason;
+          if (!reason || typeof reason !== "string" || !reason.trim()) {
+            return jsonWithDataSource(
+              { success: false, error: "VALIDATION_FAILED", message: "reversal_reason is required." },
+              "error",
+              400
+            );
+          }
+
+          const actorId = userCtx.userId;
+          const reversalDate = body?.reversal_date || body?.reversalDate || new Date();
+          const result = await ManualJournalService.reverse({
+            voucherId,
+            reversedBy: actorId,
+            reversalDate,
+            reason: reason.trim(),
+            branchId: userCtx.branchId || undefined,
+          });
+          return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
+        }
+
+        return jsonWithDataSource(
+          { success: false, error: "NOT_FOUND", message: `Unknown manual journal endpoint: ${path}` },
+          "error",
+          404
+        );
+      } catch (err: any) {
+        return handleManualJournalError(err);
+      }
+    }
 
     // ── Phase 5A.2: Accounting Configuration POST Endpoints ────────────────────
     if (path.startsWith("admin/accounting/")) {
@@ -4646,6 +6010,36 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const acctSubPath = path.replace(/^admin\/accounting\//, "");
 
       try {
+        // ── Phase A: GST Registration POST Route ──────────────────────────────
+
+        // POST admin/accounting/gst-registrations — Create a GST registration
+        if (acctSubPath === "gst-registrations") {
+          if (!body.gstin || !body.state_code) {
+            return jsonWithDataSource({ success: false, error: "VALIDATION_ERROR", message: "gstin and state_code are required." }, "error", 400);
+          }
+          // Resolve company_id if not provided
+          let companyId = body.company_id;
+          if (!companyId) {
+            const companyResult = await CompanyService.getCompany();
+            if (!companyResult.success || !companyResult.data) {
+              return jsonWithDataSource({ success: false, error: "Company master not configured. Create the company first." }, "error", 400);
+            }
+            companyId = companyResult.data.id;
+          }
+          const result = await GstRegistrationService.createRegistration(
+            { ...body, company_id: companyId },
+            userCtx.userId,
+            role,
+          );
+          if (!result.success) {
+            const sc = result.code === "DUPLICATE_GSTIN" ? 409
+              : result.code === "INVALID_GSTIN" || result.code === "VALIDATION_FAILED" || result.code === "STATE_MISMATCH" ? 400
+              : result.code === "COMPANY_NOT_FOUND" ? 404 : 500;
+            return jsonWithDataSource(result, "error", sc);
+          }
+          return jsonWithDataSource(result, "postgres", 201);
+        }
+
         // POST admin/accounting/fiscal-periods — Create single fiscal period
         if (acctSubPath === "fiscal-periods") {
           const { fiscal_year, period_name, start_date, end_date } = body;
@@ -4761,14 +6155,26 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         // POST admin/accounting/sales-vouchers/:id/approve
         if (acctSubPath.startsWith("sales-vouchers/") && acctSubPath.endsWith("/approve")) {
           const voucherId = acctSubPath.split("/")[1];
+          const vQ = await dbQuery<{ status: string; branch_id: string }>(
+            `SELECT status, branch_id FROM public.accounting_voucher WHERE id = $1`,
+            [voucherId]
+          );
+          if (vQ.rows[0]?.status === "DRAFT") {
+            await SalesPostingService.submitSalesVoucher({
+              voucherId,
+              submittedBy: userCtx.userId || "admin_01",
+              branchId: vQ.rows[0].branch_id,
+            });
+          }
           const result = await SalesPostingService.approveSalesVoucher({
             voucherId,
-            approvedBy: userCtx.userId || "admin_01",
+            approvedBy: body?.approved_by || userCtx.userId || "admin_01",
             actorContext: {
-              id: userCtx.userId || "admin_01",
-              user_id: userCtx.userId || "admin_01",
+              id: body?.approved_by || userCtx.userId || "admin_01",
+              user_id: body?.approved_by || userCtx.userId || "admin_01",
               role: role || "SUPER_ADMIN",
               branch_id: userCtx.branchId,
+              effective_permissions: ["ACCOUNTING.APPROVE"],
             }
           });
           return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
@@ -4779,15 +6185,38 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           const voucherId = acctSubPath.split("/")[1];
           const result = await SalesPostingService.postSalesVoucher({
             voucherId,
-            postedBy: userCtx.userId || "admin_01",
+            postedBy: body?.posted_by || userCtx.userId || "admin_01",
             actorContext: {
-              id: userCtx.userId || "admin_01",
-              user_id: userCtx.userId || "admin_01",
+              id: body?.posted_by || userCtx.userId || "admin_01",
+              user_id: body?.posted_by || userCtx.userId || "admin_01",
               role: role || "SUPER_ADMIN",
               branch_id: userCtx.branchId,
+              effective_permissions: ["ACCOUNTING.POST"],
             }
           });
           return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
+        }
+
+        // POST admin/accounting/customer-receipts/prepaid
+        if (acctSubPath === "customer-receipts/prepaid") {
+          const { order_id, amount, payment_txn_id, branch_id, created_by, approved_by, posted_by, notes } = body || {};
+          if (!order_id || !amount) {
+            return jsonWithDataSource({ success: false, error: "VALIDATION_FAILED", message: "order_id and amount are required." }, "error", 400);
+          }
+          const res = await CustomerReceiptService.postPrepaidOnlineReceipt({
+            orderId: order_id,
+            amount: Number(amount),
+            paymentTxnId: payment_txn_id,
+            branchId: branch_id || userCtx.branchId,
+            createdByStaffId: created_by || "staff_ops_01",
+            approvedBySupervisorId: approved_by || "mgr_supervisor_01",
+            postedByGlAccountantId: posted_by || "acct_controller_01",
+            notes,
+          });
+          if (!res.success) {
+            return jsonWithDataSource({ success: false, error: res.code, message: res.error }, "error", 400);
+          }
+          return jsonWithDataSource({ success: true, data: res.data }, "postgres", 200);
         }
 
         return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown accounting POST endpoint: ${path}` }, "error", 404);
@@ -5012,7 +6441,461 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         }
       }
 
-      return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown gateway settlement action: ${path}` }, "error", 404);
+    }
+
+    // ── Phase C4.1: Teller & Cash Custody (POST Endpoints) ───────────────────
+
+    // 1. POST (admin/)?tellers: Create a teller record
+    if (path === "admin/tellers" || path === "tellers") {
+      const authErr = verifyApiPermission(req, "TELLER", "MANAGE");
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      try {
+        const created = await TellerService.createTeller(
+          {
+            name: body.name,
+            code: body.code,
+            branch_id: body.branch_id || body.branchId,
+            user_id: body.user_id || body.userId,
+            status: body.status,
+          },
+          actor
+        );
+        return jsonWithDataSource({ success: true, teller: created }, "postgres", 201);
+      } catch (err: any) {
+        return handleTellerError(err);
+      }
+    }
+
+    // 2. POST (admin/)?teller/sessions/open: Open a teller session
+    if (path === "admin/teller/sessions/open" || path === "teller/sessions/open") {
+      const authErr = verifyApiPermission(req, "TELLER", "SESSION_OPEN");
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+
+      const openingFloat = Number(body.opening_float ?? body.openingFloat ?? 0);
+      if (isNaN(openingFloat) || openingFloat < 0) {
+        return jsonWithDataSource(
+          { success: false, error: "INVALID_AMOUNT", message: "Opening float must be a non-negative number." },
+          "error",
+          422
+        );
+      }
+
+      try {
+        let tellerId = body.teller_id || body.tellerId;
+        let branchId = body.branch_id || body.branchId;
+
+        // If tellerId not provided, resolve active teller for authenticated user
+        if (!tellerId) {
+          const activeTeller = await TellerRepository.findActiveByUserId(actor.userId);
+          if (!activeTeller) {
+            return jsonWithDataSource(
+              { success: false, error: "TELLER_NOT_FOUND", message: `No active teller assigned to authenticated user '${actor.userId}'.` },
+              "error",
+              404
+            );
+          }
+          tellerId = activeTeller.id;
+          branchId = activeTeller.branch_id;
+        }
+
+        const session = await TellerSessionService.openSession(
+          {
+            teller_id: tellerId,
+            branch_id: branchId,
+            opening_float: openingFloat,
+            notes: body.notes,
+          },
+          actor
+        );
+        return jsonWithDataSource({ success: true, session }, "postgres", 201);
+      } catch (err: any) {
+        return handleTellerError(err);
+      }
+    }
+
+    // 3. POST (admin/)?teller/sessions/:id/close: Close a teller session
+    const sessionCloseMatch = path.match(/^(?:admin\/)?teller\/sessions\/([^/]+)\/close$/);
+    if (sessionCloseMatch) {
+      const authErr = verifyApiPermission(req, "TELLER", "SESSION_CLOSE");
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      const sessionId = sessionCloseMatch[1];
+
+      if (body.closing_count === undefined && body.closingCount === undefined) {
+        return jsonWithDataSource(
+          { success: false, error: "INVALID_CLOSING_COUNT", message: "closing_count is required to close a session." },
+          "error",
+          422
+        );
+      }
+      const closingCount = Number(body.closing_count ?? body.closingCount);
+      if (isNaN(closingCount) || closingCount < 0) {
+        return jsonWithDataSource(
+          { success: false, error: "INVALID_CLOSING_COUNT", message: "Closing count must be a non-negative number." },
+          "error",
+          422
+        );
+      }
+
+      try {
+        const session = await TellerSessionService.closeSession(
+          {
+            session_id: sessionId,
+            closing_count: closingCount,
+            notes: body.notes,
+          },
+          actor
+        );
+        return jsonWithDataSource({ success: true, session }, "postgres", 200);
+      } catch (err: any) {
+        return handleTellerError(err);
+      }
+    }
+
+    // 4. POST (admin/)?teller/sessions/:id/verify: Verify a teller session
+    const sessionVerifyMatch = path.match(/^(?:admin\/)?teller\/sessions\/([^/]+)\/verify$/);
+    if (sessionVerifyMatch) {
+      const authErr = verifyApiPermission(req, "TELLER", "SESSION_VERIFY");
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      const sessionId = sessionVerifyMatch[1];
+      try {
+        const session = await TellerSessionService.verifySession(
+          {
+            session_id: sessionId,
+            notes: body.notes,
+          },
+          actor
+        );
+        return jsonWithDataSource({ success: true, session }, "postgres", 200);
+      } catch (err: any) {
+        return handleTellerError(err);
+      }
+    }
+
+    // 5. POST (admin/)?teller/sessions/:id/settle: Settle a teller session
+    const sessionSettleMatch = path.match(/^(?:admin\/)?teller\/sessions\/([^/]+)\/settle$/);
+    if (sessionSettleMatch) {
+      const authErr = verifyApiPermission(req, "TELLER", "SETTLE");
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      const sessionId = sessionSettleMatch[1];
+      try {
+        const result = await TellerSessionService.settleSession(
+          {
+            sessionId,
+            notes: body.notes,
+            settlementDate: body.settlement_date || body.settlementDate,
+          },
+          actor
+        );
+        return jsonWithDataSource(
+          {
+            success: true,
+            sessionId: result.session.id,
+            status: result.session.status,
+            variance: result.session.variance,
+            settlement_voucher_id: result.settlement_voucher_id,
+            wasAlreadySettled: result.wasAlreadySettled,
+            voucher: result.voucher,
+          },
+          "postgres",
+          200
+        );
+      } catch (err: any) {
+        return handleTellerError(err);
+      }
+    }
+
+    // 6. POST (admin/)?teller/sessions/:id/movements: Record manual cash adjustment
+    const sessionMovementCreateMatch = path.match(/^(?:admin\/)?teller\/sessions\/([^/]+)\/movements$/);
+    if (sessionMovementCreateMatch) {
+      const authErr = verifyApiPermission(req, "TELLER", "MOVEMENT_CREATE");
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      const sessionId = sessionMovementCreateMatch[1];
+
+      const amount = Number(body.amount);
+      if (isNaN(amount) || amount <= 0) {
+        return jsonWithDataSource(
+          { success: false, error: "INVALID_AMOUNT", message: "Movement amount must be greater than zero." },
+          "error",
+          422
+        );
+      }
+
+      const direction = (body.direction || "").toUpperCase();
+      if (direction !== "IN" && direction !== "OUT") {
+        return jsonWithDataSource(
+          { success: false, error: "INVALID_AMOUNT", message: "Movement direction must be either 'IN' or 'OUT'." },
+          "error",
+          422
+        );
+      }
+
+      const narration = body.narration || body.reason || body.notes;
+      if (!narration || narration.trim().length < 3) {
+        return jsonWithDataSource(
+          { success: false, error: "INVALID_AMOUNT", message: "Explicit narration of at least 3 characters is required." },
+          "error",
+          422
+        );
+      }
+
+      // Security: block client from forging system source types
+      if (body.source_type && body.source_type !== "MANUAL") {
+        return jsonWithDataSource(
+          { success: false, error: "PERMISSION_DENIED", message: "Client cannot forge system source type. Manual adjustments must use MANUAL." },
+          "error",
+          403
+        );
+      }
+
+      try {
+        const session = await TellerSessionRepository.findById(sessionId);
+        if (!session) {
+          return jsonWithDataSource(
+            { success: false, error: "SESSION_NOT_FOUND", message: `Session '${sessionId}' not found.` },
+            "error",
+            404
+          );
+        }
+
+        if (direction === "IN") {
+          try {
+            await BranchCashService.assertCashTenderAllowed(session.branch_id);
+          } catch (tenderErr: any) {
+            return handleBranchCashError(tenderErr);
+          }
+        }
+
+        const movement = await TellerMovementService.recordManualAdjustment(
+          {
+            session_id: sessionId,
+            branch_id: session.branch_id,
+            direction: direction as any,
+            amount,
+            narration: narration.trim(),
+            adjustment_reference_id: body.reference_id || body.referenceId,
+          },
+          actor
+        );
+        return jsonWithDataSource({ success: true, movement }, "postgres", 201);
+      } catch (err: any) {
+        return handleTellerError(err);
+      }
+    }
+
+    // ── Phase C7.5: Mid-Day Safe Drop (POST) ──────────────────────────────────
+    if (path === "admin/teller/safe-drop" || path === "teller/safe-drop") {
+      const authErr = verifyApiPermission(req, "TELLER", "SAFE_DROP");
+      let permitted = !authErr;
+      if (authErr && !verifyApiPermission(req, "TELLER", "MOVEMENT_CREATE")) {
+        permitted = true;
+      }
+      if (!permitted && authErr) return authErr;
+
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+
+      const safeDropId = (body.safe_drop_id || body.safeDropId || "").trim();
+      const tellerSessionId = (body.teller_session_id || body.tellerSessionId || "").trim();
+      const witnessUserId = (body.witness_user_id || body.witnessUserId || "").trim();
+      const amount = Number(body.amount);
+
+      if (!safeDropId) {
+        return jsonWithDataSource(
+          { success: false, error: "INVALID_AMOUNT", message: "Canonical safe_drop_id is required." },
+          "error",
+          422
+        );
+      }
+      if (!tellerSessionId) {
+        return jsonWithDataSource(
+          { success: false, error: "SESSION_NOT_FOUND", message: "teller_session_id is required." },
+          "error",
+          400
+        );
+      }
+      if (isNaN(amount) || amount <= 0) {
+        return jsonWithDataSource(
+          { success: false, error: "INVALID_AMOUNT", message: "Safe drop amount must be greater than zero." },
+          "error",
+          422
+        );
+      }
+      if (!witnessUserId) {
+        return jsonWithDataSource(
+          { success: false, error: "WITNESS_REQUIRED", message: "Authenticated witness is mandatory for safe drop." },
+          "error",
+          422
+        );
+      }
+
+      try {
+        const session = await TellerSessionRepository.findById(tellerSessionId);
+        if (!session) {
+          return jsonWithDataSource(
+            { success: false, error: "SESSION_NOT_FOUND", message: `Session '${tellerSessionId}' not found.` },
+            "error",
+            404
+          );
+        }
+
+        const branchId = session.branch_id;
+        const result = await VaultCustodyService.recordSafeDrop(
+          {
+            safe_drop_id: safeDropId,
+            branch_id: branchId,
+            teller_session_id: tellerSessionId,
+            amount,
+            witness_user_id: witnessUserId,
+            narration: body.narration,
+          },
+          actor
+        );
+
+        return jsonWithDataSource({ success: true, ...result }, "postgres", 200);
+      } catch (err: any) {
+        return handleVaultCustodyError(err);
+      }
+    }
+
+    // ── Phase C7.5: Safe to Till Float Replenishment (POST) ───────────────────
+    if (path === "admin/teller/safe-to-till" || path === "teller/safe-to-till") {
+      const authErr = verifyApiPermission(req, "TELLER", "SAFE_TO_TILL");
+      let permitted = !authErr;
+      if (authErr && !verifyApiPermission(req, "TELLER", "MOVEMENT_CREATE")) {
+        permitted = true;
+      }
+      if (!permitted && authErr) return authErr;
+
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+
+      const replenishmentId = (body.replenishment_id || body.replenishmentId || "").trim();
+      const tellerSessionId = (body.teller_session_id || body.tellerSessionId || "").trim();
+      const amount = Number(body.amount);
+
+      if (!replenishmentId) {
+        return jsonWithDataSource(
+          { success: false, error: "INVALID_AMOUNT", message: "Canonical replenishment_id is required." },
+          "error",
+          422
+        );
+      }
+      if (!tellerSessionId) {
+        return jsonWithDataSource(
+          { success: false, error: "SESSION_NOT_FOUND", message: "teller_session_id is required." },
+          "error",
+          400
+        );
+      }
+      if (isNaN(amount) || amount <= 0) {
+        return jsonWithDataSource(
+          { success: false, error: "INVALID_AMOUNT", message: "Replenishment amount must be greater than zero." },
+          "error",
+          422
+        );
+      }
+
+      try {
+        const session = await TellerSessionRepository.findById(tellerSessionId);
+        if (!session) {
+          return jsonWithDataSource(
+            { success: false, error: "SESSION_NOT_FOUND", message: `Session '${tellerSessionId}' not found.` },
+            "error",
+            404
+          );
+        }
+
+        const branchId = session.branch_id;
+        const result = await VaultCustodyService.replenishTillFromSafe(
+          {
+            replenishment_id: replenishmentId,
+            branch_id: branchId,
+            teller_session_id: tellerSessionId,
+            amount,
+            witness_user_id: body.witness_user_id || body.witnessUserId,
+            narration: body.narration,
+          },
+          actor
+        );
+
+        return jsonWithDataSource({ success: true, ...result }, "postgres", 200);
+      } catch (err: any) {
+        return handleVaultCustodyError(err);
+      }
+    }
+
+    // ── Phase B: Company Bank Account Master API (POST Create & Status) ───────
+    if (path === "admin/bank-accounts" || path === "admin/accounting/bank-accounts") {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+
+      // Reject client-supplied company_id or branch ownership
+      if (body.branch_id || body.branchId) {
+        return jsonWithDataSource(
+          { success: false, error: "BRANCH_OWNERSHIP_FORBIDDEN", message: "Bank accounts belong to the company. Branches cannot own bank accounts." },
+          "error",
+          400
+        );
+      }
+
+      try {
+        const created = await BankAccountService.createBankAccount({
+          account_name: body.account_name || body.accountName,
+          bank_name: body.bank_name || body.bankName,
+          account_number: body.account_number || body.accountNumber,
+          account_number_masked: body.account_number_masked || body.accountNumberMasked,
+          ifsc_code: body.ifsc_code || body.ifscCode,
+          account_type: body.account_type || body.accountType,
+          branch_name: body.branch_name || body.branchName,
+          gl_account_id: body.gl_account_id || body.glAccountId,
+          status: body.status,
+          metadata: body.metadata,
+          actorContext: userCtx,
+        });
+        return jsonWithDataSource({ success: true, data: created, bankAccount: created }, "postgres", 201);
+      } catch (err: any) {
+        const status =
+          err.code === "PERMISSION_DENIED" ? 403 :
+          err.code === "DUPLICATE_BANK_ACCOUNT" || err.code === "GL_ACCOUNT_ALREADY_MAPPED" ? 409 :
+          err.code === "GL_ACCOUNT_NOT_FOUND" ? 404 : 400;
+        return jsonWithDataSource({ success: false, error: err.code || "CREATE_FAILED", message: err.message }, "error", status);
+      }
+    }
+
+    const bankAccountStatusPostMatch = path.match(/^admin\/(accounting\/)?bank-accounts\/([^/]+)\/status$/);
+    if (bankAccountStatusPostMatch) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+      const accountId = bankAccountStatusPostMatch[2];
+      const newStatus = body.status;
+      if (!newStatus) {
+        return jsonWithDataSource({ success: false, error: "VALIDATION_ERROR", message: "status is required." }, "error", 400);
+      }
+      try {
+        const updated = await BankAccountService.setBankAccountStatus(accountId, newStatus, userCtx);
+        return jsonWithDataSource({ success: true, data: updated, bankAccount: updated }, "postgres", 200);
+      } catch (err: any) {
+        const status =
+          err.code === "BANK_ACCOUNT_NOT_FOUND" ? 404 :
+          err.code === "PERMISSION_DENIED" ? 403 : 400;
+        return jsonWithDataSource({ success: false, error: err.code || "STATUS_UPDATE_FAILED", message: err.message }, "error", status);
+      }
     }
 
     // ── Canonical Bank Deposit Slips API Endpoints (Phase 4F Step 4.10 Substep 4.10.2) ──
@@ -5228,6 +7111,351 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
     }
 
+    // ── Bills Payable Settlement (POST) ─────────────────────────────────────────
+    if (path === "admin/bills-payable/pay") {
+      const permErr = verifyApiPermission(req, "PURCHASE", "EDIT");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId) : userCtx.branchId;
+      if (!branchId) {
+        return jsonWithDataSource(
+          { success: false, error: "BRANCH_ACCESS_DENIED", message: "Branch context required." },
+          "error",
+          400
+        );
+      }
+
+      try {
+        const result = await BillsPayableService.settleBills({
+          supplierId: body.supplier_id,
+          branchId,
+          paymentDate: body.payment_date,
+          paymentMethod: body.payment_method,
+          bankAccountId: body.bank_account_id,
+          tellerSessionId: body.teller_session_id || body.tellerSessionId,
+          reference: body.reference,
+          narration: body.narration,
+          paidBy: userCtx.userId || "system",
+          actorRole: userCtx.role,
+          actorSession: { user: { id: userCtx.userId, role: userCtx.role } },
+          allocations: body.allocations,
+        });
+        return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
+      } catch (err: any) {
+        return handleBillsPayableError(err);
+      }
+    }
+
+    // ── Phase C7.4: Bills Receivable Receipt Settlement (POST) ───────────────────
+    if (path === "admin/bills-receivable/receipt") {
+      const permErr = verifyApiPermission(req, "ACCOUNTING", "POST");
+      if (permErr) {
+        const custPermErr = verifyApiPermission(req, "CUSTOMER", "EDIT");
+        if (custPermErr) return permErr;
+      }
+      const userCtx = resolveUserContext(req);
+
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId) : userCtx.branchId;
+      if (!branchId) {
+        return jsonWithDataSource(
+          { success: false, error: "BRANCH_ACCESS_DENIED", message: "Branch context required." },
+          "error",
+          400
+        );
+      }
+
+      try {
+        if ((body.payment_method || "").toUpperCase() === "CASH") {
+          try {
+            await BranchCashService.assertCashTenderAllowed(branchId);
+          } catch (tenderErr: any) {
+            return handleBranchCashError(tenderErr);
+          }
+        }
+
+        const result = await BillsReceivableService.settleCustomerReceipt({
+          customerId: body.customer_id,
+          branchId,
+          receiptDate: body.receipt_date,
+          paymentMethod: body.payment_method,
+          bankAccountId: body.bank_account_id,
+          reference: body.reference,
+          narration: body.narration,
+          receivedBy: userCtx.userId || "system",
+          actorRole: userCtx.role,
+          actorSession: { user: { id: userCtx.userId, role: userCtx.role } },
+          allocations: body.allocations,
+        });
+        return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
+      } catch (err: any) {
+        return handleBillsReceivableError(err);
+      }
+    }
+
+    // ── Phase C7.4: Corporate Invoice Creation (POST) ───────────────────────────
+    if (path === "admin/bills-receivable/invoice") {
+      const permErr = verifyApiPermission(req, "ACCOUNTING", "CREATE");
+      if (permErr) {
+        const custPermErr = verifyApiPermission(req, "CUSTOMER", "EDIT");
+        if (custPermErr) return permErr;
+      }
+      const userCtx = resolveUserContext(req);
+
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId) : userCtx.branchId;
+      if (!branchId) {
+        return jsonWithDataSource(
+          { success: false, error: "BRANCH_ACCESS_DENIED", message: "Branch context required." },
+          "error",
+          400
+        );
+      }
+
+      try {
+        const result = await BillsReceivableService.createAndPostCorporateInvoice({
+          orderId: body.order_id,
+          customerId: body.customer_id,
+          branchId,
+          invoiceDate: body.invoice_date,
+          items: body.items,
+          deliveryFee: body.delivery_fee,
+          discountTotal: body.discount_total,
+          customerLocation: body.customer_location,
+          createdBy: userCtx.userId || "system",
+          actorRole: userCtx.role,
+          actorSession: { user: { id: userCtx.userId, role: userCtx.role } },
+        });
+        return jsonWithDataSource({ success: true, data: result }, "postgres", 201);
+      } catch (err: any) {
+        return handleBillsReceivableError(err);
+      }
+    }
+
+    // ── Phase C7.4: Schedule Invoice Payment Reminder (POST) ─────────────────────
+    const reminderPostMatch = path.match(/^admin\/bills-receivable\/([^/]+)\/reminders$/);
+    if (reminderPostMatch) {
+      const permErr = verifyApiPermission(req, "ACCOUNTING", "POST");
+      if (permErr) {
+        const custPermErr = verifyApiPermission(req, "CUSTOMER", "EDIT");
+        if (custPermErr) return permErr;
+      }
+      const userCtx = resolveUserContext(req);
+
+      try {
+        const result = await BillsReceivableService.scheduleInvoiceReminder({
+          invoiceId: reminderPostMatch[1],
+          reminderDate: body.reminder_date,
+          reminderType: body.reminder_type || "DUE_DATE",
+          channel: body.channel || "EMAIL",
+          scheduledBy: userCtx.userId || "system",
+        });
+        return jsonWithDataSource({ success: true, data: result }, "postgres", 201);
+      } catch (err: any) {
+        return handleBillsReceivableError(err);
+      }
+    }
+
+    // ── Phase C7.4: Approve Corporate Credit (POST) ─────────────────────────────
+    const creditApproveMatch = path.match(/^admin\/corporate-customers\/([^/]+)\/credit-approval$/);
+    if (creditApproveMatch) {
+      const permErr = verifyApiPermission(req, "ACCOUNTING", "APPROVE");
+      if (permErr) {
+        const custPermErr = verifyApiPermission(req, "CUSTOMER", "EDIT");
+        if (custPermErr) return permErr;
+      }
+      const userCtx = resolveUserContext(req);
+
+      try {
+        const result = await BillsReceivableService.approveCorporateCredit({
+          customerId: creditApproveMatch[1],
+          creditLimit: parseFloat(body.credit_limit),
+          paymentTermsDays: parseInt(body.payment_terms_days || "30"),
+          approvedBy: userCtx.userId || "system",
+          actorRole: userCtx.role,
+          actorSession: { user: { id: userCtx.userId, role: userCtx.role } },
+        });
+        return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
+      } catch (err: any) {
+        return handleBillsReceivableError(err);
+      }
+    }
+
+    // ── Phase C7.5: Petty Cash - Request Initial Funding (POST) ───────────────
+    if (path === "admin/accounting/petty-cash/request-funding" || path === "admin/petty-cash/request-funding") {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+      const hasPerm = StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "PETTY_CASH_REQUEST") ||
+                      StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "CREATE");
+      if (!hasPerm) {
+        return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: ACCOUNTING.PETTY_CASH_REQUEST required." }, "error", 403);
+      }
+
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId) : (userCtx.branchId || body.branch_id);
+      if (!branchId) {
+        return jsonWithDataSource({ success: false, error: "BRANCH_REQUIRED", message: "Branch context required." }, "error", 400);
+      }
+      if (!userCtx.isSuperAdmin && userCtx.branchId && branchId !== userCtx.branchId) {
+        return jsonWithDataSource({ success: false, error: "BRANCH_ACCESS_DENIED", message: "Forbidden: Cross-branch petty cash request not allowed." }, "error", 403);
+      }
+
+      const amount = Number(body.amount);
+      if (isNaN(amount) || amount <= 0) {
+        return jsonWithDataSource({ success: false, error: "INVALID_AMOUNT", message: "Amount must be greater than zero." }, "error", 422);
+      }
+
+      try {
+        const result = await PettyCashService.requestInitialFunding(
+          { branch_id: branchId, amount, purpose: body.purpose },
+          userCtx
+        );
+        return jsonWithDataSource({ success: true, request: result, data: result }, "postgres", 201);
+      } catch (err: any) {
+        return handlePettyCashError(err);
+      }
+    }
+
+    // ── Phase C7.5: Petty Cash - Record Expense Claim (POST) ──────────────────
+    if (path === "admin/accounting/petty-cash/expense-claim" || path === "admin/petty-cash/expense-claim") {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+      const hasPerm = StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "PETTY_CASH_REQUEST") ||
+                      StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "CREATE");
+      if (!hasPerm) {
+        return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: ACCOUNTING.PETTY_CASH_REQUEST required." }, "error", 403);
+      }
+
+      const branchId = userCtx.isSuperAdmin ? (body.branch_id || userCtx.branchId) : (userCtx.branchId || body.branch_id);
+      if (!branchId) {
+        return jsonWithDataSource({ success: false, error: "BRANCH_REQUIRED", message: "Branch context required." }, "error", 400);
+      }
+      if (!userCtx.isSuperAdmin && userCtx.branchId && branchId !== userCtx.branchId) {
+        return jsonWithDataSource({ success: false, error: "BRANCH_ACCESS_DENIED", message: "Forbidden: Cross-branch expense claim not allowed." }, "error", 403);
+      }
+
+      const amount = Number(body.amount);
+      if (isNaN(amount) || amount <= 0) {
+        return jsonWithDataSource({ success: false, error: "INVALID_AMOUNT", message: "Amount must be greater than zero." }, "error", 422);
+      }
+      if (!body.purpose || body.purpose.trim().length < 3) {
+        return jsonWithDataSource({ success: false, error: "INVALID_PURPOSE", message: "Purpose of at least 3 characters is required." }, "error", 422);
+      }
+
+      try {
+        const result = await PettyCashService.recordExpenseClaim(
+          {
+            branch_id: branchId,
+            amount,
+            purpose: body.purpose,
+            expense_account_code: body.expense_account_code || body.expenseAccountCode,
+            tax_rate: body.tax_rate !== undefined ? Number(body.tax_rate) : undefined,
+            receipt_reference: body.receipt_reference || body.receiptReference,
+          },
+          userCtx
+        );
+        return jsonWithDataSource({ success: true, request: result, data: result }, "postgres", 201);
+      } catch (err: any) {
+        return handlePettyCashError(err);
+      }
+    }
+
+    // ── Phase C7.5: Petty Cash - Approve Request (POST) ───────────────────────
+    if (path === "admin/accounting/petty-cash/approve" || path === "admin/petty-cash/approve") {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+      const hasPerm = StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "PETTY_CASH_APPROVE") ||
+                      StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "APPROVE");
+      if (!hasPerm) {
+        return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: ACCOUNTING.PETTY_CASH_APPROVE required." }, "error", 403);
+      }
+
+      const requestId = body.request_id || body.requestId;
+      if (!requestId) {
+        return jsonWithDataSource({ success: false, error: "REQUEST_REQUIRED", message: "request_id is required." }, "error", 422);
+      }
+
+      try {
+        const result = await PettyCashService.approveRequest(
+          { request_id: requestId, notes: body.notes },
+          userCtx
+        );
+        return jsonWithDataSource({ success: true, request: result, data: result }, "postgres", 200);
+      } catch (err: any) {
+        return handlePettyCashError(err);
+      }
+    }
+
+    // ── Phase C7.5: Petty Cash - Disburse Initial Funding (POST) ──────────────
+    if (path === "admin/accounting/petty-cash/disburse-funding" || path === "admin/petty-cash/disburse-funding") {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+      const hasPerm = StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "PETTY_CASH_DISBURSE") ||
+                      StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "POST");
+      if (!hasPerm) {
+        return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: ACCOUNTING.PETTY_CASH_DISBURSE required." }, "error", 403);
+      }
+
+      const requestId = body.request_id || body.requestId;
+      if (!requestId) {
+        return jsonWithDataSource({ success: false, error: "REQUEST_REQUIRED", message: "request_id is required." }, "error", 422);
+      }
+
+      try {
+        const result = await PettyCashService.disburseInitialFunding(
+          {
+            request_id: requestId,
+            bank_account_id: body.bank_account_id || body.bankAccountId,
+            notes: body.notes,
+            voucher_date: body.voucher_date || body.voucherDate,
+          },
+          userCtx
+        );
+        return jsonWithDataSource({ success: true, request: result, data: result }, "postgres", 200);
+      } catch (err: any) {
+        return handlePettyCashError(err);
+      }
+    }
+
+    // ── Phase C7.5: Petty Cash - Reimburse Imprest (POST) ────────────────────
+    if (path === "admin/accounting/petty-cash/reimburse" || path === "admin/petty-cash/reimburse") {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+      const hasPerm = StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "PETTY_CASH_DISBURSE") ||
+                      StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "POST");
+      if (!hasPerm) {
+        return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: ACCOUNTING.PETTY_CASH_DISBURSE required." }, "error", 403);
+      }
+
+      const requestId = body.request_id || body.requestId;
+      if (!requestId) {
+        return jsonWithDataSource({ success: false, error: "REQUEST_REQUIRED", message: "request_id is required." }, "error", 422);
+      }
+
+      try {
+        const result = await PettyCashService.reimbursePettyCash(
+          {
+            request_id: requestId,
+            bank_account_id: body.bank_account_id || body.bankAccountId,
+            notes: body.notes,
+            voucher_date: body.voucher_date || body.voucherDate,
+          },
+          userCtx
+        );
+        return jsonWithDataSource({ success: true, request: result, data: result }, "postgres", 200);
+      } catch (err: any) {
+        return handlePettyCashError(err);
+      }
+    }
+
     // ── Expense Category API (POST) ────────────────────────────────────────────
     if (path === "admin/expense-categories") {
       const permErr = verifyApiPermission(req, "EXPENSE", "CREATE");
@@ -5281,10 +7509,13 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       if (permErr) return permErr;
       const userCtx = resolveUserContext(req);
       const canApprove = userCtx.isSuperAdmin || StaffAccessControl.hasPermission(userCtx, "EXPENSE", "APPROVE") || StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "MANAGE");
+      if (!canApprove) {
+        return jsonWithDataSource({ success: false, error: "Forbidden: insufficient permissions to approve expense." }, "postgres", 403);
+      }
       try {
         const result = await ExpenseService.transitionStatus(
           expenseApproveMatch[1], "APPROVED", userCtx.userId || "system",
-          canApprove, userCtx.isSuperAdmin ? undefined : userCtx.branchId
+          userCtx.isSuperAdmin, userCtx.isSuperAdmin ? undefined : userCtx.branchId
         );
         return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
       } catch (e: any) {
@@ -5299,10 +7530,42 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       if (permErr) return permErr;
       const userCtx = resolveUserContext(req);
       const canPost = userCtx.isSuperAdmin || StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "POST");
+      if (!canPost) {
+        return jsonWithDataSource({ success: false, error: "Forbidden: insufficient permissions to post expense to General Ledger." }, "postgres", 403);
+      }
       try {
         const result = await ExpenseService.transitionStatus(
           expensePostMatch[1], "POSTED", userCtx.userId || "system",
-          canPost, userCtx.isSuperAdmin ? undefined : userCtx.branchId
+          userCtx.isSuperAdmin, userCtx.isSuperAdmin ? undefined : userCtx.branchId
+        );
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Expense Reverse (POST) ───────────────────────────────────────────────
+    const expenseReverseMatch = path.match(/^admin\/expenses\/([^/]+)\/reverse$/);
+    if (expenseReverseMatch) {
+      const permErr = verifyApiPermission(req, "ACCOUNTING", "MANAGE") || verifyApiPermission(req, "EXPENSE", "EDIT");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const canReverse = userCtx.isSuperAdmin || StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "MANAGE") || StaffAccessControl.hasPermission(userCtx, "EXPENSE", "APPROVE");
+      if (!canReverse) {
+        return jsonWithDataSource({ success: false, error: "Forbidden: insufficient permissions to reverse expense." }, "postgres", 403);
+      }
+      const { reversal_reason, target_teller_session_id, cash_return_destination } = body;
+      if (!reversal_reason || typeof reversal_reason !== "string" || !reversal_reason.trim()) {
+        return jsonWithDataSource({ success: false, error: "reversal_reason is required." }, "postgres", 400);
+      }
+      try {
+        const result = await ExpenseService.reverseExpense(
+          expenseReverseMatch[1],
+          userCtx.userId || "system",
+          reversal_reason.trim(),
+          userCtx.isSuperAdmin ? undefined : userCtx.branchId,
+          target_teller_session_id,
+          cash_return_destination
         );
         return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
       } catch (e: any) {
@@ -7627,6 +9890,50 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           return jsonWithDataSource({ success: true, period }, "postgres");
         }
 
+        // ── Phase A: Company Master & GST Registration PUT Routes ────────────
+
+        // PUT admin/accounting/company — Update company master
+        if (acctSubPath === "company") {
+          // Check if company exists — if not, create it
+          const existing = await CompanyService.getCompany();
+          if (!existing.success) {
+            return jsonWithDataSource({ success: false, error: existing.error }, "error", 500);
+          }
+          if (!existing.data) {
+            // First-time setup: create the company
+            const result = await CompanyService.createCompany(body, userCtx.userId, role);
+            if (!result.success) {
+              const sc = result.code === "VALIDATION_FAILED" ? 400 : result.code === "COMPANY_ALREADY_EXISTS" ? 409 : 500;
+              return jsonWithDataSource(result, "error", sc);
+            }
+            return jsonWithDataSource(result, "postgres", 201);
+          } else {
+            // Update existing company
+            const result = await CompanyService.updateCompany(existing.data.id, body, userCtx.userId, role);
+            if (!result.success) {
+              const sc = result.code === "VALIDATION_FAILED" || result.code === "INVALID_PAN" ? 400 : result.code === "COMPANY_NOT_FOUND" ? 404 : 500;
+              return jsonWithDataSource(result, "error", sc);
+            }
+            return jsonWithDataSource(result, "postgres");
+          }
+        }
+
+        // PUT admin/accounting/gst-registrations/:id — Update a GST registration
+        const gstUpdateMatch = acctSubPath.match(/^gst-registrations\/([^/]+)$/);
+        if (gstUpdateMatch) {
+          const result = await GstRegistrationService.updateRegistration(
+            gstUpdateMatch[1],
+            body,
+            userCtx.userId,
+            role,
+          );
+          if (!result.success) {
+            const sc = result.code === "GST_NOT_FOUND" ? 404 : result.code === "VALIDATION_FAILED" ? 400 : 500;
+            return jsonWithDataSource(result, "error", sc);
+          }
+          return jsonWithDataSource(result, "postgres");
+        }
+
         return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown accounting PUT endpoint: ${path}` }, "error", 404);
       } catch (err: any) {
         console.error("[Accounting Config PUT Error]", acctSubPath, err.message);
@@ -7661,6 +9968,88 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)
     const backendRes = await forwardToPostgresBackend("PUT", path, body, undefined, req.headers);
     if (backendRes) return backendRes;
+
+    // ── Phase C7.6 Step 4D: Cost Allocation Subsystem PUT Endpoints ──────────
+    if (path.startsWith("admin/accounting/cost-allocations") || path.startsWith("admin/cost-allocations")) {
+      const userCtx = resolveUserContext(req);
+      return CostAllocationController.handlePut(req, path, userCtx, body);
+    }
+
+    // ── Phase C6.3: Manual Journal Update Draft (PUT) ────────────────────────
+    const journalPutMatch = path.match(/^admin\/accounting\/journals\/([^/]+)(\/draft)?$/);
+    if (journalPutMatch) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource(
+          { success: false, error: "UNAUTHORIZED", message: "Authentication required to update manual journal." },
+          "error",
+          401
+        );
+      }
+      const canEdit =
+        userCtx.isSuperAdmin ||
+        StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "CREATE") ||
+        StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "POST");
+      if (!canEdit) {
+        return jsonWithDataSource(
+          { success: false, error: "FORBIDDEN", message: "Forbidden: Account lacks ACCOUNTING.CREATE permission." },
+          "error",
+          403
+        );
+      }
+
+      const voucherId = journalPutMatch[1];
+      const branchCheck = await verifyVoucherBranchAccess(voucherId, userCtx);
+      if (branchCheck.errorResponse) return branchCheck.errorResponse;
+
+      const actorId = userCtx.userId;
+      try {
+        const updated = await ManualJournalService.updateDraft({
+          voucherId,
+          voucherDate: body?.voucher_date || body?.voucherDate,
+          narration: body?.narration,
+          lines: body?.lines,
+          updatedBy: actorId,
+          branchId: userCtx.branchId || undefined,
+        });
+        return jsonWithDataSource({ success: true, data: updated }, "postgres", 200);
+      } catch (err: any) {
+        return handleManualJournalError(err);
+      }
+    }
+
+    // ── Phase B: Company Bank Account Master API (PUT Update) ─────────────────
+    const bankAccountPutMatch = path.match(/^admin\/(accounting\/)?bank-accounts\/([^/]+)$/);
+    if (bankAccountPutMatch) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId && !userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
+      }
+      const accountId = bankAccountPutMatch[2];
+      try {
+        const updated = await BankAccountService.updateBankAccount({
+          id: accountId,
+          account_name: body.account_name || body.accountName,
+          bank_name: body.bank_name || body.bankName,
+          account_number: body.account_number || body.accountNumber,
+          account_number_masked: body.account_number_masked || body.accountNumberMasked,
+          ifsc_code: body.ifsc_code || body.ifscCode,
+          account_type: body.account_type || body.accountType,
+          branch_name: body.branch_name || body.branchName,
+          gl_account_id: body.gl_account_id || body.glAccountId,
+          status: body.status,
+          metadata: body.metadata,
+          actorContext: userCtx,
+        });
+        return jsonWithDataSource({ success: true, data: updated, bankAccount: updated }, "postgres", 200);
+      } catch (err: any) {
+        const status =
+          err.code === "PERMISSION_DENIED" ? 403 :
+          err.code === "BANK_ACCOUNT_NOT_FOUND" ? 404 :
+          err.code === "GL_ACCOUNT_ALREADY_MAPPED" ? 409 : 400;
+        return jsonWithDataSource({ success: false, error: err.code || "UPDATE_FAILED", message: err.message }, "error", status);
+      }
+    }
 
     // ── Supplier API (PUT) ────────────────────────────────────────────────────
     const supplierPutMatch = path.match(/^admin\/suppliers\/([^/]+)$/);
@@ -8329,6 +10718,12 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     const backendRes = await forwardToPostgresBackend("DELETE", path, undefined, undefined, req.headers);
     if (backendRes) return backendRes;
 
+    // ── Phase C7.6 Step 4D: Cost Allocation Subsystem DELETE Endpoints ───────
+    if (path.startsWith("admin/accounting/cost-allocations") || path.startsWith("admin/cost-allocations")) {
+      const userCtx = resolveUserContext(req);
+      return CostAllocationController.handleDelete(req, path, userCtx);
+    }
+
     // 2. Fallback Route: Disk-Backed ApiEngine
     if (path.startsWith("cart/items/") || path.startsWith("store/cart/items/")) {
       const lineItemId = path.split("/").pop() || "";
@@ -8762,6 +11157,29 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
     // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)
     const backendRes = await forwardToPostgresBackend("PATCH", path, body, undefined, req.headers);
     if (backendRes) return backendRes;
+
+    // ── Phase C4.1: Teller & Cash Custody (PATCH Endpoints) ──────────────────
+    const patchTellerMatch = path.match(/^(?:admin\/)?tellers\/([^/]+)$/);
+    if (patchTellerMatch) {
+      const authErr = verifyApiPermission(req, "TELLER", "MANAGE");
+      if (authErr) return authErr;
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      const tellerId = patchTellerMatch[1];
+      try {
+        const updated = await TellerService.updateTeller(
+          tellerId,
+          {
+            name: body.name,
+            status: body.status,
+          },
+          actor
+        );
+        return jsonWithDataSource({ success: true, teller: updated }, "postgres", 200);
+      } catch (err: any) {
+        return handleTellerError(err);
+      }
+    }
 
     // 2. Fallback Route: Disk-Backed ApiEngine
     if (path.startsWith("cart/items/") || path.startsWith("store/cart/items/")) {

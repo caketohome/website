@@ -6,7 +6,7 @@ import {
   ShoppingCart, Package, Building2, Truck,
   Users, Megaphone, Sparkles, FileText, BarChart3, Bell, Settings, Globe, Zap, Percent, ShieldCheck, KeyRound,
   PhoneCall, Plug, Clock, Search, ShoppingBag, Building, Receipt, Landmark, BookOpen, Settings2, TrendingUp, Scale,
-  Waves, ClipboardCheck
+  Waves, ClipboardCheck, Wallet, PieChart, Gift
 } from "lucide-react";
 
 const TABS = [
@@ -18,9 +18,15 @@ const TABS = [
   { id: "fulfillment", label: "🕒 Operations & Cutoff", icon: Clock },
   { id: "suppliers", label: "Suppliers", icon: Building },
   { id: "accounting_work_queue", label: "⚡ Financial Work Queue", icon: ClipboardCheck },
+  { id: "teller_custody", label: "Teller Cash Custody", icon: Wallet },
   { id: "purchases", label: "Purchases", icon: ShoppingBag },
+  { id: "bills_payable", label: "Bills Payable (AP)", icon: Receipt },
+  { id: "bills_receivable", label: "Bills Receivable (AR)", icon: Receipt },
   { id: "expenses", label: "Expenses", icon: Receipt },
+  { id: "cost_allocations", label: "Cost Allocations", icon: PieChart },
+  { id: "corporate_gifting", label: "Corporate Gifting", icon: Gift },
   { id: "gateway_settlements", label: "Gateway Settlements", icon: Receipt },
+  { id: "bank_accounts", label: "Bank Accounts", icon: Landmark },
   { id: "bank_reconciliation", label: "Bank Reconciliation", icon: Landmark },
   { id: "general_ledger", label: "General Ledger", icon: BookOpen },
   { id: "profit_loss", label: "Profit & Loss", icon: TrendingUp },

@@ -238,6 +238,16 @@ export interface CustomerDomain {
   normalized_phone?: string;
   role: "CUSTOMER" | "ADMIN" | "SUPER_ADMIN" | "BRANCH_MANAGER" | "DELIVERY_PARTNER";
   wallet_balance: number;
+  company_name?: string | null;
+  is_corporate?: boolean;
+  credit_enabled?: boolean;
+  credit_limit?: number;
+  payment_terms_days?: number;
+  gstin?: string | null;
+  credit_balance?: number;
+  credit_status?: string;
+  credit_approved_by?: string | null;
+  credit_approved_at?: string | null;
   addresses?: CustomerAddressDomain[];
   preferences?: Record<string, any>;
   orders_count?: number;
