@@ -2518,4 +2518,85 @@ export interface CostAllocationReversalResult {
   reversal_voucher: AccountingVoucherRow;
   reversal_journal_entry: AccountingJournalEntryRow & { lines: AccountingJournalLineRow[] };
 }
+// ─── Phase C7.7: Corporate Gifting Types ──────────────────────────────────────
 
+export type CorporateGiftingBatchStatus =
+  | "DRAFT"
+  | "VALIDATED"
+  | "SCHEDULED"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "FAILED";
+
+export type CorporateGiftingRecipientValidationStatus =
+  | "PENDING"
+  | "VALID"
+  | "INVALID";
+
+export type CorporateGiftingRecipientStatus =
+  | "PENDING"
+  | "ORDER_CREATED"
+  | "DISPATCHED"
+  | "DELIVERED"
+  | "FAILED"
+  | "CANCELLED";
+
+export interface CorporateGiftingBatchRow {
+  id: string;
+  customer_id: string;
+  company_id: string | null;
+  batch_name: string;
+  source_filename: string;
+  file_hash: string;
+  file_size_bytes: number | null;
+  status: CorporateGiftingBatchStatus;
+  total_recipients: number;
+  total_amount: number;
+  validated_recipients: number;
+  invalid_recipients: number;
+  processed_recipients: number;
+  scheduled_delivery_date: string | null;
+  invoice_id: string | null;
+  order_id: string | null;
+  cost_centre_id: string | null;
+  metadata: Record<string, unknown>;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  cancelled_by: string | null;
+  cancelled_at: string | null;
+  cancellation_reason: string | null;
+  deleted_at: string | null;
+}
+
+export interface CorporateGiftingRecipientRow {
+  id: string;
+  batch_id: string;
+  row_number: number;
+  employee_id: string | null;
+  recipient_name: string;
+  recipient_phone: string;
+  delivery_address: string;
+  delivery_pincode: string;
+  delivery_city: string | null;
+  delivery_state: string | null;
+  delivery_date: string;
+  delivery_slot: string | null;
+  product_id: string | null;
+  variant_id: string | null;
+  sku: string;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+  gift_message: string | null;
+  validation_status: CorporateGiftingRecipientValidationStatus;
+  validation_errors: Array<{ field?: string; message: string; code?: string }> | null;
+  order_id: string | null;
+  delivery_id: string | null;
+  status: CorporateGiftingRecipientStatus;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
