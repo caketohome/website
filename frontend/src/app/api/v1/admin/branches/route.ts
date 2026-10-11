@@ -1,10 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ApiEngine } from "@frontend/lib/api-engine";
 import { BranchRepository, CityRepository } from "@frontend/lib/repositories";
+import { resolveServerSession } from "@frontend/lib/security/auth-session";
 
 export const dynamic = "force-dynamic";
 
+function requireAdmin(req: NextRequest): NextResponse | null {
+  const session = resolveServerSession(req);
+  if (!session || !session.userId) {
+    return NextResponse.json({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, { status: 401 });
+  }
+  if (session.role !== "SUPER_ADMIN" && session.role !== "BRANCH_MANAGER") {
+    return NextResponse.json({ success: false, error: "FORBIDDEN", message: "Admin or Branch Manager access required." }, { status: 403 });
+  }
+  return null;
+}
+
 export async function GET(req: NextRequest) {
+  const authErr = requireAdmin(req);
+  if (authErr) return authErr;
   try {
     const { searchParams } = new URL(req.url);
     const branchId = searchParams.get("branchId");

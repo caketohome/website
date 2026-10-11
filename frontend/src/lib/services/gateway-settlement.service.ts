@@ -49,6 +49,7 @@ import {
   GatewaySettlementOrderError,
 } from "../repositories/gateway-settlement-order.repository";
 import { BankAccountRepository } from "../repositories/bank-account.repository";
+import { CompanyRepository } from "../repositories/company.repository";
 import { PostingService, PostingServiceError } from "./posting.service";
 import { hasEffectivePermission } from "../staff-access-control";
 import type {
@@ -414,7 +415,7 @@ export class GatewaySettlementService {
       const batchStatus: GatewayPayoutStatus = exceptionCount > 0 ? "EXCEPTION" : "INGESTED";
       const createdBatch = await GatewayPayoutRepository.create(
         {
-          company_id: params.company_id || "company_default",
+          company_id: params.company_id || await CompanyRepository.resolveCompanyId(),
           provider: params.provider,
           payout_reference: params.payout_reference,
           settlement_reference: params.settlement_reference || null,
@@ -681,23 +682,26 @@ export class GatewaySettlementService {
         throw err;
       }
 
-      // C. Control Accounts Validation: 1112 (Bank Operating), 5290 (MDR Fees), 1113 (Gateway Clearing), 5295 (Rounding)
+      // C. Control Accounts Validation: Bank Account GL, 5290 (MDR Fees), 1113 (Gateway Clearing), 5295 (Rounding)
+      const targetBankGlId = bankAccount.gl_account_id;
       const accountsRes = await c.query(
         `SELECT id, code, name, is_active, is_group
          FROM public.accounting_account
-         WHERE code IN ('1112', '5290', '1113', '5295') AND deleted_at IS NULL`
+         WHERE (id = $1 OR code IN ('5290', '1113', '5295')) AND deleted_at IS NULL`,
+        [targetBankGlId]
       );
 
       const accMap = new Map<string, any>();
       for (const row of accountsRes.rows) {
         accMap.set(row.code, row);
+        accMap.set(row.id, row);
       }
 
-      const acc1112 = accMap.get("1112");
-      if (!acc1112 || !acc1112.is_active || acc1112.is_group) {
+      const bankGlAccount = accMap.get(targetBankGlId);
+      if (!bankGlAccount || !bankGlAccount.is_active || bankGlAccount.is_group) {
         throw new GatewaySettlementServiceError(
           "CONTROL_ACCOUNT_INACTIVE",
-          "Control Account 1112 (Bank Operating A/c) is missing, inactive, or a group account."
+          `Bank GL Account (${bankAccount.gl_account_code || targetBankGlId}) is missing, inactive, or a group account.`
         );
       }
 
@@ -762,7 +766,7 @@ export class GatewaySettlementService {
         }
 
         // Lines for Branch K:
-        // Dr 1112 Bank Operating A/c       [Net Share]
+        // Dr Bank GL A/c                   [Net Share]
         // Dr 5290 Payment Gateway MDR Fees [MDR Share: Fee + Tax]
         // Cr 1113 Gateway Clearing         [Gross Share]
         // (Optional: Dr/Cr 5295 if rounding variance is present)
@@ -771,7 +775,7 @@ export class GatewaySettlementService {
 
         const lines: JournalLineInput[] = [
           {
-            account_id: acc1112.id,
+            account_id: bankGlAccount.id,
             debit_amount: branchNet,
             credit_amount: 0,
             narration: `Net settlement credit from ${batch.provider.toUpperCase()} - Payout: ${batch.payout_reference} (Branch: ${branchId})`,
@@ -781,6 +785,7 @@ export class GatewaySettlementService {
               provider: batch.provider,
               settlement_branch_id: branchId,
               bank_account_id: batch.bank_account_id,
+              bank_gl_code: bankGlAccount.code,
               order_ids: orderIds,
               payment_transaction_ids: txnIds,
             },

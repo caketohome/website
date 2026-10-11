@@ -442,25 +442,40 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
       };
     });
 
-    // 8. Delivery Partners — UNCONDITIONAL HYDRATION FROM POSTGRESQL
-    targetStore.delivery_partners = (partnersRes.rows || []).map((d) => ({
-      id: d.id,
-      name: `${d.first_name || ""} ${d.last_name || ""}`.trim() || "Delivery Partner",
-      first_name: d.first_name,
-      last_name: d.last_name,
-      email: d.email,
-      phone: d.phone,
-      avatar_url: d.avatar_url,
-      is_active: d.is_active !== false,
-      status: d.is_active !== false ? "active" : "inactive",
-      total_deliveries: Number(d.total_deliveries || 0),
-      active_orders: Number(d.active_orders || 0),
-      rating: Number(d.rating || 4.9),
-      created_at: d.created_at,
-    }));
+    // 8. Delivery Partners — HYDRATION FROM POSTGRESQL + PRESERVE IN-MEMORY
+    const dbPartnerMap = new Map<string, any>((partnersRes.rows || []).map((d) => [
+      d.id,
+      {
+        id: d.id,
+        name: `${d.first_name || ""} ${d.last_name || ""}`.trim() || "Delivery Partner",
+        first_name: d.first_name,
+        last_name: d.last_name,
+        email: d.email,
+        phone: d.phone,
+        avatar_url: d.avatar_url,
+        is_active: d.is_active !== false,
+        status: d.is_active !== false ? "active" : "inactive",
+        total_deliveries: Number(d.total_deliveries || 0),
+        active_orders: Number(d.active_orders || 0),
+        rating: Number(d.rating || 4.9),
+        created_at: d.created_at,
+      },
+    ]));
+    for (const existing of targetStore.delivery_partners || []) {
+      if (existing && existing.id && !dbPartnerMap.has(existing.id)) {
+        dbPartnerMap.set(existing.id, existing);
+      }
+    }
+    if (dbPartnerMap.size === 0) {
+      dbPartnerMap.set("dlp_01", { id: "dlp_01", first_name: "Ramesh", last_name: "Rider", name: "Ramesh Rider", phone: "+91 99000 11111", is_active: true, status: "active", rating: 4.9, total_deliveries: 142, active_orders: 0 });
+      dbPartnerMap.set("dlp_02", { id: "dlp_02", first_name: "Mahesh", last_name: "Rider", name: "Mahesh Rider", phone: "+91 99000 22222", is_active: true, status: "active", rating: 4.8, total_deliveries: 98, active_orders: 0 });
+    }
+    targetStore.delivery_partners = Array.from(dbPartnerMap.values());
 
-    // 9. Orders — UNCONDITIONAL HYDRATION FROM POSTGRESQL
-    targetStore.orders = (ordersRes.rows || []).map((o) => {
+    // 9. Orders — HYDRATION FROM POSTGRESQL + PRESERVE IN-MEMORY UNPERSISTED
+    const dbOrderIds = new Set((ordersRes.rows || []).map((o) => o.id));
+    const unpersistedLocalOrders = (targetStore.orders || []).filter((o: any) => o && !dbOrderIds.has(o.id));
+    const dbOrders = (ordersRes.rows || []).map((o) => {
       const meta = o.metadata || {};
       return {
         id: o.id,
@@ -486,12 +501,20 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
         },
         delivery_latitude: typeof o.delivery_latitude === "number" ? o.delivery_latitude : meta.delivery_latitude,
         delivery_longitude: typeof o.delivery_longitude === "number" ? o.delivery_longitude : meta.delivery_longitude,
+        delivery_otp: meta.delivery_otp || meta.delivery?.delivery_otp || null,
+        pickup_otp: meta.pickup_otp || meta.delivery?.pickup_otp || null,
+        delivery_partner_id: meta.delivery_partner_id || meta.delivery?.delivery_partner_id || null,
+        delivery_status: meta.delivery_status || (meta.delivery && meta.delivery.delivery_status) || "pending",
+        invoice_number: meta.invoice_number || null,
+        invoice_id: meta.invoice_id || null,
+        accounting_voucher_id: meta.accounting_voucher_id || null,
         branch_id: o.branch_id || meta.branch_id || null,
         items: meta.items || [],
         created_at: o.created_at,
         updated_at: o.updated_at,
       };
     });
+    targetStore.orders = [...unpersistedLocalOrders, ...dbOrders];
 
     targetStore.cms_pages = (cmsPagesRes.rows || []).map((p) => {
       let blockParsed: any = { sections: [], draft_config: {}, published_config: null, version_history: [] };
@@ -1328,7 +1351,14 @@ export async function persistOrderToDb(order: any): Promise<void> {
       JSON.stringify({
         ...(order.metadata || {}),
         items: order.items || order.metadata?.items || [],
-        delivery: order.delivery || order.metadata?.delivery || {},
+        delivery: (() => {
+          const d = order.delivery || order.metadata?.delivery || {};
+          if (d && typeof d === 'object') {
+            const { order: _o, ...rest } = d;
+            return rest;
+          }
+          return {};
+        })(),
         delivery_latitude: order.delivery_latitude || null,
         delivery_longitude: order.delivery_longitude || null,
         delivery_slot_id: order.delivery_slot_id || order.delivery?.slot_id || null,
@@ -1354,6 +1384,10 @@ export async function persistOrderToDb(order: any): Promise<void> {
         invoice_number: order.invoice_number || order.metadata?.invoice_number || null,
         invoice_id: order.invoice_id || order.metadata?.invoice_id || null,
         accounting_voucher_id: order.accounting_voucher_id || order.metadata?.accounting_voucher_id || null,
+        delivery_otp: order.delivery_otp || order.delivery?.delivery_otp || order.metadata?.delivery_otp || null,
+        pickup_otp: order.pickup_otp || order.delivery?.pickup_otp || order.metadata?.pickup_otp || null,
+        delivery_partner_id: order.delivery_partner_id || order.delivery?.delivery_partner_id || order.metadata?.delivery_partner_id || null,
+        delivery_status: order.delivery_status || order.delivery?.delivery_status || order.metadata?.delivery_status || "pending",
         is_ledger_eligible: order.is_ledger_eligible !== false,
       }),
     ]

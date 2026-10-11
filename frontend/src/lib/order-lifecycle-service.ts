@@ -1008,13 +1008,13 @@ export class OrderLifecycleService {
   /**
    * Authoritative Atomic Operation: verifyCustomerDeliveryAndComplete
    */
-  public static verifyCustomerDeliveryAndComplete(
+  public static async verifyCustomerDeliveryAndComplete(
     apiEngineOrOrderId: any,
     orderIdOrPartnerId?: string,
     partnerIdOrOtp?: string,
     otpInputOrActor?: string,
     actorContext?: ActorContext
-  ): TransitionResult {
+  ): Promise<TransitionResult> {
     let engine = apiEngineOrOrderId;
     let orderId = orderIdOrPartnerId as string;
     let partnerId = partnerIdOrOtp as string;
@@ -1117,6 +1117,19 @@ export class OrderLifecycleService {
       notes: "Customer Delivery OTP verified at doorstep. Cake handed over.",
       is_customer_visible: true,
     });
+
+    // ── Phase 5B.3: Statutory Invoice Generation ──────────────────────────
+    // Invoice is allocated EXACTLY once at DELIVERED (Order ≠ Bill invariant)
+    try {
+      const invoiceResult = await DeliveryInvoicingService.generateInvoiceOnDelivery(engine, order);
+      if (invoiceResult.success) {
+        console.log(`[OrderLifecycleService] Doorstep Invoice ${invoiceResult.invoice_number} generated for ${order.order_number}`);
+      } else {
+        console.warn(`[OrderLifecycleService] Doorstep Invoice generation warning: ${invoiceResult.error}`);
+      }
+    } catch (invoiceErr: any) {
+      console.error(`[OrderLifecycleService] Doorstep Invoice generation error (non-blocking): ${invoiceErr?.message}`);
+    }
 
     // Audit Logging
     engine.addAuditLog?.(

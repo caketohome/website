@@ -45,6 +45,7 @@ import { dbTransaction } from "../db";
 import type { PoolClient } from "pg";
 import { PostingService, PostingServiceError } from "./posting.service";
 import { CustomerReceiptService } from "./customer-receipt.service";
+import { BankAccountRepository } from "../repositories/bank-account.repository";
 import { hasEffectivePermission } from "../staff-access-control";
 import type {
   AccountingVoucherRow,
@@ -91,6 +92,9 @@ export type SalesReturnErrorCode =
   | "REFUND_EXCEEDS_NET_PAID"
   | "INVALID_AMOUNT"
   | "COST_CONSISTENCY_VIOLATION"
+  | "BANK_ACCOUNT_NOT_FOUND"
+  | "BANK_ACCOUNT_INACTIVE"
+  | "BANK_ACCOUNT_FROZEN"
   | "SALES_RETURN_FAILED";
 
 export class SalesReturnError extends Error {
@@ -1469,26 +1473,69 @@ export class SalesReturnService {
         // ─────────────────────────────────────────────────────────────────────
         // 4. Construct Refund Journal Lines
         // ─────────────────────────────────────────────────────────────────────
+        let disbursementAccountId: string | undefined;
         let disbursementAccountCode: string;
+        let bankAccountResolved: any = null;
+
         if (params.refundMethod === "GATEWAY") {
           disbursementAccountCode = "1113"; // Gateway Clearing
         } else if (params.refundMethod === "CASH") {
           disbursementAccountCode = "1111"; // Cash in Hand
         } else {
-          disbursementAccountCode = "1112"; // Bank Operating A/c
+          // BANK refund
+          if (params.bankAccountId) {
+            bankAccountResolved = await BankAccountRepository.findById(params.bankAccountId, client);
+            if (!bankAccountResolved) {
+              throw new SalesReturnError(
+                "BANK_ACCOUNT_NOT_FOUND",
+                `Bank account '${params.bankAccountId}' not found.`
+              );
+            }
+            if (bankAccountResolved.status === "INACTIVE") {
+              throw new SalesReturnError(
+                "BANK_ACCOUNT_INACTIVE",
+                `Bank account '${bankAccountResolved.account_name}' is INACTIVE.`
+              );
+            }
+            if (bankAccountResolved.status === "FROZEN") {
+              throw new SalesReturnError(
+                "BANK_ACCOUNT_FROZEN",
+                `Bank account '${bankAccountResolved.account_name}' is FROZEN.`
+              );
+            }
+            disbursementAccountId = bankAccountResolved.gl_account_id;
+            disbursementAccountCode = bankAccountResolved.gl_account_code || "1112";
+          } else {
+            disbursementAccountCode = "1112"; // Bank Operating A/c default
+          }
         }
 
         const arAccountCode = arSummary.controlAccountCode || "1121";
 
-        const coaRes = await client.query<AccountingAccountRow>(
-          `SELECT id, code, name FROM public.accounting_account WHERE code IN ($1, $2) AND is_active = true AND is_group = false AND deleted_at IS NULL`,
-          [arAccountCode, disbursementAccountCode]
-        );
-        const coaMap = new Map<string, AccountingAccountRow>();
-        for (const row of coaRes.rows) coaMap.set(row.code, row);
+        let accAr: AccountingAccountRow | undefined;
+        let accDisb: AccountingAccountRow | undefined;
+        let coaRes: { rows: AccountingAccountRow[] };
 
-        const accAr = coaMap.get(arAccountCode);
-        const accDisb = coaMap.get(disbursementAccountCode);
+        if (disbursementAccountId) {
+          coaRes = await client.query<AccountingAccountRow>(
+            `SELECT id, code, name FROM public.accounting_account 
+             WHERE (id = $1 OR code = $2) AND is_active = true AND is_group = false AND deleted_at IS NULL`,
+            [disbursementAccountId, arAccountCode]
+          );
+          accDisb = coaRes.rows.find((r) => r.id === disbursementAccountId);
+          accAr = coaRes.rows.find((r) => r.code === arAccountCode);
+        } else {
+          coaRes = await client.query<AccountingAccountRow>(
+            `SELECT id, code, name FROM public.accounting_account 
+             WHERE code IN ($1, $2) AND is_active = true AND is_group = false AND deleted_at IS NULL`,
+            [arAccountCode, disbursementAccountCode]
+          );
+          const coaMap = new Map<string, AccountingAccountRow>();
+          for (const row of coaRes.rows) coaMap.set(row.code, row);
+          accAr = coaMap.get(arAccountCode);
+          accDisb = coaMap.get(disbursementAccountCode);
+        }
+
         if (!accAr || !accDisb) {
           throw new SalesReturnError("ACCOUNT_RESOLUTION_FAILED", `Failed to resolve accounts ${arAccountCode} or ${disbursementAccountCode}.`);
         }
@@ -1518,6 +1565,12 @@ export class SalesReturnService {
             credit_amount: refundAmount, // Credit Cash/Gateway/Bank: Money disbursed back to customer
             branch_id: effectiveBranchId,
             narration: `Customer refund disbursement via ${params.refundMethod} for Order ${order.display_id || order.id}`,
+            metadata: bankAccountResolved
+              ? {
+                  bank_account_id: bankAccountResolved.id,
+                  bank_gl_code: accDisb.code,
+                }
+              : undefined,
           },
         ];
 
@@ -1549,6 +1602,7 @@ export class SalesReturnService {
             metadata: {
               order_id: order.id,
               refund_method: params.refundMethod,
+              bank_account_id: bankAccountResolved?.id || params.bankAccountId || null,
               provider_ref: params.providerRef || null,
               payout_ref: params.payoutRef || null,
               credit_note_voucher_id: params.creditNoteVoucherId || null,

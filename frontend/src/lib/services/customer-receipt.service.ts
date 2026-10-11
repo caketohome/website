@@ -1177,6 +1177,130 @@ export class CustomerReceiptService {
     }
   }
 
+  // ── 6A. POST PREPAID ONLINE ORDER RECEIPT WORKFLOW ──────────────────────────
+
+  /**
+   * Processes gateway clearing receipt for prepaid online orders.
+   * Full workflow: Draft -> Submit -> Approve -> Post (Dr 1113 Gateway Clearing / Cr 1121 Accounts Receivable).
+   * Enforces multi-identity SoD across Creator, Supervisor Approver, and GL Accountant.
+   */
+  static async postPrepaidOnlineReceipt(params: {
+    orderId: string;
+    amount: number;
+    paymentTxnId?: string;
+    branchId?: string;
+    voucherDate?: string;
+    createdByStaffId: string;
+    approvedBySupervisorId: string;
+    postedByGlAccountantId: string;
+    notes?: string;
+    supervisorActorContext?: any;
+    accountantActorContext?: any;
+    client?: PoolClient;
+  }): Promise<CustomerReceiptResponse<CustomerReceiptResult>> {
+    try {
+      const execute = async (client: PoolClient): Promise<CustomerReceiptResult> => {
+        // SoD checks
+        if (params.createdByStaffId === params.approvedBySupervisorId) {
+          throw new CustomerReceiptError(
+            "SEGREGATION_OF_DUTIES_VIOLATION",
+            "Staff creating prepaid receipt draft cannot approve the receipt voucher."
+          );
+        }
+        if (params.createdByStaffId === params.postedByGlAccountantId) {
+          throw new CustomerReceiptError(
+            "SEGREGATION_OF_DUTIES_VIOLATION",
+            "Staff creating prepaid receipt draft cannot post the receipt to the General Ledger."
+          );
+        }
+        if (params.approvedBySupervisorId === params.postedByGlAccountantId) {
+          throw new CustomerReceiptError(
+            "SEGREGATION_OF_DUTIES_VIOLATION",
+            "Supervisor approving receipt voucher cannot post the receipt to the General Ledger."
+          );
+        }
+
+        // 1. Create Draft
+        const draftRes = await CustomerReceiptService.createCustomerReceiptDraft({
+          orderId: params.orderId,
+          amount: params.amount,
+          voucherDate: params.voucherDate,
+          paymentMethod: "online",
+          paymentTxnId: params.paymentTxnId,
+          branchId: params.branchId,
+          createdBy: params.createdByStaffId,
+          narration: params.notes || `Prepaid online order receipt for Order ${params.orderId}`,
+          client,
+        });
+
+        if (!draftRes.success) {
+          throw new CustomerReceiptError(draftRes.code, draftRes.error);
+        }
+
+        const voucherId = draftRes.data.id;
+
+        // 2. Submit
+        const submitRes = await CustomerReceiptService.submitCustomerReceipt({
+          voucherId,
+          submittedBy: params.createdByStaffId,
+          branchId: params.branchId,
+          client,
+        });
+
+        if (!submitRes.success) {
+          throw new CustomerReceiptError(submitRes.code, submitRes.error);
+        }
+
+        // 3. Approve
+        const approveRes = await CustomerReceiptService.approveCustomerReceipt({
+          voucherId,
+          approvedBy: params.approvedBySupervisorId,
+          branchId: params.branchId,
+          actorContext: params.supervisorActorContext || {
+            id: params.approvedBySupervisorId,
+            user_id: params.approvedBySupervisorId,
+            role: "MANAGER",
+            permissions: ["ACCOUNTING.APPROVE"],
+          },
+          client,
+        });
+
+        if (!approveRes.success) {
+          throw new CustomerReceiptError(approveRes.code, approveRes.error);
+        }
+
+        // 4. Post
+        const postRes = await CustomerReceiptService.postCustomerReceipt({
+          voucherId,
+          postedBy: params.postedByGlAccountantId,
+          branchId: params.branchId,
+          actorContext: params.accountantActorContext || {
+            id: params.postedByGlAccountantId,
+            user_id: params.postedByGlAccountantId,
+            role: "ADMIN",
+            permissions: ["ACCOUNTING.POST"],
+          },
+          client,
+        });
+
+        if (!postRes.success) {
+          throw new CustomerReceiptError(postRes.code, postRes.error);
+        }
+
+        return postRes.data;
+      };
+
+      const result = params.client ? await execute(params.client) : await dbTransaction(execute);
+      return { success: true, data: result };
+    } catch (err: any) {
+      if (err instanceof CustomerReceiptError) {
+        return { success: false, error: err.message, code: err.code };
+      }
+      const message = err instanceof Error ? err.message : String(err);
+      return { success: false, error: message, code: "RECEIPT_POSTING_FAILED" };
+    }
+  }
+
   // ── 6B. POST COD SHIFT SETTLEMENT (OPTION C & OPTION B FULL SETTLEMENT) ─────
 
   /**

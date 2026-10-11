@@ -8511,8 +8511,8 @@ export class ApiEngine {
 
   // ── Delivery Partner & Fleet Engine ──────────────────────────────
   static ensureDeliveryPartnersStore() {
-    if (!Array.isArray(memoryStore.delivery_partners)) {
-      memoryStore.delivery_partners = [];
+    if (!Array.isArray(memoryStore.delivery_partners) || memoryStore.delivery_partners.length === 0) {
+      memoryStore.delivery_partners = DEFAULT_DELIVERY_PARTNERS.map(p => ({ ...p }));
     }
 
 
@@ -9929,8 +9929,8 @@ export class ApiEngine {
     );
   }
 
-  static verifyCustomerOtpBackend(orderId: string, otpInput: string, partnerId: string) {
-    return OrderLifecycleService.verifyCustomerDeliveryAndComplete(
+  static async verifyCustomerOtpBackend(orderId: string, otpInput: string, partnerId: string) {
+    return await OrderLifecycleService.verifyCustomerDeliveryAndComplete(
       ApiEngine,
       orderId,
       partnerId,
