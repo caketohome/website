@@ -38,6 +38,15 @@ import type {
   VoucherListFilters,
   VoucherListResult,
   VoucherDetailResult,
+  ManualJournalLineItem,
+  ManualJournalMetadata,
+  ManualJournalDraftInput,
+  ManualJournalUpdateDraftInput,
+  ManualJournalDetailResult,
+  ManualJournalListFilters,
+  ManualJournalListResult,
+  AccountingJournalEntryRow,
+  AccountingJournalLineRow,
 } from "../types/accounting.types";
 
 // ─── ID Generation ─────────────────────────────────────────────────────────────
@@ -109,14 +118,14 @@ export class AccountingVoucherRepository {
         (id, voucher_no, voucher_type, voucher_date, branch_id, fiscal_year,
          status, total_amount, currency,
          reference_type, reference_id, reference_event, reversal_of_voucher_id,
-         narration, created_by,
+         cost_centre_id, narration, created_by,
          metadata, created_at, updated_at)
       VALUES
         ($1,$2,$3,$4,$5,$6,
          'DRAFT', 0, 'INR',
          $7,$8,$9,$10,
-         $11,$12,
-         $13,NOW(),NOW())
+         $11,$12,$13,
+         $14,NOW(),NOW())
       RETURNING *
     `;
     const params = [
@@ -130,6 +139,7 @@ export class AccountingVoucherRepository {
       input.reference_id ?? null,
       input.reference_event ?? "PRIMARY",
       input.reversal_of_voucher_id ?? null,
+      input.cost_centre_id ?? null,
       input.narration,
       createdBy,
       input.metadata ? JSON.stringify(input.metadata) : null,
@@ -582,9 +592,12 @@ export class AccountingVoucherRepository {
         SELECT jl.*,
                a.code AS account_code,
                a.name AS account_name,
-               a.type AS account_type
+               a.type AS account_type,
+               cc.code AS cost_centre_code,
+               cc.name AS cost_centre_name
         FROM public.accounting_journal_line jl
         JOIN public.accounting_account a ON a.id = jl.account_id
+        LEFT JOIN public.cost_centre cc ON cc.id = jl.cost_centre_id
         WHERE jl.journal_entry_id = $1
         ORDER BY jl.line_no ASC
       `;
@@ -595,5 +608,424 @@ export class AccountingVoucherRepository {
     }
 
     return { voucher, journal_entry: journalEntry, lines: lines as any };
+  }
+
+  // ── PHASE C6: MANUAL JOURNAL PERSISTENCE ──────────────────────────────────────
+
+  /**
+   * Validate manual journal line structures and double-entry balance.
+   * Internal helper for manual journal draft persistence.
+   */
+  private static validateManualJournalLines(lines: ManualJournalLineItem[]): {
+    cleanLines: ManualJournalLineItem[];
+    totalAmount: number;
+  } {
+    if (!Array.isArray(lines) || lines.length < 2) {
+      throw new Error("Manual journal must contain at least 2 balanced journal lines.");
+    }
+
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    const cleanLines: ManualJournalLineItem[] = lines.map((l, idx) => {
+      const lineNo = idx + 1;
+      if (!l.account_id || typeof l.account_id !== "string" || !l.account_id.trim()) {
+        throw new Error(`Manual journal line ${lineNo} is missing a valid account_id.`);
+      }
+
+      const debit = Number(l.debit_amount || 0);
+      const credit = Number(l.credit_amount || 0);
+
+      if (isNaN(debit) || isNaN(credit) || debit < 0 || credit < 0) {
+        throw new Error(
+          `Manual journal line ${lineNo} has negative or invalid amounts: debit=${l.debit_amount}, credit=${l.credit_amount}.`
+        );
+      }
+
+      const debitPos = debit > 0;
+      const creditPos = credit > 0;
+
+      // Exclusivity: exactly one side positive, other strictly zero
+      if (!((debitPos && credit === 0) || (creditPos && debit === 0))) {
+        throw new Error(
+          `Manual journal line ${lineNo} violates single-sided requirement: exactly one of debit or credit must be positive, and other zero. Got debit=${debit}, credit=${credit}.`
+        );
+      }
+
+      totalDebit += debit;
+      totalCredit += credit;
+
+      return {
+        line_no: lineNo,
+        account_id: l.account_id.trim(),
+        debit_amount: Math.round(debit * 100) / 100,
+        credit_amount: Math.round(credit * 100) / 100,
+        branch_id: l.branch_id,
+        customer_id: l.customer_id?.trim() || null,
+        supplier_id: l.supplier_id?.trim() || null,
+        cost_centre_id: l.cost_centre_id?.trim() || null,
+        narration: l.narration?.trim() || null,
+        tax_rate: l.tax_rate ?? null,
+        tax_class: l.tax_class ?? null,
+      };
+    });
+
+    if (totalDebit <= 0) {
+      throw new Error("Manual journal total debit amount must be strictly greater than zero.");
+    }
+
+    if (Math.abs(totalDebit - totalCredit) > 0.001) {
+      throw new Error(
+        `Manual journal balance violation: total debits (₹${totalDebit.toFixed(2)}) != total credits (₹${totalCredit.toFixed(2)}). Difference is ₹${Math.abs(totalDebit - totalCredit).toFixed(2)}.`
+      );
+    }
+
+    return {
+      cleanLines,
+      totalAmount: Math.round(totalDebit * 100) / 100,
+    };
+  }
+
+  /**
+   * Create a new Manual Journal voucher in DRAFT status.
+   * Persists proposed lines in metadata.lines and initializes total_amount to verified balance.
+   */
+  static async createManualJournalDraft(
+    input: ManualJournalDraftInput,
+    branchId: string,
+    fiscalYear: string,
+    createdBy: string,
+    client?: PoolClient
+  ): Promise<AccountingVoucherRow> {
+    const { cleanLines, totalAmount } = AccountingVoucherRepository.validateManualJournalLines(input.lines);
+
+    const id = generateVoucherId();
+    const voucherNo = generateVoucherNo("JOURNAL", fiscalYear);
+
+    const metadata: ManualJournalMetadata = {
+      is_manual_journal: true,
+      lines: cleanLines,
+      total_amount: totalAmount,
+      idempotency_key: input.idempotency_key,
+    };
+
+    const sql = `
+      INSERT INTO public.accounting_voucher
+        (id, voucher_no, voucher_type, voucher_date, branch_id, fiscal_year,
+         status, total_amount, currency,
+         reference_type, reference_id, reference_event,
+         cost_centre_id, narration, created_by,
+         metadata, created_at, updated_at)
+      VALUES
+        ($1, $2, 'JOURNAL', $3, $4, $5,
+         'DRAFT', $6, 'INR',
+         'MANUAL', $7, 'PRIMARY',
+         $8, $9, $10,
+         $11, NOW(), NOW())
+      RETURNING *
+    `;
+    const params = [
+      id,
+      voucherNo,
+      input.voucher_date,
+      branchId,
+      fiscalYear,
+      totalAmount,
+      input.idempotency_key || null,
+      input.cost_centre_id ?? null,
+      input.narration,
+      createdBy,
+      JSON.stringify(metadata),
+    ];
+
+    const res = client
+      ? await client.query<AccountingVoucherRow>(sql, params)
+      : await dbQuery<AccountingVoucherRow>(sql, params);
+
+    return res.rows[0];
+  }
+
+  /**
+   * Update an existing Manual Journal in DRAFT status.
+   * If voucher is not in DRAFT status, modification is strictly prohibited.
+   */
+  static async updateManualJournalDraft(
+    input: ManualJournalUpdateDraftInput,
+    client?: PoolClient
+  ): Promise<AccountingVoucherRow> {
+    const current = await AccountingVoucherRepository.findById(input.voucher_id, input.branch_id, client);
+    if (!current) {
+      throw new Error(`Manual journal voucher '${input.voucher_id}' not found.`);
+    }
+
+    if (current.status !== "DRAFT") {
+      throw new Error(
+        `Cannot edit manual journal voucher in '${current.status}' status. Only DRAFT vouchers may be edited.`
+      );
+    }
+
+    let cleanLines: ManualJournalLineItem[] | null = null;
+    let newTotalAmount = current.total_amount;
+
+    if (input.lines) {
+      const validated = AccountingVoucherRepository.validateManualJournalLines(input.lines);
+      cleanLines = validated.cleanLines;
+      newTotalAmount = validated.totalAmount;
+    }
+
+    const currentMeta = (current.metadata as Record<string, unknown>) || {};
+    const updatedMeta: ManualJournalMetadata = {
+      ...currentMeta,
+      is_manual_journal: true,
+      lines: cleanLines || (currentMeta.lines as ManualJournalLineItem[]) || [],
+      total_amount: newTotalAmount,
+    };
+
+    const newDate = input.voucher_date || current.voucher_date;
+    const newNarration = input.narration !== undefined ? input.narration : current.narration;
+
+    const sql = `
+      UPDATE public.accounting_voucher
+      SET voucher_date = $1,
+          narration = $2,
+          total_amount = $3,
+          metadata = $4,
+          updated_at = NOW()
+      WHERE id = $5 AND status = 'DRAFT' AND deleted_at IS NULL
+      RETURNING *
+    `;
+    const params = [newDate, newNarration, newTotalAmount, JSON.stringify(updatedMeta), input.voucher_id];
+
+    const res = client
+      ? await client.query<AccountingVoucherRow>(sql, params)
+      : await dbQuery<AccountingVoucherRow>(sql, params);
+
+    if (!res.rows[0]) {
+      throw new Error(`Failed to update manual journal '${input.voucher_id}': concurrent modification detected.`);
+    }
+
+    return res.rows[0];
+  }
+
+  /**
+   * Fetch full manual journal detail including proposed workflow lines (if draft/submitted/approved)
+   * and authoritative general ledger lines (if posted).
+   */
+  static async findManualJournalDetail(
+    id: string,
+    branchId?: string,
+    client?: PoolClient
+  ): Promise<ManualJournalDetailResult | null> {
+    const voucher = await AccountingVoucherRepository.findById(id, branchId, client);
+    if (!voucher) return null;
+
+    const isManual =
+      voucher.voucher_type === "JOURNAL" &&
+      (voucher.reference_type === "MANUAL" ||
+        voucher.reference_type === "MANUAL_REVERSAL" ||
+        Boolean((voucher.metadata as any)?.is_manual_journal));
+
+    // Extract proposed lines from metadata
+    const rawProposed = ((voucher.metadata as any)?.lines as ManualJournalLineItem[]) || [];
+    let enrichedProposed: ManualJournalLineItem[] = [];
+
+    if (rawProposed.length > 0) {
+      const accountIds = Array.from(new Set(rawProposed.map((l) => l.account_id).filter(Boolean)));
+      const customerIds = Array.from(new Set(rawProposed.map((l) => l.customer_id).filter(Boolean))) as string[];
+      const supplierIds = Array.from(new Set(rawProposed.map((l) => l.supplier_id).filter(Boolean))) as string[];
+
+      const [acctRes, custRes, suppRes] = await Promise.all([
+        accountIds.length > 0
+          ? (client
+              ? await client.query(
+                  "SELECT id, code, name, type, subtype FROM public.accounting_account WHERE id = ANY($1)",
+                  [accountIds]
+                )
+              : await dbQuery(
+                  "SELECT id, code, name, type, subtype FROM public.accounting_account WHERE id = ANY($1)",
+                  [accountIds]
+                ))
+          : { rows: [] },
+        customerIds.length > 0
+          ? (client
+              ? await client.query(
+                  "SELECT id, first_name, last_name, company_name FROM public.customer WHERE id = ANY($1)",
+                  [customerIds]
+                )
+              : await dbQuery(
+                  "SELECT id, first_name, last_name, company_name FROM public.customer WHERE id = ANY($1)",
+                  [customerIds]
+                ))
+          : { rows: [] },
+        supplierIds.length > 0
+          ? (client
+              ? await client.query("SELECT id, name FROM public.supplier WHERE id = ANY($1)", [supplierIds])
+              : await dbQuery("SELECT id, name FROM public.supplier WHERE id = ANY($1)", [supplierIds]))
+          : { rows: [] },
+      ]);
+
+      const acctMap = new Map(acctRes.rows.map((r: any) => [r.id, r]));
+      const custMap = new Map(
+        custRes.rows.map((r: any) => [
+          r.id,
+          r.company_name || `${r.first_name || ""} ${r.last_name || ""}`.trim() || "Customer",
+        ])
+      );
+      const suppMap = new Map(suppRes.rows.map((r: any) => [r.id, r.name || "Supplier"]));
+
+      enrichedProposed = rawProposed.map((l) => {
+        const acct = acctMap.get(l.account_id);
+        return {
+          ...l,
+          account_code: acct?.code || l.account_code,
+          account_name: acct?.name || l.account_name,
+          account_type: acct?.type || l.account_type,
+          account_subtype: acct?.subtype || l.account_subtype,
+          customer_name: l.customer_id ? (custMap.get(l.customer_id) as string) : undefined,
+          supplier_name: l.supplier_id ? (suppMap.get(l.supplier_id) as string) : undefined,
+        };
+      });
+    }
+
+    // Authoritative GL lines if posted
+    let journalEntry: AccountingJournalEntryRow | null = null;
+    let postedLines: AccountingJournalLineRow[] = [];
+
+    if (voucher.status === "POSTED") {
+      const jeSql = `SELECT * FROM public.accounting_journal_entry WHERE voucher_id = $1 LIMIT 1`;
+      const jeRes = client
+        ? await client.query<AccountingJournalEntryRow>(jeSql, [voucher.id])
+        : await dbQuery<AccountingJournalEntryRow>(jeSql, [voucher.id]);
+
+      journalEntry = jeRes.rows[0] ?? null;
+
+      if (journalEntry) {
+        const linesSql = `
+          SELECT jl.*,
+                 a.code AS account_code,
+                 a.name AS account_name,
+                 a.type AS account_type,
+                 a.subtype AS account_subtype,
+                 cc.code AS cost_centre_code,
+                 cc.name AS cost_centre_name,
+                 COALESCE(c.company_name, TRIM(CONCAT(c.first_name, ' ', c.last_name))) AS customer_name,
+                 s.name AS supplier_name
+          FROM public.accounting_journal_line jl
+          JOIN public.accounting_account a ON a.id = jl.account_id
+          LEFT JOIN public.cost_centre cc ON cc.id = jl.cost_centre_id
+          LEFT JOIN public.customer c ON c.id = jl.customer_id
+          LEFT JOIN public.supplier s ON s.id = jl.supplier_id
+          WHERE jl.journal_entry_id = $1
+          ORDER BY jl.line_no ASC
+        `;
+        const linesRes = client
+          ? await client.query<AccountingJournalLineRow>(linesSql, [journalEntry.id])
+          : await dbQuery<AccountingJournalLineRow>(linesSql, [journalEntry.id]);
+
+        postedLines = linesRes.rows;
+      }
+    }
+
+    // Reversal voucher linkage lookup
+    let reversalVoucher: AccountingVoucherRow | null = null;
+    const linkedVoucherId = voucher.reversed_by_voucher_id || voucher.reversal_of_voucher_id;
+    if (linkedVoucherId) {
+      reversalVoucher = await AccountingVoucherRepository.findById(linkedVoucherId, undefined, client);
+    }
+
+    return {
+      voucher,
+      proposed_lines: enrichedProposed,
+      journal_entry: journalEntry,
+      posted_lines: postedLines,
+      is_manual: isManual,
+      reversal_voucher: reversalVoucher,
+    };
+  }
+
+  /**
+   * List Manual Journal vouchers with server-side pagination, branch scoping,
+   * status filters, date range filters, and text search.
+   */
+  static async listManualJournals(
+    filters: ManualJournalListFilters = {}
+  ): Promise<ManualJournalListResult> {
+    const conditions: string[] = [
+      "v.deleted_at IS NULL",
+      "v.voucher_type = 'JOURNAL'",
+      "(v.reference_type IN ('MANUAL', 'MANUAL_REVERSAL') OR v.metadata->>'is_manual_journal' = 'true')",
+    ];
+    const params: unknown[] = [];
+    let idx = 1;
+
+    if (filters.branch_id) {
+      conditions.push(`v.branch_id = $${idx++}`);
+      params.push(filters.branch_id);
+    }
+    if (filters.status && filters.status !== "ALL") {
+      conditions.push(`v.status = $${idx++}`);
+      params.push(filters.status);
+    }
+    if (filters.startDate) {
+      conditions.push(`v.voucher_date >= $${idx++}`);
+      params.push(filters.startDate);
+    }
+    if (filters.endDate) {
+      conditions.push(`v.voucher_date <= $${idx++}`);
+      params.push(filters.endDate);
+    }
+    if (filters.search && filters.search.trim()) {
+      conditions.push(`(v.voucher_no ILIKE $${idx} OR v.narration ILIKE $${idx})`);
+      params.push(`%${filters.search.trim()}%`);
+      idx++;
+    }
+
+    const where = conditions.join(" AND ");
+    const limit = Math.min(filters.limit ?? 50, 500);
+    const page = Math.max(filters.page ?? 1, 1);
+    const offset = (page - 1) * limit;
+
+    const baseFrom = `
+      FROM public.accounting_voucher v
+      LEFT JOIN public.branch b ON b.id = v.branch_id
+      LEFT JOIN public.accounting_journal_entry je ON je.voucher_id = v.id
+      WHERE ${where}
+    `;
+
+    const dataSql = `
+      SELECT v.*,
+             b.name AS branch_name,
+             je.entry_no,
+             CASE
+               WHEN v.status = 'POSTED' THEN (
+                 SELECT COUNT(*)::int FROM public.accounting_journal_line WHERE journal_entry_id = je.id
+               )
+               ELSE COALESCE(jsonb_array_length(v.metadata->'lines'), 0)::int
+             END AS line_count
+      ${baseFrom}
+      ORDER BY v.voucher_date DESC, v.created_at DESC
+      LIMIT $${idx} OFFSET $${idx + 1}
+    `;
+
+    const countSql = `SELECT COUNT(*) AS count ${baseFrom}`;
+
+    const [dataRes, countRes] = await Promise.all([
+      dbQuery<AccountingVoucherRow & { branch_name?: string; entry_no?: string; line_count?: number }>(
+        dataSql,
+        [...params, limit, offset]
+      ),
+      dbQuery<{ count: string }>(countSql, params),
+    ]);
+
+    const total = parseInt(countRes.rows[0]?.count ?? "0", 10);
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      journals: dataRes.rows,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
   }
 }
