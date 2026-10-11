@@ -131,9 +131,23 @@ export interface PurchasePaymentRow {
   payment_date: string;
   reference: string | null;
   created_by: string | null;
+  voucher_id?: string | null;
+  bank_account_id?: string | null;
+  teller_session_id?: string | null;
+  branch_id?: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+}
+
+export interface PurchasePaymentAllocationRow {
+  id: string;
+  payment_id: string;
+  purchase_id: string;
+  allocated_amount: number;
+  metadata?: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PurchasePaymentInput {
@@ -141,6 +155,10 @@ export interface PurchasePaymentInput {
   method: PurchasePaymentMethod;
   payment_date: string;
   reference?: string | null;
+  voucher_id?: string | null;
+  bank_account_id?: string | null;
+  teller_session_id?: string | null;
+  branch_id?: string | null;
 }
 
 // ─── Purchase (main) ──────────────────────────────────────────────────────────
@@ -163,6 +181,7 @@ export interface PurchaseRow {
   credit_terms_days: number | null;
   due_date: string | null;
   status: PurchaseStatus;
+  voucher_id?: string | null;
   created_by: string | null;
   approved_by: string | null;
   /** Set when status transitions to POSTED — reserved for accounting Phase 7/8 */
