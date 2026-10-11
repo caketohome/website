@@ -196,6 +196,70 @@ export interface AccountingJournalLineRow {
   cost_centre_name?: string;
 }
 
+export interface CostCentreRow {
+  id: string;
+  code: string;
+  name: string;
+  department: string;
+  parent_id: string | null;
+  company_id: string | null;
+  branch_id: string | null;
+  is_active: boolean;
+  metadata: Record<string, unknown> | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface CostCentreInput {
+  code: string;
+  name: string;
+  department: string;
+  parent_id?: string | null;
+  company_id?: string | null;
+  branch_id?: string | null;
+  is_active?: boolean;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface CostCentreUpdateInput {
+  name?: string;
+  department?: string;
+  parent_id?: string | null;
+  company_id?: string | null;
+  branch_id?: string | null;
+  is_active?: boolean;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface CostCentreListFilters {
+  department?: string;
+  parent_id?: string | null;
+  branch_id?: string | null;
+  company_id?: string | null;
+  is_active?: boolean;
+  include_deleted?: boolean;
+  search?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface CostCentreTreeNode extends CostCentreRow {
+  children?: CostCentreTreeNode[];
+}
+
+export interface CostCentreActor {
+  userId: string;
+  email?: string;
+  role?: string;
+  branchId?: string | null;
+  branch_id?: string | null;
+  permissions?: string[];
+  isSuperAdmin?: boolean;
+}
+
+
 export interface AccountingFiscalPeriodRow {
   id: string;
   fiscal_year: string;
@@ -2061,3 +2125,397 @@ export interface ManualJournalListResult {
   limit: number;
   totalPages: number;
 }
+
+
+// ─── Cost Allocation Domain Types (Phase C7.6 Step 4) ─────────────────────────
+
+export type CostAllocationRuleType = "FIXED_PERCENTAGE" | "REVENUE_RATIO" | "EQUAL_SPLIT";
+
+export type CostAllocationRunStatus = "PREVIEW" | "DRAFT" | "SUBMITTED" | "POSTED" | "REVERSED";
+
+export interface CostAllocationRuleRow {
+  id: string;
+  rule_code: string;
+  name: string;
+  description: string | null;
+  rule_type: CostAllocationRuleType;
+  source_cost_centre_id: string;
+  source_account_id: string;
+  version: number;
+  is_active: boolean;
+  effective_from: string;
+  effective_to: string | null;
+  metadata: Record<string, unknown> | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  // Enriched fields
+  source_cost_centre_code?: string;
+  source_cost_centre_name?: string;
+  source_account_code?: string;
+  source_account_name?: string;
+}
+
+export interface CostAllocationRuleTargetRow {
+  id: string;
+  rule_id: string;
+  target_cost_centre_id: string;
+  target_account_id: string | null;
+  percentage: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+  // Enriched fields
+  target_cost_centre_code?: string;
+  target_cost_centre_name?: string;
+  target_account_code?: string;
+  target_account_name?: string;
+}
+
+export interface CostAllocationRuleTargetInput {
+  target_cost_centre_id: string;
+  target_account_id?: string | null;
+  percentage: number;
+  sort_order?: number;
+}
+
+export interface CreateCostAllocationRuleInput {
+  rule_code: string;
+  name: string;
+  description?: string | null;
+  rule_type?: CostAllocationRuleType;
+  source_cost_centre_id: string;
+  source_account_id: string;
+  effective_from: string;
+  effective_to?: string | null;
+  is_active?: boolean;
+  metadata?: Record<string, unknown> | null;
+  targets?: CostAllocationRuleTargetInput[];
+}
+
+export interface UpdateCostAllocationRuleInput {
+  name?: string;
+  description?: string | null;
+  effective_from?: string;
+  effective_to?: string | null;
+  is_active?: boolean;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface CostAllocationRuleWithTargets extends CostAllocationRuleRow {
+  targets: CostAllocationRuleTargetRow[];
+}
+
+export interface CostAllocationRuleListFilters {
+  is_active?: boolean;
+  rule_type?: CostAllocationRuleType;
+  source_cost_centre_id?: string;
+  source_account_id?: string;
+  effective_date?: string;
+  search?: string;
+  include_deleted?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
+export interface CostAllocationRuleTargetSnapshot {
+  target_cost_centre_id: string;
+  target_cost_centre_code?: string;
+  target_cost_centre_name?: string;
+  target_account_id: string | null;
+  target_account_code?: string;
+  percentage: number;
+  sort_order: number;
+}
+
+export interface CostAllocationRuleSnapshot {
+  rule_id: string;
+  rule_code: string;
+  rule_name: string;
+  rule_type: CostAllocationRuleType;
+  rule_version: number;
+  source_cost_centre_id: string;
+  source_cost_centre_code?: string;
+  source_cost_centre_name?: string;
+  source_account_id: string;
+  source_account_code?: string;
+  effective_from: string;
+  effective_to: string | null;
+  targets: CostAllocationRuleTargetSnapshot[];
+  captured_at: string;
+}
+
+export interface CostAllocationRunRow {
+  id: string;
+  run_number: string;
+  rule_id: string;
+  rule_version: number;
+  fiscal_year: string;
+  period_name: string;
+  allocation_date: string;
+  source_cost_centre_id: string;
+  source_account_id: string;
+  total_source_amount: number;
+  total_allocated_amount: number;
+  rounding_difference: number;
+  status: CostAllocationRunStatus;
+  accounting_voucher_id: string | null;
+  reversal_voucher_id: string | null;
+  rule_snapshot: CostAllocationRuleSnapshot;
+  narration: string;
+  metadata: Record<string, unknown> | null;
+  executed_by: string | null;
+  executed_at: string;
+  approved_by: string | null;
+  approved_at: string | null;
+  reversed_by: string | null;
+  reversed_at: string | null;
+  reversal_reason: string | null;
+  // Enriched fields
+  source_cost_centre_code?: string;
+  source_cost_centre_name?: string;
+  source_account_code?: string;
+  source_account_name?: string;
+  voucher_no?: string;
+}
+
+export interface CostAllocationRunLineRow {
+  id: string;
+  run_id: string;
+  source_journal_line_id: string | null;
+  target_cost_centre_id: string;
+  target_account_id: string;
+  target_percentage: number;
+  allocated_amount: number;
+  sort_order: number;
+  created_at: string;
+  // Enriched fields
+  target_cost_centre_code?: string;
+  target_cost_centre_name?: string;
+  target_account_code?: string;
+  target_account_name?: string;
+}
+
+export interface CostAllocationRunLineInput {
+  source_journal_line_id?: string | null;
+  target_cost_centre_id: string;
+  target_account_id: string;
+  target_percentage: number;
+  allocated_amount: number;
+  sort_order?: number;
+}
+
+export interface CreateCostAllocationRunInput {
+  run_number: string;
+  rule_id: string;
+  rule_version?: number;
+  fiscal_year: string;
+  period_name: string;
+  allocation_date: string;
+  source_cost_centre_id: string;
+  source_account_id: string;
+  total_source_amount: number;
+  total_allocated_amount: number;
+  rounding_difference?: number;
+  status?: CostAllocationRunStatus;
+  accounting_voucher_id?: string | null;
+  rule_snapshot: CostAllocationRuleSnapshot;
+  narration: string;
+  metadata?: Record<string, unknown> | null;
+  lines?: CostAllocationRunLineInput[];
+}
+
+export interface CostAllocationRunWithLines extends CostAllocationRunRow {
+  lines: CostAllocationRunLineRow[];
+}
+
+export interface CostAllocationRunListFilters {
+  status?: CostAllocationRunStatus;
+  rule_id?: string;
+  source_cost_centre_id?: string;
+  fiscal_year?: string;
+  period_name?: string;
+  from_date?: string;
+  to_date?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface CostAllocationSourceLineHistoryRow {
+  source_journal_line_id: string;
+  run_id: string;
+  run_number: string;
+  status: CostAllocationRunStatus;
+  allocated_amount: number;
+  allocation_date: string;
+}
+
+export type CostAllocationErrorCode =
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
+  | "BRANCH_ACCESS_DENIED"
+  | "VALIDATION_FAILED"
+  | "RULE_TYPE_NOT_SUPPORTED"
+  | "INVALID_RUN_STATE"
+  | "RULE_NOT_FOUND"
+  | "DUPLICATE_RULE_CODE"
+  | "INVALID_RULE_TYPE"
+  | "RULE_TYPE_NOT_AUTHORIZED"
+  | "INVALID_PERCENTAGES"
+  | "RULE_INACTIVE"
+  | "SOURCE_COST_CENTRE_INVALID"
+  | "SOURCE_COST_CENTRE_INACTIVE"
+  | "DIRECT_BRANCH_EXPENSE_NOT_ALLOCATABLE"
+  | "SOURCE_ACCOUNT_INVALID"
+  | "ACCOUNT_NOT_ELIGIBLE_FOR_ALLOCATION"
+  | "ACCOUNT_ROUNDING_PROHIBITED"
+  | "TARGET_COST_CENTRE_INVALID"
+  | "TARGET_COST_CENTRE_INACTIVE"
+  | "TARGET_CANNOT_BE_SOURCE"
+  | "DUPLICATE_TARGET_COST_CENTRE"
+  | "INVALID_TARGET_PERCENTAGE"
+  | "PERCENTAGE_SUM_INVALID"
+  | "NO_TARGETS_CONFIGURED"
+  | "NO_SOURCE_EXPENSES_FOUND"
+  | "SOURCE_LINE_ALREADY_ALLOCATED"
+  | "RUN_NOT_FOUND"
+  | "DUPLICATE_RUN_NUMBER"
+  | "INVALID_RUN_STATUS"
+  | "IMMUTABLE_RECORD"
+  | "TARGET_NOT_FOUND"
+  | "RUN_ALREADY_POSTED"
+  | "RUN_ALREADY_REVERSED"
+  | "SEGREGATION_OF_DUTIES_VIOLATION"
+  | "FISCAL_PERIOD_LOCKED"
+  | "FISCAL_PERIOD_NOT_CONFIGURED"
+  | "POSTING_BEFORE_ACCOUNTING_START_DATE"
+  | "PERMISSION_DENIED"
+  | "OPERATION_FAILED";
+
+export class CostAllocationRepositoryError extends Error {
+  readonly code: CostAllocationErrorCode;
+  readonly statusCode: number;
+
+  constructor(code: CostAllocationErrorCode, message: string, statusCode = 400) {
+    super(message);
+    this.name = "CostAllocationRepositoryError";
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
+
+export class CostAllocationDomainError extends Error {
+  readonly code: CostAllocationErrorCode;
+  readonly statusCode: number;
+
+  constructor(code: CostAllocationErrorCode, message: string, statusCode = 400) {
+    super(message);
+    this.name = "CostAllocationDomainError";
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
+
+export interface CostAllocationCalculatedTarget {
+  target_cost_centre_id: string;
+  target_cost_centre_code?: string;
+  target_cost_centre_name?: string;
+  target_account_id: string;
+  target_account_code?: string;
+  target_account_name?: string;
+  target_percentage: number;
+  allocated_cents: number;
+  allocated_amount: number;
+  sort_order: number;
+}
+
+export interface CostAllocationPreviewSourceLine {
+  id: string;
+  journal_entry_id: string;
+  entry_no: string;
+  voucher_id: string;
+  voucher_no: string;
+  entry_date: string;
+  debit_amount: number;
+  narration: string | null;
+}
+
+export interface CostAllocationPreviewLineItem {
+  source_journal_line_id: string;
+  target_cost_centre_id: string;
+  target_cost_centre_code?: string;
+  target_account_id: string;
+  target_account_code?: string;
+  target_percentage: number;
+  allocated_amount: number;
+  sort_order: number;
+}
+
+export interface CostAllocationPreviewResult {
+  rule: CostAllocationRuleWithTargets;
+  fiscal_year: string;
+  period_name: string;
+  allocation_date: string;
+  total_source_amount: number;
+  total_allocated_amount: number;
+  rounding_difference: number;
+  source_journal_lines: CostAllocationPreviewSourceLine[];
+  calculated_lines: CostAllocationPreviewLineItem[];
+}
+
+export interface PreviewCostAllocationParams {
+  ruleId: string;
+  fiscalYear?: string;
+  periodName?: string;
+  allocationDate: string;
+  sourceJournalLineIds?: string[];
+  actorContext?: any;
+}
+
+export interface ExecuteCostAllocationRunParams {
+  ruleId: string;
+  fiscalYear: string;
+  periodName: string;
+  allocationDate: string;
+  executedBy: string;
+  narration?: string;
+  sourceJournalLineIds?: string[];
+  status?: "DRAFT" | "SUBMITTED";
+  actorContext?: any;
+}
+
+export interface ApproveAndPostCostAllocationRunParams {
+  runId: string;
+  approvedBy: string;
+  branchId?: string;
+  actorContext?: any;
+}
+
+export interface ReverseCostAllocationRunParams {
+  runId: string;
+  reversalDate: string;
+  reason: string;
+  reversedBy: string;
+  branchId?: string;
+  actorContext?: any;
+}
+
+export interface CostAllocationRunExecutionResult {
+  run: CostAllocationRunRow;
+  lines: CostAllocationRunLineRow[];
+}
+
+export interface CostAllocationPostingResult {
+  run: CostAllocationRunRow;
+  voucher: AccountingVoucherRow;
+  journal_entry: AccountingJournalEntryRow & { lines: AccountingJournalLineRow[] };
+}
+
+export interface CostAllocationReversalResult {
+  run: CostAllocationRunRow;
+  original_voucher: AccountingVoucherRow;
+  reversal_voucher: AccountingVoucherRow;
+  reversal_journal_entry: AccountingJournalEntryRow & { lines: AccountingJournalLineRow[] };
+}
+
