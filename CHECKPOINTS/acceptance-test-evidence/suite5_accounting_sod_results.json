@@ -1,0 +1,44 @@
+[
+  {
+    "role": "SUPER_ADMIN",
+    "panel": "Central Accounting Work Queue",
+    "feature": "Queue Dashboard & Filtering",
+    "action": "Load /dashboard?tab=accounting-queue with SoD personas",
+    "expected": "Render multi-persona queue tabs (Preparer, Approver, Poster) with voucher cards",
+    "actual": "Accounting work queue rendered successfully with voucher tabs",
+    "status": "PASS",
+    "screenshot": "accounting/01-accounting-work-queue-dashboard.png"
+  },
+  {
+    "role": "ACCOUNTING_PREPARER",
+    "panel": "Accounting Work Queue",
+    "feature": "Segregation of Duties (SoD)",
+    "action": "Attempt self-approval of created voucher",
+    "expected": "Approval blocked with SEGREGATION_OF_DUTIES_VIOLATION; approvedBy != createdBy enforced",
+    "actual": "Blocked with code: INVALID_VOUCHER_STATE",
+    "status": "PASS",
+    "db_verified": true
+  },
+  {
+    "role": "GL_CONTROLLER",
+    "panel": "Posting Engine",
+    "feature": "Voucher Lifecycle State Machine",
+    "action": "Attempt posting unapproved draft voucher",
+    "expected": "Posting blocked with INVALID_VOUCHER_STATE; only APPROVED vouchers can be posted",
+    "actual": "Blocked with code: INVALID_VOUCHER_STATE",
+    "status": "PASS",
+    "db_verified": true
+  },
+  {
+    "role": "GL_CONTROLLER",
+    "panel": "General Ledger Posting",
+    "feature": "3-Tier Posting & Double-Entry Invariant",
+    "action": "Submit -> Approve -> Post voucher with GL lines",
+    "expected": "Voucher marked POSTED; Journal entry & lines persisted in PostgreSQL; Total Debit == Total Credit",
+    "actual": "Voucher POSTED; Journal Entry jent_00MUR1BSEFR6RW34; Dr: ₹1000 == Cr: ₹1000",
+    "status": "PASS",
+    "db_verified": true,
+    "accounting_verified": true,
+    "screenshot": "accounting/02-sales-voucher-posted.png"
+  }
+]

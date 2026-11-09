@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Container, Heading, Text, Button, Input, Label, Badge } from "@medusajs/ui";
-import { CreditCard, Save, CheckCircle2, DollarSign, Lock, HelpCircle } from "lucide-react";
+import { CreditCard, Save, CheckCircle2, DollarSign, Lock, ShieldCheck, AlertTriangle } from "lucide-react";
 import { apiClient } from "@frontend/lib/api-client";
 
 export function PaymentConfigTab({
@@ -13,8 +13,14 @@ export function PaymentConfigTab({
   onUpdated: (updated: any) => void;
 }) {
   const [formData, setFormData] = useState({
-    supported_methods: paymentSettings?.supported_methods || ["cod", "razorpay", "test_mode", "wallet"],
-    razorpay_key_id: paymentSettings?.razorpay_key_id || "rzp_test_placeholder_key",
+    supported_methods: paymentSettings?.supported_methods?.filter((m: string) => m !== "razorpay") || [
+      "cod",
+      "cashfree",
+      "wallet",
+      "test_mode",
+    ],
+    cashfree_app_id: paymentSettings?.cashfree_app_id || process.env.NEXT_PUBLIC_CASHFREE_APP_ID || "TEST_CF_APP_ID",
+    cashfree_environment: paymentSettings?.cashfree_environment || "SANDBOX",
     cod_max_limit: paymentSettings?.cod_max_limit ?? 5000,
     cod_surcharge: paymentSettings?.cod_surcharge ?? 0,
     default_currency: paymentSettings?.default_currency || "INR",
@@ -23,7 +29,7 @@ export function PaymentConfigTab({
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const toggleMethod = (method: "cod" | "razorpay" | "wallet" | "test_mode") => {
+  const toggleMethod = (method: "cod" | "cashfree" | "wallet" | "test_mode") => {
     setFormData((prev) => {
       const exists = prev.supported_methods.includes(method);
       return {
@@ -43,7 +49,7 @@ export function PaymentConfigTab({
       const res: any = await apiClient.updatePaymentSettings(formData);
       const updated = res?.payments || res?.data || formData;
       onUpdated(updated);
-      setSuccessMsg("Payment Configuration settings updated successfully!");
+      setSuccessMsg("Payment Configuration updated successfully! Cashfree active.");
       setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err: any) {
       alert("Failed to save payment settings: " + (err.message || "Unknown error"));
@@ -67,9 +73,12 @@ export function PaymentConfigTab({
           <div className="flex items-center gap-2">
             <CreditCard className="w-5 h-5 text-amber-600" />
             <Heading level="h3" className="text-base font-bold">Payment Methods & Gateway Settings</Heading>
+            <Badge color="green" size="small" className="gap-1">
+              <ShieldCheck className="w-3 h-3" /> Cashfree Exclusive
+            </Badge>
           </div>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Configure customer checkout payment options, COD threshold limits, and Razorpay integration keys.
+            Configure checkout payment channels, COD order thresholds, and Cashfree PG API v2023-08-01 credentials.
           </Text>
         </div>
         <Button
@@ -79,6 +88,14 @@ export function PaymentConfigTab({
         >
           <Save className="w-4 h-4" /> Save Payment Config
         </Button>
+      </div>
+
+      {/* Razorpay Decommission Notice */}
+      <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 rounded-2xl flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+        <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+          <span className="font-bold">Gateway Policy Notice:</span> Razorpay has been permanently decommissioned for active checkout transactions. Cashfree PG API v2023-08-01 is established as the sole active payment gateway. Historical Razorpay accounting records remain intact in ledger archives for statutory auditing.
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -102,16 +119,19 @@ export function PaymentConfigTab({
               />
             </label>
 
-            <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50/50 cursor-pointer">
+            <label className="flex items-center justify-between p-3 rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/30 dark:bg-emerald-950/20 hover:bg-emerald-50/60 cursor-pointer">
               <div>
-                <span className="text-sm font-bold text-slate-900 dark:text-white">Razorpay Online Gateway</span>
-                <p className="text-xs text-slate-500">UPI, Credit/Debit Cards, Netbanking & Wallets</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-emerald-900 dark:text-emerald-300">Cashfree Online Gateway</span>
+                  <span className="px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900 text-[10px] font-bold text-emerald-800 dark:text-emerald-200 rounded">Sole Active Gateway</span>
+                </div>
+                <p className="text-xs text-slate-500">UPI, Cards, Netbanking & Cashfree Drop Checkout</p>
               </div>
               <input
                 type="checkbox"
-                checked={formData.supported_methods.includes("razorpay")}
-                onChange={() => toggleMethod("razorpay")}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                checked={formData.supported_methods.includes("cashfree")}
+                onChange={() => toggleMethod("cashfree")}
+                className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
               />
             </label>
 
@@ -131,7 +151,7 @@ export function PaymentConfigTab({
             <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50/50 cursor-pointer">
               <div>
                 <span className="text-sm font-bold text-slate-900 dark:text-white">Direct Sandbox / Test Mode</span>
-                <p className="text-xs text-slate-500">Simulate instant payments for testing and automated pipelines</p>
+                <p className="text-xs text-slate-500">Simulate instant payments for automated testing</p>
               </div>
               <input
                 type="checkbox"
@@ -143,10 +163,10 @@ export function PaymentConfigTab({
           </div>
         </Container>
 
-        {/* COD Limits & Razorpay Credentials */}
+        {/* COD Limits & Cashfree Credentials */}
         <Container className="p-5 flex flex-col gap-4">
           <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-            Rules & Gateway Credentials
+            Rules & Cashfree PG Credentials
           </Text>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -175,14 +195,25 @@ export function PaymentConfigTab({
             </div>
 
             <div className="sm:col-span-2">
-              <Label htmlFor="rzp_key" className="text-xs font-semibold">Razorpay Key ID (Public)</Label>
+              <Label htmlFor="cf_app_id" className="text-xs font-semibold">Cashfree Client App ID</Label>
               <Input
-                id="rzp_key"
-                value={formData.razorpay_key_id}
-                onChange={(e) => setFormData({ ...formData, razorpay_key_id: e.target.value })}
-                className="mt-1 font-mono"
+                id="cf_app_id"
+                value={formData.cashfree_app_id}
+                onChange={(e) => setFormData({ ...formData, cashfree_app_id: e.target.value })}
+                className="mt-1 font-mono text-xs"
               />
-              <p className="text-[11px] text-slate-400 mt-1">Secret Key is securely stored in environment variables.</p>
+              <p className="text-[11px] text-slate-400 mt-1">Cashfree Secret Key is securely stored in environment variables.</p>
+            </div>
+
+            <div className="sm:col-span-2">
+              <Label htmlFor="cf_env" className="text-xs font-semibold">Cashfree PG Environment</Label>
+              <Input
+                id="cf_env"
+                readOnly
+                value={`${formData.cashfree_environment} (v2023-08-01 API)`}
+                className="mt-1 font-mono text-xs bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+              />
+              <p className="text-[11px] text-slate-400 mt-1">Automated webhooks routed to /api/v1/payments/cashfree/webhook.</p>
             </div>
           </div>
         </Container>

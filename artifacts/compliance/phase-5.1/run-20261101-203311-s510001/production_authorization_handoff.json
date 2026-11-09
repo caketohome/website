@@ -1,0 +1,18 @@
+{
+  "run_id": "run-20261101-203311-s510001",
+  "package_name": "CTH-EXEC-HANDOFF-PHASE5.1",
+  "prepared_for": [
+    "Board of Directors, CakeToHome India Private Limited",
+    "Company Secretary & Legal Compliance Counsel",
+    "Statutory Chartered Accountants / Auditors"
+  ],
+  "package_contents": [
+    "Canonical Decision Register (CDR-01 to CDR-16)",
+    "Board Resolution Template CTH-2026-BR-01",
+    "Alternative A Invoice Series Technical Specification",
+    "Historical 69 Unbilled Orders & Section 31 Audit Memorandum",
+    "Segregation of Duties (SoD) Dual Control Policy",
+    "Production Release Rehearsal Evidence & SHA-256 Manifest"
+  ],
+  "recommended_next_action": "Convene Board Meeting to adopt CTH-2026-BR-01 and transmit certified minutes to release harness."
+}

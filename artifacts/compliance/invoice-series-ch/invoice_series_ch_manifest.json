@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T12:21:59.564Z",
+  "environment": "cth_rehearsal_series_ch",
+  "provenance": "e:/vig/cakes2home-main/cakes2home-main",
+  "files": {
+    "01_updated_invoice_series_specification.md": {
+      "sha256": "5d9023561c83d9e8fb18a2d886a75d4dfc2e5730606206d2a5c6ce0bffdb150f",
+      "bytes": 2679
+    },
+    "02_gst_format_validation_evidence.md": {
+      "sha256": "6fb62e27e162f20b75bcce2c4bf62c517fbc3a1ce3c2472b0c2aba9b1291dbd8",
+      "bytes": 1937
+    },
+    "03_database_and_migration_impact_assessment.md": {
+      "sha256": "e9fee3ce5b3b1df39f72bf4e66fded4194a4fa7560d948831e72fcff2ab8b196",
+      "bytes": 1849
+    },
+    "04_api_and_ui_impact_assessment.md": {
+      "sha256": "25182e917ca8f69fda32ee9661df92737bd29bb76bb57403376bbf4d04dbd5e9",
+      "bytes": 1318
+    },
+    "05_historical_data_safety_assessment.md": {
+      "sha256": "78107ce8d2d097a9560d7b2cbb8d3e5ef903a1808de74cf4319a60879c0b3652",
+      "bytes": 1055
+    },
+    "06_concurrency_and_idempotency_test_results.md": {
+      "sha256": "0340cbe9310f926d220c8933d811d9d2be794de5965d0a3da737cfd64f397e4c",
+      "bytes": 1353
+    },
+    "07_regression_test_results.md": {
+      "sha256": "2bbd9ed338226eda9b0648ce3f008bbf7e9c913eea263f1813d7f613df36ab46",
+      "bytes": 1665
+    },
+    "08_updated_cdr_and_governance_evidence.md": {
+      "sha256": "2d097e9218e3d22f670e8332ff6058211d3f11403e3724684d174a3c3cfb4093",
+      "bytes": 2038
+    },
+    "09_explicit_blockers_and_remaining_approvals.md": {
+      "sha256": "8a90d88d600551717b7a89b957273d383687c670e15f27fd61556591f2cf8539",
+      "bytes": 1426
+    },
+    "10_executive_invoice_series_determination.md": {
+      "sha256": "bdd73b8caf7b195fff5ac271454fc4250d050e3c18b73a43067028532e13f8d6",
+      "bytes": 1269
+    },
+    "gst_format_validation.json": {
+      "sha256": "59a3af81bbba05d6f389658f0e6240f22453787b795c21679c9782be66b40d7c",
+      "bytes": 1042
+    },
+    "rehearsal_test_execution_manifest.json": {
+      "sha256": "a1085433cb68297268bf194b1885206916241acfc9edca895d569a8c46af1d93",
+      "bytes": 467
+    },
+    "system_consistency_impact_matrix.json": {
+      "sha256": "8a611c453943899277e525cb9c2d5a3fd5b3dafdee24c90bea2a5be529cd5420",
+      "bytes": 1013
+    },
+    "updated_canonical_decision_register.json": {
+      "sha256": "5f3c55b17cdb201ee12ad5ac69630173a1fad9687894900b560e660d51d949f8",
+      "bytes": 4319
+    }
+  }
+}

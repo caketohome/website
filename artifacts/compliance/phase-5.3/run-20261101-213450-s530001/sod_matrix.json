@@ -1,0 +1,26 @@
+{
+  "run_id": "run-20261101-213450-s530001",
+  "roles": [
+    "CFO",
+    "IT_ADMIN",
+    "OPERATIONS_LEAD",
+    "INDEPENDENT_AUDITOR"
+  ],
+  "toxic_combinations": [
+    {
+      "pair": [
+        "CFO",
+        "IT_ADMIN"
+      ],
+      "prohibited_reason": "Self-authorization and technical sequence modification"
+    },
+    {
+      "pair": [
+        "OPERATIONS_LEAD",
+        "CFO"
+      ],
+      "prohibited_reason": "Bypass of billing authorization during dispatch"
+    }
+  ],
+  "dual_control_enforced": true
+}

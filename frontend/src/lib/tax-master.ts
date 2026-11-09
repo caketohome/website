@@ -32,6 +32,8 @@ export interface TaxConfigurationRecord {
 const API_BASE = "/api/v1";
 
 export class TaxMasterService {
+  private static cachedConfigurations: TaxConfigurationRecord[] = [];
+
   /**
    * Fetch all tax configurations from PostgreSQL via the API.
    */
@@ -42,10 +44,12 @@ export class TaxMasterService {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      return data?.configurations || [];
+      const configs = data?.configurations || [];
+      TaxMasterService.cachedConfigurations = configs;
+      return configs;
     } catch (err) {
       console.error("[TaxMasterService] Failed to fetch tax configurations:", err);
-      return [];
+      return TaxMasterService.cachedConfigurations;
     }
   }
 
@@ -80,6 +84,9 @@ export class TaxMasterService {
         }),
       });
       const data = await res.json();
+      if (data?.success) {
+        await TaxMasterService.fetchTaxConfigurations();
+      }
       return { success: data?.success === true, id: data?.id, error: data?.error };
     } catch (err: any) {
       console.error("[TaxMasterService] Failed to save tax configuration:", err);
@@ -102,9 +109,34 @@ export class TaxMasterService {
         body: JSON.stringify({ id, is_active: isActive }),
       });
       const data = await res.json();
+      if (data?.success) {
+        await TaxMasterService.fetchTaxConfigurations();
+      }
       return { success: data?.success === true, error: data?.error };
     } catch (err: any) {
       console.error("[TaxMasterService] Failed to toggle tax configuration:", err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Assign an authoritative tax rate from public.tax_rate to a product in PostgreSQL.
+   */
+  public static async assignProductTax(
+    productId: string,
+    taxRateId: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/admin/tax/assign-product`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, taxRateId }),
+      });
+      const data = await res.json();
+      return { success: data?.success === true, error: data?.error };
+    } catch (err: any) {
+      console.error("[TaxMasterService] Failed to assign product tax:", err);
       return { success: false, error: err.message };
     }
   }
@@ -126,20 +158,19 @@ export class TaxMasterService {
     }
   }
 
-  // ── Deprecated synchronous methods for backward compatibility ──
-  // These now return empty arrays. Use the async methods above.
+  /**
+   * Synchronous accessor returning cached PostgreSQL tax configurations.
+   */
   public static listTaxConfigurations(): TaxConfigurationRecord[] {
-    console.warn("[TaxMasterService] listTaxConfigurations() is deprecated. Use fetchTaxConfigurations() instead.");
-    return [];
+    return TaxMasterService.cachedConfigurations;
   }
 
   public static getTaxConfigurationById(id: string): TaxConfigurationRecord | undefined {
-    console.warn("[TaxMasterService] getTaxConfigurationById() is deprecated.");
-    return undefined;
+    return TaxMasterService.cachedConfigurations.find((c) => c.id === id);
   }
 
   public static getTaxConfigurationByCode(code: string): TaxConfigurationRecord | undefined {
-    console.warn("[TaxMasterService] getTaxConfigurationByCode() is deprecated.");
-    return undefined;
+    return TaxMasterService.cachedConfigurations.find((c) => c.code === code);
   }
 }
+

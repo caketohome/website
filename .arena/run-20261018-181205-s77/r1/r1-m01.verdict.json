@@ -1,0 +1,31 @@
+{
+  "match": "r1-m01",
+  "scores": {
+    "a003": {
+      "correctness": 8.5,
+      "completeness": 8.0,
+      "specificity": 9.0,
+      "robustness": 8.0,
+      "clarity": 8.5,
+      "fatal": false
+    },
+    "a002": {
+      "correctness": 9.5,
+      "completeness": 9.5,
+      "specificity": 9.0,
+      "robustness": 9.0,
+      "clarity": 9.0,
+      "fatal": false
+    }
+  },
+  "winner": "a002",
+  "reason": "Exhaustive requirements checklist, dialectical synthesis, and exact mathematical ledger figures provide complete mission coverage over isolated worked examples.",
+  "survived": [
+    "Multi-role worked trace incorporated into comprehensive checklist",
+    "Concrete script inventory specified"
+  ],
+  "standing": {
+    "a003": [],
+    "a002": []
+  }
+}

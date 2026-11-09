@@ -4,3 +4,6 @@ export * from "./accounts-receivable.types";
 export * from "./accounting.types";
 export * from "./vault-custody.types";
 export * from "./teller.types";
+export * from "./corporate-account.types";
+export * from "./delivery-coverage.types";
+export * from "./corporate-routing.types";

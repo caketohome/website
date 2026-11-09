@@ -1,0 +1,32 @@
+{
+  "run_id": "run-20261101-213450-s530001",
+  "evaluated_at": "2026-11-01T16:12:22.440Z",
+  "gates": [
+    {
+      "gate": "GATE_1_TECHNICAL_READINESS",
+      "status": "PASSED"
+    },
+    {
+      "gate": "GATE_2_BASELINE_INTEGRITY",
+      "status": "PASSED"
+    },
+    {
+      "gate": "GATE_3_COLLISION_RESOLUTION",
+      "status": "PASSED"
+    },
+    {
+      "gate": "GATE_4_CORPORATE_EVIDENCE",
+      "status": "BLOCKED"
+    },
+    {
+      "gate": "GATE_5_PROFESSIONAL_CLEARANCE",
+      "status": "BLOCKED"
+    },
+    {
+      "gate": "GATE_6_LAYER_5_HUMAN_AUTHORIZATION",
+      "status": "BLOCKED"
+    }
+  ],
+  "authoritative_outcome": "Outcome 1 — Corporate execution evidence or professional clearance pending",
+  "production_status": "BLOCKED_FAIL_CLOSED"
+}

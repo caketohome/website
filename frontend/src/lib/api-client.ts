@@ -402,6 +402,16 @@ class CakeToHomeApiClient {
       body: JSON.stringify({ status, notes }),
     }).catch(() => null);
   }
+  async generateOrderInvoice(id: string) {
+    return this.request(`/admin/orders/${id}/invoice`, {
+      method: "POST",
+    });
+  }
+  async getOrderInvoice(id: string) {
+    return this.request(`/admin/orders/${id}/invoice`, {
+      method: "GET",
+    });
+  }
   async assignAdminOrderBranch(id: string, branchId: string, branchName?: string) {
     return this.request(`/admin/orders/${id}/assign-branch`, {
       method: "PUT",
@@ -1432,7 +1442,7 @@ class CakeToHomeApiClient {
     delivery_slot_id: string;
     delivery_type?: string;
     coupon_code?: string;
-    payment_method: "cod" | "razorpay" | "test_mode" | "wallet";
+    payment_method: "cod" | "cashfree" | "test_mode" | "wallet";
     payment_details?: any;
     occasion?: string;
     ordered_for_self?: boolean;
@@ -1495,19 +1505,29 @@ class CakeToHomeApiClient {
     });
   }
 
-  // ── Razorpay Payment APIs ──
-  async createRazorpayOrder(amount: number, currency = "INR", receipt?: string) {
-    return this.request("/payments/razorpay/create-order", {
-      method: "POST",
-      body: JSON.stringify({ amount, currency, receipt }),
-    });
-  }
-
-  async verifyRazorpaySignature(payload: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) {
-    return this.request("/payments/razorpay/verify-signature", {
+  // ── Cashfree Payment APIs (Sole Active Online Gateway) ──
+  async createCashfreeOrder(payload: {
+    order_id: string;
+    amount: number;
+    currency?: string;
+    customer_id?: string;
+    customer_phone?: string;
+    customer_name?: string;
+    customer_email?: string;
+  }) {
+    return this.request("/payments/cashfree/create-order", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+  }
+
+  // Legacy decommission stubs
+  async createRazorpayOrder() {
+    throw new Error("Razorpay has been decommissioned. Cashfree is the sole active payment gateway.");
+  }
+
+  async verifyRazorpaySignature() {
+    throw new Error("Razorpay has been decommissioned. Cashfree is the sole active payment gateway.");
   }
 
   // ── Checkout & Availability Engine ──

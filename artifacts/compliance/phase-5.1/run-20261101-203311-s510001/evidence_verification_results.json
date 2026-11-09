@@ -1,0 +1,34 @@
+{
+  "run_id": "run-20261101-203311-s510001",
+  "verified_at": "2026-11-01T15:21:14.510Z",
+  "overall_status": "EVIDENCE_NOT_RECEIVED",
+  "verification_summary": {
+    "total_required_documents": 5,
+    "submitted_documents": 1,
+    "verified_valid_documents": 0,
+    "draft_unadopted_documents": 1,
+    "missing_documents": 4
+  },
+  "detailed_results": [
+    {
+      "document": "CTH-GOV-2026-SUB-01",
+      "authenticity": "AUTHENTIC_DRAFT",
+      "is_binding_resolution": false,
+      "section_179_compliant": false,
+      "reasons": [
+        "Draft watermark present",
+        "No director signatures",
+        "Explicitly notes subject to CS review"
+      ]
+    },
+    {
+      "document": "BOARD_MINUTES_S118",
+      "authenticity": "NOT_AVAILABLE",
+      "is_binding_resolution": false,
+      "section_179_compliant": false,
+      "reasons": [
+        "Document was not provided to the verification harness"
+      ]
+    }
+  ]
+}

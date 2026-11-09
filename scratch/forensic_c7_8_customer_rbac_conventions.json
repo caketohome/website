@@ -1,0 +1,123 @@
+{
+ "customer_cols": [
+  {
+   "column_name": "company_name",
+   "data_type": "text",
+   "is_nullable": "YES"
+  },
+  {
+   "column_name": "created_by",
+   "data_type": "text",
+   "is_nullable": "YES"
+  },
+  {
+   "column_name": "credit_status",
+   "data_type": "character varying",
+   "is_nullable": "NO"
+  },
+  {
+   "column_name": "deleted_at",
+   "data_type": "timestamp with time zone",
+   "is_nullable": "YES"
+  },
+  {
+   "column_name": "email",
+   "data_type": "text",
+   "is_nullable": "YES"
+  },
+  {
+   "column_name": "gstin",
+   "data_type": "character varying",
+   "is_nullable": "YES"
+  },
+  {
+   "column_name": "has_account",
+   "data_type": "boolean",
+   "is_nullable": "NO"
+  },
+  {
+   "column_name": "id",
+   "data_type": "text",
+   "is_nullable": "NO"
+  },
+  {
+   "column_name": "is_corporate",
+   "data_type": "boolean",
+   "is_nullable": "NO"
+  },
+  {
+   "column_name": "phone",
+   "data_type": "text",
+   "is_nullable": "YES"
+  }
+ ],
+ "customer_id_prefix": [
+  {
+   "p": "cth",
+   "n": "2"
+  },
+  {
+   "p": "cus",
+   "n": "51"
+  },
+  {
+   "p": "usr",
+   "n": "3"
+  }
+ ],
+ "customer_constraints": [
+  {
+   "conname": "customer_credit_limit_check",
+   "contype": "c",
+   "d": "CHECK ((credit_limit >= (0)::numeric))"
+  },
+  {
+   "conname": "customer_payment_terms_days_check",
+   "contype": "c",
+   "d": "CHECK ((payment_terms_days >= 0))"
+  }
+ ],
+ "user_rbac_role_cols": [
+  {
+   "column_name": "user_id",
+   "data_type": "character varying"
+  },
+  {
+   "column_name": "rbac_role_id",
+   "data_type": "character varying"
+  },
+  {
+   "column_name": "id",
+   "data_type": "character varying"
+  },
+  {
+   "column_name": "created_at",
+   "data_type": "timestamp with time zone"
+  },
+  {
+   "column_name": "updated_at",
+   "data_type": "timestamp with time zone"
+  },
+  {
+   "column_name": "deleted_at",
+   "data_type": "timestamp with time zone"
+  }
+ ],
+ "rbac_counts": [
+  {
+   "user_rbac_role_rows": "0",
+   "users": "4"
+  }
+ ],
+ "triggers_on_c7": [],
+ "distinct_customer_has_account": [
+  {
+   "has_account": false,
+   "n": "1"
+  },
+  {
+   "has_account": true,
+   "n": "55"
+  }
+ ]
+}

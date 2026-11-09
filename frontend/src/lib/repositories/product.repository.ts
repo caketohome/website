@@ -8,6 +8,17 @@ import {
   CreatePackagingProductResult,
 } from "../types/domain";
 
+const ACCESSORY_ASSET_MAP: Record<string, string> = {
+  acc_01: "/images/gold-acrylic-topper.jpg",
+  acc_02: "/images/birthday-candles.jpg",
+  acc_03: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=600&auto=format&fit=crop&q=80",
+  acc_04: "https://images.unsplash.com/photo-1561181286-d3fee7d55364?w=600&auto=format&fit=crop&q=80",
+  acc_05: "https://images.unsplash.com/photo-1559454403-b8fb88521f11?w=600&auto=format&fit=crop&q=80",
+  acc_06: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&auto=format&fit=crop&q=80",
+  acc_07: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&auto=format&fit=crop&q=80",
+  acc_08: "https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=600&auto=format&fit=crop&q=80"
+};
+
 export class ProductRepository {
   /**
    * Internal mapper from PostgreSQL row to ProductDomain
@@ -30,18 +41,28 @@ export class ProductRepository {
       weight: meta.weight || p.weight,
     });
 
+    const isAccessory = (p.merchandise_type || "").toUpperCase() === "ACCESSORY" || (p.id && String(p.id).startsWith("acc_"));
+    const category = meta.category || (isAccessory ? "Cake Accessories" : "Cakes");
+    const category_slug = meta.category_slug || (isAccessory ? "accessories" : "cakes");
+    const primary_category_id = meta.primary_category_id || (isAccessory ? "cat_accessories" : "cat_chocolate");
+    const thumbnail = meta.thumbnail || p.thumbnail || (isAccessory ? (ACCESSORY_ASSET_MAP[p.id] || "") : "");
+    const gallery = (Array.isArray(meta.gallery) && meta.gallery.length > 0)
+      ? meta.gallery
+      : (thumbnail ? [thumbnail] : []);
+
     return {
       id: p.id,
       product_id: p.id,
       inventory_mode: inventoryMode,
+      merchandise_type: (p.merchandise_type || meta.merchandise_type || (inventoryMode === "STOCK_CONTROLLED" ? "ACCESSORY" : "CAKE")).toUpperCase() as "CAKE" | "ACCESSORY" | "PACKAGING",
       title: p.title,
       name: p.title,
       handle: p.handle,
       slug: p.handle || p.id,
       description: p.description || "",
       short_description: meta.short_description || p.description || "",
-      thumbnail: p.thumbnail || "",
-      gallery: Array.isArray(meta.gallery) ? meta.gallery : [p.thumbnail || ""],
+      thumbnail,
+      gallery,
       status: p.status || "published",
       price,
       selling_price: price,
@@ -49,39 +70,44 @@ export class ProductRepository {
       mrp: Number(meta.mrp || price || 0),
       rating: Number(meta.rating || 0),
       review_count: Number(meta.review_count || 0),
-      category: meta.category || "Cakes",
-      category_slug: meta.category_slug || "cakes",
-      primary_category_id: meta.primary_category_id || "cat_chocolate",
+      category,
+      category_slug,
+      primary_category_id,
       secondary_category_ids: meta.secondary_category_ids || [],
       category_ids: meta.category_ids || [],
-      flavour: meta.flavour || "Chocolate",
-      cake_base: meta.cake_base || "Chocolate",
-      filling: meta.filling || "Chocolate Ganache",
-      cream: meta.cream || "Fresh Cream",
-      texture: meta.texture || "Soft & Moist",
-      weight: (() => {
-        const rawW = p.weight || meta.weight;
-        if (!rawW || rawW === "1 pc" || rawW === "1 piece" || rawW === "1pc") {
-          return (meta.pim_config?.show_weight === false || meta.category_slug === "pastries" || meta.category === "Pastries") ? null : "1 kg";
-        }
-        return rawW;
-      })(),
-      variants_json: meta.variants_json || (
-        (meta.pim_config?.show_weight === false || meta.category_slug === "pastries" || meta.category === "Pastries")
-          ? { weights: [] }
-          : { weights: ["0.5 kg", "1 kg", "1.5 kg", "2 kg"] }
-      ),
+      flavour: isAccessory ? undefined : (meta.flavour || "Chocolate"),
+      cake_base: isAccessory ? undefined : meta.cake_base,
+      filling: isAccessory ? undefined : meta.filling,
+      cream: isAccessory ? undefined : meta.cream,
+      texture: isAccessory ? undefined : meta.texture,
+      weight: isAccessory
+        ? (meta.weight || p.weight || "1 pc")
+        : (() => {
+            const rawW = p.weight || meta.weight;
+            if (!rawW || rawW === "1 pc" || rawW === "1 piece" || rawW === "1pc") {
+              return (meta.pim_config?.show_weight === false || meta.category_slug === "pastries" || meta.category === "Pastries") ? null : "1 kg";
+            }
+            return rawW;
+          })(),
+      variants_json: isAccessory
+        ? { weights: [] }
+        : (meta.variants_json || (
+            (meta.pim_config?.show_weight === false || meta.category_slug === "pastries" || meta.category === "Pastries")
+              ? { weights: [] }
+              : { weights: ["0.5 kg", "1 kg", "1.5 kg", "2 kg"] }
+          )),
       add_ons_json: meta.add_ons_json || {},
       tags: meta.tags || "",
       occasion: meta.occasion || "Birthday",
       occasion_ids: meta.occasion_ids || ["occ_birthday"],
       brand: meta.brand || "CakeToHome Signature",
-      cake_type: meta.cake_type || "Layer Cake",
-      gst_rate: typeof meta.gst_rate === "number" ? meta.gst_rate : (meta.gst_rate ? Number(meta.gst_rate) : 0),
-      tax_class: meta.tax_class || "GST_FOOD_5",
-      tax_configuration_id: meta.tax_configuration_id || "txcfg_food_5",
-      hsn_code: meta.hsn_code || "19059090",
-      hsn_description: meta.hsn_description || "Cakes, Pastries & Bakery Goods",
+      cake_type: isAccessory ? undefined : (meta.cake_type || "Layer Cake"),
+      gst_rate: typeof meta.gst_rate === "number" ? meta.gst_rate : (meta.gst_rate !== undefined && meta.gst_rate !== null ? Number(meta.gst_rate) : undefined),
+      tax_class: meta.tax_class || undefined,
+      tax_configuration_id: meta.tax_rate_id || meta.tax_configuration_id || undefined,
+      tax_rate_id: meta.tax_rate_id || meta.tax_configuration_id || undefined,
+      hsn_code: p.hsn_code || meta.hsn_code || "",
+      hsn_description: meta.hsn_description || ((p.hsn_code || meta.hsn_code) ? "Cakes, Pastries & Bakery Goods" : "Unclassified (Missing HSN Code)"),
       uqc: meta.uqc || "NOS",
       taxability: meta.taxability || "Taxable",
       tax_inclusive: meta.tax_inclusive !== false,
@@ -209,7 +235,42 @@ export class ProductRepository {
       queryValues
     );
 
-    const items = (res.rows || []).map(ProductRepository.mapRowToDomain);
+    const prodIds = (res.rows || []).map((r: any) => r.id);
+    let sharedStockMap: Record<string, { available: number; total: number; reserved: number }> = {};
+    if (prodIds.length > 0) {
+      try {
+        const biRes = await dbQuery(
+          `SELECT pv.product_id, SUM(bi.stocked_quantity) as total_qty, SUM(bi.reserved_quantity) as total_reserved
+           FROM public.branch_inventory bi
+           JOIN public.product_variant pv ON pv.id = bi.variant_id
+           WHERE pv.product_id = ANY($1)
+           GROUP BY pv.product_id`,
+          [prodIds]
+        );
+        for (const row of biRes.rows || []) {
+          const tQty = Number(row.total_qty || 0);
+          const tRes = Number(row.total_reserved || 0);
+          sharedStockMap[row.product_id] = {
+            total: tQty,
+            reserved: tRes,
+            available: Math.max(0, tQty - tRes),
+          };
+        }
+      } catch {
+        // Safe: fallback if branch inventory is not populated
+      }
+    }
+
+    const items = (res.rows || []).map((r: any) => {
+      const domain = ProductRepository.mapRowToDomain(r);
+      const siInfo = sharedStockMap[domain.id];
+      if (siInfo && domain.merchandise_type !== "CAKE") {
+        domain.available_stock = siInfo.available;
+        domain.is_out_of_stock = siInfo.available <= 0;
+      }
+      return domain;
+    });
+
     const totalPages = Math.ceil(total / pageSize);
 
     return {
@@ -248,7 +309,7 @@ export class ProductRepository {
 
     try {
       const varRes = await dbQuery(
-        `SELECT id, product_id, title, sku, weight, metadata FROM "product_variant" WHERE product_id = $1 AND deleted_at IS NULL ORDER BY created_at ASC`,
+        `SELECT id, product_id, title, sku, barcode, weight, metadata FROM "product_variant" WHERE product_id = $1 AND deleted_at IS NULL ORDER BY created_at ASC`,
         [domain.id]
       );
       if (varRes.rows && varRes.rows.length > 0) {
@@ -258,12 +319,34 @@ export class ProductRepository {
           product_id: v.product_id,
           title: v.title,
           sku: v.sku || `${domain.handle.toUpperCase()}`,
-          weight: v.weight,
-          price: domain.price,
+          barcode: v.barcode || undefined,
+          weight: v.weight ? `${v.weight} kg` : undefined,
+          price: Number(v.metadata?.selling_price ?? v.metadata?.price ?? domain.price),
+          metadata: v.metadata,
         }));
       }
     } catch (varErr) {
       console.warn("[ProductRepository.findById] variant query warning:", varErr);
+    }
+
+    if (domain.merchandise_type !== "CAKE") {
+      try {
+        const biRes = await dbQuery(
+          `SELECT SUM(bi.stocked_quantity) as total_qty, SUM(bi.reserved_quantity) as total_reserved
+           FROM public.branch_inventory bi
+           JOIN public.product_variant pv ON pv.id = bi.variant_id
+           WHERE pv.product_id = $1`,
+          [domain.id]
+        );
+        if (biRes.rows && biRes.rows[0]?.total_qty !== null) {
+          const tQty = Number(biRes.rows[0].total_qty || 0);
+          const tRes = Number(biRes.rows[0].total_reserved || 0);
+          domain.available_stock = Math.max(0, tQty - tRes);
+          domain.is_out_of_stock = domain.available_stock <= 0;
+        }
+      } catch {
+        // Safe: fallback if branch inventory is not populated
+      }
     }
 
     return domain;
@@ -301,11 +384,57 @@ export class ProductRepository {
     const thumbnail = product.thumbnail || "";
     const status = product.status || "published";
 
+    // Resolve & validate canonical Tax Master assignment from PostgreSQL
+    let canonicalTaxRate: any = null;
+    const reqTaxId = product.tax_rate_id || product.tax_configuration_id;
+    const reqTaxClass = product.tax_class;
+
+    if (reqTaxId || reqTaxClass) {
+      let code = reqTaxClass;
+      if (code === "GST_FOOD_5") code = "GST_5";
+      if (code === "GST_STANDARD_18" || code === "GST_FOOD_18") code = "GST_18";
+      if (code === "GST_FOOD_12") code = "GST_12";
+      if (code === "GST_FOOD_28") code = "GST_28";
+      if (code === "GST_EXEMPT" || code === "GST_NIL") code = "GST_0";
+
+      try {
+        const trMatch = await dbQuery(
+          `SELECT id, code, rate, name, metadata FROM public.tax_rate WHERE (id = $1 OR code = $2) AND deleted_at IS NULL LIMIT 1`,
+          [reqTaxId || "", code || ""]
+        );
+        if (trMatch.rows.length > 0) {
+          canonicalTaxRate = trMatch.rows[0];
+        }
+      } catch {
+        canonicalTaxRate = null;
+      }
+    } else if (typeof product.gst_rate === "number") {
+      try {
+        const trMatch = await dbQuery(
+          `SELECT id, code, rate, name, metadata FROM public.tax_rate WHERE rate = $1 AND deleted_at IS NULL ORDER BY is_default DESC, created_at ASC LIMIT 1`,
+          [product.gst_rate]
+        );
+        if (trMatch.rows.length > 0) {
+          canonicalTaxRate = trMatch.rows[0];
+        }
+      } catch {
+        canonicalTaxRate = null;
+      }
+    }
+
+    const canonicalMerchType = (
+      product.merchandise_type ||
+      (product as any).metadata?.merchandise_type ||
+      (resolveProductInventoryMode(product as any) === "STOCK_CONTROLLED" ? "ACCESSORY" : "CAKE")
+    ).toUpperCase() as "CAKE" | "ACCESSORY" | "PACKAGING";
+
     const metadata = {
-      price: product.price || product.selling_price || 0,
+      ...((product as any).metadata || {}),
+      merchandise_type: canonicalMerchType,
+      price: product.price || 0,
       selling_price: product.selling_price || product.price || 0,
       cost_price: product.cost_price || 0,
-      mrp: product.mrp || product.selling_price || product.price || 0,
+      mrp: product.mrp || product.price || 0,
       rating: product.rating || 0,
       review_count: product.review_count || 0,
       category: product.category || "",
@@ -326,14 +455,16 @@ export class ProductRepository {
       occasion_ids: product.occasion_ids || ["occ_birthday"],
       brand: product.brand || "CakeToHome Signature",
       cake_type: product.cake_type || "Layer Cake",
-      gst_rate: typeof product.gst_rate === "number" ? product.gst_rate : (product.gst_rate ? Number(product.gst_rate) : 0),
-      tax_class: product.tax_class || "GST_FOOD_5",
-      tax_configuration_id: product.tax_configuration_id || "txcfg_food_5",
-      hsn_code: product.hsn_code || "19059090",
-      hsn_description: product.hsn_description || "Cakes, Pastries & Bakery Goods",
+      gst_rate: canonicalTaxRate ? Number(canonicalTaxRate.rate) : (typeof product.gst_rate === "number" ? product.gst_rate : undefined),
+      tax_class: canonicalTaxRate ? canonicalTaxRate.code : (product.tax_class || undefined),
+      tax_rate_id: canonicalTaxRate ? canonicalTaxRate.id : (product.tax_rate_id || undefined),
+      tax_configuration_id: canonicalTaxRate ? canonicalTaxRate.id : (product.tax_configuration_id || undefined),
+      tax_code: canonicalTaxRate ? canonicalTaxRate.code : undefined,
+      hsn_code: product.hsn_code || "",
+      hsn_description: product.hsn_description || (product.hsn_code ? "Cakes, Pastries & Bakery Goods" : "Unclassified (Missing HSN Code)"),
       uqc: product.uqc || "NOS",
-      taxability: product.taxability || "Taxable",
-      tax_inclusive: product.tax_inclusive !== false,
+      taxability: canonicalTaxRate?.metadata?.taxability || product.taxability || (canonicalTaxRate ? (Number(canonicalTaxRate.rate) > 0 ? "Taxable" : "Exempt") : "Taxable"),
+      tax_inclusive: canonicalTaxRate?.metadata?.tax_inclusive !== false && product.tax_inclusive !== false,
       is_featured: product.is_featured || false,
       is_bestseller: product.is_bestseller || false,
       is_new_arrival: product.is_new_arrival || false,
@@ -373,27 +504,139 @@ export class ProductRepository {
 
     await dbQuery(
       `
-      INSERT INTO "product" (id, title, handle, description, thumbnail, status, weight, metadata, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+      INSERT INTO "product" (id, title, handle, description, merchandise_type, hsn_code, sku, metadata, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
       ON CONFLICT (id) DO UPDATE SET
         title = EXCLUDED.title,
         handle = EXCLUDED.handle,
         description = EXCLUDED.description,
-        thumbnail = EXCLUDED.thumbnail,
-        status = EXCLUDED.status,
-        weight = EXCLUDED.weight,
-        metadata = EXCLUDED.metadata,
-        updated_at = NOW()
+        merchandise_type = EXCLUDED.merchandise_type,
+        hsn_code = EXCLUDED.hsn_code,
+        sku = EXCLUDED.sku,
+        metadata = EXCLUDED.metadata
     `,
-      [id, title, handle, description, thumbnail, status, numericWeight, JSON.stringify(metadata)]
+      [
+        id,
+        title,
+        handle,
+        description,
+        canonicalMerchType,
+        (product as any).hsn_code || "",
+        (product as any).sku || null,
+        JSON.stringify({
+          ...metadata,
+          thumbnail,
+          status,
+          weight: numericWeight,
+        }),
+      ]
     );
+
+    // Sync product variants if provided
+    if (Array.isArray(product.variants) && product.variants.length > 0) {
+      for (let i = 0; i < product.variants.length; i++) {
+        const v = product.variants[i];
+        await ProductRepository.upsertVariant({
+          id: v.id || v.variant_id,
+          product_id: id,
+          title: v.title || `${title} - Variant ${i + 1}`,
+          sku: v.sku || `${handle.toUpperCase()}-V${i + 1}`,
+          barcode: v.barcode,
+          weight: v.weight,
+          price: v.price,
+          allow_backorder: v.allow_backorder,
+          manage_inventory: v.manage_inventory,
+          metadata: v.metadata,
+          variant_rank: i,
+        });
+      }
+    }
+
+    // Sync canonical tax rate to public.tax_rate_rule (safe guard if table does not exist)
+    if (canonicalTaxRate) {
+      try {
+        await dbQuery(
+          `UPDATE public.tax_rate_rule
+           SET deleted_at = NOW()
+           WHERE reference = 'product' AND reference_id = $1 AND deleted_at IS NULL`,
+          [id]
+        );
+        const ruleId = `txrr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        await dbQuery(
+          `INSERT INTO public.tax_rate_rule (id, tax_rate_id, reference_id, reference, metadata, created_at, updated_at)
+           VALUES ($1, $2, $3, 'product', $4, NOW(), NOW())`,
+          [ruleId, canonicalTaxRate.id, id, JSON.stringify({ assigned_at: new Date().toISOString() })]
+        );
+      } catch {
+        // Safe: tax_rate_rule is not in cth_test baseline
+      }
+    }
+  }
+
+  /**
+   * Upsert product variant directly into PostgreSQL
+   */
+  static async upsertVariant(variant: {
+    id?: string;
+    product_id: string;
+    title: string;
+    sku?: string;
+    barcode?: string;
+    weight?: number | string;
+    price?: number;
+    allow_backorder?: boolean;
+    manage_inventory?: boolean;
+    metadata?: Record<string, any>;
+    variant_rank?: number;
+  }): Promise<string> {
+    const vId = variant.id || `var_${variant.product_id}_${Date.now()}`;
+    const numWeight = variant.weight !== undefined && variant.weight !== null ? parseFloat(String(variant.weight)) : null;
+    const vMeta = {
+      ...(variant.metadata || {}),
+      ...(variant.price !== undefined ? { price: variant.price, selling_price: variant.price } : {}),
+      ...(variant.weight !== undefined ? { weight: variant.weight } : {}),
+    };
+    await dbQuery(
+      `INSERT INTO public.product_variant (
+        id, product_id, title, sku, barcode, weight, allow_backorder, manage_inventory, metadata, variant_rank, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+      ON CONFLICT (id) DO UPDATE SET
+        title = EXCLUDED.title,
+        sku = EXCLUDED.sku,
+        barcode = EXCLUDED.barcode,
+        weight = EXCLUDED.weight,
+        allow_backorder = EXCLUDED.allow_backorder,
+        manage_inventory = EXCLUDED.manage_inventory,
+        metadata = EXCLUDED.metadata,
+        variant_rank = EXCLUDED.variant_rank,
+        updated_at = NOW()`,
+      [
+        vId,
+        variant.product_id,
+        variant.title,
+        variant.sku || null,
+        variant.barcode || null,
+        numWeight,
+        Boolean(variant.allow_backorder),
+        variant.manage_inventory !== false,
+        JSON.stringify(vMeta),
+        variant.variant_rank || 0,
+      ]
+    );
+    return vId;
   }
 
   /**
    * Soft delete / archive product in PostgreSQL
    */
   static async delete(id: string): Promise<void> {
-    await dbQuery(`UPDATE "product" SET deleted_at = NOW(), status = 'draft' WHERE id = $1`, [id]);
+    await dbQuery(
+      `UPDATE "product"
+       SET deleted_at = NOW(),
+           metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{status}', '"draft"'::jsonb)
+       WHERE id = $1`,
+      [id]
+    );
   }
 
   /**

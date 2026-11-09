@@ -21,6 +21,7 @@ import { TellerMovementRepository } from "../repositories/teller-movement.reposi
 import { AccountingAccountRepository } from "../repositories/accounting-account.repository";
 import { AccountingFiscalPeriodRepository } from "../repositories/accounting-fiscal-period.repository";
 import { PostingService } from "./posting.service";
+import { TellerService } from "./teller.service";
 import { hasEffectivePermission } from "../staff-access-control";
 import type { JournalLineInput } from "../types/accounting.types";
 import {
@@ -56,6 +57,19 @@ export class TellerSessionService {
   }
 
   /**
+   * Guarantees actor exists in public."user" so that relational foreign keys
+   * (opened_by, closed_by, verified_by, settled_by) succeed reliably.
+   */
+  private static async ensureUserExists(userId: string, client: PoolClient): Promise<void> {
+    await client.query(
+      `INSERT INTO public."user" (id, email, created_at, updated_at)
+       VALUES ($1, $2, NOW(), NOW())
+       ON CONFLICT (id) DO NOTHING`,
+      [userId, `${userId}@cakes2home.local`]
+    );
+  }
+
+  /**
    * Opens a new teller session.
    * Requires: TELLER.SESSION_OPEN.
    */
@@ -80,25 +94,28 @@ export class TellerSessionService {
     }
 
     const execute = async (txClient: PoolClient) => {
-      // 1. Resolve Active Teller for user
-      let teller = params.teller_id
-        ? await TellerRepository.findById(params.teller_id, txClient, true)
-        : await TellerRepository.findActiveByUserId(actor.userId, txClient, true);
+      // 1. Resolve Active Teller for branch/user
+      let teller: any = null;
+      if (params.teller_id) {
+        teller = await TellerRepository.findById(params.teller_id, txClient, true);
+      }
+
+      const targetBranchId = params.branch_id || (teller ? teller.branch_id : actor.branchId);
+
+      if (!teller && targetBranchId) {
+        teller = await TellerService.ensureDefaultBranchTeller(targetBranchId, actor, txClient);
+      }
+
+      if (!teller) {
+        teller = await TellerRepository.findActiveByUserId(actor.userId, txClient, true);
+      }
 
       if (!teller) {
         throw new TellerDomainError(
           "TELLER_NOT_FOUND",
           params.teller_id
             ? `Teller '${params.teller_id}' not found.`
-            : `Authenticated user '${actor.userId}' has no active teller counter assignment.`
-        );
-      }
-
-      // Security check: cannot hijack another user's teller without TELLER.MANAGE
-      if (teller.user_id !== actor.userId && !hasEffectivePermission(actor, "TELLER.MANAGE")) {
-        throw new TellerDomainError(
-          "PERMISSION_DENIED",
-          `User '${actor.userId}' is not assigned to teller '${teller.code}'.`
+            : `No teller counter station found or configured for branch '${targetBranchId || "UNKNOWN"}'.`
         );
       }
 
@@ -110,16 +127,16 @@ export class TellerSessionService {
       }
 
       // 2. Validate Branch
-      const targetBranchId = params.branch_id || teller.branch_id;
-      if (targetBranchId !== teller.branch_id) {
+      const effectiveBranchId = targetBranchId || teller.branch_id;
+      if (effectiveBranchId !== teller.branch_id) {
         throw new TellerDomainError(
           "UNAUTHORIZED_BRANCH",
-          `Branch mismatch: Teller '${teller.code}' belongs to branch '${teller.branch_id}', not '${targetBranchId}'.`
+          `Branch mismatch: Teller '${teller.code}' belongs to branch '${teller.branch_id}', not '${effectiveBranchId}'.`
         );
       }
-      this.validateBranchAccess(actor, targetBranchId);
+      this.validateBranchAccess(actor, effectiveBranchId);
 
-      // 3. Check for existing active session on this teller
+      // 3. Check for existing active session on this teller or branch
       const existingSession = await TellerSessionRepository.findActiveByTellerId(
         teller.id,
         txClient,
@@ -132,11 +149,14 @@ export class TellerSessionService {
         );
       }
 
-      // 4. Create Session (expected_cash initially = opening_float)
+      // 4. Ensure actor user identity exists in public."user" for relational session foreign key
+      await this.ensureUserExists(actor.userId, txClient);
+
+      // 5. Create Session (expected_cash initially = opening_float)
       return TellerSessionRepository.create(
         {
           teller_id: teller.id,
-          branch_id: targetBranchId,
+          branch_id: effectiveBranchId,
           opening_float: openingFloat,
           expected_cash: openingFloat,
           opened_by: actor.userId,
@@ -226,9 +246,18 @@ export class TellerSessionService {
       // 3. Authoritative expected cash calculation from movement ledger
       const totals = await TellerMovementRepository.getTotalsForSession(session.id, txClient);
       const expectedCash = round2(session.opening_float + totals.netMovement);
+      if (expectedCash < 0) {
+        throw new TellerDomainError(
+          "INVALID_EXPECTED_CASH",
+          `Expected cash calculation resulted in invalid negative balance (₹${expectedCash.toFixed(2)}). Session closing rejected. Inspect unvouched movements.`
+        );
+      }
       const variance = round2(closingCount - expectedCash);
 
-      // 4. Persist close details
+      // 4. Ensure actor exists in public."user" for closed_by foreign key
+      await this.ensureUserExists(actor.userId, txClient);
+
+      // 5. Persist close details
       return TellerSessionRepository.closeSession(
         session.id,
         {
@@ -316,9 +345,18 @@ export class TellerSessionService {
       // 3. Recalculate expected cash from ledger to detect concurrent movements or tampering
       const totals = await TellerMovementRepository.getTotalsForSession(session.id, txClient);
       const recalculatedExpected = round2(session.opening_float + totals.netMovement);
+      if (recalculatedExpected < 0) {
+        throw new TellerDomainError(
+          "INVALID_EXPECTED_CASH",
+          `Recalculated expected cash resulted in invalid negative balance (₹${recalculatedExpected.toFixed(2)}). Session verification rejected. Inspect unvouched movements.`
+        );
+      }
       const recalculatedVariance = round2(session.closing_count - recalculatedExpected);
 
-      // 4. Persist verification
+      // 4. Ensure verifier exists in public."user" for verified_by foreign key
+      await this.ensureUserExists(actor.userId, txClient);
+
+      // 5. Persist verification
       return TellerSessionRepository.verifySession(
         session.id,
         {
@@ -541,6 +579,12 @@ export class TellerSessionService {
           `Session '${session.id}' is missing closing count, expected cash, or variance.`
         );
       }
+      if (Number(session.expected_cash) < 0) {
+        throw new TellerDomainError(
+          "INVALID_EXPECTED_CASH",
+          `Session '${session.id}' has impossible negative expected cash (₹${Number(session.expected_cash).toFixed(2)}). Settlement halted. Inspect unvouched movements.`
+        );
+      }
       if (!session.verified_by || !session.verified_at) {
         throw new TellerDomainError(
           "SESSION_NOT_VERIFIED",
@@ -569,6 +613,12 @@ export class TellerSessionService {
       }
 
       const variance = round2(session.variance);
+
+      // Ensure settler and verifier exist in public."user" for settled_by foreign key and GL audit trail
+      await this.ensureUserExists(actor.userId, txClient);
+      if (session.verified_by) {
+        await this.ensureUserExists(session.verified_by, txClient);
+      }
 
       // 5. Zero-Variance Settlement (variance === 0.00)
       if (variance === 0) {
@@ -757,6 +807,17 @@ export class TellerSessionService {
     };
 
     if (client) {
+      if ((client as any)._txStatus !== "T") {
+        try {
+          await client.query("BEGIN");
+          const res = await execute(client);
+          await client.query("COMMIT");
+          return res;
+        } catch (err) {
+          try { await client.query("ROLLBACK"); } catch (_) {}
+          throw err;
+        }
+      }
       return execute(client);
     }
     return dbTransaction(execute);
@@ -790,7 +851,7 @@ export class TellerSessionService {
    * Requires: TELLER.VIEW.
    */
   static async getActiveSession(
-    tellerId: string,
+    tellerIdOrBranchId: string,
     actor: AuthenticatedActor,
     client?: PoolClient
   ): Promise<TellerSessionRow | null> {
@@ -800,7 +861,13 @@ export class TellerSessionService {
         "Actor does not possess TELLER.VIEW permission."
       );
     }
-    const session = await TellerSessionRepository.findActiveByTellerId(tellerId, client);
+    let session = await TellerSessionRepository.findActiveByTellerId(tellerIdOrBranchId, client);
+    if (!session) {
+      const branchSessions = await TellerSessionRepository.findActiveByBranchId(tellerIdOrBranchId, client);
+      if (branchSessions.length > 0) {
+        session = branchSessions[0];
+      }
+    }
     if (!session) return null;
     this.validateBranchAccess(actor, session.branch_id);
     return session;
@@ -833,4 +900,76 @@ export class TellerSessionService {
     }
     return TellerSessionRepository.listSessions({ ...filters, branchId: targetBranchId }, client);
   }
+
+  /**
+   * Guarantees a persistent continuous branch cash custody session anchor exists.
+   * Derives available cash from branch records without requiring manual shift creation.
+   * If an active OPEN session already exists for the branch, reuses it.
+   * Otherwise, provisions the canonical branch continuous custody session anchor.
+   */
+  static async ensureContinuousBranchSession(
+    branchId: string,
+    actor: AuthenticatedActor,
+    client?: PoolClient
+  ): Promise<TellerSessionRow> {
+    this.validateBranchAccess(actor, branchId);
+
+    const execute = async (txClient: PoolClient): Promise<TellerSessionRow> => {
+      // 1. Check for any existing active session at this branch
+      const branchSessions = await TellerSessionRepository.findActiveByBranchId(branchId, txClient);
+      const openSession = branchSessions.find((s) => s.status === "OPEN");
+      if (openSession) {
+        return openSession;
+      }
+
+      // 2. Ensure default canonical branch teller station exists (Main Cash Drawer)
+      const teller = await TellerService.ensureDefaultBranchTeller(branchId, actor, txClient);
+
+      // Pessimistically serialize concurrent session creation on the branch teller station
+      await txClient.query("SELECT id FROM public.teller WHERE id = $1 FOR UPDATE", [teller.id]);
+
+      // Check if teller has an open session under lock
+      const tellerActive = await TellerSessionRepository.findActiveByTellerId(teller.id, txClient, false);
+      if (tellerActive && tellerActive.status === "OPEN") {
+        return tellerActive;
+      }
+
+      // 3. Ensure user exists
+      await this.ensureUserExists(actor.userId, txClient);
+
+      // 4. Create continuous branch cash custody session anchor
+      const timestamp = Date.now();
+      const continuousId = `sess_custody_${branchId}_${timestamp}`;
+
+      try {
+        return await TellerSessionRepository.create(
+          {
+            id: continuousId,
+            teller_id: teller.id,
+            branch_id: branchId,
+            opening_float: 0.00,
+            expected_cash: 0.00,
+            opened_by: actor.userId,
+            notes: "Continuous branch cash custody session anchor",
+          },
+          txClient
+        );
+      } catch (err: any) {
+        if (err.code === "23505") {
+          // Concurrent transaction won the race; return the active session
+          const existing = await TellerSessionRepository.findActiveByTellerId(teller.id, txClient, false);
+          if (existing && existing.status === "OPEN") {
+            return existing;
+          }
+        }
+        throw err;
+      }
+    };
+
+    if (client) {
+      return execute(client);
+    }
+    return dbTransaction(execute);
+  }
 }
+

@@ -1,0 +1,26 @@
+{
+  "rehearsal_database": {
+    "name": "cth_rehearsal_phase5",
+    "port": 5433,
+    "total_tables": 72,
+    "total_orders": 165,
+    "total_invoices": 78,
+    "total_chart_of_accounts": 107,
+    "journal_lines_count": 69,
+    "trial_balance_debits": 1344610.4,
+    "trial_balance_credits": 1344610.4,
+    "trial_balance_variance": 0
+  },
+  "protected_database": {
+    "name": "cth_test",
+    "port": 5433,
+    "baseline_orders": 127,
+    "verified_orders": 127,
+    "baseline_invoices": 71,
+    "verified_invoices": 71,
+    "baseline_payments": 40,
+    "verified_payments": 40,
+    "writes_detected": 0,
+    "integrity_status": "PRISTINE_AND_UNTOUCHED"
+  }
+}

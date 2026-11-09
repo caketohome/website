@@ -97,7 +97,7 @@ export interface CreateOrderInput {
     photoUrl?: string;
   }[];
   promoDiscount?: number;
-  paymentProvider: "RAZORPAY" | "COD";
+  paymentProvider: "CASHFREE" | "COD";
 }
 
 export interface UpdateTicketStatusInput {

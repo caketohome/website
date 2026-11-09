@@ -66,6 +66,8 @@ import {
   type DeliveryFeeInput,
   type SalesMerchandiseType,
 } from "./sales-tax-engine";
+import { TaxResolverService } from "./tax-resolver.service";
+
 
 // ─── Error Model ───────────────────────────────────────────────────────────────
 
@@ -346,13 +348,44 @@ export class SalesPostingService {
       : [];
 
     if (rawItems.length === 0) {
-      // Check order_item table
-      const oiRes = await client.query(
-        `SELECT * FROM public.order_item WHERE order_id = $1 AND deleted_at IS NULL ORDER BY id ASC`,
-        [orderId]
-      );
-      if (oiRes.rows.length > 0) {
-        rawItems.push(...oiRes.rows);
+      // Check relational order_item and order_line_item tables
+      try {
+        const oiRes = await client.query(
+          `SELECT 
+             oi.id AS order_item_id,
+             oi.order_id,
+             oi.item_id,
+             oi.quantity,
+             oli.product_id,
+             oli.variant_id,
+             oli.title,
+             oli.variant_sku,
+             oli.unit_price,
+             oli.metadata
+           FROM public.order_item oi
+           JOIN public.order_line_item oli ON oli.id = oi.item_id
+           WHERE oi.order_id = $1
+           ORDER BY oi.id ASC`,
+          [orderId]
+        );
+        if (oiRes.rows.length > 0) {
+          rawItems.push(...oiRes.rows);
+        }
+      } catch (_oiErr) {
+        try {
+          const directRes = await client.query(
+            `SELECT id AS order_item_id, order_id, product_id, title, quantity, unit_price, taxable_value, gst_rate_pct, tax_amount, total
+             FROM public.order_item
+             WHERE order_id = $1
+             ORDER BY id ASC`,
+            [orderId]
+          );
+          if (directRes.rows.length > 0) {
+            rawItems.push(...directRes.rows);
+          }
+        } catch (_directErr) {
+          // Schema does not have order_item table or items are purely in order metadata
+        }
       }
     }
 
@@ -402,16 +435,25 @@ export class SalesPostingService {
         throw new SalesPostingError("INVALID_PRICE", `Item '${prod.title}' has invalid unit price ${unitPrice}.`);
       }
 
-      // Authoritative GST rate
-      const prodMeta = prod.metadata || {};
+      // Authoritative GST rate resolution
       let taxRatePercent: number | null = null;
 
+      // 1. Transaction snapshot priority (immutable historical invoice preservation)
       if (rawItem.tax_rate !== undefined && rawItem.tax_rate !== null) {
         taxRatePercent = Number(rawItem.tax_rate);
       } else if (rawItem.gst_rate !== undefined && rawItem.gst_rate !== null) {
         taxRatePercent = Number(rawItem.gst_rate);
-      } else if (prodMeta.gst_rate !== undefined && prodMeta.gst_rate !== null) {
-        taxRatePercent = Number(prodMeta.gst_rate);
+      } else {
+        // 2. Canonical resolution via TaxResolverService
+        try {
+          const resolved = await TaxResolverService.resolveProductTax(prod.id, rawItem.variant_id, client);
+          taxRatePercent = resolved.rate;
+        } catch (err: any) {
+          throw new SalesPostingError(
+            "MISSING_TAX_RATE",
+            `Product '${prod.title}' (${prod.id}) has no authoritative GST tax rate: ${err.message}`
+          );
+        }
       }
 
       if (taxRatePercent === null || isNaN(taxRatePercent)) {
@@ -507,15 +549,22 @@ export class SalesPostingService {
     const paymentTxn = ptRes.rows[0];
 
     let paymentClassification: "COD" | "PREPAID";
-    let arAccountCode: "1121" | "1122";
+    let arAccountCode: "1121" | "1122" | "2141";
+
+    const isCorporate = orderMeta.is_corporate === true || order.is_corporate === true;
+    const isPaymentCaptured = (orderMeta.payment_status || "").toLowerCase() === "captured" || 
+                              (orderMeta.payment_status || "").toLowerCase() === "paid";
 
     if (paymentTxn) {
       if (paymentTxn.provider?.toLowerCase() === "cod") {
         paymentClassification = "COD";
         arAccountCode = "1122"; // Undeposited COD Collections
+      } else if (isCorporate && !isPaymentCaptured) {
+        paymentClassification = "PREPAID";
+        arAccountCode = "1121"; // Accounts Receivable (Corporate B2B Credit)
       } else {
         paymentClassification = "PREPAID";
-        arAccountCode = "1121"; // Accounts Receivable
+        arAccountCode = isPaymentCaptured ? "2141" : "1121"; // 2141 Customer Advances clears unearned liability
       }
     } else {
       // Derive from authoritative order payment method
@@ -523,6 +572,9 @@ export class SalesPostingService {
       if (payMethod === "cod") {
         paymentClassification = "COD";
         arAccountCode = "1122";
+      } else if (isCorporate && !isPaymentCaptured) {
+        paymentClassification = "PREPAID";
+        arAccountCode = "1121";
       } else if (
         ["card", "upi", "wallet", "netbanking", "online", "prepaid", "prepaid_online", "stripe", "razorpay", "online_upi", "online_card", "online_netbanking"].includes(payMethod) ||
         payMethod.startsWith("online") ||
@@ -532,7 +584,7 @@ export class SalesPostingService {
         payMethod.includes("gateway")
       ) {
         paymentClassification = "PREPAID";
-        arAccountCode = "1121";
+        arAccountCode = isPaymentCaptured ? "2141" : "1121";
       } else {
         throw new SalesPostingError(
           "UNRESOLVED_PAYMENT_CLASSIFICATION",
@@ -815,6 +867,15 @@ export class SalesPostingService {
 
         if (!draftRes.success) {
           if (draftRes.code === "DUPLICATE_SOURCE_EVENT") {
+            const existingRes = await client.query<AccountingVoucherRow>(
+              `SELECT * FROM public.accounting_voucher 
+               WHERE reference_type = 'SALE' AND reference_id = $1 AND reference_event = 'INVOICE_DRAFT' AND deleted_at IS NULL 
+               ORDER BY created_at DESC LIMIT 1`,
+              [order.id]
+            );
+            if (existingRes.rows.length > 0) {
+              return existingRes.rows[0];
+            }
             throw new SalesPostingError("DUPLICATE_SOURCE_EVENT", draftRes.error);
           }
           throw new SalesPostingError("POSTING_GUARD_FAILED", draftRes.error);
@@ -1830,6 +1891,14 @@ export class SalesPostingService {
            SET metadata = $1, updated_at = NOW()
            WHERE id = $2;`,
           [JSON.stringify(updatedOrderMeta), order.id]
+        );
+
+        // Update statutory invoice voucher_id if exists
+        await client.query(
+          `UPDATE public.invoice
+           SET voucher_id = $1, updated_at = NOW()
+           WHERE order_id = $2 AND (voucher_id IS NULL OR voucher_id = $1);`,
+          [postedVoucher.id, order.id]
         );
 
         const vMeta = (postedVoucher.metadata || {}) as Record<string, any>;

@@ -1,0 +1,128 @@
+{
+  "phase": "4.6",
+  "run_id": "run-20261031-184248-s955287",
+  "timestamp": "2026-10-31T19:05:00+05:30",
+  "protected_database_hashes": {
+    "orders": "34d74cd009c307ac9bc502b3710d24bd6bd912faf703e307a2e265f5644d7835",
+    "invoices": "eb27d8ec0e827278708f0146c82706c5f2fea42656887b8a8a33b2671daf2d39",
+    "vouchers": "3922e568c3c68213cd45d4fbb0925caad407b2c87d9195df5c8e795dfadc51ea"
+  },
+  "artifacts": {
+    "accounting_voucher_and_ledger_reconciliation.md": {
+      "bytes": 1087,
+      "sha256": "a107a369bb4a1be1f8d4cf80c16e42f51ae89f02912cf24219c1164301e0ccbc"
+    },
+    "approver_delegation_verification.md": {
+      "bytes": 571,
+      "sha256": "1e029be0ee9d4a764dd6251121e5be1fdf5d1d13f5c0761faa51cc0078b50a40"
+    },
+    "authorization_evidence_manifest.json": {
+      "bytes": 554,
+      "sha256": "0260d191ddd838369c4751fefb4bd0d5d7a749c604afd65749fe9244fc77902f"
+    },
+    "corporate_approval_evidence_status.md": {
+      "bytes": 885,
+      "sha256": "18a201ce413859efcd6af81be758fed53a487921e15b57f4d7623baa148e90af"
+    },
+    "corporate_authorization_legal_basis_review.md": {
+      "bytes": 2266,
+      "sha256": "bc5ba1b31c72e3a8e1d987e42f3b2897d9a3054c54e9615039d320516219e134"
+    },
+    "current_statutory_source_and_amendment_register.md": {
+      "bytes": 2517,
+      "sha256": "7f6af53d0892f2aab3f80f6469a1cc9e68a5fdcc3e51a31a79d28350175bb2c4"
+    },
+    "final_disposable_deployment_rehearsal.md": {
+      "bytes": 706,
+      "sha256": "dc3afc1795a796d71fd6620b6a49fdb4bd61b3a258a773a7bc93fe0d8cb5ed9c"
+    },
+    "financial_reconciliation_manifest.json": {
+      "bytes": 643,
+      "sha256": "45d3f635a6796845da99dab9efce568b691ded967d73994bdb80109ee09d312b"
+    },
+    "financial_year_and_series_uniqueness_report.md": {
+      "bytes": 820,
+      "sha256": "cf9b88472269bc4ab137cf1ef9c0a81cfe5c5ed1c18ff0f1521ec0227749f573"
+    },
+    "findings_manifest.json": {
+      "bytes": 2246,
+      "sha256": "18252eb4596e66b8cddedfed2ce9e3193da5e42118ce0955e667aff9826039d6"
+    },
+    "first_production_invoice_execution_readiness.md": {
+      "bytes": 538,
+      "sha256": "3c629d11c950d6a8700d4d70f6a0151f8fb2aaa67a6c5f70c111fcd82aae4a2b"
+    },
+    "invoice_number_character_and_length_test_report.md": {
+      "bytes": 2210,
+      "sha256": "fff1e29e1a6fef9535f6ba5634f26ebd1437ee0f7255ae8c2d13356e11c901ba"
+    },
+    "invoice_number_generation_path_inventory.md": {
+      "bytes": 1097,
+      "sha256": "5baca3ae8135267b89a7b4773882b560c856df373523e6b3798c9f91b7653ab4"
+    },
+    "invoice_number_test_manifest.json": {
+      "bytes": 248,
+      "sha256": "82f4e18fe919ca6fe22da16a016c6c9b234d986507ae31c2e21b49cebdbd2e7a"
+    },
+    "invoice_tax_and_document_integrity_report.md": {
+      "bytes": 707,
+      "sha256": "2f4092281753c480fcee0cb73732691b1479d721be0cd5e656f3c5580b738735"
+    },
+    "migration_and_release_manifest_verification.md": {
+      "bytes": 1005,
+      "sha256": "4ce45a217a2955aa1a04c9bee2434e6a0d8e43c5b1bfc717928a2f5689bdcb71"
+    },
+    "order_invoice_transaction_reconciliation.md": {
+      "bytes": 946,
+      "sha256": "ff6162d05ca5268c15274f69ab22dc4fe78d8744fc0eb8836831a7d57faee6ff"
+    },
+    "phase4_6_executive_release_closure_report.md": {
+      "bytes": 4642,
+      "sha256": "02270e956171bea1b67d1174f40b8f2dde565fc743247671c81d9295aee8c8de"
+    },
+    "production_deployment_runbook_final.md": {
+      "bytes": 644,
+      "sha256": "564102b808a2a7c2254974b9b16c257c291508551ba42f7c0be0af45d95622a1"
+    },
+    "production_readiness_gate.md": {
+      "bytes": 1136,
+      "sha256": "1dfeae25dd5ff9b83677e413319722b49408fe2ba0fc2e33a18d1637a816ab67"
+    },
+    "protected_database_integrity_report.md": {
+      "bytes": 975,
+      "sha256": "e95460c33e7f639b9a239ab09bbff3222eb7a87e1325db3942229f4c449f89cf"
+    },
+    "release_artifact_manifest.json": {
+      "bytes": 1185,
+      "sha256": "52db9629c102b59ab3301eddf871a319778905f7244420ccea93f2821bad253f"
+    },
+    "rule_46_serial_number_compliance_audit.md": {
+      "bytes": 1715,
+      "sha256": "6aa8fdf3d3ea7363a9c2c49cef98fca5b0ca28b8317ef91d09c0825cc5c42c79"
+    },
+    "sha256_artifact_integrity_report.md": {
+      "bytes": 367,
+      "sha256": "af7f8c6d412bfc28ffbf9c78d96a9e1de67f4f3bd596d12d983ea3655ed40d46"
+    },
+    "statutory_source_manifest.json": {
+      "bytes": 1313,
+      "sha256": "95bfc86854b026230285056035cf92ba03495438ddf9dd1f3446419c1faf16eb"
+    },
+    "test_invoice_provenance_and_environment_classification.md": {
+      "bytes": 945,
+      "sha256": "c6c9b011f2e902e212a9d97def0ef79cd2cdc27c5382ba940240cdae5d31e9e0"
+    },
+    "test_manifest_reconciliation.md": {
+      "bytes": 987,
+      "sha256": "09b8783213514556228a43c402120d1fdbdeca4905336b360ce8d3c530df207e"
+    },
+    "unique_test_results_manifest.json": {
+      "bytes": 1171,
+      "sha256": "51b1ec85aba07e3f2a7fc0e5166a511d63d39a156f75669f92c26f3f4b3d8bf1"
+    },
+    "voucher_1004_forensic_review.md": {
+      "bytes": 712,
+      "sha256": "3f583b6964df440db46fe26ea26e2ae3bffc13ab7f7179ca387dc2f02c2bbe02"
+    }
+  }
+}

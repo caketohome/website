@@ -1,0 +1,11 @@
+{
+  "match": "r2-m01",
+  "scores": {
+    "a002": {"correctness": 9.8, "completeness": 9.8, "specificity": 10.0, "robustness": 9.8, "clarity": 9.8, "fatal": false},
+    "a003": {"correctness": 9.5, "completeness": 9.2, "specificity": 9.2, "robustness": 9.5, "clarity": 9.4, "fatal": false}
+  },
+  "winner": "a002",
+  "reason": "a002 provides the definitive, production-ready implementation with exact multi-table SQL cascades, dual-stage soft-delete isolation, and complete zero-data-loss guarantees.",
+  "survived": ["Dual-stage soft delete eliminates branch inventory cascading hazard", "Explicit Playwright browser assertion for admin GSTIN"],
+  "standing": {"a002": [], "a003": ["Omitted multi-table cascade delete subqueries"]}
+}

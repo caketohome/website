@@ -1,0 +1,43 @@
+{
+  "run_id": "run-20261101-210315-s520001",
+  "architecture": "SIX_LAYER_INDEPENDENT_CONTROLS",
+  "layers": [
+    {
+      "layer": 1,
+      "name": "Evidence Verification",
+      "status": "DRAFT_ONLY_RECEIVED",
+      "gate_open": false
+    },
+    {
+      "layer": 2,
+      "name": "Corporate Decision Approval",
+      "status": "PENDING_BOARD_ADOPTION",
+      "gate_open": false
+    },
+    {
+      "layer": 3,
+      "name": "Professional Compliance Clearance",
+      "status": "PENDING_CS_CA_REVIEWS",
+      "gate_open": false
+    },
+    {
+      "layer": 4,
+      "name": "Technical Readiness",
+      "status": "VERIFIED_IN_REHEARSAL",
+      "gate_open": true
+    },
+    {
+      "layer": 5,
+      "name": "Production Activation Authorization",
+      "status": "NOT_AUTHORIZED",
+      "gate_open": false
+    },
+    {
+      "layer": 6,
+      "name": "Activation Execution",
+      "status": "NOT_EXECUTED",
+      "gate_open": false
+    }
+  ],
+  "overall_state": "BLOCKED_FAIL_CLOSED"
+}

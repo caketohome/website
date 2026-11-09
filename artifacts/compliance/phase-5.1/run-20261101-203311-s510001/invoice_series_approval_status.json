@@ -1,0 +1,30 @@
+{
+  "run_id": "run-20261101-203311-s510001",
+  "architecture_strategy": "ALTERNATIVE_A_DUAL_CANDIDATE",
+  "candidate2_recommended": {
+    "prefix": "C2H",
+    "sample": "C2H/26-27/000001",
+    "digits": 6,
+    "length": 16,
+    "capacity": 999999,
+    "recommendation": "RECOMMENDED_FOR_SCALE"
+  },
+  "candidate1_fallback": {
+    "prefix": "CTHI",
+    "sample": "CTHI/26-27/00001",
+    "digits": 5,
+    "length": 16,
+    "capacity": 99999,
+    "recommendation": "LEGAL_CORPORATE_FALLBACK"
+  },
+  "historical_prefix_collision": {
+    "prefix": "CTH",
+    "invoice_id": "inv_1792901376459_xlxkf",
+    "consumed_number": "CTH/26-27/000001",
+    "dummy_gstin": "29AAACC1234F1Z5",
+    "collision_error_code": "23505",
+    "collision_constraint": "invoice_invoice_number_key"
+  },
+  "corporate_approval_state": "PENDING_FORMAL_BOARD_RESOLUTION",
+  "technical_status": "VERIFIED_ON_REHEARSAL_DB"
+}

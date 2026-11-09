@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Text } from "@medusajs/ui";
 import {
-  ShoppingCart, Package, Building2, Truck,
+  ShoppingCart, Package, Building2, Truck, MapPin,
   Users, Megaphone, Sparkles, FileText, BarChart3, Bell, Settings, Globe, Zap, Percent, ShieldCheck, KeyRound,
   PhoneCall, Plug, Clock, Search, ShoppingBag, Building, Receipt, Landmark, BookOpen, Settings2, TrendingUp, Scale,
   Waves, ClipboardCheck, Wallet, PieChart, Gift
@@ -14,7 +14,11 @@ const TABS = [
   { id: "catalog", label: "Catalog", icon: Package },
   { id: "search_engine", label: "🔍 Search & Mapping", icon: Search },
   { id: "branches", label: "Branches", icon: Building2 },
+  { id: "shared_inventory", label: "🎂 Shared Inventory", icon: Package },
+  { id: "operational_closures", label: "📅 Holiday Scheduling", icon: Clock },
+  { id: "marketplace", label: "🏪 Partner Marketplace", icon: Building },
   { id: "delivery", label: "Delivery", icon: Truck },
+  { id: "delivery_coverage", label: "🗺️ Coverage & Routing", icon: MapPin },
   { id: "fulfillment", label: "🕒 Operations & Cutoff", icon: Clock },
   { id: "suppliers", label: "Suppliers", icon: Building },
   { id: "accounting_work_queue", label: "⚡ Financial Work Queue", icon: ClipboardCheck },
@@ -24,8 +28,11 @@ const TABS = [
   { id: "bills_receivable", label: "Bills Receivable (AR)", icon: Receipt },
   { id: "expenses", label: "Expenses", icon: Receipt },
   { id: "cost_allocations", label: "Cost Allocations", icon: PieChart },
+  { id: "corporate_accounts", label: "Corporate Accounts & Roster", icon: Building2 },
   { id: "corporate_gifting", label: "Corporate Gifting", icon: Gift },
+  { id: "corporate_routing_review", label: "📍 Routing Review Queue", icon: MapPin },
   { id: "gateway_settlements", label: "Gateway Settlements", icon: Receipt },
+  { id: "bank_management", label: "Bank & Cash Management", icon: Landmark },
   { id: "bank_accounts", label: "Bank Accounts", icon: Landmark },
   { id: "bank_reconciliation", label: "Bank Reconciliation", icon: Landmark },
   { id: "general_ledger", label: "General Ledger", icon: BookOpen },
@@ -47,6 +54,7 @@ const TABS = [
   { id: "cms", label: "Content", icon: FileText },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "ai_concierge", label: "🤖 AI Concierge", icon: Sparkles },
+  { id: "feature_flags", label: "🎛️ Feature Toggles", icon: Settings2 },
   { id: "staff_profiles", label: "👥 Staff Profiles", icon: KeyRound },
   { id: "notifications", label: "Alerts", icon: Bell },
   { id: "settings", label: "Settings", icon: Settings },

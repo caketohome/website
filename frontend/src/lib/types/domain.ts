@@ -107,6 +107,8 @@ export interface ProductDomain {
   cake_type?: string;
   gst_rate?: number;
   tax_class?: string;
+  tax_rate_id?: string;
+  tax_code?: string;
   tax_configuration_id?: string;
   hsn_code?: string;
   hsn_description?: string;
@@ -134,6 +136,21 @@ export interface ProductDomain {
   weight_prices?: ProductWeightPriceDomain[];
   enable_flavor_selection?: boolean;
   enable_shape_selection?: boolean;
+  available_stock?: number;
+  is_out_of_stock?: boolean;
+  variants?: Array<{
+    id: string;
+    variant_id?: string;
+    product_id: string;
+    title: string;
+    sku?: string;
+    barcode?: string;
+    weight?: string;
+    price?: number;
+    manage_inventory?: boolean;
+    allow_backorder?: boolean;
+    metadata?: Record<string, any>;
+  }>;
   created_at?: string;
   updated_at?: string;
 }
@@ -281,6 +298,10 @@ export interface OrderItemDomain {
   item_id?: string;
   product_id: string;
   variant_id?: string;
+  merchandise_type?: "CAKE" | "ACCESSORY" | "PACKAGING";
+  sku?: string;
+  barcode?: string;
+  hsn_code?: string;
   product_name: string; // Historical snapshot
   title?: string;
   thumbnail?: string;
@@ -293,6 +314,10 @@ export interface OrderItemDomain {
   mrp?: number;
   discount?: number;
   tax_rate?: number;
+  cgst?: number;
+  sgst?: number;
+  tax_rate_id?: string;
+  tax_code?: string;
   tax_amount?: number;
   customization?: {
     eggless?: boolean;
@@ -371,6 +396,10 @@ export interface OrderDomain {
   delivery_area?: string;
   delivery_landmark?: string;
   delivery_instructions?: string;
+  seller_gstin?: string;
+  seller_legal_name?: string;
+  compliance_snapshot?: any;
+  metadata?: any;
   created_at: string;
   updated_at: string;
 }
@@ -380,12 +409,14 @@ export interface CmsPageDomain {
   slug: string;
   title: string;
   type: "landing" | "policy" | "info" | "campaign" | "home" | "product" | "catalog" | string;
+  page_type?: string;
   status: "draft" | "published" | "archived";
   meta_title: string;
   meta_description: string;
   canonical_url: string;
   og_image: string;
   sections: any[];
+  blocks?: any;
   theme?: Record<string, any> | null;
   draft_config?: Record<string, any>;
   published_config?: Record<string, any> | null;

@@ -1,0 +1,12 @@
+{
+  "historical_invoices_count": 71,
+  "staging_invoices_cth": 55,
+  "synthetic_invoices_conc": 14,
+  "synthetic_invoices_safe_test": 1,
+  "collision_record": {
+    "id": "inv_1792901376459_xlxkf",
+    "invoice_number": "CTH/26-27/000001",
+    "supplier_gstin": "29AAACC1234F1Z5"
+  },
+  "disposition": "QUARANTINED_IMMUTABLE_HISTORICAL_RECORD"
+}

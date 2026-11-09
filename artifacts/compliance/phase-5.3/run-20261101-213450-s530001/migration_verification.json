@@ -1,0 +1,7 @@
+{
+  "run_id": "run-20261101-213450-s530001",
+  "checkpoint_commit": "d231cee7e55f716526e62f5799cc7377c555fed3",
+  "branch": "checkpoint/c-phases-baseline",
+  "schema_state": "CLEAN_VERIFIED",
+  "unauthorized_migrations": 0
+}

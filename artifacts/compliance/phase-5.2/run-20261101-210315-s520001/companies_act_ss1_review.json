@@ -1,0 +1,25 @@
+{
+  "run_id": "run-20261101-210315-s520001",
+  "statutory_provisions": {
+    "section_173": {
+      "scope": "Meetings of Board",
+      "requirement": "Minimum 7 days notice in writing to every director; quorum under Section 174.",
+      "status": "PROCEDURAL_REQUIREMENT_DOCUMENTED"
+    },
+    "section_179": {
+      "scope": "Powers of Board",
+      "requirement": "Exercise of financial and corporate powers; delegation under Section 179(3) where permissible.",
+      "status": "SUBMISSION_PREPARED_FOR_EXERCISE"
+    },
+    "section_118": {
+      "scope": "Minutes of Proceedings of General Meeting, Meeting of Board of Directors and other meetings",
+      "requirement": "Entry in minutes book within 30 days, signed by Chairman of the meeting or next succeeding meeting.",
+      "status": "COMPLIANCE_CHECKLIST_ESTABLISHED"
+    },
+    "secretarial_standard_1": {
+      "scope": "ICSI Secretarial Standard on Meetings of the Board of Directors",
+      "requirement": "Strict adherence to paragraphs 1.2.1 (Notice), 7.1.1 (Minutes entry), and 8.1 (Preservation).",
+      "status": "INCORPORATED_INTO_HANDOFF_PACKAGE"
+    }
+  }
+}

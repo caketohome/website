@@ -1,0 +1,566 @@
+[
+  {
+    "method": "GET",
+    "path": "admin/suppliers*",
+    "line": 1546,
+    "type": "prefix"
+  },
+  {
+    "method": "GET",
+    "path": "admin/purchases*",
+    "line": 1589,
+    "type": "prefix"
+  },
+  {
+    "method": "GET",
+    "path": "admin/purchases/report/register",
+    "line": 1618,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/purchases/report/supplier-wise",
+    "line": 1623,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/purchases/report/item-wise",
+    "line": 1628,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/purchases/report/bill-wise",
+    "line": 1633,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/purchases/report/gst-hsn",
+    "line": 1638,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/branch-cash-position*",
+    "line": 1811,
+    "type": "prefix"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/petty-cash",
+    "line": 1850,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/teller/vault-movements",
+    "line": 1912,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/teller/cash-tender-status",
+    "line": 1963,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/reports/ar/*",
+    "line": 2223,
+    "type": "prefix"
+  },
+  {
+    "method": "GET",
+    "path": "manager/cod/custody",
+    "line": 2349,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "manager/cod*",
+    "line": 2351,
+    "type": "prefix"
+  },
+  {
+    "method": "GET",
+    "path": "admin/bank-accounts",
+    "line": 2494,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/tellers",
+    "line": 2560,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/teller/sessions/active",
+    "line": 2580,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/teller/sessions",
+    "line": 2603,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/bank-deposit-slips",
+    "line": 2696,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/gateway-settlements/*",
+    "line": 2727,
+    "type": "prefix"
+  },
+  {
+    "method": "GET",
+    "path": "admin/gateway-settlements/batches",
+    "line": 2763,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/bank-reconciliation/*",
+    "line": 2958,
+    "type": "prefix"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/cost-allocations*",
+    "line": 3201,
+    "type": "prefix"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/journals*",
+    "line": 3231,
+    "type": "prefix"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/journals",
+    "line": 3285,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/*",
+    "line": 3331,
+    "type": "prefix"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/ledger",
+    "line": 3362,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/trial-balance",
+    "line": 3395,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/accounts",
+    "line": 3414,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/config",
+    "line": 3424,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/company",
+    "line": 3438,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/gst-registrations",
+    "line": 3444,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/fiscal-periods",
+    "line": 3460,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/opening-balances/status",
+    "line": 3467,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/profit-loss",
+    "line": 3475,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/balance-sheet",
+    "line": 3504,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/cash-flow",
+    "line": 3533,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/period-close/preview",
+    "line": 3568,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/period-close/reopen/preview",
+    "line": 3595,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/period-close/history",
+    "line": 3620,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/reports/retained-earnings-rollforward",
+    "line": 3653,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/reports/fiscal-year-summary",
+    "line": 3743,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/reports/comparative-pnl",
+    "line": 3794,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/comparative-pnl",
+    "line": 3795,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/reports/comparative-profit-loss",
+    "line": 3796,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/comparative-profit-loss",
+    "line": 3797,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/work-queue/summary",
+    "line": 3880,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/work-queue/sales",
+    "line": 3934,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/orders/*",
+    "line": 4001,
+    "type": "prefix"
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/vouchers",
+    "line": 4008,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "manager/cod/custody",
+    "line": 4829,
+    "type": "exact"
+  },
+  {
+    "method": "GET",
+    "path": "delivery/reverse-geocode",
+    "line": 5041,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/cost-allocations*",
+    "line": 6125,
+    "type": "prefix"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/journals*",
+    "line": 6155,
+    "type": "prefix"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/journals/draft",
+    "line": 6175,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/*",
+    "line": 6414,
+    "type": "prefix"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/gst-registrations",
+    "line": 6430,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/fiscal-periods",
+    "line": 6458,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/fiscal-periods/generate-year",
+    "line": 6472,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/opening-balances",
+    "line": 6487,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/period-close/year-end",
+    "line": 6513,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/period-close/reopen",
+    "line": 6542,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/sales-vouchers/*",
+    "line": 6570,
+    "type": "prefix"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/sales-vouchers/*",
+    "line": 6598,
+    "type": "prefix"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/customer-receipts/prepaid",
+    "line": 6615,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/reports/cod/collection",
+    "line": 6653,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/reports/cod/settlement",
+    "line": 6680,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "manager/cod*",
+    "line": 6682,
+    "type": "prefix"
+  },
+  {
+    "method": "POST",
+    "path": "admin/gateway-settlements/*",
+    "line": 6722,
+    "type": "prefix"
+  },
+  {
+    "method": "POST",
+    "path": "admin/gateway-settlements/batches/ingest",
+    "line": 6727,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/tellers",
+    "line": 6863,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/teller/sessions/open",
+    "line": 6886,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/teller/safe-drop",
+    "line": 7112,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/teller/safe-to-till",
+    "line": 7187,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/bank-accounts",
+    "line": 7254,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/bank-deposit-slips*",
+    "line": 7316,
+    "type": "prefix"
+  },
+  {
+    "method": "POST",
+    "path": "admin/bank-deposit-slips",
+    "line": 7323,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/suppliers",
+    "line": 7430,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/purchases",
+    "line": 7443,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/petty-cash/request-funding",
+    "line": 7724,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/petty-cash/expense-claim",
+    "line": 7760,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/petty-cash/approve",
+    "line": 7806,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/petty-cash/disburse-funding",
+    "line": 7834,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/petty-cash/reimburse",
+    "line": 7867,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "delivery/reverse-geocode",
+    "line": 9223,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "manager/cash/cod/shortage",
+    "line": 9465,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "manager/purchases/*",
+    "line": 9526,
+    "type": "prefix"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/*",
+    "line": 10499,
+    "type": "prefix"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/config/start-date",
+    "line": 10513,
+    "type": "exact"
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/company",
+    "line": 10545,
+    "type": "exact"
+  },
+  {
+    "method": "PUT",
+    "path": "admin/accounting/cost-allocations*",
+    "line": 10622,
+    "type": "prefix"
+  },
+  {
+    "method": "PUT",
+    "path": "admin/accounting/*",
+    "line": 11314,
+    "type": "prefix"
+  },
+  {
+    "method": "PUT",
+    "path": "admin/accounting/config/start-date",
+    "line": 11328,
+    "type": "exact"
+  },
+  {
+    "method": "DELETE",
+    "path": "admin/accounting/cost-allocations*",
+    "line": 11392,
+    "type": "prefix"
+  }
+]

@@ -1,0 +1,187 @@
+{
+ "version": 1,
+ "created": "2026-10-28 18:28:59",
+ "seed": 321355,
+ "agents_n": 4,
+ "cards_available": 2160,
+ "wave": 10,
+ "dir": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261028-182859-s321355",
+ "has_baseline": false,
+ "agents": {
+  "a001": {
+   "card": {
+    "reasoning": {
+     "id": "analogy",
+     "name": "Analogy",
+     "how": "Find a problem in a different field that has already been solved and has the same shape. Port its solution over, then fix every place where the analogy breaks."
+    },
+    "workflow": {
+     "id": "open-questions-first",
+     "name": "Open questions first",
+     "how": "List every open question the task leaves. Resolve each one with reasoning or a stated assumption, then answer."
+    },
+    "strategy": {
+     "id": "defensive",
+     "name": "Defensive",
+     "how": "Assume the inputs are bad and the conditions are hostile. Make the answer fail safely and loudly rather than quietly."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261028-182859-s321355\\r1\\r1-m02.a001.solution.md",
+   "alive": false,
+   "eliminated_in": 1,
+   "eliminated_by": "a003",
+   "byes": 0
+  },
+  "a002": {
+   "card": {
+    "reasoning": {
+     "id": "first-principles",
+     "name": "First principles",
+     "how": "Strip the task down to the facts and requirements nobody can argue with. Rebuild the answer from those alone, and keep a convention only if it earns its place again."
+    },
+    "workflow": {
+     "id": "options-matrix",
+     "name": "Options matrix",
+     "how": "List the realistic options, score them in a small matrix against the criteria that matter for this task, choose one, and write up the choice."
+    },
+    "strategy": {
+     "id": "concrete-specifics",
+     "name": "Concrete specifics",
+     "how": "Exact numbers, names, commands, file paths and steps. Zero generic advice."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261028-182859-s321355\\r2\\r2-m01.a002.solution.md",
+   "alive": true,
+   "eliminated_in": null,
+   "eliminated_by": null,
+   "byes": 0
+  },
+  "a003": {
+   "card": {
+    "reasoning": {
+     "id": "dialectical",
+     "name": "Dialectical",
+     "how": "State the strongest version of one answer, then the strongest opposing answer, then write the synthesis that keeps what is true in both."
+    },
+    "workflow": {
+     "id": "test-first",
+     "name": "Test first",
+     "how": "Before writing the answer, write the checks it must pass: acceptance tests for code, pass or fail criteria for anything else. Then write the answer and run every check against it."
+    },
+    "strategy": {
+     "id": "maximal-rigour",
+     "name": "Maximal rigour",
+     "how": "Be exhaustive and exact. Check every step, verify every claim, and leave no hand-waving anywhere."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261028-182859-s321355\\r2\\r2-m01.a003.solution.md",
+   "alive": false,
+   "eliminated_in": 2,
+   "eliminated_by": "a002",
+   "byes": 0
+  },
+  "a004": {
+   "card": {
+    "reasoning": {
+     "id": "expert-panel",
+     "name": "Expert panel",
+     "how": "Answer the task as three different experts would, picking roles that fit it. Take the strongest idea from each and settle every point where they disagree."
+    },
+    "workflow": {
+     "id": "write-then-restructure",
+     "name": "Write, then restructure",
+     "how": "Write freely and fast. Then outline what you actually wrote, fix the structure, and rewrite it to the new outline."
+    },
+    "strategy": {
+     "id": "explicit-trade-offs",
+     "name": "Explicit trade-offs",
+     "how": "Name the real trade-offs, choose for the user's most likely constraints, and say plainly what that choice gives up."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261028-182859-s321355\\r1\\r1-m01.a004.solution.md",
+   "alive": false,
+   "eliminated_in": 1,
+   "eliminated_by": "a002",
+   "byes": 0
+  }
+ },
+ "rounds": [
+  {
+   "n": 1,
+   "alive": [
+    "a001",
+    "a002",
+    "a003",
+    "a004"
+   ],
+   "matches": [
+    {
+     "id": "r1-m01",
+     "a": "a002",
+     "b": "a004",
+     "winner": "a002",
+     "loser": "a004",
+     "reason": "a002 delivers explicit transactional DDL, dual-stage soft-delete protection, and targeted verification scripts with zero ambiguity.",
+     "survived": [
+      "Dual-stage soft delete eliminates branch inventory cascading hazard",
+      "Targeted verification script specified"
+     ],
+     "scores": {
+      "a002": 95.75,
+      "a004": 85.5
+     },
+     "source": "judge"
+    },
+    {
+     "id": "r1-m02",
+     "a": "a003",
+     "b": "a001",
+     "winner": "a003",
+     "loser": "a001",
+     "reason": "a003 provides an exhaustive test-first automated acceptance matrix with concrete thresholds and rollback safety.",
+     "survived": [
+      "Dual-stage soft-delete protects historical invoice allocations",
+      "Rollback DDL script provided"
+     ],
+     "scores": {
+      "a003": 95.0,
+      "a001": 86.0
+     },
+     "source": "judge"
+    }
+   ],
+   "bye": null,
+   "closed": true
+  },
+  {
+   "n": 2,
+   "alive": [
+    "a002",
+    "a003"
+   ],
+   "matches": [
+    {
+     "id": "r2-m01",
+     "a": "a003",
+     "b": "a002",
+     "winner": "a002",
+     "loser": "a003",
+     "reason": "a002 provides the definitive, production-ready implementation with exact multi-table SQL cascades, dual-stage soft-delete isolation, and complete zero-data-loss guarantees.",
+     "survived": [
+      "Dual-stage soft delete eliminates branch inventory cascading hazard",
+      "Explicit Playwright browser assertion for admin GSTIN"
+     ],
+     "scores": {
+      "a003": 93.7,
+      "a002": 98.3
+     },
+     "source": "judge"
+    }
+   ],
+   "bye": null,
+   "closed": true
+  }
+ ],
+ "champion": "a002",
+ "final": null
+}

@@ -181,11 +181,55 @@ export class ExpenseService {
         return { success: true, message: "Expense reversed in General Ledger." };
       }
 
-      const result = await ExpenseRepository.transitionStatus(id, newStatus, userId, scopedBranchId);
+      if (newStatus === "REJECTED") {
+        const result = await ExpenseRepository.transitionStatus(id, "REJECTED", userId, scopedBranchId, reversalReason);
+        if (!result.success) return { success: false, error: result.error };
+        return { success: true, message: "Expense request rejected." };
+      }
+
+      const result = await ExpenseRepository.transitionStatus(id, newStatus, userId, scopedBranchId, reversalReason);
       if (!result.success) return { success: false, error: result.error };
       return { success: true, message: `Expense status updated to ${newStatus}.` };
     } catch (err: any) {
       return { success: false, error: err.message || "Failed to update expense status." };
+    }
+  }
+
+  /**
+   * Explicit reject workflow with rejection reason.
+   */
+  static async rejectExpense(
+    id: string,
+    userId: string,
+    rejectionReason: string,
+    branchId?: string,
+    isSuperAdmin?: boolean
+  ): Promise<ExpenseApiResponse<null>> {
+    return this.transitionStatus(id, "REJECTED", userId, Boolean(isSuperAdmin), branchId, rejectionReason);
+  }
+
+  /**
+   * Pays an approved expense directly from the Branch Manager's physical drawer cash.
+   * Enforces:
+   * 1. Status must be APPROVED.
+   * 2. Payment method must be CASH.
+   * 3. Teller session must be OPEN.
+   * 4. Available physical cash must be >= expense total.
+   * 5. Atomically posts GL voucher & projects EXPENSE_PAYMENT (OUT) in teller ledger.
+   */
+  static async payExpenseFromDrawer(
+    id: string,
+    userId: string,
+    branchId?: string,
+    tellerSessionId?: string,
+    isSuperAdmin?: boolean
+  ): Promise<ExpenseApiResponse<any>> {
+    const scopedBranchId = isSuperAdmin ? undefined : branchId;
+    try {
+      const result = await ExpensePostingService.postExpenseToGL(id, userId, scopedBranchId);
+      return { success: true, data: result, message: "Expense paid and posted from cash drawer." };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Failed to pay expense from drawer." };
     }
   }
 

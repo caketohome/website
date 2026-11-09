@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T03:18:27.279Z",
+  "environment": "cth_rehearsal_phase5_4",
+  "provenance": "e:/vig/cakes2home-main/cakes2home-main",
+  "run_id": "run-20261101-215100-s540001",
+  "assessment_result": "NOT_ELIGIBLE",
+  "assessment_details": {
+    "prerequisites": {
+      "layer1_evidence_verified": false,
+      "layer2_corporate_decision_verified": false,
+      "layer3_professional_clearance_completed": false,
+      "layer4_technical_readiness_passed": true,
+      "no_blocking_professional_conditions": false,
+      "no_unresolved_critical_security_findings": true,
+      "no_unexplained_historical_data_discrepancy": true,
+      "correct_company_and_environment": true,
+      "explicit_selected_invoice_series": false,
+      "valid_signatory_and_delegation_evidence": false,
+      "independent_approver_available": true,
+      "authorization_scope_defined": true
+    },
+    "blocking_reasons": [
+      "Layer 1: Signed minutes of meeting under Section 118 are absent.",
+      "Layer 2: Board Resolution CTH-2026-BR-01 is unadopted.",
+      "Layer 3: Company Secretary and Tax Counsel clearances are pending.",
+      "Conditional Clearances COND-01 and COND-02 remain unsatisfied.",
+      "Invoice series remains an undecided choice between C2H and CTHI."
+    ]
+  },
+  "human_authorization_issued": false,
+  "separation_of_duties_enforced": true
+}

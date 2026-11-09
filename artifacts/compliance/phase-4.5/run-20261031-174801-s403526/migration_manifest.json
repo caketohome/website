@@ -1,0 +1,40 @@
+{
+  "phase": "4.5",
+  "run_id": "run-20261031-174801-s403526",
+  "timestamp": "2026-10-31T18:25:00+05:30",
+  "target_chain": [
+    "c7_12",
+    "c7_13",
+    "c7_14"
+  ],
+  "migrations": [
+    {
+      "file": "c7_10_coverage_configuration.sql",
+      "sha256": "7ff887c94bdb36a8f99ef1053085aa555305c14e7b718391c2cb59385668631c",
+      "bytes": 5206
+    },
+    {
+      "file": "c7_11_assignment_schema.sql",
+      "sha256": "201eff149a72280a29b1f93312153b4109912b37bf28bbe73fb5e10c3b16201b",
+      "bytes": 4747
+    },
+    {
+      "file": "c7_12_database_driven_gst_and_invoice_series.sql",
+      "sha256": "fc695f120853e7030c98b7c49bea6b718ac7c1b7dbec745b01a49576eafbf7bc",
+      "bytes": 8048
+    },
+    {
+      "file": "c7_13_statutory_approval_integrity_and_governance.sql",
+      "sha256": "33aeffe3fc402edda3344d6cb754d2a775d33b17fd126c25f15939fa3f46aa29",
+      "bytes": 5798
+    },
+    {
+      "file": "c7_14_database_trigger_and_truncate_governance.sql",
+      "sha256": "222c255af1d15856481901efec192d2bf5003bb678c9179634693dfc8b805650",
+      "bytes": 4500
+    }
+  ],
+  "linter_pass": true,
+  "linter_defects_neutralized": 3,
+  "linter_violations": 0
+}

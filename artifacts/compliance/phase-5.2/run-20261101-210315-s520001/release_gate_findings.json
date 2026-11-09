@@ -1,0 +1,28 @@
+{
+  "run_id": "run-20261101-210315-s520001",
+  "evaluated_at": "2026-11-01T15:45:22.755Z",
+  "gates": [
+    {
+      "gate": "GATE_1_TECHNICAL_READINESS",
+      "status": "PASSED"
+    },
+    {
+      "gate": "GATE_2_BASELINE_INTEGRITY",
+      "status": "PASSED"
+    },
+    {
+      "gate": "GATE_3_COLLISION_RESOLUTION",
+      "status": "PASSED"
+    },
+    {
+      "gate": "GATE_4_CORPORATE_EVIDENCE",
+      "status": "BLOCKED"
+    },
+    {
+      "gate": "GATE_5_PROFESSIONAL_REVIEWS",
+      "status": "BLOCKED"
+    }
+  ],
+  "final_gate_verdict": "FAIL-CLOSED",
+  "production_activation_permitted": false
+}

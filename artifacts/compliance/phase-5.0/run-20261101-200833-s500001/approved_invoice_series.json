@@ -1,0 +1,14 @@
+{
+  "candidate_primary": {
+    "prefix": "C2H",
+    "pattern": "C2H/26-27/000001",
+    "capacity": 999999,
+    "status": "RECOMMENDED_PENDING_ADOPTION"
+  },
+  "candidate_fallback": {
+    "prefix": "CTHI",
+    "pattern": "CTHI/26-27/00001",
+    "capacity": 99999,
+    "status": "LEGAL_FALLBACK_PENDING_ADOPTION"
+  }
+}

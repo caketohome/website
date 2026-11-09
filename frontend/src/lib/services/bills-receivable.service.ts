@@ -93,7 +93,11 @@ export type BillsReceivableErrorCode =
   | "PERMISSION_DENIED"
   | "CONCURRENT_SETTLEMENT_LOCK"
   | "SETTLEMENT_FAILED"
-  | "REMINDER_CREATION_FAILED";
+  | "REMINDER_CREATION_FAILED"
+  | "ACCOUNT_NOT_APPROVED"
+  | "SELLER_GSTIN_INVALID"
+  | "UNAUTHORIZED_INVOICE_SERIES"
+  | "SUPER_ADMIN_REQUIRED";
 
 export class BillsReceivableError extends Error {
   readonly code: BillsReceivableErrorCode;
@@ -569,6 +573,32 @@ export class BillsReceivableService {
         );
       }
 
+      // Decision Q1: If customer is linked to a corporate_account, require corporate_account.status = 'APPROVED' and caller has SUPER_ADMIN
+      const corpAcctRes = await client.query(
+        `SELECT id, status FROM public.corporate_account WHERE customer_id = $1 AND deleted_at IS NULL LIMIT 1`,
+        [customerId]
+      );
+      if (corpAcctRes.rows.length > 0) {
+        const corpAcct = corpAcctRes.rows[0];
+        if (corpAcct.status !== "APPROVED") {
+          throw new BillsReceivableError(
+            "ACCOUNT_NOT_APPROVED",
+            `Cannot activate credit: Associated corporate account '${corpAcct.id}' is '${corpAcct.status}', expected 'APPROVED'.`
+          );
+        }
+        const isSuperAdmin =
+          (actorRole || "").toUpperCase() === "SUPER_ADMIN" ||
+          (actorSession?.role || "").toUpperCase() === "SUPER_ADMIN" ||
+          (actorSession?.user?.role || "").toUpperCase() === "SUPER_ADMIN" ||
+          (approvedBy.startsWith("admin_") && actorContext.role === "SUPER_ADMIN");
+        if (!isSuperAdmin) {
+          throw new BillsReceivableError(
+            "SUPER_ADMIN_REQUIRED",
+            `Activating credit for customer linked to corporate account '${corpAcct.id}' requires SUPER_ADMIN authority.`
+          );
+        }
+      }
+
       // Reconcile authoritative outstanding exposure
       const currentOutstanding = await BillsReceivableService.calculateAuthoritativeCustomerOutstanding(
         customerId,
@@ -743,7 +773,7 @@ export class BillsReceivableService {
         (branch.address && /kochi|kerala/i.test(branch.address) ? "Kerala" : null) ||
         branchMeta.city ||
         "Karnataka";
-      const branchGstin = branchMeta.gstin || "29AAAAA0000A1Z5";
+      const branchGstin = branchMeta.gstin || branchMeta.gst_number || null;
 
       const orderMeta = order.metadata || {};
       const deliveryAddress = orderMeta.delivery_address || orderMeta.delivery?.address || {};
@@ -1014,11 +1044,48 @@ export class BillsReceivableService {
         });
       }
 
-      // 10. GENERATE STATUTORY INVOICE NUMBER & ID
-      const seqRes = await client.query(`SELECT nextval('statutory_invoice_seq') AS seq`);
-      const seq = Number(seqRes.rows[0].seq);
-      const fyShort = `${String(fiscalYear).slice(2)}-${String(fiscalYear + 1).slice(2)}`;
-      const invoiceNumber = `CTH/${fyShort}/${String(seq).padStart(6, "0")}`;
+      // 10. GENERATE STATUTORY INVOICE NUMBER & ID via atomic PostgreSQL function
+      // Pre-allocation statutory validation: Ensure seller GSTIN is present and conforms to GST Rule 46.
+      const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+      if (!branchGstin || !GSTIN_REGEX.test(branchGstin)) {
+        throw new BillsReceivableError(
+          "SELLER_GSTIN_INVALID",
+          `Cannot allocate statutory invoice: branch seller GSTIN '${branchGstin}' is missing or invalid under GST Rule 46.`
+        );
+      }
+
+      // Dynamic Database-Driven Statutory Invoice Series Resolution (CGST Rule 46)
+      const approvedSeqRes = await client.query(
+        `SELECT prefix FROM public.invoice_sequence 
+         WHERE (entity_id = 'CAKETOHOME_PARENT')
+           AND gstin = $1 
+           AND fiscal_year = $2 
+           AND is_active = true 
+           AND approval_status = 'APPROVED'
+         ORDER BY id ASC LIMIT 1`,
+        [branchGstin, fiscalYear]
+      );
+      if (approvedSeqRes.rows.length === 0) {
+        throw new BillsReceivableError(
+          "UNAUTHORIZED_INVOICE_SERIES",
+          `Cannot allocate statutory invoice: No approved active invoice series exists for seller GSTIN '${branchGstin}' in FY ${fiscalYear}. Invoicing fail-closed under CGST Rule 46 pending CA designation.`
+        );
+      }
+      const corpPrefix = approvedSeqRes.rows[0].prefix;
+
+      // Uses same allocate_invoice_number() as delivery invoicing — single sequence authority,
+      // FY-aware reset, advisory lock serialization, and allocation audit log.
+      const seqRes = await client.query(
+        `SELECT * FROM public.allocate_invoice_number($1, $2, $3, $4, $5)`,
+        [
+          corpPrefix,
+          orderId,
+          "CAKETOHOME_PARENT",
+          branchGstin || null,
+          invoiceDate ? new Date(invoiceDate).toISOString() : new Date().toISOString(),
+        ]
+      );
+      const invoiceNumber = seqRes.rows[0].invoice_number;
       const invoiceId = `inv_corp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
       // 11. CREATE & POST VOUCHER VIA PostingService
@@ -1135,7 +1202,14 @@ export class BillsReceivableService {
         JSON.stringify(metadata),
       ]);
 
-      // 13. RECONCILE AND UPDATE CACHED credit_balance (Display only)
+      // 13. COMMIT INVOICE ALLOCATION
+      try {
+        await client.query(`SELECT public.commit_invoice_allocation($1, $2)`, [orderId, invoiceId]);
+      } catch (commitErr: any) {
+        console.warn(`[BillsReceivableService] commit_invoice_allocation notice for ${orderId}:`, commitErr?.message);
+      }
+
+      // 14. RECONCILE AND UPDATE CACHED credit_balance (Display only)
       const newOutstanding = currentOutstanding + grandTotal;
       await client.query(
         `UPDATE public.customer SET credit_balance = $1, updated_at = NOW() WHERE id = $2`,

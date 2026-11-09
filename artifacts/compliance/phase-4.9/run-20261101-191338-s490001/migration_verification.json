@@ -1,0 +1,20 @@
+{
+  "migrations": [
+    {
+      "name": "c7_12_statutory_gst_legal_entities.ts",
+      "status": "APPLIED",
+      "checksum": "verified"
+    },
+    {
+      "name": "c7_13_branch_gstin_seller_details.ts",
+      "status": "APPLIED",
+      "checksum": "verified"
+    },
+    {
+      "name": "c7_14_database_driven_invoice_series.ts",
+      "status": "APPLIED",
+      "checksum": "verified"
+    }
+  ],
+  "schema_integrity": "PASS"
+}

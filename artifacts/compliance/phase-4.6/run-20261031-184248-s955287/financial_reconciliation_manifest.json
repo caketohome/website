@@ -1,0 +1,32 @@
+{
+  "phase": "4.6",
+  "run_id": "run-20261031-184248-s955287",
+  "timestamp": "2026-10-31T19:05:00+05:30",
+  "database": "cth_test",
+  "orders": {
+    "total": 127,
+    "invoiced": 58,
+    "unbilled": 69,
+    "unbilled_breakdown": {
+      "confirmed": 26,
+      "delivered": 21,
+      "pending": 19,
+      "completed": 2,
+      "preparing": 1
+    }
+  },
+  "invoices": {
+    "total": 71,
+    "order_linked": 58,
+    "test_concurrency_records": 13,
+    "null_order_id_count": 0,
+    "duplicate_order_id_count": 0
+  },
+  "vouchers": {
+    "total": 4,
+    "draft": 3,
+    "cancelled": 1,
+    "posted": 0,
+    "general_ledger_impact": "ZERO"
+  }
+}

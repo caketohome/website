@@ -1,0 +1,31 @@
+{
+  "match": "r2-m01",
+  "scores": {
+    "a001": {
+      "correctness": 9.5,
+      "completeness": 9.5,
+      "specificity": 9.5,
+      "robustness": 9.0,
+      "clarity": 9.0,
+      "fatal": false
+    },
+    "a002": {
+      "correctness": 9.0,
+      "completeness": 8.5,
+      "specificity": 8.5,
+      "robustness": 8.5,
+      "clarity": 9.0,
+      "fatal": false
+    }
+  },
+  "winner": "a001",
+  "reason": "Exhaustive forensic precision across statutory ledger equilibrium, explicit account balances, Section 5 safeguards, and concrete remediation workflows for unmapped products.",
+  "survived": [
+    "Multi-device browser viewport matrix incorporated (1920x1080, 768x1024, 375x667)",
+    "Actionable remediation workflow for unmapped products using ProductRepository"
+  ],
+  "standing": {
+    "a001": [],
+    "a002": []
+  }
+}

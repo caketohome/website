@@ -31,6 +31,14 @@ import type { PoolClient } from "pg";
 import { CorporateGiftingRepository } from "../repositories/corporate-gifting.repository";
 import { BillsReceivableService } from "./bills-receivable.service";
 import { calculateSalesTaxesAndTotals } from "./sales-tax-engine";
+import { CorporateRoutingService } from "./corporate-routing.service";
+import { CorporateRoutingRepository } from "../repositories/corporate-routing.repository";
+import type {
+  CorporateBatchMatchingItemInput,
+  CorporateBatchMatchingSummary,
+  CorporateBatchMatchingResult,
+  CorporateDeliveryAssignmentDTO,
+} from "../types/corporate-routing.types";
 import type {
   CorporateGiftingBatchRow,
   CorporateGiftingRecipientRow,
@@ -62,7 +70,10 @@ export type CorporateGiftingErrorCode =
   | "INVALID_BATCH_STATUS"
   | "PERMISSION_DENIED"
   | "CONCURRENT_EXECUTION_LOCK"
-  | "INSUFFICIENT_DATA";
+  | "INSUFFICIENT_DATA"
+  | "RECIPIENT_NOT_FOUND"
+  | "INVALID_STATUS_TRANSITION"
+  | "PARTNER_ACCESS_DENIED";
 
 export class CorporateGiftingError extends Error {
   readonly code: CorporateGiftingErrorCode;
@@ -85,6 +96,9 @@ export interface ParsedRecipientRow {
   recipientPhone: string;
   deliveryAddress: string;
   deliveryPincode: string;
+  deliveryCity?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   deliveryDate: string;
   deliverySlot?: string;
   productSku: string;
@@ -99,6 +113,18 @@ export interface ParsedRecipientRow {
   lineTotal: number;
   costCentreId?: string;
   errors: Array<{ field: string; code: string; message: string }>;
+  routingPreview?: {
+    can_match: boolean;
+    matched_store_id?: string | null;
+    matched_store_name?: string | null;
+    matched_zone_id?: string | null;
+    matched_zone_name?: string | null;
+    matched_partner_id?: string | null;
+    matched_partner_name?: string | null;
+    reason_code?: string | null;
+    distance_km?: number | null;
+    diagnostics_message?: string | null;
+  };
 }
 
 export interface BatchValidationSummary {
@@ -139,6 +165,12 @@ export interface BatchValidationResult {
     state: string;
     gstin: string;
   };
+  routingPreview?: {
+    totalEvaluated: number;
+    totalAssigned: number;
+    totalUnassigned: number;
+    unassignedBreakdown: Record<string, number>;
+  };
 }
 
 export interface ValidateBatchImportParams {
@@ -166,6 +198,7 @@ export interface ExecuteBatchResult {
   masterOrderId: string;
   invoice: any;
   voucher: any;
+  routingSummary?: CorporateBatchMatchingSummary | null;
 }
 
 // ─── Utility Helpers ──────────────────────────────────────────────────────────
@@ -411,7 +444,7 @@ export class CorporateGiftingService {
 
     const branchMeta = branch.metadata || {};
     const branchState = branchMeta.state || branch.state || "Karnataka";
-    const branchGstin = branchMeta.gstin || "29AAAAA0000A1Z5";
+    const branchGstin = branchMeta.gstin || branchMeta.gst_number || null;
 
     // 5. Parse Excel Workbook using ExcelJS
     const ExcelJS = (await import("exceljs")).default || (await import("exceljs"));
@@ -447,37 +480,49 @@ export class CorporateGiftingService {
       );
     }
 
-    // 6. Collect distinct SKUs and Cost Centre codes for batch resolution
+    // 6. Collect distinct SKUs, Cost Centres, and Employee codes for batch resolution
     const rawRows: Array<{ rowNum: number; data: Record<string, string> }> = [];
     const skuSet = new Set<string>();
     const ccSet = new Set<string>();
+    const empSet = new Set<string>();
 
     for (let r = 2; r <= worksheet.rowCount; r++) {
       const row = worksheet.getRow(r);
-      const name = extractCellValue(row.getCell(headerMap.get("recipient_name")!).value);
-      const phone = extractCellValue(row.getCell(headerMap.get("recipient_phone")!).value);
-      const address = extractCellValue(row.getCell(headerMap.get("delivery_address")!).value);
+      const getColVal = (key: string): string => {
+        const colIdx = headerMap.get(key);
+        if (!colIdx || colIdx < 1) return "";
+        return extractCellValue(row.getCell(colIdx).value);
+      };
+
+      const name = getColVal("recipient_name");
+      const phone = getColVal("recipient_phone");
+      const address = getColVal("delivery_address");
 
       // Skip empty blank trailing rows
       if (!name && !phone && !address) continue;
 
+      const empId = getColVal("employee_id");
       const rowData: Record<string, string> = {
-        employee_id: extractCellValue(row.getCell(headerMap.get("employee_id") || 0)?.value),
+        employee_id: empId,
         recipient_name: name,
         recipient_phone: phone,
         delivery_address: address,
-        delivery_pincode: extractCellValue(row.getCell(headerMap.get("delivery_pincode")!).value),
-        delivery_date: extractCellValue(row.getCell(headerMap.get("delivery_date")!).value),
-        delivery_slot: extractCellValue(row.getCell(headerMap.get("delivery_slot") || 0)?.value),
-        product_sku: extractCellValue(row.getCell(headerMap.get("product_sku")!).value),
-        quantity: extractCellValue(row.getCell(headerMap.get("quantity")!).value) || "1",
-        gift_message: extractCellValue(row.getCell(headerMap.get("gift_message") || 0)?.value),
-        cost_centre_code: extractCellValue(row.getCell(headerMap.get("cost_centre_code") || 0)?.value),
+        delivery_pincode: getColVal("delivery_pincode"),
+        delivery_city: getColVal("delivery_city") || getColVal("city"),
+        latitude: getColVal("latitude") || getColVal("lat"),
+        longitude: getColVal("longitude") || getColVal("long") || getColVal("lng"),
+        delivery_date: getColVal("delivery_date"),
+        delivery_slot: getColVal("delivery_slot"),
+        product_sku: getColVal("product_sku"),
+        quantity: getColVal("quantity") || "1",
+        gift_message: getColVal("gift_message"),
+        cost_centre_code: getColVal("cost_centre_code"),
       };
 
       rawRows.push({ rowNum: r, data: rowData });
       if (rowData.product_sku) skuSet.add(rowData.product_sku.trim().toUpperCase());
       if (rowData.cost_centre_code) ccSet.add(rowData.cost_centre_code.trim().toUpperCase());
+      if (rowData.employee_id) empSet.add(rowData.employee_id.trim().toUpperCase());
     }
 
     if (rawRows.length === 0) {
@@ -512,6 +557,25 @@ export class CorporateGiftingService {
         [ccList]
       );
       ccRes.rows.forEach((c: any) => ccMap.set(c.code.toUpperCase(), c));
+    }
+
+    // Batch resolve Employee default coordinates from corporate roster
+    const empMap = new Map<string, { lat: number | null; lng: number | null; city: string | null }>();
+    if (empSet.size > 0) {
+      const empList = Array.from(empSet);
+      const empRes = await queryFn(
+        `SELECT employee_code, default_latitude, default_longitude, city_key 
+         FROM public.corporate_employee 
+         WHERE UPPER(employee_code) = ANY($1) AND status = 'ACTIVE';`,
+        [empList]
+      );
+      empRes.rows.forEach((e: any) => {
+        empMap.set(String(e.employee_code).toUpperCase(), {
+          lat: e.default_latitude !== null ? Number(e.default_latitude) : null,
+          lng: e.default_longitude !== null ? Number(e.default_longitude) : null,
+          city: e.city_key || null,
+        });
+      });
     }
 
     // 7. Row-by-Row Semantic Validation
@@ -656,6 +720,26 @@ export class CorporateGiftingService {
         validCount++;
       }
 
+      let rowLat: number | null = null;
+      let rowLng: number | null = null;
+      if (d.latitude && !isNaN(Number(d.latitude))) {
+        rowLat = Number(d.latitude);
+      }
+      if (d.longitude && !isNaN(Number(d.longitude))) {
+        rowLng = Number(d.longitude);
+      }
+      let rowCity = d.delivery_city || undefined;
+
+      // If coordinates missing in row, resolve from corporate_employee profile if available
+      if ((rowLat === null || rowLng === null) && d.employee_id) {
+        const emp = empMap.get(d.employee_id.trim().toUpperCase());
+        if (emp) {
+          if (rowLat === null && emp.lat !== null) rowLat = emp.lat;
+          if (rowLng === null && emp.lng !== null) rowLng = emp.lng;
+          if (!rowCity && emp.city) rowCity = emp.city;
+        }
+      }
+
       parsedRecipients.push({
         rowNumber: item.rowNum,
         employeeId: d.employee_id || undefined,
@@ -663,6 +747,9 @@ export class CorporateGiftingService {
         recipientPhone: finalPhone,
         deliveryAddress: d.delivery_address,
         deliveryPincode: d.delivery_pincode,
+        deliveryCity: rowCity,
+        latitude: rowLat,
+        longitude: rowLng,
         deliveryDate: d.delivery_date,
         deliverySlot: d.delivery_slot || "MORNING",
         productSku: d.product_sku,
@@ -738,6 +825,59 @@ export class CorporateGiftingService {
 
     const isValid = errors.length === 0;
 
+    // Read-only routing evaluation preview (pure calculation, ZERO DB writes)
+    let routingPreview: BatchValidationResult["routingPreview"] = undefined;
+    try {
+      const candidateStores = await CorporateRoutingRepository.listCandidateStoreZones(callerClient);
+      const candidatePartners = await CorporateRoutingRepository.listCandidatePartnerCoverages(callerClient);
+
+      let previewAssigned = 0;
+      let previewUnassigned = 0;
+      const previewBreakdown: Record<string, number> = {};
+
+      for (const p of parsedRecipients) {
+        const itemTarget: CorporateBatchMatchingItemInput = {
+          entity_type: "GIFTING_RECIPIENT",
+          entity_id: `preview_${p.rowNumber}`,
+          delivery_address: p.deliveryAddress,
+          delivery_city: p.deliveryCity || null,
+          delivery_pincode: p.deliveryPincode,
+          latitude: p.latitude ?? null,
+          longitude: p.longitude ?? null,
+        };
+        const evalOutcome = CorporateRoutingService.evaluateTarget(itemTarget, candidateStores, candidatePartners);
+        const canMatch = evalOutcome.status === "ASSIGNED";
+        if (canMatch) {
+          previewAssigned++;
+        } else {
+          previewUnassigned++;
+          previewBreakdown[evalOutcome.reason_code] = (previewBreakdown[evalOutcome.reason_code] || 0) + 1;
+        }
+
+        p.routingPreview = {
+          can_match: canMatch,
+          matched_store_id: evalOutcome.assigned_store_id,
+          matched_store_name: evalOutcome.assigned_store_name,
+          matched_zone_id: evalOutcome.assigned_zone_id,
+          matched_zone_name: evalOutcome.assigned_zone_name,
+          matched_partner_id: evalOutcome.assigned_partner_id,
+          matched_partner_name: evalOutcome.assigned_partner_name,
+          reason_code: evalOutcome.reason_code,
+          distance_km: evalOutcome.distance_km,
+          diagnostics_message: evalOutcome.diagnostics_message,
+        };
+      }
+
+      routingPreview = {
+        totalEvaluated: parsedRecipients.length,
+        totalAssigned: previewAssigned,
+        totalUnassigned: previewUnassigned,
+        unassignedBreakdown: previewBreakdown,
+      };
+    } catch {
+      // Non-fatal preview fallback
+    }
+
     return {
       isValid,
       fileHash,
@@ -774,6 +914,7 @@ export class CorporateGiftingService {
         state: branchState,
         gstin: branchGstin,
       },
+      routingPreview,
     };
   }
 
@@ -923,7 +1064,7 @@ export class CorporateGiftingService {
       );
 
       // 5. Create Child Deliveries and Recipient Line Items
-      const recipientInputs = [];
+      const recipientInputs: any[] = [];
       for (const r of validation.parsedRecipients) {
         const recipId = `cgr_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
         const delivId = `del_${recipId}`;
@@ -970,10 +1111,44 @@ export class CorporateGiftingService {
           order_id: masterOrderId,
           delivery_id: delivId,
           status: "ORDER_CREATED" as const,
+          delivery_city: r.deliveryCity || null,
+          metadata: {
+            latitude: r.latitude ?? null,
+            longitude: r.longitude ?? null,
+          },
         });
       }
 
       await CorporateGiftingRepository.insertRecipients(recipientInputs, client);
+
+      // 5b. Phase C7.13: Evaluate Geographic Routing for Campaign Recipients
+      const corpAccRes = await client.query(
+        `SELECT id FROM public.corporate_account WHERE customer_id = $1 AND deleted_at IS NULL LIMIT 1;`,
+        [customerId]
+      );
+      const corpAccountId = corpAccRes.rows[0]?.id || null;
+
+      const routingItems: CorporateBatchMatchingItemInput[] = validation.parsedRecipients.map((r, idx) => ({
+        entity_type: "GIFTING_RECIPIENT",
+        entity_id: recipientInputs[idx].id,
+        account_id: corpAccountId,
+        recipient_name: r.recipientName,
+        recipient_phone: r.recipientPhone,
+        delivery_address: r.deliveryAddress,
+        delivery_city: r.deliveryCity || null,
+        delivery_pincode: r.deliveryPincode,
+        latitude: r.latitude ?? null,
+        longitude: r.longitude ?? null,
+      }));
+
+      const routingResult = await CorporateRoutingService.matchDeliveriesBatch(
+        {
+          items: routingItems,
+          actor_id: actorContext?.userId || "SYSTEM_CAMPAIGN_CONFIRMATION",
+          actor_role: actorContext?.role || "SYSTEM",
+        },
+        client
+      );
 
       // 6. Post Single Master Corporate GST Invoice via BillsReceivableService
       const invoiceItems = validation.parsedRecipients.map((r) => ({
@@ -1000,12 +1175,16 @@ export class CorporateGiftingService {
         client,
       });
 
-      // 7. Link Invoice ID back to Batch Record
+      // 7. Link Invoice ID and Routing Summary back to Batch Record
       const updatedBatch = await CorporateGiftingRepository.updateBatch(
         batchId,
         {
           invoice_id: invoiceRes.invoice.id,
           status: "SCHEDULED",
+          metadata: {
+            ...createdBatch.metadata,
+            routing_summary: routingResult.summary,
+          },
         },
         client
       );
@@ -1017,6 +1196,7 @@ export class CorporateGiftingService {
         masterOrderId,
         invoice: invoiceRes.invoice,
         voucher: invoiceRes.voucher,
+        routingSummary: routingResult.summary,
       };
     };
 
@@ -1031,8 +1211,18 @@ export class CorporateGiftingService {
     if (!batch) {
       throw new CorporateGiftingError("BATCH_NOT_FOUND", `Corporate gifting batch '${batchId}' not found.`);
     }
-    const recipients = await CorporateGiftingRepository.listRecipientsByBatch(batchId, {}, client);
-    return { batch, ...recipients };
+    const routingStatus = await CorporateGiftingRepository.getBatchRoutingStatus(batchId, client);
+    return {
+      batch,
+      recipients: routingStatus.items,
+      total: routingStatus.total_recipients,
+      routingSummary: {
+        totalRecipients: routingStatus.total_recipients,
+        assignedCount: routingStatus.assigned_count,
+        unassignedCount: routingStatus.unassigned_count,
+        unassignedBreakdown: routingStatus.unassigned_breakdown,
+      },
+    };
   }
 
   /**
@@ -1040,5 +1230,487 @@ export class CorporateGiftingService {
    */
   static async listBatches(filter: any = {}, client?: PoolClient) {
     return await CorporateGiftingRepository.listBatches(filter, client);
+  }
+
+  /**
+   * Phase C7.13: Re-evaluates routing for all recipients in a corporate batch.
+   * Preserves MANUAL_OVERRIDE records unless forceReassign is true.
+   * Zero duplicate orders or invoices.
+   */
+  static async routeBatchRecipients(params: {
+    batchId: string;
+    forceReassign?: boolean;
+    actorContext?: any;
+    client?: PoolClient;
+  }): Promise<{
+    batchId: string;
+    summary: CorporateBatchMatchingSummary;
+    assignments: CorporateDeliveryAssignmentDTO[];
+  }> {
+    const { batchId, forceReassign = false, actorContext, client: callerClient } = params;
+
+    const executeRouting = async (client: PoolClient) => {
+      const batch = await CorporateGiftingRepository.getBatchById(batchId, client);
+      if (!batch) {
+        throw new CorporateGiftingError("BATCH_NOT_FOUND", `Corporate gifting batch '${batchId}' not found.`);
+      }
+
+      // Check customer isolation if caller is a customer
+      if (actorContext) {
+        const role = (actorContext.role || "").toUpperCase();
+        if (role === "CUSTOMER") {
+          const authCust = actorContext.customerId || actorContext.userId;
+          if (batch.customer_id !== authCust) {
+            throw new CorporateGiftingError("BATCH_NOT_FOUND", `Corporate gifting batch '${batchId}' not found.`);
+          }
+        }
+      }
+
+      const recipResult = await CorporateGiftingRepository.listRecipientsByBatch(batchId, { limit: 2000 }, client);
+      if (recipResult.recipients.length === 0) {
+        throw new CorporateGiftingError("INSUFFICIENT_DATA", "Batch contains no recipient records.");
+      }
+
+      const corpAccRes = await client.query(
+        `SELECT id FROM public.corporate_account WHERE customer_id = $1 AND deleted_at IS NULL LIMIT 1;`,
+        [batch.customer_id]
+      );
+      const corpAccountId = corpAccRes.rows[0]?.id || null;
+
+      // Map recipients to matching items, retrieving coordinates from assignment, recipient metadata, or employee
+      const routingItems: CorporateBatchMatchingItemInput[] = [];
+      for (const r of recipResult.recipients) {
+        const meta = (r.metadata as any) || {};
+        let lat = typeof meta.latitude === "number" ? meta.latitude : null;
+        let lng = typeof meta.longitude === "number" ? meta.longitude : null;
+
+        // If coordinates missing, check existing assignment
+        if (lat === null || lng === null) {
+          const cdaRes = await client.query(
+            `SELECT latitude, longitude FROM public.corporate_delivery_assignment WHERE entity_type = 'GIFTING_RECIPIENT' AND entity_id = $1 LIMIT 1;`,
+            [r.id]
+          );
+          if (cdaRes.rows.length > 0 && cdaRes.rows[0].latitude !== null && cdaRes.rows[0].longitude !== null) {
+            lat = Number(cdaRes.rows[0].latitude);
+            lng = Number(cdaRes.rows[0].longitude);
+          }
+        }
+
+        routingItems.push({
+          entity_type: "GIFTING_RECIPIENT",
+          entity_id: r.id,
+          account_id: corpAccountId,
+          recipient_name: r.recipient_name,
+          recipient_phone: r.recipient_phone,
+          delivery_address: r.delivery_address,
+          delivery_city: r.delivery_city || null,
+          delivery_pincode: r.delivery_pincode,
+          latitude: lat,
+          longitude: lng,
+        });
+      }
+
+      const res = await CorporateRoutingService.matchDeliveriesBatch(
+        {
+          items: routingItems,
+          actor_id: actorContext?.userId || "SYSTEM_ROUTING_RETRY",
+          actor_role: actorContext?.role || "SYSTEM",
+          force_reassign: forceReassign,
+        },
+        client
+      );
+
+      return {
+        batchId,
+        summary: res.summary,
+        assignments: res.assignments,
+      };
+    };
+
+    if (callerClient) {
+      return await executeRouting(callerClient);
+    } else {
+      return await dbTransaction(async (client) => {
+        return await executeRouting(client);
+      });
+    }
+  }
+
+  /**
+   * Phase C7.13: Reassigns an individual recipient delivery to a store and partner.
+   * Records immutable audit event and synchronizes delivery record.
+   */
+  static async reassignRecipientDelivery(params: {
+    recipientId: string;
+    storeId: string;
+    partnerId?: string;
+    overrideReason: string;
+    latitude?: number;
+    longitude?: number;
+    actorContext?: any;
+    client?: PoolClient;
+  }): Promise<{
+    success: boolean;
+    assignment: CorporateDeliveryAssignmentDTO;
+    delivery_status: string;
+  }> {
+    const { recipientId, storeId, partnerId, overrideReason, latitude, longitude, actorContext, client: callerClient } = params;
+
+    const executeReassign = async (client: PoolClient) => {
+      const recip = await CorporateGiftingRepository.getRecipientWithDeliveryAndAssignment(recipientId, client);
+      if (!recip) {
+        throw new CorporateGiftingError("RECIPIENT_NOT_FOUND", `Corporate gifting recipient '${recipientId}' not found.`);
+      }
+
+      // Authorization guard: customers cannot manually reassign
+      if (actorContext) {
+        const role = (actorContext.role || "").toUpperCase();
+        if (role === "CUSTOMER") {
+          throw new CorporateGiftingError("FORBIDDEN", "Corporate customers cannot perform manual routing overrides.");
+        }
+      }
+
+      if (!overrideReason || overrideReason.trim().length < 5) {
+        throw new CorporateGiftingError("INSUFFICIENT_DATA", "A detailed override reason (min 5 chars) is required.");
+      }
+
+      // Validate store
+      const storeRes = await client.query(
+        `SELECT id, name FROM public.branch WHERE id = $1 AND deleted_at IS NULL LIMIT 1;`,
+        [storeId.trim()]
+      );
+      if (storeRes.rows.length === 0) {
+        throw new CorporateGiftingError("BRANCH_NOT_FOUND", `Store '${storeId}' not found or inactive.`);
+      }
+
+      // Validate partner if specified
+      if (partnerId && partnerId.trim() !== "") {
+        const pRes = await client.query(
+          `SELECT id, first_name, last_name FROM public.delivery_partner WHERE id = $1 AND deleted_at IS NULL LIMIT 1;`,
+          [partnerId.trim()]
+        );
+        if (pRes.rows.length === 0) {
+          throw new CorporateGiftingError("INSUFFICIENT_DATA", `Delivery partner '${partnerId}' not found or inactive.`);
+        }
+      }
+
+      // Check or create assignment record
+      let assignment = await CorporateRoutingRepository.getAssignmentByEntity("GIFTING_RECIPIENT", recipientId, client);
+      const actorId = actorContext?.userId || "SYSTEM_REASSIGN";
+      const actorRole = actorContext?.role || "ADMIN";
+
+      if (!assignment) {
+        // Create initial assignment record as MANUAL_OVERRIDE
+        const corpAccRes = await client.query(
+          `SELECT ca.id FROM public.corporate_gifting_batch cgb
+           JOIN public.corporate_account ca ON ca.customer_id = cgb.customer_id
+           WHERE cgb.id = $1 LIMIT 1;`,
+          [recip.batch_id]
+        );
+        const corpAccountId = corpAccRes.rows[0]?.id || null;
+
+        assignment = await CorporateRoutingRepository.upsertAssignment(
+          {
+            entity_type: "GIFTING_RECIPIENT",
+            entity_id: recipientId,
+            account_id: corpAccountId,
+            recipient_name: recip.recipient_name,
+            recipient_phone: recip.recipient_phone,
+            delivery_address: recip.delivery_address,
+            delivery_city: recip.delivery_city,
+            normalized_city_key: recip.delivery_city ? recip.delivery_city.trim().toLowerCase() : null,
+            delivery_pincode: recip.delivery_pincode,
+            latitude: typeof latitude === "number" ? latitude : null,
+            longitude: typeof longitude === "number" ? longitude : null,
+            status: "MANUAL_OVERRIDE",
+            reason_code: "MANUAL_OVERRIDE",
+            assigned_store_id: storeId.trim(),
+            assigned_partner_id: partnerId ? partnerId.trim() : null,
+            matched_rule: "MANUAL_OVERRIDE",
+            diagnostics_message: `Manually assigned: ${overrideReason.trim()}`,
+            assigned_at: new Date().toISOString(),
+            assigned_by: actorId,
+            override_reason: overrideReason.trim(),
+          },
+          client
+        );
+
+        await CorporateRoutingRepository.insertAssignmentEvent(
+          {
+            assignment_id: assignment.id,
+            event_type: "MANUALLY_OVERRIDDEN",
+            actor_id: actorId,
+            actor_role: actorRole,
+            reason: overrideReason.trim(),
+            before_state: null,
+            after_state: {
+              status: assignment.status,
+              store_id: assignment.assigned_store_id,
+              partner_id: assignment.assigned_partner_id,
+              override_reason: assignment.override_reason,
+            },
+          },
+          client
+        );
+      } else {
+        // Resolve using existing assignment
+        await CorporateRoutingService.resolveUnresolvedAssignment(
+          {
+            assignment_id: assignment.id,
+            action: "MANUAL_ASSIGN",
+            store_id: storeId.trim(),
+            partner_id: partnerId ? partnerId.trim() : undefined,
+            override_reason: overrideReason.trim(),
+            actor_id: actorId,
+            actor_role: actorRole,
+          },
+          client
+        );
+        assignment = (await CorporateRoutingRepository.getAssignmentById(assignment.id, client)) as any;
+      }
+
+      // Synchronize delivery table
+      if (partnerId && partnerId.trim() !== "") {
+        await client.query(
+          `UPDATE public.delivery d
+           SET delivery_partner_id = $1,
+               delivery_status = CASE WHEN d.delivery_status = 'pending' THEN 'pickup_claimed' ELSE d.delivery_status END,
+               updated_at = NOW()
+           WHERE (d.id = $2 OR d.id = ('del_' || $3));`,
+          [partnerId.trim(), recip.delivery_id, recipientId]
+        );
+      }
+
+      const updatedDeliveryRes = await client.query(
+        `SELECT delivery_status FROM public.delivery WHERE (id = $1 OR id = ('del_' || $2)) LIMIT 1;`,
+        [recip.delivery_id, recipientId]
+      );
+      const rawDeliveryStatus = updatedDeliveryRes.rows[0]?.delivery_status;
+      const deliveryStatus = rawDeliveryStatus === "pickup_claimed" ? "assigned" : (rawDeliveryStatus || "assigned");
+
+      return {
+        success: true,
+        assignment: CorporateRoutingService.toAssignmentDTO(assignment!),
+        delivery_status: deliveryStatus,
+      };
+    };
+
+    if (callerClient) {
+      return await executeReassign(callerClient);
+    } else {
+      return await dbTransaction(async (client) => {
+        return await executeReassign(client);
+      });
+    }
+  }
+
+  /**
+   * Phase C7.13: Updates delivery lifecycle status for a campaign recipient.
+   * Enforces valid state machine transitions, partner scoping, and immutable audit tracking.
+   * Zero duplicate invoices and zero accounting entries created.
+   */
+  static async updateRecipientDeliveryStatus(params: {
+    recipientId: string;
+    deliveryStatus: string;
+    notes?: string;
+    actorContext?: any;
+    client?: PoolClient;
+  }): Promise<{
+    success: boolean;
+    recipientId: string;
+    previousStatus: string;
+    deliveryStatus: string;
+    recipientStatus: string;
+    idempotent: boolean;
+  }> {
+    const { recipientId, deliveryStatus, notes, actorContext, client: callerClient } = params;
+
+    const executeUpdate = async (client: PoolClient) => {
+      const recip = await CorporateGiftingRepository.getRecipientWithDeliveryAndAssignment(recipientId, client);
+      if (!recip) {
+        throw new CorporateGiftingError("RECIPIENT_NOT_FOUND", `Corporate gifting recipient '${recipientId}' not found.`);
+      }
+
+      const targetStatus = (deliveryStatus || "").trim().toLowerCase();
+      const validStatuses = [
+        "pending",
+        "assigned",
+        "pickup_claimed",
+        "out_for_delivery",
+        "in_transit",
+        "delivered",
+        "failed",
+        "cancelled",
+      ];
+      if (!validStatuses.includes(targetStatus)) {
+        throw new CorporateGiftingError(
+          "INVALID_STATUS_TRANSITION",
+          `Invalid delivery status '${deliveryStatus}'. Must be one of: ${validStatuses.join(", ")}.`
+        );
+      }
+
+      const currentStatus = String(recip.delivery_status || "pending").toLowerCase();
+
+      // Normalize statuses for lifecycle transition verification
+      const canonTarget =
+        targetStatus === "pickup_claimed" || targetStatus === "assigned"
+          ? "assigned"
+          : targetStatus === "in_transit" || targetStatus === "out_for_delivery"
+          ? "out_for_delivery"
+          : targetStatus;
+
+      const canonCurrent =
+        currentStatus === "pickup_claimed" || currentStatus === "assigned"
+          ? "assigned"
+          : currentStatus === "in_transit" || currentStatus === "out_for_delivery"
+          ? "out_for_delivery"
+          : currentStatus;
+
+      // Database check constraint mapping for public.delivery
+      const dbTarget =
+        canonTarget === "assigned"
+          ? "pickup_claimed"
+          : canonTarget === "out_for_delivery"
+          ? "in_transit"
+          : canonTarget === "delivered"
+          ? "delivered"
+          : canonTarget === "failed" || canonTarget === "cancelled"
+          ? (canonCurrent === "out_for_delivery" ? "in_transit" : "pending")
+          : "pending";
+
+      // Partner authorization check: Delivery partners can only update their own assigned orders
+      if (actorContext) {
+        const role = (actorContext.role || "").toUpperCase();
+        if (role === "DELIVERY_PARTNER") {
+          const authPartnerId = actorContext.partnerId || actorContext.userId;
+          const assignedPartner = recip.delivery_partner_id || recip.routing_partner_id;
+          if (!assignedPartner || assignedPartner !== authPartnerId) {
+            throw new CorporateGiftingError(
+              "PARTNER_ACCESS_DENIED",
+              "Access denied: You can only update deliveries assigned to your delivery partner account."
+            );
+          }
+        } else if (role === "CUSTOMER") {
+          throw new CorporateGiftingError(
+            "FORBIDDEN",
+            "Access denied: Corporate customers cannot alter fulfillment delivery statuses."
+          );
+        }
+      }
+
+      // Idempotency check
+      if (canonCurrent === canonTarget) {
+        return {
+          success: true,
+          recipientId,
+          previousStatus: currentStatus,
+          deliveryStatus: targetStatus,
+          recipientStatus: recip.status,
+          idempotent: true,
+        };
+      }
+
+      // Terminal state guard: cannot alter delivered or cancelled
+      if (canonCurrent === "delivered") {
+        throw new CorporateGiftingError(
+          "INVALID_STATUS_TRANSITION",
+          "Delivery is already completed ('delivered') and cannot be altered."
+        );
+      }
+      if (canonCurrent === "cancelled") {
+        throw new CorporateGiftingError(
+          "INVALID_STATUS_TRANSITION",
+          "Delivery is already cancelled and cannot be altered."
+        );
+      }
+
+      // Transition validation rules
+      // 1. Direct completion from pending/assigned is strictly prohibited
+      if (canonTarget === "delivered" && canonCurrent !== "out_for_delivery") {
+        throw new CorporateGiftingError(
+          "INVALID_STATUS_TRANSITION",
+          `Cannot mark delivery completed directly from '${currentStatus}'. Order must be 'out_for_delivery' first.`
+        );
+      }
+
+      // 2. Out for delivery must come from assigned (or re-attempt from failed)
+      if (canonTarget === "out_for_delivery" && canonCurrent !== "assigned" && canonCurrent !== "failed") {
+        throw new CorporateGiftingError(
+          "INVALID_STATUS_TRANSITION",
+          `Cannot transition to 'out_for_delivery' from '${currentStatus}'. Must be 'assigned' or 'failed'.`
+        );
+      }
+
+      // 3. Failed must come from out_for_delivery
+      if (canonTarget === "failed" && canonCurrent !== "out_for_delivery") {
+        throw new CorporateGiftingError(
+          "INVALID_STATUS_TRANSITION",
+          `Cannot mark delivery failed from '${currentStatus}'. Order must be 'out_for_delivery'.`
+        );
+      }
+
+      // Map delivery status to corporate_gifting_recipient status
+      let mappedRecipientStatus: "ORDER_CREATED" | "DISPATCHED" | "DELIVERED" | "FAILED" | "CANCELLED" = "ORDER_CREATED";
+      if (canonTarget === "out_for_delivery") {
+        mappedRecipientStatus = "DISPATCHED";
+      } else if (canonTarget === "delivered") {
+        mappedRecipientStatus = "DELIVERED";
+      } else if (canonTarget === "failed") {
+        mappedRecipientStatus = "FAILED";
+      } else if (canonTarget === "cancelled") {
+        mappedRecipientStatus = "CANCELLED";
+      }
+
+      // Mutate public.delivery with constraint-adherent status
+      await client.query(
+        `UPDATE public.delivery 
+         SET delivery_status = $1, updated_at = NOW() 
+         WHERE (id = $2 OR id = ('del_' || $3));`,
+        [dbTarget, recip.delivery_id, recipientId]
+      );
+
+      // Mutate public.corporate_gifting_recipient with audit history
+      const existingMeta = (recip.metadata as any) || {};
+      const history = Array.isArray(existingMeta.status_history) ? existingMeta.status_history : [];
+      history.push({
+        from: currentStatus,
+        to: targetStatus,
+        timestamp: new Date().toISOString(),
+        actor_id: actorContext?.userId || "SYSTEM",
+        actor_role: actorContext?.role || "SYSTEM",
+        notes: notes || null,
+      });
+
+      await client.query(
+        `UPDATE public.corporate_gifting_recipient
+         SET status = $1, metadata = $2, updated_at = NOW()
+         WHERE id = $3;`,
+        [mappedRecipientStatus, JSON.stringify({ ...existingMeta, status_history: history }), recipientId]
+      );
+
+      return {
+        success: true,
+        recipientId,
+        previousStatus: currentStatus,
+        deliveryStatus: targetStatus,
+        recipientStatus: mappedRecipientStatus,
+        idempotent: false,
+      };
+    };
+
+    if (callerClient) {
+      return await executeUpdate(callerClient);
+    } else {
+      return await dbTransaction(async (client) => {
+        return await executeUpdate(client);
+      });
+    }
+  }
+
+  /**
+   * Phase C7.13: Fetches routing and delivery overview for a batch.
+   */
+  static async getBatchRoutingStatus(batchId: string, client?: PoolClient) {
+    return await CorporateGiftingRepository.getBatchRoutingStatus(batchId, client);
   }
 }

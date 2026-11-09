@@ -1,0 +1,190 @@
+{
+ "version": 1,
+ "created": "2026-10-18 21:45:03",
+ "seed": 99,
+ "agents_n": 4,
+ "cards_available": 2160,
+ "wave": 10,
+ "dir": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-214503-s99",
+ "has_baseline": false,
+ "agents": {
+  "a001": {
+   "card": {
+    "reasoning": {
+     "id": "analogy",
+     "name": "Analogy",
+     "how": "Find a problem in a different field that has already been solved and has the same shape. Port its solution over, then fix every place where the analogy breaks."
+    },
+    "workflow": {
+     "id": "options-matrix",
+     "name": "Options matrix",
+     "how": "List the realistic options, score them in a small matrix against the criteria that matter for this task, choose one, and write up the choice."
+    },
+    "strategy": {
+     "id": "simplest",
+     "name": "Simplest thing that works",
+     "how": "Pick the least complicated answer that fully does the job. Every extra part has to justify itself."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-214503-s99\\r1\\r1-m02.a001.solution.md",
+   "alive": false,
+   "eliminated_in": 1,
+   "eliminated_by": "a004",
+   "byes": 0
+  },
+  "a002": {
+   "card": {
+    "reasoning": {
+     "id": "contrarian",
+     "name": "Contrarian",
+     "how": "Write down the obvious default answer, then argue seriously against it. Keep only what survives the argument, even if that takes you the unpopular way."
+    },
+    "workflow": {
+     "id": "open-questions-first",
+     "name": "Open questions first",
+     "how": "List every open question the task leaves. Resolve each one with reasoning or a stated assumption, then answer."
+    },
+    "strategy": {
+     "id": "fewest-moving-parts",
+     "name": "Fewest moving parts",
+     "how": "Remove things until it breaks, then put the last one back. Fewer steps, fewer dependencies, fewer words."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-214503-s99\\r1\\r1-m01.a002.solution.md",
+   "alive": false,
+   "eliminated_in": 1,
+   "eliminated_by": "a003",
+   "byes": 0
+  },
+  "a003": {
+   "card": {
+    "reasoning": {
+     "id": "decomposition",
+     "name": "Decomposition",
+     "how": "Break the task into independent sub-problems. Solve each one completely, then integrate them and test the seams where they meet."
+    },
+    "workflow": {
+     "id": "write-then-restructure",
+     "name": "Write, then restructure",
+     "how": "Write freely and fast. Then outline what you actually wrote, fix the structure, and rewrite it to the new outline."
+    },
+    "strategy": {
+     "id": "explicit-trade-offs",
+     "name": "Explicit trade-offs",
+     "how": "Name the real trade-offs, choose for the user's most likely constraints, and say plainly what that choice gives up."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-214503-s99\\r2\\r2-m01.a003.solution.md",
+   "alive": false,
+   "eliminated_in": 2,
+   "eliminated_by": "a004",
+   "byes": 0
+  },
+  "a004": {
+   "card": {
+    "reasoning": {
+     "id": "dialectical",
+     "name": "Dialectical",
+     "how": "State the strongest version of one answer, then the strongest opposing answer, then write the synthesis that keeps what is true in both."
+    },
+    "workflow": {
+     "id": "smallest-version-first",
+     "name": "Smallest version first",
+     "how": "Produce the smallest complete version that actually works. Then extend it one step at a time, keeping it working after every step."
+    },
+    "strategy": {
+     "id": "built-to-last",
+     "name": "Built to last",
+     "how": "Optimise for how this holds up in six months: easy to maintain, easy to extend, no traps for the next person."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-214503-s99\\r2\\r2-m01.a004.solution.md",
+   "alive": true,
+   "eliminated_in": null,
+   "eliminated_by": null,
+   "byes": 0
+  }
+ },
+ "rounds": [
+  {
+   "n": 1,
+   "alive": [
+    "a001",
+    "a002",
+    "a003",
+    "a004"
+   ],
+   "matches": [
+    {
+     "id": "r1-m01",
+     "a": "a002",
+     "b": "a003",
+     "winner": "a003",
+     "loser": "a002",
+     "reason": "a003 provides superior architectural decomposition across the five sub-problem seams, including explicit sub-route isolation and multi-viewport audit criteria.",
+     "survived": [
+      "Resolved catch-all API handler shadowing via explicit sub-route isolation rules",
+      "Detailed concrete relational schema anomalies and foreign key constraints",
+      "Added multi-device viewport testing matrix across desktop, tablet, and mobile"
+     ],
+     "scores": {
+      "a002": 87.1,
+      "a003": 93.05
+     },
+     "source": "judge"
+    },
+    {
+     "id": "r1-m02",
+     "a": "a004",
+     "b": "a001",
+     "winner": "a004",
+     "loser": "a001",
+     "reason": "a004 presents a comprehensive Tri-Gate Verification Engine enforcing synchronous browser runtime, network status, and PostgreSQL persistence assertions with strict sequence dependencies.",
+     "survived": [
+      "Reordered staged pipeline to assert database synchronization before full workflow E2E execution",
+      "Specified exact PostgreSQL guard queries protecting quarantined invoices 31-35",
+      "Established structured control schema with stable DOM test IDs"
+     ],
+     "scores": {
+      "a004": 94.05,
+      "a001": 88.05
+     },
+     "source": "judge"
+    }
+   ],
+   "bye": null,
+   "closed": true
+  },
+  {
+   "n": 2,
+   "alive": [
+    "a003",
+    "a004"
+   ],
+   "matches": [
+    {
+     "id": "r2-m01",
+     "a": "a004",
+     "b": "a003",
+     "winner": "a004",
+     "loser": "a003",
+     "reason": "a004 provides the most complete and robust Tri-Gate Verification Engine with exact PostgreSQL financial verification SQL queries, multi-viewport Playwright matrix specifications, and concrete sequence dependencies.",
+     "survived": [
+      "Sub-route isolation in api/v1 to eliminate route collisions",
+      "Concrete SQL double-entry ledger balance and quarantine assertion queries",
+      "Explicit viewport pixel dimensions across desktop, tablet, and mobile"
+     ],
+     "scores": {
+      "a004": 96.2,
+      "a003": 93.4
+     },
+     "source": "judge"
+    }
+   ],
+   "bye": null,
+   "closed": true
+  }
+ ],
+ "champion": "a004",
+ "final": null
+}

@@ -277,7 +277,7 @@ async function runMasterTestSuite() {
   // ────────────────────────────────────────────────────────────────────────────
 
   // Test 11: Kitchen Accepts Order -> Kitchen Accepted / Preparing
-  const acceptRes = ApiEngine.acceptBranchOrder(paidOrderId, testBranchId, "Accepted for baking");
+  const acceptRes = await ApiEngine.acceptBranchOrder(paidOrderId, testBranchId, "Accepted for baking");
   const orderAfterAccept = ApiEngine.getOrderDetails(paidOrderId);
   assert(
     Boolean(acceptRes.success && (orderAfterAccept.status === "kitchen_accepted" || orderAfterAccept.status === "preparing")),
@@ -286,7 +286,7 @@ async function runMasterTestSuite() {
   );
 
   // Test 12: Kitchen Marks Ready -> Packed & Generates Pickup OTP
-  const readyRes = ApiEngine.markBranchOrderReady(paidOrderId, testBranchId);
+  const readyRes = await ApiEngine.markBranchOrderReady(paidOrderId, testBranchId);
   const orderAfterReady = ApiEngine.getOrderDetails(paidOrderId);
   const pickupOtpGenerated = orderAfterReady.pickup_otp || orderAfterReady.delivery?.pickup_otp;
 
@@ -387,7 +387,7 @@ async function runMasterTestSuite() {
   const deliveryOtpCode = orderAfterPickup.delivery_otp || orderAfterPickup.delivery?.delivery_otp || "9876";
 
   // Test 20: Invalid Customer Delivery OTP Rejected
-  const wrongDeliveryOtpRes = ApiEngine.verifyCustomerOtpBackend(paidOrderId, "1111", testRiderId);
+  const wrongDeliveryOtpRes = await ApiEngine.verifyCustomerOtpBackend(paidOrderId, "1111", testRiderId);
   assert(
     wrongDeliveryOtpRes.success === false && wrongDeliveryOtpRes.statusCode === 400,
     "Security Gate: Incorrect Customer Delivery OTP is rejected with HTTP 400 Bad Request",
@@ -395,7 +395,7 @@ async function runMasterTestSuite() {
   );
 
   // Test 21: Valid Customer Delivery OTP Verification
-  const validDeliveryOtpRes = ApiEngine.verifyCustomerOtpBackend(paidOrderId, deliveryOtpCode, testRiderId);
+  const validDeliveryOtpRes = await ApiEngine.verifyCustomerOtpBackend(paidOrderId, deliveryOtpCode, testRiderId);
   const finalDeliveredOrder = ApiEngine.getOrderDetails(paidOrderId);
 
   assert(
@@ -418,7 +418,7 @@ async function runMasterTestSuite() {
   );
 
   // Test 23: Delivery OTP Idempotency
-  const repeatDeliveryRes = ApiEngine.verifyCustomerOtpBackend(paidOrderId, deliveryOtpCode, testRiderId);
+  const repeatDeliveryRes = await ApiEngine.verifyCustomerOtpBackend(paidOrderId, deliveryOtpCode, testRiderId);
   assert(
     Boolean(repeatDeliveryRes.success && repeatDeliveryRes.statusCode === 200 && repeatDeliveryRes.already_verified),
     "Repeat / double-click verification on Delivery OTP returns HTTP 200 OK idempotently",

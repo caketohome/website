@@ -1,0 +1,119 @@
+{
+  "run_id": "run-20261101-213450-s530001",
+  "mapping_version": "5.3.0",
+  "description": "Bidirectional mapping connecting Phase 4.6-4.8 BDR IDs, Phase 4.9 renumbered IDs, and Canonical Decision Register (CDR) IDs",
+  "mappings": [
+    {
+      "canonical_id": "CDR-01",
+      "phase4_6_to_4_8_id": "BDR-01",
+      "phase4_9_id": "BDR-01",
+      "title": "Corporate Legal Name Standardization",
+      "category": "IDENTITY"
+    },
+    {
+      "canonical_id": "CDR-02",
+      "phase4_6_to_4_8_id": "BDR-02",
+      "phase4_9_id": "BDR-02",
+      "title": "Corporate Identity Number (CIN) Binding",
+      "category": "IDENTITY"
+    },
+    {
+      "canonical_id": "CDR-03",
+      "phase4_6_to_4_8_id": "BDR-03",
+      "phase4_9_id": "BDR-03",
+      "title": "Statutory GSTIN Allocation & State Validation",
+      "category": "IDENTITY"
+    },
+    {
+      "canonical_id": "CDR-04",
+      "phase4_6_to_4_8_id": "BDR-04",
+      "phase4_9_id": "BDR-04",
+      "title": "Invoice Series Prefix Architecture",
+      "category": "STATUTORY_INVOICING"
+    },
+    {
+      "canonical_id": "CDR-05",
+      "phase4_6_to_4_8_id": "BDR-05",
+      "phase4_9_id": "BDR-05",
+      "title": "Monotonic Sequence Numbering & Padding Length",
+      "category": "STATUTORY_INVOICING"
+    },
+    {
+      "canonical_id": "CDR-06",
+      "phase4_6_to_4_8_id": "BDR-06",
+      "phase4_9_id": "BDR-06",
+      "title": "Financial Year Delimiter & Format (26-27)",
+      "category": "STATUTORY_INVOICING"
+    },
+    {
+      "canonical_id": "CDR-07",
+      "phase4_6_to_4_8_id": "BDR-07",
+      "phase4_9_id": "BDR-07",
+      "title": "Authorized Signatory Delegation & Digital Signature",
+      "category": "GOVERNANCE"
+    },
+    {
+      "canonical_id": "CDR-08",
+      "phase4_6_to_4_8_id": "BDR-08",
+      "phase4_9_id": "BDR-08",
+      "title": "Legacy Invoicing Disclaimers & Transitional Notes",
+      "category": "GOVERNANCE"
+    },
+    {
+      "canonical_id": "CDR-09",
+      "phase4_6_to_4_8_id": "BDR-09",
+      "phase4_9_id": "BDR-09",
+      "title": "Segregation of Duties (SoD) & Role Permissions",
+      "category": "SECURITY"
+    },
+    {
+      "canonical_id": "CDR-10",
+      "phase4_6_to_4_8_id": "BDR-10",
+      "phase4_9_id": "BDR-10",
+      "title": "Staging, Testing & Rehearsal Database Isolation",
+      "category": "ENVIRONMENT"
+    },
+    {
+      "canonical_id": "CDR-11",
+      "phase4_6_to_4_8_id": "BDR-11",
+      "phase4_9_id": "BDR-11",
+      "title": "Production Cut-Over Mechanics & Locking Protocol",
+      "category": "DEPLOYMENT"
+    },
+    {
+      "canonical_id": "CDR-12",
+      "phase4_6_to_4_8_id": "BDR-12",
+      "phase4_9_id": "BDR-12",
+      "title": "Sequence Capacity Alerts & Monitoring Thresholds",
+      "category": "MONITORING"
+    },
+    {
+      "canonical_id": "CDR-13",
+      "phase4_6_to_4_8_id": "BDR-13",
+      "phase4_9_id": "BDR-13",
+      "title": "Historical 69 Unbilled Orders Forensic Preservation",
+      "category": "ACCOUNTING"
+    },
+    {
+      "canonical_id": "CDR-14",
+      "phase4_6_to_4_8_id": "BDR-14",
+      "phase4_9_id": "BDR-14",
+      "title": "GSTR-1 Table 13 Document Summary Continuity",
+      "category": "COMPLIANCE"
+    },
+    {
+      "canonical_id": "CDR-15",
+      "phase4_6_to_4_8_id": "BDR-15",
+      "phase4_9_id": "BDR-15",
+      "title": "Annual Fiscal Year Midnight Rollover Controls",
+      "category": "STATUTORY_INVOICING"
+    },
+    {
+      "canonical_id": "CDR-16",
+      "phase4_6_to_4_8_id": "BDR-16",
+      "phase4_9_id": "BDR-16",
+      "title": "Final Production Statutory Invoicing Activation Gate",
+      "category": "GOVERNANCE"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T12:21:59.556Z",
+  "environment": "cth_rehearsal_series_ch",
+  "protected_database": "cth_test",
+  "total_tests": 18,
+  "passed_tests": 18,
+  "failed_tests": 0,
+  "pass_rate": "100%",
+  "protected_db_zero_writes_verified": true,
+  "concurrency_workers_tested": 10,
+  "concurrency_result": "STRICTLY_CONSECUTIVE_NO_GAPS_NO_COLLISIONS",
+  "idempotency_verified": true,
+  "rollback_integrity_verified": true
+}

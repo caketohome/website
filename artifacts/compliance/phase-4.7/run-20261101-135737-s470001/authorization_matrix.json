@@ -1,0 +1,27 @@
+{
+  "roles": [
+    "BOARD_DIRECTOR",
+    "FINANCE_APPROVER",
+    "FINANCE_OPERATOR",
+    "DEVELOPER",
+    "SYSADMIN"
+  ],
+  "sod_rules": [
+    {
+      "rule": "SUBMITTER_CANNOT_APPROVE_EVIDENCE",
+      "enforced": true
+    },
+    {
+      "rule": "CONFIGURATOR_CANNOT_APPROVE_SERIES",
+      "enforced": true
+    },
+    {
+      "rule": "DEVELOPER_CANNOT_AUTHORIZE_PRODUCTION",
+      "enforced": true
+    },
+    {
+      "rule": "SYSADMIN_CANNOT_BYPASS_APPROVAL",
+      "enforced": true
+    }
+  ]
+}

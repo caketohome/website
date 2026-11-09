@@ -1,0 +1,24 @@
+{
+  "database_census_total": 15,
+  "prior_reports_claimed": 13,
+  "discrepancy_resolved": true,
+  "variance_details": "Prior queries truncated the last 2 CONC race records (000151, 000152). Actual census confirms 14 CONC + 1 SAFE-TEST = 15 total.",
+  "prefixes": {
+    "CONC": {
+      "count": 14,
+      "range": "000139 to 000152",
+      "isolation": "VERIFIED"
+    },
+    "SAFE_TEST": {
+      "count": 1,
+      "range": "000001",
+      "isolation": "VERIFIED"
+    }
+  },
+  "isolation": {
+    "customer_portal": "SECURE",
+    "gstr1_export": "SECURE",
+    "general_ledger": "SECURE",
+    "webhooks": "SECURE"
+  }
+}

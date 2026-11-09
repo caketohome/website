@@ -9,9 +9,6 @@ const nextConfig = {
   transpilePackages: ["@medusajs/ui"],
   staticPageGenerationTimeout: 180,
   experimental: {
-    workerThreads: false,
-    cpus: 1,
-    optimizePackageImports: ["lucide-react"],
     serverComponentsExternalPackages: ["exceljs", "pg"],
   },
   webpack: (config) => {
@@ -26,7 +23,13 @@ const nextConfig = {
     return config;
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3001",
+      },
       {
         protocol: "http",
         hostname: "localhost",
@@ -49,6 +52,26 @@ const nextConfig = {
         hostname: "res.cloudinary.com",
       },
     ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/catalog",
+        destination: "/products",
+      },
+      {
+        source: "/terms-conditions",
+        destination: "/terms-and-conditions",
+      },
+      {
+        source: "/terms",
+        destination: "/terms-and-conditions",
+      },
+      {
+        source: "/privacy",
+        destination: "/privacy-policy",
+      },
+    ];
   },
 };
 

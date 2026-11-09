@@ -1,0 +1,19 @@
+{
+  "run_id": "run-20261101-213450-s530001",
+  "dimensions": [
+    "technical_status",
+    "evidence_status",
+    "professional_review_status",
+    "corporate_approval_status",
+    "operational_status"
+  ],
+  "summary": {
+    "total_decisions": 16,
+    "technical_ready": 16,
+    "evidence_verified": 6,
+    "evidence_not_submitted": 10,
+    "corporate_approved": 6,
+    "corporate_pending_or_blocked": 10,
+    "operational_fail_closed_or_ready": 16
+  }
+}

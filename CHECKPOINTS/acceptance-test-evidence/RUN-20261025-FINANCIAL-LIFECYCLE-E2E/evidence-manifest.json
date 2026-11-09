@@ -1,0 +1,61 @@
+{
+  "run_id": "RUN-20261025-FINANCIAL-LIFECYCLE-E2E",
+  "timestamp": "2026-10-25T15:05:12.694Z",
+  "environment": {
+    "base_url": "http://localhost:3002",
+    "database": "127.0.0.1:5433/cth_test",
+    "pg_version": "PostgreSQL 16.14 on Windows",
+    "node_version": "v24.12.0"
+  },
+  "scenarios_count": 8,
+  "evidence_manifest": [
+    {
+      "scenario": 1,
+      "filename": "01_public_storefront_catalog.png",
+      "description": "CakeToHome public storefront landing page with catalog and shopping cart",
+      "sha256": "9c955f83b52f99b073e4f7c5f09d6d385707ac13976cff9886f8f58d4a4e8e2c"
+    },
+    {
+      "scenario": 2,
+      "filename": "02_auth_login_portal.png",
+      "description": "CakeToHome canonical authentication login route",
+      "sha256": "9ad9c9190fa550c6f098968c2c0fdcc42b8e2ef0f8ab0392744d729078a8b0a7"
+    },
+    {
+      "scenario": 3,
+      "filename": "03_admin_orders_dashboard.png",
+      "description": "Authentic Super-Admin ERP Dashboard showing orders table, sidebar, and status badges",
+      "sha256": "7cb33ad546869a6c942de97d4860ab32799321cedf277ebfe99830373b254f3e"
+    },
+    {
+      "scenario": 4,
+      "filename": "04_committed_order_invoice_drawer.png",
+      "description": "OrderDetailsDrawer showing committed statutory invoice CTH/26-27/000008 with ₹1,800 total",
+      "sha256": "b1284f1584ea68312c21fa7f5645404a4d4f25049334f4041fcf501d7eb388aa"
+    },
+    {
+      "scenario": 5,
+      "filename": "05_statutory_watermarked_invoice_modal.png",
+      "description": "OrderInvoicePrintModal displaying TEST WATERMARK banner, itemized tax breakdown & ₹1,800.00 total",
+      "sha256": "8994313367409ed9449b23959d3121b7c6993fde25ebaf5e803c0a3bfbb56bd0"
+    },
+    {
+      "scenario": 6,
+      "filename": "06_financial_analytics_reports.png",
+      "description": "ERP Analytics and Financial Reports Dashboard with KPI cards and export controls",
+      "sha256": "5747a218fc8eb5183d730870f9feecef22faa22130e3e13502e580fd0857570b"
+    },
+    {
+      "scenario": 7,
+      "filename": "07_unauthorized_rbac_blocked.png",
+      "description": "Customer attempting /dashboard redirected away by RBAC security middleware",
+      "sha256": "35254a5824363ddcd8905f0617161d648a08c7c5a8844f9d3f3f21ebe36bbe3d"
+    },
+    {
+      "scenario": 8,
+      "filename": "08_authoritative_invoice_api_json.png",
+      "description": "Direct GET /api/v1/manager/orders/:id/invoice returning authoritative non-zero statutory invoice JSON",
+      "sha256": "53fd3c166f2be61dcfd74ef3da561e3ecf0b4566d244a8c35b128af30f49e5a8"
+    }
+  ]
+}

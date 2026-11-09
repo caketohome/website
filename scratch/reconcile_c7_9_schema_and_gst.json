@@ -1,0 +1,200 @@
+{
+  "c7_9_tables_exist": [],
+  "fk_targets_exist": [
+    {
+      "table_name": "customer",
+      "column_name": "company_name",
+      "data_type": "text"
+    },
+    {
+      "table_name": "customer",
+      "column_name": "gstin",
+      "data_type": "character varying"
+    },
+    {
+      "table_name": "customer",
+      "column_name": "id",
+      "data_type": "text"
+    },
+    {
+      "table_name": "customer",
+      "column_name": "is_corporate",
+      "data_type": "boolean"
+    },
+    {
+      "table_name": "user",
+      "column_name": "email",
+      "data_type": "text"
+    },
+    {
+      "table_name": "user",
+      "column_name": "id",
+      "data_type": "text"
+    }
+  ],
+  "pgcrypto_check": [
+    {
+      "extname": "pgcrypto",
+      "extversion": "1.3"
+    }
+  ],
+  "uuid_gen_check": [
+    {
+      "sample_uuid": "f775e60f-d4f0-43ab-9dd2-c2dd474e39f0"
+    }
+  ],
+  "coa_count": [
+    {
+      "coa_account_count": "100"
+    }
+  ],
+  "voucher_counts": [
+    {
+      "vouchers": "6",
+      "journal_entries": "4",
+      "journal_lines": "10"
+    }
+  ],
+  "company_cols": [
+    {
+      "column_name": "id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "legal_name",
+      "data_type": "text"
+    },
+    {
+      "column_name": "trade_name",
+      "data_type": "text"
+    },
+    {
+      "column_name": "registered_address",
+      "data_type": "text"
+    },
+    {
+      "column_name": "city",
+      "data_type": "text"
+    },
+    {
+      "column_name": "state_code",
+      "data_type": "text"
+    },
+    {
+      "column_name": "pin_code",
+      "data_type": "text"
+    },
+    {
+      "column_name": "pan",
+      "data_type": "text"
+    },
+    {
+      "column_name": "cin",
+      "data_type": "text"
+    },
+    {
+      "column_name": "fssai",
+      "data_type": "text"
+    },
+    {
+      "column_name": "currency",
+      "data_type": "text"
+    },
+    {
+      "column_name": "fy_start_month",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "invoice_prefix",
+      "data_type": "text"
+    },
+    {
+      "column_name": "phone",
+      "data_type": "text"
+    },
+    {
+      "column_name": "email",
+      "data_type": "text"
+    },
+    {
+      "column_name": "website",
+      "data_type": "text"
+    },
+    {
+      "column_name": "is_active",
+      "data_type": "boolean"
+    },
+    {
+      "column_name": "metadata",
+      "data_type": "jsonb"
+    },
+    {
+      "column_name": "created_by",
+      "data_type": "text"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone"
+    }
+  ],
+  "company_records": [],
+  "gst_reg_cols": [
+    {
+      "column_name": "id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "company_id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "gstin",
+      "data_type": "text"
+    },
+    {
+      "column_name": "state_code",
+      "data_type": "text"
+    },
+    {
+      "column_name": "registration_type",
+      "data_type": "text"
+    },
+    {
+      "column_name": "legal_name",
+      "data_type": "text"
+    },
+    {
+      "column_name": "is_active",
+      "data_type": "boolean"
+    },
+    {
+      "column_name": "effective_from",
+      "data_type": "date"
+    },
+    {
+      "column_name": "effective_to",
+      "data_type": "date"
+    },
+    {
+      "column_name": "metadata",
+      "data_type": "jsonb"
+    },
+    {
+      "column_name": "created_by",
+      "data_type": "text"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone"
+    }
+  ],
+  "gst_registrations": []
+}

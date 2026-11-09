@@ -62,6 +62,30 @@ export class TellerMovementRepository {
   }
 
   /**
+   * Lists all movements recorded for a branch across all sessions in reverse chronological order.
+   */
+  static async listByBranch(
+    branchId: string,
+    limit: number = 100,
+    client?: PoolClient
+  ): Promise<TellerMovementRow[]> {
+    const queryFn = client ? client.query.bind(client) : dbQuery;
+    const sql = `
+      SELECT 
+        id, teller_session_id, branch_id, direction, movement_type,
+        amount::numeric::float8 as amount,
+        source_type, source_id, narration,
+        created_by, created_at
+      FROM public.teller_movement
+      WHERE branch_id = $1
+      ORDER BY created_at DESC, id DESC
+      LIMIT $2;
+    `;
+    const res = await queryFn(sql, [branchId, limit]);
+    return res.rows;
+  }
+
+  /**
    * Finds a movement by source event (used for idempotency verification).
    */
   static async findBySource(

@@ -43,8 +43,8 @@ export function TellerMasterTab({
 
   const handleCreateTeller = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !code.trim() || !userId.trim()) {
-      setError("Please complete all required fields.");
+    if (!name.trim() || !code.trim()) {
+      setError("Station name and code are required.");
       return;
     }
 
@@ -57,7 +57,7 @@ export function TellerMasterTab({
         body: JSON.stringify({
           name: name.trim(),
           code: code.trim().toUpperCase(),
-          user_id: userId.trim(),
+          user_id: userId.trim() || undefined,
           branch_id: selectedBranchId,
           status: "ACTIVE",
         }),
@@ -106,6 +106,17 @@ export function TellerMasterTab({
 
   return (
     <div className="space-y-6">
+      {/* Canonical Till Guidance Banner */}
+      <div className="bg-indigo-50/80 border border-indigo-200/90 rounded-2xl p-4 flex items-start gap-3">
+        <Building className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+        <div className="text-xs text-indigo-950">
+          <span className="font-bold">Canonical Branch Till Architecture:</span>
+          <p className="text-indigo-800 mt-0.5 leading-relaxed">
+            The Branch Manager is the default authorized cash operator for their assigned branch. Every branch is automatically provisioned with a <strong>Main Cash Drawer (MAIN)</strong>. Creating extra counter stations here is purely optional and only required if your physical store operates multiple tills simultaneously.
+          </p>
+        </div>
+      </div>
+
       {/* Header & Controls */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -281,18 +292,17 @@ export function TellerMasterTab({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Assigned User ID <span className="text-rose-500">*</span>
+                  Assigned Operator <span className="text-slate-400 font-normal">(Optional)</span>
                 </label>
                 <input
                   type="text"
-                  required
-                  placeholder="e.g. usr_123 or cashier username"
+                  placeholder="Leave blank to auto-assign branch till operator"
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
                   className="w-full px-3 py-1.5 text-xs font-mono bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
                 <p className="text-[11px] text-slate-400 mt-1">
-                  Each user can only be actively assigned to at most one teller counter across the company.
+                  Optional. If omitted, the till station is automatically configured with a dedicated branch operator identity.
                 </p>
               </div>
 

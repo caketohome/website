@@ -1,0 +1,8 @@
+{
+  "orphaned_blocks": 0,
+  "duplicate_slugs": 0,
+  "broken_media_references": 0,
+  "soft_delete_preservation": true,
+  "atomic_publish_verified": true,
+  "rollback_snapshots_verified": true
+}

@@ -1,0 +1,18 @@
+{
+  "match": "r2-m01",
+  "scores": {
+    "a004": {"correctness": 9.7, "completeness": 9.6, "specificity": 9.6, "robustness": 9.6, "clarity": 9.5, "fatal": false},
+    "a003": {"correctness": 9.4, "completeness": 9.3, "specificity": 9.3, "robustness": 9.3, "clarity": 9.4, "fatal": false}
+  },
+  "winner": "a004",
+  "reason": "a004 provides the most complete and robust Tri-Gate Verification Engine with exact PostgreSQL financial verification SQL queries, multi-viewport Playwright matrix specifications, and concrete sequence dependencies.",
+  "survived": [
+    "Sub-route isolation in api/v1 to eliminate route collisions",
+    "Concrete SQL double-entry ledger balance and quarantine assertion queries",
+    "Explicit viewport pixel dimensions across desktop, tablet, and mobile"
+  ],
+  "standing": {
+    "a004": [],
+    "a003": ["Slightly less comprehensive database SQL verification specifications"]
+  }
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "test": "Reports Engine Mount",
+    "status": "VERIFIED"
+  },
+  {
+    "test": "Executive Summary KPIs",
+    "status": "VERIFIED"
+  },
+  {
+    "test": "Daily Sales Section",
+    "status": "VERIFIED"
+  },
+  {
+    "test": "Products & Profitability Section",
+    "status": "VERIFIED"
+  },
+  {
+    "test": "Tax & GST Register Section",
+    "status": "VERIFIED"
+  },
+  {
+    "test": "Payments & Refunds Section",
+    "status": "VERIFIED"
+  },
+  {
+    "test": "Exception Center Section",
+    "status": "VERIFIED"
+  }
+]

@@ -1,0 +1,91 @@
+{
+  "manifest_timestamp": "2026-10-31T09:36:36.199Z",
+  "run_id": "run-20261031-140708-s523462",
+  "algorithm": "SHA-256",
+  "files": {
+    "reports/admin_compliance_api_and_ui_audit.md": {
+      "bytes": 4426,
+      "sha256": "5322b70cee7f5a33b938ffd4859f3b6d63117ef86b842507e67556092c83b81f"
+    },
+    "reports/database_schema_and_migration_audit.md": {
+      "bytes": 4914,
+      "sha256": "4bef7f776e2652f6e20cc45b5d7156da98bd366fd44429e148e032cdd1acbbd8"
+    },
+    "reports/findings_manifest.json": {
+      "bytes": 4924,
+      "sha256": "517e881f2bd561ba7edc91aa323cd085c55f040b7afec29a35fab4f2d02aeda5"
+    },
+    "reports/fiscal_year_boundary_audit.md": {
+      "bytes": 4265,
+      "sha256": "585325c16ce6a0e54147a53e5215411695e7e59f4c318385d198d25024dcf3a2"
+    },
+    "reports/hardcoded_statutory_values_audit.md": {
+      "bytes": 5162,
+      "sha256": "62fa876b0944c7ba52e3ec361b0b8d5d7b5be0946ba77f7976749f7fc5f4df13"
+    },
+    "reports/invoice_allocation_concurrency_and_failure_tests.md": {
+      "bytes": 3928,
+      "sha256": "44f9548a44be76199f5d23a4320f76d62bea36b6a7872ef048cab32ad900225d"
+    },
+    "reports/invoice_series_authorization_security_audit.md": {
+      "bytes": 3943,
+      "sha256": "b6c600ba564f6eeb42505e5e300c2005f4b09ed2e42e3abbcce19c4f23d24960"
+    },
+    "reports/phase4_2_executive_audit_report.md": {
+      "bytes": 12907,
+      "sha256": "5dd12a914f8a4a0d01791014dee90e84b27e38c414d7ccc4413b43d36452bafc"
+    },
+    "reports/production_readiness_gate.md": {
+      "bytes": 3971,
+      "sha256": "73ac9c6c27dcba54cd80493d99b61337eedc4dfb2a7c70f9c1cc2f158e5891f5"
+    },
+    "reports/protected_database_integrity_report.md": {
+      "bytes": 3372,
+      "sha256": "c2ca11e88264c743febdec936dc507ed782e1bf3604db9fbab336eda46ed86c5"
+    },
+    "reports/regression_and_test_results.md": {
+      "bytes": 3783,
+      "sha256": "cf60338d375a52131938941109bc7359916dccf41f182fce14de0beca7b8a3c2"
+    },
+    "reports/repository_and_architecture_inventory.md": {
+      "bytes": 6879,
+      "sha256": "7438585ed899c2afd97833f0b31c2362c5aa55bb101c6c4f4f9a4bb153686cfb"
+    },
+    "reports/test_results_manifest.json": {
+      "bytes": 4940,
+      "sha256": "509caadaa43281e1b9a80a321228974b373cfb1cacd9a7ba27cd3a35a2d4a5b1"
+    },
+    "evidence/01_compliance_invoice_series_registry.png": {
+      "bytes": 92932,
+      "sha256": "af3cdb111eab0c24962535b694ca2a50c63eaad49fe3e9e91cb3cd6e49954c28"
+    },
+    "evidence/02_proposed_series_pending_approval.png": {
+      "bytes": 165046,
+      "sha256": "26b093f2d0e4adcce0cc40e7807172cb9cc08dea25361a8e56e0ef730edf5b98"
+    },
+    "evidence/03_approved_series_audit_trail.png": {
+      "bytes": 165320,
+      "sha256": "277507d0d41022cc48f928ded93482fef05a4814a709b18f856a38c9c46a7f67"
+    },
+    "evidence/04_legal_entities_api_view.png": {
+      "bytes": 31105,
+      "sha256": "4aeeb554c65ce4cfc37763c6412cde7fa88b4f55f3cba5d72eeabb62e11e25de"
+    },
+    "evidence/fiscal_boundary_results.json": {
+      "bytes": 3464,
+      "sha256": "91d4df80effee5975e7190cd8dcd0a115f8effa6fca3f2c3b5e7931061966b49"
+    },
+    "evidence/hardcoded_values_scan.json": {
+      "bytes": 8166,
+      "sha256": "c22dd8c7730545a758bf9df83db4db82dd549b3e84a9b2bb0ec944474f4b0b60"
+    },
+    "evidence/protected_db_baseline_snapshot.json": {
+      "bytes": 3722,
+      "sha256": "f444795b9d3c23a8a18d35ce470eeaf21dce742aceff810848a5a74955ede94f"
+    },
+    "evidence/protected_db_post_audit_snapshot.json": {
+      "bytes": 3722,
+      "sha256": "061eab01e2e136b5f87802561efffb7e86bbc60eca9ff3827af8904cce3bb9e8"
+    }
+  }
+}

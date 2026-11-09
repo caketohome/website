@@ -13,7 +13,6 @@
  */
 
 import { ReportRepository } from "../repositories/report.repository";
-import { ApiEngine } from "../api-engine";
 import type {
   ReportFilters,
   TransactionalMetrics,
@@ -39,28 +38,17 @@ import type {
 // ─── GST Resolution ──────────────────────────────────────────────────────────
 
 /**
- * Resolve the seller GSTIN from the Admin Panel's GST Registration source.
- * The admin panel manages GST registrations via ApiEngine.listGstRegistrations().
+ * Resolve the seller GSTIN from PostgreSQL (public.gst_registration / public.company).
  * This is the single canonical source — no hardcoded fallback.
  */
-function resolveSellerGstInfo(): { gstin: string | null; legalName: string | null; tradeName: string | null } {
+async function resolveSellerGstInfo(): Promise<{ gstin: string | null; legalName: string | null; tradeName: string | null }> {
   try {
-    const registrations = ApiEngine.listGstRegistrations();
-    if (registrations && registrations.length > 0) {
-      // Use the first active registration (primary)
-      const active = registrations.find((r: any) => r.status === "active") || registrations[0];
-      const gstin = active?.gstin || null;
-      // Validate it's not a placeholder
-      if (gstin && gstin !== "29AAAAA0000A1Z5" && gstin !== "00AAAAA0000A0Z0") {
-        return {
-          gstin,
-          legalName: active?.legal_name || null,
-          tradeName: active?.trade_name || null,
-        };
-      }
+    const info = await ReportRepository.getSellerGstInfo();
+    if (info && info.gstin && info.gstin !== "29AAAAA0000A1Z5" && info.gstin !== "00AAAAA0000A0Z0") {
+      return info;
     }
   } catch {
-    // ApiEngine not available — graceful degradation
+    // Database query failed — graceful degradation to null
   }
   return { gstin: null, legalName: null, tradeName: null };
 }
@@ -68,7 +56,7 @@ function resolveSellerGstInfo(): { gstin: string | null; legalName: string | nul
 // ─── Report Response Builder ─────────────────────────────────────────────────
 
 async function wrapResponse<T>(data: T, filters: ReportFilters): Promise<ReportResponse<T>> {
-  const gstInfo = resolveSellerGstInfo();
+  const gstInfo = await resolveSellerGstInfo();
   const totalOrders = await ReportRepository.getTotalOrderCount();
 
   return {
@@ -238,7 +226,7 @@ export class ReportService {
   static async getGstHsnSummary(filters: ReportFilters): Promise<ReportResponse<GstHsnSummary>> {
     const data = await ReportRepository.getGstHsnSummary(filters);
     // Override GSTIN from service-level resolution
-    const gstInfo = resolveSellerGstInfo();
+    const gstInfo = await resolveSellerGstInfo();
     data.sellerGstin = gstInfo.gstin;
     data.sellerLegalName = gstInfo.legalName;
     data.sellerTradeName = gstInfo.tradeName;

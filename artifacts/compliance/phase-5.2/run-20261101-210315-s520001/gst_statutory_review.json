@@ -1,0 +1,19 @@
+{
+  "run_id": "run-20261101-210315-s520001",
+  "status": "LEGAL_CLAIMS_CORRECTED",
+  "correction_summary": "Phase 5.1 broad assertions claiming Section 122 penalty automatically flows from lack of Board resolution have been retracted and corrected. The absence of a Board resolution, legal supply authority, time of supply, and penalty provisions are distinct statutory questions requiring formal GST counsel review.",
+  "reviewed_provisions": {
+    "section_31": {
+      "scope": "Tax invoice timing",
+      "rule": "Section 31(1) requires invoice at or before removal/delivery of goods. Delivered orders cannot be retroactively invoiced without qualified tax professional disclosure."
+    },
+    "rule_46": {
+      "scope": "Tax invoice contents",
+      "rule": "Rule 46(b) mandates consecutive serial numbers not exceeding 16 characters containing alphabets, numerals, and special characters (- and /)."
+    },
+    "section_122": {
+      "scope": "Offences and penalties",
+      "correction": "Section 122(1)(i) penalizes supply without invoice or false invoice; it does not criminalize internal corporate governance delays where no fraudulent invoice was issued."
+    }
+  }
+}

@@ -66,7 +66,7 @@ export default async function Home() {
         />
       ) : (
         /* Fallback Storefront Catalog if no sections published */
-        <StorefrontProductHomepage />
+        <StorefrontProductHomepage initialProducts={allProducts || []} initialCategories={allCategories || []} />
       )}
     </div>
   );

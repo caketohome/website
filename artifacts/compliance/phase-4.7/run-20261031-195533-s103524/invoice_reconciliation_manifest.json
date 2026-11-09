@@ -1,0 +1,22 @@
+{
+  "phase": "4.7",
+  "orders_total": 127,
+  "orders_invoiced": 58,
+  "orders_unbilled": 69,
+  "unbilled_breakdown": {
+    "confirmed": 26,
+    "delivered": 21,
+    "pending": 19,
+    "completed": 2,
+    "preparing": 1
+  },
+  "invoices_total": 71,
+  "invoices_customer": 58,
+  "invoices_synthetic": 13,
+  "synthetic_breakdown": {
+    "conc": 12,
+    "safe_test": 1
+  },
+  "vouchers_total": 4,
+  "vouchers_posted_to_gl": 0
+}

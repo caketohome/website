@@ -1,0 +1,79 @@
+
+## cart_line_item_tax_line (rows=1)
+id:text!, description:text, tax_rate_id:text, code:text!, rate:real!, provider_id:text, metadata:jsonb, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, deleted_at:timestamp with time zone, item_id:text, data:jsonb
+
+## cart_shipping_method_tax_line (rows=0)
+id:text!, description:text, tax_rate_id:text, code:text!, rate:real!, provider_id:text, metadata:jsonb, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, deleted_at:timestamp with time zone, shipping_method_id:text, data:jsonb
+
+## company (rows=0)
+id:text!, legal_name:text!, trade_name:text, registered_address:text, city:text, state_code:text!, pin_code:text, pan:text, cin:text, fssai:text, currency:text!, fy_start_month:integer!, invoice_prefix:text!, phone:text, email:text, website:text, is_active:boolean!, metadata:jsonb, created_by:text, created_at:timestamp with time zone!, updated_at:timestamp with time zone!
+
+## expense (rows=1)
+id:text!, branch_id:text!, category_id:text, supplier_id:text, expense_date:date!, reference_no:text, description:text!, subtotal:numeric!, discount:numeric!, taxable_value:numeric!, cgst:numeric!, sgst:numeric!, igst:numeric!, total:numeric!, payment_method:text, notes:text, status:text!, created_by:text, approved_by:text, posted_at:timestamp with time zone, metadata:jsonb, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, deleted_at:timestamp with time zone, voucher_id:text, bank_account_id:text, teller_session_id:text, company_id:text, settlement_type:character varying!, itc_eligibility:character varying!, rcm_applicable:boolean!, hsn_sac_code:text, vendor_gstin:text, reversal_voucher_id:text, reversed_at:timestamp with time zone, reversed_by:text, reversal_reason:text
+
+## expense_category (rows=11)
+id:text!, name:text!, description:text, is_active:boolean!, created_by:text, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, deleted_at:timestamp with time zone, gl_account_id:text, gl_account_code:character varying
+
+## gst_registration (rows=0)
+id:text!, company_id:text!, gstin:text!, state_code:text!, registration_type:text!, legal_name:text, is_active:boolean!, effective_from:date, effective_to:date, metadata:jsonb, created_by:text, created_at:timestamp with time zone!, updated_at:timestamp with time zone!
+
+## invoice (rows=5)
+id:text!, invoice_number:text!, order_id:text!, branch_id:text, customer_id:text, customer_name:text, customer_phone:text, subtotal:numeric!, tax_total:numeric!, delivery_fee:numeric!, discount_total:numeric!, grand_total:numeric!, currency_code:text!, payment_method:text, payment_status:text, status:text!, delivered_at:timestamp with time zone!, delivered_by:text, metadata:jsonb!, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, deleted_at:timestamp with time zone, voucher_id:text, due_date:date, paid_amount:numeric!, outstanding_amount:numeric!, is_corporate:boolean!
+
+## marketplace_partner_invoice (rows=1)
+id:text!, partner_id:text!, partner_invoice_number:text!, partner_invoice_date:date!, period_start:date!, period_end:date!, claimed_amount:numeric!, calculated_amount:numeric!, discrepancy_amount:numeric!, document_reference:text, status:text!, accounting_voucher_id:text, reconciliation_statement_json:jsonb, reconciled_by:text, reconciled_at:timestamp with time zone, created_at:timestamp with time zone!, updated_at:timestamp with time zone!
+
+## order_line_item_tax_line (rows=0)
+id:text!, description:text, tax_rate_id:text, code:text!, rate:numeric!, raw_rate:jsonb!, provider_id:text, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, item_id:text!, deleted_at:timestamp with time zone, metadata:jsonb, data:jsonb
+
+## order_shipping_method_tax_line (rows=0)
+id:text!, description:text, tax_rate_id:text, code:text!, rate:numeric!, raw_rate:jsonb!, provider_id:text, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, shipping_method_id:text!, deleted_at:timestamp with time zone, metadata:jsonb, data:jsonb
+
+## purchase (rows=0)
+id:text!, supplier_id:text, branch_id:text!, invoice_no:text, invoice_date:date, subtotal:numeric!, discount:numeric!, taxable_value:numeric!, cgst:numeric!, sgst:numeric!, igst:numeric!, total:numeric!, payment_method:text, credit_terms_days:integer, due_date:date, status:text!, created_by:text, approved_by:text, posted_at:timestamp with time zone, metadata:jsonb, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, deleted_at:timestamp with time zone, voucher_id:text
+
+## purchase_item (rows=0)
+id:text!, purchase_id:text!, product_id:text, variant_id:text, description:text!, quantity:numeric!, rate:numeric!, discount:numeric!, taxable_value:numeric!, cgst_rate:numeric, sgst_rate:numeric, igst_rate:numeric, cgst:numeric, sgst:numeric, igst:numeric, total:numeric!, hsn_code:text, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, deleted_at:timestamp with time zone, item_type:character varying!
+
+## purchase_payment (rows=0)
+id:text!, purchase_id:text!, amount:numeric!, method:text!, payment_date:date!, reference:text, created_by:text, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, deleted_at:timestamp with time zone, voucher_id:text, bank_account_id:text, teller_session_id:text, branch_id:text
+
+## purchase_payment_allocation (rows=0)
+id:text!, payment_id:text!, purchase_id:text!, allocated_amount:numeric!, metadata:jsonb, created_at:timestamp with time zone!, updated_at:timestamp with time zone!
+
+## report_schedule (rows=0)
+id:text!, recipient_email:text!, report_type:text!, frequency:text!, branch_id:text, last_sent_at:timestamp with time zone, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, deleted_at:timestamp with time zone
+
+## supplier (rows=0)
+id:text!, name:text!, gstin:text, phone:text, email:text, address:text, city:text, state:text, branch_id:text, is_active:boolean!, created_by:text, metadata:jsonb, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, deleted_at:timestamp with time zone
+
+## tax_provider (rows=1)
+id:text!, is_enabled:boolean!, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, deleted_at:timestamp with time zone
+
+## tax_rate (rows=1)
+id:text!, rate:real, code:text!, name:text!, is_default:boolean!, is_combinable:boolean!, tax_region_id:text!, metadata:jsonb, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, created_by:text, deleted_at:timestamp with time zone
+
+## tax_rate_rule (rows=0)
+id:text!, tax_rate_id:text!, reference_id:text!, reference:text!, metadata:jsonb, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, created_by:text, deleted_at:timestamp with time zone
+
+## tax_region (rows=8)
+id:text!, provider_id:text, country_code:text!, province_code:text, parent_id:text, metadata:jsonb, created_at:timestamp with time zone!, updated_at:timestamp with time zone!, created_by:text, deleted_at:timestamp with time zone
+
+## CHECK/UNIQUE constraints
+gst_registration.chk_gst_gstin_format: CHECK ((gstin ~ '^\d{2}[A-Z]{5}\d{4}[A-Z]\d[A-Z0-9][A-Z0-9]$'::text))
+gst_registration.chk_gst_registration_type: CHECK ((registration_type = ANY (ARRAY['REGULAR'::text, 'COMPOSITION'::text, 'ISD'::text, 'CASUAL'::text, 'SEZ'::text, 'NRTP'::text])))
+gst_registration.chk_gst_state_code_format: CHECK ((state_code ~ '^\d{2}$'::text))
+gst_registration.chk_gst_state_code_matches_gstin: CHECK ((SUBSTRING(gstin FROM 1 FOR 2) = state_code))
+invoice.invoice_invoice_number_key: UNIQUE (invoice_number)
+invoice.invoice_order_id_key: UNIQUE (order_id)
+marketplace_partner_invoice.marketplace_partner_invoice_status_check: CHECK ((status = ANY (ARRAY['RECEIVED'::text, 'UNDER_REVIEW'::text, 'DISCREPANCY_DETECTED'::text, 'RECONCILED'::text, 'APPROVED'::text, 'REJECTED'::text, 'POSTED_TO_BILLS_PAYABLE'::text, 'SETTLED'::text])))
+marketplace_partner_invoice.uq_partner_invoice_num: UNIQUE (partner_id, partner_invoice_number)
+purchase.purchase_status_check: CHECK ((status = ANY (ARRAY['DRAFT'::text, 'SUBMITTED'::text, 'APPROVED'::text, 'POSTED'::text])))
+purchase.uq_purchase_invoice_supplier_branch: UNIQUE NULLS NOT DISTINCT (branch_id, supplier_id, invoice_no)
+purchase_item.purchase_item_discount_check: CHECK ((discount >= (0)::numeric))
+purchase_item.purchase_item_item_type_check: CHECK (((item_type)::text = ANY ((ARRAY['CAKE'::character varying, 'ACCESSORY'::character varying, 'PACKAGING'::character varying])::text[])))
+purchase_item.purchase_item_quantity_check: CHECK ((quantity > (0)::numeric))
+purchase_item.purchase_item_rate_check: CHECK ((rate >= (0)::numeric))
+purchase_payment.purchase_payment_amount_check: CHECK ((amount > (0)::numeric))
+purchase_payment.purchase_payment_method_check: CHECK ((method = ANY (ARRAY['CASH'::text, 'UPI'::text, 'BANK_TRANSFER'::text, 'CHEQUE'::text, 'CARD'::text, 'OTHER'::text])))
+purchase_payment_allocation.purchase_payment_allocation_allocated_amount_check: CHECK ((allocated_amount > (0)::numeric))

@@ -43,6 +43,9 @@ import {
   Lock,
   ArrowRight,
   Check,
+  Truck,
+  MapPin,
+  ShieldCheck,
 } from "lucide-react";
 import { WidgetErrorBoundary } from "./error-boundary";
 
@@ -161,7 +164,9 @@ export const CorporateGiftingPanel = memo(function CorporateGiftingPanel() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailBatch, setDetailBatch] = useState<BatchListItem | null>(null);
   const [detailRecipients, setDetailRecipients] = useState<any[]>([]);
+  const [detailRoutingSummary, setDetailRoutingSummary] = useState<any | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
+  const [reEvaluatingRouting, setReEvaluatingRouting] = useState(false);
 
   // Download Template State
   const [downloadingTemplate, setDownloadingTemplate] = useState(false);
@@ -380,6 +385,7 @@ export const CorporateGiftingPanel = memo(function CorporateGiftingPanel() {
       setDetailError(null);
       setDetailBatch(null);
       setDetailRecipients([]);
+      setDetailRoutingSummary(null);
 
       const res = await fetch(`/api/v1/admin/corporate-gifting/batches/${batchId}`, {
         credentials: "include",
@@ -393,10 +399,37 @@ export const CorporateGiftingPanel = memo(function CorporateGiftingPanel() {
       const data = await res.json();
       setDetailBatch(data.batch);
       setDetailRecipients(data.recipients || []);
+      setDetailRoutingSummary(data.routingSummary || null);
     } catch (err: any) {
       setDetailError(err.message || "Failed to load batch details.");
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  // Phase C7.13: Re-evaluate Routing for Batch
+  const handleReEvaluateRouting = async (forceReassign: boolean = false) => {
+    if (!detailBatchId) return;
+    try {
+      setReEvaluatingRouting(true);
+      const res = await fetch(`/api/v1/admin/corporate-gifting/batches/${detailBatchId}/route`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ forceReassign }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || `Re-evaluation failed (HTTP ${res.status})`);
+      }
+
+      // Re-fetch detail to refresh badges and items
+      await handleOpenDetail(detailBatchId);
+    } catch (err: any) {
+      alert(`Routing re-evaluation failed: ${err.message}`);
+    } finally {
+      setReEvaluatingRouting(false);
     }
   };
 
@@ -441,6 +474,102 @@ export const CorporateGiftingPanel = memo(function CorporateGiftingPanel() {
           </span>
         );
     }
+  };
+
+  // Phase C7.13: Delivery lifecycle badge
+  const renderDeliveryStatusBadge = (status?: string) => {
+    const s = (status || "pending").toLowerCase();
+    switch (s) {
+      case "delivered":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+            <CheckCircle2 className="w-3 h-3" /> Delivered
+          </span>
+        );
+      case "out_for_delivery":
+      case "in_transit":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800 animate-pulse">
+            <Truck className="w-3 h-3" /> In Transit
+          </span>
+        );
+      case "assigned":
+      case "pickup_claimed":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-300 dark:border-sky-800">
+            <Check className="w-3 h-3" /> Assigned
+          </span>
+        );
+      case "failed":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
+            <AlertCircle className="w-3 h-3" /> Failed
+          </span>
+        );
+      case "cancelled":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
+            Cancelled
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+            <Clock className="w-3 h-3" /> Pending
+          </span>
+        );
+    }
+  };
+
+  // Phase C7.13: Route assignment badge
+  const renderRoutingBadge = (item: any) => {
+    const status = (item.assignment_status || "").toUpperCase();
+    if (status === "ASSIGNED") {
+      return (
+        <div className="flex flex-col text-[11px]">
+          <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400">
+            <MapPin className="w-3 h-3 text-emerald-600 shrink-0" />
+            <span className="truncate max-w-[130px]">{item.assigned_store_name || "Assigned Store"}</span>
+          </span>
+          {item.assigned_partner_name && (
+            <span className="text-[10px] text-slate-500 flex items-center gap-1 truncate max-w-[130px]">
+              <Truck className="w-2.5 h-2.5 shrink-0" />
+              {item.assigned_partner_name}
+            </span>
+          )}
+          {item.distance_km !== null && item.distance_km !== undefined && (
+            <span className="text-[10px] text-slate-400 font-mono">
+              {Number(item.distance_km).toFixed(1)} km
+            </span>
+          )}
+        </div>
+      );
+    }
+    if (status === "MANUAL_OVERRIDE") {
+      return (
+        <div className="flex flex-col text-[11px]">
+          <span className="inline-flex items-center gap-1 font-semibold text-purple-700 dark:text-purple-400">
+            <ShieldCheck className="w-3 h-3 text-purple-600 shrink-0" />
+            <span className="truncate max-w-[130px]">{item.assigned_store_name || "Override Store"}</span>
+          </span>
+          {item.assigned_partner_name && (
+            <span className="text-[10px] text-slate-500 truncate max-w-[130px]">
+              {item.assigned_partner_name}
+            </span>
+          )}
+          <span className="text-[10px] text-purple-600/80 font-mono">
+            Manual Override
+          </span>
+        </div>
+      );
+    }
+    const reason = item.reason_code || "UNRESOLVED";
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+        <AlertTriangle className="w-2.5 h-2.5 shrink-0" />
+        {reason}
+      </span>
+    );
   };
 
   return (
@@ -1207,6 +1336,45 @@ export const CorporateGiftingPanel = memo(function CorporateGiftingPanel() {
                     </div>
                   </div>
 
+                  {/* Phase C7.13: Routing & Fulfillment Coverage Summary */}
+                  {detailRoutingSummary && (
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+                          <Truck className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <span>Routing & Fulfillment Coverage</span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                              {detailRoutingSummary.assignedCount} / {detailRoutingSummary.totalRecipients} Assigned
+                            </span>
+                            {detailRoutingSummary.unassignedCount > 0 && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                                {detailRoutingSummary.unassignedCount} In Review
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            Automated polygon geofence & partner capability routing with manual override protection.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => handleReEvaluateRouting(false)}
+                          disabled={reEvaluatingRouting}
+                          id="btn-reevaluate-routing"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-colors shadow-2xs"
+                          title="Re-evaluates automated routing while preserving manual overrides"
+                        >
+                          <RefreshCw className={`w-3.5 h-3.5 ${reEvaluatingRouting ? "animate-spin" : ""}`} />
+                          Re-evaluate Routing
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Recipient Roster */}
                   <div className="space-y-2">
                     <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
@@ -1221,6 +1389,8 @@ export const CorporateGiftingPanel = memo(function CorporateGiftingPanel() {
                             <th className="py-2.5 px-3">Recipient Name</th>
                             <th className="py-2.5 px-3">Phone</th>
                             <th className="py-2.5 px-3">Address & PIN</th>
+                            <th className="py-2.5 px-3">Delivery Status</th>
+                            <th className="py-2.5 px-3">Route Assignment</th>
                             <th className="py-2.5 px-3">Delivery Date</th>
                             <th className="py-2.5 px-3">Item / SKU</th>
                             <th className="py-2.5 px-3 text-right">Qty</th>
@@ -1238,8 +1408,14 @@ export const CorporateGiftingPanel = memo(function CorporateGiftingPanel() {
                               <td className="py-2.5 px-3 font-mono text-[11px] text-slate-600 dark:text-slate-400">
                                 {r.recipient_phone || r.recipientPhone}
                               </td>
-                              <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 max-w-[200px] truncate">
+                              <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 max-w-[180px] truncate">
                                 {r.delivery_address || r.deliveryAddress} ({r.delivery_pincode || r.deliveryPincode})
+                              </td>
+                              <td className="py-2.5 px-3">
+                                {renderDeliveryStatusBadge(r.delivery_status || r.deliveryStatus)}
+                              </td>
+                              <td className="py-2.5 px-3">
+                                {renderRoutingBadge(r)}
                               </td>
                               <td className="py-2.5 px-3 text-slate-500 text-[11px]">
                                 {r.delivery_date || r.deliveryDate}

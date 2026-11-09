@@ -38,12 +38,24 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
       allDeliveries = (delRes as any)?.deliveries || [];
       allOrders = (ordRes as any)?.orders || [];
     } else {
+      try {
+        const { OrderRepository } = await import("../repositories/order.repository");
+        const ordersRes = await OrderRepository.listOrders({ limit: 100 });
+        allOrders = ordersRes.items || [];
+      } catch (err) {
+        allOrders = [];
+      }
       const { ApiEngine } = await import("../api-engine");
       ApiEngine.ensureDeliveryPartnersStore();
-      ApiEngine.ensureOrdersStore();
       const store = ApiEngine.getStore();
       allDeliveries = store.delivery_partners || [];
-      allOrders = store.orders || [];
+      const storeOrders = store.orders || [];
+      const existingIds = new Set(allOrders.map((o: any) => o.id));
+      for (const so of storeOrders) {
+        if (!existingIds.has(so.id)) {
+          allOrders.push(so);
+        }
+      }
       if (targetPartnerId) {
         partnerObj = (allDeliveries || []).find(
           (p: any) => p.id === targetPartnerId || p.partner_number === targetPartnerId || p.phone === targetPartnerId

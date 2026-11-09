@@ -1,0 +1,86 @@
+[
+  {
+    "file": "01_accounting_banking_dashboard.png",
+    "size_bytes": 260718,
+    "size_kb": "254.6",
+    "sha256": "3a262a5a429942f1ddd9c9a43070000225a576745f74a58307f76a32563b8a4a",
+    "captured_at": "2026-11-06T04:22:21.951Z"
+  },
+  {
+    "file": "02_bank_accounts_register.png",
+    "size_bytes": 250866,
+    "size_kb": "245.0",
+    "sha256": "af602961481c4065e1c98fbe27d8c86a897d7ac924a4348dcbfae6d26819b08d",
+    "captured_at": "2026-11-06T04:22:23.938Z"
+  },
+  {
+    "file": "03_cashfree_settlements_clearing.png",
+    "size_bytes": 182020,
+    "size_kb": "177.8",
+    "sha256": "17a0a3765e468ade3a3c421b378b9260b1683c668279877ab0281b6ba3a2dea0",
+    "captured_at": "2026-11-06T04:22:25.673Z"
+  },
+  {
+    "file": "04_bank_reconciliation_statement.png",
+    "size_bytes": 156712,
+    "size_kb": "153.0",
+    "sha256": "de058723225c22ff7b996c5f76ece83763982b39f93c05b75796a83d637bb618",
+    "captured_at": "2026-11-06T04:22:26.953Z"
+  },
+  {
+    "file": "05_admin_orders_register.png",
+    "size_bytes": 86994,
+    "size_kb": "85.0",
+    "sha256": "56cce2fe22ed042464f0adc49d4e98c365622438b56e363be8916b708e913afc",
+    "captured_at": "2026-11-06T04:22:55.621Z"
+  },
+  {
+    "file": "06_branch_manager_operations.png",
+    "size_bytes": 107413,
+    "size_kb": "104.9",
+    "sha256": "d85ffab82b9619c52817e2a91d2e68b26d3ba2826910fcd7549c35f2baf82b57",
+    "captured_at": "2026-11-06T04:23:30.575Z"
+  },
+  {
+    "file": "07_statutory_tax_invoice.png",
+    "size_bytes": 123050,
+    "size_kb": "120.2",
+    "sha256": "f66c5a506ff32cb226cc9a2b4fd8243bb7d74f33002cbc697682b2ecc9f20345",
+    "captured_at": "2026-11-06T04:23:34.840Z"
+  },
+  {
+    "file": "08_chart_of_accounts_hierarchy.png",
+    "size_bytes": 123908,
+    "size_kb": "121.0",
+    "sha256": "9be980f0d779bf4ef106341376d323eb8c69b173d9586cea79649b31bed9a241",
+    "captured_at": "2026-11-06T04:23:42.119Z"
+  },
+  {
+    "file": "09_general_ledger_register.png",
+    "size_bytes": 71652,
+    "size_kb": "70.0",
+    "sha256": "3c81df9b87764da7d3e9e639a87c42401d9b38ce925f4cba8c5e18ef5acce049",
+    "captured_at": "2026-11-06T04:25:08.566Z"
+  },
+  {
+    "file": "10_trial_balance_verification.png",
+    "size_bytes": 67768,
+    "size_kb": "66.2",
+    "sha256": "b3677f34c22028240fdf9d5521d184b52dde1502900614f08d821d4212995302",
+    "captured_at": "2026-11-06T04:25:12.710Z"
+  },
+  {
+    "file": "11_cashflow_statement.png",
+    "size_bytes": 92241,
+    "size_kb": "90.1",
+    "sha256": "f6a46f3bc3f40a2acfcdcaf59438f1e1e3fb592d8bfdff5017174355a3fa2e78",
+    "captured_at": "2026-11-06T04:25:29.889Z"
+  },
+  {
+    "file": "12_settlement_to_bank_ledger.png",
+    "size_bytes": 131296,
+    "size_kb": "128.2",
+    "sha256": "eb6266f4224968704f13dfd5d0664e03ea3c71ea5c786a81b23c14c56785a797",
+    "captured_at": "2026-11-06T04:25:41.745Z"
+  }
+]

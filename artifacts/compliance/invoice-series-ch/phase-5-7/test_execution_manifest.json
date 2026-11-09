@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "rehearsal_db": "cth_rehearsal_phase5_7",
+  "protected_db": "cth_test",
+  "total_tests": 19,
+  "passed_tests": 19,
+  "benchmark": {
+    "p50": 97,
+    "p95": 127,
+    "p99": 127,
+    "totalDuration": 129,
+    "workerCount": 10,
+    "iterations": 10,
+    "warmUp": "1 query",
+    "throughputOpsSec": "77.5",
+    "errors": 0,
+    "deadlocks": 0
+  }
+}

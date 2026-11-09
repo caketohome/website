@@ -1,0 +1,6 @@
+{
+  "submitter_cannot_approve": true,
+  "configurator_cannot_approve": true,
+  "developer_locked_out": true,
+  "header_tampering_rejected": true
+}

@@ -1,0 +1,77 @@
+{
+  "reference": "CTH-GOV-2026-SUB-01",
+  "submission_status": "PROPOSED_FOR_BOARD_CONSIDERATION",
+  "board_resolution_adopted": false,
+  "items": [
+    {
+      "item": 1,
+      "topic": "Entity Separation",
+      "status": "DEFINED",
+      "blocker": false
+    },
+    {
+      "item": 2,
+      "topic": "Prefix Selection",
+      "status": "PENDING_RESOLUTION",
+      "blocker": true,
+      "options": [
+        "CTHI",
+        "C2H"
+      ]
+    },
+    {
+      "item": 3,
+      "topic": "Rule 46(b) Compliance",
+      "status": "VALIDATED",
+      "blocker": false
+    },
+    {
+      "item": 4,
+      "topic": "Historical Cutoff Date",
+      "status": "PENDING_RESOLUTION",
+      "blocker": true
+    },
+    {
+      "item": 5,
+      "topic": "Approval Authority Delegation",
+      "status": "PENDING_APPOINTMENT",
+      "blocker": true
+    },
+    {
+      "item": 6,
+      "topic": "Segregation of Duties",
+      "status": "ENFORCED_IN_CODE",
+      "blocker": false
+    },
+    {
+      "item": 7,
+      "topic": "Delivered Unbilled Orders (21)",
+      "status": "PENDING_CA_SIGNOFF",
+      "blocker": false
+    },
+    {
+      "item": 8,
+      "topic": "Draft Vouchers (4)",
+      "status": "RECONCILED",
+      "blocker": false
+    },
+    {
+      "item": 9,
+      "topic": "Synthetic Test Isolation",
+      "status": "VERIFIED",
+      "blocker": false
+    },
+    {
+      "item": 10,
+      "topic": "Fail-Closed Activation",
+      "status": "ENFORCED_IN_CODE",
+      "blocker": false
+    },
+    {
+      "item": 11,
+      "topic": "Deployment Mandate",
+      "status": "PENDING_RESOLUTION",
+      "blocker": true
+    }
+  ]
+}

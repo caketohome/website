@@ -580,4 +580,140 @@ export class AccountsReceivableRepository {
     const res = await this.query<RawAccountMisclassificationRow>(sql, [params.asOfDate], client);
     return res.rows;
   }
+
+  /**
+   * Retrieves all persisted customer invoices up to asOfDate with allocated receipts and credit returns.
+   */
+  static async getArAgingInvoices(
+    params: {
+      asOfDate: string;
+      branchId?: string;
+      customerId?: string;
+    },
+    client?: PoolClient
+  ): Promise<RawArAgingInvoiceRow[]> {
+    const conditions: string[] = [
+      "inv.deleted_at IS NULL",
+      "inv.created_at::date <= $1",
+    ];
+    const sqlParams: any[] = [params.asOfDate];
+    let idx = 2;
+
+    if (params.branchId) {
+      conditions.push(`inv.branch_id = $${idx++}`);
+      sqlParams.push(params.branchId);
+    }
+
+    if (params.customerId) {
+      conditions.push(`inv.customer_id = $${idx++}`);
+      sqlParams.push(params.customerId);
+    }
+
+    const sql = `
+      SELECT
+        inv.id AS invoice_id,
+        inv.invoice_number,
+        inv.order_id,
+        inv.customer_id,
+        COALESCE(c.company_name, inv.customer_name, 'Guest Customer') AS customer_name,
+        c.company_name,
+        c.phone AS customer_phone,
+        c.email AS customer_email,
+        inv.branch_id,
+        b.name AS branch_name,
+        inv.created_at::date::text AS invoice_date,
+        COALESCE(inv.due_date, inv.created_at::date)::text AS due_date,
+        inv.grand_total::numeric AS invoice_total,
+        inv.payment_status,
+        inv.payment_method,
+        inv.is_corporate,
+        COALESCE(cra.total_allocated, 0)::numeric AS allocated_paid,
+        COALESCE(ret.total_returns, 0)::numeric AS returns_amount
+      FROM public.invoice inv
+      LEFT JOIN public.customer c ON c.id = inv.customer_id AND c.deleted_at IS NULL
+      LEFT JOIN public.branch b ON b.id = inv.branch_id
+      LEFT JOIN LATERAL (
+        SELECT COALESCE(SUM(cra_inner.allocated_amount), 0) AS total_allocated
+        FROM public.customer_receipt_allocation cra_inner
+        LEFT JOIN public.accounting_voucher v_rcpt ON v_rcpt.id = cra_inner.voucher_id
+        WHERE cra_inner.invoice_id = inv.id
+          AND (v_rcpt.id IS NULL OR (v_rcpt.status = 'POSTED' AND v_rcpt.deleted_at IS NULL AND v_rcpt.voucher_date <= $1))
+          AND cra_inner.created_at::date <= $1
+      ) cra ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT COALESCE(SUM(v_ret.total_amount), 0) AS total_returns
+        FROM public.accounting_voucher v_ret
+        WHERE v_ret.reference_type = 'ORDER_RETURN'
+          AND v_ret.metadata->>'order_id' = inv.order_id
+          AND v_ret.status = 'POSTED'
+          AND v_ret.deleted_at IS NULL
+          AND v_ret.voucher_date <= $1
+      ) ret ON TRUE
+      WHERE ${conditions.join(" AND ")}
+      ORDER BY inv.due_date ASC, inv.created_at ASC
+    `;
+
+    const res = await this.query<RawArAgingInvoiceRow>(sql, sqlParams, client);
+    return res.rows;
+  }
+
+  /**
+   * Retrieves net balance of manual or unassigned journal lines on Account 1121 without customer dimension.
+   */
+  static async getUnassignedTradeArJournals(
+    params: {
+      accountId: string;
+      asOfDate: string;
+      branchId?: string;
+    },
+    client?: PoolClient
+  ): Promise<number> {
+    const conditions: string[] = [
+      "jl.account_id = $1",
+      "jl.customer_id IS NULL",
+      "v.status = 'POSTED'",
+      "v.deleted_at IS NULL",
+      "v.voucher_date <= $2",
+    ];
+    const sqlParams: any[] = [params.accountId, params.asOfDate];
+
+    if (params.branchId) {
+      conditions.push(`jl.branch_id = $${sqlParams.length + 1}`);
+      sqlParams.push(params.branchId);
+    }
+
+    const sql = `
+      SELECT
+        COALESCE(SUM(jl.debit_amount), 0) - COALESCE(SUM(jl.credit_amount), 0) AS unassigned_total
+      FROM public.accounting_journal_line jl
+      JOIN public.accounting_journal_entry je ON je.id = jl.journal_entry_id
+      JOIN public.accounting_voucher v ON v.id = je.voucher_id
+      WHERE ${conditions.join(" AND ")}
+    `;
+
+    const res = await this.query<{ unassigned_total: string | number }>(sql, sqlParams, client);
+    return Math.round(Number(res.rows[0]?.unassigned_total ?? 0) * 100) / 100;
+  }
 }
+
+export interface RawArAgingInvoiceRow {
+  invoice_id: string;
+  invoice_number: string;
+  order_id: string;
+  customer_id: string | null;
+  customer_name: string;
+  company_name: string | null;
+  customer_phone: string | null;
+  customer_email: string | null;
+  branch_id: string | null;
+  branch_name: string | null;
+  invoice_date: string;
+  due_date: string;
+  invoice_total: string | number;
+  payment_status: string | null;
+  payment_method: string | null;
+  is_corporate: boolean;
+  allocated_paid: string | number;
+  returns_amount: string | number;
+}
+

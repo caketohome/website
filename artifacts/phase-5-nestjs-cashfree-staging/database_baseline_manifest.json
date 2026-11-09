@@ -1,0 +1,18 @@
+{
+  "database": "cth_test",
+  "port": 5433,
+  "counts": {
+    "orders": 127,
+    "invoices": 71,
+    "vouchers": 4,
+    "payments": 40,
+    "products": 26
+  },
+  "hashes": {
+    "orders_sha256": "b0019df00fba1a84fadff36153807da1da9e8bc8b3e654ab5d9d92f59ff0d803",
+    "invoices_sha256": "77c572b7468318da1557fa3e280e7649448ab75f5028abdaae18ae7acbdbf9fd",
+    "vouchers_sha256": "cbc09f6bc19a0d0eb78b9bd0de9f8793bf31669253b22c7955f65a91d9302384"
+  },
+  "status": "PROTECTED_ZERO_WRITES_VERIFIED",
+  "verified_at": "2026-11-04T11:02:39.399Z"
+}

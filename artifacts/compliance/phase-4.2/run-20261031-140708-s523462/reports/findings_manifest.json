@@ -1,0 +1,88 @@
+{
+  "audit_phase": "Phase 4.2",
+  "project": "CakeToHome India Private Limited",
+  "repository": "e:/vig/cakes2home-main/cakes2home-main",
+  "commit": "d231cee7e55f716526e62f5799cc7377c555fed3",
+  "branch": "checkpoint/c-phases-baseline",
+  "arena_run_id": "run-20261031-140708-s523462",
+  "winning_strategy": "a004 (Decomposition + Write, then restructure + Maximal rigour)",
+  "audit_timestamp": "2026-10-31T09:34:00Z",
+  "final_release_outcome": "OUTCOME 1: AUDIT PASS, PRODUCTION STILL BLOCKED",
+  "findings": [
+    {
+      "finding_id": "CTH-P42-001",
+      "workstream": "Workstream B: Hardcoded Statutory Values",
+      "category": "Source Code Audit",
+      "severity": "HIGH",
+      "classification": "VERIFIED DEFECT (REMEDIATED)",
+      "target_file": "frontend/src/lib/services/bills-receivable.service.ts",
+      "line_number": 1061,
+      "description": "Corporate invoicing service hardcoded literal 'CTH' prefix in call to public.allocate_invoice_number, triggering INVOICE_SERIES_PREFIX_CONFLICT under CGST Rule 46.",
+      "remediation": "Refactored to query public.invoice_sequence dynamically for approved active series for seller GSTIN and FY, failing closed with UNAUTHORIZED_INVOICE_SERIES if unapproved.",
+      "evidence": "tsc --noEmit pass; git diff verification"
+    },
+    {
+      "finding_id": "CTH-P42-002",
+      "workstream": "Workstream G: Fiscal-Year Engine",
+      "category": "Edge-Case Date Boundary",
+      "severity": "MEDIUM",
+      "classification": "VERIFIED DEFECT (REMEDIATED)",
+      "target_file": "frontend/src/lib/fiscal-period.ts",
+      "line_number": 23,
+      "description": "resolveIndianFiscalYear(null) evaluated new Date(null) as epoch 0 (1970-01-01), erroneously resolving to fiscal year 1969 instead of failing closed.",
+      "remediation": "Added explicit check for null, undefined, and empty string to strictly throw INVALID_ISSUE_DATE error.",
+      "evidence": "test_fiscal_boundary.cjs 15/15 passed"
+    },
+    {
+      "finding_id": "CTH-P42-003",
+      "workstream": "Workstream C: Migration Forensics",
+      "category": "Migration Security & Approval Provenance",
+      "severity": "HIGH",
+      "classification": "STATUTORY POLICY FINDING",
+      "target_file": "frontend/src/lib/migrations/c7_12_database_driven_gst_and_invoice_series.sql",
+      "line_numbers": [38, 51],
+      "description": "Migration unconditionally updates SAFE-TEST, CONC, FYBND, and LKTEST to approval_status = 'APPROVED' with synthetic authorized_by = 'ca_audit_signed'.",
+      "remediation": "Documented statutory policy: Migration c7_12 must NOT be applied to staging/production with lines 38-51 enabled. Production approvals must be granted exclusively via authenticated Finance Controller sign-off in Admin UI or signed CA production migration.",
+      "evidence": "c7_12_database_driven_gst_and_invoice_series.sql lines 38-51"
+    },
+    {
+      "finding_id": "CTH-P42-004",
+      "workstream": "Workstream K: Protected Database Integrity",
+      "category": "Database Immutability",
+      "severity": "CRITICAL",
+      "classification": "VERIFIED PASS",
+      "target_database": "cth_test on 127.0.0.1:5433",
+      "description": "Protected master database cth_test remained completely untouched with exactly zero state divergence before and after audit.",
+      "pre_audit_counts": { "orders": 127, "invoices": 71, "vouchers": 4, "display_seq": 98587 },
+      "post_audit_counts": { "orders": 127, "invoices": 71, "vouchers": 4, "display_seq": 98587 },
+      "hashes_matched": true,
+      "evidence": "protected_db_baseline_snapshot.json and protected_db_post_audit_snapshot.json"
+    },
+    {
+      "finding_id": "CTH-P42-005",
+      "workstream": "Workstream F: Authoritative Invoice Allocation",
+      "category": "Concurrency & Locking",
+      "severity": "HIGH",
+      "classification": "VERIFIED PASS",
+      "target_object": "public.allocate_invoice_number",
+      "description": "10 simultaneous asynchronous transactions allocated contiguous sequence numbers (000005 to 000014) with zero deadlocks and zero sequence burning on replay.",
+      "evidence": "test_phase4_2_compliance.js Test 7 and Test 6"
+    },
+    {
+      "finding_id": "CTH-P42-006",
+      "workstream": "Workstream H: Admin Compliance UI and API",
+      "category": "End-to-End Verification",
+      "severity": "MEDIUM",
+      "classification": "VERIFIED PASS",
+      "target_endpoints": [
+        "GET /api/v1/admin/compliance/legal-entities",
+        "GET /api/v1/admin/compliance/invoice-series",
+        "POST /api/v1/admin/compliance/invoice-series/propose",
+        "POST /api/v1/admin/compliance/invoice-series/approve"
+      ],
+      "description": "Next.js compliance UI and REST APIs verified via real browser automation. Proposed series PHASE42 transitioned to APPROVED with immutable audit trail.",
+      "evidence": "Playwright screenshots 01, 02, 03, 04 in evidence/"
+    }
+  ]
+}
+

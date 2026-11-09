@@ -1,0 +1,32 @@
+{
+  "match": "r1-m01",
+  "scores": {
+    "a002": {
+      "correctness": 9.5,
+      "completeness": 9.5,
+      "specificity": 9.5,
+      "robustness": 9.5,
+      "clarity": 9.5,
+      "fatal": false
+    },
+    "a003": {
+      "correctness": 8.0,
+      "completeness": 8.0,
+      "specificity": 8.0,
+      "robustness": 8.5,
+      "clarity": 8.5,
+      "fatal": false
+    }
+  },
+  "winner": "a002",
+  "reason": "a002 provides the exact, production-ready TypeScript diff and comprehensive 8-scenario error mapping, leaving zero ambiguity for execution.",
+  "survived": [
+    "Advisory Lock Recovery"
+  ],
+  "standing": {
+    "a002": [],
+    "a003": [
+      "Abstract Architecture Without Concrete Code Diffs"
+    ]
+  }
+}

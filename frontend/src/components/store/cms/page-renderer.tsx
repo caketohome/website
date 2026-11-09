@@ -1606,7 +1606,7 @@ export function PageRenderer({
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={cat.image_url || cat.banner_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600"}
+                    src={cat.image_url || cat.image || cat.banner_url || "/images/default-cake.jpg"}
                     alt={cat.name || "Cake Category"}
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                     loading="lazy"

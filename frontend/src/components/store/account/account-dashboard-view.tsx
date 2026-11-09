@@ -420,7 +420,7 @@ export function AccountDashboardView({ initialCustomer }: AccountDashboardViewPr
         <div className="space-y-4 animate-in fade-in-50 duration-300">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold text-neutral-100">Recent Cake Deliveries</h3>
-            <Link href="/catalog" className="text-xs text-amber-400 font-bold hover:underline flex items-center gap-1">
+            <Link href="/products" className="text-xs text-amber-400 font-bold hover:underline flex items-center gap-1">
               Browse Catalog <ExternalLink className="w-3 h-3" />
             </Link>
           </div>
@@ -446,7 +446,7 @@ export function AccountDashboardView({ initialCustomer }: AccountDashboardViewPr
                 </p>
               </div>
               <Link
-                href="/catalog"
+                href="/products"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold transition shadow-lg shadow-amber-500/20"
               >
                 Order Fresh Cake Now

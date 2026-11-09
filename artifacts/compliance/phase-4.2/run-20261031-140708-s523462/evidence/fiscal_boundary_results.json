@@ -1,0 +1,110 @@
+{
+  "allPassed": true,
+  "results": [
+    {
+      "name": "March 31, 2026 23:59:59.999 IST",
+      "input": "2026-03-31T23:59:59.999+05:30",
+      "expected": "2025 (25-26)",
+      "actual": "2025 (25-26)",
+      "status": "PASS"
+    },
+    {
+      "name": "Equivalent UTC timestamp (2026-03-31T18:29:59.999Z)",
+      "input": "2026-03-31T18:29:59.999Z",
+      "expected": "2025 (25-26)",
+      "actual": "2025 (25-26)",
+      "status": "PASS"
+    },
+    {
+      "name": "April 1, 2026 00:00:00.000 IST (Rollover boundary)",
+      "input": "2026-04-01T00:00:00.000+05:30",
+      "expected": "2026 (26-27)",
+      "actual": "2026 (26-27)",
+      "status": "PASS"
+    },
+    {
+      "name": "Equivalent UTC timestamp (2026-03-31T18:30:00.000Z - Calendar date March 31 in UTC)",
+      "input": "2026-03-31T18:30:00.000Z",
+      "expected": "2026 (26-27)",
+      "actual": "2026 (26-27)",
+      "status": "PASS"
+    },
+    {
+      "name": "April 1, 2026 00:00:00.001 IST",
+      "input": "2026-04-01T00:00:00.001+05:30",
+      "expected": "2026 (26-27)",
+      "actual": "2026 (26-27)",
+      "status": "PASS"
+    },
+    {
+      "name": "Leap day: Feb 29, 2024 12:00:00 IST",
+      "input": "2024-02-29T12:00:00+05:30",
+      "expected": "2023 (23-24)",
+      "actual": "2023 (23-24)",
+      "status": "PASS"
+    },
+    {
+      "name": "Calendar year rollover (Dec 31, 2026 23:59:59 IST)",
+      "input": "2026-12-31T23:59:59+05:30",
+      "expected": "2026 (26-27)",
+      "actual": "2026 (26-27)",
+      "status": "PASS"
+    },
+    {
+      "name": "Calendar year rollover (Jan 1, 2027 00:00:01 IST)",
+      "input": "2027-01-01T00:00:01+05:30",
+      "expected": "2026 (26-27)",
+      "actual": "2026 (26-27)",
+      "status": "PASS"
+    },
+    {
+      "name": "Numeric timestamp: 1775000000000 (around 2026)",
+      "input": "1775000000000",
+      "expected": "2026 (26-27)",
+      "actual": "2026 (26-27)",
+      "status": "PASS"
+    },
+    {
+      "name": "Native Date object: new Date(\"2026-08-15T10:00:00+05:30\")",
+      "input": "Sat Aug 15 2026 10:00:00 GMT+0530 (India Standard Time)",
+      "expected": "2026 (26-27)",
+      "actual": "2026 (26-27)",
+      "status": "PASS"
+    },
+    {
+      "name": "Invalid input rejection: ",
+      "input": "",
+      "expected": "Throw INVALID_ISSUE_DATE error",
+      "actual": "Threw error: INVALID_ISSUE_DATE: Cannot resolve fiscal year for empty or null date ''",
+      "status": "PASS"
+    },
+    {
+      "name": "Invalid input rejection: invalid-date-string",
+      "input": "invalid-date-string",
+      "expected": "Throw INVALID_ISSUE_DATE error",
+      "actual": "Threw error: INVALID_ISSUE_DATE: Cannot resolve fiscal year for invalid date 'invalid-date-string'",
+      "status": "PASS"
+    },
+    {
+      "name": "Invalid input rejection: NaN",
+      "input": "NaN",
+      "expected": "Throw INVALID_ISSUE_DATE error",
+      "actual": "Threw error: INVALID_ISSUE_DATE: Cannot resolve fiscal year for invalid date 'NaN'",
+      "status": "PASS"
+    },
+    {
+      "name": "Invalid input rejection: null",
+      "input": "null",
+      "expected": "Throw INVALID_ISSUE_DATE error",
+      "actual": "Threw error: INVALID_ISSUE_DATE: Cannot resolve fiscal year for empty or null date 'null'",
+      "status": "PASS"
+    },
+    {
+      "name": "Default parameter (undefined)",
+      "input": "undefined",
+      "expected": "Current FY without error",
+      "actual": "FY 2026",
+      "status": "PASS"
+    }
+  ]
+}

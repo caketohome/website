@@ -49,6 +49,8 @@ import type { PoolClient } from "pg";
 import { AccountingAccountRepository } from "../repositories/accounting-account.repository";
 import { AccountingVoucherRepository } from "../repositories/accounting-voucher.repository";
 import { BankAccountRepository } from "../repositories/bank-account.repository";
+import { TellerSessionRepository } from "../repositories/teller-session.repository";
+import { TellerMovementRepository } from "../repositories/teller-movement.repository";
 import { hasEffectivePermission } from "../staff-access-control";
 import { PostingService, PostingServiceError } from "./posting.service";
 import type {
@@ -472,6 +474,92 @@ export class PurchasePaymentService {
           );
         }
 
+        // ── 9B. CASH CUSTODY & OVERDRAFT GUARD ─────────────────────────────────
+        let activeTellerSessionId: string | null = (payment as any).teller_session_id || (payment as any).tellerSessionId || null;
+        if (payment.method === "CASH") {
+          if (!activeTellerSessionId && purchase.branch_id) {
+            const branchSessions = await TellerSessionRepository.findActiveByBranchId(purchase.branch_id, client);
+            const openSession = branchSessions.find((s) => s.status === "OPEN");
+            if (openSession) {
+              activeTellerSessionId = openSession.id;
+            }
+          }
+
+          if (activeTellerSessionId) {
+            // Path A: Physical Retail Drawer Session
+            const sessRes = await client.query(
+              `SELECT * FROM public.teller_session WHERE id = $1 FOR UPDATE`,
+              [activeTellerSessionId]
+            );
+            const session = sessRes.rows[0];
+            if (!session) {
+              throw new PurchasePaymentError(
+                "PAYMENT_ACCOUNT_UNRESOLVED",
+                `Target teller session '${activeTellerSessionId}' not found.`
+              );
+            }
+            if (purchase.branch_id && session.branch_id !== purchase.branch_id) {
+              throw new PurchasePaymentError(
+                "BRANCH_ACCESS_DENIED",
+                `Session '${session.id}' belongs to branch '${session.branch_id}', not '${purchase.branch_id}'.`
+              );
+            }
+            if (session.status !== "OPEN") {
+              throw new PurchasePaymentError(
+                "INVALID_PURCHASE_STATUS",
+                `Cannot disburse cash from teller session '${session.id}': session is currently ${session.status} (expected OPEN).`
+              );
+            }
+
+            const movRes = await client.query<{ net_mov: string }>(
+              `SELECT COALESCE(SUM(CASE WHEN direction = 'IN' THEN amount ELSE -amount END), 0)::text AS net_mov
+               FROM public.teller_movement
+               WHERE teller_session_id = $1`,
+              [session.id]
+            );
+            const netMov = Number(movRes.rows[0]?.net_mov || 0);
+            const openingFloat = Number(session.opening_float || 0);
+            const availableDrawerCash = Math.round((openingFloat + netMov) * 100) / 100;
+
+            if (availableDrawerCash < amount) {
+              throw new PurchasePaymentError(
+                "INVALID_PAYMENT_AMOUNT",
+                `Cannot disburse ₹${amount.toFixed(2)} from teller drawer: available balance is ₹${availableDrawerCash.toFixed(2)}. Cash overdraft is strictly prohibited.`
+              );
+            }
+          } else {
+            // Path B: General Ledger Cash Account 1111 Guard
+            if (purchase.branch_id) {
+              await client.query(`SELECT pg_advisory_xact_lock(hashtext('cash_guard_' || $1 || '_' || $2))`, [
+                purchase.branch_id,
+                creditAccount.id,
+              ]);
+            } else {
+              await client.query(`SELECT pg_advisory_xact_lock(hashtext('cash_guard_global_' || $1))`, [
+                creditAccount.id,
+              ]);
+            }
+
+            const balRes = await client.query<{ total_bal: string }>(
+              `SELECT COALESCE(SUM(jl.debit_amount - jl.credit_amount), 0)::text AS total_bal
+               FROM public.accounting_journal_line jl
+               JOIN public.accounting_journal_entry je ON je.id = jl.journal_entry_id
+               JOIN public.accounting_voucher v ON v.id = je.voucher_id
+               WHERE jl.account_id = $1
+                 AND v.status = 'POSTED'
+                 AND v.deleted_at IS NULL`,
+              [creditAccount.id]
+            );
+            const currentGlBalance = Number(balRes.rows[0]?.total_bal || 0);
+            if (currentGlBalance < amount) {
+              throw new PurchasePaymentError(
+                "INVALID_PAYMENT_AMOUNT",
+                `Cannot disburse ₹${amount.toFixed(2)}: Available GL balance for ${creditAccount.code} (${creditAccount.name}) is ₹${currentGlBalance.toFixed(2)}. Cash overdraft is strictly prohibited.`
+              );
+            }
+          }
+        }
+
         // ── 10. INSERT PURCHASE_PAYMENT RECORD ─────────────────────────────────
         const paymentId = generatePurchasePaymentId();
         const bankAccId = (payment as any).bank_account_id || (payment as any).bankAccountId || null;
@@ -619,6 +707,24 @@ export class PurchasePaymentService {
           `UPDATE public.purchase SET updated_at = NOW() WHERE id = $1`,
           [purchaseId]
         );
+
+        // ── 13B. PROJECT CASH CUSTODY MOVEMENT IN TELLER LEDGER ──────────────
+        if (payment.method === "CASH" && activeTellerSessionId) {
+          await TellerMovementRepository.create(
+            {
+              session_id: activeTellerSessionId,
+              branch_id: purchase.branch_id,
+              direction: "OUT",
+              movement_type: "EXPENSE_PAYMENT",
+              amount: amount,
+              narration: `Supplier cash disbursement for purchase ${purchase.invoice_no || purchase.id}`,
+              source_type: "EXPENSE",
+              source_id: createdPayment.id,
+              created_by: paidBy,
+            },
+            client
+          );
+        }
 
         // ── 14. RETURN RESULT ──────────────────────────────────────────────────
         return {

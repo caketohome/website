@@ -1,0 +1,11 @@
+{
+  "match": "r1-m02",
+  "scores": {
+    "a003": {"correctness": 9.5, "completeness": 9.5, "specificity": 9.5, "robustness": 9.5, "clarity": 9.5, "fatal": false},
+    "a001": {"correctness": 8.5, "completeness": 8.5, "specificity": 8.5, "robustness": 9.0, "clarity": 8.5, "fatal": false}
+  },
+  "winner": "a003",
+  "reason": "a003 provides an exhaustive test-first automated acceptance matrix with concrete thresholds and rollback safety.",
+  "survived": ["Dual-stage soft-delete protects historical invoice allocations", "Rollback DDL script provided"],
+  "standing": {"a003": [], "a001": ["Less rigorous acceptance test matrix"]}
+}

@@ -12,15 +12,27 @@
 
 // ─── Expense Status Lifecycle ─────────────────────────────────────────────────
 
-export type ExpenseStatus = "DRAFT" | "SUBMITTED" | "APPROVED" | "POSTED" | "REVERSED" | "CANCELLED";
+export type ExpenseStatus =
+  | "DRAFT"
+  | "SUBMITTED"
+  | "APPROVED"
+  | "REJECTED"
+  | "AWAITING_PAYMENT"
+  | "PAID"
+  | "POSTED"
+  | "REVERSED"
+  | "CANCELLED";
 
 export const EXPENSE_TRANSITIONS: Record<ExpenseStatus, ExpenseStatus[]> = {
-  DRAFT:     ["SUBMITTED", "CANCELLED"],
-  SUBMITTED: ["APPROVED", "DRAFT", "CANCELLED"],
-  APPROVED:  ["POSTED", "CANCELLED"],
-  POSTED:    ["REVERSED"],
-  REVERSED:  [],
-  CANCELLED: [],
+  DRAFT:            ["SUBMITTED", "CANCELLED"],
+  SUBMITTED:        ["APPROVED", "REJECTED", "DRAFT", "CANCELLED"],
+  APPROVED:         ["POSTED", "PAID", "AWAITING_PAYMENT", "REJECTED", "CANCELLED"],
+  REJECTED:         ["DRAFT"],
+  AWAITING_PAYMENT: ["POSTED", "PAID", "CANCELLED"],
+  PAID:             ["POSTED", "REVERSED"],
+  POSTED:           ["REVERSED"],
+  REVERSED:         [],
+  CANCELLED:        [],
 };
 
 // ─── Payment & Settlement ─────────────────────────────────────────────────────

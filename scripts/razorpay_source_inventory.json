@@ -1,0 +1,634 @@
+{
+  "apps/api/src/modules/orders/orders.types.ts": [
+    {
+      "line": 100,
+      "snippet": "paymentProvider: \"RAZORPAY\" | \"COD\";"
+    }
+  ],
+  "apps/api/src/modules/orders/orders.validator.ts": [
+    {
+      "line": 48,
+      "snippet": "const paymentProvider = body.paymentProvider === \"COD\" ? \"COD\" : \"RAZORPAY\";"
+    }
+  ],
+  "apps/api/src/modules/orders/__tests__/orders.unit.spec.ts": [
+    {
+      "line": 29,
+      "snippet": "paymentProvider: \"RAZORPAY\","
+    },
+    {
+      "line": 34,
+      "snippet": "expect(valid.paymentProvider).toBe(\"RAZORPAY\");"
+    },
+    {
+      "line": 44,
+      "snippet": "paymentProvider: \"RAZORPAY\","
+    },
+    {
+      "line": 71,
+      "snippet": "paymentProvider: \"RAZORPAY\" as const,"
+    },
+    {
+      "line": 104,
+      "snippet": "paymentProvider: \"RAZORPAY\","
+    }
+  ],
+  "apps/api/src/modules/payments/payments.service.ts": [
+    {
+      "line": 3,
+      "snippet": "* Manages Payment Lifecycle State Machine, Payment Attempts, Razorpay/UPI Webhook Ledger Deduplication,"
+    },
+    {
+      "line": 13,
+      "snippet": "provider: \"RAZORPAY\" | \"STRIPE\" | \"UPI\" | \"COD\";"
+    },
+    {
+      "line": 28,
+      "snippet": "provider: \"RAZORPAY\" | \"STRIPE\" | \"UPI\" | \"COD\";"
+    }
+  ],
+  "apps/api/src/nestjs/modules/payments/payments.controller.ts": [
+    {
+      "line": 23,
+      "snippet": "// Decommission guard for Razorpay"
+    },
+    {
+      "line": 24,
+      "snippet": "@Post(\"razorpay/*\")"
+    },
+    {
+      "line": 25,
+      "snippet": "rejectRazorpayPost() {"
+    },
+    {
+      "line": 26,
+      "snippet": "this.paymentsService.rejectRazorpay(\"initiate\");"
+    },
+    {
+      "line": 29,
+      "snippet": "@Get(\"razorpay/*\")"
+    },
+    {
+      "line": 30,
+      "snippet": "rejectRazorpayGet() {"
+    },
+    {
+      "line": 31,
+      "snippet": "this.paymentsService.rejectRazorpay(\"query\");"
+    }
+  ],
+  "apps/api/src/nestjs/modules/payments/payments.service.ts": [
+    {
+      "line": 110,
+      "snippet": "rejectRazorpay(operation: string): never {"
+    },
+    {
+      "line": 112,
+      "snippet": "`Razorpay operation '${operation}' is decommissioned. All active payments must use Cashfree.`"
+    }
+  ],
+  "apps/api/src/nestjs/modules/webhooks/webhooks.controller.ts": [
+    {
+      "line": 91,
+      "snippet": "@Post(\"razorpay\")"
+    },
+    {
+      "line": 92,
+      "snippet": "rejectRazorpayWebhook() {"
+    },
+    {
+      "line": 94,
+      "snippet": "\"Razorpay webhook ingestion is decommissioned. Configure webhooks at /api/v1/webhooks/cashfree.\""
+    }
+  ],
+  "frontend/src/app/api/v1/payments/webhook/route.ts": [
+    {
+      "line": 7,
+      "snippet": "* [DECOMMISSIONED] Legacy Razorpay Webhook Endpoint"
+    },
+    {
+      "line": 10,
+      "snippet": "* Razorpay is decommissioned for all new payment operations."
+    },
+    {
+      "line": 12,
+      "snippet": "* Historical Razorpay transactions, accounting entries, and audit ledgers remain preserved."
+    },
+    {
+      "line": 18,
+      "snippet": "error: \"RAZORPAY_GATEWAY_DECOMMISSIONED\","
+    },
+    {
+      "line": 19,
+      "snippet": "message: \"The Razorpay payment processing endpoint is decommissioned. All new payments must use the Cashfree integration endpoint at /api/v1"
+    },
+    {
+      "line": 20,
+      "snippet": "provider: \"razorpay\","
+    },
+    {
+      "line": 32,
+      "snippet": "provider: \"razorpay\","
+    },
+    {
+      "line": 33,
+      "snippet": "message: \"Razorpay payment processing is decommissioned in CakeToHome Phase 5. Use Cashfree.\","
+    }
+  ],
+  "frontend/src/app/api/v1/[...path]/route.ts": [
+    {
+      "line": 9835,
+      "snippet": "if (path === \"payments/razorpay/create-order\" || path === \"store/payments/razorpay/create-order\") {"
+    },
+    {
+      "line": 9839,
+      "snippet": "error: \"RAZORPAY_DECOMMISSIONED\","
+    },
+    {
+      "line": 9840,
+      "snippet": "message: \"Razorpay has been decommissioned for new transactions. Use Cashfree (/api/v1/payments/cashfree/create-order).\","
+    },
+    {
+      "line": 9860,
+      "snippet": "if (path === \"payments/razorpay/verify-signature\" || path === \"store/payments/razorpay/verify-signature\") {"
+    },
+    {
+      "line": 9861,
+      "snippet": "const orderId = body.razorpay_order_id || body.order_id;"
+    },
+    {
+      "line": 9862,
+      "snippet": "const paymentId = body.razorpay_payment_id || body.payment_id;"
+    },
+    {
+      "line": 9863,
+      "snippet": "const signature = body.razorpay_signature || body.signature;"
+    },
+    {
+      "line": 9900,
+      "snippet": "if (path === \"payments/razorpay/webhook\" || path === \"payments/webhook\" || path === \"store/payments/webhook\") {"
+    },
+    {
+      "line": 9902,
+      "snippet": "const signature = req.headers.get(\"x-razorpay-signature\") || \"\";"
+    },
+    {
+      "line": 9904,
+      "snippet": "const eventId = req.headers.get(\"x-razorpay-event-id\") || body.event_id || undefined;"
+    },
+    {
+      "line": 9914,
+      "snippet": "\"x-razorpay-event-id\": eventId,"
+    }
+  ],
+  "frontend/src/components/dashboard/admin/compliance/payment-config-tab.tsx": [
+    {
+      "line": 16,
+      "snippet": "supported_methods: paymentSettings?.supported_methods || [\"cod\", \"razorpay\", \"test_mode\", \"wallet\"],"
+    },
+    {
+      "line": 17,
+      "snippet": "razorpay_key_id: paymentSettings?.razorpay_key_id || \"rzp_test_placeholder_key\","
+    },
+    {
+      "line": 26,
+      "snippet": "const toggleMethod = (method: \"cod\" | \"razorpay\" | \"wallet\" | \"test_mode\") => {"
+    },
+    {
+      "line": 72,
+      "snippet": "Configure customer checkout payment options, COD threshold limits, and Razorpay integration keys."
+    },
+    {
+      "line": 107,
+      "snippet": "<span className=\"text-sm font-bold text-slate-900 dark:text-white\">Razorpay Online Gateway</span>"
+    },
+    {
+      "line": 112,
+      "snippet": "checked={formData.supported_methods.includes(\"razorpay\")}"
+    },
+    {
+      "line": 113,
+      "snippet": "onChange={() => toggleMethod(\"razorpay\")}"
+    },
+    {
+      "line": 146,
+      "snippet": "{/* COD Limits & Razorpay Credentials */}"
+    },
+    {
+      "line": 178,
+      "snippet": "<Label htmlFor=\"rzp_key\" className=\"text-xs font-semibold\">Razorpay Key ID (Public)</Label>"
+    },
+    {
+      "line": 181,
+      "snippet": "value={formData.razorpay_key_id}"
+    },
+    {
+      "line": 182,
+      "snippet": "onChange={(e) => setFormData({ ...formData, razorpay_key_id: e.target.value })}"
+    }
+  ],
+  "frontend/src/components/dashboard/admin/coupon-drawer.tsx": [
+    {
+      "line": 77,
+      "snippet": "{ id: \"online\", label: \"NetBanking / Razorpay\" },"
+    }
+  ],
+  "frontend/src/components/dashboard/admin/crm/customer-profile-drawer.tsx": [
+    {
+      "line": 933,
+      "snippet": "<Badge color=\"blue\">{profile.data_lineage?.payment_gateway || \"RAZORPAY\"}</Badge>"
+    }
+  ],
+  "frontend/src/components/dashboard/admin/gateway-settlement-panel.tsx": [
+    {
+      "line": 18,
+      "snippet": "*    - Supports any payment aggregator (Razorpay, PayU, Cashfree, Stripe, etc.) without hardcoded provider conditionals."
+    },
+    {
+      "line": 182,
+      "snippet": "provider: \"razorpay\","
+    },
+    {
+      "line": 434,
+      "snippet": "provider: \"razorpay\","
+    },
+    {
+      "line": 676,
+      "snippet": "<option value=\"razorpay\">Razorpay</option>"
+    },
+    {
+      "line": 1377,
+      "snippet": "<option value=\"razorpay\">Razorpay</option>"
+    }
+  ],
+  "frontend/src/components/store/order/order-live-status-watcher.tsx": [
+    {
+      "line": 102,
+      "snippet": "Verifying payment confirmation with Razorpay gateway..."
+    }
+  ],
+  "frontend/src/lib/actions/checkout.ts": [
+    {
+      "line": 24,
+      "snippet": "if ((payload.payment_method as string) === \"razorpay\") {"
+    },
+    {
+      "line": 27,
+      "snippet": "error: \"Razorpay payment gateway is decommissioned. Please select Cashfree for online payments.\","
+    }
+  ],
+  "frontend/src/lib/api-client.ts": [
+    {
+      "line": 1445,
+      "snippet": "payment_method: \"cod\" | \"razorpay\" | \"test_mode\" | \"wallet\";"
+    },
+    {
+      "line": 1508,
+      "snippet": "// ── Razorpay Payment APIs ──"
+    },
+    {
+      "line": 1509,
+      "snippet": "async createRazorpayOrder(amount: number, currency = \"INR\", receipt?: string) {"
+    },
+    {
+      "line": 1510,
+      "snippet": "return this.request(\"/payments/razorpay/create-order\", {"
+    },
+    {
+      "line": 1516,
+      "snippet": "async verifyRazorpaySignature(payload: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) {"
+    },
+    {
+      "line": 1517,
+      "snippet": "return this.request(\"/payments/razorpay/verify-signature\", {"
+    }
+  ],
+  "frontend/src/lib/api-engine.ts": [
+    {
+      "line": 565,
+      "snippet": "supported_methods: Array<\"cod\" | \"razorpay\" | \"wallet\" | \"test_mode\">;"
+    },
+    {
+      "line": 566,
+      "snippet": "razorpay_key_id?: string;"
+    },
+    {
+      "line": 1099,
+      "snippet": "supported_methods: [\"cod\", \"razorpay\", \"test_mode\", \"wallet\"],"
+    },
+    {
+      "line": 1100,
+      "snippet": "razorpay_key_id: \"rzp_test_placeholder_key\","
+    },
+    {
+      "line": 2061,
+      "snippet": "{ id: \"sec_refund_body\", type: \"brand_story\", name: \"Refund Terms\", enabled: true, order: 2, config: { heading: \"Refund & Replacement Terms\""
+    },
+    {
+      "line": 4948,
+      "snippet": "if ((payload.payment_method as string) === \"razorpay\") {"
+    },
+    {
+      "line": 4952,
+      "snippet": "error: \"Razorpay payment processing is decommissioned. Please select Cashfree for online transactions.\","
+    },
+    {
+      "line": 10980,
+      "snippet": "payment_method: (ord.payment_method || ord.payment_gateway || \"RAZORPAY\").toUpperCase(),"
+    },
+    {
+      "line": 10981,
+      "snippet": "gateway: (ord.payment_gateway || \"RAZORPAY\").toUpperCase(),"
+    },
+    {
+      "line": 22648,
+      "snippet": "// ── Razorpay Payment Gateway Integration ──"
+    },
+    {
+      "line": 22649,
+      "snippet": "static createRazorpayOrder(data: { amount: number; currency?: string; receipt?: string }) {"
+    },
+    {
+      "line": 22652,
+      "snippet": "const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || \"rzp_test_cth_sandbox\";"
+    },
+    {
+      "line": 22668,
+      "snippet": "static verifyRazorpaySignature(payload: {"
+    },
+    {
+      "line": 22669,
+      "snippet": "razorpay_order_id: string;"
+    },
+    {
+      "line": 22670,
+      "snippet": "razorpay_payment_id: string;"
+    },
+    {
+      "line": 22671,
+      "snippet": "razorpay_signature: string;"
+    },
+    {
+      "line": 22673,
+      "snippet": "if (!payload.razorpay_order_id || !payload.razorpay_payment_id) {"
+    },
+    {
+      "line": 22674,
+      "snippet": "return { verified: false, error: \"Missing required Razorpay payment identifiers.\" };"
+    },
+    {
+      "line": 22677,
+      "snippet": "const keySecret = process.env.RAZORPAY_KEY_SECRET;"
+    },
+    {
+      "line": 22681,
+      "snippet": "const body = `${payload.razorpay_order_id}|${payload.razorpay_payment_id}`;"
+    },
+    {
+      "line": 22684,
+      "snippet": "const sigBuf = Buffer.from(payload.razorpay_signature || \"\", \"utf8\");"
+    },
+    {
+      "line": 22688,
+      "snippet": "payment_id: payload.razorpay_payment_id,"
+    },
+    {
+      "line": 22689,
+      "snippet": "order_id: payload.razorpay_order_id,"
+    },
+    {
+      "line": 22693,
+      "snippet": "console.error(\"Crypto error during Razorpay verification:\", err);"
+    },
+    {
+      "line": 22698,
+      "snippet": "const verified = payload.razorpay_payment_id.length > 5;"
+    },
+    {
+      "line": 22701,
+      "snippet": "payment_id: payload.razorpay_payment_id,"
+    },
+    {
+      "line": 22702,
+      "snippet": "order_id: payload.razorpay_order_id,"
+    },
+    {
+      "line": 23697,
+      "snippet": "payment_method: \"cod\" | \"cashfree\" | \"test_mode\" | \"wallet\" | \"razorpay\";"
+    },
+    {
+      "line": 23920,
+      "snippet": "transaction_id: payload.payment_details?.razorpay_payment_id || `TXN_${Date.now()}`,"
+    }
+  ],
+  "frontend/src/lib/crm/crm-engine.ts": [
+    {
+      "line": 495,
+      "snippet": "const primaryGateway = (firstOrder?.payment_gateway || firstOrder?.payment_method?.includes(\"RAZORPAY\") ? \"RAZORPAY\" : \"RAZORPAY\") as any;"
+    },
+    {
+      "line": 520,
+      "snippet": "latest_payment_method: firstOrder?.payment_method || \"RAZORPAY_UPI\","
+    }
+  ],
+  "frontend/src/lib/crm/types.ts": [
+    {
+      "line": 279,
+      "snippet": "gateway: \"RAZORPAY\" | \"STRIPE\" | \"UPI\" | \"COD\" | \"WALLET\";"
+    },
+    {
+      "line": 395,
+      "snippet": "primary_gateway: \"RAZORPAY\" | \"STRIPE\" | \"UPI\" | \"COD\" | \"WALLET\";"
+    }
+  ],
+  "frontend/src/lib/excel-export-service.ts": [
+    {
+      "line": 292,
+      "snippet": "s.igst || 0, s.totalTax || 0, s.totalValue || 0, s.paymentMethod || \"UPI / Razorpay\", s.paymentStatus || \"Paid\", s.orderStatus || \"Delivered"
+    }
+  ],
+  "frontend/src/lib/repositories/report.repository.ts": [
+    {
+      "line": 56,
+      "snippet": "\"online upi (razorpay)\": \"UPI\","
+    },
+    {
+      "line": 64,
+      "snippet": "\"razorpay\": \"ONLINE\","
+    }
+  ],
+  "frontend/src/lib/services/cashfree-payment.service.ts": [
+    {
+      "line": 963,
+      "snippet": "* Decommissioning Guard: Explicitly Rejects Razorpay Operations"
+    },
+    {
+      "line": 965,
+      "snippet": "public static rejectRazorpayOperation(operation: string): never {"
+    },
+    {
+      "line": 967,
+      "snippet": "`[SECURITY & ARCHITECTURE ERROR] Razorpay operation '${operation}' is decommissioned. CakeToHome exclusively uses Cashfree for all active pa"
+    }
+  ],
+  "frontend/src/lib/services/payment-verification.service.ts": [
+    {
+      "line": 5,
+      "snippet": "* 1. Cryptographic signature verification for Razorpay Webhooks and Client Checkouts (HMAC-SHA256)."
+    },
+    {
+      "line": 65,
+      "snippet": "process.env.RAZORPAY_WEBHOOK_SECRET ||"
+    },
+    {
+      "line": 77,
+      "snippet": "process.env.RAZORPAY_KEY_SECRET ||"
+    },
+    {
+      "line": 83,
+      "snippet": "* Cryptographically verifies incoming Razorpay webhook signature using HMAC-SHA256"
+    },
+    {
+      "line": 113,
+      "snippet": "* Cryptographically verifies Razorpay checkout client callback signature"
+    },
+    {
+      "line": 114,
+      "snippet": "* signature = HMAC_SHA256(razorpay_order_id + \"|\" + razorpay_payment_id, key_secret)"
+    },
+    {
+      "line": 143,
+      "snippet": "* Generates a new Razorpay Gateway Order for checkout initiation"
+    },
+    {
+      "line": 208,
+      "snippet": "(params.headers?.[\"x-razorpay-event-id\"] as string) ||"
+    },
+    {
+      "line": 222,
+      "snippet": ") VALUES ($1, $2, $3, 'razorpay', $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())"
+    },
+    {
+      "line": 385,
+      "snippet": "OR metadata->>'razorpay_order_id' = $1"
+    },
+    {
+      "line": 426,
+      "snippet": ") VALUES ($1, 'comp_cth_india', $2, $3, $4, $5, $6, 'captured', 'flagged_refund', 'razorpay', $7, $8, $7, $9, $10, NOW(), NOW())"
+    },
+    {
+      "line": 446,
+      "snippet": ") VALUES ($1, $2, 'cancelled', 'cancelled', 'payment_gateway', 'razorpay_webhook', $3, $4, NOW(), NOW())`,"
+    },
+    {
+      "line": 492,
+      "snippet": "[`Expected INR ${orderGrandTotal}, but received INR ${paidAmount} via Razorpay ${paymentId}`, order.id]"
+    },
+    {
+      "line": 501,
+      "snippet": ") VALUES ($1, 'comp_cth_india', $2, $3, $4, $5, $6, 'captured', 'amount_mismatch', 'razorpay', $7, $8, $7, $9, $10, NOW(), NOW())"
+    },
+    {
+      "line": 552,
+      "snippet": "gateway_order_id: gatewayOrderId || order.metadata?.razorpay_order_id || null,"
+    },
+    {
+      "line": 554,
+      "snippet": "payment_gateway: \"razorpay\","
+    },
+    {
+      "line": 562,
+      "snippet": "payment_method = 'razorpay',"
+    },
+    {
+      "line": 576,
+      "snippet": ") VALUES ($1, 'comp_cth_india', $2, $3, $4, $5, $6, $7, 'captured', 'settled', 'razorpay', $8, $9, $8, $10, $11, NOW(), NOW())"
+    },
+    {
+      "line": 599,
+      "snippet": ") VALUES ($1, $2, $3, 'confirmed', 'payment_gateway', 'razorpay_webhook', $4, $5, NOW(), NOW())`,"
+    },
+    {
+      "line": 604,
+      "snippet": "\"Payment verified and captured via Razorpay. Order confirmed automatically.\","
+    },
+    {
+      "line": 791,
+      "snippet": "WHERE id = $1 OR order_number = $1 OR metadata->>'order_number' = $1 OR metadata->>'razorpay_order_id' = $1"
+    },
+    {
+      "line": 822,
+      "snippet": ") VALUES ($1, 'comp_cth_india', $2, $3, 'cus_guest', 0, 'INR', 'failed', 'failed', 'razorpay', $4, $5, $4, $6, $7, NOW(), NOW())"
+    },
+    {
+      "line": 849,
+      "snippet": ") VALUES ($1, $2, $3, $3, 'payment_gateway', 'razorpay_webhook', $4, $5, NOW(), NOW())`,"
+    },
+    {
+      "line": 914,
+      "snippet": "WHERE id = $1 OR order_number = $1 OR metadata->>'order_number' = $1 OR metadata->>'razorpay_order_id' = $1"
+    },
+    {
+      "line": 964,
+      "snippet": ") VALUES ($1, $2, $3, $3, 'payment_gateway', 'razorpay_webhook', 'Payment refunded via Razorpay', $4, NOW(), NOW())`,"
+    }
+  ],
+  "frontend/src/lib/services/sales-posting.service.ts": [
+    {
+      "line": 579,
+      "snippet": "[\"card\", \"upi\", \"wallet\", \"netbanking\", \"online\", \"prepaid\", \"prepaid_online\", \"stripe\", \"razorpay\", \"online_upi\", \"online_card\", \"online_ne"
+    }
+  ],
+  "frontend/src/lib/types/accounting.types.ts": [
+    {
+      "line": 723,
+      "snippet": "provider: string; // 'razorpay', 'stripe', 'card', 'upi', etc."
+    }
+  ],
+  "backend/src/api/admin/analytics/export-gst-excel/route.ts": [
+    {
+      "line": 113,
+      "snippet": "s2.addRow({ docType: \"TAX INVOICE\", invoiceNumber: \"CTH/26-27/000124\", invoiceDate: \"2026-07-05\", orderNumber: \"ORD-98401\", customerName: \"A"
+    },
+    {
+      "line": 154,
+      "snippet": "const r3 = s3.addRow({ invoiceDate: \"2026-07-05\", invoiceNumber: \"CTH/26-27/000124\", orderNumber: \"ORD-98401\", customerName: \"Ananya Sharma\""
+    }
+  ],
+  "backend/src/api/admin/orders/route.ts": [
+    {
+      "line": 172,
+      "snippet": "method: meta.payment_method || \"UPI via Razorpay\","
+    },
+    {
+      "line": 174,
+      "snippet": "gateway: \"Razorpay\","
+    }
+  ],
+  "backend/src/api/admin/orders/[id]/payment/route.ts": [
+    {
+      "line": 23,
+      "snippet": "method: meta.payment_method || \"UPI via Razorpay\","
+    }
+  ],
+  "backend/src/api/admin/orders/[id]/route.ts": [
+    {
+      "line": 179,
+      "snippet": "method: meta.payment_method || \"UPI via Razorpay\","
+    },
+    {
+      "line": 181,
+      "snippet": "gateway: \"Razorpay PG\","
+    },
+    {
+      "line": 195,
+      "snippet": "{ id: \"t2\", event: \"Payment Received via Razorpay\", timestamp: o.created_at, user: \"System Payment Gateway\", device: \"Webhook API\" },"
+    }
+  ],
+  "backend/src/api/admin/orders/[id]/timeline/route.ts": [
+    {
+      "line": 21,
+      "snippet": "{ id: \"t2\", event: \"Payment Captured\", timestamp: new Date().toISOString(), user: \"Razorpay\" },"
+    }
+  ]
+}

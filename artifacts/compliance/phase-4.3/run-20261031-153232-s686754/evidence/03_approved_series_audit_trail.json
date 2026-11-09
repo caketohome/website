@@ -1,0 +1,22 @@
+{
+  "series": {
+    "id": "e5f0c888-1f4e-4dcd-a6f4-7f1f068dacb5",
+    "entity_id": "CAKETOHOME_PARENT",
+    "gstin": "29AABCC1234F1Z5",
+    "fiscal_year": 2026,
+    "prefix": "PROP-P43",
+    "last_seq": 0,
+    "created_at": "2026-10-31T10:31:09.902Z",
+    "updated_at": "2026-10-31T10:31:11.215Z",
+    "document_type": "TAX_INVOICE",
+    "is_active": true,
+    "approval_status": "APPROVED",
+    "authorized_by": "fc_genuine_101",
+    "authorized_at": "2026-10-31T10:31:11.215Z"
+  },
+  "success": true,
+  "storage": "postgres",
+  "backend_target": "http://localhost:3000",
+  "backend_health": "PASS",
+  "fallback": "DISABLED"
+}

@@ -38,10 +38,13 @@ export function OrderSummary({
  const deliveryFee = pricing?.delivery_fee ?? (deliveryType === "pickup" ? 0 : (subtotal >= 999 ? 0 : 79));
  const slotSurcharge = pricing?.slot_surcharge ?? (selectedSlot?.extra_charge || 0);
 
- const netItems = Math.max(0, subtotal - discount);
- const totalTax = pricing?.tax ?? Math.round((netItems - (netItems / 1.05)) * 100) / 100;
- const cgst = Math.round((totalTax / 2) * 100) / 100;
- const sgst = Math.round((totalTax / 2) * 100) / 100;
+  const netItems = Math.max(0, subtotal - discount);
+  const itemsTax = items.reduce((sum: number, it: any) => sum + Number(it.tax_amount || 0), 0);
+  const itemsCgst = items.reduce((sum: number, it: any) => sum + Number(it.cgst || 0), 0);
+  const itemsSgst = items.reduce((sum: number, it: any) => sum + Number(it.sgst || 0), 0);
+  const totalTax = pricing?.tax ?? (itemsTax > 0 ? itemsTax : Math.round((netItems - (netItems / 1.05)) * 100) / 100);
+  const cgst = (pricing as any)?.cgst ?? (itemsCgst > 0 ? itemsCgst : Math.round((totalTax / 2) * 100) / 100);
+  const sgst = (pricing as any)?.sgst ?? (itemsSgst > 0 ? itemsSgst : Math.round((totalTax / 2) * 100) / 100);
 
  const grandTotal = pricing?.grand_total ?? Math.round(netItems + deliveryFee + slotSurcharge);
 
@@ -187,7 +190,7 @@ export function OrderSummary({
  <div className="p-3 rounded-2xl bg-obsidian-base border border-navy-accent/60 text-xs flex flex-col gap-1.5 mt-1">
  <div className="flex justify-between font-semibold text-pearl ">
  <span className="flex items-center gap-1">
- <span>📋</span> GST (5% Included, HSN 19059090)
+ <span>📋</span> Statutory GST (Intra-State)
  </span>
  <span>₹{totalTax.toFixed(2)}</span>
  </div>

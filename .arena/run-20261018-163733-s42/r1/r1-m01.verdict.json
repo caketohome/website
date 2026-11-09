@@ -1,0 +1,28 @@
+{
+  "match": "r1-m01",
+  "scores": {
+    "a002": {
+      "correctness": 9.0,
+      "completeness": 8.5,
+      "specificity": 9.0,
+      "robustness": 8.5,
+      "clarity": 9.0,
+      "fatal": false
+    },
+    "a003": {
+      "correctness": 8.0,
+      "completeness": 7.5,
+      "specificity": 7.0,
+      "robustness": 7.5,
+      "clarity": 8.0,
+      "fatal": false
+    }
+  },
+  "winner": "a002",
+  "reason": "Concrete test-first acceptance criteria and clear banking analogy provide verifiable engineering guarantees over subjective probability numbers.",
+  "survived": ["Perishable bakery readiness integrated into acceptance criteria"],
+  "standing": {
+    "a002": [],
+    "a003": ["Arbitrary confidence intervals"]
+  }
+}

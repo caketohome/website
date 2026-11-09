@@ -66,11 +66,18 @@ export const CASH_ACCOUNT_CODES = [
   "1112", // Bank Operating A/c
   "1113", // Gateway Clearing
   "1114", // Petty Cash - Branches
+  "1115", // Bank Settlement In Transit
   "1118", // Deposit in Transit
   "1119", // Unclassified Suspense
 ] as const;
 
 export type CashAccountCode = typeof CASH_ACCOUNT_CODES[number];
+
+export function isCashEquivalentCode(code: string | undefined | null): boolean {
+  if (!code) return false;
+  if (code.startsWith("1112")) return true;
+  return (CASH_ACCOUNT_CODES as readonly string[]).includes(code);
+}
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -340,17 +347,18 @@ export class CashFlowService {
         JOIN public.accounting_voucher v ON v.id = je.voucher_id
         JOIN public.accounting_account a ON a.id = jl.account_id
         WHERE v.voucher_type = 'OPENING_BALANCE'
-          AND je.entry_date = $1
-          AND a.code = ANY($2::text[])
-          AND ($3::text IS NULL OR je.branch_id = $3)
+          AND je.entry_date >= $1
+          AND je.entry_date <= $2
+          AND (a.code = ANY($3::text[]) OR a.code LIKE '1112%' OR a.code = '1115')
+          AND ($4::text IS NULL OR je.branch_id = $4)
         `,
-        [startDate, [...CASH_ACCOUNT_CODES], branchId || null]
+        [startDate, endDate, [...CASH_ACCOUNT_CODES], branchId || null]
       ),
     ]);
 
     let openingCash = 0;
     for (const row of openingTb) {
-      if (CASH_ACCOUNT_CODES.includes(row.code as CashAccountCode)) {
+      if (isCashEquivalentCode(row.code)) {
         openingCash += Number(row.net_balance || 0);
       }
     }
@@ -359,7 +367,7 @@ export class CashFlowService {
 
     let closingCashFromTb = 0;
     for (const row of closingTb) {
-      if (CASH_ACCOUNT_CODES.includes(row.code as CashAccountCode)) {
+      if (isCashEquivalentCode(row.code)) {
         closingCashFromTb += Number(row.net_balance || 0);
       }
     }
@@ -470,7 +478,7 @@ export class CashFlowService {
           SELECT DISTINCT sub_jl.journal_entry_id 
           FROM public.accounting_journal_line sub_jl
           JOIN public.accounting_account sub_a ON sub_a.id = sub_jl.account_id
-          WHERE sub_a.code = ANY($4::text[])
+          WHERE (sub_a.code = ANY($4::text[]) OR sub_a.code LIKE '1112%' OR sub_a.code = '1115')
         )
       ORDER BY je.entry_date ASC, je.id ASC, jl.line_no ASC
     `;
@@ -519,7 +527,7 @@ export class CashFlowService {
       const nonCashLines: RawJournalLineWithAccount[] = [];
 
       for (const line of lines) {
-        if (CASH_ACCOUNT_CODES.includes(line.account_code as CashAccountCode)) {
+        if (isCashEquivalentCode(line.account_code)) {
           cashLines.push(line);
         } else {
           nonCashLines.push(line);

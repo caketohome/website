@@ -1,0 +1,26 @@
+{
+  "linter": "lint_migrations.cjs --remediated-baseline",
+  "status": "PASSED",
+  "migrations": [
+    {
+      "file": "c7_10_coverage_configuration.sql",
+      "status": "VERIFIED"
+    },
+    {
+      "file": "c7_11_assignment_schema.sql",
+      "status": "VERIFIED"
+    },
+    {
+      "file": "c7_12_database_driven_gst_and_invoice_series.sql",
+      "status": "REMEDIATED_BY_C7_13"
+    },
+    {
+      "file": "c7_13_statutory_approval_integrity_and_governance.sql",
+      "status": "VERIFIED"
+    },
+    {
+      "file": "c7_14_database_trigger_and_truncate_governance.sql",
+      "status": "VERIFIED"
+    }
+  ]
+}

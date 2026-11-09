@@ -1,0 +1,163 @@
+{
+  "id": "vch_00MVTQ5KTT8HXVN2",
+  "voucher_no": "VCH-SALES-FY2026-27-20261029-YVXK7Y",
+  "voucher_type": "SALES",
+  "voucher_date": "2026-10-28T18:30:00.000Z",
+  "branch_id": "br_indiranagar_01",
+  "fiscal_year": "FY2026-27",
+  "status": "DRAFT",
+  "total_amount": "681.46",
+  "currency": "INR",
+  "reference_type": "SALE",
+  "reference_id": "order_1793289310396_oph0",
+  "reference_event": "INVOICE_DRAFT",
+  "narration": "Sales invoice for Order 98587 (Phase 3.2 Audit Customer)",
+  "created_by": "system:delivery_invoicing",
+  "submitted_by": null,
+  "submitted_at": null,
+  "approved_by": null,
+  "approved_at": null,
+  "posted_by": null,
+  "posted_at": null,
+  "cancelled_by": null,
+  "cancelled_at": null,
+  "reversed_by_voucher_id": null,
+  "reversal_of_voucher_id": null,
+  "metadata": {
+    "order_id": "order_1793289310396_oph0",
+    "branch_id": "br_indiranagar_01",
+    "customer_id": "guest",
+    "invoice_type": "SALES_INVOICE",
+    "ar_account_code": "2141",
+    "tax_calculation": {
+      "cgst": 16.23,
+      "igst": 0,
+      "sgst": 16.23,
+      "lines": [
+        {
+          "id": "item_1793289310395_ttow",
+          "hsnCode": null,
+          "cgstRate": 2.5,
+          "igstRate": 0,
+          "itemType": "CAKE",
+          "quantity": 1,
+          "sgstRate": 2.5,
+          "totalTax": 32.46,
+          "lineTotal": 681.46,
+          "productId": "prod_1",
+          "unitPrice": 649,
+          "variantId": null,
+          "cgstAmount": 16.23,
+          "grossValue": 649,
+          "igstAmount": 0,
+          "sgstAmount": 16.23,
+          "description": "Belgian Chocolate Truffle Cake",
+          "lineDiscount": 0,
+          "netLineValue": 649,
+          "taxableValue": 649,
+          "taxRatePercent": 5,
+          "accountingMetadata": {
+            "cgstAccountCode": "2121",
+            "cgstAccountName": "Output CGST 2.5% (Food/Bakery)",
+            "sgstAccountCode": "2122",
+            "sgstAccountName": "Output SGST 2.5% (Food/Bakery)",
+            "revenueAccountCode": "4110",
+            "revenueAccountName": "Cake & Bakery Sales Revenue (5% GST)"
+          },
+          "allocatedHeaderDiscount": 0
+        }
+      ],
+      "delivery": null,
+      "subtotal": 649,
+      "totalTax": 32.46,
+      "deliveryTax": 0,
+      "deliveryCgst": 0,
+      "deliveryIgst": 0,
+      "deliverySgst": 0,
+      "invoiceTotal": 681.46,
+      "jurisdiction": {
+        "branchState": {
+          "code": "29",
+          "name": "Karnataka",
+          "alphaCode": "KA"
+        },
+        "jurisdiction": "INTRA_STATE",
+        "customerState": {
+          "code": "29",
+          "name": "Karnataka",
+          "alphaCode": "KA"
+        }
+      },
+      "taxableValue": 649,
+      "totalTaxable": 649,
+      "deliveryTotal": 0,
+      "lineDiscounts": 0,
+      "totalDiscount": 0,
+      "headerDiscount": 0,
+      "merchandiseTax": 32.46,
+      "deliveryTaxable": 0,
+      "merchandiseCgst": 16.23,
+      "merchandiseIgst": 0,
+      "merchandiseSgst": 16.23,
+      "suggestedArAccount": {
+        "code": "1121",
+        "name": "Accounts Receivable"
+      }
+    },
+    "voucher_subtype": "SALES_INVOICE",
+    "payment_classification": "PREPAID",
+    "proposed_journal_lines": [
+      {
+        "metadata": {
+          "order_id": "order_1793289310396_oph0",
+          "ar_account_code": "2141",
+          "payment_classification": "PREPAID"
+        },
+        "branch_id": "br_indiranagar_01",
+        "narration": "Customer Advances: Order 98587 (PREPAID)",
+        "account_id": "010e4915-e667-4185-ae08-b595aaa537f7",
+        "customer_id": null,
+        "debit_amount": 681.46,
+        "credit_amount": 0
+      },
+      {
+        "metadata": {
+          "order_id": "order_1793289310396_oph0",
+          "merchandise_type": "CAKE"
+        },
+        "branch_id": "br_indiranagar_01",
+        "narration": "Cake Sales Revenue: Order 98587",
+        "account_id": "56405fb0-d27e-4c3e-9ed3-a55c97bbbd52",
+        "debit_amount": 0,
+        "credit_amount": 649
+      },
+      {
+        "metadata": {
+          "order_id": "order_1793289310396_oph0",
+          "account_code": "2121"
+        },
+        "branch_id": "br_indiranagar_01",
+        "narration": "Output GST (CGST 2.5%) on Order 98587",
+        "account_id": "fb6a3033-958c-4dba-8b18-b9c2d39fec59",
+        "debit_amount": 0,
+        "credit_amount": 16.23
+      },
+      {
+        "metadata": {
+          "order_id": "order_1793289310396_oph0",
+          "account_code": "2122"
+        },
+        "branch_id": "br_indiranagar_01",
+        "narration": "Output GST (SGST 2.5%) on Order 98587",
+        "account_id": "40fd539b-2579-4773-a051-6a3db192e3af",
+        "debit_amount": 0,
+        "credit_amount": 16.23
+      }
+    ],
+    "source_idempotency_key": "SALE:order_1793289310396_oph0:INVOICE_DRAFT"
+  },
+  "created_at": "2026-10-29T15:55:11.864Z",
+  "updated_at": "2026-10-29T15:55:11.864Z",
+  "deleted_at": null,
+  "cost_centre_id": null
+}

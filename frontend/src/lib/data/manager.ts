@@ -367,25 +367,6 @@ export async function fetchBranchCashPosition(): Promise<any> {
   return res.json();
 }
 
-export async function recordDrawerOpeningFloat(openingFloat: number, notes?: string): Promise<any> {
-  const res = await fetch(`/api/v1/manager/cash/drawer/open`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ opening_float: openingFloat, notes }),
-    credentials: "include",
-  });
-  return res.json();
-}
-
-export async function recordDrawerClosingCount(closingAmount: number, notes?: string): Promise<any> {
-  const res = await fetch(`/api/v1/manager/cash/drawer/close`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ closing_amount: closingAmount, notes }),
-    credentials: "include",
-  });
-  return res.json();
-}
 
 export async function fetchBranchRiderCodCustody(): Promise<{ success: boolean; riders: any[] }> {
   const res = await fetch(`/api/v1/manager/cod/custody`, {

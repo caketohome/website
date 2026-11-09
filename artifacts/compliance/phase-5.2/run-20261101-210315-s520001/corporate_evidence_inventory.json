@@ -1,0 +1,54 @@
+{
+  "run_id": "run-20261101-210315-s520001",
+  "legal_entity": "CakeToHome India Private Limited",
+  "cin": "U15400KA2026PTC189211",
+  "gstin": "29AABCC1234F1Z5",
+  "evidence_intake_timestamp": "2026-11-01T15:45:22.730Z",
+  "inventory": [
+    {
+      "item_id": "DOC-01",
+      "title": "Board Submission Agenda Note CTH-GOV-2026-SUB-01",
+      "location": "artifacts/compliance/phase-4.8/board-submission/CTH-GOV-2026-SUB-01.md",
+      "type": "BOARD_SUBMISSION_NOTE",
+      "status": "DRAFT_UNADOPTED",
+      "legal_effect": "NO_STATUTORY_AUTHORITY",
+      "notes": "Watermarked DRAFT — FOR COMPANY SECRETARY / LEGAL REVIEW — NOT ADOPTED."
+    },
+    {
+      "item_id": "DOC-02",
+      "title": "Certified Extract of Board Resolution under Section 179",
+      "location": null,
+      "type": "BOARD_RESOLUTION_EXTRACT",
+      "status": "NOT_SUBMITTED",
+      "legal_effect": "ABSENT",
+      "notes": "No executed extract deposited into evidence."
+    },
+    {
+      "item_id": "DOC-03",
+      "title": "Minutes of Meeting of Board of Directors under Section 118",
+      "location": null,
+      "type": "BOARD_MINUTES",
+      "status": "NOT_SUBMITTED",
+      "legal_effect": "ABSENT",
+      "notes": "No signed minutes of meeting available."
+    },
+    {
+      "item_id": "DOC-04",
+      "title": "Officer Signatory Power of Attorney / Delegation Instrument",
+      "location": null,
+      "type": "DELEGATION_INSTRUMENT",
+      "status": "NOT_SUBMITTED",
+      "legal_effect": "ABSENT",
+      "notes": "No formal delegation instrument received."
+    },
+    {
+      "item_id": "DOC-05",
+      "title": "MCA ROC Portal Master Data & Form DIR-12 Verification",
+      "location": null,
+      "type": "ROC_FILING",
+      "status": "PENDING_EXTERNAL_VERIFICATION",
+      "legal_effect": "UNVERIFIED",
+      "notes": "Awaiting certified corporate secretary filing verification."
+    }
+  ]
+}

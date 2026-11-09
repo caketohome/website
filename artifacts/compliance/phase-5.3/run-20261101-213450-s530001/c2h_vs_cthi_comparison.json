@@ -1,0 +1,22 @@
+{
+  "run_id": "run-20261101-213450-s530001",
+  "candidate_2": {
+    "prefix": "C2H",
+    "sample": "C2H/26-27/000001",
+    "digits": 6,
+    "annual_capacity": 999999,
+    "rule_46b_valid": true,
+    "historical_collision": false,
+    "trade_off": "Higher annual volume headroom, abbreviated acronym"
+  },
+  "candidate_1": {
+    "prefix": "CTHI",
+    "sample": "CTHI/26-27/00001",
+    "digits": 5,
+    "annual_capacity": 99999,
+    "rule_46b_valid": true,
+    "historical_collision": false,
+    "trade_off": "Closer corporate name match, lower annual volume cap"
+  },
+  "board_selection_state": "UNDECIDED_PENDING_BOARD_ADOPTION"
+}

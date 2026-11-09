@@ -1,0 +1,277 @@
+{
+  "pageRoutes": [
+    {
+      "file": "(checkout)/checkout/page.tsx",
+      "route": "/checkout"
+    },
+    {
+      "file": "(checkout)/your-order/page.tsx",
+      "route": "/your-order"
+    },
+    {
+      "file": "(store)/blog/page.tsx",
+      "route": "/blog"
+    },
+    {
+      "file": "(store)/blog/[slug]/page.tsx",
+      "route": "/blog/[slug]"
+    },
+    {
+      "file": "(store)/campaigns/page.tsx",
+      "route": "/campaigns"
+    },
+    {
+      "file": "(store)/campaigns/[id]/page.tsx",
+      "route": "/campaigns/[id]"
+    },
+    {
+      "file": "(store)/cart/page.tsx",
+      "route": "/cart"
+    },
+    {
+      "file": "(store)/categories/page.tsx",
+      "route": "/categories"
+    },
+    {
+      "file": "(store)/category/page.tsx",
+      "route": "/category"
+    },
+    {
+      "file": "(store)/category/[slug]/page.tsx",
+      "route": "/category/[slug]"
+    },
+    {
+      "file": "(store)/city/[slug]/page.tsx",
+      "route": "/city/[slug]"
+    },
+    {
+      "file": "(store)/compare/page.tsx",
+      "route": "/compare"
+    },
+    {
+      "file": "(store)/login/page.tsx",
+      "route": "/login"
+    },
+    {
+      "file": "(store)/occasions/[slug]/page.tsx",
+      "route": "/occasions/[slug]"
+    },
+    {
+      "file": "(store)/page.tsx",
+      "route": "/"
+    },
+    {
+      "file": "(store)/products/page.tsx",
+      "route": "/products"
+    },
+    {
+      "file": "(store)/products/[id]/page.tsx",
+      "route": "/products/[id]"
+    },
+    {
+      "file": "(store)/qr/[code]/page.tsx",
+      "route": "/qr/[code]"
+    },
+    {
+      "file": "(store)/search/page.tsx",
+      "route": "/search"
+    },
+    {
+      "file": "(store)/shop/[handle]/page.tsx",
+      "route": "/shop/[handle]"
+    },
+    {
+      "file": "(store)/signup/page.tsx",
+      "route": "/signup"
+    },
+    {
+      "file": "(store)/track/page.tsx",
+      "route": "/track"
+    },
+    {
+      "file": "(store)/[slug]/page.tsx",
+      "route": "/[slug]"
+    },
+    {
+      "file": "account/addresses/page.tsx",
+      "route": "/account/addresses"
+    },
+    {
+      "file": "account/orders/page.tsx",
+      "route": "/account/orders"
+    },
+    {
+      "file": "account/orders/[id]/page.tsx",
+      "route": "/account/orders/[id]"
+    },
+    {
+      "file": "account/page.tsx",
+      "route": "/account"
+    },
+    {
+      "file": "account/subscriptions/page.tsx",
+      "route": "/account/subscriptions"
+    },
+    {
+      "file": "account/wallet/page.tsx",
+      "route": "/account/wallet"
+    },
+    {
+      "file": "account/wishlist/page.tsx",
+      "route": "/account/wishlist"
+    },
+    {
+      "file": "dashboard/delivery-partner/page.tsx",
+      "route": "/dashboard/delivery-partner"
+    },
+    {
+      "file": "dashboard/page.tsx",
+      "route": "/dashboard"
+    },
+    {
+      "file": "dashboard/shop/expenses/page.tsx",
+      "route": "/dashboard/shop/expenses"
+    },
+    {
+      "file": "dashboard/shop/fleet/page.tsx",
+      "route": "/dashboard/shop/fleet"
+    },
+    {
+      "file": "dashboard/shop/menu/page.tsx",
+      "route": "/dashboard/shop/menu"
+    },
+    {
+      "file": "dashboard/shop/page.tsx",
+      "route": "/dashboard/shop"
+    },
+    {
+      "file": "dashboard/shop/purchases/page.tsx",
+      "route": "/dashboard/shop/purchases"
+    },
+    {
+      "file": "dashboard/shop/suppliers/page.tsx",
+      "route": "/dashboard/shop/suppliers"
+    },
+    {
+      "file": "offline/page.tsx",
+      "route": "/offline"
+    }
+  ],
+  "apiRoutes": [
+    {
+      "file": "api/auth/logout/route.ts",
+      "route": "/api/auth/logout"
+    },
+    {
+      "file": "api/auth/me/route.ts",
+      "route": "/api/auth/me"
+    },
+    {
+      "file": "api/auth/session/route.ts",
+      "route": "/api/auth/session"
+    },
+    {
+      "file": "api/customer/address/route.ts",
+      "route": "/api/customer/address"
+    },
+    {
+      "file": "api/customer/me/route.ts",
+      "route": "/api/customer/me"
+    },
+    {
+      "file": "api/customer/orders/route.ts",
+      "route": "/api/customer/orders"
+    },
+    {
+      "file": "api/customer/profile/route.ts",
+      "route": "/api/customer/profile"
+    },
+    {
+      "file": "api/subscribe/route.ts",
+      "route": "/api/subscribe"
+    },
+    {
+      "file": "api/v1/accessories/route.ts",
+      "route": "/api/v1/accessories"
+    },
+    {
+      "file": "api/v1/admin/accessories/route.ts",
+      "route": "/api/v1/admin/accessories"
+    },
+    {
+      "file": "api/v1/admin/ai/analytics/route.ts",
+      "route": "/api/v1/admin/ai/analytics"
+    },
+    {
+      "file": "api/v1/admin/ai/reindex/route.ts",
+      "route": "/api/v1/admin/ai/reindex"
+    },
+    {
+      "file": "api/v1/admin/branches/route.ts",
+      "route": "/api/v1/admin/branches"
+    },
+    {
+      "file": "api/v1/admin/catalog/packaging/route.ts",
+      "route": "/api/v1/admin/catalog/packaging"
+    },
+    {
+      "file": "api/v1/admin/[...path]/route.ts",
+      "route": "/api/v1/admin/[...path]"
+    },
+    {
+      "file": "api/v1/ai/chat/route.ts",
+      "route": "/api/v1/ai/chat"
+    },
+    {
+      "file": "api/v1/ai/context/route.ts",
+      "route": "/api/v1/ai/context"
+    },
+    {
+      "file": "api/v1/branches/route.ts",
+      "route": "/api/v1/branches"
+    },
+    {
+      "file": "api/v1/[...path]/route.ts",
+      "route": "/api/v1/[...path]"
+    }
+  ],
+  "internalHrefs": [
+    "/",
+    "/sitemap.xml",
+    "/signup",
+    "/dashboard?tab=teller_custody",
+    "/login",
+    "/catalog",
+    "/products",
+    "/category/birthday-cakes",
+    "/category/anniversary-cakes",
+    "/blog",
+    "/search",
+    "/products?mode=best_sellers",
+    "/occasions/birthday",
+    "/occasions/anniversary",
+    "/cart",
+    "/occasions/wedding",
+    "/products?flavor=chocolate",
+    "/products?flavor=red-velvet",
+    "/products?flavor=butterscotch",
+    "/products?flavor=fruit",
+    "/products?diet=sugar-free",
+    "/products?diet=gluten-free",
+    "/account/wishlist",
+    "/search?is_featured=true",
+    "/search?sort=rating",
+    "/category/pastries",
+    "/category/chocolates",
+    "/search?is_new_arrival=true",
+    "/checkout?promo=SWEET10",
+    "/checkout",
+    "/campaigns",
+    "/occasions",
+    "/terms",
+    "/privacy",
+    "/shop",
+    "/manifest.json"
+  ],
+  "unmatchedHrefs": []
+}

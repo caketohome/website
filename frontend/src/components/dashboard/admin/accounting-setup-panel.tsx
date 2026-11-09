@@ -50,9 +50,22 @@ interface OpeningBalanceAccount {
 // ─── API Helpers ───────────────────────────────────────────────────────────────
 
 async function fetchApi(path: string, options?: RequestInit) {
+  let token: string | null = null;
+  if (typeof window !== "undefined") {
+    token = localStorage.getItem("cth_access_token")
+      || localStorage.getItem("cth_admin_token")
+      || localStorage.getItem("admin_token")
+      || localStorage.getItem("medusa_access_token");
+  }
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options?.headers as Record<string, string> || {}),
+  };
   const res = await fetch(`/api/v1/${path}`, {
-    headers: { "Content-Type": "application/json" },
+    credentials: "include",
     ...options,
+    headers,
   });
   return res.json();
 }

@@ -1,0 +1,32 @@
+[
+  {
+    "alternative": "A",
+    "prefix": "CTHI",
+    "padding": 5,
+    "total_length": 16,
+    "capacity": 99999,
+    "collisions": 0,
+    "status": "RECOMMENDED"
+  },
+  {
+    "alternative": "A",
+    "prefix": "C2H",
+    "padding": 6,
+    "total_length": 16,
+    "capacity": 999999,
+    "collisions": 0,
+    "status": "RECOMMENDED"
+  },
+  {
+    "alternative": "B",
+    "prefix": "CTH",
+    "scoping": "ENTITY_SCOPED",
+    "status": "EVALUATED_NOT_RECOMMENDED"
+  },
+  {
+    "alternative": "C",
+    "prefix": "CUSTOM",
+    "architecture": "DEDICATED_TABLES",
+    "status": "EVALUATED_NOT_RECOMMENDED"
+  }
+]

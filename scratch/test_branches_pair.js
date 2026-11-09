@@ -2,7 +2,7 @@ const path = require('path');
 const { Pool } = require(path.join(__dirname, '../frontend/node_modules/pg'));
 
 const pool = new Pool({
-  connectionString: 'postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres',
+  connectionString: '[REDACTED_DATABASE_CREDENTIAL]',
   ssl: { rejectUnauthorized: false },
 });
 

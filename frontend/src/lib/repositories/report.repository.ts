@@ -83,7 +83,15 @@ const TEST_PHONE_PATTERNS = [
   /^0{5,}$/,
 ];
 
-function classifyOrder(meta: any, customerId: string | null): OrderClassification {
+function classifyOrder(meta: any, customerId: string | null, orderId?: string | null): OrderClassification {
+  if (meta?.classification === "TEST" || meta?.invoicing_exempt === true || meta?.is_test === true || meta?.test_mode === true) {
+    return "TEST";
+  }
+  const idStr = String(orderId || meta?.id || meta?.order_id || "").toLowerCase();
+  if (idStr.includes("test_cod_") || idStr.includes("ord_test_") || idStr.includes("seed") || idStr.includes("test_ord_verify")) {
+    return "TEST";
+  }
+
   const name = (meta?.customer_name || "").trim();
   const phone = (meta?.customer_phone || "").trim();
 
@@ -256,6 +264,7 @@ function extractItemCost(item: any, productMeta: any): number | null {
 // ─── HSN Master (minimal for report descriptions) ────────────────────────────
 
 const HSN_DESCRIPTIONS: Record<string, string> = {
+  "UNCLASSIFIED": "Unclassified (Missing HSN Code)",
   "19059090": "Bakery & Confectionery Products",
   "19059030": "Cakes, Pastries & Biscuits",
   "39231090": "Plastic Articles for Packaging",
@@ -414,7 +423,7 @@ export class ReportRepository {
           productName: item.title || item.product_name || productMeta?.title || pid,
           sku: productMeta?.sku || item.sku || `SKU-${pid.slice(-4)}`,
           category: productMeta?.category || item.category || "Cakes",
-          hsnCode: productMeta?.hsn_code || item.hsn_code || "19059090",
+          hsnCode: productMeta?.hsn_code || item.hsn_code || "UNCLASSIFIED",
           uqc: productMeta?.uqc || item.uqc || "NOS - NUMBERS",
           gstRatePct: Number(productMeta?.gst_rate || item.gst_rate || item.tax_rate || 5),
           qty: 0, grossSales: 0, discounts: 0, taxAmount: 0,
@@ -780,8 +789,8 @@ export class ReportRepository {
     const hsnGrouped = new Map<string, GstHsnRow>();
 
     for (const p of products) {
-      const hsn = p.hsnCode || "19059090";
-      const desc = HSN_DESCRIPTIONS[hsn] || "Bakery & Confectionery Products";
+      const hsn = p.hsnCode || "UNCLASSIFIED";
+      const desc = HSN_DESCRIPTIONS[hsn] || (hsn === "UNCLASSIFIED" ? "Unclassified (Missing HSN Code)" : "Bakery & Confectionery Products");
       const compositeKey = `${hsn}_${p.gstRatePct}_${p.uqc}`;
 
       const existing = hsnGrouped.get(compositeKey) || {
@@ -835,8 +844,10 @@ export class ReportRepository {
     const whereStr = whereClauses.join(" AND ");
 
     const sql = `
-      SELECT o.id, o.customer_id, o.status::text as status, o.metadata, o.created_at
+      SELECT o.id, o.customer_id, o.status::text as status, o.metadata, o.created_at,
+             i.invoice_number AS real_invoice_number, i.created_at AS real_invoice_date
       FROM public."order" o
+      LEFT JOIN public.invoice i ON i.order_id = o.id
       WHERE ${whereStr}
       ORDER BY o.created_at DESC
     `;
@@ -847,7 +858,7 @@ export class ReportRepository {
       const meta = row.metadata || {};
       const fin = extractOrderFinancials(meta);
       const items = fin.items;
-      const classification = classifyOrder(meta, row.customer_id);
+      const classification = classifyOrder(meta, row.customer_id, row.id);
 
       const productNames = items.map((i: any) =>
         `${i.title || i.product_name || "Item"} (x${i.quantity || 1})`
@@ -876,9 +887,18 @@ export class ReportRepository {
         ? Math.round((profit / taxableAmount) * 10000) / 100
         : null;
 
+      // Statutory invoices must only be sourced from committed database invoices (public.invoice)
+      // Never fall back to uncommitted or unpersisted order metadata!
+      const statutoryInvoiceNum = row.real_invoice_number || null;
+      const statutoryInvoiceDate = row.real_invoice_date
+        ? new Date(row.real_invoice_date).toISOString().slice(0, 10)
+        : null;
+
       return {
         orderId: row.id,
         orderNumber: meta.order_number || row.id,
+        invoiceNumber: statutoryInvoiceNum,
+        invoiceDate: statutoryInvoiceDate,
         orderDate: row.created_at ? new Date(row.created_at).toISOString() : "",
         deliveryDate: fin.deliveryDate,
         customerId: row.customer_id || null,
@@ -1201,17 +1221,26 @@ export class ReportRepository {
   // ── 14. GST Seller Info from Admin Panel ─────────────────────────────────
 
   static async getSellerGstInfo(): Promise<{ gstin: string | null; legalName: string | null; tradeName: string | null }> {
-    // GST registrations are stored in the ApiEngine memory store, loaded from DEFAULT_GST_REGISTRATIONS.
-    // The Admin Panel GST Registrations tab (settings-panel.tsx > gst-registrations-tab.tsx)
-    // manages these via /admin/compliance/gst-registrations API.
-    // For now, query the memory store via the API to get the active GST registration.
-    // 
-    // Future improvement: persist GST registrations to a dedicated DB table.
-    // Currently they exist only in api-engine.ts memory store.
-    //
-    // Since we cannot directly call ApiEngine from the repository layer without
-    // creating a circular dependency, we return null and let the service layer
-    // resolve the GSTIN from the API layer.
+    try {
+      const res = await dbQuery(
+        `SELECT g.gstin, g.legal_name, c.trade_name
+         FROM public.gst_registration g
+         LEFT JOIN public.company c ON c.id = g.company_id
+         WHERE g.is_active = true
+         ORDER BY g.created_at ASC
+         LIMIT 1`
+      );
+      if (res.rows && res.rows.length > 0) {
+        const row = res.rows[0];
+        return {
+          gstin: row.gstin || null,
+          legalName: row.legal_name || null,
+          tradeName: row.trade_name || null,
+        };
+      }
+    } catch (err) {
+      console.warn("[ReportRepository.getSellerGstInfo] Notice:", err);
+    }
     return { gstin: null, legalName: null, tradeName: null };
   }
 
@@ -1230,5 +1259,86 @@ export class ReportRepository {
       });
     }
     return map;
+  }
+
+  // ── Legacy Dashboard & Sales Compatibility (PostgreSQL-backed) ───────────
+
+  static async getLegacyDashboardMetrics(query: Record<string, any> = {}) {
+    const filters: ReportFilters = {
+      startDate: query.start_date || query.startDate || "2020-01-01",
+      endDate: query.end_date || query.endDate || new Date().toISOString().split("T")[0],
+      branchIds: query.branch_id && query.branch_id !== "all" ? [query.branch_id] : (query.branchId && query.branchId !== "all" ? [query.branchId] : undefined),
+    };
+    const tx = await this.getTransactionalMetrics(filters);
+    const branchPerf = await this.getBranchPerformance(filters);
+
+    const todayStr = new Date().toISOString().split("T")[0];
+    const todayTx = await this.getTransactionalMetrics({ ...filters, startDate: todayStr, endDate: todayStr });
+
+    const totalOrders = tx.totalOrders;
+    const deliveredOrders = tx.validOrders;
+    const pendingOrders = Math.max(0, totalOrders - deliveredOrders);
+
+    return {
+      gross_revenue: tx.grossRevenue,
+      today_revenue: todayTx.grossRevenue,
+      today_orders: todayTx.totalOrders,
+      total_orders: totalOrders,
+      net_sales: tx.netRevenue,
+      gross_profit: tx.grossProfit,
+      net_profit: null,
+      profitability_status: tx.grossProfit !== null ? "ACTUAL_GROSS_ONLY" : "UNAVAILABLE",
+      aov: tx.aov,
+      pending_orders: pendingOrders,
+      kitchen_preparing: 0,
+      kitchen_ready: 0,
+      out_for_delivery: 0,
+      delivered_orders: deliveredOrders,
+      cancelled_orders: pendingOrders,
+      refunds_amount: tx.totalRefunds,
+      tax_collected: tx.totalTax,
+      discounts_given: tx.totalDiscounts,
+      branches_count: branchPerf.length,
+      top_branches: branchPerf.slice(0, 5),
+      hourly_trend: [],
+      status_distribution: [
+        { status: "delivered", count: deliveredOrders },
+        { status: "cancelled", count: pendingOrders },
+      ],
+    };
+  }
+
+  static async getLegacySalesMetrics(query: Record<string, any> = {}) {
+    const dash = await this.getLegacyDashboardMetrics(query);
+    const filters: ReportFilters = {
+      startDate: query.start_date || query.startDate || "2020-01-01",
+      endDate: query.end_date || query.endDate || new Date().toISOString().split("T")[0],
+      branchIds: query.branch_id && query.branch_id !== "all" ? [query.branch_id] : undefined,
+    };
+    const products = await this.getProductPerformance(filters);
+    const todayStr = new Date().toISOString().split("T")[0];
+    const yestStr = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+    const [todayTx, yestTx] = await Promise.all([
+      this.getTransactionalMetrics({ ...filters, startDate: todayStr, endDate: todayStr }),
+      this.getTransactionalMetrics({ ...filters, startDate: yestStr, endDate: yestStr }),
+    ]);
+
+    return {
+      gross_revenue: dash.gross_revenue,
+      net_profit: dash.net_profit,
+      net_margin_pct: (dash.net_profit !== null && dash.gross_revenue > 0) ? `${((dash.net_profit / dash.gross_revenue) * 100).toFixed(1)}%` : null,
+      sales_by_period: [
+        { period: "Today", gross: todayTx.grossRevenue, net: todayTx.netRevenue, orders: todayTx.totalOrders, aov: todayTx.aov || 0 },
+        { period: "Yesterday", gross: yestTx.grossRevenue, net: yestTx.netRevenue, orders: yestTx.totalOrders, aov: yestTx.aov || 0 },
+        { period: "This Month", gross: dash.gross_revenue, net: dash.net_sales, orders: dash.total_orders, aov: dash.aov },
+      ],
+      sales_by_category: [
+        { category: "Cakes", revenue: dash.gross_revenue, orders: dash.total_orders },
+      ],
+      sales_by_flavour: products.slice(0, 5).map(p => ({
+        flavour: p.productName,
+        revenue: p.grossSales,
+      })),
+    };
   }
 }

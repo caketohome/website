@@ -1,0 +1,26 @@
+{
+  "database": "cth_rehearsal_phase4_9",
+  "port": 5433,
+  "tests_executed": [
+    {
+      "test": "Historical CTH Collision",
+      "result": "SQLSTATE 23505 duplicate key caught"
+    },
+    {
+      "test": "CTHI Insert & Rollback",
+      "result": "SUCCESS"
+    },
+    {
+      "test": "C2H Insert & Rollback",
+      "result": "SUCCESS"
+    },
+    {
+      "test": "Sequence Gapless Lock",
+      "result": "SUCCESS"
+    },
+    {
+      "test": "Protected DB cth_test Integrity",
+      "result": "0 WRITES VERIFIED"
+    }
+  ]
+}

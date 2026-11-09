@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T12:21:59.556Z",
+  "prefix": "CH",
+  "impacts": [
+    {
+      "component": "delivery-invoicing.service.ts",
+      "status": "COMPATIBLE",
+      "notes": "Dynamic width formatted in DB"
+    },
+    {
+      "component": "bills-receivable.service.ts",
+      "status": "COMPATIBLE",
+      "notes": "Consumes standard allocated invoice_number"
+    },
+    {
+      "component": "accounting_voucher",
+      "status": "COMPATIBLE",
+      "notes": "reference_id varchar(255) accommodates 16 chars"
+    },
+    {
+      "component": "PDF Templates",
+      "status": "COMPATIBLE",
+      "notes": "Header layout verified for 16-character string"
+    },
+    {
+      "component": "POS & Branch Systems",
+      "status": "COMPATIBLE",
+      "notes": "Single company-wide sequence across all Karnataka branches"
+    },
+    {
+      "component": "WhatsApp / SMS Notifications",
+      "status": "COMPATIBLE",
+      "notes": "Template variable fits 16-char serial"
+    }
+  ]
+}

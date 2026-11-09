@@ -1,0 +1,34 @@
+{
+  "run_id": "run-20261101-203311-s510001",
+  "evaluated_at": "2026-11-01T15:21:14.510Z",
+  "gates": [
+    {
+      "gate": "GATE_1_TECHNICAL_READINESS",
+      "status": "PASSED",
+      "evidence": "100% test pass on cth_rehearsal_phase5_1"
+    },
+    {
+      "gate": "GATE_2_BASELINE_INTEGRITY",
+      "status": "PASSED",
+      "evidence": "0 writes to cth_test; byte-for-byte SHA256 match"
+    },
+    {
+      "gate": "GATE_3_COLLISION_RESOLUTION",
+      "status": "PASSED",
+      "evidence": "Alternative A Candidates C2H and CTHI validated"
+    },
+    {
+      "gate": "GATE_4_CORPORATE_EVIDENCE",
+      "status": "BLOCKED",
+      "evidence": "No genuine executed Board minutes or Section 179 extract"
+    },
+    {
+      "gate": "GATE_5_PROFESSIONAL_REVIEWS",
+      "status": "BLOCKED",
+      "evidence": "CS and CA formal reviews pending delivery"
+    }
+  ],
+  "fail_closed_logic": "RELEASE_PERMITTED = GATE_1 && GATE_2 && GATE_3 && GATE_4 && GATE_5",
+  "gate_result": "FAIL_CLOSED",
+  "production_status": "BLOCKED_HOLD"
+}

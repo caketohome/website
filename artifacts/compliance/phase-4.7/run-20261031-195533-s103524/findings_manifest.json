@@ -1,0 +1,61 @@
+{
+  "phase": "4.7",
+  "run_id": "run-20261031-195533-s103524",
+  "timestamp": "2026-10-31T14:53:39.586Z",
+  "findings": [
+    {
+      "id": "CTH-P47-001",
+      "title": "Historical CTH Collision with invoice_invoice_number_key",
+      "status": "PROVED",
+      "severity": "HIGH"
+    },
+    {
+      "id": "CTH-P47-002",
+      "title": "Prefix Candidate Trade-off Analysis Completed",
+      "status": "VERIFIED",
+      "severity": "INFO"
+    },
+    {
+      "id": "CTH-P47-003",
+      "title": "Corporate Submission CTH-GOV-2026-SUB-01 Received",
+      "status": "ACKNOWLEDGED",
+      "severity": "INFO"
+    },
+    {
+      "id": "CTH-P47-004",
+      "title": "11-Point Decision Register Cataloged",
+      "status": "PENDING_BOARD",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "CTH-P47-005",
+      "title": "69 Unbilled Orders Classified",
+      "status": "VERIFIED",
+      "severity": "LOW"
+    },
+    {
+      "id": "CTH-P47-006",
+      "title": "21 Delivered Orders Audit Completed",
+      "status": "VERIFIED",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "CTH-P47-007",
+      "title": "13 Synthetic Invoices Isolated",
+      "status": "VERIFIED",
+      "severity": "LOW"
+    },
+    {
+      "id": "CTH-P47-008",
+      "title": "94 Unique Automated Tests Verified",
+      "status": "PASS",
+      "severity": "INFO"
+    },
+    {
+      "id": "CTH-P47-009",
+      "title": "Protected Database cth_test 100% Immutable",
+      "status": "PASS",
+      "severity": "INFO"
+    }
+  ]
+}

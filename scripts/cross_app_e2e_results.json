@@ -1,0 +1,825 @@
+{
+  "executed_at": "2026-11-06T00:13:52.130Z",
+  "database": "cth_rehearsal_phase5",
+  "protected_baseline": "cth_test",
+  "passed": 35,
+  "failed": 0,
+  "total": 35,
+  "global_ledger": {
+    "entry_count": 69,
+    "total_debits": "1344610.40",
+    "total_credits": "1344610.40"
+  },
+  "performance_metrics": [
+    {
+      "operation": "POST /api/v1/accounting/bank-accounts",
+      "latencyMs": 7324
+    },
+    {
+      "operation": "GET /api/v1/accounting/bank-accounts",
+      "latencyMs": 79
+    },
+    {
+      "operation": "GET /api/v1/admin/accounting/accounts",
+      "latencyMs": 1922
+    },
+    {
+      "operation": "GET /api/v1/admin/accounting/general-ledger",
+      "latencyMs": 53
+    },
+    {
+      "operation": "GET /api/v1/admin/accounting/trial-balance",
+      "latencyMs": 62
+    },
+    {
+      "operation": "GET /api/v1/admin/accounting/balance-sheet",
+      "latencyMs": 97
+    },
+    {
+      "operation": "GET /api/v1/admin/accounting/cash-flow",
+      "latencyMs": 344
+    },
+    {
+      "operation": "POST /api/v1/accounting/cashfree-settlements",
+      "latencyMs": 380
+    },
+    {
+      "operation": "POST /api/v1/accounting/reconciliations/match",
+      "latencyMs": 336
+    },
+    {
+      "operation": "POST /api/v1/orders",
+      "latencyMs": 218
+    },
+    {
+      "operation": "POST /api/v1/payments/cashfree/webhook",
+      "latencyMs": 2345
+    },
+    {
+      "operation": "PATCH /api/v1/admin/orders/:id/status (delivered + CH invoice)",
+      "latencyMs": 1679
+    },
+    {
+      "operation": "GET /api/v1/admin/accounting/profit-loss",
+      "latencyMs": 105
+    },
+    {
+      "operation": "GET /api/v1/admin/reports/gst/invoices",
+      "latencyMs": 181
+    },
+    {
+      "operation": "POST /api/v1/accounting/bank-transfers",
+      "latencyMs": 172
+    }
+  ],
+  "results": [
+    {
+      "testId": "TEST-A1",
+      "description": "Created new company bank account via POST /api/v1/accounting/bank-accounts",
+      "status": "PASS",
+      "evidence": {
+        "status": 201,
+        "response": {
+          "success": true,
+          "data": {
+            "id": "ba_1793924013461_c690lhi",
+            "company_id": "cth_company_64fc4c1a-03ec-447b-af8c-70115d2007fd",
+            "account_name": "Axis Corporate Treasury 06204",
+            "bank_name": "Axis Bank",
+            "account_number": "•••• •••• •••• 6204",
+            "account_number_masked": "•••• •••• •••• 6204",
+            "ifsc_code": "UTIB0006204",
+            "account_type": "CURRENT",
+            "branch_name": "MG Road Corporate Branch",
+            "branch_id": null,
+            "currency": "INR",
+            "gl_account_id": "acc_bank_1793924013455_g2ihc",
+            "bank_charges_gl_account_id": null,
+            "interest_gl_account_id": null,
+            "offset_gl_account_id": "e94548bf-0083-4d72-9291-bd9e7daf8be7",
+            "opening_balance": "125000.00",
+            "opening_balance_date": "2026-03-31T18:30:00.000Z",
+            "current_balance": "125000.00",
+            "statement_balance": "125000.00",
+            "last_reconciled_date": null,
+            "is_primary": false,
+            "allow_payments": true,
+            "allow_receipts": true,
+            "reconciliation_required": true,
+            "status": "ACTIVE",
+            "metadata": {},
+            "created_by": "system",
+            "updated_by": "system",
+            "created_at": "2026-11-06T00:13:33.423Z",
+            "updated_at": "2026-11-06T00:13:33.423Z",
+            "deleted_at": null,
+            "expected_settlement_balance": "0.00",
+            "gl_account_code": "1112-07",
+            "gl_account_name": "Axis Bank - Axis Corporate Treasury 06204",
+            "branch_code": null
+          },
+          "bankAccount": {
+            "id": "ba_1793924013461_c690lhi",
+            "company_id": "cth_company_64fc4c1a-03ec-447b-af8c-70115d2007fd",
+            "account_name": "Axis Corporate Treasury 06204",
+            "bank_name": "Axis Bank",
+            "account_number": "•••• •••• •••• 6204",
+            "account_number_masked": "•••• •••• •••• 6204",
+            "ifsc_code": "UTIB0006204",
+            "account_type": "CURRENT",
+            "branch_name": "MG Road Corporate Branch",
+            "branch_id": null,
+            "currency": "INR",
+            "gl_account_id": "acc_bank_1793924013455_g2ihc",
+            "bank_charges_gl_account_id": null,
+            "interest_gl_account_id": null,
+            "offset_gl_account_id": "e94548bf-0083-4d72-9291-bd9e7daf8be7",
+            "opening_balance": "125000.00",
+            "opening_balance_date": "2026-03-31T18:30:00.000Z",
+            "current_balance": "125000.00",
+            "statement_balance": "125000.00",
+            "last_reconciled_date": null,
+            "is_primary": false,
+            "allow_payments": true,
+            "allow_receipts": true,
+            "reconciliation_required": true,
+            "status": "ACTIVE",
+            "metadata": {},
+            "created_by": "system",
+            "updated_by": "system",
+            "created_at": "2026-11-06T00:13:33.423Z",
+            "updated_at": "2026-11-06T00:13:33.423Z",
+            "deleted_at": null,
+            "expected_settlement_balance": "0.00",
+            "gl_account_code": "1112-07",
+            "gl_account_name": "Axis Bank - Axis Corporate Treasury 06204",
+            "branch_code": null
+          },
+          "storage": "postgres",
+          "backend_target": "http://localhost:3000",
+          "backend_health": "PASS",
+          "fallback": "DISABLED"
+        }
+      }
+    },
+    {
+      "testId": "TEST-A2",
+      "description": "New bank account immediately appears in Bank Accounts Register with ₹1,25,000.00 balance",
+      "status": "PASS",
+      "evidence": {
+        "id": "ba_1793924013461_c690lhi",
+        "current_balance": "125000.00"
+      }
+    },
+    {
+      "testId": "TEST-A3",
+      "description": "Raw bank account number is masked in API list responses (no unmasked leak)",
+      "status": "PASS",
+      "evidence": {
+        "account_number": "•••• •••• •••• 6204",
+        "account_number_masked": "•••• •••• •••• 6204"
+      }
+    },
+    {
+      "testId": "TEST-A4",
+      "description": "Dedicated child GL account (1112-XX) immediately appears in Chart of Accounts under 1110",
+      "status": "PASS",
+      "evidence": {
+        "gl_id": "acc_bank_1793924013455_g2ihc",
+        "code": "1112-07",
+        "name": "Axis Bank - Axis Corporate Treasury 06204"
+      }
+    },
+    {
+      "testId": "TEST-A5",
+      "description": "General Ledger immediately reflects ₹1,25,000.00 opening balance debit for the new bank GL account",
+      "status": "PASS",
+      "evidence": {
+        "status": 200,
+        "glTotalDebit": 125000,
+        "closing_balance": 125000
+      }
+    },
+    {
+      "testId": "TEST-A6",
+      "description": "Trial Balance is 100% balanced (Total Debits == Total Credits) after new bank opening balance",
+      "status": "PASS",
+      "evidence": {
+        "total_debit": 1299624.64,
+        "total_credit": 1299624.64,
+        "is_balanced": true,
+        "imbalance": 0
+      }
+    },
+    {
+      "testId": "TEST-A7",
+      "description": "Balance Sheet and Cash Flow Statement are 100% reconciled and include the new bank balance",
+      "status": "PASS",
+      "evidence": {
+        "bs_is_balanced": true,
+        "bs_total_assets": 1104166.88,
+        "cf_reconciliation": {
+          "opening_cash": 1105000,
+          "net_operating_cash_direct": -833.12,
+          "net_operating_cash_indirect": -833.12,
+          "dual_method_variance": 0,
+          "is_dual_method_converged": true,
+          "net_investing_cash": 0,
+          "net_financing_cash": 0,
+          "net_cash_movement": -833.12,
+          "closing_cash": 1104166.88,
+          "balance_sheet_cash_match": 1104166.88,
+          "balance_sheet_variance": 0,
+          "is_reconciled": true
+        }
+      }
+    },
+    {
+      "testId": "TEST-B1",
+      "description": "Cashfree settlement batch ingested with status SETTLEMENT_IN_TRANSIT and clearing voucher posted",
+      "status": "PASS",
+      "evidence": {
+        "status": 201,
+        "response": {
+          "success": true,
+          "data": {
+            "id": "cfs_1793924016294_cj2m",
+            "settlement_id": "CF_BATCH_06204",
+            "settlement_date": "2026-04-04T18:30:00.000Z",
+            "clearing_gl_account_id": "3f7c7eed-8861-4ce3-90c8-9f703b0ea9c7",
+            "destination_bank_account_id": "ba_hdfc_primary",
+            "gross_amount": "10000.00",
+            "fee_amount": "200.00",
+            "tax_amount": "36.00",
+            "net_amount": "9764.00",
+            "status": "SETTLEMENT_IN_TRANSIT",
+            "voucher_id": "vch_cf_stl_1793924016294_h96v",
+            "metadata": {},
+            "created_at": "2026-11-06T00:13:36.274Z",
+            "utr_number": "UTRCF0620499",
+            "correlation_id": "corr_cf_stl_CF_BATCH_06204",
+            "in_transit_voucher_id": "vch_cf_stl_1793924016294_h96v",
+            "realization_voucher_id": null,
+            "matched_statement_line_id": null,
+            "reconciled_at": null,
+            "updated_at": "2026-11-06T00:13:36.274Z",
+            "batch_ref": "CF_BATCH_06204",
+            "bank_account_id": "ba_hdfc_primary",
+            "gateway_fee": "200.00",
+            "gateway_tax": "36.00",
+            "journal_entry_id": "je_cf_stl_1793924016294_6ylf",
+            "bank_name": "HDFC Bank",
+            "account_number_masked": "•••• •••• •••• 5678",
+            "gl_1113_cleared": 10000,
+            "gl_1115_in_transit": 9764,
+            "gl_5290_fees": 236
+          },
+          "settlement": {
+            "id": "cfs_1793924016294_cj2m",
+            "settlement_id": "CF_BATCH_06204",
+            "settlement_date": "2026-04-04T18:30:00.000Z",
+            "clearing_gl_account_id": "3f7c7eed-8861-4ce3-90c8-9f703b0ea9c7",
+            "destination_bank_account_id": "ba_hdfc_primary",
+            "gross_amount": "10000.00",
+            "fee_amount": "200.00",
+            "tax_amount": "36.00",
+            "net_amount": "9764.00",
+            "status": "SETTLEMENT_IN_TRANSIT",
+            "voucher_id": "vch_cf_stl_1793924016294_h96v",
+            "metadata": {},
+            "created_at": "2026-11-06T00:13:36.274Z",
+            "utr_number": "UTRCF0620499",
+            "correlation_id": "corr_cf_stl_CF_BATCH_06204",
+            "in_transit_voucher_id": "vch_cf_stl_1793924016294_h96v",
+            "realization_voucher_id": null,
+            "matched_statement_line_id": null,
+            "reconciled_at": null,
+            "updated_at": "2026-11-06T00:13:36.274Z",
+            "batch_ref": "CF_BATCH_06204",
+            "bank_account_id": "ba_hdfc_primary",
+            "gateway_fee": "200.00",
+            "gateway_tax": "36.00",
+            "journal_entry_id": "je_cf_stl_1793924016294_6ylf",
+            "bank_name": "HDFC Bank",
+            "account_number_masked": "•••• •••• •••• 5678",
+            "gl_1113_cleared": 10000,
+            "gl_1115_in_transit": 9764,
+            "gl_5290_fees": 236
+          },
+          "storage": "postgres",
+          "backend_target": "http://localhost:3000",
+          "backend_health": "PASS",
+          "fallback": "DISABLED"
+        }
+      }
+    },
+    {
+      "testId": "TEST-B2",
+      "description": "Expected settlement balance increased by ₹9,764.00 while realized bank current_balance was NOT fabricated prior to statement match",
+      "status": "PASS",
+      "evidence": {
+        "hdfcBalanceBeforeSettlement": 154292,
+        "hdfcBalanceMid": 154292,
+        "hdfcExpectedBeforeSettlement": 9764,
+        "hdfcExpectedMid": 19528
+      }
+    },
+    {
+      "testId": "TEST-B3",
+      "description": "Cashfree Settlements endpoint (/api/v1/accounting/cashfree-settlements) lists the new batch",
+      "status": "PASS",
+      "evidence": {
+        "count": 5
+      }
+    },
+    {
+      "testId": "TEST-B4",
+      "description": "Admin Gateway Settlement Panel endpoint (/api/v1/admin/gateway-settlements/batches) is 100% synchronized",
+      "status": "PASS",
+      "evidence": {
+        "count": 5
+      }
+    },
+    {
+      "testId": "TEST-B5",
+      "description": "Bank statement UTR match realized settlement from 1115 In-Transit to 1112 Bank GL and marked RECONCILED",
+      "status": "PASS",
+      "evidence": {
+        "status": 200,
+        "response": {
+          "success": true,
+          "data": {
+            "status": "RECONCILED",
+            "settlement_batch": {
+              "id": "cfs_1793924016294_cj2m",
+              "settlement_id": "CF_BATCH_06204",
+              "settlement_date": "2026-04-04T18:30:00.000Z",
+              "clearing_gl_account_id": "3f7c7eed-8861-4ce3-90c8-9f703b0ea9c7",
+              "destination_bank_account_id": "ba_hdfc_primary",
+              "gross_amount": "10000.00",
+              "fee_amount": "200.00",
+              "tax_amount": "36.00",
+              "net_amount": "9764.00",
+              "status": "RECONCILED",
+              "voucher_id": "vch_cf_stl_1793924016294_h96v",
+              "metadata": {},
+              "created_at": "2026-11-06T00:13:36.274Z",
+              "utr_number": "UTRCF0620499",
+              "correlation_id": "corr_cf_stl_CF_BATCH_06204",
+              "in_transit_voucher_id": "vch_cf_stl_1793924016294_h96v",
+              "realization_voucher_id": "vch_cf_rel_1793924016544_y98s",
+              "matched_statement_line_id": "bsl_1793924016544_d32x",
+              "reconciled_at": "2026-11-06T00:13:36.493Z",
+              "updated_at": "2026-11-06T00:13:36.493Z",
+              "batch_ref": "CF_BATCH_06204",
+              "bank_account_id": "ba_hdfc_primary",
+              "gateway_fee": "200.00",
+              "gateway_tax": "36.00"
+            },
+            "bank_transaction": {
+              "id": "bt_1793924016551_el94ra",
+              "bank_account_id": "ba_hdfc_primary",
+              "transaction_date": "2026-04-04T18:30:00.000Z",
+              "value_date": "2026-04-04T18:30:00.000Z",
+              "transaction_type": "SETTLEMENT_CREDIT",
+              "reference_no": "UTRCF0620499",
+              "description": "NEFT CR CASHFREE CF_BATCH_06204 UTRCF0620499",
+              "debit_amount": "0.00",
+              "credit_amount": "9764.00",
+              "running_balance": "164056.00",
+              "reconciliation_status": "RECONCILED",
+              "reconciliation_id": null,
+              "voucher_id": "vch_cf_rel_1793924016544_y98s",
+              "journal_entry_id": "je_cf_rel_1793924016544_g37v",
+              "metadata": {},
+              "created_by": "system",
+              "created_at": "2026-11-06T00:13:36.493Z"
+            },
+            "realization_voucher_id": "vch_cf_rel_1793924016544_y98s",
+            "realization_journal_id": "je_cf_rel_1793924016544_g37v",
+            "statement_import_id": "bsi_1793924016544_jfwj",
+            "statement_line_id": "bsl_1793924016544_d32x",
+            "reconciliation_id": "brs_1793924016591_qns9",
+            "new_bank_balance": 164056
+          },
+          "reconciliation": {
+            "status": "RECONCILED",
+            "settlement_batch": {
+              "id": "cfs_1793924016294_cj2m",
+              "settlement_id": "CF_BATCH_06204",
+              "settlement_date": "2026-04-04T18:30:00.000Z",
+              "clearing_gl_account_id": "3f7c7eed-8861-4ce3-90c8-9f703b0ea9c7",
+              "destination_bank_account_id": "ba_hdfc_primary",
+              "gross_amount": "10000.00",
+              "fee_amount": "200.00",
+              "tax_amount": "36.00",
+              "net_amount": "9764.00",
+              "status": "RECONCILED",
+              "voucher_id": "vch_cf_stl_1793924016294_h96v",
+              "metadata": {},
+              "created_at": "2026-11-06T00:13:36.274Z",
+              "utr_number": "UTRCF0620499",
+              "correlation_id": "corr_cf_stl_CF_BATCH_06204",
+              "in_transit_voucher_id": "vch_cf_stl_1793924016294_h96v",
+              "realization_voucher_id": "vch_cf_rel_1793924016544_y98s",
+              "matched_statement_line_id": "bsl_1793924016544_d32x",
+              "reconciled_at": "2026-11-06T00:13:36.493Z",
+              "updated_at": "2026-11-06T00:13:36.493Z",
+              "batch_ref": "CF_BATCH_06204",
+              "bank_account_id": "ba_hdfc_primary",
+              "gateway_fee": "200.00",
+              "gateway_tax": "36.00"
+            },
+            "bank_transaction": {
+              "id": "bt_1793924016551_el94ra",
+              "bank_account_id": "ba_hdfc_primary",
+              "transaction_date": "2026-04-04T18:30:00.000Z",
+              "value_date": "2026-04-04T18:30:00.000Z",
+              "transaction_type": "SETTLEMENT_CREDIT",
+              "reference_no": "UTRCF0620499",
+              "description": "NEFT CR CASHFREE CF_BATCH_06204 UTRCF0620499",
+              "debit_amount": "0.00",
+              "credit_amount": "9764.00",
+              "running_balance": "164056.00",
+              "reconciliation_status": "RECONCILED",
+              "reconciliation_id": null,
+              "voucher_id": "vch_cf_rel_1793924016544_y98s",
+              "journal_entry_id": "je_cf_rel_1793924016544_g37v",
+              "metadata": {},
+              "created_by": "system",
+              "created_at": "2026-11-06T00:13:36.493Z"
+            },
+            "realization_voucher_id": "vch_cf_rel_1793924016544_y98s",
+            "realization_journal_id": "je_cf_rel_1793924016544_g37v",
+            "statement_import_id": "bsi_1793924016544_jfwj",
+            "statement_line_id": "bsl_1793924016544_d32x",
+            "reconciliation_id": "brs_1793924016591_qns9",
+            "new_bank_balance": 164056
+          },
+          "storage": "postgres",
+          "backend_target": "http://localhost:3000",
+          "backend_health": "PASS",
+          "fallback": "DISABLED"
+        }
+      }
+    },
+    {
+      "testId": "TEST-B6",
+      "description": "After bank statement UTR match, HDFC Bank current_balance increased by ₹9,764.00 and expected_settlement_balance cleared back to ₹0.00",
+      "status": "PASS",
+      "evidence": {
+        "hdfcBalanceAfter": 164056,
+        "hdfcExpectedAfter": 9764
+      }
+    },
+    {
+      "testId": "TEST-B7",
+      "description": "GL 1115 (Bank Settlement In Transit) debited ₹9,764.00 on settlement receipt and credited ₹9,764.00 on bank statement realization (net ₹0.00)",
+      "status": "PASS",
+      "evidence": {
+        "dr": "9764.00",
+        "cr": "9764.00"
+      }
+    },
+    {
+      "testId": "TEST-C1",
+      "description": "Legacy Razorpay create-order endpoint returns 410 GONE (Cashfree is exclusive for new transactions)",
+      "status": "PASS",
+      "evidence": {
+        "success": false,
+        "error": "RAZORPAY_DECOMMISSIONED",
+        "message": "Razorpay has been decommissioned for new transactions. Use Cashfree (/api/v1/payments/cashfree/create-order).",
+        "storage": "unavailable",
+        "backend_target": "http://localhost:3000",
+        "backend_health": "PASS",
+        "fallback": "DISABLED"
+      }
+    },
+    {
+      "testId": "TEST-C2",
+      "description": "Created new customer order (order_1793924016974_251v, ₹110.88) via POST /api/v1/orders",
+      "status": "PASS",
+      "evidence": {
+        "status": 201,
+        "response": {
+          "order": {
+            "id": "order_1793924016974_251v",
+            "order_id": "order_1793924016974_251v",
+            "display_id": "CTH-98595",
+            "order_number": "CTH-98595",
+            "customer_id": "cust_e2e_06204",
+            "customer_uid": "cust_e2e_06204",
+            "customer_name": "Ananya Sharma 06204",
+            "customer_email": "ananya.06204@caketohome.in",
+            "customer_phone": "9880011223",
+            "branch_id": "br_partner_04",
+            "branch_name": "Pune Gourmet Partner Hub",
+            "total_amount": 110.88,
+            "total": 110.88,
+            "subtotal": 99,
+            "discount_amount": 0,
+            "tax_amount": 11.88,
+            "delivery_fee": 0,
+            "currency": "INR",
+            "status": "confirmed",
+            "payment_status": "pending",
+            "payment_method": "online",
+            "delivery": {
+              "type": "standard",
+              "date": "2026-11-15",
+              "slot": "18:00 - 20:00",
+              "fee": 0,
+              "delivery_otp": "970765",
+              "pickup_otp": "768575"
+            },
+            "delivery_address": "100 Feet Road, Indiranagar, Bengaluru 560038",
+            "items": [
+              {
+                "id": "item_1793924016974_9e4c",
+                "product_id": "acc_01",
+                "merchandise_type": "ACCESSORY",
+                "hsn_code": "39269099",
+                "product_name": "Gold Acrylic Happy Birthday Topper",
+                "title": "Gold Acrylic Happy Birthday Topper",
+                "thumbnail": "/images/gold-acrylic-topper.jpg",
+                "variant_name": "1 kg",
+                "weight": "1 kg",
+                "quantity": 1,
+                "unit_price": 99,
+                "price": 99,
+                "selling_price": 99,
+                "mrp": 99,
+                "discount": 0,
+                "tax_rate": 12,
+                "tax_amount": 11.88,
+                "cgst": 5.94,
+                "sgst": 5.94,
+                "tax_rate_id": "tax_std_12",
+                "tax_code": "GST_12",
+                "customization": {
+                  "selected_addons_detail": []
+                },
+                "total_line_amount": 99
+              }
+            ],
+            "created_at": "2026-11-06T00:13:36.975Z",
+            "updated_at": "2026-11-06T00:13:36.975Z"
+          },
+          "success": true,
+          "storage": "postgres",
+          "backend_target": "http://localhost:3000",
+          "backend_health": "PASS",
+          "fallback": "DISABLED"
+        }
+      }
+    },
+    {
+      "testId": "TEST-C3",
+      "description": "Order immediately appears in Admin ERP Order Register (/api/v1/admin/orders)",
+      "status": "PASS",
+      "evidence": {
+        "id": "order_1793924016974_251v"
+      }
+    },
+    {
+      "testId": "TEST-C4",
+      "description": "Order immediately appears in Store/Branch Manager Operations Queue (/api/v1/manager/orders)",
+      "status": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "testId": "TEST-C5",
+      "description": "Cashfree PAYMENT_SUCCESS_WEBHOOK verified HMAC signature, confirmed order, deducted inventory, generated KOT, and posted 1113/2141 clearing voucher",
+      "status": "PASS",
+      "evidence": {
+        "success": true,
+        "event_id": "cf_evt_cf_pay_06204_1793924017311",
+        "order_id": "order_1793924016974_251v",
+        "payment_id": "cf_pay_06204",
+        "status": "confirmed",
+        "message": "Payment successfully verified and order confirmed atomically",
+        "idempotent": false,
+        "downstream": {
+          "kot_number": "KOT-00002",
+          "inventory_deducted": true,
+          "notification_queued": true,
+          "clearing_voucher_id": "vch_pay_1793924019647_9150a3"
+        }
+      }
+    },
+    {
+      "testId": "TEST-C6",
+      "description": "Duplicate Cashfree webhook replay detected idempotently with zero duplicate side effects",
+      "status": "PASS",
+      "evidence": {
+        "success": true,
+        "event_id": "cf_evt_cf_pay_06204_1793924017311",
+        "order_id": "order_1793924016974_251v",
+        "payment_id": "cf_pay_06204",
+        "status": "already_processed",
+        "message": "Duplicate webhook event safely deduplicated via idempotent ledger",
+        "idempotent": true
+      }
+    },
+    {
+      "testId": "TEST-C7",
+      "description": "Branch Kitchen KOT Modal endpoint (/api/v1/manager/orders/:id/kot) returns the synchronized KOT number",
+      "status": "PASS",
+      "evidence": {
+        "kot_number": "KOT-00002"
+      }
+    },
+    {
+      "testId": "TEST-C8",
+      "description": "Delivery completion automatically allocated statutory CH series tax invoice (CH/26-27/000216)",
+      "status": "PASS",
+      "evidence": {
+        "invoice_number": "CH/26-27/000216",
+        "invoice_id": "inv_1793924022690_p21ha"
+      }
+    },
+    {
+      "testId": "TEST-C9",
+      "description": "Statutory CH invoice is linked to a balanced POSTED SALES accounting voucher & journal entry (Dr 2141 / Cr 4110 + Cr 2121 + Cr 2122)",
+      "status": "PASS",
+      "evidence": {
+        "id": "inv_1793924022690_p21ha",
+        "invoice_number": "CH/26-27/000216",
+        "voucher_id": "vch_00MW481MPASME60Z",
+        "grand_total": "110.88",
+        "tax_total": "11.88",
+        "voucher_status": "POSTED",
+        "voucher_type": "SALES",
+        "total_debit": "110.88",
+        "total_credit": "110.88"
+      }
+    },
+    {
+      "testId": "TEST-C10",
+      "description": "Profit & Loss Statement (/api/v1/admin/accounting/profit-loss) reflects recognized sales revenue and reconciles with Trial Balance",
+      "status": "PASS",
+      "evidence": {
+        "tb_revenue_total": 297,
+        "is_reconciled": true
+      }
+    },
+    {
+      "testId": "TEST-D1",
+      "description": "Inventory update synchronized across branch_inventory and inventory_movement",
+      "status": "PASS",
+      "evidence": {
+        "product_id": "acc_01"
+      }
+    },
+    {
+      "testId": "TEST-E1",
+      "description": "Bank transfer updated both source (HDFC -₹25,000) and destination (Axis +₹25,000) bank balances atomically",
+      "status": "PASS",
+      "evidence": {
+        "status": 201,
+        "response": {
+          "success": true,
+          "data": {
+            "id": "trf_1793924023283_t9c77",
+            "source_bank_account_id": "ba_hdfc_primary",
+            "dest_bank_account_id": "ba_1793924013461_c690lhi",
+            "transfer_amount": "25000.00",
+            "transfer_date": "2026-04-04T18:30:00.000Z",
+            "reference_no": "TRF-E2E-06204",
+            "description": "Sweep transfer from HDFC Primary to Axis Corporate Treasury",
+            "status": "POSTED",
+            "voucher_id": "vch_trf_1793924023244_szgq",
+            "journal_entry_id": "je_trf_1793924023248_otoa",
+            "metadata": {},
+            "created_by": "system",
+            "created_at": "2026-11-06T00:13:43.224Z"
+          },
+          "transfer": {
+            "id": "trf_1793924023283_t9c77",
+            "source_bank_account_id": "ba_hdfc_primary",
+            "dest_bank_account_id": "ba_1793924013461_c690lhi",
+            "transfer_amount": "25000.00",
+            "transfer_date": "2026-04-04T18:30:00.000Z",
+            "reference_no": "TRF-E2E-06204",
+            "description": "Sweep transfer from HDFC Primary to Axis Corporate Treasury",
+            "status": "POSTED",
+            "voucher_id": "vch_trf_1793924023244_szgq",
+            "journal_entry_id": "je_trf_1793924023248_otoa",
+            "metadata": {},
+            "created_by": "system",
+            "created_at": "2026-11-06T00:13:43.224Z"
+          },
+          "storage": "postgres",
+          "backend_target": "http://localhost:3000",
+          "backend_health": "PASS",
+          "fallback": "DISABLED"
+        },
+        "hdfc_before": "164056.00",
+        "hdfc_after": "139056.00",
+        "axis_before": "125000.00",
+        "axis_after": "150000.00"
+      }
+    },
+    {
+      "testId": "TEST-E2",
+      "description": "Both source (TRANSFER_OUT) and destination (TRANSFER_IN) bank transaction registers reflect the transfer",
+      "status": "PASS",
+      "evidence": {
+        "reference_no": "TRF-E2E-06204"
+      }
+    },
+    {
+      "testId": "TEST-F1",
+      "description": "Transactional outbox processor published pending events and recorded idempotent consumer receipts",
+      "status": "PASS",
+      "evidence": {
+        "claimed": 0,
+        "published": 0,
+        "retried": 0,
+        "dead_lettered": 0,
+        "skipped_duplicate_consumer": 0,
+        "events": []
+      }
+    },
+    {
+      "testId": "TEST-F2",
+      "description": "RBAC & Tenant Isolation: Customer session receives own order events and ZERO internal bank/settlement/accounting events",
+      "status": "PASS",
+      "evidence": {
+        "customerEventCount": 5,
+        "hasLeakedFinanceEvent": false,
+        "hasOwnOrderEvent": true
+      }
+    },
+    {
+      "testId": "TEST-F3",
+      "description": "Branch Isolation: Koramangala Branch Manager session does NOT receive Indiranagar branch events",
+      "status": "PASS",
+      "evidence": {
+        "koraEventCount": 0,
+        "leakedIndiranagarEvent": false
+      }
+    },
+    {
+      "testId": "TEST-F4",
+      "description": "Real-time SSE endpoint (/api/subscribe) streams role-scoped events with text/event-stream protocol",
+      "status": "PASS",
+      "evidence": {
+        "sampleLength": 25368
+      }
+    },
+    {
+      "testId": "TEST-F5",
+      "description": "Exhausted outbox event transitions to DEAD_LETTER and raises CRITICAL alert in public.system_monitoring_alert",
+      "status": "PASS",
+      "evidence": {
+        "outbox": {
+          "status": "DEAD_LETTER",
+          "retry_count": 2,
+          "dead_lettered_at": "2026-11-06T00:13:51.814Z"
+        },
+        "alert": {
+          "status": "OPEN",
+          "severity": "CRITICAL"
+        }
+      }
+    },
+    {
+      "testId": "TEST-F6",
+      "description": "Dead-letter event replay succeeded: status transitioned to PUBLISHED and monitoring alert marked RESOLVED",
+      "status": "PASS",
+      "evidence": {
+        "outbox": {
+          "status": "PUBLISHED",
+          "processed_at": "2026-11-06T00:13:51.872Z"
+        },
+        "alert": {
+          "status": "RESOLVED",
+          "resolved_at": "2026-11-06T00:13:51.866Z"
+        }
+      }
+    },
+    {
+      "testId": "TEST-G1",
+      "description": "Global General Ledger is 100% balanced across all 69 journal lines (Debits ₹1344610.40 == Credits ₹1344610.40)",
+      "status": "PASS",
+      "evidence": {
+        "entry_count": 69,
+        "total_debits": "1344610.40",
+        "total_credits": "1344610.40"
+      }
+    },
+    {
+      "testId": "TEST-G2",
+      "description": "Protected database cth_test is 100% untouched (127 orders, 71 invoices, 40 payments, 0 writes)",
+      "status": "PASS",
+      "evidence": {
+        "orders": 127,
+        "invoices": 71,
+        "payments": 40
+      }
+    }
+  ]
+}

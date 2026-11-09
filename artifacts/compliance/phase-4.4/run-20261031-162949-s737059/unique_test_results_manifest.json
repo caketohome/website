@@ -1,0 +1,460 @@
+{
+  "phase": "Phase 4.4",
+  "tournament_id": "run-20261031-162949-s737059",
+  "generated_at": "2026-10-31T11:46:40.528Z",
+  "summary": {
+    "total_unique_tests": 87,
+    "passed": 87,
+    "failed": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "pass_rate": "100.0%",
+    "reconciliation_status": "100% MATHEMATICALLY RECONCILED"
+  },
+  "suite_breakdown": {
+    "database_security_privilege_suite": 20,
+    "api_authorization_security_suite": 24,
+    "adversarial_migration_linter_suite": 15,
+    "fiscal_boundary_rollover_suite": 15,
+    "invoice_allocation_regression_suite": 5,
+    "deployment_rehearsal_suite": 6,
+    "static_typescript_and_ci_suite": 2
+  },
+  "tests": [
+    {
+      "id": "TEST-P44-DB-01",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-02",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-03",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-04",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-05",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-06",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-07",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-08",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-09",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-10",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-11",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-12",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-13",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-14",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-15",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-16",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-17",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-18",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-19",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-DB-20",
+      "suite": "Workstream A & B (Database Security & Privilege)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-01",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-02",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-03",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-04",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-05",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-06",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-07",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-08",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-09",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-10",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-11",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-12",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-13",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-14",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-15",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-16",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-17",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-18",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-19",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-20",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-21",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-22",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-23",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-API-24",
+      "suite": "Workstream E (API Authorization & Security)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-01",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-02",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-03",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-04",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-05",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-06",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-07",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-08",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-09",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-10",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-11",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-12",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-13",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-14",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "ADV-LINT-15",
+      "suite": "Workstream C (Adversarial Migration Linter)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-01",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-02",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-03",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-04",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-05",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-06",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-07",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-08",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-09",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-10",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-11",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-12",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-13",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-14",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-FISC-15",
+      "suite": "Fiscal Boundary & Rollover Invariants",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-ALLOC-01",
+      "suite": "Workstream I (Invoice Allocation Regression)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-ALLOC-02",
+      "suite": "Workstream I (Invoice Allocation Regression)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-ALLOC-03",
+      "suite": "Workstream I (Invoice Allocation Regression)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-ALLOC-04",
+      "suite": "Workstream I (Invoice Allocation Regression)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-ALLOC-05",
+      "suite": "Workstream I (Invoice Allocation Regression)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-REH-01",
+      "suite": "Workstream J (Deployment Rehearsal)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-REH-02",
+      "suite": "Workstream J (Deployment Rehearsal)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-REH-03",
+      "suite": "Workstream J (Deployment Rehearsal)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-REH-04",
+      "suite": "Workstream J (Deployment Rehearsal)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-REH-05",
+      "suite": "Workstream J (Deployment Rehearsal)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-REH-06",
+      "suite": "Workstream J (Deployment Rehearsal)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-STATIC-01",
+      "suite": "TypeScript Typecheck (tsc --noEmit)",
+      "status": "PASS"
+    },
+    {
+      "id": "TEST-P44-STATIC-02",
+      "suite": "CI Migration Linter Exit Code Gate",
+      "status": "PASS"
+    }
+  ]
+}

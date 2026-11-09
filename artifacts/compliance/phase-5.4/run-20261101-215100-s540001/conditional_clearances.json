@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T03:18:27.279Z",
+  "environment": "cth_rehearsal_phase5_4",
+  "provenance": "e:/vig/cakes2home-main/cakes2home-main",
+  "run_id": "run-20261101-215100-s540001",
+  "conditions": [
+    {
+      "condition_id": "COND-01",
+      "domain": "Corporate Authority",
+      "condition": "Formal Board of Directors resolution under Section 179 must be signed and entered into minutes book under Section 118 prior to sequence table activation.",
+      "status": "UNSATISFIED"
+    },
+    {
+      "condition_id": "COND-02",
+      "domain": "Statutory GST Compliance",
+      "condition": "Formal written opinion from GST tax counsel regarding credit note / bill of supply treatment for the 21 delivered historical orders prior to any billing action.",
+      "status": "UNSATISFIED"
+    },
+    {
+      "condition_id": "COND-03",
+      "domain": "Segregation of Duties",
+      "condition": "Layer 5 production release authorization must be signed by an attributable human director or officer other than the engineering implementer.",
+      "status": "UNSATISFIED"
+    }
+  ]
+}

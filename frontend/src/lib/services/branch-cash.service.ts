@@ -27,6 +27,7 @@ export interface BranchCashPositionItem {
   gl_cash_in_hand: number;
   gl_petty_cash: number;
   active_drawer_cash: number;
+  closed_sessions_cash: number;
   vault_cash: number;
   total_physical_cash: number;
   total_cash_in_hand: number;
@@ -43,12 +44,14 @@ export interface BranchCashPositionItem {
   variance: number;
   reconciliation_status: "RECONCILED" | "VARIANCE_DETECTED";
   requires_audit: boolean;
+  unconfigured_limits?: string[];
 }
 
 export interface BranchCashSummary {
   total_gl_cash_in_hand: number;
   total_gl_petty_cash: number;
   total_active_drawer_cash: number;
+  total_closed_sessions_cash: number;
   total_vault_cash: number;
   total_physical_cash: number;
   total_cash_position: number;
@@ -56,6 +59,7 @@ export interface BranchCashSummary {
   branches_count: number;
   as_of_date: string;
   branches: BranchCashPositionItem[];
+  unconfigured_warnings?: Array<{ branch_id: string; branch_name: string; missing_limits: string[] }>;
 }
 
 export interface BranchCashReconciliationDetail {
@@ -64,6 +68,7 @@ export interface BranchCashReconciliationDetail {
   gl_cash_in_hand: number;
   gl_petty_cash: number;
   active_drawer_cash: number;
+  closed_sessions_cash: number;
   vault_cash: number;
   total_physical_cash: number;
   variance: number;
@@ -169,12 +174,12 @@ export class BranchCashService {
     const id1111 = acc1111?.id || "afdd90ab-7096-41fd-a268-7df89f7ed9b0";
     const id1114 = acc1114?.id || "6bf2d474-1800-461d-8a02-e0b4cf423671";
 
-    // 2. Query branch GL balances + active drawer totals + vault totals in single authoritative aggregation
+    // 2. Query branch GL balances + active drawer totals + closed session retention + vault totals in single authoritative aggregation
     const sql = `
       WITH branch_scope AS (
         SELECT id, name, code, metadata
         FROM public.branch
-        ${effectiveBranchId ? "WHERE id = $1" : ""}
+        WHERE ${effectiveBranchId ? "id = $1" : "deleted_at IS NULL AND id NOT LIKE 'br_tc_%' AND id NOT LIKE 'br_conc_%' AND id NOT LIKE 'br_test_%' AND id NOT LIKE 'test_%'"}
       ),
       gl_balances AS (
         SELECT
@@ -203,6 +208,36 @@ export class BranchCashService {
           AND s.branch_id IN (SELECT id FROM branch_scope)
         GROUP BY s.branch_id
       ),
+      closed_sessions AS (
+        SELECT
+          ls.branch_id,
+          ROUND(COALESCE(SUM(
+            GREATEST(0,
+              COALESCE(ls.closing_count, 0)
+              - COALESCE((
+                  SELECT SUM(CASE WHEN vm.direction = 'IN' THEN vm.amount ELSE -vm.amount END)
+                  FROM public.branch_vault_movement vm
+                  WHERE vm.teller_session_id = ls.id
+                ), 0)
+              - COALESCE((
+                  SELECT SUM(m.amount)
+                  FROM public.teller_movement m
+                  WHERE m.teller_session_id = ls.id
+                    AND m.movement_type = 'BANK_DEPOSIT'
+                    AND m.direction = 'OUT'
+                ), 0)
+            )
+          ), 0), 2) AS closed_sessions_cash
+        FROM (
+          SELECT DISTINCT ON (s.teller_id)
+            s.id, s.branch_id, s.teller_id, s.status, s.closing_count, s.created_at
+          FROM public.teller_session s
+          WHERE s.branch_id IN (SELECT id FROM branch_scope)
+          ORDER BY s.teller_id, s.created_at DESC
+        ) ls
+        WHERE ls.status IN ('CLOSED', 'VERIFIED', 'SETTLED')
+        GROUP BY ls.branch_id
+      ),
       vault_balances AS (
         SELECT
           vm.branch_id,
@@ -229,12 +264,14 @@ export class BranchCashService {
         COALESCE(gl.cash_in_hand, 0.00)::NUMERIC AS gl_cash_in_hand,
         COALESCE(gl.petty_cash, 0.00)::NUMERIC AS gl_petty_cash,
         ROUND((COALESCE(act.total_opening_float, 0) + COALESCE(act.total_net_movements, 0))::NUMERIC, 2) AS active_drawer_cash,
+        COALESCE(cs.closed_sessions_cash, 0.00)::NUMERIC AS closed_sessions_cash,
         COALESCE(vb.vault_cash, 0.00)::NUMERIC AS vault_cash,
         COALESCE(act.open_sessions_count, 0)::INT AS active_sessions_count,
         la.last_active AS last_activity_date
       FROM branch_scope b
       LEFT JOIN gl_balances gl ON gl.branch_id = b.id
       LEFT JOIN active_sessions act ON act.branch_id = b.id
+      LEFT JOIN closed_sessions cs ON cs.branch_id = b.id
       LEFT JOIN vault_balances vb ON vb.branch_id = b.id
       LEFT JOIN last_activity la ON la.branch_id = b.id
       ORDER BY 
@@ -248,43 +285,54 @@ export class BranchCashService {
     let sumGlCash = 0;
     let sumGlPetty = 0;
     let sumActiveDrawer = 0;
+    let sumClosedSessions = 0;
     let sumVaultCash = 0;
     let sumPhysicalCash = 0;
     let sumOpenSessions = 0;
+
+    const unconfiguredWarnings: Array<{ branch_id: string; branch_name: string; missing_limits: string[] }> = [];
 
     const branches: BranchCashPositionItem[] = res.rows.map((r: any) => {
       const glCash = Number(r.gl_cash_in_hand);
       const glPetty = Number(r.gl_petty_cash);
       const drawerCash = Number(r.active_drawer_cash);
+      const closedCash = Number(r.closed_sessions_cash);
       const vaultCash = Number(r.vault_cash);
       const sessionsCount = Number(r.active_sessions_count);
 
-      // Fail-closed branch limit configuration validation
+      // Branch limit configuration validation
       const meta = r.metadata || {};
       const maxDrawerLimit = Number(meta.max_drawer_cash_limit);
-      if (isNaN(maxDrawerLimit) || maxDrawerLimit <= 0) {
-        throw new BranchCashServiceError(
-          "BRANCH_CASH_LIMIT_UNCONFIGURED",
-          `Branch '${r.branch_name}' (${r.branch_id}) has no max_drawer_cash_limit configured. Fails closed.`
-        );
-      }
+      const isMaxDrawerConfigured = !isNaN(maxDrawerLimit) && maxDrawerLimit > 0;
 
       const pettyImprestLimit = Number(meta.petty_cash_imprest_limit);
-      if (isNaN(pettyImprestLimit) || pettyImprestLimit <= 0) {
-        throw new BranchCashServiceError(
-          "PETTY_CASH_LIMIT_UNCONFIGURED",
-          `Branch '${r.branch_name}' (${r.branch_id}) has no petty_cash_imprest_limit configured. Fails closed.`
-        );
+      const isPettyImprestConfigured = !isNaN(pettyImprestLimit) && pettyImprestLimit > 0;
+
+      const unconfiguredLimits: string[] = [];
+      if (!isMaxDrawerConfigured) unconfiguredLimits.push("max_drawer_cash_limit");
+      if (!isPettyImprestConfigured) unconfiguredLimits.push("petty_cash_imprest_limit");
+
+      if (unconfiguredLimits.length > 0) {
+        unconfiguredWarnings.push({
+          branch_id: r.branch_id,
+          branch_name: r.branch_name,
+          missing_limits: unconfiguredLimits,
+        });
       }
 
+      const effectiveMaxDrawerLimit = isMaxDrawerConfigured ? maxDrawerLimit : 0;
+      const effectivePettyLimit = isPettyImprestConfigured ? pettyImprestLimit : 0;
+
       // Relative thresholds
-      const warningThreshold = round2(maxDrawerLimit * 1.00);
-      const criticalThreshold = round2(maxDrawerLimit * 1.40);
+      const warningThreshold = round2(effectiveMaxDrawerLimit * 1.00);
+      const criticalThreshold = round2(effectiveMaxDrawerLimit * 1.40);
 
       let thresholdStatus: "NORMAL" | "WARNING" | "CRITICAL" = "NORMAL";
       let isCashTenderBlocked = false;
 
-      if (drawerCash >= criticalThreshold) {
+      if (unconfiguredLimits.length > 0) {
+        thresholdStatus = "WARNING";
+      } else if (drawerCash >= criticalThreshold) {
         thresholdStatus = "CRITICAL";
         isCashTenderBlocked = true;
       } else if (drawerCash >= warningThreshold) {
@@ -292,11 +340,11 @@ export class BranchCashService {
       }
 
       // Custody and Reconciliation
-      const totalPhysical = round2(drawerCash + vaultCash);
+      const totalPhysical = round2(drawerCash + closedCash + vaultCash);
       const variance = round2(glCash - totalPhysical);
       const reconciliationStatus: "RECONCILED" | "VARIANCE_DETECTED" =
         variance === 0 ? "RECONCILED" : "VARIANCE_DETECTED";
-      const requiresAudit = variance !== 0;
+      const requiresAudit = variance !== 0 || unconfiguredLimits.length > 0;
 
       // Total Cash for this branch in GL
       const totalCash = round2(glCash + glPetty);
@@ -304,6 +352,7 @@ export class BranchCashService {
       sumGlCash += glCash;
       sumGlPetty += glPetty;
       sumActiveDrawer += drawerCash;
+      sumClosedSessions += closedCash;
       sumVaultCash += vaultCash;
       sumPhysicalCash += totalPhysical;
       sumOpenSessions += sessionsCount;
@@ -321,14 +370,15 @@ export class BranchCashService {
         gl_cash_in_hand: glCash,
         gl_petty_cash: glPetty,
         active_drawer_cash: drawerCash,
+        closed_sessions_cash: closedCash,
         vault_cash: vaultCash,
         total_physical_cash: totalPhysical,
         total_cash_in_hand: totalCash,
         active_sessions_count: sessionsCount,
         last_activity_date: r.last_activity_date,
         status,
-        max_drawer_cash_limit: maxDrawerLimit,
-        petty_cash_imprest_limit: pettyImprestLimit,
+        max_drawer_cash_limit: effectiveMaxDrawerLimit,
+        petty_cash_imprest_limit: effectivePettyLimit,
         warning_threshold: warningThreshold,
         critical_threshold: criticalThreshold,
         drawer_threshold_status: thresholdStatus,
@@ -336,6 +386,7 @@ export class BranchCashService {
         variance,
         reconciliation_status: reconciliationStatus,
         requires_audit: requiresAudit,
+        unconfigured_limits: unconfiguredLimits.length > 0 ? unconfiguredLimits : undefined,
       };
     });
 
@@ -345,6 +396,7 @@ export class BranchCashService {
       total_gl_cash_in_hand: round2(sumGlCash),
       total_gl_petty_cash: round2(sumGlPetty),
       total_active_drawer_cash: round2(sumActiveDrawer),
+      total_closed_sessions_cash: round2(sumClosedSessions),
       total_vault_cash: round2(sumVaultCash),
       total_physical_cash: round2(sumPhysicalCash),
       total_cash_position: totalCashPosition,
@@ -352,6 +404,7 @@ export class BranchCashService {
       branches_count: branches.length,
       as_of_date: new Date().toISOString(),
       branches,
+      unconfigured_warnings: unconfiguredWarnings.length > 0 ? unconfiguredWarnings : undefined,
     };
   }
 
@@ -377,21 +430,18 @@ export class BranchCashService {
     const branch = bRes.rows[0];
     const branchName = branch.name;
     const meta = branch.metadata || {};
-
     const maxDrawerLimit = Number(meta.max_drawer_cash_limit);
-    if (isNaN(maxDrawerLimit) || maxDrawerLimit <= 0) {
-      throw new BranchCashServiceError(
-        "BRANCH_CASH_LIMIT_UNCONFIGURED",
-        `Branch '${branchName}' has no max_drawer_cash_limit configured. Fails closed.`
-      );
-    }
+    const isMaxDrawerConfigured = !isNaN(maxDrawerLimit) && maxDrawerLimit > 0;
+
     const pettyImprestLimit = Number(meta.petty_cash_imprest_limit);
-    if (isNaN(pettyImprestLimit) || pettyImprestLimit <= 0) {
-      throw new BranchCashServiceError(
-        "PETTY_CASH_LIMIT_UNCONFIGURED",
-        `Branch '${branchName}' has no petty_cash_imprest_limit configured. Fails closed.`
-      );
-    }
+    const isPettyImprestConfigured = !isNaN(pettyImprestLimit) && pettyImprestLimit > 0;
+
+    const unconfiguredLimits: string[] = [];
+    if (!isMaxDrawerConfigured) unconfiguredLimits.push("max_drawer_cash_limit");
+    if (!isPettyImprestConfigured) unconfiguredLimits.push("petty_cash_imprest_limit");
+
+    const effectiveMaxDrawer = isMaxDrawerConfigured ? maxDrawerLimit : 0;
+    const effectivePetty = isPettyImprestConfigured ? pettyImprestLimit : 0;
 
     // GL Balances
     const acc1111 = await AccountingAccountRepository.findByCode("1111", client);
@@ -463,20 +513,54 @@ export class BranchCashService {
 
     totalDrawerCash = round2(totalDrawerCash);
 
+    // Closed sessions awaiting disposition (for teller stations currently closed)
+    const closedSessRes = await queryFn(
+      `SELECT
+         ROUND(COALESCE(SUM(
+           GREATEST(0,
+             COALESCE(ls.closing_count, 0)
+             - COALESCE((
+                 SELECT SUM(CASE WHEN vm.direction = 'IN' THEN vm.amount ELSE -vm.amount END)
+                 FROM public.branch_vault_movement vm
+                 WHERE vm.teller_session_id = ls.id
+               ), 0)
+             - COALESCE((
+                 SELECT SUM(m.amount)
+                 FROM public.teller_movement m
+                 WHERE m.teller_session_id = ls.id
+                   AND m.movement_type = 'BANK_DEPOSIT'
+                   AND m.direction = 'OUT'
+               ), 0)
+           )
+         ), 0), 2) AS closed_sessions_cash
+       FROM (
+         SELECT DISTINCT ON (s.teller_id)
+           s.id, s.branch_id, s.teller_id, s.status, s.closing_count, s.created_at
+         FROM public.teller_session s
+         WHERE s.branch_id = $1
+         ORDER BY s.teller_id, s.created_at DESC
+       ) ls
+       WHERE ls.status IN ('CLOSED', 'VERIFIED', 'SETTLED')`,
+      [effectiveBranchId]
+    );
+    const closedSessionsCash = Number(closedSessRes.rows[0]?.closed_sessions_cash || 0);
+
     // Vault Custody
     const vaultCash = await VaultCustodyRepository.getDerivedVaultCustody(effectiveBranchId, client);
-    const totalPhysical = round2(totalDrawerCash + vaultCash);
+    const totalPhysical = round2(totalDrawerCash + closedSessionsCash + vaultCash);
     const variance = round2(glCash - totalPhysical);
     const reconciliationStatus: "RECONCILED" | "VARIANCE_DETECTED" =
       variance === 0 ? "RECONCILED" : "VARIANCE_DETECTED";
-    const requiresAudit = variance !== 0;
+    const requiresAudit = variance !== 0 || unconfiguredLimits.length > 0;
 
     // Thresholds
-    const warningThreshold = round2(maxDrawerLimit * 1.00);
-    const criticalThreshold = round2(maxDrawerLimit * 1.40);
+    const warningThreshold = round2(effectiveMaxDrawer * 1.00);
+    const criticalThreshold = round2(effectiveMaxDrawer * 1.40);
     let thresholdStatus: "NORMAL" | "WARNING" | "CRITICAL" = "NORMAL";
     let isCashTenderBlocked = false;
-    if (totalDrawerCash >= criticalThreshold) {
+    if (unconfiguredLimits.length > 0) {
+      thresholdStatus = "WARNING";
+    } else if (totalDrawerCash >= criticalThreshold) {
       thresholdStatus = "CRITICAL";
       isCashTenderBlocked = true;
     } else if (totalDrawerCash >= warningThreshold) {
@@ -525,13 +609,14 @@ export class BranchCashService {
       gl_cash_in_hand: glCash,
       gl_petty_cash: glPetty,
       active_drawer_cash: totalDrawerCash,
+      closed_sessions_cash: closedSessionsCash,
       vault_cash: vaultCash,
       total_physical_cash: totalPhysical,
       variance,
       reconciliation_status: reconciliationStatus,
       requires_audit: requiresAudit,
-      max_drawer_cash_limit: maxDrawerLimit,
-      petty_cash_imprest_limit: pettyImprestLimit,
+      max_drawer_cash_limit: effectiveMaxDrawer,
+      petty_cash_imprest_limit: effectivePetty,
       warning_threshold: warningThreshold,
       critical_threshold: criticalThreshold,
       drawer_threshold_status: thresholdStatus,

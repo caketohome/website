@@ -1,0 +1,153 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T03:18:27.279Z",
+  "environment": "cth_rehearsal_phase5_4",
+  "provenance": "e:/vig/cakes2home-main/cakes2home-main",
+  "run_id": "run-20261101-215100-s540001",
+  "register": [
+    {
+      "id": "CDR-01",
+      "decision": "Legal Entity Identification (CakeToHome India Private Limited)",
+      "technical": "READY",
+      "evidence": "VERIFIED",
+      "professional": "PENDING",
+      "corporate": "PENDING",
+      "operational": "READY"
+    },
+    {
+      "id": "CDR-02",
+      "decision": "CIN Registration (U15400KA2026PTC189211)",
+      "technical": "READY",
+      "evidence": "VERIFIED",
+      "professional": "PENDING",
+      "corporate": "PENDING",
+      "operational": "READY"
+    },
+    {
+      "id": "CDR-03",
+      "decision": "GSTIN Recognition (29AABCC1234F1Z5)",
+      "technical": "READY",
+      "evidence": "VERIFIED",
+      "professional": "PENDING",
+      "corporate": "PENDING",
+      "operational": "READY"
+    },
+    {
+      "id": "CDR-04",
+      "decision": "Statutory Invoice Series Selection (CH Proposed Preference, replacing CTH/C2H/CTHI)",
+      "technical": "READY",
+      "evidence": "PENDING",
+      "professional": "PENDING",
+      "corporate": "PENDING",
+      "operational": "READY"
+    },
+    {
+      "id": "CDR-05",
+      "decision": "Financial Year Series Suffix (/26-27/)",
+      "technical": "READY",
+      "evidence": "VERIFIED",
+      "professional": "PENDING",
+      "corporate": "PENDING",
+      "operational": "READY"
+    },
+    {
+      "id": "CDR-06",
+      "decision": "Consecutive Serial Padding & Expansion (min 6 digits, expanding to 7 digits, max 16 chars)",
+      "technical": "READY",
+      "evidence": "PENDING",
+      "professional": "PENDING",
+      "corporate": "PENDING",
+      "operational": "READY"
+    },
+    {
+      "id": "CDR-07",
+      "decision": "Rule 46(b) Consecutive Gapless Enforcement Policy",
+      "technical": "READY",
+      "evidence": "VERIFIED",
+      "professional": "PENDING",
+      "corporate": "PENDING",
+      "operational": "READY"
+    },
+    {
+      "id": "CDR-08",
+      "decision": "Historical Collision Handling (inv_1792901376459_xlxkf Quarantine)",
+      "technical": "READY",
+      "evidence": "VERIFIED",
+      "professional": "PENDING",
+      "corporate": "PENDING",
+      "operational": "READY"
+    },
+    {
+      "id": "CDR-09",
+      "decision": "Historical 69 Unbilled Orders Isolation & Legal Hold",
+      "technical": "READY",
+      "evidence": "VERIFIED",
+      "professional": "PENDING",
+      "corporate": "PENDING",
+      "operational": "READY"
+    },
+    {
+      "id": "CDR-10",
+      "decision": "Transactional Sequence Table Implementation",
+      "technical": "READY",
+      "evidence": "VERIFIED",
+      "professional": "PENDING",
+      "corporate": "APPROVED",
+      "operational": "ACTIVE"
+    },
+    {
+      "id": "CDR-11",
+      "decision": "Accounting Voucher Integration & Audit Log Schema",
+      "technical": "READY",
+      "evidence": "VERIFIED",
+      "professional": "PENDING",
+      "corporate": "APPROVED",
+      "operational": "ACTIVE"
+    },
+    {
+      "id": "CDR-12",
+      "decision": "PostgreSQL Row-Level Locking Architecture (FOR UPDATE)",
+      "technical": "READY",
+      "evidence": "VERIFIED",
+      "professional": "PENDING",
+      "corporate": "APPROVED",
+      "operational": "ACTIVE"
+    },
+    {
+      "id": "CDR-13",
+      "decision": "Idempotency Key & Concurrency Conflict Handler",
+      "technical": "READY",
+      "evidence": "VERIFIED",
+      "professional": "PENDING",
+      "corporate": "APPROVED",
+      "operational": "ACTIVE"
+    },
+    {
+      "id": "CDR-14",
+      "decision": "Automated Regression & Rehearsal Test Harness",
+      "technical": "READY",
+      "evidence": "VERIFIED",
+      "professional": "PENDING",
+      "corporate": "APPROVED",
+      "operational": "ACTIVE"
+    },
+    {
+      "id": "CDR-15",
+      "decision": "Protected Baseline DB Read-Only Protection Invariant",
+      "technical": "READY",
+      "evidence": "VERIFIED",
+      "professional": "PENDING",
+      "corporate": "APPROVED",
+      "operational": "ACTIVE"
+    },
+    {
+      "id": "CDR-16",
+      "decision": "Six-Layer Fail-Closed Release Authorization Gate",
+      "technical": "READY",
+      "evidence": "PENDING",
+      "professional": "PENDING",
+      "corporate": "PENDING",
+      "operational": "FAIL_CLOSED"
+    }
+  ]
+}

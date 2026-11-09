@@ -1,0 +1,6 @@
+{
+  "rehearsal_db": "cth_rehearsal_phase4_8",
+  "workflow_tested": "END_TO_END",
+  "test_pass_rate": 100,
+  "protected_db_isolated": true
+}

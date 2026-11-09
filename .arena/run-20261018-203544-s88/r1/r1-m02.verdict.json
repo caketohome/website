@@ -1,0 +1,11 @@
+{
+  "match": "r1-m02",
+  "scores": {
+    "a003": {"correctness": 9, "completeness": 9, "specificity": 9, "robustness": 9, "clarity": 9, "fatal": false},
+    "a004": {"correctness": 8, "completeness": 8, "specificity": 8, "robustness": 8, "clarity": 8, "fatal": false}
+  },
+  "winner": "a003",
+  "reason": "a003 incorporates tri-expert architectural panel, explicit financial safeguards and audit equilibrium, and precise Markdown ledger schemas.",
+  "survived": ["conceded crawler architecture", "conceded negative testing edge cases"],
+  "standing": {"a003": [], "a004": ["lacked explicit financial invariant checks"]}
+}

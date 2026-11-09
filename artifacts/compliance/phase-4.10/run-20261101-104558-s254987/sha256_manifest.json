@@ -1,0 +1,23 @@
+{
+  "arena_execution_report.md": "a0fd77f43db55d7c297203a723eb47a1add80494c9b5860c48e0b4618a9c9c10",
+  "automated_test_report.md": "bd5c97609adb63393d145c307d0db4488d56c70908537286200ff1e99b9fa3ed",
+  "cms_architecture_inventory.md": "d420a4013869aba04db2bc541f9a66be2ed6904d8ca5a09c573d02e895a52a47",
+  "cms_bug_reproduction_register.md": "5411ebccc348dbf9221c7287f43ce4a36019558316b2cef31196b994be667f12",
+  "cms_data_integrity_report.md": "ad93324c38529fc1a27d3c9633627f93bd0d4e11e43b39209cd2b4269d4767ae",
+  "cms_findings.json": "7cd742a9b07ad4a2f448435ee7931fb76a3f38d7af96f9f07d0d6dd063819aea",
+  "cms_integrity_findings.json": "02d09731fb44ee4a39dd02ceac515bbf0f8a0265294594f7ac4fb6adfee956bf",
+  "cms_migration_manifest.json": "450bb23603d3a897f5057ed6589e7ec9502ed033bb40b109eae019216eec4316",
+  "cms_performance_report.md": "4268c76ca4e5aec3d26e45433ba7f063a7e3abd7c8a7ad751379880f4a691889",
+  "cms_schema_inventory.json": "05415349dcad8b4dca97e91af26993b5951bed16d5ced49a38ef3230e07a2aa6",
+  "cms_security_and_rls_audit.md": "05850d2a01fe93dbe9f1e337817f151070710add1d8d16c635e90b4b4d1250b0",
+  "cms_security_findings.json": "1c41fabeeb1b6155f55506fcf5b701a1e36fbff1b8b907a5d4e6d4895aa554b6",
+  "cms_test_manifest.json": "8ff3f5fe64526c9d367cbf1969b1a8b87967ceabc5411ed319ce734412f3b4e6",
+  "database_schema_and_relationship_audit.md": "c52567a94bab27e6a8dba3bad7b0c4ef23ca82c158bbfd6d499742ee66186e50",
+  "media_storage_and_s3_audit.md": "9270d80c766e87e4ca9fecad525c58ee808ee03a1420d63a58502bf0b9569d98",
+  "migration_impact_report.md": "69291570521c6e8eda8546ec63eead9f04e7b56ef8904a01ce1fda688008698b",
+  "page_save_and_publish_audit.md": "627bccc1085f09ec9e155b65dcfa2ff4d58c200ac3f890abc7630a85f914481e",
+  "phase4_10_executive_report.md": "ae456af7cf6a7c5a40fdad7e536b9c8d4eeddd535b24ffee12435bc2c280f024",
+  "production_readiness_recommendation.md": "91fc10d30e4c61b70216f0f17b8bb8afd4839d448791012f8ba30783ded65e64",
+  "remediation_report.md": "e18e74f7db576e41275d044c05a41307d469ec8d3b430ffc1cbe1b09cad1d87a",
+  "ui_ux_and_responsive_audit.md": "41d1b153747d573cd0337c385e5d328b9cb2d06565f21751d9bdaf1ee5f66725"
+}

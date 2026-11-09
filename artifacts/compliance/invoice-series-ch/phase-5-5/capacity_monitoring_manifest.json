@@ -1,0 +1,8 @@
+{
+  "version": "1.0.0",
+  "prefix": "CH",
+  "annual_ceiling": 9999999,
+  "warning_threshold_80": 7999999,
+  "critical_threshold_95": 9499999,
+  "hard_block_100": 9999999
+}

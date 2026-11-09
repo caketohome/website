@@ -1,0 +1,611 @@
+{
+  "branch_totals": {
+    "total_branches": "57",
+    "non_deleted_branches": "53",
+    "open_branches": "53",
+    "branches_with_coords": "57",
+    "branches_missing_coords": "0"
+  },
+  "branch_coordinate_clusters": [
+    {
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "branch_count": "29",
+      "sample_codes": [
+        "HUB-976",
+        "HUB-365",
+        "HUB-986",
+        "HUB-649",
+        "HUB-337",
+        "HUB-300",
+        "HUB-360",
+        "HUB-253",
+        "HUB-605",
+        "HUB-993",
+        "HUB-306",
+        "HUB-450",
+        "HUB-767",
+        "HUB-675",
+        "HUB-109",
+        "HUB-937",
+        "HUB-731",
+        "HUB-636",
+        "HUB-245",
+        "HUB-864",
+        "HUB-811",
+        "HUB-525",
+        "HUB-389",
+        "HUB-777",
+        "HUB-196",
+        "HUB-687",
+        "HUB-718",
+        "HUB-BLR-01",
+        "HUB-954"
+      ]
+    },
+    {
+      "latitude": 12.9716,
+      "longitude": 77.5946,
+      "branch_count": "6",
+      "sample_codes": [
+        "E2E-2691",
+        "ZJSON-559042",
+        "ZJSON-584558",
+        "ZJSON-640130",
+        "ZJSON-678478",
+        "ZJSON-706484"
+      ]
+    },
+    {
+      "latitude": 13.085,
+      "longitude": 80.21,
+      "branch_count": "3",
+      "sample_codes": [
+        "TN-CHE-3700",
+        "TN-CHE-2101",
+        "TN-CHE-3103"
+      ]
+    },
+    {
+      "latitude": 8.8932,
+      "longitude": 76.6141,
+      "branch_count": "3",
+      "sample_codes": [
+        "HUB-KLM-01HUB-KLM-99",
+        "HUB-SRCH-8258",
+        "HUB-SRCH-1139"
+      ]
+    },
+    {
+      "latitude": 19.055,
+      "longitude": 72.83,
+      "branch_count": "3",
+      "sample_codes": [
+        "MH-MUM-7467",
+        "MH-MUM-2256",
+        "MH-MUM-7345"
+      ]
+    },
+    {
+      "latitude": 9.95972072040505,
+      "longitude": 76.2986760175891,
+      "branch_count": "1",
+      "sample_codes": [
+        "HUB-BOM-01"
+      ]
+    },
+    {
+      "latitude": 15.4245070387005,
+      "longitude": 77.4375335461152,
+      "branch_count": "1",
+      "sample_codes": [
+        "E2E-KE-9326"
+      ]
+    },
+    {
+      "latitude": 9.9816,
+      "longitude": 76.2999,
+      "branch_count": "1",
+      "sample_codes": [
+        "HUB-KOC-01"
+      ]
+    },
+    {
+      "latitude": 13.0418,
+      "longitude": 80.2341,
+      "branch_count": "1",
+      "sample_codes": [
+        "HUB-MAA-01"
+      ]
+    },
+    {
+      "latitude": 12.9698,
+      "longitude": 77.7499,
+      "branch_count": "1",
+      "sample_codes": [
+        "HUB-BLR-04"
+      ]
+    },
+    {
+      "latitude": 12.9121,
+      "longitude": 77.6445,
+      "branch_count": "1",
+      "sample_codes": [
+        "HUB-BLR-03"
+      ]
+    },
+    {
+      "latitude": 11.8601496864987,
+      "longitude": 77.653530248663,
+      "branch_count": "1",
+      "sample_codes": [
+        "E2E-MA-489"
+      ]
+    },
+    {
+      "latitude": 13.5321327841305,
+      "longitude": 78.475875724074,
+      "branch_count": "1",
+      "sample_codes": [
+        "E2E-TA-1223"
+      ]
+    },
+    {
+      "latitude": 12.9352,
+      "longitude": 77.6245,
+      "branch_count": "1",
+      "sample_codes": [
+        "HUB-BLR-02"
+      ]
+    },
+    {
+      "latitude": 11.3713274385449,
+      "longitude": 78.3582108936985,
+      "branch_count": "1",
+      "sample_codes": [
+        "E2E-TA-1614"
+      ]
+    }
+  ],
+  "delivery_zone_stats": {
+    "total_zones": "44",
+    "branches_with_zones": "28",
+    "polygon_zones": "12",
+    "radius_only_zones": "25",
+    "neither_zones": "7"
+  },
+  "sample_zones": [
+    {
+      "id": "br_chennai_z1",
+      "pincode": "600017",
+      "branch_id": "br_chennai_tnagar",
+      "name": null,
+      "radius_km": "6",
+      "center_latitude": "13.0418",
+      "center_longitude": "80.2341",
+      "poly_points": 0
+    },
+    {
+      "id": "br_indiranagar_z1",
+      "pincode": "560038",
+      "branch_id": "br_indiranagar",
+      "name": null,
+      "radius_km": "4",
+      "center_latitude": "12.9716",
+      "center_longitude": "77.6412",
+      "poly_points": 4
+    },
+    {
+      "id": "br_indiranagar_z2",
+      "pincode": "560071",
+      "branch_id": "br_indiranagar",
+      "name": null,
+      "radius_km": "8",
+      "center_latitude": "12.9716",
+      "center_longitude": "77.6412",
+      "poly_points": 0
+    },
+    {
+      "id": "br_indiranagar_z3",
+      "pincode": "560051",
+      "branch_id": "br_indiranagar",
+      "name": null,
+      "radius_km": "12",
+      "center_latitude": "12.9716",
+      "center_longitude": "77.6412",
+      "poly_points": 0
+    },
+    {
+      "id": "br_kochi_z1",
+      "pincode": "682016",
+      "branch_id": "br_kochi_ernakulam",
+      "name": null,
+      "radius_km": "5",
+      "center_latitude": "9.9816",
+      "center_longitude": "76.2999",
+      "poly_points": 4
+    },
+    {
+      "id": "br_kochi_z2",
+      "pincode": "682030",
+      "branch_id": "br_kochi_ernakulam",
+      "name": null,
+      "radius_km": "12",
+      "center_latitude": "9.9816",
+      "center_longitude": "76.2999",
+      "poly_points": 0
+    },
+    {
+      "id": "br_kollam_z1",
+      "pincode": "691001",
+      "branch_id": "br_kollam_central",
+      "name": null,
+      "radius_km": "8",
+      "center_latitude": "8.890075",
+      "center_longitude": "76.616464",
+      "poly_points": 0
+    },
+    {
+      "id": "br_koramangala_z1",
+      "pincode": "560034",
+      "branch_id": "br_koramangala",
+      "name": null,
+      "radius_km": "5",
+      "center_latitude": "12.9352",
+      "center_longitude": "77.6245",
+      "poly_points": 0
+    },
+    {
+      "id": "br_koramangala_z2",
+      "pincode": "560102",
+      "branch_id": "br_koramangala",
+      "name": null,
+      "radius_km": "10",
+      "center_latitude": "12.9352",
+      "center_longitude": "77.6245",
+      "poly_points": 0
+    },
+    {
+      "id": "br_mumbai_z1",
+      "pincode": "400050",
+      "branch_id": "br_mumbai_bandra",
+      "name": null,
+      "radius_km": "6",
+      "center_latitude": "9.95972072040505",
+      "center_longitude": "76.2986760175891",
+      "poly_points": 4
+    },
+    {
+      "id": "br_whitefield_z1",
+      "pincode": "560066",
+      "branch_id": "br_whitefield",
+      "name": null,
+      "radius_km": "15",
+      "center_latitude": "12.9698",
+      "center_longitude": "77.7499",
+      "poly_points": 0
+    },
+    {
+      "id": "br_whitefield_z2",
+      "pincode": "560048",
+      "branch_id": "br_whitefield",
+      "name": null,
+      "radius_km": "15",
+      "center_latitude": "12.9698",
+      "center_longitude": "77.7499",
+      "poly_points": 0
+    },
+    {
+      "id": "br_whitefield_z3",
+      "pincode": "560103",
+      "branch_id": "br_whitefield",
+      "name": null,
+      "radius_km": "15",
+      "center_latitude": "12.9698",
+      "center_longitude": "77.7499",
+      "poly_points": 0
+    },
+    {
+      "id": "delzone_01KYWHA3J59DYY3E0961MY4F7X",
+      "pincode": "560170",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "name": null,
+      "radius_km": null,
+      "center_latitude": null,
+      "center_longitude": null,
+      "poly_points": 0
+    },
+    {
+      "id": "delzone_01KYWHBECCRQR75BJ2NMDADKZQ",
+      "pincode": "560778",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "name": null,
+      "radius_km": null,
+      "center_latitude": null,
+      "center_longitude": null,
+      "poly_points": 0
+    },
+    {
+      "id": "delzone_01KYWJ02TCJGWBM4WN0H3H60BR",
+      "pincode": "560392",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "name": null,
+      "radius_km": null,
+      "center_latitude": null,
+      "center_longitude": null,
+      "poly_points": 0
+    },
+    {
+      "id": "delzone_01KYWJ6T41Z026EFDCGF0SND71",
+      "pincode": "560926",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "name": null,
+      "radius_km": null,
+      "center_latitude": null,
+      "center_longitude": null,
+      "poly_points": 0
+    },
+    {
+      "id": "delzone_01KYWJBZF13HTGMNG89B4DY4AZ",
+      "pincode": "560488",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "name": null,
+      "radius_km": null,
+      "center_latitude": null,
+      "center_longitude": null,
+      "poly_points": 0
+    },
+    {
+      "id": "delzone_01KYWJW5H0W7HNW9CY3S6JGVEN",
+      "pincode": "560292",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "name": null,
+      "radius_km": null,
+      "center_latitude": null,
+      "center_longitude": null,
+      "poly_points": 0
+    },
+    {
+      "id": "delzone_01KYXBYGTYKWFC8A7PG0B6NCT9",
+      "pincode": "560038",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "name": null,
+      "radius_km": null,
+      "center_latitude": null,
+      "center_longitude": null,
+      "poly_points": 0
+    }
+  ],
+  "delivery_partner_count": "30",
+  "delivery_partner_sample": [
+    {
+      "id": "dlp_01KYWJ71934X5AZASE5MHQC8C2",
+      "first_name": "Ramesh",
+      "last_name": "Rider",
+      "email": "driver_1785517540602@cakes2home.com",
+      "phone": "+91 9999261661",
+      "avatar_url": null,
+      "created_at": "2026-07-31T17:05:40.643Z",
+      "updated_at": "2026-07-31T17:05:40.643Z",
+      "deleted_at": null
+    },
+    {
+      "id": "dlp_01KYWJCJY4KCG786MPVD3RCXG4",
+      "first_name": "Ramesh",
+      "last_name": "Rider",
+      "email": "driver_1785517722510@cakes2home.com",
+      "phone": "+91 9910400719",
+      "avatar_url": null,
+      "created_at": "2026-07-31T17:08:42.565Z",
+      "updated_at": "2026-07-31T17:08:42.565Z",
+      "deleted_at": null
+    },
+    {
+      "id": "dlp_01KYWJWBY37KEETDN02BQSE2AG",
+      "first_name": "Ramesh",
+      "last_name": "Rider",
+      "email": "driver_1785518239638@cakes2home.com",
+      "phone": "+91 9925479773",
+      "avatar_url": null,
+      "created_at": "2026-07-31T17:17:19.684Z",
+      "updated_at": "2026-07-31T17:17:19.684Z",
+      "deleted_at": null
+    },
+    {
+      "id": "dlp_01KYXBYMSHJBVV67ZNAHFPRHES",
+      "first_name": "Rider",
+      "last_name": "Test",
+      "email": "driver_1785544526598@cakes2home.com",
+      "phone": "+91 91234 56789",
+      "avatar_url": null,
+      "created_at": "2026-08-01T00:35:28.690Z",
+      "updated_at": "2026-08-01T00:35:28.690Z",
+      "deleted_at": null
+    },
+    {
+      "id": "dlp_01KYXHYF594CBVEBE13X39VQNY",
+      "first_name": "Rider",
+      "last_name": "Test",
+      "email": "driver_1785550813988@cakes2home.com",
+      "phone": "+91 91234 56789",
+      "avatar_url": null,
+      "created_at": "2026-08-01T02:20:14.378Z",
+      "updated_at": "2026-08-01T02:20:14.378Z",
+      "deleted_at": null
+    }
+  ],
+  "spatial_columns": [
+    {
+      "table_name": "branch_settings",
+      "column_name": "delivery_radius_km",
+      "data_type": "double precision"
+    },
+    {
+      "table_name": "delivery_zone",
+      "column_name": "polygon_coordinates",
+      "data_type": "jsonb"
+    },
+    {
+      "table_name": "delivery_zone",
+      "column_name": "radius_km",
+      "data_type": "numeric"
+    },
+    {
+      "table_name": "product_option",
+      "column_name": "is_exclusive",
+      "data_type": "boolean"
+    }
+  ],
+  "postgis_installed": false,
+  "postgis_available": [
+    {
+      "name": "postgis_sfcgal",
+      "default_version": "3.3.7",
+      "installed_version": null,
+      "comment": "PostGIS SFCGAL functions"
+    },
+    {
+      "name": "postgis_raster",
+      "default_version": "3.3.7",
+      "installed_version": null,
+      "comment": "PostGIS raster types and functions"
+    },
+    {
+      "name": "postgis",
+      "default_version": "3.3.7",
+      "installed_version": null,
+      "comment": "PostGIS geometry and geography spatial types and functions"
+    },
+    {
+      "name": "postgis_topology",
+      "default_version": "3.3.7",
+      "installed_version": null,
+      "comment": "PostGIS topology spatial types and functions"
+    },
+    {
+      "name": "postgis_tiger_geocoder",
+      "default_version": "3.3.7",
+      "installed_version": null,
+      "comment": "PostGIS tiger geocoder and reverse geocoder"
+    }
+  ],
+  "corporate_employee_stats": {
+    "total_employees": "0",
+    "employees_with_coords": "0",
+    "employees_coords_verified": "0"
+  },
+  "recipient_columns": [
+    {
+      "column_name": "id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "batch_id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "row_number",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "employee_id",
+      "data_type": "character varying"
+    },
+    {
+      "column_name": "recipient_name",
+      "data_type": "character varying"
+    },
+    {
+      "column_name": "recipient_phone",
+      "data_type": "character varying"
+    },
+    {
+      "column_name": "delivery_address",
+      "data_type": "text"
+    },
+    {
+      "column_name": "delivery_pincode",
+      "data_type": "character varying"
+    },
+    {
+      "column_name": "delivery_city",
+      "data_type": "character varying"
+    },
+    {
+      "column_name": "delivery_state",
+      "data_type": "character varying"
+    },
+    {
+      "column_name": "delivery_date",
+      "data_type": "date"
+    },
+    {
+      "column_name": "delivery_slot",
+      "data_type": "character varying"
+    },
+    {
+      "column_name": "product_id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "variant_id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "sku",
+      "data_type": "character varying"
+    },
+    {
+      "column_name": "quantity",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "unit_price",
+      "data_type": "numeric"
+    },
+    {
+      "column_name": "line_total",
+      "data_type": "numeric"
+    },
+    {
+      "column_name": "gift_message",
+      "data_type": "text"
+    },
+    {
+      "column_name": "validation_status",
+      "data_type": "character varying"
+    },
+    {
+      "column_name": "validation_errors",
+      "data_type": "jsonb"
+    },
+    {
+      "column_name": "order_id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "delivery_id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "status",
+      "data_type": "character varying"
+    },
+    {
+      "column_name": "metadata",
+      "data_type": "jsonb"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "column_name": "deleted_at",
+      "data_type": "timestamp with time zone"
+    }
+  ]
+}

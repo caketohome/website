@@ -1,0 +1,11 @@
+{
+  "match": "r1-m01",
+  "scores": {
+    "a002": {"correctness": 9.5, "completeness": 9.5, "specificity": 10.0, "robustness": 9.5, "clarity": 9.5, "fatal": false},
+    "a004": {"correctness": 8.5, "completeness": 8.5, "specificity": 8.5, "robustness": 8.5, "clarity": 9.0, "fatal": false}
+  },
+  "winner": "a002",
+  "reason": "a002 delivers explicit transactional DDL, dual-stage soft-delete protection, and targeted verification scripts with zero ambiguity.",
+  "survived": ["Dual-stage soft delete eliminates branch inventory cascading hazard", "Targeted verification script specified"],
+  "standing": {"a002": [], "a004": ["Missing granular transactional DDL blocks"]}
+}

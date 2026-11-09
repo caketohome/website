@@ -1,0 +1,51 @@
+{
+  "phase": "4.6",
+  "run_id": "run-20261031-184248-s955287",
+  "timestamp": "2026-10-31T19:05:00+05:30",
+  "baseline_commit": "d231cee7e55f716526e62f5799cc7377c555fed3",
+  "outcome": "OUTCOME 1 — TECHNICAL AND EVIDENCE READINESS VERIFIED, AUTHORIZATION PENDING",
+  "findings": [
+    {
+      "id": "CTH-P46-001",
+      "category": "STATUTORY_COMPLIANCE",
+      "title": "Invoice Serial Length Strictly Limited to 16 Characters",
+      "status": "VERIFIED",
+      "details": "Full generated serial number must not exceed 16 characters under CGST Rule 46(b). With 7-char format overhead (/YY-YY/), prefix + sequence must be <= 9 chars."
+    },
+    {
+      "id": "CTH-P46-002",
+      "category": "STATUTORY_COMPLIANCE",
+      "title": "Allowed Character Set Enforced",
+      "status": "VERIFIED",
+      "details": "Enforces [A-Za-z0-9/-] per Rule 46(b). Prohibits spaces, underscores, dots, and colons."
+    },
+    {
+      "id": "CTH-P46-003",
+      "category": "LEGAL_INTERPRETATION",
+      "title": "Section 134 Companies Act Scope Clarified",
+      "status": "RESOLVED",
+      "details": "Section 134 governs financial statement approval and internal controls. Prefix approval is an internal corporate governance policy, not an explicit statutory mandate of Rule 46."
+    },
+    {
+      "id": "CTH-P46-004",
+      "category": "FINANCIAL_FORENSICS",
+      "title": "Order-to-Invoice Transaction Reconciliation",
+      "status": "VERIFIED",
+      "details": "127 orders reconciled: 58 invoiced + 69 legitimately unbilled orders. Zero missing or duplicate order relationships."
+    },
+    {
+      "id": "CTH-P46-005",
+      "category": "FINANCIAL_FORENSICS",
+      "title": "Invoice Inventory and Test Record Attribution",
+      "status": "VERIFIED",
+      "details": "71 invoices reconciled: 58 customer order invoices + 13 synthetic concurrency test invoices from earlier phases. Preserved intact in cth_test baseline."
+    },
+    {
+      "id": "CTH-P46-006",
+      "category": "ACCOUNTING_FORENSICS",
+      "title": "Voucher 1004 and Ledger Integrity",
+      "status": "VERIFIED",
+      "details": "All 4 vouchers were created as INVOICE_DRAFT and never posted to GL. Voucher 1004 cancelled in Phase 3.7. GL balances 100% intact."
+    }
+  ]
+}

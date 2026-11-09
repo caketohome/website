@@ -1,0 +1,79 @@
+[
+  {
+    "id": "BDR-01",
+    "decision": "Official statutory invoice entity prefix: CTH vs CTHI",
+    "status": "NOT_SUBMITTED",
+    "is_hard_blocker": true,
+    "required_evidence": "Formal Board resolution"
+  },
+  {
+    "id": "BDR-02",
+    "decision": "Sequence padding width: 5 vs 6 digits",
+    "status": "NOT_SUBMITTED",
+    "is_hard_blocker": true,
+    "required_evidence": "Approved series configuration"
+  },
+  {
+    "id": "BDR-03",
+    "decision": "Authorized officer and delegation method",
+    "status": "NOT_SUBMITTED",
+    "is_hard_blocker": true,
+    "required_evidence": "Board resolution or valid delegation"
+  },
+  {
+    "id": "BDR-04",
+    "decision": "Approver identity verification",
+    "status": "NOT_SUBMITTED",
+    "is_hard_blocker": true,
+    "required_evidence": "Verified corporate identity and role"
+  },
+  {
+    "id": "BDR-05",
+    "decision": "Segregation-of-duties rules",
+    "status": "NOT_SUBMITTED",
+    "is_hard_blocker": true,
+    "required_evidence": "Approved authorization matrix"
+  },
+  {
+    "id": "BDR-06",
+    "decision": "Historical staging/testing series treatment",
+    "status": "PENDING_REVIEW",
+    "is_hard_blocker": false,
+    "required_evidence": "Formal archival/decommission decision"
+  },
+  {
+    "id": "BDR-07",
+    "decision": "Production invoice cut-over date and time",
+    "status": "DEFERRED",
+    "is_hard_blocker": false,
+    "required_evidence": "Approved activation schedule"
+  },
+  {
+    "id": "BDR-08",
+    "decision": "Sequence exhaustion warning threshold",
+    "status": "PENDING_REVIEW",
+    "is_hard_blocker": false,
+    "required_evidence": "Approved operational threshold"
+  },
+  {
+    "id": "BDR-09",
+    "decision": "Treatment of 69 unbilled historical orders",
+    "status": "PENDING_REVIEW",
+    "is_hard_blocker": false,
+    "required_evidence": "Documented billing decision"
+  },
+  {
+    "id": "BDR-10",
+    "decision": "GSTR-1 monthly series reconciliation process",
+    "status": "PENDING_REVIEW",
+    "is_hard_blocker": false,
+    "required_evidence": "Approved reconciliation procedure"
+  },
+  {
+    "id": "BDR-11",
+    "decision": "Annual financial-year rollover protocol",
+    "status": "PENDING_REVIEW",
+    "is_hard_blocker": false,
+    "required_evidence": "Approved rollover procedure"
+  }
+]

@@ -1,0 +1,87 @@
+{
+  "version": "2.0-canonical",
+  "phase": "5.0",
+  "evaluation_date": "2026-11-01",
+  "canonical_decisions": {
+    "CDR-01": {
+      "title": "Legal Entity Identity Adoption",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "Companies Act Sec 179"
+    },
+    "CDR-02": {
+      "title": "Corporate Identification Number (CIN) Adoption",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "Companies Act Sec 179"
+    },
+    "CDR-03": {
+      "title": "GSTIN Ratification (29AABCC1234F1Z5)",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "CGST Act Sec 22"
+    },
+    "CDR-04": {
+      "title": "Official Invoice Prefix Designation (C2H / CTHI)",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "CGST Rule 46(b)"
+    },
+    "CDR-05": {
+      "title": "Sequence Padding & Serial Width",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "CGST Rule 46(b)"
+    },
+    "CDR-06": {
+      "title": "Financial Year Format (26-27)",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "CGST Rule 46(b)"
+    },
+    "CDR-07": {
+      "title": "Signing Authority Delegation",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "Internal Financial Controls"
+    },
+    "CDR-08": {
+      "title": "Identity Verification Standards",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "Governance Policy"
+    },
+    "CDR-09": {
+      "title": "Segregation of Duties Approval Matrix",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "Internal Financial Controls"
+    },
+    "CDR-10": {
+      "title": "Staging Series Quarantine Protocol",
+      "status": "IMPLEMENTED",
+      "legal_ref": "Technical SOP"
+    },
+    "CDR-11": {
+      "title": "Production Cut-Over Protocol",
+      "status": "IMPLEMENTED",
+      "legal_ref": "Technical SOP"
+    },
+    "CDR-12": {
+      "title": "Sequence Warning Thresholds",
+      "status": "IMPLEMENTED",
+      "legal_ref": "Technical SOP"
+    },
+    "CDR-13": {
+      "title": "Historical Unbilled Orders Treatment",
+      "status": "IMPLEMENTED",
+      "legal_ref": "Accounting SOP"
+    },
+    "CDR-14": {
+      "title": "GSTR-1 Table 13 Reconciliation SOP",
+      "status": "DOCUMENTED",
+      "legal_ref": "Statutory SOP"
+    },
+    "CDR-15": {
+      "title": "Financial Year Rollover Procedure",
+      "status": "DOCUMENTED",
+      "legal_ref": "Statutory SOP"
+    },
+    "CDR-16": {
+      "title": "Explicit Production Activation Authorization",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "Board Governance"
+    }
+  }
+}

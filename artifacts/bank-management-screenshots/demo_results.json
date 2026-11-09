@@ -1,0 +1,70 @@
+{
+  "acctNo": "****3344",
+  "results": [
+    {
+      "title": "Dashboard renders with seeded HDFC account",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "title": "Add Bank form filled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "title": "POST /api/v1/accounting/bank-accounts succeeded",
+      "ok": true,
+      "detail": "HTTP 201 "
+    },
+    {
+      "title": "New account visible in register",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "title": "Account number masked in UI",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "title": "Account details opened",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "title": "Account persists after page reload",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "title": "No uncaught page errors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "title": "bank_account row count increased by 1",
+      "ok": true,
+      "detail": "1 -> 2"
+    },
+    {
+      "title": "Bank account persisted in DB with ₹1,00,000 balance",
+      "ok": true,
+      "detail": "ba_1793872667885_yiy7vu7 masked=•••• •••• •••• 3344 balance=100000.00"
+    },
+    {
+      "title": "Linked to ASSET/BANK GL account",
+      "ok": true,
+      "detail": "GL 1112-01"
+    },
+    {
+      "title": "Opening balance journal balanced (Dr = Cr = 100000)",
+      "ok": true,
+      "detail": "Dr 100000.00 / Cr 100000.00, entries 1"
+    },
+    {
+      "title": "Opening bank_transaction recorded",
+      "ok": true,
+      "detail": "count 1, amount 100000.00"
+    }
+  ]
+}

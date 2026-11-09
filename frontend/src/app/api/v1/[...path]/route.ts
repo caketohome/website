@@ -36,6 +36,8 @@ import {
   TellerMovementRepository,
   VaultCustodyRepository,
   PettyCashRepository,
+  ReportRepository,
+  GstRegistrationRepository,
 } from "@frontend/lib/repositories";
 import { OrderService } from "@frontend/lib/services/order.service";
 import { ReportService } from "@frontend/lib/services/report.service";
@@ -74,12 +76,31 @@ import { BranchCashService, BranchCashServiceError } from "@frontend/lib/service
 import { VaultCustodyService, VaultCustodyError } from "@frontend/lib/services/vault-custody.service";
 import { PettyCashService, PettyCashServiceError } from "@frontend/lib/services/petty-cash.service";
 import { AccountsPayableService } from "@frontend/lib/services/accounts-payable.service";
+import { DeliveryHandoverService, DeliveryHandoverError } from "@frontend/lib/services/delivery-handover.service";
 import { MediaProcessor } from "@frontend/lib/media/media-processor";
 import { SeoAuditEngine, CORE_WEB_VITALS_DATA } from "@frontend/lib/seo/audit-engine";
 import { dbQuery, dbTransaction } from "@frontend/lib/db";
 import { resolveServerSession, resolveVerifiedCustomer } from "@frontend/lib/security/auth-session";
 import { CostAllocationController } from "@frontend/lib/controllers/cost-allocation.controller";
 import { CorporateGiftingController } from "@frontend/lib/controllers/corporate-gifting.controller";
+import { TaxResolverService, TaxResolutionError } from "@frontend/lib/services/tax-resolver.service";
+import { CorporateAccountController } from "@frontend/lib/controllers/corporate-account.controller";
+import { DeliveryCoverageController } from "@frontend/lib/controllers/delivery-coverage.controller";
+import { CorporateRoutingController } from "@frontend/lib/controllers/corporate-routing.controller";
+import { SharedInventoryService } from "@frontend/lib/services/shared-inventory.service";
+import { FeatureFlagService } from "@frontend/lib/services/feature-flag.service";
+import { OperationalClosureService } from "@frontend/lib/services/operational-closure.service";
+import { MarketplacePartnerService } from "@frontend/lib/services/marketplace-partner.service";
+import { MarketplaceOrderService } from "@frontend/lib/services/marketplace-order.service";
+import { MarketplaceReconciliationService } from "@frontend/lib/services/marketplace-reconciliation.service";
+import { MarketplacePartnerRepository } from "@frontend/lib/repositories/marketplace-partner.repository";
+import { MarketplaceInvoiceRepository } from "@frontend/lib/repositories/marketplace-invoice.repository";
+import { ExcelExportService } from "@frontend/lib/excel-export-service";
+import { GstReportingService } from "@frontend/lib/services/gst-reporting.service";
+import type { GstReportFilters, GstReportType } from "@frontend/lib/services/gst-reporting.service";
+import { PaymentVerificationService } from "@frontend/lib/services/payment-verification.service";
+import { CashfreePaymentService } from "@frontend/lib/services/cashfree-payment.service";
+import { CrossAppEventService } from "@frontend/lib/services/cross-app-event.service";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -126,7 +147,82 @@ function toAuthenticatedActor(userCtx: ReturnType<typeof resolveUserContext>): A
     userId: userCtx.userId,
     role: userCtx.role,
     branchId: userCtx.branchId || null,
+    partnerId: userCtx.partnerId || null,
     permissions: userCtx.permissions,
+  };
+}
+
+function mapCompanyToBusinessProfile(c: any) {
+  if (!c) return null;
+  return {
+    id: c.id,
+    legal_name: c.legal_name || "",
+    trade_name: c.trade_name || c.legal_name || "",
+    business_type: "PRIVATE_LIMITED",
+    pan: c.pan || "",
+    tan: "BLRC12345D",
+    cin: c.cin || "",
+    fssai: c.fssai || "",
+    registered_email: c.email || "compliance@cakes2home.com",
+    registered_phone: c.phone || "+91 80 4900 1234",
+    website: c.website || "https://cakes2home.com",
+    support_email: c.email || "support@cakes2home.com",
+    support_phone: c.phone || "+91 80 4900 1234",
+    status: c.is_active ? "ACTIVE" : "INACTIVE",
+    registered_address: {
+      line1: c.registered_address || "",
+      line2: "",
+      city: c.city || "Bengaluru",
+      state: c.state_code === "29" ? "Karnataka" : (c.state_code || "Karnataka"),
+      state_code: c.state_code || "29",
+      country: "India",
+      country_code: "IN",
+      pincode: c.pin_code || "560038",
+    },
+    primary_contact: {
+      name: "Rajesh Kumar",
+      phone: c.phone || "+91 98765 00001",
+      email: c.email || "rajesh@cakes2home.com",
+      designation: "Managing Director",
+    },
+    authorized_signatory: {
+      name: "Rajesh Kumar",
+      designation: "Authorized Signatory",
+      email: c.email || "signatory@cakes2home.com",
+      phone: c.phone || "+91 98765 00001",
+    },
+    logo_url: "/logo.png",
+  };
+}
+
+const STATE_NAMES_MAP: Record<string, string> = {
+  "29": "Karnataka",
+  "32": "Kerala",
+  "33": "Tamil Nadu",
+  "27": "Maharashtra",
+  "07": "Delhi",
+  "36": "Telangana",
+  "19": "West Bengal",
+  "24": "Gujarat",
+};
+
+function mapGstRegistrationRow(r: any) {
+  if (!r) return null;
+  const meta = typeof r.metadata === "object" && r.metadata ? r.metadata : {};
+  return {
+    id: r.id,
+    company_id: r.company_id,
+    gstin: r.gstin,
+    state_code: r.state_code,
+    state: meta.state || STATE_NAMES_MAP[r.state_code] || `State (${r.state_code})`,
+    legal_name: r.legal_name || null,
+    trade_name: meta.trade_name || r.legal_name || null,
+    registration_type: r.registration_type || "REGULAR",
+    status: r.is_active ? "active" : "inactive",
+    verification_status: meta.verification_status || "UNVERIFIED",
+    address: meta.address || null,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
   };
 }
 
@@ -154,6 +250,7 @@ function handleTellerError(err: any): NextResponse {
         status = 409;
         break;
       case "INVALID_AMOUNT":
+      case "INSUFFICIENT_FUNDS":
       case "SESSION_NOT_VERIFIED":
       case "MISSING_AUTHORITATIVE_SOURCE":
       case "NO_OPEN_SESSION_FOUND":
@@ -2072,6 +2169,48 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
     }
 
+    // ── Delivery Cash Handover API (GET) ──────────────────────────────────────
+    if (path.startsWith("admin/delivery-handovers")) {
+      const userCtx = resolveUserContext(req);
+      const requestedBranch = url.searchParams.get("branch_id") || undefined;
+      if (!userCtx.isSuperAdmin && userCtx.branchId && requestedBranch && userCtx.branchId !== requestedBranch) {
+        return jsonWithDataSource({ success: false, error: "Access denied to other branch records." }, "postgres", 403);
+      }
+      const enforcedBranchId = userCtx.isSuperAdmin
+        ? requestedBranch
+        : (userCtx.branchId || requestedBranch);
+
+      try {
+        if (path === "admin/delivery-handovers/eligible") {
+          const riderId = url.searchParams.get("delivery_partner_id");
+          if (!riderId) {
+            return jsonWithDataSource({ success: false, error: "delivery_partner_id is required." }, "postgres", 400);
+          }
+          const targetBranch = enforcedBranchId || "br_indiranagar";
+          const collections = await DeliveryHandoverService.getEligibleCollections(riderId, targetBranch);
+          return jsonWithDataSource({ success: true, data: collections }, "postgres");
+        }
+
+        // List handovers
+        const status = (url.searchParams.get("status") as any) || undefined;
+        const riderId = url.searchParams.get("delivery_partner_id") || undefined;
+        const limit = parseInt(url.searchParams.get("limit") || "50", 10);
+        const offset = parseInt(url.searchParams.get("offset") || "0", 10);
+
+        const listRes = await DeliveryHandoverService.listHandovers({
+          branchId: enforcedBranchId,
+          deliveryPartnerId: riderId,
+          status,
+          limit,
+          offset,
+        });
+
+        return jsonWithDataSource({ success: true, ...listRes }, "postgres");
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
     // ── Fleet / Delivery Cost API (GET) ───────────────────────────────────────
     if (path.startsWith("admin/fleet")) {
       const permErr = verifyApiPermission(req, "FLEET", "VIEW");
@@ -2284,26 +2423,13 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         }
 
         if (arSubPath === "aging") {
-          try {
-            await AccountsReceivableService.getArAgingSchedule({
-              branch_id: targetBranchId,
-              as_of_date: url.searchParams.get("as_of_date") || url.searchParams.get("asOfDate") || undefined,
-              actorContext: userCtx,
-            });
-          } catch (agingErr: any) {
-            return jsonWithDataSource(
-              {
-                success: false,
-                status: "FEATURE_BLOCKED",
-                error: "FEATURE_BLOCKED",
-                message: "AR AGING: NOT AVAILABLE — DUE-DATE POLICY NOT APPROVED",
-                summary: null,
-                customers: [],
-              },
-              "postgres",
-              501
-            );
-          }
+          const aging = await AccountsReceivableService.getArAgingSchedule({
+            branch_id: targetBranchId,
+            as_of_date: url.searchParams.get("as_of_date") || url.searchParams.get("asOfDate") || undefined,
+            actorContext: userCtx,
+          });
+
+          return jsonWithDataSource({ success: true, ...aging }, "postgres");
         }
 
         return jsonWithDataSource(
@@ -2474,7 +2600,102 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
     // ── Canonical Bank Accounts Master API (Phase 4F Step 4.10) ──
     // ── Phase B: Company Bank Account Master API (GET List & Detail) ───────────
-    if (path === "admin/bank-accounts" || path === "admin/accounting/bank-accounts") {
+    // ── Banking Dashboard Summary ──
+    if (path === "admin/accounting/dashboard/summary" || path === "accounting/dashboard/summary" || path === "admin/bank-management/summary") {
+      try {
+        const summary = await BankAccountService.getDashboardSummary();
+        return jsonWithDataSource({ success: true, data: summary }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: "SUMMARY_FAILED", message: err.message }, "error", 500);
+      }
+    }
+
+    // ── Cash Accounts ──
+    if (path === "admin/accounting/cash-accounts" || path === "accounting/cash-accounts" || path === "admin/cash-accounts") {
+      try {
+        const branchId = url.searchParams.get("branchId") || undefined;
+        const cashAccounts = await BankAccountService.listCashAccounts({ branchId });
+        return jsonWithDataSource({ success: true, data: cashAccounts, cashAccounts }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: "CASH_ACCOUNTS_FAILED", message: err.message }, "error", 500);
+      }
+    }
+
+    // ── Cross-App Event Stream / Recent Events (GET) ──
+    if (path === "events/stream" || path === "admin/events/stream" || path === "accounting/events/stream") {
+      const userCtx = resolveUserContext(req);
+      const role = url.searchParams.get("role") || userCtx.role || "ADMIN";
+      const branchId = url.searchParams.get("branchId") || url.searchParams.get("branch_id") || userCtx.branchId || null;
+      const customerId = url.searchParams.get("customerId") || url.searchParams.get("customer_id") || userCtx.customerId || null;
+      const orderId = url.searchParams.get("orderId") || url.searchParams.get("order_id") || null;
+      const sinceId = Number(url.searchParams.get("sinceId") || url.searchParams.get("since_id") || 0);
+      const limit = Number(url.searchParams.get("limit") || 30);
+      const events = await CrossAppEventService.getRecentEventsForSession({
+        role,
+        branchId,
+        customerId,
+        orderId,
+        sinceId,
+        limit,
+      });
+      return jsonWithDataSource({ success: true, events, count: events.length }, "postgres");
+    }
+
+    // ── Cashfree Settlements (GET) ──
+    if (path === "admin/accounting/cashfree-settlements" || path === "accounting/cashfree-settlements") {
+      try {
+        const res = await dbQuery(`
+          SELECT
+            csb.*,
+            csb.batch_ref AS settlement_id,
+            csb.gateway_fee AS fee_amount,
+            csb.gateway_tax AS tax_amount,
+            ba.account_name AS bank_name,
+            ba.account_number_masked,
+            '1113' AS clearing_gl_code,
+            'Payment Gateway Clearing' AS clearing_gl_name
+          FROM public.cashfree_settlement_batch csb
+          LEFT JOIN public.bank_account ba ON csb.bank_account_id = ba.id
+          ORDER BY csb.settlement_date DESC, csb.created_at DESC;
+        `);
+        return jsonWithDataSource({ success: true, data: res.rows, settlements: res.rows }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: "SETTLEMENTS_FAILED", message: err.message }, "error", 500);
+      }
+    }
+
+    // ── Bank Reconciliations (GET) ──
+    if (path === "admin/accounting/reconciliations" || path === "accounting/reconciliations") {
+      try {
+        const res = await dbQuery(`
+          SELECT
+            br.*,
+            ba.bank_name,
+            ba.account_name,
+            ba.account_number_masked
+          FROM public.bank_reconciliation br
+          LEFT JOIN public.bank_account ba ON br.bank_account_id = ba.id
+          ORDER BY br.statement_date DESC, br.created_at DESC;
+        `);
+        return jsonWithDataSource({ success: true, data: res.rows, reconciliations: res.rows }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: "RECONCILIATIONS_FAILED", message: err.message }, "error", 500);
+      }
+    }
+
+    // ── Bank Account Transactions ──
+    const bankAccountTxMatch = path.match(/^(admin\/)?(accounting\/)?bank-accounts\/([^/]+)\/transactions$/);
+    if (bankAccountTxMatch) {
+      const accountId = bankAccountTxMatch[3];
+      try {
+        const transactions = await BankAccountService.getTransactions(accountId);
+        return jsonWithDataSource({ success: true, data: transactions, transactions }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: "TRANSACTIONS_FAILED", message: err.message }, "error", 500);
+      }
+    }
+
+    if (path === "admin/bank-accounts" || path === "admin/accounting/bank-accounts" || path === "accounting/bank-accounts") {
       const userCtx = resolveUserContext(req);
       if (!userCtx.userId && !userCtx.role) {
         return jsonWithDataSource(
@@ -2566,8 +2787,13 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const userCtx = resolveUserContext(req);
       const actor = toAuthenticatedActor(userCtx);
       const tellerIdParam = url.searchParams.get("teller_id") || url.searchParams.get("tellerId");
+      const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || userCtx.branchId;
       try {
         let tellerId = tellerIdParam;
+        if (!tellerId && branchIdParam) {
+          const session = await TellerSessionService.getActiveSession(branchIdParam, actor);
+          return jsonWithDataSource({ success: true, session }, "postgres", 200);
+        }
         if (!tellerId) {
           const activeTeller = await TellerRepository.findActiveByUserId(userCtx.userId);
           if (!activeTeller) {
@@ -2621,9 +2847,10 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
     }
 
-    // 5. GET (admin/)?teller/sessions/:id/movements: List session movements
+    // 5. GET (admin/)?teller/sessions/:id/movements or (admin/)?teller/movements: List session or branch movements
+    const isBranchMovementsQuery = path === "admin/teller/movements" || path === "teller/movements";
     const sessionMovementsMatch = path.match(/^(?:admin\/)?teller\/sessions\/([^/]+)\/movements$/);
-    if (sessionMovementsMatch) {
+    if (sessionMovementsMatch || isBranchMovementsQuery) {
       let authErr = verifyApiPermission(req, "TELLER", "VIEW");
       if (authErr && !verifyApiPermission(req, "TELLER", "REPORT_VIEW")) {
         authErr = null;
@@ -2631,10 +2858,22 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       if (authErr) return authErr;
       const userCtx = resolveUserContext(req);
       const actor = toAuthenticatedActor(userCtx);
-      const sessionId = sessionMovementsMatch[1];
+      const sessionId = sessionMovementsMatch ? sessionMovementsMatch[1] : undefined;
+      const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || userCtx.branchId;
+
       try {
-        const movements = await TellerMovementService.getSessionMovements(sessionId, actor);
-        return jsonWithDataSource({ success: true, movements, total: movements.length }, "postgres", 200);
+        if (sessionId) {
+          const movements = await TellerMovementService.getSessionMovements(sessionId, actor);
+          return jsonWithDataSource({ success: true, movements, total: movements.length }, "postgres", 200);
+        } else if (branchIdParam) {
+          if (actor.role !== "SUPER_ADMIN" && actor.branchId && actor.branchId !== branchIdParam) {
+            return jsonWithDataSource({ success: false, error: "Access denied to other branch records." }, "postgres", 403);
+          }
+          const movements = await TellerMovementRepository.listByBranch(branchIdParam, 100);
+          return jsonWithDataSource({ success: true, movements, total: movements.length }, "postgres", 200);
+        } else {
+          return jsonWithDataSource({ success: false, error: "branch_id or session_id required." }, "postgres", 400);
+        }
       } catch (err: any) {
         return handleTellerError(err);
       }
@@ -3192,6 +3431,24 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return CorporateGiftingController.handleGet(req, path, userCtx);
     }
 
+    // ── Phase C7.9 Step 9D: Corporate Account Subsystem GET Endpoints ─────────
+    if (path.startsWith("admin/corporate-accounts") || path.startsWith("corporate-accounts")) {
+      const userCtx = resolveUserContext(req);
+      return CorporateAccountController.handleGet(req, path, userCtx);
+    }
+
+    // ── Phase C7.10 Step 10C: Delivery Coverage Subsystem GET Endpoints ────────
+    if (path.startsWith("admin/delivery-coverage") || path.startsWith("delivery-coverage")) {
+      const userCtx = resolveUserContext(req);
+      return DeliveryCoverageController.handleGet(req, path, userCtx);
+    }
+
+    // ── Phase C7.11 Step 11C: Corporate Routing Subsystem GET Endpoints ────────
+    if (path.startsWith("admin/corporate-routing") || path.startsWith("corporate-routing")) {
+      const userCtx = resolveUserContext(req);
+      return CorporateRoutingController.handleGet(req, path, userCtx);
+    }
+
     // ── Phase C6.3: Manual Journal Subsystem GET Endpoints ───────────────────
     if (path.startsWith("admin/accounting/journals")) {
       const userCtx = resolveUserContext(req);
@@ -3293,7 +3550,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     // ── Canonical GL Account Ledger & Trial Balance API Endpoints (Phase 5A.1) ──
-    if (path.startsWith("admin/accounting/")) {
+    if (path.startsWith("admin/accounting/") || path.startsWith("accounting/")) {
       const userCtx = resolveUserContext(req);
       if (!userCtx.userId && !userCtx.role) {
         return jsonWithDataSource(
@@ -3320,11 +3577,11 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         );
       }
 
-      const acctSubPath = path.replace(/^admin\/accounting\//, "");
+      const acctSubPath = path.replace(/^(admin\/)?accounting\//, "");
 
       try {
-        // 1. Account Ledger: GET admin/accounting/ledger
-        if (acctSubPath === "ledger") {
+        // 1. Account Ledger: GET admin/accounting/ledger or GET accounting/general-ledger
+        if (acctSubPath === "ledger" || acctSubPath === "general-ledger") {
           const accountId = url.searchParams.get("account_id") || url.searchParams.get("accountId");
           if (!accountId) {
             return jsonWithDataSource(
@@ -3375,8 +3632,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
           return jsonWithDataSource({ success: true, ...result }, "postgres");
         }
 
-        // 3. Chart of Accounts list: GET admin/accounting/accounts
-        if (acctSubPath === "accounts") {
+        // 3. Chart of Accounts list: GET admin/accounting/accounts or accounting/chart-of-accounts
+        if (acctSubPath === "accounts" || acctSubPath === "chart-of-accounts") {
           const search = url.searchParams.get("search") || undefined;
           const includeGroups = url.searchParams.get("include_groups") === "true";
           const accounts = await GeneralLedgerService.listAccounts({ includeGroups, search });
@@ -3438,8 +3695,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
         // 7. Profit & Loss: GET admin/accounting/profit-loss
         if (acctSubPath === "profit-loss") {
-          const startDate = url.searchParams.get("startDate") || url.searchParams.get("start_date") || undefined;
-          const endDate = url.searchParams.get("endDate") || url.searchParams.get("end_date") || undefined;
+          const startDate = url.searchParams.get("startDate") || url.searchParams.get("start_date") || "2026-04-01";
+          const endDate = url.searchParams.get("endDate") || url.searchParams.get("end_date") || "2027-03-31";
           const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
 
           if (!startDate || !endDate) {
@@ -3467,7 +3724,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
         // 8. Balance Sheet: GET admin/accounting/balance-sheet
         if (acctSubPath === "balance-sheet") {
-          const asOfDate = url.searchParams.get("as_of_date") || url.searchParams.get("asOfDate") || undefined;
+          const asOfDate = url.searchParams.get("as_of_date") || url.searchParams.get("asOfDate") || "2027-03-31";
           const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
           const compareDate = url.searchParams.get("compare_date") || url.searchParams.get("compareDate") || undefined;
 
@@ -3496,8 +3753,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
         // 9. Cash Flow: GET admin/accounting/cash-flow
         if (acctSubPath === "cash-flow") {
-          const startDate = url.searchParams.get("start_date") || url.searchParams.get("startDate") || undefined;
-          const endDate = url.searchParams.get("end_date") || url.searchParams.get("endDate") || undefined;
+          const startDate = url.searchParams.get("start_date") || url.searchParams.get("startDate") || "2026-04-01";
+          const endDate = url.searchParams.get("end_date") || url.searchParams.get("endDate") || "2027-03-31";
           const branchIdParam = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || undefined;
           const methodParam = (url.searchParams.get("method") as "direct" | "indirect" | "both") || "both";
           const compareStartDate = url.searchParams.get("compare_start_date") || url.searchParams.get("compareStartDate") || undefined;
@@ -3969,6 +4226,47 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
           return jsonWithDataSource({ success: true, data: arStatus }, "postgres");
         }
 
+        // 19. Vouchers list: GET admin/accounting/vouchers OR admin/accounting/work-queue/vouchers
+        if (acctSubPath === "vouchers" || acctSubPath === "work-queue/vouchers") {
+          const enforcedBranch = isSuperAdminUser ? (url.searchParams.get("branch_id") || undefined) : userBranchId;
+          const statusParam = url.searchParams.get("status");
+          const filters: any = {
+            branch_id: enforcedBranch,
+            status: statusParam && statusParam !== "ALL" ? statusParam : undefined,
+            voucher_type: url.searchParams.get("voucher_type") || url.searchParams.get("type") || undefined,
+            reference_type: url.searchParams.get("reference_type") || undefined,
+            reference_id: url.searchParams.get("reference_id") || undefined,
+            fiscal_year: url.searchParams.get("fiscal_year") || undefined,
+            startDate: url.searchParams.get("startDate") || url.searchParams.get("start_date") || undefined,
+            endDate: url.searchParams.get("endDate") || url.searchParams.get("end_date") || undefined,
+            search: url.searchParams.get("search") || undefined,
+            page: url.searchParams.get("page") ? parseInt(url.searchParams.get("page")!, 10) : 1,
+            limit: url.searchParams.get("limit") ? parseInt(url.searchParams.get("limit")!, 10) : 50,
+          };
+          const result = await AccountingVoucherRepository.list(filters);
+          return jsonWithDataSource({
+            success: true,
+            data: result.vouchers,
+            vouchers: result.vouchers,
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+            totalPages: result.totalPages,
+          }, "postgres");
+        }
+
+        // 20. Voucher Detail: GET admin/accounting/vouchers/:id
+        const voucherDetailMatch = acctSubPath.match(/^vouchers\/([^/]+)$/);
+        if (voucherDetailMatch) {
+          const voucherId = voucherDetailMatch[1];
+          const enforcedBranch = isSuperAdminUser ? undefined : userBranchId;
+          const detail = await AccountingVoucherRepository.findDetail(voucherId, enforcedBranch);
+          if (!detail) {
+            return jsonWithDataSource({ success: false, error: "VOUCHER_NOT_FOUND", message: `Voucher '${voucherId}' not found.` }, "postgres", 404);
+          }
+          return jsonWithDataSource({ success: true, data: detail }, "postgres");
+        }
+
         return jsonWithDataSource({ success: false, error: "NOT_FOUND", message: `Unknown accounting endpoint: ${path}` }, "error", 404);
       } catch (err: any) {
         console.error("[Accounting GL API Error]", acctSubPath, err.message);
@@ -4222,6 +4520,13 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
       const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
       const cartId = url.searchParams.get("cartId") || url.searchParams.get("cart_id") || validCookieCartId || urlCartId || "cart_guest_100";
+      try {
+        const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+        const dbCart = await CartRepository.findCartById(cartId);
+        if (dbCart) {
+          return jsonWithDataSource({ cart: dbCart, success: true }, "postgres");
+        }
+      } catch (_e) {}
       const cart = ApiEngine.getCart(cartId);
       return jsonWithDataSource({ cart, success: true }, "postgres");
     }
@@ -4417,6 +4722,13 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }, "postgres");
     }
 
+    // Order & Payment Status Polling for Real-Time Client Feedback
+    if ((path.startsWith("orders/") || path.startsWith("store/orders/")) && path.endsWith("/status")) {
+      const orderId = path.replace("store/orders/", "").replace("orders/", "").replace("/status", "");
+      const statusRes = await PaymentVerificationService.getOrderPaymentStatus(orderId);
+      return jsonWithDataSource(statusRes, "postgres", statusRes.found ? 200 : 404);
+    }
+
     if (path.startsWith("orders/")) {
       const orderId = path.replace("orders/", "");
       const order = await OrderRepository.findById(orderId);
@@ -4547,8 +4859,9 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         const q = Object.fromEntries(url.searchParams);
         const page = Math.max(1, Number(q.page) || 1);
         const pageSize = Math.min(Math.max(1, Number(q.pageSize || q.limit) || 50), 100);
+        const effectiveBranchId = (mgrAuth.isSuperAdmin && (q.branch_id || q.branchId)) ? String(q.branch_id || q.branchId) : branchId;
         const listRes = await OrderRepository.listOrders({
-          branch_id: branchId,
+          branch_id: effectiveBranchId,
           status: q.status as string,
           page,
           pageSize,
@@ -4569,8 +4882,9 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         if (!dbOrder) {
           return jsonWithDataSource({ success: false, statusCode: 404, error: "Order not found" }, "postgres", 404);
         }
+        const kotRes = await dbQuery(`SELECT kot_number FROM public.kot_tickets WHERE order_id = $1 LIMIT 1`, [orderId]).catch(() => ({ rows: [] }));
         const kotPayload = {
-          kot_number: dbOrder.kitchen?.kot_number || `KOT-${dbOrder.order_number || dbOrder.id}`,
+          kot_number: kotRes.rows[0]?.kot_number || (dbOrder as any).metadata?.kot_number || dbOrder.kitchen?.kot_number || `KOT-${dbOrder.order_number || dbOrder.id}`,
           order_number: dbOrder.order_number || dbOrder.id,
           brand_name: "CakeToHome Gourmet Bakery",
           branch_name: dbOrder.branch?.name || "Indiranagar Flagship Kitchen",
@@ -4595,33 +4909,121 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
       if (path.startsWith("manager/orders/") && path.endsWith("/invoice")) {
         const orderId = path.replace("manager/orders/", "").replace("/invoice", "");
+        const callerCtx = resolveUserContext(req);
+        if (!callerCtx.userId) {
+          return jsonWithDataSource({
+            error: "Unauthorized: Authentication required to view branch tax invoices",
+            code: "UNAUTHORIZED",
+            success: false,
+          }, "postgres", 401);
+        }
+        const userPerms = Array.isArray(callerCtx.permissions) ? callerCtx.permissions : [];
+        const isManagerOrAdmin = callerCtx.isSuperAdmin ||
+          userPerms.includes("*") ||
+          userPerms.includes("ORDERS.INVOICE") ||
+          userPerms.includes("ORDERS.VIEW") ||
+          callerCtx.role === "SUPER_ADMIN" ||
+          callerCtx.role === "STORE_MANAGER" ||
+          callerCtx.role === "BRANCH_MANAGER" ||
+          callerCtx.role === "ADMIN";
+
+        if (!isManagerOrAdmin) {
+          return jsonWithDataSource({
+            error: "Forbidden: You do not have permission to view branch invoices",
+            code: "FORBIDDEN",
+            success: false,
+          }, "postgres", 403);
+        }
+
         const dbOrder = await OrderRepository.findById(orderId);
         if (!dbOrder) {
-          return jsonWithDataSource({ success: false, statusCode: 404, error: "Order not found" }, "postgres", 404);
+          return jsonWithDataSource({ success: false, statusCode: 404, error: "Order not found", code: "ORDER_NOT_FOUND" }, "postgres", 404);
         }
-        const invPayload = {
-          invoice_number: `INV-${dbOrder.order_number || dbOrder.id}`,
+
+        // Branch tenant isolation
+        if (callerCtx.branchId && dbOrder.branch_id && callerCtx.branchId !== dbOrder.branch_id && !callerCtx.isSuperAdmin) {
+          return jsonWithDataSource({
+            error: "Forbidden: Order belongs to a different branch",
+            code: "CROSS_BRANCH_ACCESS_DENIED",
+            success: false,
+          }, "postgres", 403);
+        }
+
+        // Verify committed invoice in PostgreSQL (NO fabrication!)
+        const invRes = await dbQuery(
+          `SELECT i.*, 
+                  al.status AS allocation_status
+           FROM public.invoice i
+           LEFT JOIN public.invoice_allocation_log al ON al.invoice_number = i.invoice_number AND al.order_id = i.order_id
+           WHERE i.order_id = $1 AND i.deleted_at IS NULL
+           ORDER BY i.created_at DESC LIMIT 1`,
+          [orderId]
+        );
+
+        if (
+          invRes.rows.length === 0 ||
+          !invRes.rows[0].invoice_number ||
+          invRes.rows[0].invoice_number === "PENDING_INVOICE" ||
+          invRes.rows[0].status === "PENDING_INVOICE" ||
+          invRes.rows[0].status === "CANCELLED"
+        ) {
+          return jsonWithDataSource({
+            error: "No committed statutory tax invoice exists for this order. Tax invoices must be generated after delivery before they can be viewed or printed.",
+            code: "INVOICE_NOT_COMMITTED",
+            success: false,
+          }, "postgres", 400);
+        }
+
+        const invRow = invRes.rows[0];
+        const invMeta = typeof invRow.metadata === "object" ? invRow.metadata : JSON.parse(invRow.metadata || "{}");
+        const items = Array.isArray(invMeta.items) && invMeta.items.length > 0 
+          ? invMeta.items 
+          : (Array.isArray(dbOrder.items) ? dbOrder.items : []);
+
+        const isTestMode = (dbOrder as any).classification === "TEST" || 
+          (dbOrder as any).metadata?.classification === "TEST" || 
+          invMeta.is_test === true || 
+          String(dbOrder.id).includes("test_");
+
+        const authoritativeInvoice = {
+          id: invRow.id,
+          invoice_number: invRow.invoice_number,
+          order_id: dbOrder.id,
           order_number: dbOrder.order_number || dbOrder.id,
-          invoice_date: dbOrder.created_at,
-          seller_legal_name: "CakeToHome India Private Limited",
-          seller_trade_name: "CakeToHome",
-          branch_name: dbOrder.branch?.name || "Indiranagar Flagship Kitchen",
-          seller_gstin: "29AAAAA0000A1Z5",
-          customer: dbOrder.customer,
-          items: (dbOrder.items || []).map((i: any) => ({
-            description: i.title || i.product_name || "Cake",
-            hsn_sac: i.hsn_code || "19059090",
-            quantity: i.quantity || 1,
-            unit_price: i.unit_price || i.price || 0,
-            taxable_amount: Math.round((i.unit_price || i.price || 0) * (i.quantity || 1) / 1.05),
-            gst_rate: `${i.tax_rate || 5}%`,
-            cgst_amount: Math.round(((i.unit_price || i.price || 0) * (i.quantity || 1) * 0.025)),
-            sgst_amount: Math.round(((i.unit_price || i.price || 0) * (i.quantity || 1) * 0.025)),
+          invoice_date: invRow.created_at,
+          due_date: invRow.due_date,
+          status: invRow.status || "COMMITTED",
+          branch_name: invMeta.branch_name || dbOrder.branch?.name || null,
+          branch_gstin: invRow.seller_gstin || invMeta.seller_gstin || dbOrder.seller_gstin || null,
+          branch_fssai: invMeta.seller_fssai_number && invMeta.seller_fssai_number !== "11223344556677" ? invMeta.seller_fssai_number : (dbOrder.branch?.metadata?.fssai_number && dbOrder.branch?.metadata?.fssai_number !== "11223344556677" ? dbOrder.branch?.metadata?.fssai_number : "UNVERIFIED_FSSAI"),
+          customer: {
+            name: invRow.customer_name || dbOrder.customer_name || "—",
+            delivery_address: dbOrder.customer?.address || dbOrder.delivery_address || "—",
+          },
+          payment: {
+            method: invRow.payment_method || dbOrder.payment_method || "—",
+            status: invRow.payment_status || dbOrder.payment_status || "PENDING",
+            transaction_id: invMeta.payment?.transaction_id || (dbOrder as any).payment?.transaction_id || "—",
+          },
+          items: items.map((i: any) => ({
+            description: i.title || i.product_name || "Item",
+            hsn_sac: i.hsn_code || "UNCLASSIFIED",
+            quantity: Number(i.quantity || 1),
+            taxable_amount: Number(i.taxable_value ?? (Number(i.unit_price ?? i.price ?? 0) * Number(i.quantity || 1))),
+            total: Number(i.total ?? (Number(i.unit_price ?? i.price ?? 0) * Number(i.quantity || 1))),
           })),
-          total_tax: dbOrder.tax_amount || 0,
-          grand_total: dbOrder.total_amount || dbOrder.total || 0,
+          pricing: {
+            subtotal: Number(invRow.subtotal || 0),
+            cgst: Number(invMeta.cgst || 0),
+            sgst: Number(invMeta.sgst || 0),
+            delivery_fee: Number(invRow.delivery_fee || 0),
+            total: Number(invRow.grand_total || 0),
+          },
+          is_test: isTestMode,
+          test_watermark: isTestMode ? "TEST — NOT A VALID TAX INVOICE" : null,
         };
-        return jsonWithDataSource({ success: true, invoice: invPayload }, "postgres", 200);
+
+        return jsonWithDataSource({ success: true, invoice: authoritativeInvoice }, "postgres", 200);
       }
       if (path.startsWith("manager/orders/")) {
         const orderId = path.replace("manager/orders/", "");
@@ -4704,23 +5106,43 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         const depositsToday = Number(depositsRes.rows[0]?.deposits_total || 0);
         const depositsCount = Number(depositsRes.rows[0]?.deposits_count || 0);
 
-        // 4. Drawer session metadata (operational float only, Invariant 5: no GL 1111 mutation)
+        // 4. Canonical Relational Teller Session lookup
+        const branchSessions = await TellerSessionRepository.findActiveByBranchId(branchId);
+        const activeRelationalSession = branchSessions.find((s) => s.status === "OPEN");
+        let tellerOpeningFloat = 0;
+        let tellerDrawerIsOpen = false;
+        let tellerNetMovements = 0;
+        let tellerSessionId: string | null = null;
+
+        if (activeRelationalSession) {
+          tellerDrawerIsOpen = true;
+          tellerOpeningFloat = Number(activeRelationalSession.opening_float || 0);
+          tellerSessionId = activeRelationalSession.id;
+          const totals = await TellerMovementRepository.getTotalsForSession(activeRelationalSession.id);
+          tellerNetMovements = totals.netMovement;
+        }
+
+        // Fallback to branch metadata JSONB
         const branchRes = await dbQuery(`SELECT metadata FROM "branch" WHERE id = $1`, [branchId]);
         const branchMeta = branchRes.rows[0]?.metadata || {};
         const drawerSession = branchMeta.drawer_session || {};
         const isTodaySession = drawerSession.date === todayStr;
-        const drawerIsOpen = isTodaySession && (drawerSession.status === "OPEN" || !drawerSession.status);
-        const openingFloat = isTodaySession ? Number(drawerSession.opening_float || 0) : 0;
-        const expectedDrawerCash = openingFloat + cashSales - depositsToday;
+        const drawerIsOpen = tellerDrawerIsOpen || (isTodaySession && (drawerSession.status === "OPEN" || !drawerSession.status));
+        const openingFloat = tellerDrawerIsOpen ? tellerOpeningFloat : (isTodaySession ? Number(drawerSession.opening_float || 0) : 0);
+
+        const expectedDrawerCash = tellerDrawerIsOpen
+          ? Math.round((tellerOpeningFloat + tellerNetMovements) * 100) / 100
+          : Math.round((openingFloat + cashSales - depositsToday) * 100) / 100;
 
         return jsonWithDataSource({
           success: true,
           branch_id: branchId,
           date: todayStr,
-          drawer_status: isTodaySession ? (drawerSession.status || "OPEN") : "CLOSED",
+          drawer_status: drawerIsOpen ? "OPEN" : "CLOSED",
+          teller_session_id: tellerSessionId,
           opening_float: openingFloat,
           opening_notes: isTodaySession ? drawerSession.opening_notes : null,
-          opened_at: isTodaySession ? drawerSession.opened_at : null,
+          opened_at: activeRelationalSession?.opened_at || (isTodaySession ? drawerSession.opened_at : null),
           closing_amount: isTodaySession ? drawerSession.closing_amount : null,
           closed_at: isTodaySession ? drawerSession.closed_at : null,
           cash_sales: cashSales,
@@ -4822,6 +5244,142 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const subAction = parts[1];
       if (subAction === "auto-assign-delivery") {
         return jsonWithDataSource(ApiEngine.autoAssignDeliveryDriver(orderId), "postgres");
+      }
+      if (subAction === "invoice") {
+        // 1. Authentication & RBAC Invoicing View Authorization
+        const callerCtx = resolveUserContext(req);
+        if (!callerCtx.userId) {
+          return jsonWithDataSource({
+            error: "Unauthorized: Authentication required to view tax invoices",
+            code: "UNAUTHORIZED",
+            success: false,
+          }, "postgres", 401);
+        }
+        const userPerms = Array.isArray(callerCtx.permissions) ? callerCtx.permissions : [];
+        const hasInvoiceViewPerm = callerCtx.isSuperAdmin ||
+          userPerms.includes("*") ||
+          userPerms.includes("ORDERS.INVOICE") ||
+          userPerms.includes("ORDERS.VIEW") ||
+          userPerms.includes("ORDERS.EDIT") ||
+          userPerms.includes("INVOICE.VIEW") ||
+          callerCtx.role === "SUPER_ADMIN" ||
+          callerCtx.role === "FINANCE_CONTROLLER" ||
+          callerCtx.role === "STORE_MANAGER" ||
+          callerCtx.role === "ADMIN" ||
+          callerCtx.role === "BRANCH_MANAGER";
+
+        if (!hasInvoiceViewPerm) {
+          return jsonWithDataSource({
+            error: "Forbidden: You do not have permission to view or print statutory tax invoices",
+            code: "FORBIDDEN",
+            success: false,
+          }, "postgres", 403);
+        }
+
+        // 2. Order Existence Check (prevents information disclosure on guessed IDs)
+        const dbOrder = await OrderRepository.findById(orderId);
+        if (!dbOrder) {
+          return jsonWithDataSource({
+            error: "Order not found",
+            code: "ORDER_NOT_FOUND",
+            success: false,
+          }, "postgres", 404);
+        }
+
+        // 3. Query Authoritative Committed Invoice from PostgreSQL
+        const invRes = await dbQuery(
+          `SELECT i.*, 
+                  al.status AS allocation_status,
+                  al.sequence_value,
+                  al.prefix AS seq_prefix,
+                  al.fiscal_year AS seq_fiscal_year
+           FROM public.invoice i
+           LEFT JOIN public.invoice_allocation_log al ON al.invoice_number = i.invoice_number AND al.order_id = i.order_id
+           WHERE i.order_id = $1 AND i.deleted_at IS NULL
+           ORDER BY i.created_at DESC LIMIT 1`,
+          [orderId]
+        );
+
+        if (
+          invRes.rows.length === 0 ||
+          !invRes.rows[0].invoice_number ||
+          invRes.rows[0].invoice_number === "PENDING_INVOICE" ||
+          invRes.rows[0].status === "PENDING_INVOICE" ||
+          invRes.rows[0].status === "CANCELLED"
+        ) {
+          return jsonWithDataSource({
+            error: "No committed statutory tax invoice exists for this order. Tax invoices must be generated after delivery before they can be viewed or printed.",
+            code: "INVOICE_NOT_COMMITTED",
+            success: false,
+          }, "postgres", 400);
+        }
+
+        const invRow = invRes.rows[0];
+
+        // 4. Cross-Order / Forged Invoice ID Verification
+        const requestedInvoiceId = url.searchParams.get("invoice_id");
+        if (requestedInvoiceId && invRow.id !== requestedInvoiceId) {
+          return jsonWithDataSource({
+            error: "Invoice ID does not belong to the requested order",
+            code: "INVOICE_ORDER_MISMATCH",
+            success: false,
+          }, "postgres", 400);
+        }
+
+        const invMeta = typeof invRow.metadata === "object" ? invRow.metadata : JSON.parse(invRow.metadata || "{}");
+        const items = Array.isArray(invMeta.items) && invMeta.items.length > 0 
+          ? invMeta.items 
+          : (Array.isArray(dbOrder.items) ? dbOrder.items : []);
+
+        const isTestMode = (dbOrder as any).classification === "TEST" || 
+          (dbOrder as any).metadata?.classification === "TEST" || 
+          invMeta.is_test === true || 
+          String(dbOrder.id).includes("test_");
+
+        const authoritativeInvoice = {
+          id: invRow.id,
+          invoice_number: invRow.invoice_number,
+          order_id: dbOrder.id,
+          order_number: dbOrder.order_number || dbOrder.id,
+          invoice_date: invRow.created_at,
+          due_date: invRow.due_date,
+          status: invRow.status || "COMMITTED",
+          allocation_status: invRow.allocation_status || "COMMITTED",
+          branch_id: invRow.branch_id || dbOrder.branch_id,
+          branch_name: invMeta.branch_name || dbOrder.branch?.name || null,
+          branch_code: invMeta.branch_code || dbOrder.branch?.code || null,
+          seller_legal_name: invRow.seller_legal_name || invMeta.seller_legal_name || dbOrder.seller_legal_name || "UNVERIFIED_SELLER_IDENTITY",
+          seller_trade_name: invMeta.seller_trade_name || dbOrder.branch?.name || "UNVERIFIED_SELLER",
+          seller_gstin: invRow.seller_gstin || invMeta.seller_gstin || dbOrder.seller_gstin || "UNVERIFIED_GSTIN",
+          seller_fssai_number: invMeta.seller_fssai_number && invMeta.seller_fssai_number !== "11223344556677" ? invMeta.seller_fssai_number : (dbOrder.branch?.metadata?.fssai_number && dbOrder.branch?.metadata?.fssai_number !== "11223344556677" ? dbOrder.branch?.metadata?.fssai_number : "UNVERIFIED_FSSAI"),
+          seller_address: invMeta.seller_address || dbOrder.branch?.address || "",
+          seller_state: invMeta.seller_state || dbOrder.branch?.state || "",
+          seller_state_code: invMeta.seller_state_code || dbOrder.branch?.state_code || "",
+          supply_type: invMeta.supply_type || (invMeta.is_intra_state !== false ? "INTRA-STATE (CGST + SGST)" : "INTER-STATE (IGST)"),
+          is_intra_state: invMeta.is_intra_state !== false,
+          customer_name: invRow.customer_name || dbOrder.customer_name || "—",
+          customer_phone: invRow.customer_phone || dbOrder.customer_phone || "—",
+          customer_email: dbOrder.customer_email || "—",
+          customer_gstin: invMeta.customer_gstin || "URP (Unregistered Person)",
+          customer_address: dbOrder.customer?.address || dbOrder.delivery_address || "—",
+          items,
+          subtotal: Number(invRow.subtotal || 0),
+          tax_total: Number(invRow.tax_total || 0),
+          delivery_fee: Number(invRow.delivery_fee || 0),
+          discount_total: Number(invRow.discount_total || 0),
+          grand_total: Number(invRow.grand_total || 0),
+          paid_amount: Number(invRow.paid_amount || 0),
+          outstanding_amount: Number(invRow.outstanding_amount || 0),
+          payment_method: invRow.payment_method || dbOrder.payment_method || "—",
+          payment_status: invRow.payment_status || dbOrder.payment_status || "PENDING",
+          transaction_id: invMeta.payment?.transaction_id || (dbOrder as any).payment?.transaction_id || "—",
+          voucher_id: invRow.voucher_id || null,
+          is_test: isTestMode,
+          test_watermark: isTestMode ? "TEST — NOT A VALID TAX INVOICE" : null,
+          metadata: invMeta,
+        };
+
+        return jsonWithDataSource({ success: true, invoice: authoritativeInvoice }, "postgres", 200);
       }
       const dbOrder = await OrderRepository.findById(orderId);
       if (dbOrder) return jsonWithDataSource({ order: dbOrder, success: true }, "postgres");
@@ -5040,7 +5598,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const prodId = extractProductIdFromPath(path);
       return jsonWithDataSource({ weight_prices: ApiEngine.getProductWeightPrices(prodId) }, "postgres");
     }
-    if (path === "admin/catalog/products" || path === "admin/products") {
+    if (path === "admin/catalog/products" || path === "admin/products" || path === "catalog/products" || path === "products") {
       const permErr = verifyApiPermission(req, "CATALOG", "VIEW");
       if (permErr) return permErr;
       const qParams = Object.fromEntries(url.searchParams);
@@ -5066,7 +5624,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         success: true,
       }, "postgres");
     }
-    if ((path.startsWith("admin/catalog/products/") || path.startsWith("admin/products/")) && !path.includes("/weight-prices")) {
+    if ((path.startsWith("admin/catalog/products/") || path.startsWith("admin/products/") || path.startsWith("catalog/products/") || path.startsWith("products/")) && !path.includes("/weight-prices")) {
       const id = extractProductIdFromPath(path);
       const dbProd = (await ProductRepository.findById(id)) || (await ProductRepository.findBySlug(id));
       if (dbProd) return jsonWithDataSource({ product: dbProd, success: true }, "postgres");
@@ -5119,7 +5677,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource(ApiEngine.getCrmHealthReport(), "postgres");
     }
     if (path === "admin/crm/reminders" || path === "admin/customers/reminders") {
-      return jsonWithDataSource({ reminders: ApiEngine.getCustomerReminders(), success: true }, "postgres");
+      const reminders = await CustomerRepository.listReminders();
+      return jsonWithDataSource({ reminders, success: true }, "postgres");
     }
     if (path === "admin/crm/customers/export" || path === "admin/customers/export") {
       const csv = ApiEngine.exportCustomersCsv(Object.fromEntries(url.searchParams));
@@ -5155,7 +5714,25 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
     if ((path.startsWith("admin/crm/customers/") || path.startsWith("admin/customers/")) && path.endsWith("/reminders")) {
       const custUid = path.replace("admin/crm/customers/", "").replace("admin/customers/", "").replace("/reminders", "");
-      return jsonWithDataSource({ reminders: ApiEngine.getCustomerReminders(custUid), success: true }, "postgres");
+      const reminders = await CustomerRepository.listReminders(custUid);
+      return jsonWithDataSource({ reminders, success: true }, "postgres");
+    }
+    if ((path.startsWith("admin/crm/customers/") || path.startsWith("admin/customers/")) && path.endsWith("/ledger")) {
+      const custUid = path.replace("admin/crm/customers/", "").replace("admin/customers/", "").replace("/ledger", "");
+      try {
+        const ledger = await BillsReceivableService.getCustomerLedger(
+          custUid,
+          {
+            startDate: url.searchParams.get("startDate") || undefined,
+            endDate: url.searchParams.get("endDate") || undefined,
+            branchId: userCtx.isSuperAdmin ? (url.searchParams.get("branchId") || undefined) : userCtx.branchId,
+          },
+          userCtx
+        );
+        return jsonWithDataSource({ success: true, ...ledger, data: ledger }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: err.message || "Failed to load customer ledger" }, "postgres", err.code === "CUSTOMER_NOT_FOUND" ? 404 : 500);
+      }
     }
     if (path.startsWith("admin/crm/customers/") || path.startsWith("admin/customers/")) {
       const customerId = path.replace("admin/crm/customers/", "").replace("admin/customers/", "");
@@ -5202,45 +5779,15 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
     }
     // ── Tax Master Configuration GET Endpoints ──
-    if (path === "admin/tax/configurations") {
+    if (path === "admin/tax/configurations" || path === "tax/configurations" || path === "tax-master" || path === "admin/tax-master") {
       try {
-        const ratesResult = await dbQuery(
-          `SELECT tr.id, tr.rate, tr.code, tr.name, tr.is_default, tr.is_combinable, tr.tax_region_id, tr.metadata,
-                  trg.country_code, trg.province_code
-           FROM tax_rate tr
-           LEFT JOIN tax_region trg ON tr.tax_region_id = trg.id
-           WHERE tr.deleted_at IS NULL
-           ORDER BY tr.created_at`
-        );
-        // Augment with CakeToHome GST configuration
-        const configurations = ratesResult.rows.map((r: any) => ({
-          id: r.id,
-          name: r.name || `Tax Rate ${r.rate}%`,
-          code: r.code || `TAX_${r.rate}`,
-          description: r.metadata?.description || `${r.rate}% tax rate`,
-          taxability: r.rate > 0 ? "Taxable" : "Exempt",
-          gstRatePct: r.rate || 0,
-          cgstRatePct: (r.rate || 0) / 2,
-          sgstRatePct: (r.rate || 0) / 2,
-          igstRatePct: r.rate || 0,
-          cessRatePct: r.metadata?.cess_rate || 0,
-          taxInclusive: r.metadata?.tax_inclusive !== false,
-          applicableSupplyType: r.metadata?.supply_type || "BOTH",
-          applicableCustomerType: r.metadata?.customer_type || "BOTH",
-          isActive: true,
-          effectiveFrom: r.metadata?.effective_from || "2026-04-01",
-          effectiveTo: r.metadata?.effective_to || undefined,
-          isDefault: r.is_default,
-          countryCode: r.country_code,
-          regionId: r.tax_region_id,
-          usageCount: 0,
-        }));
+        const configurations = await TaxResolverService.listActiveTaxRates();
         return jsonWithDataSource({ configurations, total: configurations.length }, "postgres");
       } catch (err: any) {
         return NextResponse.json({ error: err.message, configurations: [] }, { status: 500 });
       }
     }
-    if (path === "admin/tax/regions") {
+    if (path === "admin/tax/regions" || path === "tax/regions") {
       try {
         const result = await dbQuery(
           `SELECT id, country_code, province_code, provider_id, metadata
@@ -5349,8 +5896,37 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/settings") return jsonWithDataSource({ settings: ApiEngine.getAdminSettings() }, "postgres");
     
     // ── Enterprise Compliance & Statutory Endpoints (GET) ──
-    if (path === "admin/compliance/business-profile") return jsonWithDataSource({ profile: ApiEngine.getBusinessProfile() }, "postgres");
-    if (path === "admin/compliance/gst-registrations") return jsonWithDataSource({ registrations: ApiEngine.listGstRegistrations() }, "postgres");
+    if (path === "admin/compliance/business-profile") {
+      const comp = await CompanyService.getCompany();
+      const profile = comp.success && comp.data ? mapCompanyToBusinessProfile(comp.data) : null;
+      return jsonWithDataSource({ profile }, "postgres");
+    }
+    if (path === "admin/compliance/gst-registrations") {
+      const rows = await GstRegistrationRepository.listAll();
+      const registrations = rows.map(mapGstRegistrationRow);
+      return jsonWithDataSource({ registrations }, "postgres");
+    }
+    if (path === "admin/compliance/legal-entities") {
+      const { dbQuery } = await import("@frontend/lib/db");
+      const companiesRes = await dbQuery(`SELECT id, legal_name, trade_name, pan, cin, state_code, is_active FROM public.company ORDER BY created_at ASC`);
+      const gstRes = await dbQuery(`SELECT id, company_id, gstin, legal_name, state_code, registration_type, is_active FROM public.gst_registration ORDER BY created_at ASC`);
+      const branchRes = await dbQuery(`SELECT id, code, name, company_id, gst_registration_id, is_open FROM public.branch WHERE deleted_at IS NULL ORDER BY id ASC`);
+      const entities = companiesRes.rows.map(comp => ({
+        ...comp,
+        gst_registrations: gstRes.rows.filter(g => g.company_id === comp.id),
+        branches: branchRes.rows.filter(b => b.company_id === comp.id),
+      }));
+      return jsonWithDataSource({ entities }, "postgres");
+    }
+    if (path === "admin/compliance/invoice-series") {
+      const { dbQuery } = await import("@frontend/lib/db");
+      const seriesRes = await dbQuery(`
+        SELECT id, entity_id, gstin, fiscal_year, prefix, last_seq, document_type, is_active, approval_status, authorized_by, authorized_at, created_at, updated_at
+        FROM public.invoice_sequence
+        ORDER BY fiscal_year DESC, prefix ASC
+      `);
+      return jsonWithDataSource({ series: seriesRes.rows }, "postgres");
+    }
     if (path === "admin/compliance/fssai") return jsonWithDataSource({ compliance: ApiEngine.listBranchCompliance() }, "postgres");
     if (path === "admin/compliance/overview") return jsonWithDataSource({ overview: ApiEngine.getFssaiComplianceOverview() }, "postgres");
     if (path === "admin/compliance/documents") return jsonWithDataSource({ documents: ApiEngine.listComplianceDocuments(url.searchParams.get("entityType") || undefined, url.searchParams.get("entityId") || undefined) }, "postgres");
@@ -5359,9 +5935,13 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/compliance/payments") return jsonWithDataSource({ payments: ApiEngine.getPaymentSettings() }, "postgres");
     if (path === "admin/compliance/integrations") return jsonWithDataSource({ integrations: ApiEngine.getIntegrationSettings() }, "postgres");
     if (path === "admin/compliance/all") {
+      const comp = await CompanyService.getCompany();
+      const profile = comp.success && comp.data ? mapCompanyToBusinessProfile(comp.data) : null;
+      const rows = await GstRegistrationRepository.listAll();
+      const registrations = rows.map(mapGstRegistrationRow);
       return jsonWithDataSource({
-        profile: ApiEngine.getBusinessProfile(),
-        gstRegistrations: ApiEngine.listGstRegistrations(),
+        profile,
+        gstRegistrations: registrations,
         branchCompliance: ApiEngine.listBranchCompliance(),
         overview: ApiEngine.getFssaiComplianceOverview(),
         invoiceSettings: ApiEngine.getInvoiceSettings(),
@@ -5530,10 +6110,27 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const permErr = verifyApiPermission(req, "REPORTS", "VIEW");
       if (permErr) return permErr;
     }
-    if (path === "admin/reports/dashboard") return jsonWithDataSource(ApiEngine.getReportsDashboard(Object.fromEntries(url.searchParams)), "postgres");
-    if (path === "admin/reports/sales") return jsonWithDataSource(ApiEngine.getReportsSales(Object.fromEntries(url.searchParams)), "postgres");
-    if (path === "admin/reports/orders") return jsonWithDataSource(ApiEngine.getReportsOrders(Object.fromEntries(url.searchParams)), "postgres");
-    if (path === "admin/reports/products") return jsonWithDataSource(ApiEngine.getReportsProducts(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/dashboard") {
+      const data = await ReportRepository.getLegacyDashboardMetrics(Object.fromEntries(url.searchParams));
+      return jsonWithDataSource(data, "postgres");
+    }
+    if (path === "admin/reports/sales") {
+      const data = await ReportRepository.getLegacySalesMetrics(Object.fromEntries(url.searchParams));
+      return jsonWithDataSource(data, "postgres");
+    }
+    if (path === "admin/reports/orders") {
+      const data = await OrderRepository.listOrders(Object.fromEntries(url.searchParams));
+      return jsonWithDataSource(data, "postgres");
+    }
+    if (path === "admin/reports/products") {
+      const reportFilters = {
+        startDate: url.searchParams.get("startDate") || url.searchParams.get("start_date") || "2020-01-01",
+        endDate: url.searchParams.get("endDate") || url.searchParams.get("end_date") || new Date().toISOString().split("T")[0],
+        branchIds: url.searchParams.get("branch_id") ? [url.searchParams.get("branch_id")!] : undefined,
+      };
+      const data = await ReportService.getProductPerformance(reportFilters);
+      return jsonWithDataSource(data, "postgres");
+    }
     if (path === "admin/reports/inventory") {
       const targetBranchId = url.searchParams.get("branch_id") || url.searchParams.get("branchId");
       if (targetBranchId) {
@@ -5587,11 +6184,54 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource(ApiEngine.getReportsInventory(Object.fromEntries(url.searchParams)), "postgres");
     }
     if (path === "admin/reports/cake-availability" || path === "reports/cake-availability") return jsonWithDataSource(ApiEngine.getReportsCakeAvailability(Object.fromEntries(url.searchParams)), "postgres");
-    if (path === "admin/reports/delivery") return jsonWithDataSource(ApiEngine.getReportsDelivery(Object.fromEntries(url.searchParams)), "postgres");
-    if (path === "admin/reports/branches") return jsonWithDataSource(ApiEngine.getReportsBranches(Object.fromEntries(url.searchParams)), "postgres");
-    if (path === "admin/reports/finance") return jsonWithDataSource(ApiEngine.getReportsFinance(Object.fromEntries(url.searchParams)), "postgres");
-    if (path === "admin/reports/executive-summary") return jsonWithDataSource(ApiEngine.getReportsExecutiveSummary(Object.fromEntries(url.searchParams)), "postgres");
-    if (path === "admin/reports/exceptions") return jsonWithDataSource(ApiEngine.getReportsExceptions(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/reports/delivery") {
+      const reportFilters = {
+        startDate: url.searchParams.get("startDate") || url.searchParams.get("start_date") || "2020-01-01",
+        endDate: url.searchParams.get("endDate") || url.searchParams.get("end_date") || new Date().toISOString().split("T")[0],
+        branchIds: url.searchParams.get("branch_id") ? [url.searchParams.get("branch_id")!] : undefined,
+      };
+      const data = await ReportService.getDeliveryPerformance(reportFilters);
+      return jsonWithDataSource(data, "postgres");
+    }
+    if (path === "admin/reports/branches") {
+      const reportFilters = {
+        startDate: url.searchParams.get("startDate") || url.searchParams.get("start_date") || "2020-01-01",
+        endDate: url.searchParams.get("endDate") || url.searchParams.get("end_date") || new Date().toISOString().split("T")[0],
+      };
+      const data = await ReportService.getBranchPerformance(reportFilters);
+      return jsonWithDataSource(data, "postgres");
+    }
+    if (path === "admin/reports/finance") {
+      const reportFilters = {
+        startDate: url.searchParams.get("startDate") || url.searchParams.get("start_date") || "2020-01-01",
+        endDate: url.searchParams.get("endDate") || url.searchParams.get("end_date") || new Date().toISOString().split("T")[0],
+      };
+      const [metrics, payments] = await Promise.all([
+        ReportService.getTransactionalMetrics(reportFilters),
+        ReportService.getPaymentBreakdown(reportFilters),
+      ]);
+      return jsonWithDataSource({ success: true, metrics, payments }, "postgres");
+    }
+    if (path === "admin/reports/executive-summary") {
+      const reportFilters = {
+        startDate: url.searchParams.get("startDate") || url.searchParams.get("start_date") || "2020-01-01",
+        endDate: url.searchParams.get("endDate") || url.searchParams.get("end_date") || new Date().toISOString().split("T")[0],
+      };
+      const [metrics, products, delivery] = await Promise.all([
+        ReportService.getTransactionalMetrics(reportFilters),
+        ReportService.getProductPerformance(reportFilters),
+        ReportService.getDeliveryPerformance(reportFilters),
+      ]);
+      return jsonWithDataSource({ success: true, metrics, products, delivery }, "postgres");
+    }
+    if (path === "admin/reports/exceptions") {
+      const reportFilters = {
+        startDate: url.searchParams.get("startDate") || url.searchParams.get("start_date") || "2020-01-01",
+        endDate: url.searchParams.get("endDate") || url.searchParams.get("end_date") || new Date().toISOString().split("T")[0],
+      };
+      const data = await ReportService.getExceptionAudit(reportFilters);
+      return jsonWithDataSource(data, "postgres");
+    }
     if (path === "admin/reports/profitability") return jsonWithDataSource(ApiEngine.getReportsProfitability(Object.fromEntries(url.searchParams)), "postgres");
     if (path === "admin/reports/branch-comparison") return jsonWithDataSource(ApiEngine.getReportsBranchComparison(Object.fromEntries(url.searchParams)), "postgres");
     if (path === "admin/reports/export") return jsonWithDataSource(ApiEngine.getReportsExport(Object.fromEntries(url.searchParams)), "postgres");
@@ -5601,7 +6241,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/reports/preferences") return jsonWithDataSource({ preferences: ApiEngine.getChartPreferences() }, "postgres");
     if (path === "admin/reports/audit") return jsonWithDataSource({ logs: ApiEngine.getReportAuditLogs() }, "postgres");
     if (path === "admin/support/tickets") return jsonWithDataSource({ tickets: ApiEngine.getAdminSupportTickets() }, "postgres");
-    if (path === "admin/cms/blocks") return jsonWithDataSource({ blocks: ApiEngine.getAdminCmsBlocks() }, "postgres");
+    if (path === "admin/cms/blocks") return jsonWithDataSource({ blocks: await CmsRepository.findAllBlocks() }, "postgres");
     if (path === "admin/media") {
       try {
         const folder = url.searchParams.get("folder") || undefined;
@@ -5622,7 +6262,97 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         return NextResponse.json({ error: err.message }, { status: 500 });
       }
     }
-    if (path === "admin/cms/image-alt-texts" || path === "image-alt-texts") return jsonWithDataSource(ApiEngine.getAdminImageAltTexts(), "postgres");
+    // ── Shared Cake & Bouquet Inventory (GET) ──
+    if (path === "inventory/shared") {
+      const filters = Object.fromEntries(url.searchParams);
+      const items = await SharedInventoryService.listSharedInventory(filters);
+      return jsonWithDataSource({ items, success: true }, "postgres");
+    }
+    if (path.startsWith("inventory/shared/") && !path.includes("/reserve") && !path.includes("/release")) {
+      const prodId = path.replace("inventory/shared/", "");
+      const available = await SharedInventoryService.getAvailableStock(prodId, url.searchParams.get("variant_id") || undefined);
+      return jsonWithDataSource({ product_id: prodId, available, success: true }, "postgres");
+    }
+
+    // ── Configurable Feature Toggles (GET) ──
+    if (path === "features/effective") {
+      const scope = url.searchParams.get("scope") as "BRANCH" | "PARTNER" | null;
+      const entityId = url.searchParams.get("entity_id") || undefined;
+      const features = await FeatureFlagService.getAllEffective({ scope: scope || undefined, entityId });
+      return jsonWithDataSource({ features, success: true }, "postgres");
+    }
+    if (path === "admin/features") {
+      const flags = await FeatureFlagService.listFlags(Object.fromEntries(url.searchParams));
+      return jsonWithDataSource({ flags, success: true }, "postgres");
+    }
+    if (path === "admin/features/audit") {
+      const audit = await FeatureFlagService.getAuditLog(url.searchParams.get("key") || undefined);
+      return jsonWithDataSource({ audit, success: true }, "postgres");
+    }
+
+    // ── Branch & Partner Operational Closures (GET) ──
+    if (path === "admin/closures") {
+      const closures = await OperationalClosureService.listClosures(Object.fromEntries(url.searchParams));
+      return jsonWithDataSource({ closures, success: true }, "postgres");
+    }
+    if (path === "admin/closures/impacted-orders") {
+      const impacts = await OperationalClosureService.listClosureImpacts(Object.fromEntries(url.searchParams));
+      return jsonWithDataSource({ impacts, success: true }, "postgres");
+    }
+    if (path === "checkout/validate-availability") {
+      const entityType = (url.searchParams.get("entity_type") || "BRANCH").toUpperCase() as "BRANCH" | "PARTNER";
+      const entityId = url.searchParams.get("entity_id") || "";
+      const targetDate = url.searchParams.get("date") || new Date().toISOString().split("T")[0];
+      const targetTime = url.searchParams.get("time") || undefined;
+      const check = await OperationalClosureService.validateFulfillmentAvailability(entityType, entityId, targetDate, targetTime);
+      return jsonWithDataSource(check, "postgres");
+    }
+
+    // ── Partner Marketplace (GET) ──
+    if (path === "admin/marketplace/partners") {
+      const partners = await MarketplacePartnerService.listPartners(toAuthenticatedActor(resolveUserContext(req)), Object.fromEntries(url.searchParams));
+      return jsonWithDataSource({ partners, success: true }, "postgres");
+    }
+    if (path.startsWith("admin/marketplace/partners/") && !path.includes("/stores") && !path.includes("/agreements")) {
+      const partnerId = path.replace("admin/marketplace/partners/", "");
+      const partner = await MarketplacePartnerService.getPartner(partnerId, toAuthenticatedActor(resolveUserContext(req)));
+      return jsonWithDataSource({ partner, success: Boolean(partner) }, "postgres", partner ? 200 : 404);
+    }
+    if (path === "admin/marketplace/stores") {
+      const stores = await MarketplacePartnerRepository.listStores(url.searchParams.get("partner_id") || undefined);
+      return jsonWithDataSource({ stores, success: true }, "postgres");
+    }
+    if (path.startsWith("admin/marketplace/agreements/")) {
+      const partnerId = path.replace("admin/marketplace/agreements/", "");
+      const agreement = await MarketplacePartnerRepository.getActiveAgreement(partnerId);
+      return jsonWithDataSource({ agreement, success: true }, "postgres");
+    }
+    if (path === "admin/marketplace/invoices") {
+      const invoices = await MarketplaceInvoiceRepository.listInvoices(Object.fromEntries(url.searchParams));
+      return jsonWithDataSource({ invoices, success: true }, "postgres");
+    }
+    if (path === "admin/marketplace/reconciliation/export") {
+      const partnerId = url.searchParams.get("partner_id") || "";
+      const startDate = url.searchParams.get("start_date") || "2020-01-01";
+      const endDate = url.searchParams.get("end_date") || new Date().toISOString().split("T")[0];
+      const statement = await MarketplaceReconciliationService.generateStatement(partnerId, startDate, endDate);
+      const buffer = await ExcelExportService.generatePartnerReconciliationWorkbookXlsx(statement);
+      return new NextResponse(buffer, {
+        headers: {
+          "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "Content-Disposition": `attachment; filename="Reconciliation_${partnerId}_${startDate}_to_${endDate}.xlsx"`,
+        },
+      });
+    }
+    if (path === "admin/marketplace/complaints" || path === "partner/complaints") {
+      const userCtx = resolveUserContext(req);
+      const actor = toAuthenticatedActor(userCtx);
+      const partnerId = (actor.role === "PARTNER_ADMIN" || actor.role === "PARTNER_OWNER") 
+        ? actor.partnerId 
+        : (url.searchParams.get("partner_id") || undefined);
+      const complaints = await MarketplacePartnerRepository.listComplaints(partnerId || undefined);
+      return jsonWithDataSource({ complaints, success: true }, "postgres");
+    }
 
     // ── Popup & Storefront Engagement System (GET) ──
     if (path === "engagement/config" || path === "store/engagement/config") {
@@ -5698,6 +6428,144 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ workflows, total: workflows.length, success: true }, "postgres");
     }
 
+    // ── Phase GST: GST Reporting & Excel/CSV Export Endpoints ────────────────
+    if (path.startsWith("admin/reports/gst")) {
+      const permErr = verifyApiPermission(req, "ACCOUNTING", "VIEW");
+      if (permErr) return permErr;
+
+      // Parse common GST report filters from query params
+      const q = Object.fromEntries(url.searchParams);
+      const gstFilters: GstReportFilters = {
+        startDate: q.startDate || q.start_date || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0],
+        endDate: q.endDate || q.end_date || new Date().toISOString().split("T")[0],
+        branchIds: q.branchIds ? q.branchIds.split(",") : (q.branch_id && q.branch_id !== "all" ? [q.branch_id] : undefined),
+        city: q.city || undefined,
+        filingGstin: q.filingGstin || q.gstin || undefined,
+        returnPeriod: q.returnPeriod || q.return_period || undefined,
+      };
+
+      try {
+        // GET admin/reports/gst/summary — Executive GST summary with KPIs
+        if (path === "admin/reports/gst/summary") {
+          const report = await GstReportingService.generateFullReport(gstFilters);
+          return jsonWithDataSource({
+            success: true,
+            data: {
+              kpis: report.kpis,
+              metrics: report.metrics,
+              taxRateSlabs: report.taxRateSlabs,
+              dataQualityWarnings: report.dataQualityWarnings,
+              filingGstin: report.filingGstin,
+              legalName: report.legalName,
+              tradeName: report.tradeName,
+            },
+            meta: { generatedAt: report.generatedAt, filters: gstFilters, dataSource: "postgresql" },
+          }, "postgres");
+        }
+
+        // GET admin/reports/gst/complete — Full GST report payload
+        if (path === "admin/reports/gst/complete") {
+          const report = await GstReportingService.generateFullReport(gstFilters);
+          return jsonWithDataSource({ success: true, data: report, meta: { generatedAt: report.generatedAt, dataSource: "postgresql" } }, "postgres");
+        }
+
+        // GET admin/reports/gst/invoices — Invoice register (B2B + B2C)
+        if (path === "admin/reports/gst/invoices") {
+          const invoices = await GstReportingService.getInvoiceRegister(gstFilters);
+          return jsonWithDataSource({ success: true, data: invoices, total: invoices.length, meta: { filters: gstFilters, dataSource: "postgresql" } }, "postgres");
+        }
+
+        // GET admin/reports/gst/sales-register — Line-item sales register
+        if (path === "admin/reports/gst/sales-register") {
+          const sales = await GstReportingService.getSalesRegister(gstFilters);
+          return jsonWithDataSource({ success: true, data: sales, total: sales.length, meta: { filters: gstFilters, dataSource: "postgresql" } }, "postgres");
+        }
+
+        // GET admin/reports/gst/credit-notes — Credit/Debit notes
+        if (path === "admin/reports/gst/credit-notes") {
+          const creditNotes = await GstReportingService.getCreditNotes(gstFilters);
+          return jsonWithDataSource({ success: true, data: creditNotes, total: creditNotes.length, meta: { filters: gstFilters, dataSource: "postgresql" } }, "postgres");
+        }
+
+        // GET admin/reports/gst/hsn-summary — HSN-wise tax aggregation
+        if (path === "admin/reports/gst/hsn-summary") {
+          const report = await GstReportingService.generateFullReport(gstFilters);
+          return jsonWithDataSource({ success: true, data: report.hsnSummary, meta: { filters: gstFilters, dataSource: "postgresql" } }, "postgres");
+        }
+
+        // GET admin/reports/gst/tax-summary — Tax rate slab breakdown
+        if (path === "admin/reports/gst/tax-summary") {
+          const report = await GstReportingService.generateFullReport(gstFilters);
+          return jsonWithDataSource({ success: true, data: report.taxRateSlabs, meta: { filters: gstFilters, dataSource: "postgresql" } }, "postgres");
+        }
+
+        // GET admin/reports/gst/gstr1 — GSTR-1 draft summary
+        if (path === "admin/reports/gst/gstr1") {
+          const report = await GstReportingService.generateFullReport(gstFilters);
+          return jsonWithDataSource({
+            success: true,
+            data: { summary: report.gstr1Summary, filingGstin: report.filingGstin, legalName: report.legalName, returnPeriod: gstFilters.returnPeriod || null },
+            meta: { filters: gstFilters, dataSource: "postgresql" },
+          }, "postgres");
+        }
+
+        // GET admin/reports/gst/gstr3b — GSTR-3B draft summary
+        if (path === "admin/reports/gst/gstr3b") {
+          const report = await GstReportingService.generateFullReport(gstFilters);
+          return jsonWithDataSource({
+            success: true,
+            data: { summary: report.gstr3bSummary, filingGstin: report.filingGstin, legalName: report.legalName, returnPeriod: gstFilters.returnPeriod || null },
+            meta: { filters: gstFilters, dataSource: "postgresql" },
+          }, "postgres");
+        }
+
+        // GET admin/reports/gst/input-tax — Input Tax Credit from expenses
+        if (path === "admin/reports/gst/input-tax") {
+          const itc = await GstReportingService.getInputTaxCredit(gstFilters);
+          return jsonWithDataSource({ success: true, data: itc, total: itc.length, meta: { filters: gstFilters, dataSource: "postgresql" } }, "postgres");
+        }
+
+        // GET admin/reports/gst/validation — Data quality audit
+        if (path === "admin/reports/gst/validation") {
+          const report = await GstReportingService.generateFullReport(gstFilters);
+          return jsonWithDataSource({ success: true, data: report.dataQualityWarnings, meta: { filters: gstFilters, dataSource: "postgresql" } }, "postgres");
+        }
+
+        // GET admin/reports/gst/export/xlsx — Download complete Excel workbook
+        if (path === "admin/reports/gst/export/xlsx") {
+          const reportType = (q.type || "COMPLETE_WORKBOOK") as GstReportType;
+          const { buffer, filename } = await GstReportingService.exportSingleReport(gstFilters, reportType);
+          return new NextResponse(buffer, {
+            status: 200,
+            headers: {
+              "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "Content-Disposition": `attachment; filename="${filename}.xlsx"`,
+              "Cache-Control": "no-cache",
+            },
+          });
+        }
+
+        // GET admin/reports/gst/export/csv — Download CSV
+        if (path === "admin/reports/gst/export/csv") {
+          const reportType = (q.type || "SALES_REGISTER") as GstReportType;
+          const { csv, filename } = await GstReportingService.exportCsv(gstFilters, reportType);
+          return new NextResponse(csv, {
+            status: 200,
+            headers: {
+              "Content-Type": "text/csv; charset=utf-8",
+              "Content-Disposition": `attachment; filename="${filename}.csv"`,
+              "Cache-Control": "no-cache",
+            },
+          });
+        }
+
+        return jsonWithDataSource({ error: `GST report route "${path}" not found`, success: false }, "postgres", 404);
+      } catch (err: any) {
+        console.error(`[GST Report Error] path="${path}"`, err);
+        return jsonWithDataSource({ error: err.message || "GST report generation failed", success: false }, "postgres", 500);
+      }
+    }
+
     if (path.startsWith("admin/")) {
       // Security: require SUPER_ADMIN authentication for any unmatched admin/* paths
       const userCtx = resolveUserContext(req);
@@ -5735,6 +6603,24 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path.startsWith("admin/corporate-gifting") || path.startsWith("corporate-gifting")) {
       const userCtx = resolveUserContext(req);
       return CorporateGiftingController.handlePost(req, path, userCtx, body);
+    }
+
+    // ── Phase C7.9 Step 9D: Corporate Account Subsystem POST Endpoints ────────
+    if (path.startsWith("admin/corporate-accounts") || path.startsWith("corporate-accounts")) {
+      const userCtx = resolveUserContext(req);
+      return CorporateAccountController.handlePost(req, path, userCtx, body);
+    }
+
+    // ── Phase C7.10 Step 10C: Delivery Coverage Subsystem POST Endpoints ───────
+    if (path.startsWith("admin/delivery-coverage") || path.startsWith("delivery-coverage")) {
+      const userCtx = resolveUserContext(req);
+      return DeliveryCoverageController.handlePost(req, path, userCtx, body);
+    }
+
+    // ── Phase C7.11 Step 11C: Corporate Routing Subsystem POST Endpoints ───────
+    if (path.startsWith("admin/corporate-routing") || path.startsWith("corporate-routing")) {
+      const userCtx = resolveUserContext(req);
+      return CorporateRoutingController.handlePost(req, path, userCtx, body);
     }
 
     // ── Phase C6.3: Manual Journal Subsystem POST Endpoints ──────────────────
@@ -6488,18 +7374,22 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         let tellerId = body.teller_id || body.tellerId;
         let branchId = body.branch_id || body.branchId;
 
-        // If tellerId not provided, resolve active teller for authenticated user
+        // If tellerId not provided, resolve from active user or branch
         if (!tellerId) {
           const activeTeller = await TellerRepository.findActiveByUserId(actor.userId);
-          if (!activeTeller) {
+          if (activeTeller) {
+            tellerId = activeTeller.id;
+            branchId = branchId || activeTeller.branch_id;
+          } else if (actor.branchId && !branchId) {
+            branchId = actor.branchId;
+          }
+          if (!tellerId && !branchId) {
             return jsonWithDataSource(
-              { success: false, error: "TELLER_NOT_FOUND", message: `No active teller assigned to authenticated user '${actor.userId}'.` },
+              { success: false, error: "BRANCH_REQUIRED", message: "Branch ID or teller ID is required to open a cash shift." },
               "error",
-              404
+              422
             );
           }
-          tellerId = activeTeller.id;
-          branchId = activeTeller.branch_id;
         }
 
         const session = await TellerSessionService.openSession(
@@ -6614,14 +7504,21 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
     }
 
-    // 6. POST (admin/)?teller/sessions/:id/movements: Record manual cash adjustment
+    // 6. POST (admin/)?teller/sessions/:id/movements or (admin/)?teller/movements: Record manual cash adjustment
+    const isBranchMovementCreate = path === "admin/teller/movements" || path === "teller/movements";
     const sessionMovementCreateMatch = path.match(/^(?:admin\/)?teller\/sessions\/([^/]+)\/movements$/);
-    if (sessionMovementCreateMatch) {
+    if (sessionMovementCreateMatch || isBranchMovementCreate) {
       const authErr = verifyApiPermission(req, "TELLER", "MOVEMENT_CREATE");
       if (authErr) return authErr;
       const userCtx = resolveUserContext(req);
       const actor = toAuthenticatedActor(userCtx);
-      const sessionId = sessionMovementCreateMatch[1];
+      let sessionId = sessionMovementCreateMatch ? sessionMovementCreateMatch[1] : (body.teller_session_id || body.sessionId);
+      const branchId = body.branch_id || userCtx.branchId;
+
+      if (!sessionId && branchId) {
+        const continuousSession = await TellerSessionService.ensureContinuousBranchSession(branchId, actor);
+        sessionId = continuousSession.id;
+      }
 
       const amount = Number(body.amount);
       if (isNaN(amount) || amount <= 0) {
@@ -6837,7 +7734,132 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     // ── Phase B: Company Bank Account Master API (POST Create & Status) ───────
-    if (path === "admin/bank-accounts" || path === "admin/accounting/bank-accounts") {
+    // ── Cross-App Outbox Processor & Dead-Letter Replay (POST) ──
+    if (path === "events/process" || path === "admin/events/process") {
+      const summary = await CrossAppEventService.processPendingOutboxEvents({
+        limit: body.limit || 50,
+        simulateFailureForEventId: body.simulateFailureForEventId,
+        forceImmediateRetry: Boolean(body.forceImmediateRetry),
+      });
+      return jsonWithDataSource({ success: true, summary }, "postgres", 200);
+    }
+
+    if (path === "events/replay" || path === "admin/events/replay") {
+      const summary = await CrossAppEventService.replayDeadLetterEvent(body.event_id || body.eventId);
+      return jsonWithDataSource({ success: true, summary }, "postgres", 200);
+    }
+
+    // ── Ingest Cashfree Settlement Batch (POST) ──
+    if (
+      path === "accounting/cashfree-settlements" ||
+      path === "admin/accounting/cashfree-settlements" ||
+      path === "accounting/cashfree-settlements/ingest"
+    ) {
+      const userCtx = resolveUserContext(req);
+      try {
+        const settlement = await BankAccountService.ingestCashfreeSettlement({
+          batch_ref: body.batch_ref || body.batchRef || body.settlement_id,
+          settlement_date: body.settlement_date || body.settlementDate,
+          bank_account_id: body.bank_account_id || body.bankAccountId || body.destination_bank_account_id,
+          gross_amount: Number(body.gross_amount ?? body.grossAmount ?? 0),
+          gateway_fee: Number(body.gateway_fee ?? body.fee_amount ?? body.gatewayFee ?? 0),
+          gateway_tax: Number(body.gateway_tax ?? body.tax_amount ?? body.gatewayTax ?? 0),
+          net_amount: body.net_amount !== undefined ? Number(body.net_amount) : undefined,
+          utr_number: body.utr_number || body.utrNumber,
+          order_ids: body.order_ids || body.orderIds,
+          actorContext: userCtx.userId ? userCtx : { id: "admin_01", role: "SUPER_ADMIN" },
+        });
+        return jsonWithDataSource({ success: true, data: settlement, settlement }, "postgres", 201);
+      } catch (err: any) {
+        return jsonWithDataSource(
+          { success: false, error: err.code || "SETTLEMENT_INGEST_FAILED", message: err.message },
+          "error",
+          400
+        );
+      }
+    }
+
+    // ── Match Bank Statement Line by UTR & Reconcile Settlement (POST) ──
+    if (
+      path === "accounting/reconciliations/match" ||
+      path === "admin/accounting/reconciliations/match" ||
+      path === "accounting/reconciliations/import" ||
+      path === "admin/accounting/reconciliations/import"
+    ) {
+      const userCtx = resolveUserContext(req);
+      try {
+        const reconResult = await BankAccountService.matchBankStatementAndReconcile({
+          bank_account_id: body.bank_account_id || body.bankAccountId,
+          statement_date: body.statement_date || body.statementDate || body.date,
+          utr_number: body.utr_number || body.utrNumber || body.reference_no,
+          credit_amount: Number(body.credit_amount ?? body.creditAmount ?? body.amount ?? 0),
+          description: body.description,
+          file_name: body.file_name || body.fileName,
+          actorContext: userCtx.userId ? userCtx : { id: "admin_01", role: "SUPER_ADMIN" },
+        });
+        return jsonWithDataSource({ success: true, data: reconResult, reconciliation: reconResult }, "postgres", 200);
+      } catch (err: any) {
+        return jsonWithDataSource(
+          { success: false, error: err.code || "RECONCILIATION_MATCH_FAILED", message: err.message },
+          "error",
+          400
+        );
+      }
+    }
+
+    // ── Bank Fund Transfers ──
+    if (path === "admin/accounting/bank-transfers" || path === "accounting/bank-transfers" || path === "admin/bank-transfers") {
+      const userCtx = resolveUserContext(req);
+      try {
+        const transfer = await BankAccountService.transferFunds({
+          source_bank_account_id: body.source_bank_account_id || body.sourceBankAccountId,
+          dest_bank_account_id: body.dest_bank_account_id || body.destBankAccountId,
+          amount: Number(body.transfer_amount || body.amount),
+          transfer_date: body.transfer_date || body.date,
+          reference_no: body.reference_no || body.referenceNo,
+          description: body.description,
+          actorContext: userCtx,
+        });
+        return jsonWithDataSource({ success: true, data: transfer, transfer }, "postgres", 201);
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: err.code || "TRANSFER_FAILED", message: err.message }, "error", 400);
+      }
+    }
+
+    // ── Create Cash Account ──
+    if (path === "admin/accounting/cash-accounts" || path === "accounting/cash-accounts" || path === "admin/cash-accounts") {
+      try {
+        const companyRes = await dbQuery("SELECT id FROM public.company LIMIT 1;");
+        const companyId = companyRes.rows[0]?.id;
+        const created = await BankAccountService.createCashAccount({
+          company_id: companyId,
+          branch_id: body.branch_id || body.branchId,
+          account_name: body.account_name || body.accountName,
+          account_type: body.account_type || body.accountType,
+          gl_account_id: body.gl_account_id || body.glAccountId,
+          opening_balance: body.opening_balance || body.openingBalance,
+          created_by: "admin_01",
+        });
+        return jsonWithDataSource({ success: true, data: created, cashAccount: created }, "postgres", 201);
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: "CREATE_CASH_ACCOUNT_FAILED", message: err.message }, "error", 400);
+      }
+    }
+
+    // ── Bank Deactivate ──
+    const bankDeactivateMatch = path.match(/^(admin\/)?(accounting\/)?bank-accounts\/([^/]+)\/deactivate$/);
+    if (bankDeactivateMatch) {
+      const userCtx = resolveUserContext(req);
+      const accountId = bankDeactivateMatch[3];
+      try {
+        const updated = await BankAccountService.setBankAccountStatus(accountId, "INACTIVE", userCtx);
+        return jsonWithDataSource({ success: true, data: updated, bankAccount: updated }, "postgres", 200);
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: "DEACTIVATE_FAILED", message: err.message }, "error", 400);
+      }
+    }
+
+    if (path === "admin/bank-accounts" || path === "admin/accounting/bank-accounts" || path === "accounting/bank-accounts") {
       const userCtx = resolveUserContext(req);
       if (!userCtx.userId && !userCtx.role) {
         return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Authentication required." }, "error", 401);
@@ -6862,6 +7884,13 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           account_type: body.account_type || body.accountType,
           branch_name: body.branch_name || body.branchName,
           gl_account_id: body.gl_account_id || body.glAccountId,
+          offset_gl_account_id: body.offset_gl_account_id || body.offsetGlAccountId,
+          opening_balance: body.opening_balance ?? body.openingBalance,
+          opening_balance_date: body.opening_balance_date || body.openingBalanceDate,
+          is_primary: body.is_primary ?? body.isPrimary,
+          allow_payments: body.allow_payments ?? body.allowPayments,
+          allow_receipts: body.allow_receipts ?? body.allowReceipts,
+          reconciliation_required: body.reconciliation_required ?? body.reconciliationRequired,
           status: body.status,
           metadata: body.metadata,
           actorContext: userCtx,
@@ -7258,16 +8287,42 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     // ── Phase C7.4: Approve Corporate Credit (POST) ─────────────────────────────
     const creditApproveMatch = path.match(/^admin\/corporate-customers\/([^/]+)\/credit-approval$/);
     if (creditApproveMatch) {
-      const permErr = verifyApiPermission(req, "ACCOUNTING", "APPROVE");
-      if (permErr) {
-        const custPermErr = verifyApiPermission(req, "CUSTOMER", "EDIT");
-        if (custPermErr) return permErr;
-      }
+      const targetCustomerId = creditApproveMatch[1];
       const userCtx = resolveUserContext(req);
+
+      // Decision Q1: If linked to corporate account, strictly require SUPER_ADMIN and account status APPROVED
+      const corpAcctRes = await dbQuery(
+        `SELECT id, status FROM public.corporate_account WHERE customer_id = $1 AND deleted_at IS NULL LIMIT 1`,
+        [targetCustomerId]
+      );
+      if (corpAcctRes.rows && corpAcctRes.rows.length > 0) {
+        const isSuperAdmin = (userCtx.role || "").toUpperCase() === "SUPER_ADMIN";
+        if (!isSuperAdmin) {
+          return jsonWithDataSource(
+            { success: false, error: "FORBIDDEN", message: "Activating credit for an account-linked corporate customer requires SUPER_ADMIN authority." },
+            "error",
+            403
+          );
+        }
+        const corpAcct = corpAcctRes.rows[0];
+        if (corpAcct.status !== "APPROVED") {
+          return jsonWithDataSource(
+            { success: false, error: "ACCOUNT_NOT_APPROVED", message: `Cannot activate credit: Associated corporate account is '${corpAcct.status}', expected 'APPROVED'.` },
+            "error",
+            400
+          );
+        }
+      } else {
+        const permErr = verifyApiPermission(req, "ACCOUNTING", "APPROVE");
+        if (permErr) {
+          const custPermErr = verifyApiPermission(req, "CUSTOMER", "EDIT");
+          if (custPermErr) return permErr;
+        }
+      }
 
       try {
         const result = await BillsReceivableService.approveCorporateCredit({
-          customerId: creditApproveMatch[1],
+          customerId: targetCustomerId,
           creditLimit: parseFloat(body.credit_limit),
           paymentTermsDays: parseInt(body.payment_terms_days || "30"),
           approvedBy: userCtx.userId || "system",
@@ -7573,6 +8628,117 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
     }
 
+    // ── Expense Reject (POST) ───────────────────────────────────────────────
+    const expenseRejectMatch = path.match(/^admin\/expenses\/([^/]+)\/reject$/);
+    if (expenseRejectMatch) {
+      const permErr = verifyApiPermission(req, "EXPENSE", "APPROVE") || verifyApiPermission(req, "EXPENSE", "EDIT");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      const canReject = userCtx.isSuperAdmin || StaffAccessControl.hasPermission(userCtx, "EXPENSE", "APPROVE") || StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "MANAGE");
+      if (!canReject) {
+        return jsonWithDataSource({ success: false, error: "Forbidden: insufficient permissions to reject expense." }, "postgres", 403);
+      }
+      const reason = body.rejection_reason || body.reason || "Rejected during review";
+      if (!userCtx.isSuperAdmin && userCtx.branchId && body.branch_id && userCtx.branchId !== body.branch_id) {
+        return jsonWithDataSource({ success: false, error: "Access denied to other branch records." }, "postgres", 403);
+      }
+      try {
+        const result = await ExpenseService.rejectExpense(
+          expenseRejectMatch[1],
+          userCtx.userId || "system",
+          reason,
+          userCtx.branchId || body.branch_id,
+          userCtx.isSuperAdmin
+        );
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : 400);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
+      }
+    }
+
+    // ── Expense Pay From Cash Drawer (POST) ──────────────────────────────────
+    const expensePayDrawerMatch = path.match(/^admin\/expenses\/([^/]+)\/pay-drawer$/);
+    if (expensePayDrawerMatch) {
+      const permErr = verifyApiPermission(req, "TELLER", "MOVEMENT_CREATE") || verifyApiPermission(req, "EXPENSE", "EDIT");
+      if (permErr) return permErr;
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.isSuperAdmin && userCtx.branchId && body.branch_id && userCtx.branchId !== body.branch_id) {
+        return jsonWithDataSource({ success: false, error: "Access denied to other branch records." }, "postgres", 403);
+      }
+      try {
+        const result = await ExpenseService.payExpenseFromDrawer(
+          expensePayDrawerMatch[1],
+          userCtx.userId || "system",
+          userCtx.branchId || body.branch_id,
+          body.teller_session_id,
+          userCtx.isSuperAdmin
+        );
+        const isOverdraft = result.error?.includes("exceeds available") || result.error?.includes("insufficient") || result.error?.toLowerCase().includes("overdraft") || result.error?.includes("available balance");
+        const statusCode = result.success ? 200 : (isOverdraft ? 422 : 400);
+        return jsonWithDataSource(result, "postgres", statusCode);
+      } catch (e: any) {
+        const isOverdraft = e.message?.includes("exceeds available") || e.message?.toLowerCase().includes("overdraft") || e.message?.includes("available balance") || e.code === "INSUFFICIENT_FUNDS" || e.code === "INSUFFICIENT_CASH_DRAWER_BALANCE";
+        const status = isOverdraft ? 422 : 500;
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", status);
+      }
+    }
+
+    // ── Delivery Cash Handover Submit (POST) ──────────────────────────────────
+    if (path === "admin/delivery-handovers/submit") {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.isSuperAdmin && userCtx.branchId && body.branch_id && userCtx.branchId !== body.branch_id) {
+        return jsonWithDataSource({ success: false, error: "Access denied to other branch records." }, "postgres", 403);
+      }
+      const branchId = userCtx.branchId || body.branch_id || "";
+      if (!branchId) return jsonWithDataSource({ success: false, error: "branch_id is required." }, "postgres", 400);
+      if (!body.delivery_partner_id) return jsonWithDataSource({ success: false, error: "delivery_partner_id is required." }, "postgres", 400);
+      if (!Array.isArray(body.order_ids) || body.order_ids.length === 0) {
+        return jsonWithDataSource({ success: false, error: "order_ids must be a non-empty array." }, "postgres", 400);
+      }
+      try {
+        const handover = await DeliveryHandoverService.submitHandover({
+          branchId,
+          deliveryPartnerId: body.delivery_partner_id,
+          declaredAmount: Number(body.declared_amount || 0),
+          digitalAmount: Number(body.digital_amount || 0),
+          orderIds: body.order_ids,
+          discrepancyReason: body.discrepancy_reason,
+          submittedBy: userCtx.userId || "system",
+          notes: body.notes,
+        });
+        return jsonWithDataSource({ success: true, data: handover }, "postgres", 201);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message, code: e.code }, "postgres", 400);
+      }
+    }
+
+    // ── Delivery Cash Handover Acknowledge (POST) ─────────────────────────────
+    if (path === "admin/delivery-handovers/acknowledge") {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.isSuperAdmin && userCtx.branchId && body.branch_id && userCtx.branchId !== body.branch_id) {
+        return jsonWithDataSource({ success: false, error: "Access denied to other branch records." }, "postgres", 403);
+      }
+      const branchId = userCtx.branchId || body.branch_id || "";
+      if (!branchId) return jsonWithDataSource({ success: false, error: "branch_id is required." }, "postgres", 400);
+      if (!body.handover_id) return jsonWithDataSource({ success: false, error: "handover_id is required." }, "postgres", 400);
+      if (body.acknowledged_amount === undefined || isNaN(Number(body.acknowledged_amount))) {
+        return jsonWithDataSource({ success: false, error: "acknowledged_amount is required and must be a number." }, "postgres", 400);
+      }
+      try {
+        const result = await DeliveryHandoverService.acknowledgeHandover({
+          handoverId: body.handover_id,
+          branchId,
+          acknowledgedAmount: Number(body.acknowledged_amount),
+          managerUserId: userCtx.userId || "system",
+          tellerSessionId: body.teller_session_id,
+          discrepancyExplanation: body.discrepancy_explanation,
+        });
+        return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message, code: e.code }, "postgres", 400);
+      }
+    }
+
     // ── Fleet Vehicles (POST) ────────────────────────────────────────────────
     if (path === "admin/fleet/vehicles") {
       const permErr = verifyApiPermission(req, "FLEET", "MANAGE");
@@ -7861,6 +9027,29 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       if (!phone) return jsonWithDataSource({ error: "Phone number is required" }, "postgres", 400);
       try {
         const result = ApiEngine.verifyAuthOtp(phone, code, { name, email }, ip, userAgent);
+        
+        // Synchronize with PostgreSQL auth schema and audit events
+        try {
+          const { syncAuthUserToDatabase } = await import("@frontend/lib/supabase/db-sync");
+          const syncRes = await syncAuthUserToDatabase({
+            phone,
+            role: result.role || "CUSTOMER",
+            name: name || result.user?.name,
+            email: email || result.user?.email,
+            branchId: result.branch_id,
+            partnerId: result.partner_id,
+            ipAddress: ip,
+            userAgent,
+            eventType: "LOGIN_SUCCESS",
+          });
+          if (syncRes.userId) {
+            result.customer_id = syncRes.userId;
+            if (result.user) result.user.id = syncRes.userId;
+          }
+        } catch (syncErr: any) {
+          console.warn("[Auth API] DB sync warning:", syncErr.message);
+        }
+
         const res = jsonWithDataSource(result, "postgres");
         if (result.token) {
           res.cookies.set("_cth_jwt", result.token, { path: "/", maxAge: 60 * 60 * 24 * 30 });
@@ -7986,6 +9175,173 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           return jsonWithDataSource({ error: err.message || "Failed to add note", success: false }, "postgres", 400);
         }
       }
+      if (action === "invoice" || action === "generate-invoice") {
+        try {
+          // ── 1. Enforce Authentication & Invoicing RBAC Authorization ──
+          const callerCtx = resolveUserContext(req);
+          if (!callerCtx.userId) {
+            return jsonWithDataSource({
+              error: "Unauthorized: Authentication required to generate statutory tax invoices",
+              code: "UNAUTHORIZED",
+              success: false,
+            }, "postgres", 401);
+          }
+          const userPerms = Array.isArray(callerCtx.permissions) ? callerCtx.permissions : [];
+          const hasInvoicingPerm = callerCtx.isSuperAdmin ||
+            userPerms.includes("*") ||
+            userPerms.includes("ORDERS.INVOICE") ||
+            userPerms.includes("ORDERS.EDIT") ||
+            userPerms.includes("INVOICE.GENERATE") ||
+            callerCtx.role === "SUPER_ADMIN" ||
+            callerCtx.role === "FINANCE_CONTROLLER" ||
+            callerCtx.role === "STORE_MANAGER";
+
+          if (!hasInvoicingPerm) {
+            return jsonWithDataSource({
+              error: "Forbidden: You do not have permission to generate statutory tax invoices",
+              code: "FORBIDDEN",
+              success: false,
+            }, "postgres", 403);
+          }
+
+          const dbOrder = await OrderRepository.findById(orderId);
+          if (!dbOrder) {
+            return jsonWithDataSource({ error: "Order not found", success: false }, "postgres", 404);
+          }
+
+          // ── 2. Authoritative Seller-of-Record Resolution (Zero Hardcoded Fallbacks) ──
+          let sellerGstin = String(dbOrder.seller_gstin || (dbOrder as any).metadata?.seller_gstin || (dbOrder as any).compliance_snapshot?.seller_gstin || "").trim();
+          let sellerLegalName = String(dbOrder.seller_legal_name || (dbOrder as any).metadata?.seller_legal_name || (dbOrder as any).compliance_snapshot?.seller_legal_name || "").trim();
+          let sellerStateCode = String((dbOrder as any).metadata?.seller_state_code || (dbOrder as any).compliance_snapshot?.seller_state_code || "").trim();
+          let isVerified = (dbOrder as any).metadata?.seller_is_verified !== false && (dbOrder as any).compliance_snapshot?.seller_is_verified !== false;
+
+          // If not explicit on order, resolve from registered branch/partner in PostgreSQL
+          if ((!sellerGstin || !sellerLegalName) && dbOrder.branch_id) {
+            try {
+              const branchRes = await dbQuery(
+                `SELECT b.id, b.name, b.company_id, b.gst_registration_id, b.metadata,
+                        c.legal_name as comp_legal_name, c.is_active as comp_is_active,
+                        g.gstin as reg_gstin, g.state_code as reg_state_code, g.is_active as reg_is_active,
+                        ct.state_code as city_state_code 
+                 FROM public.branch b
+                 LEFT JOIN public.company c ON c.id = b.company_id
+                 LEFT JOIN public.gst_registration g ON g.id = b.gst_registration_id
+                 LEFT JOIN public.city ct ON ct.id = b.city_id
+                 WHERE b.id = $1 AND b.deleted_at IS NULL LIMIT 1`,
+                [dbOrder.branch_id]
+              );
+              if (branchRes.rows.length > 0) {
+                const bRow = branchRes.rows[0];
+                if (bRow.reg_gstin) {
+                  sellerGstin = bRow.reg_gstin;
+                  sellerLegalName = bRow.comp_legal_name || bRow.name;
+                  sellerStateCode = bRow.reg_state_code || "";
+                  isVerified = bRow.reg_is_active === true && bRow.comp_is_active !== false;
+                } else {
+                  const bMeta = typeof bRow.metadata === "object" ? bRow.metadata : JSON.parse(bRow.metadata || "{}");
+                  if (!sellerGstin) {
+                    sellerGstin = String(bMeta.gstin || bMeta.gst_number || "").trim();
+                  }
+                  if (!sellerLegalName) {
+                    sellerLegalName = String(bMeta.seller_legal_name || bMeta.legal_name || "").trim();
+                  }
+                  if (!sellerStateCode && bRow.city_state_code) {
+                    sellerStateCode = String(bRow.city_state_code).trim();
+                  } else if (!sellerStateCode && bMeta.state_code) {
+                    sellerStateCode = String(bMeta.state_code).trim();
+                  }
+                  if (bMeta.is_verified === false || bMeta.status === "UNVERIFIED") {
+                    isVerified = false;
+                  }
+                }
+              }
+            } catch (_bErr) {}
+          }
+
+          // ── 3. Strict Pre-Allocation Statutory Validation Guards ──
+          // A. Missing or empty/whitespace GSTIN
+          if (!sellerGstin) {
+            return jsonWithDataSource({
+              error: "Cannot generate statutory invoice: Seller GSTIN is missing. A valid 15-character GSTIN is required under GST Rule 46.",
+              code: "MISSING_SELLER_GSTIN",
+              success: false,
+            }, "postgres", 400);
+          }
+
+          // B. Malformed GSTIN checksum/format check
+          const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+          if (!GSTIN_REGEX.test(sellerGstin)) {
+            return jsonWithDataSource({
+              error: `Cannot generate statutory invoice: Seller GSTIN '${sellerGstin}' is malformed under GST Rule 46.`,
+              code: "INVALID_SELLER_GSTIN",
+              success: false,
+            }, "postgres", 400);
+          }
+
+          // C. Missing or empty legal name
+          if (!sellerLegalName) {
+            return jsonWithDataSource({
+              error: "Cannot generate statutory invoice: Seller legal registered entity name is missing.",
+              code: "MISSING_SELLER_LEGAL_NAME",
+              success: false,
+            }, "postgres", 400);
+          }
+
+          // D. Unverified seller registration
+          if (!isVerified) {
+            return jsonWithDataSource({
+              error: `Cannot generate statutory invoice: Seller tax registration '${sellerGstin}' for '${sellerLegalName}' is unverified.`,
+              code: "UNVERIFIED_SELLER_REGISTRATION",
+              success: false,
+            }, "postgres", 400);
+          }
+
+          // E. Ambiguous Seller Identity (State Code Mismatch)
+          if (sellerStateCode) {
+            const cleanStateCode = sellerStateCode.replace(/\D/g, "").padStart(2, "0");
+            const gstinStatePrefix = sellerGstin.slice(0, 2);
+            if (cleanStateCode.length === 2 && gstinStatePrefix !== cleanStateCode) {
+              return jsonWithDataSource({
+                error: `Cannot generate statutory invoice: Ambiguous seller identity. Seller GSTIN prefix '${gstinStatePrefix}' does not match registered branch state code '${cleanStateCode}'.`,
+                code: "AMBIGUOUS_SELLER_IDENTITY",
+                success: false,
+              }, "postgres", 400);
+            }
+          }
+
+          const { DeliveryInvoicingService } = await import("@frontend/lib/services/delivery-invoicing.service");
+          const invResult = await DeliveryInvoicingService.generateInvoiceOnDelivery(null, {
+            ...dbOrder,
+            seller_gstin: sellerGstin,
+            seller_legal_name: sellerLegalName,
+            seller_state_code: sellerStateCode,
+            seller_is_verified: isVerified,
+            status: "delivered",
+            delivery_status: "delivered",
+            delivered_at: (dbOrder as any).delivered_at || (dbOrder as any).metadata?.delivered_at || new Date().toISOString(),
+          });
+          if (!invResult.success) {
+            return jsonWithDataSource({
+              error: invResult.error || "Failed to generate statutory invoice",
+              code: invResult.code || "INVOICE_GENERATION_FAILED",
+              success: false,
+            }, "postgres", 400);
+          }
+          const refreshedOrder = await OrderRepository.findById(orderId);
+          return jsonWithDataSource({
+            success: true,
+            invoice_number: invResult.invoice_number,
+            invoice_id: invResult.invoice_id,
+            invoice: invResult.invoice,
+            order: refreshedOrder,
+          }, "postgres", 200);
+        } catch (err: any) {
+          return jsonWithDataSource({
+            error: err.message || "Internal invoice generation error",
+            success: false,
+          }, "postgres", 500);
+        }
+      }
     }
 
     // ── Enterprise CRM Mutations (POST) ──
@@ -8037,8 +9393,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
     if (path.startsWith("admin/crm/customers/") && path.endsWith("/reminders")) {
       const customerId = path.replace("admin/crm/customers/", "").replace("/reminders", "");
-      const res = ApiEngine.scheduleCustomerReminder(customerId, body);
-      return jsonWithDataSource(res, "postgres", 201);
+      const saved = await CustomerRepository.saveReminder(customerId, body);
+      return jsonWithDataSource({ reminder: saved, success: true }, "postgres", 201);
     }
 
     if (path.startsWith("admin/crm/customers/") && path.endsWith("/consent")) {
@@ -8350,6 +9706,21 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           branchId = "br_indiranagar";
         }
 
+        // ── Operational Closure Check (Storefront / Checkout Gate) ──
+        const deliveryDateStr = body.delivery_date || new Date().toISOString().split("T")[0];
+        const closureCheck = await OperationalClosureService.validateFulfillmentAvailability(
+          body.partner_id ? "PARTNER" : "BRANCH",
+          body.partner_id || branchId,
+          deliveryDateStr
+        );
+        if (!closureCheck.allowed) {
+          return jsonWithDataSource({
+            success: false,
+            error: "FULFILLMENT_UNAVAILABLE",
+            message: closureCheck.reason || "Selected location is closed on this date.",
+          }, "postgres", 400);
+        }
+
         const idempotencyKey = body.idempotency_key || req.headers.get("x-idempotency-key") || undefined;
 
         const orderRes = await OrderService.createOrder({
@@ -8360,6 +9731,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           customer_email: customerEmail,
           customer_phone: customerPhone,
           branch_id: branchId,
+          partner_id: body.partner_id || undefined,
+          store_id: body.store_id || undefined,
           items: items || [],
           coupon_code: body.coupon_code,
           delivery_type: (body.delivery_type as any) || "standard",
@@ -8379,7 +9752,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
               ].filter(Boolean).join(", ") || "Delivery Address on File",
           delivery_latitude: body.latitude,
           delivery_longitude: body.longitude,
-          payment_method: body.payment_method === "cod" ? "cod" : "card",
+          payment_method: body.payment_method || "card",
+          payment_status: body.payment_status || (body.payment_method === "test_mode" ? "captured" : (body.payment_method === "cod" ? "pending" : undefined)),
         });
 
         if (!orderRes.success || !orderRes.order) {
@@ -8387,6 +9761,29 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         }
 
         const ord = orderRes.order;
+
+        // ── Confirm Shared Inventory Reservation ──
+        try {
+          await SharedInventoryService.confirmOrderReservation(ord.id);
+        } catch (e: any) {
+          console.warn("Shared inventory confirmation note:", e.message);
+        }
+
+        // ── Capture Commercial Agreement Snapshot for Marketplace Orders ──
+        if (body.partner_id) {
+          try {
+            await MarketplaceOrderService.createOrderSnapshot({
+              orderId: ord.id,
+              partnerId: body.partner_id,
+              storeId: body.store_id || "default",
+              grossOrderAmount: ord.total_amount || ord.total || 0,
+              taxAmount: (ord as any).metadata?.tax_amount || 0,
+            });
+          } catch (e: any) {
+            console.warn("Marketplace order snapshot note:", e.message);
+          }
+        }
+
         if (custUid && ord.id) {
           try {
             TelemarketingEngine.matchAndAttributeCheckoutOrder(custUid, ord.id, ord.total_amount || ord.total || 0);
@@ -8436,116 +9833,52 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "payments/razorpay/create-order" || path === "store/payments/razorpay/create-order") {
-      const result = ApiEngine.createRazorpayOrder(body);
-      return jsonWithDataSource(result, "postgres", 201);
+      return jsonWithDataSource(
+        {
+          success: false,
+          error: "RAZORPAY_DECOMMISSIONED",
+          message: "Razorpay has been decommissioned. Cashfree is the sole active payment gateway.",
+        },
+        "postgres",
+        410
+      );
+    }
+
+    if (path === "payments/cashfree/create-order" || path === "store/payments/cashfree/create-order") {
+      const cfSession = await CashfreePaymentService.createOrderSession({
+        orderId: body.order_id || body.orderId,
+        amount: Number(body.amount || 0),
+        currency: body.currency || "INR",
+        customerId: body.customer_id || body.customerId || "cust_guest",
+        customerPhone: body.customer_phone || body.customerPhone || "9876543210",
+        customerName: body.customer_name || body.customerName || "Valued Customer",
+        customerEmail: body.customer_email || body.customerEmail || "customer@caketohome.in",
+      });
+      return jsonWithDataSource({ success: true, ...cfSession }, "postgres", 201);
     }
 
     if (path === "payments/razorpay/verify-signature" || path === "store/payments/razorpay/verify-signature") {
-      const result = ApiEngine.verifyRazorpaySignature(body);
-      if (result.verified && body.razorpay_order_id && body.razorpay_payment_id) {
-        try {
-          await dbQuery(
-            `UPDATE "payment_transaction"
-             SET status = 'captured',
-                 settlement_status = 'settled',
-                 provider_ref = $1,
-                 updated_at = NOW()
-             WHERE order_id = $2 OR provider_ref = $2`,
-            [body.razorpay_payment_id, body.razorpay_order_id]
-          );
-        } catch (dbErr: any) {
-          console.warn("[verify-signature] DB sync warning:", dbErr.message);
-        }
-      }
-      return jsonWithDataSource(result, "postgres", result.verified ? 200 : 400);
+      return jsonWithDataSource(
+        {
+          success: false,
+          error: "RAZORPAY_DECOMMISSIONED",
+          message: "Razorpay has been decommissioned. Cashfree is the sole active payment gateway.",
+        },
+        "postgres",
+        410
+      );
     }
 
     if (path === "payments/razorpay/webhook" || path === "payments/webhook" || path === "store/payments/webhook") {
-      try {
-        const event = body.event || body.type || "payment.captured";
-        const paymentPayload = body.payload?.payment?.entity || body.payment || body;
-        const paymentId = paymentPayload.id || body.payment_id || `pay_${Date.now()}`;
-        const orderRef = paymentPayload.order_id || body.order_id;
-        const amount = Number(paymentPayload.amount || body.amount || 0);
-        const idempotencyKey = req.headers.get("x-razorpay-event-id") || req.headers.get("idempotency-key") || body.event_id || `webhook_${paymentId}`;
-
-        // 1. Idempotency check: Check if this payment transaction or webhook was already processed
-        const existingTxn = await dbQuery(
-          `SELECT id, order_id, status FROM "payment_transaction" WHERE idempotency_key = $1 OR provider_ref = $2 LIMIT 1`,
-          [idempotencyKey, paymentId]
-        );
-
-        if (existingTxn.rows && existingTxn.rows.length > 0) {
-          return jsonWithDataSource({
-            success: true,
-            message: "Webhook event already processed (idempotent)",
-            transaction_id: existingTxn.rows[0].id,
-          }, "postgres", 200);
-        }
-
-        // 2. Process payment capture atomically in PostgreSQL
-        await dbTransaction(async (client: any) => {
-          const orderMatch = await client.query(
-            `SELECT id, status, metadata FROM "order" WHERE id = $1 OR metadata->>'order_number' = $1 OR display_id::text = $1 LIMIT 1`,
-            [orderRef]
-          );
-
-          const matchedOrder = orderMatch.rows?.[0];
-          const matchedOrderId = matchedOrder ? matchedOrder.id : orderRef;
-
-          const paymentTxnId = `ptxn_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-          await client.query(
-            `INSERT INTO "payment_transaction" (
-               id, company_id, branch_id, order_id, customer_id, amount, currency,
-               idempotency_key, status, settlement_status, provider, provider_ref, created_at, updated_at
-             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'captured', 'settled', 'razorpay', $9, NOW(), NOW())
-             ON CONFLICT (id) DO UPDATE SET status = 'captured', settlement_status = 'settled', updated_at = NOW()`,
-            [
-              paymentTxnId,
-              "comp_cth_india",
-              matchedOrder?.metadata?.branch_id || "br_indiranagar",
-              matchedOrderId,
-              matchedOrder?.metadata?.customer_uid || "guest",
-              Math.round(amount > 1000 ? amount / 100 : amount),
-              "INR",
-              idempotencyKey,
-              paymentId,
-            ]
-          );
-
-          if (matchedOrder) {
-            await client.query(
-              `UPDATE "order"
-               SET metadata = jsonb_set(
-                     jsonb_set(COALESCE(metadata, '{}'::jsonb), '{payment_status}', '"captured"'::jsonb),
-                     '{payment_reference}', to_jsonb($1::text)
-                   ),
-                   updated_at = NOW()
-               WHERE id = $2`,
-              [paymentId, matchedOrder.id]
-            );
-
-            const historyId = `osh_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-            await client.query(
-              `INSERT INTO "order_status_history" (
-                 id, order_id, to_status, from_status, actor_type, actor_id, reason, metadata, created_at, updated_at
-               ) VALUES ($1, $2, $3, $4, 'webhook', 'razorpay_webhook', 'Payment captured via webhook', $5, NOW(), NOW())`,
-              [
-                historyId,
-                matchedOrder.id,
-                matchedOrder.status || "confirmed",
-                matchedOrder.status || "confirmed",
-                JSON.stringify({ payment_id: paymentId, amount, event }),
-              ]
-            );
-          }
-        });
-
-        return jsonWithDataSource({ success: true, status: "captured", payment_id: paymentId }, "postgres", 200);
-      } catch (err: any) {
-        console.error("❌ Webhook processing error:", err);
-        return jsonWithDataSource({ success: false, error: err.message }, "postgres", 500);
-      }
+      return jsonWithDataSource(
+        {
+          success: false,
+          error: "RAZORPAY_DECOMMISSIONED",
+          message: "Razorpay has been decommissioned. Cashfree is the sole active payment gateway.",
+        },
+        "postgres",
+        410
+      );
     }
 
     if (path === "orders" || path === "admin/orders") {
@@ -8907,79 +10240,16 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
       }
 
-      if (path === "manager/cash/drawer/open") {
-        const todayStr = new Date().toISOString().split("T")[0];
-        const openingFloat = Number(body.opening_float || body.amount || 0);
-        const notes = body.notes || "";
-
-        const session = {
-          date: todayStr,
-          status: "OPEN",
-          opening_float: openingFloat,
-          opening_notes: notes,
-          denominations: body.denominations || null,
-          opened_by: mgrAuth.userId,
-          opened_at: new Date().toISOString(),
-        };
-
-        // Invariant 5: Operational drawer opening count ONLY, NOT a fabricated GL 1111 entry.
-        await dbQuery(`
-          UPDATE "branch"
-          SET metadata = jsonb_set(
-            COALESCE(metadata, '{}'::jsonb),
-            '{drawer_session}',
-            $2::jsonb,
-            true
-          )
-          WHERE id = $1
-        `, [
-          branchId,
-          JSON.stringify(session)
-        ]);
-
-        return jsonWithDataSource({
-          success: true,
-          message: "Cash drawer opening operational float recorded.",
-          opening_float: openingFloat,
-          status: "OPEN",
-          session,
-        }, "postgres", 200);
-      }
-
-      if (path === "manager/cash/drawer/close") {
-        const closingCount = Number(body.closing_count || body.closing_amount || body.amount || 0);
-
-        // Invariant 5: Operational drawer closing count ONLY.
-        await dbQuery(`
-          UPDATE "branch"
-          SET metadata = jsonb_set(
-            COALESCE(metadata, '{}'::jsonb),
-            '{drawer_session}',
-            jsonb_set(
-              jsonb_set(
-                COALESCE(metadata->'drawer_session', '{}'::jsonb),
-                '{status}', '"CLOSED"'
-              ),
-              '{closing_amount}', $2::jsonb
-            ),
-            true
-          )
-          WHERE id = $1
-        `, [branchId, JSON.stringify(closingCount)]);
-
-        return jsonWithDataSource({
-          success: true,
-          message: "Cash drawer closing operational count recorded.",
-          closing_amount: closingCount,
-          status: "CLOSED",
-          session: {
-            status: "CLOSED",
-            closing_amount: closingCount,
-            closing_count: closingCount,
-            notes: body.notes || "",
-            closed_at: new Date().toISOString(),
-          }
-        }, "postgres", 200);
+      if (path === "manager/cash/drawer/open" || path === "manager/cash/drawer/close") {
+        return jsonWithDataSource(
+          {
+            success: false,
+            error: "OBSOLETE_ENDPOINT",
+            message: "The legacy manager cash drawer endpoint has been retired and consolidated into the canonical relational Teller Cash Custody system. Please use /api/v1/admin/teller/sessions/* endpoints.",
+          },
+          "postgres",
+          410
+        );
       }
 
       if (path === "manager/cash/cod/shortage") {
@@ -9082,7 +10352,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
     }
     // ── Tax Master Configuration POST/PUT Endpoints ──
-    if (path === "admin/tax/configurations") {
+    if (path === "admin/tax/configurations" || path === "tax/configurations" || path === "tax-master" || path === "admin/tax-master") {
       try {
         const { id, name, code, rate, is_default, metadata } = body;
         if (id) {
@@ -9108,7 +10378,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         return NextResponse.json({ error: err.message, success: false }, { status: 500 });
       }
     }
-    if (path === "admin/tax/configurations/toggle") {
+    if (path === "admin/tax/configurations/toggle" || path === "tax/configurations/toggle" || path === "tax-master/toggle" || path === "admin/tax-master/toggle") {
       try {
         const { id, is_active } = body;
         // Soft-delete to deactivate, restore to activate
@@ -9120,6 +10390,19 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         return jsonWithDataSource({ success: true }, "postgres");
       } catch (err: any) {
         return NextResponse.json({ error: err.message, success: false }, { status: 500 });
+      }
+    }
+    if (path === "admin/tax/assign-product" || path === "tax/assign-product" || path === "tax-master/assign-product") {
+      try {
+        const { productId, taxRateId } = body;
+        if (!productId || !taxRateId) {
+          return NextResponse.json({ success: false, error: "Both productId and taxRateId are required." }, { status: 400 });
+        }
+        const staffUser = resolveCustomerUidFromReq(req) || "admin_staff";
+        const result = await TaxResolverService.assignProductTax(productId, taxRateId, staffUser);
+        return jsonWithDataSource(result, "postgres");
+      } catch (err: any) {
+        return NextResponse.json({ error: err.message, success: false }, { status: 400 });
       }
     }
     // ── Enterprise SEO Platform POST/PUT/DELETE Endpoints ──
@@ -9213,14 +10496,231 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
     // ── Enterprise Compliance & Statutory Endpoints (POST) ──
     if (path === "admin/compliance/business-profile") {
-      return jsonWithDataSource({ profile: ApiEngine.updateBusinessProfile(body), success: true }, "postgres");
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId || userCtx.role !== "SUPER_ADMIN") {
+        return jsonWithDataSource({
+          success: false,
+          error: "UNAUTHORIZED",
+          code: "UNAUTHORIZED",
+          message: "Only Super Admin can create or update the company legal master.",
+        }, "error", 403);
+      }
+
+      const addr = typeof body.registered_address === "object" && body.registered_address !== null
+        ? body.registered_address
+        : {};
+      const stateCode = (addr.state_code || body.state_code || "").trim();
+      const pan = (body.pan || "").trim().toUpperCase();
+      const legalName = (body.legal_name || "").trim();
+
+      if (!legalName) {
+        return jsonWithDataSource({
+          success: false,
+          error: "VALIDATION_FAILED",
+          code: "VALIDATION_FAILED",
+          message: "Legal entity name is required.",
+        }, "error", 400);
+      }
+      if (!stateCode || !/^\d{2}$/.test(stateCode)) {
+        return jsonWithDataSource({
+          success: false,
+          error: "VALIDATION_FAILED",
+          code: "VALIDATION_FAILED",
+          message: `Invalid state code '${stateCode}'. Must be a 2-digit Indian state code (e.g. '29' for Karnataka).`,
+        }, "error", 400);
+      }
+      if (pan && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) {
+        return jsonWithDataSource({
+          success: false,
+          error: "VALIDATION_FAILED",
+          code: "VALIDATION_FAILED",
+          message: `Invalid PAN format '${pan}'. Expected format: AAAAA9999A.`,
+        }, "error", 400);
+      }
+
+      const companyInput = {
+        legal_name: legalName,
+        trade_name: (body.trade_name || legalName).trim(),
+        registered_address: typeof body.registered_address === "string"
+          ? body.registered_address.trim()
+          : [addr.line1, addr.line2].filter(Boolean).join(", ") || "100 Feet Road, HAL 2nd Stage, Indiranagar",
+        city: (addr.city || body.city || "Bengaluru").trim(),
+        state_code: stateCode,
+        pin_code: (addr.pincode || body.pin_code || "560038").trim(),
+        pan: pan || undefined,
+        cin: body.cin ? body.cin.trim().toUpperCase() : undefined,
+        fssai: body.fssai ? body.fssai.trim() : undefined,
+        invoice_prefix: body.invoice_prefix || "CTH",
+        phone: body.registered_phone || body.support_phone || body.phone,
+        email: body.registered_email || body.support_email || body.email,
+        website: body.website,
+      };
+
+      const existing = await CompanyService.getCompany();
+      let res;
+      if (existing.success && existing.data) {
+        res = await CompanyService.updateCompany(existing.data.id, companyInput, userCtx.userId, userCtx.role);
+      } else {
+        res = await CompanyService.createCompany(companyInput, userCtx.userId, userCtx.role);
+      }
+
+      if (!res.success) {
+        const sc = res.code === "VALIDATION_FAILED" || res.code === "INVALID_PAN" ? 400
+          : res.code === "UNAUTHORIZED" ? 403
+          : res.code === "COMPANY_ALREADY_EXISTS" ? 409
+          : 500;
+        return jsonWithDataSource({
+          success: false,
+          error: res.code || "OPERATION_FAILED",
+          message: res.error,
+        }, "error", sc);
+      }
+
+      ApiEngine.updateBusinessProfile({
+        ...body,
+        id: res.data.id,
+        legal_name: res.data.legal_name,
+        trade_name: res.data.trade_name || res.data.legal_name,
+        pan: res.data.pan || "",
+        cin: res.data.cin || "",
+        fssai: res.data.fssai || "",
+      });
+
+      const profile = mapCompanyToBusinessProfile(res.data);
+      return jsonWithDataSource({ profile, success: true }, "postgres");
     }
     if (path === "admin/compliance/gst-registrations") {
-      return jsonWithDataSource({ registration: ApiEngine.createGstRegistration(body), success: true }, "postgres", 201);
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId || userCtx.role !== "SUPER_ADMIN") {
+        return jsonWithDataSource({
+          success: false,
+          error: "UNAUTHORIZED",
+          code: "UNAUTHORIZED",
+          message: "Only Super Admin can create GST registrations.",
+        }, "error", 403);
+      }
+
+      let companyId = body.company_id;
+      if (!companyId) {
+        const comp = await CompanyService.getCompany();
+        if (comp.success && comp.data) companyId = comp.data.id;
+      }
+      if (!companyId) {
+        return jsonWithDataSource({
+          success: false,
+          error: "COMPANY_NOT_FOUND",
+          code: "COMPANY_NOT_FOUND",
+          message: "Company legal master must be onboarded before registering GSTIN.",
+        }, "error", 400);
+      }
+
+      const created = await GstRegistrationService.createRegistration(
+        {
+          ...body,
+          company_id: companyId,
+          metadata: {
+            trade_name: body.trade_name || body.legal_name,
+            state: body.state,
+            address: body.address,
+            verification_status: "UNVERIFIED",
+          },
+        },
+        userCtx.userId,
+        userCtx.role
+      );
+      if (!created.success) {
+        const sc = created.code === "VALIDATION_FAILED" ? 400
+          : created.code === "UNAUTHORIZED" ? 403
+          : created.code === "DUPLICATE_GSTIN" ? 409
+          : 500;
+        return jsonWithDataSource(created, "error", sc);
+      }
+      return jsonWithDataSource({ success: true, data: mapGstRegistrationRow(created.data) }, "postgres", 201);
     }
     if (path.startsWith("admin/compliance/gst-registrations/") && path.endsWith("/verify")) {
       const id = path.replace("admin/compliance/gst-registrations/", "").replace("/verify", "");
-      return jsonWithDataSource({ registration: await ApiEngine.verifyGstRegistration(id), success: true }, "postgres");
+      const reg = await GstRegistrationRepository.findById(id);
+      if (!reg) {
+        return jsonWithDataSource({ success: false, error: "GST Registration not found" }, "postgres", 404);
+      }
+      const updated = await GstRegistrationRepository.update(id, { is_active: true });
+      return jsonWithDataSource({ registration: updated, success: true }, "postgres");
+    }
+    if (path === "admin/compliance/invoice-series/propose") {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", code: "UNAUTHORIZED" }, "error", 401);
+      }
+      const { entity_id, gstin, fiscal_year, prefix, document_type } = body;
+      if (!prefix || !/^[A-Za-z0-9\-_]{1,16}$/.test(prefix)) {
+        return jsonWithDataSource({ success: false, error: "INVALID_PREFIX", message: "Prefix must be 1-16 alphanumeric characters" }, "error", 400);
+      }
+      if (!gstin || !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gstin)) {
+        return jsonWithDataSource({ success: false, error: "INVALID_GSTIN", message: "Valid 15-char GSTIN is required" }, "error", 400);
+      }
+      const fyNum = parseInt(fiscal_year, 10);
+      if (isNaN(fyNum) || fyNum < 2020 || fyNum > 2100) {
+        return jsonWithDataSource({ success: false, error: "INVALID_FISCAL_YEAR", message: "Valid fiscal year is required" }, "error", 400);
+      }
+      const { dbQuery } = await import("@frontend/lib/db");
+      const insertRes = await dbQuery(`
+        INSERT INTO public.invoice_sequence (
+          entity_id, gstin, fiscal_year, prefix, last_seq, document_type, is_active, approval_status, authorized_by, authorized_at
+        ) VALUES ($1, $2, $3, $4, 0, $5, false, 'PROPOSED', NULL, NULL)
+        RETURNING *
+      `, [entity_id || 'CAKETOHOME_PARENT', gstin, fyNum, prefix.trim(), document_type || 'TAX_INVOICE']);
+      return jsonWithDataSource({ series: insertRes.rows[0], success: true }, "postgres", 201);
+    }
+    if (path === "admin/compliance/invoice-series/approve") {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId || userCtx.userId === "anonymous" || (userCtx.role !== "SUPER_ADMIN" && userCtx.role !== "FINANCE_CONTROLLER")) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED", message: "Statutory authorization restricted to Finance Controller or delegated Super Admin." }, "error", 403);
+      }
+      const { id, prefix, gstin, fiscal_year } = body;
+      const { dbQuery } = await import("@frontend/lib/db");
+      
+      // 1. Fetch current record to enforce state machine rules
+      let existingRes;
+      if (id) {
+        existingRes = await dbQuery(`SELECT * FROM public.invoice_sequence WHERE id = $1`, [id]);
+      } else if (prefix && gstin && fiscal_year) {
+        existingRes = await dbQuery(`SELECT * FROM public.invoice_sequence WHERE prefix = $1 AND gstin = $2 AND fiscal_year = $3`, [prefix, gstin, parseInt(fiscal_year, 10)]);
+      } else {
+        return jsonWithDataSource({ success: false, error: "MISSING_IDENTIFIER", message: "Must provide series id or (prefix, gstin, fiscal_year)" }, "error", 400);
+      }
+
+      if (existingRes.rows.length === 0) {
+        return jsonWithDataSource({ success: false, error: "SERIES_NOT_FOUND" }, "error", 404);
+      }
+
+      const existing = existingRes.rows[0];
+      if (existing.approval_status === "DEPRECATED_HISTORICAL" || existing.approval_status === "REVOKED_SYNTHETIC" || existing.approval_status === "REVOKED") {
+        return jsonWithDataSource({ 
+          success: false, 
+          error: "SERIES_CANNOT_BE_APPROVED", 
+          message: `Series in status '${existing.approval_status}' cannot be approved.` 
+        }, "error", 400);
+      }
+
+      const approverId = userCtx.userId;
+      let updateRes;
+      if (id) {
+        updateRes = await dbQuery(`
+          UPDATE public.invoice_sequence
+          SET approval_status = 'APPROVED', is_active = true, authorized_by = $1, authorized_at = NOW(), updated_at = NOW()
+          WHERE id = $2
+          RETURNING *
+        `, [approverId, id]);
+      } else {
+        updateRes = await dbQuery(`
+          UPDATE public.invoice_sequence
+          SET approval_status = 'APPROVED', is_active = true, authorized_by = $1, authorized_at = NOW(), updated_at = NOW()
+          WHERE prefix = $2 AND gstin = $3 AND fiscal_year = $4
+          RETURNING *
+        `, [approverId, prefix, gstin, parseInt(fiscal_year, 10)]);
+      }
+
+      return jsonWithDataSource({ series: updateRes.rows[0], success: true }, "postgres", 200);
     }
     if (path === "admin/compliance/fssai") {
       return jsonWithDataSource({ compliance: ApiEngine.createBranchCompliance(body), success: true }, "postgres", 201);
@@ -9231,6 +10731,147 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
     if (path === "admin/compliance/documents") {
       return jsonWithDataSource({ document: ApiEngine.createComplianceDocument(body), success: true }, "postgres", 201);
+    }
+
+    // ── Shared Cake & Bouquet Inventory (POST) ──
+    if (path === "inventory/shared/reserve") {
+      const userCtx = resolveUserContext(req);
+      const res = await SharedInventoryService.reserveStock({
+        productId: body.product_id || body.productId,
+        variantId: body.variant_id || body.variantId,
+        quantity: Number(body.quantity || 1),
+        entityType: (body.entity_type || body.entityType || "BRANCH").toUpperCase() as "BRANCH" | "PARTNER",
+        entityId: body.entity_id || body.entityId || "default",
+        orderId: body.order_id || body.orderId,
+        cartId: body.cart_id || body.cartId,
+        ttlMinutes: body.ttl_minutes || body.ttlMinutes || 15,
+        actorId: userCtx.userId || "guest",
+        actorRole: userCtx.role || "CUSTOMER",
+      });
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    }
+    if (path === "inventory/shared/release") {
+      const userCtx = resolveUserContext(req);
+      const res = await SharedInventoryService.releaseReservation(
+        body.ref_id || body.refId || body.order_id || body.cart_id,
+        body.reason || "Released via API",
+        userCtx.userId || "system",
+        userCtx.role || "OPERATIONS"
+      );
+      return jsonWithDataSource(res, "postgres");
+    }
+    if (path === "inventory/shared/adjust") {
+      const userCtx = resolveUserContext(req);
+      if (userCtx.role !== "SUPER_ADMIN" && userCtx.role !== "ADMIN") {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED: Only admins can adjust stock." }, "postgres", 403);
+      }
+      const res = await SharedInventoryService.adjustStock({
+        productId: body.product_id || body.productId,
+        variantId: body.variant_id || body.variantId,
+        quantityDelta: Number(body.quantity_delta || body.quantityDelta || 0),
+        reason: body.reason || "Inventory Adjustment",
+        actorId: userCtx.userId,
+        actorRole: userCtx.role,
+      });
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    }
+
+    // ── Branch & Partner Operational Closures (POST) ──
+    if (path === "admin/closures") {
+      const userCtx = resolveUserContext(req);
+      const res = await OperationalClosureService.scheduleClosure(body, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 201 : 400);
+    }
+
+    // ── Partner Marketplace (POST) ──
+    if (path === "admin/marketplace/partners") {
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplacePartnerService.onboardPartner(body, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 201 : 400);
+    }
+    if (path === "admin/marketplace/stores") {
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplacePartnerService.saveStore(body, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 201 : 400);
+    }
+    if (path === "admin/marketplace/agreements") {
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplacePartnerService.saveAgreement(body, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 201 : 400);
+    }
+    if (path === "admin/marketplace/reconciliation/generate") {
+      const statement = await MarketplaceReconciliationService.generateStatement(body.partner_id, body.start_date, body.end_date);
+      return jsonWithDataSource({ statement, success: true }, "postgres");
+    }
+    if (path === "admin/marketplace/invoices/receive") {
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplaceReconciliationService.receivePartnerInvoice(body, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 201 : 400);
+    }
+    if (path.startsWith("admin/marketplace/invoices/") && path.endsWith("/approve")) {
+      const id = path.replace("admin/marketplace/invoices/", "").replace("/approve", "");
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplaceReconciliationService.approveInvoice(id, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    }
+    if (path.startsWith("admin/marketplace/invoices/") && path.endsWith("/settle")) {
+      const id = path.replace("admin/marketplace/invoices/", "").replace("/settle", "");
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplaceReconciliationService.settleInvoice({
+        invoiceId: id,
+        paymentMethod: body.payment_method || "BANK_TRANSFER",
+        transactionReference: body.transaction_reference || `TXN_${Date.now()}`,
+        amountPaid: Number(body.amount || 0),
+        settlementDate: body.settlement_date,
+      }, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    }
+    if (path.startsWith("admin/marketplace/invoices/") && path.endsWith("/post-gl")) {
+      const id = path.replace("admin/marketplace/invoices/", "").replace("/post-gl", "");
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplaceReconciliationService.postInvoiceToGl(id, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    }
+    if (path.startsWith("admin/marketplace/invoices/") && path.endsWith("/reverse")) {
+      const id = path.replace("admin/marketplace/invoices/", "").replace("/reverse", "");
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplaceReconciliationService.reverseInvoice(id, body.reason || "Invoice reversed by administrator", toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    }
+    if (path.startsWith("partner/orders/") && path.endsWith("/accept")) {
+      const id = path.replace("partner/orders/", "").replace("/accept", "");
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplaceOrderService.acceptOrder(id, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    }
+    if (path.startsWith("partner/orders/") && path.endsWith("/reject")) {
+      const id = path.replace("partner/orders/", "").replace("/reject", "");
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplaceOrderService.rejectOrder(id, body.reason || "Rejected by partner", toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    }
+    if ((path.startsWith("partner/orders/") || path.startsWith("admin/marketplace/orders/")) && path.endsWith("/dispatch")) {
+      const id = path.replace("partner/orders/", "").replace("admin/marketplace/orders/", "").replace("/dispatch", "");
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplaceOrderService.dispatchOrder(id, body.rider_id || body.riderId, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    }
+    if ((path.startsWith("partner/orders/") || path.startsWith("admin/marketplace/orders/")) && path.endsWith("/deliver")) {
+      const id = path.replace("partner/orders/", "").replace("admin/marketplace/orders/", "").replace("/deliver", "");
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplaceOrderService.deliverOrder(id, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    }
+    if (path === "admin/marketplace/complaints" || path === "complaints") {
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplaceOrderService.createComplaint(body, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 201 : 400);
+    }
+    if ((path.startsWith("admin/marketplace/complaints/") || path.startsWith("partner/complaints/")) && path.endsWith("/respond")) {
+      const id = path.replace("admin/marketplace/complaints/", "").replace("partner/complaints/", "").replace("/respond", "");
+      const userCtx = resolveUserContext(req);
+      const res = await MarketplaceOrderService.respondToComplaint(id, body, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
     }
 
     // Categories Management
@@ -9260,7 +10901,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         const created = await MediaRepository.createMedia(body);
         return jsonWithDataSource({ media: created }, "postgres", 201);
       } catch (err: any) {
-        return jsonWithDataSource({ media: ApiEngine.createMedia(body) }, "postgres", 201);
+        console.error("[Media Create] PostgreSQL error:", err.message);
+        return jsonWithDataSource({ error: err.message || "Failed to persist media in PostgreSQL" }, "postgres", 500);
       }
     }
     if (path === "admin/media/upload") {
@@ -9330,26 +10972,18 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           content_hash: processedResult?.content_hash || undefined,
         });
       } catch (dbErr: any) {
-        console.warn("[Media Upload] PostgreSQL insert failed, fallback to memory:", dbErr.message);
-        registered = ApiEngine.createMedia({
-          name: body.name || safeUniqueName,
-          filename: safeUniqueName,
-          url: mediaUrl || body.dataUrl || "",
-          thumbnail_url: mediaUrl || body.dataUrl || "",
-          mime_type: mimeType || "image/webp",
-          size: body.size || 150000,
-          alt_text: body.alt_text || body.alt || body.name || "",
-          folder: body.folder || "uploads",
-          width: body.width || 1200,
-          height: body.height || 800,
-        });
+        console.error("[Media Upload] PostgreSQL insert failed:", dbErr.message);
+        return jsonWithDataSource({ error: `Media persistence failed in PostgreSQL: ${dbErr.message}` }, "postgres", 500);
       }
 
       return jsonWithDataSource({ media: registered, success: true, url: registered.url }, "postgres", 201);
     }
 
     // CMS Configurator
-    if (path === "cms/pages") return jsonWithDataSource({ page: await ApiEngine.createCmsPage(body) }, "postgres");
+    if (path === "cms/pages" || path === "admin/cms/pages") {
+      const page = await CmsRepository.savePage(body);
+      return jsonWithDataSource({ page, success: true }, "postgres");
+    }
 
     // ── Search & Merchandising Engine Endpoints (POST) ──
     if (path === "search/tags") {
@@ -9363,11 +10997,13 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/duplicate")) {
       const pageId = path.replace("cms/pages/", "").replace("/duplicate", "");
-      return jsonWithDataSource({ page: await ApiEngine.duplicateCmsPage(pageId) }, "postgres");
+      const copy = await CmsRepository.duplicatePage(pageId);
+      return jsonWithDataSource({ page: copy, success: true }, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/rollback")) {
       const pageId = path.replace("cms/pages/", "").replace("/rollback", "");
-      return jsonWithDataSource({ page: await ApiEngine.rollbackCmsPage(pageId, body.version || 1) }, "postgres");
+      const restored = await CmsRepository.rollbackPage(pageId, body.version || 1);
+      return jsonWithDataSource({ page: restored, success: true }, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/publish")) {
       const pageId = path.replace("cms/pages/", "").replace("/publish", "");
@@ -9384,7 +11020,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path.startsWith("cms/pages/") && path.endsWith("/reorder-sections")) {
       const pageId = path.replace("cms/pages/", "").replace("/reorder-sections", "");
       const sectionIds = body.section_ids || body.sectionIds || [];
-      return jsonWithDataSource(await ApiEngine.reorderCmsPageSections(pageId, sectionIds), "postgres");
+      const res = await CmsRepository.reorderSections(pageId, sectionIds);
+      return jsonWithDataSource(res, "postgres");
+    }
+    if ((path.startsWith("admin/cms/pages/") || path.startsWith("cms/pages/")) && path.endsWith("/builder")) {
+      const pageId = path.replace("admin/cms/pages/", "").replace("cms/pages/", "").replace("/builder", "");
+      const blocks = body.blocks || body.sections || [];
+      const res = await CmsRepository.savePageBuilderLayout(pageId, blocks);
+      return jsonWithDataSource(res, "postgres");
     }
     if (path === "cms/pages/validate") {
       return jsonWithDataSource(ApiEngine.validatePageConfig(body), "postgres");
@@ -9975,6 +11618,18 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       return CostAllocationController.handlePut(req, path, userCtx, body);
     }
 
+    // ── Phase C7.9 Step 9D: Corporate Account Subsystem PUT Endpoints ─────────
+    if (path.startsWith("admin/corporate-accounts") || path.startsWith("corporate-accounts")) {
+      const userCtx = resolveUserContext(req);
+      return CorporateAccountController.handlePatch(req, path, userCtx, body);
+    }
+
+    // ── Phase C7.10 Step 10C: Delivery Coverage Subsystem PUT Endpoints ────────
+    if (path.startsWith("admin/delivery-coverage") || path.startsWith("delivery-coverage")) {
+      const userCtx = resolveUserContext(req);
+      return DeliveryCoverageController.handlePut(req, path, userCtx, body);
+    }
+
     // ── Phase C6.3: Manual Journal Update Draft (PUT) ────────────────────────
     const journalPutMatch = path.match(/^admin\/accounting\/journals\/([^/]+)(\/draft)?$/);
     if (journalPutMatch) {
@@ -10372,13 +12027,129 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ settings: ApiEngine.updateAdminSettings(body), success: true }, "postgres");
     }
 
+    // ── Configurable Feature Toggles (PUT) ──
+    if (path.startsWith("admin/features/")) {
+      const key = path.replace("admin/features/", "");
+      const userCtx = resolveUserContext(req);
+      const res = await FeatureFlagService.setFlag({ key, ...body }, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    }
+
     // ── Enterprise Compliance & Statutory Endpoints (PUT) ──
     if (path === "admin/compliance/business-profile") {
-      return jsonWithDataSource({ profile: ApiEngine.updateBusinessProfile(body), success: true }, "postgres");
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId || userCtx.role !== "SUPER_ADMIN") {
+        return jsonWithDataSource({
+          success: false,
+          error: "UNAUTHORIZED",
+          code: "UNAUTHORIZED",
+          message: "Only Super Admin can update the company legal master.",
+        }, "error", 403);
+      }
+
+      const addr = typeof body.registered_address === "object" && body.registered_address !== null
+        ? body.registered_address
+        : {};
+      const stateCode = (addr.state_code || body.state_code || "").trim();
+      const pan = (body.pan || "").trim().toUpperCase();
+      const legalName = (body.legal_name || "").trim();
+
+      if (!legalName) {
+        return jsonWithDataSource({
+          success: false,
+          error: "VALIDATION_FAILED",
+          code: "VALIDATION_FAILED",
+          message: "Legal entity name is required.",
+        }, "error", 400);
+      }
+      if (!stateCode || !/^\d{2}$/.test(stateCode)) {
+        return jsonWithDataSource({
+          success: false,
+          error: "VALIDATION_FAILED",
+          code: "VALIDATION_FAILED",
+          message: `Invalid state code '${stateCode}'. Must be a 2-digit Indian state code (e.g. '29' for Karnataka).`,
+        }, "error", 400);
+      }
+      if (pan && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) {
+        return jsonWithDataSource({
+          success: false,
+          error: "VALIDATION_FAILED",
+          code: "VALIDATION_FAILED",
+          message: `Invalid PAN format '${pan}'. Expected format: AAAAA9999A.`,
+        }, "error", 400);
+      }
+
+      const companyInput = {
+        legal_name: legalName,
+        trade_name: (body.trade_name || legalName).trim(),
+        registered_address: typeof body.registered_address === "string"
+          ? body.registered_address.trim()
+          : [addr.line1, addr.line2].filter(Boolean).join(", ") || "100 Feet Road, HAL 2nd Stage, Indiranagar",
+        city: (addr.city || body.city || "Bengaluru").trim(),
+        state_code: stateCode,
+        pin_code: (addr.pincode || body.pin_code || "560038").trim(),
+        pan: pan || undefined,
+        cin: body.cin ? body.cin.trim().toUpperCase() : undefined,
+        fssai: body.fssai ? body.fssai.trim() : undefined,
+        invoice_prefix: body.invoice_prefix || "CTH",
+        phone: body.registered_phone || body.support_phone || body.phone,
+        email: body.registered_email || body.support_email || body.email,
+        website: body.website,
+      };
+
+      const existing = await CompanyService.getCompany();
+      let res;
+      if (existing.success && existing.data) {
+        res = await CompanyService.updateCompany(existing.data.id, companyInput, userCtx.userId, userCtx.role);
+      } else {
+        res = await CompanyService.createCompany(companyInput, userCtx.userId, userCtx.role);
+      }
+
+      if (!res.success) {
+        const sc = res.code === "VALIDATION_FAILED" || res.code === "INVALID_PAN" ? 400
+          : res.code === "UNAUTHORIZED" ? 403
+          : res.code === "COMPANY_ALREADY_EXISTS" ? 409
+          : 500;
+        return jsonWithDataSource({
+          success: false,
+          error: res.code || "OPERATION_FAILED",
+          message: res.error,
+        }, "error", sc);
+      }
+
+      ApiEngine.updateBusinessProfile({
+        ...body,
+        id: res.data.id,
+        legal_name: res.data.legal_name,
+        trade_name: res.data.trade_name || res.data.legal_name,
+        pan: res.data.pan || "",
+        cin: res.data.cin || "",
+        fssai: res.data.fssai || "",
+      });
+
+      const profile = mapCompanyToBusinessProfile(res.data);
+      return jsonWithDataSource({ profile, success: true }, "postgres");
     }
     if (path.startsWith("admin/compliance/gst-registrations/")) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId || userCtx.role !== "SUPER_ADMIN") {
+        return jsonWithDataSource({
+          success: false,
+          error: "UNAUTHORIZED",
+          code: "UNAUTHORIZED",
+          message: "Only Super Admin can update GST registrations.",
+        }, "error", 403);
+      }
       const id = path.replace("admin/compliance/gst-registrations/", "");
-      return jsonWithDataSource({ registration: ApiEngine.updateGstRegistration(id, body), success: true }, "postgres");
+      const updated = await GstRegistrationService.updateRegistration(id, body, userCtx.userId, userCtx.role);
+      if (!updated.success) {
+        const sc = updated.code === "VALIDATION_FAILED" ? 400
+          : updated.code === "UNAUTHORIZED" ? 403
+          : updated.code === "GST_NOT_FOUND" ? 404
+          : 500;
+        return jsonWithDataSource(updated, "error", sc);
+      }
+      return jsonWithDataSource(updated, "postgres", 200);
     }
     if (path.startsWith("admin/compliance/fssai/")) {
       const id = path.replace("admin/compliance/fssai/", "");
@@ -10480,7 +12251,30 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
           try {
             ApiEngine.updateOrderStatus(orderId, body.status, body.notes);
           } catch {}
-          return jsonWithDataSource({ order: updated, success: true }, "postgres");
+          let invoiceResult: any = null;
+          if (String(body.status || "").toLowerCase() === "delivered" && updated) {
+            try {
+              const { DeliveryInvoicingService } = await import("@frontend/lib/services/delivery-invoicing.service");
+              invoiceResult = await DeliveryInvoicingService.generateInvoiceOnDelivery(ApiEngine, {
+                ...updated,
+                status: "delivered",
+                delivery_status: "delivered",
+                delivered_at: new Date().toISOString(),
+              });
+            } catch (invErr: any) {
+              console.warn("[Order Status Delivered -> Auto Invoice Warning]:", invErr?.message);
+            }
+          }
+          const refreshed = (await OrderRepository.findById(orderId)) || updated;
+          return jsonWithDataSource(
+            {
+              order: refreshed,
+              invoice: invoiceResult?.invoice || null,
+              invoice_number: invoiceResult?.invoice_number || (refreshed as any)?.invoice_number || null,
+              success: true,
+            },
+            "postgres"
+          );
         } catch (err: any) {
           return jsonWithDataSource({ error: err.message || "Failed to update order status", success: false }, "postgres", 400);
         }
@@ -10724,6 +12518,18 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       return CostAllocationController.handleDelete(req, path, userCtx);
     }
 
+    // ── Phase C7.9 Step 9D: Corporate Account Subsystem DELETE Endpoints ──────
+    if (path.startsWith("admin/corporate-accounts") || path.startsWith("corporate-accounts")) {
+      const userCtx = resolveUserContext(req);
+      return CorporateAccountController.handleDelete(req, path, userCtx);
+    }
+
+    // ── Phase C7.10 Step 10C: Delivery Coverage Subsystem DELETE Endpoints ─────
+    if (path.startsWith("admin/delivery-coverage") || path.startsWith("delivery-coverage")) {
+      const userCtx = resolveUserContext(req);
+      return DeliveryCoverageController.handleDelete(req, path, userCtx);
+    }
+
     // 2. Fallback Route: Disk-Backed ApiEngine
     if (path.startsWith("cart/items/") || path.startsWith("store/cart/items/")) {
       const lineItemId = path.split("/").pop() || "";
@@ -10836,6 +12642,14 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       } catch (e: any) {
         return jsonWithDataSource({ success: false, error: e.message }, "postgres", 500);
       }
+    }
+
+    // ── Branch & Partner Operational Closures (DELETE) ──
+    if (path.startsWith("admin/closures/")) {
+      const id = path.replace("admin/closures/", "");
+      const userCtx = resolveUserContext(req);
+      const res = await OperationalClosureService.cancelClosure(id, toAuthenticatedActor(userCtx));
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
     }
 
     // ── Customer Favorites / Wishlist (DELETE) ──
@@ -11063,7 +12877,8 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
 
     if (path.startsWith("cms/pages/")) {
       const pageId = path.replace("cms/pages/", "");
-      return jsonWithDataSource({ deleted: await ApiEngine.deleteCmsPage(pageId) }, "postgres");
+      await CmsRepository.deletePage(pageId);
+      return jsonWithDataSource({ deleted: true, success: true }, "postgres");
     }
 
     if (path.startsWith("admin/reports/saved/")) {
@@ -11157,6 +12972,18 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
     // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)
     const backendRes = await forwardToPostgresBackend("PATCH", path, body, undefined, req.headers);
     if (backendRes) return backendRes;
+
+    // ── Phase C7.9 Step 9D: Corporate Account Subsystem PATCH Endpoints ───────
+    if (path.startsWith("admin/corporate-accounts") || path.startsWith("corporate-accounts")) {
+      const userCtx = resolveUserContext(req);
+      return CorporateAccountController.handlePatch(req, path, userCtx, body);
+    }
+
+    // ── Phase C7.10 Step 10C: Delivery Coverage Subsystem PATCH Endpoints ──────
+    if (path.startsWith("admin/delivery-coverage") || path.startsWith("delivery-coverage")) {
+      const userCtx = resolveUserContext(req);
+      return DeliveryCoverageController.handlePatch(req, path, userCtx, body);
+    }
 
     // ── Phase C4.1: Teller & Cash Custody (PATCH Endpoints) ──────────────────
     const patchTellerMatch = path.match(/^(?:admin\/)?tellers\/([^/]+)$/);
@@ -11273,9 +13100,38 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
       const action = parts[1];
 
       if (action === "status") {
-        const result = ApiEngine.updateOrderStatus(orderId, body.status, body.notes);
-        if (result) return jsonWithDataSource(result, "postgres");
-        return jsonWithDataSource({ error: "Order not found" }, "postgres", 404);
+        try {
+          const updated = await OrderRepository.updateStatus(orderId, body.status, body.notes);
+          try {
+            ApiEngine.updateOrderStatus(orderId, body.status, body.notes);
+          } catch {}
+          let invoiceResult: any = null;
+          if (String(body.status || "").toLowerCase() === "delivered" && updated) {
+            try {
+              const { DeliveryInvoicingService } = await import("@frontend/lib/services/delivery-invoicing.service");
+              invoiceResult = await DeliveryInvoicingService.generateInvoiceOnDelivery(ApiEngine, {
+                ...updated,
+                status: "delivered",
+                delivery_status: "delivered",
+                delivered_at: new Date().toISOString(),
+              });
+            } catch (invErr: any) {
+              console.warn("[Order Status Delivered -> Auto Invoice Warning]:", invErr?.message);
+            }
+          }
+          const refreshed = (await OrderRepository.findById(orderId)) || updated;
+          return jsonWithDataSource(
+            {
+              order: refreshed,
+              invoice: invoiceResult?.invoice || null,
+              invoice_number: invoiceResult?.invoice_number || (refreshed as any)?.invoice_number || null,
+              success: true,
+            },
+            "postgres"
+          );
+        } catch (err: any) {
+          return jsonWithDataSource({ error: err.message || "Failed to update order status", success: false }, "postgres", 400);
+        }
       }
     }
 

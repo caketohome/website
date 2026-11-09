@@ -1,0 +1,31 @@
+{
+  "match": "r1-m02",
+  "scores": {
+    "a001": {
+      "correctness": 9.5,
+      "completeness": 9.5,
+      "specificity": 9.0,
+      "robustness": 9.5,
+      "clarity": 9.0,
+      "fatal": false
+    },
+    "a004": {
+      "correctness": 9.0,
+      "completeness": 8.5,
+      "specificity": 8.5,
+      "robustness": 9.0,
+      "clarity": 8.5,
+      "fatal": false
+    }
+  },
+  "winner": "a001",
+  "reason": "Exhaustive expert panel synthesis with concrete adversarial edge cases, explicit acceptance gates, and actionable PIM remediation workflow.",
+  "survived": [
+    "Adversarial edge cases and race conditions incorporated as primary acceptance gates",
+    "Actionable remediation workflow for unmapped products using ProductRepository"
+  ],
+  "standing": {
+    "a001": [],
+    "a004": []
+  }
+}

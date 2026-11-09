@@ -1,0 +1,114 @@
+[
+  {
+    "endpoint": "kpis",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"kpis\":[{\"id\":\"net_revenue\",\"label\":\"Net Revenue\",\"currentValue\":175971,\"previousValue\":0,\"growthPct\":100,\"isPositive\":true,\"unit\":\"cu"
+  },
+  {
+    "endpoint": "transactional",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":{\"periodStart\":\"2026-01-01\",\"periodEnd\":\"2026-12-31\",\"totalOrders\":234,\"validOrders\":229,\"deliveredOrders\":0,\"cancelledOrders\":"
+  },
+  {
+    "endpoint": "products",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":[{\"productId\":\"prod_belgian_chocolate\",\"productName\":\"Celebration Cake\",\"sku\":\"SKU-late\",\"category\":\"Cakes\",\"hsnCode\":\"19059090"
+  },
+  {
+    "endpoint": "branches",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":[{\"branchId\":\"br_indiranagar\",\"branchName\":\"Indiranagar Flagship Bakery\",\"branchCode\":\"HUB-BLR-01\",\"city\":\"Bengaluru\",\"state\":\""
+  },
+  {
+    "endpoint": "cities",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":[{\"city\":\"Unknown\",\"orders\":233,\"units\":234,\"grossSales\":182845.52999999994,\"discounts\":0,\"tax\":3156.5300000000007,\"netSales\":1"
+  },
+  {
+    "endpoint": "service-areas",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":[{\"zoneId\":\"br_indiranagar_z1\",\"zoneName\":\"Indiranagar Flagship Bakery Zone\",\"branchId\":\"br_indiranagar\",\"branchName\":\"Indirana"
+  },
+  {
+    "endpoint": "payments",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":{\"totalCollected\":64179.53,\"totalRefunds\":4351.96,\"netCollected\":59827.57,\"breakdown\":[{\"method\":\"CARD\",\"count\":21,\"grossAmount"
+  },
+  {
+    "endpoint": "gst",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":{\"items\":[{\"hsnCode\":\"19059010\",\"description\":\"Bakery & Confectionery Products\",\"uom\":\"NOS - NUMBERS\",\"quantity\":73,\"taxableVal"
+  },
+  {
+    "endpoint": "orders",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":[{\"orderId\":\"order_1792415295025_ju26\",\"orderNumber\":\"ORD-295025\",\"orderDate\":\"2026-10-19T13:08:15.029Z\",\"deliveryDate\":\"2026-1"
+  },
+  {
+    "endpoint": "customers",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":{\"totalCustomers\":41,\"newCustomers\":12,\"repeatCustomers\":29,\"repeatPurchaseRate\":70.7,\"ltv\":883,\"avgOrdersPerCustomer\":4,\"topCu"
+  },
+  {
+    "endpoint": "cross-sell",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":[{\"primaryItem\":\"Primary\",\"coPurchasedItem\":\"Item\",\"coPurchaseCount\":6,\"attachRatePct\":2.6,\"addedRevenue\":3120},{\"primaryItem\":"
+  },
+  {
+    "endpoint": "delivery",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":{\"totalDeliveries\":234,\"deliveredOrders\":0,\"onTimeDeliveries\":null,\"delayedDeliveries\":null,\"failedDeliveries\":5,\"avgDeliveryMi"
+  },
+  {
+    "endpoint": "exceptions",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":[{\"id\":\"exc_cogs_missing\",\"severity\":\"high\",\"category\":\"financial\",\"ruleId\":\"MISSING_COGS\",\"title\":\"16 Product(s) Missing Cost "
+  },
+  {
+    "endpoint": "daily",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":{\"stats\":{\"periodStart\":\"2026-01-01\",\"periodEnd\":\"2026-12-31\",\"totalOrders\":234,\"validOrders\":229,\"deliveredOrders\":0,\"cancelle"
+  },
+  {
+    "endpoint": "weekly",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":{\"stats\":{\"periodStart\":\"2026-01-01\",\"periodEnd\":\"2026-12-31\",\"totalOrders\":234,\"validOrders\":229,\"deliveredOrders\":0,\"cancelle"
+  },
+  {
+    "endpoint": "monthly",
+    "status": 200,
+    "success": true,
+    "hasData": true,
+    "rawSnippet": "{\"success\":true,\"data\":{\"stats\":{\"periodStart\":\"2026-01-01\",\"periodEnd\":\"2026-12-31\",\"totalOrders\":234,\"validOrders\":229,\"deliveredOrders\":0,\"cancelle"
+  }
+]

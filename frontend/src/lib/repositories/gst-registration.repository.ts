@@ -19,6 +19,21 @@ import type {
 
 export class GstRegistrationRepository {
   /**
+   * List all GST registrations across all companies (or active only).
+   */
+  static async listAll(activeOnly: boolean = false, client?: PoolClient): Promise<GstRegistrationRow[]> {
+    const sql = `
+      SELECT * FROM public.gst_registration
+      ${activeOnly ? "WHERE is_active = true" : ""}
+      ORDER BY state_code, created_at;
+    `;
+    const res = client
+      ? await client.query<GstRegistrationRow>(sql)
+      : await dbQuery<GstRegistrationRow>(sql);
+    return res.rows;
+  }
+
+  /**
    * List all GST registrations for a company, optionally filtered by active status.
    */
   static async listByCompany(
@@ -89,6 +104,7 @@ export class GstRegistrationRepository {
     client?: PoolClient,
   ): Promise<GstRegistrationRow> {
     const id = `gst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const metadata = input.metadata ? JSON.stringify(input.metadata) : '{}';
 
     const sql = `
       INSERT INTO public.gst_registration (
@@ -97,8 +113,8 @@ export class GstRegistrationRepository {
         created_by, created_at, updated_at
       ) VALUES (
         $1, $2, $3, $4, $5,
-        $6, true, $7, '{}',
-        $8, NOW(), NOW()
+        $6, true, $7, $8::jsonb,
+        $9, NOW(), NOW()
       )
       RETURNING *;
     `;
@@ -110,6 +126,7 @@ export class GstRegistrationRepository {
       input.registration_type || "REGULAR",
       input.legal_name?.trim() || null,
       input.effective_from || null,
+      metadata,
       createdBy,
     ];
 

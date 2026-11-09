@@ -1,0 +1,32 @@
+{
+  "database_name": "cth_rehearsal_phase5",
+  "verified_at": "2026-11-06T00:25:16.162Z",
+  "accounting_integrity": {
+    "trial_balance_debits": 1344610.4,
+    "trial_balance_credits": 1344610.4,
+    "difference": 0,
+    "is_balanced": true,
+    "total_journal_lines": 69
+  },
+  "entity_counts": {
+    "bank_accounts": 8,
+    "total_bank_balance": 1250000,
+    "cash_accounts": 1,
+    "total_cash_balance": 5000,
+    "orders": 165,
+    "invoices": 78,
+    "outbox_events": 54,
+    "consumer_receipts": 162
+  },
+  "protected_baseline_integrity": {
+    "database_name": "cth_test",
+    "orders_count": 127,
+    "expected_orders_count": 127,
+    "invoices_count": 71,
+    "expected_invoices_count": 71,
+    "payments_count": 40,
+    "expected_payments_count": 40,
+    "writes_detected": 0,
+    "status": "VERIFIED_100_PERCENT_UNTOUCHED"
+  }
+}

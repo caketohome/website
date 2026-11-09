@@ -50,7 +50,7 @@ async function runRbacVerification() {
 
     // 1. Assign Manager "Rahul Kumar" to Branch "br_indiranagar"
     console.log("\n1. Super Admin Assigning Manager to Branch ('br_indiranagar')...");
-    const assignRes = await postJson('http://localhost:3000/api/v1/admin/branches', {
+    const assignRes = await postJson('http://localhost:3001/api/v1/admin/branches', {
         type: "assign_manager",
         branchId: "br_indiranagar",
         manager: {
@@ -67,7 +67,7 @@ async function runRbacVerification() {
 
     // 2. Test Automatic Phone/Email Login Linking for "rahul.hsr@cakes2home.com"
     console.log("\n2. Testing Automatic Login Linking for Assigned Manager...");
-    const loginRes = await postJson('http://localhost:3000/api/v1/auth/verify-otp', {
+    const loginRes = await postJson('http://localhost:3001/api/v1/auth/verify-otp', {
         phone: "rahul.hsr@cakes2home.com",
         code: "123456"
     });
@@ -78,7 +78,7 @@ async function runRbacVerification() {
 
     // 3. Test Manager Account Suspension
     console.log("\n3. Testing Super Admin Manager Account Suspension...");
-    const suspendRes = await postJson('http://localhost:3000/api/v1/admin/branches', {
+    const suspendRes = await postJson('http://localhost:3001/api/v1/admin/branches', {
         type: "suspend_manager",
         branchId: "br_indiranagar",
         suspend: true
@@ -90,7 +90,7 @@ async function runRbacVerification() {
     console.log("\n4. Testing Login Attempt on Suspended Manager Account...");
     let suspendedLoginErr = false;
     try {
-        const suspendedLogin = await postJson('http://localhost:3000/api/v1/auth/verify-otp', {
+        const suspendedLogin = await postJson('http://localhost:3001/api/v1/auth/verify-otp', {
             phone: "rahul.hsr@cakes2home.com",
             code: "123456"
         });
@@ -105,7 +105,7 @@ async function runRbacVerification() {
 
     // 5. Reactivate Manager Account
     console.log("\n5. Super Admin Reactivating Manager Account...");
-    await postJson('http://localhost:3000/api/v1/admin/branches', {
+    await postJson('http://localhost:3001/api/v1/admin/branches', {
         type: "suspend_manager",
         branchId: "br_indiranagar",
         suspend: false
@@ -113,7 +113,7 @@ async function runRbacVerification() {
 
     // 6. Test Single-Branch Scoped Control Center Access (/dashboard/shop)
     console.log("\n6. Testing Branch Manager Dashboard Access (/dashboard/shop)...");
-    const dashRes = await getUrl('http://localhost:3000/dashboard/shop', '_cth_role=shop; _cth_jwt=mock_jwt_access_token');
+    const dashRes = await getUrl('http://localhost:3001/dashboard/shop', '_cth_role=shop; _cth_jwt=mock_jwt_access_token');
     console.log(`   Dashboard HTTP Status: ${dashRes.status}`);
     const isDashboardLoaded = dashRes.status === 200 && dashRes.text.includes("Shop Dashboard");
     console.log(`   Dashboard Loaded cleanly: ${isDashboardLoaded ? "YES ✅" : "NO ❌"}`);

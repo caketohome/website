@@ -49,3 +49,25 @@ export * from "./cost-allocation-engine.service";
 export * from "./cost-allocation-workflow.service";
 // Phase C7.7: Corporate Gifting Service
 export * from "./corporate-gifting.service";
+// Phase C7.9: Corporate Account & Employee Roster Domain Services
+export * from "./corporate-account.service";
+export * from "./corporate-employee.service";
+export * from "./corporate-employee-import.service";
+// Phase C7.10: Delivery Coverage Service
+export * from "./delivery-coverage.service";
+// Phase C7.11: Corporate Routing Service
+export * from "./corporate-routing.service";
+// Partner Marketplace, Shared Inventory, Feature Toggles & Operational Closures
+export * from "./shared-inventory.service";
+export * from "./feature-flag.service";
+export * from "./operational-closure.service";
+export * from "./marketplace-partner.service";
+export * from "./marketplace-order.service";
+export * from "./marketplace-reconciliation.service";
+// Phase GST: GST Reporting & Excel Export Service
+export * from "./gst-reporting.service";
+// Phase Tax Master: Authoritative Tax Resolver Service
+export * from "./tax-resolver.service";
+// Payment Verification & Order Confirmation Domain Service
+export * from "./payment-verification.service";
+

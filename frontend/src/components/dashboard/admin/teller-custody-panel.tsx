@@ -42,12 +42,13 @@ import { BranchCashTab } from "./teller/BranchCashTab";
 type SubTabId = "active_drawer" | "work_queue" | "history" | "stations" | "branch_cash";
 
 export const TellerCustodyPanel = memo(function TellerCustodyPanel() {
-  const [activeSubTab, setActiveSubTab] = useState<SubTabId>("active_drawer");
+  const [activeSubTab, setActiveSubTab] = useState<SubTabId>("branch_cash");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // User auth context from cookie
-  const [user, setUser] = useState<{ userId: string; role: string } | null>(null);
+  // User auth context from cookie
+  const [user, setUser] = useState<{ userId: string; role: string; branchId?: string } | null>(null);
 
   // Master Data
   const [branches, setBranches] = useState<{ id: string; name: string; code?: string }[]>([]);
@@ -72,7 +73,12 @@ export const TellerCustodyPanel = memo(function TellerCustodyPanel() {
 
       const role = (cookies["_cth_role"] || "SUPER_ADMIN").toUpperCase();
       const userId = cookies["_cth_user_id"] || "admin_01";
-      setUser({ role, userId });
+      const branchId = cookies["_cth_branch_id"] || "";
+      setUser({ role, userId, branchId });
+
+      if (branchId) {
+        setSelectedBranchId(branchId);
+      }
 
       const subtabParam = new URLSearchParams(window.location.search).get("subtab") as SubTabId;
       if (subtabParam && ["active_drawer", "work_queue", "history", "stations", "branch_cash"].includes(subtabParam)) {
@@ -89,16 +95,21 @@ export const TellerCustodyPanel = memo(function TellerCustodyPanel() {
         const data = await res.json();
         if (data.branches && data.branches.length > 0) {
           setBranches(data.branches);
-          if (!selectedBranchId) {
-            setSelectedBranchId(data.branches[0].id);
-          }
+          setSelectedBranchId((current) => {
+            if (current) return current;
+            if (user?.branchId) {
+              const matched = data.branches.find((b: any) => b.id === user.branchId);
+              if (matched) return matched.id;
+            }
+            return data.branches[0].id;
+          });
         }
       } catch (err: any) {
         console.error("Failed to load branches:", err);
       }
     }
     loadBranches();
-  }, []);
+  }, [user?.branchId]);
 
   // Fetch tellers for selected branch
   const loadTellers = useCallback(async () => {
@@ -108,7 +119,7 @@ export const TellerCustodyPanel = memo(function TellerCustodyPanel() {
       const data = await res.json();
       if (data.success && Array.isArray(data.tellers)) {
         setTellers(data.tellers);
-        // Default to first teller or active user's teller
+        // Default to active user's teller, or first teller (which is now guaranteed by ensureDefaultBranchTeller)
         if (data.tellers.length > 0) {
           const matchingUserTeller = data.tellers.find((t: TellerRow) => t.user_id === user?.userId);
           setActiveTeller(matchingUserTeller || data.tellers[0]);
@@ -130,12 +141,14 @@ export const TellerCustodyPanel = memo(function TellerCustodyPanel() {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch active session
-      const activeRes = await fetch(
-        activeTeller
-          ? `/api/v1/admin/teller/sessions/active?teller_id=${activeTeller.id}`
-          : "/api/v1/admin/teller/sessions/active"
-      );
+      // 1. Fetch active session for the active counter station or branch
+      const activeUrl = activeTeller
+        ? `/api/v1/admin/teller/sessions/active?teller_id=${activeTeller.id}`
+        : selectedBranchId
+        ? `/api/v1/admin/teller/sessions/active?branch_id=${selectedBranchId}`
+        : "/api/v1/admin/teller/sessions/active";
+
+      const activeRes = await fetch(activeUrl);
       const activeData = await activeRes.json();
       if (activeData.success) {
         setActiveSession(activeData.session || null);
@@ -143,7 +156,10 @@ export const TellerCustodyPanel = memo(function TellerCustodyPanel() {
 
       // 2. Fetch all sessions for work queue and history
       const listParams = new URLSearchParams();
-      if (selectedBranchId) listParams.set("branch_id", selectedBranchId);
+      // If branch manager, restrict to assigned branch; if admin, load company-wide sessions
+      if (selectedBranchId && user?.role === "BRANCH_MANAGER") {
+        listParams.set("branch_id", selectedBranchId);
+      }
       listParams.set("limit", "100");
 
       const listRes = await fetch(`/api/v1/admin/teller/sessions?${listParams.toString()}`);
@@ -156,24 +172,32 @@ export const TellerCustodyPanel = memo(function TellerCustodyPanel() {
     } finally {
       setLoading(false);
     }
-  }, [activeTeller, selectedBranchId]);
+  }, [activeTeller, selectedBranchId, user?.role]);
 
   useEffect(() => {
     loadSessionsData();
   }, [loadSessionsData]);
 
-  // Fetch movements for active session
+  // Fetch movements for active session or continuous branch custody
   const loadMovements = useCallback(async () => {
-    if (!activeSession) {
-      setMovements([]);
-      return;
-    }
     setLoadingMovements(true);
     try {
-      const res = await fetch(`/api/v1/admin/teller/sessions/${activeSession.id}/movements`);
-      const data = await res.json();
-      if (data.success && Array.isArray(data.movements)) {
-        setMovements(data.movements);
+      if (activeSession) {
+        const res = await fetch(`/api/v1/admin/teller/sessions/${activeSession.id}/movements`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.movements)) {
+          setMovements(data.movements);
+        } else {
+          setMovements([]);
+        }
+      } else if (selectedBranchId) {
+        const res = await fetch(`/api/v1/admin/teller/movements?branch_id=${selectedBranchId}`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.movements)) {
+          setMovements(data.movements);
+        } else {
+          setMovements([]);
+        }
       } else {
         setMovements([]);
       }
@@ -183,7 +207,7 @@ export const TellerCustodyPanel = memo(function TellerCustodyPanel() {
     } finally {
       setLoadingMovements(false);
     }
-  }, [activeSession]);
+  }, [activeSession, selectedBranchId]);
 
   useEffect(() => {
     loadMovements();
@@ -250,6 +274,18 @@ export const TellerCustodyPanel = memo(function TellerCustodyPanel() {
         {/* Sub-Tab Navigation Bar */}
         <div className="flex border-b border-slate-200 gap-1 overflow-x-auto">
           <button
+            onClick={() => setActiveSubTab("branch_cash")}
+            className={`py-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
+              activeSubTab === "branch_cash"
+                ? "border-emerald-600 text-emerald-600"
+                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+            }`}
+          >
+            <Coins className="w-4 h-4" />
+            <span>Branch Cash Custody & Position</span>
+          </button>
+
+          <button
             onClick={() => setActiveSubTab("active_drawer")}
             className={`py-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
               activeSubTab === "active_drawer"
@@ -258,7 +294,7 @@ export const TellerCustodyPanel = memo(function TellerCustodyPanel() {
             }`}
           >
             <Wallet className="w-4 h-4" />
-            <span>Active Shift & Till</span>
+            <span>Counter Till / Drawer</span>
             {activeSession?.status === "OPEN" && (
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             )}
@@ -303,18 +339,6 @@ export const TellerCustodyPanel = memo(function TellerCustodyPanel() {
           >
             <Building className="w-4 h-4" />
             <span>Counter Stations</span>
-          </button>
-
-          <button
-            onClick={() => setActiveSubTab("branch_cash")}
-            className={`py-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
-              activeSubTab === "branch_cash"
-                ? "border-emerald-600 text-emerald-600"
-                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
-            }`}
-          >
-            <Coins className="w-4 h-4" />
-            <span>Branch Cash Position</span>
           </button>
         </div>
 

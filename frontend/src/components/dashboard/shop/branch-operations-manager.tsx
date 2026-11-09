@@ -29,8 +29,6 @@ import {
   submitBranchExpense,
   fetchExpenseCategories,
   fetchBranchCashPosition,
-  recordDrawerOpeningFloat,
-  recordDrawerClosingCount,
   fetchBranchRiderCodCustody,
   settleRiderCodShift,
   reportCodShortage,
@@ -149,11 +147,6 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
 
   // ── Tab 5: Cash & Teller State ──────────────────────────────────────────────
   const [cashPosition, setCashPosition] = useState<any>(null);
-  const [openingFloatInput, setOpeningFloatInput] = useState<string>("");
-  const [openingFloatNotes, setOpeningFloatNotes] = useState<string>("");
-  const [closingCountInput, setClosingCountInput] = useState<string>("");
-  const [closingCountNotes, setClosingCountNotes] = useState<string>("");
-  const [cashSubmitting, setCashSubmitting] = useState(false);
 
   // Rider COD Settlement
   const [riderCodList, setRiderCodList] = useState<any[]>([]);
@@ -1166,16 +1159,16 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {activeTab === "cash" && (
         <div className="space-y-8">
-          {/* Section 1: Cash Drawer Float Management */}
+          {/* Section 1: Canonical Teller Cash Drawer & Custody Terminal */}
           <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-3">
               <div>
                 <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
                   <Coins className="w-5 h-5 text-emerald-600" />
-                  Cash Drawer Opening & Closing Float
+                  Branch Teller Cash Drawer & Custody Terminal
                 </h3>
                 <p className="text-xs text-zinc-500">
-                  Daily physical drawer float controls. (Invariant 5: Operational drawer count only — does not alter GL Account 1111).
+                  Authoritative relational teller sessions, float controls, and 3-tier Segregation of Duties.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -1186,7 +1179,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                       : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
                   }`}
                 >
-                  Drawer Mode: {cashPosition?.drawer_status || "CLOSED"}
+                  Drawer Status: {cashPosition?.drawer_status || "CLOSED"}
                 </span>
                 {cashPosition && (
                   <>
@@ -1211,108 +1204,45 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              {/* Drawer Open Controls */}
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3">
-                <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                  1. Record Physical Opening Float
-                </span>
-                <p className="text-[11px] text-zinc-500">
-                  Count initial currency notes placed into the cash drawer at the start of today&apos;s shift.
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1">
+                <span className="text-[10px] uppercase font-bold text-zinc-400">Opening Cash Float</span>
+                <p className="text-xl font-mono font-bold text-zinc-900 dark:text-white">
+                  {fmt(cashPosition?.opening_float || 0)}
                 </p>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    placeholder="e.g. 5000"
-                    value={openingFloatInput}
-                    onChange={(e) => setOpeningFloatInput(e.target.value)}
-                    disabled={cashPosition?.drawer_status === "OPEN"}
-                    className="w-full p-2 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono"
-                  />
-                  <button
-                    onClick={async () => {
-                      if (!openingFloatInput || Number(openingFloatInput) < 0) {
-                        alert("Please enter a valid opening float amount.");
-                        return;
-                      }
-                      setCashSubmitting(true);
-                      try {
-                        await recordDrawerOpeningFloat(Number(openingFloatInput), openingFloatNotes);
-                        const pos = await fetchBranchCashPosition();
-                        setCashPosition(pos);
-                        alert("Opening float operational count recorded.");
-                      } finally {
-                        setCashSubmitting(false);
-                      }
-                    }}
-                    disabled={cashPosition?.drawer_status === "OPEN" || cashSubmitting}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition disabled:opacity-50 whitespace-nowrap"
-                  >
-                    Open Drawer
-                  </button>
-                </div>
-                {cashPosition?.opening_float > 0 && (
-                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
-                    ✓ Shift opened with opening float: {fmt(cashPosition.opening_float)}
-                  </p>
-                )}
+                <p className="text-[11px] text-zinc-500">
+                  {cashPosition?.drawer_status === "OPEN" ? "Active authorized shift float" : "No active opening float"}
+                </p>
               </div>
 
-              {/* Drawer Close Controls */}
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3">
-                <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                  2. Record Day-End Closing Cash Count
-                </span>
-                <p className="text-[11px] text-zinc-500">
-                  Expected Drawer Cash: <b className="font-mono text-zinc-900 dark:text-white">{fmt(cashPosition?.expected_drawer_cash || 0)}</b>
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1">
+                <span className="text-[10px] uppercase font-bold text-zinc-400">Expected Drawer Cash</span>
+                <p className="text-xl font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                  {fmt(cashPosition?.expected_drawer_cash || 0)}
                 </p>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    placeholder="Counted cash at close"
-                    value={closingCountInput}
-                    onChange={(e) => setClosingCountInput(e.target.value)}
-                    className="w-full p-2 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono"
-                  />
-                  <button
-                    onClick={async () => {
-                      if (!closingCountInput || Number(closingCountInput) < 0) {
-                        alert("Please enter valid closing count.");
-                        return;
-                      }
-                      setCashSubmitting(true);
-                      try {
-                        await recordDrawerClosingCount(Number(closingCountInput), closingCountNotes);
-                        const pos = await fetchBranchCashPosition();
-                        setCashPosition(pos);
-                        alert("Day-end closing count recorded.");
-                      } finally {
-                        setCashSubmitting(false);
-                      }
-                    }}
-                    disabled={cashSubmitting}
-                    className="px-4 py-2 bg-zinc-900 hover:bg-black text-white dark:bg-white dark:text-zinc-900 font-bold text-xs rounded-xl transition whitespace-nowrap"
-                  >
-                    Close Drawer
-                  </button>
-                </div>
-                {closingCountInput && (
-                  <p className="text-[11px] font-bold">
-                    Variance:{" "}
-                    <span
-                      className={
-                        Number(closingCountInput) - Number(cashPosition?.expected_drawer_cash || 0) < 0
-                          ? "text-rose-600"
-                          : "text-emerald-600"
-                      }
-                    >
-                      {fmt(Number(closingCountInput) - Number(cashPosition?.expected_drawer_cash || 0))}
-                    </span>
+                <p className="text-[11px] text-zinc-500">
+                  Live calculated from movements & float
+                </p>
+              </div>
+
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-zinc-400">Canonical Teller Custody</span>
+                  <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mt-1">
+                    Manage shifts, count verification & settlements in the Master Teller Workspace.
                   </p>
-                )}
+                </div>
+                <a
+                  href="/dashboard?tab=teller_custody"
+                  className="mt-3 inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition"
+                >
+                  <span>Launch Teller Custody Terminal</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </a>
               </div>
             </div>
           </div>
+
 
           {/* Section 2: Rider COD Remittance Handover */}
           <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">

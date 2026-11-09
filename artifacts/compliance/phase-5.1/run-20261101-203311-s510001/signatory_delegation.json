@@ -1,0 +1,25 @@
+{
+  "run_id": "run-20261101-203311-s510001",
+  "delegation_model": "DUAL_CONTROL_AUTHORITY",
+  "proposed_roles": [
+    {
+      "role": "Finance Director / CFO",
+      "authority_scope": "Approval of invoice series, tax rate schedules, credit notes",
+      "board_authorization_status": "PENDING_EVIDENCE",
+      "current_technical_enforcement": "ENFORCED_IN_RBAC"
+    },
+    {
+      "role": "IT Systems Administrator / Lead Architect",
+      "authority_scope": "Technical configuration, sequence table maintenance, deployment",
+      "board_authorization_status": "PENDING_EVIDENCE",
+      "current_technical_enforcement": "ENFORCED_IN_RBAC"
+    },
+    {
+      "role": "Statutory Operations Lead",
+      "authority_scope": "Day-to-day order processing, billing review, dispatch verification",
+      "board_authorization_status": "PENDING_EVIDENCE",
+      "current_technical_enforcement": "ENFORCED_IN_RBAC"
+    }
+  ],
+  "segregation_of_duties_rule": "No single officer may combine financial approval and IT production release permissions."
+}

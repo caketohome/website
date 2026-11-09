@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T12:21:59.531Z",
+  "legal_entity": "CakeToHome India Private Limited",
+  "gstin": "29AABCC1234F1Z5",
+  "selected_prefix": "CH",
+  "format_template": "CH/26-27/000001",
+  "rule_46b_compliance": {
+    "max_length_limit": 16,
+    "tested_lengths": {
+      "initial_6_digits": {
+        "sample": "CH/26-27/000001",
+        "length": 15,
+        "valid": true
+      },
+      "upper_6_digits": {
+        "sample": "CH/26-27/999999",
+        "length": 15,
+        "valid": true
+      },
+      "expanded_7_digits": {
+        "sample": "CH/26-27/1000000",
+        "length": 16,
+        "valid": true
+      },
+      "upper_7_digits": {
+        "sample": "CH/26-27/9999999",
+        "length": 16,
+        "valid": true
+      },
+      "overflow_8_digits": {
+        "sample": "CH/26-27/10000000",
+        "length": 17,
+        "valid": false,
+        "blocked": true
+      }
+    },
+    "consecutive_gapless": true,
+    "fiscal_year_isolated": true,
+    "permitted_characters_only": true
+  }
+}

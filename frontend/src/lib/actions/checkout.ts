@@ -21,6 +21,13 @@ export async function getCheckoutAvailabilityAction(payload: {
   coupon_code?: string;
 }) {
   const cookieStore = cookies();
+  if ((payload.payment_method as string) === "razorpay") {
+    return {
+      success: false,
+      error: "Razorpay payment gateway is decommissioned. Please select Cashfree for online payments.",
+    };
+  }
+
   const cartId = payload.cart_id || cookieStore.get("_cth_cart_id")?.value || cookieStore.get("_medusa_cart_id")?.value || "cart_guest";
   const pincode = payload.pincode || cookieStore.get("delivery_pincode")?.value;
 
@@ -90,7 +97,7 @@ export async function confirmCheckoutAction(payload: {
   delivery_type?: string;
   branch_id?: string;
   coupon_code?: string;
-  payment_method: "cod" | "razorpay" | "test_mode" | "wallet";
+  payment_method: "cod" | "cashfree" | "test_mode" | "wallet";
   payment_details?: any;
   occasion?: string;
   ordered_for_self?: boolean;
@@ -157,7 +164,7 @@ export async function placeOrder(prevState: any, data: FormData) {
 
   const deliveryDate = data.get("delivery-date")?.toString() || data.get("delivery_date")?.toString() || new Date().toISOString().slice(0, 10);
   const deliverySlotId = data.get("delivery-slot")?.toString() || data.get("delivery_slot_id")?.toString() || "slot_morning";
-  const paymentMethod = (data.get("payment-method")?.toString() || "cod") as "cod" | "razorpay" | "test_mode";
+  const paymentMethod = (data.get("payment-method")?.toString() || "cashfree") as "cod" | "cashfree" | "test_mode";
 
   const occasion = data.get("occasion")?.toString() || "Celebration";
   const orderedForSelf = data.get("ordered-for-self")?.toString() !== "false" && data.get("ordered_for_self")?.toString() !== "false";
@@ -214,6 +221,12 @@ export async function placeOrder(prevState: any, data: FormData) {
 
   if (!result.success) {
     return { message: result.error || "Failed to place order. Please verify your details." };
+  }
+
+  if (paymentMethod === "cashfree") {
+    const orderId = result.order_id || "";
+    const amount = Number(result.pricing?.grand_total || result.total || 525);
+    redirect(`/checkout/cashfree?order_id=${encodeURIComponent(orderId)}&amount=${amount}`);
   }
 
   redirect(`/your-order?order_id=${encodeURIComponent(result.order_id || "")}`);

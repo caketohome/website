@@ -287,9 +287,9 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
         slug: p.handle || p.id,
         description: p.description || "",
         short_description: meta.short_description || p.description || "",
-        thumbnail: p.thumbnail || "",
-        gallery: Array.isArray(meta.gallery) ? meta.gallery : [p.thumbnail || ""],
-        status: p.status || "published",
+        thumbnail: meta.thumbnail || p.thumbnail || "",
+        gallery: (() => { const t = meta.thumbnail || p.thumbnail || ""; return (Array.isArray(meta.gallery) && meta.gallery.length > 0) ? meta.gallery : (t ? [t] : []); })(),
+        status: meta.status || p.status || "published",
         price,
         selling_price: price,
         cost_price: Number(meta.cost_price || 350),
@@ -314,11 +314,12 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
         occasion_ids: meta.occasion_ids || [],
         brand: meta.brand || "CakeToHome Signature",
         cake_type: meta.cake_type || "Layer Cake",
-        gst_rate: Number(meta.gst_rate || 5),
-        tax_class: meta.tax_class || "GST_FOOD_5",
-        tax_configuration_id: meta.tax_configuration_id || "txcfg_food_5",
-        hsn_code: meta.hsn_code || "19059090",
-        hsn_description: meta.hsn_description || "Cakes, Pastries & Bakery Goods",
+        gst_rate: typeof meta.gst_rate === "number" ? meta.gst_rate : (meta.gst_rate ? Number(meta.gst_rate) : undefined),
+        tax_class: meta.tax_class || undefined,
+        tax_configuration_id: meta.tax_rate_id || meta.tax_configuration_id || undefined,
+        tax_rate_id: meta.tax_rate_id || meta.tax_configuration_id || undefined,
+        hsn_code: meta.hsn_code || "",
+        hsn_description: meta.hsn_description || (meta.hsn_code ? "Cakes, Pastries & Bakery Goods" : "Unclassified (Missing HSN Code)"),
         uqc: meta.uqc || "NOS",
         taxability: meta.taxability || "Taxable",
         tax_inclusive: meta.tax_inclusive !== false,
@@ -684,10 +685,10 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
             stock: 0, // Relational stock belongs strictly to branch_inventory
             low_stock_threshold: Number(meta.low_stock_threshold || 5),
             gst_rate: Number(meta.gst_rate || 18),
-            thumbnail: p.thumbnail || "",
-            images: Array.isArray(meta.gallery) && meta.gallery.length > 0 ? meta.gallery : [p.thumbnail || ""],
+            thumbnail: meta.thumbnail || p.thumbnail || "",
+            images: (() => { const t = meta.thumbnail || p.thumbnail || ""; return (Array.isArray(meta.gallery) && meta.gallery.length > 0) ? meta.gallery : (t ? [t] : []); })(),
             description: p.description || "",
-            status: p.status || "active",
+            status: meta.status || p.status || "active",
             weight: p.weight || "50g",
             created_at: p.created_at,
             updated_at: p.updated_at,
@@ -900,6 +901,9 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
  * Persists a Branch and its Delivery Zones to PostgreSQL
  */
 export async function persistBranchToDb(branch: any): Promise<void> {
+  if (!process.env.DATABASE_URL || process.env.SKIP_DB_PERSISTENCE === "true") {
+    return;
+  }
   const id = branch.id;
   const lat = typeof branch.latitude === "number" ? branch.latitude : 8.8932;
   const lng = typeof branch.longitude === "number" ? branch.longitude : 76.6141;
@@ -1074,11 +1078,13 @@ export async function persistProductToDb(product: any): Promise<void> {
     occasion_ids: product.occasion_ids || ["occ_birthday"],
     brand: product.brand || "CakeToHome Signature",
     cake_type: product.cake_type || "Layer Cake",
-    gst_rate: Number(product.gst_rate || 5),
-    tax_class: product.tax_class || "GST_FOOD_5",
-    tax_configuration_id: product.tax_configuration_id || "txcfg_food_5",
-    hsn_code: product.hsn_code || "19059090",
-    hsn_description: product.hsn_description || "Cakes, Pastries & Bakery Goods",
+    gst_rate: typeof product.gst_rate === "number" ? product.gst_rate : (product.gst_rate ? Number(product.gst_rate) : undefined),
+    tax_class: product.tax_class || undefined,
+    tax_configuration_id: product.tax_rate_id || product.tax_configuration_id || undefined,
+    tax_rate_id: product.tax_rate_id || product.tax_configuration_id || undefined,
+    hsn_code: product.hsn_code || "",
+    sku: (product as any).sku || (product.metadata && (product.metadata as any).sku) || "",
+    hsn_description: product.hsn_description || (product.hsn_code ? "Cakes, Pastries & Bakery Goods" : "Unclassified (Missing HSN Code)"),
     uqc: product.uqc || "NOS",
     taxability: product.taxability || "Taxable",
     tax_inclusive: product.tax_inclusive !== false,
@@ -1115,31 +1121,31 @@ export async function persistProductToDb(product: any): Promise<void> {
     weight_prices: product.weight_prices || (product.metadata && product.metadata.weight_prices) || [],
     enable_flavor_selection: product.enable_flavor_selection,
     enable_shape_selection: product.enable_shape_selection,
+    merchandise_type: (product.merchandise_type || (product.metadata && product.metadata.merchandise_type) || "CAKE").toUpperCase(),
   };
+  const merchType = metadata.merchandise_type;
 
   await dbQuery(
     `
-    INSERT INTO "product" ("id", "title", "handle", "subtitle", "description", "thumbnail", "status", "is_giftcard", "discountable", "metadata", "created_at", "updated_at")
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+    INSERT INTO "product" ("id", "title", "handle", "description", "metadata", "merchandise_type", "hsn_code", "sku", "created_at")
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
     ON CONFLICT ("id") DO UPDATE SET
       "title" = EXCLUDED.title,
       "handle" = EXCLUDED.handle,
       "description" = EXCLUDED.description,
-      "thumbnail" = EXCLUDED.thumbnail,
       "metadata" = EXCLUDED.metadata,
-      "updated_at" = NOW()
+      "merchandise_type" = EXCLUDED.merchandise_type,
+      "hsn_code" = EXCLUDED.hsn_code
   `,
     [
       id,
       product.title || product.name || "Gourmet Cake",
       product.handle || product.slug || id,
-      product.subtitle || "",
       product.description || "",
-      product.thumbnail || "",
-      product.status || "published",
-      false,
-      true,
-      JSON.stringify(metadata),
+      JSON.stringify({ ...metadata, thumbnail: product.thumbnail || "", status: product.status || "published" }),
+      merchType,
+      (product as any).hsn_code || metadata.hsn_code || "",
+      (product as any).sku || metadata.sku || id,
     ]
   );
 }
@@ -1199,6 +1205,9 @@ export async function deleteProductFromDb(productId: string): Promise<void> {
  * Persists a Customer to PostgreSQL
  */
 export async function persistCustomerToDb(customer: any): Promise<void> {
+  if (!process.env.DATABASE_URL || process.env.SKIP_DB_PERSISTENCE === "true") {
+    return;
+  }
   const id = customer.id || customer.customer_uid || `cus_${Date.now()}`;
   const metadata = {
     customer_uid: customer.customer_uid || id,
@@ -1288,6 +1297,9 @@ export async function deleteCustomerAddressFromDb(customerId: string, addressId:
  * Persists a Delivery Partner to PostgreSQL
  */
 export async function persistDeliveryPartnerToDb(partner: any): Promise<void> {
+  if (!process.env.DATABASE_URL || process.env.SKIP_DB_PERSISTENCE === "true") {
+    return;
+  }
   const id = partner.id || `dlp_${Date.now()}`;
   const nameParts = (partner.name || `Driver ${partner.partner_number || "01"}`).trim().split(" ");
   const firstName = partner.first_name || nameParts[0] || "Driver";
@@ -1322,6 +1334,9 @@ export async function persistDeliveryPartnerToDb(partner: any): Promise<void> {
  * Persists an Order to PostgreSQL
  */
 export async function persistOrderToDb(order: any): Promise<void> {
+  if ((!process.env.DATABASE_URL && !process.env.TEST_DATABASE_URL) || process.env.SKIP_DB_PERSISTENCE === "true") {
+    return;
+  }
   const id = order.id || `ord_${Date.now()}`;
   const rawStatus = (order.status || "pending").toLowerCase();
   const validPgStatus = ["completed", "canceled", "draft", "archived", "requires_action"].includes(rawStatus)
@@ -1330,68 +1345,170 @@ export async function persistOrderToDb(order: any): Promise<void> {
 
   const numTotal = Number(order.total_amount || order.total || order.grand_total || 0);
   const customerId = order.customer_id || order.customer_uid || null;
+  const items = Array.isArray(order.items) && order.items.length > 0
+    ? order.items
+    : Array.isArray(order.metadata?.items) && order.metadata.items.length > 0
+    ? order.metadata.items
+    : [];
 
-  await dbQuery(
-    `
-    INSERT INTO "order" ("id", "display_id", "customer_id", "email", "currency_code", "status", "metadata", "created_at", "updated_at")
-    VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
-    ON CONFLICT ("id") DO UPDATE SET
-      "status" = EXCLUDED.status,
-      "customer_id" = COALESCE(EXCLUDED.customer_id, "order"."customer_id"),
-      "metadata" = EXCLUDED.metadata,
-      "updated_at" = NOW()
-  `,
-    [
-      id,
-      typeof order.display_id === "number" ? order.display_id : (parseInt(String(order.display_id || "").replace(/\D/g, "").slice(-6), 10) || 1001),
-      customerId,
-      order.email || order.customer_email || "customer@caketohome.com",
-      "inr",
-      validPgStatus,
-      JSON.stringify({
-        ...(order.metadata || {}),
-        items: order.items || order.metadata?.items || [],
-        delivery: (() => {
-          const d = order.delivery || order.metadata?.delivery || {};
-          if (d && typeof d === 'object') {
-            const { order: _o, ...rest } = d;
-            return rest;
-          }
-          return {};
-        })(),
-        delivery_latitude: order.delivery_latitude || null,
-        delivery_longitude: order.delivery_longitude || null,
-        delivery_slot_id: order.delivery_slot_id || order.delivery?.slot_id || null,
-        delivery_slot_time: order.delivery_slot_time || order.delivery?.slot_time || null,
-        delivery_date: order.delivery_date || order.delivery?.date || null,
-        branch_id: order.branch_id || null,
-        delivery_zone_id: order.delivery_zone_id || null,
-        total_amount: numTotal,
-        payment_method: order.payment_method || "cod",
-        payment_status: order.payment_status || "pending",
-        customer_uid: order.customer_uid || order.customer_id || null,
-        customer_phone: order.customer_phone || order.phone || null,
-        customer_name: order.customer_name || null,
-        bakery_status: order.status || "confirmed",
-        order_number: order.order_number || `ORD-${id.slice(-6)}`,
-        delivery_address: order.delivery_address || order.delivery?.address || order.metadata?.delivery_address || null,
-        delivery_state: order.delivery_state || order.state || order.delivery?.state || order.metadata?.delivery_state || null,
-        delivery_city: order.delivery_city || order.city || order.delivery?.city || order.metadata?.delivery_city || null,
-        delivery_pincode: order.delivery_pincode || order.pincode || order.delivery?.pincode || order.metadata?.delivery_pincode || null,
-        state: order.delivery_state || order.state || order.metadata?.state || null,
-        city: order.delivery_city || order.city || order.metadata?.city || null,
-        pincode: order.delivery_pincode || order.pincode || order.metadata?.pincode || null,
-        invoice_number: order.invoice_number || order.metadata?.invoice_number || null,
-        invoice_id: order.invoice_id || order.metadata?.invoice_id || null,
-        accounting_voucher_id: order.accounting_voucher_id || order.metadata?.accounting_voucher_id || null,
-        delivery_otp: order.delivery_otp || order.delivery?.delivery_otp || order.metadata?.delivery_otp || null,
-        pickup_otp: order.pickup_otp || order.delivery?.pickup_otp || order.metadata?.pickup_otp || null,
-        delivery_partner_id: order.delivery_partner_id || order.delivery?.delivery_partner_id || order.metadata?.delivery_partner_id || null,
-        delivery_status: order.delivery_status || order.delivery?.delivery_status || order.metadata?.delivery_status || "pending",
-        is_ledger_eligible: order.is_ledger_eligible !== false,
-      }),
-    ]
-  );
+  await dbTransaction(async (client) => {
+    // 1. Upsert Order
+    await client.query(
+      `
+      INSERT INTO "order" ("id", "display_id", "email", "currency_code", "status", "metadata", "created_at", "updated_at")
+      VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+      ON CONFLICT ("id") DO UPDATE SET
+        "status" = EXCLUDED.status,
+        "metadata" = EXCLUDED.metadata,
+        "updated_at" = NOW()
+    `,
+      [
+        id,
+        typeof order.display_id === "number" ? order.display_id : (parseInt(String(order.display_id || "").replace(/\D/g, "").slice(-6), 10) || 1001),
+        order.email || order.customer_email || "customer@caketohome.com",
+        "inr",
+        validPgStatus,
+        JSON.stringify({
+          ...(order.metadata || {}),
+          items,
+          delivery: (() => {
+            const d = order.delivery || order.metadata?.delivery || {};
+            if (d && typeof d === 'object') {
+              const { order: _o, ...rest } = d;
+              return rest;
+            }
+            return {};
+          })(),
+          delivery_latitude: order.delivery_latitude || null,
+          delivery_longitude: order.delivery_longitude || null,
+          delivery_slot_id: order.delivery_slot_id || order.delivery?.slot_id || null,
+          delivery_slot_time: order.delivery_slot_time || order.delivery?.slot_time || null,
+          delivery_date: order.delivery_date || order.delivery?.date || null,
+          branch_id: order.branch_id || null,
+          delivery_zone_id: order.delivery_zone_id || null,
+          total_amount: numTotal,
+          payment_method: order.payment_method || "cod",
+          payment_status: order.payment_status || "pending",
+          customer_uid: order.customer_uid || order.customer_id || null,
+          customer_phone: order.customer_phone || order.phone || null,
+          customer_name: order.customer_name || null,
+          bakery_status: order.status || "confirmed",
+          order_number: order.order_number || `ORD-${id.slice(-6)}`,
+          delivery_address: order.delivery_address || order.delivery?.address || order.metadata?.delivery_address || null,
+          delivery_state: order.delivery_state || order.state || order.delivery?.state || order.metadata?.delivery_state || null,
+          delivery_city: order.delivery_city || order.city || order.delivery?.city || order.metadata?.delivery_city || null,
+          delivery_pincode: order.delivery_pincode || order.pincode || order.delivery?.pincode || order.metadata?.delivery_pincode || null,
+          state: order.delivery_state || order.state || order.metadata?.state || null,
+          city: order.delivery_city || order.city || order.metadata?.city || null,
+          pincode: order.delivery_pincode || order.pincode || order.metadata?.pincode || null,
+          invoice_number: order.invoice_number || order.metadata?.invoice_number || null,
+          invoice_id: order.invoice_id || order.metadata?.invoice_id || null,
+          accounting_voucher_id: order.accounting_voucher_id || order.metadata?.accounting_voucher_id || null,
+          delivery_otp: order.delivery_otp || order.delivery?.delivery_otp || order.metadata?.delivery_otp || null,
+          pickup_otp: order.pickup_otp || order.delivery?.pickup_otp || order.metadata?.pickup_otp || null,
+          delivery_partner_id: order.delivery_partner_id || order.delivery?.delivery_partner_id || order.metadata?.delivery_partner_id || null,
+          delivery_status: order.delivery_status || order.delivery?.delivery_status || order.metadata?.delivery_status || "pending",
+          is_ledger_eligible: order.is_ledger_eligible !== false,
+        }),
+      ]
+    );
+
+    // 2. Persist Relational Order Lines Atomically
+    if (items.length > 0) {
+      for (let idx = 0; idx < items.length; idx++) {
+        const item = items[idx];
+        const lineItemId = item.line_item_id || item.id || `oli_${id}_${idx}`;
+        const orderItemId = item.order_item_id || `oi_${id}_${idx}`;
+        const unitPrice = Number(item.unit_price ?? item.price ?? item.selling_price ?? 0);
+        const qty = Number(item.quantity || 1);
+        const title = item.title || item.product_name || item.name || "Custom Cake";
+        const variantId = item.variant_id || null;
+        const productId = item.product_id || null;
+        const sku = item.sku || item.variant_sku || null;
+
+        // Upsert into order_line_item
+        await client.query(
+          `
+          INSERT INTO public.order_line_item (
+            "id", "totals_id", "title", "thumbnail", "variant_id", "product_id",
+            "product_title", "variant_sku", "requires_shipping", "is_discountable",
+            "is_tax_inclusive", "compare_at_unit_price", "raw_compare_at_unit_price",
+            "unit_price", "raw_unit_price", "metadata", "created_at", "updated_at"
+          ) VALUES (
+            $1, NULL, $2, $3, $4, $5, $2, $6, TRUE, TRUE, FALSE,
+            $7, $8, $7, $8, $9, NOW(), NOW()
+          )
+          ON CONFLICT ("id") DO UPDATE SET
+            "title" = EXCLUDED.title,
+            "unit_price" = EXCLUDED.unit_price,
+            "raw_unit_price" = EXCLUDED.raw_unit_price,
+            "metadata" = EXCLUDED.metadata,
+            "updated_at" = NOW();
+        `,
+          [
+            lineItemId,
+            title,
+            item.thumbnail || null,
+            variantId,
+            productId,
+            sku,
+            unitPrice,
+            JSON.stringify({ value: String(unitPrice), precision: 20 }),
+            JSON.stringify({
+              variant_name: item.variant_name || item.weight || null,
+              discount: Number(item.discount || 0),
+              tax_rate: Number(item.tax_rate ?? item.gst_rate_pct ?? 5),
+              tax_amount: Number(item.tax_amount || 0),
+              total_line_amount: Number(item.total_line_amount ?? item.total ?? (unitPrice * qty)),
+              customization: item.customization || {},
+              merchandise_type: item.merchandise_type || null,
+            }),
+          ]
+        );
+
+        // Upsert into order_item
+        await client.query(
+          `
+          INSERT INTO public.order_item (
+            "id", "order_id", "version", "item_id", "quantity", "raw_quantity",
+            "fulfilled_quantity", "shipped_quantity",
+            "return_requested_quantity", "return_received_quantity",
+            "return_dismissed_quantity", "written_off_quantity",
+            "unit_price", "raw_unit_price", "metadata", "created_at", "updated_at"
+          ) VALUES (
+            $1, $2, 1, $3, $4, $5,
+            0, 0,
+            0, 0,
+            0, 0,
+            $6, $7, $8, NOW(), NOW()
+          )
+          ON CONFLICT ("id") DO UPDATE SET
+            "quantity" = EXCLUDED.quantity,
+            "raw_quantity" = EXCLUDED.raw_quantity,
+            "unit_price" = EXCLUDED.unit_price,
+            "raw_unit_price" = EXCLUDED.raw_unit_price,
+            "metadata" = EXCLUDED.metadata,
+            "updated_at" = NOW();
+        `,
+          [
+            orderItemId,
+            id,
+            lineItemId,
+            qty,
+            JSON.stringify({ value: String(qty), precision: 20 }),
+            unitPrice,
+            JSON.stringify({ value: String(unitPrice), precision: 20 }),
+            JSON.stringify({
+              line_total: Number(item.total_line_amount ?? item.total ?? (unitPrice * qty)),
+            }),
+          ]
+        );
+
+        // Link totals_id
+        await client.query(`UPDATE public.order_line_item SET "totals_id" = $1 WHERE "id" = $2;`, [orderItemId, lineItemId]);
+      }
+    }
+  });
 }
 
 /**

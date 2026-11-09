@@ -1,0 +1,37 @@
+[
+  {
+    "id": "EVD-SUB-01",
+    "category": "BOARD_SUBMISSION",
+    "title": "Designation of Production Tax Invoice Series",
+    "status": "PENDING_REVIEW",
+    "sha256": "7d4576329e46a788b22a00bf8a08ea5e0d7dbca82054ffef7205126aa14d59ff"
+  },
+  {
+    "id": "EVD-RES-01",
+    "category": "BOARD_RESOLUTION",
+    "title": "Formal Board Resolution on Series",
+    "status": "NOT_SUBMITTED",
+    "sha256": null
+  },
+  {
+    "id": "EVD-DEL-01",
+    "category": "DIRECTOR_DELEGATION",
+    "title": "Delegation to Signing Officer",
+    "status": "NOT_SUBMITTED",
+    "sha256": null
+  },
+  {
+    "id": "EVD-KYC-01",
+    "category": "IDENTITY_RECORD",
+    "title": "Approver Identity Verification",
+    "status": "NOT_SUBMITTED",
+    "sha256": null
+  },
+  {
+    "id": "EVD-SOD-01",
+    "category": "SOD_MATRIX",
+    "title": "Approved Segregation of Duties Matrix",
+    "status": "NOT_SUBMITTED",
+    "sha256": null
+  }
+]

@@ -1,0 +1,113 @@
+{
+  "phase": "Phase 4.4",
+  "run_id": "run-20261031-162949-s737059",
+  "generated_at": "2026-10-31T11:48:16.811Z",
+  "total_files": 21,
+  "files": [
+    {
+      "path": "approval_api_security_test_report.md",
+      "sha256": "b0feeed40ff97d0e9fb5439099c0cf8c1922c394b78a9d887aeee09d70f7a41f",
+      "bytes": 1095
+    },
+    {
+      "path": "approval_audit_table_adversarial_audit.md",
+      "sha256": "a3a2bbff5d37cd4c8f4c0380d92f4e02198eff6d207398d647ea620a5b1abc61",
+      "bytes": 756
+    },
+    {
+      "path": "c7_13_data_integrity_and_recovery_audit.md",
+      "sha256": "f2d58af7aeb5a6d97b7c62bf0f18621da563db3882b2d57cead3904de08a7780",
+      "bytes": 444
+    },
+    {
+      "path": "database_roles_and_privileges_audit.md",
+      "sha256": "a977cb856634cd2c28ab2c03db9ec19fbf8e85b39130f235249bf8ec33e2906e",
+      "bytes": 846
+    },
+    {
+      "path": "deployment_pipeline_security_audit.md",
+      "sha256": "1f1950f49e5b868d0b6d1853b3231e326c08dbe9db32a9682d94eca34b4ec15a",
+      "bytes": 430
+    },
+    {
+      "path": "deployment_rehearsal_manifest.json",
+      "sha256": "17198539cf82c816bd55ed067f55cdfbf7db772cc14ba382497397052b77cb90",
+      "bytes": 1084
+    },
+    {
+      "path": "findings_manifest.json",
+      "sha256": "42b0dc869c918643f1f1f2b077ff75f27f9ad89766f6036deb8a5b212587b458",
+      "bytes": 4629
+    },
+    {
+      "path": "invoice_allocation_regression_report.md",
+      "sha256": "8ead45b30def4ee8382982acea094ef7d5a67bf9f988560eeef79fc2b21168af",
+      "bytes": 587
+    },
+    {
+      "path": "migration_history_and_checksum_audit.md",
+      "sha256": "7b42539ef63ae813099c03b97f5865a50aa534b65871214edf6a29c67401dcf5",
+      "bytes": 512
+    },
+    {
+      "path": "migration_linter_adversarial_test_report.md",
+      "sha256": "b842001f5e92bc75fef1ad1e89d6dba20d1a1c856999ad46e49e3c6f70c51111",
+      "bytes": 1670
+    },
+    {
+      "path": "migration_manifest.json",
+      "sha256": "ce80dfc6ed389fa9e74a792b47e4b429d397808b091ac93c9a7630bab9919826",
+      "bytes": 1468
+    },
+    {
+      "path": "phase4_3_implementation_revalidation.md",
+      "sha256": "9bf0a622c07d57b54fd65522dfb1301fc5bcb93bf674f60e4eab72d10717265b",
+      "bytes": 955
+    },
+    {
+      "path": "phase4_4_executive_security_report.md",
+      "sha256": "fc6658634474d905212e8012d4c5f48dd4da17e32e15d4c915d811a55d4055af",
+      "bytes": 2518
+    },
+    {
+      "path": "postgresql_trigger_and_function_security_audit.md",
+      "sha256": "ece7dadae365c3eb6b12802397477d8d33453ff2a3b4b626f855c9f3a60abe78",
+      "bytes": 732
+    },
+    {
+      "path": "production_deployment_rehearsal_report.md",
+      "sha256": "a0a7dfbd54b4868f91cac37179cc9f3b5b497fef20cb21cbb7ee15a75a2db416",
+      "bytes": 686
+    },
+    {
+      "path": "production_readiness_gate.md",
+      "sha256": "d2b7256d351c1b89ecc4682366672b371c792febaf15cb651345e124d2c793f0",
+      "bytes": 1462
+    },
+    {
+      "path": "protected_database_integrity_report.md",
+      "sha256": "5e88e743d5d9e75eed64cf4042b8bf479d0e780dd4e83a3d57a0888d7db19c4c",
+      "bytes": 705
+    },
+    {
+      "path": "remediation_change_log.md",
+      "sha256": "35b18400f732e6396b0405de5790ed663f9217a7099079fece47aee5d05d4a4f",
+      "bytes": 777
+    },
+    {
+      "path": "test_count_reconciliation.md",
+      "sha256": "bd7bfd1d7f27f35a5e032d0709fbf73a85116af116f7c21aece6a1873b8644b7",
+      "bytes": 1099
+    },
+    {
+      "path": "threat_model_and_residual_risks.md",
+      "sha256": "c21d51f86d76ac7b2b6076f5d17c782a0201b668fb088cba9500cbfd30bebdf4",
+      "bytes": 732
+    },
+    {
+      "path": "unique_test_results_manifest.json",
+      "sha256": "a31ee14335937cf00dcc0b0aed9fae1450ce26f56571748b69de4ef24f5b9cd9",
+      "bytes": 11801
+    }
+  ]
+}

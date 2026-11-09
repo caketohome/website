@@ -170,39 +170,8 @@ export async function getHomepage(lang = "en"): Promise<{
     }
   }
 
-  const engine = await getServerApiEngine();
-  const page = engine?.getCmsPage ? engine.getCmsPage("home") : null;
-  if (!page) {
-    return { page: null, sections: [], banners: [], announcementBar: undefined, headerConfig: undefined };
-  }
-
-  // If page is published, return published configuration
-  if (page.status === "published") {
-    const pubConfig = page.published_config || {};
-    const sections = Array.isArray(pubConfig.sections) && pubConfig.sections.length > 0
-      ? pubConfig.sections
-      : (Array.isArray(page.sections) ? page.sections : []);
-    const banners = Array.isArray(pubConfig.banners)
-      ? pubConfig.banners
-      : (Array.isArray(page.draft_config?.banners) ? page.draft_config.banners : []);
-
-    return {
-      page: page as CmsPage,
-      sections,
-      banners,
-      announcementBar: pubConfig.announcement_bar || page.announcement_bar,
-      headerConfig: pubConfig.header_config || page.header_config,
-    };
-  }
-
-  // If not published, storefront returns empty published config
-  return {
-    page: page as CmsPage,
-    sections: [],
-    banners: [],
-    announcementBar: page.announcement_bar,
-    headerConfig: page.header_config,
-  };
+  // Fallback for client-side or if no published home page configured
+  return { page: null, sections: [], banners: [], announcementBar: undefined, headerConfig: undefined };
 }
 
 export async function getCmsPage(slug: string, lang = "en", includeDrafts = false): Promise<CmsPage | null> {
@@ -242,66 +211,70 @@ export async function getCmsPage(slug: string, lang = "en", includeDrafts = fals
     }
   }
 
-  const engine = await getServerApiEngine();
-  const page = engine?.getCmsPage ? engine.getCmsPage(slug) : null;
-  if (!page) return null;
-
-  // If not published and drafts not explicitly allowed (e.g. public storefront), return null
-  if (page.status !== "published" && !includeDrafts) {
-    return null;
-  }
-
-  // If page is published, merge published_config fields
-  if (page.status === "published") {
-    const pub = page.published_config || {};
-    return {
-      ...page,
-      sections: Array.isArray(pub.sections) && pub.sections.length > 0 ? pub.sections : page.sections,
-      h1: pub.h1 || page.h1 || page.title,
-      subheading: pub.subheading || page.subheading || "",
-      intro_content: pub.intro_content || page.intro_content || "",
-      meta_title: pub.meta_title || page.meta_title || page.title,
-      meta_description: pub.meta_description || page.meta_description || "",
-      canonical_url: pub.canonical_url || page.canonical_url || "",
-      og_title: pub.og_title || page.og_title || page.title,
-      og_description: pub.og_description || page.og_description || page.meta_description,
-      og_image: pub.og_image || page.og_image || "",
-      announcement_bar: pub.announcement_bar || page.announcement_bar,
-      header_config: pub.header_config || page.header_config,
-      theme: pub.theme || page.theme,
-    } as CmsPage;
-  }
-
-  return page as CmsPage;
+  return null;
 }
 
 export async function getOccasions(): Promise<any[]> {
-  const engine = await getServerApiEngine();
-  return engine?.listOccasions ? engine.listOccasions() : [];
+  if (typeof window === "undefined") {
+    try {
+      const { listOccasions } = await import("./catalog");
+      return await listOccasions();
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 export async function getNavigation(location: string, lang = "en"): Promise<any | null> {
-  const engine = await getServerApiEngine();
-  const pages = engine?.listCmsPages ? engine.listCmsPages() : [];
-  const navPages = (pages || [])
-    .filter((p: any) => p.status === "published" && !p.hide_from_nav && p.nav_location === location)
-    .map((p: any) => ({
-      id: p.id,
-      title: p.breadcrumb_title || p.title,
-      url: p.url_path || `/${p.slug}`,
-    }));
+  if (typeof window === "undefined") {
+    try {
+      const nav = await CmsRepository.findNavigation(location);
+      if (nav && Array.isArray(nav.items) && nav.items.length > 0) {
+        return nav;
+      }
 
-  return { id: `nav_${location}`, name: `${location} Navigation`, location, items: navPages };
+      // If no dedicated nav record, dynamically construct from active published pages in PostgreSQL
+      const allPages = await CmsRepository.findAllPages();
+      const navPages = (allPages || [])
+        .filter((p: any) => p.status === "published" && !p.hide_from_nav && (p.nav_location === location || p.nav_location === "all"))
+        .map((p: any) => ({
+          id: p.id,
+          title: p.breadcrumb_title || p.title,
+          url: p.url_path || `/${p.slug}`,
+        }));
+
+      return { id: `nav_${location}`, name: `${location} Navigation`, location, items: navPages };
+    } catch (err) {
+      console.error("[getNavigation Error]", err);
+      return { id: `nav_${location}`, name: `${location} Navigation`, location, items: [] };
+    }
+  }
+
+  return { id: `nav_${location}`, name: `${location} Navigation`, location, items: [] };
 }
 
 export async function getBlogPosts(opts?: { lang?: string; categoryId?: string; limit?: number; offset?: number }): Promise<any[]> {
-  const engine = await getServerApiEngine();
-  const pages = engine?.listCmsPages ? engine.listCmsPages() : [];
-  return (pages || []).filter((p: any) => p.page_type === "blog" && p.status === "published");
+  if (typeof window === "undefined") {
+    try {
+      const allPages = await CmsRepository.findAllPages();
+      return (allPages || []).filter((p: any) => (p.type === "blog" || p.page_type === "blog") && p.status === "published");
+    } catch (err) {
+      console.error("[getBlogPosts Error]", err);
+      return [];
+    }
+  }
+  return [];
 }
 
 export async function resolveRedirect(from: string): Promise<any> {
-  const engine = await getServerApiEngine();
-  const redirects = (engine as any)?.getSeoRedirects ? (engine as any).getSeoRedirects() : [];
-  return (redirects || []).find((r: any) => r.from_path === from || r.from === from) || null;
+  if (typeof window === "undefined") {
+    try {
+      return await CmsRepository.findRedirect(from);
+    } catch (err) {
+      console.error("[resolveRedirect Error]", err);
+      return null;
+    }
+  }
+  return null;
 }

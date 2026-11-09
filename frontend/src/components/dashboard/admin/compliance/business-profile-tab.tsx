@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Container, Heading, Text, Button, Input, Label, Badge } from "@medusajs/ui";
 import { Building2, Save, CheckCircle2, ShieldCheck, Mail, Phone, MapPin, User, FileText } from "lucide-react";
 import { apiClient } from "@frontend/lib/api-client";
@@ -62,11 +62,46 @@ export function BusinessProfileTab({
 
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (profile && Object.keys(profile).length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        legal_name: profile.legal_name ?? prev.legal_name,
+        trade_name: profile.trade_name ?? prev.trade_name,
+        business_type: profile.business_type ?? prev.business_type,
+        pan: profile.pan ?? prev.pan,
+        tan: profile.tan ?? prev.tan,
+        cin: profile.cin ?? prev.cin,
+        registered_email: profile.registered_email ?? prev.registered_email,
+        registered_phone: profile.registered_phone ?? prev.registered_phone,
+        website: profile.website ?? prev.website,
+        support_email: profile.support_email ?? prev.support_email,
+        support_phone: profile.support_phone ?? prev.support_phone,
+        registered_address: {
+          ...prev.registered_address,
+          ...(profile.registered_address || {}),
+        },
+        primary_contact: {
+          ...prev.primary_contact,
+          ...(profile.primary_contact || {}),
+        },
+        authorized_signatory: {
+          ...prev.authorized_signatory,
+          ...(profile.authorized_signatory || {}),
+        },
+        logo_url: profile.logo_url ?? prev.logo_url,
+        status: profile.status ?? prev.status,
+      }));
+    }
+  }, [profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setSuccessMsg(null);
+    setErrorMsg(null);
     try {
       const res: any = await apiClient.updateBusinessProfile(formData);
       const updated = res?.profile || res?.data || formData;
@@ -74,7 +109,7 @@ export function BusinessProfileTab({
       setSuccessMsg("Business Profile & statutory corporate information updated successfully!");
       setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err: any) {
-      alert("Failed to update business profile: " + (err.message || "Unknown error"));
+      setErrorMsg(err.message || "Failed to update business profile");
     } finally {
       setSaving(false);
     }
@@ -82,8 +117,13 @@ export function BusinessProfileTab({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      {errorMsg && (
+        <div id="business-profile-error" role="alert" className="p-3.5 bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-sm rounded-xl flex items-center gap-2">
+          <span>{errorMsg}</span>
+        </div>
+      )}
       {successMsg && (
-        <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm rounded-xl flex items-center gap-2">
+        <div id="business-profile-success" className="p-3.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm rounded-xl flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{successMsg}</span>
         </div>

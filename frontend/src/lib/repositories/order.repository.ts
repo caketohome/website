@@ -4,8 +4,8 @@ import { InventoryService } from "../services/inventory.service";
 
 export class OrderRepository {
   private static readonly VALID_TRANSITIONS: Record<string, string[]> = {
-    pending: ["confirmed", "cancelled"],
-    confirmed: ["kitchen_accepted", "preparing", "in_preparation", "cancelled"],
+    pending: ["confirmed", "preparing", "packed", "out_for_delivery", "delivered", "cancelled"],
+    confirmed: ["kitchen_accepted", "preparing", "in_preparation", "packed", "ready_for_pickup", "out_for_delivery", "delivered", "cancelled"],
     kitchen_accepted: ["preparing", "in_preparation", "baking_inspection", "cancelled"],
     preparing: ["baking_inspection", "packed", "ready_for_pickup", "cancelled"],
     in_preparation: ["baking_inspection", "packed", "ready_for_pickup", "cancelled"],
@@ -58,6 +58,11 @@ export class OrderRepository {
         id: item.id || `item_${o.id}_${idx}`,
         item_id: item.item_id || item.id,
         product_id: item.product_id || `prod_${idx}`,
+        variant_id: item.variant_id || item.variantId || undefined,
+        merchandise_type: (item.merchandise_type || item.metadata?.merchandise_type || "CAKE").toUpperCase() as any,
+        sku: item.sku || item.metadata?.sku || undefined,
+        barcode: item.barcode || item.metadata?.barcode || undefined,
+        hsn_code: item.hsn_code || item.metadata?.hsn_code || undefined,
         product_name: item.product_name || item.title || item.name || "Artisan Cake",
         title: item.title || item.product_name || item.name || "Artisan Cake",
         thumbnail: item.thumbnail || "/images/placeholder-cake.png",
@@ -71,6 +76,8 @@ export class OrderRepository {
         discount: Number(item.discount ?? 0),
         tax_rate: taxRate ?? 0,
         tax_amount: lineTax,
+        tax_rate_id: item.tax_rate_id,
+        tax_code: item.tax_code,
         customization: item.customization || {
           message: cakeMsg || undefined,
           flavor: item.flavour || item.flavor || undefined,
@@ -154,7 +161,7 @@ export class OrderRepository {
           : 0);
 
     const displayId = o.display_id || o.id;
-    const orderNumber = meta.order_number || (typeof displayId === "number" || /^\d+$/.test(String(displayId)) ? `ORD-${displayId}` : String(displayId));
+    const orderNumber = o.order_number || meta.order_number || (typeof displayId === "number" || /^\d+$/.test(String(displayId)) ? `ORD-${displayId}` : String(displayId));
     const status = (meta.bakery_status || o.status || "confirmed").toLowerCase();
     const paymentStatus = (meta.payment_status || (status === "delivered" ? "captured" : "authorized")).toLowerCase();
     const paymentMethod = meta.payment_method || meta.payment?.method || "card";
@@ -183,9 +190,9 @@ export class OrderRepository {
       id: meta.customer_uid || o.customer_id || "guest",
       customer_number: meta.customer_number || (meta.customer_uid ? `CTH-CUST-${String(meta.customer_uid).slice(-6).toUpperCase()}` : "CTH-CUST-GUEST"),
       customer_type: meta.customer_type || (meta.customer_uid && meta.customer_uid !== "guest" ? "registered" : "guest"),
-      name: meta.customer_name || "Valued Customer",
-      email: o.email || meta.customer_email || "customer@caketohome.internal",
-      phone: meta.customer_phone || "+91 98765 43210",
+      name: o.customer_name || meta.customer_name || "Customer",
+      email: o.email || meta.customer_email || null,
+      phone: o.customer_phone || meta.customer_phone || null,
       address: typeof meta.delivery_address === "string" && meta.delivery_address.trim()
         ? meta.delivery_address.trim()
         : (meta.delivery_address && typeof meta.delivery_address === "object"
@@ -197,10 +204,10 @@ export class OrderRepository {
                 meta.delivery_address.state,
                 meta.delivery_address.pincode || meta.delivery_address.postal_code,
               ].filter(Boolean).join(", ")
-            : (typeof meta.delivery?.address === "string" ? meta.delivery.address : "Delivery Address on File")),
-      city: meta.delivery_city || meta.city || "Bengaluru",
-      area: meta.delivery_area || meta.area || "Central Zone",
-      pincode: meta.delivery_pincode || meta.pincode || "560038",
+            : (typeof meta.delivery?.address === "string" ? meta.delivery.address : null)),
+      city: meta.delivery_city || meta.city || null,
+      area: meta.delivery_area || meta.area || null,
+      pincode: meta.delivery_pincode || meta.pincode || null,
       landmark: meta.delivery_landmark || meta.landmark || "",
       delivery_instructions: meta.delivery_instructions || "",
     };
@@ -287,7 +294,7 @@ export class OrderRepository {
     }
 
     // Invoice number rule: ONLY return if persisted in PostgreSQL; NEVER fabricate.
-    const invoiceNumber = meta.invoice_number || undefined;
+    const invoiceNumber = o.real_invoice_number || meta.invoice_number || undefined;
     const invoiceStatus = meta.invoice_status || (invoiceNumber ? "ISSUED" : "NOT_GENERATED");
 
     return {
@@ -334,6 +341,10 @@ export class OrderRepository {
       delivery_area: customer.area,
       delivery_landmark: customer.landmark,
       delivery_instructions: customer.delivery_instructions,
+      seller_gstin: o.seller_gstin || meta.seller_gstin || meta.compliance_snapshot?.seller_gstin || (branch as any)?.metadata?.gstin || (branch as any)?.gstin || undefined,
+      seller_legal_name: o.seller_legal_name || meta.seller_legal_name || meta.compliance_snapshot?.seller_legal_name || (branch as any)?.metadata?.seller_legal_name || undefined,
+      compliance_snapshot: meta.compliance_snapshot || undefined,
+      metadata: meta,
       created_at: o.created_at,
       updated_at: o.updated_at,
     };
@@ -363,35 +374,38 @@ export class OrderRepository {
     const pageSize = Math.min(Math.max(1, params.pageSize || params.limit || 20), 100);
     const offset = params.offset !== undefined ? Math.max(0, params.offset) : (page - 1) * pageSize;
 
-    const conditions: string[] = ["deleted_at IS NULL"];
+    const conditions: string[] = ["o.deleted_at IS NULL"];
     const values: any[] = [];
 
     if (params.status && params.status !== "all") {
       values.push(params.status.toLowerCase());
-      conditions.push(`LOWER(COALESCE(metadata->>'bakery_status', status::text)) = $${values.length}`);
+      conditions.push(`LOWER(COALESCE(o.metadata->>'bakery_status', o.status::text)) = $${values.length}`);
     }
 
     if (params.branch_id && params.branch_id !== "all") {
       values.push(params.branch_id);
-      conditions.push(`(metadata->>'branch_id' = $${values.length} OR metadata->>'branch' = $${values.length})`);
+      conditions.push(`(o.metadata->>'branch_id' = $${values.length} OR o.metadata->>'branch' = $${values.length})`);
     }
 
     if (params.customer_id) {
       values.push(params.customer_id);
-      conditions.push(`(customer_id = $${values.length} OR metadata->>'customer_uid' = $${values.length})`);
+      conditions.push(`(o.customer_id = $${values.length} OR o.metadata->>'customer_uid' = $${values.length})`);
     }
 
     const whereClause = conditions.join(" AND ");
 
     const countRes = await dbQuery(
-      `SELECT COUNT(*)::int as count FROM "order" WHERE ${whereClause}`,
+      `SELECT COUNT(*)::int as count FROM "order" o WHERE ${whereClause}`,
       values
     );
     const total = Number(countRes.rows[0]?.count || 0);
 
     const queryValues = [...values, pageSize, offset];
     const res = await dbQuery(
-      `SELECT * FROM "order" WHERE ${whereClause} ORDER BY created_at DESC, id DESC LIMIT $${queryValues.length - 1} OFFSET $${queryValues.length}`,
+      `SELECT o.*, inv.invoice_number AS real_invoice_number, inv.id AS real_invoice_id, inv.status AS real_invoice_status
+       FROM "order" o
+       LEFT JOIN public.invoice inv ON inv.order_id = o.id AND inv.deleted_at IS NULL
+       WHERE ${whereClause} ORDER BY o.created_at DESC, o.id DESC LIMIT $${queryValues.length - 1} OFFSET $${queryValues.length}`,
       queryValues
     );
 
@@ -415,7 +429,11 @@ export class OrderRepository {
   static async findAll(limit: number = 20): Promise<OrderDomain[]> {
     const safeLimit = Math.min(Math.max(1, limit), 100);
     const res = await dbQuery(
-      `SELECT * FROM "order" WHERE deleted_at IS NULL ORDER BY created_at DESC, id DESC LIMIT $1`,
+      `SELECT o.*, inv.invoice_number AS real_invoice_number, inv.id AS real_invoice_id, inv.status AS real_invoice_status
+       FROM "order" o
+       LEFT JOIN public.invoice inv ON inv.order_id = o.id AND inv.deleted_at IS NULL
+       WHERE o.deleted_at IS NULL
+       ORDER BY o.created_at DESC, o.id DESC LIMIT $1`,
       [safeLimit]
     );
 
@@ -427,7 +445,10 @@ export class OrderRepository {
    */
   static async findById(idOrNumber: string): Promise<OrderDomain | null> {
     const res = await dbQuery(
-      `SELECT * FROM "order" WHERE (id = $1 OR display_id::text = $1 OR metadata->>'order_number' = $1) AND deleted_at IS NULL LIMIT 1`,
+      `SELECT o.*, inv.invoice_number AS real_invoice_number, inv.id AS real_invoice_id, inv.status AS real_invoice_status
+       FROM "order" o
+       LEFT JOIN public.invoice inv ON inv.order_id = o.id AND inv.deleted_at IS NULL
+       WHERE (o.id = $1 OR o.display_id::text = $1 OR o.metadata->>'order_number' = $1) AND o.deleted_at IS NULL LIMIT 1`,
       [idOrNumber]
     );
     if (!res.rows || res.rows.length === 0) return null;
@@ -436,7 +457,7 @@ export class OrderRepository {
     let timelineRows: any[] = [];
     try {
       const historyRes = await dbQuery(
-        `SELECT from_status, to_status, actor_type, actor_id, reason, created_at
+        `SELECT from_status, to_status, changed_by, notes, created_at
          FROM "order_status_history"
          WHERE order_id = $1
          ORDER BY created_at ASC`,
@@ -484,7 +505,7 @@ export class OrderRepository {
     }));
 
     const metadata = {
-      order_number: displayId,
+      order_number: order.order_number || order.display_id || displayId,
       customer_uid: order.customer_uid || order.customer_id,
       customer_name: order.customer_name,
       customer_phone: order.customer_phone,
@@ -514,18 +535,111 @@ export class OrderRepository {
       items: snapshottedItems,
     };
 
-    await dbQuery(
-      `
-      INSERT INTO "order" (id, display_id, email, currency_code, status, metadata, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, 'pending', $5, NOW(), NOW())
-      ON CONFLICT (id) DO UPDATE SET
-        display_id = EXCLUDED.display_id,
-        email = EXCLUDED.email,
-        metadata = EXCLUDED.metadata,
-        updated_at = NOW()
-    `,
-      [id, displayId, email, currency, JSON.stringify(metadata)]
-    );
+    await dbTransaction(async (client) => {
+      await client.query(
+        `
+        INSERT INTO "order" (id, display_id, email, currency_code, status, metadata, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, 'pending', $5, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET
+          display_id = EXCLUDED.display_id,
+          email = EXCLUDED.email,
+          metadata = EXCLUDED.metadata,
+          updated_at = NOW()
+      `,
+        [id, displayId, email, currency, JSON.stringify(metadata)]
+      );
+
+      if (snapshottedItems.length > 0) {
+        for (let idx = 0; idx < snapshottedItems.length; idx++) {
+          const item = snapshottedItems[idx];
+          const lineItemId = item.id || `oli_${id}_${idx}`;
+          const orderItemId = `oi_${id}_${idx}`;
+          const unitPrice = Number(item.unit_price ?? item.price ?? item.selling_price ?? 0);
+          const qty = Number(item.quantity || 1);
+          const title = item.title || item.product_name || "Custom Cake";
+          const variantId = item.variant_id || null;
+          const productId = item.product_id || null;
+          const sku = item.sku || null;
+
+          await client.query(
+            `
+            INSERT INTO public.order_line_item (
+              "id", "totals_id", "title", "thumbnail", "variant_id", "product_id",
+              "product_title", "variant_sku", "requires_shipping", "is_discountable",
+              "is_tax_inclusive", "compare_at_unit_price", "raw_compare_at_unit_price",
+              "unit_price", "raw_unit_price", "metadata", "created_at", "updated_at"
+            ) VALUES (
+              $1, NULL, $2, $3, $4, $5, $2, $6, TRUE, TRUE, FALSE,
+              $7, $8, $7, $8, $9, NOW(), NOW()
+            )
+            ON CONFLICT ("id") DO UPDATE SET
+              "title" = EXCLUDED.title,
+              "unit_price" = EXCLUDED.unit_price,
+              "raw_unit_price" = EXCLUDED.raw_unit_price,
+              "metadata" = EXCLUDED.metadata,
+              "updated_at" = NOW();
+          `,
+            [
+              lineItemId,
+              title,
+              item.thumbnail || null,
+              variantId,
+              productId,
+              sku,
+              unitPrice,
+              JSON.stringify({ value: String(unitPrice), precision: 20 }),
+              JSON.stringify({
+                variant_name: item.variant_name || item.weight || null,
+                discount: Number(item.discount || 0),
+                tax_rate: Number(item.tax_rate || 5),
+                tax_amount: Number(item.tax_amount || 0),
+                total_line_amount: Number(item.total_line_amount || (unitPrice * qty)),
+                customization: item.customization || {},
+              }),
+            ]
+          );
+
+          await client.query(
+            `
+            INSERT INTO public.order_item (
+              "id", "order_id", "version", "item_id", "quantity", "raw_quantity",
+              "fulfilled_quantity", "shipped_quantity",
+              "return_requested_quantity", "return_received_quantity",
+              "return_dismissed_quantity", "written_off_quantity",
+              "unit_price", "raw_unit_price", "metadata", "created_at", "updated_at"
+            ) VALUES (
+              $1, $2, 1, $3, $4, $5,
+              0, 0,
+              0, 0,
+              0, 0,
+              $6, $7, $8, NOW(), NOW()
+            )
+            ON CONFLICT ("id") DO UPDATE SET
+              "quantity" = EXCLUDED.quantity,
+              "raw_quantity" = EXCLUDED.raw_quantity,
+              "unit_price" = EXCLUDED.unit_price,
+              "raw_unit_price" = EXCLUDED.raw_unit_price,
+              "metadata" = EXCLUDED.metadata,
+              "updated_at" = NOW();
+          `,
+            [
+              orderItemId,
+              id,
+              lineItemId,
+              qty,
+              JSON.stringify({ value: String(qty), precision: 20 }),
+              unitPrice,
+              JSON.stringify({ value: String(unitPrice), precision: 20 }),
+              JSON.stringify({
+                line_total: Number(item.total_line_amount || (unitPrice * qty)),
+              }),
+            ]
+          );
+
+          await client.query(`UPDATE public.order_line_item SET "totals_id" = $1 WHERE "id" = $2;`, [orderItemId, lineItemId]);
+        }
+      }
+    });
   }
 
   /**
@@ -566,32 +680,12 @@ export class OrderRepository {
         [medusaStatus, targetStatus, orderId]
       );
 
-      // Synchronize with PostgreSQL delivery and payment_transaction tables
+      // Update payment_transaction status for delivered/completed orders (uses actual cth_test schema)
       if (targetStatus === "delivered" || targetStatus === "completed") {
         await client.query(
-          `UPDATE "delivery"
-           SET delivery_status = 'delivered',
-               delivered_at = NOW(),
-               updated_at = NOW()
-           WHERE transaction_id = $1`,
+          `UPDATE "payment_transaction" SET status = 'captured' WHERE order_id = $1`,
           [existing.id]
-        );
-        await client.query(
-          `UPDATE "payment_transaction"
-           SET status = 'captured',
-               settlement_status = 'settled',
-               updated_at = NOW()
-           WHERE order_id = $1`,
-          [existing.id]
-        );
-      } else if (targetStatus === "out_for_delivery") {
-        await client.query(
-          `UPDATE "delivery"
-           SET delivery_status = 'in_transit',
-               updated_at = NOW()
-           WHERE transaction_id = $1`,
-          [existing.id]
-        );
+        ).catch(() => null); // Non-fatal: payment_transaction may not exist yet
       }
 
       await client.query(
@@ -610,6 +704,29 @@ export class OrderRepository {
         ]
       );
     });
+
+    // Phase 5B.3 / ERP Integration: Trigger statutory invoice allocation upon reaching delivered/completed
+    if (targetStatus === "delivered" || targetStatus === "completed") {
+      try {
+        const { DeliveryInvoicingService } = await import("../services/delivery-invoicing.service");
+        const orderForInvoicing = await OrderRepository.findById(existing.id);
+        if (orderForInvoicing) {
+          const invRes = await DeliveryInvoicingService.generateInvoiceOnDelivery(null, {
+            ...orderForInvoicing,
+            status: "delivered",
+            delivery_status: "delivered",
+            delivered_at: new Date().toISOString(),
+          });
+          if (invRes.success) {
+            console.log(`[OrderRepository] Statutory invoice ${invRes.invoice_number} generated for ${orderForInvoicing.order_number}`);
+          } else {
+            console.warn(`[OrderRepository] Statutory invoicing rejected: ${invRes.error} (${invRes.code})`);
+          }
+        }
+      } catch (invErr: any) {
+        console.error(`[OrderRepository] Statutory invoicing error:`, invErr?.message);
+      }
+    }
 
     const updated = await OrderRepository.findById(existing.id);
     return updated || { ...existing, status: targetStatus as any };
@@ -966,19 +1083,57 @@ export class OrderRepository {
     const historyId = `osh_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
     await dbTransaction(async (client) => {
-      // Step A: Restore inventory in PostgreSQL branch_inventory for canceled items
+      // Step A: Restore inventory in PostgreSQL branch_inventory for canceled physical accessories
       if (Array.isArray(existing.items)) {
         for (const item of existing.items) {
           if (item.product_id && item.quantity > 0 && existing.branch_id) {
-            try {
-              await InventoryService.restoreStock(
-                client,
-                existing.branch_id,
-                item.product_id,
-                item.quantity
-              );
-            } catch (invErr: any) {
-              console.warn(`[cancelOrder] Stock restore warning for product ${item.product_id}:`, invErr.message);
+            let merchType = (
+              item.merchandise_type ||
+              (item as any).metadata?.merchandise_type
+            )?.toUpperCase();
+
+            if (!merchType) {
+              const pRes = await client.query(`SELECT merchandise_type FROM public.product WHERE id = $1`, [item.product_id]);
+              merchType = (pRes.rows[0]?.merchandise_type || "CAKE").toUpperCase();
+            }
+
+            // ONLY restore physical stock for ACCESSORY or PACKAGING.
+            // Made-to-order cakes do not create physical stock movements!
+            if (merchType === "ACCESSORY" || merchType === "PACKAGING") {
+              try {
+                await InventoryService.restoreStock(
+                  client,
+                  existing.branch_id,
+                  item.product_id,
+                  item.quantity,
+                  (item as any).variant_id
+                );
+              } catch (invErr: any) {
+                console.warn(`[cancelOrder] Stock restore warning for product ${item.product_id}:`, invErr.message);
+              }
+            }
+
+            // Also restore attached accessory addons
+            const addons = (item.customization as any)?.selected_addons_detail;
+            if (Array.isArray(addons) && addons.length > 0) {
+              for (const addon of addons) {
+                const addonProdId = addon.product_id || addon.id;
+                const addonVariantId = addon.variant_id;
+                const addonQty = Math.max(1, Number(addon.quantity || 1)) * item.quantity;
+                if (addonProdId) {
+                  try {
+                    await InventoryService.restoreStock(
+                      client,
+                      existing.branch_id,
+                      addonProdId,
+                      addonQty,
+                      addonVariantId
+                    );
+                  } catch (addonErr: any) {
+                    console.warn(`[cancelOrder] Addon stock restore warning for ${addonProdId}:`, addonErr.message);
+                  }
+                }
+              }
             }
           }
         }

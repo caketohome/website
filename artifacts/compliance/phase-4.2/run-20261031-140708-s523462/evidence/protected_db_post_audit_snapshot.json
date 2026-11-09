@@ -1,0 +1,135 @@
+{
+  "timestamp": "2026-10-31T09:27:30.215Z",
+  "metadata": {
+    "db": "cth_test",
+    "user": "cth_test_user",
+    "version": "PostgreSQL 16.14, compiled by Visual C++ build 1944, 64-bit",
+    "srv_ver": "16.14"
+  },
+  "counts": {
+    "public.order": 127,
+    "public.invoice": 71,
+    "public.accounting_voucher": 4,
+    "public.branch_inventory": 156,
+    "public.company": 1,
+    "public.gst_registration": 1,
+    "public.branch": 6,
+    "public.invoice_sequence": 7,
+    "public.invoice_allocation_log": 221
+  },
+  "order_display_id_seq": {
+    "last_value": "98587",
+    "is_called": true
+  },
+  "invoice_sequence_columns": [
+    {
+      "column_name": "id",
+      "data_type": "uuid"
+    },
+    {
+      "column_name": "entity_id",
+      "data_type": "text"
+    },
+    {
+      "column_name": "gstin",
+      "data_type": "text"
+    },
+    {
+      "column_name": "fiscal_year",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "prefix",
+      "data_type": "text"
+    },
+    {
+      "column_name": "last_seq",
+      "data_type": "integer"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone"
+    }
+  ],
+  "invoice_sequences": [
+    {
+      "id": "14c9e1e4-a65b-4eaf-947b-4677253b3cf0",
+      "entity_id": "CAKETOHOME_PARENT",
+      "gstin": "29AAACC1234F1Z5",
+      "fiscal_year": 2026,
+      "prefix": "CTH",
+      "last_seq": 74,
+      "created_at": "2026-10-25T04:09:36.360Z",
+      "updated_at": "2026-10-25T14:56:30.925Z"
+    },
+    {
+      "id": "b668b26d-cf11-4576-b4a1-f1f9eff5b087",
+      "entity_id": "CAKETOHOME_PARENT",
+      "gstin": "29AABCC1234F1Z5",
+      "fiscal_year": 2025,
+      "prefix": "FYBND",
+      "last_seq": 1,
+      "created_at": "2026-10-22T21:06:46.358Z",
+      "updated_at": "2026-10-22T21:06:46.358Z"
+    },
+    {
+      "id": "c416ccfc-b0af-4783-bb49-6eda8b6cf987",
+      "entity_id": "CAKETOHOME_PARENT",
+      "gstin": "29AABCC1234F1Z5",
+      "fiscal_year": 2026,
+      "prefix": "CONC",
+      "last_seq": 152,
+      "created_at": "2026-10-22T21:06:45.290Z",
+      "updated_at": "2026-10-27T04:34:26.439Z"
+    },
+    {
+      "id": "d25bb22c-4a4f-49cf-a3d1-3e40f241db4e",
+      "entity_id": "CAKETOHOME_PARENT",
+      "gstin": "29AABCC1234F1Z5",
+      "fiscal_year": 2026,
+      "prefix": "SAFE-TEST",
+      "last_seq": 3,
+      "created_at": "2026-10-26T17:13:08.481Z",
+      "updated_at": "2026-10-29T15:55:11.987Z"
+    },
+    {
+      "id": "d36954a8-de5c-467f-897e-861daed75ec3",
+      "entity_id": "CAKETOHOME_PARENT",
+      "gstin": "29AABCC1234F1Z5",
+      "fiscal_year": 2026,
+      "prefix": "FYBND",
+      "last_seq": 1,
+      "created_at": "2026-10-22T21:06:46.360Z",
+      "updated_at": "2026-10-22T21:06:46.360Z"
+    },
+    {
+      "id": "dccdd92d-85eb-448a-a5d5-45684eccf4b8",
+      "entity_id": "prt_8899",
+      "gstin": "27AABCP1234K1Z2",
+      "fiscal_year": 2026,
+      "prefix": "PRT-8899",
+      "last_seq": 1,
+      "created_at": "2026-10-25T04:09:36.494Z",
+      "updated_at": "2026-10-25T04:09:36.494Z"
+    },
+    {
+      "id": "fbf5c330-e3bb-4040-ad71-6fd265c08b14",
+      "entity_id": "CAKETOHOME_PARENT",
+      "gstin": "29AABCC1234F1Z5",
+      "fiscal_year": 2026,
+      "prefix": "LKTEST",
+      "last_seq": 2,
+      "created_at": "2026-10-22T21:06:46.073Z",
+      "updated_at": "2026-10-22T21:06:46.091Z"
+    }
+  ],
+  "hashes": {
+    "orders_sha256": "34d74cd009c307ac9bc502b3710d24bd6bd912faf703e307a2e265f5644d7835",
+    "invoices_sha256": "eb27d8ec0e827278708f0146c82706c5f2fea42656887b8a8a33b2671daf2d39",
+    "vouchers_sha256": "3922e568c3c68213cd45d4fbb0925caad407b2c87d9195df5c8e795dfadc51ea"
+  }
+}

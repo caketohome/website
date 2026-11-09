@@ -17,6 +17,12 @@ export async function middleware(request: NextRequest) {
       const isStaffOrAdmin =
         rawRole === "SUPER_ADMIN" ||
         rawRole === "ADMIN" ||
+        rawRole === "INTERNAL_ADMIN" ||
+        rawRole === "FINANCE_CONTROLLER" ||
+        rawRole === "FINANCE" ||
+        rawRole === "PLANNER" ||
+        rawRole === "DELIVERY_MANAGER" ||
+        rawRole === "BRANCH_STAFF" ||
         rawRole === "STAFF" ||
         rawRole === "TELECALLER" ||
         rawRole === "DIGITAL_MARKETING" ||
@@ -29,6 +35,9 @@ export async function middleware(request: NextRequest) {
           return NextResponse.redirect(new URL("/dashboard/delivery-partner", request.url));
         }
         if (rawRole === "BRANCH_MANAGER" || rawRole === "SHOP_MANAGER" || rawRole === "SHOP" || rawRole === "SHPMGR") {
+          if (request.nextUrl.searchParams.get("tab") === "teller_custody") {
+            return NextResponse.next();
+          }
           return NextResponse.redirect(new URL("/dashboard/shop", request.url));
         }
         return NextResponse.redirect(new URL("/account", request.url));
@@ -40,7 +49,14 @@ export async function middleware(request: NextRequest) {
       if (!hasAuthSession) {
         return NextResponse.redirect(new URL("/login", request.url));
       }
-      if (rawRole !== "DELIVERY_PARTNER" && rawRole !== "DLP" && rawRole !== "SUPER_ADMIN" && rawRole !== "ADMIN") {
+      if (
+        rawRole !== "DELIVERY_PARTNER" &&
+        rawRole !== "DLP" &&
+        rawRole !== "SUPER_ADMIN" &&
+        rawRole !== "ADMIN" &&
+        rawRole !== "INTERNAL_ADMIN" &&
+        rawRole !== "DELIVERY_MANAGER"
+      ) {
         if (rawRole === "BRANCH_MANAGER" || rawRole === "SHOP_MANAGER" || rawRole === "SHOP") {
           return NextResponse.redirect(new URL("/dashboard/shop", request.url));
         }
@@ -53,7 +69,15 @@ export async function middleware(request: NextRequest) {
       if (!hasAuthSession) {
         return NextResponse.redirect(new URL("/login", request.url));
       }
-      if (rawRole !== "BRANCH_MANAGER" && rawRole !== "SHOP_MANAGER" && rawRole !== "SHOP" && rawRole !== "SHPMGR" && rawRole !== "SUPER_ADMIN" && rawRole !== "ADMIN") {
+      if (
+        rawRole !== "BRANCH_MANAGER" &&
+        rawRole !== "SHOP_MANAGER" &&
+        rawRole !== "SHOP" &&
+        rawRole !== "SHPMGR" &&
+        rawRole !== "SUPER_ADMIN" &&
+        rawRole !== "ADMIN" &&
+        rawRole !== "INTERNAL_ADMIN"
+      ) {
         if (rawRole === "DELIVERY_PARTNER" || rawRole === "DLP") {
           return NextResponse.redirect(new URL("/dashboard/delivery-partner", request.url));
         }
@@ -62,7 +86,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // 4. /account protection
-    if (pathname.startsWith("/account")) {
+    if ((pathname === "/account" || pathname.startsWith("/account/"))) {
       if (!hasAuthSession) {
         return NextResponse.redirect(new URL("/login", request.url));
       }
@@ -71,6 +95,17 @@ export async function middleware(request: NextRequest) {
       }
       if (rawRole === "BRANCH_MANAGER" || rawRole === "SHOP_MANAGER" || rawRole === "SHOP" || rawRole === "SHPMGR") {
         return NextResponse.redirect(new URL("/dashboard/shop", request.url));
+      }
+      if (
+        rawRole === "SUPER_ADMIN" ||
+        rawRole === "ADMIN" ||
+        rawRole === "INTERNAL_ADMIN" ||
+        rawRole === "FINANCE_CONTROLLER" ||
+        rawRole === "FINANCE" ||
+        rawRole === "PLANNER" ||
+        rawRole === "DELIVERY_MANAGER"
+      ) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
       }
     }
 

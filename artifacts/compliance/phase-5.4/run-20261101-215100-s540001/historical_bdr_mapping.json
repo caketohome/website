@@ -1,0 +1,61 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T03:18:27.279Z",
+  "environment": "cth_rehearsal_phase5_4",
+  "provenance": "e:/vig/cakes2home-main/cakes2home-main",
+  "run_id": "run-20261101-215100-s540001",
+  "mapping": [
+    {
+      "bdr_id": "BDR-01",
+      "description": "Legal Entity Name & Registration",
+      "mapped_to": [
+        "CDR-01",
+        "CDR-02",
+        "CDR-03"
+      ]
+    },
+    {
+      "bdr_id": "BDR-02",
+      "description": "Invoice Prefix & Format Architecture",
+      "mapped_to": [
+        "CDR-04",
+        "CDR-05",
+        "CDR-06"
+      ]
+    },
+    {
+      "bdr_id": "BDR-03",
+      "description": "Gapless Numbering & Concurrency Controls",
+      "mapped_to": [
+        "CDR-07",
+        "CDR-10",
+        "CDR-12"
+      ]
+    },
+    {
+      "bdr_id": "BDR-04",
+      "description": "Historical Data Collision & Quarantine",
+      "mapped_to": [
+        "CDR-08",
+        "CDR-09"
+      ]
+    },
+    {
+      "bdr_id": "BDR-05",
+      "description": "Technical Infrastructure & Auditing",
+      "mapped_to": [
+        "CDR-11",
+        "CDR-13",
+        "CDR-14",
+        "CDR-15"
+      ]
+    },
+    {
+      "bdr_id": "BDR-06",
+      "description": "Production Release Gate Governance",
+      "mapped_to": [
+        "CDR-16"
+      ]
+    }
+  ]
+}

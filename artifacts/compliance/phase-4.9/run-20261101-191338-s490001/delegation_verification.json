@@ -1,0 +1,27 @@
+{
+  "roles": {
+    "finance_operations": {
+      "permissions": [
+        "propose_series",
+        "view_series"
+      ],
+      "can_approve": false
+    },
+    "director_cfo": {
+      "permissions": [
+        "approve_series",
+        "reject_series"
+      ],
+      "can_propose": false
+    },
+    "release_engineer": {
+      "permissions": [
+        "deploy_schema",
+        "configure_database"
+      ],
+      "can_approve": false
+    }
+  },
+  "sod_enforced": true,
+  "trigger_name": "trg_prevent_self_approval"
+}

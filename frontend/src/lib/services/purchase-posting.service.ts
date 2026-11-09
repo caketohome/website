@@ -63,6 +63,8 @@ import {
   type BranchLocationInput,
   type FreightPolicy,
 } from "./purchase-tax-engine";
+import { TaxResolverService } from "./tax-resolver.service";
+
 
 // ─── Error Model ───────────────────────────────────────────────────────────────
 
@@ -402,7 +404,8 @@ export class PurchasePostingService {
     };
 
     // 5. Map items to PurchaseLineItemInput
-    const lineInputs: PurchaseLineItemInput[] = items.map((item) => {
+    const lineInputs: PurchaseLineItemInput[] = [];
+    for (const item of items) {
       let taxRatePercent = 0;
       if (item.igst_rate !== null && item.igst_rate !== undefined && Number(item.igst_rate) > 0) {
         taxRatePercent = Number(item.igst_rate);
@@ -413,9 +416,19 @@ export class PurchasePostingService {
         taxRatePercent = Number(item.cgst_rate || 0) + Number(item.sgst_rate || 0);
       } else if ((item as any).tax_rate) {
         taxRatePercent = Number((item as any).tax_rate);
+      } else if (item.product_id) {
+        try {
+          const resolved = await TaxResolverService.resolveProductTax(item.product_id, item.variant_id, client);
+          taxRatePercent = resolved.rate;
+        } catch (err: any) {
+          throw new PurchasePostingError(
+            "POSTING_GUARD_FAILED",
+            `Purchase item '${item.description || item.id}' linked to product '${item.product_id}' has no authoritative tax rate: ${err.message}`
+          );
+        }
       }
 
-      return {
+      lineInputs.push({
         id: item.id,
         itemType: item.item_type,
         productId: item.product_id,
@@ -426,8 +439,8 @@ export class PurchasePostingService {
         discount: Number(item.discount || 0),
         taxRatePercent,
         hsnCode: item.hsn_code || null,
-      };
-    });
+      });
+    }
 
     // 6. Execute Frozen Purchase Tax Engine
     const metadata = (purchase.metadata || {}) as Record<string, any>;

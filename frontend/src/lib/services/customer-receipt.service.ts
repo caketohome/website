@@ -1027,6 +1027,18 @@ export class CustomerReceiptService {
           [JSON.stringify(updatedOrderMeta), order.id]
         );
 
+        // Synchronize statutory invoice AR balance and status
+        await client.query(
+          `UPDATE public.invoice
+           SET paid_amount = paid_amount + $1::numeric,
+               outstanding_amount = $2::numeric,
+               status = CASE WHEN $2::numeric <= 0 THEN 'PAID' ELSE status END,
+               payment_status = CASE WHEN $2::numeric <= 0 THEN 'PAID' ELSE 'PARTIALLY_PAID' END,
+               updated_at = NOW()
+           WHERE order_id = $3`,
+          [receiptAmount, remainingAr, order.id]
+        );
+
         // Update Voucher metadata with final audit links
         const updatedVMeta = {
           ...vMeta,
@@ -1691,6 +1703,18 @@ export class CustomerReceiptService {
                 settled_amount: line.amount,
               }),
             ]
+          );
+
+          // Synchronize statutory invoice AR balance and status for settled order
+          await client.query(
+            `UPDATE public.invoice
+             SET paid_amount = paid_amount + $1,
+                 outstanding_amount = GREATEST(0, outstanding_amount - $1),
+                 status = CASE WHEN outstanding_amount - $1 <= 0 THEN 'PAID' ELSE status END,
+                 payment_status = CASE WHEN outstanding_amount - $1 <= 0 THEN 'PAID' ELSE 'PARTIALLY_PAID' END,
+                 updated_at = NOW()
+             WHERE order_id = $2`,
+            [line.amount, line.orderId]
           );
         }
 

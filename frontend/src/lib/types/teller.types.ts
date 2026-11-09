@@ -39,6 +39,7 @@ export type TellerErrorCode =
   | "TELLER_INACTIVE"
   | "TELLER_DUPLICATE_ACTIVE_USER"
   | "TELLER_CODE_COLLISION"
+  | "BRANCH_NOT_FOUND"
   | "UNAUTHORIZED_BRANCH"
   | "ACTIVE_SESSION_EXISTS"
   | "SESSION_NOT_FOUND"
@@ -53,7 +54,11 @@ export type TellerErrorCode =
   | "CONCURRENT_STATE_TRANSITION"
   | "PERMISSION_DENIED"
   | "NO_OPEN_SESSION_FOUND"
-  | "SETTLEMENT_POSTING_FAILED";
+  | "INSUFFICIENT_FUNDS"
+  | "SETTLEMENT_POSTING_FAILED"
+  | "CONTROL_ACCOUNT_INACTIVE"
+  | "ADJUSTMENT_POSTING_FAILED"
+  | "INVALID_EXPECTED_CASH";
 
 export class TellerDomainError extends Error {
   readonly code: TellerErrorCode;
@@ -245,5 +250,6 @@ export interface AuthenticatedActor {
   email?: string;
   role?: string;
   branchId?: string | null;
+  partnerId?: string | null;
   permissions?: string[];
 }

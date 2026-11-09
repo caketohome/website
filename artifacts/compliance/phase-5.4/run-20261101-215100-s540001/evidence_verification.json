@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T03:18:27.279Z",
+  "environment": "cth_rehearsal_phase5_4",
+  "provenance": "e:/vig/cakes2home-main/cakes2home-main",
+  "run_id": "run-20261101-215100-s540001",
+  "verification_date": "2026-11-02T03:18:27.279Z",
+  "verification_authority": "Antigravity Compliance & Audit Lead",
+  "evaluations": [
+    {
+      "document": "CTH-GOV-2026-SUB-01.md",
+      "sha256_match": true,
+      "substantive_validity": "INVALID_FOR_PRODUCTION_ACTIVATION",
+      "reason": "Draft submission note only; lacks Section 118 execution by Chairman or Directors."
+    },
+    {
+      "document": "Certified Board Resolution Extract (Section 179)",
+      "sha256_match": false,
+      "substantive_validity": "ABSENT",
+      "reason": "Document not received."
+    },
+    {
+      "document": "Signed Minutes of Board Meeting (Section 118)",
+      "sha256_match": false,
+      "substantive_validity": "ABSENT",
+      "reason": "Document not received."
+    }
+  ],
+  "intake_gate_status": "INCOMPLETE_DRAFT_ONLY"
+}

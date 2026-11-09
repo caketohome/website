@@ -1,0 +1,33 @@
+{
+  "run_id": "run-20261101-213450-s530001",
+  "tests": [
+    {
+      "name": "Implementer Self-Approval Prevention",
+      "result": "PASSED_BLOCKED"
+    },
+    {
+      "name": "Unauthorized Role Approval Prevention",
+      "result": "PASSED_BLOCKED"
+    },
+    {
+      "name": "Expired Authorization Rejection",
+      "result": "PASSED_REJECTED"
+    },
+    {
+      "name": "Revoked Authorization Immediate Cancellation",
+      "result": "PASSED_ATOMIC_CANCEL"
+    },
+    {
+      "name": "Consumed Authorization Replay Protection",
+      "result": "PASSED_BLOCKED"
+    },
+    {
+      "name": "Concurrent Execution Race-Safety",
+      "result": "PASSED_MUTEX_LOCKED"
+    },
+    {
+      "name": "Non-Gapless Native Sequence Truth Validation",
+      "result": "PASSED_VERIFIED"
+    }
+  ]
+}

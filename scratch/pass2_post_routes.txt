@@ -1,0 +1,256 @@
+4653: // ── Phase 5A.2: Accounting Configuration POST Endpoints ────────────────────
+4654: if (path.startsWith("admin/accounting/")) {
+4862: // ── Canonical COD Collection Control & Remittance API (Phase 4F Step 4.9) ──
+4863: if (path === "admin/reports/cod/collection" || path === "admin/accounting/cod/collection") {
+4890: if (path === "admin/reports/cod/settlement" || path === "admin/accounting/cod/settlement" || path === "manager/cod/settlement") {
+4892: if (permErr && !path.startsWith("manager/cod")) return permErr;
+4931: // ── Canonical Gateway Settlement Actions (Phase 4F Step 4.10 Substep 4.10.4) ──
+4932: if (path.startsWith("admin/gateway-settlements/")) {
+4937: if (gwSubPath === "batches/ingest") {
+5071: // ── Canonical Bank Deposit Slips API Endpoints (Phase 4F Step 4.10 Substep 4.10.2) ──
+5072: if (path.startsWith("admin/bank-deposit-slips")) {
+5079: if (path === "admin/bank-deposit-slips") {
+5185: // ── Supplier API (POST) ────────────────────────────────────────────────────
+5186: if (path === "admin/suppliers") {
+5198: // ── Purchase API (POST) ────────────────────────────────────────────────────
+5199: if (path === "admin/purchases") {
+5216: // ── Purchase Payment (POST) ───────────────────────────────────────────────
+5239: // ── Purchase Status Transition (POST) ─────────────────────────────────────
+5258: // ── Purchase Post to General Ledger (POST) ──────────────────────────────
+5284: // ── Expense Category API (POST) ────────────────────────────────────────────
+5285: if (path === "admin/expense-categories") {
+5297: // ── Expense API (POST) ────────────────────────────────────────────────────
+5298: if (path === "admin/expenses") {
+5311: // ── Expense Status Transition (POST) ──────────────────────────────────────
+5330: // ── Expense Approve (POST) ───────────────────────────────────────────────
+5348: // ── Expense Post (POST) ──────────────────────────────────────────────────
+5366: // ── Fleet Vehicles (POST) ────────────────────────────────────────────────
+5367: if (path === "admin/fleet/vehicles") {
+5380: // ── Fleet Trips (POST) ───────────────────────────────────────────────────
+5381: if (path === "admin/fleet/trips") {
+5394: // ── Fleet Fuel (POST) ────────────────────────────────────────────────────
+5395: if (path === "admin/fleet/fuel") {
+5408: // ── Customer Favorites / Wishlist (POST) ──
+5449: // ── Lead Generation & Cake Enquiries (POST) ──
+5483: // ── Product Reviews Submission (POST) ──
+5493: if (!productId && path.startsWith("products/")) {
+5530: if (path === "cart" || path === "store/cart" || path === "cart/items" || path === "store/cart/items" || (path.startsWith("cart/") && path.endsWith("/items")) || (path.startsWith("store/cart/") && path.endsWith("/items"))) {
+5611: if (path === "auth/logout" || path === "user/logout" || path === "admin/logout" || path === "store/auth/logout") {
+5620: if (path === "auth/user/emailpass" || path === "auth/login") {
+5632: if (path === "auth/request-otp" || path === "auth/otp/request" || path === "store/auth/request-otp") {
+5644: if (path === "auth/verify-otp" || path === "auth/otp/verify" || path === "store/auth/verify-otp") {
+5677: if (path === "customer/me" || path === "customer/profile" || path === "store/customer/me") {
+5694: // ── Cart Activity Ingestion & Recovery Dispatch (POST) ──
+5695: if (path === "cart/activity" || path === "store/cart/activity") {
+5700: if (path === "cart/recover" || path === "store/cart/recover") {
+5711: if (path === "admin/abandoned-carts/evaluate") {
+5716: if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/send-recovery")) {
+5728: if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/whatsapp")) {
+5738: if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/call")) {
+5744: if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/token")) {
+5751: if (path.startsWith("admin/orders/")) {
+5781: // ── Enterprise CRM Mutations (POST) ──
+5783: if ((path.startsWith("admin/crm") || path.startsWith("admin/customers")) && (userCtx.role === "DELIVERY_PARTNER" || userCtx.role === "DLP")) {
+5786: if (path === "admin/crm/customers" || path === "admin/customers") {
+5791: if (path === "admin/crm/segments" || path === "admin/customers/segments") {
+5796: if (path.startsWith("admin/crm/segments/") && path.endsWith("/delete")) {
+5802: if (path.startsWith("admin/crm/segments/")) {
+5808: if (path === "admin/crm/lifecycle/rules" || path === "admin/lifecycle/rules") {
+5813: if (path === "admin/crm/merge" || path === "admin/customers/merge") {
+5822: if (path.startsWith("admin/crm/customers/") && path.endsWith("/assign")) {
+5828: if (path.startsWith("admin/crm/customers/") && path.endsWith("/reminders")) {
+5834: if (path.startsWith("admin/crm/customers/") && path.endsWith("/consent")) {
+5840: if (path.startsWith("admin/crm/customers/") && path.endsWith("/notes")) {
+5846: if (path.startsWith("admin/crm/customers/") && path.endsWith("/tags")) {
+5852: if (path.startsWith("admin/crm/customers/") && path.endsWith("/call")) {
+5858: if (path.startsWith("admin/crm/customers/")) {
+5864: if (path === "orders/attribute-recovery" || path === "admin/orders/attribute-recovery") {
+5869: if (path === "checkout/availability" || path === "store/checkout/availability") {
+5874: // ── Centralized Fulfillment Engine Endpoints (POST) ──
+5875: if (path === "fulfillment/check" || path === "store/fulfillment/check" || path === "fulfillment/availability" || path === "store/fulfillment/availability") {
+5894: if (path === "fulfillment/cart-check" || path === "store/fulfillment/cart-check" || path === "fulfillment/cart-availability" || path === "store/fulfillment/cart-availability") {
+5925: if (path === "fulfillment/otp/generate" || path === "admin/fulfillment/otp/generate") {
+5944: if (path === "fulfillment/otp/verify" || path === "admin/fulfillment/otp/verify") {
+5962: if (path === "admin/fulfillment/config" || path === "fulfillment/config") {
+5976: // ── Admin: Master Flavors & Shapes (POST) ──
+5977: if (path === "admin/catalog/flavors" || path === "catalog/flavors") {
+5982: if (path === "admin/catalog/shapes" || path === "catalog/shapes") {
+5987: if (path === "admin/catalog/variant-options" || path === "catalog/variant-options") {
+5992: // ── Admin: Flavor & Shape Mappings Save Handlers ──
+6015: if (path === "admin/fulfillment/product-rules" || path === "fulfillment/product-rules") {
+6050: if (path === "admin/fulfillment/operating-hours" || path === "fulfillment/operating-hours") {
+6079: if (path === "admin/fulfillment/holidays" || path === "fulfillment/holidays") {
+6108: if (path === "checkout/validate" || path === "store/checkout/validate") {
+6113: if (path === "checkout/confirm" || path === "store/checkout/confirm") {
+6207: if (path === "customers/addresses" || path === "store/customers/addresses") {
+6212: if (path === "cart/items" || path === "store/cart/items") {
+6217: if (path === "cart" || path === "store/cart") {
+6222: if (path === "cart/promo") {
+6228: if (path === "payments/razorpay/create-order" || path === "store/payments/razorpay/create-order") {
+6233: if (path === "payments/razorpay/verify-signature" || path === "store/payments/razorpay/verify-signature") {
+6253: if (path === "payments/razorpay/webhook" || path === "payments/webhook" || path === "store/payments/webhook") {
+6341: if (path === "orders" || path === "admin/orders") {
+6384: if (path === "admin/offers/import") {
+6387: if (path.startsWith("admin/offers/") && path.endsWith("/clone")) {
+6391: if (path === "admin/branches" || path === "branches") {
+6481: // ── State Master Admin Endpoints ──
+6482: if (path === "admin/states" || path === "states") {
+6491: if (path.startsWith("admin/states/") && path.endsWith("/archive")) {
+6497: if (path.startsWith("admin/states/") && path.endsWith("/restore")) {
+6504: if (path === "admin/cities" || path === "cities") {
+6513: if (path.startsWith("admin/cities/") && path.endsWith("/archive")) {
+6519: if (path.startsWith("admin/cities/") && path.endsWith("/restore")) {
+6525: if (path === "delivery/resolve" || path === "store/delivery/resolve") {
+6533: if (path === "delivery/reverse-geocode" || path === "store/delivery/reverse-geocode") {
+6539: if (path === "delivery/search-location" || path === "store/delivery/search-location") {
+6544: if (path === "admin/cities/migrate") {
+6548: if (path === "admin/regions") {
+6551: if (path === "admin/weights" || path === "weights") {
+6554: if (path.includes("/weight-prices")) {
+6558: if (path === "admin/catalog/products" || path === "admin/products") {
+6561: if (path === "admin/offers") {
+6564: if (path === "admin/marketing/campaigns") {
+6567: if (path === "admin/delivery/partners" || path === "admin/delivery-partners") {
+6570: // ── Delivery Partner Workflow & OTP Endpoints ──
+6571: if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/claim")) {
+6576: if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/pickup-otp/verify")) {
+6581: if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/delivery-otp/verify")) {
+6586: if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/exception")) {
+6591: if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/reject")) {
+6596: if (path.startsWith("delivery-partner/exceptions/") && path.endsWith("/resolve")) {
+6601: if (path === "delivery-partner/availability") {
+6607: // ── BRANCH AVAILABILITY & OPERATIONAL MUTATIONS (POST) ─────────────────────
+6615: if (path.startsWith("manager/")) {
+6623: if (path.startsWith("manager/orders/") && path.endsWith("/accept")) {
+6632: if (path.startsWith("manager/orders/") && path.endsWith("/reject")) {
+6641: if (path.startsWith("manager/orders/") && path.endsWith("/hold")) {
+6646: if (path.startsWith("manager/orders/") && path.endsWith("/delay")) {
+6651: if (path.startsWith("manager/orders/") && path.endsWith("/ready")) {
+6660: if (path.startsWith("manager/orders/") && (path.endsWith("/assign-rider") || path.endsWith("/reassign-rider"))) {
+6670: if (path.startsWith("manager/orders/") && path.endsWith("/kot/reprint")) {
+6676: if (path.startsWith("manager/products/") && path.endsWith("/availability")) {
+6681: if (path.startsWith("manager/inventory/") && path !== "manager/inventory/damage") {
+6686: if (path === "manager/branch/status") {
+6690: if (path === "manager/branch/settings") {
+6694: if (path.startsWith("manager/notifications/") && path.endsWith("/read")) {
+6700: if (path === "manager/cash/drawer/open") {
+6739: if (path === "manager/cash/drawer/close") {
+6775: if (path === "manager/cash/cod/shortage") {
+6807: if (path === "manager/inventory/damage") {
+6836: if (path.startsWith("manager/purchases/") && path.endsWith("/grn")) {
+6863: if (path === "admin/crm/customers" || path === "admin/customers") {
+6866: if (path === "admin/marketing/seo" || path === "admin/seo/config") {
+6874: // ── Tax Master Configuration POST/PUT Endpoints ──
+6875: if (path === "admin/tax/configurations") {
+6901: if (path === "admin/tax/configurations/toggle") {
+6915: // ── Enterprise SEO Platform POST/PUT/DELETE Endpoints ──
+6916: if (path === "admin/seo/pages") {
+6927: if (path === "admin/seo/pages/sync") return jsonWithDataSource(ApiEngine.syncSeoPages(), "postgres");
+6928: if (path === "admin/seo/keywords") return jsonWithDataSource({ keyword: ApiEngine.createSeoKeyword(body), success: true }, "postgres", 201);
+6929: if (path === "admin/seo/redirects") {
+6937: if (path === "admin/seo/broken-links/scan") return jsonWithDataSource(ApiEngine.runBrokenLinkScan(), "postgres");
+6938: if (path === "admin/seo/schema/templates") return jsonWithDataSource({ template: ApiEngine.createSeoSchemaTemplate(body), success: true }, "postgres", 201);
+6939: if (path === "admin/seo/schema/validate") return jsonWithDataSource(ApiEngine.validateJsonLd(body.json_ld || body.schema_json || "{}"), "postgres");
+6940: if (path === "admin/seo/image-audits/scan") return jsonWithDataSource(ApiEngine.runImageAudit(), "postgres");
+6941: if (path === "admin/seo/competitors") return jsonWithDataSource({ competitor: ApiEngine.createSeoCompetitor(body), success: true }, "postgres", 201);
+6942: if (path === "admin/seo/geo/generate") return jsonWithDataSource({ geo_page: ApiEngine.generateGeoLandingPage(body), success: true }, "postgres", 201);
+6943: if (path === "admin/seo/aeo/entries") return jsonWithDataSource({ aeo_entry: ApiEngine.createSeoAeoEntry(body), success: true }, "postgres", 201);
+6944: if (path === "admin/seo/content-audits/scan") return jsonWithDataSource(ApiEngine.runContentAudit(), "postgres");
+6945: if (path === "admin/seo/page-speed") return jsonWithDataSource({ page_speed: ApiEngine.recordSeoPageSpeed(body), success: true }, "postgres", 201);
+6946: if (path === "admin/seo/utm-campaigns") return jsonWithDataSource({ campaign: ApiEngine.createSeoUtmCampaign(body), success: true }, "postgres", 201);
+6947: if (path === "admin/seo/robots/save") return jsonWithDataSource({ robots: ApiEngine.saveRobotsVersion(body), success: true }, "postgres");
+6948: if (path === "admin/seo/crawler-policies") {
+6956: if (path === "admin/seo/robots/rollback") return jsonWithDataSource({ robots: ApiEngine.rollbackRobots(body.id), success: true }, "postgres");
+6957: if (path === "admin/seo/backlinks") return jsonWithDataSource({ backlink: ApiEngine.createSeoBacklink(body), success: true }, "postgres", 201);
+6958: if (path === "admin/seo/reports/generate") return jsonWithDataSource({ report: ApiEngine.generateSeoReport(body.type || "overall"), success: true }, "postgres", 201);
+6959: if (path === "admin/seo/health-reports/generate") return jsonWithDataSource({ report: ApiEngine.generateSeoHealthReport(), success: true }, "postgres", 201);
+6960: if (path === "admin/seo/ai/generate") return jsonWithDataSource(ApiEngine.generateAiSeoContent(body.type || "meta_title", body.context || body), "postgres");
+6961: if (path === "admin/seo/integrations/bing/submit") return jsonWithDataSource(await ApiEngine.submitBingUrl(body.url), "postgres");
+6962: if (path === "admin/seo/integrations/indexing/publish") return jsonWithDataSource(await ApiEngine.publishGoogleIndexingUrl(body.url, body.type), "postgres");
+6963: if (path === "admin/seo/crawler/run") return jsonWithDataSource(await ApiEngine.runLiveCrawler(body.urls), "postgres");
+6964: if (path === "admin/seo/audits/autofix") return jsonWithDataSource(ApiEngine.autoFixSeoIssue(body.issue_id), "postgres");
+6965: if (path === "admin/seo/robots/validate") return jsonWithDataSource(ApiEngine.validateRobotsSyntax(body.content), "postgres");
+6966: if (path === "admin/seo/sitemap/validate") return jsonWithDataSource(ApiEngine.validateSitemapXml(body.xml), "postgres");
+6967: if (path === "admin/seo/rbac/check") return jsonWithDataSource(ApiEngine.checkSeoPermission(body.role || "super_admin", body.action), "postgres");
+6968: if (path === "admin/marketing-automation") {
+6972: if (path === "popups/impression" || path === "store/popups/impression" || path === "engagement/impression" || path === "store/engagement/impression") {
+6975: if (path === "popups/conversion" || path === "store/popups/conversion" || path === "engagement/conversion" || path === "store/engagement/conversion") {
+6978: if (path === "admin/popups" || path === "popups") {
+6981: if (path.startsWith("admin/popups/") && path.endsWith("/publish")) {
+6985: if (path.startsWith("admin/popups/") && path.endsWith("/pause")) {
+6989: if (path.startsWith("admin/popups/") && path.endsWith("/archive")) {
+6993: if (path.startsWith("admin/popups/") && path.endsWith("/duplicate")) {
+6997: if (path === "admin/notifications") {
+7000: if (path === "admin/settings") {
+7004: // ── Enterprise Compliance & Statutory Endpoints (POST) ──
+7005: if (path === "admin/compliance/business-profile") {
+7008: if (path === "admin/compliance/gst-registrations") {
+7011: if (path.startsWith("admin/compliance/gst-registrations/") && path.endsWith("/verify")) {
+7015: if (path === "admin/compliance/fssai") {
+7018: if (path.startsWith("admin/compliance/fssai/") && path.endsWith("/verify")) {
+7022: if (path === "admin/compliance/documents") {
+7027: if (path === "admin/categories" || path === "categories") {
+7030: if (path.startsWith("admin/categories/") && path.endsWith("/restore")) {
+7036: if (path === "admin/occasions" || path === "occasions") {
+7039: if (path === "admin/occasions/migrate" || path === "occasions/migrate") {
+7042: if (path.startsWith("admin/occasions/") && path.endsWith("/restore")) {
+7048: if (path === "admin/media" || path === "admin/media/create") {
+7056: if (path === "admin/media/upload") {
+7142: if (path === "cms/pages") return jsonWithDataSource({ page: await ApiEngine.createCmsPage(body) }, "postgres");
+7144: // ── Search & Merchandising Engine Endpoints (POST) ──
+7145: if (path === "search/tags") {
+7148: if (path === "search/synonyms") {
+7151: if (path === "search/rules" || path === "search/merchandising-rules") {
+7154: if (path.startsWith("cms/pages/") && path.endsWith("/duplicate")) {
+7158: if (path.startsWith("cms/pages/") && path.endsWith("/rollback")) {
+7162: if (path.startsWith("cms/pages/") && path.endsWith("/publish")) {
+7169: if (path.startsWith("cms/pages/") && path.endsWith("/unpublish")) {
+7174: if (path.startsWith("cms/pages/") && path.endsWith("/reorder-sections")) {
+7179: if (path === "cms/pages/validate") {
+7182: if (path === "cms/forms/submit") {
+7186: if (path === "admin/reports/saved") return jsonWithDataSource({ report: ApiEngine.createSavedReport(body), success: true }, "postgres");
+7187: if (path === "admin/reports/dashboards") return jsonWithDataSource({ layout: ApiEngine.saveDashboardLayout(body), success: true }, "postgres");
+7188: if (path === "admin/reports/preferences") return jsonWithDataSource({ preferences: ApiEngine.saveChartPreferences(body), success: true }, "postgres");
+7189: if (path === "admin/reports/schedule" || path === "admin/reports/schedules") return jsonWithDataSource({ schedule: ApiEngine.createScheduledReport(body), success: true }, "postgres");
+7191: // ── Staff & Access Profiles Endpoints (POST) ──
+7192: if (path === "admin/staff-profiles/profiles" || path === "admin/staff/profiles") {
+7199: if (path.startsWith("admin/staff-profiles/profiles/") && path.endsWith("/duplicate")) {
+7207: if (path.startsWith("admin/staff-profiles/profiles/") && path.endsWith("/archive")) {
+7215: if (path === "admin/staff-profiles/staff" || path === "admin/staff/members") {
+7222: if (path.startsWith("admin/staff-profiles/staff/") && path.endsWith("/overrides")) {
+7231: // ── Webhooks & n8n Outbox Endpoints (POST) ──
+7232: if (path === "admin/webhooks/test") {
+7238: if (path.startsWith("admin/webhooks/retry/")) {
+7245: if (path.startsWith("admin/webhooks/") && path.endsWith("/rotate-secret")) {
+7253: // ── Telemarketing Endpoints (POST) ──
+7254: if (path === "admin/telemarketing/export") {
+7280: if (path === "admin/telemarketing/evaluate") {
+7288: if (path.startsWith("admin/telemarketing/candidates/") && path.endsWith("/call")) {
+7404: if (path.startsWith("admin/telemarketing/candidates/") && path.endsWith("/convert")) {
+7479: // ── Abandoned Cart Management & Recovery (POST) ──
+7480: if (path === "admin/abandoned-carts/campaigns") {
+7488: if (path === "admin/abandoned-carts/evaluate" || path === "admin/abandoned-carts/scan") {
+7492: if (path.startsWith("admin/abandoned-carts/") && (path.endsWith("/send-recovery") || path.endsWith("/notify"))) {
+7513: if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/assign-telecaller")) {
+7526: if (path.startsWith("admin/abandoned-carts/") && path.endsWith("/mark-converted")) {
+7540: // ── Popup & Storefront Engagement System (POST) ──
+7541: if (path === "engagement/impression" || path === "store/engagement/impression") {
+7545: if (path === "engagement/conversion" || path === "store/engagement/conversion") {
+7549: if (path === "admin/popups" || path === "popups") {
+7553: if ((path.startsWith("admin/popups/") || path.startsWith("popups/")) && path.endsWith("/publish")) {
+7558: if ((path.startsWith("admin/popups/") || path.startsWith("popups/")) && path.endsWith("/pause")) {
+7563: if ((path.startsWith("admin/popups/") || path.startsWith("popups/")) && path.endsWith("/duplicate")) {
+7568: if ((path.startsWith("admin/popups/") || path.startsWith("popups/")) && path.endsWith("/archive")) {
+7574: // ── Enterprise n8n & Webhook Mutations (POST) ──
+7575: if (path === "admin/webhooks/endpoints") {
+7581: if (path.startsWith("admin/webhooks/endpoints/") && path.endsWith("/rotate-secret")) {
+7588: if (path.startsWith("admin/webhooks/") && path.endsWith("/rotate-secret")) {
+7595: if (path === "admin/webhooks/test") {
+7601: if (path === "admin/webhooks/diagnostics/suite") {
+7607: if (path === "admin/webhooks/callback") {
+7617: if (path.startsWith("admin/webhooks/outbox/") && path.endsWith("/retry")) {
+7624: if (path.startsWith("admin/webhooks/outbox/") && path.endsWith("/replay")) {
+7631: if (path.startsWith("admin/webhooks/outbox/") && path.endsWith("/discard")) {
+7639: // ── Phase 5A.2: Accounting Configuration PUT Endpoints ────────────────────
+7640: if (path.startsWith("admin/accounting/")) {
+7699: if (path.startsWith("admin/")) return jsonWithDataSource({ success: true, path, action: "processed" }, "postgres");

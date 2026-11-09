@@ -1,0 +1,189 @@
+{
+  "startedAt": "2026-10-24T12:38:09.534Z",
+  "assertions": [
+    {
+      "title": "Business Profile loaded with form fields",
+      "outcome": "PASS",
+      "detail": "Initial: \"CakeToHome Retail India Private Limited\""
+    },
+    {
+      "title": "Invalid PAN is rejected with clear error",
+      "outcome": "PASS",
+      "detail": "Error: \"Invalid PAN format 'INVALID_PA'. Expected format: AAAAA9999A.\""
+    },
+    {
+      "title": "Business Profile saved successfully",
+      "outcome": "PASS",
+      "detail": "Business Profile & statutory corporate information updated successfully!"
+    },
+    {
+      "title": "Legal Name persisted across reload",
+      "outcome": "PASS",
+      "detail": "CakeToHome Retail India Private Limited"
+    },
+    {
+      "title": "PAN persisted across reload",
+      "outcome": "PASS",
+      "detail": "AAACC1234F"
+    },
+    {
+      "title": "CIN persisted across reload",
+      "outcome": "PASS",
+      "detail": "U15400KA2024PTC189001"
+    },
+    {
+      "title": "Tax & GST tab active",
+      "outcome": "PASS",
+      "detail": ""
+    },
+    {
+      "title": "GST Registration modal submitted",
+      "outcome": "PASS",
+      "detail": ""
+    },
+    {
+      "title": "Duplicate GSTIN submission is rejected with HTTP 409 Conflict",
+      "outcome": "PASS",
+      "detail": "HTTP 409"
+    },
+    {
+      "title": "DUPLICATE_GSTIN code returned",
+      "outcome": "PASS",
+      "detail": "GSTIN '29AAACC1234F1Z5' is already registered (ID: gst_1792842935181_36450)."
+    },
+    {
+      "title": "GST Registration found in active list",
+      "outcome": "PASS",
+      "detail": "29AAACC1234F1Z5"
+    },
+    {
+      "title": "GST Verification Status remains UNVERIFIED without authoritative API check",
+      "outcome": "PASS",
+      "detail": "Status: UNVERIFIED"
+    },
+    {
+      "title": "Corrupt PAN payload rejected with HTTP 400",
+      "outcome": "PASS",
+      "detail": "HTTP 400"
+    },
+    {
+      "title": "Accounting start date 2026-04-01 displayed",
+      "outcome": "PASS",
+      "detail": "Found 2026-04-01"
+    },
+    {
+      "title": "Accounting start date locked due to posted journal entries",
+      "outcome": "PASS",
+      "detail": "Found locked banner"
+    },
+    {
+      "title": "Accounting start date modification rejected with HTTP 409",
+      "outcome": "PASS",
+      "detail": "HTTP 409"
+    },
+    {
+      "title": "START_DATE_IMMUTABLE code enforced",
+      "outcome": "PASS",
+      "detail": "Cannot change accounting start date: 56 journal entries already exist. The start date is locked after the first posting."
+    },
+    {
+      "title": "Unauthenticated start date mutation rejected with 401",
+      "outcome": "PASS",
+      "detail": "HTTP 401"
+    },
+    {
+      "title": "Branch Manager blocked from Settings Panel by middleware",
+      "outcome": "PASS",
+      "detail": "Redirected to http://localhost:3000/dashboard/shop"
+    },
+    {
+      "title": "Direct API mutation rejected for lower privilege role",
+      "outcome": "PASS",
+      "detail": "HTTP 403"
+    },
+    {
+      "title": "Branch Manager blocked from accounting start date mutation",
+      "outcome": "PASS",
+      "detail": "HTTP 403"
+    },
+    {
+      "title": "Business Profile persisted after logout and re-login",
+      "outcome": "PASS",
+      "detail": "Found CakeToHome Retail India Private Limited"
+    },
+    {
+      "title": "Company profile successfully persisted in public.company",
+      "outcome": "PASS",
+      "detail": "Rows: 1"
+    },
+    {
+      "title": "GST registration successfully persisted in public.gst_registration",
+      "outcome": "PASS",
+      "detail": "Rows: 1"
+    },
+    {
+      "title": "accounting_start_date set to 2026-04-01 in public.setting",
+      "outcome": "PASS",
+      "detail": "2026-04-01"
+    },
+    {
+      "title": "Journal entries exist and remain untouched",
+      "outcome": "PASS",
+      "detail": "Count: 56"
+    },
+    {
+      "title": "Invoice sequence watermark is exactly 193",
+      "outcome": "PASS",
+      "detail": "Watermark: 193"
+    }
+  ],
+  "screenshots": [
+    "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\screenshots\\01_initial_business_profile.png",
+    "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\screenshots\\02_validation_error_invalid_pan.png",
+    "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\screenshots\\03_business_profile_saved_successfully.png",
+    "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\screenshots\\04_business_profile_persisted_after_refresh.png",
+    "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\screenshots\\05_tax_and_gst_tab.png",
+    "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\screenshots\\06_gstin_invalid_format_error.png",
+    "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\screenshots\\07_gst_registration_added_successfully.png",
+    "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\screenshots\\08_accounting_setup_panel.png",
+    "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\screenshots\\09_accounting_start_date_immutable_409.png",
+    "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\screenshots\\10_rbac_lower_privilege_denied.png"
+  ],
+  "videoPath": "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\videos\\page@c3efcd19606f0a3d467ef2755f278b71.webm",
+  "dbVerification": {
+    "company": [
+      {
+        "id": "cth_company_1792842928354_umu7n",
+        "legal_name": "CakeToHome Retail India Private Limited",
+        "pan": "AAACC1234F",
+        "state_code": "29",
+        "cin": "U15400KA2024PTC189001",
+        "is_active": true,
+        "updated_at": "2026-10-24T12:38:17.848Z"
+      }
+    ],
+    "gst": [
+      {
+        "id": "gst_1792842935181_36450",
+        "gstin": "29AAACC1234F1Z5",
+        "state_code": "29",
+        "legal_name": "CakeToHome Retail India Private Limited",
+        "company_id": "cth_company_1792842928354_umu7n",
+        "is_active": true
+      }
+    ],
+    "setting": {
+      "key": "accounting_start_date",
+      "value": "2026-04-01",
+      "created_at": "2026-10-16T04:49:30.932Z",
+      "updated_at": "2026-10-16T04:49:30.932Z"
+    },
+    "journalCount": "56",
+    "invoiceSequence": {
+      "last_seq": 193,
+      "prefix": "CTH",
+      "fiscal_year": 2026,
+      "gstin": "29AABCC1234F1Z5"
+    }
+  }
+}

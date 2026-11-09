@@ -45,7 +45,7 @@ export function validateCreateOrderInput(body: any, idempotencyKeyHeader?: strin
     };
   });
 
-  const paymentProvider = body.paymentProvider === "COD" ? "COD" : "RAZORPAY";
+  const paymentProvider = body.paymentProvider === "COD" ? "COD" : "CASHFREE";
 
   return {
     idempotencyKey: idempotencyKeyHeader || body.idempotencyKey || undefined,

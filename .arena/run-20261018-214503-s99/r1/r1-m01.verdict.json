@@ -1,0 +1,18 @@
+{
+  "match": "r1-m01",
+  "scores": {
+    "a002": {"correctness": 8.8, "completeness": 8.7, "specificity": 8.5, "robustness": 8.6, "clarity": 9.0, "fatal": false},
+    "a003": {"correctness": 9.4, "completeness": 9.3, "specificity": 9.2, "robustness": 9.3, "clarity": 9.2, "fatal": false}
+  },
+  "winner": "a003",
+  "reason": "a003 provides superior architectural decomposition across the five sub-problem seams, including explicit sub-route isolation and multi-viewport audit criteria.",
+  "survived": [
+    "Resolved catch-all API handler shadowing via explicit sub-route isolation rules",
+    "Detailed concrete relational schema anomalies and foreign key constraints",
+    "Added multi-device viewport testing matrix across desktop, tablet, and mobile"
+  ],
+  "standing": {
+    "a002": ["Less granular decomposition of the five independent ERP architectural seams"],
+    "a003": []
+  }
+}

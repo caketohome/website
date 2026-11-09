@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "protected_database": "cth_test",
+  "tables": {
+    "order": {
+      "count": "127",
+      "hash": "6d9182dd2a34cdc088f1701b2a504873",
+      "invariant": true
+    },
+    "invoice": {
+      "count": "71",
+      "hash": "e33ce42618e680c9b266e02a52e77026",
+      "invariant": true
+    },
+    "voucher": {
+      "count": "4",
+      "hash": "db3f00816abfe902347a65745f1c0b2a",
+      "invariant": true
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "run_id": "run-20261101-210315-s520001",
+  "decision_id": "CDR-16",
+  "title": "Production Invoicing Activation Gate",
+  "status": "FAIL-CLOSED",
+  "automated_approval_prohibited": true,
+  "independent_approver_required": true,
+  "current_authorization_record": null
+}

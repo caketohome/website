@@ -1,0 +1,70 @@
+{
+  "timestamp": "2026-10-24T21:12:31.806Z",
+  "engine": "PostgreSQL 16.14 (127.0.0.1:5433/cth_test)",
+  "browser": "Playwright Chromium 1234 (Desktop 1440x900)",
+  "results": [
+    {
+      "step": "Mount Terminal",
+      "assertion": "Page loads with correct title and isolated environment badge",
+      "status": "VERIFIED",
+      "details": "Title & Badge verified",
+      "screenshot": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots_phase6\\01_invoicing_terminal_initial.png"
+    },
+    {
+      "step": "Invalid GSTIN Guard",
+      "assertion": "UI displays statutory rejection banner for malformed GSTIN",
+      "status": "VERIFIED",
+      "details": "Statutory Rejection: Cannot generate statutory invoice: seller GSTIN 'INVALID_GST_NONE' is missing or invalid under GST Rule 46.",
+      "screenshot": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots_phase6\\02_invalid_seller_gst_rejected.png"
+    },
+    {
+      "step": "Sequence Zero-Burn",
+      "assertion": "PostgreSQL invoice counter was NOT incremented on invalid GSTIN rejection",
+      "status": "VERIFIED",
+      "details": "Counter remained at 0"
+    },
+    {
+      "step": "Valid Invoice Flow",
+      "assertion": "Committed database invoice number displayed in UI",
+      "status": "VERIFIED",
+      "details": "Committed: CTH/26-27/000001",
+      "screenshot": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots_phase6\\03_valid_invoice_committed.png"
+    },
+    {
+      "step": "Database Persistence",
+      "assertion": "Invoice row physically committed to PostgreSQL 16 database",
+      "status": "VERIFIED",
+      "details": "Persisted: CTH/26-27/000001, GSTIN: 29AAACC1234F1Z5, Alloc Status: COMMITTED"
+    },
+    {
+      "step": "Register Committed Row",
+      "assertion": "Sales register displays committed invoice number for invoiced order",
+      "status": "VERIFIED",
+      "details": "ord_valid_browser_001DELIVERED29AAACC1234F1Z5CTH/26-27/000001COMPLIANT",
+      "screenshot": "E:\\vig\\cakes2home-main\\cakes2home-main\\scratch\\screenshots_phase6\\04_sales_register_neutrality.png"
+    },
+    {
+      "step": "Register Uncommitted Neutrality",
+      "assertion": "Sales register displays NULL (PENDING_INVOICE) for un-invoiced orders",
+      "status": "VERIFIED",
+      "details": "ord_uncommitted_browser_003DELIVERED29AAACC1234F1Z5NULL (PENDING_INVOICE)PENDING_INVOICE"
+    },
+    {
+      "step": "Register No Order Number Fallback",
+      "assertion": "Sales register NEVER substitutes order ID for invoice number",
+      "status": "VERIFIED",
+      "details": "Order number not leaked as invoice number"
+    },
+    {
+      "step": "Database Audit Integrity",
+      "assertion": "Exact invoice count equals 1 and sequence value equals 1",
+      "status": "VERIFIED",
+      "details": "Total Invoices: 1, Sequence: 1, Allocation Logs: 1"
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0
+  }
+}

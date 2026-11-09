@@ -293,4 +293,72 @@ export class CustomerRepository {
   static async deleteAddress(addressId: string): Promise<void> {
     await dbQuery(`UPDATE "customer_address" SET deleted_at = NOW() WHERE id = $1`, [addressId]);
   }
+
+  /**
+   * List customer reminders stored in customer.metadata->'reminders'
+   */
+  static async listReminders(customerUid?: string): Promise<any[]> {
+    if (customerUid) {
+      const res = await dbQuery(
+        `SELECT id, first_name, last_name, phone, metadata->'reminders' as reminders
+         FROM "customer"
+         WHERE (id = $1 OR metadata->>'customer_uid' = $1) AND deleted_at IS NULL`,
+        [customerUid]
+      );
+      if (!res.rows || res.rows.length === 0) return [];
+      const rems = res.rows[0].reminders;
+      return Array.isArray(rems) ? rems : [];
+    }
+
+    const res = await dbQuery(
+      `SELECT id, first_name, last_name, phone, metadata->'reminders' as reminders
+       FROM "customer"
+       WHERE metadata->'reminders' IS NOT NULL AND deleted_at IS NULL`
+    );
+    const allReminders: any[] = [];
+    for (const row of res.rows) {
+      const rems = row.reminders;
+      if (Array.isArray(rems)) {
+        for (const r of rems) {
+          allReminders.push({
+            ...r,
+            customer_id: row.id,
+            customer_name: `${row.first_name || ""} ${row.last_name || ""}`.trim() || "Customer",
+            phone: row.phone,
+          });
+        }
+      }
+    }
+    return allReminders;
+  }
+
+  /**
+   * Save reminder to customer.metadata->'reminders'
+   */
+  static async saveReminder(customerUid: string, reminder: any): Promise<any> {
+    const id = reminder.id || `rem_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const newRem = {
+      id,
+      customer_uid: customerUid,
+      title: reminder.title || reminder.occasion || "Special Occasion",
+      date: reminder.date || reminder.reminder_date || new Date().toISOString().split("T")[0],
+      type: reminder.type || "OCCASION",
+      notes: reminder.notes || "",
+      created_at: new Date().toISOString(),
+    };
+
+    await dbQuery(
+      `UPDATE "customer"
+       SET metadata = jsonb_set(
+         COALESCE(metadata, '{}'::jsonb),
+         '{reminders}',
+         COALESCE(metadata->'reminders', '[]'::jsonb) || $1::jsonb
+       ),
+       updated_at = NOW()
+       WHERE (id = $2 OR metadata->>'customer_uid' = $2) AND deleted_at IS NULL`,
+      [JSON.stringify([newRem]), customerUid]
+    );
+
+    return newRem;
+  }
 }

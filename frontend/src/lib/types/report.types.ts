@@ -273,6 +273,8 @@ export interface GstDetailedRegisterRow {
 export interface OrderRegisterRow {
   orderId: string;
   orderNumber: string;
+  invoiceNumber: string | null;
+  invoiceDate: string | null;
   orderDate: string;
   deliveryDate: string | null;
   customerId: string | null;

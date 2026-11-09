@@ -1,0 +1,75 @@
+[
+  {
+    "finding_id": "CTH-P42-003",
+    "title": "Unconditional Promotion of Test Invoice Series in Migration c7_12",
+    "severity": "CRITICAL",
+    "classification": "REMEDIATED",
+    "description": "Migration c7_12 (lines 38-51) unconditionally promoted test prefixes (SAFE-TEST, CONC, FYBND, LKTEST, PRT-8899) to APPROVED and assigned synthetic approver identities 'ca_audit_signed' and 'partner_audit_signed'.",
+    "affected_files": [
+      "frontend/src/lib/migrations/c7_12_database_driven_gst_and_invoice_series.sql"
+    ],
+    "remediation": "Forward-only corrective migration c7_13 reclassified all synthetic records to REVOKED_SYNTHETIC with is_active = false and logged an immutable audit trail event.",
+    "verification": "test_phase4_3_compliance.cjs and test_workstream_i_migration_recovery.cjs verified 0 synthetic APPROVED records remain."
+  },
+  {
+    "finding_id": "CTH-P43-001",
+    "title": "Lack of Database-Level State Machine & Synthetic Approver Prevention",
+    "severity": "HIGH",
+    "classification": "REMEDIATED",
+    "description": "Ordinary database connections could directly execute UPDATE public.invoice_sequence SET approval_status = 'APPROVED', authorized_by = 'ca_audit_signed', bypassing application route guards.",
+    "affected_files": [
+      "public.invoice_sequence table"
+    ],
+    "remediation": "Installed trigger trg_invoice_sequence_governance blocking synthetic approver strings, enforcing terminal status locks on DEPRECATED_HISTORICAL and REVOKED_SYNTHETIC, and adding DDL CHECK constraints on prefix format and approval_status values.",
+    "verification": "Direct SQL injection tests in Workstream I and Scenario J-14 confirmed trigger raises exception STATUTORY_SECURITY_VIOLATION and performs atomic transaction rollback."
+  },
+  {
+    "finding_id": "CTH-P43-002",
+    "title": "Overly Permissive Statutory Approval API Route",
+    "severity": "HIGH",
+    "classification": "REMEDIATED",
+    "description": "Route /admin/compliance/invoice-series/approve permitted ordinary ADMIN role to approve statutory series without verified statutory delegation, and did not check current series state before approving.",
+    "affected_files": [
+      "frontend/src/app/api/v1/[...path]/route.ts"
+    ],
+    "remediation": "Hardened route.ts to strictly require role FINANCE_CONTROLLER or delegated SUPER_ADMIN (ordinary ADMIN rejected with HTTP 403), verify that series is in PROPOSED/SUSPENDED status, and bind approver identity strictly to authenticated session context.",
+    "verification": "Scenarios J-01 through J-05 and J-18, J-19 confirmed 403 for ordinary admin and successful approval only for authorized roles."
+  },
+  {
+    "finding_id": "CTH-P43-003",
+    "title": "Absence of Immutable Audit Log Table for Series State Transitions",
+    "severity": "MEDIUM",
+    "classification": "REMEDIATED",
+    "description": "Status changes on invoice_sequence only overwrote table columns without maintaining an append-only historical record of who approved, revoked, or modified series.",
+    "affected_files": [
+      "public.invoice_sequence"
+    ],
+    "remediation": "Created public.invoice_series_approval_audit table with BEFORE UPDATE OR DELETE trigger raising STATUTORY_SECURITY_VIOLATION, ensuring 100% append-only immutability.",
+    "verification": "Workstream I and Scenario J-20 confirmed that updates and deletes are blocked, and all state transitions automatically insert audit events."
+  },
+  {
+    "finding_id": "CTH-P43-004",
+    "title": "CI/CD Pipeline Lacked Automated Migration Synthetic String Linting",
+    "severity": "MEDIUM",
+    "classification": "REMEDIATED",
+    "description": "Deployment pipeline had no pre-deployment gate scanning SQL migrations for synthetic approver identities or unreviewed series promotions.",
+    "affected_files": [
+      "frontend/scripts/lint_migrations.cjs"
+    ],
+    "remediation": "Created frontend/scripts/lint_migrations.cjs which parses all migration files, detects prohibited approvers ('ca_audit_signed', 'partner_audit_signed', 'system_audit'), and enforces non-zero exit code to block deployment.",
+    "verification": "Ran linter in CI mode; verified that raw historical defects in c7_12 are detected and blocked, while remediated baseline passes."
+  },
+  {
+    "finding_id": "CTH-P43-005",
+    "title": "Production Invoice Series Formal Approval Pending Corporate Designation",
+    "severity": "EXTERNAL_DECISION_REQUIRED",
+    "classification": "BLOCKED_BY_POLICY",
+    "description": "CakeToHome India Private Limited board of directors / CFO has not yet formally designated and signed the statutory production invoice prefix and CA delegation resolution.",
+    "affected_files": [
+      "Production Invoice Sequence Registry"
+    ],
+    "remediation": "Preserved fail-closed guard in allocate_invoice_number. No production prefix selected or approved in Phase 4.3.",
+    "verification": "Verified allocate_invoice_number fails closed on any unapproved prefix under CGST Rule 46."
+  }
+]
+

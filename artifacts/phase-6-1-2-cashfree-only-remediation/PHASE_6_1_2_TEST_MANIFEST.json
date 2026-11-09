@@ -1,0 +1,115 @@
+{
+  "test_run_timestamp": "2026-11-06T10:18:15.048Z",
+  "environment": {
+    "node_version": "v24.12.0",
+    "database": "PostgreSQL 16.14 (cth_rehearsal_phase5:5433)",
+    "protected_database": "PostgreSQL 16.14 (cth_test:5433)",
+    "frontend": "Next.js 14.1.4 (Port 3000)",
+    "backend": "NestJS Enterprise (Port 9000)"
+  },
+  "suite_name": "CakeToHome Phase 6.1.2 End-to-End Cashfree & Decommission Test Suite",
+  "total_assertions": 14,
+  "passed_assertions": 14,
+  "failed_assertions": 0,
+  "success_rate": "100%",
+  "results": [
+    {
+      "id": "TEST-01",
+      "assertion": "Next.js rejects Razorpay create-order with 410 Gone",
+      "status": "PASS",
+      "expected": 410,
+      "actual": 410
+    },
+    {
+      "id": "TEST-02",
+      "assertion": "Next.js rejects Razorpay verify-signature with 410 Gone",
+      "status": "PASS",
+      "expected": 410,
+      "actual": 410
+    },
+    {
+      "id": "TEST-03",
+      "assertion": "Next.js rejects Razorpay webhook with 410 Gone",
+      "status": "PASS",
+      "expected": 410,
+      "actual": 410
+    },
+    {
+      "id": "TEST-04",
+      "assertion": "NestJS Backend rejects Razorpay POST with 410 Gone",
+      "status": "PASS",
+      "expected": 410,
+      "actual": 410
+    },
+    {
+      "id": "TEST-05",
+      "assertion": "NestJS creates Cashfree PG v2023-08-01 order session",
+      "status": "PASS",
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "id": "TEST-06",
+      "assertion": "Next.js creates Cashfree order session endpoint",
+      "status": "PASS",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "id": "TEST-07",
+      "assertion": "Cashfree verification confirms order atomically",
+      "status": "PASS",
+      "expected": "confirmed",
+      "actual": "confirmed"
+    },
+    {
+      "id": "TEST-08",
+      "assertion": "Database order row transitioned to status=confirmed and payment_status=paid",
+      "status": "PASS",
+      "expected": "paid",
+      "actual": "paid"
+    },
+    {
+      "id": "TEST-09",
+      "assertion": "Payment transaction recorded with provider=cashfree",
+      "status": "PASS",
+      "expected": "cashfree",
+      "actual": "cashfree"
+    },
+    {
+      "id": "TEST-10",
+      "assertion": "Kitchen Order Ticket (KOT) generated automatically",
+      "status": "PASS",
+      "expected": "queued",
+      "actual": "queued"
+    },
+    {
+      "id": "TEST-11",
+      "assertion": "Historical Razorpay records preserved in payment_transaction",
+      "status": "PASS",
+      "expected": 18,
+      "actual": 18
+    },
+    {
+      "id": "TEST-12",
+      "assertion": "Protected DB cth_test untouched (order count == 127)",
+      "status": "PASS",
+      "expected": 127,
+      "actual": 127
+    },
+    {
+      "id": "TEST-13",
+      "assertion": "Protected DB cth_test untouched (payment count == 40)",
+      "status": "PASS",
+      "expected": 40,
+      "actual": 40
+    },
+    {
+      "id": "TEST-14",
+      "assertion": "Protected DB cth_test untouched (invoice count == 71)",
+      "status": "PASS",
+      "expected": 71,
+      "actual": 71
+    }
+  ]
+}

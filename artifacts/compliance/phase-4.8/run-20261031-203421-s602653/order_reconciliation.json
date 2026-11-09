@@ -1,0 +1,35 @@
+{
+  "total_orders": 127,
+  "invoiced_orders": 58,
+  "unbilled_orders": 69,
+  "unbilled_breakdown": {
+    "delivered_unbilled": 21,
+    "pending_confirmed": 31,
+    "cancelled_returned": 17
+  },
+  "delivered_unbilled_classification": {
+    "validation_scenario_tests": 18,
+    "historical_non_scenario": 3,
+    "historical_details": [
+      {
+        "id": "ord_persist_1792703206362",
+        "amount": 1450.5,
+        "seller_gstin": null,
+        "notes": "Requires CA review"
+      },
+      {
+        "id": "ord_test9_1792703331575",
+        "amount": 1450.5,
+        "seller_gstin": null,
+        "notes": "Requires CA review"
+      },
+      {
+        "id": "ord_committed_valid_test",
+        "amount": 1800,
+        "seller_gstin": "29AAACC1234F1Z5",
+        "seller": "CakeToHome Retail India Private Limited",
+        "notes": "Separate entity transaction"
+      }
+    ]
+  }
+}

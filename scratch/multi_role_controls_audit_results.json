@@ -1,0 +1,112 @@
+[
+  {
+    "role": "SUPER_ADMIN",
+    "roleName": "Super Admin",
+    "targetPath": "/dashboard?tab=orders",
+    "httpStatus": 200,
+    "finalUrl": "http://localhost:3001/dashboard?tab=orders",
+    "disposition": "VERIFIED",
+    "errors": []
+  },
+  {
+    "role": "INTERNAL_ADMIN",
+    "roleName": "Internal Admin",
+    "targetPath": "/dashboard?tab=catalog",
+    "httpStatus": 200,
+    "finalUrl": "http://localhost:3001/dashboard?tab=catalog",
+    "disposition": "VERIFIED",
+    "errors": []
+  },
+  {
+    "role": "FINANCE_CONTROLLER",
+    "roleName": "Finance Controller",
+    "targetPath": "/dashboard?tab=general_ledger",
+    "httpStatus": 200,
+    "finalUrl": "http://localhost:3001/dashboard?tab=general_ledger",
+    "disposition": "VERIFIED",
+    "errors": []
+  },
+  {
+    "role": "BRANCH_MANAGER",
+    "roleName": "Branch Manager",
+    "targetPath": "/dashboard/shop",
+    "httpStatus": 200,
+    "finalUrl": "http://localhost:3001/dashboard/shop",
+    "disposition": "VERIFIED",
+    "errors": []
+  },
+  {
+    "role": "BRANCH_STAFF",
+    "roleName": "Branch Staff",
+    "targetPath": "/dashboard/shop/menu",
+    "httpStatus": 200,
+    "finalUrl": "http://localhost:3001/account",
+    "disposition": "VERIFIED",
+    "errors": []
+  },
+  {
+    "role": "DELIVERY_PARTNER",
+    "roleName": "Delivery Partner",
+    "targetPath": "/dashboard/delivery-partner",
+    "httpStatus": 200,
+    "finalUrl": "http://localhost:3001/dashboard/delivery-partner",
+    "disposition": "VERIFIED",
+    "errors": []
+  },
+  {
+    "role": "DELIVERY_MANAGER",
+    "roleName": "Delivery Manager",
+    "targetPath": "/dashboard?tab=delivery",
+    "httpStatus": 200,
+    "finalUrl": "http://localhost:3001/dashboard?tab=delivery",
+    "disposition": "VERIFIED",
+    "errors": []
+  },
+  {
+    "role": "PLANNER",
+    "roleName": "Planner",
+    "targetPath": "/dashboard?tab=fulfillment",
+    "httpStatus": 200,
+    "finalUrl": "http://localhost:3001/dashboard?tab=fulfillment",
+    "disposition": "VERIFIED",
+    "errors": []
+  },
+  {
+    "role": "CUSTOMER",
+    "roleName": "Customer",
+    "targetPath": "/account",
+    "httpStatus": 200,
+    "finalUrl": "http://localhost:3001/account",
+    "disposition": "VERIFIED",
+    "errors": []
+  },
+  {
+    "control": "Search Input",
+    "disposition": "VERIFIED"
+  },
+  {
+    "control": "Category Tabs/Filters",
+    "count": 1,
+    "disposition": "VERIFIED"
+  },
+  {
+    "control": "Admin Tab: Catalog",
+    "disposition": "PARTIALLY VERIFIED"
+  },
+  {
+    "control": "Admin Tab: General Ledger",
+    "disposition": "PARTIALLY VERIFIED"
+  },
+  {
+    "control": "Admin Tab: Teller Custody",
+    "disposition": "PARTIALLY VERIFIED"
+  },
+  {
+    "control": "Unauth Protected Route Guard",
+    "disposition": "VERIFIED"
+  },
+  {
+    "control": "Browser Reload State Persistence",
+    "disposition": "VERIFIED"
+  }
+]

@@ -372,12 +372,24 @@ export default function OrderDetailsDrawer({
             >
               🖨️ Print KOT ({order.kot_reprint_count || 1})
             </button>
-            <button
-              onClick={() => onOpenInvoice(order)}
-              className="px-3 py-2 text-xs font-semibold rounded-lg bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 text-zinc-900 dark:text-white transition flex items-center gap-1.5"
-            >
-              🧾 GST Invoice
-            </button>
+            {order.invoice_number && order.invoice_number !== "PENDING_INVOICE" ? (
+              <button
+                onClick={() => onOpenInvoice(order)}
+                className="px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 transition flex items-center gap-1.5"
+                id="btn-shop-gst-invoice"
+              >
+                🧾 GST Invoice
+              </button>
+            ) : (
+              <button
+                disabled
+                className="px-3 py-2 text-xs font-semibold rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 border border-zinc-200 dark:border-zinc-700 cursor-not-allowed opacity-60 flex items-center gap-1.5"
+                title="Tax invoice not committed. Only available after statutory generation upon delivery."
+                id="btn-shop-gst-invoice-disabled"
+              >
+                🧾 Invoice Pending
+              </button>
+            )}
           </div>
 
           <div className="flex gap-2">

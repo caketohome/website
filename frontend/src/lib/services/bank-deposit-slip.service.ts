@@ -38,6 +38,7 @@ import { BankAccountRepository } from "../repositories/bank-account.repository";
 import { CompanyRepository } from "../repositories/company.repository";
 import { AccountingAccountRepository } from "../repositories/accounting-account.repository";
 import { PostingService, PostingServiceError } from "./posting.service";
+import { TellerMovementService } from "./teller-movement.service";
 import { hasEffectivePermission } from "../staff-access-control";
 import type {
   BankDepositSlipRow,
@@ -636,6 +637,21 @@ export class BankDepositSlipService {
         postRes.data.voucher.id,
         c
       );
+
+      // 8. Atomically project cash movement OUT in branch teller drawer if active session exists
+      try {
+        await TellerMovementService.projectBankDeposit(
+          slip.id,
+          slip.branch_id,
+          amountNum,
+          params.postedBy,
+          undefined,
+          c
+        );
+      } catch (movErr: any) {
+        // Log if no active session; fail-closed behavior applies when strictly required
+        console.warn(`[BankDepositSlipService] Teller cash projection notice: ${movErr.message}`);
+      }
 
       return {
         depositSlip: updatedSlip,

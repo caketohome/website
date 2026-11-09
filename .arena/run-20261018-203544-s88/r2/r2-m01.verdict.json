@@ -1,0 +1,11 @@
+{
+  "match": "r2-m01",
+  "scores": {
+    "a001": {"correctness": 9.5, "completeness": 9.5, "specificity": 9.5, "robustness": 9.5, "clarity": 9.5, "fatal": false},
+    "a003": {"correctness": 9.2, "completeness": 9.2, "specificity": 9.0, "robustness": 9.2, "clarity": 9.2, "fatal": false}
+  },
+  "winner": "a001",
+  "reason": "a001 delivers a superior operational architecture by integrating the Tri-Stage Verification Pipeline (Browser UI -> Network Interception -> PostgreSQL Persistence) with explicit failure prevention mechanisms and strict financial boundaries.",
+  "survived": ["conceded Tri-Stage Verification Pipeline", "conceded Complete Defect Register Schema"],
+  "standing": {"a001": [], "a003": ["slightly less prescriptive on immediate browser automation primitives"]}
+}

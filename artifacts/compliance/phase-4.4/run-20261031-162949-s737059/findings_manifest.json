@@ -1,0 +1,74 @@
+[
+  {
+    "finding_id": "CTH-P44-001",
+    "title": "Invoice Governance Trigger Limited to UPDATE Leaving INSERT Unprotected",
+    "severity": "CRITICAL",
+    "classification": "REMEDIATED",
+    "description": "Trigger trg_invoice_sequence_governance in c7_13 was created BEFORE UPDATE only. An adversary or migration executing a direct INSERT with approval_status = APPROVED could bypass all synthetic approver checks.",
+    "affected_files": [
+      "frontend/src/lib/migrations/c7_13_statutory_approval_integrity_and_governance.sql"
+    ],
+    "remediation": "Forward-only migration c7_14 upgrades trigger to BEFORE INSERT OR UPDATE, enforcing that series cannot be inserted directly in APPROVED status and must follow the statutory lifecycle.",
+    "verification": "TEST-P44-DB-03 and TEST-P44-DB-04 verify direct INSERT in APPROVED status is strictly rejected with exception 23514."
+  },
+  {
+    "finding_id": "CTH-P44-002",
+    "title": "Audit Immutability Row-Level Trigger Fails to Intercept TRUNCATE",
+    "severity": "CRITICAL",
+    "classification": "REMEDIATED",
+    "description": "PostgreSQL row-level triggers (BEFORE UPDATE OR DELETE FOR EACH ROW) do not execute during TRUNCATE. An identity with TRUNCATE privileges could erase all statutory approval audit history in a single command.",
+    "affected_files": [
+      "frontend/src/lib/migrations/c7_13_statutory_approval_integrity_and_governance.sql"
+    ],
+    "remediation": "Forward-only migration c7_14 adds statement-level trigger trg_invoice_series_audit_truncate (BEFORE TRUNCATE FOR EACH STATEMENT) raising exception 23514.",
+    "verification": "TEST-P44-DB-12 verifies direct TRUNCATE is blocked with STATUTORY_SECURITY_VIOLATION."
+  },
+  {
+    "finding_id": "CTH-P44-003",
+    "title": "Triggers Vulnerable to Suppression Under session_replication_role = replica",
+    "severity": "HIGH",
+    "classification": "REMEDIATED",
+    "description": "Standard PostgreSQL triggers do not fire if a session with replication privileges sets session_replication_role to replica.",
+    "affected_files": [
+      "frontend/src/lib/migrations/c7_13_statutory_approval_integrity_and_governance.sql"
+    ],
+    "remediation": "Forward-only migration c7_14 marks triggers ENABLE ALWAYS on both public.invoice_sequence and public.invoice_series_approval_audit.",
+    "verification": "TEST-P44-DB-13 and TEST-P44-DB-14 verify triggers fire and block violations even when session_replication_role = replica."
+  },
+  {
+    "finding_id": "CTH-P44-004",
+    "title": "Migration Linter Evasion via Multiline Splitting, Comments, and Dynamic SQL",
+    "severity": "HIGH",
+    "classification": "REMEDIATED",
+    "description": "Phase 4.3 lint_migrations.cjs used line-by-line regex matching, allowing bypasses via inline block comments (/* bypass */), multiline assignments, and dynamic SQL (EXECUTE).",
+    "affected_files": [
+      "frontend/scripts/lint_migrations.cjs"
+    ],
+    "remediation": "Hardened lint_migrations.cjs with zero-dependency lexical comment stripping, whitespace normalization, and dynamic SQL detection.",
+    "verification": "Adversarial corpus ADV-LINT-01 through ADV-LINT-15 achieved 15/15 (100%) detection pass rate."
+  },
+  {
+    "finding_id": "CTH-P44-005",
+    "title": "Statutory Approval Endpoint Accepted Anonymous or Empty userId Payloads",
+    "severity": "HIGH",
+    "classification": "REMEDIATED",
+    "description": "route.ts line 10478 checked role but did not explicitly reject userId === \"anonymous\", allowing unauthenticated tokens with forged role claims to approve series.",
+    "affected_files": [
+      "frontend/src/app/api/v1/[...path]/route.ts"
+    ],
+    "remediation": "Hardened route.ts to reject !userCtx.userId || userCtx.userId === \"anonymous\" with HTTP 403.",
+    "verification": "TEST-P44-API-04 verifies anonymous token payload is rejected with HTTP 403."
+  },
+  {
+    "finding_id": "CTH-P44-006",
+    "title": "Production Statutory Invoice Series Designation Pending Board Resolution",
+    "severity": "POLICY_BLOCKER",
+    "classification": "EXTERNAL_DECISION_REQUIRED",
+    "description": "CakeToHome India Private Limited Board of Directors has not yet adopted a formal resolution designating the official production invoice prefix and delegating statutory approval authority.",
+    "affected_files": [
+      "N/A - Corporate Board Governance"
+    ],
+    "remediation": "Invoicing remains intentionally fail-closed. No production prefix is approved until corporate resolution is executed.",
+    "verification": "Confirmed zero APPROVED series in production baseline; invoicing strictly fail-closed."
+  }
+]

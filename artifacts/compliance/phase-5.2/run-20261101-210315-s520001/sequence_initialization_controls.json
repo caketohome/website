@@ -1,0 +1,7 @@
+{
+  "run_id": "run-20261101-210315-s520001",
+  "production_sequence_initialized": false,
+  "sequence_consumed": 0,
+  "guard_constraint": "FOREIGN_KEY_TO_RELEASE_AUTHORIZATION_REQUIRED",
+  "table_state": "LOCKED_UNINITIALIZED"
+}

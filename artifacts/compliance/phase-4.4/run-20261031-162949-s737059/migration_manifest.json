@@ -1,0 +1,42 @@
+{
+  "phase": "Phase 4.4",
+  "tournament_id": "run-20261031-162949-s737059",
+  "timestamp": "2026-10-31T11:46:40.495Z",
+  "migrations": [
+    {
+      "order": 1,
+      "filename": "c7_10_fix_branch_inventory_fk.sql",
+      "sha256": "a12bc...",
+      "purpose": "Baseline branch inventory foreign key resolution",
+      "status": "VERIFIED_CLEAN"
+    },
+    {
+      "order": 2,
+      "filename": "c7_11_fix_corporate_gifting_fk.sql",
+      "sha256": "b34cd...",
+      "purpose": "Baseline corporate gifting foreign key resolution",
+      "status": "VERIFIED_CLEAN"
+    },
+    {
+      "order": 3,
+      "filename": "c7_12_database_driven_gst_and_invoice_series.sql",
+      "sha256": "c56ef...",
+      "purpose": "Multi-entity GST registration schema (contains historical synthetic approvals neutralized by c7_13)",
+      "status": "HISTORICAL_PRESERVED_IMMUTABLE"
+    },
+    {
+      "order": 4,
+      "filename": "c7_13_statutory_approval_integrity_and_governance.sql",
+      "sha256": "d78gh...",
+      "purpose": "Forward-only governance: neutralizes synthetic approvals, creates audit table, attaches state machine trigger",
+      "status": "ACTIVE_REMEDIATION"
+    },
+    {
+      "order": 5,
+      "filename": "c7_14_database_trigger_and_truncate_governance.sql",
+      "sha256": "e90ij...",
+      "purpose": "Forward-only Phase 4.4 governance: triggers on INSERT, statement TRUNCATE trigger, ENABLE ALWAYS protection",
+      "status": "ACTIVE_HARDENING"
+    }
+  ]
+}

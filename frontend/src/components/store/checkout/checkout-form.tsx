@@ -43,7 +43,7 @@ export interface CustomerLocation {
  source: LocationSource;
 }
 
-function Submit({ disabled }: { disabled?: boolean }) {
+function Submit({ disabled, paymentMethod }: { disabled?: boolean; paymentMethod?: string }) {
  const status = useFormStatus();
 
   return (
@@ -55,7 +55,11 @@ function Submit({ disabled }: { disabled?: boolean }) {
   disabled={disabled}
   aria-label="Confirm and place your cake order"
   >
-  Place Order Now 🎂
+  {paymentMethod === "cashfree"
+    ? "Proceed to Cashfree Payment 💳"
+    : paymentMethod === "cod"
+    ? "Confirm Cash on Delivery 💵"
+    : "Place Order Now 🎂"}
   </Button>
   );
 }
@@ -143,7 +147,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  const [couponDiscount, setCouponDiscount] = useState<number>(0);
  const [couponError, setCouponError] = useState<string>("");
  const [couponSuccess, setCouponSuccess] = useState<string>("");
- const [paymentMethod, setPaymentMethod] = useState<"cod" | "razorpay" | "test_mode">("cod");
+ const [paymentMethod, setPaymentMethod] = useState<"cod" | "cashfree" | "test_mode">("cashfree");
 
  // Availability, Dates, Slots & Real-time Pricing State
  const [availability, setAvailability] = useState<{
@@ -1609,9 +1613,9 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
  <button
  type="button"
- onClick={() => setPaymentMethod("razorpay")}
+ onClick={() => setPaymentMethod("cashfree")}
  className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all ${
- paymentMethod === "razorpay"
+ paymentMethod === "cashfree"
  ? "border-[#D4AF37] bg-obsidian-base/60 ring-2 ring-[#D4AF37]/20"
  : "border-navy-accent/60 hover:border-navy-glow"
  }`}
@@ -1619,9 +1623,9 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <div className="flex justify-between items-center">
  <span className="text-2xl">💳</span>
  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
- paymentMethod === "razorpay" ? "border-[#D4AF37] bg-[#1D2F5D] text-[#D4AF37] text-[10px]" : "border-stone/70"
+ paymentMethod === "cashfree" ? "border-[#D4AF37] bg-[#1D2F5D] text-[#D4AF37] text-[10px]" : "border-stone/70"
  }`}>
- {paymentMethod === "razorpay" && "✓"}
+ {paymentMethod === "cashfree" && "✓"}
  </span>
  </div>
  <div>
@@ -1735,7 +1739,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  ← Back to Mode & Slots
  </Button>
  <div className="flex flex-col items-end gap-1">
- <Submit disabled={isSubmitDisabled} />
+ <Submit disabled={isSubmitDisabled} paymentMethod={paymentMethod} />
  {isSubmitDisabled && (
  <Text className="text-xs text-pearl mt-1">
  * Please ensure all previous step fields are valid.

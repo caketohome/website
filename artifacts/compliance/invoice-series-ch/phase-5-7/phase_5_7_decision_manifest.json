@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "runId": "run-20261102-204500-s570001",
+  "seed": 570001,
+  "champion": "a001",
+  "skillRouterExecutionId": "sr-20261102-204500-p57",
+  "postgresVersion": "PostgreSQL 16.14, compiled by Visual C++ build 1944, 64-bit",
+  "decisions": {
+    "ch": [
+      "CH-01",
+      "CH-02",
+      "CH-03",
+      "CH-04",
+      "CH-05",
+      "CH-06",
+      "CH-07",
+      "CH-08",
+      "CH-09",
+      "CH-10",
+      "CH-11",
+      "CH-12",
+      "CH-13",
+      "CH-14",
+      "CH-15",
+      "CH-16",
+      "CH-17",
+      "CH-18",
+      "CH-19",
+      "CH-20"
+    ],
+    "gov": [
+      "GOV-01",
+      "GOV-02",
+      "GOV-03",
+      "GOV-04",
+      "GOV-05",
+      "GOV-06",
+      "GOV-07",
+      "GOV-08",
+      "GOV-09",
+      "GOV-10",
+      "GOV-11",
+      "GOV-12"
+    ]
+  }
+}

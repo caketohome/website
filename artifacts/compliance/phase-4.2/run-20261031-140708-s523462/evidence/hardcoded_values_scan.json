@@ -1,0 +1,242 @@
+[
+  {
+    "file": "frontend/src/app/api/v1/[...path]/route.ts",
+    "line": 10355,
+    "label": "PREFIX_CTH_LITERAL",
+    "snippet": "invoice_prefix: body.invoice_prefix || \"CTH\","
+  },
+  {
+    "file": "frontend/src/app/api/v1/[...path]/route.ts",
+    "line": 11875,
+    "label": "PREFIX_CTH_LITERAL",
+    "snippet": "invoice_prefix: body.invoice_prefix || \"CTH\","
+  },
+  {
+    "file": "frontend/src/components/dashboard/admin/compliance/branch-compliance-modal.tsx",
+    "line": 32,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "const [fboName, setFboName] = useState(compliance?.fbo_name || \"CakeToHome India Private Limited\");"
+  },
+  {
+    "file": "frontend/src/components/dashboard/admin/compliance/business-profile-tab.tsx",
+    "line": 26,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "legal_name: profile?.legal_name || \"CakeToHome India Private Limited\","
+  },
+  {
+    "file": "frontend/src/components/dashboard/admin/compliance/fssai-compliance-tab.tsx",
+    "line": 31,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "const [formFboName, setFormFboName] = useState(\"CakeToHome India Private Limited\");"
+  },
+  {
+    "file": "frontend/src/components/dashboard/admin/compliance/fssai-compliance-tab.tsx",
+    "line": 46,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "setFormFboName(\"CakeToHome India Private Limited\");"
+  },
+  {
+    "file": "frontend/src/components/dashboard/admin/compliance/fssai-compliance-tab.tsx",
+    "line": 63,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "setFormFboName(comp.fbo_name || \"CakeToHome India Private Limited\");"
+  },
+  {
+    "file": "frontend/src/components/dashboard/admin/compliance/gst-registrations-tab.tsx",
+    "line": 40,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "setFormLegalName(\"CakeToHome India Private Limited\");"
+  },
+  {
+    "file": "frontend/src/components/dashboard/admin/compliance/gst-registrations-tab.tsx",
+    "line": 56,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "setFormLegalName(reg.legal_name || \"CakeToHome India Private Limited\");"
+  },
+  {
+    "file": "frontend/src/components/dashboard/admin/compliance/invoice-billing-tab.tsx",
+    "line": 30,
+    "label": "PREFIX_CTH_LITERAL",
+    "snippet": "invoice_prefix: invoiceSettings?.invoice_prefix || \"CTH\","
+  },
+  {
+    "file": "frontend/src/components/dashboard/admin/compliance/invoice-billing-tab.tsx",
+    "line": 216,
+    "label": "GSTIN_AABCC",
+    "snippet": "placeholder=\"29AABCC1234F1Z5\""
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 645,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "legalName: \"CakeToHome India Private Limited\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 700,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "fboName: \"CakeToHome India Private Limited\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 715,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "legal_name: \"CakeToHome India Private Limited\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 756,
+    "label": "GSTIN_AABCC",
+    "snippet": "gstin: \"29AABCC1234F1Z5\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 757,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "legal_name: \"CakeToHome India Private Limited\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 786,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "legal_name: \"CakeToHome India Private Limited\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 815,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "legal_name: \"CakeToHome India Private Limited\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 844,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "legal_name: \"CakeToHome India Private Limited\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 1071,
+    "label": "PREFIX_CTH_LITERAL",
+    "snippet": "invoice_prefix: \"CTH\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 3563,
+    "label": "GSTIN_AABCC",
+    "snippet": "gst_number: \"29AABCC1234F1Z5\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 3736,
+    "label": "GSTIN_AABCC",
+    "snippet": "gst_number: \"29AABCC1234F1Z5\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 3813,
+    "label": "GSTIN_AABCC",
+    "snippet": "gst_number: \"29AABCC1234F1Z5\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 12902,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "legal_name: data.legal_name || memoryStore.business_profile?.legal_name || \"CakeToHome India Private Limited\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 13379,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "sellerLegalName: bizProfile?.legal_name || \"CakeToHome India Private Limited\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 22112,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "seller_legal_name: snap.seller_legal_name || bizProfile?.legal_name || \"CakeToHome India Private Limited\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 23772,
+    "label": "GSTIN_AABCC",
+    "snippet": "gst_number: \"29AABCC1234F1Z5\","
+  },
+  {
+    "file": "frontend/src/lib/api-engine.ts",
+    "line": 23858,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "seller_legal_name: validation.taxes?.seller_legal_name || \"CakeToHome India Private Limited\","
+  },
+  {
+    "file": "frontend/src/lib/excel-export-service.ts",
+    "line": 3,
+    "label": "LEGAL_NAME_INDIA_PVT",
+    "snippet": "let dynamicBrandLine = \"CAKETOHOME (CakeToHome India Private Limited)\";"
+  },
+  {
+    "file": "frontend/src/lib/migrations/c7_12_database_driven_gst_and_invoice_series.sql",
+    "line": 31,
+    "label": "GSTIN_AAACC",
+    "snippet": "-- Legacy CTH sequence is legally tied to 29AAACC1234F1Z5; isolate as DEPRECATED_HISTORICAL"
+  },
+  {
+    "file": "frontend/src/lib/migrations/c7_12_database_driven_gst_and_invoice_series.sql",
+    "line": 35,
+    "label": "APPROVER_SYSTEM_AUDIT",
+    "snippet": "authorized_by = 'system_audit'"
+  },
+  {
+    "file": "frontend/src/lib/migrations/c7_12_database_driven_gst_and_invoice_series.sql",
+    "line": 36,
+    "label": "GSTIN_AAACC",
+    "snippet": "WHERE prefix = 'CTH' AND gstin = '29AAACC1234F1Z5';"
+  },
+  {
+    "file": "frontend/src/lib/migrations/c7_12_database_driven_gst_and_invoice_series.sql",
+    "line": 36,
+    "label": "PREFIX_CTH_LITERAL",
+    "snippet": "WHERE prefix = 'CTH' AND gstin = '29AAACC1234F1Z5';"
+  },
+  {
+    "file": "frontend/src/lib/migrations/c7_12_database_driven_gst_and_invoice_series.sql",
+    "line": 42,
+    "label": "APPROVER_CA_AUDIT_SIGNED",
+    "snippet": "authorized_by = 'ca_audit_signed',"
+  },
+  {
+    "file": "frontend/src/lib/migrations/c7_12_database_driven_gst_and_invoice_series.sql",
+    "line": 44,
+    "label": "GSTIN_AABCC",
+    "snippet": "WHERE prefix IN ('SAFE-TEST', 'CONC', 'FYBND', 'LKTEST') AND gstin = '29AABCC1234F1Z5';"
+  },
+  {
+    "file": "frontend/src/lib/migrations/c7_12_database_driven_gst_and_invoice_series.sql",
+    "line": 44,
+    "label": "PREFIX_SAFE_TEST",
+    "snippet": "WHERE prefix IN ('SAFE-TEST', 'CONC', 'FYBND', 'LKTEST') AND gstin = '29AABCC1234F1Z5';"
+  },
+  {
+    "file": "frontend/src/lib/repositories/company.repository.ts",
+    "line": 79,
+    "label": "PREFIX_CTH_LITERAL",
+    "snippet": "input.invoice_prefix?.trim() || \"CTH\","
+  },
+  {
+    "file": "frontend/src/lib/services/bills-receivable.service.ts",
+    "line": 1061,
+    "label": "PREFIX_CTH_LITERAL",
+    "snippet": "\"CTH\","
+  },
+  {
+    "file": "frontend/src/lib/services/invoice-queue.service.ts",
+    "line": 49,
+    "label": "PREFIX_CTH_LITERAL",
+    "snippet": "const { orderId, entityId = \"CAKETOHOME_PARENT\", prefix = \"CTH\", maxAttempts = 5 } = options;"
+  },
+  {
+    "file": "frontend/src/lib/services/order.service.ts",
+    "line": 423,
+    "label": "PREFIX_CTH_LITERAL",
+    "snippet": "const seqRes = await client.query(`SELECT * FROM public.allocate_order_number('CTH')`);"
+  }
+]

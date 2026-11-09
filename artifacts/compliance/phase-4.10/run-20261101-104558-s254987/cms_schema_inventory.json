@@ -1,0 +1,62 @@
+{
+  "tables": {
+    "cms_page": {
+      "column_count": 33,
+      "primary_key": "id",
+      "indexes": [
+        "IDX_cms_page_slug_lang",
+        "IDX_cms_page_type_status"
+      ]
+    },
+    "cms_homepage_section": {
+      "column_count": 16,
+      "primary_key": "id",
+      "indexes": [
+        "IDX_cms_homepage_section_active"
+      ]
+    },
+    "media": {
+      "column_count": 19,
+      "primary_key": "id",
+      "indexes": [
+        "IDX_media_folder",
+        "IDX_media_created_at"
+      ]
+    },
+    "cms_revision": {
+      "column_count": 8,
+      "primary_key": "id",
+      "indexes": [
+        "IDX_cms_revision_page"
+      ]
+    },
+    "cms_block": {
+      "column_count": 9,
+      "primary_key": "id",
+      "indexes": [
+        "IDX_cms_block_identifier"
+      ]
+    },
+    "cms_navigation": {
+      "column_count": 9,
+      "primary_key": "id",
+      "indexes": [
+        "IDX_cms_navigation_location"
+      ]
+    },
+    "cms_banner": {
+      "column_count": 15,
+      "primary_key": "id",
+      "indexes": [
+        "IDX_cms_banner_active"
+      ]
+    },
+    "cms_redirect": {
+      "column_count": 9,
+      "primary_key": "id",
+      "indexes": [
+        "IDX_cms_redirect_from"
+      ]
+    }
+  }
+}

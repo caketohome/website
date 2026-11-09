@@ -1,0 +1,19 @@
+{
+  "phase": "4.5",
+  "run_id": "run-20261031-174801-s403526",
+  "timestamp": "2026-10-31T18:25:00+05:30",
+  "legal_entity": {
+    "legal_name": "CakeToHome India Private Limited",
+    "trade_name": "CakeToHome",
+    "state_code": "29",
+    "pan": "AABCC1234F",
+    "gstin": "29AABCC1234F1Z5",
+    "registration_type": "REGULAR"
+  },
+  "governance_status": {
+    "board_resolution_prefix": "PENDING",
+    "statutory_approver_delegation": "PENDING",
+    "gst_registration_certificate": "VERIFIED",
+    "system_fail_closed_state": "VERIFIED_ACTIVE"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "run_id": "run-20261101-203311-s510001",
+  "migration_baseline": "d231cee7e55f716526e62f5799cc7377c555fed3",
+  "schema_state": "CLEAN",
+  "foreign_key_integrity": "100% INTACT",
+  "active_tables_verified": [
+    "order",
+    "invoice",
+    "accounting_voucher",
+    "payment_transaction"
+  ],
+  "zero_unauthorized_ddl": true
+}

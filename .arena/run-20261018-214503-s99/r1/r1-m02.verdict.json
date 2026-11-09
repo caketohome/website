@@ -1,0 +1,18 @@
+{
+  "match": "r1-m02",
+  "scores": {
+    "a004": {"correctness": 9.5, "completeness": 9.4, "specificity": 9.3, "robustness": 9.4, "clarity": 9.3, "fatal": false},
+    "a001": {"correctness": 8.9, "completeness": 8.8, "specificity": 8.7, "robustness": 8.7, "clarity": 8.9, "fatal": false}
+  },
+  "winner": "a004",
+  "reason": "a004 presents a comprehensive Tri-Gate Verification Engine enforcing synchronous browser runtime, network status, and PostgreSQL persistence assertions with strict sequence dependencies.",
+  "survived": [
+    "Reordered staged pipeline to assert database synchronization before full workflow E2E execution",
+    "Specified exact PostgreSQL guard queries protecting quarantined invoices 31-35",
+    "Established structured control schema with stable DOM test IDs"
+  ],
+  "standing": {
+    "a004": [],
+    "a001": ["Signaling analogy lacks direct mapping to Playwright and Supabase execution specifics"]
+  }
+}

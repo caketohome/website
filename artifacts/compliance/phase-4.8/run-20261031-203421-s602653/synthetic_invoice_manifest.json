@@ -1,0 +1,22 @@
+{
+  "total_synthetic_invoices": 15,
+  "prior_phase_reported": 13,
+  "variance_explanation": "Prior reports undercounted CONC rows by 2. Ground truth census reveals 14 CONC + 1 SAFE-TEST = 15 total.",
+  "invoices": [
+    {
+      "prefix": "CONC",
+      "range": "000139 to 000152",
+      "count": 14,
+      "isolation_status": "VERIFIED"
+    },
+    {
+      "prefix": "SAFE-TEST",
+      "range": "000001",
+      "count": 1,
+      "isolation_status": "VERIFIED"
+    }
+  ],
+  "customer_portal_isolation": "VERIFIED_ISOLATED",
+  "tax_reporting_isolation": "VERIFIED_ISOLATED",
+  "general_ledger_isolation": "VERIFIED_ISOLATED"
+}

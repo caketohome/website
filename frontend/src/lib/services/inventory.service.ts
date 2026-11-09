@@ -1,3 +1,4 @@
+import { CrossAppEventService } from "./cross-app-event.service";
 import { dbQuery, dbTransaction } from "../db";
 
 export interface InventoryItem {
@@ -288,17 +289,60 @@ export class InventoryService {
 
     const id = `binv_${branchId}_${finalVariantId}`.slice(0, 60);
 
-    await dbQuery(
-      `
-      INSERT INTO "branch_inventory" (id, branch_id, product_id, variant_id, quantity, reserved, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, 0, NOW(), NOW())
-      ON CONFLICT (id) DO UPDATE SET
-        quantity = EXCLUDED.quantity,
-        updated_at = NOW(),
-        deleted_at = NULL
-    `,
-      [id, branchId, productId, finalVariantId, Math.max(0, quantity)]
-    );
+    await dbTransaction(async (client) => {
+      const prevRes = await client.query(
+        `SELECT quantity FROM "branch_inventory" WHERE id = $1 LIMIT 1`,
+        [id]
+      );
+      const prevQty = Number(prevRes.rows[0]?.quantity || 0);
+      const newQty = Math.max(0, quantity);
+      const delta = newQty - prevQty;
+
+      await client.query(
+        `
+        INSERT INTO "branch_inventory" (id, branch_id, product_id, variant_id, quantity, reserved, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, 0, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET
+          quantity = EXCLUDED.quantity,
+          updated_at = NOW(),
+          deleted_at = NULL
+      `,
+        [id, branchId, productId, finalVariantId, newQty]
+      );
+
+      if (delta !== 0) {
+        const mvId = `inv_adj_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        await client.query(
+          `INSERT INTO public.inventory_movement (
+            id, branch_id, product_id, movement_type, direction, quantity, notes, created_by, created_at
+          ) VALUES ($1, $2, $3, 'ADJUSTMENT', $4, $5, $6, 'admin_01', NOW())`,
+          [
+            mvId,
+            branchId,
+            productId,
+            delta > 0 ? "IN" : "OUT",
+            Math.abs(delta),
+            `Stock updated from ${prevQty} to ${newQty}`,
+          ]
+        );
+      }
+
+      await CrossAppEventService.publishInTransaction(client, {
+        event_type: "inventory.updated",
+        aggregate_type: "INVENTORY",
+        aggregate_id: `${branchId}:${productId}`,
+        branch_id: branchId,
+        payload: {
+          branch_id: branchId,
+          product_id: productId,
+          variant_id: finalVariantId,
+          previous_quantity: prevQty,
+          new_quantity: newQty,
+          delta,
+        },
+      });
+    });
+    CrossAppEventService.processPendingOutboxEvents().catch(() => {});
   }
 
   /**
@@ -360,7 +404,7 @@ export class InventoryService {
         COALESCE(bi.reserved, 0) as reserved,
         COALESCE(bi.quantity - bi.reserved, 0) as available_stock,
         COALESCE((p.metadata->>'low_stock_threshold')::int, 5) as low_stock_threshold,
-        p.thumbnail
+        COALESCE(p.metadata->>'thumbnail', p.metadata->>'image', '/images/placeholder-cake.jpg') as thumbnail
       FROM product p
       LEFT JOIN product_variant pv ON pv.product_id = p.id
       LEFT JOIN branch_inventory bi ON bi.product_id = p.id AND bi.branch_id = $1 AND bi.deleted_at IS NULL

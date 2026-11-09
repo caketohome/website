@@ -1,0 +1,13 @@
+{
+  "gate_id": "GATE-CTH-PROD-ACTIVATION",
+  "status": "BLOCKED",
+  "outcome": "OUTCOME 1 — AUTHORIZATION WORKFLOW VERIFIED; PRODUCTION ACTIVATION STILL BLOCKED",
+  "blockers": [
+    "BDR-01: NOT_SUBMITTED (Requires formal Board resolution)",
+    "BDR-02: NOT_SUBMITTED (Requires approved series configuration)",
+    "BDR-03: NOT_SUBMITTED (Requires Board delegation)",
+    "BDR-04: NOT_SUBMITTED (Requires verified corporate identity)",
+    "BDR-05: NOT_SUBMITTED (Requires approved dual-control matrix)",
+    "Zero active approved statutory invoice series in database"
+  ]
+}

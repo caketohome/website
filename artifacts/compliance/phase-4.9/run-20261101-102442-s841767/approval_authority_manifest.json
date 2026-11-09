@@ -1,0 +1,8 @@
+{
+  "sod_trigger_active": true,
+  "self_approval_prevented": true,
+  "synthetic_approval_blocked": true,
+  "audit_table_immutable": true,
+  "delegated_approvers_active": false,
+  "status": "FAIL_CLOSED_ACTIVE"
+}

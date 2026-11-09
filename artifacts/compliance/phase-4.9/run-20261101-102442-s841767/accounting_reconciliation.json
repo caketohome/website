@@ -1,0 +1,11 @@
+{
+  "total_orders": 127,
+  "invoiced_orders": 58,
+  "unbilled_orders": 69,
+  "total_vouchers": 4,
+  "draft_vouchers": 3,
+  "cancelled_vouchers": 1,
+  "posted_vouchers": 0,
+  "gl_distortion": 0,
+  "status": "ZERO_GL_DISTORTION"
+}

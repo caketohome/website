@@ -1,0 +1,3830 @@
+{
+  "extensions": [
+    {
+      "extname": "pg_stat_statements",
+      "extversion": "1.11"
+    },
+    {
+      "extname": "pgcrypto",
+      "extversion": "1.3"
+    },
+    {
+      "extname": "plpgsql",
+      "extversion": "1.0"
+    },
+    {
+      "extname": "supabase_vault",
+      "extversion": "0.3.1"
+    },
+    {
+      "extname": "uuid-ossp",
+      "extversion": "1.1"
+    }
+  ],
+  "all_tables": [
+    "account_holder",
+    "accounting_account",
+    "accounting_fiscal_period",
+    "accounting_journal_entry",
+    "accounting_journal_line",
+    "accounting_voucher",
+    "ai_circuit_breaker_state",
+    "ai_knowledge_base",
+    "ai_memory_state",
+    "ai_model_config",
+    "ai_prompt_registry",
+    "ai_provider_config",
+    "ai_request_log",
+    "analytics_event",
+    "analytics_expense",
+    "analytics_franchise",
+    "api_key",
+    "application_method_buy_rules",
+    "application_method_target_rules",
+    "audit_log",
+    "auth_identity",
+    "auth_mfa_factor",
+    "auth_mfa_recovery_code",
+    "auth_password_reset_token",
+    "auth_verification",
+    "bank_account",
+    "bank_deposit_slip",
+    "bank_reconciliation_match",
+    "bank_reconciliation_session",
+    "bank_statement_import",
+    "bank_statement_line",
+    "branch",
+    "branch_capacity",
+    "branch_inventory",
+    "branch_price",
+    "branch_region",
+    "branch_settings",
+    "branch_staff",
+    "branch_vault_movement",
+    "cake_option",
+    "capture",
+    "cart",
+    "cart_address",
+    "cart_line_item",
+    "cart_line_item_adjustment",
+    "cart_line_item_tax_line",
+    "cart_payment_collection",
+    "cart_promotion",
+    "cart_shipping_method",
+    "cart_shipping_method_adjustment",
+    "cart_shipping_method_tax_line",
+    "chat_message",
+    "chat_session",
+    "city",
+    "cms_asset_reference",
+    "cms_banner",
+    "cms_block",
+    "cms_category",
+    "cms_homepage_section",
+    "cms_navigation",
+    "cms_page",
+    "cms_redirect",
+    "cms_revision",
+    "cms_tag",
+    "cms_template",
+    "company",
+    "config_audit_log",
+    "connector_config",
+    "contact_submission",
+    "corporate_gifting_batch",
+    "corporate_gifting_recipient",
+    "cost_allocation_rule",
+    "cost_allocation_rule_target",
+    "cost_allocation_run",
+    "cost_allocation_run_line",
+    "cost_centre",
+    "credit_line",
+    "crm_ab_test",
+    "crm_automation_execution",
+    "crm_automation_flow",
+    "crm_automation_log",
+    "crm_campaign",
+    "crm_customer_blacklist",
+    "crm_customer_note",
+    "crm_customer_rfm",
+    "crm_customer_segment",
+    "crm_email_template",
+    "crm_segment",
+    "currency",
+    "cust_address",
+    "customer",
+    "customer_account_holder",
+    "customer_address",
+    "customer_favorite",
+    "customer_group",
+    "customer_group_customer",
+    "customer_phone",
+    "customer_receipt_allocation",
+    "delivery",
+    "delivery_delivery_partner",
+    "delivery_partner",
+    "delivery_proof",
+    "delivery_slot",
+    "delivery_zone",
+    "deliverymodule_delivery_cart_cart",
+    "deliverymodule_delivery_order_order",
+    "driver_attendance",
+    "driver_location",
+    "driver_profile",
+    "driver_transaction",
+    "driver_wallet",
+    "expense",
+    "expense_category",
+    "flavor_master",
+    "fleet_fuel",
+    "fulfillment",
+    "fulfillment_address",
+    "fulfillment_item",
+    "fulfillment_label",
+    "fulfillment_provider",
+    "fulfillment_set",
+    "gateway_payout_batch",
+    "gateway_settlement_order",
+    "geo_zone",
+    "gst_registration",
+    "image",
+    "inventory_cost_consumption",
+    "inventory_cost_lot",
+    "inventory_item",
+    "inventory_level",
+    "inventory_movement",
+    "inventory_transfer",
+    "invite",
+    "invite_rbac_role",
+    "invoice",
+    "language",
+    "layout_configuration",
+    "lead_enquiry",
+    "link_module_migrations",
+    "loc_currency",
+    "location_fulfillment_provider",
+    "location_fulfillment_set",
+    "login_event",
+    "marketing_campaign",
+    "marketing_campaign_event",
+    "marketing_campaign_metric",
+    "marketing_gamification_reward",
+    "marketing_newsletter_subscriber",
+    "marketing_popup",
+    "marketing_qr_code",
+    "marketing_recovery_job",
+    "media",
+    "mikro_orm_migrations",
+    "notification",
+    "notification_log",
+    "notification_provider",
+    "notification_template",
+    "offer",
+    "offer_audit_log",
+    "offer_daily_metric",
+    "offer_redemption",
+    "order",
+    "order_address",
+    "order_cart",
+    "order_change",
+    "order_change_action",
+    "order_claim",
+    "order_claim_item",
+    "order_claim_item_image",
+    "order_credit_line",
+    "order_event",
+    "order_exchange",
+    "order_exchange_item",
+    "order_fulfillment",
+    "order_item",
+    "order_lifecycle_refund",
+    "order_line_item",
+    "order_line_item_adjustment",
+    "order_line_item_tax_line",
+    "order_note",
+    "order_payment_collection",
+    "order_promotion",
+    "order_shipping",
+    "order_shipping_method",
+    "order_shipping_method_adjustment",
+    "order_shipping_method_tax_line",
+    "order_staff_assignment",
+    "order_status_history",
+    "order_summary",
+    "order_transaction",
+    "payment",
+    "payment_audit_trail",
+    "payment_collection",
+    "payment_collection_payment_providers",
+    "payment_provider",
+    "payment_session",
+    "payment_transaction",
+    "petty_cash_request",
+    "pim_category",
+    "popup_audience_rules",
+    "popup_campaigns",
+    "popup_conversions",
+    "popup_frequency_rules",
+    "popup_impressions",
+    "popup_rules",
+    "popup_versions",
+    "price",
+    "price_list",
+    "price_list_rule",
+    "price_preference",
+    "price_rule",
+    "price_set",
+    "product",
+    "product_category",
+    "product_category_product",
+    "product_collection",
+    "product_flavor_mapping",
+    "product_meta",
+    "product_option",
+    "product_option_value",
+    "product_product_option",
+    "product_product_option_value",
+    "product_review",
+    "product_reviews",
+    "product_sales_channel",
+    "product_shape_mapping",
+    "product_shipping_profile",
+    "product_tag",
+    "product_tags",
+    "product_type",
+    "product_variant",
+    "product_variant_inventory_item",
+    "product_variant_option",
+    "product_variant_price_set",
+    "product_variant_product_image",
+    "product_weight_price",
+    "promotion",
+    "promotion_application_method",
+    "promotion_campaign",
+    "promotion_campaign_budget",
+    "promotion_campaign_budget_usage",
+    "promotion_promotion_rule",
+    "promotion_rule",
+    "promotion_rule_value",
+    "property_label",
+    "provider_identity",
+    "publishable_api_key_sales_channel",
+    "purchase",
+    "purchase_item",
+    "purchase_payment",
+    "purchase_payment_allocation",
+    "refund",
+    "refund_reason",
+    "region",
+    "region_country",
+    "region_payment_provider",
+    "report_schedule",
+    "reschedule_request",
+    "reservation_item",
+    "return",
+    "return_fulfillment",
+    "return_item",
+    "return_reason",
+    "rewards_fraud_review",
+    "rewards_gift_card",
+    "rewards_gift_card_transaction",
+    "rewards_loyalty_ledger",
+    "rewards_loyalty_rule",
+    "rewards_loyalty_transaction",
+    "rewards_referral_code",
+    "rewards_referral_event",
+    "rewards_referral_program",
+    "rewards_referral_qualification",
+    "rewards_wallet",
+    "rewards_wallet_transaction",
+    "sales_channel",
+    "sales_channel_stock_location",
+    "script_migrations",
+    "security_blocked_ip",
+    "security_event",
+    "security_ip_whitelist",
+    "security_user_two_factor",
+    "service_zone",
+    "setting",
+    "shape_master",
+    "shipping_option",
+    "shipping_option_price_set",
+    "shipping_option_rule",
+    "shipping_option_type",
+    "shipping_profile",
+    "shop",
+    "shop_manager",
+    "shopmodule_shop_deliverymodule_delivery",
+    "shopmodule_shop_product_product",
+    "slot_reservation",
+    "state",
+    "stock_location",
+    "stock_location_address",
+    "stock_notification",
+    "store",
+    "store_currency",
+    "store_locale",
+    "subscription",
+    "supplier",
+    "support_ticket",
+    "tax_provider",
+    "tax_rate",
+    "tax_rate_rule",
+    "tax_region",
+    "teller",
+    "teller_movement",
+    "teller_session",
+    "ticket_message",
+    "translation",
+    "user",
+    "user_preference",
+    "user_rbac_role",
+    "variant_option",
+    "vehicle",
+    "vehicle_trip",
+    "view_configuration",
+    "webhook_delivery",
+    "webhook_endpoint",
+    "wishlist_item",
+    "workflow_execution"
+  ],
+  "table_details": {
+    "company": {
+      "exists": true,
+      "row_count": 0,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": "('cth_company_'::text || (gen_random_uuid())::text)"
+        },
+        {
+          "column_name": "legal_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "trade_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "registered_address",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "city",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "state_code",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "pin_code",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "pan",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "cin",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "fssai",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "currency",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": "'INR'::text"
+        },
+        {
+          "column_name": "fy_start_month",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "NO",
+          "column_default": "4"
+        },
+        {
+          "column_name": "invoice_prefix",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": "'CTH'::text"
+        },
+        {
+          "column_name": "phone",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "email",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "website",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "is_active",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "NO",
+          "column_default": "true"
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "udt_name": "jsonb",
+          "is_nullable": "YES",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "created_by",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "chk_company_currency_inr",
+          "constraint_type": "c",
+          "definition": "CHECK ((currency = 'INR'::text))"
+        },
+        {
+          "constraint_name": "chk_company_fy_start_month",
+          "constraint_type": "c",
+          "definition": "CHECK (((fy_start_month >= 1) AND (fy_start_month <= 12)))"
+        },
+        {
+          "constraint_name": "chk_company_pan_format",
+          "constraint_type": "c",
+          "definition": "CHECK (((pan IS NULL) OR (pan ~ '^[A-Z]{5}[0-9]{4}[A-Z]$'::text)))"
+        },
+        {
+          "constraint_name": "chk_company_state_code",
+          "constraint_type": "c",
+          "definition": "CHECK ((state_code ~ '^\\d{2}$'::text))"
+        },
+        {
+          "constraint_name": "company_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "company_pkey",
+          "indexdef": "CREATE UNIQUE INDEX company_pkey ON public.company USING btree (id)"
+        },
+        {
+          "indexname": "idx_company_singleton",
+          "indexdef": "CREATE UNIQUE INDEX idx_company_singleton ON public.company USING btree (is_active) WHERE (is_active = true)"
+        }
+      ]
+    },
+    "customer": {
+      "exists": true,
+      "row_count": 56,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "company_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "first_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "last_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "email",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "phone",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "has_account",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "udt_name": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_by",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "is_corporate",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "credit_enabled",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "credit_limit",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0.00"
+        },
+        {
+          "column_name": "payment_terms_days",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "gstin",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "credit_balance",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0.00"
+        },
+        {
+          "column_name": "credit_status",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": "'INACTIVE'::character varying"
+        },
+        {
+          "column_name": "credit_approved_by",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "credit_approved_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "customer_credit_approved_by_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (credit_approved_by) REFERENCES \"user\"(id) ON DELETE SET NULL"
+        },
+        {
+          "constraint_name": "customer_credit_limit_check",
+          "constraint_type": "c",
+          "definition": "CHECK ((credit_limit >= (0)::numeric))"
+        },
+        {
+          "constraint_name": "customer_payment_terms_days_check",
+          "constraint_type": "c",
+          "definition": "CHECK ((payment_terms_days >= 0))"
+        },
+        {
+          "constraint_name": "customer_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "IDX_customer_deleted_at",
+          "indexdef": "CREATE INDEX \"IDX_customer_deleted_at\" ON public.customer USING btree (deleted_at) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_customer_email_has_account_unique",
+          "indexdef": "CREATE UNIQUE INDEX \"IDX_customer_email_has_account_unique\" ON public.customer USING btree (email, has_account) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "customer_pkey",
+          "indexdef": "CREATE UNIQUE INDEX customer_pkey ON public.customer USING btree (id)"
+        },
+        {
+          "indexname": "idx_customer_credit_enabled",
+          "indexdef": "CREATE INDEX idx_customer_credit_enabled ON public.customer USING btree (credit_enabled) WHERE (credit_enabled = true)"
+        },
+        {
+          "indexname": "idx_customer_is_corporate",
+          "indexdef": "CREATE INDEX idx_customer_is_corporate ON public.customer USING btree (is_corporate) WHERE (is_corporate = true)"
+        },
+        {
+          "indexname": "idx_customer_phone",
+          "indexdef": "CREATE INDEX idx_customer_phone ON public.customer USING btree (phone) WHERE ((deleted_at IS NULL) AND (phone IS NOT NULL))"
+        }
+      ]
+    },
+    "customer_address": {
+      "exists": true,
+      "row_count": 34,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "customer_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "address_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "is_default_shipping",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "is_default_billing",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "company",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "first_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "last_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "address_1",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "address_2",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "city",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "country_code",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "province",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "postal_code",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "phone",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "udt_name": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "customer_address_customer_id_foreign",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (customer_id) REFERENCES customer(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "constraint_name": "customer_address_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "IDX_customer_address_customer_id",
+          "indexdef": "CREATE INDEX \"IDX_customer_address_customer_id\" ON public.customer_address USING btree (customer_id)"
+        },
+        {
+          "indexname": "IDX_customer_address_deleted_at",
+          "indexdef": "CREATE INDEX \"IDX_customer_address_deleted_at\" ON public.customer_address USING btree (deleted_at) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_customer_address_unique_customer_billing",
+          "indexdef": "CREATE UNIQUE INDEX \"IDX_customer_address_unique_customer_billing\" ON public.customer_address USING btree (customer_id) WHERE (is_default_billing = true)"
+        },
+        {
+          "indexname": "IDX_customer_address_unique_customer_shipping",
+          "indexdef": "CREATE UNIQUE INDEX \"IDX_customer_address_unique_customer_shipping\" ON public.customer_address USING btree (customer_id) WHERE (is_default_shipping = true)"
+        },
+        {
+          "indexname": "customer_address_pkey",
+          "indexdef": "CREATE UNIQUE INDEX customer_address_pkey ON public.customer_address USING btree (id)"
+        }
+      ]
+    },
+    "corporate_gifting_batch": {
+      "exists": true,
+      "row_count": 0,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": "('cgb_'::text || (gen_random_uuid())::text)"
+        },
+        {
+          "column_name": "customer_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "company_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "batch_name",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "source_filename",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "file_hash",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "file_size_bytes",
+          "data_type": "bigint",
+          "udt_name": "int8",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "status",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": "'DRAFT'::character varying"
+        },
+        {
+          "column_name": "total_recipients",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "total_amount",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0.00"
+        },
+        {
+          "column_name": "validated_recipients",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "invalid_recipients",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "processed_recipients",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "scheduled_delivery_date",
+          "data_type": "date",
+          "udt_name": "date",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "invoice_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "order_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "cost_centre_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "udt_name": "jsonb",
+          "is_nullable": "NO",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "created_by",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "cancelled_by",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "cancelled_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "cancellation_reason",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "corporate_gifting_batch_cancelled_by_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (cancelled_by) REFERENCES \"user\"(id) ON DELETE SET NULL"
+        },
+        {
+          "constraint_name": "corporate_gifting_batch_company_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "corporate_gifting_batch_cost_centre_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (cost_centre_id) REFERENCES cost_centre(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "corporate_gifting_batch_created_by_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (created_by) REFERENCES \"user\"(id) ON DELETE SET NULL"
+        },
+        {
+          "constraint_name": "corporate_gifting_batch_customer_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "corporate_gifting_batch_invalid_recipients_check",
+          "constraint_type": "c",
+          "definition": "CHECK ((invalid_recipients >= 0))"
+        },
+        {
+          "constraint_name": "corporate_gifting_batch_invoice_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (invoice_id) REFERENCES invoice(id) ON DELETE SET NULL"
+        },
+        {
+          "constraint_name": "corporate_gifting_batch_order_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (order_id) REFERENCES \"order\"(id) ON DELETE SET NULL"
+        },
+        {
+          "constraint_name": "corporate_gifting_batch_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "constraint_name": "corporate_gifting_batch_processed_recipients_check",
+          "constraint_type": "c",
+          "definition": "CHECK ((processed_recipients >= 0))"
+        },
+        {
+          "constraint_name": "corporate_gifting_batch_status_check",
+          "constraint_type": "c",
+          "definition": "CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'VALIDATED'::character varying, 'SCHEDULED'::character varying, 'PROCESSING'::character varying, 'COMPLETED'::character varying, 'CANCELLED'::character varying, 'FAILED'::character varying])::text[])))"
+        },
+        {
+          "constraint_name": "corporate_gifting_batch_total_amount_check",
+          "constraint_type": "c",
+          "definition": "CHECK ((total_amount >= 0.00))"
+        },
+        {
+          "constraint_name": "corporate_gifting_batch_total_recipients_check",
+          "constraint_type": "c",
+          "definition": "CHECK ((total_recipients >= 0))"
+        },
+        {
+          "constraint_name": "corporate_gifting_batch_validated_recipients_check",
+          "constraint_type": "c",
+          "definition": "CHECK ((validated_recipients >= 0))"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "corporate_gifting_batch_pkey",
+          "indexdef": "CREATE UNIQUE INDEX corporate_gifting_batch_pkey ON public.corporate_gifting_batch USING btree (id)"
+        },
+        {
+          "indexname": "idx_cgb_cost_centre_id",
+          "indexdef": "CREATE INDEX idx_cgb_cost_centre_id ON public.corporate_gifting_batch USING btree (cost_centre_id) WHERE (cost_centre_id IS NOT NULL)"
+        },
+        {
+          "indexname": "idx_cgb_created_at",
+          "indexdef": "CREATE INDEX idx_cgb_created_at ON public.corporate_gifting_batch USING btree (created_at DESC)"
+        },
+        {
+          "indexname": "idx_cgb_customer_file_hash_active",
+          "indexdef": "CREATE UNIQUE INDEX idx_cgb_customer_file_hash_active ON public.corporate_gifting_batch USING btree (customer_id, file_hash) WHERE (((status)::text <> 'FAILED'::text) AND (deleted_at IS NULL))"
+        },
+        {
+          "indexname": "idx_cgb_customer_id",
+          "indexdef": "CREATE INDEX idx_cgb_customer_id ON public.corporate_gifting_batch USING btree (customer_id)"
+        },
+        {
+          "indexname": "idx_cgb_invoice_id",
+          "indexdef": "CREATE INDEX idx_cgb_invoice_id ON public.corporate_gifting_batch USING btree (invoice_id) WHERE (invoice_id IS NOT NULL)"
+        },
+        {
+          "indexname": "idx_cgb_order_id",
+          "indexdef": "CREATE INDEX idx_cgb_order_id ON public.corporate_gifting_batch USING btree (order_id) WHERE (order_id IS NOT NULL)"
+        },
+        {
+          "indexname": "idx_cgb_status",
+          "indexdef": "CREATE INDEX idx_cgb_status ON public.corporate_gifting_batch USING btree (status)"
+        }
+      ]
+    },
+    "corporate_gifting_recipient": {
+      "exists": true,
+      "row_count": 0,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": "('cgr_'::text || (gen_random_uuid())::text)"
+        },
+        {
+          "column_name": "batch_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "row_number",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "employee_id",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "recipient_name",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "recipient_phone",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_address",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_pincode",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_city",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_state",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_date",
+          "data_type": "date",
+          "udt_name": "date",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_slot",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "product_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "variant_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "sku",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "quantity",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "NO",
+          "column_default": "1"
+        },
+        {
+          "column_name": "unit_price",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0.00"
+        },
+        {
+          "column_name": "line_total",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0.00"
+        },
+        {
+          "column_name": "gift_message",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "validation_status",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": "'PENDING'::character varying"
+        },
+        {
+          "column_name": "validation_errors",
+          "data_type": "jsonb",
+          "udt_name": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "order_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "status",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": "'PENDING'::character varying"
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "udt_name": "jsonb",
+          "is_nullable": "NO",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "corporate_gifting_recipient_batch_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (batch_id) REFERENCES corporate_gifting_batch(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "corporate_gifting_recipient_delivery_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (delivery_id) REFERENCES delivery(id) ON DELETE SET NULL"
+        },
+        {
+          "constraint_name": "corporate_gifting_recipient_line_total_check",
+          "constraint_type": "c",
+          "definition": "CHECK ((line_total >= 0.00))"
+        },
+        {
+          "constraint_name": "corporate_gifting_recipient_order_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (order_id) REFERENCES \"order\"(id) ON DELETE SET NULL"
+        },
+        {
+          "constraint_name": "corporate_gifting_recipient_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "constraint_name": "corporate_gifting_recipient_product_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "corporate_gifting_recipient_quantity_check",
+          "constraint_type": "c",
+          "definition": "CHECK ((quantity > 0))"
+        },
+        {
+          "constraint_name": "corporate_gifting_recipient_row_number_check",
+          "constraint_type": "c",
+          "definition": "CHECK ((row_number >= 1))"
+        },
+        {
+          "constraint_name": "corporate_gifting_recipient_status_check",
+          "constraint_type": "c",
+          "definition": "CHECK (((status)::text = ANY ((ARRAY['PENDING'::character varying, 'ORDER_CREATED'::character varying, 'DISPATCHED'::character varying, 'DELIVERED'::character varying, 'FAILED'::character varying, 'CANCELLED'::character varying])::text[])))"
+        },
+        {
+          "constraint_name": "corporate_gifting_recipient_unit_price_check",
+          "constraint_type": "c",
+          "definition": "CHECK ((unit_price >= 0.00))"
+        },
+        {
+          "constraint_name": "corporate_gifting_recipient_validation_status_check",
+          "constraint_type": "c",
+          "definition": "CHECK (((validation_status)::text = ANY ((ARRAY['PENDING'::character varying, 'VALID'::character varying, 'INVALID'::character varying])::text[])))"
+        },
+        {
+          "constraint_name": "corporate_gifting_recipient_variant_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (variant_id) REFERENCES product_variant(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "uq_cgr_batch_row",
+          "constraint_type": "u",
+          "definition": "UNIQUE (batch_id, row_number)"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "corporate_gifting_recipient_pkey",
+          "indexdef": "CREATE UNIQUE INDEX corporate_gifting_recipient_pkey ON public.corporate_gifting_recipient USING btree (id)"
+        },
+        {
+          "indexname": "idx_cgr_batch_id",
+          "indexdef": "CREATE INDEX idx_cgr_batch_id ON public.corporate_gifting_recipient USING btree (batch_id)"
+        },
+        {
+          "indexname": "idx_cgr_delivery_date",
+          "indexdef": "CREATE INDEX idx_cgr_delivery_date ON public.corporate_gifting_recipient USING btree (delivery_date)"
+        },
+        {
+          "indexname": "idx_cgr_delivery_id",
+          "indexdef": "CREATE INDEX idx_cgr_delivery_id ON public.corporate_gifting_recipient USING btree (delivery_id) WHERE (delivery_id IS NOT NULL)"
+        },
+        {
+          "indexname": "idx_cgr_order_id",
+          "indexdef": "CREATE INDEX idx_cgr_order_id ON public.corporate_gifting_recipient USING btree (order_id) WHERE (order_id IS NOT NULL)"
+        },
+        {
+          "indexname": "idx_cgr_phone",
+          "indexdef": "CREATE INDEX idx_cgr_phone ON public.corporate_gifting_recipient USING btree (recipient_phone)"
+        },
+        {
+          "indexname": "idx_cgr_status",
+          "indexdef": "CREATE INDEX idx_cgr_status ON public.corporate_gifting_recipient USING btree (status)"
+        },
+        {
+          "indexname": "idx_cgr_validation_status",
+          "indexdef": "CREATE INDEX idx_cgr_validation_status ON public.corporate_gifting_recipient USING btree (validation_status)"
+        },
+        {
+          "indexname": "idx_cgr_variant_id",
+          "indexdef": "CREATE INDEX idx_cgr_variant_id ON public.corporate_gifting_recipient USING btree (variant_id) WHERE (variant_id IS NOT NULL)"
+        },
+        {
+          "indexname": "uq_cgr_batch_row",
+          "indexdef": "CREATE UNIQUE INDEX uq_cgr_batch_row ON public.corporate_gifting_recipient USING btree (batch_id, row_number)"
+        }
+      ]
+    },
+    "order": {
+      "exists": true,
+      "row_count": 190,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "region_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "display_id",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "YES",
+          "column_default": "nextval('order_display_id_seq'::regclass)"
+        },
+        {
+          "column_name": "customer_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "version",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "NO",
+          "column_default": "1"
+        },
+        {
+          "column_name": "sales_channel_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "status",
+          "data_type": "USER-DEFINED",
+          "udt_name": "order_status_enum",
+          "is_nullable": "NO",
+          "column_default": "'pending'::order_status_enum"
+        },
+        {
+          "column_name": "is_draft_order",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "email",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "currency_code",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "shipping_address_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "billing_address_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "no_notification",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "udt_name": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "canceled_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "custom_display_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "locale",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "order_billing_address_id_foreign",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (billing_address_id) REFERENCES order_address(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        },
+        {
+          "constraint_name": "order_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "constraint_name": "order_shipping_address_id_foreign",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (shipping_address_id) REFERENCES order_address(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "IDX_order_billing_address_id",
+          "indexdef": "CREATE INDEX \"IDX_order_billing_address_id\" ON public.\"order\" USING btree (billing_address_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_currency_code",
+          "indexdef": "CREATE INDEX \"IDX_order_currency_code\" ON public.\"order\" USING btree (currency_code) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_custom_display_id",
+          "indexdef": "CREATE UNIQUE INDEX \"IDX_order_custom_display_id\" ON public.\"order\" USING btree (custom_display_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_customer_id",
+          "indexdef": "CREATE INDEX \"IDX_order_customer_id\" ON public.\"order\" USING btree (customer_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_deleted_at",
+          "indexdef": "CREATE INDEX \"IDX_order_deleted_at\" ON public.\"order\" USING btree (deleted_at)"
+        },
+        {
+          "indexname": "IDX_order_display_id",
+          "indexdef": "CREATE INDEX \"IDX_order_display_id\" ON public.\"order\" USING btree (display_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_is_draft_order",
+          "indexdef": "CREATE INDEX \"IDX_order_is_draft_order\" ON public.\"order\" USING btree (is_draft_order) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_region_id",
+          "indexdef": "CREATE INDEX \"IDX_order_region_id\" ON public.\"order\" USING btree (region_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_sales_channel_id",
+          "indexdef": "CREATE INDEX \"IDX_order_sales_channel_id\" ON public.\"order\" USING btree (sales_channel_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_order_shipping_address_id",
+          "indexdef": "CREATE INDEX \"IDX_order_shipping_address_id\" ON public.\"order\" USING btree (shipping_address_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_order_created_at_desc",
+          "indexdef": "CREATE INDEX idx_order_created_at_desc ON public.\"order\" USING btree (created_at DESC) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_order_customer_created_at",
+          "indexdef": "CREATE INDEX idx_order_customer_created_at ON public.\"order\" USING btree (customer_id, created_at DESC) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_order_email_lookup",
+          "indexdef": "CREATE INDEX idx_order_email_lookup ON public.\"order\" USING btree (email, created_at DESC) WHERE ((deleted_at IS NULL) AND (email IS NOT NULL))"
+        },
+        {
+          "indexname": "idx_order_status_created_at",
+          "indexdef": "CREATE INDEX idx_order_status_created_at ON public.\"order\" USING btree (status, created_at DESC) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "order_pkey",
+          "indexdef": "CREATE UNIQUE INDEX order_pkey ON public.\"order\" USING btree (id)"
+        }
+      ]
+    },
+    "delivery": {
+      "exists": true,
+      "row_count": 57,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "transaction_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_partner_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_status",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": "'pending'::text"
+        },
+        {
+          "column_name": "eta",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "delivered_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_date",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_slot_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "ordered_for_self",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "YES",
+          "column_default": "true"
+        },
+        {
+          "column_name": "recipient_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "recipient_phone",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "recipient_alt_phone",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "recipient_address",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "recipient_pincode",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "recipient_landmark",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_instructions",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "gift_wrap",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "YES",
+          "column_default": "false"
+        },
+        {
+          "column_name": "greeting_card",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "YES",
+          "column_default": "false"
+        },
+        {
+          "column_name": "gift_message",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "anonymous_delivery",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "YES",
+          "column_default": "false"
+        },
+        {
+          "column_name": "hide_invoice",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "YES",
+          "column_default": "true"
+        },
+        {
+          "column_name": "occasion",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "is_surprise_delivery",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "YES",
+          "column_default": "false"
+        },
+        {
+          "column_name": "scheduled_delivery_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "scheduled_slot",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_otp",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "delivery_delivery_status_check",
+          "constraint_type": "c",
+          "definition": "CHECK ((delivery_status = ANY (ARRAY['pending'::text, 'shop_declined'::text, 'shop_accepted'::text, 'pickup_claimed'::text, 'shop_preparing'::text, 'ready_for_pickup'::text, 'in_transit'::text, 'delivered'::text])))"
+        },
+        {
+          "constraint_name": "delivery_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "delivery_pkey",
+          "indexdef": "CREATE UNIQUE INDEX delivery_pkey ON public.delivery USING btree (id)"
+        },
+        {
+          "indexname": "idx_delivery_date_slot_status",
+          "indexdef": "CREATE INDEX idx_delivery_date_slot_status ON public.delivery USING btree (delivery_date, delivery_slot_id, delivery_status) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "idx_delivery_partner_status",
+          "indexdef": "CREATE INDEX idx_delivery_partner_status ON public.delivery USING btree (delivery_partner_id, delivery_status) WHERE (deleted_at IS NULL)"
+        }
+      ]
+    },
+    "delivery_zone": {
+      "exists": true,
+      "row_count": 44,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "pincode",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "branch_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "delivery_fee",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0"
+        },
+        {
+          "column_name": "is_serviceable",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "NO",
+          "column_default": "true"
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "manual_override_branch_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "polygon_coordinates",
+          "data_type": "jsonb",
+          "udt_name": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "radius_km",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "center_latitude",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "center_longitude",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "priority",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "YES",
+          "column_default": "1"
+        },
+        {
+          "column_name": "estimated_delivery_minutes",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "YES",
+          "column_default": "45"
+        },
+        {
+          "column_name": "name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "delivery_zone_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "IDX_delivery_zone_pincode",
+          "indexdef": "CREATE INDEX \"IDX_delivery_zone_pincode\" ON public.delivery_zone USING btree (pincode) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "delivery_zone_pkey",
+          "indexdef": "CREATE UNIQUE INDEX delivery_zone_pkey ON public.delivery_zone USING btree (id)"
+        },
+        {
+          "indexname": "idx_delivery_zone_branch_serviceable",
+          "indexdef": "CREATE INDEX idx_delivery_zone_branch_serviceable ON public.delivery_zone USING btree (branch_id, is_serviceable, priority DESC) WHERE (deleted_at IS NULL)"
+        }
+      ]
+    },
+    "delivery_partner": {
+      "exists": true,
+      "row_count": 30,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "first_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "last_name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "email",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "phone",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "avatar_url",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "delivery_partner_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "delivery_partner_pkey",
+          "indexdef": "CREATE UNIQUE INDEX delivery_partner_pkey ON public.delivery_partner USING btree (id)"
+        }
+      ]
+    },
+    "branch": {
+      "exists": true,
+      "row_count": 57,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "code",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "is_open",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "NO",
+          "column_default": "false"
+        },
+        {
+          "column_name": "phone",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "email",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "address",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "latitude",
+          "data_type": "double precision",
+          "udt_name": "float8",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "longitude",
+          "data_type": "double precision",
+          "udt_name": "float8",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "shop_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "city_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "region_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "udt_name": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "branch_city_id_foreign",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (city_id) REFERENCES city(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        },
+        {
+          "constraint_name": "branch_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "constraint_name": "branch_region_id_foreign",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (region_id) REFERENCES branch_region(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        },
+        {
+          "constraint_name": "branch_shop_id_foreign",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (shop_id) REFERENCES shop(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "IDX_branch_city_id",
+          "indexdef": "CREATE INDEX \"IDX_branch_city_id\" ON public.branch USING btree (city_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_branch_code",
+          "indexdef": "CREATE UNIQUE INDEX \"IDX_branch_code\" ON public.branch USING btree (code) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_branch_region_id",
+          "indexdef": "CREATE INDEX \"IDX_branch_region_id\" ON public.branch USING btree (region_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "IDX_branch_shop_id",
+          "indexdef": "CREATE INDEX \"IDX_branch_shop_id\" ON public.branch USING btree (shop_id) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "branch_pkey",
+          "indexdef": "CREATE UNIQUE INDEX branch_pkey ON public.branch USING btree (id)"
+        }
+      ]
+    },
+    "city": {
+      "exists": true,
+      "row_count": 30,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "state",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "is_active",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "NO",
+          "column_default": "true"
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "state_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "city_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "IDX_city_name",
+          "indexdef": "CREATE INDEX \"IDX_city_name\" ON public.city USING btree (name) WHERE (deleted_at IS NULL)"
+        },
+        {
+          "indexname": "city_pkey",
+          "indexdef": "CREATE UNIQUE INDEX city_pkey ON public.city USING btree (id)"
+        }
+      ]
+    },
+    "state": {
+      "exists": true,
+      "row_count": 11,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "code",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "name",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "gst_state_code",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "country_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": "'country_in'::text"
+        },
+        {
+          "column_name": "country_code",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": "'IN'::text"
+        },
+        {
+          "column_name": "timezone",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": "'Asia/Kolkata'::text"
+        },
+        {
+          "column_name": "currency",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": "'INR'::text"
+        },
+        {
+          "column_name": "currency_symbol",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": "'₹'::text"
+        },
+        {
+          "column_name": "is_active",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "YES",
+          "column_default": "true"
+        },
+        {
+          "column_name": "status",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": "'active'::text"
+        },
+        {
+          "column_name": "display_order",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "YES",
+          "column_default": "1"
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "state_code_key",
+          "constraint_type": "u",
+          "definition": "UNIQUE (code)"
+        },
+        {
+          "constraint_name": "state_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "state_code_key",
+          "indexdef": "CREATE UNIQUE INDEX state_code_key ON public.state USING btree (code)"
+        },
+        {
+          "indexname": "state_pkey",
+          "indexdef": "CREATE UNIQUE INDEX state_pkey ON public.state USING btree (id)"
+        }
+      ]
+    },
+    "users": {
+      "exists": false
+    },
+    "staff": {
+      "exists": false
+    },
+    "access_profile": {
+      "exists": false
+    },
+    "staff_access_profile": {
+      "exists": false
+    },
+    "cost_centre": {
+      "exists": true,
+      "row_count": 0,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": "('cc_'::text || (gen_random_uuid())::text)"
+        },
+        {
+          "column_name": "code",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "name",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "department",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "parent_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "company_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "branch_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "is_active",
+          "data_type": "boolean",
+          "udt_name": "bool",
+          "is_nullable": "NO",
+          "column_default": "true"
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "udt_name": "jsonb",
+          "is_nullable": "YES",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "created_by",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "cost_centre_branch_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "cost_centre_code_key",
+          "constraint_type": "u",
+          "definition": "UNIQUE (code)"
+        },
+        {
+          "constraint_name": "cost_centre_company_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "cost_centre_created_by_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (created_by) REFERENCES \"user\"(id) ON DELETE SET NULL"
+        },
+        {
+          "constraint_name": "cost_centre_parent_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (parent_id) REFERENCES cost_centre(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "cost_centre_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "cost_centre_code_key",
+          "indexdef": "CREATE UNIQUE INDEX cost_centre_code_key ON public.cost_centre USING btree (code)"
+        },
+        {
+          "indexname": "cost_centre_pkey",
+          "indexdef": "CREATE UNIQUE INDEX cost_centre_pkey ON public.cost_centre USING btree (id)"
+        },
+        {
+          "indexname": "idx_cost_centre_branch_id",
+          "indexdef": "CREATE INDEX idx_cost_centre_branch_id ON public.cost_centre USING btree (branch_id)"
+        },
+        {
+          "indexname": "idx_cost_centre_code",
+          "indexdef": "CREATE INDEX idx_cost_centre_code ON public.cost_centre USING btree (code)"
+        },
+        {
+          "indexname": "idx_cost_centre_company_id",
+          "indexdef": "CREATE INDEX idx_cost_centre_company_id ON public.cost_centre USING btree (company_id)"
+        },
+        {
+          "indexname": "idx_cost_centre_department",
+          "indexdef": "CREATE INDEX idx_cost_centre_department ON public.cost_centre USING btree (department)"
+        },
+        {
+          "indexname": "idx_cost_centre_parent_id",
+          "indexdef": "CREATE INDEX idx_cost_centre_parent_id ON public.cost_centre USING btree (parent_id)"
+        }
+      ]
+    },
+    "accounting_voucher": {
+      "exists": true,
+      "row_count": 6,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": "(gen_random_uuid())::text"
+        },
+        {
+          "column_name": "voucher_no",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "voucher_type",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "voucher_date",
+          "data_type": "date",
+          "udt_name": "date",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "branch_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "fiscal_year",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "status",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": "'DRAFT'::character varying"
+        },
+        {
+          "column_name": "total_amount",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0.00"
+        },
+        {
+          "column_name": "currency",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": "'INR'::character varying"
+        },
+        {
+          "column_name": "reference_type",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "reference_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "reference_event",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "NO",
+          "column_default": "'PRIMARY'::character varying"
+        },
+        {
+          "column_name": "narration",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "created_by",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "submitted_by",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "submitted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "approved_by",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "approved_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "posted_by",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "posted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "cancelled_by",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "cancelled_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "reversed_by_voucher_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "reversal_of_voucher_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "udt_name": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "NO",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "deleted_at",
+          "data_type": "timestamp with time zone",
+          "udt_name": "timestamptz",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "cost_centre_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "accounting_voucher_branch_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "accounting_voucher_cost_centre_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (cost_centre_id) REFERENCES cost_centre(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "accounting_voucher_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "constraint_name": "accounting_voucher_reversal_of_voucher_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (reversal_of_voucher_id) REFERENCES accounting_voucher(id) ON DELETE SET NULL"
+        },
+        {
+          "constraint_name": "accounting_voucher_reversed_by_voucher_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (reversed_by_voucher_id) REFERENCES accounting_voucher(id) ON DELETE SET NULL"
+        },
+        {
+          "constraint_name": "chk_voucher_posted_immutable",
+          "constraint_type": "c",
+          "definition": "CHECK ((((status)::text <> 'CANCELLED'::text) OR (posted_at IS NULL)))"
+        },
+        {
+          "constraint_name": "chk_voucher_reversal_limit",
+          "constraint_type": "c",
+          "definition": "CHECK (((reversal_of_voucher_id IS NULL) OR (reversed_by_voucher_id IS NULL)))"
+        },
+        {
+          "constraint_name": "chk_voucher_segregation",
+          "constraint_type": "c",
+          "definition": "CHECK (((approved_by IS NULL) OR (approved_by <> created_by)))"
+        },
+        {
+          "constraint_name": "chk_voucher_status",
+          "constraint_type": "c",
+          "definition": "CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'SUBMITTED'::character varying, 'APPROVED'::character varying, 'POSTED'::character varying, 'CANCELLED'::character varying])::text[])))"
+        },
+        {
+          "constraint_name": "chk_voucher_total",
+          "constraint_type": "c",
+          "definition": "CHECK ((total_amount >= 0.00))"
+        },
+        {
+          "constraint_name": "chk_voucher_type",
+          "constraint_type": "c",
+          "definition": "CHECK (((voucher_type)::text = ANY ((ARRAY['SALES'::character varying, 'PURCHASE'::character varying, 'PAYMENT'::character varying, 'RECEIPT'::character varying, 'EXPENSE'::character varying, 'JOURNAL'::character varying, 'CONTRA'::character varying, 'CREDIT_NOTE'::character varying, 'DEBIT_NOTE'::character varying, 'OPENING_BALANCE'::character varying])::text[])))"
+        },
+        {
+          "constraint_name": "uq_accounting_voucher_no",
+          "constraint_type": "u",
+          "definition": "UNIQUE (voucher_no)"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "accounting_voucher_pkey",
+          "indexdef": "CREATE UNIQUE INDEX accounting_voucher_pkey ON public.accounting_voucher USING btree (id)"
+        },
+        {
+          "indexname": "idx_accounting_voucher_branch_date",
+          "indexdef": "CREATE INDEX idx_accounting_voucher_branch_date ON public.accounting_voucher USING btree (branch_id, voucher_date DESC)"
+        },
+        {
+          "indexname": "idx_accounting_voucher_cost_centre_id",
+          "indexdef": "CREATE INDEX idx_accounting_voucher_cost_centre_id ON public.accounting_voucher USING btree (cost_centre_id) WHERE (cost_centre_id IS NOT NULL)"
+        },
+        {
+          "indexname": "idx_accounting_voucher_fiscal",
+          "indexdef": "CREATE INDEX idx_accounting_voucher_fiscal ON public.accounting_voucher USING btree (fiscal_year)"
+        },
+        {
+          "indexname": "idx_accounting_voucher_no",
+          "indexdef": "CREATE UNIQUE INDEX idx_accounting_voucher_no ON public.accounting_voucher USING btree (voucher_no)"
+        },
+        {
+          "indexname": "idx_accounting_voucher_ref",
+          "indexdef": "CREATE INDEX idx_accounting_voucher_ref ON public.accounting_voucher USING btree (reference_type, reference_id)"
+        },
+        {
+          "indexname": "idx_accounting_voucher_source_idempotency",
+          "indexdef": "CREATE UNIQUE INDEX idx_accounting_voucher_source_idempotency ON public.accounting_voucher USING btree (reference_type, reference_id, reference_event) WHERE (((status)::text <> 'CANCELLED'::text) AND ((reference_type)::text <> 'MANUAL'::text))"
+        },
+        {
+          "indexname": "idx_accounting_voucher_type_status",
+          "indexdef": "CREATE INDEX idx_accounting_voucher_type_status ON public.accounting_voucher USING btree (voucher_type, status)"
+        },
+        {
+          "indexname": "uq_accounting_voucher_no",
+          "indexdef": "CREATE UNIQUE INDEX uq_accounting_voucher_no ON public.accounting_voucher USING btree (voucher_no)"
+        }
+      ]
+    },
+    "accounting_journal_line": {
+      "exists": true,
+      "row_count": 10,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": "(gen_random_uuid())::text"
+        },
+        {
+          "column_name": "journal_entry_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "line_no",
+          "data_type": "integer",
+          "udt_name": "int4",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "account_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "debit_amount",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0.00"
+        },
+        {
+          "column_name": "credit_amount",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "NO",
+          "column_default": "0.00"
+        },
+        {
+          "column_name": "branch_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "customer_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "supplier_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "tax_rate",
+          "data_type": "numeric",
+          "udt_name": "numeric",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "tax_class",
+          "data_type": "character varying",
+          "udt_name": "varchar",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "narration",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "udt_name": "jsonb",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "cost_centre_id",
+          "data_type": "text",
+          "udt_name": "text",
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_name": "accounting_journal_line_account_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (account_id) REFERENCES accounting_account(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "accounting_journal_line_branch_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "accounting_journal_line_cost_centre_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (cost_centre_id) REFERENCES cost_centre(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "accounting_journal_line_customer_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "accounting_journal_line_journal_entry_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (journal_entry_id) REFERENCES accounting_journal_entry(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "accounting_journal_line_pkey",
+          "constraint_type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "constraint_name": "accounting_journal_line_supplier_id_fkey",
+          "constraint_type": "f",
+          "definition": "FOREIGN KEY (supplier_id) REFERENCES supplier(id) ON DELETE RESTRICT"
+        },
+        {
+          "constraint_name": "chk_jline_credit_nonneg",
+          "constraint_type": "c",
+          "definition": "CHECK ((credit_amount >= 0.00))"
+        },
+        {
+          "constraint_name": "chk_jline_debit_nonneg",
+          "constraint_type": "c",
+          "definition": "CHECK ((debit_amount >= 0.00))"
+        },
+        {
+          "constraint_name": "chk_jline_single_sided",
+          "constraint_type": "c",
+          "definition": "CHECK ((((debit_amount > 0.00) AND (credit_amount = 0.00)) OR ((credit_amount > 0.00) AND (debit_amount = 0.00))))"
+        },
+        {
+          "constraint_name": "trg_check_journal_balance",
+          "constraint_type": "t",
+          "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+        },
+        {
+          "constraint_name": "uq_journal_line_order",
+          "constraint_type": "u",
+          "definition": "UNIQUE (journal_entry_id, line_no)"
+        }
+      ],
+      "indexes": [
+        {
+          "indexname": "accounting_journal_line_pkey",
+          "indexdef": "CREATE UNIQUE INDEX accounting_journal_line_pkey ON public.accounting_journal_line USING btree (id)"
+        },
+        {
+          "indexname": "idx_accounting_jline_account_branch",
+          "indexdef": "CREATE INDEX idx_accounting_jline_account_branch ON public.accounting_journal_line USING btree (account_id, branch_id)"
+        },
+        {
+          "indexname": "idx_accounting_jline_branch",
+          "indexdef": "CREATE INDEX idx_accounting_jline_branch ON public.accounting_journal_line USING btree (branch_id)"
+        },
+        {
+          "indexname": "idx_accounting_jline_customer",
+          "indexdef": "CREATE INDEX idx_accounting_jline_customer ON public.accounting_journal_line USING btree (customer_id) WHERE (customer_id IS NOT NULL)"
+        },
+        {
+          "indexname": "idx_accounting_jline_entry",
+          "indexdef": "CREATE INDEX idx_accounting_jline_entry ON public.accounting_journal_line USING btree (journal_entry_id)"
+        },
+        {
+          "indexname": "idx_accounting_jline_supplier",
+          "indexdef": "CREATE INDEX idx_accounting_jline_supplier ON public.accounting_journal_line USING btree (supplier_id) WHERE (supplier_id IS NOT NULL)"
+        },
+        {
+          "indexname": "idx_accounting_journal_line_cost_centre_id",
+          "indexdef": "CREATE INDEX idx_accounting_journal_line_cost_centre_id ON public.accounting_journal_line USING btree (cost_centre_id) WHERE (cost_centre_id IS NOT NULL)"
+        },
+        {
+          "indexname": "uq_journal_line_order",
+          "indexdef": "CREATE UNIQUE INDEX uq_journal_line_order ON public.accounting_journal_line USING btree (journal_entry_id, line_no)"
+        }
+      ]
+    }
+  },
+  "spatial_columns": [
+    {
+      "table_name": "delivery_zone",
+      "column_name": "polygon_coordinates",
+      "data_type": "jsonb",
+      "udt_name": "jsonb"
+    }
+  ],
+  "sample_customer_metadata": [
+    {
+      "id": "cus_9447123456",
+      "email": "customer_cus_9447123456@caketohome.com",
+      "first_name": "Rahul",
+      "last_name": "Nair",
+      "phone": "+91 94471 23456",
+      "metadata": {
+        "role": "CUSTOMER",
+        "addresses": [
+          {
+            "city": "Kollam",
+            "line1": "Flat 402, Signature Towers",
+            "phone": "+91 94471 23456",
+            "pincode": "691001",
+            "latitude": 8.8853,
+            "last_name": "Nair",
+            "longitude": 76.5803,
+            "first_name": "Rahul"
+          }
+        ],
+        "customer_uid": "cth_cus_9447123456",
+        "wallet_balance": 0,
+        "normalized_phone": "9447123456"
+      },
+      "created_at": "2026-08-28T04:07:08.740Z"
+    },
+    {
+      "id": "cus_9999988888",
+      "email": "customer_cus_9999988888@caketohome.com",
+      "first_name": "Sneaky",
+      "last_name": "Attacker",
+      "phone": "+91 99999 88888",
+      "metadata": {
+        "role": "CUSTOMER",
+        "addresses": [
+          {
+            "city": "Bengaluru",
+            "phone": "+91 99999 88888",
+            "pincode": "560038",
+            "address_1": "100ft Road, Indiranagar",
+            "last_name": "Attacker",
+            "first_name": "Sneaky"
+          }
+        ],
+        "customer_uid": "cth_cus_9999988888",
+        "wallet_balance": 0,
+        "normalized_phone": "9999988888"
+      },
+      "created_at": "2026-08-28T04:07:08.740Z"
+    },
+    {
+      "id": "cus_9740055555",
+      "email": "customer_cus_9740055555@caketohome.com",
+      "first_name": "Priya",
+      "last_name": "Nair",
+      "phone": "+91 97400 55555",
+      "metadata": {
+        "role": "CUSTOMER",
+        "addresses": [
+          {
+            "city": "Bengaluru",
+            "phone": "+91 97400 55555",
+            "state": "Karnataka",
+            "pincode": "560034",
+            "address_1": "80 Feet Road, 4th Block",
+            "last_name": "Nair",
+            "first_name": "Priya"
+          }
+        ],
+        "customer_uid": "cth_cus_9740055555",
+        "wallet_balance": 0,
+        "normalized_phone": "9740055555"
+      },
+      "created_at": "2026-08-28T04:07:08.740Z"
+    },
+    {
+      "id": "cus_9845012345",
+      "email": "customer_cus_9845012345@caketohome.com",
+      "first_name": "Rahul",
+      "last_name": "Menon",
+      "phone": "+91 98450 12345",
+      "metadata": {
+        "role": "CUSTOMER",
+        "addresses": [
+          {
+            "city": "Kochi",
+            "phone": "+91 98450 12345",
+            "state": "Kerala",
+            "pincode": "682031",
+            "address_1": "Marine Drive Promenade, Kochi, Kerala 682031",
+            "last_name": "Menon",
+            "first_name": "Rahul"
+          }
+        ],
+        "customer_uid": "cth_cus_9845012345",
+        "wallet_balance": 0,
+        "normalized_phone": "9845012345"
+      },
+      "created_at": "2026-08-28T04:07:08.740Z"
+    },
+    {
+      "id": "cus_9123456789",
+      "email": "customer_cus_9123456789@caketohome.com",
+      "first_name": "Historical",
+      "last_name": "Customer",
+      "phone": "+91 91234 56789",
+      "metadata": {
+        "role": "CUSTOMER",
+        "addresses": [
+          {
+            "city": "Bengaluru",
+            "pincode": "560066",
+            "latitude": 12.9698,
+            "address_1": "Completely Changed Address In Whitefield",
+            "longitude": 77.7499
+          },
+          {
+            "city": "Bengaluru",
+            "phone": "+91 91234 56789",
+            "pincode": "560038",
+            "address_1": "Flat 101, Indiranagar Landmark",
+            "last_name": "Customer",
+            "first_name": "Historical"
+          }
+        ],
+        "customer_uid": "cth_cus_9123456789",
+        "wallet_balance": 0,
+        "normalized_phone": "9123456789"
+      },
+      "created_at": "2026-08-28T04:07:08.740Z"
+    }
+  ],
+  "delivery_sample": [
+    {
+      "id": "del_01KYYYY3AK10TJ9F2C2AMWZ83A",
+      "transaction_id": null,
+      "delivery_partner_id": null,
+      "delivery_status": "pending",
+      "eta": null,
+      "delivered_at": null,
+      "created_at": "2026-08-01T15:26:28.179Z",
+      "updated_at": "2026-08-01T15:26:28.179Z",
+      "deleted_at": null,
+      "delivery_date": null,
+      "delivery_slot_id": null,
+      "ordered_for_self": true,
+      "recipient_name": "John E2E Doe",
+      "recipient_phone": "+919988776655",
+      "recipient_alt_phone": null,
+      "recipient_address": "123 Indiranagar, Bengaluru",
+      "recipient_pincode": "560038",
+      "recipient_landmark": null,
+      "delivery_instructions": "Call on arrival",
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": true,
+      "occasion": null,
+      "is_surprise_delivery": false,
+      "scheduled_delivery_at": null,
+      "scheduled_slot": null,
+      "delivery_otp": null
+    },
+    {
+      "id": "del_01KYYYYSZ1JPF8SHQ05RRWZSJA",
+      "transaction_id": null,
+      "delivery_partner_id": null,
+      "delivery_status": "pending",
+      "eta": null,
+      "delivered_at": null,
+      "created_at": "2026-08-01T15:26:51.362Z",
+      "updated_at": "2026-08-01T15:26:51.362Z",
+      "deleted_at": null,
+      "delivery_date": null,
+      "delivery_slot_id": null,
+      "ordered_for_self": true,
+      "recipient_name": "John Fleet Test",
+      "recipient_phone": "+919988776655",
+      "recipient_alt_phone": null,
+      "recipient_address": "123 Indiranagar, Bengaluru",
+      "recipient_pincode": "560038",
+      "recipient_landmark": null,
+      "delivery_instructions": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": true,
+      "occasion": null,
+      "is_surprise_delivery": false,
+      "scheduled_delivery_at": null,
+      "scheduled_slot": null,
+      "delivery_otp": null
+    },
+    {
+      "id": "del_01KYYZ29MET5BH4CPAPPY4YQ71",
+      "transaction_id": null,
+      "delivery_partner_id": "dlp_01KYYZ29WFZ4AXHF8X9GMT6T9R",
+      "delivery_status": "pickup_claimed",
+      "eta": null,
+      "delivered_at": null,
+      "created_at": "2026-08-01T15:28:45.711Z",
+      "updated_at": "2026-08-01T15:28:46.226Z",
+      "deleted_at": null,
+      "delivery_date": null,
+      "delivery_slot_id": null,
+      "ordered_for_self": true,
+      "recipient_name": "John Fleet Test",
+      "recipient_phone": "+919988776655",
+      "recipient_alt_phone": null,
+      "recipient_address": "123 Indiranagar, Bengaluru",
+      "recipient_pincode": "560038",
+      "recipient_landmark": null,
+      "delivery_instructions": null,
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": true,
+      "occasion": null,
+      "is_surprise_delivery": false,
+      "scheduled_delivery_at": null,
+      "scheduled_slot": null,
+      "delivery_otp": null
+    },
+    {
+      "id": "del_01KYYZ5RC43W7N5NDY71KHY0Z4",
+      "transaction_id": null,
+      "delivery_partner_id": "dlp_01KYYZ5RS7SB4N9VJ3R8PDQKFV",
+      "delivery_status": "pickup_claimed",
+      "eta": null,
+      "delivered_at": null,
+      "created_at": "2026-08-01T15:30:39.108Z",
+      "updated_at": "2026-08-01T15:30:40.235Z",
+      "deleted_at": null,
+      "delivery_date": null,
+      "delivery_slot_id": null,
+      "ordered_for_self": true,
+      "recipient_name": "Jane Fleet Customer",
+      "recipient_phone": "+91 99887 71122",
+      "recipient_alt_phone": null,
+      "recipient_address": "456 Koramangala, Bengaluru",
+      "recipient_pincode": "560034",
+      "recipient_landmark": null,
+      "delivery_instructions": "Leave with security",
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": true,
+      "occasion": null,
+      "is_surprise_delivery": false,
+      "scheduled_delivery_at": null,
+      "scheduled_slot": null,
+      "delivery_otp": null
+    },
+    {
+      "id": "del_01KYYZ77ZW00E9FPNKF0GVTJCE",
+      "transaction_id": null,
+      "delivery_partner_id": "dlp_01KYYZ786JSX9E2AMNFRFCHGK1",
+      "delivery_status": "pickup_claimed",
+      "eta": null,
+      "delivered_at": null,
+      "created_at": "2026-08-01T15:31:27.871Z",
+      "updated_at": "2026-08-01T15:31:28.368Z",
+      "deleted_at": null,
+      "delivery_date": null,
+      "delivery_slot_id": null,
+      "ordered_for_self": true,
+      "recipient_name": "Jane Fleet Customer",
+      "recipient_phone": "+91 99887 71122",
+      "recipient_alt_phone": null,
+      "recipient_address": "456 Koramangala, Bengaluru",
+      "recipient_pincode": "560034",
+      "recipient_landmark": null,
+      "delivery_instructions": "Leave with security",
+      "gift_wrap": false,
+      "greeting_card": false,
+      "gift_message": null,
+      "anonymous_delivery": false,
+      "hide_invoice": true,
+      "occasion": null,
+      "is_surprise_delivery": false,
+      "scheduled_delivery_at": null,
+      "scheduled_slot": null,
+      "delivery_otp": null
+    }
+  ],
+  "partner_sample": [
+    {
+      "id": "dlp_01KYWJ71934X5AZASE5MHQC8C2",
+      "first_name": "Ramesh",
+      "last_name": "Rider",
+      "email": "driver_1785517540602@cakes2home.com",
+      "phone": "+91 9999261661",
+      "avatar_url": null,
+      "created_at": "2026-07-31T17:05:40.643Z",
+      "updated_at": "2026-07-31T17:05:40.643Z",
+      "deleted_at": null
+    },
+    {
+      "id": "dlp_01KYWJCJY4KCG786MPVD3RCXG4",
+      "first_name": "Ramesh",
+      "last_name": "Rider",
+      "email": "driver_1785517722510@cakes2home.com",
+      "phone": "+91 9910400719",
+      "avatar_url": null,
+      "created_at": "2026-07-31T17:08:42.565Z",
+      "updated_at": "2026-07-31T17:08:42.565Z",
+      "deleted_at": null
+    },
+    {
+      "id": "dlp_01KYWJWBY37KEETDN02BQSE2AG",
+      "first_name": "Ramesh",
+      "last_name": "Rider",
+      "email": "driver_1785518239638@cakes2home.com",
+      "phone": "+91 9925479773",
+      "avatar_url": null,
+      "created_at": "2026-07-31T17:17:19.684Z",
+      "updated_at": "2026-07-31T17:17:19.684Z",
+      "deleted_at": null
+    },
+    {
+      "id": "dlp_01KYXBYMSHJBVV67ZNAHFPRHES",
+      "first_name": "Rider",
+      "last_name": "Test",
+      "email": "driver_1785544526598@cakes2home.com",
+      "phone": "+91 91234 56789",
+      "avatar_url": null,
+      "created_at": "2026-08-01T00:35:28.690Z",
+      "updated_at": "2026-08-01T00:35:28.690Z",
+      "deleted_at": null
+    },
+    {
+      "id": "dlp_01KYXHYF594CBVEBE13X39VQNY",
+      "first_name": "Rider",
+      "last_name": "Test",
+      "email": "driver_1785550813988@cakes2home.com",
+      "phone": "+91 91234 56789",
+      "avatar_url": null,
+      "created_at": "2026-08-01T02:20:14.378Z",
+      "updated_at": "2026-08-01T02:20:14.378Z",
+      "deleted_at": null
+    }
+  ],
+  "zone_sample": [
+    {
+      "id": "delzone_01KYWHA3J59DYY3E0961MY4F7X",
+      "pincode": "560170",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "delivery_fee": "49",
+      "is_serviceable": true,
+      "created_at": "2026-07-31T16:49:52.710Z",
+      "updated_at": "2026-07-31T16:49:52.710Z",
+      "deleted_at": null,
+      "manual_override_branch_id": null,
+      "polygon_coordinates": null,
+      "radius_km": null,
+      "center_latitude": null,
+      "center_longitude": null,
+      "priority": 1,
+      "estimated_delivery_minutes": 45,
+      "name": null
+    },
+    {
+      "id": "delzone_01KYWHBECCRQR75BJ2NMDADKZQ",
+      "pincode": "560778",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "delivery_fee": "49",
+      "is_serviceable": true,
+      "created_at": "2026-07-31T16:50:36.556Z",
+      "updated_at": "2026-07-31T16:50:36.556Z",
+      "deleted_at": null,
+      "manual_override_branch_id": null,
+      "polygon_coordinates": null,
+      "radius_km": null,
+      "center_latitude": null,
+      "center_longitude": null,
+      "priority": 1,
+      "estimated_delivery_minutes": 45,
+      "name": null
+    },
+    {
+      "id": "delzone_01KYWJ02TCJGWBM4WN0H3H60BR",
+      "pincode": "560392",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "delivery_fee": "49",
+      "is_serviceable": true,
+      "created_at": "2026-07-31T17:01:52.846Z",
+      "updated_at": "2026-07-31T17:01:52.846Z",
+      "deleted_at": null,
+      "manual_override_branch_id": null,
+      "polygon_coordinates": null,
+      "radius_km": null,
+      "center_latitude": null,
+      "center_longitude": null,
+      "priority": 1,
+      "estimated_delivery_minutes": 45,
+      "name": null
+    },
+    {
+      "id": "delzone_01KYWJ6T41Z026EFDCGF0SND71",
+      "pincode": "560926",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "delivery_fee": "49",
+      "is_serviceable": true,
+      "created_at": "2026-07-31T17:05:33.316Z",
+      "updated_at": "2026-07-31T17:05:33.316Z",
+      "deleted_at": null,
+      "manual_override_branch_id": null,
+      "polygon_coordinates": null,
+      "radius_km": null,
+      "center_latitude": null,
+      "center_longitude": null,
+      "priority": 1,
+      "estimated_delivery_minutes": 45,
+      "name": null
+    },
+    {
+      "id": "delzone_01KYWJBZF13HTGMNG89B4DY4AZ",
+      "pincode": "560488",
+      "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "delivery_fee": "49",
+      "is_serviceable": true,
+      "created_at": "2026-07-31T17:08:22.626Z",
+      "updated_at": "2026-07-31T17:08:22.626Z",
+      "deleted_at": null,
+      "manual_override_branch_id": null,
+      "polygon_coordinates": null,
+      "radius_km": null,
+      "center_latitude": null,
+      "center_longitude": null,
+      "priority": 1,
+      "estimated_delivery_minutes": 45,
+      "name": null
+    }
+  ],
+  "branch_sample": [
+    {
+      "id": "br_01KYWH9YFVV5AK15D6313HB1NC",
+      "name": "Postgres Pipeline Branch 1785516587008",
+      "code": "HUB-976",
+      "is_open": true,
+      "phone": "+91 98765 88888",
+      "email": "pg_branch_1785516587008@cakes2home.com",
+      "address": "100 Feet Road, Indiranagar, Bengaluru",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "shop_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "city_id": null,
+      "region_id": null,
+      "metadata": {
+        "gstin": "29AABCU9603R1ZM",
+        "state": "Karnataka",
+        "max_drawer_cash_limit": 25000,
+        "petty_cash_imprest_limit": 5000
+      },
+      "created_at": "2026-07-31T16:49:47.515Z",
+      "updated_at": "2026-07-31T16:49:47.515Z",
+      "deleted_at": null
+    },
+    {
+      "id": "br_01KYWH0RTHVHRD04J79T28RAHN",
+      "name": "Full Pipeline PostgreSQL Hub 1785516286194",
+      "code": "HUB-365",
+      "is_open": true,
+      "phone": "+91 98765 88888",
+      "email": "pipeline_hub_1785516286194@cakes2home.com",
+      "address": "100 Feet Road, Indiranagar, Bengaluru",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "shop_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "city_id": "city_bbr",
+      "region_id": null,
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [],
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": null,
+        "weekly_schedule": {},
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Road, Indiranagar, Bengaluru",
+        "fulfillment_rules": {},
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "product_availability": {},
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      },
+      "created_at": "2026-07-31T16:44:46.805Z",
+      "updated_at": "2026-09-16T10:53:39.824Z",
+      "deleted_at": "2026-09-16T10:53:39.706Z"
+    },
+    {
+      "id": "br_01KYWHBCDMVT74MM27BTJFRSNB",
+      "name": "Postgres Pipeline Branch 1785516633599",
+      "code": "HUB-986",
+      "is_open": true,
+      "phone": "+91 98765 88888",
+      "email": "pg_branch_1785516633599@cakes2home.com",
+      "address": "100 Feet Road, Indiranagar, Bengaluru",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "shop_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "city_id": null,
+      "region_id": null,
+      "metadata": {
+        "max_drawer_cash_limit": 25000,
+        "petty_cash_imprest_limit": 5000
+      },
+      "created_at": "2026-07-31T16:50:34.549Z",
+      "updated_at": "2026-07-31T16:50:34.549Z",
+      "deleted_at": null
+    },
+    {
+      "id": "br_01KYWHZY9KHRFB7MKTH1XJ3R4A",
+      "name": "Postgres Pipeline Branch 1785517301340",
+      "code": "HUB-649",
+      "is_open": true,
+      "phone": "+91 98765 88888",
+      "email": "pg_branch_1785517301340@cakes2home.com",
+      "address": "100 Feet Road, Indiranagar, Bengaluru",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "shop_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "city_id": null,
+      "region_id": null,
+      "metadata": {
+        "max_drawer_cash_limit": 25000,
+        "petty_cash_imprest_limit": 5000
+      },
+      "created_at": "2026-07-31T17:01:48.212Z",
+      "updated_at": "2026-07-31T17:01:48.212Z",
+      "deleted_at": null
+    },
+    {
+      "id": "br_01KYWJ16081QW1RWANZ6TXVCGA",
+      "name": "Direct Branch 1785517348386",
+      "code": "HUB-337",
+      "is_open": true,
+      "phone": "+91 98765 88888",
+      "email": "direct_b_1785517348386@cakes2home.com",
+      "address": "100 Feet Road, Indiranagar",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "shop_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "city_id": null,
+      "region_id": null,
+      "metadata": {
+        "max_drawer_cash_limit": 25000,
+        "petty_cash_imprest_limit": 5000
+      },
+      "created_at": "2026-07-31T17:02:28.873Z",
+      "updated_at": "2026-07-31T17:02:28.873Z",
+      "deleted_at": null
+    }
+  ],
+  "company_sample": []
+}

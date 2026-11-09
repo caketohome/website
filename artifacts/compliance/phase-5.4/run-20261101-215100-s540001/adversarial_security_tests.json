@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T03:18:27.279Z",
+  "environment": "cth_rehearsal_phase5_4",
+  "provenance": "e:/vig/cakes2home-main/cakes2home-main",
+  "run_id": "run-20261101-215100-s540001",
+  "results": [
+    {
+      "test": "Implementer Self-Approval Attempt",
+      "outcome": "BLOCKED",
+      "mechanism": "SoD CHECK constraint"
+    },
+    {
+      "test": "Unauthorized Role Authorization Attempt",
+      "outcome": "BLOCKED",
+      "mechanism": "RBAC Policy Guard"
+    },
+    {
+      "test": "Expired Authorization Token Attempt (>24h)",
+      "outcome": "BLOCKED",
+      "mechanism": "Timestamp TTL Validation"
+    },
+    {
+      "test": "Revoked Authorization Execution Attempt",
+      "outcome": "BLOCKED",
+      "mechanism": "Atomic Status Check"
+    },
+    {
+      "test": "Consumed Authorization Replay Attempt",
+      "outcome": "BLOCKED",
+      "mechanism": "One-Time Consumption Lock"
+    },
+    {
+      "test": "Concurrent Execution Race Simulation",
+      "outcome": "PASSED",
+      "mechanism": "PostgreSQL FOR UPDATE NOWAIT"
+    },
+    {
+      "test": "Fail-Closed Default State Verification",
+      "outcome": "VERIFIED",
+      "mechanism": "Default Deny Release Gate"
+    }
+  ]
+}

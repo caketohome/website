@@ -1,0 +1,18 @@
+{
+  "discrepancy_reported_in_phase4_8": "Conflation of delivered order payment statuses in narrative text",
+  "physical_database_ground_truth": {
+    "paid_count": 41,
+    "pending_count": 16,
+    "captured_count": 12,
+    "sum": 69
+  },
+  "delivered_orders_breakdown": {
+    "total": 21,
+    "paid": 21,
+    "online": 13,
+    "upi": 8,
+    "pending": 0,
+    "captured": 0
+  },
+  "finding": "Physical database records are 100% mathematically consistent; zero table corruption."
+}

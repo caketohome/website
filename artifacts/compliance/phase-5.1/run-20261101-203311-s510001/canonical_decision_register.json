@@ -1,0 +1,182 @@
+{
+  "run_id": "run-20261101-203311-s510001",
+  "total_decisions": 16,
+  "decisions": [
+    {
+      "id": "CDR-01",
+      "title": "Corporate Legal Name Standardization",
+      "category": "IDENTITY",
+      "predecessor_bdr": "BDR-01",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "NOT_SUBMITTED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "PENDING",
+      "operational_status": "READY"
+    },
+    {
+      "id": "CDR-02",
+      "title": "Corporate Identity Number (CIN) Binding",
+      "category": "IDENTITY",
+      "predecessor_bdr": "BDR-02",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "NOT_SUBMITTED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "PENDING",
+      "operational_status": "READY"
+    },
+    {
+      "id": "CDR-03",
+      "title": "Statutory GSTIN Allocation & State Validation",
+      "category": "IDENTITY",
+      "predecessor_bdr": "BDR-03",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "NOT_SUBMITTED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "PENDING",
+      "operational_status": "READY"
+    },
+    {
+      "id": "CDR-04",
+      "title": "Invoice Series Prefix Architecture (Alternative A)",
+      "category": "STATUTORY_INVOICING",
+      "predecessor_bdr": "BDR-04",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "NOT_SUBMITTED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "PENDING",
+      "operational_status": "READY"
+    },
+    {
+      "id": "CDR-05",
+      "title": "Monotonic Sequence Numbering & Padding Length",
+      "category": "STATUTORY_INVOICING",
+      "predecessor_bdr": "BDR-05",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "NOT_SUBMITTED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "PENDING",
+      "operational_status": "READY"
+    },
+    {
+      "id": "CDR-06",
+      "title": "Financial Year Delimiter & Format (26-27)",
+      "category": "STATUTORY_INVOICING",
+      "predecessor_bdr": "BDR-06",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "NOT_SUBMITTED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "PENDING",
+      "operational_status": "READY"
+    },
+    {
+      "id": "CDR-07",
+      "title": "Authorized Signatory Delegation & Digital Signature",
+      "category": "GOVERNANCE",
+      "predecessor_bdr": "BDR-07",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "NOT_SUBMITTED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "PENDING",
+      "operational_status": "READY"
+    },
+    {
+      "id": "CDR-08",
+      "title": "Legacy Invoice Disclaimers & Transitional Notes",
+      "category": "GOVERNANCE",
+      "predecessor_bdr": "BDR-08",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "NOT_SUBMITTED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "PENDING",
+      "operational_status": "READY"
+    },
+    {
+      "id": "CDR-09",
+      "title": "Segregation of Duties (SoD) & Role Permissions",
+      "category": "SECURITY",
+      "predecessor_bdr": "BDR-09",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "NOT_SUBMITTED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "PENDING",
+      "operational_status": "READY"
+    },
+    {
+      "id": "CDR-10",
+      "title": "Staging, Testing & Rehearsal Database Isolation",
+      "category": "ENVIRONMENT",
+      "predecessor_bdr": "BDR-10",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "VERIFIED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "OPERATIONAL",
+      "operational_status": "ACTIVE"
+    },
+    {
+      "id": "CDR-11",
+      "title": "Production Cut-Over Mechanics & Locking Protocol",
+      "category": "DEPLOYMENT",
+      "predecessor_bdr": "BDR-11",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "VERIFIED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "OPERATIONAL",
+      "operational_status": "ACTIVE"
+    },
+    {
+      "id": "CDR-12",
+      "title": "Sequence Capacity Alerts & Monitoring Thresholds",
+      "category": "MONITORING",
+      "predecessor_bdr": "BDR-12",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "VERIFIED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "OPERATIONAL",
+      "operational_status": "ACTIVE"
+    },
+    {
+      "id": "CDR-13",
+      "title": "Historical 69 Unbilled Orders & Section 31 Quarantine",
+      "category": "ACCOUNTING",
+      "predecessor_bdr": "BDR-13",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "VERIFIED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "OPERATIONAL",
+      "operational_status": "ACTIVE"
+    },
+    {
+      "id": "CDR-14",
+      "title": "GSTR-1 Table 13 Document Summary Continuity",
+      "category": "COMPLIANCE",
+      "predecessor_bdr": "BDR-14",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "VERIFIED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "OPERATIONAL",
+      "operational_status": "ACTIVE"
+    },
+    {
+      "id": "CDR-15",
+      "title": "Annual Fiscal Year Midnight Rollover Controls",
+      "category": "STATUTORY_INVOICING",
+      "predecessor_bdr": "BDR-15",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "VERIFIED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "OPERATIONAL",
+      "operational_status": "ACTIVE"
+    },
+    {
+      "id": "CDR-16",
+      "title": "Final Production Statutory Invoicing Activation",
+      "category": "GOVERNANCE",
+      "predecessor_bdr": "BDR-16",
+      "technical_status": "IMPLEMENTED",
+      "evidence_status": "NOT_SUBMITTED",
+      "professional_review_status": "PENDING",
+      "corporate_approval_status": "BLOCKED",
+      "operational_status": "FAIL-CLOSED"
+    }
+  ]
+}

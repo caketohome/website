@@ -66,6 +66,7 @@ export function EnterpriseReportsEngine() {
   const [branchSearch, setBranchSearch] = useState<string>("");
   const [availablePartners, setAvailablePartners] = useState<any[]>([]);
   const [availableCustomers, setAvailableCustomers] = useState<any[]>([]);
+  const [sellerGstin, setSellerGstin] = useState<string | null>(null);
   const [dataVersion, setDataVersion] = useState<number>(0);
 
   const refreshAllData = useCallback(() => {
@@ -73,11 +74,15 @@ export function EnterpriseReportsEngine() {
       listBranches(),
       apiClient.get<any[]>("/admin/delivery/partners").catch(() => []),
       apiClient.get<any[]>("/admin/customers").catch(() => []),
-    ]).then(([branches, partners, customers]) => {
+      apiClient.get<any>("/admin/compliance/gst-registrations").catch(() => null),
+    ]).then(([branches, partners, customers, gstData]) => {
       const branchList = Array.isArray(branches) ? branches : [];
       setAvailableBranches(branchList);
       setAvailablePartners(Array.isArray(partners) ? partners : []);
       setAvailableCustomers(Array.isArray(customers) ? customers : []);
+      const regs = Array.isArray(gstData?.registrations) ? gstData.registrations : [];
+      const primaryGst = regs.find((r: any) => r.is_active && r.gstin)?.gstin || null;
+      setSellerGstin(primaryGst);
       setDataVersion((v) => v + 1);
     });
   }, []);
@@ -262,23 +267,23 @@ export function EnterpriseReportsEngine() {
 
   // ── Server-Side Report Data State ──
   const [kpis, setKpis] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>({});
-  const [dailyData, setDailyData] = useState<any>({});
-  const [weeklyData, setWeeklyData] = useState<any>({});
-  const [monthlyData, setMonthlyData] = useState<any>({});
+  const [stats, setStats] = useState<any>({ netSalesExclTax: 0, grossProfit: 0 });
+  const [dailyData, setDailyData] = useState<any>({ stats: { totalOrders: 0, deliveredOrders: 0, grossRevenue: 0, netSalesExclTax: 0, gstCollected: 0, aov: 0 }, paymentSummary: [], branchSummary: [] });
+  const [weeklyData, setWeeklyData] = useState<any>({ top3Cakes: [], leastSellingCakes: [], payments: [] });
+  const [monthlyData, setMonthlyData] = useState<any>({ currentMonthSales: 0, prevMonthSales: 0, growthPctDisplay: "0%", deliverySla: { totalDeliveries: 0, slaCompliancePct: 100 }, customerRetention: { repeatPurchaseRate: 0, ltv: 0 } });
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [branchPerformance, setBranchPerformance] = useState<any[]>([]);
   const [cityPerformance, setCityPerformance] = useState<any[]>([]);
   const [serviceAreaPerformance, setServiceAreaPerformance] = useState<any[]>([]);
-  const [gstSummary, setGstSummary] = useState<any>({ items: [], totals: {} });
+  const [gstSummary, setGstSummary] = useState<any>({ items: [], totals: { quantity: 0, totalValue: 0, taxableValue: 0, igst: 0, cgst: 0, sgst: 0, cess: 0 } });
   const [gstDetailedRegister, setGstDetailedRegister] = useState<any[]>([]);
   const [gstItems, setGstItems] = useState<any[]>([]);
   const [taxSummary, setTaxSummary] = useState<any>({});
   const [rawExceptions, setRawExceptions] = useState<any[]>([]);
-  const [deliveryData, setDeliveryData] = useState<any>({});
-  const [customerData, setCustomerData] = useState<any>({});
-  const [paymentData, setPaymentData] = useState<any>({ breakdown: [] });
+  const [deliveryData, setDeliveryData] = useState<any>({ totalDeliveries: 0, onTimeDeliveries: 0, delayedDeliveries: 0, avgDeliveryMinutes: 0 });
+  const [customerData, setCustomerData] = useState<any>({ totalCustomers: 0, newCustomers: 0, ltv: 0, repeatPurchaseRate: 0 });
+  const [paymentData, setPaymentData] = useState<any>({ breakdown: [], totalCollected: 0, totalRefunds: 0, netCollected: 0 });
   const [geoData, setGeoData] = useState<any>({});
   const [crossSellData, setCrossSellData] = useState<any[]>([]);
   const [reportLoading, setReportLoading] = useState<boolean>(false);
@@ -302,7 +307,7 @@ export function EnterpriseReportsEngine() {
 
         if (cancelled) return;
         setKpis(kpiRes?.kpis || []);
-        setStats(statsRes?.data || statsRes || {});
+        setStats({ netSalesExclTax: 0, grossProfit: 0, ...(statsRes?.data || statsRes || {}) });
 
         // Fetch section-specific data
         const sectionFetches: Promise<void>[] = [];
@@ -542,9 +547,11 @@ export function EnterpriseReportsEngine() {
             >
               <Download className="w-3.5 h-3.5" /> {isExporting ? "Generating XLSX..." : "Export Complete Workbook (16 Sheets XLSX)"}
             </Button>
-            <Badge color="purple" className="text-xs font-semibold px-2.5 py-1">
-              GSTIN: 29AAAAA0000A1Z5
-            </Badge>
+            {sellerGstin ? (
+              <Badge color="purple" className="text-xs font-semibold px-2.5 py-1">
+                GSTIN: {sellerGstin}
+              </Badge>
+            ) : null}
           </div>
         </div>
 
@@ -782,8 +789,12 @@ export function EnterpriseReportsEngine() {
                   <Text className="text-[11px] font-bold text-ui-fg-subtle uppercase tracking-wider line-clamp-1">
                     {kpi.label}
                   </Text>
-                  <Heading level="h2" className="text-lg sm:text-xl font-bold text-ui-fg-base">
-                    {kpi.unit === "currency" ? `₹${kpi.currentValue.toLocaleString("en-IN")}` : kpi.unit === "percentage" ? `${kpi.currentValue}%` : kpi.currentValue.toLocaleString("en-IN")}
+                  <Heading level="h2" className={`text-lg sm:text-xl font-bold ${kpi.currentValue == null ? "text-ui-fg-muted italic text-sm" : "text-ui-fg-base"}`}>
+                    {kpi.currentValue != null ? (
+                      kpi.unit === "currency" ? `₹${kpi.currentValue.toLocaleString("en-IN")}` : kpi.unit === "percentage" ? `${kpi.currentValue}%` : kpi.currentValue.toLocaleString("en-IN")
+                    ) : (
+                      "Unavailable"
+                    )}
                   </Heading>
                 </div>
 
@@ -794,7 +805,7 @@ export function EnterpriseReportsEngine() {
                       {Math.abs(kpi.growthPct)}%
                     </span>
                     <span className="text-[10px] text-ui-fg-muted">
-                      vs {kpi.unit === "currency" ? `₹${kpi.previousValue.toLocaleString("en-IN")}` : kpi.previousValue}
+                      vs {kpi.previousValue != null ? (kpi.unit === "currency" ? `₹${kpi.previousValue.toLocaleString("en-IN")}` : kpi.previousValue) : "N/A"}
                     </span>
                   </div>
                 )}
@@ -824,10 +835,10 @@ export function EnterpriseReportsEngine() {
 
               <div className="flex items-center justify-center gap-6 pt-2 text-xs font-semibold">
                 <span className="flex items-center gap-1.5 text-emerald-700">
-                  <span className="w-3 h-3 rounded-full bg-emerald-500" /> Net Sales (₹{stats.netSalesExclTax.toLocaleString("en-IN")})
+                  <span className="w-3 h-3 rounded-full bg-emerald-500" /> Net Sales ({stats?.netSalesExclTax != null ? `₹${stats.netSalesExclTax.toLocaleString("en-IN")}` : "Unavailable"})
                 </span>
                 <span className="flex items-center gap-1.5 text-rose-700">
-                  <span className="w-3 h-3 rounded-full bg-rose-500" /> Contribution Profit (₹{stats.grossProfit.toLocaleString("en-IN")})
+                  <span className="w-3 h-3 rounded-full bg-rose-500" /> Contribution Profit ({stats?.grossProfit != null ? `₹${stats.grossProfit.toLocaleString("en-IN")}` : "Unavailable (No Cost Data)"})
                 </span>
               </div>
             </div>
@@ -867,7 +878,7 @@ export function EnterpriseReportsEngine() {
                   {top3Products.map((p, i) => (
                     <div key={p.id} className="flex items-center justify-between text-xs py-1 border-b border-emerald-500/10 last:border-0">
                       <span className="font-semibold text-ui-fg-base truncate max-w-[130px]">{i + 1}. {p.name}</span>
-                      <span className="font-bold text-emerald-700">₹{p.netSales.toLocaleString("en-IN")}</span>
+                      <span className="font-bold text-emerald-700">{p.netSales != null ? `₹${p.netSales.toLocaleString("en-IN")}` : "Unavailable"}</span>
                     </div>
                   ))}
                 </div>
@@ -877,7 +888,7 @@ export function EnterpriseReportsEngine() {
                   {bottom3Products.map((p, i) => (
                     <div key={p.id} className="flex items-center justify-between text-xs py-1 border-b border-rose-500/10 last:border-0">
                       <span className="font-semibold text-ui-fg-base truncate max-w-[130px]">{i + 1}. {p.name}</span>
-                      <span className="font-bold text-rose-700">₹{p.netSales.toLocaleString("en-IN")}</span>
+                      <span className="font-bold text-rose-700">{p.netSales != null ? `₹${p.netSales.toLocaleString("en-IN")}` : "Unavailable"}</span>
                     </div>
                   ))}
                 </div>
@@ -912,22 +923,22 @@ export function EnterpriseReportsEngine() {
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
             <div className="p-4 bg-ui-bg-base border rounded-2xl shadow-sm">
               <Text className="text-[11px] font-bold text-ui-fg-subtle uppercase">Daily Orders</Text>
-              <Heading level="h3" className="text-lg font-bold mt-1">{dailyData.stats.totalOrders}</Heading>
-              <Text className="text-[10px] text-emerald-600 font-semibold mt-1">{dailyData.stats.deliveredOrders} Delivered</Text>
+              <Heading level="h3" className="text-lg font-bold mt-1">{dailyData?.stats?.totalOrders ?? 0}</Heading>
+              <Text className="text-[10px] text-emerald-600 font-semibold mt-1">{dailyData?.stats?.deliveredOrders ?? 0} Delivered</Text>
             </div>
             <div className="p-4 bg-ui-bg-base border rounded-2xl shadow-sm">
               <Text className="text-[11px] font-bold text-ui-fg-subtle uppercase">Gross Sales</Text>
-              <Heading level="h3" className="text-lg font-bold mt-1">₹{dailyData.stats.grossRevenue.toLocaleString("en-IN")}</Heading>
+              <Heading level="h3" className="text-lg font-bold mt-1">₹{(dailyData?.stats?.grossRevenue ?? 0).toLocaleString("en-IN")}</Heading>
               <Text className="text-[10px] text-ui-fg-muted mt-1">Tax Inclusive</Text>
             </div>
             <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl shadow-sm">
               <Text className="text-[11px] font-bold text-emerald-800 uppercase">Net Sales (Excl. Tax)</Text>
-              <Heading level="h3" className="text-lg font-bold text-emerald-700 mt-1">₹{dailyData.stats.netSalesExclTax.toLocaleString("en-IN")}</Heading>
-              <Text className="text-[10px] text-emerald-600 mt-1">₹{dailyData.stats.gstCollected.toLocaleString("en-IN")} GST Collected</Text>
+              <Heading level="h3" className="text-lg font-bold text-emerald-700 mt-1">₹{(dailyData?.stats?.netSalesExclTax ?? 0).toLocaleString("en-IN")}</Heading>
+              <Text className="text-[10px] text-emerald-600 mt-1">₹{(dailyData?.stats?.gstCollected ?? 0).toLocaleString("en-IN")} GST Collected</Text>
             </div>
             <div className="p-4 bg-ui-bg-base border rounded-2xl shadow-sm">
               <Text className="text-[11px] font-bold text-ui-fg-subtle uppercase">Average Order Value</Text>
-              <Heading level="h3" className="text-lg font-bold mt-1">₹{dailyData.stats.aov.toLocaleString("en-IN")}</Heading>
+              <Heading level="h3" className="text-lg font-bold mt-1">₹{(dailyData?.stats?.aov ?? 0).toLocaleString("en-IN")}</Heading>
               <Text className="text-[10px] text-ui-fg-muted mt-1">Per Placed Order</Text>
             </div>
           </div>
@@ -947,13 +958,13 @@ export function EnterpriseReportsEngine() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ui-border-base font-mono">
-                  {dailyData.paymentSummary.map((p: any, idx: number) => (
+                  {(dailyData?.paymentSummary || []).map((p: any, idx: number) => (
                     <tr key={idx} className="hover:bg-ui-bg-subtle/50">
                       <td className="p-3 font-sans font-bold text-ui-fg-base">{p.method}</td>
                       <td className="p-3 text-right font-medium">{p.count}</td>
-                      <td className="p-3 text-right font-bold text-emerald-700">₹{p.gross.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right font-bold text-emerald-700">₹{(p.gross ?? 0).toLocaleString("en-IN")}</td>
                       <td className="p-3 text-right text-rose-600">₹{(p.refundAmount || 0).toLocaleString("en-IN")}</td>
-                      <td className="p-3 text-right font-bold text-indigo-700">₹{(p.netAmount || p.gross).toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right font-bold text-indigo-700">₹{(p.netAmount || p.gross || 0).toLocaleString("en-IN")}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -979,16 +990,16 @@ export function EnterpriseReportsEngine() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ui-border-base font-mono">
-                  {dailyData.branchSummary.map((b: any, idx: number) => (
+                  {(dailyData?.branchSummary || []).map((b: any, idx: number) => (
                     <tr key={idx} className="hover:bg-ui-bg-subtle/50">
                       <td className="p-3 font-sans font-bold text-ui-fg-base">{b.branchName}</td>
                       <td className="p-3 font-mono font-bold text-indigo-700">{b.branchCode}</td>
                       <td className="p-3 font-sans text-ui-fg-subtle">{b.city || "—"}</td>
-                      <td className="p-3 text-right font-medium">{b.ordersCount}</td>
-                      <td className="p-3 text-right font-medium">₹{b.grossSales.toLocaleString("en-IN")}</td>
-                      <td className="p-3 text-right font-bold text-emerald-700">₹{b.netSales.toLocaleString("en-IN")}</td>
-                      <td className="p-3 text-right font-medium">₹{b.aov.toLocaleString("en-IN")}</td>
-                      <td className="p-3 text-right font-bold text-sky-700">{b.deliveredCount}</td>
+                      <td className="p-3 text-right font-medium">{b.ordersCount ?? 0}</td>
+                      <td className="p-3 text-right font-medium">₹{(b.grossSales ?? 0).toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right font-bold text-emerald-700">₹{(b.netSales ?? 0).toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right font-medium">₹{(b.aov ?? 0).toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right font-bold text-sky-700">{b.deliveredCount ?? 0}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1026,7 +1037,7 @@ export function EnterpriseReportsEngine() {
             <div className="flex flex-col gap-3 p-5 bg-ui-bg-base border rounded-2xl shadow-sm">
               <Heading level="h3" className="text-sm font-bold text-emerald-800 pb-2 border-b">🏆 Top 3 Best Selling Cakes</Heading>
               <div className="flex flex-col gap-3">
-                {weeklyData.top3Cakes.map((c: any) => (
+                {(weeklyData?.top3Cakes || []).map((c: any) => (
                   <div key={c.sku} className="flex items-center justify-between p-3 bg-emerald-50/50 border border-emerald-200 rounded-xl">
                     <div className="flex items-center gap-3">
                       <span className="w-7 h-7 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">
@@ -1038,7 +1049,7 @@ export function EnterpriseReportsEngine() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="font-bold text-xs text-emerald-700">₹{c.netSales.toLocaleString("en-IN")}</span>
+                      <span className="font-bold text-xs text-emerald-700">₹{(c.netSales ?? 0).toLocaleString("en-IN")}</span>
                       <p className="text-[10px] text-slate-500 font-semibold">{c.quantitySold} Units Sold</p>
                     </div>
                   </div>
@@ -1050,7 +1061,7 @@ export function EnterpriseReportsEngine() {
             <div className="flex flex-col gap-3 p-5 bg-ui-bg-base border rounded-2xl shadow-sm">
               <Heading level="h3" className="text-sm font-bold text-rose-800 pb-2 border-b">⚠️ Least Selling Cakes (Rotation Candidates)</Heading>
               <div className="flex flex-col gap-3">
-                {weeklyData.leastSellingCakes.slice(0, 3).map((c: any) => (
+                {(weeklyData?.leastSellingCakes || []).slice(0, 3).map((c: any) => (
                   <div key={c.sku} className="flex items-center justify-between p-3 bg-rose-50/50 border border-rose-200 rounded-xl">
                     <div className="flex items-center gap-3">
                       <span className="w-7 h-7 rounded-full bg-rose-600 text-white font-bold text-xs flex items-center justify-center">
@@ -1062,7 +1073,7 @@ export function EnterpriseReportsEngine() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="font-bold text-xs text-rose-700">₹{c.netSales.toLocaleString("en-IN")}</span>
+                      <span className="font-bold text-xs text-rose-700">₹{(c.netSales ?? 0).toLocaleString("en-IN")}</span>
                       <p className="text-[10px] text-slate-500 font-semibold">{c.quantitySold} Units Sold</p>
                     </div>
                   </div>
@@ -1086,11 +1097,11 @@ export function EnterpriseReportsEngine() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ui-border-base font-mono">
-                  {weeklyData.payments.map((p: any, idx: number) => (
+                  {(weeklyData?.payments || []).map((p: any, idx: number) => (
                     <tr key={idx} className="hover:bg-ui-bg-subtle/50">
                       <td className="p-3 font-sans font-bold text-ui-fg-base">{p.method}</td>
                       <td className="p-3 text-right font-medium">{p.count}</td>
-                      <td className="p-3 text-right font-bold text-emerald-700">₹{p.gross.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right font-bold text-emerald-700">₹{(p.gross ?? 0).toLocaleString("en-IN")}</td>
                       <td className="p-3 text-right text-rose-600">₹{(p.refundAmount || 0).toLocaleString("en-IN")}</td>
                       <td className="p-3 text-right font-bold text-indigo-700">{p.percentage}%</td>
                     </tr>
@@ -1128,17 +1139,17 @@ export function EnterpriseReportsEngine() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-5 bg-ui-bg-base border rounded-2xl shadow-sm">
               <Text className="text-[11px] font-bold text-ui-fg-subtle uppercase">Current Month Net Sales</Text>
-              <Heading level="h3" className="text-xl font-bold mt-1 text-emerald-700">₹{monthlyData.currentMonthSales.toLocaleString("en-IN")}</Heading>
+              <Heading level="h3" className="text-xl font-bold mt-1 text-emerald-700">₹{(monthlyData?.currentMonthSales ?? 0).toLocaleString("en-IN")}</Heading>
               <Text className="text-[10px] text-ui-fg-muted mt-1">Excl. Tax & Discounts</Text>
             </div>
             <div className="p-5 bg-ui-bg-base border rounded-2xl shadow-sm">
               <Text className="text-[11px] font-bold text-ui-fg-subtle uppercase">Previous Month Net Sales</Text>
-              <Heading level="h3" className="text-xl font-bold mt-1 text-slate-700">₹{monthlyData.prevMonthSales.toLocaleString("en-IN")}</Heading>
+              <Heading level="h3" className="text-xl font-bold mt-1 text-slate-700">₹{(monthlyData?.prevMonthSales ?? 0).toLocaleString("en-IN")}</Heading>
               <Text className="text-[10px] text-ui-fg-muted mt-1">Audited Baseline</Text>
             </div>
             <div className="p-5 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl shadow-sm">
               <Text className="text-[11px] font-bold text-indigo-800 uppercase">Sales Growth %</Text>
-              <Heading level="h3" className="text-xl font-bold mt-1 text-indigo-700">{monthlyData.growthPctDisplay}</Heading>
+              <Heading level="h3" className="text-xl font-bold mt-1 text-indigo-700">{monthlyData?.growthPctDisplay || "0%"}</Heading>
               <Text className="text-[10px] text-indigo-600 mt-1">MoM Revenue Velocity</Text>
             </div>
           </div>
@@ -1151,11 +1162,13 @@ export function EnterpriseReportsEngine() {
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="p-3 bg-ui-bg-subtle rounded-xl">
                   <Text className="text-[10px] font-bold text-ui-fg-subtle uppercase">Total Dispatched</Text>
-                  <Heading level="h3" className="text-base font-bold mt-1">{monthlyData.deliverySla.totalDeliveries}</Heading>
+                  <Heading level="h3" className="text-base font-bold mt-1">{monthlyData?.deliverySla?.totalDeliveries ?? 0}</Heading>
                 </div>
                 <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
                   <Text className="text-[10px] font-bold text-emerald-800 uppercase">SLA Compliance</Text>
-                  <Heading level="h3" className="text-base font-bold mt-1 text-emerald-700">{monthlyData.deliverySla.slaCompliancePct}%</Heading>
+                  <Heading level="h3" className={`text-base font-bold mt-1 ${monthlyData?.deliverySla?.slaCompliancePct != null ? "text-emerald-700" : "text-ui-fg-muted italic text-xs"}`}>
+                    {monthlyData?.deliverySla?.slaCompliancePct != null ? `${monthlyData.deliverySla.slaCompliancePct}%` : "Unavailable (No Timing Data)"}
+                  </Heading>
                 </div>
               </div>
             </div>
@@ -1166,11 +1179,15 @@ export function EnterpriseReportsEngine() {
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
                   <Text className="text-[10px] font-bold text-amber-800 uppercase">Repeat Purchase Rate</Text>
-                  <Heading level="h3" className="text-base font-bold mt-1 text-amber-700">{monthlyData.customerRetention.repeatPurchaseRate}%</Heading>
+                  <Heading level="h3" className={`text-base font-bold mt-1 ${monthlyData?.customerRetention?.repeatPurchaseRate != null ? "text-amber-700" : "text-ui-fg-muted italic text-xs"}`}>
+                    {monthlyData?.customerRetention?.repeatPurchaseRate != null ? `${monthlyData.customerRetention.repeatPurchaseRate}%` : "Unavailable"}
+                  </Heading>
                 </div>
                 <div className="p-3 bg-purple-50 rounded-xl border border-purple-200">
                   <Text className="text-[10px] font-bold text-purple-800 uppercase">Estimated CLTV</Text>
-                  <Heading level="h3" className="text-base font-bold mt-1 text-purple-700">₹{monthlyData.customerRetention.ltv.toLocaleString("en-IN")}</Heading>
+                  <Heading level="h3" className={`text-base font-bold mt-1 ${monthlyData?.customerRetention?.ltv != null ? "text-purple-700" : "text-ui-fg-muted italic text-xs"}`}>
+                    {monthlyData?.customerRetention?.ltv != null ? `₹${monthlyData.customerRetention.ltv.toLocaleString("en-IN")}` : "Unavailable"}
+                  </Heading>
                 </div>
               </div>
             </div>
@@ -1237,18 +1254,18 @@ export function EnterpriseReportsEngine() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ui-border-base font-mono">
-                  {gstSummary.items.map((item: any, idx: number) => (
+                  {(gstSummary?.items || []).map((item: any, idx: number) => (
                     <tr key={idx} className="hover:bg-ui-bg-subtle/50">
                       <td className="p-3 font-bold text-rose-700">{item.hsnCode}</td>
                       <td className="p-3 font-sans font-medium text-ui-fg-base">{item.description}</td>
                       <td className="p-3 text-ui-fg-muted">{item.uom}</td>
-                      <td className="p-3 text-right font-bold">{item.quantity.toFixed(3)}</td>
-                      <td className="p-3 text-right font-bold text-ui-fg-base">₹{item.totalValue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
+                      <td className="p-3 text-right font-bold">{(item.quantity ?? 0).toFixed(3)}</td>
+                      <td className="p-3 text-right font-bold text-ui-fg-base">₹{(item.totalValue ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
                       <td className="p-3 text-right font-bold text-indigo-600">{item.gstRatePct}%</td>
-                      <td className="p-3 text-right font-medium">₹{item.taxableValue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
-                      <td className="p-3 text-right">₹{item.igst.toFixed(2)}</td>
-                      <td className="p-3 text-right">₹{item.cgst.toFixed(2)}</td>
-                      <td className="p-3 text-right">₹{item.sgst.toFixed(2)}</td>
+                      <td className="p-3 text-right font-medium">₹{(item.taxableValue ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
+                      <td className="p-3 text-right">₹{(item.igst ?? 0).toFixed(2)}</td>
+                      <td className="p-3 text-right">₹{(item.cgst ?? 0).toFixed(2)}</td>
+                      <td className="p-3 text-right">₹{(item.sgst ?? 0).toFixed(2)}</td>
                       <td className="p-3 text-right">₹{(item.cess || 0).toFixed(2)}</td>
                     </tr>
                   ))}
@@ -1257,14 +1274,14 @@ export function EnterpriseReportsEngine() {
                   <tr className="bg-slate-100 dark:bg-slate-800 font-bold border-t-2 border-slate-300">
                     <td className="p-3 text-slate-900 dark:text-white">TOTAL</td>
                     <td className="p-3 font-sans text-slate-600" colSpan={2}>Statutory B2C Summary Total</td>
-                    <td className="p-3 text-right">{gstSummary.totals.quantity.toFixed(3)}</td>
-                    <td className="p-3 text-right text-emerald-700 font-extrabold">₹{gstSummary.totals.totalValue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
+                    <td className="p-3 text-right">{(gstSummary?.totals?.quantity ?? 0).toFixed(3)}</td>
+                    <td className="p-3 text-right text-emerald-700 font-extrabold">₹{(gstSummary?.totals?.totalValue ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
                     <td className="p-3 text-right">—</td>
-                    <td className="p-3 text-right font-bold">₹{gstSummary.totals.taxableValue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
-                    <td className="p-3 text-right">₹{gstSummary.totals.igst.toFixed(2)}</td>
-                    <td className="p-3 text-right">₹{gstSummary.totals.cgst.toFixed(2)}</td>
-                    <td className="p-3 text-right">₹{gstSummary.totals.sgst.toFixed(2)}</td>
-                    <td className="p-3 text-right">₹{(gstSummary.totals.cess || 0).toFixed(2)}</td>
+                    <td className="p-3 text-right font-bold">₹{(gstSummary?.totals?.taxableValue ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
+                    <td className="p-3 text-right">₹{(gstSummary?.totals?.igst ?? 0).toFixed(2)}</td>
+                    <td className="p-3 text-right">₹{(gstSummary?.totals?.cgst ?? 0).toFixed(2)}</td>
+                    <td className="p-3 text-right">₹{(gstSummary?.totals?.sgst ?? 0).toFixed(2)}</td>
+                    <td className="p-3 text-right">₹{(gstSummary?.totals?.cess || 0).toFixed(2)}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -1441,13 +1458,13 @@ export function EnterpriseReportsEngine() {
                     </td>
                     <td className="p-3 font-sans text-ui-fg-subtle">{p.category}</td>
                     <td className="p-3 font-mono text-ui-fg-muted">{p.hsnCode}</td>
-                    <td className="p-3 text-right font-bold text-ui-fg-base">{p.quantitySold.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-medium text-ui-fg-subtle">₹{p.grossSales.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right text-rose-600 font-medium">-₹{p.discounts.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-bold text-ui-fg-base">₹{p.netSales.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-mono text-ui-fg-muted">₹{p.unitCost}</td>
-                    <td className="p-3 text-right font-medium text-slate-700">₹{p.totalCogs.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-bold text-emerald-700">₹{p.grossProfit.toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-bold text-ui-fg-base">{(p.quantitySold ?? 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-medium text-ui-fg-subtle">₹{(p.grossSales ?? 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right text-rose-600 font-medium">-₹{(p.discounts ?? 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-bold text-ui-fg-base">₹{(p.netSales ?? 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-mono text-ui-fg-muted">₹{p.unitCost ?? 0}</td>
+                    <td className="p-3 text-right font-medium text-slate-700">₹{(p.totalCogs ?? 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-bold text-emerald-700">₹{(p.grossProfit ?? 0).toLocaleString("en-IN")}</td>
                     <td className="p-3 text-right font-bold font-sans">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] ${p.grossMarginPct >= 50 ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
                         {p.grossMarginPct}%
@@ -1506,16 +1523,16 @@ export function EnterpriseReportsEngine() {
                     <td className="p-3 text-center font-sans font-bold text-ui-fg-muted">#{idx + 1}</td>
                     <td className="p-3 font-sans font-bold text-ui-fg-base">{b.branchName}</td>
                     <td className="p-3 font-mono font-bold text-indigo-700">{b.branchCode}</td>
-                    <td className="p-3 text-right font-medium">{b.ordersCount}</td>
-                    <td className="p-3 text-right font-bold text-emerald-700">{b.deliveredCount}</td>
-                    <td className="p-3 text-right text-rose-600">{b.cancelledCount}</td>
-                    <td className="p-3 text-right font-medium">₹{b.grossSales.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-bold text-ui-fg-base">₹{b.netSales.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-medium text-slate-600">₹{b.cogs.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-bold text-emerald-700">₹{b.grossProfit.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-bold text-purple-700">{b.marginPct}%</td>
-                    <td className="p-3 text-right font-medium">₹{b.aov.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-bold text-sky-700">{b.onTimeDeliveryPct}%</td>
+                    <td className="p-3 text-right font-medium">{b.ordersCount ?? 0}</td>
+                    <td className="p-3 text-right font-bold text-emerald-700">{b.deliveredCount ?? 0}</td>
+                    <td className="p-3 text-right text-rose-600">{b.cancelledCount ?? 0}</td>
+                    <td className="p-3 text-right font-medium">₹{(b.grossSales ?? 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-bold text-ui-fg-base">₹{(b.netSales ?? 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-medium text-slate-600">₹{(b.cogs ?? 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-bold text-emerald-700">₹{(b.grossProfit ?? 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-bold text-purple-700">{b.marginPct ?? 0}%</td>
+                    <td className="p-3 text-right font-medium">₹{(b.aov ?? 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-bold text-sky-700">{b.onTimeDeliveryPct ?? 100}%</td>
                   </tr>
                 ))}
               </tbody>
@@ -1578,8 +1595,8 @@ export function EnterpriseReportsEngine() {
                     </td>
                     <td className="p-3 font-medium text-ui-fg-subtle">{o.branchName}</td>
                     <td className="p-3 font-medium text-ui-fg-base truncate max-w-[180px]">{o.productNames}</td>
-                    <td className="p-3 text-right font-mono font-bold text-ui-fg-base">₹{o.netAmount.toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-mono font-bold text-emerald-700">₹{o.profit.toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-mono font-bold text-ui-fg-base">₹{(o.netAmount ?? 0).toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-mono font-bold text-emerald-700">₹{(o.profit ?? 0).toLocaleString("en-IN")}</td>
                     <td className="p-3">
                       <Badge color="blue" className="text-[10px]">{o.paymentMethod}</Badge>
                     </td>
@@ -1620,9 +1637,9 @@ export function EnterpriseReportsEngine() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 bg-emerald-500/10 rounded-xl"><Text className="text-[11px] font-bold text-emerald-800 uppercase">Gross Payment Collected</Text><Heading level="h3" className="text-lg font-bold text-emerald-700">₹{paymentData.totalCollected.toLocaleString("en-IN")}</Heading></div>
-            <div className="p-4 bg-rose-500/10 rounded-xl"><Text className="text-[11px] font-bold text-rose-800 uppercase">Total Refunded</Text><Heading level="h3" className="text-lg font-bold text-rose-700">₹{paymentData.totalRefunds.toLocaleString("en-IN")}</Heading></div>
-            <div className="p-4 bg-indigo-500/10 rounded-xl"><Text className="text-[11px] font-bold text-indigo-800 uppercase">Net Settlement</Text><Heading level="h3" className="text-lg font-bold text-indigo-700">₹{paymentData.netCollected.toLocaleString("en-IN")}</Heading></div>
+            <div className="p-4 bg-emerald-500/10 rounded-xl"><Text className="text-[11px] font-bold text-emerald-800 uppercase">Gross Payment Collected</Text><Heading level="h3" className="text-lg font-bold text-emerald-700">₹{(paymentData?.totalCollected ?? 0).toLocaleString("en-IN")}</Heading></div>
+            <div className="p-4 bg-rose-500/10 rounded-xl"><Text className="text-[11px] font-bold text-rose-800 uppercase">Total Refunded</Text><Heading level="h3" className="text-lg font-bold text-rose-700">₹{(paymentData?.totalRefunds ?? 0).toLocaleString("en-IN")}</Heading></div>
+            <div className="p-4 bg-indigo-500/10 rounded-xl"><Text className="text-[11px] font-bold text-indigo-800 uppercase">Net Settlement</Text><Heading level="h3" className="text-lg font-bold text-indigo-700">₹{(paymentData?.netCollected ?? 0).toLocaleString("en-IN")}</Heading></div>
           </div>
 
           <div className="overflow-x-auto border border-ui-border-base rounded-xl">
@@ -1636,11 +1653,11 @@ export function EnterpriseReportsEngine() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-ui-border-base font-mono">
-                {paymentData.breakdown.map((p: any, idx: number) => (
+                {(paymentData?.breakdown || []).map((p: any, idx: number) => (
                   <tr key={idx} className="hover:bg-ui-bg-subtle/50">
                     <td className="p-3 font-sans font-bold text-ui-fg-base">{p.method}</td>
                     <td className="p-3 text-right font-medium">{p.count}</td>
-                    <td className="p-3 text-right font-bold text-emerald-700">₹{p.gross.toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-bold text-emerald-700">₹{(p.gross ?? 0).toLocaleString("en-IN")}</td>
                     <td className="p-3 text-right font-bold text-indigo-700">{(p as any).successPct || 100}%</td>
                   </tr>
                 ))}
@@ -1700,10 +1717,10 @@ export function EnterpriseReportsEngine() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="p-4 bg-ui-bg-subtle rounded-xl"><Text className="text-[11px] font-bold text-ui-fg-subtle uppercase">Total Active Buyers</Text><Heading level="h3" className="text-lg font-bold">{customerData.totalCustomers}</Heading></div>
-            <div className="p-4 bg-emerald-500/10 rounded-xl"><Text className="text-[11px] font-bold text-emerald-800 uppercase">New Customers</Text><Heading level="h3" className="text-lg font-bold text-emerald-700">{customerData.newCustomers}</Heading></div>
-            <div className="p-4 bg-amber-500/10 rounded-xl"><Text className="text-[11px] font-bold text-amber-800 uppercase">Repeat Purchase Rate</Text><Heading level="h3" className="text-lg font-bold text-amber-700">{(customerData as any).repeatRatePct || customerData.repeatPurchaseRate || 0}%</Heading></div>
-            <div className="p-4 bg-indigo-500/10 rounded-xl"><Text className="text-[11px] font-bold text-indigo-800 uppercase">Average Customer LTV</Text><Heading level="h3" className="text-lg font-bold text-indigo-700">₹{customerData.ltv.toLocaleString("en-IN")}</Heading></div>
+            <div className="p-4 bg-ui-bg-subtle rounded-xl"><Text className="text-[11px] font-bold text-ui-fg-subtle uppercase">Total Active Buyers</Text><Heading level="h3" className="text-lg font-bold">{customerData?.totalCustomers != null ? customerData.totalCustomers : "Unavailable"}</Heading></div>
+            <div className="p-4 bg-emerald-500/10 rounded-xl"><Text className="text-[11px] font-bold text-emerald-800 uppercase">New Customers</Text><Heading level="h3" className="text-lg font-bold text-emerald-700">{customerData?.newCustomers != null ? customerData.newCustomers : "Unavailable"}</Heading></div>
+            <div className="p-4 bg-amber-500/10 rounded-xl"><Text className="text-[11px] font-bold text-amber-800 uppercase">Repeat Purchase Rate</Text><Heading level="h3" className={`text-lg font-bold ${customerData?.repeatPurchaseRate != null ? "text-amber-700" : "text-ui-fg-muted italic text-xs"}`}>{customerData?.repeatPurchaseRate != null ? `${customerData.repeatPurchaseRate}%` : "Unavailable"}</Heading></div>
+            <div className="p-4 bg-indigo-500/10 rounded-xl"><Text className="text-[11px] font-bold text-indigo-800 uppercase">Average Customer LTV</Text><Heading level="h3" className={`text-lg font-bold ${customerData?.ltv != null ? "text-indigo-700" : "text-ui-fg-muted italic text-xs"}`}>{customerData?.ltv != null ? `₹${customerData.ltv.toLocaleString("en-IN")}` : "Unavailable"}</Heading></div>
           </div>
         </div>
       )}
@@ -1746,7 +1763,7 @@ export function EnterpriseReportsEngine() {
                     <td className="p-3 font-sans font-bold text-purple-700">{p.coPurchasedItem}</td>
                     <td className="p-3 text-right font-bold">{p.coPurchaseCount}</td>
                     <td className="p-3 text-right font-bold text-indigo-700">{p.attachRatePct}%</td>
-                    <td className="p-3 text-right font-bold text-emerald-700">₹{p.addedRevenue.toLocaleString("en-IN")}</td>
+                    <td className="p-3 text-right font-bold text-emerald-700">₹{(p.addedRevenue ?? 0).toLocaleString("en-IN")}</td>
                   </tr>
                 ))}
               </tbody>

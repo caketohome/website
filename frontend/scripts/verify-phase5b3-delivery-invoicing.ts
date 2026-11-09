@@ -301,10 +301,31 @@ async function main() {
 
     // ── Teardown / Cleanup Test Data ─────────────────────────────────────
     try {
-      await dbQuery("DELETE FROM public.invoice WHERE order_id = $1;", [orderId]);
-      await dbQuery("DELETE FROM public.\"order\" WHERE id = $1;", [orderId]);
-    } catch {
-      // ignore cleanup errors
+      const dbCheck = await dbQuery("SELECT current_database();");
+      const currentDb = dbCheck.rows?.[0]?.current_database;
+      if (currentDb !== 'cth_test') {
+        console.warn(`[Cleanup] Skipped: Teardown only permitted on cth_test, connected to: ${currentDb}`);
+      } else {
+        // Strict reverse foreign-key dependency cascade
+        const delVouchers = await dbQuery("SELECT id FROM public.accounting_voucher WHERE reference_id = $1;", [orderId]);
+        for (const v of delVouchers.rows || []) {
+          const vchId = v.id;
+          const entries = await dbQuery("SELECT id FROM public.accounting_journal_entry WHERE voucher_id = $1;", [vchId]);
+          for (const e of entries.rows || []) {
+            await dbQuery("DELETE FROM public.accounting_journal_line WHERE journal_entry_id = $1 OR entry_id = $1;", [e.id]);
+          }
+          await dbQuery("DELETE FROM public.accounting_journal_entry WHERE voucher_id = $1;", [vchId]);
+        }
+        const vRes = await dbQuery("DELETE FROM public.accounting_voucher WHERE reference_id = $1;", [orderId]);
+        const invRes = await dbQuery("DELETE FROM public.invoice WHERE order_id = $1;", [orderId]);
+        const oshRes = await dbQuery("DELETE FROM public.order_status_history WHERE order_id = $1;", [orderId]);
+        const ptRes = await dbQuery("DELETE FROM public.payment_transaction WHERE order_id = $1;", [orderId]);
+        const oiRes = await dbQuery("DELETE FROM public.order_item WHERE order_id = $1;", [orderId]);
+        const ordRes = await dbQuery("DELETE FROM public.\"order\" WHERE id = $1;", [orderId]);
+        console.log(`[Cleanup] Teardown complete for ${orderId}: vouchers=${vRes.rowCount}, invoices=${invRes.rowCount}, status_history=${oshRes.rowCount}, payments=${ptRes.rowCount}, items=${oiRes.rowCount}, orders=${ordRes.rowCount}`);
+      }
+    } catch (cleanErr: any) {
+      console.warn(`⚠️ [Cleanup Error]: ${cleanErr.message || cleanErr}`);
     }
 
     // ── Summary ──────────────────────────────────────────────────────────

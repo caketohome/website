@@ -23,6 +23,21 @@ async function runDeliveryPartnerTestSuite() {
   try {
     // 1. Initial Store Setup & Partner Listing
     console.log("--- TEST 1: STORE INITIALIZATION & SEQUENTIAL PARTNER NUMBERING ---");
+    const store = (ApiEngine as any).getStore ? (ApiEngine as any).getStore() : (ApiEngine as any).memoryStore;
+    if (!store.products || store.products.length === 0) {
+      store.products = [
+        {
+          id: "prod_1",
+          product_id: "prod_1",
+          title: "Belgian Chocolate Truffle Cake",
+          name: "Belgian Chocolate Truffle Cake",
+          price: 649,
+          category: "Cakes",
+          rating: 4.9,
+          is_active: true,
+        } as any,
+      ];
+    }
     ApiEngine.ensureDeliveryPartnersStore();
     const initialList = ApiEngine.getAdminDeliveryPartners();
     assert(
@@ -96,21 +111,26 @@ async function runDeliveryPartnerTestSuite() {
 
     // 5. Automatic Rider Assignment Engine (Order Dispatch)
     console.log("\n--- TEST 5: AUTOMATIC RIDER ASSIGNMENT ENGINE ---");
+    const today = new Date().toISOString().split("T")[0];
     const testOrderPayload = {
       customer_name: "Rahul Mehta",
       customer_phone: "+91 98765 00112",
-      address_1: "777 100 Feet Rd, Indiranagar",
+      address_line: "777 100 Feet Rd, Indiranagar",
       city: "Bengaluru",
-      postal_code: "560038",
+      pincode: "560038",
+      delivery_date: today,
+      delivery_slot: "Express 45-Min Delivery",
+      delivery_slot_id: "SLOT_EXPRESS_45MIN",
       items: [
-        { product_id: "prod_1", title: "Belgium Chocolate Mousse Cake", quantity: 1, variant: "Designer Cold-Chain", price: 1499 },
+        { product_id: "prod_1", title: "Belgian Chocolate Truffle Cake", quantity: 1, unit_price: 649 },
       ],
       payment_method: "online",
       branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-      total: 1499,
+      total: 649,
     };
 
-    const newOrder = ApiEngine.createOrder(testOrderPayload);
+    const orderRes = await ApiEngine.confirmCheckout(testOrderPayload);
+    const newOrder = orderRes?.order || orderRes;
     assert(Boolean(newOrder && newOrder.id), "Created new test order for dispatch test", `Order #: ${newOrder.order_number}`);
 
     const autoAssignRes = ApiEngine.autoAssignDeliveryDriver(newOrder.id);

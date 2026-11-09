@@ -1,0 +1,44 @@
+[
+  {
+    "file": "01_storefront_product_selection.png",
+    "description": "Storefront gourmet cake catalog with price and product discovery",
+    "size": 1969296,
+    "url": "http://localhost:3000/products"
+  },
+  {
+    "file": "02_cart_review.png",
+    "description": "Shopping Cart review showing Classic Chocolate Truffle Cake and checkout summary",
+    "size": 126711,
+    "url": "http://localhost:3000/cart"
+  },
+  {
+    "file": "03_checkout_form_filled.png",
+    "description": "Checkout form filled with recipient contact, delivery scheduling, and Cashfree PG selected",
+    "size": 106606,
+    "url": "http://localhost:3000/checkout"
+  },
+  {
+    "file": "04_official_cashfree_checkout_page.png",
+    "description": "Official Cashfree Checkout interface with Web SDK v3, official branding, and zero simulator controls",
+    "size": 139141,
+    "url": "http://localhost:3000/checkout/cashfree?order_id=CTH-2026-4298&amount=525.00"
+  },
+  {
+    "file": "05_order_confirmed_success.png",
+    "description": "Customer Order Confirmation screen displaying Order Confirmed & In Kitchen, live KOT Ticket, and Cashfree Payment Ref",
+    "size": 250318,
+    "url": "http://localhost:3000/your-order?order_id=CTH-2026-4298"
+  },
+  {
+    "file": "06_admin_orders_register_confirmed.png",
+    "description": "Admin ERP Orders Register showing newly confirmed Cashfree order with paid status",
+    "size": 146901,
+    "url": "http://localhost:3000/admin/orders"
+  },
+  {
+    "file": "07_branch_kitchen_queue_kot.png",
+    "description": "Branch Manager Operations dashboard displaying live KOT ticket queued for preparation",
+    "size": 153750,
+    "url": "http://localhost:3000/branch-manager"
+  }
+]

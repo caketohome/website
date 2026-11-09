@@ -1,0 +1,12 @@
+[
+  {
+    "evidence_id": "EVD-SUB-01",
+    "category": "BOARD_SUBMISSION",
+    "status": "PENDING_REVIEW"
+  },
+  {
+    "evidence_id": "EVD-RES-01",
+    "category": "BOARD_RESOLUTION",
+    "status": "NOT_SUBMITTED"
+  }
+]

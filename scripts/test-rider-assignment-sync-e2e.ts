@@ -42,10 +42,33 @@ async function runRiderAssignmentSyncTestSuite() {
     ApiEngine.ensureOrdersStore();
     ApiEngine.ensureDeliveryPartnersStore();
 
+    // Ensure dlp_102 (Rider B) is in fleet registry for security and reassign tests
+    if (!ApiEngine.getAdminDeliveryPartners()?.partners?.some((p: any) => p.id === "dlp_102")) {
+      ApiEngine.saveDeliveryPartner({
+        id: "dlp_102",
+        partner_number: "CTH-DP-000102",
+        first_name: "Ramesh",
+        last_name: "Patel",
+        name: "Ramesh Patel",
+        phone: "+91 99000 33333",
+        status: "active",
+        rating: 4.8,
+        completed_trips: 45,
+        associated_branches: ["br_kollam_central"]
+      });
+    }
+
     // ── STEP 1: VERIFY RAMESH RIDER PROFILE & CANONICAL IDENTITY ──────────────
     console.log("--- 1. VERIFY RAMESH RIDER CANONICAL IDENTITY & SCOPING ---");
     const ramesh = ApiEngine.getAdminDeliveryPartners({ q: "Ramesh" })?.partners?.[0] ||
       ApiEngine.getAdminDeliveryPartners()?.partners?.find((p: any) => p.id === "dlp_01" || p.partner_number === "CTH-DP-000001");
+
+    if (ramesh) {
+      if (!ramesh.associated_branches) ramesh.associated_branches = [];
+      if (!ramesh.associated_branches.includes("br_kollam_central")) {
+        ramesh.associated_branches.push("br_kollam_central");
+      }
+    }
 
     assert(Boolean(ramesh), "Ramesh Rider profile exists in fleet registry", `ID: ${ramesh?.id}, Number: ${ramesh?.partner_number}`);
     assert(ramesh?.partner_number === "CTH-DP-000001", "Ramesh Rider has canonical partner number CTH-DP-000001", `Found: ${ramesh?.partner_number}`);
@@ -230,11 +253,11 @@ async function runRiderAssignmentSyncTestSuite() {
     // ── STEP 7: CUSTOMER DELIVERY OTP VERIFICATION & COMPLETION (2311) ────────
     console.log("\n--- 7. CUSTOMER DELIVERY COMPLETION OTP (2311) ---");
     // Negative test: Wrong customer OTP rejected
-    const badDelOtpRes = ApiEngine.verifyCustomerOtpBackend(ord200.id, "0000", "dlp_01");
+    const badDelOtpRes = await ApiEngine.verifyCustomerOtpBackend(ord200.id, "0000", "dlp_01");
     assert(badDelOtpRes.success === false, "Invalid Customer OTP 0000 was rejected", `Error: ${badDelOtpRes.error}`);
 
     // Positive test: Correct customer OTP 2311 accepted
-    const goodDelOtpRes = ApiEngine.verifyCustomerOtpBackend(ord200.id, "2311", "dlp_01");
+    const goodDelOtpRes = await ApiEngine.verifyCustomerOtpBackend(ord200.id, "2311", "dlp_01");
     assert(goodDelOtpRes.success === true, "Valid Customer OTP 2311 verified successfully", `Current Status: ${goodDelOtpRes.currentStatus}`);
 
     const postDelDeliveries = await listDeliveries({ delivery_partner_id: "dlp_01" });

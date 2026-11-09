@@ -1,0 +1,31 @@
+{
+  "match": "r2-m01",
+  "scores": {
+    "a002": {
+      "correctness": 9.0,
+      "completeness": 9.0,
+      "specificity": 8.8,
+      "robustness": 8.8,
+      "clarity": 8.8,
+      "fatal": false
+    },
+    "a001": {
+      "correctness": 9.6,
+      "completeness": 9.6,
+      "specificity": 9.2,
+      "robustness": 9.5,
+      "clarity": 9.2,
+      "fatal": false
+    }
+  },
+  "winner": "a001",
+  "reason": "Exhaustive expert panel synthesis, concrete multi-viewport Playwright specifications, exact ledger account balances, and explicit 14-gate release criteria provide superior depth and actionable precision.",
+  "survived": [
+    "Itemized accounting subledger figures and preserved account states",
+    "Formal 14 release gates evaluation integrated"
+  ],
+  "standing": {
+    "a002": [],
+    "a001": []
+  }
+}

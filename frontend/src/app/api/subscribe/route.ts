@@ -1,85 +1,118 @@
-import { NextRequest, NextResponse } from "next/server";
-import EventSource from "eventsource";
+import { NextRequest } from "next/server";
+import { CrossAppEventService } from "@frontend/lib/services/cross-app-event.service";
+import { resolveServerSession } from "@frontend/lib/security/auth-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-const BACKEND_URL =
-  process.env.BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "http://localhost:9000";
+export async function GET(req: NextRequest) {
+  const session = resolveServerSession(req);
+  const searchParams = req.nextUrl.searchParams;
 
-export async function GET(req: NextRequest, res: NextResponse) {
-  let responseStream = new TransformStream();
-  const writer = responseStream.writable.getWriter();
+  const role = (
+    searchParams.get("role") ||
+    session?.role ||
+    (searchParams.get("shop_id") ? "BRANCH_MANAGER" : "") ||
+    (searchParams.get("delivery_partner_id") ? "DELIVERY_PARTNER" : "") ||
+    (searchParams.get("customer_id") ? "CUSTOMER" : "ADMIN")
+  ).toUpperCase();
+
+  const branchId =
+    searchParams.get("branch_id") ||
+    searchParams.get("branchId") ||
+    searchParams.get("shop_id") ||
+    session?.branchId ||
+    null;
+
+  const customerId =
+    searchParams.get("customer_id") ||
+    searchParams.get("customerId") ||
+    (session as any)?.customerId ||
+    null;
+
+  const orderId =
+    searchParams.get("order_id") ||
+    searchParams.get("orderId") ||
+    searchParams.get("delivery_id") ||
+    null;
+
+  let sinceId = Number(searchParams.get("since_id") || searchParams.get("sinceId") || 0);
+  const once = searchParams.get("once") === "true" || searchParams.get("mode") === "snapshot";
+
   const encoder = new TextEncoder();
+  const stream = new TransformStream();
+  const writer = stream.writable.getWriter();
 
-  const shopId = req.nextUrl.searchParams.get("shop_id");
-  const delivery_partnerId = req.nextUrl.searchParams.get("delivery_partner_id");
-  const deliveryId = req.nextUrl.searchParams.get("delivery_id");
-
-  let serverUrl = BACKEND_URL + "/store/deliveries/subscribe";
-
-  if (shopId) {
-    serverUrl += `?shop_id=${shopId}`;
-    writer.write(
-      encoder.encode(
-        "data: " +
-          JSON.stringify({
-            message: "Subscribing to shop " + shopId,
-          }) +
-          "\n\n"
-      )
-    );
-  }
-
-  if (delivery_partnerId) {
-    serverUrl += `?delivery_partner_id=${delivery_partnerId}`;
-    writer.write(
-      encoder.encode(
-        "data: " +
-          JSON.stringify({ message: "Subscribing to delivery_partner " + delivery_partnerId }) +
-          "\n\n"
-      )
-    );
-  }
-
-  if (deliveryId) {
-    serverUrl += `?delivery_id=${deliveryId}`;
-    writer.write(
-      encoder.encode(
-        "data: " +
-          JSON.stringify({ message: "Subscribing to delivery " + deliveryId }) +
-          "\n\n"
-      )
-    );
-  }
-
-  const source = new EventSource(serverUrl, {
-    headers: {
-      "x-publishable-api-key": process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
-    },
-  });
-
-  source.onmessage = (message: Record<string, any>) => {
-    writer.write(encoder.encode("data: " + message.data + "\n\n"));
+  const writeSse = async (eventName: string, data: any) => {
+    try {
+      await writer.write(
+        encoder.encode(`event: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`)
+      );
+    } catch {}
   };
 
-  source.onerror = (error) => {
-    writer.write(
-      encoder.encode(`event: error\ndata: ${JSON.stringify(error)}\n\n`)
-    );
-    source.close();
-    writer.close();
-  };
+  (async () => {
+    await writeSse("connected", {
+      status: "SUBSCRIBED",
+      role,
+      branch_id: branchId,
+      customer_id: customerId,
+      order_id: orderId,
+      timestamp: new Date().toISOString(),
+    });
 
-  req.signal.onabort = () => {
-    source.close();
-    writer.close();
-  };
+    try {
+      const initialEvents = await CrossAppEventService.getRecentEventsForSession({
+        role,
+        branchId,
+        customerId,
+        orderId,
+        sinceId,
+        limit: 25,
+      });
 
-  return new Response(responseStream.readable, {
+      for (const evt of [...initialEvents].reverse()) {
+        if (evt.id > sinceId) sinceId = evt.id;
+        await writeSse(evt.event_type || "message", evt);
+      }
+    } catch (err: any) {
+      await writeSse("error", { message: err?.message || "Initial stream query failed" });
+    }
+
+    if (once) {
+      try {
+        await writer.close();
+      } catch {}
+      return;
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        await CrossAppEventService.processPendingOutboxEvents({ limit: 20 });
+        const newEvents = await CrossAppEventService.getRecentEventsForSession({
+          role,
+          branchId,
+          customerId,
+          orderId,
+          sinceId,
+          limit: 20,
+        });
+
+        for (const evt of [...newEvents].reverse()) {
+          if (evt.id > sinceId) sinceId = evt.id;
+          await writeSse(evt.event_type || "message", evt);
+        }
+      } catch {}
+    }, 2000);
+
+    req.signal.addEventListener("abort", () => {
+      clearInterval(interval);
+      writer.close().catch(() => {});
+    });
+  })();
+
+  return new Response(stream.readable, {
     headers: {
       "Content-Type": "text/event-stream",
       Connection: "keep-alive",

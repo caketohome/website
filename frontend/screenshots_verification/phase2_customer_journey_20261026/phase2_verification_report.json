@@ -1,0 +1,318 @@
+{
+  "testDate": "2026-10-29T12:19:16.399Z",
+  "suite": "CakeToHome Phase 2 Customer Storefront & Journey E2E",
+  "assertions": [
+    {
+      "status": "PASS",
+      "code": "JOURNEY-01.1",
+      "message": "Public homepage opens with HTTP 200"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-01.2",
+      "message": "Brand header renders with CakeToHome title"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-01.3",
+      "message": "Curated product sections render in DOM (36 links found)"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-02.1",
+      "message": "Category page opens with HTTP 200 (/category/birthday-cakes)"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-02.2",
+      "message": "Category page displays proper category heading"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-02.3",
+      "message": "Empty category route renders without 500 error"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-02.4",
+      "message": "Empty category gracefully renders empty state message"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-03.1",
+      "message": "Search page opens with HTTP 200 for query 'chocolate'"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-03.2",
+      "message": "Search input box is present and interactive"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-03.3",
+      "message": "Non-matching search renders clean zero-results empty state"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-04.1",
+      "message": "Product Detail Page opens with HTTP 200 (/products/acc_01)"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-04.2",
+      "message": "Product title renders accurately on PDP"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-04.3",
+      "message": "Product price with INR symbol renders on PDP"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-05.1",
+      "message": "Add to Bag CTA button is present on PDP"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-05.2",
+      "message": "Cart page opens with HTTP 200 (/cart)"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-05.3",
+      "message": "Cart page renders active cart line items and subtotal"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-06.1",
+      "message": "Checkout page opens with HTTP 200"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-06.2",
+      "message": "Checkout structure renders order summary and delivery steps"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-07.1",
+      "message": "Order placed via sandbox checkout (order_1793276367474_c7m0)",
+      "details": {
+        "orderResult": {
+          "success": true,
+          "statusCode": 201,
+          "order": {
+            "id": "order_1793276367474_c7m0",
+            "order_id": "order_1793276367474_c7m0",
+            "display_id": "CTH-98585",
+            "order_number": "CTH-98585",
+            "customer_id": "cus_phase2_test_qa",
+            "customer_uid": "cus_phase2_test_qa",
+            "customer_name": "Ananya Sharma",
+            "customer_email": "ananya.qa@caketohome.com",
+            "customer_phone": "9876543210",
+            "branch_id": "br_indiranagar_01",
+            "branch_name": "Indiranagar Kitchen Hub",
+            "total_amount": 765.82,
+            "total": 765.82,
+            "subtotal": 649,
+            "discount_amount": 0,
+            "tax_amount": 116.82,
+            "delivery_fee": 0,
+            "currency": "INR",
+            "status": "confirmed",
+            "payment_status": "captured",
+            "payment_method": "test_mode",
+            "delivery": {
+              "type": "delivery",
+              "date": "2026-10-30",
+              "slot": "slot_morning",
+              "fee": 0,
+              "delivery_otp": "663899",
+              "pickup_otp": "608055"
+            },
+            "delivery_address": "100 Feet Road, 12th Main, Indiranagar, Bengaluru, Karnataka, 560038",
+            "items": [
+              {
+                "id": "item_1793276367474_vcff",
+                "product_id": "prod_1",
+                "merchandise_type": "CAKE",
+                "hsn_code": "19059010",
+                "product_name": "Belgian Chocolate Truffle Cake",
+                "title": "Belgian Chocolate Truffle Cake",
+                "thumbnail": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
+                "variant_name": "1 kg",
+                "weight": "1 kg",
+                "quantity": 1,
+                "unit_price": 649,
+                "price": 649,
+                "selling_price": 649,
+                "mrp": 649,
+                "discount": 0,
+                "tax_rate": 18,
+                "tax_amount": 116.82,
+                "cgst": 58.41,
+                "sgst": 58.41,
+                "tax_rate_id": "tax_std_18",
+                "tax_code": "GST_18",
+                "customization": {
+                  "selected_addons_detail": []
+                },
+                "total_line_amount": 649
+              }
+            ],
+            "created_at": "2026-10-29T12:19:27.474Z",
+            "updated_at": "2026-10-29T12:19:27.474Z"
+          },
+          "order_id": "order_1793276367474_c7m0",
+          "order_number": "CTH-98585",
+          "invoice_number": "INV-CTH-98585",
+          "kot_number": "KOT-CTH-98585",
+          "delivery_otp": "663899",
+          "total": 765.82,
+          "storage": "postgres",
+          "backend_target": "http://localhost:3000",
+          "backend_health": "PASS",
+          "fallback": "DISABLED"
+        }
+      }
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-08.1",
+      "message": "Order confirmation page renders with HTTP 200"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-08.2",
+      "message": "Order confirmation page displays verified order status and details"
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-09.1",
+      "message": "Order record physically verified in PostgreSQL public.'order' table",
+      "details": {
+        "orderId": "order_1793276367474_c7m0",
+        "status": "confirmed",
+        "currency": "INR"
+      }
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-10.1",
+      "message": "Zero uncaught fatal exceptions in browser console",
+      "details": {
+        "errors": []
+      }
+    },
+    {
+      "status": "PASS",
+      "code": "JOURNEY-10.2",
+      "message": "Zero failed critical internal network requests",
+      "details": {
+        "failures": []
+      }
+    }
+  ],
+  "consoleErrors": [],
+  "networkFailures": [],
+  "screenshots": [
+    "01_phase2_homepage_discovery.png",
+    "02_phase2_category_browsing.png",
+    "03_phase2_search_and_filters.png",
+    "04_phase2_product_detail.png",
+    "05_phase2_cart_drawer.png",
+    "06_phase2_checkout_form.png",
+    "07_phase2_order_confirmation.png"
+  ],
+  "passed": 24,
+  "failed": 0,
+  "persistedOrder": {
+    "success": true,
+    "statusCode": 201,
+    "order": {
+      "id": "order_1793276367474_c7m0",
+      "order_id": "order_1793276367474_c7m0",
+      "display_id": "CTH-98585",
+      "order_number": "CTH-98585",
+      "customer_id": "cus_phase2_test_qa",
+      "customer_uid": "cus_phase2_test_qa",
+      "customer_name": "Ananya Sharma",
+      "customer_email": "ananya.qa@caketohome.com",
+      "customer_phone": "9876543210",
+      "branch_id": "br_indiranagar_01",
+      "branch_name": "Indiranagar Kitchen Hub",
+      "total_amount": 765.82,
+      "total": 765.82,
+      "subtotal": 649,
+      "discount_amount": 0,
+      "tax_amount": 116.82,
+      "delivery_fee": 0,
+      "currency": "INR",
+      "status": "confirmed",
+      "payment_status": "captured",
+      "payment_method": "test_mode",
+      "delivery": {
+        "type": "delivery",
+        "date": "2026-10-30",
+        "slot": "slot_morning",
+        "fee": 0,
+        "delivery_otp": "663899",
+        "pickup_otp": "608055"
+      },
+      "delivery_address": "100 Feet Road, 12th Main, Indiranagar, Bengaluru, Karnataka, 560038",
+      "items": [
+        {
+          "id": "item_1793276367474_vcff",
+          "product_id": "prod_1",
+          "merchandise_type": "CAKE",
+          "hsn_code": "19059010",
+          "product_name": "Belgian Chocolate Truffle Cake",
+          "title": "Belgian Chocolate Truffle Cake",
+          "thumbnail": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
+          "variant_name": "1 kg",
+          "weight": "1 kg",
+          "quantity": 1,
+          "unit_price": 649,
+          "price": 649,
+          "selling_price": 649,
+          "mrp": 649,
+          "discount": 0,
+          "tax_rate": 18,
+          "tax_amount": 116.82,
+          "cgst": 58.41,
+          "sgst": 58.41,
+          "tax_rate_id": "tax_std_18",
+          "tax_code": "GST_18",
+          "customization": {
+            "selected_addons_detail": []
+          },
+          "total_line_amount": 649
+        }
+      ],
+      "created_at": "2026-10-29T12:19:27.474Z",
+      "updated_at": "2026-10-29T12:19:27.474Z"
+    },
+    "order_id": "order_1793276367474_c7m0",
+    "order_number": "CTH-98585",
+    "invoice_number": "INV-CTH-98585",
+    "kot_number": "KOT-CTH-98585",
+    "delivery_otp": "663899",
+    "total": 765.82,
+    "storage": "postgres",
+    "backend_target": "http://localhost:3000",
+    "backend_health": "PASS",
+    "fallback": "DISABLED"
+  },
+  "databaseProof": {
+    "target": "127.0.0.1:5433/cth_test [REDACTED AUTH]",
+    "table": "order",
+    "recordCount": 1,
+    "verifiedRow": {
+      "id": "order_1793276367474_c7m0",
+      "status": "confirmed",
+      "customer_id": "cus_phase2_test_qa",
+      "email": "ananya.qa@caketohome.com",
+      "created_at": "2026-10-29T12:19:27.476Z"
+    }
+  }
+}

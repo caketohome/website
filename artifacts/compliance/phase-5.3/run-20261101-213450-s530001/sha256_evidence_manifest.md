@@ -1,0 +1,45 @@
+# SHA-256 Evidence Manifest — Phase 5.3
+**Run ID:** `run-20261101-213450-s530001`
+
+| Filename | SHA-256 Digest |
+|---|---|
+| `adversarial_security_tests.json` | `c63156fd4f7560ff97051f540bd41eb16b090a62d822414c5f9e482adb14330b` |
+| `api_and_ui_validation_report.md` | `5d6c2d18228f1f96163c43925844e2f5c5015a074f16db15c4edba6712f90adc` |
+| `arena_tournament_report.md` | `b35ace41d25e5c99da1ae5a644216f984249744ebb6b87b717bd0cb51d8bcd0e` |
+| `authorization_state_machine_specification.md` | `55164bb1f6c384147daabe1325df018b63c836cc2faded29e8632b33c98e37a2` |
+| `board_resolution_verification.json` | `e14d19159bfccce1c4f354bf1e005798f00a79922e109e9fa684e3dba8f54f27` |
+| `board_resolution_verification_report.md` | `99a6433fe3aa1853cf66475d5e3968ad90d2df4945f904cd3c4258e55656c91a` |
+| `c2h_vs_cthi_comparison.json` | `e97c9548f3914e0ad45f2281a436119fba972f7eb0c4924e0644a3c8d3d9a3ee` |
+| `c2h_vs_cthi_technical_comparison.md` | `9dd9294ec9f608c33d7b015d9f4786e0da65a3a4288fa0bb6c23a60254152bb9` |
+| `canonical_decision_register.json` | `0c0afce8ec24444e56278a8278e4af278777eda967378ee97b92c8ba191d707b` |
+| `cdr_status_dimensions.json` | `0147b0e4a03fb9dcc5445a14c4fa627e5e8ca05e5ffc7da8dd9d9279aa8b0091` |
+| `cdr_status_matrix.md` | `9e626e6ae06afebbfc7862e85438f55bb61294fcdfe71f3bfad2fb7f2b778403` |
+| `company_secretary_review.json` | `4d2dc940ed439002f9ede86e7adf11af5f9e67badbcceeb2b8b9411020967f66` |
+| `company_secretary_review_status.md` | `1015e4bee9697d72687dc807d88c4d41f069014cc84229b8738db3677eca5c28` |
+| `concurrency_and_idempotency_test_report.md` | `51abb7272a3df38341cd694f2140064a568955f09857c3c2e0b58d2e20d80b7e` |
+| `corporate_evidence_authenticity_register.md` | `b62f1aa4de79c05065e845655d1da9d075722310614203ca0b64b6245a2313e3` |
+| `corporate_evidence_inventory.json` | `feb782154230bbb9a7ba0bf33f02b8df53a179d7bbee1d3770be1a0201293a35` |
+| `disposable_rehearsal_execution_report.md` | `657cda961adafbd8d0081adc73e606f2861fd109915c748a980c11bb9b43f2f6` |
+| `disposable_rehearsal_safety_report.md` | `3c8257778ee7ad703474750301ab1b278a6d7238d3f5f090ed21a290973f97fb` |
+| `executive_phase5_3_determination.md` | `5ca0abb332cb0272d7ac010eed0321407e44fe16ddb1b334af1ddf9e08c18f83` |
+| `gst_accounting_clearance.json` | `9fb0afb541b107213a430e97749b36e3c628dd5e390143e6ed8ce5254e3ef380` |
+| `gst_accounting_clearance_register.md` | `c2825b3c709d201437e7222b6a7af69d50a89ad81cccb8e99c44650e87d2e7cb` |
+| `historical_69_order_reconciliation.json` | `d18b298da3013a8aed9cad374286ebc26c6f62a7d7cc379a3b669910f6efeb6d` |
+| `historical_69_order_reconciliation.md` | `be56097fa79d3d8a96358c90d5db682bb91095f050a3901bc8fdde3daa208456` |
+| `historical_bdr_mapping.json` | `f04afc502ef5f39b0c6c7805b9a046e1285d00482692ffa8caa1f633e48770b4` |
+| `invoice_numbering_and_sequence_safety.md` | `0a7156cd49eef7021374689a01bf6b6012005ad8311a003ceee068cf3a639695` |
+| `migration_and_schema_integrity_report.md` | `f9e2e8f3f7a962652e01ef4f6545d5565322cbf0e932474f6390b08f2121e422` |
+| `migration_verification.json` | `744d4cccbf8d16b0253252c39184cf8db8efaac1418e380ad65795438420aa4d` |
+| `next_phase_recommendation.md` | `61d6dfbeabe989aa049727fc3c9b3c90f52b7e4b15777ebc7156d17a546d0985` |
+| `production_release_gate_determination.md` | `455da58bd8945f4f87cab30371f15dc111d5b715dd0e613bee6f6cfc5edc8adf` |
+| `protected_database_integrity_report.md` | `a3a9d8493ad77fccd9165aad5f78bec0aab9b13452f3b7eb8953622832be9f11` |
+| `release_gate_determination.json` | `95eaf93e7dc2bfe40728b3ffbb392f991e50a090e74f88c1bb42a76d82ff6b14` |
+| `repository_and_architecture_inspection.md` | `1a995d9cc64fb1f055c837b2a5d40d1d3e0966dcee7c38ffb4ec9fe4e5bbdfb2` |
+| `repository_skill_router_report.md` | `5302c431139ab5e52bda200c09213699b424c4df5a8faace35e2afef9f1091e2` |
+| `revocation_expiry_replay_test_report.md` | `4b5260aa147367db41626a6992533558d23a4aadfb1a542b0c8aeb60d12cb6ef` |
+| `security_and_sod_assessment.md` | `86c28aa63e493497fdf90ef92556bafe7b34cf621db77bf14bea11713cf2968f` |
+| `six_layer_authorization.json` | `c7f1f979b517efaf06582f9b674978d206a3a7e2535723884e5dded4d47c5cf0` |
+| `six_layer_authorization_architecture.md` | `1f18175c82b703add102322c7eb6587a75c82feb03e6133e37c5b290ac7ec243` |
+| `sod_matrix.json` | `7c67d87f0c30c3864f1d1029f193adbe86478bdf1cef2c589b6da64dd88e6b95` |
+| `test_manifest_report.md` | `6e860dc6c1b17f4ff2bae09fe6bb4ff141b5906d4d240928dc76a6df5e659240` |
+| `test_results.json` | `55c4e509572184a43c14e9dc2097298922d255820fbd2b309b0f3d7efc20f3fd` |

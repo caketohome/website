@@ -1,0 +1,1066 @@
+[
+  {
+    "path": "/",
+    "label": "Storefront Homepage",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 3007839,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/products",
+    "label": "Products Catalogue",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 1287746,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/shop",
+    "label": "Shop Base",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 1287718,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/catalog",
+    "label": "Catalog Route (Linked in Account)",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 1287745,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/categories",
+    "label": "Categories Index",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 76432,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/category",
+    "label": "Category Base",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 76418,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/category/birthday-cakes",
+    "label": "Category Birthday Cakes",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 51445,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/category/anniversary-cakes",
+    "label": "Category Anniversary Cakes",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 51544,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/category/pastries",
+    "label": "Category Pastries",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 51204,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/occasions",
+    "label": "Occasions Base",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 298184,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/occasions/birthday",
+    "label": "Occasions Birthday",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 1253235,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/occasions/anniversary",
+    "label": "Occasions Anniversary",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 1230117,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/search",
+    "label": "Search Page",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 46678,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/compare",
+    "label": "Compare Page",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 35004,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/cart",
+    "label": "Cart Page",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 36081,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/checkout",
+    "label": "Checkout Page",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 20486,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/your-order",
+    "label": "Your Order Page",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 17213,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/login",
+    "label": "Login Page",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 56709,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/signup",
+    "label": "Signup Page",
+    "auth": "NONE",
+    "status": 307,
+    "location": "/login",
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 15975,
+    "bodySnippet": "<!DOCTYPE html><html id=\"__next_error__\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content="
+  },
+  {
+    "path": "/track",
+    "label": "Track Order Page",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 35208,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/blog",
+    "label": "Blog Index",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 33403,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/campaigns",
+    "label": "Campaigns Index",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37423,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/offline",
+    "label": "Offline Fallback",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 12045,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/about-us",
+    "label": "CMS About Us",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37857,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/privacy-policy",
+    "label": "CMS Privacy Policy",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37332,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/terms-conditions",
+    "label": "CMS Terms & Conditions",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37410,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/faq",
+    "label": "CMS FAQ",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37732,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/contact-us",
+    "label": "CMS Contact Us",
+    "auth": "NONE",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37506,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/account",
+    "label": "Customer Account Dashboard",
+    "auth": "CUSTOMER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 45493,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/account/orders",
+    "label": "Customer Account Orders",
+    "auth": "CUSTOMER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 39462,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/account/addresses",
+    "label": "Customer Account Addresses",
+    "auth": "CUSTOMER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 34419,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/account/wallet",
+    "label": "Customer Account Wallet",
+    "auth": "CUSTOMER",
+    "status": 307,
+    "location": "/account",
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 22843,
+    "bodySnippet": "<!DOCTYPE html><html id=\"__next_error__\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content="
+  },
+  {
+    "path": "/account/wishlist",
+    "label": "Customer Account Wishlist",
+    "auth": "CUSTOMER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 35381,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/account/subscriptions",
+    "label": "Customer Account Subscriptions",
+    "auth": "CUSTOMER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 33546,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard",
+    "label": "Super Admin Dashboard Root",
+    "auth": "SUPER_ADMIN",
+    "status": "TIMEOUT"
+  },
+  {
+    "path": "/dashboard",
+    "label": "Admin Dashboard Root",
+    "auth": "ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37818,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard",
+    "label": "Internal Admin Dashboard Root",
+    "auth": "INTERNAL_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37818,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard",
+    "label": "Finance Controller Dashboard",
+    "auth": "FINANCE_CONTROLLER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37818,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard",
+    "label": "Planner Dashboard",
+    "auth": "PLANNER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37818,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard",
+    "label": "Delivery Manager Dashboard",
+    "auth": "DELIVERY_MANAGER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37818,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard/shop",
+    "label": "Branch Manager Shop Root",
+    "auth": "BRANCH_MANAGER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 24750,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard/shop/menu",
+    "label": "Branch Shop Menu",
+    "auth": "BRANCH_MANAGER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 2344408,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard/shop/expenses",
+    "label": "Branch Shop Expenses",
+    "auth": "BRANCH_MANAGER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 14946,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard/shop/fleet",
+    "label": "Branch Shop Fleet",
+    "auth": "BRANCH_MANAGER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 15279,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard/shop/purchases",
+    "label": "Branch Shop Purchases",
+    "auth": "BRANCH_MANAGER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 13269,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard/shop/suppliers",
+    "label": "Branch Shop Suppliers",
+    "auth": "BRANCH_MANAGER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 12971,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard/delivery-partner",
+    "label": "Delivery Partner Console",
+    "auth": "DELIVERY_PARTNER",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 30876,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=orders",
+    "label": "Admin Tab: orders",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37876,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=catalog",
+    "label": "Admin Tab: catalog",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37879,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=search_engine",
+    "label": "Admin Tab: search_engine",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37897,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=branches",
+    "label": "Admin Tab: branches",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37882,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=delivery",
+    "label": "Admin Tab: delivery",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37882,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=delivery_coverage",
+    "label": "Admin Tab: delivery_coverage",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37909,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=fulfillment",
+    "label": "Admin Tab: fulfillment",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37891,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=suppliers",
+    "label": "Admin Tab: suppliers",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37885,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=purchases",
+    "label": "Admin Tab: purchases",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37885,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=bills_payable",
+    "label": "Admin Tab: bills_payable",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37897,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=bills_receivable",
+    "label": "Admin Tab: bills_receivable",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37906,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=expenses",
+    "label": "Admin Tab: expenses",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37882,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=accounting_work_queue",
+    "label": "Admin Tab: accounting_work_queue",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37921,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=teller_custody",
+    "label": "Admin Tab: teller_custody",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37900,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=manual_journals",
+    "label": "Admin Tab: manual_journals",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37903,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=cost_allocations",
+    "label": "Admin Tab: cost_allocations",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37906,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=corporate_accounts",
+    "label": "Admin Tab: corporate_accounts",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37912,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=corporate_gifting",
+    "label": "Admin Tab: corporate_gifting",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37909,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=corporate_routing_review",
+    "label": "Admin Tab: corporate_routing_review",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37930,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=gateway_settlements",
+    "label": "Admin Tab: gateway_settlements",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37915,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=bank_accounts",
+    "label": "Admin Tab: bank_accounts",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37897,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=bank_reconciliation",
+    "label": "Admin Tab: bank_reconciliation",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37915,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=general_ledger",
+    "label": "Admin Tab: general_ledger",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37900,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=profit_loss",
+    "label": "Admin Tab: profit_loss",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37891,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=balance_sheet",
+    "label": "Admin Tab: balance_sheet",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37897,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=cash_flow",
+    "label": "Admin Tab: cash_flow",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37885,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=accounting_setup",
+    "label": "Admin Tab: accounting_setup",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37906,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=fleet",
+    "label": "Admin Tab: fleet",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37873,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=tax_master",
+    "label": "Admin Tab: tax_master",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37888,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=abandoned_carts",
+    "label": "Admin Tab: abandoned_carts",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37903,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=telemarketing",
+    "label": "Admin Tab: telemarketing",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37897,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=crm",
+    "label": "Admin Tab: crm",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37867,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=login_activity",
+    "label": "Admin Tab: login_activity",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37900,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=marketing",
+    "label": "Admin Tab: marketing",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37885,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=popups",
+    "label": "Admin Tab: popups",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37876,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=seo",
+    "label": "Admin Tab: seo",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37867,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=automation",
+    "label": "Admin Tab: automation",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37888,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=webhooks",
+    "label": "Admin Tab: webhooks",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37882,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=cms",
+    "label": "Admin Tab: cms",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37867,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=media",
+    "label": "Admin Tab: media",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37873,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=analytics",
+    "label": "Admin Tab: analytics",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37885,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=ai_concierge",
+    "label": "Admin Tab: ai_concierge",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37894,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=staff_profiles",
+    "label": "Admin Tab: staff_profiles",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37900,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=notifications",
+    "label": "Admin Tab: notifications",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37897,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=settings",
+    "label": "Admin Tab: settings",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37882,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=marketplace",
+    "label": "Admin Tab: marketplace",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37891,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=shared_inventory",
+    "label": "Admin Tab: shared_inventory",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37906,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=feature_flags",
+    "label": "Admin Tab: feature_flags",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37897,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/dashboard?tab=operational_closures",
+    "label": "Admin Tab: operational_closures",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "text/html; charset=utf-8",
+    "bodyLength": 37918,
+    "bodySnippet": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta charSet=\"utf-8\"/><meta name=\"viewp"
+  },
+  {
+    "path": "/api/auth/me",
+    "label": "API Auth Me",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "application/json",
+    "bodyLength": 420,
+    "bodySnippet": "{\"success\":true,\"data\":{\"user\":{\"id\":\"admin_01\",\"customer_uid\":\"admin_01\",\"first_name\":\"Super\",\"last"
+  },
+  {
+    "path": "/api/v1/branches",
+    "label": "API v1 Branches",
+    "auth": "SUPER_ADMIN",
+    "status": "TIMEOUT"
+  },
+  {
+    "path": "/api/v1/accessories",
+    "label": "API v1 Accessories",
+    "auth": "SUPER_ADMIN",
+    "status": "TIMEOUT"
+  },
+  {
+    "path": "/api/v1/admin/branches",
+    "label": "API v1 Admin Branches",
+    "auth": "SUPER_ADMIN",
+    "status": "TIMEOUT"
+  },
+  {
+    "path": "/api/v1/admin/accessories",
+    "label": "API v1 Admin Accessories",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "application/json",
+    "bodyLength": 2931,
+    "bodySnippet": "{\"accessories\":[{\"id\":\"acc_02\",\"sku\":\"ACC-CAN-MAGIC\",\"barcode\":\"\",\"name\":\"Magic Re-Lighting Birthday"
+  },
+  {
+    "path": "/api/v1/admin/ai/analytics",
+    "label": "API v1 AI Analytics",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "application/json",
+    "bodyLength": 231,
+    "bodySnippet": "{\"success\":true,\"summary\":{\"totalConversations\":0,\"uniqueSessions\":0,\"conversionRate\":\"0%\",\"toolUsag"
+  },
+  {
+    "path": "/api/v1/accounting/trial-balance",
+    "label": "API v1 Trial Balance",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "application/json",
+    "bodyLength": 22499,
+    "bodySnippet": "{\"success\":true,\"rows\":[{\"account_id\":\"49a86d8e-93d7-4ae2-83d6-59f5b4a2d93d\",\"code\":\"1000\",\"name\":\"A"
+  },
+  {
+    "path": "/api/v1/accounting/chart-of-accounts",
+    "label": "API v1 Chart of Accounts",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "application/json",
+    "bodyLength": 38951,
+    "bodySnippet": "{\"success\":true,\"accounts\":[{\"id\":\"afdd90ab-7096-41fd-a268-7df89f7ed9b0\",\"code\":\"1111\",\"name\":\"Cash "
+  },
+  {
+    "path": "/api/v1/accounting/general-ledger?account_id=afdd90ab-7096-41fd-a268-7df89f7ed9b0",
+    "label": "API v1 General Ledger",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "application/json",
+    "bodyLength": 12435,
+    "bodySnippet": "{\"success\":true,\"account\":{\"id\":\"afdd90ab-7096-41fd-a268-7df89f7ed9b0\",\"code\":\"1111\",\"name\":\"Cash in"
+  },
+  {
+    "path": "/api/v1/orders",
+    "label": "API v1 Orders List",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "application/json",
+    "bodyLength": 67351,
+    "bodySnippet": "{\"orders\":[{\"id\":\"order_1792333930858_t59s\",\"order_id\":\"order_1792333930858_t59s\",\"display_id\":93085"
+  },
+  {
+    "path": "/api/v1/catalog/products",
+    "label": "API v1 Catalog Products",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "application/json",
+    "bodyLength": 1173687,
+    "bodySnippet": "{\"products\":[{\"id\":\"prod_test_draft_1792242489624\",\"product_id\":\"prod_test_draft_1792242489624\",\"inv"
+  },
+  {
+    "path": "/api/v1/tax-master",
+    "label": "API v1 Tax Master",
+    "auth": "SUPER_ADMIN",
+    "status": 200,
+    "location": null,
+    "contentType": "application/json",
+    "bodyLength": 2387,
+    "bodySnippet": "{\"configurations\":[{\"id\":\"txr_gst_0_in\",\"name\":\"GST 0%\",\"code\":\"GST_0\",\"description\":\"Statutory GST "
+  }
+]

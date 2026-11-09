@@ -1,0 +1,18 @@
+{
+  "run_id": "run-20261101-213450-s530001",
+  "total_unbilled": 69,
+  "breakdown": {
+    "paid": 41,
+    "pending": 16,
+    "captured": 12
+  },
+  "payment_gateways": {
+    "upi": 9,
+    "test_mode": 9,
+    "card": 19,
+    "online": 32
+  },
+  "delivered_quarantined_orders": 21,
+  "professional_review_status": "HELD_IN_CONTROLLED_QUEUE_FOR_QUALIFIED_TAX_COUNSEL",
+  "preservation_guarantee": "100% UNTOUCHED; 0 BILLED; 0 RECORDS MODIFIED"
+}

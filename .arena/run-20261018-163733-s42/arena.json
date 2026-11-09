@@ -1,0 +1,185 @@
+{
+ "version": 1,
+ "created": "2026-10-18 16:37:33",
+ "seed": 42,
+ "agents_n": 4,
+ "cards_available": 2160,
+ "wave": 10,
+ "dir": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-163733-s42",
+ "has_baseline": false,
+ "agents": {
+  "a001": {
+   "card": {
+    "reasoning": {
+     "id": "expert-panel",
+     "name": "Expert panel",
+     "how": "Answer the task as three different experts would, picking roles that fit it. Take the strongest idea from each and settle every point where they disagree."
+    },
+    "workflow": {
+     "id": "research-then-synthesise",
+     "name": "Research, then synthesise",
+     "how": "Gather every relevant fact first: the task, any files or context it points to, what is known about the domain. Write nothing until the research is done, then synthesise."
+    },
+    "strategy": {
+     "id": "maximal-rigour",
+     "name": "Maximal rigour",
+     "how": "Be exhaustive and exact. Check every step, verify every claim, and leave no hand-waving anywhere."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-163733-s42\\r2\\r2-m01.a001.solution.md",
+   "alive": true,
+   "eliminated_in": null,
+   "eliminated_by": null,
+   "byes": 0
+  },
+  "a002": {
+   "card": {
+    "reasoning": {
+     "id": "analogy",
+     "name": "Analogy",
+     "how": "Find a problem in a different field that has already been solved and has the same shape. Port its solution over, then fix every place where the analogy breaks."
+    },
+    "workflow": {
+     "id": "test-first",
+     "name": "Test first",
+     "how": "Before writing the answer, write the checks it must pass: acceptance tests for code, pass or fail criteria for anything else. Then write the answer and run every check against it."
+    },
+    "strategy": {
+     "id": "simplest",
+     "name": "Simplest thing that works",
+     "how": "Pick the least complicated answer that fully does the job. Every extra part has to justify itself."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-163733-s42\\r2\\r2-m01.a002.solution.md",
+   "alive": false,
+   "eliminated_in": 2,
+   "eliminated_by": "a001",
+   "byes": 0
+  },
+  "a003": {
+   "card": {
+    "reasoning": {
+     "id": "probabilistic",
+     "name": "Probabilistic",
+     "how": "Treat every claim and choice as uncertain. Weigh what is likely, prefer what holds up across most scenarios, and state your confidence where it changes the decision."
+    },
+    "workflow": {
+     "id": "outline-first",
+     "name": "Outline first",
+     "how": "Write a skeleton outline, check the outline against every requirement in the task, fix it, and only then fill it in."
+    },
+    "strategy": {
+     "id": "speed",
+     "name": "Speed",
+     "how": "Optimise for the fastest route to something usable today. Cut anything that does not move the result."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-163733-s42\\r1\\r1-m01.a003.solution.md",
+   "alive": false,
+   "eliminated_in": 1,
+   "eliminated_by": "a002",
+   "byes": 0
+  },
+  "a004": {
+   "card": {
+    "reasoning": {
+     "id": "dialectical",
+     "name": "Dialectical",
+     "how": "State the strongest version of one answer, then the strongest opposing answer, then write the synthesis that keeps what is true in both."
+    },
+    "workflow": {
+     "id": "open-questions-first",
+     "name": "Open questions first",
+     "how": "List every open question the task leaves. Resolve each one with reasoning or a stated assumption, then answer."
+    },
+    "strategy": {
+     "id": "explicit-trade-offs",
+     "name": "Explicit trade-offs",
+     "how": "Name the real trade-offs, choose for the user's most likely constraints, and say plainly what that choice gives up."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-163733-s42\\r1\\r1-m02.a004.solution.md",
+   "alive": false,
+   "eliminated_in": 1,
+   "eliminated_by": "a001",
+   "byes": 0
+  }
+ },
+ "rounds": [
+  {
+   "n": 1,
+   "alive": [
+    "a001",
+    "a002",
+    "a003",
+    "a004"
+   ],
+   "matches": [
+    {
+     "id": "r1-m01",
+     "a": "a003",
+     "b": "a002",
+     "winner": "a002",
+     "loser": "a003",
+     "reason": "Concrete test-first acceptance criteria and clear banking analogy provide verifiable engineering guarantees over subjective probability numbers.",
+     "survived": [
+      "Perishable bakery readiness integrated into acceptance criteria"
+     ],
+     "scores": {
+      "a003": 76.25,
+      "a002": 87.75
+     },
+     "source": "judge"
+    },
+    {
+     "id": "r1-m02",
+     "a": "a001",
+     "b": "a004",
+     "winner": "a001",
+     "loser": "a004",
+     "reason": "Exhaustive expert panel breakdown with exact ledger balance figures (\u20b914,925.00) and concrete remediation workflow for unmapped products.",
+     "survived": [
+      "Actionable remediation workflow for unmapped products using ProductRepository"
+     ],
+     "scores": {
+      "a001": 91.5,
+      "a004": 86.5
+     },
+     "source": "judge"
+    }
+   ],
+   "bye": null,
+   "closed": true
+  },
+  {
+   "n": 2,
+   "alive": [
+    "a001",
+    "a002"
+   ],
+   "matches": [
+    {
+     "id": "r2-m01",
+     "a": "a002",
+     "b": "a001",
+     "winner": "a001",
+     "loser": "a002",
+     "reason": "Exhaustive forensic precision across statutory ledger equilibrium, explicit account balances, Section 5 safeguards, and concrete remediation workflows for unmapped products.",
+     "survived": [
+      "Multi-device browser viewport matrix incorporated (1920x1080, 768x1024, 375x667)",
+      "Actionable remediation workflow for unmapped products using ProductRepository"
+     ],
+     "scores": {
+      "a002": 87.0,
+      "a001": 93.5
+     },
+     "source": "judge"
+    }
+   ],
+   "bye": null,
+   "closed": true
+  }
+ ],
+ "champion": "a001",
+ "final": null
+}

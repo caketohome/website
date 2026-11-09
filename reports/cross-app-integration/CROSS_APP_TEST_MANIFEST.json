@@ -1,0 +1,55 @@
+{
+  "project": "CakeToHome India Private Limited",
+  "suite": "Cross-Application Integration & Synchronization E2E Suite",
+  "executed_at": "2026-11-06T00:25:16.162Z",
+  "total_tests": 35,
+  "passed": 35,
+  "failed": 0,
+  "pass_rate_percentage": 100,
+  "database_target": "cth_rehearsal_phase5",
+  "test_groups": {
+    "TEST_A_BANK_ACCOUNT_SYNC": {
+      "total": 7,
+      "passed": 7,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "TEST_B_CASHFREE_SETTLEMENT_LIFECYCLE": {
+      "total": 7,
+      "passed": 7,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "TEST_C_ORDER_LIFECYCLE_CROSS_APP": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "TEST_D_INVENTORY_SYNC": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "TEST_E_BANK_TRANSFER_CONTRA": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "TEST_F_MULTI_SESSION_RBAC_RECOVERY": {
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "TEST_G_GLOBAL_INTEGRITY_PROTECTED_DB": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "status": "PASS"
+    }
+  },
+  "verification_hash": "eb5b45bdace93f99fd7f292a52a6c8a184afe3ac2bcdcde91d9f53f3c985ad42"
+}

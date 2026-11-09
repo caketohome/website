@@ -1,0 +1,68 @@
+[
+  {
+    "id": "BDR-01",
+    "decision": "Statutory Entity Prefix",
+    "status": "NOT_SUBMITTED",
+    "is_hard_blocker": true
+  },
+  {
+    "id": "BDR-02",
+    "decision": "Sequence Padding Width",
+    "status": "NOT_SUBMITTED",
+    "is_hard_blocker": true
+  },
+  {
+    "id": "BDR-03",
+    "decision": "Delegation of Authority",
+    "status": "NOT_SUBMITTED",
+    "is_hard_blocker": true
+  },
+  {
+    "id": "BDR-04",
+    "decision": "Approver Identity & KYC",
+    "status": "NOT_SUBMITTED",
+    "is_hard_blocker": true
+  },
+  {
+    "id": "BDR-05",
+    "decision": "Segregation of Duties Matrix",
+    "status": "NOT_SUBMITTED",
+    "is_hard_blocker": true
+  },
+  {
+    "id": "BDR-06",
+    "decision": "Historical Staging Disposition",
+    "status": "PENDING_REVIEW",
+    "is_hard_blocker": false
+  },
+  {
+    "id": "BDR-07",
+    "decision": "Production Cut-over Schedule",
+    "status": "DEFERRED",
+    "is_hard_blocker": false
+  },
+  {
+    "id": "BDR-08",
+    "decision": "Sequence Warning Threshold",
+    "status": "PENDING_REVIEW",
+    "is_hard_blocker": false
+  },
+  {
+    "id": "BDR-09",
+    "decision": "69 Unbilled Orders Policy",
+    "status": "PENDING_REVIEW",
+    "is_hard_blocker": false
+  },
+  {
+    "id": "BDR-10",
+    "decision": "GSTR-1 Reconciliation SOP",
+    "status": "PENDING_REVIEW",
+    "is_hard_blocker": false
+  },
+  {
+    "id": "BDR-11",
+    "decision": "FY Rollover Protocol",
+    "status": "PENDING_REVIEW",
+    "is_hard_blocker": false
+  }
+]

@@ -59,10 +59,12 @@ export function handleCorporateGiftingError(err: any): NextResponse {
     case "FORBIDDEN":
     case "PERMISSION_DENIED":
     case "BRANCH_ACCESS_DENIED":
+    case "PARTNER_ACCESS_DENIED":
       status = 403;
       break;
     case "CUSTOMER_NOT_FOUND":
     case "BATCH_NOT_FOUND":
+    case "RECIPIENT_NOT_FOUND":
     case "COST_CENTRE_NOT_FOUND":
     case "BRANCH_NOT_FOUND":
     case "NOT_FOUND":
@@ -88,6 +90,7 @@ export function handleCorporateGiftingError(err: any): NextResponse {
     case "CREDIT_APPROVAL_REQUIRED":
     case "CREDIT_LIMIT_EXCEEDED":
     case "INVALID_BATCH_STATUS":
+    case "INVALID_STATUS_TRANSITION":
     case "INSUFFICIENT_DATA":
       status = 422;
       break;
@@ -463,6 +466,40 @@ export class CorporateGiftingController {
           batch,
           recipients: sanitizedRecipients,
           totalRecipients: detail.total,
+          routingSummary: (detail as any).routingSummary || null,
+        });
+      }
+
+      // F. Batch Routing Overview (/batches/:id/routing)
+      const routingMatch = subPath.match(/^\/batches\/([^/]+)\/routing$/);
+      if (routingMatch) {
+        assertPermission(userCtx, "VIEW");
+        const batchId = routingMatch[1];
+        const detail = await CorporateGiftingService.getBatchDetail(batchId);
+        const batch = detail.batch;
+
+        // Verify customer isolation
+        const role = (userCtx.role || "").toUpperCase();
+        if (role === "CUSTOMER") {
+          const authorizedCustId = resolveAuthorizedCustomerId(userCtx);
+          if (batch.customer_id !== authorizedCustId) {
+            throw new CorporateGiftingError(
+              "BATCH_NOT_FOUND",
+              `Corporate gifting batch '${batchId}' not found.`
+            );
+          }
+        }
+
+        const routingStatus = await CorporateGiftingService.getBatchRoutingStatus(batchId);
+        const canViewPii = canViewRecipientPii(userCtx);
+        const sanitizedItems = (routingStatus.items || []).map((r) =>
+          sanitizeRecipientRow(r, canViewPii)
+        );
+
+        return NextResponse.json({
+          success: true,
+          ...routingStatus,
+          items: sanitizedItems,
         });
       }
 
@@ -531,6 +568,7 @@ export class CorporateGiftingController {
           parsedRecipients: sanitizedRecipients,
           customer: validation.customer,
           branch: validation.branch,
+          routingPreview: validation.routingPreview,
         });
       }
 
@@ -567,7 +605,96 @@ export class CorporateGiftingController {
           invoiceNumber: execResult.invoice?.invoice_number || null,
           voucherId: execResult.voucher?.id || null,
           voucherNumber: execResult.voucher?.voucher_no || (execResult.voucher as any)?.voucher_number || null,
+          routingSummary: execResult.routingSummary
+            ? {
+                ...execResult.routingSummary,
+                totalRecipients: (execResult.routingSummary as any).total_evaluated ?? (execResult.routingSummary as any).totalRecipients,
+                assignedCount: (execResult.routingSummary as any).total_assigned ?? (execResult.routingSummary as any).assignedCount,
+                unassignedCount: (execResult.routingSummary as any).total_unassigned ?? (execResult.routingSummary as any).unassignedCount,
+                unassignedBreakdown: (execResult.routingSummary as any).unassigned_breakdown ?? (execResult.routingSummary as any).unassignedBreakdown,
+              }
+            : null,
         });
+      }
+
+      // D. Route Batch Recipients (/batches/:id/route or /batches/:id/re-evaluate)
+      const routeBatchMatch = subPath.match(/^\/batches\/([^/]+)\/(?:route|re-evaluate)$/);
+      if (routeBatchMatch) {
+        assertPermission(userCtx, "EXECUTE");
+        const batchId = routeBatchMatch[1];
+        const forceReassign = Boolean(body?.forceReassign || body?.force_reassign);
+        const result = await CorporateGiftingService.routeBatchRecipients({
+          batchId,
+          forceReassign,
+          actorContext: userCtx,
+        });
+        const summaryDTO = result.summary
+          ? {
+              ...result.summary,
+              totalRecipients: (result.summary as any).total_evaluated ?? (result.summary as any).totalRecipients,
+              assignedCount: (result.summary as any).total_assigned ?? (result.summary as any).assignedCount,
+              unassignedCount: (result.summary as any).total_unassigned ?? (result.summary as any).unassignedCount,
+              unassignedBreakdown: (result.summary as any).unassigned_breakdown ?? (result.summary as any).unassignedBreakdown,
+            }
+          : result.summary;
+
+        return NextResponse.json({
+          success: true,
+          ...result,
+          summary: summaryDTO,
+        });
+      }
+
+      // E. Reassign Recipient Delivery (/recipients/:id/reassign)
+      const reassignMatch = subPath.match(/^\/recipients\/([^/]+)\/reassign$/);
+      if (reassignMatch) {
+        assertPermission(userCtx, "EXECUTE");
+        const recipientId = reassignMatch[1];
+        const storeId = body?.storeId || body?.store_id;
+        const partnerId = body?.partnerId || body?.partner_id;
+        const overrideReason = body?.overrideReason || body?.override_reason || body?.reason;
+        const latitude = body?.latitude !== undefined && body?.latitude !== null ? Number(body.latitude) : undefined;
+        const longitude = body?.longitude !== undefined && body?.longitude !== null ? Number(body.longitude) : undefined;
+
+        if (!storeId) {
+          throw new CorporateGiftingError("INSUFFICIENT_DATA", "Missing required 'storeId' for reassignment.");
+        }
+        if (!overrideReason || overrideReason.trim().length < 5) {
+          throw new CorporateGiftingError("INSUFFICIENT_DATA", "Missing required 'overrideReason' (min 5 chars).");
+        }
+
+        const result = await CorporateGiftingService.reassignRecipientDelivery({
+          recipientId,
+          storeId,
+          partnerId,
+          overrideReason,
+          latitude,
+          longitude,
+          actorContext: userCtx,
+        });
+
+        return NextResponse.json(result);
+      }
+
+      // F. Update Recipient Delivery Status (/recipients/:id/delivery-status)
+      const statusMatch = subPath.match(/^\/recipients\/([^/]+)\/delivery-status$/);
+      if (statusMatch) {
+        const recipientId = statusMatch[1];
+        const deliveryStatus = body?.deliveryStatus || body?.delivery_status || body?.status;
+        const notes = body?.notes || body?.reason;
+
+        if (!deliveryStatus) {
+          throw new CorporateGiftingError("INSUFFICIENT_DATA", "Missing required 'deliveryStatus'.");
+        }
+
+        const result = await CorporateGiftingService.updateRecipientDeliveryStatus({
+          recipientId,
+          deliveryStatus,
+          notes,
+          actorContext: userCtx,
+        });
+
+        return NextResponse.json(result);
       }
 
       return NextResponse.json(

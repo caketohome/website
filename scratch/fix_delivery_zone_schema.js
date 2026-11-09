@@ -2,7 +2,7 @@ const path = require("path");
 const pgPath = path.join(__dirname, "../backend/node_modules/pg");
 const { Client } = require(pgPath);
 
-const connectionString = "postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres";
+const connectionString = "[REDACTED_DATABASE_CREDENTIAL]";
 
 async function fixDeliveryZoneSchema() {
   const client = new Client({ connectionString, ssl: { rejectUnauthorized: false } });

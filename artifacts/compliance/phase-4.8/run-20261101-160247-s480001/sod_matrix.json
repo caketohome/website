@@ -1,0 +1,7 @@
+{
+  "enforced_rules": [
+    "SUBMITTER_NOT_APPROVER",
+    "CONFIGURATOR_NOT_APPROVER",
+    "DEVELOPER_LOCKED_OUT"
+  ]
+}

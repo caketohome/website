@@ -1,0 +1,104 @@
+{
+  "phase": "4.5",
+  "run_id": "run-20261031-174801-s403526",
+  "timestamp": "2026-10-31T18:25:00+05:30",
+  "protected_database_hashes": {
+    "orders": "34d74cd009c307ac9bc502b3710d24bd6bd912faf703e307a2e265f5644d7835",
+    "invoices": "eb27d8ec0e827278708f0146c82706c5f2fea42656887b8a8a33b2671daf2d39",
+    "vouchers": "3922e568c3c68213cd45d4fbb0925caad407b2c87d9195df5c8e795dfadc51ea"
+  },
+  "artifacts": {
+    "approver_identity_and_delegation_audit.md": {
+      "bytes": 910,
+      "sha256": "341397c47971798573b2ad3552fe6a3548193d1054a648dad46bd7d4166e9fcb"
+    },
+    "authorization_evidence_manifest.json": {
+      "bytes": 553,
+      "sha256": "0fcc3cd2a2245fc546f13b5e2bd823b78863696c066f27c3abdf590cd1403b45"
+    },
+    "corporate_approval_evidence_register.md": {
+      "bytes": 1143,
+      "sha256": "df9d7f3db7baf14b312fbe2a9fdb5975d0e5b50fc5d82219f8e933c83f82cf24"
+    },
+    "database_environment_inventory.md": {
+      "bytes": 1164,
+      "sha256": "73dca6103ccd25041ae5c1d9b51265e4960dd51f35e09b67a924ad9af5ec9a9e"
+    },
+    "deployment_preflight_checklist.md": {
+      "bytes": 1910,
+      "sha256": "c9e687950b802fe3b649b46bfc89c30c0a6e3b62accd4f6bbb47eac69cc3a0d6"
+    },
+    "deployment_preflight_manifest.json": {
+      "bytes": 276,
+      "sha256": "39fc90d1d1c2c4ef39df2a4e65644f100bf5ee7fb9e3ae7fb70e653f8bfcfcb1"
+    },
+    "findings_manifest.json": {
+      "bytes": 1730,
+      "sha256": "b984b869351c72578d49931b1f52b3a5c9dc3da29dfccfd370f6ab3391818fc3"
+    },
+    "first_invoice_validation_plan.md": {
+      "bytes": 906,
+      "sha256": "4676a15e41781b77a4ba4967de78fbb4a4b8e64b06284c3a8a072757bbda589d"
+    },
+    "invoice_and_accounting_reconciliation_plan.md": {
+      "bytes": 1247,
+      "sha256": "8e839dba2d2d02a4d4b6b8b292c98278bdc336b26c4d9d819884d929248aacf8"
+    },
+    "invoice_series_configuration_readiness.md": {
+      "bytes": 1530,
+      "sha256": "ba1c9ab972cb3ad5fb11ac2f02455bfca1431ed1cc7b12fb4301c80731912257"
+    },
+    "migration_chain_and_checksum_report.md": {
+      "bytes": 1727,
+      "sha256": "dd64e50ff87c185b56c6e3262846e0afa6080d69cec955d6c8127ea5d85f0c9c"
+    },
+    "migration_manifest.json": {
+      "bytes": 1162,
+      "sha256": "c764e49adac9fc8a59f5bf1aaf82fa5d3ce018e5abd653c3ea208f3f022e4b43"
+    },
+    "operational_ownership_and_escalation_matrix.md": {
+      "bytes": 635,
+      "sha256": "effa39e597974c4c6881e064ace196fbded5b4566c2ecf685fb3fc7113c59879"
+    },
+    "phase4_5_executive_readiness_report.md": {
+      "bytes": 4024,
+      "sha256": "c4ac97fa18e37b3e848dc24e8612ba23403f543df6d45da4108e416fc9d4b9e2"
+    },
+    "post_deployment_monitoring_plan.md": {
+      "bytes": 701,
+      "sha256": "bc695ecd70b28ee94ec32d3e8498d3be4a9622efcfe3c3a85ac93a0fd1d18aa6"
+    },
+    "production_configuration_validation.md": {
+      "bytes": 890,
+      "sha256": "c802a84fe6aaf7a6c64e9044e294646ca0a5175939ac8933c11ea30e1cf6d583"
+    },
+    "production_deployment_runbook.md": {
+      "bytes": 1268,
+      "sha256": "0ae7378f84a6ab24c2a057244bc121f71c36a33449d08a7b629b508c73339085"
+    },
+    "production_readiness_gate.md": {
+      "bytes": 1643,
+      "sha256": "15fd06785a6203603449475153677f079f5c977b54bb3c1962374f75ed0153a7"
+    },
+    "repository_and_git_integrity_report.md": {
+      "bytes": 986,
+      "sha256": "97a0dcf63657776c79bc3f3d659198b2e7b6d6fa33076c73efebeb0a9c3bcd01"
+    },
+    "rollback_and_forward_recovery_runbook.md": {
+      "bytes": 598,
+      "sha256": "17ee83656342ffa2bc82efade89f63e7c742fc57e8c1798a06c64879a3043ee2"
+    },
+    "statutory_authorization_requirements.md": {
+      "bytes": 1227,
+      "sha256": "d609f62b80aeb497d0ec03359b77ccf34ef6aaee51a3a5ca8ef45f012c1d04f1"
+    },
+    "technical_baseline_and_release_freeze.md": {
+      "bytes": 2288,
+      "sha256": "11a2511037332e092f7ecc676e73d6c8f2da1cb8012fac6fbfdd12940d5bfa3e"
+    },
+    "test_results_manifest.json": {
+      "bytes": 831,
+      "sha256": "584dd46d2d67da564c1ceb9b57f9efbd850fcd4b7afc9e8e644f9bbf6f2c4d8f"
+    }
+  }
+}

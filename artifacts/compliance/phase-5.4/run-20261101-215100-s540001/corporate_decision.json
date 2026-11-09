@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T03:18:27.279Z",
+  "environment": "cth_rehearsal_phase5_4",
+  "provenance": "e:/vig/cakes2home-main/cakes2home-main",
+  "run_id": "run-20261101-215100-s540001",
+  "company_name": "CakeToHome India Private Limited",
+  "cin": "U15400KA2026PTC189211",
+  "gstin": "29AABCC1234F1Z5",
+  "resolution_id": "CTH-2026-BR-01",
+  "board_meeting_date": null,
+  "adoption_status": "PENDING_BOARD_ADOPTION",
+  "quorum_verified": false,
+  "signatories_verified": false,
+  "statutory_compliance": {
+    "section_179_companies_act_2013": "PENDING",
+    "section_118_minutes": "PENDING",
+    "secretarial_standard_1": "PENDING",
+    "mgt_14_filing": "PENDING_ADOPTION"
+  },
+  "approved_prefix": null,
+  "options_under_consideration": [
+    {
+      "prefix": "C2H",
+      "length": 16,
+      "capacity": 999999,
+      "status": "TECHNICAL_CANDIDATE"
+    },
+    {
+      "prefix": "CTHI",
+      "length": 16,
+      "capacity": 99999,
+      "status": "TECHNICAL_CANDIDATE"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "run_id": "run-20261101-203311-s510001",
+  "company_secretary_review": {
+    "status": "PENDING_SUBMISSION_PACKET_DELIVERY",
+    "scope": "SS-1 Board meeting notice, agenda item 04 adoption, Section 179 extract certification."
+  },
+  "statutory_auditor_ca_review": {
+    "status": "PENDING_MEMORANDUM_TRANSMISSION",
+    "scope": "Section 31 unbilled delivered orders note, GSTR-1 Table 13 continuity reporting, FY 26-27 sequence initialization."
+  },
+  "legal_counsel_review": {
+    "status": "PENDING_FORMAL_OPINION",
+    "scope": "Transitional dual identity disclaimers and trade name licensing clarity."
+  }
+}

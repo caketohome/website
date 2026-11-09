@@ -1,0 +1,61 @@
+[
+  {
+    "role": "CUSTOMER",
+    "panel": "Checkout & Order Management",
+    "feature": "Order ≠ Bill Invariant",
+    "action": "Create Order CTH-ORD-20261002-9431",
+    "expected": "Order created with unique order_number; invoice_number is strictly NULL/undefined before delivery",
+    "actual": "invoice_number is NULL; order_number is CTH-ORD-20261002-9431",
+    "status": "PASS",
+    "db_verified": true
+  },
+  {
+    "role": "DELIVERY_PARTNER",
+    "panel": "Delivery Dashboard",
+    "feature": "Job Dispatch & Tracking",
+    "action": "View assigned delivery for order CTH-ORD-20261002-9431",
+    "expected": "Assigned job visible in Delivery Partner workspace with recipient address and masked security details",
+    "actual": "Delivery partner workspace rendered successfully with assigned order card",
+    "status": "PASS",
+    "screenshot": "delivery/01-delivery-partner-active-job.png"
+  },
+  {
+    "role": "DELIVERY_PARTNER",
+    "panel": "Delivery Execution",
+    "feature": "Doorstep OTP Security",
+    "action": "Submit invalid OTP \"9999\"",
+    "expected": "Verification rejected with HTTP 400; delivery remains uncompleted",
+    "actual": "Rejected with HTTP 400 Bad Request",
+    "status": "PASS"
+  },
+  {
+    "role": "DELIVERY_PARTNER",
+    "panel": "Doorstep Completion & Billing",
+    "feature": "Statutory Delivery Invoicing",
+    "action": "Submit valid Doorstep OTP \"5421\"",
+    "expected": "Order marked DELIVERED; statutory invoice CTH/26-27/XXXXXX generated with GST breakdown; sales draft queued",
+    "actual": "Invoice CTH/26-27/000035 generated; format valid: true; voucher: vch_00MUR0XE3ZO3XU1M",
+    "status": "PASS",
+    "db_verified": true,
+    "accounting_verified": true,
+    "screenshot": "billing/01-delivered-statutory-invoice.png"
+  },
+  {
+    "role": "SYSTEM",
+    "panel": "Order State Machine",
+    "feature": "Idempotent Replay Guard",
+    "action": "Resubmit OTP verification on already delivered order",
+    "expected": "Idempotent replay detected; identical invoice retained; zero duplicate invoice allocated",
+    "actual": "Idempotent replay verified; invoice number unchanged",
+    "status": "PASS"
+  },
+  {
+    "role": "SYSTEM",
+    "panel": "Order State Machine",
+    "feature": "Cancellation Invariant",
+    "action": "Inspect cancelled order before delivery",
+    "expected": "Cancelled order has strictly NULL invoice_number; no statutory invoice issued",
+    "actual": "Zero invoice issued for cancelled order",
+    "status": "PASS"
+  }
+]

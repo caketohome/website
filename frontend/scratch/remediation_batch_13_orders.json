@@ -1,0 +1,5430 @@
+[
+  {
+    "order_id": "ord_test_cod_1792216816562",
+    "order_number": "ORD-099991-1792216816562",
+    "display_id": 99991,
+    "order_status": "completed",
+    "created_at": "2026-10-17T06:00:16.579Z",
+    "updated_at": "2026-10-17T06:00:16.579Z",
+    "metadata": {
+      "total": 350,
+      "branch_id": "br_indiranagar",
+      "payment_method": "COD",
+      "delivery_status": "delivered",
+      "cod_custody_event": {
+        "branch_id": "br_indiranagar",
+        "custody_id": "cust_ord_test_cod_1792216816562",
+        "collected_at": "2026-10-17T06:00:16.563Z",
+        "collected_amount": 350,
+        "delivery_partner_id": "dp_test_indiranagar_01",
+        "settlement_voucher_id": null
+      },
+      "is_ledger_eligible": true,
+      "delivery_partner_id": "dp_test_indiranagar_01"
+    },
+    "existing_invoices": [],
+    "existing_vouchers": [],
+    "refund_records": [],
+    "db_items": [],
+    "customer_info": null,
+    "branch_info": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  },
+  {
+    "order_id": "ord_test_cod_1792216866898",
+    "order_number": "ORD-099991-1792216866898",
+    "display_id": 99991,
+    "order_status": "completed",
+    "created_at": "2026-10-17T06:01:06.929Z",
+    "updated_at": "2026-10-17T06:01:06.929Z",
+    "metadata": {
+      "total": 350,
+      "branch_id": "br_indiranagar",
+      "payment_method": "COD",
+      "delivery_status": "delivered",
+      "cod_custody_event": {
+        "branch_id": "br_indiranagar",
+        "custody_id": "cust_ord_test_cod_1792216866898",
+        "collected_at": "2026-10-17T06:01:06.898Z",
+        "collected_amount": 350,
+        "delivery_partner_id": "dp_test_indiranagar_01",
+        "settlement_voucher_id": null
+      },
+      "is_ledger_eligible": true,
+      "delivery_partner_id": "dp_test_indiranagar_01"
+    },
+    "existing_invoices": [],
+    "existing_vouchers": [],
+    "refund_records": [],
+    "db_items": [],
+    "customer_info": null,
+    "branch_info": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  },
+  {
+    "order_id": "ord_test_cod_1792217303420",
+    "order_number": "ORD-099991-1792217303420",
+    "display_id": 99991,
+    "order_status": "completed",
+    "created_at": "2026-10-17T06:08:23.458Z",
+    "updated_at": "2026-10-17T06:08:23.458Z",
+    "metadata": {
+      "total": 350,
+      "branch_id": "br_indiranagar",
+      "payment_method": "COD",
+      "delivery_status": "delivered",
+      "cod_custody_event": {
+        "branch_id": "br_indiranagar",
+        "custody_id": "cust_ord_test_cod_1792217303420",
+        "collected_at": "2026-10-17T06:08:23.420Z",
+        "collected_amount": 350,
+        "delivery_partner_id": "dp_test_indiranagar_01",
+        "settlement_voucher_id": null
+      },
+      "is_ledger_eligible": true,
+      "delivery_partner_id": "dp_test_indiranagar_01"
+    },
+    "existing_invoices": [],
+    "existing_vouchers": [],
+    "refund_records": [],
+    "db_items": [],
+    "customer_info": null,
+    "branch_info": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  },
+  {
+    "order_id": "ord_test_cod_1792217567929",
+    "order_number": "ORD-099991-1792217567929",
+    "display_id": 99991,
+    "order_status": "completed",
+    "created_at": "2026-10-17T06:12:47.976Z",
+    "updated_at": "2026-10-17T06:12:47.976Z",
+    "metadata": {
+      "total": 350,
+      "branch_id": "br_indiranagar",
+      "payment_method": "COD",
+      "delivery_status": "delivered",
+      "cod_custody_event": {
+        "branch_id": "br_indiranagar",
+        "custody_id": "cust_ord_test_cod_1792217567929",
+        "collected_at": "2026-10-17T06:12:47.932Z",
+        "collected_amount": 350,
+        "delivery_partner_id": "dp_test_indiranagar_01",
+        "settlement_voucher_id": null
+      },
+      "is_ledger_eligible": true,
+      "delivery_partner_id": "dp_test_indiranagar_01"
+    },
+    "existing_invoices": [],
+    "existing_vouchers": [],
+    "refund_records": [],
+    "db_items": [],
+    "customer_info": null,
+    "branch_info": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  },
+  {
+    "order_id": "ord_test_cod_1792218199553",
+    "order_number": "ORD-099991-1792218199553",
+    "display_id": 99991,
+    "order_status": "completed",
+    "created_at": "2026-10-17T06:23:19.571Z",
+    "updated_at": "2026-10-17T06:23:19.571Z",
+    "metadata": {
+      "total": 350,
+      "branch_id": "br_indiranagar",
+      "payment_method": "COD",
+      "delivery_status": "delivered",
+      "cod_custody_event": {
+        "branch_id": "br_indiranagar",
+        "custody_id": "cust_ord_test_cod_1792218199553",
+        "collected_at": "2026-10-17T06:23:19.553Z",
+        "collected_amount": 350,
+        "delivery_partner_id": "dp_test_indiranagar_01",
+        "settlement_voucher_id": null
+      },
+      "is_ledger_eligible": true,
+      "delivery_partner_id": "dp_test_indiranagar_01"
+    },
+    "existing_invoices": [],
+    "existing_vouchers": [],
+    "refund_records": [],
+    "db_items": [],
+    "customer_info": null,
+    "branch_info": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  },
+  {
+    "order_id": "ord_test_cod_1792218268062",
+    "order_number": "ORD-099991-1792218268062",
+    "display_id": 99991,
+    "order_status": "completed",
+    "created_at": "2026-10-17T06:24:28.095Z",
+    "updated_at": "2026-10-17T06:24:28.095Z",
+    "metadata": {
+      "total": 350,
+      "branch_id": "br_indiranagar",
+      "payment_method": "COD",
+      "delivery_status": "delivered",
+      "cod_custody_event": {
+        "branch_id": "br_indiranagar",
+        "custody_id": "cust_ord_test_cod_1792218268062",
+        "collected_at": "2026-10-17T06:24:28.062Z",
+        "collected_amount": 350,
+        "delivery_partner_id": "dp_test_indiranagar_01",
+        "settlement_voucher_id": null
+      },
+      "is_ledger_eligible": true,
+      "delivery_partner_id": "dp_test_indiranagar_01"
+    },
+    "existing_invoices": [],
+    "existing_vouchers": [],
+    "refund_records": [],
+    "db_items": [],
+    "customer_info": null,
+    "branch_info": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  },
+  {
+    "order_id": "ord_test_cod_1792218470807",
+    "order_number": "ORD-099991-1792218470807",
+    "display_id": 99991,
+    "order_status": "completed",
+    "created_at": "2026-10-17T06:27:50.830Z",
+    "updated_at": "2026-10-17T06:28:07.196Z",
+    "metadata": {
+      "total": 350,
+      "branch_id": "br_indiranagar",
+      "payment_method": "COD",
+      "delivery_status": "delivered",
+      "cod_custody_event": {
+        "branch_id": "br_indiranagar",
+        "custody_id": "cust_ord_test_cod_1792218470807",
+        "settled_at": "2026-10-17T06:28:08.220Z",
+        "collected_at": "2026-10-17T06:27:50.807Z",
+        "collected_amount": 350,
+        "delivery_partner_id": "dp_test_indiranagar_01",
+        "settlement_voucher_id": "vch_00MVC0M3DOLKDZVA"
+      },
+      "is_ledger_eligible": true,
+      "delivery_partner_id": "dp_test_indiranagar_01"
+    },
+    "existing_invoices": [],
+    "existing_vouchers": [],
+    "refund_records": [],
+    "db_items": [],
+    "customer_info": null,
+    "branch_info": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  },
+  {
+    "order_id": "ord_test_cod_1792219136677",
+    "order_number": "ORD-099991-1792219136677",
+    "display_id": 99991,
+    "order_status": "completed",
+    "created_at": "2026-10-17T06:38:56.720Z",
+    "updated_at": "2026-10-17T06:38:59.096Z",
+    "metadata": {
+      "total": 350,
+      "branch_id": "br_indiranagar",
+      "payment_method": "COD",
+      "delivery_status": "delivered",
+      "cod_custody_event": {
+        "branch_id": "br_indiranagar",
+        "custody_id": "cust_ord_test_cod_1792219136677",
+        "settled_at": "2026-10-17T06:39:00.066Z",
+        "collected_at": "2026-10-17T06:38:56.677Z",
+        "collected_amount": 350,
+        "delivery_partner_id": "dp_test_indiranagar_01",
+        "settlement_voucher_id": "vch_00MVC102ER1IZYT0"
+      },
+      "is_ledger_eligible": true,
+      "delivery_partner_id": "dp_test_indiranagar_01"
+    },
+    "existing_invoices": [],
+    "existing_vouchers": [],
+    "refund_records": [],
+    "db_items": [],
+    "customer_info": null,
+    "branch_info": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  },
+  {
+    "order_id": "ord_test_cod_1792219161849",
+    "order_number": "ORD-099991-1792219161849",
+    "display_id": 99991,
+    "order_status": "completed",
+    "created_at": "2026-10-17T06:39:21.874Z",
+    "updated_at": "2026-10-17T06:39:22.810Z",
+    "metadata": {
+      "total": 350,
+      "branch_id": "br_indiranagar",
+      "payment_method": "COD",
+      "delivery_status": "delivered",
+      "cod_custody_event": {
+        "branch_id": "br_indiranagar",
+        "custody_id": "cust_ord_test_cod_1792219161849",
+        "settled_at": "2026-10-17T06:39:23.695Z",
+        "collected_at": "2026-10-17T06:39:21.849Z",
+        "collected_amount": 350,
+        "delivery_partner_id": "dp_test_indiranagar_01",
+        "settlement_voucher_id": "vch_00MVC10KOHRZYNU6"
+      },
+      "is_ledger_eligible": true,
+      "delivery_partner_id": "dp_test_indiranagar_01"
+    },
+    "existing_invoices": [],
+    "existing_vouchers": [],
+    "refund_records": [],
+    "db_items": [],
+    "customer_info": null,
+    "branch_info": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  },
+  {
+    "order_id": "ord_test_cod_1792219239431",
+    "order_number": "ORD-099991-1792219239431",
+    "display_id": 99991,
+    "order_status": "completed",
+    "created_at": "2026-10-17T06:40:39.467Z",
+    "updated_at": "2026-10-17T06:40:44.872Z",
+    "metadata": {
+      "total": 350,
+      "branch_id": "br_indiranagar",
+      "payment_method": "COD",
+      "delivery_status": "delivered",
+      "cod_custody_event": {
+        "branch_id": "br_indiranagar",
+        "custody_id": "cust_ord_test_cod_1792219239431",
+        "settled_at": "2026-10-17T06:40:45.689Z",
+        "collected_at": "2026-10-17T06:40:39.431Z",
+        "collected_amount": 350,
+        "delivery_partner_id": "dp_test_indiranagar_01",
+        "settlement_voucher_id": "vch_00MVC12BZEIQ8AXR"
+      },
+      "is_ledger_eligible": true,
+      "delivery_partner_id": "dp_test_indiranagar_01"
+    },
+    "existing_invoices": [],
+    "existing_vouchers": [],
+    "refund_records": [],
+    "db_items": [],
+    "customer_info": null,
+    "branch_info": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  },
+  {
+    "order_id": "ord_test_cod_1792219314509",
+    "order_number": "ORD-099991-1792219314509",
+    "display_id": 99991,
+    "order_status": "completed",
+    "created_at": "2026-10-17T06:41:54.571Z",
+    "updated_at": "2026-10-17T06:42:01.385Z",
+    "metadata": {
+      "total": 350,
+      "branch_id": "br_indiranagar",
+      "payment_method": "COD",
+      "delivery_status": "delivered",
+      "cod_custody_event": {
+        "branch_id": "br_indiranagar",
+        "custody_id": "cust_ord_test_cod_1792219314509",
+        "settled_at": "2026-10-17T06:42:02.306Z",
+        "collected_at": "2026-10-17T06:41:54.510Z",
+        "collected_amount": 350,
+        "delivery_partner_id": "dp_test_indiranagar_01",
+        "settlement_voucher_id": "vch_00MVC13Z1J644DZY"
+      },
+      "is_ledger_eligible": true,
+      "delivery_partner_id": "dp_test_indiranagar_01"
+    },
+    "existing_invoices": [],
+    "existing_vouchers": [],
+    "refund_records": [],
+    "db_items": [],
+    "customer_info": null,
+    "branch_info": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  },
+  {
+    "order_id": "ord_test_cod_1792219412950",
+    "order_number": "ORD-099991-1792219412950",
+    "display_id": 99991,
+    "order_status": "completed",
+    "created_at": "2026-10-17T06:43:32.995Z",
+    "updated_at": "2026-10-17T06:44:15.493Z",
+    "metadata": {
+      "total": 350,
+      "branch_id": "br_indiranagar",
+      "payment_method": "COD",
+      "delivery_status": "delivered",
+      "cod_custody_event": {
+        "branch_id": "br_indiranagar",
+        "custody_id": "cust_ord_test_cod_1792219412950",
+        "settled_at": "2026-10-17T06:44:16.279Z",
+        "collected_at": "2026-10-17T06:43:32.950Z",
+        "collected_amount": 350,
+        "delivery_partner_id": "dp_test_indiranagar_01",
+        "settlement_voucher_id": "vch_00MVC16UHGR9WGAI"
+      },
+      "is_ledger_eligible": true,
+      "delivery_partner_id": "dp_test_indiranagar_01"
+    },
+    "existing_invoices": [],
+    "existing_vouchers": [],
+    "refund_records": [],
+    "db_items": [],
+    "customer_info": null,
+    "branch_info": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  },
+  {
+    "order_id": "ord_test_cod_1792220817636",
+    "order_number": "ORD-099991-1792220817636",
+    "display_id": 99991,
+    "order_status": "completed",
+    "created_at": "2026-10-17T07:06:57.674Z",
+    "updated_at": "2026-10-17T07:07:01.628Z",
+    "metadata": {
+      "total": 350,
+      "branch_id": "br_indiranagar",
+      "payment_method": "COD",
+      "delivery_status": "delivered",
+      "cod_custody_event": {
+        "branch_id": "br_indiranagar",
+        "custody_id": "cust_ord_test_cod_1792220817636",
+        "settled_at": "2026-10-17T07:07:02.770Z",
+        "collected_at": "2026-10-17T07:06:57.637Z",
+        "collected_amount": 350,
+        "delivery_partner_id": "dp_test_indiranagar_01",
+        "settlement_voucher_id": "vch_00MVC204Q5L47SUP"
+      },
+      "is_ledger_eligible": true,
+      "delivery_partner_id": "dp_test_indiranagar_01"
+    },
+    "existing_invoices": [],
+    "existing_vouchers": [],
+    "refund_records": [],
+    "db_items": [],
+    "customer_info": null,
+    "branch_info": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  }
+]

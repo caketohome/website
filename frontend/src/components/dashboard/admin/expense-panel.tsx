@@ -43,12 +43,15 @@ import type {
 type Tab = "list" | "create" | "categories";
 
 const STATUS_COLORS: Record<ExpenseStatus, string> = {
-  DRAFT:     "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-  SUBMITTED: "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300",
-  APPROVED:  "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
-  POSTED:    "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300",
-  REVERSED:  "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300",
-  CANCELLED: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
+  DRAFT:            "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  SUBMITTED:        "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300",
+  APPROVED:         "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+  REJECTED:         "bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300",
+  AWAITING_PAYMENT: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300",
+  PAID:             "bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300",
+  POSTED:           "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300",
+  REVERSED:         "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300",
+  CANCELLED:        "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
 };
 
 const PAYMENT_METHODS: ExpensePaymentMethod[] = ["CASH", "UPI", "BANK_TRANSFER", "CHEQUE", "CARD", "OTHER"];

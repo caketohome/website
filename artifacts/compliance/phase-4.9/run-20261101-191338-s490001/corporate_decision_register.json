@@ -1,0 +1,62 @@
+{
+  "version": "1.0",
+  "phase": "4.9",
+  "evaluation_date": "2026-11-01",
+  "decisions": {
+    "BDR-01": {
+      "title": "Legal Entity Name & CIN Adoption",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "Companies Act Section 179"
+    },
+    "BDR-02": {
+      "title": "GSTIN Ratification",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "CGST Act Section 22"
+    },
+    "BDR-03": {
+      "title": "Statutory Invoice Numbering Structure Designation",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "CGST Rule 46(b)"
+    },
+    "BDR-04": {
+      "title": "Delegation of Approval Authority (Dual Control)",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "Internal Financial Controls"
+    },
+    "BDR-05": {
+      "title": "Controlled Activation Gate Protocol Authorization",
+      "status": "PENDING_EVIDENCE",
+      "legal_ref": "Board Governance"
+    },
+    "BDR-06": {
+      "title": "Sequential Monotonicity & Gap Detection",
+      "status": "IMPLEMENTED",
+      "legal_ref": "Technical Control"
+    },
+    "BDR-07": {
+      "title": "Cut-Over Protocol & Dual-Run Invoicing",
+      "status": "IMPLEMENTED",
+      "legal_ref": "Technical Control"
+    },
+    "BDR-08": {
+      "title": "Warning Threshold Assessment",
+      "status": "IMPLEMENTED",
+      "legal_ref": "Technical Control"
+    },
+    "BDR-09": {
+      "title": "Zero Retroactive Billing of Historical Orders",
+      "status": "IMPLEMENTED",
+      "legal_ref": "Accounting Control"
+    },
+    "BDR-10": {
+      "title": "GSTR-1 Table 13 Document Summary SOP",
+      "status": "DOCUMENTED",
+      "legal_ref": "Statutory SOP"
+    },
+    "BDR-11": {
+      "title": "April 1 IST Financial Year Rollover Procedure",
+      "status": "DOCUMENTED",
+      "legal_ref": "Statutory SOP"
+    }
+  }
+}

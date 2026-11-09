@@ -6,7 +6,7 @@ import { apiClient } from "@frontend/lib/api-client";
 import {
   X, CheckCircle, Clock, MapPin, Phone, Mail, User, Store, Truck, ChefHat, CreditCard,
   History, MessageSquare, Paperclip, Printer, FileText, RefreshCw, AlertTriangle, ShieldCheck,
-  ChevronRight, Calendar, ArrowRight, CornerDownRight, Send, Plus, Search
+  ChevronRight, Calendar, ArrowRight, CornerDownRight, Send, Plus, Search, Zap
 } from "lucide-react";
 import { OrderKotPrintModal } from "./order-kot-print-modal";
 import { OrderInvoicePrintModal } from "./order-invoice-print-modal";
@@ -26,8 +26,11 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
   // Modals & Action States
   const [showKotModal, setShowKotModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [committedInvoice, setCommittedInvoice] = useState<any>(null);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Action Drawer Sub-states
   const [showBranchAssign, setShowBranchAssign] = useState(false);
@@ -113,6 +116,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
   const handleStatusUpdate = async (newStatus: string) => {
     setActionLoading(true);
     setActionSuccess(null);
+    setActionError(null);
     try {
       const res: any = await apiClient.updateOrderStatus(orderId, newStatus, `Updated via Admin Command Center`);
       if (!res || !res.order) {
@@ -123,7 +127,53 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
       fetchOrderDetails();
       onRefresh();
     } catch (err: any) {
-      alert(err.message || "Failed to update order status");
+      setActionError(err.message || "Failed to update order status");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleViewInvoice = async () => {
+    if (!order?.invoice_number || order.invoice_number === "PENDING_INVOICE") {
+      setActionError("Cannot print tax invoice: Order has no committed statutory invoice.");
+      return;
+    }
+    setInvoiceLoading(true);
+    setActionError(null);
+    try {
+      const res: any = await apiClient.getOrderInvoice(orderId);
+      if (!res || !res.success || !res.invoice) {
+        setCommittedInvoice(null);
+        setShowInvoiceModal(false);
+        throw new Error(res?.error || res?.message || "INVOICE_NOT_COMMITTED: No committed invoice found on server");
+      }
+      setCommittedInvoice(res.invoice);
+      setShowInvoiceModal(true);
+    } catch (err: any) {
+      setCommittedInvoice(null);
+      setShowInvoiceModal(false);
+      setActionError(err.message || "Failed to load authoritative invoice from database");
+    } finally {
+      setInvoiceLoading(false);
+    }
+  };
+
+  const handleGenerateInvoice = async () => {
+    setActionLoading(true);
+    setActionSuccess(null);
+    setActionError(null);
+    try {
+      const res: any = await apiClient.generateOrderInvoice(orderId);
+      if (!res || !res.success || !res.invoice) {
+        setCommittedInvoice(null);
+        throw new Error(res?.message || res?.error || "Statutory invoice allocation rejected");
+      }
+      setActionSuccess(`⚡ Statutory Tax Invoice allocated & committed: ${res.invoice.invoice_number}`);
+      await fetchOrderDetails();
+      onRefresh();
+    } catch (err: any) {
+      setCommittedInvoice(null);
+      setActionError(err.message || "Statutory invoice generation failed");
     } finally {
       setActionLoading(false);
     }
@@ -281,16 +331,22 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
             <Button size="small" variant="secondary" onClick={fetchOrderDetails} className="text-xs">
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
             </Button>
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white">
+            <button data-testid="close-order-drawer" onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white" title="Close Drawer">
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         {actionSuccess && (
-          <div className="bg-emerald-50 border-b border-emerald-200 text-emerald-800 px-4 py-2 text-xs font-semibold flex items-center justify-between">
+          <div id="drawer-action-success-banner" className="bg-emerald-50 border-b border-emerald-200 text-emerald-800 px-4 py-2 text-xs font-semibold flex items-center justify-between">
             <span>✅ {actionSuccess}</span>
             <button onClick={() => setActionSuccess(null)} className="text-emerald-600 hover:underline">Dismiss</button>
+          </div>
+        )}
+        {actionError && (
+          <div id="drawer-action-error-banner" className="bg-rose-50 border-b border-rose-200 text-rose-800 px-4 py-2 text-xs font-semibold flex items-center justify-between">
+            <span>❌ {actionError}</span>
+            <button onClick={() => setActionError(null)} className="text-rose-600 hover:underline">Dismiss</button>
           </div>
         )}
 
@@ -314,12 +370,44 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                   <span className="text-[10px] font-extrabold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">SECTION 1 &bull; ORDER LIFECYCLE STATUS</span>
                   <div className="flex flex-wrap items-center gap-2 mt-1">
                     <Heading level="h3" className="text-lg font-black">{order.order_number}</Heading>
-                    <Badge color={order.invoice_number ? "purple" : "grey"} className="text-xs font-mono font-bold px-2 py-0.5">
-                      {order.invoice_number || "Invoice Not Generated"}
+                    <Badge color={order.invoice_number && order.invoice_number !== "PENDING_INVOICE" ? "purple" : "grey"} className="text-xs font-mono font-bold px-2 py-0.5" id="drawer-order-invoice-badge">
+                      {order.invoice_number && order.invoice_number !== "PENDING_INVOICE" ? order.invoice_number : "PENDING_INVOICE"}
                     </Badge>
-                    <Button size="small" variant="secondary" onClick={() => setShowInvoiceModal(true)} className="text-xs font-extrabold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300">
-                      <FileText className="w-3.5 h-3.5 mr-1 text-emerald-600" /> View / Print Tax Invoice
-                    </Button>
+                    {(!order.invoice_number || order.invoice_number === "PENDING_INVOICE") && (order.status === "delivered" || order.status === "completed") && (
+                      <Button
+                        id="btn-generate-statutory-invoice"
+                        size="small"
+                        variant="primary"
+                        onClick={handleGenerateInvoice}
+                        isLoading={actionLoading}
+                        className="text-xs font-extrabold bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        <Zap className="w-3.5 h-3.5 mr-1" /> Generate Tax Invoice
+                      </Button>
+                    )}
+                    {order.invoice_number && order.invoice_number !== "PENDING_INVOICE" ? (
+                      <Button
+                        id="btn-view-invoice-modal"
+                        size="small"
+                        variant="secondary"
+                        onClick={handleViewInvoice}
+                        isLoading={invoiceLoading}
+                        className="text-xs font-extrabold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300"
+                      >
+                        <FileText className="w-3.5 h-3.5 mr-1 text-emerald-600" /> View / Print Tax Invoice
+                      </Button>
+                    ) : (
+                      <Button
+                        id="btn-view-invoice-modal-disabled"
+                        size="small"
+                        variant="secondary"
+                        disabled
+                        className="text-xs font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 cursor-not-allowed opacity-60"
+                        title="Tax invoice not committed. View and print are only enabled after statutory generation."
+                      >
+                        <FileText className="w-3.5 h-3.5 mr-1 text-slate-400" /> Invoice Not Committed
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -367,9 +455,11 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                 <Button size="small" onClick={() => setShowKotModal(true)} className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold">
                   <Printer className="w-3.5 h-3.5 mr-1" /> Print KOT
                 </Button>
-                <Button size="small" onClick={() => setShowInvoiceModal(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
-                  <FileText className="w-3.5 h-3.5 mr-1" /> Print Invoice
-                </Button>
+                {order.invoice_number && order.invoice_number !== "PENDING_INVOICE" && (
+                  <Button size="small" onClick={handleViewInvoice} isLoading={invoiceLoading} className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+                    <FileText className="w-3.5 h-3.5 mr-1" /> Print Invoice
+                  </Button>
+                )}
                 <Button size="small" variant="secondary" onClick={() => setShowBranchAssign(!showBranchAssign)} className="text-xs font-semibold">
                   <Store className="w-3.5 h-3.5 mr-1" /> Reassign Branch
                 </Button>
@@ -851,9 +941,11 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                 <Paperclip className="w-3.5 h-3.5 text-slate-600" /> SECTION 11 &amp; 12 &bull; DOCUMENTS &amp; CRITICAL ACTIONS
               </span>
               <div className="flex flex-wrap gap-3">
-                <Button size="small" variant="secondary" onClick={() => setShowInvoiceModal(true)} className="text-xs">
-                  <FileText className="w-3.5 h-3.5 mr-1 text-emerald-600" /> Tax Invoice PDF
-                </Button>
+                {order.invoice_number && order.invoice_number !== "PENDING_INVOICE" && (
+                  <Button size="small" variant="secondary" onClick={handleViewInvoice} isLoading={invoiceLoading} className="text-xs">
+                    <FileText className="w-3.5 h-3.5 mr-1 text-emerald-600" /> Tax Invoice PDF
+                  </Button>
+                )}
                 <Button size="small" variant="secondary" onClick={() => setShowKotModal(true)} className="text-xs">
                   <ChefHat className="w-3.5 h-3.5 mr-1 text-amber-600" /> Kitchen KOT Ticket
                 </Button>
@@ -942,8 +1034,12 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
       )}
 
       {/* Invoice Print Modal */}
-      {showInvoiceModal && order && (
-        <OrderInvoicePrintModal order={order} onClose={() => setShowInvoiceModal(false)} />
+      {showInvoiceModal && committedInvoice && (
+        <OrderInvoicePrintModal
+          order={order}
+          invoice={committedInvoice}
+          onClose={() => setShowInvoiceModal(false)}
+        />
       )}
     </div>
   );

@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-10-02T12:22:54.404Z",
+  "counts": {
+    "orders": 173,
+    "invoices": 0,
+    "vouchers": 0,
+    "journal_entries": 0,
+    "journal_lines": 0,
+    "inventory_movements": 0,
+    "inventory_lots": 0,
+    "branch_inventory": 424,
+    "customers": 57,
+    "products": 65,
+    "variants": 27,
+    "suppliers": 0,
+    "fiscal_periods": 1,
+    "accounts": 99,
+    "bank_deposit_slips": 0,
+    "gateway_payout_batches": 0,
+    "gateway_settlement_orders": 0,
+    "branches": 57,
+    "purchases": 0,
+    "expenses": 0
+  },
+  "totals": {
+    "gl_debit": "0",
+    "gl_credit": "0",
+    "gl_balanced": true
+  }
+}

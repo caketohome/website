@@ -1,0 +1,12 @@
+{
+  "run_id": "run-20261101-210315-s520001",
+  "unbilled_orders": 69,
+  "breakdown": {
+    "paid": 41,
+    "pending": 16,
+    "captured": 12
+  },
+  "delivered_orders": 21,
+  "professional_review_status": "PENDING_TAX_COUNSEL_OPINION",
+  "preservation_status": "100% UNTOUCHED; ZERO INVOICES GENERATED"
+}

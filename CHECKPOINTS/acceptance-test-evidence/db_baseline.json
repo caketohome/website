@@ -1,0 +1,33 @@
+{
+  "Orders": 190,
+  "Invoices": 5,
+  "Accounting Vouchers": 3,
+  "Journal Entries": 2,
+  "Journal Lines": 4,
+  "Inventory Movements": 0,
+  "Inventory Cost Lots": 0,
+  "Branch Inventory": 424,
+  "Customers": 57,
+  "Products": 20,
+  "Product Variants": 27,
+  "Suppliers": 0,
+  "Purchases": 0,
+  "Purchase Items": 0,
+  "Fiscal Periods": 1,
+  "Accounting Accounts": 99,
+  "Payment Transactions": 53,
+  "COD Collections": "ERROR: relation \"public.cod_collection\" does not exist",
+  "Bank Deposit Slips": 0,
+  "Gateway Payout Batches": 0,
+  "Bank Statements": "ERROR: relation \"public.bank_statement\" does not exist",
+  "Bank Reconciliation Items": "ERROR: relation \"public.bank_reconciliation_item\" does not exist",
+  "Expenses": 0,
+  "Branches": 57,
+  "Staff": "ERROR: relation \"public.staff\" does not exist",
+  "Product Availability": "ERROR: relation \"public.product_availability\" does not exist",
+  "Statutory Invoice Seq": 35,
+  "Order_Status_Distribution": {
+    "pending": 185,
+    "completed": 5
+  }
+}

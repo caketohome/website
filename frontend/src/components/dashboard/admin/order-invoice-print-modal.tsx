@@ -4,49 +4,57 @@ import { Heading, Text, Badge, Button } from "@medusajs/ui";
 import { Printer, X, FileText, Download } from "lucide-react";
 
 interface OrderInvoicePrintModalProps {
-  order: any;
+  order?: any;
+  invoice?: any;
   onClose: () => void;
 }
 
-export function OrderInvoicePrintModal({ order, onClose }: OrderInvoicePrintModalProps) {
+export function OrderInvoicePrintModal({ order, invoice, onClose }: OrderInvoicePrintModalProps) {
   const handlePrint = () => {
     window.print();
   };
 
-  const customer = order?.customer || {};
-  const shipping = order?.shipping_address || {};
-  const branch = order?.branch || {};
-  const payment = order?.payment || {};
-  const items = order?.items || [];
-  const compliance = order?.compliance_snapshot || {};
+  const inv = invoice || order?.invoice || order || {};
+  const customer = inv.customer || order?.customer || {};
+  const shipping = inv.shipping_address || order?.shipping_address || {};
+  const branch = inv.branch || order?.branch || {};
+  const payment = inv.payment || order?.payment || {};
+  const items = Array.isArray(inv.items) && inv.items.length > 0 ? inv.items : (order?.items || []);
+  const compliance = inv.metadata || order?.compliance_snapshot || {};
 
-  const invoiceNumber = order?.invoice_number || "Invoice Not Generated";
-  const invoiceDate = new Date(order?.created_at || Date.now()).toLocaleDateString("en-IN", {
+  const invoiceNumber = inv.invoice_number || order?.invoice_number || "PENDING_INVOICE";
+  const invoiceDate = new Date(inv.invoice_date || inv.created_at || order?.created_at || Date.now()).toLocaleDateString("en-IN", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
 
-  const sellerLegalName = compliance.seller_legal_name || "CakeToHome India Private Limited";
-  const sellerTradeName = compliance.seller_trade_name || "CakeToHome";
-  const sellerGstin = compliance.seller_gstin || "29AAAAA0000A1Z5";
-  const sellerState = compliance.seller_state || branch?.state || "";
-  const sellerStateCode = compliance.seller_state_code || branch?.state_code || "";
-  const sellerFssai = compliance.seller_fssai_number || branch?.fssai_number || "";
-  const sellerAddress = compliance.seller_address || branch?.address || "";
-  const isIntraState = compliance.is_intra_state !== false;
-  const supplyType = compliance.supply_type || (isIntraState ? "INTRA-STATE (CGST + SGST)" : "INTER-STATE (IGST)");
+  const sellerLegalName = inv.seller_legal_name || compliance.seller_legal_name || order?.seller_legal_name || branch?.metadata?.seller_legal_name || "UNVERIFIED_SELLER_IDENTITY";
+  const sellerTradeName = inv.seller_trade_name || compliance.seller_trade_name || branch?.name || "UNVERIFIED_SELLER";
+  const sellerGstin = inv.seller_gstin || compliance.seller_gstin || order?.seller_gstin || branch?.metadata?.gstin || branch?.metadata?.gst_number || branch?.gstin || "UNVERIFIED_GSTIN";
+  const sellerState = inv.seller_state || compliance.seller_state || branch?.state || "";
+  const sellerStateCode = inv.seller_state_code || compliance.seller_state_code || branch?.state_code || "";
 
-  const totalVal = Number(order?.total_amount ?? order?.total ?? order?.payment?.grand_total ?? 0);
-  const taxAmt = Number(order?.tax_amount ?? order?.payment?.tax_total ?? 0);
-  const taxableVal = Number(order?.payment?.taxable_value ?? compliance.taxable_value ?? Math.max(0, totalVal - taxAmt));
-  const cgstAmt = Number(order?.payment?.cgst ?? compliance.cgst ?? (isIntraState ? Number((taxAmt / 2).toFixed(2)) : 0));
-  const sgstAmt = Number(order?.payment?.sgst ?? compliance.sgst ?? (isIntraState ? Number((taxAmt / 2).toFixed(2)) : 0));
-  const igstAmt = Number(order?.payment?.igst ?? compliance.igst ?? (!isIntraState ? taxAmt : 0));
+  // Reject false statutory FSSAI licence "11223344556677"
+  const rawFssai = inv.seller_fssai_number || compliance.seller_fssai_number || branch?.fssai_number || branch?.metadata?.fssai_number;
+  const sellerFssai = (rawFssai && rawFssai !== "11223344556677") ? rawFssai : "UNVERIFIED_FSSAI";
+
+  const sellerAddress = inv.seller_address || compliance.seller_address || branch?.address || "";
+  const isIntraState = inv.is_intra_state !== false;
+  const supplyType = inv.supply_type || compliance.supply_type || (isIntraState ? "INTRA-STATE (CGST + SGST)" : "INTER-STATE (IGST)");
+
+  const isTestMode = inv.is_test || inv.test_watermark || order?.classification === "TEST" || (order as any)?.metadata?.classification === "TEST" || String(order?.id || "").includes("test_") || String(sellerFssai).includes("TEST");
+
+  const totalVal = Number(inv.grand_total ?? order?.total_amount ?? order?.total ?? order?.payment?.grand_total ?? 0);
+  const taxAmt = Number(inv.tax_total ?? order?.tax_amount ?? order?.payment?.tax_total ?? 0);
+  const taxableVal = Number(inv.subtotal ?? order?.payment?.taxable_value ?? compliance.taxable_value ?? Math.max(0, totalVal - taxAmt));
+  const cgstAmt = Number(inv.cgst ?? compliance.cgst ?? (isIntraState ? Number((taxAmt / 2).toFixed(2)) : 0));
+  const sgstAmt = Number(inv.sgst ?? compliance.sgst ?? (isIntraState ? Number((taxAmt / 2).toFixed(2)) : 0));
+  const igstAmt = Number(inv.igst ?? compliance.igst ?? (!isIntraState ? taxAmt : 0));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="bg-white dark:bg-slate-900 border rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white dark:bg-slate-900 border rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] relative">
         {/* Action Header */}
         <div className="p-4 border-b flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/40 print:hidden">
           <Heading level="h3" className="text-sm font-bold flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
@@ -61,6 +69,13 @@ export function OrderInvoicePrintModal({ order, onClose }: OrderInvoicePrintModa
             </button>
           </div>
         </div>
+
+        {/* Visible Test Watermark Banner in Test Mode */}
+        {isTestMode && (
+          <div className="bg-amber-500 text-black font-extrabold text-center py-1.5 px-4 text-xs uppercase tracking-widest border-b border-amber-600 print:block shadow-inner" id="invoice-test-watermark-banner">
+            ⚠️ TEST — NOT A VALID TAX INVOICE (SYNTHETIC FIXTURE — NOT FOR STATUTORY FILING)
+          </div>
+        )}
 
         {/* Printable Tax Invoice Content */}
         <div className="p-8 overflow-y-auto text-xs space-y-6 print:p-0 print:text-black">
@@ -92,15 +107,15 @@ export function OrderInvoicePrintModal({ order, onClose }: OrderInvoicePrintModa
           <div className="grid grid-cols-2 gap-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border">
             <div>
               <span className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Billed To (Customer):</span>
-              <p className="font-extrabold text-sm text-slate-900 dark:text-white">{customer?.name || order?.customer_name || "Guest Customer"}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-300">GSTIN: <span className="font-mono font-bold">{customer?.gstin || "URP (Unregistered Person)"}</span></p>
-              <p className="text-xs text-slate-600 dark:text-slate-300">Ph: {customer?.phone || "+91 98765 43210"}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-300">Email: {customer?.email || "customer@cakes2home.com"}</p>
+              <p className="font-extrabold text-sm text-slate-900 dark:text-white">{customer?.name || order?.customer_name || "—"}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">GSTIN: <span className="font-mono font-bold">{customer?.gstin || order?.metadata?.customer_gstin || "URP (Unregistered Person)"}</span></p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">Ph: {customer?.phone || order?.customer_phone || "—"}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">Email: {customer?.email || order?.customer_email || "—"}</p>
             </div>
             <div>
               <span className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Shipping Delivery Address:</span>
-              <p className="font-bold text-xs text-slate-800 dark:text-slate-200">{shipping?.address_1 || "100 Feet Road"}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-300">{shipping?.area || ""}{shipping?.city ? `, ${shipping.city}` : ""}{shipping?.pincode ? ` - ${shipping.pincode}` : ""}</p>
+              <p className="font-bold text-xs text-slate-800 dark:text-slate-200">{shipping?.address_1 || order?.delivery_address || (order?.customer?.address && typeof order.customer.address === "string" ? order.customer.address : "—")}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">{shipping?.area || order?.delivery_area || ""}{shipping?.city || order?.delivery_city ? `, ${shipping?.city || order?.delivery_city}` : ""}{shipping?.pincode || order?.delivery_pincode ? ` - ${shipping?.pincode || order?.delivery_pincode}` : ""}</p>
               <p className="text-[11px] text-slate-500 mt-1">Supply Type: <span className="font-bold text-emerald-700">{supplyType}</span></p>
             </div>
           </div>
@@ -145,7 +160,7 @@ export function OrderInvoicePrintModal({ order, onClose }: OrderInvoicePrintModa
                         <p className="font-bold text-slate-900 dark:text-white">{item.title || item.product_name || "Artisan Cake"}</p>
                         <p className="text-[10px] text-slate-500">{item.weight || "1.0 kg"} &bull; {item.flavour || "Artisan Flavor"} &bull; {item.artisan ? "artisan" : "Standard"}</p>
                       </td>
-                      <td className="p-2.5 text-center font-mono text-[11px]">{item.hsn_code || "19059090"}</td>
+                      <td className="p-2.5 text-center font-mono text-[11px]">{item.hsn_code || "UNCLASSIFIED"}</td>
                       <td className="p-2.5 text-center font-bold">{item.uqc || "NOS"}</td>
                       <td className="p-2.5 text-center font-bold">{qty}</td>
                       <td className="p-2.5 text-right">₹{itemUnitPrice.toLocaleString("en-IN")}</td>
@@ -175,10 +190,10 @@ export function OrderInvoicePrintModal({ order, onClose }: OrderInvoicePrintModa
           {/* Financial Calculation & GST Summary */}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pt-2 border-t">
             <div className="space-y-1.5 text-[11px] text-slate-600">
-              <p><span className="font-bold text-slate-700">Payment Method:</span> {payment?.method || "UPI via Razorpay"}</p>
-              <p><span className="font-bold text-slate-700">Transaction ID:</span> <span className="font-mono">{payment?.transaction_id || "TXN_98410284"}</span></p>
-              <p><span className="font-bold text-slate-700">Payment Status:</span> <Badge color="green" className="text-[9px] uppercase font-bold">PAID / CAPTURED</Badge></p>
-              <p className="text-[10px] text-slate-400 mt-2">Fulfillment Hub: <span className="font-bold text-slate-700">{compliance.branch_name || branch?.name || "Hub"}</span></p>
+              <p><span className="font-bold text-slate-700">Payment Method:</span> {payment?.method || order?.payment_method || "—"}</p>
+              <p><span className="font-bold text-slate-700">Transaction ID:</span> <span className="font-mono">{payment?.transaction_id || order?.payment_transaction_id || "—"}</span></p>
+              <p><span className="font-bold text-slate-700">Payment Status:</span> <Badge color={order?.payment_status === "paid" || payment?.status === "captured" ? "green" : "grey"} className="text-[9px] uppercase font-bold">{order?.payment_status?.toUpperCase() || payment?.status?.toUpperCase() || "PENDING"}</Badge></p>
+              <p className="text-[10px] text-slate-400 mt-2">Fulfillment Hub: <span className="font-bold text-slate-700">{compliance.branch_name || branch?.name || order?.branch_name || "—"}</span></p>
             </div>
 
             <div className="w-full sm:w-72 space-y-1.5 text-xs bg-slate-50 dark:bg-slate-800 p-3.5 rounded-xl border font-medium">

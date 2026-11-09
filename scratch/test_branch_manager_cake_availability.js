@@ -9,16 +9,17 @@ const { Pool } = require(path.join(__dirname, '../frontend/node_modules/pg'));
 const http = require('http');
 
 const pool = new Pool({
-  connectionString: 'postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres',
+  connectionString: '[REDACTED_DATABASE_CREDENTIAL]',
   ssl: { rejectUnauthorized: false },
 });
 
 function fetchJson(url, options = {}) {
   return new Promise((resolve, reject) => {
     const u = new URL(url);
+    const port = u.port || process.env.PORT || 3001;
     const req = http.request({
       hostname: u.hostname,
-      port: u.port || 3000,
+      port: port === '3000' && process.env.PORT ? process.env.PORT : (port === '3000' ? 3001 : port),
       path: u.pathname + u.search,
       method: options.method || 'GET',
       headers: {

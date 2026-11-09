@@ -1,0 +1,7 @@
+{
+  "stored_xss_protection": "VERIFIED",
+  "svg_upload_blocked": true,
+  "react_jsx_auto_escape": true,
+  "public_draft_exposure_prevented": true,
+  "privileged_admin_endpoints_scoped": true
+}

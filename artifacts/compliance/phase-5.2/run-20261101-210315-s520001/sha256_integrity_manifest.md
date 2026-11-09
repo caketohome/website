@@ -1,0 +1,62 @@
+# SHA-256 Integrity Manifest — Phase 5.2
+**Run ID:** `run-20261101-210315-s520001`
+
+| Filename | SHA-256 Digest |
+|---|---|
+| `api_authorization_report.md` | `72aca4271ff557f124bbcc46880563268a523315f605281b1e11e6c64af502f6` |
+| `approved_configuration_report.md` | `ee00c223074e988f200a96bbfbc1eeed65db888b25c352486f2df7d1b273f8f1` |
+| `approved_invoice_configuration.json` | `64ff5fbd32ae5a0086aeb45028b83b1af347f961dd8796cffe7824cd8915fa29` |
+| `arena_tournament_report.md` | `f2d1fb7caff3e906a4a36373152fde429f1b1ddfe364889ef78848791b9595fe` |
+| `board_and_company_secretary_handoff_package.md` | `39ae01e898fc1f948005e69bcb6fb8f4f25935f52b914afa040330e60b4e6ad4` |
+| `board_resolution_execution_package.md` | `870fe120a74edab68c0d0388267b74f7bcb3d96072c1debaefd5d17ed682b8fe` |
+| `board_resolution_review.json` | `5d00912b48fec446dc7b46ad083bd894fec93171a8df1da013419955ebbb42fc` |
+| `canonical_decision_register.json` | `f102e4189145cb3c3989f41901c6fce7d4b49529cfeb644ee692da9feffba196` |
+| `cdr16_authorization_control_report.md` | `cbc95821fa603cd970bcdf1c9614c3930bd1a8c170c2b8c59166c7fe9c16b26e` |
+| `cdr16_authorization_verification.json` | `a979b417b5ef2390501f11984279479a14062df8cbea521c1450b3c7ee7a9b71` |
+| `cdr_reconciliation_report.md` | `252595f1c1fbebf854c829ab296ee78de306bc4d44dc5009dc55efd816a0d728` |
+| `cdr_status_dimensions.json` | `356deb1a67b0262c2f73ca5f65e78c1d3ff44a0ad3620467e553a8141c29be9a` |
+| `cin_verification_report.md` | `39484ff3b5a745160f93d680eec8f56c68cb923b2e6f0da7c47161ee9292367c` |
+| `companies_act_ss1_review.json` | `2ebabc2e990afd07af32769ac72434d512233479add30be57a48817e2bfa5e89` |
+| `companies_act_ss1_review_register.md` | `2bbed765b943aab436a1a5b31307a0f0fe86cb74b37e41b7eec11fba60fb696c` |
+| `company_secretary_review.json` | `437bd108adc1979dce5ee4c7f1556a35c9c18625be6d6393a0cc6de513d2903c` |
+| `company_secretary_review_checklist.md` | `b4e95572c53910ea646819525da3b9a6f964e3415e3b271bedf85435c6170d5a` |
+| `corporate_evidence_inventory.json` | `c03deb2bfc795e124ceb3250268e60ea236ef02234e51fb0378aeeae777015d6` |
+| `corporate_evidence_inventory.md` | `8777183c6ea1cd61c4bf22b77a03b719fa4897c36d25e463891062986c786cfa` |
+| `corporate_identity_verification.json` | `ed2c7946205fe55d6083ef2926f2e7eff81bf643a7468819a881b80d5686b0b7` |
+| `database_and_migration_report.md` | `1ec6eab46c0bef2c4cbb7c47f0a750be197ee7a41609433e9a90c74dd8ce5420` |
+| `engineering_skill_router_report.md` | `16ea9772b0f3f17ac82682f9a57710650f9b75f23ef8ec04cb5d3ea8ca800d83` |
+| `evidence_authenticity_report.md` | `6e0078e70cadca951d8125f98edb3997067bdfcd3746eae17b1aff469ce64652` |
+| `executive_phase5_2_report.md` | `b59db7c224ba877faf2e1a7082b355d6c2656cf49806e1bacdc2ed3e990330d0` |
+| `final_phase5_2_determination.md` | `fdafffa12fc53fce1933321838c2d8aba76150abd16014471dec45c766103061` |
+| `five_dimensional_cdr_status_report.md` | `abc0132a060842dbed9892c3255e5726152122e64027776cb587ad2f005d4494` |
+| `gstin_verification_report.md` | `08210c8343b4d1647ad8166c7066efbd421e2f64e2b6baecf7487b8ec2d2ad5e` |
+| `gst_statutory_review.json` | `26c2779f1b964e18ad90d9314215a6746a2f2e6abacb6391a7db74e38b5303c6` |
+| `gst_statutory_review_register.md` | `5149af04c36b84ac1ba5d9bebea1b64d4fff9294cc3d67e922f4512434e38541` |
+| `historical_69_order_professional_review.md` | `b6a032319c52d8c9be5b659f4820683efd6fcfc3725b3ff77ff6723d3fa49c4f` |
+| `historical_bdr_mapping.json` | `50974cb09732bd655e612949026e94a1842b47f1203c54da60d0bf3e68d1df01` |
+| `historical_bdr_mapping_verification.md` | `7b4b54dd1c32fcd1725a90d3bcd9ad200c428205215bcae725c4c34b328887c5` |
+| `historical_order_review.json` | `6e426558049a53139542906a5a8b1d287bfd593a3ecb7186a781feead1edf644` |
+| `invoice_series_decision.json` | `71fa967b84899025c4c53dfda71240a7395e3341a6d59bf841da7e07fd4451dc` |
+| `legal_entity_verification_report.md` | `7f1be3357a4211de556197a52b426f75c1f05d111aa50c1149991d1a72a84c3d` |
+| `mca_filing_applicability.json` | `2aee7730c3e2075fc12285ed674ac35f07f14119d8326217edeceaf1a713eab9` |
+| `mca_filing_applicability_review.md` | `d1da3a15faea1cc453fd7bce6678b2b488a975ac0de72306c50bfba60de852b2` |
+| `migration_verification.json` | `1f97870d15040d816e2fa13e25cf09428acf76df1cb47cfa49c63186ca6b1a9a` |
+| `outstanding_corporate_dependencies.md` | `513b6c9795ff6fd3f9a07c56d63b28f25f47ed36743b530d3f4831380e34124c` |
+| `performance_report.md` | `0572ebbcc1aa28c6c06a06f64992d45db0b175a00e6a9ff8ff601662d771d29b` |
+| `predecessor_reconciliation_report.md` | `6709adac8eafbfea3fefc7941c147f814888ab7cf6585c6c464379094d311167` |
+| `prefix_decision_report.md` | `bf8776371ffd1fe119d635e21b1e52f8f44cb02dc56fdbefe7ecb1ddb0fc6579` |
+| `production_authorization_architecture_report.md` | `f65ddb49bd99bc20e15cebd8dddb459e94dd1bb870d5cdbf0ba341ab73b31974` |
+| `production_authorization_controls.json` | `6dbce2c06642fa8669d957f77ff4e750b89ad746c7e28be8bd2c6734977d2fdd` |
+| `protected_database_integrity_report.md` | `738664e87f264e08346a9fd9094c0a757b168e999eee98f0cd66619516d655f7` |
+| `regression_test_report.md` | `bb20cce540aa0fb86cfc2d2d38af264b1f70f7c8f3a7135f7394caa9dbf0b311` |
+| `release_gate_findings.json` | `529c235ffc15f19102fe1cb7231ea4b3b4f7ade428dcf9b94c9f85dede81540d` |
+| `repository_baseline_verification.md` | `5f1ea3ac5788ef90c80beca6bcb4e081cea1e70d74baef1f70fb8ce5167861b3` |
+| `resolution_draft_review_report.md` | `1001924711bd0334440f7bc702c915d85a8ac95a06c15c2043173ae405dea51d` |
+| `security_report.md` | `49316b800a894179d0e3e903aebfbe0e0e43169314c0c806cd91507ad7c9298b` |
+| `sequence_initialization_controls.json` | `92ab5611a61bec45a75d8f6d809be5fec012c39307bcb8e1b3e5e8a4b812fe0b` |
+| `sequence_initialization_control_report.md` | `9c2389241d7b0350594f97beeda767b3b795722eaa4ce8d5ca7dc8b25d11bd76` |
+| `signatory_and_delegation_verification.md` | `4d3fff4dcb630d3363aa0e824ae578aa4b44bd7dc2995e2923d768af24cb21ac` |
+| `signatory_delegation.json` | `55a73562dbe1f48b70cbbf30ab4f5d29875231240abbdafa65e1168f250ad44d` |
+| `sod_matrix.json` | `a873f39d95f325482953f5728a0352747cda92746f0fe3e6ddefc08a42c8591f` |
+| `sod_verification.md` | `15aee9738297719f774b9c0a5326c2c3b2dbeaa0bb9ca4f2c17fb7126ef14215` |
+| `test_results.json` | `9caaef0633591d19d936d8350c332e8e460d380af9a838e708d04625218ac31b` |

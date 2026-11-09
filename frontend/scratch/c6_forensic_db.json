@@ -1,0 +1,613 @@
+{
+  "accounting_voucher_columns": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "(gen_random_uuid())::text"
+    },
+    {
+      "column_name": "voucher_no",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "voucher_type",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "voucher_date",
+      "data_type": "date",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "branch_id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "fiscal_year",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "status",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": "'DRAFT'::character varying"
+    },
+    {
+      "column_name": "total_amount",
+      "data_type": "numeric",
+      "is_nullable": "NO",
+      "column_default": "0.00"
+    },
+    {
+      "column_name": "currency",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": "'INR'::character varying"
+    },
+    {
+      "column_name": "reference_type",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "reference_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "reference_event",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": "'PRIMARY'::character varying"
+    },
+    {
+      "column_name": "narration",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "created_by",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "submitted_by",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "submitted_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "approved_by",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "approved_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "posted_by",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "posted_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "cancelled_by",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "cancelled_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "reversed_by_voucher_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "reversal_of_voucher_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "column_name": "deleted_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    }
+  ],
+  "accounting_journal_entry_columns": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "(gen_random_uuid())::text"
+    },
+    {
+      "column_name": "entry_no",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "voucher_id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "entry_date",
+      "data_type": "date",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "branch_id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "fiscal_year",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "total_debit",
+      "data_type": "numeric",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "total_credit",
+      "data_type": "numeric",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "is_reversed",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "column_name": "reversed_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "narration",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "created_by",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    }
+  ],
+  "accounting_journal_line_columns": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "(gen_random_uuid())::text"
+    },
+    {
+      "column_name": "journal_entry_id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "line_no",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "account_id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "debit_amount",
+      "data_type": "numeric",
+      "is_nullable": "NO",
+      "column_default": "0.00"
+    },
+    {
+      "column_name": "credit_amount",
+      "data_type": "numeric",
+      "is_nullable": "NO",
+      "column_default": "0.00"
+    },
+    {
+      "column_name": "branch_id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "customer_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "supplier_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "tax_rate",
+      "data_type": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "tax_class",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "narration",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": null
+    }
+  ],
+  "accounting_account_columns": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "(gen_random_uuid())::text"
+    },
+    {
+      "column_name": "code",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "name",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "type",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "subtype",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "parent_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "level",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "column_default": "1"
+    },
+    {
+      "column_name": "is_group",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "column_name": "is_system",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "column_name": "is_active",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "column_default": "true"
+    },
+    {
+      "column_name": "tax_rate",
+      "data_type": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "tax_class",
+      "data_type": "character varying",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "description",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "created_by",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "column_name": "deleted_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    }
+  ],
+  "fn_check_journal_balance": "CREATE OR REPLACE FUNCTION public.fn_check_journal_balance()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nDECLARE\n  v_debit NUMERIC(15, 2);\n  v_credit NUMERIC(15, 2);\nBEGIN\n  SELECT COALESCE(SUM(debit_amount), 0), COALESCE(SUM(credit_amount), 0)\n  INTO v_debit, v_credit\n  FROM public.accounting_journal_line\n  WHERE journal_entry_id = NEW.journal_entry_id;\n\n  IF v_debit <> v_credit THEN\n    RAISE EXCEPTION 'Double-entry violation: Journal entry % debits (%) != credits (%)', \n      NEW.journal_entry_id, v_debit, v_credit;\n  END IF;\n\n  IF v_debit <= 0 THEN\n    RAISE EXCEPTION 'Double-entry violation: Journal entry % cannot have zero or negative total amount', NEW.journal_entry_id;\n  END IF;\n\n  RETURN NEW;\nEND;\n$function$\n",
+  "currency_columns_in_db": [
+    {
+      "table_name": "accounting_voucher",
+      "column_name": "currency",
+      "data_type": "character varying"
+    },
+    {
+      "table_name": "cart",
+      "column_name": "currency_code",
+      "data_type": "text"
+    },
+    {
+      "table_name": "company",
+      "column_name": "currency",
+      "data_type": "text"
+    },
+    {
+      "table_name": "gateway_payout_batch",
+      "column_name": "currency",
+      "data_type": "text"
+    },
+    {
+      "table_name": "inventory_cost_lot",
+      "column_name": "currency",
+      "data_type": "character varying"
+    },
+    {
+      "table_name": "invoice",
+      "column_name": "currency_code",
+      "data_type": "text"
+    },
+    {
+      "table_name": "marketing_campaign",
+      "column_name": "budget_currency",
+      "data_type": "text"
+    },
+    {
+      "table_name": "order",
+      "column_name": "currency_code",
+      "data_type": "text"
+    },
+    {
+      "table_name": "order_transaction",
+      "column_name": "currency_code",
+      "data_type": "text"
+    },
+    {
+      "table_name": "payment",
+      "column_name": "currency_code",
+      "data_type": "text"
+    },
+    {
+      "table_name": "payment_collection",
+      "column_name": "currency_code",
+      "data_type": "text"
+    },
+    {
+      "table_name": "payment_session",
+      "column_name": "currency_code",
+      "data_type": "text"
+    },
+    {
+      "table_name": "payment_transaction",
+      "column_name": "currency",
+      "data_type": "text"
+    },
+    {
+      "table_name": "price",
+      "column_name": "currency_code",
+      "data_type": "text"
+    },
+    {
+      "table_name": "promotion_application_method",
+      "column_name": "currency_code",
+      "data_type": "text"
+    },
+    {
+      "table_name": "promotion_campaign_budget",
+      "column_name": "currency_code",
+      "data_type": "text"
+    },
+    {
+      "table_name": "region",
+      "column_name": "currency_code",
+      "data_type": "text"
+    },
+    {
+      "table_name": "rewards_gift_card",
+      "column_name": "currency_code",
+      "data_type": "text"
+    },
+    {
+      "table_name": "rewards_wallet",
+      "column_name": "currency_code",
+      "data_type": "text"
+    },
+    {
+      "table_name": "state",
+      "column_name": "currency",
+      "data_type": "text"
+    },
+    {
+      "table_name": "state",
+      "column_name": "currency_symbol",
+      "data_type": "text"
+    },
+    {
+      "table_name": "store_currency",
+      "column_name": "currency_code",
+      "data_type": "text"
+    }
+  ],
+  "party_columns_in_journal_line": [
+    {
+      "column_name": "customer_id",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "supplier_id",
+      "data_type": "text",
+      "is_nullable": "YES"
+    }
+  ],
+  "accounting_voucher_constraints": [
+    {
+      "conname": "accounting_voucher_branch_id_fkey",
+      "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "accounting_voucher_pkey",
+      "def": "PRIMARY KEY (id)"
+    },
+    {
+      "conname": "accounting_voucher_reversal_of_voucher_id_fkey",
+      "def": "FOREIGN KEY (reversal_of_voucher_id) REFERENCES accounting_voucher(id) ON DELETE SET NULL"
+    },
+    {
+      "conname": "accounting_voucher_reversed_by_voucher_id_fkey",
+      "def": "FOREIGN KEY (reversed_by_voucher_id) REFERENCES accounting_voucher(id) ON DELETE SET NULL"
+    },
+    {
+      "conname": "chk_voucher_posted_immutable",
+      "def": "CHECK ((((status)::text <> 'CANCELLED'::text) OR (posted_at IS NULL)))"
+    },
+    {
+      "conname": "chk_voucher_reversal_limit",
+      "def": "CHECK (((reversal_of_voucher_id IS NULL) OR (reversed_by_voucher_id IS NULL)))"
+    },
+    {
+      "conname": "chk_voucher_segregation",
+      "def": "CHECK (((approved_by IS NULL) OR (approved_by <> created_by)))"
+    },
+    {
+      "conname": "chk_voucher_status",
+      "def": "CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'SUBMITTED'::character varying, 'APPROVED'::character varying, 'POSTED'::character varying, 'CANCELLED'::character varying])::text[])))"
+    },
+    {
+      "conname": "chk_voucher_total",
+      "def": "CHECK ((total_amount >= 0.00))"
+    },
+    {
+      "conname": "chk_voucher_type",
+      "def": "CHECK (((voucher_type)::text = ANY ((ARRAY['SALES'::character varying, 'PURCHASE'::character varying, 'PAYMENT'::character varying, 'RECEIPT'::character varying, 'EXPENSE'::character varying, 'JOURNAL'::character varying, 'CONTRA'::character varying, 'CREDIT_NOTE'::character varying, 'DEBIT_NOTE'::character varying, 'OPENING_BALANCE'::character varying])::text[])))"
+    },
+    {
+      "conname": "uq_accounting_voucher_no",
+      "def": "UNIQUE (voucher_no)"
+    }
+  ]
+}

@@ -62,6 +62,8 @@ export function SessionHistoryTab({
     }
   };
 
+  const selectedBranchObj = branches.find((b) => b.id === selectedBranchId);
+
   const filteredSessions = useMemo(() => {
     return sessions.filter((s) => {
       if (statusFilter !== "ALL" && s.status !== statusFilter) {
@@ -76,11 +78,18 @@ export function SessionHistoryTab({
         const teller = (s.teller_id || "").toLowerCase();
         const openedBy = (s.opened_by || "").toLowerCase();
         const voucher = (s.settlement_voucher_id || "").toLowerCase();
-        return id.includes(q) || teller.includes(q) || openedBy.includes(q) || voucher.includes(q);
+        const branchName = (s.branch_name || "").toLowerCase();
+        return id.includes(q) || teller.includes(q) || openedBy.includes(q) || voucher.includes(q) || branchName.includes(q);
       }
       return true;
     });
   }, [sessions, statusFilter, selectedBranchId, searchTerm]);
+
+  const handleClearFilters = () => {
+    setStatusFilter("ALL");
+    setSearchTerm("");
+    onSelectBranch("");
+  };
 
   // Load movements when inspecting a session
   const handleInspectSession = async (session: TellerSessionRow) => {
@@ -128,17 +137,31 @@ export function SessionHistoryTab({
             Session History & Financial Audit Trail
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Immutable log of all closed and settled teller shift drawers
+            Immutable log of all closed and settled teller shift drawers across operating branches
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          {/* Branch Filter */}
+          <select
+            value={selectedBranchId || "ALL"}
+            onChange={(e) => onSelectBranch(e.target.value === "ALL" ? "" : e.target.value)}
+            className="text-xs py-1.5 px-3 bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+          >
+            <option value="ALL">All Branches</option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+
           {/* Search */}
-          <div className="relative flex-1 sm:w-56">
+          <div className="relative flex-1 sm:w-48">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search session ID, voucher, cashier..."
+              placeholder="Search ID, voucher..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -176,7 +199,7 @@ export function SessionHistoryTab({
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                 <th className="py-3 px-4">Session ID</th>
-                <th className="py-3 px-4">Counter</th>
+                <th className="py-3 px-4">Branch / Counter</th>
                 <th className="py-3 px-4">Cashier / Opened</th>
                 <th className="py-3 px-4 text-right">Opening Float</th>
                 <th className="py-3 px-4 text-right">Physical Count</th>
@@ -188,14 +211,40 @@ export function SessionHistoryTab({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
-              {filteredSessions.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={10} className="py-12 text-center text-slate-500">
+                    <RefreshCw className="w-6 h-6 mx-auto text-blue-600 animate-spin mb-2" />
+                    <p className="font-semibold text-slate-700">Loading session audit history...</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Fetching immutable shift records from PostgreSQL</p>
+                  </td>
+                </tr>
+              ) : sessions.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="py-12 text-center text-slate-400">
                     <FileText className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                    <p className="font-medium text-slate-600">No matching sessions found</p>
+                    <p className="font-medium text-slate-600">No shift sessions recorded yet</p>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      Completed shift sessions will appear in this historical register
+                      Completed shift sessions will appear in this historical register once opened and settled
                     </p>
+                  </td>
+                </tr>
+              ) : filteredSessions.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="py-12 text-center text-slate-500">
+                    <AlertTriangle className="w-8 h-8 mx-auto text-amber-500 mb-2" />
+                    <p className="font-semibold text-slate-700">No sessions match the current filters</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5 mb-3">
+                      {selectedBranchId ? `Branch: ${selectedBranchObj?.name || selectedBranchId}` : "All branches"}
+                      {statusFilter !== "ALL" ? ` • Status: ${statusFilter}` : ""}
+                      {searchTerm ? ` • Query: "${searchTerm}"` : ""}
+                    </p>
+                    <button
+                      onClick={handleClearFilters}
+                      className="px-3.5 py-1.5 text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl transition-colors"
+                    >
+                      Clear Filters & View All
+                    </button>
                   </td>
                 </tr>
               ) : (
@@ -208,7 +257,8 @@ export function SessionHistoryTab({
                         {s.id}
                       </td>
                       <td className="py-3 px-4 text-slate-700 whitespace-nowrap">
-                        {s.teller_id}
+                        <div className="font-semibold text-slate-800">{s.branch_name || s.branch_id}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">{s.teller_name || s.teller_code || s.teller_id}</div>
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div className="font-medium text-slate-800">{s.opened_by}</div>

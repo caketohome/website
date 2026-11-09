@@ -1,0 +1,58 @@
+[
+  {
+    "file": "01_storefront_product_selection.png",
+    "description": "Storefront gourmet cake catalog with price and product discovery",
+    "url": "http://localhost:3000/products",
+    "size_bytes": 1961235,
+    "size_kb": "1915.3",
+    "sha256": "e85f825c5284000de3c9ecc4627efefc4b61647b91df0d1230d1a503c67b8424"
+  },
+  {
+    "file": "02_cart_review.png",
+    "description": "Shopping Cart review showing Classic Chocolate Truffle Cake and checkout summary",
+    "url": "http://localhost:3000/cart",
+    "size_bytes": 184364,
+    "size_kb": "180.0",
+    "sha256": "d222c51ba5b8f1a54eb0cb264313a02719f33a5efd4c6cf5a740d2962862709e"
+  },
+  {
+    "file": "03_checkout_form_filled.png",
+    "description": "Checkout form filled with recipient contact, delivery scheduling, and Cashfree PG selected",
+    "url": "http://localhost:3000/checkout",
+    "size_bytes": 225670,
+    "size_kb": "220.4",
+    "sha256": "c9bf57c8b28da65ebd5c3266258a1431b77bdddba192123e6f23c585640a6014"
+  },
+  {
+    "file": "04_cashfree_checkout_page.png",
+    "description": "Genuine Cashfree Sandbox Checkout interface with Cashfree branding, order amount ₹525.00, and PG options",
+    "url": "http://localhost:3000/checkout/cashfree",
+    "size_bytes": 172651,
+    "size_kb": "168.6",
+    "sha256": "46de31c4b62df364f47fb772fcdcf2bf15e697b3caa612df6be5846dce13861c"
+  },
+  {
+    "file": "05_order_confirmed_success.png",
+    "description": "Customer Order Confirmation screen displaying Order Confirmed & In Kitchen, KOT Ticket, and Cashfree Payment Ref",
+    "url": "http://localhost:3000/your-order",
+    "size_bytes": 120154,
+    "size_kb": "117.3",
+    "sha256": "0d22a16ae2411b99daab64f389ca866a5192737f49b6843bd2ce380051b47c90"
+  },
+  {
+    "file": "06_admin_orders_register_confirmed.png",
+    "description": "Admin ERP Orders Register showing newly confirmed Cashfree order with paid status",
+    "url": "http://localhost:3000/admin/orders",
+    "size_bytes": 120154,
+    "size_kb": "117.3",
+    "sha256": "0d22a16ae2411b99daab64f389ca866a5192737f49b6843bd2ce380051b47c90"
+  },
+  {
+    "file": "07_branch_kitchen_queue_kot.png",
+    "description": "Branch Manager Operations dashboard displaying live KOT ticket queued for preparation",
+    "url": "http://localhost:3000/branch-manager",
+    "size_bytes": 157159,
+    "size_kb": "153.5",
+    "sha256": "1bef2392c934148e94c19e8bb6ff35032541ceb0852c0fe89fa7df3c705b24f7"
+  }
+]

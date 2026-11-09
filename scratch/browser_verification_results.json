@@ -1,0 +1,122 @@
+{
+  "results": [
+    {
+      "id": "accounting_work_queue",
+      "name": "Financial Work Queue",
+      "success": false,
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3001/dashboard?tab=accounting_work_queue\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "id": "bills_payable",
+      "name": "Bills Payable (AP)",
+      "success": true,
+      "durationMs": 29776,
+      "containsExpected": true,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\cb7b6e1f-0b22-4701-9b04-b4142f6ebf68\\browser_screenshots\\bills_payable.png",
+      "textSnippet": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Bills Payable ⌘K S admin_01 Bi"
+    },
+    {
+      "id": "bills_receivable",
+      "name": "Bills Receivable (AR)",
+      "success": true,
+      "durationMs": 4177,
+      "containsExpected": true,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\cb7b6e1f-0b22-4701-9b04-b4142f6ebf68\\browser_screenshots\\bills_receivable.png",
+      "textSnippet": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Bills Receivable ⌘K S admin_01"
+    },
+    {
+      "id": "teller_custody",
+      "name": "Teller Cash Custody",
+      "success": false,
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3001/dashboard?tab=teller_custody\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "id": "manual_journals",
+      "name": "Manual Journals",
+      "success": true,
+      "durationMs": 16440,
+      "containsExpected": true,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\cb7b6e1f-0b22-4701-9b04-b4142f6ebf68\\browser_screenshots\\manual_journals.png",
+      "textSnippet": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Manual Journals ⌘K S admin_01 "
+    },
+    {
+      "id": "cost_allocations",
+      "name": "Cost Allocations",
+      "success": false,
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3001/dashboard?tab=cost_allocations\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "id": "gateway_settlements",
+      "name": "Gateway Settlements",
+      "success": true,
+      "durationMs": 12478,
+      "containsExpected": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\cb7b6e1f-0b22-4701-9b04-b4142f6ebf68\\browser_screenshots\\gateway_settlements.png",
+      "textSnippet": "🎂 CakeToHome Select location Check serviceability ⌘K 0 Login 🎂 CakeToHome ARTISAN PATISSERIE & MODERN BAKERY Baked Fresh Daily on Order Fresh Cakes. Handcrafted Moments. Delivered Fast. Premium artisan cakes baked fresh and delivered to your doorstep. Same Day Delivery Fresh Ingredients Handcr"
+    },
+    {
+      "id": "bank_accounts",
+      "name": "Bank Accounts",
+      "success": true,
+      "durationMs": 5201,
+      "containsExpected": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\cb7b6e1f-0b22-4701-9b04-b4142f6ebf68\\browser_screenshots\\bank_accounts.png",
+      "textSnippet": "🎂 CakeToHome Select location Check serviceability ⌘K 0 Login 🎂 CakeToHome ARTISAN PATISSERIE & MODERN BAKERY Baked Fresh Daily on Order Fresh Cakes. Handcrafted Moments. Delivered Fast. Premium artisan cakes baked fresh and delivered to your doorstep. Same Day Delivery Fresh Ingredients Handcr"
+    },
+    {
+      "id": "bank_reconciliation",
+      "name": "Bank Reconciliation (BRS)",
+      "success": true,
+      "durationMs": 30896,
+      "containsExpected": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\cb7b6e1f-0b22-4701-9b04-b4142f6ebf68\\browser_screenshots\\bank_reconciliation.png",
+      "textSnippet": "🎂 CakeToHome Select location Check serviceability ⌘K 0 Login 🎂 CakeToHome ARTISAN PATISSERIE & MODERN BAKERY Baked Fresh Daily on Order Fresh Cakes. Handcrafted Moments. Delivered Fast. Premium artisan cakes baked fresh and delivered to your doorstep. Same Day Delivery Fresh Ingredients Handcr"
+    },
+    {
+      "id": "general_ledger",
+      "name": "General Ledger",
+      "success": true,
+      "durationMs": 5970,
+      "containsExpected": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\cb7b6e1f-0b22-4701-9b04-b4142f6ebf68\\browser_screenshots\\general_ledger.png",
+      "textSnippet": "🎂 CakeToHome Select location Check serviceability ⌘K 0 Login 🎂 CakeToHome ARTISAN PATISSERIE & MODERN BAKERY Baked Fresh Daily on Order Fresh Cakes. Handcrafted Moments. Delivered Fast. Premium artisan cakes baked fresh and delivered to your doorstep. Same Day Delivery Fresh Ingredients Handcr"
+    },
+    {
+      "id": "profit_loss",
+      "name": "Profit & Loss",
+      "success": true,
+      "durationMs": 6685,
+      "containsExpected": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\cb7b6e1f-0b22-4701-9b04-b4142f6ebf68\\browser_screenshots\\profit_loss.png",
+      "textSnippet": "🎂 CakeToHome Select location Check serviceability ⌘K 0 Login 🎂 CakeToHome ARTISAN PATISSERIE & MODERN BAKERY Baked Fresh Daily on Order Fresh Cakes. Handcrafted Moments. Delivered Fast. Premium artisan cakes baked fresh and delivered to your doorstep. Same Day Delivery Fresh Ingredients Handcr"
+    },
+    {
+      "id": "balance_sheet",
+      "name": "Balance Sheet",
+      "success": true,
+      "durationMs": 9865,
+      "containsExpected": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\cb7b6e1f-0b22-4701-9b04-b4142f6ebf68\\browser_screenshots\\balance_sheet.png",
+      "textSnippet": "🎂 CakeToHome Select location Check serviceability ⌘K 0 Login 🎂 CakeToHome ARTISAN PATISSERIE & MODERN BAKERY Baked Fresh Daily on Order Fresh Cakes. Handcrafted Moments. Delivered Fast. Premium artisan cakes baked fresh and delivered to your doorstep. Same Day Delivery Fresh Ingredients Handcr"
+    },
+    {
+      "id": "cash_flow",
+      "name": "Cash Flow",
+      "success": true,
+      "durationMs": 7420,
+      "containsExpected": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\cb7b6e1f-0b22-4701-9b04-b4142f6ebf68\\browser_screenshots\\cash_flow.png",
+      "textSnippet": "🎂 CakeToHome Select location Check serviceability ⌘K 0 Login 🎂 CakeToHome ARTISAN PATISSERIE & MODERN BAKERY Baked Fresh Daily on Order Fresh Cakes. Handcrafted Moments. Delivered Fast. Premium artisan cakes baked fresh and delivered to your doorstep. Same Day Delivery Fresh Ingredients Handcr"
+    },
+    {
+      "id": "accounting_setup",
+      "name": "Accounting Setup",
+      "success": true,
+      "durationMs": 6065,
+      "containsExpected": false,
+      "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\cb7b6e1f-0b22-4701-9b04-b4142f6ebf68\\browser_screenshots\\accounting_setup.png",
+      "textSnippet": "🎂 CakeToHome Select location Check serviceability ⌘K 0 Login 🎂 CakeToHome ARTISAN PATISSERIE & MODERN BAKERY Baked Fresh Daily on Order Fresh Cakes. Handcrafted Moments. Delivered Fast. Premium artisan cakes baked fresh and delivered to your doorstep. Same Day Delivery Fresh Ingredients Handcr"
+    }
+  ],
+  "pageErrors": []
+}

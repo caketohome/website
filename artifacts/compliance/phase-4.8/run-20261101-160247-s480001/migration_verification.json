@@ -1,0 +1,10 @@
+{
+  "linter_status": "PASSED",
+  "migrations_verified": [
+    "c7_10",
+    "c7_11",
+    "c7_12",
+    "c7_13",
+    "c7_14"
+  ]
+}

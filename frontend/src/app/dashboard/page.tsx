@@ -153,6 +153,10 @@ const BankAccountsPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/bank-accounts-panel"),
   "BankAccountsPanel"
 );
+const BankManagementPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/bank-management-dashboard"),
+  "BankManagementDashboard"
+);
 const BankReconciliationPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/bank-reconciliation-panel"),
   "BankReconciliationPanel"
@@ -201,9 +205,37 @@ const CostAllocationPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/cost-allocation-panel").then((mod) => ({ default: mod.CostAllocationPanel })),
   "CostAllocationPanel"
 );
+const CorporateAccountsPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/corporate-accounts-panel").then((mod) => ({ default: mod.CorporateAccountsPanel })),
+  "CorporateAccountsPanel"
+);
 const CorporateGiftingPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/corporate-gifting-panel").then((mod) => ({ default: mod.CorporateGiftingPanel })),
   "CorporateGiftingPanel"
+);
+const DeliveryCoveragePanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/delivery-coverage-panel").then((mod) => ({ default: mod.DeliveryCoveragePanel })),
+  "DeliveryCoveragePanel"
+);
+const CorporateRoutingReviewPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/corporate-routing-review-panel").then((mod) => ({ default: mod.CorporateRoutingReviewPanel })),
+  "CorporateRoutingReviewPanel"
+);
+const MarketplacePanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/marketplace-panel").then((mod) => ({ default: mod.MarketplacePanel })),
+  "MarketplacePanel"
+);
+const SharedInventoryPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/shared-inventory-panel").then((mod) => ({ default: mod.SharedInventoryPanel })),
+  "SharedInventoryPanel"
+);
+const FeatureFlagsPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/feature-flags-panel").then((mod) => ({ default: mod.FeatureFlagsPanel })),
+  "FeatureFlagsPanel"
+);
+const OperationalClosuresPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/operational-closures-panel").then((mod) => ({ default: mod.OperationalClosuresPanel })),
+  "OperationalClosuresPanel"
 );
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -211,11 +243,12 @@ const CorporateGiftingPanel = createDynamicPanel(
  * ────────────────────────────────────────────────────────────────────────── */
 
 type AdminTabId =
-  | "orders" | "catalog" | "search_engine" | "branches" | "delivery"
-  | "fulfillment" | "suppliers" | "purchases" | "bills_payable" | "bills_receivable" | "expenses" | "accounting_work_queue" | "teller_custody" | "manual_journals" | "cost_allocations" | "corporate_gifting" | "gateway_settlements" | "bank_accounts" | "bank_reconciliation" | "general_ledger" | "profit_loss" | "balance_sheet" | "cash_flow" | "accounting_setup" | "fleet" | "tax_master" | "abandoned_carts" | "telemarketing"
+  | "orders" | "catalog" | "search_engine" | "branches" | "delivery" | "delivery_coverage"
+  | "fulfillment" | "suppliers" | "purchases" | "bills_payable" | "bills_receivable" | "expenses" | "accounting_work_queue" | "teller_custody" | "manual_journals" | "cost_allocations" | "corporate_accounts" | "corporate_gifting" | "corporate_routing_review" | "gateway_settlements" | "bank_management" | "bank_accounts" | "bank_reconciliation" | "general_ledger" | "profit_loss" | "balance_sheet" | "cash_flow" | "accounting_setup" | "fleet" | "tax_master" | "abandoned_carts" | "telemarketing"
   | "crm" | "login_activity" | "marketing" | "popups" | "seo"
   | "automation" | "webhooks" | "cms" | "media" | "analytics" | "ai_concierge"
-  | "staff_profiles" | "notifications" | "settings";
+  | "staff_profiles" | "notifications" | "settings"
+  | "marketplace" | "shared_inventory" | "feature_flags" | "operational_closures";
 
 const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   orders: OrdersPanel,
@@ -223,6 +256,7 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   search_engine: SearchConfigPanel,
   branches: BranchesPanel,
   delivery: DeliveryPanel,
+  delivery_coverage: DeliveryCoveragePanel,
   fulfillment: FulfillmentConfigPanel,
   suppliers: SupplierPanel,
   purchases: PurchasePanel,
@@ -233,9 +267,12 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   teller_custody: TellerCustodyPanel,
   manual_journals: ManualJournalsPanel,
   cost_allocations: CostAllocationPanel,
+  corporate_accounts: CorporateAccountsPanel,
   corporate_gifting: CorporateGiftingPanel,
+  corporate_routing_review: CorporateRoutingReviewPanel,
   gateway_settlements: GatewaySettlementPanel,
-  bank_accounts: BankAccountsPanel,
+  bank_management: BankManagementPanel,
+  bank_accounts: BankManagementPanel,
   bank_reconciliation: BankReconciliationPanel,
   general_ledger: GeneralLedgerPanel,
   profit_loss: ProfitLossPanel,
@@ -260,6 +297,10 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   staff_profiles: StaffProfilesPanel,
   notifications: NotificationsPanel,
   settings: SettingsPanel,
+  marketplace: MarketplacePanel,
+  shared_inventory: SharedInventoryPanel,
+  feature_flags: FeatureFlagsPanel,
+  operational_closures: OperationalClosuresPanel,
 };
 
 /* ─────────────────────────────────────────────────────────────────────────────

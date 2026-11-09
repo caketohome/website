@@ -49,3 +49,16 @@ export * from "./cost-centre.repository";
 export * from "./cost-allocation.repository";
 // Phase C7.7: Corporate Gifting Repository
 export * from "./corporate-gifting.repository";
+// Phase C7.9: Corporate Account & Employee Roster Repositories
+export * from "./corporate-account.repository";
+// Phase C7.10: Delivery Coverage Repository
+export * from "./delivery-coverage.repository";
+// Phase C7.11: Corporate Routing Repository
+export * from "./corporate-routing.repository";
+// Partner Marketplace, Shared Inventory, Feature Toggles & Operational Closures
+export * from "./shared-inventory.repository";
+export * from "./feature-flag.repository";
+export * from "./operational-closure.repository";
+export * from "./marketplace-partner.repository";
+export * from "./marketplace-invoice.repository";
+

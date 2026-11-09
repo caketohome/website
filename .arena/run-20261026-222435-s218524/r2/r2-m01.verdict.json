@@ -1,0 +1,32 @@
+{
+  "match": "r2-m01",
+  "scores": {
+    "a002": {
+      "correctness": 9.8,
+      "completeness": 9.8,
+      "specificity": 9.8,
+      "robustness": 9.8,
+      "clarity": 9.8,
+      "fatal": false
+    },
+    "a004": {
+      "correctness": 9.3,
+      "completeness": 9.2,
+      "specificity": 9.3,
+      "robustness": 9.3,
+      "clarity": 9.2,
+      "fatal": false
+    }
+  },
+  "winner": "a002",
+  "reason": "a002 comprehensively addresses prefix format validation, fail-closed pre-flight sequence checks with credential sanitization, and transaction-level allocator exception mapping without leaking secrets.",
+  "survived": [
+    "Strict Length and Format Boundary"
+  ],
+  "standing": {
+    "a002": [],
+    "a004": [
+      "Defensive Sanitization of Database Error Messages"
+    ]
+  }
+}

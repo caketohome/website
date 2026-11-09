@@ -1,0 +1,187 @@
+{
+ "version": 1,
+ "created": "2026-10-18 20:35:44",
+ "seed": 88,
+ "agents_n": 4,
+ "cards_available": 2160,
+ "wave": 10,
+ "dir": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-203544-s88",
+ "has_baseline": false,
+ "agents": {
+  "a001": {
+   "card": {
+    "reasoning": {
+     "id": "inversion",
+     "name": "Inversion",
+     "how": "Ask what would make this answer fail. List every way it could, then build the answer that makes each of those failures impossible."
+    },
+    "workflow": {
+     "id": "requirements-checklist",
+     "name": "Requirements checklist",
+     "how": "Pull every requirement out of the task into a numbered list. Solve, then tick each item off and say exactly where it is met."
+    },
+    "strategy": {
+     "id": "speed",
+     "name": "Speed",
+     "how": "Optimise for the fastest route to something usable today. Cut anything that does not move the result."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-203544-s88\\r2\\r2-m01.a001.solution.md",
+   "alive": true,
+   "eliminated_in": null,
+   "eliminated_by": null,
+   "byes": 0
+  },
+  "a002": {
+   "card": {
+    "reasoning": {
+     "id": "analogy",
+     "name": "Analogy",
+     "how": "Find a problem in a different field that has already been solved and has the same shape. Port its solution over, then fix every place where the analogy breaks."
+    },
+    "workflow": {
+     "id": "open-questions-first",
+     "name": "Open questions first",
+     "how": "List every open question the task leaves. Resolve each one with reasoning or a stated assumption, then answer."
+    },
+    "strategy": {
+     "id": "completeness",
+     "name": "Completeness",
+     "how": "Leave out nothing the task asks for or clearly implies. Cover every requirement explicitly."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-203544-s88\\r1\\r1-m01.a002.solution.md",
+   "alive": false,
+   "eliminated_in": 1,
+   "eliminated_by": "a001",
+   "byes": 0
+  },
+  "a003": {
+   "card": {
+    "reasoning": {
+     "id": "expert-panel",
+     "name": "Expert panel",
+     "how": "Answer the task as three different experts would, picking roles that fit it. Take the strongest idea from each and settle every point where they disagree."
+    },
+    "workflow": {
+     "id": "write-then-restructure",
+     "name": "Write, then restructure",
+     "how": "Write freely and fast. Then outline what you actually wrote, fix the structure, and rewrite it to the new outline."
+    },
+    "strategy": {
+     "id": "explicit-trade-offs",
+     "name": "Explicit trade-offs",
+     "how": "Name the real trade-offs, choose for the user's most likely constraints, and say plainly what that choice gives up."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-203544-s88\\r2\\r2-m01.a003.solution.md",
+   "alive": false,
+   "eliminated_in": 2,
+   "eliminated_by": "a001",
+   "byes": 0
+  },
+  "a004": {
+   "card": {
+    "reasoning": {
+     "id": "first-principles",
+     "name": "First principles",
+     "how": "Strip the task down to the facts and requirements nobody can argue with. Rebuild the answer from those alone, and keep a convention only if it earns its place again."
+    },
+    "workflow": {
+     "id": "outline-first",
+     "name": "Outline first",
+     "how": "Write a skeleton outline, check the outline against every requirement in the task, fix it, and only then fill it in."
+    },
+    "strategy": {
+     "id": "edge-cases-first",
+     "name": "Edge cases first",
+     "how": "Hunt the edge cases, failure modes and weird inputs first, and design the answer around surviving them."
+    }
+   },
+   "solution": "E:\\vig\\cakes2home-main\\cakes2home-main\\.arena\\run-20261018-203544-s88\\r1\\r1-m02.a004.solution.md",
+   "alive": false,
+   "eliminated_in": 1,
+   "eliminated_by": "a003",
+   "byes": 0
+  }
+ },
+ "rounds": [
+  {
+   "n": 1,
+   "alive": [
+    "a001",
+    "a002",
+    "a003",
+    "a004"
+   ],
+   "matches": [
+    {
+     "id": "r1-m01",
+     "a": "a001",
+     "b": "a002",
+     "winner": "a001",
+     "loser": "a002",
+     "reason": "a001 offers concrete inversion analysis, failure prevention mechanisms, port 3001 binding, and immediate executable Playwright test harness.",
+     "survived": [
+      "conceded role matrix addition",
+      "conceded branch.state relational gotcha"
+     ],
+     "scores": {
+      "a001": 90.0,
+      "a002": 78.5
+     },
+     "source": "judge"
+    },
+    {
+     "id": "r1-m02",
+     "a": "a004",
+     "b": "a003",
+     "winner": "a003",
+     "loser": "a004",
+     "reason": "a003 incorporates tri-expert architectural panel, explicit financial safeguards and audit equilibrium, and precise Markdown ledger schemas.",
+     "survived": [
+      "conceded crawler architecture",
+      "conceded negative testing edge cases"
+     ],
+     "scores": {
+      "a004": 80.0,
+      "a003": 90.0
+     },
+     "source": "judge"
+    }
+   ],
+   "bye": null,
+   "closed": true
+  },
+  {
+   "n": 2,
+   "alive": [
+    "a001",
+    "a003"
+   ],
+   "matches": [
+    {
+     "id": "r2-m01",
+     "a": "a001",
+     "b": "a003",
+     "winner": "a001",
+     "loser": "a003",
+     "reason": "a001 delivers a superior operational architecture by integrating the Tri-Stage Verification Pipeline (Browser UI -> Network Interception -> PostgreSQL Persistence) with explicit failure prevention mechanisms and strict financial boundaries.",
+     "survived": [
+      "conceded Tri-Stage Verification Pipeline",
+      "conceded Complete Defect Register Schema"
+     ],
+     "scores": {
+      "a001": 95.0,
+      "a003": 91.7
+     },
+     "source": "judge"
+    }
+   ],
+   "bye": null,
+   "closed": true
+  }
+ ],
+ "champion": "a001",
+ "final": null
+}

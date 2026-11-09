@@ -13,6 +13,11 @@ import { dbTransaction } from "../db";
 import type { PoolClient } from "pg";
 import { TellerMovementRepository } from "../repositories/teller-movement.repository";
 import { TellerSessionRepository } from "../repositories/teller-session.repository";
+import { TellerSessionService } from "./teller-session.service";
+import { PostingService, PostingServiceError } from "./posting.service";
+import { AccountingAccountRepository } from "../repositories/accounting-account.repository";
+import { AccountingFiscalPeriodRepository } from "../repositories/accounting-fiscal-period.repository";
+import type { JournalLineInput } from "../types/accounting.types";
 import { hasEffectivePermission } from "../staff-access-control";
 import {
   TellerMovementRow,
@@ -35,7 +40,7 @@ export class TellerMovementService {
    */
   static async recordManualAdjustment(
     params: {
-      session_id: string;
+      session_id?: string;
       branch_id: string;
       direction: TellerMovementDirection;
       amount: number;
@@ -45,10 +50,10 @@ export class TellerMovementService {
     actor: AuthenticatedActor,
     client?: PoolClient
   ): Promise<TellerMovementRow> {
-    if (!hasEffectivePermission(actor, "TELLER.MOVEMENT_CREATE")) {
+    if (!hasEffectivePermission(actor, "TELLER.MOVEMENT_CREATE") && !hasEffectivePermission(actor, "TELLER.ADJUST")) {
       throw new TellerDomainError(
         "PERMISSION_DENIED",
-        "Actor does not possess TELLER.MOVEMENT_CREATE permission."
+        "Actor does not possess TELLER.MOVEMENT_CREATE or TELLER.ADJUST permission."
       );
     }
 
@@ -75,10 +80,31 @@ export class TellerMovementService {
     }
 
     const execute = async (txClient: PoolClient) => {
-      // 1. Lock session row
-      const session = await TellerSessionRepository.findById(params.session_id, txClient, true);
+      const sourceId = params.adjustment_reference_id || `man_adj_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+      // 1. Idempotency check: if adjustment_reference_id was supplied and already exists, return existing
+      if (params.adjustment_reference_id) {
+        const existing = await TellerMovementRepository.findBySource("MANUAL", params.adjustment_reference_id, txClient);
+        if (existing) {
+          return existing;
+        }
+      }
+
+      // 2. Resolve session (fallback to continuous branch session if session_id omitted)
+      let targetSessionId = params.session_id;
+      if (!targetSessionId) {
+        const continuousSession = await TellerSessionService.ensureContinuousBranchSession(
+          params.branch_id,
+          actor,
+          txClient
+        );
+        targetSessionId = continuousSession.id;
+      }
+
+      // 3. Lock session row
+      const session = await TellerSessionRepository.findById(targetSessionId, txClient, true);
       if (!session) {
-        throw new TellerDomainError("SESSION_NOT_FOUND", `Session '${params.session_id}' not found.`);
+        throw new TellerDomainError("SESSION_NOT_FOUND", `Session '${targetSessionId}' not found.`);
       }
 
       if (session.branch_id !== params.branch_id) {
@@ -107,8 +133,162 @@ export class TellerMovementService {
         );
       }
 
-      const sourceId = params.adjustment_reference_id || `man_adj_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+      // Enforce sufficient cash in drawer for OUT manual disbursements
+      if (params.direction === "OUT") {
+        const totals = await TellerMovementRepository.getTotalsForSession(session.id, txClient);
+        const currentExpected = round2(session.opening_float + totals.netMovement);
+        if (amount > currentExpected) {
+          throw new TellerDomainError(
+            "INSUFFICIENT_FUNDS",
+            `Disbursement amount (₹${amount.toFixed(2)}) exceeds available cash in drawer (₹${currentExpected.toFixed(2)}).`
+          );
+        }
+      }
 
+      // 4. Resolve canonical GL Accounts: 1111 (Cash in Hand) and 5296 (Cash Over/Short)
+      const acc1111 = await AccountingAccountRepository.findByCode("1111", txClient);
+      const acc5296 = await AccountingAccountRepository.findByCode("5296", txClient);
+      if (!acc1111 || !acc1111.is_active || acc1111.is_group) {
+        throw new TellerDomainError("CONTROL_ACCOUNT_INACTIVE", "Control Account 1111 (Cash in Hand) is missing, inactive, or a group account.");
+      }
+      if (!acc5296 || !acc5296.is_active || acc5296.is_group) {
+        throw new TellerDomainError("CONTROL_ACCOUNT_INACTIVE", "Control Account 5296 (Cash Over/Short) is missing, inactive, or a group account.");
+      }
+
+      // 5. Validate Accounting Start Date and Fiscal Period (Hard Blocks via PostingService)
+      const todayStr = new Date().toISOString().split("T")[0];
+      try {
+        await PostingService.validateAccountingStartDate(todayStr, txClient);
+        await PostingService.validateFiscalPeriod(todayStr, txClient);
+      } catch (err: any) {
+        if (err instanceof PostingServiceError) {
+          throw new TellerDomainError(err.code as any, err.message);
+        }
+        throw err;
+      }
+
+      const periodStatus = await AccountingFiscalPeriodRepository.getPeriodStatusForDate(todayStr, txClient);
+      const fiscalYear = periodStatus.status === "PERIOD_OPEN" ? periodStatus.period.fiscal_year : "FY2026-27";
+
+      // 6. Build Balanced Double-Entry Journal Lines
+      const lines: JournalLineInput[] = params.direction === "IN"
+        ? [
+            {
+              account_id: acc1111.id,
+              debit_amount: amount,
+              credit_amount: 0,
+              branch_id: session.branch_id,
+              narration: `Manual cash adjustment IN for session ${session.id}: ${params.narration.trim()}`,
+              metadata: { session_id: session.id, movement_source: sourceId },
+            },
+            {
+              account_id: acc5296.id,
+              debit_amount: 0,
+              credit_amount: amount,
+              branch_id: session.branch_id,
+              narration: `Cash adjustment credit for session ${session.id}: ${params.narration.trim()}`,
+              metadata: { session_id: session.id, movement_source: sourceId },
+            },
+          ]
+        : [
+            {
+              account_id: acc5296.id,
+              debit_amount: amount,
+              credit_amount: 0,
+              branch_id: session.branch_id,
+              narration: `Cash adjustment debit for session ${session.id}: ${params.narration.trim()}`,
+              metadata: { session_id: session.id, movement_source: sourceId },
+            },
+            {
+              account_id: acc1111.id,
+              debit_amount: 0,
+              credit_amount: amount,
+              branch_id: session.branch_id,
+              narration: `Manual cash adjustment OUT for session ${session.id}: ${params.narration.trim()}`,
+              metadata: { session_id: session.id, movement_source: sourceId },
+            },
+          ];
+
+      // 7. Ensure actor user identities exist in public."user" for audit foreign keys
+      const ensureUser = async (uid: string) => {
+        const ures = await txClient.query('SELECT id FROM public."user" WHERE id = $1', [uid]);
+        if (ures.rows.length === 0) {
+          await txClient.query(
+            `INSERT INTO public."user" (id, email, name, role, is_active, updated_at)
+             VALUES ($1, $2, $3, 'STAFF', true, NOW())
+             ON CONFLICT (id) DO NOTHING`,
+            [uid, `${uid}@caketohome.internal`, `Staff ${uid}`]
+          );
+        }
+      };
+      await ensureUser(actor.userId);
+
+      // Segregation of Duties: maker != checker
+      const voucherCreator = session.opened_by && session.opened_by !== actor.userId ? session.opened_by : "system";
+      await ensureUser(voucherCreator);
+
+      // 8. Atomic Voucher Draft -> Submit -> Approve -> Post
+      const draftRes = await PostingService.createVoucherDraft({
+        input: {
+          voucher_type: "JOURNAL",
+          voucher_date: todayStr,
+          branch_id: session.branch_id,
+          narration: `Manual cash adjustment (${params.direction}): ${params.narration.trim()} - Session ${session.id}`,
+          reference_type: "TELLER_MOVEMENT",
+          reference_id: sourceId,
+          reference_event: "MANUAL_ADJUSTMENT",
+          metadata: {
+            source_module: "TELLER",
+            session_id: session.id,
+            teller_id: session.teller_id,
+            branch_id: session.branch_id,
+            direction: params.direction,
+            amount: amount,
+            adjusted_by: actor.userId,
+          },
+        },
+        branchId: session.branch_id,
+        fiscalYear,
+        createdBy: voucherCreator,
+        client: txClient,
+      });
+
+      if (!draftRes.success) {
+        throw new TellerDomainError("ADJUSTMENT_POSTING_FAILED", `Failed to create adjustment voucher draft: ${draftRes.error}`);
+      }
+
+      const submitRes = await PostingService.submitVoucher({
+        voucherId: draftRes.data.id,
+        submittedBy: voucherCreator,
+        branchId: session.branch_id,
+        client: txClient,
+      });
+      if (!submitRes.success) {
+        throw new TellerDomainError("ADJUSTMENT_POSTING_FAILED", `Failed to submit adjustment voucher: ${submitRes.error}`);
+      }
+
+      const approveRes = await PostingService.approveVoucher({
+        voucherId: draftRes.data.id,
+        approvedBy: actor.userId,
+        branchId: session.branch_id,
+        client: txClient,
+      });
+      if (!approveRes.success) {
+        throw new TellerDomainError("ADJUSTMENT_POSTING_FAILED", `Failed to approve adjustment voucher: ${approveRes.error}`);
+      }
+
+      const postRes = await PostingService.postVoucher({
+        voucherId: draftRes.data.id,
+        postedBy: actor.userId,
+        lines,
+        branchId: session.branch_id,
+        client: txClient,
+      });
+      if (!postRes.success) {
+        throw new TellerDomainError("ADJUSTMENT_POSTING_FAILED", `Failed to post adjustment voucher: ${postRes.error}`);
+      }
+
+      // 9. Atomically insert movement row in the same transaction
       return TellerMovementRepository.create(
         {
           session_id: session.id,
@@ -126,6 +306,17 @@ export class TellerMovementService {
     };
 
     if (client) {
+      if ((client as any)._txStatus !== "T") {
+        try {
+          await client.query("BEGIN");
+          const res = await execute(client);
+          await client.query("COMMIT");
+          return res;
+        } catch (err) {
+          try { await client.query("ROLLBACK"); } catch (_) {}
+          throw err;
+        }
+      }
       return execute(client);
     }
     return dbTransaction(execute);
@@ -172,21 +363,29 @@ export class TellerMovementService {
         };
       }
 
-      // 2. Resolve target session
+      // 2. Resolve target session (fallback to continuous branch cash custody session)
       let targetSessionId = params.teller_session_id;
       if (!targetSessionId) {
         const activeSessions = await TellerSessionRepository.findActiveByBranchId(branchId, txClient);
         const openSessions = activeSessions.filter((s) => s.status === "OPEN");
 
         if (openSessions.length === 0) {
-          throw new TellerDomainError(
-            "NO_OPEN_SESSION_FOUND",
-            `No open teller session found at branch '${branchId}' to receive cash projection '${sourceType}:${sourceId}'. Fail closed: physical cash must not be received without an active teller drawer.`
+          // Provision or anchor to the continuous branch cash custody session
+          const systemActor: AuthenticatedActor = {
+            userId: params.created_by || "system",
+            role: "SUPER_ADMIN",
+            branchId,
+          };
+          const continuousSession = await TellerSessionService.ensureContinuousBranchSession(
+            branchId,
+            systemActor,
+            txClient
           );
+          targetSessionId = continuousSession.id;
+        } else {
+          // Anchor to the single active open session
+          targetSessionId = openSessions[0].id;
         }
-
-        // Anchor to the single active open session
-        targetSessionId = openSessions[0].id;
       }
 
       // 3. Pessimistic row-lock on target session
@@ -210,6 +409,18 @@ export class TellerMovementService {
           "INVALID_SESSION_STATE",
           `Cannot project cash into session '${session.id}': session is currently ${session.status} (expected OPEN).`
         );
+      }
+
+      // Enforce sufficient cash in drawer for OUT projections (refunds, bank deposits, safe drops)
+      if (params.direction === "OUT") {
+        const totals = await TellerMovementRepository.getTotalsForSession(session.id, txClient);
+        const currentExpected = round2(session.opening_float + totals.netMovement);
+        if (amount > currentExpected) {
+          throw new TellerDomainError(
+            "INSUFFICIENT_FUNDS",
+            `Disbursement amount (₹${amount.toFixed(2)}) exceeds available cash in drawer (₹${currentExpected.toFixed(2)}).`
+          );
+        }
       }
 
       // 4. Create movement with duplicate rescue

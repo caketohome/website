@@ -99,7 +99,7 @@ async function main() {
     const testProduct = prodRes.rows[0];
 
     const branchRes = await dbQuery<{ id: string; name: string; code: string }>(
-      `SELECT id, name, code FROM public.branch WHERE deleted_at IS NULL LIMIT 1;`
+      `SELECT id, name, code FROM public.branch WHERE deleted_at IS NULL AND id = 'br_indiranagar_01' LIMIT 1;`
     );
     assert(branchRes.rows.length > 0, "Found authoritative Branch in PostgreSQL");
     const testBranch = branchRes.rows[0];
@@ -135,6 +135,11 @@ async function main() {
       branch_id: testBranch.id,
       branch_name: testBranch.name,
       branch_code: testBranch.code,
+      seller_gstin: "29AAACC1234F1Z5",
+      seller_legal_name: "CakeToHome India Private Limited",
+      seller_state_code: "29",
+      seller_state: "Karnataka",
+      seller_is_verified: true,
       delivery_partner_id: testRider.id,
       delivery_partner_name: riderName,
       delivery_address: {
@@ -162,6 +167,7 @@ async function main() {
           total: 850.00,
           tax_amount: 42.50,
           tax_rate: 5,
+          hsn_code: "19059090",
           merchandise_type: "CAKE",
         }
       ],

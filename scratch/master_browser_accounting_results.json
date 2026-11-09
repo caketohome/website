@@ -1,0 +1,267 @@
+{
+  "timestamp": "2026-10-16T04:29:16.424Z",
+  "auditResults": [
+    {
+      "id": "accounting_work_queue",
+      "name": "Financial Work Queue",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=accounting_work_queue",
+      "durationMs": 7425,
+      "uiElements": {
+        "buttons": 29,
+        "inputs": 4,
+        "tables": 1
+      },
+      "headings": [
+        "Central Accounting Work Queue",
+        "Purchases Inward Review & Posting Pipeline"
+      ],
+      "screenshotFile": "accounting_work_queue.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Accounting Work Queue ⌘K S admin_01 Central Accounting Work Queue Distributed B"
+    },
+    {
+      "id": "bills_payable",
+      "name": "Bills Payable (AP)",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=bills_payable",
+      "durationMs": 3991,
+      "uiElements": {
+        "buttons": 26,
+        "inputs": 6,
+        "tables": 1
+      },
+      "headings": [
+        "Bills Payable (AP)"
+      ],
+      "screenshotFile": "bills_payable.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Bills Payable ⌘K S admin_01 Bills Payable (AP) Supplier Accounts Payable Subled"
+    },
+    {
+      "id": "bills_receivable",
+      "name": "Bills Receivable (AR)",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=bills_receivable",
+      "durationMs": 3980,
+      "uiElements": {
+        "buttons": 34,
+        "inputs": 5,
+        "tables": 1
+      },
+      "headings": [
+        "Corporate Bills Receivable (AR)"
+      ],
+      "screenshotFile": "bills_receivable.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Bills Receivable ⌘K S admin_01 Corporate Bills Receivable (AR) Subledger Accoun"
+    },
+    {
+      "id": "teller_custody",
+      "name": "Teller Cash Custody",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=teller_custody",
+      "durationMs": 3908,
+      "uiElements": {
+        "buttons": 29,
+        "inputs": 3,
+        "tables": 0
+      },
+      "headings": [
+        "Teller Cash Custody & Shift Operations",
+        "No Active Cash Shift"
+      ],
+      "screenshotFile": "teller_custody.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Teller Custody ⌘K S admin_01 Teller Cash Custody & Shift Operations Cash drawer"
+    },
+    {
+      "id": "manual_journals",
+      "name": "Manual Journals",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=manual_journals",
+      "durationMs": 3915,
+      "uiElements": {
+        "buttons": 31,
+        "inputs": 6,
+        "tables": 1
+      },
+      "headings": [
+        "Manual Journal Vouchers (JV)"
+      ],
+      "screenshotFile": "manual_journals.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Manual Journals ⌘K S admin_01 Manual Journal Vouchers (JV) General ledger adjus"
+    },
+    {
+      "id": "cost_allocations",
+      "name": "Cost Allocations",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=cost_allocations",
+      "durationMs": 3963,
+      "uiElements": {
+        "buttons": 30,
+        "inputs": 1,
+        "tables": 0
+      },
+      "headings": [
+        "Cost Allocation Governance",
+        "No Allocation Rules Defined"
+      ],
+      "screenshotFile": "cost_allocations.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Cost Allocations ⌘K S admin_01 Cost Allocation Governance Phase C7.6 — Rule-bas"
+    },
+    {
+      "id": "gateway_settlements",
+      "name": "Gateway Settlements",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=gateway_settlements",
+      "durationMs": 4300,
+      "uiElements": {
+        "buttons": 25,
+        "inputs": 6,
+        "tables": 1
+      },
+      "headings": [
+        "Gateway Settlement & Payout Reconciliation"
+      ],
+      "screenshotFile": "gateway_settlements.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Gateway Settlements ⌘K S admin_01 Gateway Settlement & Payout Reconciliation Ba"
+    },
+    {
+      "id": "bank_accounts",
+      "name": "Bank Accounts Master",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=bank_accounts",
+      "durationMs": 4126,
+      "uiElements": {
+        "buttons": 26,
+        "inputs": 3,
+        "tables": 1
+      },
+      "headings": [
+        "Bank Account Master"
+      ],
+      "screenshotFile": "bank_accounts.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Bank Accounts ⌘K S admin_01 Bank Account Master Enterprise Treasury Corporate b"
+    },
+    {
+      "id": "bank_reconciliation",
+      "name": "Bank Reconciliation (BRS)",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=bank_reconciliation",
+      "durationMs": 4044,
+      "uiElements": {
+        "buttons": 30,
+        "inputs": 5,
+        "tables": 1
+      },
+      "headings": [
+        "Bank Reconciliation Statement (BRS)"
+      ],
+      "screenshotFile": "bank_reconciliation.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Bank Reconciliation ⌘K S admin_01 Bank Reconciliation Statement (BRS) Authorita"
+    },
+    {
+      "id": "general_ledger",
+      "name": "General Ledger",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=general_ledger",
+      "durationMs": 3988,
+      "uiElements": {
+        "buttons": 26,
+        "inputs": 4,
+        "tables": 0
+      },
+      "headings": [],
+      "screenshotFile": "general_ledger.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / General Ledger ⌘K S admin_01 📒 Account Ledger ⚖️ Trial Balance Account From To "
+    },
+    {
+      "id": "profit_loss",
+      "name": "Profit & Loss Statement",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=profit_loss",
+      "durationMs": 3927,
+      "uiElements": {
+        "buttons": 29,
+        "inputs": 3,
+        "tables": 0
+      },
+      "headings": [
+        "Accounting & Financial Reporting"
+      ],
+      "screenshotFile": "profit_loss.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Profit Loss ⌘K S admin_01 Accounting & Financial Reporting Read-only financial "
+    },
+    {
+      "id": "balance_sheet",
+      "name": "Balance Sheet Statement",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=balance_sheet",
+      "durationMs": 3990,
+      "uiElements": {
+        "buttons": 30,
+        "inputs": 2,
+        "tables": 0
+      },
+      "headings": [
+        "Balance Sheet",
+        "STATEMENT OF FINANCIAL POSITION (BALANCE SHEET)"
+      ],
+      "screenshotFile": "balance_sheet.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Balance Sheet ⌘K S admin_01 Balance Sheet Authoritative financial position deri"
+    },
+    {
+      "id": "cash_flow",
+      "name": "Cash Flow Statement",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=cash_flow",
+      "durationMs": 3945,
+      "uiElements": {
+        "buttons": 31,
+        "inputs": 5,
+        "tables": 0
+      },
+      "headings": [
+        "Cash Flow Statement",
+        "Direct Cash Flow Schedule",
+        "1. Cash Flows from Operating Activities",
+        "2. Cash Flows from Investing Activities",
+        "3. Cash Flows from Financing Activities",
+        "Indirect Method Reconciliation"
+      ],
+      "screenshotFile": "cash_flow.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Cash Flow ⌘K S admin_01 🌊 Cash Flow Statement Authoritative double-entry state"
+    },
+    {
+      "id": "accounting_setup",
+      "name": "Accounting Setup & Config",
+      "success": true,
+      "httpStatus": 200,
+      "finalUrl": "http://localhost:3001/dashboard?tab=accounting_setup",
+      "durationMs": 21129,
+      "uiElements": {
+        "buttons": 27,
+        "inputs": 2,
+        "tables": 0
+      },
+      "headings": [
+        "⚙️ Accounting Setup",
+        "Accounting Start Date"
+      ],
+      "screenshotFile": "accounting_setup.png",
+      "textSample": "🎂 CakeToHome OVERVIEW Dashboard Notifications COMMERCE Orders Catalog Search & Mapping Tax Master Cart Recovery Reorder Outreach OPERATIONS PARTNER MARKETPLACE FINANCE & TREASURY CUSTOMERS MARKETING CONTENT, SEO & AI ANALYTICS SYSTEM S admin_01 SUPER_ADMIN Dashboard / Accounting Setup ⌘K S admin_01 ⚙️ Accounting Setup Configure accounting start d"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": []
+}

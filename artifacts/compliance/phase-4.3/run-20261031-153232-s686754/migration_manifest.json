@@ -1,0 +1,62 @@
+{
+  "phase": "4.3",
+  "migration_framework": "Raw PostgreSQL Forward-Only SQL Migrations",
+  "database_version": "PostgreSQL 16.14 (Visual C++ build 1944, 64-bit)",
+  "migrations_inventory": [
+    {
+      "migration_id": "c7_10_coverage_configuration.sql",
+      "applied_in_cth_test": true,
+      "purpose": "Geographic delivery coverage boundaries and polygon storage"
+    },
+    {
+      "migration_id": "c7_11_assignment_schema.sql",
+      "applied_in_cth_test": true,
+      "purpose": "Rider shift and dispatch delivery assignment"
+    },
+    {
+      "migration_id": "c7_12_database_driven_gst_and_invoice_series.sql",
+      "applied_in_cth_test": false,
+      "applied_in_disposable": true,
+      "governance_flaw_detected": true,
+      "flaw_details": "Lines 38-51 unconditionally updated test prefixes (SAFE-TEST, CONC, FYBND, LKTEST, PRT-8899) to APPROVED with synthetic ca_audit_signed",
+      "remediation_approach": "FORWARD_ONLY_REMEDIATION",
+      "remedied_by": "c7_13_statutory_approval_integrity_and_governance.sql"
+    },
+    {
+      "migration_id": "c7_13_statutory_approval_integrity_and_governance.sql",
+      "applied_in_cth_test": false,
+      "applied_in_disposable": true,
+      "created_in_phase": "Phase 4.3",
+      "operations": [
+        "Create immutable public.invoice_series_approval_audit table",
+        "Add trigger trg_invoice_series_audit_immutable blocking UPDATE/DELETE",
+        "Add CHECK constraints chk_invoice_sequence_prefix_format and chk_invoice_sequence_approval_status",
+        "Reclassify all synthetic approvals to REVOKED_SYNTHETIC with is_active = false",
+        "Insert initial audit event logging the revocation of synthetic series",
+        "Create trigger trg_invoice_sequence_governance blocking synthetic approvers and enforcing state transitions"
+      ]
+    }
+  ],
+  "immutable_database_state": {
+    "cth_test": {
+      "protection_status": "STRICTLY_READ_ONLY",
+      "orders_count": 127,
+      "orders_sha256": "34d74cd009c307ac9bc502b3710d24bd6bd912faf703e307a2e265f5644d7835",
+      "invoices_count": 71,
+      "invoices_sha256": "eb27d8ec0e827278708f0146c82706c5f2fea42656887b8a8a33b2671daf2d39",
+      "accounting_vouchers_count": 4,
+      "accounting_vouchers_sha256": "3922e568c3c68213cd45d4fbb0925caad407b2c87d9195df5c8e795dfadc51ea",
+      "order_display_id_seq": 98587,
+      "invoice_sequences_count": 7
+    },
+    "cth_disposable_phase4_3": {
+      "status": "DISPOSABLE_VERIFICATION_ENVIRONMENT",
+      "applied_migrations": ["c7_12", "c7_13"],
+      "invoice_sequences_count": 10,
+      "approved_sequences_count": 3,
+      "revoked_synthetic_count": 6,
+      "deprecated_historical_count": 1
+    }
+  }
+}
+

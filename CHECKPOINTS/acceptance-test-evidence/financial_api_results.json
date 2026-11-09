@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Trial Balance (no params)",
+    "pass": true,
+    "details": "HTTP 200"
+  },
+  {
+    "name": "GL Ledger (AR account)",
+    "pass": true,
+    "details": "HTTP 200"
+  },
+  {
+    "name": "P&L (Oct 2026)",
+    "pass": true,
+    "details": "HTTP 200"
+  },
+  {
+    "name": "Balance Sheet (2026-10-03)",
+    "pass": true,
+    "details": "HTTP 200"
+  },
+  {
+    "name": "BS Equation (A=L+E)",
+    "pass": true,
+    "details": "A=0 L=0 E=0"
+  },
+  {
+    "name": "Cash Flow (Oct 2026)",
+    "pass": true,
+    "details": "HTTP 200"
+  },
+  {
+    "name": "CoA Accounts",
+    "pass": true,
+    "details": "HTTP 200"
+  },
+  {
+    "name": "Fiscal Periods",
+    "pass": true,
+    "details": "HTTP 200"
+  },
+  {
+    "name": "Work Queue Summary",
+    "pass": true,
+    "details": "HTTP 200"
+  },
+  {
+    "name": "Vouchers List",
+    "pass": true,
+    "details": "HTTP 200"
+  }
+]

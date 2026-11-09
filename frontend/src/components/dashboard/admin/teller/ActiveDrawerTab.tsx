@@ -16,11 +16,15 @@ import {
   AlertCircle,
   Loader2,
   Scale,
+  Truck,
+  Receipt,
 } from "lucide-react";
 import type { TellerRow, TellerSessionRow, TellerMovementRow } from "@frontend/lib/types/teller.types";
 import { MovementLedgerTable } from "./MovementLedgerTable";
 import { ManualAdjustmentModal } from "./ManualAdjustmentModal";
 import { CloseSessionModal } from "./CloseSessionModal";
+import { DeliveryHandoverModal } from "./DeliveryHandoverModal";
+import { DrawerExpensePaymentModal } from "./DrawerExpensePaymentModal";
 
 interface ActiveDrawerTabProps {
   activeSession: TellerSessionRow | null;
@@ -58,6 +62,8 @@ export function ActiveDrawerTab({
   const [showOpenModal, setShowOpenModal] = useState(false);
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
+  const [showHandoverModal, setShowHandoverModal] = useState(false);
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
 
   // Open Shift Form State
   const [openingFloat, setOpeningFloat] = useState("500");
@@ -70,6 +76,38 @@ export function ActiveDrawerTab({
     const val = Number(num);
     return isNaN(val) ? "0.00" : val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
+
+  // Branch Cash Position State for Continuous Custody
+  const [branchCash, setBranchCash] = useState<{
+    gl_cash_in_hand?: number;
+    gl_petty_cash?: number;
+    active_drawer_cash?: number;
+    vault_cash?: number;
+    total_physical_cash?: number;
+    variance?: number;
+    reconciliation_status?: string;
+  } | null>(null);
+  const [loadingBranchCash, setLoadingBranchCash] = useState(false);
+
+  const fetchBranchCash = React.useCallback(async () => {
+    if (!selectedBranchId) return;
+    setLoadingBranchCash(true);
+    try {
+      const res = await fetch(`/api/v1/admin/accounting/branch-cash-position/${selectedBranchId}`);
+      const data = await res.json();
+      if (data.success || data.data) {
+        setBranchCash(data.data || data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch branch cash position:", e);
+    } finally {
+      setLoadingBranchCash(false);
+    }
+  }, [selectedBranchId]);
+
+  React.useEffect(() => {
+    fetchBranchCash();
+  }, [fetchBranchCash]);
 
   // Calculate live movement totals for the UI
   const totalCashIn = movements
@@ -84,11 +122,15 @@ export function ActiveDrawerTab({
     ? Number(activeSession.expected_cash)
     : Number(activeSession?.opening_float || 0) + totalCashIn - totalCashOut;
 
+  const effectiveAvailableCash = activeSession
+    ? currentExpectedCash
+    : Number(branchCash?.total_physical_cash ?? branchCash?.gl_cash_in_hand ?? 0);
+
   // Handle Open Session Submit
   const handleOpenSession = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeTeller) {
-      setOpenError("Please select a teller counter first.");
+    if (!activeTeller && !selectedBranchId) {
+      setOpenError("Please select a branch location first.");
       return;
     }
 
@@ -105,7 +147,7 @@ export function ActiveDrawerTab({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          teller_id: activeTeller.id,
+          teller_id: activeTeller?.id || undefined,
           branch_id: selectedBranchId,
           opening_float: floatNum,
           notes: openNotes.trim() || undefined,
@@ -162,7 +204,7 @@ export function ActiveDrawerTab({
               className="text-xs py-1.5 px-3 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
               {tellers.length === 0 ? (
-                <option value="">No counters configured for this branch</option>
+                <option value="">Main Cash Drawer (MAIN)</option>
               ) : (
                 tellers.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -175,42 +217,137 @@ export function ActiveDrawerTab({
         </div>
 
         {/* Counter Info & Status */}
-        {activeTeller && (
-          <div className="flex items-center gap-3 text-xs text-slate-600 bg-slate-50 py-2 px-3.5 rounded-xl border border-slate-200/80">
-            <UserCheck className="w-4 h-4 text-slate-400" />
-            <div>
-              <span className="text-[11px] text-slate-400 block">Assigned Operator</span>
-              <span className="font-semibold text-slate-700">{activeTeller.user_id}</span>
-            </div>
+        <div className="flex items-center gap-3 text-xs text-slate-600 bg-slate-50 py-2 px-3.5 rounded-xl border border-slate-200/80">
+          <UserCheck className="w-4 h-4 text-slate-400" />
+          <div>
+            <span className="text-[11px] text-slate-400 block">Assigned Operator</span>
+            <span className="font-semibold text-slate-700">
+              {userId || activeTeller?.user_id || "Branch Manager"}
+            </span>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Main Session View Area */}
       {!activeSession ? (
-        /* No Active Session State */
-        <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center shadow-sm">
-          <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4 border border-blue-100 shadow-sm">
-            <Wallet className="w-7 h-7" />
-          </div>
-          <h3 className="text-lg font-bold text-slate-800">No Active Cash Shift</h3>
-          <p className="text-xs text-slate-500 max-w-md mx-auto mt-1 leading-relaxed">
-            {activeTeller
-              ? `Counter station "${activeTeller.name}" does not currently have an open cash session.`
-              : "Select a teller counter above to start shift operations."}
-          </p>
+        /* Continuous Branch Cash Custody View (Shift-Independent) */
+        <div className="space-y-6">
+          {/* Header Status & Continuous Operations Bar */}
+          <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2.5 mb-1.5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Continuous Branch Cash Custody
+                </span>
+                <span className="text-slate-400 text-xs font-mono">
+                  Branch: {branches.find((b) => b.id === selectedBranchId)?.name || selectedBranchId}
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 flex items-center gap-3">
+                <span>Branch cash custody is continuously available and derived directly from PostgreSQL General Ledger. Manual shift creation is not required.</span>
+              </p>
+            </div>
 
-          {activeTeller && (
-            <div className="mt-6">
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setShowHandoverModal(true)}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 border border-blue-400/30 transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <Truck className="w-3.5 h-3.5 text-blue-300" />
+                <span>Delivery Boy Collections</span>
+              </button>
+
+              <button
+                onClick={() => setShowExpenseModal(true)}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/30 transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <Receipt className="w-3.5 h-3.5 text-amber-300" />
+                <span>Branch Cash Expenses</span>
+              </button>
+
+              <button
+                onClick={() => setShowAdjustModal(true)}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <Plus className="w-3.5 h-3.5 text-slate-300" />
+                <span>Cash Adjustment</span>
+              </button>
+
               <button
                 onClick={() => setShowOpenModal(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-colors"
+                className="px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-colors flex items-center gap-1.5"
+                title="Optional: Isolate float to an individual counter till"
               >
-                <Plus className="w-4 h-4" />
-                <span>Open New Cash Shift</span>
+                <Lock className="w-3 h-3 text-slate-400" />
+                <span>Open Counter Till (Optional)</span>
               </button>
             </div>
-          )}
+          </div>
+
+          {/* 4 Live Financial Metric Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* GL Cash in Hand (1111) */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider">GL Cash in Hand (1111)</span>
+                <Wallet className="w-4 h-4 text-emerald-500" />
+              </div>
+              <div className="text-2xl font-bold font-mono text-slate-800">
+                ₹{formatAmount(branchCash?.gl_cash_in_hand ?? 0)}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">Authoritative persisted ledger cash</p>
+            </div>
+
+            {/* Branch Petty Cash (1114) */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider">Branch Petty Cash (1114)</span>
+                <Receipt className="w-4 h-4 text-amber-500" />
+              </div>
+              <div className="text-2xl font-bold font-mono text-slate-800">
+                ₹{formatAmount(branchCash?.gl_petty_cash ?? 0)}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">Imprest cash float</p>
+            </div>
+
+            {/* Branch Vault Custody */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider">Vault Custody</span>
+                <Lock className="w-4 h-4 text-purple-500" />
+              </div>
+              <div className="text-2xl font-bold font-mono text-slate-800">
+                ₹{formatAmount(branchCash?.vault_cash ?? 0)}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">Derived vault movements</p>
+            </div>
+
+            {/* Total Physical Cash Available */}
+            <div className="bg-emerald-50/60 rounded-2xl border border-emerald-200 p-5 shadow-sm">
+              <div className="flex items-center justify-between text-emerald-700 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider">Available Physical Cash</span>
+                <Scale className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div className="text-2xl font-extrabold font-mono text-emerald-900">
+                ₹{formatAmount(effectiveAvailableCash)}
+              </div>
+              <p className="text-[11px] text-emerald-700/80 mt-1">Continuous custody balance</p>
+            </div>
+          </div>
+
+          {/* Cash Ledger & Movements */}
+          <MovementLedgerTable
+            movements={movements}
+            loading={loadingMovements || loadingBranchCash}
+            onRefresh={() => {
+              onRefreshMovements();
+              fetchBranchCash();
+            }}
+            expectedCash={effectiveAvailableCash}
+            openingFloat={Number(branchCash?.gl_cash_in_hand ?? 0)}
+          />
         </div>
       ) : activeSession.status === "OPEN" ? (
         /* Active OPEN Session View */
@@ -235,12 +372,28 @@ export function ActiveDrawerTab({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setShowHandoverModal(true)}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 border border-blue-400/30 transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <Truck className="w-3.5 h-3.5 text-blue-300" />
+                <span>Delivery Boy Collections</span>
+              </button>
+
+              <button
+                onClick={() => setShowExpenseModal(true)}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/30 transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <Receipt className="w-3.5 h-3.5 text-amber-300" />
+                <span>Branch Cash Expenses</span>
+              </button>
+
               <button
                 onClick={() => setShowAdjustModal(true)}
                 className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-colors flex items-center gap-1.5 shadow-sm"
               >
-                <Plus className="w-3.5 h-3.5 text-blue-300" />
+                <Plus className="w-3.5 h-3.5 text-slate-300" />
                 <span>Cash Adjustment</span>
               </button>
 
@@ -443,15 +596,17 @@ export function ActiveDrawerTab({
       )}
 
       {/* Manual Adjustment Modal */}
-      {showAdjustModal && activeSession && (
+      {showAdjustModal && (
         <ManualAdjustmentModal
           isOpen={showAdjustModal}
           onClose={() => setShowAdjustModal(false)}
-          sessionId={activeSession.id}
+          sessionId={activeSession?.id}
+          branchId={selectedBranchId}
           tellerCode={activeTeller?.code}
           onSuccess={() => {
             onRefreshMovements();
             onSessionChanged();
+            fetchBranchCash();
           }}
         />
       )}
@@ -466,9 +621,39 @@ export function ActiveDrawerTab({
           tellerCode={activeTeller?.code}
           onSuccess={() => {
             onSessionChanged();
+            fetchBranchCash();
           }}
         />
       )}
+
+      {/* Delivery Boy Collections & Handover Modal */}
+      <DeliveryHandoverModal
+        isOpen={showHandoverModal}
+        onClose={() => setShowHandoverModal(false)}
+        branchId={selectedBranchId}
+        branchName={branches.find((b) => b.id === selectedBranchId)?.name || selectedBranchId}
+        tellerSessionId={activeSession?.id}
+        onHandoverAcknowledged={() => {
+          onRefreshMovements();
+          onSessionChanged();
+          fetchBranchCash();
+        }}
+      />
+
+      {/* Branch Cash Expenses Modal */}
+      <DrawerExpensePaymentModal
+        isOpen={showExpenseModal}
+        onClose={() => setShowExpenseModal(false)}
+        branchId={selectedBranchId}
+        branchName={branches.find((b) => b.id === selectedBranchId)?.name || selectedBranchId}
+        tellerSessionId={activeSession?.id}
+        availableDrawerCash={effectiveAvailableCash}
+        onExpensePaid={() => {
+          onRefreshMovements();
+          onSessionChanged();
+          fetchBranchCash();
+        }}
+      />
     </div>
   );
 }

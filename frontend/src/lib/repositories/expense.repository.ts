@@ -11,13 +11,14 @@
  */
 
 import { dbQuery } from "../db";
-import type {
+import {
   ExpenseRow,
   ExpenseCreateInput,
   ExpenseUpdateInput,
   ExpenseListFilters,
   ExpenseListResult,
   ExpenseStatus,
+  EXPENSE_TRANSITIONS,
   ExpenseRegisterRow,
   CategoryWiseExpenseRow,
   BranchWiseExpenseRow,
@@ -69,9 +70,9 @@ export class ExpenseRepository {
       input.expense_date,
       input.reference_no ?? null,
       input.description.trim(),
-      input.subtotal,
+      input.subtotal ?? input.total ?? 0,
       input.discount ?? 0,
-      input.taxable_value,
+      input.taxable_value ?? input.subtotal ?? input.total ?? 0,
       input.cgst ?? 0,
       input.sgst ?? 0,
       input.igst ?? 0,
@@ -250,7 +251,8 @@ export class ExpenseRepository {
     id: string,
     newStatus: ExpenseStatus,
     userId: string,
-    branchId?: string
+    branchId?: string,
+    reason?: string
   ): Promise<{ success: boolean; error?: string }> {
     const conditions = ["id = $1", "deleted_at IS NULL"];
     const params: unknown[] = [id];
@@ -265,19 +267,12 @@ export class ExpenseRepository {
     }
 
     const currentStatus = existing.rows[0].status;
-    const VALID_TRANSITIONS: Record<ExpenseStatus, ExpenseStatus[]> = {
-      DRAFT:     ["SUBMITTED", "CANCELLED"],
-      SUBMITTED: ["APPROVED", "DRAFT", "CANCELLED"],
-      APPROVED:  ["POSTED", "CANCELLED"],
-      POSTED:    ["REVERSED"],
-      REVERSED:  [],
-      CANCELLED: [],
-    };
+    const allowed = EXPENSE_TRANSITIONS[currentStatus] || [];
 
-    if (!VALID_TRANSITIONS[currentStatus].includes(newStatus)) {
+    if (!allowed.includes(newStatus)) {
       return {
         success: false,
-        error: `Invalid transition: ${currentStatus} → ${newStatus}. Allowed: ${VALID_TRANSITIONS[currentStatus].join(", ") || "none"}.`,
+        error: `Invalid transition: ${currentStatus} → ${newStatus}. Allowed: ${allowed.join(", ") || "none"}.`,
       };
     }
 
@@ -292,6 +287,10 @@ export class ExpenseRepository {
     if (newStatus === "POSTED") {
       sets.push(`posted_at = $${pIdx++}`);
       updateParams.push(new Date().toISOString());
+    }
+    if (newStatus === "REJECTED") {
+      sets.push(`reversal_reason = $${pIdx++}`);
+      updateParams.push(reason || "Rejected during review");
     }
 
     await dbQuery(

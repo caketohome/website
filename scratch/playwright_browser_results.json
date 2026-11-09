@@ -1,0 +1,31 @@
+[
+  {
+    "test": "Teller Panel Load",
+    "status": "VERIFIED"
+  },
+  {
+    "test": "Branch Cash Tab Navigation",
+    "status": "VERIFIED"
+  },
+  {
+    "test": "Branch Cash Isolation in Browser UI",
+    "status": "VERIFIED",
+    "details": {
+      "hasPhysicalCashCard": true,
+      "hasIndiranagar": true,
+      "excludesTc": true
+    }
+  },
+  {
+    "test": "Active Drawer Tab",
+    "status": "VERIFIED"
+  },
+  {
+    "test": "Manual Adjustment Modal Controls",
+    "status": "VERIFIED"
+  },
+  {
+    "test": "Session History Tab",
+    "status": "VERIFIED"
+  }
+]

@@ -1,0 +1,152 @@
+[
+  {
+    "test": "Admin Dashboard KPIs",
+    "status": "PASS",
+    "details": "HTTP 200"
+  },
+  {
+    "test": "List Orders",
+    "status": "FAIL",
+    "details": "HTTP 401, no orders array"
+  },
+  {
+    "test": "List Products",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "List Branches",
+    "status": "PASS",
+    "details": "HTTP 200"
+  },
+  {
+    "test": "Work Queue Summary",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "Work Queue Data",
+    "status": "PASS",
+    "details": "{\"success\":false,\"error\":\"UNAUTHORIZED\",\"message\":\"Authentication required to access accounting ledger.\",\"storage\":\"error\",\"backend_target\":\"http://localhost:9000\",\"backend_health\":\"PASS\",\"fallback\":\"DISABLED\"}"
+  },
+  {
+    "test": "General Ledger",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "Trial Balance",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "Profit & Loss",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "Balance Sheet",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "BS Equation",
+    "status": "PASS",
+    "details": "A=0 L=0 E=0"
+  },
+  {
+    "test": "Cash Flow",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "Fiscal Periods",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "Tax Configurations",
+    "status": "PASS",
+    "details": "HTTP 200"
+  },
+  {
+    "test": "List Suppliers",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "List Purchases",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "List Expenses",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "Gateway Settlements",
+    "status": "PASS",
+    "details": "HTTP 200"
+  },
+  {
+    "test": "Bank Accounts",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "Branch Inventory",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "Reports Endpoint",
+    "status": "PASS",
+    "details": "HTTP 200"
+  },
+  {
+    "test": "Branch Dashboard",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "Branch Orders",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "Branch Cash Position",
+    "status": "FAIL",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "RBAC: BM → GL (should deny)",
+    "status": "PASS",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "RBAC: BM → TB (should deny)",
+    "status": "PASS",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "RBAC: BM → Work Queue (should deny)",
+    "status": "PASS",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "RBAC: DLP → GL (should deny)",
+    "status": "PASS",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "RBAC: DLP → Admin Orders (should deny)",
+    "status": "PASS",
+    "details": "HTTP 401"
+  },
+  {
+    "test": "List Staff",
+    "status": "PASS",
+    "details": "HTTP 200"
+  }
+]

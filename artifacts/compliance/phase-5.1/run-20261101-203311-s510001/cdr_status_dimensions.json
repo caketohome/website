@@ -1,0 +1,44 @@
+{
+  "run_id": "run-20261101-203311-s510001",
+  "dimension_definitions": {
+    "technical_status": [
+      "NOT_IMPLEMENTED",
+      "IN_PROGRESS",
+      "IMPLEMENTED",
+      "VERIFIED_IN_REHEARSAL"
+    ],
+    "evidence_status": [
+      "NOT_SUBMITTED",
+      "DRAFT_ONLY",
+      "VERIFIED",
+      "DEFECTIVE"
+    ],
+    "professional_review_status": [
+      "PENDING",
+      "CS_REVIEWED",
+      "CA_REVIEWED",
+      "FULLY_REVIEWED"
+    ],
+    "corporate_approval_status": [
+      "PENDING",
+      "OPERATIONAL",
+      "APPROVED_BY_BOARD",
+      "BLOCKED"
+    ],
+    "operational_status": [
+      "DISABLED",
+      "READY",
+      "ACTIVE",
+      "FAIL-CLOSED"
+    ]
+  },
+  "dimension_summary": {
+    "total_decisions": 16,
+    "technical_ready": 16,
+    "evidence_verified": 6,
+    "evidence_not_submitted": 10,
+    "corporate_approved": 6,
+    "corporate_pending_or_blocked": 10,
+    "operational_fail_closed_or_ready": 16
+  }
+}

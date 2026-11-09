@@ -1,0 +1,43 @@
+{
+  "run_id": "run-20261101-213450-s530001",
+  "architecture": "SIX_LAYER_PRODUCTION_AUTHORIZATION",
+  "layers": [
+    {
+      "layer": 1,
+      "name": "Evidence Verification",
+      "status": "DRAFT_ONLY_RECEIVED",
+      "pass": false
+    },
+    {
+      "layer": 2,
+      "name": "Corporate Decision Approval",
+      "status": "PENDING_BOARD_ADOPTION",
+      "pass": false
+    },
+    {
+      "layer": 3,
+      "name": "Professional Compliance Clearance",
+      "status": "PENDING_REVIEWS",
+      "pass": false
+    },
+    {
+      "layer": 4,
+      "name": "Technical Readiness",
+      "status": "VERIFIED_IN_REHEARSAL",
+      "pass": true
+    },
+    {
+      "layer": 5,
+      "name": "Production Activation Authorization",
+      "status": "NOT_AUTHORIZED",
+      "pass": false
+    },
+    {
+      "layer": 6,
+      "name": "Activation Execution",
+      "status": "NOT_EXECUTED",
+      "pass": false
+    }
+  ],
+  "release_state": "FAIL_CLOSED"
+}

@@ -1,0 +1,127 @@
+{
+  "run_id": "run-20261031-153232-s686754",
+  "generated_at": "2026-10-31T10:37:05.432Z",
+  "total_files": 24,
+  "files": [
+    {
+      "path": "approval_api_security_report.md",
+      "sha256": "4c202d8ac41013565fb934c35bb9d556e95ada53e3f097e3909de3dffc4fbc03",
+      "bytes": 1805
+    },
+    {
+      "path": "database_constraints_and_privileges_audit.md",
+      "sha256": "d95ca5db8c5a107996207317453b52df6e438779dce5445c444fd4baee700362",
+      "bytes": 1931
+    },
+    {
+      "path": "deployment_safety_and_environment_isolation.md",
+      "sha256": "4799c1c9c6ac519d7e0b4ed5ea718586e651e88725d79ccecb2694a3930a4552",
+      "bytes": 1627
+    },
+    {
+      "path": "evidence/01_compliance_invoice_series_registry.png",
+      "sha256": "749d5155601ebef273dac7e1f92f935ab4f8655e3f55aa82a8ba5d19130ccfcb",
+      "bytes": 160171
+    },
+    {
+      "path": "evidence/02_proposed_series_pending_approval.json",
+      "sha256": "89b695eda20e03ea30b4b98dd8e1acd80767447564f7b35b7d301837af95bad9",
+      "bytes": 594
+    },
+    {
+      "path": "evidence/02_proposed_series_pending_approval.png",
+      "sha256": "a4c7a4f7159c83017e1ccf73fcd6618b54a241d921908b1b4ce7d08fbb3b5819",
+      "bytes": 627297
+    },
+    {
+      "path": "evidence/03_approved_series_audit_trail.json",
+      "sha256": "c7ed8ba89683ea5824e381bee443f21c5983965cc1ec6e200a26a9548d5352fe",
+      "bytes": 627
+    },
+    {
+      "path": "evidence/03_approved_series_audit_trail.png",
+      "sha256": "a4c7a4f7159c83017e1ccf73fcd6618b54a241d921908b1b4ce7d08fbb3b5819",
+      "bytes": 627297
+    },
+    {
+      "path": "evidence/04_legal_entities_api_view.json",
+      "sha256": "8f1a3ee715d7c1ae99dd4eea4e61a019722562d006317f39fdab80e7f5670eb2",
+      "bytes": 1047
+    },
+    {
+      "path": "evidence/04_legal_entities_api_view.png",
+      "sha256": "4aeeb554c65ce4cfc37763c6412cde7fa88b4f55f3cba5d72eeabb62e11e25de",
+      "bytes": 31105
+    },
+    {
+      "path": "findings_manifest.json",
+      "sha256": "a98fd5f27479d9ba5ea7b6e3d080acc5ebaeca50ce24595857b2e70ad470c445",
+      "bytes": 5019
+    },
+    {
+      "path": "forward_only_remediation_report.md",
+      "sha256": "943f7cef0062c7bc7f1e9ef2232072bbd6148e89f17134e4b71251d91bdc78fc",
+      "bytes": 1870
+    },
+    {
+      "path": "invoice_allocation_regression_report.md",
+      "sha256": "c4b479ab45d1430ec69724da09fe4a621256d30e138ca8084903b6cf050d50df",
+      "bytes": 1859
+    },
+    {
+      "path": "invoice_series_authorization_architecture.md",
+      "sha256": "1f095b2a893446458af4daaf443b5dbfd1f3d9f8f01a2d3fb263f0c013c4fc0d",
+      "bytes": 3270
+    },
+    {
+      "path": "migration_execution_history_audit.md",
+      "sha256": "bdcab5db2a40835137296fb48e6aff73ce3ea626f54b41cb095deaaf59830b95",
+      "bytes": 2038
+    },
+    {
+      "path": "migration_failure_and_recovery_test_report.md",
+      "sha256": "9af819d89f4e3bb84b30e8039b1a9c660d6c037f289f0c83b43e66e9acef6a00",
+      "bytes": 2476
+    },
+    {
+      "path": "migration_forensic_inventory.md",
+      "sha256": "a385a5f197fb9f12958c43ab06bec895d9c6a1308410438808028be8ddfbd818",
+      "bytes": 3904
+    },
+    {
+      "path": "migration_manifest.json",
+      "sha256": "ebc0669b8c194feb3ae42d1a884c5940829bd7f21ab1f337b9561efdfc484dcf",
+      "bytes": 2683
+    },
+    {
+      "path": "phase4_3_executive_report.md",
+      "sha256": "0a67eebe402855022ea1c2049aa7281854225e89fe7edcbe5cee512e06a85985",
+      "bytes": 4614
+    },
+    {
+      "path": "production_readiness_gate.md",
+      "sha256": "dcb27b35a9694a9f8b20121f2a67c6b9cb3514b6540bc7fea78d62ed68ee94bd",
+      "bytes": 3508
+    },
+    {
+      "path": "protected_database_integrity_report.md",
+      "sha256": "50d24c8a18f997ae85234826c0a36300734da03ab368e5701a63b9b272ca96f1",
+      "bytes": 2089
+    },
+    {
+      "path": "synthetic_approval_provenance_audit.md",
+      "sha256": "579da448d5f5535403c80c2e51671a02ca00c9b04d90d26d9a81273333d31f79",
+      "bytes": 2687
+    },
+    {
+      "path": "test_fixture_and_seed_isolation_report.md",
+      "sha256": "00485af8ab7292172dd6215f452de2e5f9fb77556751f0674e93d6c95d4fba1e",
+      "bytes": 1427
+    },
+    {
+      "path": "test_results_manifest.json",
+      "sha256": "81d0e3a54f29afc9376085aa05f10813b084e0f08e149132a203582d81b15d76",
+      "bytes": 5007
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "run_id": "run-20261101-210315-s520001",
+  "status": "PROFESSIONAL_REVIEW_REQUIRED",
+  "form_mgt_14": {
+    "statutory_basis": "Section 117 & Section 179(3) of Companies Act, 2013",
+    "applicability_assessment": "Private limited companies are granted specific exemptions under MCA Notification G.S.R. 464(E) dated 5th June 2015 regarding Section 179(3)(g) resolutions; qualified CS must determine whether MGT-14 filing is formally required for operational invoice delegation.",
+    "filing_status": "PENDING_CS_DETERMINATION"
+  },
+  "form_dir_12": {
+    "statutory_basis": "Section 170 of Companies Act, 2013 & Rule 17 Companies (Appointment and Qualification of Directors) Rules, 2014",
+    "applicability_assessment": "Applies strictly to appointment or cessation of Directors and Key Managerial Personnel (KMP); does not apply to routine operational signatory authorizations of non-KMP employees.",
+    "filing_status": "INAPPLICABLE_TO_ROUTINE_DELEGATION"
+  }
+}

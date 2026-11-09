@@ -1,0 +1,26 @@
+{
+  "run_id": "run-20261101-210315-s520001",
+  "enforcement": "DUAL_CONTROL_MANDATORY",
+  "roles": [
+    "CFO",
+    "IT_ADMIN",
+    "OPERATIONS_LEAD",
+    "SYSTEM_ENGINE"
+  ],
+  "toxic_combinations": [
+    {
+      "pair": [
+        "CFO",
+        "IT_ADMIN"
+      ],
+      "prohibited_reason": "Self-authorization and technical execution"
+    },
+    {
+      "pair": [
+        "OPERATIONS_LEAD",
+        "CFO"
+      ],
+      "prohibited_reason": "Bypass of order billing authorization"
+    }
+  ]
+}

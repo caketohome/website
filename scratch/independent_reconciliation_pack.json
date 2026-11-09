@@ -1,0 +1,496 @@
+{
+  "cutoff": "2026-10-20T11:14:51.865Z",
+  "metrics": {
+    "global_gl_cash_1111": "4325.00",
+    "operational_branches_gl_1111": {
+      "branches": [
+        {
+          "branch_id": "br_indiranagar",
+          "branch_name": "Indiranagar Flagship Bakery",
+          "net_balance": "6955.00"
+        },
+        {
+          "branch_id": "br_koramangala",
+          "branch_name": "Koramangala Central Hub",
+          "net_balance": "100.00"
+        },
+        {
+          "branch_id": "br_whitefield",
+          "branch_name": "Whitefield Tech Hub",
+          "net_balance": "300.00"
+        }
+      ],
+      "total": "7355.00"
+    },
+    "test_branches_gl_1111": {
+      "branches": [
+        {
+          "branch_id": "br_01KYWH05FY08YH6XJKATV0NXDR",
+          "branch_name": "PostgreSQL Authenticated Branch",
+          "is_soft_deleted": true,
+          "net_balance": "-1180.00"
+        },
+        {
+          "branch_id": "br_conc_audit_1792484092596",
+          "branch_name": "Audit Concurrency Branch",
+          "is_soft_deleted": false,
+          "net_balance": "300.00"
+        },
+        {
+          "branch_id": "br_tc_1792166039754",
+          "branch_name": "Test Teller Branch",
+          "is_soft_deleted": false,
+          "net_balance": "-550.00"
+        },
+        {
+          "branch_id": "br_tc_1792166133248",
+          "branch_name": "Test Teller Branch",
+          "is_soft_deleted": false,
+          "net_balance": "-550.00"
+        },
+        {
+          "branch_id": "br_tc_1792322561084",
+          "branch_name": "Test Teller Branch",
+          "is_soft_deleted": false,
+          "net_balance": "-550.00"
+        },
+        {
+          "branch_id": "br_tc_1792328314226",
+          "branch_name": "Test Teller Branch",
+          "is_soft_deleted": false,
+          "net_balance": "-550.00"
+        },
+        {
+          "branch_id": "br_tc_1792331237362",
+          "branch_name": "Test Teller Branch",
+          "is_soft_deleted": false,
+          "net_balance": "-550.00"
+        },
+        {
+          "branch_id": "br_tc_1792333656976",
+          "branch_name": "Test Teller Branch",
+          "is_soft_deleted": false,
+          "net_balance": "-550.00"
+        },
+        {
+          "branch_id": "br_tc_1792398245910",
+          "branch_name": "Test Teller Branch",
+          "is_soft_deleted": false,
+          "net_balance": "-550.00"
+        },
+        {
+          "branch_id": "br_tc_1792494251845",
+          "branch_name": "Test Remediation Branch",
+          "is_soft_deleted": false,
+          "net_balance": "250.00"
+        },
+        {
+          "branch_id": "br_tc_1792494280583",
+          "branch_name": "Test Remediation Branch",
+          "is_soft_deleted": false,
+          "net_balance": "250.00"
+        },
+        {
+          "branch_id": "br_tc_1792494388257",
+          "branch_name": "Test Remediation Branch",
+          "is_soft_deleted": false,
+          "net_balance": "250.00"
+        },
+        {
+          "branch_id": "br_tc_1792494440898",
+          "branch_name": "Test Remediation Branch",
+          "is_soft_deleted": false,
+          "net_balance": "250.00"
+        },
+        {
+          "branch_id": "br_tc_1792494515163",
+          "branch_name": "Test Remediation Branch",
+          "is_soft_deleted": false,
+          "net_balance": "250.00"
+        },
+        {
+          "branch_id": "br_tc_1792494576825",
+          "branch_name": "Test Remediation Branch",
+          "is_soft_deleted": false,
+          "net_balance": "250.00"
+        },
+        {
+          "branch_id": "br_tc_1792494606426",
+          "branch_name": "Test Remediation Branch",
+          "is_soft_deleted": false,
+          "net_balance": "200.00"
+        }
+      ],
+      "total": "-3030.00"
+    },
+    "petty_cash_1114": [],
+    "undeposited_cod_1122": [
+      {
+        "branch_id": "br_indiranagar",
+        "branch_name": "Indiranagar Flagship Bakery",
+        "net_undeposited_cod": "-2450.00"
+      },
+      {
+        "branch_id": "br_koramangala",
+        "branch_name": "Koramangala Central Hub",
+        "net_undeposited_cod": "-100.00"
+      },
+      {
+        "branch_id": "br_whitefield",
+        "branch_name": "Whitefield Tech Hub",
+        "net_undeposited_cod": "-500.00"
+      }
+    ],
+    "active_drawer_custody": [
+      {
+        "branch_id": "br_indiranagar",
+        "branch_name": "Indiranagar Flagship Bakery",
+        "session_id": "sess_1792218270317_o7qy8y1",
+        "teller_id": "tlr_1792200861133_oasasw7",
+        "opening_float": "500.00",
+        "net_movements": "2130.00",
+        "expected_drawer_cash": "2630.00"
+      },
+      {
+        "branch_id": "br_koramangala",
+        "branch_name": "Koramangala Central Hub",
+        "session_id": "sess_custody_br_koramangala_1792482085024",
+        "teller_id": "tlr_br_koramangala_main",
+        "opening_float": "0.00",
+        "net_movements": "100.00",
+        "expected_drawer_cash": "100.00"
+      },
+      {
+        "branch_id": "br_whitefield",
+        "branch_name": "Whitefield Tech Hub",
+        "session_id": "sess_custody_br_whitefield_1792475584760",
+        "teller_id": "tlr_br_whitefield_main",
+        "opening_float": "0.00",
+        "net_movements": "350.00",
+        "expected_drawer_cash": "350.00"
+      }
+    ],
+    "closed_sessions_awaiting_disposition": [],
+    "vault_custody": [
+      {
+        "branch_id": "br_01KYZ4ANQQA050PNED6F2AR7ND",
+        "branch_name": "alex",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_chennai_tnagar",
+        "branch_name": "Chennai T. Nagar Artisanal Bakery",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYWJ16081QW1RWANZ6TXVCGA",
+        "branch_name": "Direct Branch 1785517348386",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "test_branch_e2e_1787894282691",
+        "branch_name": "E2E Automated Verification Branch",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_1787678841932",
+        "branch_name": "E2E Kerala Store",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_1787676189375",
+        "branch_name": "E2E Kerala Store",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_1787668807283",
+        "branch_name": "E2E Kerala Store",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_1787676222530",
+        "branch_name": "E2E Maharashtra Store",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_1787677037513",
+        "branch_name": "E2E MH Bandra Bakery",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_1787677427386",
+        "branch_name": "E2E MH Bandra Bakery",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_1787717642299",
+        "branch_name": "E2E MH Bandra Bakery",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_1787678886087",
+        "branch_name": "E2E Tamil Nadu Store",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_1787676208729",
+        "branch_name": "E2E Tamil Nadu Store",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_1787677407085",
+        "branch_name": "E2E TN Anna Nagar Bakery",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_1787717633262",
+        "branch_name": "E2E TN Anna Nagar Bakery",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_1787677023822",
+        "branch_name": "E2E TN Anna Nagar Bakery",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_hsr",
+        "branch_name": "HSR Layout Kitchen",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_indiranagar",
+        "branch_name": "Indiranagar Flagship Bakery",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_kochi_ernakulam",
+        "branch_name": "Kochi Ernakulam Gourmet Hub",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_kollam_central",
+        "branch_name": "Kollam Central Cake Studio",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_1788949580698",
+        "branch_name": "Kollam Central Cake Studio",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_koramangala",
+        "branch_name": "Koramangala Central Hub",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_mumbai_bandra",
+        "branch_name": "Mumbai Bandra West Cake Studio",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYXBT3K3MW97W66FEB6H1QMD",
+        "branch_name": "Playwright E2E Hub 1785544374840",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYXBTX7J15F9BKS841MSTRX2",
+        "branch_name": "Playwright E2E Hub 1785544406051",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYXBYEXVJ2Y74CV5MD6TWM7G",
+        "branch_name": "Playwright E2E Hub 1785544517483",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYXHX7ZSQ35F1H2V14E730MX",
+        "branch_name": "Playwright E2E Hub 1785550740073",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYXJNXKVAV15KCSTT30F5NMZ",
+        "branch_name": "Playwright E2E Hub 1785551579446",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYXK06T8RKVGTGTVPBBV8BKQ",
+        "branch_name": "Playwright E2E Hub 1785551916661",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYXKJYFXJQCQ8RD9CJXNV0MJ",
+        "branch_name": "Playwright E2E Hub 1785552529768",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYXMRTGV4AWTEWP0R3KY37SE",
+        "branch_name": "Playwright E2E Hub 1785553774096",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYYNSFW9E1NW46WZDWFNP9Q9",
+        "branch_name": "Playwright E2E Hub 1785588394691",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYYNW14GG45A8KRES0FXT2TD",
+        "branch_name": "Playwright E2E Hub 1785588481950",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYYXJPG8GCJX8CDSEGRPQTCP",
+        "branch_name": "Playwright E2E Hub 1785596563329",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYYZ4SYFXPYJ0HMV8PJFRYGA",
+        "branch_name": "Playwright E2E Hub 1785598192952",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYYZ6PRQ78BKEBZMEPT3D08N",
+        "branch_name": "Playwright E2E Hub 1785598269763",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYYZ8FNYFNMEH361A7K3W0T8",
+        "branch_name": "Playwright E2E Hub 1785598327912",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYWH5SXYWVPHC73TZN245CKR",
+        "branch_name": "Postgres Pipeline Branch 1785516451109",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYWH6N9KF1FZBJ252K82TE82",
+        "branch_name": "Postgres Pipeline Branch 1785516479519",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYWH9YFVV5AK15D6313HB1NC",
+        "branch_name": "Postgres Pipeline Branch 1785516587008",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYWHBCDMVT74MM27BTJFRSNB",
+        "branch_name": "Postgres Pipeline Branch 1785516633599",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYWHZY9KHRFB7MKTH1XJ3R4A",
+        "branch_name": "Postgres Pipeline Branch 1785517301340",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYWJ6N07HQ27NSX08TKTZ796",
+        "branch_name": "Postgres Pipeline Branch 1785517527036",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYWJBB97D59J26J1DSQ50QCM",
+        "branch_name": "Postgres Pipeline Branch 1785517674748",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_01KYWJVYN9F2VEVVNHW53CCNGA",
+        "branch_name": "Postgres Pipeline Branch 1785518223598",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_search_test_1788955318258",
+        "branch_name": "Search Verification Bakery 1788955318258",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_search_test_1788957821141",
+        "branch_name": "Search Verification Bakery 1788957821141",
+        "vault_cash": "0.00"
+      },
+      {
+        "branch_id": "br_whitefield",
+        "branch_name": "Whitefield Tech Hub",
+        "vault_cash": "0.00"
+      }
+    ],
+    "service_summary": {
+      "total_gl_cash_in_hand": 7355,
+      "total_active_drawer_cash": 3080,
+      "total_closed_sessions_cash": 0,
+      "total_vault_cash": 0,
+      "total_physical_cash": 3080,
+      "branches_reported": 47,
+      "active_branches": [
+        {
+          "branch_id": "br_indiranagar",
+          "branch_name": "Indiranagar Flagship Bakery",
+          "gl_cash_in_hand": 6955,
+          "gl_petty_cash": 0,
+          "active_drawer_cash": 2630,
+          "closed_sessions_cash": 0,
+          "vault_cash": 0,
+          "total_physical_cash": 2630,
+          "total_cash_in_hand": 6955,
+          "active_sessions_count": 1,
+          "last_activity_date": "2026-10-17 07:07:05.965234+00",
+          "status": "ACTIVE_SESSION",
+          "max_drawer_cash_limit": 50000,
+          "petty_cash_imprest_limit": 15000,
+          "warning_threshold": 50000,
+          "critical_threshold": 70000,
+          "drawer_threshold_status": "NORMAL",
+          "is_cash_tender_blocked": false,
+          "variance": 4325,
+          "reconciliation_status": "VARIANCE_DETECTED",
+          "requires_audit": true
+        },
+        {
+          "branch_id": "br_koramangala",
+          "branch_name": "Koramangala Central Hub",
+          "gl_cash_in_hand": 100,
+          "gl_petty_cash": 0,
+          "active_drawer_cash": 100,
+          "closed_sessions_cash": 0,
+          "vault_cash": 0,
+          "total_physical_cash": 100,
+          "total_cash_in_hand": 100,
+          "active_sessions_count": 1,
+          "last_activity_date": "2026-10-20 07:41:24.757079+00",
+          "status": "ACTIVE_SESSION",
+          "max_drawer_cash_limit": 50000,
+          "petty_cash_imprest_limit": 15000,
+          "warning_threshold": 50000,
+          "critical_threshold": 70000,
+          "drawer_threshold_status": "NORMAL",
+          "is_cash_tender_blocked": false,
+          "variance": 0,
+          "reconciliation_status": "RECONCILED",
+          "requires_audit": false
+        },
+        {
+          "branch_id": "br_whitefield",
+          "branch_name": "Whitefield Tech Hub",
+          "gl_cash_in_hand": 300,
+          "gl_petty_cash": 0,
+          "active_drawer_cash": 350,
+          "closed_sessions_cash": 0,
+          "vault_cash": 0,
+          "total_physical_cash": 350,
+          "total_cash_in_hand": 300,
+          "active_sessions_count": 1,
+          "last_activity_date": "2026-10-20 05:53:09.118617+00",
+          "status": "ACTIVE_SESSION",
+          "max_drawer_cash_limit": 50000,
+          "petty_cash_imprest_limit": 15000,
+          "warning_threshold": 50000,
+          "critical_threshold": 70000,
+          "drawer_threshold_status": "NORMAL",
+          "is_cash_tender_blocked": false,
+          "variance": -50,
+          "reconciliation_status": "VARIANCE_DETECTED",
+          "requires_audit": true
+        }
+      ]
+    }
+  }
+}

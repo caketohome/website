@@ -1,0 +1,1753 @@
+{
+  "br_indiranagar": {
+    "branch": {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      },
+      "created_at": "2026-08-28T04:07:08.740Z"
+    },
+    "journalLines": [
+      {
+        "line_id": "jln_00MVBY1UI362FR",
+        "journal_entry_id": "jent_00MVBY1UGJQ9S2CM",
+        "entry_no": "JE-FY2026-27-20261017-Y35JBC",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVBY1U3I6HUVDP",
+        "voucher_no": "VCH-JOURNAL-FY2026-27-20261017-YRSXXF",
+        "voucher_type": "JOURNAL",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Teller session cash variance settlement for Session sess_1792213794674_w5zkial (Excess: 5000)",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "5000.00",
+        "credit_amount": "0.00",
+        "line_narration": "Cash excess recorded on settlement of teller session sess_1792213794674_w5zkial",
+        "line_metadata": null,
+        "created_at": "2026-10-17T05:16:22.591Z"
+      },
+      {
+        "line_id": "jln_00MVBY2TDIXGSV",
+        "journal_entry_id": "jent_00MVBY2TB55DHYY8",
+        "entry_no": "JE-FY2026-27-20261017-W0FKZE",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVBY2SYOCJV538",
+        "voucher_no": "VCH-JOURNAL-FY2026-27-20261017-YNXYCV",
+        "voucher_type": "JOURNAL",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Teller session cash variance settlement for Session sess_1792214190939_tlgedk4 (Shortage: 175)",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "0.00",
+        "credit_amount": "175.00",
+        "line_narration": "Cash shortage deduction from physical drawer for session sess_1792214190939_tlgedk4",
+        "line_metadata": null,
+        "created_at": "2026-10-17T05:17:07.818Z"
+      },
+      {
+        "line_id": "jln_00MVC0M3SPVA2I",
+        "journal_entry_id": "jent_00MVC0M3QTZI2F5F",
+        "entry_no": "JE-FY2026-20261017-JT2LGY",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC0M3DOLKDZVA",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-PE9ULX",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-01EM - Partner dp_test_indiranagar_01",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "350.00",
+        "credit_amount": "0.00",
+        "line_narration": "Physical cash received at drawer - Handover HND-20261017-01EM",
+        "line_metadata": {
+          "handover_id": "hnd_1792218486477_01em"
+        },
+        "created_at": "2026-10-17T06:28:07.196Z"
+      },
+      {
+        "line_id": "jln_00MVC0M3UQG53D",
+        "journal_entry_id": "jent_00MVC0M3QTZI2F5F",
+        "entry_no": "JE-FY2026-20261017-JT2LGY",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC0M3DOLKDZVA",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-PE9ULX",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-01EM - Partner dp_test_indiranagar_01",
+        "account_code": "1122",
+        "account_name": "Undeposited COD",
+        "debit_amount": "0.00",
+        "credit_amount": "350.00",
+        "line_narration": "Undeposited COD cleared - Handover HND-20261017-01EM",
+        "line_metadata": {
+          "handover_id": "hnd_1792218486477_01em"
+        },
+        "created_at": "2026-10-17T06:28:07.196Z"
+      },
+      {
+        "line_id": "jln_00MVC102S9D7YS",
+        "journal_entry_id": "jent_00MVC102QTZ1L9IN",
+        "entry_no": "JE-FY2026-20261017-2CXWRP",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC102ER1IZYT0",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-VKAPLA",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-RSUQ - Partner dp_test_indiranagar_01",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "350.00",
+        "credit_amount": "0.00",
+        "line_narration": "Physical cash received at drawer - Handover HND-20261017-RSUQ",
+        "line_metadata": {
+          "handover_id": "hnd_1792219138629_rsuq"
+        },
+        "created_at": "2026-10-17T06:38:59.096Z"
+      },
+      {
+        "line_id": "jln_00MVC102TQ0HVW",
+        "journal_entry_id": "jent_00MVC102QTZ1L9IN",
+        "entry_no": "JE-FY2026-20261017-2CXWRP",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC102ER1IZYT0",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-VKAPLA",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-RSUQ - Partner dp_test_indiranagar_01",
+        "account_code": "1122",
+        "account_name": "Undeposited COD",
+        "debit_amount": "0.00",
+        "credit_amount": "350.00",
+        "line_narration": "Undeposited COD cleared - Handover HND-20261017-RSUQ",
+        "line_metadata": {
+          "handover_id": "hnd_1792219138629_rsuq"
+        },
+        "created_at": "2026-10-17T06:38:59.096Z"
+      },
+      {
+        "line_id": "jln_00MVC10L10Z7IJ",
+        "journal_entry_id": "jent_00MVC10KZX78AENL",
+        "entry_no": "JE-FY2026-20261017-I45FEI",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC10KOHRZYNU6",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-4BZ4S7",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-PON5 - Partner dp_test_indiranagar_01",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "350.00",
+        "credit_amount": "0.00",
+        "line_narration": "Physical cash received at drawer - Handover HND-20261017-PON5",
+        "line_metadata": {
+          "handover_id": "hnd_1792219162393_pon5"
+        },
+        "created_at": "2026-10-17T06:39:22.810Z"
+      },
+      {
+        "line_id": "jln_00MVC10L20GAKI",
+        "journal_entry_id": "jent_00MVC10KZX78AENL",
+        "entry_no": "JE-FY2026-20261017-I45FEI",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC10KOHRZYNU6",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-4BZ4S7",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-PON5 - Partner dp_test_indiranagar_01",
+        "account_code": "1122",
+        "account_name": "Undeposited COD",
+        "debit_amount": "0.00",
+        "credit_amount": "350.00",
+        "line_narration": "Undeposited COD cleared - Handover HND-20261017-PON5",
+        "line_metadata": {
+          "handover_id": "hnd_1792219162393_pon5"
+        },
+        "created_at": "2026-10-17T06:39:22.810Z"
+      },
+      {
+        "line_id": "jln_00MVC12CB1LLP3",
+        "journal_entry_id": "jent_00MVC12CA13O253W",
+        "entry_no": "JE-FY2026-20261017-BZB3KE",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC12BZEIQ8AXR",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-RESWXJ",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-B549 - Partner dp_test_indiranagar_01",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "350.00",
+        "credit_amount": "0.00",
+        "line_narration": "Physical cash received at drawer - Handover HND-20261017-B549",
+        "line_metadata": {
+          "handover_id": "hnd_1792219244521_b549"
+        },
+        "created_at": "2026-10-17T06:40:44.872Z"
+      },
+      {
+        "line_id": "jln_00MVC12CC1VBPI",
+        "journal_entry_id": "jent_00MVC12CA13O253W",
+        "entry_no": "JE-FY2026-20261017-BZB3KE",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC12BZEIQ8AXR",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-RESWXJ",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-B549 - Partner dp_test_indiranagar_01",
+        "account_code": "1122",
+        "account_name": "Undeposited COD",
+        "debit_amount": "0.00",
+        "credit_amount": "350.00",
+        "line_narration": "Undeposited COD cleared - Handover HND-20261017-B549",
+        "line_metadata": {
+          "handover_id": "hnd_1792219244521_b549"
+        },
+        "created_at": "2026-10-17T06:40:44.872Z"
+      },
+      {
+        "line_id": "jln_00MVC12FJ6ZEJ4",
+        "journal_entry_id": "jent_00MVC12FH3BFLG7M",
+        "entry_no": "JE-FY2026-27-20261017-YSIKDZ",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC12DSN2XA9XA",
+        "voucher_no": "VCH-EXPENSE-FY2026-27-20261017-2ERHCZ",
+        "voucher_type": "EXPENSE",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Expense: Emergency dairy purchase",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "0.00",
+        "credit_amount": "80.00",
+        "line_narration": "Cash drawer disbursement for expense exp_00MVC12DDIO32U10",
+        "line_metadata": {
+          "expense_id": "exp_00MVC12DDIO32U10",
+          "teller_session_id": "sess_1792218270317_o7qy8y1"
+        },
+        "created_at": "2026-10-17T06:40:48.934Z"
+      },
+      {
+        "line_id": "jln_00MVC13ZEHHH0H",
+        "journal_entry_id": "jent_00MVC13ZD8A88UX3",
+        "entry_no": "JE-FY2026-20261017-VR6OZA",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC13Z1J644DZY",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-BTUD32",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-FT8J - Partner dp_test_indiranagar_01",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "350.00",
+        "credit_amount": "0.00",
+        "line_narration": "Physical cash received at drawer - Handover HND-20261017-FT8J",
+        "line_metadata": {
+          "handover_id": "hnd_1792219320914_ft8j"
+        },
+        "created_at": "2026-10-17T06:42:01.385Z"
+      },
+      {
+        "line_id": "jln_00MVC13ZFN1WAC",
+        "journal_entry_id": "jent_00MVC13ZD8A88UX3",
+        "entry_no": "JE-FY2026-20261017-VR6OZA",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC13Z1J644DZY",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-BTUD32",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-FT8J - Partner dp_test_indiranagar_01",
+        "account_code": "1122",
+        "account_name": "Undeposited COD",
+        "debit_amount": "0.00",
+        "credit_amount": "350.00",
+        "line_narration": "Undeposited COD cleared - Handover HND-20261017-FT8J",
+        "line_metadata": {
+          "handover_id": "hnd_1792219320914_ft8j"
+        },
+        "created_at": "2026-10-17T06:42:01.385Z"
+      },
+      {
+        "line_id": "jln_00MVC14330AU3Z",
+        "journal_entry_id": "jent_00MVC143147A60RU",
+        "entry_no": "JE-FY2026-27-20261017-O704V3",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC1416T1QFOZO",
+        "voucher_no": "VCH-EXPENSE-FY2026-27-20261017-Z2MLEN",
+        "voucher_type": "EXPENSE",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Expense: Emergency dairy purchase",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "0.00",
+        "credit_amount": "80.00",
+        "line_narration": "Cash drawer disbursement for expense exp_00MVC140LH0UB6IU",
+        "line_metadata": {
+          "expense_id": "exp_00MVC140LH0UB6IU",
+          "teller_session_id": "sess_1792218270317_o7qy8y1"
+        },
+        "created_at": "2026-10-17T06:42:06.180Z"
+      },
+      {
+        "line_id": "jln_00MVC16USS0HZT",
+        "journal_entry_id": "jent_00MVC16URV6QY6ZK",
+        "entry_no": "JE-FY2026-20261017-O65IR8",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC16UHGR9WGAI",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-MLRQ00",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-5BP5 - Partner dp_test_indiranagar_01",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "350.00",
+        "credit_amount": "0.00",
+        "line_narration": "Physical cash received at drawer - Handover HND-20261017-5BP5",
+        "line_metadata": {
+          "handover_id": "hnd_1792219454680_5bp5"
+        },
+        "created_at": "2026-10-17T06:44:15.493Z"
+      },
+      {
+        "line_id": "jln_00MVC16UTT9SYY",
+        "journal_entry_id": "jent_00MVC16URV6QY6ZK",
+        "entry_no": "JE-FY2026-20261017-O65IR8",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC16UHGR9WGAI",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-MLRQ00",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-5BP5 - Partner dp_test_indiranagar_01",
+        "account_code": "1122",
+        "account_name": "Undeposited COD",
+        "debit_amount": "0.00",
+        "credit_amount": "350.00",
+        "line_narration": "Undeposited COD cleared - Handover HND-20261017-5BP5",
+        "line_metadata": {
+          "handover_id": "hnd_1792219454680_5bp5"
+        },
+        "created_at": "2026-10-17T06:44:15.493Z"
+      },
+      {
+        "line_id": "jln_00MVC16XKQZD1U",
+        "journal_entry_id": "jent_00MVC16XIUUB0FTI",
+        "entry_no": "JE-FY2026-27-20261017-D015B0",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC16W0FDY4CPQ",
+        "voucher_no": "VCH-EXPENSE-FY2026-27-20261017-VZ90MA",
+        "voucher_type": "EXPENSE",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Expense: Emergency dairy purchase",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "0.00",
+        "credit_amount": "80.00",
+        "line_narration": "Cash drawer disbursement for expense exp_00MVC16VSLIRT0EQ",
+        "line_metadata": {
+          "expense_id": "exp_00MVC16VSLIRT0EQ",
+          "teller_session_id": "sess_1792218270317_o7qy8y1"
+        },
+        "created_at": "2026-10-17T06:44:19.038Z"
+      },
+      {
+        "line_id": "jln_00MVC2055MPIB8",
+        "journal_entry_id": "jent_00MVC20544EN5KX9",
+        "entry_no": "JE-FY2026-20261017-Y3PDIB",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC204Q5L47SUP",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-605TQF",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-W7W3 - Partner dp_test_indiranagar_01",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "350.00",
+        "credit_amount": "0.00",
+        "line_narration": "Physical cash received at drawer - Handover HND-20261017-W7W3",
+        "line_metadata": {
+          "handover_id": "hnd_1792220821150_w7w3"
+        },
+        "created_at": "2026-10-17T07:07:01.628Z"
+      },
+      {
+        "line_id": "jln_00MVC20576CR5W",
+        "journal_entry_id": "jent_00MVC20544EN5KX9",
+        "entry_no": "JE-FY2026-20261017-Y3PDIB",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC204Q5L47SUP",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261017-605TQF",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HND-20261017-W7W3 - Partner dp_test_indiranagar_01",
+        "account_code": "1122",
+        "account_name": "Undeposited COD",
+        "debit_amount": "0.00",
+        "credit_amount": "350.00",
+        "line_narration": "Undeposited COD cleared - Handover HND-20261017-W7W3",
+        "line_metadata": {
+          "handover_id": "hnd_1792220821150_w7w3"
+        },
+        "created_at": "2026-10-17T07:07:01.628Z"
+      },
+      {
+        "line_id": "jln_00MVC208E5TDXF",
+        "journal_entry_id": "jent_00MVC208C1MQW4KS",
+        "entry_no": "JE-FY2026-27-20261017-N1NLI8",
+        "entry_date": "2026-10-16T18:30:00.000Z",
+        "voucher_id": "vch_00MVC206M3ZBYQQO",
+        "voucher_no": "VCH-EXPENSE-FY2026-27-20261017-SKC7JH",
+        "voucher_type": "EXPENSE",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Expense: Emergency dairy purchase",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "0.00",
+        "credit_amount": "80.00",
+        "line_narration": "Cash drawer disbursement for expense exp_00MVC206CQR8XZYT",
+        "line_metadata": {
+          "expense_id": "exp_00MVC206CQR8XZYT",
+          "teller_session_id": "sess_1792218270317_o7qy8y1"
+        },
+        "created_at": "2026-10-17T07:07:05.965Z"
+      }
+    ],
+    "sessions": [
+      {
+        "id": "sess_1792200861365_2owg12s",
+        "teller_id": "tlr_1792200861133_oasasw7",
+        "branch_id": "br_indiranagar",
+        "status": "SETTLED",
+        "opening_float": "500.00",
+        "expected_cash": "500.00",
+        "closing_count": "500.00",
+        "variance": "0.00",
+        "opened_by": "shpmgr_01",
+        "opened_at": "2026-10-17T01:34:21.280Z",
+        "closed_by": "shpmgr_01",
+        "closed_at": "2026-10-17T01:34:21.923Z",
+        "verified_by": "usr_sup_indiranagar",
+        "verified_at": "2026-10-17T05:09:47.602Z",
+        "settled_by": "usr_fin_indiranagar",
+        "settled_at": "2026-10-17T05:09:47.956Z",
+        "settlement_voucher_id": null,
+        "notes": "Pre-test finance settle",
+        "created_at": "2026-10-17T01:34:21.280Z",
+        "updated_at": "2026-10-17T05:09:47.956Z",
+        "teller_name": "Manager Counter (br_indiranagar)"
+      },
+      {
+        "id": "sess_1792213794674_w5zkial",
+        "teller_id": "tlr_1792200861133_oasasw7",
+        "branch_id": "br_indiranagar",
+        "status": "SETTLED",
+        "opening_float": "500.00",
+        "expected_cash": "-4325.00",
+        "closing_count": "675.00",
+        "variance": "5000.00",
+        "opened_by": "mgr_indiranagar",
+        "opened_at": "2026-10-17T05:09:54.512Z",
+        "closed_by": "mgr_indiranagar",
+        "closed_at": "2026-10-17T05:10:04.619Z",
+        "verified_by": "usr_sup_indiranagar",
+        "verified_at": "2026-10-17T05:16:22.231Z",
+        "settled_by": "usr_fin_indiranagar",
+        "settled_at": "2026-10-17T05:16:22.591Z",
+        "settlement_voucher_id": "vch_00MVBY1U3I6HUVDP",
+        "notes": "Pre-test finance settle",
+        "created_at": "2026-10-17T05:09:54.512Z",
+        "updated_at": "2026-10-17T05:16:22.591Z",
+        "teller_name": "Manager Counter (br_indiranagar)"
+      },
+      {
+        "id": "sess_1792214190939_tlgedk4",
+        "teller_id": "tlr_1792200861133_oasasw7",
+        "branch_id": "br_indiranagar",
+        "status": "SETTLED",
+        "opening_float": "500.00",
+        "expected_cash": "675.00",
+        "closing_count": "500.00",
+        "variance": "-175.00",
+        "opened_by": "mgr_indiranagar",
+        "opened_at": "2026-10-17T05:16:30.790Z",
+        "closed_by": "mgr_indiranagar",
+        "closed_at": "2026-10-17T05:17:07.149Z",
+        "verified_by": "usr_sup_indiranagar",
+        "verified_at": "2026-10-17T05:17:07.484Z",
+        "settled_by": "usr_fin_indiranagar",
+        "settled_at": "2026-10-17T05:17:07.818Z",
+        "settlement_voucher_id": "vch_00MVBY2SYOCJV538",
+        "notes": "Pre-test finance settle",
+        "created_at": "2026-10-17T05:16:30.790Z",
+        "updated_at": "2026-10-17T05:17:07.818Z",
+        "teller_name": "Manager Counter (br_indiranagar)"
+      },
+      {
+        "id": "sess_1792214236264_xhrc8hf",
+        "teller_id": "tlr_1792200861133_oasasw7",
+        "branch_id": "br_indiranagar",
+        "status": "SETTLED",
+        "opening_float": "500.00",
+        "expected_cash": "675.00",
+        "closing_count": "675.00",
+        "variance": "0.00",
+        "opened_by": "mgr_indiranagar",
+        "opened_at": "2026-10-17T05:17:16.107Z",
+        "closed_by": "mgr_indiranagar",
+        "closed_at": "2026-10-17T05:17:26.710Z",
+        "verified_by": "admin_01",
+        "verified_at": "2026-10-17T06:23:23.715Z",
+        "settled_by": "usr_settler_01",
+        "settled_at": "2026-10-17T06:24:06.842Z",
+        "settlement_voucher_id": null,
+        "notes": "settle test",
+        "created_at": "2026-10-17T05:17:16.107Z",
+        "updated_at": "2026-10-17T06:24:06.842Z",
+        "teller_name": "Manager Counter (br_indiranagar)"
+      },
+      {
+        "id": "sess_1792218270317_o7qy8y1",
+        "teller_id": "tlr_1792200861133_oasasw7",
+        "branch_id": "br_indiranagar",
+        "status": "OPEN",
+        "opening_float": "500.00",
+        "expected_cash": "500.00",
+        "closing_count": null,
+        "variance": null,
+        "opened_by": "mgr_indiranagar",
+        "opened_at": "2026-10-17T06:24:30.164Z",
+        "closed_by": null,
+        "closed_at": null,
+        "verified_by": null,
+        "verified_at": null,
+        "settled_by": null,
+        "settled_at": null,
+        "settlement_voucher_id": null,
+        "notes": "Test shift opening",
+        "created_at": "2026-10-17T06:24:30.164Z",
+        "updated_at": "2026-10-17T06:24:30.164Z",
+        "teller_name": "Manager Counter (br_indiranagar)"
+      }
+    ],
+    "movements": [
+      {
+        "id": "mov_1792213797302_ku12cwd",
+        "teller_session_id": "sess_1792213794674_w5zkial",
+        "direction": "IN",
+        "movement_type": "ADJUSTMENT",
+        "amount": "250.00",
+        "source_type": "MANUAL",
+        "source_id": "man_adj_1792213797302_ejfp",
+        "narration": "Walk-in cake order cash receipt",
+        "created_at": "2026-10-17T05:09:57.232Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792213799468_fq1k0x1",
+        "teller_session_id": "sess_1792213794674_w5zkial",
+        "direction": "OUT",
+        "movement_type": "ADJUSTMENT",
+        "amount": "75.00",
+        "source_type": "MANUAL",
+        "source_id": "man_adj_1792213799468_w88l",
+        "narration": "Store cleaning supplies purchase",
+        "created_at": "2026-10-17T05:09:59.399Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792213801969_ryrbg8q",
+        "teller_session_id": "sess_1792213794674_w5zkial",
+        "direction": "OUT",
+        "movement_type": "ADJUSTMENT",
+        "amount": "5000.00",
+        "source_type": "MANUAL",
+        "source_id": "man_adj_1792213801969_m97a",
+        "narration": "Unauthorized overdraw attempt",
+        "created_at": "2026-10-17T05:10:01.905Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792214193513_nknw3ym",
+        "teller_session_id": "sess_1792214190939_tlgedk4",
+        "direction": "IN",
+        "movement_type": "ADJUSTMENT",
+        "amount": "250.00",
+        "source_type": "MANUAL",
+        "source_id": "man_adj_1792214193511_jwb5",
+        "narration": "Walk-in cake order cash receipt",
+        "created_at": "2026-10-17T05:16:33.444Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792214195731_o2y6227",
+        "teller_session_id": "sess_1792214190939_tlgedk4",
+        "direction": "OUT",
+        "movement_type": "ADJUSTMENT",
+        "amount": "75.00",
+        "source_type": "MANUAL",
+        "source_id": "man_adj_1792214195731_3zgf",
+        "narration": "Store cleaning supplies purchase",
+        "created_at": "2026-10-17T05:16:35.624Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792214238744_zef0xfb",
+        "teller_session_id": "sess_1792214236264_xhrc8hf",
+        "direction": "IN",
+        "movement_type": "ADJUSTMENT",
+        "amount": "250.00",
+        "source_type": "MANUAL",
+        "source_id": "man_adj_1792214238744_gcj1",
+        "narration": "Walk-in cake order cash receipt",
+        "created_at": "2026-10-17T05:17:18.677Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792214240995_b6qdbk4",
+        "teller_session_id": "sess_1792214236264_xhrc8hf",
+        "direction": "OUT",
+        "movement_type": "ADJUSTMENT",
+        "amount": "75.00",
+        "source_type": "MANUAL",
+        "source_id": "man_adj_1792214240995_lm4a",
+        "narration": "Store cleaning supplies purchase",
+        "created_at": "2026-10-17T05:17:20.887Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792218487333_gjea2bo",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "direction": "IN",
+        "movement_type": "COD_HANDOVER",
+        "amount": "350.00",
+        "source_type": "RIDER_SHIFT_SETTLEMENT",
+        "source_id": "hnd_1792218486477_01em",
+        "narration": "Cash handover HND-20261017-01EM from rider dp_test_indiranagar_01",
+        "created_at": "2026-10-17T06:28:07.196Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792219139224_r4qrtsb",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "direction": "IN",
+        "movement_type": "COD_HANDOVER",
+        "amount": "350.00",
+        "source_type": "RIDER_SHIFT_SETTLEMENT",
+        "source_id": "hnd_1792219138629_rsuq",
+        "narration": "Cash handover HND-20261017-RSUQ from rider dp_test_indiranagar_01",
+        "created_at": "2026-10-17T06:38:59.096Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792219162939_66bj4z3",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "direction": "IN",
+        "movement_type": "COD_HANDOVER",
+        "amount": "350.00",
+        "source_type": "RIDER_SHIFT_SETTLEMENT",
+        "source_id": "hnd_1792219162393_pon5",
+        "narration": "Cash handover HND-20261017-PON5 from rider dp_test_indiranagar_01",
+        "created_at": "2026-10-17T06:39:22.810Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792219244995_6u7mjge",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "direction": "IN",
+        "movement_type": "COD_HANDOVER",
+        "amount": "350.00",
+        "source_type": "RIDER_SHIFT_SETTLEMENT",
+        "source_id": "hnd_1792219244521_b549",
+        "narration": "Cash handover HND-20261017-B549 from rider dp_test_indiranagar_01",
+        "created_at": "2026-10-17T06:40:44.872Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792219249362_ei9hrak",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "direction": "OUT",
+        "movement_type": "EXPENSE_PAYMENT",
+        "amount": "80.00",
+        "source_type": "EXPENSE",
+        "source_id": "exp_00MVC12DDIO32U10",
+        "narration": "Cash drawer disbursement for expense exp_00MVC12DDIO32U10",
+        "created_at": "2026-10-17T06:40:48.934Z",
+        "created_by": "admin_01"
+      },
+      {
+        "id": "mov_1792219321515_eo2522o",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "direction": "IN",
+        "movement_type": "COD_HANDOVER",
+        "amount": "350.00",
+        "source_type": "RIDER_SHIFT_SETTLEMENT",
+        "source_id": "hnd_1792219320914_ft8j",
+        "narration": "Cash handover HND-20261017-FT8J from rider dp_test_indiranagar_01",
+        "created_at": "2026-10-17T06:42:01.385Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792219326577_wtnklxm",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "direction": "OUT",
+        "movement_type": "EXPENSE_PAYMENT",
+        "amount": "80.00",
+        "source_type": "EXPENSE",
+        "source_id": "exp_00MVC140LH0UB6IU",
+        "narration": "Cash drawer disbursement for expense exp_00MVC140LH0UB6IU",
+        "created_at": "2026-10-17T06:42:06.180Z",
+        "created_by": "admin_01"
+      },
+      {
+        "id": "mov_1792219455597_n9ym12i",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "direction": "IN",
+        "movement_type": "COD_HANDOVER",
+        "amount": "350.00",
+        "source_type": "RIDER_SHIFT_SETTLEMENT",
+        "source_id": "hnd_1792219454680_5bp5",
+        "narration": "Cash handover HND-20261017-5BP5 from rider dp_test_indiranagar_01",
+        "created_at": "2026-10-17T06:44:15.493Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792219459406_bh2elq4",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "direction": "OUT",
+        "movement_type": "EXPENSE_PAYMENT",
+        "amount": "80.00",
+        "source_type": "EXPENSE",
+        "source_id": "exp_00MVC16VSLIRT0EQ",
+        "narration": "Cash drawer disbursement for expense exp_00MVC16VSLIRT0EQ",
+        "created_at": "2026-10-17T06:44:19.038Z",
+        "created_by": "admin_01"
+      },
+      {
+        "id": "mov_1792220821798_fhv68vs",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "direction": "IN",
+        "movement_type": "COD_HANDOVER",
+        "amount": "350.00",
+        "source_type": "RIDER_SHIFT_SETTLEMENT",
+        "source_id": "hnd_1792220821150_w7w3",
+        "narration": "Cash handover HND-20261017-W7W3 from rider dp_test_indiranagar_01",
+        "created_at": "2026-10-17T07:07:01.628Z",
+        "created_by": "mgr_indiranagar"
+      },
+      {
+        "id": "mov_1792220826408_vu2d09i",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "direction": "OUT",
+        "movement_type": "EXPENSE_PAYMENT",
+        "amount": "80.00",
+        "source_type": "EXPENSE",
+        "source_id": "exp_00MVC206CQR8XZYT",
+        "narration": "Cash drawer disbursement for expense exp_00MVC206CQR8XZYT",
+        "created_at": "2026-10-17T07:07:05.965Z",
+        "created_by": "admin_01"
+      }
+    ],
+    "vaultMovements": [],
+    "handovers": [
+      {
+        "id": "hnd_1792217327645_m45i",
+        "handover_number": "HND-20261017-M45I",
+        "status": "SUBMITTED",
+        "expected_amount": "350.00",
+        "declared_amount": "350.00",
+        "acknowledged_amount": "0.00",
+        "shortage_amount": "0.00",
+        "surplus_amount": "0.00",
+        "teller_session_id": null,
+        "teller_movement_id": null,
+        "settlement_voucher_id": null,
+        "created_at": "2026-10-17T06:08:47.536Z",
+        "acknowledged_at": null
+      },
+      {
+        "id": "hnd_1792217570565_99ov",
+        "handover_number": "HND-20261017-99OV",
+        "status": "SUBMITTED",
+        "expected_amount": "350.00",
+        "declared_amount": "350.00",
+        "acknowledged_amount": "0.00",
+        "shortage_amount": "0.00",
+        "surplus_amount": "0.00",
+        "teller_session_id": null,
+        "teller_movement_id": null,
+        "settlement_voucher_id": null,
+        "created_at": "2026-10-17T06:12:50.459Z",
+        "acknowledged_at": null
+      },
+      {
+        "id": "hnd_1792218203354_pund",
+        "handover_number": "HND-20261017-PUND",
+        "status": "SUBMITTED",
+        "expected_amount": "350.00",
+        "declared_amount": "350.00",
+        "acknowledged_amount": "0.00",
+        "shortage_amount": "0.00",
+        "surplus_amount": "0.00",
+        "teller_session_id": null,
+        "teller_movement_id": null,
+        "settlement_voucher_id": null,
+        "created_at": "2026-10-17T06:23:23.252Z",
+        "acknowledged_at": null
+      },
+      {
+        "id": "hnd_1792218269757_wyww",
+        "handover_number": "HND-20261017-WYWW",
+        "status": "SUBMITTED",
+        "expected_amount": "350.00",
+        "declared_amount": "350.00",
+        "acknowledged_amount": "0.00",
+        "shortage_amount": "0.00",
+        "surplus_amount": "0.00",
+        "teller_session_id": null,
+        "teller_movement_id": null,
+        "settlement_voucher_id": null,
+        "created_at": "2026-10-17T06:24:29.651Z",
+        "acknowledged_at": null
+      },
+      {
+        "id": "hnd_1792218486477_01em",
+        "handover_number": "HND-20261017-01EM",
+        "status": "ACKNOWLEDGED",
+        "expected_amount": "350.00",
+        "declared_amount": "350.00",
+        "acknowledged_amount": "350.00",
+        "shortage_amount": "0.00",
+        "surplus_amount": "0.00",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "teller_movement_id": "mov_1792218487333_gjea2bo",
+        "settlement_voucher_id": "vch_00MVC0M3DOLKDZVA",
+        "created_at": "2026-10-17T06:28:06.389Z",
+        "acknowledged_at": "2026-10-17T06:28:07.196Z"
+      },
+      {
+        "id": "hnd_1792219138629_rsuq",
+        "handover_number": "HND-20261017-RSUQ",
+        "status": "ACKNOWLEDGED",
+        "expected_amount": "350.00",
+        "declared_amount": "350.00",
+        "acknowledged_amount": "350.00",
+        "shortage_amount": "0.00",
+        "surplus_amount": "0.00",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "teller_movement_id": "mov_1792219139224_r4qrtsb",
+        "settlement_voucher_id": "vch_00MVC102ER1IZYT0",
+        "created_at": "2026-10-17T06:38:58.538Z",
+        "acknowledged_at": "2026-10-17T06:38:59.096Z"
+      },
+      {
+        "id": "hnd_1792219162393_pon5",
+        "handover_number": "HND-20261017-PON5",
+        "status": "ACKNOWLEDGED",
+        "expected_amount": "350.00",
+        "declared_amount": "350.00",
+        "acknowledged_amount": "350.00",
+        "shortage_amount": "0.00",
+        "surplus_amount": "0.00",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "teller_movement_id": "mov_1792219162939_66bj4z3",
+        "settlement_voucher_id": "vch_00MVC10KOHRZYNU6",
+        "created_at": "2026-10-17T06:39:22.304Z",
+        "acknowledged_at": "2026-10-17T06:39:22.810Z"
+      },
+      {
+        "id": "hnd_1792219244521_b549",
+        "handover_number": "HND-20261017-B549",
+        "status": "ACKNOWLEDGED",
+        "expected_amount": "350.00",
+        "declared_amount": "350.00",
+        "acknowledged_amount": "350.00",
+        "shortage_amount": "0.00",
+        "surplus_amount": "0.00",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "teller_movement_id": "mov_1792219244995_6u7mjge",
+        "settlement_voucher_id": "vch_00MVC12BZEIQ8AXR",
+        "created_at": "2026-10-17T06:40:44.432Z",
+        "acknowledged_at": "2026-10-17T06:40:44.872Z"
+      },
+      {
+        "id": "hnd_1792219320914_ft8j",
+        "handover_number": "HND-20261017-FT8J",
+        "status": "ACKNOWLEDGED",
+        "expected_amount": "350.00",
+        "declared_amount": "350.00",
+        "acknowledged_amount": "350.00",
+        "shortage_amount": "0.00",
+        "surplus_amount": "0.00",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "teller_movement_id": "mov_1792219321515_eo2522o",
+        "settlement_voucher_id": "vch_00MVC13Z1J644DZY",
+        "created_at": "2026-10-17T06:42:00.817Z",
+        "acknowledged_at": "2026-10-17T06:42:01.385Z"
+      },
+      {
+        "id": "hnd_1792219454680_5bp5",
+        "handover_number": "HND-20261017-5BP5",
+        "status": "ACKNOWLEDGED",
+        "expected_amount": "350.00",
+        "declared_amount": "350.00",
+        "acknowledged_amount": "350.00",
+        "shortage_amount": "0.00",
+        "surplus_amount": "0.00",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "teller_movement_id": "mov_1792219455597_n9ym12i",
+        "settlement_voucher_id": "vch_00MVC16UHGR9WGAI",
+        "created_at": "2026-10-17T06:44:14.598Z",
+        "acknowledged_at": "2026-10-17T06:44:15.493Z"
+      },
+      {
+        "id": "hnd_1792220821150_w7w3",
+        "handover_number": "HND-20261017-W7W3",
+        "status": "ACKNOWLEDGED",
+        "expected_amount": "350.00",
+        "declared_amount": "350.00",
+        "acknowledged_amount": "350.00",
+        "shortage_amount": "0.00",
+        "surplus_amount": "0.00",
+        "teller_session_id": "sess_1792218270317_o7qy8y1",
+        "teller_movement_id": "mov_1792220821798_fhv68vs",
+        "settlement_voucher_id": "vch_00MVC204Q5L47SUP",
+        "created_at": "2026-10-17T07:07:01.031Z",
+        "acknowledged_at": "2026-10-17T07:07:01.628Z"
+      }
+    ]
+  },
+  "br_whitefield": {
+    "branch": {
+      "id": "br_whitefield",
+      "name": "Whitefield Tech Hub",
+      "code": "HUB-BLR-04",
+      "metadata": {
+        "manager_id": null,
+        "delivery_zones": [
+          {
+            "id": "br_whitefield_z1",
+            "name": "Zone A",
+            "areas": [
+              "Whitefield"
+            ],
+            "cities": [
+              "Bengaluru"
+            ],
+            "max_km": 4,
+            "min_km": 0,
+            "enabled": true,
+            "pincodes": [
+              "560066"
+            ],
+            "display_order": 1,
+            "service_areas": [
+              "ITPL Main Road Hub"
+            ],
+            "express_charge": 49,
+            "holiday_charge": 49,
+            "delivery_charge": 119,
+            "express_allowed": true,
+            "max_order_value": 50000,
+            "midnight_charge": 79,
+            "min_order_value": 299,
+            "midnight_allowed": true,
+            "same_day_allowed": true,
+            "est_delivery_mins": 30,
+            "max_cake_quantity": 5,
+            "scheduled_allowed": true,
+            "max_cake_weight_kg": 10,
+            "free_delivery_threshold": 999,
+            "preparation_buffer_mins": 15
+          },
+          {
+            "id": "br_whitefield_z2",
+            "name": "Zone B",
+            "areas": [
+              "Marathahalli",
+              "Brookefield"
+            ],
+            "cities": [
+              "Bengaluru"
+            ],
+            "max_km": 8,
+            "min_km": 4,
+            "enabled": true,
+            "pincodes": [
+              "560048",
+              "560037"
+            ],
+            "display_order": 2,
+            "service_areas": [
+              "Outer Ring Road Cluster"
+            ],
+            "express_charge": 119,
+            "holiday_charge": 89,
+            "delivery_charge": 59,
+            "express_allowed": false,
+            "max_order_value": 50000,
+            "midnight_charge": 109,
+            "min_order_value": 399,
+            "midnight_allowed": true,
+            "same_day_allowed": true,
+            "est_delivery_mins": 55,
+            "max_cake_quantity": 3,
+            "scheduled_allowed": true,
+            "max_cake_weight_kg": 8,
+            "free_delivery_threshold": 1299,
+            "preparation_buffer_mins": 20
+          },
+          {
+            "id": "br_whitefield_z3",
+            "name": "Zone C",
+            "areas": [
+              "Bellandur"
+            ],
+            "cities": [
+              "Bengaluru"
+            ],
+            "max_km": 14,
+            "min_km": 8,
+            "enabled": true,
+            "pincodes": [
+              "560103"
+            ],
+            "display_order": 3,
+            "service_areas": [
+              "Bellandur Gate Region"
+            ],
+            "express_charge": 149,
+            "holiday_charge": 109,
+            "delivery_charge": 89,
+            "express_allowed": false,
+            "max_order_value": 50000,
+            "midnight_charge": 149,
+            "min_order_value": 499,
+            "midnight_allowed": false,
+            "same_day_allowed": false,
+            "est_delivery_mins": 80,
+            "max_cake_quantity": 2,
+            "scheduled_allowed": true,
+            "max_cake_weight_kg": 6,
+            "free_delivery_threshold": 1499,
+            "preparation_buffer_mins": 30
+          }
+        ],
+        "location_source": "GPS",
+        "manager_account": null,
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "formatted_address": "ITPL Main Rd, Whitefield",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 15,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 49,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 79,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 30,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": {
+          "reason": null,
+          "is_paused": false,
+          "paused_at": null,
+          "pause_until": null,
+          "reopen_time": null
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      },
+      "created_at": "2026-08-28T04:07:08.740Z"
+    },
+    "journalLines": [
+      {
+        "line_id": "jln_00MVG9OLM10UD9",
+        "journal_entry_id": "jent_00MVG9OLKH2E9AF5",
+        "entry_no": "JE-FY2026-20261020-FBSOUK",
+        "entry_date": "2026-10-19T18:30:00.000Z",
+        "voucher_id": "vch_00MVG9OL6YLW7W3Z",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261020-5DPLNF",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HO-TEST-1792475583771 - Partner dlp_01KYWJ71934X5AZASE5MHQC8C2",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "500.00",
+        "credit_amount": "0.00",
+        "line_narration": "Physical cash received at drawer - Handover HO-TEST-1792475583771",
+        "line_metadata": {
+          "handover_id": "ho_test_1792475583771"
+        },
+        "created_at": "2026-10-20T05:53:04.267Z"
+      },
+      {
+        "line_id": "jln_00MVG9OLNPSHZB",
+        "journal_entry_id": "jent_00MVG9OLKH2E9AF5",
+        "entry_no": "JE-FY2026-20261020-FBSOUK",
+        "entry_date": "2026-10-19T18:30:00.000Z",
+        "voucher_id": "vch_00MVG9OL6YLW7W3Z",
+        "voucher_no": "VCH-RECEIPT-FY2026-20261020-5DPLNF",
+        "voucher_type": "RECEIPT",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Rider cash collection handover HO-TEST-1792475583771 - Partner dlp_01KYWJ71934X5AZASE5MHQC8C2",
+        "account_code": "1122",
+        "account_name": "Undeposited COD",
+        "debit_amount": "0.00",
+        "credit_amount": "500.00",
+        "line_narration": "Undeposited COD cleared - Handover HO-TEST-1792475583771",
+        "line_metadata": {
+          "handover_id": "ho_test_1792475583771"
+        },
+        "created_at": "2026-10-20T05:53:04.267Z"
+      },
+      {
+        "line_id": "jln_00MVG9ON3UB73Q",
+        "journal_entry_id": "jent_00MVG9ON1RCES7XX",
+        "entry_no": "JE-FY2026-27-20261020-NB8QGE",
+        "entry_date": "2026-10-14T18:30:00.000Z",
+        "voucher_id": "vch_00MVG9OM7L19WF8Y",
+        "voucher_no": "VCH-EXPENSE-FY2026-27-20261020-HXKNST",
+        "voucher_type": "EXPENSE",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Expense: Bakery Store Supplies",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "0.00",
+        "credit_amount": "200.00",
+        "line_narration": "Cash drawer disbursement for expense exp_test_1792475586054",
+        "line_metadata": {
+          "expense_id": "exp_test_1792475586054",
+          "teller_session_id": "sess_custody_br_whitefield_1792475584760"
+        },
+        "created_at": "2026-10-20T05:53:06.847Z"
+      }
+    ],
+    "sessions": [
+      {
+        "id": "sess_custody_br_whitefield_1792475584760",
+        "teller_id": "tlr_br_whitefield_main",
+        "branch_id": "br_whitefield",
+        "status": "OPEN",
+        "opening_float": "0.00",
+        "expected_cash": "0.00",
+        "closing_count": null,
+        "variance": null,
+        "opened_by": "admin_01",
+        "opened_at": "2026-10-20T05:53:04.267Z",
+        "closed_by": null,
+        "closed_at": null,
+        "verified_by": null,
+        "verified_at": null,
+        "settled_by": null,
+        "settled_at": null,
+        "settlement_voucher_id": null,
+        "notes": "Continuous branch cash custody session anchor",
+        "created_at": "2026-10-20T05:53:04.267Z",
+        "updated_at": "2026-10-20T05:53:04.267Z",
+        "teller_name": "Main Cash Drawer"
+      }
+    ],
+    "movements": [
+      {
+        "id": "mov_1792475584947_r2vjmvs",
+        "teller_session_id": "sess_custody_br_whitefield_1792475584760",
+        "direction": "IN",
+        "movement_type": "COD_HANDOVER",
+        "amount": "500.00",
+        "source_type": "RIDER_SHIFT_SETTLEMENT",
+        "source_id": "ho_test_1792475583771",
+        "narration": "Cash handover HO-TEST-1792475583771 from rider dlp_01KYWJ71934X5AZASE5MHQC8C2",
+        "created_at": "2026-10-20T05:53:04.267Z",
+        "created_by": "admin_01"
+      },
+      {
+        "id": "mov_1792475587246_ga2bgyl",
+        "teller_session_id": "sess_custody_br_whitefield_1792475584760",
+        "direction": "OUT",
+        "movement_type": "EXPENSE_PAYMENT",
+        "amount": "200.00",
+        "source_type": "EXPENSE",
+        "source_id": "exp_test_1792475586054",
+        "narration": "Cash drawer disbursement for expense exp_test_1792475586054",
+        "created_at": "2026-10-20T05:53:06.847Z",
+        "created_by": "admin_01"
+      },
+      {
+        "id": "mov_1792475589180_6sd1zyy",
+        "teller_session_id": "sess_custody_br_whitefield_1792475584760",
+        "direction": "IN",
+        "movement_type": "ADJUSTMENT",
+        "amount": "50.00",
+        "source_type": "MANUAL",
+        "source_id": "ref_adj_1792475588822",
+        "narration": "Authorized drawer float count alignment verification",
+        "created_at": "2026-10-20T05:53:09.118Z",
+        "created_by": "admin_01"
+      }
+    ],
+    "vaultMovements": [],
+    "handovers": [
+      {
+        "id": "ho_test_1792475583771",
+        "handover_number": "HO-TEST-1792475583771",
+        "status": "ACKNOWLEDGED",
+        "expected_amount": "0.00",
+        "declared_amount": "500.00",
+        "acknowledged_amount": "500.00",
+        "shortage_amount": "0.00",
+        "surplus_amount": "500.00",
+        "teller_session_id": "sess_custody_br_whitefield_1792475584760",
+        "teller_movement_id": "mov_1792475584947_r2vjmvs",
+        "settlement_voucher_id": "vch_00MVG9OL6YLW7W3Z",
+        "created_at": "2026-10-20T05:53:03.783Z",
+        "acknowledged_at": "2026-10-20T05:53:04.267Z"
+      }
+    ]
+  },
+  "br_01KYWH05FY08YH6XJKATV0NXDR": {
+    "branch": {
+      "id": "br_01KYWH05FY08YH6XJKATV0NXDR",
+      "name": "PostgreSQL Authenticated Branch",
+      "code": "HUB-777",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [],
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": null,
+        "weekly_schedule": {},
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Road, Indiranagar, Bengaluru",
+        "fulfillment_rules": {},
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "product_availability": {},
+        "max_drawer_cash_limit": 25000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 5000
+      },
+      "created_at": "2026-07-31T16:44:27.013Z"
+    },
+    "journalLines": [
+      {
+        "line_id": "jln_00MUV2R9C6KS3G",
+        "journal_entry_id": "jent_00MUV2R97B6759Q9",
+        "entry_no": "JE-FY2026-27-20261005-Y4Q1HP",
+        "entry_date": "2026-10-14T18:30:00.000Z",
+        "voucher_id": "vch_00MUV2R8CL99MMI0",
+        "voucher_no": "VCH-EXPENSE-FY2026-27-20261005-3TTZ8T",
+        "voucher_type": "EXPENSE",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Expense: Store Packaging Supplies - Cash Expense",
+        "account_code": "1111",
+        "account_name": "Cash in Hand",
+        "debit_amount": "0.00",
+        "credit_amount": "1180.00",
+        "line_narration": "Cash drawer disbursement for expense exp_00MUV2R84RI83TJK",
+        "line_metadata": {
+          "expense_id": "exp_00MUV2R84RI83TJK",
+          "teller_session_id": "sess_1791194161012_vqi9o03"
+        },
+        "created_at": "2026-10-05T09:56:01.956Z"
+      },
+      {
+        "line_id": "jln_00MUV2UUEMN082",
+        "journal_entry_id": "jent_00MUV2UUCIF0ZTIC",
+        "entry_no": "JE-FY2026-27-20261005-UA2PQF",
+        "entry_date": "2026-10-14T18:30:00.000Z",
+        "voucher_id": "vch_00MUV2UTP5ZYT19E",
+        "voucher_no": "VCH-EXPENSE-FY2026-27-20261005-23MZ39",
+        "voucher_type": "EXPENSE",
+        "voucher_status": "POSTED",
+        "voucher_narration": "Expense: Petty Cash Office Tea & Refreshments",
+        "account_code": "1114",
+        "account_name": "Petty Cash - Branches",
+        "debit_amount": "0.00",
+        "credit_amount": "200.00",
+        "line_narration": "Petty cash disbursement for expense exp_00MUV2UTHQBZRMJV",
+        "line_metadata": {
+          "expense_id": "exp_00MUV2UTHQBZRMJV",
+          "petty_cash": true
+        },
+        "created_at": "2026-10-05T09:58:49.566Z"
+      }
+    ],
+    "sessions": [],
+    "movements": [],
+    "vaultMovements": [],
+    "handovers": []
+  }
+}

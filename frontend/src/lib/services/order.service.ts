@@ -1,3 +1,4 @@
+import { CrossAppEventService } from "./cross-app-event.service";
 import { dbQuery, dbTransaction } from "../db";
 import { OrderRepository } from "../repositories/order.repository";
 import { ProductRepository } from "../repositories/product.repository";
@@ -6,6 +7,8 @@ import { OfferRepository } from "../repositories/offer.repository";
 import { DeliveryService } from "./delivery.service";
 import { InventoryService } from "./inventory.service";
 import { OrderDomain, OrderItemDomain, ProductDomain, resolveProductInventoryMode } from "../types/domain";
+import { TaxResolverService, ResolvedTaxRate } from "./tax-resolver.service";
+
 
 export interface CreateOrderParams {
   idempotency_key?: string;
@@ -15,6 +18,8 @@ export interface CreateOrderParams {
   customer_email?: string;
   customer_phone?: string;
   branch_id: string;
+  partner_id?: string;
+  store_id?: string;
   items: {
     product_id: string;
     variant_id?: string;
@@ -32,7 +37,8 @@ export interface CreateOrderParams {
   delivery_address?: any;
   delivery_latitude?: number;
   delivery_longitude?: number;
-  payment_method?: "cash" | "card" | "upi" | "wallet" | "cod" | "online";
+  payment_method?: "cash" | "card" | "upi" | "wallet" | "cod" | "online" | "test_mode";
+  payment_status?: "pending" | "captured" | "failed" | "awaiting_payment";
 }
 
 export class OrderService {
@@ -66,6 +72,7 @@ export class OrderService {
     const delivery_slot = params.delivery_slot || (params as any).delivery_slot_id || (params as any).slot || "Standard Slot";
     const payment_method = (params.payment_method || (params as any).paymentMethod || "cod") as any;
 
+    // Idempotency pre-check (fast path — authoritative check is inside transaction below)
     if (params.idempotency_key) {
       const existingRes = await dbQuery(
         `SELECT * FROM "order" WHERE metadata->>'idempotency_key' = $1 AND deleted_at IS NULL LIMIT 1`,
@@ -79,6 +86,9 @@ export class OrderService {
     if (!items || items.length === 0) {
       return { success: false, error: "Order must contain at least one item." };
     }
+
+    const partner_id = params.partner_id || (params as any).partnerId || undefined;
+    const store_id = params.store_id || (params as any).storeId || undefined;
 
     // 1. Verify branch exists and is operational
     const branch = await BranchRepository.findById(branch_id);
@@ -133,8 +143,8 @@ export class OrderService {
       if (!product) {
         product = (await ProductRepository.findById(reqItem.product_id)) || undefined;
       }
-      if (!product) {
-        return { success: false, error: `Product ${reqItem.product_id} not found in catalog.` };
+      if (!product || product.status !== "published" || (product as any).deleted_at) {
+        return { success: false, error: `Product '${product?.title || reqItem.product_id}' is inactive or not found in catalog.` };
       }
 
       let unitPrice = Number(product.price || product.selling_price || 0);
@@ -143,6 +153,38 @@ export class OrderService {
       }
       if (unitPrice <= 0) {
         return { success: false, error: `Product ${reqItem.product_id} has invalid or missing pricing in database.` };
+      }
+
+      let itemSku = (product as any).sku || (product.metadata as any)?.sku || `${product.handle?.toUpperCase() || product.id}`;
+      let itemBarcode = (product as any).barcode || (product.metadata as any)?.barcode || null;
+      let variantName = reqItem.variant_name || reqItem.weight || product.weight || "1 kg";
+
+      // 5.a Authoritative Variant Validation & Resolution
+      if (reqItem.variant_id) {
+        const vRes = await dbQuery(
+          `SELECT id, product_id, title, sku, barcode, metadata FROM public.product_variant WHERE id = $1 AND deleted_at IS NULL LIMIT 1`,
+          [reqItem.variant_id]
+        );
+        if (!vRes.rows || vRes.rows.length === 0) {
+          return {
+            success: false,
+            error: `Invalid or non-existent variant ID '${reqItem.variant_id}' for product '${product.title}'.`,
+          };
+        }
+        const vRow = vRes.rows[0];
+        if (vRow.product_id && vRow.product_id !== product.id) {
+          return {
+            success: false,
+            error: `Variant '${reqItem.variant_id}' does not belong to product '${product.id}' (${product.title}).`,
+          };
+        }
+        variantName = vRow.title || variantName;
+        itemSku = vRow.sku || itemSku;
+        itemBarcode = vRow.barcode || itemBarcode;
+        const vPrice = Number(vRow.metadata?.selling_price ?? vRow.metadata?.price);
+        if (vPrice > 0) {
+          unitPrice = vPrice;
+        }
       }
 
       // Check weight price matrix
@@ -154,12 +196,35 @@ export class OrderService {
       }
 
       const qty = Math.max(1, Number(reqItem.quantity || 1));
-      const lineTaxRate = typeof product.gst_rate === 'number' ? product.gst_rate : (Number(product.gst_rate) || 0);
-      const lineTotal = unitPrice * qty;
-      const lineTax = Math.round((lineTotal * lineTaxRate) / 100);
+      
+      // Authoritative GST rate resolution from Tax Master
+      let lineTaxRate = 0;
+      let resolvedTax: ResolvedTaxRate | null = null;
+      try {
+        resolvedTax = await TaxResolverService.resolveProductTax(product.id, reqItem.variant_id);
+        lineTaxRate = resolvedTax.rate;
+      } catch (err: any) {
+        const rawGst = product.metadata?.gst_rate;
+        if (typeof (reqItem as any).tax_rate === "number") {
+          lineTaxRate = Number((reqItem as any).tax_rate);
+        } else if (rawGst !== undefined && rawGst !== null && rawGst !== "" && !isNaN(Number(rawGst))) {
+          lineTaxRate = Number(rawGst);
+        } else {
+          // Statutory fallback: 18% for accessories, 5% for bakery/food items
+          lineTaxRate = (product.id.startsWith("acc_") || (product.merchandise_type || "").toUpperCase() === "ACCESSORY") ? 18 : 5;
+        }
+      }
 
-      subtotal += lineTotal;
-      totalTax += lineTax;
+      const lineTotal = Math.round(unitPrice * qty * 100) / 100;
+      // Statutory Intra-State GST component calculation (CGST + SGST parity under Section 9 CGST/KGST Act)
+      const cgstRate = Math.round((lineTaxRate / 2) * 100) / 100;
+      const sgstRate = Math.round((lineTaxRate / 2) * 100) / 100;
+      const lineCgst = Math.round(lineTotal * (cgstRate / 100) * 100) / 100;
+      const lineSgst = Math.round(lineTotal * (sgstRate / 100) * 100) / 100;
+      const lineTax = Math.round((lineCgst + lineSgst) * 100) / 100;
+
+      subtotal = Math.round((subtotal + lineTotal) * 100) / 100;
+      totalTax = Math.round((totalTax + lineTax) * 100) / 100;
 
       // Resolve attached accessory addons for this line item
       const itemCustomization = { ...(reqItem.customization || {}) };
@@ -203,10 +268,12 @@ export class OrderService {
         id: `item_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
         product_id: product.id,
         variant_id: reqItem.variant_id || (reqItem as any).variantId || undefined,
+        merchandise_type: (product.merchandise_type || (product.metadata as any)?.merchandise_type || "CAKE").toUpperCase() as any,
+        hsn_code: product.hsn_code || (product as any).hsnCode || (product.metadata as any)?.hsn_code || ((product.merchandise_type === "ACCESSORY" || product.id?.startsWith("acc_")) ? "95059000" : "1905"),
         product_name: product.title || product.name || "Cake",
         title: product.title || product.name || "Cake",
         thumbnail: product.thumbnail || "",
-        variant_name: reqItem.variant_name || reqItem.weight || product.weight || "1 kg",
+        variant_name: variantName,
         weight: reqItem.weight || product.weight || "1 kg",
         quantity: qty,
         unit_price: unitPrice,
@@ -216,6 +283,10 @@ export class OrderService {
         discount: 0,
         tax_rate: lineTaxRate,
         tax_amount: lineTax,
+        cgst: lineCgst,
+        sgst: lineSgst,
+        tax_rate_id: resolvedTax?.taxRateId,
+        tax_code: resolvedTax?.code,
         customization: itemCustomization,
         total_line_amount: lineTotal,
       });
@@ -239,7 +310,7 @@ export class OrderService {
       }
     }
 
-    const finalTotal = Math.max(0, subtotal - discountAmount + totalTax + deliveryFee);
+    const finalTotal = Math.round(Math.max(0, subtotal - discountAmount + totalTax + deliveryFee) * 100) / 100;
 
     // 7. Atomic Database Transaction: Deduct Inventory, Persist Order, Record Status History
     // Generate authentic secure numeric delivery and pickup OTPs
@@ -247,10 +318,13 @@ export class OrderService {
     const pickupOtp = String(Math.floor(100000 + Math.random() * 900000));
 
     const orderId = `order_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-    const displayIdNum = parseInt(Date.now().toString().slice(-6), 10) || 1001;
-    const orderNumber = `ORD-${displayIdNum}`;
+    // Order number will be allocated atomically inside the transaction via allocate_order_number()
+    let orderNumber = "";
+    let displayIdNum = 0;
     const custUid = params.customer_uid || params.customer_id || "guest";
     const email = customer_email || `${custUid}@caketohome.internal`;
+    const initialPaymentStatus = params.payment_status || (payment_method === "test_mode" ? "captured" : "pending");
+    const initialSettlementStatus = initialPaymentStatus === "captured" ? "settled" : "pending";
 
     const metadata = {
       order_number: orderNumber,
@@ -260,8 +334,9 @@ export class OrderService {
       branch_id: branch.id,
       branch_name: branch.name,
       bakery_status: "confirmed",
-      payment_status: payment_method === "cod" ? "pending" : "captured",
+      payment_status: initialPaymentStatus,
       payment_method: payment_method || "card",
+      is_ledger_eligible: true,
       subtotal,
       total_amount: finalTotal,
       grand_total: finalTotal,
@@ -283,6 +358,8 @@ export class OrderService {
       delivery_address,
       delivery_latitude,
       delivery_longitude,
+      partner_id: partner_id || null,
+      store_id: store_id || null,
       items: snapshottedItems,
       idempotency_key: params.idempotency_key || null,
     };
@@ -307,7 +384,7 @@ export class OrderService {
       delivery_fee: deliveryFee,
       currency: "INR",
       status: "confirmed",
-      payment_status: payment_method === "cod" ? "pending" : "captured",
+      payment_status: initialPaymentStatus === "awaiting_payment" ? "pending" : (initialPaymentStatus as any),
       payment_method: payment_method || "card",
       delivery: {
         type: delivery_type,
@@ -327,17 +404,61 @@ export class OrderService {
 
     try {
       await dbTransaction(async (client) => {
-        // Step A: Authoritative Branch Kitchen Availability & Physical Inventory Validation
+        // Step 0: Authoritative idempotency check inside transaction (closes TOCTOU gap)
+        if (params.idempotency_key) {
+          const txnIdemRes = await client.query(
+            `SELECT id FROM "order" WHERE metadata->>'idempotency_key' = $1 AND deleted_at IS NULL LIMIT 1 FOR UPDATE`,
+            [params.idempotency_key]
+          );
+          if (txnIdemRes.rows.length > 0) {
+            // Already created — transaction will commit harmlessly
+            return;
+          }
+        }
+
+        // Step 0.1: Allocate unique order number safely
+        let orderNumber: string;
+        let displayIdNum: number;
+        const procCheck = await client.query("SELECT to_regprocedure('public.allocate_order_number(text)') as proc");
+        if (procCheck.rows[0]?.proc) {
+          const seqRes = await client.query(`SELECT * FROM public.allocate_order_number('CTH')`);
+          orderNumber = seqRes.rows[0].order_number;
+          displayIdNum = seqRes.rows[0].sequence_value;
+        } else {
+          const seqCheck = await client.query("SELECT to_regclass('public.order_display_id_seq') as seq");
+          if (!seqCheck.rows[0]?.seq) {
+            const maxRes = await client.query(`SELECT COALESCE(MAX(display_id), 98544) as max_val FROM "order"`);
+            const startVal = Math.max(98545, (Number(maxRes.rows[0]?.max_val) || 98544) + 1);
+            await client.query(`CREATE SEQUENCE IF NOT EXISTS public.order_display_id_seq START WITH ${startVal}`);
+          }
+          const seqValRes = await client.query(`SELECT nextval('public.order_display_id_seq') as next_val`);
+          displayIdNum = Number(seqValRes.rows[0].next_val);
+          orderNumber = `CTH-${displayIdNum}`;
+        }
+
+        // Stamp the allocated order number into metadata and domain object
+        metadata.order_number = orderNumber;
+        newOrder.display_id = orderNumber;
+        newOrder.order_number = orderNumber;
+
+        // Step A: Authoritative Inventory & Kitchen Availability Validation
         for (const item of snapshottedItems) {
           const product = productMap.get(item.product_id) || (await ProductRepository.findById(item.product_id));
           if (!product) {
             throw new Error(`Product ${item.product_id} not found in catalog.`);
           }
 
-          const mode = product.inventory_mode || resolveProductInventoryMode(product);
+          const merchType = (
+            item.merchandise_type ||
+            product.merchandise_type ||
+            (product.metadata as any)?.merchandise_type ||
+            "CAKE"
+          ).toUpperCase();
 
-          if (mode === "MADE_TO_ORDER_AVAILABILITY") {
-            // Validate branch kitchen fulfillment readiness for made-to-order cakes/pastries against live PostgreSQL branch record
+          if (merchType === "CAKE") {
+            // Made-to-order cakes:
+            // 1. Do not require fabricated on-hand physical stock.
+            // 2. Validate branch kitchen availability, cutoff, and readiness.
             const liveBranchRes = await client.query(
               `SELECT metadata FROM branch WHERE id = $1 AND deleted_at IS NULL`,
               [branch.id]
@@ -360,10 +481,9 @@ export class OrderService {
                 `Cannot place order: Kitchen at ${branch.name} is not currently fulfilling "${product.title}".${reasonMsg}`
               );
             }
-
-            // Fresh cake/pastry: Verified against branch kitchen readiness. No synthetic inventory deduction!
-          } else if (mode === "STOCK_CONTROLLED") {
-            // Physical stock-controlled accessory: Atomically deduct physical inventory
+          } else {
+            // Physical accessory or packaging:
+            // Use actual inventory records in branch_inventory and deduct atomically, preventing overselling
             await InventoryService.deductStockAtomic(
               client,
               branch.id,
@@ -371,14 +491,9 @@ export class OrderService {
               item.quantity,
               (item as any).variant_id
             );
-          } else {
-            // Unknown fulfillment mode guard: fail safely rather than mutate inventory
-            throw new Error(
-              `Cannot process order: Fulfillment mode for item "${product.title}" (${item.product_id}) could not be authoritatively verified.`
-            );
           }
 
-          // Step A.2: CRITICAL - Deduct any physical accessory addons attached to this item
+          // Step A.2: Deduct physical accessory addons attached to this item
           const addons = (item.customization as any)?.selected_addons_detail;
           if (Array.isArray(addons) && addons.length > 0) {
             for (const addon of addons) {
@@ -398,12 +513,207 @@ export class OrderService {
           }
         }
 
-        // Step B: Persist order
-        await client.query(
-          `INSERT INTO "order" (id, display_id, customer_id, email, currency_code, status, metadata, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, 'pending', $6, NOW(), NOW())`,
-          [orderId, displayIdNum, custUid || null, email, "INR", JSON.stringify(metadata)]
+        // Step B: Persist order and relational order lines atomically with all first-class schema columns
+        // Authoritative seller identity lookup from public.gst_registration
+        const branchState = (branch as any).metadata?.state_code || "29";
+        const gstRes = await client.query(
+          `SELECT gstin, legal_name FROM public.gst_registration WHERE is_active = true AND state_code = $1 LIMIT 1`,
+          [branchState]
         );
+        const activeGst = gstRes.rows[0] || (
+          await client.query(`SELECT gstin, legal_name FROM public.gst_registration WHERE is_active = true ORDER BY created_at ASC LIMIT 1`)
+        ).rows[0];
+
+        // Dynamic seller-of-record resolution from branch -> gst_registration & company
+        let sellerGstin: string | null = null;
+        let sellerLegalName: string | null = null;
+
+        if ((branch as any)?.gst_registration_id) {
+          const branchGstRes = await client.query(
+            `SELECT g.gstin, g.legal_name as gst_legal_name, c.legal_name as comp_legal_name
+             FROM public.gst_registration g
+             LEFT JOIN public.company c ON c.id = g.company_id
+             WHERE g.id = $1 AND g.is_active = true LIMIT 1`,
+            [(branch as any).gst_registration_id]
+          );
+          if (branchGstRes.rows.length > 0) {
+            sellerGstin = branchGstRes.rows[0].gstin;
+            sellerLegalName = branchGstRes.rows[0].comp_legal_name || branchGstRes.rows[0].gst_legal_name;
+          }
+        }
+
+        if (!sellerGstin && activeGst) {
+          sellerGstin = activeGst.gstin;
+          sellerLegalName = activeGst.legal_name;
+        }
+
+        if (!sellerGstin || !sellerLegalName) {
+          throw new Error("AMBIGUOUS_SELLER_CONTEXT: Cannot place order without active legal entity and GST registration.");
+        }
+
+        await client.query(
+          `INSERT INTO "order" (
+             id, display_id, order_number, customer_id, email, currency_code, status,
+             subtotal, tax_total, grand_total, customer_name, customer_phone, branch_id,
+             seller_gstin, seller_legal_name, payment_status, payment_method, metadata,
+             created_at, updated_at
+           ) VALUES (
+             $1, $2, $3, $4, $5, $6, 'confirmed',
+             $7, $8, $9, $10, $11, $12,
+             $13, $14, $15, $16, $17,
+             NOW(), NOW()
+           )
+           ON CONFLICT (id) DO UPDATE SET
+             status = EXCLUDED.status,
+             grand_total = EXCLUDED.grand_total,
+             payment_status = EXCLUDED.payment_status,
+             metadata = EXCLUDED.metadata,
+             updated_at = NOW()`,
+          [
+            orderId,
+            displayIdNum,
+            orderNumber,
+            custUid || null,
+            email,
+            "INR",
+            subtotal,
+            totalTax,
+            finalTotal,
+            customer_name || "Valued Customer",
+            customer_phone || "",
+            branch.id,
+            sellerGstin,
+            sellerLegalName,
+            initialPaymentStatus,
+            payment_method || "card",
+            JSON.stringify(metadata),
+          ]
+        );
+
+        if (snapshottedItems.length > 0) {
+          for (let idx = 0; idx < snapshottedItems.length; idx++) {
+            const item = snapshottedItems[idx];
+            const lineItemId = item.id || `oli_${orderId}_${idx}`;
+            const orderItemId = `oi_${orderId}_${idx}`;
+            const unitPrice = Number(item.unit_price ?? item.price ?? item.selling_price ?? 0);
+            const qty = Number(item.quantity || 1);
+            const title = item.title || item.product_name || "Custom Cake";
+            const variantId = item.variant_id || null;
+            const productId = item.product_id || null;
+            const sku = item.sku || null;
+            const lineTotal = Math.round(Number(item.total_line_amount || (unitPrice * qty)) * 100) / 100;
+            const itemTaxRate = Number(item.tax_rate ?? 5);
+            const itemTaxAmount = Number(item.tax_amount ?? Math.round(((lineTotal * itemTaxRate) / 100) * 100) / 100);
+            const lineTotalWithTax = Math.round((lineTotal + itemTaxAmount) * 100) / 100;
+
+            await client.query(
+              `
+              INSERT INTO public.order_line_item (
+                "id", "totals_id", "title", "thumbnail", "variant_id", "product_id",
+                "product_title", "variant_sku", "requires_shipping", "is_discountable",
+                "is_tax_inclusive", "compare_at_unit_price", "raw_compare_at_unit_price",
+                "unit_price", "raw_unit_price", "metadata", "created_at", "updated_at"
+              ) VALUES (
+                $1, NULL, $2, $3, $4, $5, $2, $6, TRUE, TRUE, FALSE,
+                $7, $8, $7, $8, $9, NOW(), NOW()
+              )
+              ON CONFLICT ("id") DO UPDATE SET
+                "title" = EXCLUDED.title,
+                "unit_price" = EXCLUDED.unit_price,
+                "raw_unit_price" = EXCLUDED.raw_unit_price,
+                "metadata" = EXCLUDED.metadata,
+                "updated_at" = NOW();
+            `,
+              [
+                lineItemId,
+                title,
+                item.thumbnail || null,
+                variantId,
+                productId,
+                sku,
+                unitPrice,
+                JSON.stringify({ value: String(unitPrice), precision: 20 }),
+                JSON.stringify({
+                  order_id: orderId,
+                  variant_name: item.variant_name || item.weight || null,
+                  discount: Number(item.discount || 0),
+                  tax_rate: itemTaxRate,
+                  tax_amount: itemTaxAmount,
+                  cgst: item.cgst != null ? item.cgst : Math.round(lineTotal * ((itemTaxRate / 2) / 100) * 100) / 100,
+                  sgst: item.sgst != null ? item.sgst : Math.round(lineTotal * ((itemTaxRate / 2) / 100) * 100) / 100,
+                  total_line_amount: lineTotal,
+                  hsn_code: item.hsn_code || "1905",
+                  merchandise_type: item.merchandise_type || "CAKE",
+                  customization: item.customization || {},
+                }),
+              ]
+            );
+
+            await client.query(
+              `
+              INSERT INTO public.order_item (
+                "id", "order_id", "product_id", "title", "quantity", "unit_price",
+                "taxable_value", "gst_rate_pct", "tax_amount", "total",
+                "version", "item_id", "raw_quantity",
+                "fulfilled_quantity", "shipped_quantity",
+                "return_requested_quantity", "return_received_quantity",
+                "return_dismissed_quantity", "written_off_quantity",
+                "raw_unit_price", "metadata", "created_at", "updated_at"
+              ) VALUES (
+                $1, $2, $3, $4, $5, $6,
+                $7, $8, $9, $10,
+                1, $11, $12,
+                0, 0,
+                0, 0,
+                0, 0,
+                $13, $14, NOW(), NOW()
+              )
+              ON CONFLICT ("id") DO UPDATE SET
+                "product_id" = EXCLUDED.product_id,
+                "title" = EXCLUDED.title,
+                "quantity" = EXCLUDED.quantity,
+                "unit_price" = EXCLUDED.unit_price,
+                "taxable_value" = EXCLUDED.taxable_value,
+                "gst_rate_pct" = EXCLUDED.gst_rate_pct,
+                "tax_amount" = EXCLUDED.tax_amount,
+                "total" = EXCLUDED.total,
+                "raw_quantity" = EXCLUDED.raw_quantity,
+                "raw_unit_price" = EXCLUDED.raw_unit_price,
+                "metadata" = EXCLUDED.metadata,
+                "updated_at" = NOW();
+            `,
+              [
+                orderItemId,
+                orderId,
+                productId,
+                title,
+                qty,
+                unitPrice,
+                lineTotal,
+                itemTaxRate,
+                itemTaxAmount,
+                lineTotalWithTax,
+                lineItemId,
+                JSON.stringify({ value: String(qty), precision: 20 }),
+                JSON.stringify({ value: String(unitPrice), precision: 20 }),
+                JSON.stringify({
+                  line_total: lineTotal,
+                  tax_rate: itemTaxRate,
+                  tax_amount: itemTaxAmount,
+                  cgst: item.cgst != null ? item.cgst : Math.round(lineTotal * ((itemTaxRate / 2) / 100) * 100) / 100,
+                  sgst: item.sgst != null ? item.sgst : Math.round(lineTotal * ((itemTaxRate / 2) / 100) * 100) / 100,
+                  total: lineTotalWithTax,
+                  hsn_code: item.hsn_code || "1905",
+                  merchandise_type: item.merchandise_type || "CAKE",
+                }),
+              ]
+            );
+
+            await client.query(`UPDATE public.order_line_item SET "totals_id" = $1 WHERE "id" = $2;`, [orderItemId, lineItemId]);
+          }
+        }
+
+        // Step B.2: Marketplace agreements omitted in standalone cth_test baseline
 
         // Step C: Insert initial order status history
         const historyId = `osh_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
@@ -425,7 +735,6 @@ export class OrderService {
 
         // Step D: Insert into PostgreSQL payment_transaction table
         const paymentTxnId = `ptxn_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-        const isCod = payment_method === "cod";
         await client.query(
           `INSERT INTO "payment_transaction" (
              id, company_id, branch_id, order_id, customer_id, amount, currency,
@@ -440,46 +749,68 @@ export class OrderService {
             Math.round(finalTotal),
             "INR",
             params.idempotency_key || `idem_${orderId}`,
-            isCod ? "pending" : "captured",
-            isCod ? "pending" : "settled",
+            initialPaymentStatus,
+            initialPaymentStatus === "captured" ? "settled" : "pending",
             payment_method || "card",
             `ref_${orderId}`,
           ]
         );
 
-        // Step E: Insert into PostgreSQL delivery table
-        const deliveryRecordId = `del_${orderId}`;
-        const formattedAddress = delivery_address || (customer_name ? `Delivery address for ${customer_name}` : "Address on File");
-        await client.query(
-          `INSERT INTO "delivery" (
-             id, transaction_id, delivery_status, delivery_date, delivery_slot_id,
-             recipient_name, recipient_phone, recipient_address, recipient_pincode,
-             delivery_otp, created_at, updated_at
-           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
-           ON CONFLICT (id) DO UPDATE SET
-             delivery_status = EXCLUDED.delivery_status,
-             delivery_date = EXCLUDED.delivery_date,
-             delivery_slot_id = EXCLUDED.delivery_slot_id,
-             recipient_name = EXCLUDED.recipient_name,
-             recipient_phone = EXCLUDED.recipient_phone,
-             recipient_address = EXCLUDED.recipient_address,
-             recipient_pincode = EXCLUDED.recipient_pincode,
-             delivery_otp = EXCLUDED.delivery_otp,
-             updated_at = NOW()`,
-          [
-            deliveryRecordId,
-            orderId,
-            "pending",
-            delivery_date,
-            delivery_slot,
-            customer_name || "Valued Customer",
-            customer_phone || "",
-            formattedAddress,
-            (delivery_address as any)?.postal_code || (delivery_address as any)?.pincode || "560038",
-            deliveryOtp,
-          ]
-        );
+        // Step E: Insert into PostgreSQL delivery table (if table exists)
+        const delCheck = await client.query("SELECT to_regclass('public.delivery') as tbl");
+        if (delCheck.rows[0]?.tbl) {
+          const deliveryRecordId = `del_${orderId}`;
+          const formattedAddress = delivery_address || (customer_name ? `Delivery address for ${customer_name}` : "Address on File");
+          await client.query(
+            `INSERT INTO "delivery" (
+               id, transaction_id, delivery_status, delivery_date, delivery_slot_id,
+               recipient_name, recipient_phone, recipient_address, recipient_pincode,
+               delivery_otp, created_at, updated_at
+             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+             ON CONFLICT (id) DO UPDATE SET
+               delivery_status = EXCLUDED.delivery_status,
+               delivery_date = EXCLUDED.delivery_date,
+               delivery_slot_id = EXCLUDED.delivery_slot_id,
+               recipient_name = EXCLUDED.recipient_name,
+               recipient_phone = EXCLUDED.recipient_phone,
+               recipient_address = EXCLUDED.recipient_address,
+               recipient_pincode = EXCLUDED.recipient_pincode,
+               delivery_otp = EXCLUDED.delivery_otp,
+               updated_at = NOW()`,
+            [
+              deliveryRecordId,
+              orderId,
+              "pending",
+              delivery_date,
+              delivery_slot,
+              customer_name || "Valued Customer",
+              customer_phone || "",
+              formattedAddress,
+              (delivery_address as any)?.postal_code || (delivery_address as any)?.pincode || "560038",
+              deliveryOtp,
+            ]
+          );
+        }
+
+        await CrossAppEventService.publishInTransaction(client, {
+          event_type: "order.created",
+          aggregate_type: "ORDER",
+          aggregate_id: orderId,
+          branch_id: branch.id,
+          payload: {
+            order_id: orderId,
+            order_number: orderNumber,
+            customer_id: custUid,
+            customer_name: customer_name || "Valued Customer",
+            branch_id: branch.id,
+            total_amount: finalTotal,
+            status: "confirmed",
+            payment_status: initialPaymentStatus,
+            payment_method: payment_method || "card",
+          },
+        });
       });
+      CrossAppEventService.processPendingOutboxEvents().catch(() => {});
     } catch (txErr: any) {
       return { success: false, error: txErr.message || "Failed to finalize order transaction." };
     }

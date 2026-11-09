@@ -6,7 +6,7 @@ import { apiClient } from "@frontend/lib/api-client";
 import { CategorySelectDropdown } from "./category-select-dropdown";
 import { OccasionSelector } from "./occasion-selector";
 import { compressImageToWebP } from "@frontend/lib/util/image-compressor";
-import { TaxMasterService } from "@frontend/lib/tax-master";
+import { TaxMasterService, TaxConfigurationRecord } from "@frontend/lib/tax-master";
 import {
   parseAndNormalizeWeight,
   sortWeightOptions,
@@ -111,14 +111,68 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
   const [sellingPrice, setSellingPrice] = useState(String(product?.price || product?.selling_price || 649));
   const [costPrice, setCostPrice] = useState(String(product?.cost_price || 350));
   const [mrp, setMrp] = useState(String(product?.mrp || 799));
-  const [taxConfigurationId, setTaxConfigurationId] = useState(product?.tax_configuration_id || "txcfg_food_5");
-  const [gstRate, setGstRate] = useState(String(product?.gst_rate || 5));
-  const [taxClass, setTaxClass] = useState(product?.tax_class || "GST_FOOD_5");
+  const [taxConfigurationId, setTaxConfigurationId] = useState(
+    product?.tax_rate_id || product?.tax_configuration_id || ""
+  );
+  const [gstRate, setGstRate] = useState(
+    product?.gst_rate !== undefined && product?.gst_rate !== null ? String(product.gst_rate) : ""
+  );
+  const [taxClass, setTaxClass] = useState(product?.tax_class || "");
   const [hsnCode, setHsnCode] = useState(product?.hsn_code || "19059090");
   const [hsnDescription, setHsnDescription] = useState(product?.hsn_description || "Cakes, Pastries & Bakery Goods");
   const [uqc, setUqc] = useState(product?.uqc || "NOS");
   const [taxability, setTaxability] = useState(product?.taxability || "Taxable");
   const [taxInclusive, setTaxInclusive] = useState(product?.tax_inclusive ?? true);
+  const [taxConfigurations, setTaxConfigurations] = useState<TaxConfigurationRecord[]>([]);
+  const [loadingTaxConfigs, setLoadingTaxConfigs] = useState(true);
+  const [taxConfigWarning, setTaxConfigWarning] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    TaxMasterService.fetchTaxConfigurations()
+      .then((configs) => {
+        if (!active) return;
+        setTaxConfigurations(configs);
+        setLoadingTaxConfigs(false);
+
+        // Reconcile existing assignment with canonical tax rates
+        let matched = configs.find(
+          (c) => c.id === (product?.tax_rate_id || product?.tax_configuration_id)
+        );
+        if (!matched && product?.tax_class) {
+          let code = product.tax_class;
+          if (code === "GST_FOOD_5") code = "GST_5";
+          if (code === "GST_STANDARD_18" || code === "GST_FOOD_18") code = "GST_18";
+          if (code === "GST_FOOD_12") code = "GST_12";
+          if (code === "GST_FOOD_28") code = "GST_28";
+          if (code === "GST_EXEMPT" || code === "GST_NIL") code = "GST_0";
+          matched = configs.find((c) => c.code === code);
+        }
+        if (!matched && product?.gst_rate !== undefined && product?.gst_rate !== null) {
+          matched = configs.find((c) => c.gstRatePct === Number(product.gst_rate));
+        }
+
+        if (matched) {
+          setTaxConfigurationId(matched.id);
+          setGstRate(String(matched.gstRatePct));
+          setTaxClass(matched.code);
+          setTaxability(matched.taxability);
+          setTaxInclusive(matched.taxInclusive);
+          setTaxConfigWarning(null);
+        } else if (product?.id) {
+          setTaxConfigWarning("No authoritative Tax Master mapping found for this product. Please select one.");
+        }
+      })
+      .catch((err) => {
+        if (!active) return;
+        console.error("Failed to load tax configurations in PIM:", err);
+        setLoadingTaxConfigs(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [product]);
 
   // Variants Matrix State — initial values are empty; populated by loadMasterData() from DB
   const [selectedWeights, setSelectedWeights] = useState<string[]>([]);
@@ -445,10 +499,11 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       selling_price: startingPrice,
       cost_price: parseFloat(costPrice) || enabledWeights[0].cost_price || 350,
       mrp: enabledWeights[0].mrp || 799,
-      gst_rate: parseFloat(gstRate) || 5,
-      tax_class: taxClass,
-      tax_configuration_id: taxConfigurationId,
-      tax_configuration_code: taxClass,
+      gst_rate: gstRate !== "" ? parseFloat(gstRate) : undefined,
+      tax_class: taxClass || undefined,
+      tax_rate_id: taxConfigurationId || undefined,
+      tax_configuration_id: taxConfigurationId || undefined,
+      tax_configuration_code: taxClass || undefined,
       hsn_code: hsnCode,
       hsn_description: hsnDescription,
       uqc,
@@ -912,29 +967,44 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                   <div className="md:col-span-2">
-                    <Label htmlFor="pim_tax_cfg" className="font-semibold text-emerald-800 dark:text-emerald-300">Select Tax Master Configuration *</Label>
+                    <Label htmlFor="pim_tax_cfg" className="font-semibold text-emerald-800 dark:text-emerald-300">
+                      Select Canonical Tax Master Configuration *
+                    </Label>
                     <select
                       id="pim_tax_cfg"
                       value={taxConfigurationId}
                       onChange={(e) => {
                         const id = e.target.value;
                         setTaxConfigurationId(id);
-                        const match = TaxMasterService.getTaxConfigurationById(id);
+                        const match = (taxConfigurations.length > 0 ? taxConfigurations : TaxMasterService.listTaxConfigurations()).find((t) => t.id === id);
                         if (match) {
                           setGstRate(String(match.gstRatePct));
                           setTaxClass(match.code);
                           setTaxability(match.taxability);
                           setTaxInclusive(match.taxInclusive);
+                          setTaxConfigWarning(null);
+                        } else {
+                          setGstRate("");
+                          setTaxClass("");
+                          setTaxConfigWarning("No tax configuration selected. An authoritative rate is required.");
                         }
                       }}
-                      className="w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900 border-emerald-300 dark:border-emerald-800"
+                      className={`w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900 ${
+                        !taxConfigurationId ? "border-amber-400 bg-amber-50/20" : "border-emerald-300 dark:border-emerald-800"
+                      }`}
                     >
-                      {TaxMasterService.listTaxConfigurations().map((t) => (
+                      <option value="">-- Select Canonical Tax Rate (Required) --</option>
+                      {(taxConfigurations.length > 0 ? taxConfigurations : TaxMasterService.listTaxConfigurations()).map((t) => (
                         <option key={t.id} value={t.id}>
                           {t.name} ({t.code}) — GST: {t.gstRatePct}% | CGST: {t.cgstRatePct}% | SGST: {t.sgstRatePct}% | {t.taxability}
                         </option>
                       ))}
                     </select>
+                    {taxConfigWarning && (
+                      <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-medium">
+                        ⚠️ {taxConfigWarning}
+                      </p>
+                    )}
                   </div>
 
                   <div>

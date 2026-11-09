@@ -1,0 +1,1030 @@
+[
+  {
+    "method": "GET",
+    "path": "admin/accounting/work-queue/summary",
+    "desc": "Work Queue: Stream Summary",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "summary",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/vouchers",
+    "desc": "Work Queue: Vouchers List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "vouchers",
+      "total",
+      "page",
+      "limit",
+      "totalPages",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/vouchers?status=POSTED&limit=5",
+    "desc": "Work Queue: Vouchers Filtered",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "vouchers",
+      "total",
+      "page",
+      "limit",
+      "totalPages",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/vouchers/vch_00MUR1BRX9F9X7J8",
+    "desc": "Work Queue: Voucher Detail",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/work-queue/sales",
+    "desc": "Work Queue: Sales Orders Stream",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/trial-balance",
+    "desc": "Report: Trial Balance",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "rows",
+      "summary",
+      "filters",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/ledger?account_id=bf1f8d20-8ad7-4a1b-bc0a-2870c1cca62f",
+    "desc": "Report: General Ledger",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "account",
+      "opening_balance",
+      "closing_balance",
+      "total_debit",
+      "total_credit",
+      "lines",
+      "total",
+      "page",
+      "limit",
+      "totalPages",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/profit-loss?start_date=2026-10-01&end_date=2026-10-31",
+    "desc": "Report: Profit & Loss",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "period",
+      "branch",
+      "sections",
+      "summary",
+      "reconciliation",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/balance-sheet?as_of_date=2026-10-15",
+    "desc": "Report: Balance Sheet",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "as_of_date",
+      "branch",
+      "sections",
+      "summary",
+      "reconciliation",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/cash-flow?start_date=2026-10-01&end_date=2026-10-31",
+    "desc": "Report: Cash Flow",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "period",
+      "branch",
+      "method",
+      "summary",
+      "reconciliation",
+      "direct_schedule",
+      "indirect_schedule",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/comparative-pnl",
+    "desc": "Report: Comparative P&L",
+    "expectedStatus": 200,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/reports/retained-earnings-rollforward",
+    "desc": "Report: Retained Earnings Rollforward",
+    "expectedStatus": 200,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/reports/fiscal-year-summary",
+    "desc": "Report: Fiscal Year Summary",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "fiscal_years",
+      "summary",
+      "data",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/accounts",
+    "desc": "Setup: Chart of Accounts List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "accounts",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/config",
+    "desc": "Setup: Accounting Config Status",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "accounting_start_date",
+      "is_configured",
+      "is_immutable",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/company",
+    "desc": "Setup: Company Master Status",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/gst-registrations",
+    "desc": "Setup: GST Registrations",
+    "expectedStatus": 200,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/fiscal-periods",
+    "desc": "Setup: Fiscal Periods List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "periods",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/opening-balances/status",
+    "desc": "Setup: Opening Balances Status",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "accounts",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/suppliers",
+    "desc": "AP: Suppliers List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/purchases",
+    "desc": "AP: Purchase Bills List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/purchases/report/register",
+    "desc": "AP: Purchase Register Report",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/purchases/report/supplier-wise",
+    "desc": "AP: Supplier-Wise Purchases",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/purchases/report/item-wise",
+    "desc": "AP: Item-Wise Purchases",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/purchases/report/bill-wise",
+    "desc": "AP: Bill-Wise Purchases",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/purchases/report/gst-hsn",
+    "desc": "AP: GST HSN Purchases",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/reports/ar/aging",
+    "desc": "AR: Aging Analysis",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "as_of_date",
+      "summary",
+      "customers",
+      "reconciliation",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/reports/ar/invoices",
+    "desc": "AR: Corporate Invoices List",
+    "expectedStatus": 200,
+    "actualStatus": 404,
+    "unauthProtected": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/bank-accounts",
+    "desc": "Bank: Bank Accounts List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "bankAccounts",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/bank-deposit-slips",
+    "desc": "Bank: Deposit Slips List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "slips",
+      "total",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/bank-reconciliation/statements/calculate",
+    "desc": "BRS: Statement Calculate",
+    "expectedStatus": 200,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/bank-reconciliation/statements/uncleared-deposits",
+    "desc": "BRS: Uncleared Deposits",
+    "expectedStatus": 200,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/bank-reconciliation/statements/outstanding-disbursements",
+    "desc": "BRS: Outstanding Disbursements",
+    "expectedStatus": 200,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/bank-reconciliation/sessions",
+    "desc": "BRS: Sessions List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/gateway-settlements/batches",
+    "desc": "Gateway: Batches List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "batches",
+      "total",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/tellers",
+    "desc": "Teller: Master List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "tellers",
+      "total",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/teller/sessions",
+    "desc": "Teller: Sessions List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "sessions",
+      "total",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/teller/sessions/active",
+    "desc": "Teller: Active Session",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "session",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/teller/vault-movements",
+    "desc": "Teller: Vault Movements",
+    "expectedStatus": 200,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/teller/cash-tender-status",
+    "desc": "Teller: Cash Tender Status",
+    "expectedStatus": 200,
+    "actualStatus": 400,
+    "unauthProtected": false,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/branch-cash-position",
+    "desc": "Teller: Branch Cash Position",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data",
+      "total_gl_cash_in_hand",
+      "total_gl_petty_cash",
+      "total_active_drawer_cash",
+      "total_vault_cash",
+      "total_physical_cash",
+      "total_cash_position",
+      "open_sessions_count",
+      "branches_count",
+      "as_of_date",
+      "branches",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/petty-cash",
+    "desc": "Petty Cash: Positions List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "requests",
+      "total",
+      "data",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/cost-allocations/cost-centres",
+    "desc": "Cost Allocation: Cost Centres",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/cost-allocations/rules",
+    "desc": "Cost Allocation: Rules List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "data"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/journals",
+    "desc": "Journals: Drafts & Posted List",
+    "expectedStatus": 200,
+    "actualStatus": 200,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "journals",
+      "total",
+      "page",
+      "limit",
+      "totalPages",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/period-close/history",
+    "desc": "Period Close: History",
+    "expectedStatus": 200,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "admin/accounting/period-close/preview?fiscal_period_id=nonexistent",
+    "desc": "Period Close: Preview",
+    "expectedStatus": 200,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/journals/draft",
+    "desc": "POST Journals: Empty Body Validation",
+    "expectedStatus": 400,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/cost-allocations/rules",
+    "desc": "POST Cost Allocation: Empty Body Validation",
+    "expectedStatus": 400,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "admin/bank-accounts",
+    "desc": "POST Bank Account: Empty Body Validation",
+    "expectedStatus": 400,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/fiscal-periods",
+    "desc": "POST Fiscal Period: Empty Body Validation",
+    "expectedStatus": 400,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/fiscal-periods/generate-year",
+    "desc": "POST Gen Fiscal Year: Empty Body Validation",
+    "expectedStatus": 400,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/opening-balances",
+    "desc": "POST Opening Balance: Empty Body Validation",
+    "expectedStatus": 400,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "admin/gateway-settlements/batches/ingest",
+    "desc": "POST Gateway Ingest: Empty Body Validation",
+    "expectedStatus": 400,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "admin/suppliers",
+    "desc": "POST Supplier: Empty Body Validation",
+    "expectedStatus": 400,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "admin/purchases",
+    "desc": "POST Purchase: Empty Body Validation",
+    "expectedStatus": 400,
+    "actualStatus": 400,
+    "unauthProtected": true,
+    "success": true,
+    "bodyPreview": [
+      "success",
+      "error",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "admin/accounting/config/start-date",
+    "desc": "POST Start Date: Empty Body Validation",
+    "expectedStatus": 400,
+    "actualStatus": 404,
+    "unauthProtected": true,
+    "success": false,
+    "bodyPreview": [
+      "success",
+      "error",
+      "message",
+      "storage",
+      "backend_target",
+      "backend_health",
+      "fallback"
+    ]
+  }
+]

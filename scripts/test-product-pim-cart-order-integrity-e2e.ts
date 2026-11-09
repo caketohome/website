@@ -215,7 +215,7 @@ async function runIntegritySuite() {
 
   // [TEST GROUP 6] Order Snapshot & Administrative Data Integrity
   console.log("\n[TEST GROUP 6] Order Snapshot & Administrative Data Integrity");
-  const confirmRes = ApiEngine.confirmCheckout({
+  const confirmRes = await ApiEngine.confirmCheckout({
     cart_id: testCartId,
     customer_id: "cust_e2e_tester",
     delivery_type: "delivery",

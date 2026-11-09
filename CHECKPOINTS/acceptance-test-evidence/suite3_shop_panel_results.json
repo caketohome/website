@@ -1,0 +1,82 @@
+[
+  {
+    "role": "BRANCH_MANAGER",
+    "panel": "Shop Dashboard",
+    "feature": "Operational Overview",
+    "action": "Render Shop Dashboard Overview",
+    "expected": "Real-time KPIs, active order alerts, branch status toggles",
+    "actual": "Dashboard rendered successfully with branch telemetry",
+    "status": "PASS",
+    "screenshot": "branch-manager/01-shop-dashboard-overview.png"
+  },
+  {
+    "role": "BRANCH_MANAGER",
+    "panel": "Orders & Fulfillment",
+    "feature": "Store Order Management",
+    "action": "Click Orders & Fulfillment tab",
+    "expected": "Live order queue, status badges, kitchen prep buttons",
+    "actual": "Order queue rendered cleanly with status filters",
+    "status": "PASS",
+    "screenshot": "branch-manager/02-shop-orders-queue.png"
+  },
+  {
+    "role": "BRANCH_MANAGER",
+    "panel": "Purchases & GRN",
+    "feature": "Store Inward Purchasing",
+    "action": "Click Purchases & GRN tab",
+    "expected": "Branch purchase register, Record GRN receipt, New Purchase PO modal button",
+    "actual": "Purchases and GRN controls rendered successfully",
+    "status": "PASS",
+    "screenshot": "branch-manager/03-shop-purchases-grn.png"
+  },
+  {
+    "role": "BRANCH_MANAGER",
+    "panel": "Branch Expenses",
+    "feature": "Petty Cash Ledger",
+    "action": "Click Expenses tab",
+    "expected": "Branch expense history, Record Expense button, category selector",
+    "actual": "Expense ledger rendered cleanly with category breakdown",
+    "status": "PASS",
+    "screenshot": "branch-manager/04-shop-expenses.png"
+  },
+  {
+    "role": "BRANCH_MANAGER",
+    "panel": "Cash & Teller",
+    "feature": "Drawer & COD Custody Management",
+    "action": "Click Cash & Teller tab",
+    "expected": "Drawer status (Open/Closed), float count input, rider COD custody ledger, bank deposit slip action",
+    "actual": "Cash position, drawer controls, and deposit slip preparation verified",
+    "status": "PASS",
+    "screenshot": "branch-manager/05-shop-cash-teller.png"
+  },
+  {
+    "role": "BRANCH_MANAGER",
+    "panel": "Branch Inventory",
+    "feature": "Product Availability & Stock Control",
+    "action": "Click Inventory tab",
+    "expected": "Product list with live cake toggle, physical quantity adjustment, damage write-off button",
+    "actual": "Inventory list rendered with availability toggles and damage controls",
+    "status": "PASS",
+    "screenshot": "branch-manager/06-shop-inventory.png"
+  },
+  {
+    "role": "BRANCH_MANAGER",
+    "panel": "Branch Reports",
+    "feature": "Sales & Inventory Reports with CSV Export",
+    "action": "Click Branch Reports tab",
+    "expected": "Daily sales, cash summary, damage register, with CSV export triggers",
+    "actual": "Reports interface rendered with operational breakdown and CSV export buttons",
+    "status": "PASS",
+    "screenshot": "branch-manager/07-shop-branch-reports.png"
+  },
+  {
+    "role": "BRANCH_MANAGER",
+    "panel": "Security Boundary",
+    "feature": "Central Admin Protection",
+    "action": "Direct navigation to /dashboard",
+    "expected": "Blocked; redirected back to /dashboard/shop without central GL leakage",
+    "actual": "Enforced; URL: http://localhost:3000/dashboard/shop",
+    "status": "PASS",
+    "screenshot": "branch-manager/08-branch-isolation-enforced.png"
+  }
+]

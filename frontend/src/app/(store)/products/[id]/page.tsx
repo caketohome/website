@@ -22,7 +22,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const rawDesc = fetched?.description || "Decadent handcrafted cake made with rich ingredients and fresh toppings.";
   const desc = `Order ${title} online from CakeToHome Bangalore. ${rawDesc} Freshly baked with same-day and midnight delivery available.`;
   const handle = fetched?.handle || targetId;
-  const image = fetched?.thumbnail || "https://cakes2home.com/images/default-cake.jpg";
+  const isAccessory = (fetched?.merchandise_type || "").toUpperCase() === "ACCESSORY" || (targetId && String(targetId).startsWith("acc_"));
+  const image = fetched?.thumbnail || (isAccessory ? "/images/gold-acrylic-topper.jpg" : "https://cakes2home.com/images/default-cake.jpg");
 
   return SeoMetadataBuilder.buildMetadata({
     entityType: "product",
@@ -47,11 +48,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const productId = fetched.id || fetched.product_id || targetId;
   const productTitle = fetched?.title || fetched?.name || "Gourmet Bakery Product";
   const productDescription = fetched?.description || "";
+  const isAccessory = (fetched?.merchandise_type || "").toUpperCase() === "ACCESSORY" || (targetId && String(targetId).startsWith("acc_"));
+  const defaultThumbnail = isAccessory
+    ? "/images/gold-acrylic-topper.jpg"
+    : "/images/placeholder-cake.jpg";
   const thumbnail =
     fetched?.thumbnail ||
     fetched?.image ||
     fetched?.image_url ||
-    "/images/placeholder-cake.jpg";
+    defaultThumbnail;
   const basePrice = Number(fetched?.price || fetched?.selling_price || 0);
 
   // Build product gallery images strictly from authoritative database gallery/images

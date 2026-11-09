@@ -1,0 +1,8 @@
+{
+  "rehearsal_db": "cth_rehearsal_phase4_10",
+  "tests_executed": 16,
+  "tests_passed": 16,
+  "tests_failed": 0,
+  "pass_rate_percent": 100,
+  "zero_writes_to_cth_test": true
+}

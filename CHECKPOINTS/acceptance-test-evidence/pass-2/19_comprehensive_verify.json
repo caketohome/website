@@ -1,0 +1,391 @@
+{
+  "results": [
+    {
+      "id": "DB-accounting_account",
+      "name": "Table accounting_account exists",
+      "status": "PASS",
+      "detail": "rows=99"
+    },
+    {
+      "id": "DB-accounting_journal_entry",
+      "name": "Table accounting_journal_entry exists",
+      "status": "PASS",
+      "detail": "rows=2"
+    },
+    {
+      "id": "DB-accounting_journal_line",
+      "name": "Table accounting_journal_line exists",
+      "status": "PASS",
+      "detail": "rows=4"
+    },
+    {
+      "id": "DB-accounting_voucher",
+      "name": "Table accounting_voucher exists",
+      "status": "PASS",
+      "detail": "rows=3"
+    },
+    {
+      "id": "DB-branch",
+      "name": "Table branch exists",
+      "status": "PASS",
+      "detail": "rows=57"
+    },
+    {
+      "id": "DB-branch_inventory",
+      "name": "Table branch_inventory exists",
+      "status": "PASS",
+      "detail": "rows=424"
+    },
+    {
+      "id": "DB-catalog_product",
+      "name": "Table catalog_product exists",
+      "status": "FAIL",
+      "detail": "relation \"public.catalog_product\" does not exist"
+    },
+    {
+      "id": "DB-catalog_variant",
+      "name": "Table catalog_variant exists",
+      "status": "FAIL",
+      "detail": "relation \"public.catalog_variant\" does not exist"
+    },
+    {
+      "id": "DB-customer",
+      "name": "Table customer exists",
+      "status": "PASS",
+      "detail": "rows=57"
+    },
+    {
+      "id": "DB-order",
+      "name": "Table order exists",
+      "status": "PASS",
+      "detail": "rows=190"
+    },
+    {
+      "id": "DB-order_item",
+      "name": "Table order_item exists",
+      "status": "PASS",
+      "detail": "rows=0"
+    },
+    {
+      "id": "DB-invoice",
+      "name": "Table invoice exists",
+      "status": "PASS",
+      "detail": "rows=5"
+    },
+    {
+      "id": "DB-inventory_movement",
+      "name": "Table inventory_movement exists",
+      "status": "PASS",
+      "detail": "rows=0"
+    },
+    {
+      "id": "DB-inventory_cost_lot",
+      "name": "Table inventory_cost_lot exists",
+      "status": "PASS",
+      "detail": "rows=0"
+    },
+    {
+      "id": "DB-delivery_partner",
+      "name": "Table delivery_partner exists",
+      "status": "PASS",
+      "detail": "rows=30"
+    },
+    {
+      "id": "DB-purchase_order",
+      "name": "Table purchase_order exists",
+      "status": "FAIL",
+      "detail": "relation \"public.purchase_order\" does not exist"
+    },
+    {
+      "id": "DB-purchase_order_item",
+      "name": "Table purchase_order_item exists",
+      "status": "FAIL",
+      "detail": "relation \"public.purchase_order_item\" does not exist"
+    },
+    {
+      "id": "DB-supplier",
+      "name": "Table supplier exists",
+      "status": "PASS",
+      "detail": "rows=0"
+    },
+    {
+      "id": "DB-GL-BAL",
+      "name": "GL DR = CR",
+      "status": "PASS",
+      "detail": "DR=2000 CR=2000"
+    },
+    {
+      "id": "API-Dashboard-Stats",
+      "name": "GET Dashboard Stats",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "API-List-Branches",
+      "name": "GET List Branches",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Chart-of-Accounts",
+      "name": "GET Chart of Accounts",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "API-Trial-Balance",
+      "name": "GET Trial Balance",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Balance-Sheet",
+      "name": "GET Balance Sheet",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-P&L-Statement",
+      "name": "GET P&L Statement",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Voucher-List",
+      "name": "GET Voucher List",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "API-Journal-Entries",
+      "name": "GET Journal Entries",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "API-Catalog-Products",
+      "name": "GET Catalog Products",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Suppliers",
+      "name": "GET Suppliers",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Purchases",
+      "name": "GET Purchases",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Orders",
+      "name": "GET Orders",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Invoices",
+      "name": "GET Invoices",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "API-Customers",
+      "name": "GET Customers",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Delivery-Partners",
+      "name": "GET Delivery Partners",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-User-Management",
+      "name": "GET User Management",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "API-Inventory-Movements",
+      "name": "GET Inventory Movements",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "FIN-BS-200",
+      "name": "BS returns 200",
+      "status": "PASS"
+    },
+    {
+      "id": "FIN-BS-BAL",
+      "name": "BS Assets = L + E",
+      "status": "PASS",
+      "detail": "A=2000 L+E=2000 diff=0"
+    },
+    {
+      "id": "FIN-BS-EQU",
+      "name": "BS Equity includes dynamic P&L",
+      "status": "PASS",
+      "detail": "CY Earnings=2000"
+    },
+    {
+      "id": "FIN-PL-200",
+      "name": "P&L returns 200",
+      "status": "PASS"
+    },
+    {
+      "id": "FIN-PL-NET",
+      "name": "P&L Net Profit matches GL",
+      "status": "PASS",
+      "detail": "Net=2000"
+    },
+    {
+      "id": "FIN-TB-200",
+      "name": "Trial Balance returns 200",
+      "status": "PASS"
+    },
+    {
+      "id": "FIN-TB-BAL",
+      "name": "TB leaf DR = CR",
+      "status": "PASS",
+      "detail": "DR=2000 CR=2000"
+    },
+    {
+      "id": "FIN-BS-CMP",
+      "name": "BS comparison mode works",
+      "status": "PASS",
+      "detail": "Has comparison snapshot"
+    },
+    {
+      "id": "RBAC-MGR-ADMIN",
+      "name": "Manager blocked from admin dashboard",
+      "status": "PASS",
+      "detail": "HTTP 403"
+    },
+    {
+      "id": "RBAC-DP-ADMIN",
+      "name": "DP blocked from admin dashboard",
+      "status": "PASS",
+      "detail": "HTTP 403"
+    },
+    {
+      "id": "RBAC-NOAUTH",
+      "name": "Unauthenticated blocked from admin",
+      "status": "PASS",
+      "detail": "HTTP 401"
+    },
+    {
+      "id": "RBAC-CUST-ADMIN",
+      "name": "Customer blocked from admin",
+      "status": "PASS",
+      "detail": "HTTP 403"
+    },
+    {
+      "id": "RBAC-MGR-OWN",
+      "name": "Manager can access own dashboard",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "RBAC-DP-OWN",
+      "name": "DP can access own dashboard",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "RBAC-MGR-BS",
+      "name": "Manager can view own branch BS",
+      "status": "FAIL",
+      "detail": "HTTP 403"
+    },
+    {
+      "id": "MGR-Manager-Dashboard",
+      "name": "GET Manager Dashboard",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "MGR-Manager-Inventory",
+      "name": "GET Manager Inventory",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "MGR-Manager-Orders",
+      "name": "GET Manager Orders",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "MGR-Manager-Purchases",
+      "name": "GET Manager Purchases",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "DP-DP-Dashboard",
+      "name": "GET DP Dashboard",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "DP-DP-Orders",
+      "name": "GET DP Orders",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "EXP-TB-CSV-Export",
+      "name": "TB CSV Export",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "EXP-TB-PDF-Export",
+      "name": "TB PDF Export",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "EXP-P&L-CSV-Export",
+      "name": "P&L CSV Export",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "EXP-BS-CSV-Export",
+      "name": "BS CSV Export",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "EXP-Orders-CSV-Export",
+      "name": "Orders CSV Export",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "EXP-Invoices-CSV-Export",
+      "name": "Invoices CSV Export",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "XPANEL-ORDERS",
+      "name": "Manager orders <= Admin orders",
+      "status": "PASS",
+      "detail": "admin=20 mgr=3"
+    }
+  ],
+  "totals": {
+    "pass": 43,
+    "fail": 21,
+    "na": 0,
+    "total": 64
+  }
+}

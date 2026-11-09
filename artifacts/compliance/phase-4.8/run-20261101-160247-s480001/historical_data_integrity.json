@@ -1,0 +1,9 @@
+{
+  "orders": 127,
+  "invoices": 71,
+  "vouchers": 4,
+  "unbilled_orders": 69,
+  "billed_orders": 58,
+  "posted_vouchers": 0,
+  "cth_test_writes": 0
+}

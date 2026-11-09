@@ -1,0 +1,32 @@
+{
+  "high_water_mark": 74,
+  "persisted_invoices": 55,
+  "allocation_only_logs": 8,
+  "rollback_gaps": 11,
+  "total_accounted": 74,
+  "unaccounted": 0,
+  "allocation_only_positions": [
+    4,
+    6,
+    7,
+    9,
+    10,
+    11,
+    12,
+    13
+  ],
+  "rollback_gap_positions": [
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62
+  ],
+  "status": "100_PERCENT_RECONCILED"
+}

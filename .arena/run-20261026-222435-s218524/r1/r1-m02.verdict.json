@@ -1,0 +1,32 @@
+{
+  "match": "r1-m02",
+  "scores": {
+    "a004": {
+      "correctness": 9.2,
+      "completeness": 9.2,
+      "specificity": 9.2,
+      "robustness": 9.2,
+      "clarity": 9.2,
+      "fatal": false
+    },
+    "a001": {
+      "correctness": 8.0,
+      "completeness": 8.0,
+      "specificity": 8.0,
+      "robustness": 8.0,
+      "clarity": 8.0,
+      "fatal": false
+    }
+  },
+  "winner": "a004",
+  "reason": "a004 eliminates unnecessary complexity, grounding all safeguards in checkable lines and minimal moving parts.",
+  "survived": [
+    "Test Script Specification"
+  ],
+  "standing": {
+    "a004": [],
+    "a001": [
+      "Unnecessary Probabilistic Abstraction"
+    ]
+  }
+}

@@ -463,6 +463,7 @@ function getProductCogs(item: any, product?: any): number | null {
 }
 
 export const HSN_MASTER_DESCRIPTIONS: Record<string, { description: string; defaultUqc: string }> = {
+  "UNCLASSIFIED": { description: "Unclassified (Missing HSN Code)", defaultUqc: "NOS - NUMBERS" },
   "19059090": { description: "Cakes, Pastries & Bakery Goods", defaultUqc: "NOS - NUMBERS" },
   "19059010": { description: "Pastries and Cakes", defaultUqc: "NOS - NUMBERS" },
   "34060010": { description: "Candles & Tapers", defaultUqc: "PKT - PACKETS" },
@@ -1100,7 +1101,7 @@ export class ReportsEngineData {
             sku: product?.sku || product?.metadata?.sku || `SKU-${pid.slice(-4)}`,
             category: product?.metadata?.category || item.category || "Cakes",
             occasion: product?.metadata?.occasion || item.occasion || "Celebration",
-            hsnCode: product?.metadata?.hsn_code || item.hsn_code || "19059090",
+            hsnCode: product?.metadata?.hsn_code || item.hsn_code || "UNCLASSIFIED",
             uqc: product?.metadata?.uqc || item.uqc || "NOS - NUMBERS",
             gstRatePct: Number(product?.metadata?.gst_rate || item.gst_rate || 5),
             qty: 0, grossSales: 0, discounts: 0, taxAmount: 0,
@@ -1263,7 +1264,7 @@ export class ReportsEngineData {
     const hsnGrouped = new Map<string, GstReportItem>();
 
     for (const p of prods) {
-      const hsnCode = p.hsnCode || "19059090";
+      const hsnCode = p.hsnCode || "UNCLASSIFIED";
       const masterInfo = HSN_MASTER_DESCRIPTIONS[hsnCode] || { description: "Bakery & Confectionery Products", defaultUqc: "NOS - NUMBERS" };
       const uom = p.uqc || masterInfo.defaultUqc;
       const compositeKey = `${hsnCode}_${p.gstRatePct}_${uom}`;
@@ -1329,7 +1330,7 @@ export class ReportsEngineData {
     const gst = this.getGstHsnSummary(filters);
     return gst.items.map((item) => ({
       taxConfigurationName: `GST ${item.gstRatePct}% - ${item.description}`,
-      taxConfigurationCode: `TAX_GST_${item.gstRatePct}`,
+      taxConfigurationCode: item.gstRatePct === 5 ? "GST_FOOD_5" : item.gstRatePct === 12 ? "GST_FOOD_12" : item.gstRatePct === 18 ? "GST_FOOD_18" : (item.gstRatePct === 0 ? "GST_EXEMPT" : `TAX_GST_${item.gstRatePct}`),
       taxability: item.gstRatePct > 0 ? "Taxable Goods" : "Exempted / Zero Rated",
       gstRatePct: item.gstRatePct,
       taxableValue: item.taxableValue,
@@ -1375,7 +1376,7 @@ export class ReportsEngineData {
           const discount = Number(item.discount) || 0;
           const net = Math.max(0, gross - discount);
 
-          const hsn = product?.metadata?.hsn_code || item.hsn_code || "19059090";
+          const hsn = product?.metadata?.hsn_code || item.hsn_code || "UNCLASSIFIED";
           const masterInfo = HSN_MASTER_DESCRIPTIONS[hsn] || { description: "Bakery Goods", defaultUqc: "NOS - NUMBERS" };
           const uqc = item.uqc || product?.metadata?.uqc || masterInfo.defaultUqc;
           const gstRate = Number(product?.metadata?.gst_rate || item.gst_rate || 5);

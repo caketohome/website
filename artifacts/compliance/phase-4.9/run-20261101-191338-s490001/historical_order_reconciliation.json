@@ -1,0 +1,24 @@
+{
+  "total_orders": 127,
+  "billed_orders": 58,
+  "unbilled_orders": 69,
+  "unbilled_by_status": {
+    "pending": 19,
+    "delivered": 21,
+    "preparing": 1,
+    "confirmed": 26,
+    "completed": 2
+  },
+  "unbilled_by_payment_status": {
+    "paid": 41,
+    "pending": 16,
+    "captured": 12
+  },
+  "unbilled_by_payment_method": {
+    "online": 32,
+    "card": 19,
+    "upi": 9,
+    "test_mode": 9
+  },
+  "auto_billing_during_release": 0
+}

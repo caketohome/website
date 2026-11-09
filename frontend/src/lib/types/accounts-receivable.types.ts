@@ -126,7 +126,75 @@ export interface ArGlReconciliationResult {
   exceptions: ArReconciliationException[];
 }
 
-// ─── AR Aging Schedule (EXPLICITLY FEATURE-BLOCKED) ──────────────────────────
+// ─── AR Aging Schedule ─────────────────────────────────────────────────────────
+
+export interface ArAgingFilters {
+  as_of_date?: string; // YYYY-MM-DD
+  branch_id?: string;
+  customer_id?: string;
+  actorContext?: any;
+}
+
+export type ArAgingBucket = "CURRENT" | "DAYS_1_30" | "DAYS_31_60" | "DAYS_61_90" | "DAYS_90_PLUS";
+
+export interface ArAgingInvoiceItem {
+  invoice_id: string;
+  invoice_number: string;
+  order_id: string;
+  customer_id: string;
+  customer_name: string;
+  branch_id?: string | null;
+  branch_name?: string | null;
+  invoice_date: string;
+  due_date: string;
+  days_overdue: number;
+  invoice_total: number;
+  paid_amount: number;
+  returns_amount: number;
+  balance_due: number;
+  bucket: ArAgingBucket;
+}
+
+export interface CustomerArAgingRow {
+  customer_id: string;
+  customer_name: string;
+  company_name: string | null;
+  phone: string | null;
+  email: string | null;
+  current_amount: number;
+  days_1_30: number;
+  days_31_60: number;
+  days_61_90: number;
+  days_90_plus: number;
+  total_outstanding: number;
+  invoice_count: number;
+  invoices?: ArAgingInvoiceItem[];
+}
+
+export interface ArAgingSummary {
+  total_current: number;
+  total_1_30: number;
+  total_31_60: number;
+  total_61_90: number;
+  total_90_plus: number;
+  grand_total: number;
+  customer_count: number;
+  invoice_count: number;
+}
+
+export interface ArAgingScheduleResult {
+  as_of_date: string;
+  branch_id?: string;
+  summary: ArAgingSummary;
+  customers: CustomerArAgingRow[];
+  reconciliation?: {
+    gl_trade_ar_balance: number;
+    subledger_invoiced_balance: number;
+    unassigned_journal_adjustments: number;
+    net_difference: number;
+    is_reconciled: boolean;
+  };
+}
 
 export interface ArAgingScheduleBlockedResult {
   status: "FEATURE_BLOCKED";
@@ -136,3 +204,4 @@ export interface ArAgingScheduleBlockedResult {
   summary: null;
   customers: [];
 }
+

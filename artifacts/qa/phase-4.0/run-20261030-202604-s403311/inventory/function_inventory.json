@@ -1,0 +1,1588 @@
+[
+  {
+    "id": "MOD-01",
+    "name": "Storefront",
+    "category": "Storefront & Catalog",
+    "status": "PRESENT",
+    "routes": [
+      "/",
+      "/shop"
+    ],
+    "apis": [
+      "GET /api/v1/products",
+      "GET /api/v1/categories"
+    ],
+    "elements": [
+      "Hero Banner",
+      "Featured Cakes Carousel",
+      "Category Grid",
+      "City Selector"
+    ],
+    "tables": [
+      "product",
+      "city"
+    ],
+    "verificationScope": "Verify page load, header, footer, product cards, category navigation, city selection modal."
+  },
+  {
+    "id": "MOD-02",
+    "name": "Navigation and routing",
+    "category": "Storefront & Catalog",
+    "status": "PRESENT",
+    "routes": [
+      "/categories",
+      "/occasions",
+      "/category/[slug]",
+      "/occasions/[slug]"
+    ],
+    "apis": [
+      "GET /api/v1/categories"
+    ],
+    "elements": [
+      "Navbar Links",
+      "Occasion Dropdown",
+      "Mobile Nav Drawer",
+      "Breadcrumbs"
+    ],
+    "tables": [
+      "product"
+    ],
+    "verificationScope": "Verify client-side navigation between categories, occasions, and landing pages without hydration mismatch."
+  },
+  {
+    "id": "MOD-03",
+    "name": "Authentication",
+    "category": "Auth & Identity",
+    "status": "PRESENT",
+    "routes": [
+      "/login",
+      "/signup",
+      "/api/auth/session",
+      "/api/auth/me",
+      "/api/auth/logout"
+    ],
+    "apis": [
+      "POST /api/v1/auth/otp/send",
+      "POST /api/v1/auth/otp/verify",
+      "POST /api/auth/logout"
+    ],
+    "elements": [
+      "Login Modal",
+      "Phone Input",
+      "OTP Form",
+      "Logout Button"
+    ],
+    "tables": [
+      "customer"
+    ],
+    "verificationScope": "Verify phone OTP dispatch, session token cookie issuance, authenticated state in header, and logout."
+  },
+  {
+    "id": "MOD-04",
+    "name": "User management",
+    "category": "Auth & Identity",
+    "status": "PRESENT",
+    "routes": [
+      "/account",
+      "/account/addresses",
+      "/account/orders"
+    ],
+    "apis": [
+      "GET /api/customer/me",
+      "PUT /api/customer/profile"
+    ],
+    "elements": [
+      "Profile Card",
+      "Edit Name/Email Modal",
+      "Saved Addresses List"
+    ],
+    "tables": [
+      "customer",
+      "customer_address"
+    ],
+    "verificationScope": "Verify profile update, address creation, default address selection, and session persistence."
+  },
+  {
+    "id": "MOD-05",
+    "name": "Roles and permissions",
+    "category": "Auth & Identity",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard",
+      "/dashboard/shop",
+      "/api/v1/admin/[...path]"
+    ],
+    "apis": [
+      "GET /api/v1/admin/staff/permissions"
+    ],
+    "elements": [
+      "Role Selector",
+      "Permission Gate",
+      "Staff Access Matrix"
+    ],
+    "tables": [
+      "setting"
+    ],
+    "verificationScope": "Verify RBAC enforcement, unauthorized route redirection, and branch-scoped actions."
+  },
+  {
+    "id": "MOD-06",
+    "name": "Customer management",
+    "category": "Customers",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/shop",
+      "/api/v1/admin/customers"
+    ],
+    "apis": [
+      "GET /api/v1/customers",
+      "GET /api/v1/customers/[id]"
+    ],
+    "elements": [
+      "Customer Table",
+      "Order History Tab",
+      "Address Drawer"
+    ],
+    "tables": [
+      "customer",
+      "customer_address"
+    ],
+    "verificationScope": "Verify customer profile queries, order aggregation, and address resolution."
+  },
+  {
+    "id": "MOD-07",
+    "name": "Product catalog",
+    "category": "Storefront & Catalog",
+    "status": "PRESENT",
+    "routes": [
+      "/products",
+      "/products/[id]"
+    ],
+    "apis": [
+      "GET /api/v1/products",
+      "GET /api/v1/products/[id]"
+    ],
+    "elements": [
+      "Product Card",
+      "Image Carousel",
+      "Price Tag",
+      "MRP Strike-through",
+      "Badge"
+    ],
+    "tables": [
+      "product",
+      "product_variant"
+    ],
+    "verificationScope": "Verify catalog listing, product detail rendering, pricing logic, and active product filtering."
+  },
+  {
+    "id": "MOD-08",
+    "name": "Product categories",
+    "category": "Storefront & Catalog",
+    "status": "PRESENT",
+    "routes": [
+      "/category/[slug]",
+      "/categories"
+    ],
+    "apis": [
+      "GET /api/v1/categories"
+    ],
+    "elements": [
+      "Category Pills",
+      "Sub-category Filter",
+      "Category Header Banner"
+    ],
+    "tables": [
+      "product"
+    ],
+    "verificationScope": "Verify category filtering, placeholder fallback rendering via getCategoryPlaceholder()."
+  },
+  {
+    "id": "MOD-09",
+    "name": "Product variants",
+    "category": "Storefront & Catalog",
+    "status": "PRESENT",
+    "routes": [
+      "/products/[id]"
+    ],
+    "apis": [
+      "GET /api/v1/products/[id]/variants"
+    ],
+    "elements": [
+      "Weight Selector (0.5kg, 1kg, 2kg)",
+      "Flavor Dropdown"
+    ],
+    "tables": [
+      "product_variant",
+      "variant_option"
+    ],
+    "verificationScope": "Verify dynamic price updates upon selecting variant options and weight multipliers."
+  },
+  {
+    "id": "MOD-10",
+    "name": "Cake customization",
+    "category": "Storefront & Catalog",
+    "status": "PRESENT",
+    "routes": [
+      "/products/[id]"
+    ],
+    "apis": [
+      "POST /api/v1/cart/items"
+    ],
+    "elements": [
+      "Eggless Toggle",
+      "Message on Cake Input (max 30 chars)",
+      "Photo Upload"
+    ],
+    "tables": [],
+    "verificationScope": "Verify eggless surcharge (+₹50/₹100), custom message persistence in cart line item metadata."
+  },
+  {
+    "id": "MOD-11",
+    "name": "Accessories and merchandise",
+    "category": "Storefront & Catalog",
+    "status": "PRESENT",
+    "routes": [
+      "/products/[id]",
+      "/cart"
+    ],
+    "apis": [
+      "GET /api/v1/accessories",
+      "GET /api/v1/admin/accessories"
+    ],
+    "elements": [
+      "Candles Upsell Card",
+      "Cake Topper Card",
+      "Greeting Card Selector"
+    ],
+    "tables": [
+      "product"
+    ],
+    "verificationScope": "Verify accessory rendering uses /images/placeholder-accessory.svg or designated topper asset with ZERO cake image leaks."
+  },
+  {
+    "id": "MOD-12",
+    "name": "Search",
+    "category": "Discovery",
+    "status": "PRESENT",
+    "routes": [
+      "/search"
+    ],
+    "apis": [
+      "GET /api/v1/products/search?q="
+    ],
+    "elements": [
+      "Search Bar",
+      "Autocomplete Typeahead",
+      "No Results State"
+    ],
+    "tables": [
+      "product"
+    ],
+    "verificationScope": "Verify query execution, typo tolerance, keyword matching on title and description."
+  },
+  {
+    "id": "MOD-13",
+    "name": "Filters and sorting",
+    "category": "Discovery",
+    "status": "PRESENT",
+    "routes": [
+      "/shop",
+      "/category/[slug]"
+    ],
+    "apis": [
+      "GET /api/v1/products?flavor=&eggless=&sort="
+    ],
+    "elements": [
+      "Filter Sidebar",
+      "Sort Dropdown (Price Low/High, Rating)",
+      "Clear Filters Button"
+    ],
+    "tables": [
+      "product"
+    ],
+    "verificationScope": "Verify facet selection updates URL query params and filters product grid correctly."
+  },
+  {
+    "id": "MOD-14",
+    "name": "Pagination",
+    "category": "Discovery",
+    "status": "PRESENT",
+    "routes": [
+      "/shop"
+    ],
+    "apis": [
+      "GET /api/v1/products?page=1&limit=12"
+    ],
+    "elements": [
+      "Pagination Controls",
+      "Next/Prev Buttons",
+      "Page Numbers"
+    ],
+    "tables": [
+      "product"
+    ],
+    "verificationScope": "Verify page navigation, boundary conditions (first/last page), and limit parameters."
+  },
+  {
+    "id": "MOD-15",
+    "name": "CMS",
+    "category": "Content",
+    "status": "PRESENT",
+    "routes": [
+      "/[slug]",
+      "/blog",
+      "/blog/[slug]"
+    ],
+    "apis": [
+      "GET /api/v1/cms/pages/[slug]"
+    ],
+    "elements": [
+      "Dynamic Page Renderer",
+      "Rich Text Viewer",
+      "FAQ Accordion",
+      "Contact Us Form"
+    ],
+    "tables": [
+      "cms_page",
+      "cms_homepage_section"
+    ],
+    "verificationScope": "Verify CMS page retrieval, slug resolution, page_type property handling, and fallback behavior."
+  },
+  {
+    "id": "MOD-16",
+    "name": "Cart",
+    "category": "Commerce",
+    "status": "PRESENT",
+    "routes": [
+      "/cart"
+    ],
+    "apis": [
+      "GET /api/v1/cart",
+      "POST /api/v1/cart/items",
+      "DELETE /api/v1/cart/items/[id]"
+    ],
+    "elements": [
+      "Cart Drawer",
+      "Quantity Stepper (+/-)",
+      "Remove Item Button",
+      "Subtotal Calculation"
+    ],
+    "tables": [],
+    "verificationScope": "Verify item addition, quantity updates, item removal, cart persistence in localStorage/session."
+  },
+  {
+    "id": "MOD-17",
+    "name": "Checkout",
+    "category": "Commerce",
+    "status": "PRESENT",
+    "routes": [
+      "/checkout",
+      "/your-order"
+    ],
+    "apis": [
+      "POST /api/v1/orders/checkout"
+    ],
+    "elements": [
+      "Address Form",
+      "Pincode Check",
+      "Slot Picker",
+      "Order Summary",
+      "Place Order Button"
+    ],
+    "tables": [
+      "order",
+      "order_item",
+      "order_line_item"
+    ],
+    "verificationScope": "Verify delivery address validation, slot selection, and checkout submission."
+  },
+  {
+    "id": "MOD-18",
+    "name": "Discounts and coupons",
+    "category": "Commerce",
+    "status": "PRESENT",
+    "routes": [
+      "/cart",
+      "/checkout"
+    ],
+    "apis": [
+      "POST /api/v1/coupons/validate"
+    ],
+    "elements": [
+      "Coupon Input Field",
+      "Apply Button",
+      "Discount Line Item",
+      "Error Toast"
+    ],
+    "tables": [
+      "offer"
+    ],
+    "verificationScope": "Verify coupon code validation, percentage/fixed discount deduction, and invalid code rejection."
+  },
+  {
+    "id": "MOD-19",
+    "name": "Tax calculation",
+    "category": "Commerce & GST",
+    "status": "PRESENT",
+    "routes": [
+      "/checkout",
+      "/your-order"
+    ],
+    "apis": [
+      "POST /api/v1/tax/calculate"
+    ],
+    "elements": [
+      "CGST Line Item",
+      "SGST Line Item",
+      "IGST Line Item",
+      "Tax Breakdown Modal"
+    ],
+    "tables": [
+      "gst_registration"
+    ],
+    "verificationScope": "Verify 18% GST calculation (9% CGST + 9% SGST for intra-state KA; 18% IGST for inter-state)."
+  },
+  {
+    "id": "MOD-20",
+    "name": "Delivery and pickup",
+    "category": "Fulfillment",
+    "status": "PRESENT",
+    "routes": [
+      "/checkout",
+      "/dashboard/delivery-partner"
+    ],
+    "apis": [
+      "GET /api/v1/delivery/zones",
+      "GET /api/v1/delivery/coverage"
+    ],
+    "elements": [
+      "Standard Delivery Option",
+      "Midnight Delivery Option",
+      "Express 2hr Option"
+    ],
+    "tables": [
+      "delivery_partner",
+      "delivery_zone"
+    ],
+    "verificationScope": "Verify delivery method selection, delivery fees addition, and delivery coverage checks."
+  },
+  {
+    "id": "MOD-21",
+    "name": "Branch management",
+    "category": "Fulfillment",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/branches",
+      "/api/v1/admin/branches",
+      "/dashboard/shop"
+    ],
+    "apis": [
+      "GET /api/v1/branches",
+      "POST /api/v1/admin/branches"
+    ],
+    "elements": [
+      "Branch Switcher",
+      "Branch Details Card",
+      "Active Status Toggle"
+    ],
+    "tables": [
+      "branch",
+      "city"
+    ],
+    "verificationScope": "Verify branch listing across Koramangala, Indiranagar, Whitefield, Jayanagar, HSR, Malleshwaram."
+  },
+  {
+    "id": "MOD-22",
+    "name": "Delivery slot management",
+    "category": "Fulfillment",
+    "status": "PRESENT",
+    "routes": [
+      "/checkout"
+    ],
+    "apis": [
+      "GET /api/v1/delivery/slots?pincode=&date="
+    ],
+    "elements": [
+      "Date Picker",
+      "Time Slot Radio Buttons"
+    ],
+    "tables": [],
+    "verificationScope": "Verify slot generation logic (morning, afternoon, evening, midnight) and cutoff times."
+  },
+  {
+    "id": "MOD-23",
+    "name": "Order creation",
+    "category": "Orders",
+    "status": "PRESENT",
+    "routes": [
+      "/checkout",
+      "/api/v1/orders/checkout"
+    ],
+    "apis": [
+      "POST /api/v1/orders/checkout"
+    ],
+    "elements": [
+      "Place Order Button",
+      "Order Confirmed Screen"
+    ],
+    "tables": [
+      "order",
+      "order_item",
+      "order_line_item"
+    ],
+    "verificationScope": "Verify display ID generation from order_display_id_seq (e.g. 98588) and metadata preservation."
+  },
+  {
+    "id": "MOD-24",
+    "name": "Order management",
+    "category": "Orders",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/shop",
+      "/account/orders"
+    ],
+    "apis": [
+      "GET /api/v1/orders",
+      "GET /api/v1/orders/[id]"
+    ],
+    "elements": [
+      "Orders Table",
+      "Order Details Drawer",
+      "Customer Info Card",
+      "Line Items Table"
+    ],
+    "tables": [
+      "order",
+      "order_item"
+    ],
+    "verificationScope": "Verify order retrieval, search by order ID, filtering by date and branch."
+  },
+  {
+    "id": "MOD-25",
+    "name": "Order status transitions",
+    "category": "Orders",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/shop"
+    ],
+    "apis": [
+      "POST /api/v1/orders/[id]/status"
+    ],
+    "elements": [
+      "Status Action Buttons (Confirm, Bake, Dispatch, Deliver, Cancel)"
+    ],
+    "tables": [
+      "order",
+      "order_status_history"
+    ],
+    "verificationScope": "Verify lifecycle progression (pending -> confirmed -> baking -> dispatched -> delivered)."
+  },
+  {
+    "id": "MOD-26",
+    "name": "Payment initiation",
+    "category": "Payments",
+    "status": "PRESENT",
+    "routes": [
+      "/checkout"
+    ],
+    "apis": [
+      "POST /api/v1/payments/initiate"
+    ],
+    "elements": [
+      "Payment Method Radio (UPI/Card/NetBanking/COD)",
+      "Pay Now Button"
+    ],
+    "tables": [
+      "payment_transaction"
+    ],
+    "verificationScope": "Verify payment transaction record creation in PENDING state with unique gateway reference."
+  },
+  {
+    "id": "MOD-27",
+    "name": "Payment confirmation",
+    "category": "Payments",
+    "status": "PRESENT",
+    "routes": [
+      "/your-order"
+    ],
+    "apis": [
+      "POST /api/v1/payments/verify"
+    ],
+    "elements": [
+      "Payment Success Banner",
+      "Transaction ID Display",
+      "Receipt Download"
+    ],
+    "tables": [
+      "payment_transaction",
+      "order"
+    ],
+    "verificationScope": "Verify transaction state update to SUCCESS, order payment_status updated to PAID."
+  },
+  {
+    "id": "MOD-28",
+    "name": "Payment webhooks",
+    "category": "Payments",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "POST /api/v1/webhooks/payment"
+    ],
+    "elements": [
+      "Webhook Endpoint Handler"
+    ],
+    "tables": [
+      "payment_transaction"
+    ],
+    "verificationScope": "Verify signature verification, idempotency key checking, and asynchronous status update."
+  },
+  {
+    "id": "MOD-29",
+    "name": "Refunds",
+    "category": "Payments",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/shop",
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "POST /api/v1/orders/[id]/refund"
+    ],
+    "elements": [
+      "Initiate Refund Modal",
+      "Refund Reason Selector",
+      "Amount Input"
+    ],
+    "tables": [
+      "payment_transaction",
+      "accounting_voucher"
+    ],
+    "verificationScope": "Verify refund record creation and accounting voucher posting."
+  },
+  {
+    "id": "MOD-30",
+    "name": "Inventory",
+    "category": "Inventory",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/shop"
+    ],
+    "apis": [
+      "GET /api/v1/inventory",
+      "PUT /api/v1/inventory/[id]"
+    ],
+    "elements": [
+      "Inventory Table",
+      "Stock Quantity Column",
+      "Low Stock Indicator"
+    ],
+    "tables": [
+      "branch_inventory"
+    ],
+    "verificationScope": "Verify branch stock level queries across 156 branch inventory records."
+  },
+  {
+    "id": "MOD-31",
+    "name": "Stock movements",
+    "category": "Inventory",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "GET /api/v1/inventory/movements",
+      "POST /api/v1/inventory/adjust"
+    ],
+    "elements": [
+      "Stock Movement Log",
+      "Manual Adjustment Modal"
+    ],
+    "tables": [
+      "inventory_movement",
+      "branch_inventory"
+    ],
+    "verificationScope": "Verify stock movement audit logging upon order dispatch or manual adjustment."
+  },
+  {
+    "id": "MOD-32",
+    "name": "Inventory transfers",
+    "category": "Inventory",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "POST /api/v1/inventory/transfers"
+    ],
+    "elements": [
+      "Branch Transfer Modal",
+      "Source/Destination Branch Dropdown"
+    ],
+    "tables": [
+      "inventory_movement",
+      "branch_inventory"
+    ],
+    "verificationScope": "Verify inter-branch stock reallocation and inventory balance updates."
+  },
+  {
+    "id": "MOD-33",
+    "name": "Low-stock alerts",
+    "category": "Inventory",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/shop"
+    ],
+    "apis": [
+      "GET /api/v1/inventory/alerts"
+    ],
+    "elements": [
+      "Low Stock Badge",
+      "Stock Warning Banner"
+    ],
+    "tables": [
+      "branch_inventory"
+    ],
+    "verificationScope": "Verify threshold triggers when available_quantity drops below reorder_level."
+  },
+  {
+    "id": "MOD-34",
+    "name": "Invoicing",
+    "category": "Invoicing & GST",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/shop",
+      "/account/orders/[id]"
+    ],
+    "apis": [
+      "POST /api/v1/invoices/generate",
+      "GET /api/v1/invoices/[id]"
+    ],
+    "elements": [
+      "Generate Invoice Button",
+      "Invoice View Drawer",
+      "Invoice Table"
+    ],
+    "tables": [
+      "invoice",
+      "invoice_allocation_log"
+    ],
+    "verificationScope": "Verify tax invoice issuance, line items, CGST/SGST amounts, and total reconciliation."
+  },
+  {
+    "id": "MOD-35",
+    "name": "Invoice numbering",
+    "category": "Invoicing & GST",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "POST /api/v1/invoices/generate"
+    ],
+    "elements": [
+      "Invoice Sequence Engine"
+    ],
+    "tables": [
+      "invoice_sequence"
+    ],
+    "verificationScope": "Verify sequential numbering under Rule 46; verify fail-closed protection on entity mismatch."
+  },
+  {
+    "id": "MOD-36",
+    "name": "GST registration and tax configuration",
+    "category": "Invoicing & GST",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/page.tsx",
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "GET /api/v1/accounting/gst-registrations"
+    ],
+    "elements": [
+      "Business Profile Tab",
+      "GSTIN Input",
+      "State Code Selector",
+      "Legal Name Display"
+    ],
+    "tables": [
+      "gst_registration",
+      "company"
+    ],
+    "verificationScope": "Verify GSTIN 29AABCC1234F1Z5 configuration for CakeToHome India Private Limited."
+  },
+  {
+    "id": "MOD-37",
+    "name": "Invoice PDF or print",
+    "category": "Invoicing & GST",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/shop",
+      "/account/orders/[id]"
+    ],
+    "apis": [
+      "GET /api/v1/invoices/[id]/pdf",
+      "GET /api/v1/invoices/[id]/print"
+    ],
+    "elements": [
+      "Print Invoice Modal",
+      "Download PDF Button"
+    ],
+    "tables": [
+      "invoice"
+    ],
+    "verificationScope": "Verify formatted invoice preview dialog and print stylesheet."
+  },
+  {
+    "id": "MOD-38",
+    "name": "Vouchers",
+    "category": "Accounting",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/page.tsx",
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "GET /api/v1/accounting/vouchers",
+      "POST /api/v1/accounting/vouchers"
+    ],
+    "elements": [
+      "Vouchers Tab",
+      "Receipt/Payment/Journal Selector",
+      "Narration Field"
+    ],
+    "tables": [
+      "accounting_voucher"
+    ],
+    "verificationScope": "Verify double-entry voucher creation, posting guards, and cancellation lifecycle."
+  },
+  {
+    "id": "MOD-39",
+    "name": "Accounting or ledger integration",
+    "category": "Accounting",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/page.tsx",
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "GET /api/v1/accounting/general-ledger",
+      "GET /api/v1/accounting/accounts"
+    ],
+    "elements": [
+      "Chart of Accounts Panel",
+      "GL Ledger Table",
+      "Debit/Credit Columns"
+    ],
+    "tables": [
+      "accounting_account",
+      "accounting_journal_entry",
+      "accounting_journal_line"
+    ],
+    "verificationScope": "Verify 98 standard accounts, journal lines balancing (Debit = Credit)."
+  },
+  {
+    "id": "MOD-40",
+    "name": "Financial reconciliation",
+    "category": "Accounting",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/page.tsx",
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "GET /api/v1/accounting/trial-balance",
+      "GET /api/v1/accounting/brs"
+    ],
+    "elements": [
+      "Trial Balance Tab",
+      "Difference Column",
+      "BRS Reconciliation Sheet"
+    ],
+    "tables": [
+      "accounting_account"
+    ],
+    "verificationScope": "Verify Trial Balance net difference = 0, BRS bank ledger vs statement reconciliation."
+  },
+  {
+    "id": "MOD-41",
+    "name": "Reports",
+    "category": "Analytics & Reports",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/page.tsx",
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "GET /api/v1/reports/sales",
+      "GET /api/v1/reports/gst"
+    ],
+    "elements": [
+      "Reports Tab",
+      "Date Range Filter",
+      "Report Type Dropdown"
+    ],
+    "tables": [
+      "order",
+      "invoice"
+    ],
+    "verificationScope": "Verify GSTR-1, GSTR-3B, Sales Summary, and AR Aging report generation."
+  },
+  {
+    "id": "MOD-42",
+    "name": "Dashboard KPIs",
+    "category": "Analytics & Reports",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard",
+      "/dashboard/shop"
+    ],
+    "apis": [
+      "GET /api/v1/dashboard/kpis"
+    ],
+    "elements": [
+      "Total Sales Card",
+      "Pending Orders Counter",
+      "Today's Deliveries Counter",
+      "Revenue Chart"
+    ],
+    "tables": [
+      "order"
+    ],
+    "verificationScope": "Verify real-time calculation of key executive and branch operational metrics."
+  },
+  {
+    "id": "MOD-43",
+    "name": "Data exports",
+    "category": "Analytics & Reports",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/page.tsx",
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "POST /api/v1/reports/export/excel",
+      "POST /api/v1/reports/export/csv"
+    ],
+    "elements": [
+      "Export to Excel Button",
+      "CSV Download Button"
+    ],
+    "tables": [],
+    "verificationScope": "Verify ExcelExportService generates valid XLSX / CSV streams without crashing."
+  },
+  {
+    "id": "MOD-44",
+    "name": "Notifications",
+    "category": "Communications",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "POST /api/v1/notifications/send"
+    ],
+    "elements": [
+      "Toast Notification Provider",
+      "Notification Bell Icon"
+    ],
+    "tables": [],
+    "verificationScope": "Verify client-side toast triggers on order creation, cart updates, and errors."
+  },
+  {
+    "id": "MOD-45",
+    "name": "Email integration",
+    "category": "Communications",
+    "status": "PARTIAL",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "POST /api/v1/communications/email"
+    ],
+    "elements": [
+      "Order Confirmation Email Template"
+    ],
+    "tables": [],
+    "verificationScope": "Verify email template compilation and mock dispatch logging in test mode."
+  },
+  {
+    "id": "MOD-46",
+    "name": "SMS integration",
+    "category": "Communications",
+    "status": "PARTIAL",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "POST /api/v1/auth/otp/send"
+    ],
+    "elements": [
+      "OTP SMS Trigger"
+    ],
+    "tables": [],
+    "verificationScope": "Verify SMS gateway adapter logs OTP dispatch in test/dev environment."
+  },
+  {
+    "id": "MOD-47",
+    "name": "WhatsApp integration",
+    "category": "Communications",
+    "status": "PARTIAL",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "POST /api/v1/communications/whatsapp"
+    ],
+    "elements": [
+      "WhatsApp Dispatcher Adapter"
+    ],
+    "tables": [],
+    "verificationScope": "Verify WhatsApp message payload composition and simulated webhook response."
+  },
+  {
+    "id": "MOD-48",
+    "name": "File uploads",
+    "category": "Media",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]",
+      "/products/[id]"
+    ],
+    "apis": [
+      "POST /api/v1/media/upload"
+    ],
+    "elements": [
+      "Custom Cake Photo Upload Input",
+      "PIM Image Uploader Modal"
+    ],
+    "tables": [],
+    "verificationScope": "Verify file type validation (image/jpeg, image/png), size limits, and storage."
+  },
+  {
+    "id": "MOD-49",
+    "name": "Image processing and fallback",
+    "category": "Media",
+    "status": "PRESENT",
+    "routes": [
+      "/products/[id]",
+      "/categories"
+    ],
+    "apis": [
+      "GET /images/placeholder-accessory.svg"
+    ],
+    "elements": [
+      "Product Image Component",
+      "Category Fallback Handler"
+    ],
+    "tables": [],
+    "verificationScope": "Verify getCategoryPlaceholder() returns placeholder-accessory.svg for accessories and placeholder-cake.jpg for cakes."
+  },
+  {
+    "id": "MOD-50",
+    "name": "Document generation",
+    "category": "Invoicing & GST",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/shop",
+      "/account/orders/[id]"
+    ],
+    "apis": [
+      "GET /api/v1/invoices/[id]/pdf"
+    ],
+    "elements": [
+      "PDF Generator Engine"
+    ],
+    "tables": [
+      "invoice"
+    ],
+    "verificationScope": "Verify GST tax invoice document rendering with legal entity details, HSN, and breakdown."
+  },
+  {
+    "id": "MOD-51",
+    "name": "Settings",
+    "category": "Admin",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard",
+      "/dashboard/page.tsx"
+    ],
+    "apis": [
+      "GET /api/v1/settings",
+      "PUT /api/v1/settings"
+    ],
+    "elements": [
+      "System Settings Form",
+      "Store Hours Selector",
+      "Maintenance Mode Toggle"
+    ],
+    "tables": [
+      "setting"
+    ],
+    "verificationScope": "Verify setting persistence via persistSettingToDb() without affecting master tables."
+  },
+  {
+    "id": "MOD-52",
+    "name": "Audit logs",
+    "category": "Admin",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/shop",
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "GET /api/v1/orders/[id]/history"
+    ],
+    "elements": [
+      "Order Status History Timeline",
+      "Audit Trail Viewer"
+    ],
+    "tables": [
+      "order_status_history"
+    ],
+    "verificationScope": "Verify audit log entries created on every status transition with user and timestamp."
+  },
+  {
+    "id": "MOD-53",
+    "name": "Background workers",
+    "category": "Operations",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "POST /api/v1/cron/cleanup",
+      "POST /api/v1/cron/reconcile"
+    ],
+    "elements": [
+      "Background Task Dispatcher"
+    ],
+    "tables": [],
+    "verificationScope": "Verify background reconciliation task handles scheduled triggers idempotently."
+  },
+  {
+    "id": "MOD-54",
+    "name": "Scheduled jobs",
+    "category": "Operations",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "POST /api/v1/cron/eod-closure"
+    ],
+    "elements": [
+      "EOD Cash Closure Runner"
+    ],
+    "tables": [],
+    "verificationScope": "Verify end-of-day operational closure service aggregates shift balances correctly."
+  },
+  {
+    "id": "MOD-55",
+    "name": "Webhook management",
+    "category": "Operations",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "POST /api/v1/webhooks/payment",
+      "POST /api/v1/webhooks/delivery"
+    ],
+    "elements": [
+      "Webhook Engine Router"
+    ],
+    "tables": [],
+    "verificationScope": "Verify signature validation, replay attack prevention, and error logging."
+  },
+  {
+    "id": "MOD-56",
+    "name": "API security",
+    "category": "Security",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]",
+      "/api/auth/[...path]"
+    ],
+    "apis": [
+      "All API Endpoints"
+    ],
+    "elements": [
+      "JWT Auth Middleware",
+      "Staff Role Guard",
+      "CORS Headers"
+    ],
+    "tables": [],
+    "verificationScope": "Verify unauthenticated requests to protected endpoints return 401/403."
+  },
+  {
+    "id": "MOD-57",
+    "name": "Database migrations",
+    "category": "Database",
+    "status": "PRESENT",
+    "routes": [],
+    "apis": [],
+    "elements": [
+      "Schema DDL Scripts in db.ts"
+    ],
+    "tables": [
+      "accounting_account",
+      "invoice",
+      "order",
+      "branch_inventory"
+    ],
+    "verificationScope": "Verify schema definitions, foreign key constraints, and index preservation."
+  },
+  {
+    "id": "MOD-58",
+    "name": "Multi-branch isolation",
+    "category": "Fulfillment",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/shop"
+    ],
+    "apis": [
+      "GET /api/v1/orders?branchId="
+    ],
+    "elements": [
+      "Branch Scoped Queue Selector"
+    ],
+    "tables": [
+      "branch",
+      "branch_inventory",
+      "order"
+    ],
+    "verificationScope": "Verify store managers cannot view or fulfill orders allocated to other branches."
+  },
+  {
+    "id": "MOD-59",
+    "name": "Tenant isolation if multi-tenancy exists",
+    "category": "Architecture",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "GET /api/v1/company"
+    ],
+    "elements": [
+      "Company Entity Scoping"
+    ],
+    "tables": [
+      "company",
+      "gst_registration"
+    ],
+    "verificationScope": "Verify single-tenant retail architecture with strict entity-level GSTIN isolation."
+  },
+  {
+    "id": "MOD-60",
+    "name": "Accessibility",
+    "category": "Quality",
+    "status": "PRESENT",
+    "routes": [
+      "/",
+      "/products/[id]",
+      "/cart",
+      "/checkout"
+    ],
+    "apis": [],
+    "elements": [
+      "ARIA Labels",
+      "Alt Texts",
+      "Keyboard Tab Index",
+      "Contrast Ratios"
+    ],
+    "tables": [],
+    "verificationScope": "Verify image alt tags, button aria-labels, and modal keyboard focus management."
+  },
+  {
+    "id": "MOD-61",
+    "name": "Responsive UI",
+    "category": "Quality",
+    "status": "PRESENT",
+    "routes": [
+      "/",
+      "/shop",
+      "/products/[id]",
+      "/checkout"
+    ],
+    "apis": [],
+    "elements": [
+      "Mobile Navigation Drawer",
+      "Responsive Flex/Grid Layouts",
+      "Sticky Checkout Bar"
+    ],
+    "tables": [],
+    "verificationScope": "Verify mobile (375x667), tablet (768x1024), and desktop (1280x800) viewport rendering."
+  },
+  {
+    "id": "MOD-62",
+    "name": "Performance",
+    "category": "Quality",
+    "status": "PRESENT",
+    "routes": [
+      "/",
+      "/shop",
+      "/products/[id]"
+    ],
+    "apis": [],
+    "elements": [
+      "Next.js Dynamic Imports",
+      "Image Optimization",
+      "Static Route Generation"
+    ],
+    "tables": [],
+    "verificationScope": "Verify initial DOM load times, TTFB, and zero blocking script execution."
+  },
+  {
+    "id": "MOD-63",
+    "name": "Error recovery",
+    "category": "Resilience",
+    "status": "PRESENT",
+    "routes": [
+      "/offline",
+      "/checkout"
+    ],
+    "apis": [],
+    "elements": [
+      "Offline Fallback Page",
+      "ErrorBoundary Component",
+      "Retry Button"
+    ],
+    "tables": [],
+    "verificationScope": "Verify graceful handling of network disconnections, API timeouts, and client recovery."
+  },
+  {
+    "id": "MOD-64",
+    "name": "Monitoring and diagnostics",
+    "category": "Operations",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/admin/ai/analytics"
+    ],
+    "apis": [
+      "GET /api/v1/admin/ai/analytics"
+    ],
+    "elements": [
+      "Analytics Dashboard",
+      "Latency Metrics Viewer"
+    ],
+    "tables": [],
+    "verificationScope": "Verify diagnostic API responses, error reporting counters, and system health status."
+  },
+  {
+    "id": "MOD-65",
+    "name": "Deployment configuration",
+    "category": "DevOps",
+    "status": "PRESENT",
+    "routes": [],
+    "apis": [],
+    "elements": [
+      "next.config.mjs",
+      "package.json",
+      ".env.local"
+    ],
+    "tables": [],
+    "verificationScope": "Verify environment variables resolution, asset prefixing, and build scripts."
+  },
+  {
+    "id": "MOD-66",
+    "name": "Backup and recovery",
+    "category": "DevOps",
+    "status": "PRESENT",
+    "routes": [],
+    "apis": [],
+    "elements": [
+      "Database Template Cloning Scripts",
+      "PostgreSQL Dumps"
+    ],
+    "tables": [],
+    "verificationScope": "Verify database template cloning and point-in-time recovery to cth_disposable_phase4_0."
+  },
+  {
+    "id": "MOD-67",
+    "name": "Corporate Gifting & Bulk Orders",
+    "category": "Discovered Extension",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/page.tsx"
+    ],
+    "apis": [
+      "GET /api/v1/corporate/campaigns",
+      "POST /api/v1/corporate/campaigns"
+    ],
+    "elements": [
+      "Corporate Gifting Panel",
+      "Bulk Upload Campaign Form",
+      "Validation Errors Modal",
+      "Execution Banner"
+    ],
+    "tables": [
+      "order",
+      "customer"
+    ],
+    "verificationScope": "Verify multi-recipient bulk order upload, roster validation, and batch execution."
+  },
+  {
+    "id": "MOD-68",
+    "name": "Teller Custody & Cash Management",
+    "category": "Discovered Extension",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/page.tsx"
+    ],
+    "apis": [
+      "GET /api/v1/teller/active-drawer",
+      "POST /api/v1/teller/shift/open",
+      "POST /api/v1/teller/shift/close"
+    ],
+    "elements": [
+      "Active Drawer Tab",
+      "Open Shift Modal",
+      "Manual Adjustment Modal",
+      "Close Count Modal"
+    ],
+    "tables": [
+      "accounting_voucher",
+      "branch"
+    ],
+    "verificationScope": "Verify cash drawer lifecycle: opening float, shift sales tracking, adjustments, closing count."
+  },
+  {
+    "id": "MOD-69",
+    "name": "Bank Reconciliation Statement (BRS)",
+    "category": "Discovered Extension",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/page.tsx"
+    ],
+    "apis": [
+      "GET /api/v1/accounting/brs",
+      "POST /api/v1/accounting/brs/match"
+    ],
+    "elements": [
+      "BRS Panel",
+      "Unreconciled Bank Transactions Table",
+      "Book Balance Reconciler"
+    ],
+    "tables": [
+      "accounting_account",
+      "accounting_voucher"
+    ],
+    "verificationScope": "Verify matching of cleared bank transactions against GL cash-at-bank ledger."
+  },
+  {
+    "id": "MOD-70",
+    "name": "Enterprise Financial Reports Engine",
+    "category": "Discovered Extension",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/page.tsx"
+    ],
+    "apis": [
+      "GET /api/v1/accounting/reports/pnl",
+      "GET /api/v1/accounting/reports/balance-sheet",
+      "GET /api/v1/accounting/reports/cash-flow"
+    ],
+    "elements": [
+      "Enterprise Reports Engine",
+      "P&L Tab",
+      "Balance Sheet Tab",
+      "Cash Flow Tab"
+    ],
+    "tables": [
+      "accounting_account",
+      "accounting_journal_line"
+    ],
+    "verificationScope": "Verify automated generation of financial statements from double-entry general ledger lines."
+  },
+  {
+    "id": "MOD-71",
+    "name": "PIM Editor & Product Management",
+    "category": "Discovered Extension",
+    "status": "PRESENT",
+    "routes": [
+      "/dashboard/shop/menu"
+    ],
+    "apis": [
+      "PUT /api/v1/products/[id]"
+    ],
+    "elements": [
+      "PIM Editor Modal",
+      "Description Rich Text",
+      "Variant Pricing Manager",
+      "Save Changes Button"
+    ],
+    "tables": [
+      "product",
+      "product_variant"
+    ],
+    "verificationScope": "Verify catalog manager editing of product descriptions, SKUs, and pricing in disposable database."
+  },
+  {
+    "id": "MOD-72",
+    "name": "SEO Audit Engine & Local SEO",
+    "category": "Discovered Extension",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]",
+      "/city/[slug]"
+    ],
+    "apis": [
+      "GET /api/v1/seo/audit"
+    ],
+    "elements": [
+      "SEO Scorecard",
+      "City-Specific Landing Pages",
+      "Canonical Tags"
+    ],
+    "tables": [
+      "city"
+    ],
+    "verificationScope": "Verify city landing page SEO metadata injection (Bangalore, Mysore) and sitemap URLs."
+  },
+  {
+    "id": "MOD-73",
+    "name": "Telemarketing & CRM Segments",
+    "category": "Discovered Extension",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "GET /api/v1/crm/telemarketing/segments"
+    ],
+    "elements": [
+      "Telemarketing Lead Roster",
+      "Export Leads Button"
+    ],
+    "tables": [
+      "customer",
+      "order"
+    ],
+    "verificationScope": "Verify segmentation of high-value and lapsed customers for targeted marketing calls."
+  },
+  {
+    "id": "MOD-74",
+    "name": "Marketplace Partner Reconciliation",
+    "category": "Discovered Extension",
+    "status": "PRESENT",
+    "routes": [
+      "/api/v1/[...path]"
+    ],
+    "apis": [
+      "GET /api/v1/marketplace/reconciliation"
+    ],
+    "elements": [
+      "Partner Settlement Reconciliation Table"
+    ],
+    "tables": [
+      "order",
+      "invoice"
+    ],
+    "verificationScope": "Verify channel commission deductions and marketplace payout reconciliation."
+  }
+]

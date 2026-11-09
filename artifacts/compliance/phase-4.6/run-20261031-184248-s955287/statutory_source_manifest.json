@@ -1,0 +1,34 @@
+{
+  "phase": "4.6",
+  "run_id": "run-20261031-184248-s955287",
+  "timestamp": "2026-10-31T19:05:00+05:30",
+  "sources": [
+    {
+      "statute": "Central Goods and Services Tax Act, 2017",
+      "section": "Section 31",
+      "title": "Tax Invoice",
+      "official_source": "Ministry of Law and Justice, Gazette of India, April 12, 2017",
+      "effective_date": "2017-07-01",
+      "verified": true
+    },
+    {
+      "statute": "Central Goods and Services Tax Rules, 2017",
+      "rule": "Rule 46(b)",
+      "title": "Tax Invoice Contents & Consecutive Serial Number",
+      "official_source": "CBIC Notification No. 10/2017-Central Tax as amended",
+      "official_url": "https://taxinformation.cbic.gov.in/content-page/explore-rules/1000136/1000001",
+      "max_characters": 16,
+      "allowed_characters": "alphabets, numerals, hyphen/dash (-), slash (/)",
+      "uniqueness": "unique for a financial year",
+      "verified": true
+    },
+    {
+      "statute": "Companies Act, 2013",
+      "section": "Section 134",
+      "title": "Financial statement, Board's report, etc.",
+      "official_source": "Ministry of Corporate Affairs, Gazette of India, August 30, 2013",
+      "relevance": "Internal Financial Controls (IFC); prefix approval is internal governance policy",
+      "verified": true
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "run_id": "RUN-20261025-POST-RECOVERY-AUDIT",
+  "timestamp": "2026-10-25T13:31:56.135Z",
+  "duration_ms": 45942,
+  "target_url": "http://localhost:3002",
+  "database": "127.0.0.1:5433/cth_test",
+  "artifacts": [
+    {
+      "scenario": 1,
+      "filename": "01_public_storefront.png",
+      "description": "CakeToHome public storefront landing page",
+      "sha256": "7c91d4356c626950e3b3fd3f8b93e5fdad9eb8fcf98251b2e392daa3c85fa96b"
+    },
+    {
+      "scenario": 2,
+      "filename": "02_login_page.png",
+      "description": "CakeToHome canonical authentication login route",
+      "sha256": "2daa7270b27dc4087608f67949f980f08586d8ccc2ab0c5ed36c46babd702714"
+    },
+    {
+      "scenario": 3,
+      "filename": "03_super_admin_dashboard.png",
+      "description": "Authentic Super-Admin ERP Dashboard with real sidebar, topbar & order table",
+      "sha256": "80d3bb152f34e9dac39a761569641fc6c975d7939f5bd42b9478b467b79b84a8"
+    },
+    {
+      "scenario": 4,
+      "filename": "04_pending_order_print_disabled.png",
+      "description": "OrderDetailsDrawer showing pending order with invoice printing disabled (gated)",
+      "sha256": "e7dcf83088a4b133eca9310ff67968bb7705636e31aa1468e7998fbc8ca81660"
+    },
+    {
+      "scenario": 5,
+      "filename": "05_invalid_seller_gstin_rejected.png",
+      "description": "Statutory pre-allocation rejection: Invalid GSTIN blocked prior to sequence consumption",
+      "sha256": "80d3bb152f34e9dac39a761569641fc6c975d7939f5bd42b9478b467b79b84a8"
+    },
+    {
+      "scenario": 6,
+      "filename": "06_committed_test_invoice_drawer.png",
+      "description": "OrderDetailsDrawer showing committed invoice CTH/26-27/000005 with ₹1,800.00 total & active print",
+      "sha256": "92e2d69dc64c365f441c571f3efe89b3ef8cef229974e4975bdc5b24a628315e"
+    },
+    {
+      "scenario": 7,
+      "filename": "07_watermarked_invoice_preview.png",
+      "description": "OrderInvoicePrintModal displaying TEST WATERMARK banner, itemized tax breakdown & ₹1,800 total",
+      "sha256": "f07ab94aa4eb2d5fccd544aacb604a200afe8b5d729bc215a8884b7fb7d138cd"
+    },
+    {
+      "scenario": 8,
+      "filename": "08_unauthorized_access_blocked.png",
+      "description": "Customer attempting /dashboard redirected away by RBAC middleware",
+      "sha256": "35254a5824363ddcd8905f0617161d648a08c7c5a8844f9d3f3f21ebe36bbe3d"
+    },
+    {
+      "scenario": 9,
+      "filename": "09_invoice_retrieval_real_api.png",
+      "description": "Direct GET /api/v1/manager/orders/:id/invoice returning authoritative non-zero JSON",
+      "sha256": "acf04d5b1d4572ee998a247ed60add252f67253f53d766cf2584962678a31917"
+    }
+  ]
+}

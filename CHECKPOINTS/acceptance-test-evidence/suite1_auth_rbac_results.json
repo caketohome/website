@@ -1,0 +1,118 @@
+[
+  {
+    "role": "SUPER_ADMIN",
+    "panel": "Admin Dashboard",
+    "feature": "OTP Authentication",
+    "action": "Login with 9999999999 and OTP 123456",
+    "expected": "Redirect to /dashboard with full administrative access",
+    "actual": "Successfully landed on http://localhost:3000/dashboard",
+    "status": "PASS",
+    "screenshot": "rbac/01-super-admin-auth-success.png"
+  },
+  {
+    "role": "BRANCH_MANAGER",
+    "panel": "Shop Operations",
+    "feature": "OTP Authentication",
+    "action": "Login with 9876500001 (Rajesh Kumar)",
+    "expected": "Redirect to /dashboard/shop with store management scope",
+    "actual": "Successfully landed on http://localhost:3000/dashboard/shop",
+    "status": "PASS",
+    "screenshot": "rbac/02-branch-manager-auth-success.png"
+  },
+  {
+    "role": "BRANCH_MANAGER",
+    "panel": "Central Admin",
+    "feature": "Role Isolation Guard",
+    "action": "Direct navigation to /dashboard",
+    "expected": "Access blocked; fail-closed redirection back to /dashboard/shop",
+    "actual": "Redirected to http://localhost:3000/dashboard/shop",
+    "status": "PASS",
+    "screenshot": "rbac/03-branch-manager-blocked-from-admin.png"
+  },
+  {
+    "role": "DELIVERY_PARTNER",
+    "panel": "Delivery Partner Dashboard",
+    "feature": "OTP Authentication",
+    "action": "Login with 9900011111 (Ramesh Rider)",
+    "expected": "Redirect to /dashboard/delivery-partner with route & delivery controls",
+    "actual": "Successfully landed on http://localhost:3000/dashboard/delivery-partner",
+    "status": "PASS",
+    "screenshot": "rbac/04-delivery-partner-auth-success.png"
+  },
+  {
+    "role": "DELIVERY_PARTNER",
+    "panel": "Shop Dashboard",
+    "feature": "Role Isolation Guard",
+    "action": "Direct navigation to /dashboard/shop",
+    "expected": "Access blocked; fail-closed redirection back to /dashboard/delivery-partner",
+    "actual": "Redirected to http://localhost:3000/dashboard/delivery-partner",
+    "status": "PASS",
+    "screenshot": "rbac/05-delivery-partner-blocked-from-shop.png"
+  },
+  {
+    "role": "UNAUTHENTICATED",
+    "panel": "/dashboard",
+    "feature": "Fail-Closed Route Protection",
+    "action": "Direct unauthenticated navigation to /dashboard",
+    "expected": "Redirect to /login with zero data leakage",
+    "actual": "Redirected to http://localhost:3000/login",
+    "status": "PASS"
+  },
+  {
+    "role": "UNAUTHENTICATED",
+    "panel": "/dashboard/shop",
+    "feature": "Fail-Closed Route Protection",
+    "action": "Direct unauthenticated navigation to /dashboard/shop",
+    "expected": "Redirect to /login with zero data leakage",
+    "actual": "Redirected to http://localhost:3000/login",
+    "status": "PASS"
+  },
+  {
+    "role": "UNAUTHENTICATED",
+    "panel": "/dashboard/delivery-partner",
+    "feature": "Fail-Closed Route Protection",
+    "action": "Direct unauthenticated navigation to /dashboard/delivery-partner",
+    "expected": "Redirect to /login with zero data leakage",
+    "actual": "Redirected to http://localhost:3000/login",
+    "status": "PASS"
+  },
+  {
+    "role": "UNAUTHENTICATED",
+    "panel": "/account",
+    "feature": "Fail-Closed Route Protection",
+    "action": "Direct unauthenticated navigation to /account",
+    "expected": "Redirect to /login with zero data leakage",
+    "actual": "Redirected to http://localhost:3000/login",
+    "status": "PASS"
+  },
+  {
+    "role": "ANONYMOUS",
+    "panel": "Login Page",
+    "feature": "Responsive Layout",
+    "action": "Render at Desktop (1440x900)",
+    "expected": "Clean responsive rendering, zero horizontal overflow",
+    "actual": "Zero horizontal overflow",
+    "status": "PASS",
+    "screenshot": "responsive/01-login-desktop.png"
+  },
+  {
+    "role": "ANONYMOUS",
+    "panel": "Login Page",
+    "feature": "Responsive Layout",
+    "action": "Render at Tablet (768x1024)",
+    "expected": "Clean responsive rendering, zero horizontal overflow",
+    "actual": "Zero horizontal overflow",
+    "status": "PASS",
+    "screenshot": "responsive/01-login-tablet.png"
+  },
+  {
+    "role": "ANONYMOUS",
+    "panel": "Login Page",
+    "feature": "Responsive Layout",
+    "action": "Render at Mobile (375x667)",
+    "expected": "Clean responsive rendering, zero horizontal overflow",
+    "actual": "Zero horizontal overflow",
+    "status": "PASS",
+    "screenshot": "responsive/01-login-mobile.png"
+  }
+]

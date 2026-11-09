@@ -1,0 +1,31 @@
+{
+  "statutory_rule": "CBIC CGST Rule 46(b)",
+  "max_length": 16,
+  "allowed_characters": "^[A-Za-z0-9/-]+$",
+  "candidate_options": [
+    {
+      "prefix": "CTH",
+      "padding_digits": 6,
+      "example": "CTH/26-27/000001",
+      "length": 16,
+      "collision_detected": true,
+      "status": "COLLISION_WITH_HISTORICAL_INVOICE"
+    },
+    {
+      "prefix": "CTHI",
+      "padding_digits": 5,
+      "example": "CTHI/26-27/00001",
+      "length": 16,
+      "collision_detected": false,
+      "status": "PROPOSED_NO_COLLISION"
+    },
+    {
+      "prefix": "C2H",
+      "padding_digits": 6,
+      "example": "C2H/26-27/000001",
+      "length": 16,
+      "collision_detected": false,
+      "status": "PROPOSED_NO_COLLISION"
+    }
+  ]
+}

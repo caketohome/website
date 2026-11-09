@@ -13,7 +13,8 @@ import {
 interface ManualAdjustmentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  sessionId: string;
+  sessionId?: string;
+  branchId?: string;
   tellerCode?: string;
   onSuccess: () => void;
 }
@@ -22,6 +23,7 @@ export function ManualAdjustmentModal({
   isOpen,
   onClose,
   sessionId,
+  branchId,
   tellerCode,
   onSuccess,
 }: ManualAdjustmentModalProps) {
@@ -51,10 +53,16 @@ export function ManualAdjustmentModal({
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/v1/admin/teller/sessions/${sessionId}/movements`, {
+      const endpoint = sessionId
+        ? `/api/v1/admin/teller/sessions/${sessionId}/movements`
+        : `/api/v1/admin/teller/movements`;
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          branch_id: branchId,
+          teller_session_id: sessionId,
           direction,
           amount: numAmount,
           narration: narration.trim(),
@@ -85,7 +93,7 @@ export function ManualAdjustmentModal({
           <div>
             <h3 className="text-base font-bold text-slate-800">Record Cash Adjustment</h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Drawer adjustment for session: <span className="font-mono font-medium text-slate-700">{tellerCode || sessionId.slice(0, 12)}</span>
+              Drawer adjustment for session: <span className="font-mono font-medium text-slate-700">{tellerCode || (sessionId ? sessionId.slice(0, 12) : (branchId ? `Branch: ${branchId}` : "Continuous Custody"))}</span>
             </p>
           </div>
           <button

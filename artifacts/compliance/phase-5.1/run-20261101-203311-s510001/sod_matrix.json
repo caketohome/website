@@ -1,0 +1,55 @@
+{
+  "run_id": "run-20261101-203311-s510001",
+  "roles": [
+    {
+      "role_name": "CFO / Finance Director",
+      "permissions": [
+        "SERIES_APPROVAL",
+        "TAX_SCHEDULE_APPROVE",
+        "CREDIT_NOTE_APPROVE",
+        "AUDITOR_DISCLOSURE_SIGN"
+      ]
+    },
+    {
+      "role_name": "IT Systems Administrator",
+      "permissions": [
+        "DB_MIGRATION_EXECUTE",
+        "SEQUENCE_TABLE_MAINTENANCE",
+        "CONFIG_FILE_DEPLOY"
+      ]
+    },
+    {
+      "role_name": "Operations Manager",
+      "permissions": [
+        "ORDER_DISPATCH",
+        "BILLING_REVIEW",
+        "DELIVERY_VERIFY"
+      ]
+    },
+    {
+      "role_name": "System Engine (Automated)",
+      "permissions": [
+        "INVOICE_SEQUENCE_ALLOCATE",
+        "AR_LEDGER_SYNC",
+        "TABLE_13_EMIT"
+      ]
+    }
+  ],
+  "toxic_combinations_prohibited": [
+    {
+      "comb": [
+        "CFO",
+        "IT_ADMIN"
+      ],
+      "reason": "Self-authorization of financial configuration and physical execution."
+    },
+    {
+      "comb": [
+        "OPERATIONS",
+        "CFO"
+      ],
+      "reason": "Bypass of billing approval during dispatch."
+    }
+  ],
+  "enforcement": "Application RBAC middleware + Database trigger audit logging."
+}

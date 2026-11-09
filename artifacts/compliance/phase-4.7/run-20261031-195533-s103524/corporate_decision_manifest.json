@@ -1,0 +1,61 @@
+{
+  "phase": "4.7",
+  "submission_ref": "CTH-GOV-2026-SUB-01",
+  "board_meeting_status": "PENDING",
+  "decisions": {
+    "decision_1_prefix": {
+      "status": "PENDING",
+      "candidates": [
+        "CTHI",
+        "C2H",
+        "CTH"
+      ]
+    },
+    "decision_2_width": {
+      "status": "PENDING",
+      "candidates": [
+        5,
+        6
+      ]
+    },
+    "decision_3_approver": {
+      "status": "PENDING",
+      "allowed_roles": [
+        "FINANCE_CONTROLLER",
+        "SUPER_ADMIN"
+      ]
+    },
+    "decision_4_identity": {
+      "status": "PENDING",
+      "verification": "EMAIL_AND_SESSION"
+    },
+    "decision_5_sod": {
+      "status": "PENDING",
+      "policy": "STRICT_3_WAY"
+    },
+    "decision_6_test_series": {
+      "status": "PENDING",
+      "action": "DECOMMISSION"
+    },
+    "decision_7_cutover": {
+      "status": "PENDING",
+      "timezone": "Asia/Kolkata"
+    },
+    "decision_8_monitoring": {
+      "status": "PENDING",
+      "threshold": 0.8
+    },
+    "decision_9_unbilled": {
+      "status": "PENDING",
+      "policy": "MANUAL_FINANCE_REVIEW"
+    },
+    "decision_10_gst_reconciliation": {
+      "status": "PENDING",
+      "frequency": "MONTHLY"
+    },
+    "decision_11_rollover": {
+      "status": "PENDING",
+      "date": "04-01"
+    }
+  }
+}

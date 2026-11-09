@@ -1,0 +1,35 @@
+{
+  "phase": "4.10",
+  "run_id": "run-20261101-104558-s254987",
+  "findings": [
+    {
+      "id": "FND-01",
+      "component": "Database",
+      "defect": "Stub cms_page table in cth_test lacked 29 columns",
+      "severity": "CRITICAL",
+      "resolution": "Resolved via c7_15 migration"
+    },
+    {
+      "id": "FND-02",
+      "component": "Database",
+      "defect": "Missing media and cms_revision tables",
+      "severity": "HIGH",
+      "resolution": "Created in c7_15 migration"
+    },
+    {
+      "id": "FND-03",
+      "component": "Security",
+      "defect": "SVG XSS attack vector",
+      "severity": "MEDIUM",
+      "resolution": "Blocked in uploader and API route"
+    },
+    {
+      "id": "FND-04",
+      "component": "Storefront",
+      "defect": "Empty cms_page table",
+      "severity": "MEDIUM",
+      "resolution": "Seeded baseline cmspg_home row"
+    }
+  ],
+  "overall_status": "STABILIZED"
+}

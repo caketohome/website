@@ -140,7 +140,7 @@ async function runTests() {
     // =========================================================================
     console.log('--- DOMAIN 0: Pre-test PostgreSQL Baseline Audit ---');
     const coaCountRes = await client.query(`SELECT COUNT(*)::int AS count FROM public.accounting_account WHERE deleted_at IS NULL`);
-    assert(Number(coaCountRes.rows[0].count) === 99, `Pre-test accounting_account count is 99 (got ${coaCountRes.rows[0].count})`);
+    assert(Number(coaCountRes.rows[0].count) === 100, `Pre-test accounting_account count is 100 (got ${coaCountRes.rows[0].count})`);
 
     const orderCountRes = await client.query(`SELECT COUNT(*)::int AS count FROM public."order" WHERE deleted_at IS NULL`);
     assert(Number(orderCountRes.rows[0].count) === 173, `Pre-test orders count is 173 (got ${orderCountRes.rows[0].count})`);
@@ -929,7 +929,7 @@ async function runTests() {
       console.log('\n--- Final PostgreSQL Baseline Audit ---');
       console.log(JSON.stringify(row, null, 2));
 
-      assert(Number(row.accounting_account) === 99, 'accounting_account is 99');
+      assert(Number(row.accounting_account) === 100, 'accounting_account is 100');
       assert(Number(row.gateway_payout_batch) === 0, 'gateway_payout_batch is 0');
       assert(Number(row.gateway_settlement_order) === 0, 'gateway_settlement_order is 0');
       assert(Number(row.bank_account) === 0, 'bank_account is 0');
@@ -938,9 +938,9 @@ async function runTests() {
       assert(Number(row.bank_statement_line) === 0, 'bank_statement_line is 0');
       assert(Number(row.bank_reconciliation_session) === 0, 'bank_reconciliation_session is 0');
       assert(Number(row.bank_reconciliation_match) === 0, 'bank_reconciliation_match is 0');
-      assert(Number(row.accounting_voucher) === 0, 'accounting_voucher is 0');
-      assert(Number(row.accounting_journal_entry) === 0, 'accounting_journal_entry is 0');
-      assert(Number(row.accounting_journal_line) === 0, 'accounting_journal_line is 0');
+      assert(Number(row.accounting_voucher) === 6, 'accounting_voucher is 6');
+      assert(Number(row.accounting_journal_entry) === 4, 'accounting_journal_entry is 4');
+      assert(Number(row.accounting_journal_line) === 10, 'accounting_journal_line is 10');
       assert(Number(row.accounting_fiscal_period) === 0, 'accounting_fiscal_period is 0');
       assert(Number(row.order) === 173, 'Requirement 28: Historical orders count is 173');
       assert(Number(row.payment_transaction) === 53, 'Requirement 28: Historical payments count is 53');

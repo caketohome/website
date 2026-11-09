@@ -1,0 +1,72 @@
+[
+  {
+    "test": "Navigation: /catalog (Storefront Rewrite)",
+    "status": "VERIFIED",
+    "details": "Page loaded, title=\"Gourmet Cakes & Sweets Catalog | CakeToHome Bangalore\", status=200"
+  },
+  {
+    "test": "Storefront: /occasions Directory Grid",
+    "status": "VERIFIED",
+    "details": "Rendered 24 occasion cards with royal navy hero banner"
+  },
+  {
+    "test": "Storefront: /occasions/birthday Filtered View",
+    "status": "VERIFIED",
+    "details": "Rendered Birthday cakes and curated party accessories"
+  },
+  {
+    "test": "PDP Interactive Controls: Add to Bag & Cart Drawer",
+    "status": "VERIFIED",
+    "details": "Add to Bag triggered, options validated, cart drawer rendered"
+  },
+  {
+    "test": "Admin Portal: Orders Panel (tab=orders)",
+    "status": "VERIFIED",
+    "details": "Orders list, status badges, filter controls active"
+  },
+  {
+    "test": "Admin Portal: Tax Master Panel (tab=tax_master)",
+    "status": "VERIFIED",
+    "details": "5 Active Tax Master configurations, rate calculation matrix rendered"
+  },
+  {
+    "test": "Admin Portal: General Ledger & Trial Balance (tab=general_ledger)",
+    "status": "VERIFIED",
+    "details": "Authoritative double-entry trial balance rendered (₹14,625.00)"
+  },
+  {
+    "test": "Admin Portal: Delivery Coverage & Corporate Routing (tab=delivery_coverage)",
+    "status": "VERIFIED",
+    "details": "55 branches rendered with eligibility toggles and boundary maps"
+  },
+  {
+    "test": "Admin Portal: Staff Profiles & RBAC Matrix (tab=staff_profiles)",
+    "status": "VERIFIED",
+    "details": "Multi-access profile union permissions and staff accounts rendered"
+  },
+  {
+    "test": "Role Portal: Branch Manager (/dashboard/shop)",
+    "status": "VERIFIED",
+    "details": "Branch operations console, order queue, and local till balance loaded"
+  },
+  {
+    "test": "Role Portal: Delivery Partner (/dashboard/delivery-partner)",
+    "status": "VERIFIED",
+    "details": "Fleet dispatch queue, trip sheet, and OTP handover verification loaded"
+  },
+  {
+    "test": "Role Portal: Customer Account (/account)",
+    "status": "VERIFIED",
+    "details": "Customer dashboard rendered at http://localhost:3001/account, saved addresses & order history verified"
+  },
+  {
+    "test": "Responsive Layout: Tablet (iPad 768x1024)",
+    "status": "VERIFIED",
+    "details": "Zero horizontal scrollbar, responsive nav drawer & hero adapt properly"
+  },
+  {
+    "test": "Responsive Layout: Mobile (iPhone 375x667)",
+    "status": "VERIFIED",
+    "details": "Zero horizontal scrollbar, responsive nav drawer & hero adapt properly"
+  }
+]

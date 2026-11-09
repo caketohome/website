@@ -1,0 +1,11 @@
+{
+  "target_table": "public.invoice",
+  "constraint": "invoice_invoice_number_key",
+  "colliding_serial": "CTH/26-27/000001",
+  "existing_record": {
+    "id": "inv_1792901376459_xlxkf",
+    "seller_gstin": "29AAACC1234F1Z5"
+  },
+  "attempted_entity": "29AABCC1234F1Z5",
+  "error_code": "23505"
+}

@@ -1,0 +1,14 @@
+{
+  "operating_entity": {
+    "legal_name": "CakeToHome India Private Limited",
+    "cin": "U74999KA2026PTC123456",
+    "gstin": "29AABCC1234F1Z5",
+    "database_id": "CAKETOHOME_PARENT",
+    "status": "VERIFIED"
+  },
+  "retail_entity": {
+    "legal_name": "CakeToHome Retail India Private Limited",
+    "gstin": "29AAACC1234F1Z5",
+    "status": "SEPARATE_ENTITY_VERIFIED"
+  }
+}

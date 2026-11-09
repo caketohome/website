@@ -1,0 +1,255 @@
+{
+  "timestamp": "2026-10-15T11:27:51.483Z",
+  "executor": "CakeToHome ERP HSN Remediation Runner",
+  "action": "Product Master Statutory HSN Classification",
+  "pre_remediation_summary": {
+    "total": "22",
+    "classified": "8",
+    "unclassified": "14"
+  },
+  "records": [
+    {
+      "id": "prod_1",
+      "title": "Belgian Chocolate Truffle Cake",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-09-17T06:42:39.453Z"
+      },
+      "after": {
+        "hsn_code": "19059010",
+        "hsn_description": "Pastries and cakes",
+        "hs_code": "19059010",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "Multi-layered chocolate truffle sponge cake with ganache. Indian Customs Tariff Heading 1905, Tariff Item 1905 90 10 specifically covers 'Pastries and cakes'."
+    },
+    {
+      "id": "prod_2",
+      "title": "Classic Red Velvet Cream Cheese Cake",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-09-17T06:42:39.776Z"
+      },
+      "after": {
+        "hsn_code": "19059010",
+        "hsn_description": "Pastries and cakes",
+        "hs_code": "19059010",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "Red velvet sponge cake with cream cheese frosting. Indian Customs Tariff Heading 1905, Tariff Item 1905 90 10 covers 'Pastries and cakes'."
+    },
+    {
+      "id": "prod_3",
+      "title": "Fresh Alphonso Mango Mousse Cake",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-09-17T06:42:39.695Z"
+      },
+      "after": {
+        "hsn_code": "19059010",
+        "hsn_description": "Pastries and cakes",
+        "hs_code": "19059010",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "Alphonso mango mousse sponge cake. Indian Customs Tariff Heading 1905, Tariff Item 1905 90 10 covers 'Pastries and cakes'."
+    },
+    {
+      "id": "prod_4",
+      "title": "Black Forest Gateau Special",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-09-17T06:42:39.532Z"
+      },
+      "after": {
+        "hsn_code": "19059010",
+        "hsn_description": "Pastries and cakes",
+        "hs_code": "19059010",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "Traditional cherry gateau / layered cake with chocolate shavings. Indian Customs Tariff Heading 1905, Tariff Item 1905 90 10 covers 'Pastries and cakes'."
+    },
+    {
+      "id": "prod_5",
+      "title": "Butterscotch Caramel Crunch Cake",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-09-17T06:42:39.613Z"
+      },
+      "after": {
+        "hsn_code": "19059010",
+        "hsn_description": "Pastries and cakes",
+        "hs_code": "19059010",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "Praline and caramel sponge cake with whipped cream. Indian Customs Tariff Heading 1905, Tariff Item 1905 90 10 covers 'Pastries and cakes'."
+    },
+    {
+      "id": "prod_01KXYMAJKNDZ4T2YVA7K144XP5",
+      "title": "Chocolate Fudge Cupcake",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-09-17T13:22:00.456Z"
+      },
+      "after": {
+        "hsn_code": "19059010",
+        "hsn_description": "Pastries and cakes",
+        "hs_code": "19059010",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "Single-portion cup-baked chocolate cake with fudge ganache. Indian Customs Tariff Heading 1905, Tariff Item 1905 90 10 covers 'Pastries and cakes'."
+    },
+    {
+      "id": "prod_01KXYMAJKNV48P1B9CM7C022YM",
+      "title": "Vanilla Bean Cupcake",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-09-17T13:22:00.591Z"
+      },
+      "after": {
+        "hsn_code": "19059010",
+        "hsn_description": "Pastries and cakes",
+        "hs_code": "19059010",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "Single-portion cup-baked vanilla cake with buttercream frosting. Indian Customs Tariff Heading 1905, Tariff Item 1905 90 10 covers 'Pastries and cakes'."
+    },
+    {
+      "id": "prod_01KXYMAJKNH99E1TMWYGQGT61D",
+      "title": "Danish Pastry Assortment",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-09-17T13:22:00.841Z"
+      },
+      "after": {
+        "hsn_code": "19059010",
+        "hsn_description": "Pastries and cakes",
+        "hs_code": "19059010",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "Assorted sweet laminated Danish pastries with fruit fillings and glaze. Indian Customs Tariff Heading 1905, Tariff Item 1905 90 10 covers 'Pastries and cakes'."
+    },
+    {
+      "id": "prod_01KXYMAJKNS8AGWCN5S1WEGKSD",
+      "title": "Butter Croissant",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-09-18T05:12:19.617Z"
+      },
+      "after": {
+        "hsn_code": "19059010",
+        "hsn_description": "Pastries and cakes",
+        "hs_code": "19059010",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "Laminated French butter pastry. Indian Customs Tariff Heading 1905, Tariff Item 1905 90 10 covers 'Pastries and cakes'."
+    },
+    {
+      "id": "prod_dist_pg_persisted_test",
+      "title": "Artisan Dedicated PG Test Cake",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-09-17T06:42:40.097Z"
+      },
+      "after": {
+        "hsn_code": "19059010",
+        "hsn_description": "Pastries and cakes",
+        "hs_code": "19059010",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "Artisanal chocolate layer cake. Indian Customs Tariff Heading 1905, Tariff Item 1905 90 10 covers 'Pastries and cakes'."
+    },
+    {
+      "id": "prod_dist_test_01",
+      "title": "Artisan Delicate Truffle Cake",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-09-17T06:42:39.856Z"
+      },
+      "after": {
+        "hsn_code": "19059010",
+        "hsn_description": "Pastries and cakes",
+        "hs_code": "19059010",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "Artisanal chocolate truffle cake. Indian Customs Tariff Heading 1905, Tariff Item 1905 90 10 covers 'Pastries and cakes'."
+    },
+    {
+      "id": "prod_dist_test_02",
+      "title": "Sturdy Dry Fruit Tea Cake",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-09-17T06:42:40.017Z"
+      },
+      "after": {
+        "hsn_code": "19059010",
+        "hsn_description": "Pastries and cakes",
+        "hs_code": "19059010",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "Dry fruit tea cake / sponge cake. Indian Customs Tariff Heading 1905, Tariff Item 1905 90 10 covers 'Pastries and cakes'."
+    },
+    {
+      "id": "prod_bouquet_rose_01",
+      "title": "Royal Red Velvet Roses Bouquet",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-10-14T13:27:48.461Z"
+      },
+      "after": {
+        "hsn_code": "06031100",
+        "hsn_description": "Fresh cut roses and buds suitable for bouquets",
+        "hs_code": "06031100",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "12 fresh red Dutch roses hand-tied bunch. Chapter 06, Heading 0603, Subheading 0603 11 00 covers 'Fresh cut roses and buds'."
+    },
+    {
+      "id": "prod_bouquet_carnation_01",
+      "title": "Pastel Dutch Carnations & Lilies Bouquet",
+      "before": {
+        "hsn_code": null,
+        "hsn_description": null,
+        "hs_code": null,
+        "updated_at": "2026-10-14T13:27:48.461Z"
+      },
+      "after": {
+        "hsn_code": "06031900",
+        "hsn_description": "Other fresh cut flowers and buds suitable for bouquets",
+        "hs_code": "06031900",
+        "updated_at": "2026-10-15T11:27:51.402Z"
+      },
+      "rationale": "Mixed hand-tied bouquet of fresh Dutch carnations and Asiatic lilies. Chapter 06, Heading 0603, Subheading 0603 19 00 covers 'Other fresh cut flowers and buds'."
+    }
+  ],
+  "post_remediation_summary": {
+    "total": "22",
+    "classified": "22",
+    "unclassified": "0"
+  }
+}

@@ -14,6 +14,10 @@ export function PdpBreadcrumb({
   productTitle,
 }: PdpBreadcrumbProps) {
   const catSlug = categorySlug || (category ? category.toLowerCase().replace(/\s+/g, "-") : "");
+  const isAccessory = catSlug === "accessories" || (category && /access|topper|candle/i.test(category));
+  const rootLabel = isAccessory ? "Cake Accessories" : "Cakes";
+  const rootHref = isAccessory ? "/products?category=accessories" : "/products";
+  const showSubCategory = Boolean(category && category.toLowerCase() !== rootLabel.toLowerCase());
 
   return (
     <nav aria-label="Breadcrumb" className="w-full">
@@ -47,17 +51,17 @@ export function PdpBreadcrumb({
           className="flex items-center gap-1.5"
         >
           <Link
-            href="/products"
+            href={rootHref}
             itemProp="item"
             className="text-slate-500 hover:text-[#1D2F5D] transition-colors py-1"
           >
-            <span itemProp="name">Cakes</span>
+            <span itemProp="name">{rootLabel}</span>
           </Link>
           <meta itemProp="position" content="2" />
           <ChevronRight className="w-3 h-3 text-slate-300 shrink-0" aria-hidden="true" />
         </li>
 
-        {category && (
+        {showSubCategory && category && (
           <li
             itemProp="itemListElement"
             itemScope
@@ -89,7 +93,7 @@ export function PdpBreadcrumb({
           >
             {productTitle}
           </span>
-          <meta itemProp="position" content={category ? "4" : "3"} />
+          <meta itemProp="position" content={showSubCategory ? "4" : "3"} />
         </li>
       </ol>
     </nav>

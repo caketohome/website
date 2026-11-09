@@ -1,0 +1,172 @@
+[
+  {
+    "test": "Admin Dashboard",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "List Orders",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "List Products",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "List Branches",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "Work Queue",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "WQ Data",
+    "status": "FAIL",
+    "details": "\"<!DOCTYPE html><html id=\\\"__next_error__\\\"><head><meta charSet=\\\"utf-8\\\"/><meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\"/><link rel=\\\"preload\\\" as=\\\"script\\\" fetchPriority=\\\"low\\\" href=\\\"/_next/static/chunks/webpack.js\\\"/><script src=\\\"/_next/static/chunks/main-app.js\\\" asy"
+  },
+  {
+    "test": "GL Ledger",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "Trial Balance",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "TB Balance",
+    "status": "PASS",
+    "details": "DR=0 CR=0"
+  },
+  {
+    "test": "P&L",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "Balance Sheet",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "BS A=L+E",
+    "status": "PASS",
+    "details": "A=0 L=0 E=0"
+  },
+  {
+    "test": "Cash Flow",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "Fiscal Periods",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "Suppliers",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "Purchases",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "Expenses",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "Gateway Settlements",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "Bank Accounts",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "Tax Config",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "Staff",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "Reports",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "BM Dashboard",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "BM Orders",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "BM Cash Position",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "BM Inventory",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "BM Reports",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "RBAC: BM→GL (deny)",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "RBAC: BM→TB (deny)",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "RBAC: BM→P&L (deny)",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "RBAC: BM→BS (deny)",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "RBAC: BM→WQ (deny)",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "RBAC: DLP→GL (deny)",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  },
+  {
+    "test": "RBAC: DLP→Admin Orders (deny)",
+    "status": "FAIL",
+    "details": "HTTP 404"
+  }
+]

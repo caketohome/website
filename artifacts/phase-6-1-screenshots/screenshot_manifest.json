@@ -1,0 +1,74 @@
+[
+  {
+    "file": "01_accounting_banking_dashboard.png",
+    "description": "Accounting & Banking Dashboard overview showing ₹12,50,000 liquid balances",
+    "size": 260718,
+    "url": "http://localhost:3000/accounting/bank-management"
+  },
+  {
+    "file": "02_bank_accounts_register.png",
+    "description": "Bank Accounts Register displaying 8 verified active accounts with masked numbers",
+    "size": 250866,
+    "url": "http://localhost:3000/accounting/bank-management"
+  },
+  {
+    "file": "03_cashfree_settlements_clearing.png",
+    "description": "Cashfree Settlements Clearing Ledger with gross, gateway fees, and net payouts",
+    "size": 182020,
+    "url": "http://localhost:3000/accounting/bank-management"
+  },
+  {
+    "file": "04_bank_reconciliation_statement.png",
+    "description": "Bank Reconciliation Statement showing statement vs book balances and variance",
+    "size": 156712,
+    "url": "http://localhost:3000/accounting/bank-management"
+  },
+  {
+    "file": "05_admin_orders_register.png",
+    "description": "Admin Orders Register showing customer orders, payment status, and fulfillment state",
+    "size": 86994,
+    "url": "http://localhost:3000/admin/orders"
+  },
+  {
+    "file": "06_branch_manager_operations.png",
+    "description": "Branch Manager Kitchen Operations showing branch order queue and preparation statuses",
+    "size": 107413,
+    "url": "http://localhost:3000/branch-manager"
+  },
+  {
+    "file": "07_statutory_tax_invoice.png",
+    "description": "Statutory GST Tax Invoice CH/26-27/000216 conforming to Rule 46 of CGST Rules, 2017",
+    "size": 123050,
+    "url": "http://localhost:3000/invoices/CH-26-27-000216"
+  },
+  {
+    "file": "08_chart_of_accounts_hierarchy.png",
+    "description": "5-Level Chart of Accounts Hierarchy showing 107 master accounts and group tiers",
+    "size": 123908,
+    "url": "http://localhost:3000/accounting/chart-of-accounts"
+  },
+  {
+    "file": "09_general_ledger_register.png",
+    "description": "General Ledger account register with running balance and voucher audit trail",
+    "size": 71652,
+    "url": "http://localhost:3000/dashboard?tab=general_ledger"
+  },
+  {
+    "file": "10_trial_balance_verification.png",
+    "description": "Independently balanced Trial Balance verifying Total Debits == Total Credits",
+    "size": 67768,
+    "url": "http://localhost:3000/dashboard?tab=general_ledger"
+  },
+  {
+    "file": "11_cashflow_statement.png",
+    "description": "Cashflow Statement showing operating, investing, and opening liquid positions",
+    "size": 92241,
+    "url": "http://localhost:3000/dashboard?tab=cash_flow"
+  },
+  {
+    "file": "12_settlement_to_bank_ledger.png",
+    "description": "Cashfree Settlement to Bank ledger reconciliation trail with UTR realization",
+    "size": 131296,
+    "url": "http://localhost:3000/accounting/bank-management"
+  }
+]

@@ -25,17 +25,26 @@ import {
   AlertTriangle,
   Send,
   Receipt,
+  Truck,
 } from "lucide-react";
 import type {
   BranchCashSummary,
   BranchCashPositionItem,
   BranchCashReconciliationDetail,
 } from "@frontend/lib/services/branch-cash.service";
+import { DeliveryHandoverModal } from "./DeliveryHandoverModal";
+import { DrawerExpensePaymentModal } from "./DrawerExpensePaymentModal";
 
 export function BranchCashTab() {
   const [summary, setSummary] = useState<BranchCashSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Delivery Handover modal state
+  const [handoverBranch, setHandoverBranch] = useState<BranchCashPositionItem | null>(null);
+
+  // Expense Payment modal state
+  const [expenseBranch, setExpenseBranch] = useState<BranchCashPositionItem | null>(null);
 
   // Reconciliation modal state
   const [reconcileBranchId, setReconcileBranchId] = useState<string | null>(null);
@@ -372,6 +381,20 @@ export function BranchCashTab() {
         </div>
       )}
 
+      {summary?.unconfigured_warnings && summary.unconfigured_warnings.length > 0 && (
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 dark:bg-amber-950/40 dark:border-amber-900 dark:text-amber-300 text-xs flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+          <div>
+            <p className="font-bold">Branch Cash Limits Configuration Notice</p>
+            <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+              {summary.unconfigured_warnings.length} operating location(s) require cash limit setup in Branch Settings (
+              {summary.unconfigured_warnings.map((w) => `${w.branch_name}: missing ${w.missing_limits.join(", ")}`).join("; ")}
+              ). Operations remain active with standard monitoring.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Total Cash in Hand (GL 1111) */}
@@ -550,6 +573,20 @@ export function BranchCashTab() {
                     </td>
                     <td className="py-3.5 px-6 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => setHandoverBranch(b)}
+                          className="px-2 py-1 text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-lg transition"
+                          title="Acknowledge Delivery Partner Physical Handover"
+                        >
+                          Collections
+                        </button>
+                        <button
+                          onClick={() => setExpenseBranch(b)}
+                          className="px-2 py-1 text-[11px] font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 rounded-lg transition"
+                          title="Disburse Branch Cash Expense"
+                        >
+                          Expenses
+                        </button>
                         <button
                           onClick={() => openSafeDrop(b)}
                           className="px-2 py-1 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-lg transition"
@@ -1159,6 +1196,33 @@ export function BranchCashTab() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Delivery Boy Collections & Handover Modal */}
+      {handoverBranch && (
+        <DeliveryHandoverModal
+          isOpen={Boolean(handoverBranch)}
+          onClose={() => setHandoverBranch(null)}
+          branchId={handoverBranch.branch_id}
+          branchName={handoverBranch.branch_name}
+          onHandoverAcknowledged={() => {
+            fetchSummary();
+          }}
+        />
+      )}
+
+      {/* Branch Cash Expenses Modal */}
+      {expenseBranch && (
+        <DrawerExpensePaymentModal
+          isOpen={Boolean(expenseBranch)}
+          onClose={() => setExpenseBranch(null)}
+          branchId={expenseBranch.branch_id}
+          branchName={expenseBranch.branch_name}
+          availableDrawerCash={expenseBranch.total_physical_cash || expenseBranch.gl_cash_in_hand}
+          onExpensePaid={() => {
+            fetchSummary();
+          }}
+        />
       )}
     </div>
   );

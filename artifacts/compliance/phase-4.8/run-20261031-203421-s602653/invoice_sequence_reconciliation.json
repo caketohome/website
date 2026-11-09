@@ -1,0 +1,33 @@
+{
+  "series": "CTH/26-27",
+  "high_water_mark": 74,
+  "persisted_invoices_count": 55,
+  "allocation_only_count": 8,
+  "rollback_gaps_count": 11,
+  "total_accounted": 74,
+  "unaccounted": 0,
+  "allocation_only_positions": [
+    4,
+    6,
+    7,
+    9,
+    10,
+    11,
+    12,
+    13
+  ],
+  "rollback_gap_positions": [
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62
+  ],
+  "reconciliation_status": "100_PERCENT_EXACT"
+}

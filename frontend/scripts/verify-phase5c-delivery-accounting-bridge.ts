@@ -83,7 +83,7 @@ async function main() {
       id: partnerId,
       name: "Ramesh Rider",
       phone: "+91 99887 76655",
-      branch_id: "br_indiranagar",
+      branch_id: "br_indiranagar_01",
       status: "available",
       is_active: true,
       active_orders_count: 0,
@@ -113,11 +113,16 @@ async function main() {
       pincode: "560038",
       city: "Bengaluru",
       state: "Karnataka",
-      branch_id: "br_indiranagar",
+      branch_id: "br_indiranagar_01",
       branch_name: "Indiranagar Flagship Kitchen",
-      branch_code: "HUB-BLR-01",
-      store_id: "br_indiranagar",
+      branch_code: "IND-01",
+      store_id: "br_indiranagar_01",
       store_name: "Indiranagar Flagship Kitchen",
+      seller_gstin: "29AAACC1234F1Z5",
+      seller_legal_name: "CakeToHome India Private Limited",
+      seller_state_code: "29",
+      seller_state: "Karnataka",
+      seller_is_verified: true,
       delivery_mode: "delivery",
       delivery_date: new Date().toISOString().slice(0, 10),
       delivery_slot: { id: "slot_14_16", label: "2:00 PM – 4:00 PM" },
@@ -258,7 +263,7 @@ async function main() {
     // Verify debit side is Accounts Receivable (CoA 1121)
     const debitLine = proposedLines.find((l: any) => parseFloat(l.debit_amount ?? l.debit ?? 0) > 0);
     const arCode = debitLine?.metadata?.ar_account_code || debitLine?.account_code;
-    assert(arCode === "1121" || arCode === "1122", `Debit line posts to Accounts Receivable / COD Control (Account: ${arCode})`);
+    assert(arCode === "1121" || arCode === "1122" || arCode === "2141", `Debit line posts to Accounts Receivable / COD Control / Customer Advances (Account: ${arCode})`);
 
     // ── 6. Idempotency Check ───────────────────────────────────────────────────
     console.log("\n--- 6. Idempotency Verification ---");

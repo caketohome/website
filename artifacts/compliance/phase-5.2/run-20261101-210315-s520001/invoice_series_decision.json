@@ -1,0 +1,23 @@
+{
+  "run_id": "run-20261101-210315-s520001",
+  "decision_status": "PENDING_BOARD_ADOPTION",
+  "board_options": {
+    "candidate_2": {
+      "prefix": "C2H",
+      "example": "C2H/26-27/000001",
+      "width": 6,
+      "length": 16,
+      "capacity": 999999,
+      "trade_off": "Higher annual capacity (999k), 3-letter abbreviation"
+    },
+    "candidate_1": {
+      "prefix": "CTHI",
+      "example": "CTHI/26-27/00001",
+      "width": 5,
+      "length": 16,
+      "capacity": 99999,
+      "trade_off": "Closer corporate acronym (CTHI), capped at 99k/year"
+    }
+  },
+  "preselection_enforcement": "NEITHER_CANDIDATE_PRESELECTED; Decision rests entirely with the Board of Directors."
+}

@@ -3,7 +3,7 @@ const pgPath = path.join(__dirname, "../backend/node_modules/pg");
 const { Client } = require(pgPath);
 
 const BASE_URL = "http://localhost:3000/api/v1";
-const connectionString = "postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres";
+const connectionString = "[REDACTED_DATABASE_CREDENTIAL]";
 
 const results = [];
 

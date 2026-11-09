@@ -1,0 +1,504 @@
+{
+  "results": [
+    {
+      "id": "DB-accounting_account",
+      "name": "Table: GL Chart of Accounts",
+      "status": "PASS",
+      "detail": "rows=99"
+    },
+    {
+      "id": "DB-accounting_journal_entry",
+      "name": "Table: Journal Entries",
+      "status": "PASS",
+      "detail": "rows=2"
+    },
+    {
+      "id": "DB-accounting_journal_line",
+      "name": "Table: Journal Lines",
+      "status": "PASS",
+      "detail": "rows=4"
+    },
+    {
+      "id": "DB-accounting_voucher",
+      "name": "Table: Accounting Vouchers",
+      "status": "PASS",
+      "detail": "rows=3"
+    },
+    {
+      "id": "DB-accounting_fiscal_period",
+      "name": "Table: Fiscal Periods",
+      "status": "PASS",
+      "detail": "rows=1"
+    },
+    {
+      "id": "DB-branch",
+      "name": "Table: Branches",
+      "status": "PASS",
+      "detail": "rows=57"
+    },
+    {
+      "id": "DB-branch_inventory",
+      "name": "Table: Branch Inventory",
+      "status": "PASS",
+      "detail": "rows=424"
+    },
+    {
+      "id": "DB-product",
+      "name": "Table: Products (Catalog)",
+      "status": "PASS",
+      "detail": "rows=65"
+    },
+    {
+      "id": "DB-product_variant",
+      "name": "Table: Product Variants",
+      "status": "PASS",
+      "detail": "rows=27"
+    },
+    {
+      "id": "DB-customer",
+      "name": "Table: Customers",
+      "status": "PASS",
+      "detail": "rows=57"
+    },
+    {
+      "id": "DB-order",
+      "name": "Table: Orders",
+      "status": "PASS",
+      "detail": "rows=190"
+    },
+    {
+      "id": "DB-order_item",
+      "name": "Table: Order Items",
+      "status": "PASS",
+      "detail": "rows=0"
+    },
+    {
+      "id": "DB-invoice",
+      "name": "Table: Invoices",
+      "status": "PASS",
+      "detail": "rows=5"
+    },
+    {
+      "id": "DB-inventory_movement",
+      "name": "Table: Inventory Movements",
+      "status": "PASS",
+      "detail": "rows=0"
+    },
+    {
+      "id": "DB-inventory_cost_lot",
+      "name": "Table: Cost Lots",
+      "status": "PASS",
+      "detail": "rows=0"
+    },
+    {
+      "id": "DB-delivery_partner",
+      "name": "Table: Delivery Partners",
+      "status": "PASS",
+      "detail": "rows=30"
+    },
+    {
+      "id": "DB-purchase",
+      "name": "Table: Purchases",
+      "status": "PASS",
+      "detail": "rows=0"
+    },
+    {
+      "id": "DB-purchase_item",
+      "name": "Table: Purchase Items",
+      "status": "PASS",
+      "detail": "rows=0"
+    },
+    {
+      "id": "DB-supplier",
+      "name": "Table: Suppliers",
+      "status": "PASS",
+      "detail": "rows=0"
+    },
+    {
+      "id": "DB-expense",
+      "name": "Table: Expenses",
+      "status": "PASS",
+      "detail": "rows=0"
+    },
+    {
+      "id": "DB-expense_category",
+      "name": "Table: Expense Categories",
+      "status": "PASS",
+      "detail": "rows=11"
+    },
+    {
+      "id": "DB-bank_account",
+      "name": "Table: Bank Accounts",
+      "status": "PASS",
+      "detail": "rows=0"
+    },
+    {
+      "id": "DB-GL-BAL",
+      "name": "GL DR = CR (double-entry)",
+      "status": "PASS",
+      "detail": "DR=₹2000 CR=₹2000"
+    },
+    {
+      "id": "DB-ORPHAN-JL",
+      "name": "No orphan journal lines",
+      "status": "PASS",
+      "detail": "orphans=0"
+    },
+    {
+      "id": "API-Branches",
+      "name": "GET Branches",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Chart-of-Accounts",
+      "name": "GET Chart of Accounts",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Trial-Balance",
+      "name": "GET Trial Balance",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Balance-Sheet",
+      "name": "GET Balance Sheet",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-P&L-Statement",
+      "name": "GET P&L Statement",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Cash-Flow-Statement",
+      "name": "GET Cash Flow Statement",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Account-Ledger",
+      "name": "GET Account Ledger",
+      "status": "FAIL",
+      "detail": "HTTP 404"
+    },
+    {
+      "id": "API-Accounting-Config",
+      "name": "GET Accounting Config",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Fiscal-Periods",
+      "name": "GET Fiscal Periods",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Opening-Balance-Status",
+      "name": "GET Opening Balance Status",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Period-Close-History",
+      "name": "GET Period Close History",
+      "status": "FAIL",
+      "detail": "HTTP 400"
+    },
+    {
+      "id": "API-Work-Queue-Summary",
+      "name": "GET Work Queue Summary",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Work-Queue-Sales",
+      "name": "GET Work Queue Sales",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Retained-Earnings-Roll-Forward",
+      "name": "GET Retained Earnings Roll-Forward",
+      "status": "FAIL",
+      "detail": "HTTP 400"
+    },
+    {
+      "id": "API-Fiscal-Year-Summary",
+      "name": "GET Fiscal Year Summary",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Catalog-Products",
+      "name": "GET Catalog Products",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Suppliers",
+      "name": "GET Suppliers",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Purchases",
+      "name": "GET Purchases",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Orders",
+      "name": "GET Orders",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Customers",
+      "name": "GET Customers",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Delivery-Partners",
+      "name": "GET Delivery Partners",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Expense-Categories",
+      "name": "GET Expense Categories",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Bank-Accounts",
+      "name": "GET Bank Accounts",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Reviews",
+      "name": "GET Reviews",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Reports-Dashboard",
+      "name": "GET Reports Dashboard",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "API-Analytics-Dashboard",
+      "name": "GET Analytics Dashboard",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "FIN-BS-200",
+      "name": "BS returns 200",
+      "status": "PASS"
+    },
+    {
+      "id": "FIN-BS-BAL",
+      "name": "BS Assets = L + E",
+      "status": "PASS",
+      "detail": "A=₹2000 L+E=₹2000 diff=0"
+    },
+    {
+      "id": "FIN-BS-EQU",
+      "name": "BS Equity = dynamic P&L + posted 3220",
+      "status": "PASS",
+      "detail": "CY Earnings=₹2000 (dynamic=₹2000 + posted=₹0)"
+    },
+    {
+      "id": "FIN-BS-2026-10-02",
+      "name": "BS balanced as of 2026-10-02",
+      "status": "PASS",
+      "detail": "A=₹2000 diff=0"
+    },
+    {
+      "id": "FIN-BS-2026-10-31",
+      "name": "BS balanced as of 2026-10-31",
+      "status": "PASS",
+      "detail": "A=₹2000 diff=0"
+    },
+    {
+      "id": "FIN-BS-2027-03-31",
+      "name": "BS balanced as of 2027-03-31",
+      "status": "PASS",
+      "detail": "A=₹2000 diff=0"
+    },
+    {
+      "id": "FIN-BS-CMP",
+      "name": "BS comparison mode",
+      "status": "PASS",
+      "detail": "Has comparison snapshot"
+    },
+    {
+      "id": "FIN-PL-200",
+      "name": "P&L returns 200",
+      "status": "PASS"
+    },
+    {
+      "id": "FIN-PL-NET",
+      "name": "P&L Net Profit = ₹2,000",
+      "status": "PASS",
+      "detail": "Net=₹2000"
+    },
+    {
+      "id": "FIN-PL-GROSS",
+      "name": "P&L Gross Profit",
+      "status": "PASS",
+      "detail": "Gross=₹2000"
+    },
+    {
+      "id": "FIN-TB-200",
+      "name": "Trial Balance returns 200",
+      "status": "PASS"
+    },
+    {
+      "id": "FIN-TB-BAL",
+      "name": "TB leaf DR = CR",
+      "status": "PASS",
+      "detail": "DR=₹2000 CR=₹2000"
+    },
+    {
+      "id": "FIN-CF-200",
+      "name": "Cash Flow returns 200",
+      "status": "PASS"
+    },
+    {
+      "id": "FIN-XVER",
+      "name": "BS CY Earnings = P&L Net Profit",
+      "status": "PASS",
+      "detail": "BS CY=₹2000 P&L=₹2000"
+    },
+    {
+      "id": "RBAC-NOAUTH",
+      "name": "Unauthenticated blocked from admin",
+      "status": "PASS",
+      "detail": "HTTP 401"
+    },
+    {
+      "id": "RBAC-CUST-ADMIN",
+      "name": "Customer blocked from admin APIs",
+      "status": "PASS",
+      "detail": "HTTP 403"
+    },
+    {
+      "id": "RBAC-MGR-ACCT",
+      "name": "Manager blocked from accounting (no ACCOUNTING.VIEW)",
+      "status": "PASS",
+      "detail": "HTTP 403"
+    },
+    {
+      "id": "RBAC-MGR-DASH",
+      "name": "Manager can access own dashboard",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "RBAC-MGR-ORD",
+      "name": "Manager can access orders",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "RBAC-MGR-INV",
+      "name": "Manager can access inventory",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "RBAC-DP-JOBS",
+      "name": "DP can access delivery-partner/jobs",
+      "status": "FAIL",
+      "detail": "HTTP 403"
+    },
+    {
+      "id": "RBAC-DP-ADMIN",
+      "name": "DP blocked from admin APIs",
+      "status": "PASS",
+      "detail": "HTTP 403"
+    },
+    {
+      "id": "RPT-Retained-Earnings-Roll-Forward",
+      "name": "Report: Retained Earnings Roll-Forward",
+      "status": "FAIL",
+      "detail": "HTTP 400"
+    },
+    {
+      "id": "RPT-Fiscal-Year-Summary",
+      "name": "Report: Fiscal Year Summary",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "RPT-Purchase-Register",
+      "name": "Report: Purchase Register",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "RPT-Purchase-Supplier-Wise",
+      "name": "Report: Purchase Supplier-Wise",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "RPT-Purchase-Item-Wise",
+      "name": "Report: Purchase Item-Wise",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "EXP-Orders-Export",
+      "name": "Orders Export",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "EXP-Customers-Export",
+      "name": "Customers Export",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "EXP-Reports-Export",
+      "name": "Reports Export",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "XPANEL-ORDERS",
+      "name": "Manager orders ≤ Admin orders (branch filter)",
+      "status": "PASS",
+      "detail": "admin=20 mgr=3"
+    },
+    {
+      "id": "PUR-LIST",
+      "name": "Admin can list purchases",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "PUR-SUPPLIERS",
+      "name": "Admin can list suppliers",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    }
+  ],
+  "totals": {
+    "pass": 78,
+    "fail": 5,
+    "na": 0,
+    "total": 83
+  }
+}

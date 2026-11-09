@@ -98,6 +98,7 @@ export interface GstRegistrationCreateInput {
   registration_type?: GstRegistrationType;
   legal_name?: string;
   effective_from?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface GstRegistrationUpdateInput {

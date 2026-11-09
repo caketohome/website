@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T03:18:27.279Z",
+  "environment": "cth_rehearsal_phase5_4",
+  "provenance": "e:/vig/cakes2home-main/cakes2home-main",
+  "run_id": "run-20261101-215100-s540001",
+  "clearances": [
+    {
+      "reviewer_role": "Company Secretary in Practice",
+      "domain": "Companies Act 2013 & Corporate Governance",
+      "scope": "Board approval validity, Section 118 minutes compliance, delegation instruments",
+      "status": "PENDING",
+      "written_opinion_received": false,
+      "opinion_ref": null,
+      "opinion_date": null
+    },
+    {
+      "reviewer_role": "Chartered Accountant / Qualified Tax Counsel",
+      "domain": "GST Law (CGST Act & Rules)",
+      "scope": "Rule 46(b) serial consecutive invoice compliance, treatment of 69 historical unbilled orders, ITC implications",
+      "status": "PENDING",
+      "written_opinion_received": false,
+      "opinion_ref": null,
+      "opinion_date": null
+    }
+  ]
+}

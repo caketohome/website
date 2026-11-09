@@ -1,0 +1,21 @@
+{
+  "run_id": "run-20261101-210315-s520001",
+  "proposed_officers": [
+    {
+      "role": "CFO / Finance Director",
+      "scope": "Financial Policy, Series Approval, Credit Notes",
+      "status": "PENDING_BOARD_ADOPTION"
+    },
+    {
+      "role": "IT Systems Administrator",
+      "scope": "Technical Configuration, DB Maintenance, Deployment",
+      "status": "PENDING_BOARD_ADOPTION"
+    },
+    {
+      "role": "Statutory Operations Lead",
+      "scope": "Order Dispatch Review, Billing Verification",
+      "status": "PENDING_BOARD_ADOPTION"
+    }
+  ],
+  "authority_separation": "Five distinct scopes: Corporate execution, Series approval, Financial operations, Release authorization, Production deployment."
+}

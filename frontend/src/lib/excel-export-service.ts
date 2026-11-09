@@ -1,7 +1,7 @@
 import * as ExcelJS from "exceljs";
 
 let dynamicBrandLine = "CAKETOHOME (CakeToHome India Private Limited)";
-let dynamicPrimaryGstin = "29AAAAA0000A1Z5";
+let dynamicPrimaryGstin: string | null = null;
 
 /**
  * Configure export identity dynamically from the active business profile.
@@ -16,7 +16,7 @@ function resolveExportBrandLine(): string {
 }
 
 function resolvePrimaryGstin(): string {
-  return dynamicPrimaryGstin;
+  return dynamicPrimaryGstin || "";
 }
 
 export interface ExcelColumn {
@@ -286,7 +286,7 @@ export class ExcelExportService {
       s3.getRow(r3).values = [
         s.invoiceDate, s.invoiceNumber, s.orderNumber, s.customerName, s.customerPhone,
         s.customerGstin || "URP", s.customerGstin && s.customerGstin !== "URP" ? "B2B" : "B2C", s.placeOfSupply, s.state || "", s.branchName,
-        s.branchGstin || "29AAAAA0000A1Z5", s.productName, s.sku || "CK-TRUF", s.hsnCode || "19059090", s.quantity || 1,
+        s.branchGstin || "", s.productName, s.sku || "", s.hsnCode || "UNCLASSIFIED", s.quantity || 1,
         s.uom || "PCS", s.unitPrice || 0, s.grossAmount || 0, s.taxableValue || 0, (s.gstRatePct || 18) / 100,
         (s.cgstRatePct || 9) / 100, s.cgst || 0, (s.sgstRatePct || 9) / 100, s.sgst || 0, (s.igstRatePct || 0) / 100,
         s.igst || 0, s.totalTax || 0, s.totalValue || 0, s.paymentMethod || "UPI / Razorpay", s.paymentStatus || "Paid", s.orderStatus || "Delivered"
@@ -1842,5 +1842,102 @@ export class ExcelExportService {
 
     const buffer = await workbook.xlsx.writeBuffer();
     this.triggerBrowserDownload(buffer as ArrayBuffer, filename || `CakeToHome_Complete_Enterprise_Workbook_${fromDate}_to_${toDate}`);
+  }
+
+  /**
+   * Export PostgreSQL-derived order-level partner reconciliation statement to Excel
+   */
+  public static async generatePartnerReconciliationWorkbookXlsx(
+    statement: any,
+    filename?: string
+  ): Promise<ArrayBuffer> {
+    const workbook = new ExcelJS.Workbook();
+    const periodStr = `${statement.period?.startDate} TO ${statement.period?.endDate}`;
+
+    // Sheet 1: Summary
+    const s1 = workbook.addWorksheet("Partner Settlement Summary");
+    s1.views = [{ state: "frozen", xSplit: 0, ySplit: 5, showGridLines: true }];
+    s1.mergeCells("A1:F1");
+    s1.getCell("A1").value = `PARTNER RECONCILIATION STATEMENT — ${statement.partner?.trade_name?.toUpperCase()}`;
+    s1.getCell("A1").font = { bold: true, size: 14, color: { argb: "FFFFFFFF" } };
+    s1.getCell("A1").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF4F46E5" } };
+    s1.getCell("A1").alignment = { horizontal: "center", vertical: "middle" };
+    s1.getRow(1).height = 30;
+
+    s1.getCell("A3").value = "Partner Code:";
+    s1.getCell("B3").value = statement.partner?.code;
+    s1.getCell("C3").value = "GSTIN:";
+    s1.getCell("D3").value = statement.partner?.gstin || "N/A";
+    s1.getCell("A4").value = "Reconciliation Period:";
+    s1.getCell("B4").value = periodStr;
+    s1.getCell("C4").value = "PAN:";
+    s1.getCell("D4").value = statement.partner?.pan || "N/A";
+
+    s1.getRow(6).values = ["Metric Description", "Value"];
+    s1.getRow(6).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s1.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+
+    const metrics = [
+      ["Total Completed Orders", statement.summary?.total_orders || 0],
+      ["Gross Product Sales (₹)", statement.summary?.gross_sales || 0],
+      ["Total Tax Collected (₹)", statement.summary?.total_tax || 0],
+      ["Platform Commission Deducted (₹)", statement.summary?.commission_revenue || 0],
+      ["Fixed Platform Fees (₹)", statement.summary?.fixed_fees || 0],
+      ["NET SETTLEMENT PAYABLE TO PARTNER (₹)", statement.summary?.net_payable_to_partner || 0],
+    ];
+
+    let rSummary = 7;
+    for (const m of metrics) {
+      s1.getRow(rSummary).values = m;
+      if (typeof m[1] === "number" && rSummary > 7) {
+        s1.getCell(`B${rSummary}`).numFmt = "₹#,##0.00";
+      }
+      if (rSummary === 12) {
+        s1.getRow(rSummary).font = { bold: true, color: { argb: "FF047857" } };
+      }
+      rSummary++;
+    }
+    s1.columns = [{ width: 38 }, { width: 25 }];
+
+    // Sheet 2: Order-Level Detail
+    const s2 = workbook.addWorksheet("Order-Level Line Items");
+    s2.views = [{ state: "frozen", xSplit: 0, ySplit: 1, showGridLines: true }];
+    s2.getRow(1).values = [
+      "Order ID", "Delivery Date", "Customer Name", "Items Summary",
+      "Gross Sales (₹)", "Tax (₹)", "Commission %", "Commission (₹)", "Fixed Fee (₹)", "Net Payable (₹)"
+    ];
+    s2.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    s2.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
+
+    let rOrders = 2;
+    for (const item of statement.line_items || []) {
+      s2.getRow(rOrders).values = [
+        item.order_id,
+        item.order_date,
+        item.customer_name,
+        item.items_summary,
+        item.gross_order_amount,
+        item.tax_amount,
+        item.commission_rate / 100,
+        item.commission_amount,
+        item.fixed_fee,
+        item.partner_net_payable,
+      ];
+      s2.getCell(`E${rOrders}`).numFmt = "₹#,##0.00";
+      s2.getCell(`F${rOrders}`).numFmt = "₹#,##0.00";
+      s2.getCell(`G${rOrders}`).numFmt = "0.0%";
+      s2.getCell(`H${rOrders}`).numFmt = "₹#,##0.00";
+      s2.getCell(`I${rOrders}`).numFmt = "₹#,##0.00";
+      s2.getCell(`J${rOrders}`).numFmt = "₹#,##0.00";
+      rOrders++;
+    }
+
+    s2.columns = [
+      { width: 22 }, { width: 14 }, { width: 22 }, { width: 36 },
+      { width: 16 }, { width: 14 }, { width: 14 }, { width: 16 }, { width: 14 }, { width: 18 }
+    ];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return buffer as ArrayBuffer;
   }
 }

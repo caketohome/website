@@ -1,0 +1,43 @@
+{
+  "phase": "4.8",
+  "run_id": "run-20261031-203421-s602653",
+  "verified_at": "2026-10-31T21:55:00Z",
+  "items": [
+    {
+      "id": "EVD-001",
+      "name": "Protected Database cth_test",
+      "type": "PostgreSQL Database",
+      "status": "VERIFIED_READ_ONLY"
+    },
+    {
+      "id": "EVD-002",
+      "name": "Board Submission CTH-GOV-2026-SUB-01",
+      "type": "Governance Document",
+      "status": "PROPOSED_UNADOPTED"
+    },
+    {
+      "id": "EVD-003",
+      "name": "Disposable Rehearsal cth_rehearsal_phase4_8",
+      "type": "PostgreSQL Database",
+      "status": "VERIFIED_REHEARSED"
+    },
+    {
+      "id": "EVD-004",
+      "name": "Historical Sequence Ledger 1..74",
+      "type": "Audit Ledger",
+      "status": "100_PERCENT_RECONCILED"
+    },
+    {
+      "id": "EVD-005",
+      "name": "Order Repository (127 orders)",
+      "type": "Relational Table",
+      "status": "100_PERCENT_ACCOUNTED"
+    },
+    {
+      "id": "EVD-006",
+      "name": "Synthetic Invoice Manifest (15 rows)",
+      "type": "Audit Census",
+      "status": "VERIFIED_ISOLATED"
+    }
+  ]
+}

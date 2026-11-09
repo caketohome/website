@@ -1,0 +1,127 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T15:20:29.435Z",
+  "environment": "cth_rehearsal_phase5_7",
+  "files": {
+    "accounting_reconciliation_report.md": {
+      "sha256": "c6f045af0be724c84b334ab92f66caeadf467c6970b222504ecb5d3fb6740bf2",
+      "bytes": 1299
+    },
+    "api_verification_report.md": {
+      "sha256": "0857ef33759719b3e4e3b2b9928592bcf5c65e9f9ae2aba222d0b40de6966d15",
+      "bytes": 1311
+    },
+    "artifact_integrity_manifest.json": {
+      "sha256": "3aea3dcc02dfdf4999b767601397b8cb582563e7cb99687a13e5056c871a12c5",
+      "bytes": 271
+    },
+    "canonical_six_layer_manifest.json": {
+      "sha256": "9d0baf200ef51489825cc709094e3cc6958ef2c6e709f4d6bceb0935b8c0240b",
+      "bytes": 749
+    },
+    "ch_invoice_series_technical_specification.md": {
+      "sha256": "c70853d30a62cb975c94f6ffcd9f07c3143e459b2ac0b1402982ce6ea79b8dcc",
+      "bytes": 1686
+    },
+    "combined_69_order_reconciliation_report.md": {
+      "sha256": "bc7c81b2ebd673ed18b0810bacb5e83b3cd84dbb52bf18d7d2ef15bb11b2e3db",
+      "bytes": 1402
+    },
+    "concurrency_test_report.md": {
+      "sha256": "32b90ef56362d84bbc1eb7b9c49c4ea48d502e768819110b58c53dd8c40435f2",
+      "bytes": 1393
+    },
+    "corporate_evidence_register.md": {
+      "sha256": "6a342698f4daf2df73868d6c88201aeca5536aa07b3f5b27282f2788650874d9",
+      "bytes": 2185
+    },
+    "counter_integrity_report.md": {
+      "sha256": "08c133161ecad8669717a52d1e8199239137711003cf146f1871ca9a7a6259ae",
+      "bytes": 1506
+    },
+    "database_integrity_report.md": {
+      "sha256": "342e60963ab2c0e62bbe438292270121eefbf7e140524f9ac4575635c0583165",
+      "bytes": 1544
+    },
+    "deployment_readiness_report.md": {
+      "sha256": "53349a668c1675039485f6791ddd93f28f18c13c710936bf5debb1263947d1ca",
+      "bytes": 1305
+    },
+    "final_project_closure_report.md": {
+      "sha256": "daead361650c02da8450e2cc6f9a600bc6389320f36b3bc2bf047316aa9e893c",
+      "bytes": 1571
+    },
+    "frontend_workflow_verification_report.md": {
+      "sha256": "1fc9df86cc8d7ceb9cb5932a51b7ee1f1ef575b57bade8ce2005d3037af3455e",
+      "bytes": 1247
+    },
+    "historical_21_order_disposition_report.md": {
+      "sha256": "02f3c9233605169ca3eac09789acd0d4f8165bb0e9c2869227d45d9d6bff7677",
+      "bytes": 4802
+    },
+    "historical_48_order_disposition_report.md": {
+      "sha256": "65ba1baa4843d2222416ee0f1940b9b9b861781e05086467efb02602303c668c",
+      "bytes": 1826
+    },
+    "historical_data_invariance_manifest.json": {
+      "sha256": "498b40eb892c6fba7e35360066b1547ddd3975ac584f04f65124fa0407949e4c",
+      "bytes": 433
+    },
+    "invoice_numbering_configuration_report.md": {
+      "sha256": "a9702bdd2eca0e459d67b9a469b413198a32c1c961d85dd834d4ac56d5f37a99",
+      "bytes": 1541
+    },
+    "invoice_uniqueness_and_constraint_report.md": {
+      "sha256": "b66b776f9515eab9403437cc4b49673aba558bfc824aa82690dc9bdd96c561ba",
+      "bytes": 1554
+    },
+    "migration_and_rollback_report.md": {
+      "sha256": "6d623d0839ae72b6bbbee52764094d00b9e531a0807de0d5f213706c4211101c",
+      "bytes": 1325
+    },
+    "payment_reconciliation_report.md": {
+      "sha256": "3253b883289626094d59aa8ba870f910d7697b5f855a0fadd3986a1524746a54",
+      "bytes": 1359
+    },
+    "performance_benchmark_report.md": {
+      "sha256": "1b528ded06f152950369c6688c5c6e7958f0607e2552ce03508022e2db67f168",
+      "bytes": 1420
+    },
+    "phase_5_7_decision_manifest.json": {
+      "sha256": "baab34344b1587bfadcc018c1e6fc312fb2ab12d5335bd7012b40cc633001506",
+      "bytes": 794
+    },
+    "phase_5_7_decision_register.md": {
+      "sha256": "ebbe2b529c5ffe798a1530b3b088de69de5f63ca4696347799c4cc0133a15c71",
+      "bytes": 2536
+    },
+    "phase_5_7_executive_report.md": {
+      "sha256": "cd3ff796c82756617cb9f4185e79ffd592eaff35be77c54b1f9ae7f51495bc17",
+      "bytes": 3989
+    },
+    "professional_clearance_register.md": {
+      "sha256": "481f98d3a754839538beeffac8c65095fc9e03209242781f39fb419879508aa2",
+      "bytes": 2115
+    },
+    "release_gate_manifest.json": {
+      "sha256": "63ce9fe5b8e4f103ea99c52230e8be8d27bcce0d9c8ea57d7f19c1f7ec6c522d",
+      "bytes": 266
+    },
+    "security_and_sod_report.md": {
+      "sha256": "d7a8df4e8946e9370fb3ea3af948effb32eb76ac0354e2156305a99ebbd77bf6",
+      "bytes": 1367
+    },
+    "six_layer_authorization_matrix.md": {
+      "sha256": "6341c0248db6c8b90ff87a9f1a113c2788726408882d8f0a9e8f2fe100e6e2fa",
+      "bytes": 2150
+    },
+    "test_execution_manifest.json": {
+      "sha256": "f80352d0783562fb64b0e1176836e04ef60eae6c379f758b43c8e554b0c31890",
+      "bytes": 374
+    },
+    "unresolved_blockers.md": {
+      "sha256": "60f13c6e9e82929fc3cf697951b269e8df2261b919d6176f657dfc1ca1cba85b",
+      "bytes": 1592
+    }
+  }
+}

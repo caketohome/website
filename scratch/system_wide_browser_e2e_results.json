@@ -1,0 +1,350 @@
+[
+  {
+    "name": "Admin Dashboard: Overview",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=overview",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 59426,
+    "durationMs": 24701,
+    "pageErrors": [],
+    "consoleErrors": [],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_overview.png"
+  },
+  {
+    "name": "Admin: Bills Receivable (AR)",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=bills_receivable",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 58534,
+    "durationMs": 9237,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_bills_receivable.png"
+  },
+  {
+    "name": "Admin: Bills Payable (AP)",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=bills_payable",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 53587,
+    "durationMs": 3341,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_bills_payable.png"
+  },
+  {
+    "name": "Admin: Central Accounting Work Queue",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=accounting_work_queue",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 59697,
+    "durationMs": 3622,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_accounting_work_queue.png"
+  },
+  {
+    "name": "Admin: General Ledger",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=general_ledger",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 45527,
+    "durationMs": 3721,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "[GL Panel] Failed to load accounts: Error: HTTP 401\n    at eval (webpack-internal:///(app-pages-browser)/./src/components/dashboard/admin/general-ledger-panel.tsx:146:36)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_general_ledger.png"
+  },
+  {
+    "name": "Admin: Trial Balance",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=trial_balance",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 57811,
+    "durationMs": 3576,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "[Orders Command Center Error] Failed to fetch orders: Error: Unauthorized: Authentication required to access ORDERS.VIEW.\n    at executeRequest (webpack-internal:///(app-pages-browser)/./src/lib/api-client.ts:185:23)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_trial_balance.png"
+  },
+  {
+    "name": "Admin: Profit & Loss",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=profit_loss",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 47617,
+    "durationMs": 3276,
+    "pageErrors": [],
+    "consoleErrors": [],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_profit_loss.png"
+  },
+  {
+    "name": "Admin: Balance Sheet",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=balance_sheet",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 45938,
+    "durationMs": 3467,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_balance_sheet.png"
+  },
+  {
+    "name": "Admin: Teller Cash Custody",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=teller_custody",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 51085,
+    "durationMs": 3276,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_teller_custody.png"
+  },
+  {
+    "name": "Admin: Tax Master",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=tax_master",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 71993,
+    "durationMs": 3319,
+    "pageErrors": [],
+    "consoleErrors": [],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_tax_master.png"
+  },
+  {
+    "name": "Admin: Orders Management",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=orders",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 57790,
+    "durationMs": 3601,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "[Orders Command Center Error] Failed to fetch orders: Error: Unauthorized: Authentication required to access ORDERS.VIEW.\n    at executeRequest (webpack-internal:///(app-pages-browser)/./src/lib/api-client.ts:185:23)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_orders.png"
+  },
+  {
+    "name": "Admin: Catalog & PIM",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=catalog",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 52676,
+    "durationMs": 3505,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_catalog.png"
+  },
+  {
+    "name": "Admin: Branches & Outlets",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=branches",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 50291,
+    "durationMs": 3615,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_branches.png"
+  },
+  {
+    "name": "Admin: Delivery & Fleet",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=delivery",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 158039,
+    "durationMs": 3557,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_delivery.png"
+  },
+  {
+    "name": "Admin: Bank Accounts",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=bank_accounts",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 53407,
+    "durationMs": 3337,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_bank_accounts.png"
+  },
+  {
+    "name": "Admin: Bank Reconciliation (BRS)",
+    "role": "SUPER_ADMIN",
+    "url": "http://localhost:3001/dashboard?tab=bank_reconciliation",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 54069,
+    "durationMs": 3551,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\admin_bank_reconciliation.png"
+  },
+  {
+    "name": "Branch Operations Console",
+    "role": "BRANCH_MANAGER",
+    "url": "http://localhost:3001/dashboard/shop",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 39397,
+    "durationMs": 19602,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\branch_manager_shop.png"
+  },
+  {
+    "name": "Delivery Partner Console",
+    "role": "DELIVERY_PARTNER",
+    "url": "http://localhost:3001/dashboard/delivery-partner",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "CakeToHome — Admin Dashboard",
+    "bodyLength": 45529,
+    "durationMs": 13433,
+    "pageErrors": [],
+    "consoleErrors": [],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\delivery_partner_console.png"
+  },
+  {
+    "name": "Customer: Storefront Home (Desktop)",
+    "role": "ANONYMOUS",
+    "url": "http://localhost:3001/",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "Untitled Page | CakeToHome",
+    "bodyLength": 3014522,
+    "durationMs": 41090,
+    "pageErrors": [],
+    "consoleErrors": [],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\storefront_home_desktop.png"
+  },
+  {
+    "name": "Customer: Storefront Home (Tablet)",
+    "role": "ANONYMOUS",
+    "url": "http://localhost:3001/",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "Untitled Page | CakeToHome",
+    "bodyLength": 3015519,
+    "durationMs": 18273,
+    "pageErrors": [],
+    "consoleErrors": [],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\storefront_home_tablet.png"
+  },
+  {
+    "name": "Customer: Storefront Home (Mobile)",
+    "role": "ANONYMOUS",
+    "url": "http://localhost:3001/",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "Untitled Page | CakeToHome",
+    "bodyLength": 3017592,
+    "durationMs": 10986,
+    "pageErrors": [],
+    "consoleErrors": [],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\storefront_home_mobile.png"
+  },
+  {
+    "name": "Customer: Login & OTP Page",
+    "role": "ANONYMOUS",
+    "url": "http://localhost:3001/login",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "Customer Login & Account Access | CakeToHome",
+    "bodyLength": 54402,
+    "durationMs": 17705,
+    "pageErrors": [],
+    "consoleErrors": [],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\customer_login.png"
+  },
+  {
+    "name": "Customer: Cart Page",
+    "role": "ANONYMOUS",
+    "url": "http://localhost:3001/cart",
+    "status": "VERIFIED",
+    "httpStatus": 200,
+    "title": "Shopping Cart — CakeToHome",
+    "bodyLength": 33873,
+    "durationMs": 14995,
+    "pageErrors": [],
+    "consoleErrors": [],
+    "screenshot": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\brain\\31411221-4244-440e-aa25-9554dab9f914\\browser_screenshots\\customer_cart.png"
+  }
+]

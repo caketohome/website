@@ -1,0 +1,8 @@
+{
+  "total_vouchers": 4,
+  "draft_unposted": 3,
+  "cancelled": 1,
+  "posted_to_gl": 0,
+  "gl_distortion_amount": 0,
+  "reconciliation_status": "RECONCILED_ZERO_DISTORTION"
+}

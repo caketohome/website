@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-10-24T19:15:26.320Z",
+  "environment": "aws-1-ap-south-1.pooler.supabase.com:6543/postgres",
+  "uiState": {
+    "legalName": "CakeToHome Retail India Private Limited",
+    "panMasked": "AAACC****F",
+    "cinMasked": "U15400KA20***********",
+    "stateCode": "29",
+    "accountingStartDateDisplayed": "2026-04-01",
+    "isLockedBannerVisible": true
+  },
+  "databaseState": {
+    "companyId": "cth_company_1792842928354_umu7n",
+    "legalName": "CakeToHome Retail India Private Limited",
+    "panMasked": "AAACC****F",
+    "cinMasked": "U15400KA20***********",
+    "stateCode": "29",
+    "accountingStartDatePersisted": "2026-04-01"
+  },
+  "mismatches": [],
+  "screenshots": [
+    "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\screenshots\\readonly_01_business_profile.png",
+    "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\screenshots\\readonly_02_tax_gst.png",
+    "E:\\vig\\cakes2home-main\\cakes2home-main\\frontend\\test-results\\screenshots\\readonly_03_accounting_setup.png"
+  ]
+}

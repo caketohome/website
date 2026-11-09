@@ -1,0 +1,11 @@
+{
+  "phase": "4.7",
+  "preflight_status": "READY_FOR_AUTHORIZATION",
+  "git_head": "d231cee7e55f716526e62f5799cc7377c555fed3",
+  "migrations_verified": [
+    "c7_12",
+    "c7_13",
+    "c7_14"
+  ],
+  "fail_closed_gate_active": true
+}

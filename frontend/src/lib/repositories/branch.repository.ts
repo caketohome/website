@@ -247,7 +247,8 @@ export class BranchRepository {
         SELECT b.*, c.name as city_name, c.state as city_state
         FROM "branch" b
         LEFT JOIN "city" c ON b.city_id = c.id
-        WHERE b.id = $1 OR b.code = $1
+        WHERE b.id = $1 OR b.code = $1 OR b.id = $1 || '_01' OR b.id LIKE $1 || '%'
+        ORDER BY CASE WHEN b.id = $1 THEN 1 WHEN b.id = $1 || '_01' THEN 2 ELSE 3 END
         LIMIT 1
       `,
         [id]
@@ -255,7 +256,7 @@ export class BranchRepository {
       dbQuery(
         `
         SELECT * FROM "delivery_zone" 
-        WHERE (branch_id = $1 OR branch_id IN (SELECT id FROM "branch" WHERE code = $1)) 
+        WHERE (branch_id = $1 OR branch_id = $1 || '_01' OR branch_id IN (SELECT id FROM "branch" WHERE code = $1 OR id = $1 OR id = $1 || '_01' OR id LIKE $1 || '%')) 
         AND deleted_at IS NULL 
         ORDER BY priority DESC
       `,

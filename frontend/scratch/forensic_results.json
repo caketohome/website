@@ -1,0 +1,541 @@
+{
+  "tables": [
+    {
+      "table_name": "accounting_journal_entry",
+      "table_type": "BASE TABLE"
+    },
+    {
+      "table_name": "accounting_journal_line",
+      "table_type": "BASE TABLE"
+    },
+    {
+      "table_name": "accounting_voucher",
+      "table_type": "BASE TABLE"
+    },
+    {
+      "table_name": "company",
+      "table_type": "BASE TABLE"
+    },
+    {
+      "table_name": "gst_registration",
+      "table_type": "BASE TABLE"
+    },
+    {
+      "table_name": "invoice",
+      "table_type": "BASE TABLE"
+    },
+    {
+      "table_name": "invoice_allocation_log",
+      "table_type": "BASE TABLE"
+    },
+    {
+      "table_name": "invoice_generation_queue",
+      "table_type": "BASE TABLE"
+    },
+    {
+      "table_name": "invoice_sequence",
+      "table_type": "BASE TABLE"
+    },
+    {
+      "table_name": "order",
+      "table_type": "BASE TABLE"
+    },
+    {
+      "table_name": "order_lifecycle_refund",
+      "table_type": "BASE TABLE"
+    },
+    {
+      "table_name": "order_number_migration_log",
+      "table_type": "BASE TABLE"
+    },
+    {
+      "table_name": "order_sequence",
+      "table_type": "BASE TABLE"
+    },
+    {
+      "table_name": "refund",
+      "table_type": "BASE TABLE"
+    }
+  ],
+  "order_columns": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "display_id",
+      "data_type": "integer",
+      "is_nullable": "YES",
+      "column_default": "nextval('order_display_id_seq'::regclass)"
+    },
+    {
+      "column_name": "status",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO",
+      "column_default": "'pending'::order_status_enum"
+    },
+    {
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "column_name": "order_number",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    }
+  ],
+  "indexes": [
+    {
+      "index_name": "idx_invoice_invoice_number_unique",
+      "table_name": "invoice",
+      "is_unique": true,
+      "index_definition": "CREATE UNIQUE INDEX idx_invoice_invoice_number_unique ON public.invoice USING btree (invoice_number)"
+    },
+    {
+      "index_name": "invoice_invoice_number_key",
+      "table_name": "invoice",
+      "is_unique": true,
+      "index_definition": "CREATE UNIQUE INDEX invoice_invoice_number_key ON public.invoice USING btree (invoice_number)"
+    },
+    {
+      "index_name": "invoice_allocation_log_pkey",
+      "table_name": "invoice_allocation_log",
+      "is_unique": true,
+      "index_definition": "CREATE UNIQUE INDEX invoice_allocation_log_pkey ON public.invoice_allocation_log USING btree (id)"
+    },
+    {
+      "index_name": "uq_invoice_allocation_log_order_active",
+      "table_name": "invoice_allocation_log",
+      "is_unique": true,
+      "index_definition": "CREATE UNIQUE INDEX uq_invoice_allocation_log_order_active ON public.invoice_allocation_log USING btree (entity_id, fiscal_year, prefix, order_id) WHERE ((order_id IS NOT NULL) AND (status = ANY (ARRAY['ALLOCATED'::text, 'COMMITTED'::text])))"
+    },
+    {
+      "index_name": "uq_invoice_allocation_log_series",
+      "table_name": "invoice_allocation_log",
+      "is_unique": true,
+      "index_definition": "CREATE UNIQUE INDEX uq_invoice_allocation_log_series ON public.invoice_allocation_log USING btree (entity_id, fiscal_year, prefix, sequence_value)"
+    },
+    {
+      "index_name": "uq_invoice_queue_order",
+      "table_name": "invoice_generation_queue",
+      "is_unique": true,
+      "index_definition": "CREATE UNIQUE INDEX uq_invoice_queue_order ON public.invoice_generation_queue USING btree (order_id)"
+    },
+    {
+      "index_name": "invoice_sequence_pkey",
+      "table_name": "invoice_sequence",
+      "is_unique": true,
+      "index_definition": "CREATE UNIQUE INDEX invoice_sequence_pkey ON public.invoice_sequence USING btree (id)"
+    },
+    {
+      "index_name": "uq_invoice_sequence_entity_fy_prefix",
+      "table_name": "invoice_sequence",
+      "is_unique": true,
+      "index_definition": "CREATE UNIQUE INDEX uq_invoice_sequence_entity_fy_prefix ON public.invoice_sequence USING btree (entity_id, fiscal_year, prefix)"
+    },
+    {
+      "index_name": "idx_order_order_number_unique",
+      "table_name": "order",
+      "is_unique": true,
+      "index_definition": "CREATE UNIQUE INDEX idx_order_order_number_unique ON public.\"order\" USING btree (order_number)"
+    },
+    {
+      "index_name": "order_number_migration_log_pkey",
+      "table_name": "order_number_migration_log",
+      "is_unique": true,
+      "index_definition": "CREATE UNIQUE INDEX order_number_migration_log_pkey ON public.order_number_migration_log USING btree (id)"
+    },
+    {
+      "index_name": "order_sequence_pkey",
+      "table_name": "order_sequence",
+      "is_unique": true,
+      "index_definition": "CREATE UNIQUE INDEX order_sequence_pkey ON public.order_sequence USING btree (id)"
+    },
+    {
+      "index_name": "uq_order_sequence_prefix",
+      "table_name": "order_sequence",
+      "is_unique": true,
+      "index_definition": "CREATE UNIQUE INDEX uq_order_sequence_prefix ON public.order_sequence USING btree (prefix)"
+    }
+  ],
+  "functions": [
+    {
+      "function_name": "allocate_invoice_number",
+      "owner": "postgres",
+      "language": "plpgsql",
+      "is_security_definer": true,
+      "config_search_path": [
+        "search_path=public, pg_temp"
+      ],
+      "arguments": "p_prefix text, p_order_id text, p_entity_id text, p_gstin text, p_issue_date timestamp with time zone"
+    },
+    {
+      "function_name": "allocate_order_number",
+      "owner": "postgres",
+      "language": "plpgsql",
+      "is_security_definer": true,
+      "config_search_path": [
+        "search_path=public, pg_temp"
+      ],
+      "arguments": "p_prefix text"
+    },
+    {
+      "function_name": "commit_invoice_allocation",
+      "owner": "postgres",
+      "language": "plpgsql",
+      "is_security_definer": true,
+      "config_search_path": [
+        "search_path=public, pg_temp"
+      ],
+      "arguments": "p_order_id text, p_invoice_id text"
+    },
+    {
+      "function_name": "void_invoice_allocation",
+      "owner": "postgres",
+      "language": "plpgsql",
+      "is_security_definer": true,
+      "config_search_path": [
+        "search_path=public, pg_temp"
+      ],
+      "arguments": "p_order_id text, p_reason text"
+    }
+  ],
+  "rls_status": [
+    {
+      "table_name": "invoice_allocation_log",
+      "rls_enabled": true,
+      "rls_enforced": false
+    },
+    {
+      "table_name": "invoice_generation_queue",
+      "rls_enabled": true,
+      "rls_enforced": false
+    },
+    {
+      "table_name": "invoice_sequence",
+      "rls_enabled": true,
+      "rls_enforced": false
+    },
+    {
+      "table_name": "order_number_migration_log",
+      "rls_enabled": true,
+      "rls_enforced": false
+    },
+    {
+      "table_name": "order_sequence",
+      "rls_enabled": true,
+      "rls_enforced": false
+    }
+  ],
+  "policies": [
+    {
+      "tablename": "invoice_allocation_log",
+      "policyname": "p_invoice_allocation_log_auth",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "using_expression": "(COALESCE(((current_setting('request.jwt.claims'::text, true))::jsonb ->> 'role'::text), ''::text) = ANY (ARRAY['admin'::text, 'service_role'::text]))",
+      "with_check_expression": null
+    },
+    {
+      "tablename": "invoice_allocation_log",
+      "policyname": "p_invoice_allocation_log_service",
+      "roles": "{service_role}",
+      "cmd": "ALL",
+      "using_expression": "true",
+      "with_check_expression": "true"
+    },
+    {
+      "tablename": "invoice_generation_queue",
+      "policyname": "p_invoice_generation_queue_auth",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "using_expression": "(COALESCE(((current_setting('request.jwt.claims'::text, true))::jsonb ->> 'role'::text), ''::text) = ANY (ARRAY['admin'::text, 'service_role'::text]))",
+      "with_check_expression": null
+    },
+    {
+      "tablename": "invoice_generation_queue",
+      "policyname": "p_invoice_generation_queue_service",
+      "roles": "{service_role}",
+      "cmd": "ALL",
+      "using_expression": "true",
+      "with_check_expression": "true"
+    },
+    {
+      "tablename": "invoice_sequence",
+      "policyname": "p_invoice_sequence_auth",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "using_expression": "(COALESCE(((current_setting('request.jwt.claims'::text, true))::jsonb ->> 'role'::text), ''::text) = ANY (ARRAY['admin'::text, 'service_role'::text]))",
+      "with_check_expression": null
+    },
+    {
+      "tablename": "invoice_sequence",
+      "policyname": "p_invoice_sequence_service",
+      "roles": "{service_role}",
+      "cmd": "ALL",
+      "using_expression": "true",
+      "with_check_expression": "true"
+    },
+    {
+      "tablename": "order_number_migration_log",
+      "policyname": "p_order_migration_log_auth",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "using_expression": "((COALESCE(((current_setting('request.jwt.claims'::text, true))::jsonb ->> 'role'::text), ''::text) = ANY (ARRAY['admin'::text, 'service_role'::text])) OR ((((auth.jwt() -> 'app_metadata'::text) ->> 'is_admin'::text))::boolean = true))",
+      "with_check_expression": null
+    },
+    {
+      "tablename": "order_number_migration_log",
+      "policyname": "p_order_migration_log_service",
+      "roles": "{service_role}",
+      "cmd": "ALL",
+      "using_expression": "true",
+      "with_check_expression": "true"
+    },
+    {
+      "tablename": "order_sequence",
+      "policyname": "p_order_sequence_auth",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "using_expression": "(COALESCE(((current_setting('request.jwt.claims'::text, true))::jsonb ->> 'role'::text), ''::text) = ANY (ARRAY['admin'::text, 'service_role'::text]))",
+      "with_check_expression": null
+    },
+    {
+      "tablename": "order_sequence",
+      "policyname": "p_order_sequence_service",
+      "roles": "{service_role}",
+      "cmd": "ALL",
+      "using_expression": "true",
+      "with_check_expression": "true"
+    }
+  ],
+  "order_sequence": [
+    {
+      "id": "2ed044b6-d285-4595-aa3e-409ac7940082",
+      "prefix": "CTH",
+      "last_seq": 1011,
+      "created_at": "2026-10-22T06:44:44.673Z",
+      "updated_at": "2026-10-22T06:47:02.469Z"
+    }
+  ],
+  "invoice_sequence": [
+    {
+      "id": "a36d7462-97d5-442e-80fc-df41d6c0b7f0",
+      "entity_id": "CAKETOHOME_PARENT",
+      "gstin": "29AABCC1234F1Z5",
+      "fiscal_year": 2026,
+      "prefix": "CTH",
+      "last_seq": 193,
+      "created_at": "2026-10-22T06:44:44.673Z",
+      "updated_at": "2026-10-22T06:44:45.185Z"
+    }
+  ],
+  "pg_sequences": [
+    {
+      "schemaname": "public",
+      "sequencename": "link_module_migrations_id_seq",
+      "sequenceowner": "postgres",
+      "last_value": "216",
+      "start_value": "1",
+      "increment_by": "1"
+    },
+    {
+      "schemaname": "public",
+      "sequencename": "script_migrations_id_seq",
+      "sequenceowner": "postgres",
+      "last_value": "5",
+      "start_value": "1",
+      "increment_by": "1"
+    },
+    {
+      "schemaname": "public",
+      "sequencename": "statutory_invoice_seq",
+      "sequenceowner": "postgres",
+      "last_value": "192",
+      "start_value": "1",
+      "increment_by": "1"
+    },
+    {
+      "schemaname": "public",
+      "sequencename": "mikro_orm_migrations_id_seq",
+      "sequenceowner": "postgres",
+      "last_value": "223",
+      "start_value": "1",
+      "increment_by": "1"
+    },
+    {
+      "schemaname": "public",
+      "sequencename": "order_display_id_seq",
+      "sequenceowner": "postgres",
+      "last_value": "604",
+      "start_value": "1",
+      "increment_by": "1"
+    },
+    {
+      "schemaname": "public",
+      "sequencename": "order_change_action_ordering_seq",
+      "sequenceowner": "postgres",
+      "last_value": null,
+      "start_value": "1",
+      "increment_by": "1"
+    },
+    {
+      "schemaname": "public",
+      "sequencename": "return_display_id_seq",
+      "sequenceowner": "postgres",
+      "last_value": null,
+      "start_value": "1",
+      "increment_by": "1"
+    },
+    {
+      "schemaname": "public",
+      "sequencename": "order_exchange_display_id_seq",
+      "sequenceowner": "postgres",
+      "last_value": null,
+      "start_value": "1",
+      "increment_by": "1"
+    },
+    {
+      "schemaname": "public",
+      "sequencename": "order_claim_display_id_seq",
+      "sequenceowner": "postgres",
+      "last_value": null,
+      "start_value": "1",
+      "increment_by": "1"
+    }
+  ],
+  "migration_log_summary": [
+    {
+      "disambiguation_rule": "RULE_1B_COLLISION_SUFFIX_APPLIED",
+      "count": 6,
+      "earliest": "2026-10-22T06:44:44.673Z",
+      "latest": "2026-10-22T06:44:44.673Z"
+    },
+    {
+      "disambiguation_rule": "RULE_1B_EARLIEST_ORIGINAL_RETAINED",
+      "count": 2,
+      "earliest": "2026-10-22T06:44:44.673Z",
+      "latest": "2026-10-22T06:44:44.673Z"
+    },
+    {
+      "disambiguation_rule": "RULE_1C_SYNTHETIC_DISPLAY_ID_SUFFIX",
+      "count": 129,
+      "earliest": "2026-10-22T06:44:44.673Z",
+      "latest": "2026-10-22T06:44:44.673Z"
+    },
+    {
+      "disambiguation_rule": "RULE_1A_DIRECT_METADATA_PRESERVED",
+      "count": 97,
+      "earliest": "2026-10-22T06:44:44.673Z",
+      "latest": "2026-10-22T06:44:44.673Z"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "inv_1790947340595_ysn8i",
+      "order_id": "test_ord_verify",
+      "invoice_number": "CTH/26-27/000031",
+      "subtotal": "0.00",
+      "tax_total": "0.00",
+      "grand_total": "0.00",
+      "status": "GENERATED",
+      "delivered_at": "2026-10-02T13:22:20.288Z",
+      "created_at": "2026-10-02T13:22:20.595Z",
+      "meta_issue_date": null
+    },
+    {
+      "id": "inv_1790948731996_85zct",
+      "order_id": "ord_1790948674384_ca5j",
+      "invoice_number": "CTH/26-27/000032",
+      "subtotal": "1142.86",
+      "tax_total": "57.14",
+      "grand_total": "1250.00",
+      "status": "GENERATED",
+      "delivered_at": "2026-10-02T13:45:31.918Z",
+      "created_at": "2026-10-02T13:45:31.996Z",
+      "meta_issue_date": null
+    },
+    {
+      "id": "inv_1790949027263_dail3",
+      "order_id": "ord_1790949006248_szsc",
+      "invoice_number": "CTH/26-27/000033",
+      "subtotal": "1142.86",
+      "tax_total": "57.14",
+      "grand_total": "1250.00",
+      "status": "GENERATED",
+      "delivered_at": "2026-10-02T13:50:27.220Z",
+      "created_at": "2026-10-02T13:50:27.263Z",
+      "meta_issue_date": null
+    },
+    {
+      "id": "inv_1790949102867_hzmyi",
+      "order_id": "ord_1790949088062_8qcl",
+      "invoice_number": "CTH/26-27/000034",
+      "subtotal": "1142.86",
+      "tax_total": "57.14",
+      "grand_total": "1260.00",
+      "status": "GENERATED",
+      "delivered_at": "2026-10-02T13:51:42.818Z",
+      "created_at": "2026-10-02T13:51:42.867Z",
+      "meta_issue_date": null
+    },
+    {
+      "id": "inv_1790949223245_9aftx",
+      "order_id": "ord_1790949168876_fq8p",
+      "invoice_number": "CTH/26-27/000035",
+      "subtotal": "1142.86",
+      "tax_total": "57.14",
+      "grand_total": "1260.00",
+      "status": "GENERATED",
+      "delivered_at": "2026-10-02T13:53:43.192Z",
+      "created_at": "2026-10-02T13:53:43.245Z",
+      "meta_issue_date": null
+    }
+  ],
+  "grants": [
+    {
+      "grantee": "authenticated",
+      "table_name": "invoice_allocation_log",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_name": "invoice_generation_queue",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_name": "invoice_sequence",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_name": "order_number_migration_log",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_name": "order_sequence",
+      "privilege_type": "SELECT"
+    }
+  ],
+  "invoice_allocation_log_count": 0,
+  "invoice_generation_queue_count": 0,
+  "migration_timestamps": [
+    {
+      "migrated_at": "2026-10-22T06:44:44.673Z",
+      "count": "234"
+    }
+  ]
+}

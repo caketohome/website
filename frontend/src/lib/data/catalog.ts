@@ -30,6 +30,29 @@ export interface CategoryOption {
   product_count?: number;
 }
 
+
+export function getCategoryPlaceholder(category?: string | null, merchandise_type?: string | null): string {
+  const cat = String(category || "").toLowerCase();
+  const merch = String(merchandise_type || "").toLowerCase();
+  const isAccessory = 
+    merch === "accessory" ||
+    merch === "merchandise" ||
+    merch === "packaging" ||
+    cat.includes("accessory") ||
+    cat.includes("accessories") ||
+    cat.includes("topper") ||
+    cat.includes("candle") ||
+    cat.includes("card") ||
+    cat.includes("party") ||
+    cat.includes("balloon") ||
+    cat.includes("flower") ||
+    cat.includes("plush") ||
+    cat.includes("toy") ||
+    cat.includes("hamper");
+
+  return isAccessory ? "/images/placeholder-accessory.svg" : "/images/placeholder-cake.jpg";
+}
+
 export interface SearchResult {
   product_id: string;
   variant_id?: string | null;
@@ -193,7 +216,7 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
         variant_id: p.variant_id || `var_${p.id || p.product_id}`,
         title: p.title || p.name || "Gourmet Cake",
         description: p.description || p.short_description || "",
-        thumbnail: p.thumbnail || "/images/placeholder-cake.jpg",
+        thumbnail: p.thumbnail || getCategoryPlaceholder(p.category || (p.categories && p.categories[0]?.name), p.merchandise_type),
         handle: p.handle || p.slug || "cake",
         price: Math.max(0, Number(p.price || p.selling_price) || 0),
         rating: Number(p.rating) || 4.9,
@@ -276,7 +299,7 @@ export async function searchProducts(filters: SearchFilters = {}): Promise<Searc
       variant_id: p.variant_id || `var_${p.id || p.product_id}`,
       title: p.title || p.name || "Gourmet Cake",
       description: p.description || p.short_description || "",
-      thumbnail: p.thumbnail || p.image || p.image_url || (Array.isArray(p.images) && p.images[0]) || (Array.isArray(p.gallery) && p.gallery[0]) || "/images/placeholder-cake.jpg",
+      thumbnail: p.thumbnail || p.image || p.image_url || (Array.isArray(p.images) && p.images[0]) || (Array.isArray(p.gallery) && p.gallery[0]) || getCategoryPlaceholder(p.category || (p.categories && p.categories[0]?.name), p.merchandise_type),
       handle: p.handle || p.slug || "cake",
       price: Math.max(0, Number(p.price || p.selling_price) || 0),
       rating: Number(p.rating) || 0,
@@ -443,6 +466,15 @@ export async function listProductReviews(
   productId: string,
   options?: { page?: number; pageSize?: number; sort?: "recent" | "highest" | "lowest" | "helpful"; ratingFilter?: number; verifiedOnly?: boolean }
 ): Promise<any> {
+  if (typeof window === "undefined") {
+    try {
+      const { ReviewRepository } = await import("../repositories/review.repository");
+      const reviews = await ReviewRepository.findByProductId(productId, options);
+      return { reviews, total: reviews.length };
+    } catch {
+      return { reviews: [], total: 0 };
+    }
+  }
   const engine = await getServerApiEngine();
   return engine?.getProductReviews ? engine.getProductReviews(productId, options) : { reviews: [], total: 0 };
 }
@@ -454,6 +486,22 @@ export async function submitReview(
   const customerUid = await getAuthenticatedCustomerUid();
   if (!customerUid) {
     return { success: false, error: "Authentication required to submit review", statusCode: 401 };
+  }
+  if (typeof window === "undefined") {
+    try {
+      const { ReviewRepository } = await import("../repositories/review.repository");
+      await ReviewRepository.save({
+        product_id: productId,
+        customer_uid: customerUid,
+        order_id: input.orderId || null,
+        rating: input.rating,
+        title: input.title,
+        review_text: input.reviewText || input.body || input.comment || "",
+      });
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message || "Failed to save review" };
+    }
   }
   const engine = await getServerApiEngine();
   return engine?.submitProductReview ? engine.submitProductReview(customerUid, {
@@ -491,6 +539,41 @@ export async function getAuthenticatedCustomerUid(): Promise<string | null> {
 export async function listWishlist(): Promise<WishlistItem[]> {
   const customerUid = await getAuthenticatedCustomerUid();
   if (!customerUid) return [];
+  if (typeof window === "undefined") {
+    try {
+      const { FavoriteRepository } = await import("../repositories/favorite.repository");
+      const { ProductRepository } = await import("../repositories/product.repository");
+      const favs = await FavoriteRepository.findByCustomerUid(customerUid);
+      const items: WishlistItem[] = [];
+      for (const f of favs) {
+        const prod = await ProductRepository.findById(f.product_id);
+        if (prod) {
+          items.push({
+            id: f.id,
+            product_id: f.product_id,
+            title: prod.title || "Cake",
+            name: prod.title || "Cake",
+            thumbnail: prod.thumbnail || null,
+            price: prod.price || 0,
+            selling_price: prod.selling_price || prod.price || 0,
+            mrp: prod.mrp || 0,
+            rating: prod.rating || 4.9,
+            review_count: prod.review_count || 0,
+            category: prod.category || "Cakes",
+            category_slug: prod.category_slug || "cakes",
+            weight: prod.weight || "1 kg",
+            variant_id: (prod as any).variants?.[0]?.id || `wp_${f.product_id}_default`,
+            weight_prices: (prod as any).variants || [],
+            is_available: (prod as any).is_available !== false,
+            created_at: f.created_at,
+          });
+        }
+      }
+      return items;
+    } catch {
+      return [];
+    }
+  }
   const engine = await getServerApiEngine();
   const favs = engine?.getCustomerFavorites ? engine.getCustomerFavorites(customerUid) : [];
   return (favs || []).map((f: any) => ({
@@ -519,6 +602,15 @@ export async function addToWishlist(productId: string): Promise<any> {
   if (!customerUid) {
     return { success: false, error: "UNAUTHORIZED", message: "Please log in to save cakes to your Favorites.", statusCode: 401 };
   }
+  if (typeof window === "undefined") {
+    try {
+      const { FavoriteRepository } = await import("../repositories/favorite.repository");
+      await FavoriteRepository.save({ customer_uid: customerUid, product_id: productId } as any);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message };
+    }
+  }
   const engine = await getServerApiEngine();
   return engine?.addCustomerFavorite ? engine.addCustomerFavorite(customerUid, productId) : { success: false };
 }
@@ -527,6 +619,15 @@ export async function removeFromWishlist(productId: string): Promise<any> {
   const customerUid = await getAuthenticatedCustomerUid();
   if (!customerUid) {
     return { success: false, error: "UNAUTHORIZED", message: "Please log in to manage your Favorites.", statusCode: 401 };
+  }
+  if (typeof window === "undefined") {
+    try {
+      const { FavoriteRepository } = await import("../repositories/favorite.repository");
+      await FavoriteRepository.delete(customerUid, productId);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message };
+    }
   }
   const engine = await getServerApiEngine();
   return engine?.removeCustomerFavorite ? engine.removeCustomerFavorite(customerUid, productId) : { success: false };
@@ -766,22 +867,27 @@ export async function listPimCategories(): Promise<any[]> {
   if (typeof window === "undefined") {
     try {
       const { dbQuery } = await import("../db");
-      const res = await dbQuery(`
-        SELECT 
-          pc.id,
-          pc.name,
-          pc.handle as slug,
-          COALESCE(pc.metadata->>'image', 'https://images.unsplash.com/photo-1578985545062-69928b1d9587') as image,
-          COALESCE(pc.metadata->>'icon', '🎂') as icon,
-          COALESCE(pc.metadata->>'color', 'bg-rose-50 border-rose-200 text-rose-900') as color,
-          COUNT(p.id)::int as product_count
-        FROM product_category pc
-        LEFT JOIN product_category_product pcp ON pcp.product_category_id = pc.id
-        LEFT JOIN product p ON (p.id = pcp.product_id OR p.metadata->>'primary_category_id' = pc.id OR p.metadata->>'category_slug' = pc.handle) AND p.deleted_at IS NULL
-        WHERE pc.deleted_at IS NULL
-        GROUP BY pc.id, pc.name, pc.handle, pc.metadata
-        ORDER BY product_count DESC, pc.name ASC
-      `);
+      let res: any = { rows: [] };
+      try {
+        res = await dbQuery(`
+          SELECT 
+            pc.id,
+            pc.name,
+            pc.handle as slug,
+            COALESCE(pc.metadata->>'image', 'https://images.unsplash.com/photo-1578985545062-69928b1d9587') as image,
+            COALESCE(pc.metadata->>'icon', 'cake') as icon,
+            COALESCE(pc.metadata->>'color', 'bg-rose-50 border-rose-200 text-rose-900') as color,
+            COUNT(p.id)::int as product_count
+          FROM product_category pc
+          LEFT JOIN product_category_product pcp ON pcp.product_category_id = pc.id
+          LEFT JOIN product p ON (p.id = pcp.product_id OR p.metadata->>'primary_category_id' = pc.id OR p.metadata->>'category_slug' = pc.handle) AND p.deleted_at IS NULL
+          WHERE pc.deleted_at IS NULL
+          GROUP BY pc.id, pc.name, pc.handle, pc.metadata
+          ORDER BY product_count DESC, pc.name ASC
+        `);
+      } catch {
+        res = { rows: [] };
+      }
 
       if (res.rows && res.rows.length > 0) {
         return res.rows.map((r: any) => ({
@@ -789,7 +895,7 @@ export async function listPimCategories(): Promise<any[]> {
           name: r.name,
           slug: r.slug,
           image: r.image,
-          icon: r.icon,
+          icon: r.icon === 'cake' ? '🎂' : (r.icon || '🎂'),
           color: r.color,
           product_count: Number(r.product_count) || 0,
           count: `${Number(r.product_count) || 0} items`,
@@ -798,27 +904,68 @@ export async function listPimCategories(): Promise<any[]> {
 
       // If product_category table is empty, dynamically derive from product metadata in PostgreSQL
       const derived = await dbQuery(`
-        SELECT DISTINCT 
+        SELECT 
           COALESCE(metadata->>'category', 'Artisanal Cakes') as name,
           COALESCE(metadata->>'category_slug', 'cakes') as slug,
           COALESCE(metadata->>'primary_category_id', 'cat_' || LOWER(REGEXP_REPLACE(metadata->>'category', '[^a-zA-Z0-9]+', '_', 'g'))) as id,
-          COUNT(*)::int as product_count
+          COUNT(*)::int as product_count,
+          COALESCE(
+            MAX(metadata->>'thumbnail'), 
+            MAX(metadata->>'image'),
+            MAX(metadata->>'banner_url')
+          ) as sample_image
         FROM product 
         WHERE deleted_at IS NULL
         GROUP BY 1, 2, 3
         ORDER BY product_count DESC
       `);
 
-      return (derived.rows || []).map((r: any) => ({
-        id: r.id,
-        name: r.name,
-        slug: r.slug,
-        image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
-        icon: "🎂",
-        color: "bg-rose-50 border-rose-200 text-rose-900",
-        product_count: Number(r.product_count) || 0,
-        count: `${Number(r.product_count) || 0} items`,
-      }));
+      return (derived.rows || []).map((r: any) => {
+        const slug = String(r.slug || "").toLowerCase();
+        const id = String(r.id || "").toLowerCase();
+        const name = String(r.name || "").toLowerCase();
+
+        let icon = "🎂";
+        let color = "bg-rose-50 border-rose-200 text-rose-900";
+        let fallbackImage = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
+
+        if (slug.includes("accessories") || id.includes("accessories") || name.includes("accessories")) {
+          icon = "🎉";
+          color = "bg-amber-50 border-amber-200 text-amber-900";
+          fallbackImage = "/images/gold-acrylic-topper.jpg";
+        } else if (slug.includes("bouquet") || id.includes("bouquet") || name.includes("flower")) {
+          icon = "💐";
+          color = "bg-emerald-50 border-emerald-200 text-emerald-900";
+          fallbackImage = "https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&q=80&w=800";
+        } else if (slug.includes("cupcake") || id.includes("cupcake") || name.includes("cupcake")) {
+          icon = "🧁";
+          color = "bg-pink-50 border-pink-200 text-pink-900";
+          fallbackImage = "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=800";
+        } else if (slug.includes("pastr") || id.includes("pastr") || name.includes("pastr")) {
+          icon = "🥐";
+          color = "bg-orange-50 border-orange-200 text-orange-900";
+          fallbackImage = "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&q=80&w=800";
+        } else if (slug.includes("chocolate") || name.includes("chocolate")) {
+          icon = "🍫";
+          color = "bg-amber-900/10 border-amber-800/20 text-amber-950";
+          fallbackImage = "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&q=80&w=800";
+        }
+
+        const chosenImage = r.sample_image || fallbackImage;
+
+        return {
+          id: r.id,
+          name: r.name,
+          slug: r.slug,
+          image: chosenImage,
+          image_url: chosenImage,
+          banner_url: chosenImage,
+          icon,
+          color,
+          product_count: Number(r.product_count) || 0,
+          count: `${Number(r.product_count) || 0} items`,
+        };
+      });
     } catch (err) {
       console.error("[listPimCategories PostgreSQL Error]", err);
     }
@@ -840,9 +987,9 @@ export async function listOccasions(): Promise<any[]> {
     try {
       const { dbQuery } = await import("../db");
       // Check CMS page for explicit occasion configuration
-      const pageRes = await dbQuery(`SELECT blocks FROM "cms_page" WHERE id = 'cmspg_home' AND deleted_at IS NULL LIMIT 1`);
+      const pageRes = await dbQuery(`SELECT published_config, draft_config FROM "cms_page" WHERE id = 'cmspg_home' AND deleted_at IS NULL LIMIT 1`).catch(() => ({ rows: [] }));
       if (pageRes.rows && pageRes.rows.length > 0) {
-        let blocks: any = pageRes.rows[0].blocks;
+        let blocks: any = pageRes.rows[0].published_config || pageRes.rows[0].draft_config;
         if (typeof blocks === "string") {
           try { blocks = JSON.parse(blocks); } catch {}
         }
@@ -860,8 +1007,8 @@ export async function listOccasions(): Promise<any[]> {
           metadata->>'occasion' as name,
           LOWER(REGEXP_REPLACE(metadata->>'occasion', '[^a-zA-Z0-9]+', '-', 'g')) as slug,
           'occ_' || LOWER(REGEXP_REPLACE(metadata->>'occasion', '[^a-zA-Z0-9]+', '_', 'g')) as id,
-          MAX(thumbnail) as image,
-          MAX(thumbnail) as cover_image,
+          MAX(COALESCE(metadata->>'thumbnail', metadata->>'image')) as image,
+          MAX(COALESCE(metadata->>'thumbnail', metadata->>'image')) as cover_image,
           COUNT(*)::int as count
         FROM product
         WHERE metadata->>'occasion' IS NOT NULL 

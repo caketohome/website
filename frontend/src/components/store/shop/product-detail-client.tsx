@@ -124,7 +124,11 @@ export default function ProductDetailClient({
     if (Array.isArray(product.images) && product.images.length > 0) {
       return product.images;
     }
-    return [product.thumbnail || "/images/default-cake.jpg"];
+    const isAccessory = (product?.merchandise_type || "").toUpperCase() === "ACCESSORY" || (product?.id && String(product?.id).startsWith("acc_"));
+    const fallback = isAccessory
+      ? "/images/gold-acrylic-topper.jpg"
+      : "/images/default-cake.jpg";
+    return [product.thumbnail || fallback];
   }, [product]);
 
   // Option helper: only include enabled options

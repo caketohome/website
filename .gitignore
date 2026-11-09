@@ -21,6 +21,8 @@ temp-downloads/
 tmp_report_exports/
 **/temp-downloads/
 **/tmp_report_exports/
+.isolated-pg-data/
+**/.isolated-pg-data/
 
 backend/.env
 backend/.env.*

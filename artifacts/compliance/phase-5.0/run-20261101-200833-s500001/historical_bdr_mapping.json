@@ -1,0 +1,119 @@
+{
+  "version": "1.0",
+  "phase": "5.0",
+  "description": "Bidirectional mapping reconciling original Phase 4.6-4.8 BDR IDs, Phase 4.9 renumbered IDs, and Phase 5.0 Canonical Decision Register (CDR) IDs",
+  "mappings": [
+    {
+      "canonical_id": "CDR-01",
+      "title": "Legal Entity Identity",
+      "original_p46_p48_id": null,
+      "phase_49_id": "BDR-01",
+      "status": "PENDING_EVIDENCE"
+    },
+    {
+      "canonical_id": "CDR-02",
+      "title": "CIN Adoption",
+      "original_p46_p48_id": null,
+      "phase_49_id": "BDR-01",
+      "status": "PENDING_EVIDENCE"
+    },
+    {
+      "canonical_id": "CDR-03",
+      "title": "GSTIN Ratification",
+      "original_p46_p48_id": null,
+      "phase_49_id": "BDR-02",
+      "status": "PENDING_EVIDENCE"
+    },
+    {
+      "canonical_id": "CDR-04",
+      "title": "Official Invoice Prefix",
+      "original_p46_p48_id": "BDR-01",
+      "phase_49_id": "BDR-03",
+      "status": "PENDING_EVIDENCE"
+    },
+    {
+      "canonical_id": "CDR-05",
+      "title": "Sequence Padding & Width",
+      "original_p46_p48_id": "BDR-02",
+      "phase_49_id": "BDR-03",
+      "status": "PENDING_EVIDENCE"
+    },
+    {
+      "canonical_id": "CDR-06",
+      "title": "Financial Year Format",
+      "original_p46_p48_id": "BDR-02",
+      "phase_49_id": "BDR-03",
+      "status": "PENDING_EVIDENCE"
+    },
+    {
+      "canonical_id": "CDR-07",
+      "title": "Signing Authority Delegation",
+      "original_p46_p48_id": "BDR-03",
+      "phase_49_id": "BDR-04",
+      "status": "PENDING_EVIDENCE"
+    },
+    {
+      "canonical_id": "CDR-08",
+      "title": "Identity Verification Standards",
+      "original_p46_p48_id": "BDR-04",
+      "phase_49_id": "BDR-04",
+      "status": "PENDING_EVIDENCE"
+    },
+    {
+      "canonical_id": "CDR-09",
+      "title": "Segregation of Duties Matrix",
+      "original_p46_p48_id": "BDR-05",
+      "phase_49_id": "BDR-04",
+      "status": "PENDING_EVIDENCE"
+    },
+    {
+      "canonical_id": "CDR-10",
+      "title": "Staging Series Quarantine",
+      "original_p46_p48_id": "BDR-06",
+      "phase_49_id": "BDR-06",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "canonical_id": "CDR-11",
+      "title": "Production Cut-Over Protocol",
+      "original_p46_p48_id": "BDR-07",
+      "phase_49_id": "BDR-07",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "canonical_id": "CDR-12",
+      "title": "Warning Threshold Assessment",
+      "original_p46_p48_id": "BDR-08",
+      "phase_49_id": "BDR-08",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "canonical_id": "CDR-13",
+      "title": "Historical Unbilled Orders Treatment",
+      "original_p46_p48_id": "BDR-09",
+      "phase_49_id": "BDR-09",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "canonical_id": "CDR-14",
+      "title": "GSTR-1 Table 13 Reconciliation SOP",
+      "original_p46_p48_id": "BDR-10",
+      "phase_49_id": "BDR-10",
+      "status": "DOCUMENTED"
+    },
+    {
+      "canonical_id": "CDR-15",
+      "title": "Financial Year Rollover Procedure",
+      "original_p46_p48_id": "BDR-11",
+      "phase_49_id": "BDR-11",
+      "status": "DOCUMENTED"
+    },
+    {
+      "canonical_id": "CDR-16",
+      "title": "Explicit Production Activation Authorization",
+      "original_p46_p48_id": null,
+      "phase_49_id": "BDR-05",
+      "status": "PENDING_EVIDENCE"
+    }
+  ]
+}

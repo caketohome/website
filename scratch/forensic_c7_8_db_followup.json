@@ -1,0 +1,337 @@
+{
+ "postgis_available": [
+  {
+   "name": "cube",
+   "default_version": "1.5"
+  },
+  {
+   "name": "earthdistance",
+   "default_version": "1.2"
+  },
+  {
+   "name": "postgis",
+   "default_version": "3.3.7"
+  }
+ ],
+ "corp_customers": [
+  {
+   "corp": "0",
+   "corp_gstin": "0",
+   "credit": "0",
+   "with_company_name": "0",
+   "total": "56"
+  }
+ ],
+ "zone_geo": [
+  {
+   "total": "44",
+   "with_polygon": "12",
+   "with_radius": "37",
+   "with_center": "37",
+   "with_override": "0",
+   "with_pin": "44",
+   "branches": "28"
+  }
+ ],
+ "branch_geo": [
+  {
+   "total": "53",
+   "with_coords": "53",
+   "open": "53"
+  }
+ ],
+ "branch_meta_keys": [
+  {
+   "k": "accessory_inventory"
+  },
+  {
+   "k": "branch_type"
+  },
+  {
+   "k": "cake_fulfilment"
+  },
+  {
+   "k": "capacity_settings"
+  },
+  {
+   "k": "city"
+  },
+  {
+   "k": "city_id"
+  },
+  {
+   "k": "deliverable_areas"
+  },
+  {
+   "k": "delivery_zones"
+  },
+  {
+   "k": "extended_status"
+  },
+  {
+   "k": "formatted_address"
+  },
+  {
+   "k": "fulfillment_rules"
+  },
+  {
+   "k": "gstin"
+  },
+  {
+   "k": "location_source"
+  },
+  {
+   "k": "manager_account"
+  },
+  {
+   "k": "manager_id"
+  },
+  {
+   "k": "manager_name"
+  },
+  {
+   "k": "max_delivery_radius_km"
+  },
+  {
+   "k": "max_drawer_cash_limit"
+  },
+  {
+   "k": "operational_status"
+  },
+  {
+   "k": "petty_cash_imprest_limit"
+  },
+  {
+   "k": "pincode"
+  },
+  {
+   "k": "product_availability"
+  },
+  {
+   "k": "state"
+  },
+  {
+   "k": "state_code"
+  },
+  {
+   "k": "state_id"
+  },
+  {
+   "k": "temporary_closure"
+  },
+  {
+   "k": "test_suite"
+  },
+  {
+   "k": "verified_at"
+  },
+  {
+   "k": "weekly_schedule"
+  }
+ ],
+ "customer_meta_keys": [
+  {
+   "k": "addresses"
+  },
+  {
+   "k": "customer_uid"
+  },
+  {
+   "k": "date_of_birth"
+  },
+  {
+   "k": "normalized_phone"
+  },
+  {
+   "k": "orders_count"
+  },
+  {
+   "k": "preferences"
+  },
+  {
+   "k": "role"
+  },
+  {
+   "k": "total_orders"
+  },
+  {
+   "k": "total_spend"
+  },
+  {
+   "k": "total_spent"
+  },
+  {
+   "k": "wallet_balance"
+  }
+ ],
+ "cust_addr_coords": [
+  {
+   "total": "34",
+   "with_lat": "34"
+  }
+ ],
+ "delivery_partner_cols_related": [
+  {
+   "table_name": "corporate_gifting_batch"
+  },
+  {
+   "table_name": "corporate_gifting_recipient"
+  },
+  {
+   "table_name": "delivery_delivery_partner"
+  },
+  {
+   "table_name": "delivery_partner"
+  },
+  {
+   "table_name": "order_staff_assignment"
+  }
+ ],
+ "geo_zone_service_zone": [
+  {
+   "geo_zone": "7",
+   "service_zone": "1"
+  }
+ ],
+ "rbac_tables": [
+  {
+   "table_name": "audit_log"
+  },
+  {
+   "table_name": "config_audit_log"
+  },
+  {
+   "table_name": "invite_rbac_role"
+  },
+  {
+   "table_name": "offer_audit_log"
+  },
+  {
+   "table_name": "payment_audit_trail"
+  },
+  {
+   "table_name": "user"
+  },
+  {
+   "table_name": "user_rbac_role"
+  }
+ ],
+ "user_cols": [
+  {
+   "column_name": "id"
+  },
+  {
+   "column_name": "first_name"
+  },
+  {
+   "column_name": "last_name"
+  },
+  {
+   "column_name": "email"
+  },
+  {
+   "column_name": "avatar_url"
+  },
+  {
+   "column_name": "metadata"
+  },
+  {
+   "column_name": "created_at"
+  },
+  {
+   "column_name": "updated_at"
+  },
+  {
+   "column_name": "deleted_at"
+  }
+ ],
+ "invoice_cols": [
+  {
+   "column_name": "id"
+  },
+  {
+   "column_name": "invoice_number"
+  },
+  {
+   "column_name": "order_id"
+  },
+  {
+   "column_name": "branch_id"
+  },
+  {
+   "column_name": "customer_id"
+  },
+  {
+   "column_name": "customer_name"
+  },
+  {
+   "column_name": "customer_phone"
+  },
+  {
+   "column_name": "subtotal"
+  },
+  {
+   "column_name": "tax_total"
+  },
+  {
+   "column_name": "delivery_fee"
+  },
+  {
+   "column_name": "discount_total"
+  },
+  {
+   "column_name": "grand_total"
+  },
+  {
+   "column_name": "currency_code"
+  },
+  {
+   "column_name": "payment_method"
+  },
+  {
+   "column_name": "payment_status"
+  },
+  {
+   "column_name": "status"
+  },
+  {
+   "column_name": "delivered_at"
+  },
+  {
+   "column_name": "delivered_by"
+  },
+  {
+   "column_name": "metadata"
+  },
+  {
+   "column_name": "created_at"
+  },
+  {
+   "column_name": "updated_at"
+  },
+  {
+   "column_name": "deleted_at"
+  },
+  {
+   "column_name": "voucher_id"
+  },
+  {
+   "column_name": "due_date"
+  },
+  {
+   "column_name": "paid_amount"
+  },
+  {
+   "column_name": "outstanding_amount"
+  },
+  {
+   "column_name": "is_corporate"
+  }
+ ],
+ "order_branch_link": [
+  {
+   "table_name": "invoice",
+   "column_name": "branch_id"
+  }
+ ]
+}

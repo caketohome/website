@@ -1,0 +1,100 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T13:44:05.613Z",
+  "environment": "cth_rehearsal_phase5_5",
+  "provenance": "e:/vig/cakes2home-main/cakes2home-main",
+  "files": {
+    "accounting_reconciliation_report.md": {
+      "sha256": "9616b536be8fa143477563ec69c272df704747590899951e4ba7cbdaa50f8851",
+      "bytes": 791
+    },
+    "backup_recovery_assessment.md": {
+      "sha256": "c7d2bee3d8c3bf66ba49477ce3846a09e9b98c6627a3fc5953c2b6b543501f2d",
+      "bytes": 626
+    },
+    "capacity_monitoring_manifest.json": {
+      "sha256": "67826968f07b8e32bae46baf5a29cfba7db7998ced94e23309309b32a4e8333d",
+      "bytes": 171
+    },
+    "capacity_monitoring_specification.md": {
+      "sha256": "f4116d62c6affb3710ea7f705298bcc7b5d25677757d5c91a5aebee21a14d4e1",
+      "bytes": 653
+    },
+    "ch_invoice_series_final_specification.md": {
+      "sha256": "9dc4e15db6d26ed0bd9eac99bf8e4dd266d9e56f1d0c06fc2537c8b127a5cebd",
+      "bytes": 856
+    },
+    "ch_series_rehearsal_manifest.json": {
+      "sha256": "069dd1c9c9765052d0d842cffbb44e606444233354cce5950e831f4771f05ce9",
+      "bytes": 455
+    },
+    "company_secretary_review_register.md": {
+      "sha256": "2c5ccbf51ec3a19e7f88e3b525e1caad1b5394c2ab397ba1d96c509e64468275",
+      "bytes": 510
+    },
+    "concurrency_idempotency_test_report.md": {
+      "sha256": "407041ea86621314416149b6ee5d959aebf063085b788ebd0157f6046d9ca5bc",
+      "bytes": 680
+    },
+    "corporate_approval_evidence_register.md": {
+      "sha256": "7134fe1109fd2ee2e26f2dda1bd5938b414b11c4e275bab2d5232cb0b5743d56",
+      "bytes": 794
+    },
+    "database_architecture_assessment.md": {
+      "sha256": "bedc14ab2467d348ffb848639cc401a19e8992640d46d233682aa91c381d932d",
+      "bytes": 972
+    },
+    "deployment_safety_report.md": {
+      "sha256": "16346b9496fae834fd73f42146d8c6a1a4964fcaff258bc4bc879eb3dfe0c9f6",
+      "bytes": 397
+    },
+    "gst_compliance_questions_and_evidence.md": {
+      "sha256": "e8600193e74264333da08045c819a420b48ca4781e8e78dc7e6adf9872c8e35f",
+      "bytes": 1069
+    },
+    "historical_69_order_disposition_register.md": {
+      "sha256": "4c585a620091c15ef45f0ac114b631a8d2ca1da3e39f9f97f1ff6730f035c0d9",
+      "bytes": 10119
+    },
+    "invoice_allocation_integrity_report.md": {
+      "sha256": "bc23564072d44b70e3d5b4f79f261d8c1de834b4c35f32eecd5bf87c55fc6380",
+      "bytes": 928
+    },
+    "order_69_disposition_manifest.json": {
+      "sha256": "1ea44c3d4874602bc80ecf905d742a3a94fcae0f9bbf41f828acd7643cace751",
+      "bytes": 188
+    },
+    "phase_5_5_decision_manifest.json": {
+      "sha256": "8a07b992ef59ec813a90a0be2562e0cb0604782c6b89d24bed9faf1fdb8b6dfc",
+      "bytes": 367
+    },
+    "phase_5_5_decision_register.md": {
+      "sha256": "dcd567c468783b205085f37e3fc9157c943816c0b7683a98335c94527fe15451",
+      "bytes": 2115
+    },
+    "phase_5_5_executive_report.md": {
+      "sha256": "06f99570dfc2f60d3de18fc27f3d1fed83e5960201d89dc2fda68246ac30e384",
+      "bytes": 1750
+    },
+    "regression_test_report.md": {
+      "sha256": "800c34afcb57d466d1264561a53bbbe0207e1876b4e5e0b84811292d3e0d599d",
+      "bytes": 431
+    },
+    "security_and_authorization_audit.md": {
+      "sha256": "1bbecf4d830ca631e5f83f2bd2bc4e34a84548f2517f49dac13ba0de49c9e0fd",
+      "bytes": 633
+    },
+    "six_layer_gate_manifest.json": {
+      "sha256": "48887d841f5f0397aa9c945042a4f2bdb1450d4ff646ed5d634388c8508aec1b",
+      "bytes": 373
+    },
+    "six_layer_release_gate_report.md": {
+      "sha256": "98af9d82063cbe22c13015c0ebc52041226acc649644c50107ab23120375b728",
+      "bytes": 864
+    },
+    "unresolved_blockers.md": {
+      "sha256": "8659b8c3c32c056878e73a0ec4a09943935b57900cd1c595af120fce7c4016f8",
+      "bytes": 673
+    }
+  }
+}

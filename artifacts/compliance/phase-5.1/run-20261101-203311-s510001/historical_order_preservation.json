@@ -1,0 +1,21 @@
+{
+  "run_id": "run-20261101-203311-s510001",
+  "unbilled_orders_reconciled": 69,
+  "breakdown": {
+    "paid": 41,
+    "pending": 16,
+    "captured": 12
+  },
+  "payment_methods": {
+    "upi": 9,
+    "test_mode": 9,
+    "card": 19,
+    "online": 32
+  },
+  "delivered_orders_quarantine": {
+    "total": 21,
+    "statutory_rule": "Section 31(1) CGST Act, 2017 (Invoice issue at or before time of removal/delivery)",
+    "treatment": "Quarantined for formal Statutory Auditor disclosure memorandum; zero retroactive billing allowed."
+  },
+  "preservation_guarantee": "All 69 orders remain untouched; 0 invoices generated; 0 records altered."
+}

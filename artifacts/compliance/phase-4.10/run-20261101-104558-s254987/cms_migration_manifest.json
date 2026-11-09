@@ -1,0 +1,19 @@
+{
+  "migration_file": "c7_15_cms_schema_and_persistence_stabilization.sql",
+  "path": "frontend/src/lib/migrations/c7_15_cms_schema_and_persistence_stabilization.sql",
+  "type": "FORWARD_ONLY_IDEMPOTENT",
+  "tables_created": [
+    "media",
+    "cms_revision",
+    "cms_block",
+    "cms_navigation",
+    "cms_banner",
+    "cms_redirect"
+  ],
+  "tables_altered": [
+    "cms_page",
+    "cms_homepage_section"
+  ],
+  "idempotency_tested": true,
+  "rollback_safety": "NON_DESTRUCTIVE"
+}

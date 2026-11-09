@@ -1,0 +1,1812 @@
+{
+  "corporate_tables_summary": [
+    {
+      "table_name": "corporate_account",
+      "column_count": 28,
+      "exists_flag": 1
+    },
+    {
+      "table_name": "corporate_account_contact",
+      "column_count": 12,
+      "exists_flag": 1
+    },
+    {
+      "table_name": "corporate_account_event",
+      "column_count": 9,
+      "exists_flag": 1
+    },
+    {
+      "table_name": "corporate_account_member",
+      "column_count": 12,
+      "exists_flag": 1
+    },
+    {
+      "table_name": "corporate_employee",
+      "column_count": 30,
+      "exists_flag": 1
+    },
+    {
+      "table_name": "corporate_employee_event",
+      "column_count": 10,
+      "exists_flag": 1
+    },
+    {
+      "table_name": "corporate_employee_import_batch",
+      "column_count": 15,
+      "exists_flag": 1
+    }
+  ],
+  "corporate_tables_row_counts": [
+    {
+      "tbl": "corporate_account",
+      "rows": 0
+    },
+    {
+      "tbl": "corporate_account_contact",
+      "rows": 0
+    },
+    {
+      "tbl": "corporate_account_event",
+      "rows": 0
+    },
+    {
+      "tbl": "corporate_account_member",
+      "rows": 0
+    },
+    {
+      "tbl": "corporate_employee",
+      "rows": 0
+    },
+    {
+      "tbl": "corporate_employee_event",
+      "rows": 0
+    },
+    {
+      "tbl": "corporate_employee_import_batch",
+      "rows": 0
+    }
+  ],
+  "foreign_keys": [
+    {
+      "table_name": "corporate_account",
+      "column_name": "approved_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_account",
+      "column_name": "closed_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_account",
+      "column_name": "created_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_account",
+      "column_name": "credit_requested_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_account",
+      "column_name": "customer_id",
+      "foreign_table": "customer",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_account",
+      "column_name": "suspended_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_account",
+      "column_name": "updated_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_account_contact",
+      "column_name": "account_id",
+      "foreign_table": "corporate_account",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_account_event",
+      "column_name": "account_id",
+      "foreign_table": "corporate_account",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_account_event",
+      "column_name": "actor_id",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_account_member",
+      "column_name": "account_id",
+      "foreign_table": "corporate_account",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_account_member",
+      "column_name": "granted_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_account_member",
+      "column_name": "revoked_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_account_member",
+      "column_name": "user_id",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_employee",
+      "column_name": "account_id",
+      "foreign_table": "corporate_account",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_employee",
+      "column_name": "coordinate_verified_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_employee",
+      "column_name": "created_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_employee",
+      "column_name": "deactivated_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_employee",
+      "column_name": "reactivated_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_employee",
+      "column_name": "updated_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_employee_event",
+      "column_name": "account_id",
+      "foreign_table": "corporate_account",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_employee_event",
+      "column_name": "actor_id",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_employee_event",
+      "column_name": "employee_id",
+      "foreign_table": "corporate_employee",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_employee_import_batch",
+      "column_name": "account_id",
+      "foreign_table": "corporate_account",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_employee_import_batch",
+      "column_name": "committed_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_employee_import_batch",
+      "column_name": "created_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_gifting_batch",
+      "column_name": "cancelled_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "SET NULL"
+    },
+    {
+      "table_name": "corporate_gifting_batch",
+      "column_name": "company_id",
+      "foreign_table": "company",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_gifting_batch",
+      "column_name": "cost_centre_id",
+      "foreign_table": "cost_centre",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_gifting_batch",
+      "column_name": "created_by",
+      "foreign_table": "user",
+      "foreign_column": "id",
+      "delete_rule": "SET NULL"
+    },
+    {
+      "table_name": "corporate_gifting_batch",
+      "column_name": "customer_id",
+      "foreign_table": "customer",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_gifting_batch",
+      "column_name": "invoice_id",
+      "foreign_table": "invoice",
+      "foreign_column": "id",
+      "delete_rule": "SET NULL"
+    },
+    {
+      "table_name": "corporate_gifting_batch",
+      "column_name": "order_id",
+      "foreign_table": "order",
+      "foreign_column": "id",
+      "delete_rule": "SET NULL"
+    },
+    {
+      "table_name": "corporate_gifting_recipient",
+      "column_name": "batch_id",
+      "foreign_table": "corporate_gifting_batch",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_gifting_recipient",
+      "column_name": "delivery_id",
+      "foreign_table": "delivery",
+      "foreign_column": "id",
+      "delete_rule": "SET NULL"
+    },
+    {
+      "table_name": "corporate_gifting_recipient",
+      "column_name": "order_id",
+      "foreign_table": "order",
+      "foreign_column": "id",
+      "delete_rule": "SET NULL"
+    },
+    {
+      "table_name": "corporate_gifting_recipient",
+      "column_name": "product_id",
+      "foreign_table": "product",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    },
+    {
+      "table_name": "corporate_gifting_recipient",
+      "column_name": "variant_id",
+      "foreign_table": "product_variant",
+      "foreign_column": "id",
+      "delete_rule": "RESTRICT"
+    }
+  ],
+  "indexes_and_uniques": [
+    {
+      "tablename": "corporate_account",
+      "indexname": "corporate_account_customer_id_key",
+      "indexdef": "CREATE UNIQUE INDEX corporate_account_customer_id_key ON public.corporate_account USING btree (customer_id)"
+    },
+    {
+      "tablename": "corporate_account",
+      "indexname": "corporate_account_pkey",
+      "indexdef": "CREATE UNIQUE INDEX corporate_account_pkey ON public.corporate_account USING btree (id)"
+    },
+    {
+      "tablename": "corporate_account",
+      "indexname": "idx_ca_created_at",
+      "indexdef": "CREATE INDEX idx_ca_created_at ON public.corporate_account USING btree (created_at DESC)"
+    },
+    {
+      "tablename": "corporate_account",
+      "indexname": "idx_ca_customer_id",
+      "indexdef": "CREATE INDEX idx_ca_customer_id ON public.corporate_account USING btree (customer_id)"
+    },
+    {
+      "tablename": "corporate_account",
+      "indexname": "idx_ca_gstin_active",
+      "indexdef": "CREATE UNIQUE INDEX idx_ca_gstin_active ON public.corporate_account USING btree (gstin) WHERE ((gstin IS NOT NULL) AND (deleted_at IS NULL))"
+    },
+    {
+      "tablename": "corporate_account",
+      "indexname": "idx_ca_legal_name_key",
+      "indexdef": "CREATE INDEX idx_ca_legal_name_key ON public.corporate_account USING btree (legal_name_key)"
+    },
+    {
+      "tablename": "corporate_account",
+      "indexname": "idx_ca_status",
+      "indexdef": "CREATE INDEX idx_ca_status ON public.corporate_account USING btree (status)"
+    },
+    {
+      "tablename": "corporate_account_contact",
+      "indexname": "corporate_account_contact_pkey",
+      "indexdef": "CREATE UNIQUE INDEX corporate_account_contact_pkey ON public.corporate_account_contact USING btree (id)"
+    },
+    {
+      "tablename": "corporate_account_contact",
+      "indexname": "idx_cac_account_id",
+      "indexdef": "CREATE INDEX idx_cac_account_id ON public.corporate_account_contact USING btree (account_id)"
+    },
+    {
+      "tablename": "corporate_account_contact",
+      "indexname": "idx_cac_contact_type",
+      "indexdef": "CREATE INDEX idx_cac_contact_type ON public.corporate_account_contact USING btree (contact_type)"
+    },
+    {
+      "tablename": "corporate_account_contact",
+      "indexname": "idx_cac_one_active_primary",
+      "indexdef": "CREATE UNIQUE INDEX idx_cac_one_active_primary ON public.corporate_account_contact USING btree (account_id) WHERE (((contact_type)::text = 'PRIMARY'::text) AND (is_active = true) AND (deleted_at IS NULL))"
+    },
+    {
+      "tablename": "corporate_account_event",
+      "indexname": "corporate_account_event_pkey",
+      "indexdef": "CREATE UNIQUE INDEX corporate_account_event_pkey ON public.corporate_account_event USING btree (id)"
+    },
+    {
+      "tablename": "corporate_account_event",
+      "indexname": "idx_cax_account_id",
+      "indexdef": "CREATE INDEX idx_cax_account_id ON public.corporate_account_event USING btree (account_id)"
+    },
+    {
+      "tablename": "corporate_account_event",
+      "indexname": "idx_cax_created_at",
+      "indexdef": "CREATE INDEX idx_cax_created_at ON public.corporate_account_event USING btree (created_at DESC)"
+    },
+    {
+      "tablename": "corporate_account_event",
+      "indexname": "idx_cax_event_type",
+      "indexdef": "CREATE INDEX idx_cax_event_type ON public.corporate_account_event USING btree (event_type)"
+    },
+    {
+      "tablename": "corporate_account_member",
+      "indexname": "corporate_account_member_pkey",
+      "indexdef": "CREATE UNIQUE INDEX corporate_account_member_pkey ON public.corporate_account_member USING btree (id)"
+    },
+    {
+      "tablename": "corporate_account_member",
+      "indexname": "idx_cam_account_id",
+      "indexdef": "CREATE INDEX idx_cam_account_id ON public.corporate_account_member USING btree (account_id)"
+    },
+    {
+      "tablename": "corporate_account_member",
+      "indexname": "idx_cam_account_user_active",
+      "indexdef": "CREATE UNIQUE INDEX idx_cam_account_user_active ON public.corporate_account_member USING btree (account_id, user_id) WHERE ((status)::text = 'ACTIVE'::text)"
+    },
+    {
+      "tablename": "corporate_account_member",
+      "indexname": "idx_cam_user_id",
+      "indexdef": "CREATE INDEX idx_cam_user_id ON public.corporate_account_member USING btree (user_id)"
+    },
+    {
+      "tablename": "corporate_employee",
+      "indexname": "corporate_employee_pkey",
+      "indexdef": "CREATE UNIQUE INDEX corporate_employee_pkey ON public.corporate_employee USING btree (id)"
+    },
+    {
+      "tablename": "corporate_employee",
+      "indexname": "idx_ce_account_id",
+      "indexdef": "CREATE INDEX idx_ce_account_id ON public.corporate_employee USING btree (account_id)"
+    },
+    {
+      "tablename": "corporate_employee",
+      "indexname": "idx_ce_city_key",
+      "indexdef": "CREATE INDEX idx_ce_city_key ON public.corporate_employee USING btree (city_key) WHERE (city_key IS NOT NULL)"
+    },
+    {
+      "tablename": "corporate_employee",
+      "indexname": "idx_ce_email",
+      "indexdef": "CREATE INDEX idx_ce_email ON public.corporate_employee USING btree (email) WHERE (email IS NOT NULL)"
+    },
+    {
+      "tablename": "corporate_employee",
+      "indexname": "idx_ce_phone",
+      "indexdef": "CREATE INDEX idx_ce_phone ON public.corporate_employee USING btree (phone)"
+    },
+    {
+      "tablename": "corporate_employee",
+      "indexname": "idx_ce_status",
+      "indexdef": "CREATE INDEX idx_ce_status ON public.corporate_employee USING btree (status)"
+    },
+    {
+      "tablename": "corporate_employee",
+      "indexname": "uq_ce_account_employee_code",
+      "indexdef": "CREATE UNIQUE INDEX uq_ce_account_employee_code ON public.corporate_employee USING btree (account_id, employee_code_key)"
+    },
+    {
+      "tablename": "corporate_employee_event",
+      "indexname": "corporate_employee_event_pkey",
+      "indexdef": "CREATE UNIQUE INDEX corporate_employee_event_pkey ON public.corporate_employee_event USING btree (id)"
+    },
+    {
+      "tablename": "corporate_employee_event",
+      "indexname": "idx_cee_account_id",
+      "indexdef": "CREATE INDEX idx_cee_account_id ON public.corporate_employee_event USING btree (account_id)"
+    },
+    {
+      "tablename": "corporate_employee_event",
+      "indexname": "idx_cee_created_at",
+      "indexdef": "CREATE INDEX idx_cee_created_at ON public.corporate_employee_event USING btree (created_at DESC)"
+    },
+    {
+      "tablename": "corporate_employee_event",
+      "indexname": "idx_cee_employee_id",
+      "indexdef": "CREATE INDEX idx_cee_employee_id ON public.corporate_employee_event USING btree (employee_id)"
+    },
+    {
+      "tablename": "corporate_employee_event",
+      "indexname": "idx_cee_event_type",
+      "indexdef": "CREATE INDEX idx_cee_event_type ON public.corporate_employee_event USING btree (event_type)"
+    },
+    {
+      "tablename": "corporate_employee_import_batch",
+      "indexname": "corporate_employee_import_batch_pkey",
+      "indexdef": "CREATE UNIQUE INDEX corporate_employee_import_batch_pkey ON public.corporate_employee_import_batch USING btree (id)"
+    },
+    {
+      "tablename": "corporate_employee_import_batch",
+      "indexname": "idx_cei_account_file_hash_committed",
+      "indexdef": "CREATE UNIQUE INDEX idx_cei_account_file_hash_committed ON public.corporate_employee_import_batch USING btree (account_id, file_hash) WHERE ((status)::text = 'COMMITTED'::text)"
+    },
+    {
+      "tablename": "corporate_employee_import_batch",
+      "indexname": "idx_cei_account_id",
+      "indexdef": "CREATE INDEX idx_cei_account_id ON public.corporate_employee_import_batch USING btree (account_id)"
+    },
+    {
+      "tablename": "corporate_employee_import_batch",
+      "indexname": "idx_cei_status",
+      "indexdef": "CREATE INDEX idx_cei_status ON public.corporate_employee_import_batch USING btree (status)"
+    },
+    {
+      "tablename": "corporate_gifting_batch",
+      "indexname": "corporate_gifting_batch_pkey",
+      "indexdef": "CREATE UNIQUE INDEX corporate_gifting_batch_pkey ON public.corporate_gifting_batch USING btree (id)"
+    },
+    {
+      "tablename": "corporate_gifting_batch",
+      "indexname": "idx_cgb_cost_centre_id",
+      "indexdef": "CREATE INDEX idx_cgb_cost_centre_id ON public.corporate_gifting_batch USING btree (cost_centre_id) WHERE (cost_centre_id IS NOT NULL)"
+    },
+    {
+      "tablename": "corporate_gifting_batch",
+      "indexname": "idx_cgb_created_at",
+      "indexdef": "CREATE INDEX idx_cgb_created_at ON public.corporate_gifting_batch USING btree (created_at DESC)"
+    },
+    {
+      "tablename": "corporate_gifting_batch",
+      "indexname": "idx_cgb_customer_file_hash_active",
+      "indexdef": "CREATE UNIQUE INDEX idx_cgb_customer_file_hash_active ON public.corporate_gifting_batch USING btree (customer_id, file_hash) WHERE (((status)::text <> 'FAILED'::text) AND (deleted_at IS NULL))"
+    },
+    {
+      "tablename": "corporate_gifting_batch",
+      "indexname": "idx_cgb_customer_id",
+      "indexdef": "CREATE INDEX idx_cgb_customer_id ON public.corporate_gifting_batch USING btree (customer_id)"
+    },
+    {
+      "tablename": "corporate_gifting_batch",
+      "indexname": "idx_cgb_invoice_id",
+      "indexdef": "CREATE INDEX idx_cgb_invoice_id ON public.corporate_gifting_batch USING btree (invoice_id) WHERE (invoice_id IS NOT NULL)"
+    },
+    {
+      "tablename": "corporate_gifting_batch",
+      "indexname": "idx_cgb_order_id",
+      "indexdef": "CREATE INDEX idx_cgb_order_id ON public.corporate_gifting_batch USING btree (order_id) WHERE (order_id IS NOT NULL)"
+    },
+    {
+      "tablename": "corporate_gifting_batch",
+      "indexname": "idx_cgb_status",
+      "indexdef": "CREATE INDEX idx_cgb_status ON public.corporate_gifting_batch USING btree (status)"
+    },
+    {
+      "tablename": "corporate_gifting_recipient",
+      "indexname": "corporate_gifting_recipient_pkey",
+      "indexdef": "CREATE UNIQUE INDEX corporate_gifting_recipient_pkey ON public.corporate_gifting_recipient USING btree (id)"
+    },
+    {
+      "tablename": "corporate_gifting_recipient",
+      "indexname": "idx_cgr_batch_id",
+      "indexdef": "CREATE INDEX idx_cgr_batch_id ON public.corporate_gifting_recipient USING btree (batch_id)"
+    },
+    {
+      "tablename": "corporate_gifting_recipient",
+      "indexname": "idx_cgr_delivery_date",
+      "indexdef": "CREATE INDEX idx_cgr_delivery_date ON public.corporate_gifting_recipient USING btree (delivery_date)"
+    },
+    {
+      "tablename": "corporate_gifting_recipient",
+      "indexname": "idx_cgr_delivery_id",
+      "indexdef": "CREATE INDEX idx_cgr_delivery_id ON public.corporate_gifting_recipient USING btree (delivery_id) WHERE (delivery_id IS NOT NULL)"
+    },
+    {
+      "tablename": "corporate_gifting_recipient",
+      "indexname": "idx_cgr_order_id",
+      "indexdef": "CREATE INDEX idx_cgr_order_id ON public.corporate_gifting_recipient USING btree (order_id) WHERE (order_id IS NOT NULL)"
+    },
+    {
+      "tablename": "corporate_gifting_recipient",
+      "indexname": "idx_cgr_phone",
+      "indexdef": "CREATE INDEX idx_cgr_phone ON public.corporate_gifting_recipient USING btree (recipient_phone)"
+    },
+    {
+      "tablename": "corporate_gifting_recipient",
+      "indexname": "idx_cgr_status",
+      "indexdef": "CREATE INDEX idx_cgr_status ON public.corporate_gifting_recipient USING btree (status)"
+    },
+    {
+      "tablename": "corporate_gifting_recipient",
+      "indexname": "idx_cgr_validation_status",
+      "indexdef": "CREATE INDEX idx_cgr_validation_status ON public.corporate_gifting_recipient USING btree (validation_status)"
+    },
+    {
+      "tablename": "corporate_gifting_recipient",
+      "indexname": "idx_cgr_variant_id",
+      "indexdef": "CREATE INDEX idx_cgr_variant_id ON public.corporate_gifting_recipient USING btree (variant_id) WHERE (variant_id IS NOT NULL)"
+    },
+    {
+      "tablename": "corporate_gifting_recipient",
+      "indexname": "uq_cgr_batch_row",
+      "indexdef": "CREATE UNIQUE INDEX uq_cgr_batch_row ON public.corporate_gifting_recipient USING btree (batch_id, row_number)"
+    }
+  ],
+  "check_constraints": [
+    {
+      "table_name": "corporate_account",
+      "constraint_name": "chk_ca_gstin",
+      "definition": "CHECK (((gstin IS NULL) OR ((gstin)::text ~ '^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$'::text)))"
+    },
+    {
+      "table_name": "corporate_account",
+      "constraint_name": "chk_ca_pan",
+      "definition": "CHECK (((pan IS NULL) OR ((pan)::text ~ '^[A-Z]{5}[0-9]{4}[A-Z]{1}$'::text)))"
+    },
+    {
+      "table_name": "corporate_account",
+      "constraint_name": "chk_ca_pan_gstin_match",
+      "definition": "CHECK (((gstin IS NULL) OR (pan IS NULL) OR (SUBSTRING(gstin FROM 3 FOR 10) = (pan)::text)))"
+    },
+    {
+      "table_name": "corporate_account",
+      "constraint_name": "corporate_account_credit_requested_limit_check",
+      "definition": "CHECK (((credit_requested_limit IS NULL) OR (credit_requested_limit >= 0.00)))"
+    },
+    {
+      "table_name": "corporate_account",
+      "constraint_name": "corporate_account_credit_requested_terms_days_check",
+      "definition": "CHECK (((credit_requested_terms_days IS NULL) OR (credit_requested_terms_days >= 0)))"
+    },
+    {
+      "table_name": "corporate_account",
+      "constraint_name": "corporate_account_status_check",
+      "definition": "CHECK (((status)::text = ANY ((ARRAY['PENDING'::character varying, 'APPROVED'::character varying, 'SUSPENDED'::character varying, 'CLOSED'::character varying])::text[])))"
+    },
+    {
+      "table_name": "corporate_account_contact",
+      "constraint_name": "corporate_account_contact_contact_type_check",
+      "definition": "CHECK (((contact_type)::text = ANY ((ARRAY['PRIMARY'::character varying, 'SECONDARY'::character varying, 'ACCOUNTS_PAYABLE'::character varying, 'BILLING'::character varying])::text[])))"
+    },
+    {
+      "table_name": "corporate_account_event",
+      "constraint_name": "corporate_account_event_event_type_check",
+      "definition": "CHECK (((event_type)::text = ANY ((ARRAY['CREATED'::character varying, 'UPDATED'::character varying, 'SUBMITTED'::character varying, 'APPROVED'::character varying, 'SUSPENDED'::character varying, 'REACTIVATED'::character varying, 'CLOSED'::character varying, 'CUSTOMER_LINKED'::character varying, 'CREDIT_REQUESTED'::character varying, 'CREDIT_ACTIVATED'::character varying, 'MEMBER_GRANTED'::character varying, 'MEMBER_REVOKED'::character varying])::text[])))"
+    },
+    {
+      "table_name": "corporate_account_member",
+      "constraint_name": "corporate_account_member_member_role_check",
+      "definition": "CHECK (((member_role)::text = ANY ((ARRAY['ROSTER_MANAGER'::character varying, 'ROSTER_VIEWER'::character varying])::text[])))"
+    },
+    {
+      "table_name": "corporate_account_member",
+      "constraint_name": "corporate_account_member_status_check",
+      "definition": "CHECK (((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'REVOKED'::character varying])::text[])))"
+    },
+    {
+      "table_name": "corporate_employee",
+      "constraint_name": "chk_ce_coords_both_or_neither",
+      "definition": "CHECK ((((default_latitude IS NULL) AND (default_longitude IS NULL)) OR ((default_latitude IS NOT NULL) AND (default_longitude IS NOT NULL))))"
+    },
+    {
+      "table_name": "corporate_employee",
+      "constraint_name": "chk_ce_coords_india_bbox",
+      "definition": "CHECK (((default_latitude IS NULL) OR (((default_latitude >= 6.0) AND (default_latitude <= 38.0)) AND ((default_longitude >= 68.0) AND (default_longitude <= 98.0)))))"
+    },
+    {
+      "table_name": "corporate_employee",
+      "constraint_name": "corporate_employee_coordinate_source_check",
+      "definition": "CHECK (((coordinate_source IS NULL) OR ((coordinate_source)::text = ANY ((ARRAY['USER_SUPPLIED'::character varying, 'GEOCODED'::character varying, 'ADMIN_VERIFIED'::character varying])::text[]))))"
+    },
+    {
+      "table_name": "corporate_employee",
+      "constraint_name": "corporate_employee_status_check",
+      "definition": "CHECK (((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'INACTIVE'::character varying])::text[])))"
+    },
+    {
+      "table_name": "corporate_employee",
+      "constraint_name": "corporate_employee_version_check",
+      "definition": "CHECK ((version >= 1))"
+    },
+    {
+      "table_name": "corporate_employee_event",
+      "constraint_name": "corporate_employee_event_event_type_check",
+      "definition": "CHECK (((event_type)::text = ANY ((ARRAY['CREATED'::character varying, 'UPDATED'::character varying, 'DEACTIVATED'::character varying, 'REACTIVATED'::character varying, 'IMPORTED'::character varying, 'COORDINATES_VERIFIED'::character varying])::text[])))"
+    },
+    {
+      "table_name": "corporate_employee_import_batch",
+      "constraint_name": "corporate_employee_import_batch_inserted_rows_check",
+      "definition": "CHECK ((inserted_rows >= 0))"
+    },
+    {
+      "table_name": "corporate_employee_import_batch",
+      "constraint_name": "corporate_employee_import_batch_invalid_rows_check",
+      "definition": "CHECK ((invalid_rows >= 0))"
+    },
+    {
+      "table_name": "corporate_employee_import_batch",
+      "constraint_name": "corporate_employee_import_batch_status_check",
+      "definition": "CHECK (((status)::text = ANY ((ARRAY['DRY_RUN_OK'::character varying, 'DRY_RUN_FAILED'::character varying, 'COMMITTED'::character varying, 'FAILED'::character varying])::text[])))"
+    },
+    {
+      "table_name": "corporate_employee_import_batch",
+      "constraint_name": "corporate_employee_import_batch_total_rows_check",
+      "definition": "CHECK ((total_rows >= 0))"
+    },
+    {
+      "table_name": "corporate_employee_import_batch",
+      "constraint_name": "corporate_employee_import_batch_valid_rows_check",
+      "definition": "CHECK ((valid_rows >= 0))"
+    },
+    {
+      "table_name": "corporate_gifting_batch",
+      "constraint_name": "corporate_gifting_batch_invalid_recipients_check",
+      "definition": "CHECK ((invalid_recipients >= 0))"
+    },
+    {
+      "table_name": "corporate_gifting_batch",
+      "constraint_name": "corporate_gifting_batch_processed_recipients_check",
+      "definition": "CHECK ((processed_recipients >= 0))"
+    },
+    {
+      "table_name": "corporate_gifting_batch",
+      "constraint_name": "corporate_gifting_batch_status_check",
+      "definition": "CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'VALIDATED'::character varying, 'SCHEDULED'::character varying, 'PROCESSING'::character varying, 'COMPLETED'::character varying, 'CANCELLED'::character varying, 'FAILED'::character varying])::text[])))"
+    },
+    {
+      "table_name": "corporate_gifting_batch",
+      "constraint_name": "corporate_gifting_batch_total_amount_check",
+      "definition": "CHECK ((total_amount >= 0.00))"
+    },
+    {
+      "table_name": "corporate_gifting_batch",
+      "constraint_name": "corporate_gifting_batch_total_recipients_check",
+      "definition": "CHECK ((total_recipients >= 0))"
+    },
+    {
+      "table_name": "corporate_gifting_batch",
+      "constraint_name": "corporate_gifting_batch_validated_recipients_check",
+      "definition": "CHECK ((validated_recipients >= 0))"
+    },
+    {
+      "table_name": "corporate_gifting_recipient",
+      "constraint_name": "corporate_gifting_recipient_line_total_check",
+      "definition": "CHECK ((line_total >= 0.00))"
+    },
+    {
+      "table_name": "corporate_gifting_recipient",
+      "constraint_name": "corporate_gifting_recipient_quantity_check",
+      "definition": "CHECK ((quantity > 0))"
+    },
+    {
+      "table_name": "corporate_gifting_recipient",
+      "constraint_name": "corporate_gifting_recipient_row_number_check",
+      "definition": "CHECK ((row_number >= 1))"
+    },
+    {
+      "table_name": "corporate_gifting_recipient",
+      "constraint_name": "corporate_gifting_recipient_status_check",
+      "definition": "CHECK (((status)::text = ANY ((ARRAY['PENDING'::character varying, 'ORDER_CREATED'::character varying, 'DISPATCHED'::character varying, 'DELIVERED'::character varying, 'FAILED'::character varying, 'CANCELLED'::character varying])::text[])))"
+    },
+    {
+      "table_name": "corporate_gifting_recipient",
+      "constraint_name": "corporate_gifting_recipient_unit_price_check",
+      "definition": "CHECK ((unit_price >= 0.00))"
+    },
+    {
+      "table_name": "corporate_gifting_recipient",
+      "constraint_name": "corporate_gifting_recipient_validation_status_check",
+      "definition": "CHECK (((validation_status)::text = ANY ((ARRAY['PENDING'::character varying, 'VALID'::character varying, 'INVALID'::character varying])::text[])))"
+    }
+  ],
+  "security_triggers": [
+    {
+      "table_name": "corporate_account_event",
+      "trigger_name": "trg_cax_append_only",
+      "event": "DELETE",
+      "timing": "BEFORE"
+    },
+    {
+      "table_name": "corporate_account_event",
+      "trigger_name": "trg_cax_append_only",
+      "event": "UPDATE",
+      "timing": "BEFORE"
+    },
+    {
+      "table_name": "corporate_employee",
+      "trigger_name": "trg_ce_prevent_delete",
+      "event": "DELETE",
+      "timing": "BEFORE"
+    },
+    {
+      "table_name": "corporate_employee_event",
+      "trigger_name": "trg_cee_append_only",
+      "event": "DELETE",
+      "timing": "BEFORE"
+    },
+    {
+      "table_name": "corporate_employee_event",
+      "trigger_name": "trg_cee_append_only",
+      "event": "UPDATE",
+      "timing": "BEFORE"
+    }
+  ],
+  "accounting_invariants": [
+    {
+      "coa_account_count": 100,
+      "voucher_count": 6,
+      "journal_entry_count": 4,
+      "journal_line_count": 10,
+      "trial_balance_debit": "3380.00",
+      "trial_balance_credit": "3380.00"
+    }
+  ],
+  "candidate_codes_absent": [],
+  "table_list_delta": [
+    {
+      "table_name": "account_holder"
+    },
+    {
+      "table_name": "accounting_account"
+    },
+    {
+      "table_name": "accounting_fiscal_period"
+    },
+    {
+      "table_name": "accounting_journal_entry"
+    },
+    {
+      "table_name": "accounting_journal_line"
+    },
+    {
+      "table_name": "accounting_voucher"
+    },
+    {
+      "table_name": "ai_circuit_breaker_state"
+    },
+    {
+      "table_name": "ai_knowledge_base"
+    },
+    {
+      "table_name": "ai_memory_state"
+    },
+    {
+      "table_name": "ai_model_config"
+    },
+    {
+      "table_name": "ai_prompt_registry"
+    },
+    {
+      "table_name": "ai_provider_config"
+    },
+    {
+      "table_name": "ai_request_log"
+    },
+    {
+      "table_name": "analytics_event"
+    },
+    {
+      "table_name": "analytics_expense"
+    },
+    {
+      "table_name": "analytics_franchise"
+    },
+    {
+      "table_name": "api_key"
+    },
+    {
+      "table_name": "application_method_buy_rules"
+    },
+    {
+      "table_name": "application_method_target_rules"
+    },
+    {
+      "table_name": "audit_log"
+    },
+    {
+      "table_name": "auth_identity"
+    },
+    {
+      "table_name": "auth_mfa_factor"
+    },
+    {
+      "table_name": "auth_mfa_recovery_code"
+    },
+    {
+      "table_name": "auth_password_reset_token"
+    },
+    {
+      "table_name": "auth_verification"
+    },
+    {
+      "table_name": "bank_account"
+    },
+    {
+      "table_name": "bank_deposit_slip"
+    },
+    {
+      "table_name": "bank_reconciliation_match"
+    },
+    {
+      "table_name": "bank_reconciliation_session"
+    },
+    {
+      "table_name": "bank_statement_import"
+    },
+    {
+      "table_name": "bank_statement_line"
+    },
+    {
+      "table_name": "branch"
+    },
+    {
+      "table_name": "branch_capacity"
+    },
+    {
+      "table_name": "branch_inventory"
+    },
+    {
+      "table_name": "branch_price"
+    },
+    {
+      "table_name": "branch_region"
+    },
+    {
+      "table_name": "branch_settings"
+    },
+    {
+      "table_name": "branch_staff"
+    },
+    {
+      "table_name": "branch_vault_movement"
+    },
+    {
+      "table_name": "cake_option"
+    },
+    {
+      "table_name": "capture"
+    },
+    {
+      "table_name": "cart"
+    },
+    {
+      "table_name": "cart_address"
+    },
+    {
+      "table_name": "cart_line_item"
+    },
+    {
+      "table_name": "cart_line_item_adjustment"
+    },
+    {
+      "table_name": "cart_line_item_tax_line"
+    },
+    {
+      "table_name": "cart_payment_collection"
+    },
+    {
+      "table_name": "cart_promotion"
+    },
+    {
+      "table_name": "cart_shipping_method"
+    },
+    {
+      "table_name": "cart_shipping_method_adjustment"
+    },
+    {
+      "table_name": "cart_shipping_method_tax_line"
+    },
+    {
+      "table_name": "chat_message"
+    },
+    {
+      "table_name": "chat_session"
+    },
+    {
+      "table_name": "city"
+    },
+    {
+      "table_name": "cms_asset_reference"
+    },
+    {
+      "table_name": "cms_banner"
+    },
+    {
+      "table_name": "cms_block"
+    },
+    {
+      "table_name": "cms_category"
+    },
+    {
+      "table_name": "cms_homepage_section"
+    },
+    {
+      "table_name": "cms_navigation"
+    },
+    {
+      "table_name": "cms_page"
+    },
+    {
+      "table_name": "cms_redirect"
+    },
+    {
+      "table_name": "cms_revision"
+    },
+    {
+      "table_name": "cms_tag"
+    },
+    {
+      "table_name": "cms_template"
+    },
+    {
+      "table_name": "company"
+    },
+    {
+      "table_name": "config_audit_log"
+    },
+    {
+      "table_name": "connector_config"
+    },
+    {
+      "table_name": "contact_submission"
+    },
+    {
+      "table_name": "corporate_account"
+    },
+    {
+      "table_name": "corporate_account_contact"
+    },
+    {
+      "table_name": "corporate_account_event"
+    },
+    {
+      "table_name": "corporate_account_member"
+    },
+    {
+      "table_name": "corporate_employee"
+    },
+    {
+      "table_name": "corporate_employee_event"
+    },
+    {
+      "table_name": "corporate_employee_import_batch"
+    },
+    {
+      "table_name": "corporate_gifting_batch"
+    },
+    {
+      "table_name": "corporate_gifting_recipient"
+    },
+    {
+      "table_name": "cost_allocation_rule"
+    },
+    {
+      "table_name": "cost_allocation_rule_target"
+    },
+    {
+      "table_name": "cost_allocation_run"
+    },
+    {
+      "table_name": "cost_allocation_run_line"
+    },
+    {
+      "table_name": "cost_centre"
+    },
+    {
+      "table_name": "credit_line"
+    },
+    {
+      "table_name": "crm_ab_test"
+    },
+    {
+      "table_name": "crm_automation_execution"
+    },
+    {
+      "table_name": "crm_automation_flow"
+    },
+    {
+      "table_name": "crm_automation_log"
+    },
+    {
+      "table_name": "crm_campaign"
+    },
+    {
+      "table_name": "crm_customer_blacklist"
+    },
+    {
+      "table_name": "crm_customer_note"
+    },
+    {
+      "table_name": "crm_customer_rfm"
+    },
+    {
+      "table_name": "crm_customer_segment"
+    },
+    {
+      "table_name": "crm_email_template"
+    },
+    {
+      "table_name": "crm_segment"
+    },
+    {
+      "table_name": "currency"
+    },
+    {
+      "table_name": "cust_address"
+    },
+    {
+      "table_name": "customer"
+    },
+    {
+      "table_name": "customer_account_holder"
+    },
+    {
+      "table_name": "customer_address"
+    },
+    {
+      "table_name": "customer_favorite"
+    },
+    {
+      "table_name": "customer_group"
+    },
+    {
+      "table_name": "customer_group_customer"
+    },
+    {
+      "table_name": "customer_phone"
+    },
+    {
+      "table_name": "customer_receipt_allocation"
+    },
+    {
+      "table_name": "delivery"
+    },
+    {
+      "table_name": "delivery_delivery_partner"
+    },
+    {
+      "table_name": "delivery_partner"
+    },
+    {
+      "table_name": "delivery_proof"
+    },
+    {
+      "table_name": "delivery_slot"
+    },
+    {
+      "table_name": "delivery_zone"
+    },
+    {
+      "table_name": "deliverymodule_delivery_cart_cart"
+    },
+    {
+      "table_name": "deliverymodule_delivery_order_order"
+    },
+    {
+      "table_name": "driver_attendance"
+    },
+    {
+      "table_name": "driver_location"
+    },
+    {
+      "table_name": "driver_profile"
+    },
+    {
+      "table_name": "driver_transaction"
+    },
+    {
+      "table_name": "driver_wallet"
+    },
+    {
+      "table_name": "expense"
+    },
+    {
+      "table_name": "expense_category"
+    },
+    {
+      "table_name": "flavor_master"
+    },
+    {
+      "table_name": "fleet_fuel"
+    },
+    {
+      "table_name": "fulfillment"
+    },
+    {
+      "table_name": "fulfillment_address"
+    },
+    {
+      "table_name": "fulfillment_item"
+    },
+    {
+      "table_name": "fulfillment_label"
+    },
+    {
+      "table_name": "fulfillment_provider"
+    },
+    {
+      "table_name": "fulfillment_set"
+    },
+    {
+      "table_name": "gateway_payout_batch"
+    },
+    {
+      "table_name": "gateway_settlement_order"
+    },
+    {
+      "table_name": "geo_zone"
+    },
+    {
+      "table_name": "gst_registration"
+    },
+    {
+      "table_name": "image"
+    },
+    {
+      "table_name": "inventory_cost_consumption"
+    },
+    {
+      "table_name": "inventory_cost_lot"
+    },
+    {
+      "table_name": "inventory_item"
+    },
+    {
+      "table_name": "inventory_level"
+    },
+    {
+      "table_name": "inventory_movement"
+    },
+    {
+      "table_name": "inventory_transfer"
+    },
+    {
+      "table_name": "invite"
+    },
+    {
+      "table_name": "invite_rbac_role"
+    },
+    {
+      "table_name": "invoice"
+    },
+    {
+      "table_name": "language"
+    },
+    {
+      "table_name": "layout_configuration"
+    },
+    {
+      "table_name": "lead_enquiry"
+    },
+    {
+      "table_name": "link_module_migrations"
+    },
+    {
+      "table_name": "loc_currency"
+    },
+    {
+      "table_name": "location_fulfillment_provider"
+    },
+    {
+      "table_name": "location_fulfillment_set"
+    },
+    {
+      "table_name": "login_event"
+    },
+    {
+      "table_name": "marketing_campaign"
+    },
+    {
+      "table_name": "marketing_campaign_event"
+    },
+    {
+      "table_name": "marketing_campaign_metric"
+    },
+    {
+      "table_name": "marketing_gamification_reward"
+    },
+    {
+      "table_name": "marketing_newsletter_subscriber"
+    },
+    {
+      "table_name": "marketing_popup"
+    },
+    {
+      "table_name": "marketing_qr_code"
+    },
+    {
+      "table_name": "marketing_recovery_job"
+    },
+    {
+      "table_name": "media"
+    },
+    {
+      "table_name": "mikro_orm_migrations"
+    },
+    {
+      "table_name": "notification"
+    },
+    {
+      "table_name": "notification_log"
+    },
+    {
+      "table_name": "notification_provider"
+    },
+    {
+      "table_name": "notification_template"
+    },
+    {
+      "table_name": "offer"
+    },
+    {
+      "table_name": "offer_audit_log"
+    },
+    {
+      "table_name": "offer_daily_metric"
+    },
+    {
+      "table_name": "offer_redemption"
+    },
+    {
+      "table_name": "order"
+    },
+    {
+      "table_name": "order_address"
+    },
+    {
+      "table_name": "order_cart"
+    },
+    {
+      "table_name": "order_change"
+    },
+    {
+      "table_name": "order_change_action"
+    },
+    {
+      "table_name": "order_claim"
+    },
+    {
+      "table_name": "order_claim_item"
+    },
+    {
+      "table_name": "order_claim_item_image"
+    },
+    {
+      "table_name": "order_credit_line"
+    },
+    {
+      "table_name": "order_event"
+    },
+    {
+      "table_name": "order_exchange"
+    },
+    {
+      "table_name": "order_exchange_item"
+    },
+    {
+      "table_name": "order_fulfillment"
+    },
+    {
+      "table_name": "order_item"
+    },
+    {
+      "table_name": "order_lifecycle_refund"
+    },
+    {
+      "table_name": "order_line_item"
+    },
+    {
+      "table_name": "order_line_item_adjustment"
+    },
+    {
+      "table_name": "order_line_item_tax_line"
+    },
+    {
+      "table_name": "order_note"
+    },
+    {
+      "table_name": "order_payment_collection"
+    },
+    {
+      "table_name": "order_promotion"
+    },
+    {
+      "table_name": "order_shipping"
+    },
+    {
+      "table_name": "order_shipping_method"
+    },
+    {
+      "table_name": "order_shipping_method_adjustment"
+    },
+    {
+      "table_name": "order_shipping_method_tax_line"
+    },
+    {
+      "table_name": "order_staff_assignment"
+    },
+    {
+      "table_name": "order_status_history"
+    },
+    {
+      "table_name": "order_summary"
+    },
+    {
+      "table_name": "order_transaction"
+    },
+    {
+      "table_name": "payment"
+    },
+    {
+      "table_name": "payment_audit_trail"
+    },
+    {
+      "table_name": "payment_collection"
+    },
+    {
+      "table_name": "payment_collection_payment_providers"
+    },
+    {
+      "table_name": "payment_provider"
+    },
+    {
+      "table_name": "payment_session"
+    },
+    {
+      "table_name": "payment_transaction"
+    },
+    {
+      "table_name": "petty_cash_request"
+    },
+    {
+      "table_name": "pim_category"
+    },
+    {
+      "table_name": "popup_audience_rules"
+    },
+    {
+      "table_name": "popup_campaigns"
+    },
+    {
+      "table_name": "popup_conversions"
+    },
+    {
+      "table_name": "popup_frequency_rules"
+    },
+    {
+      "table_name": "popup_impressions"
+    },
+    {
+      "table_name": "popup_rules"
+    },
+    {
+      "table_name": "popup_versions"
+    },
+    {
+      "table_name": "price"
+    },
+    {
+      "table_name": "price_list"
+    },
+    {
+      "table_name": "price_list_rule"
+    },
+    {
+      "table_name": "price_preference"
+    },
+    {
+      "table_name": "price_rule"
+    },
+    {
+      "table_name": "price_set"
+    },
+    {
+      "table_name": "product"
+    },
+    {
+      "table_name": "product_category"
+    },
+    {
+      "table_name": "product_category_product"
+    },
+    {
+      "table_name": "product_collection"
+    },
+    {
+      "table_name": "product_flavor_mapping"
+    },
+    {
+      "table_name": "product_meta"
+    },
+    {
+      "table_name": "product_option"
+    },
+    {
+      "table_name": "product_option_value"
+    },
+    {
+      "table_name": "product_product_option"
+    },
+    {
+      "table_name": "product_product_option_value"
+    },
+    {
+      "table_name": "product_review"
+    },
+    {
+      "table_name": "product_reviews"
+    },
+    {
+      "table_name": "product_sales_channel"
+    },
+    {
+      "table_name": "product_shape_mapping"
+    },
+    {
+      "table_name": "product_shipping_profile"
+    },
+    {
+      "table_name": "product_tag"
+    },
+    {
+      "table_name": "product_tags"
+    },
+    {
+      "table_name": "product_type"
+    },
+    {
+      "table_name": "product_variant"
+    },
+    {
+      "table_name": "product_variant_inventory_item"
+    },
+    {
+      "table_name": "product_variant_option"
+    },
+    {
+      "table_name": "product_variant_price_set"
+    },
+    {
+      "table_name": "product_variant_product_image"
+    },
+    {
+      "table_name": "product_weight_price"
+    },
+    {
+      "table_name": "promotion"
+    },
+    {
+      "table_name": "promotion_application_method"
+    },
+    {
+      "table_name": "promotion_campaign"
+    },
+    {
+      "table_name": "promotion_campaign_budget"
+    },
+    {
+      "table_name": "promotion_campaign_budget_usage"
+    },
+    {
+      "table_name": "promotion_promotion_rule"
+    },
+    {
+      "table_name": "promotion_rule"
+    },
+    {
+      "table_name": "promotion_rule_value"
+    },
+    {
+      "table_name": "property_label"
+    },
+    {
+      "table_name": "provider_identity"
+    },
+    {
+      "table_name": "publishable_api_key_sales_channel"
+    },
+    {
+      "table_name": "purchase"
+    },
+    {
+      "table_name": "purchase_item"
+    },
+    {
+      "table_name": "purchase_payment"
+    },
+    {
+      "table_name": "purchase_payment_allocation"
+    },
+    {
+      "table_name": "refund"
+    },
+    {
+      "table_name": "refund_reason"
+    },
+    {
+      "table_name": "region"
+    },
+    {
+      "table_name": "region_country"
+    },
+    {
+      "table_name": "region_payment_provider"
+    },
+    {
+      "table_name": "report_schedule"
+    },
+    {
+      "table_name": "reschedule_request"
+    },
+    {
+      "table_name": "reservation_item"
+    },
+    {
+      "table_name": "return"
+    },
+    {
+      "table_name": "return_fulfillment"
+    },
+    {
+      "table_name": "return_item"
+    },
+    {
+      "table_name": "return_reason"
+    },
+    {
+      "table_name": "rewards_fraud_review"
+    },
+    {
+      "table_name": "rewards_gift_card"
+    },
+    {
+      "table_name": "rewards_gift_card_transaction"
+    },
+    {
+      "table_name": "rewards_loyalty_ledger"
+    },
+    {
+      "table_name": "rewards_loyalty_rule"
+    },
+    {
+      "table_name": "rewards_loyalty_transaction"
+    },
+    {
+      "table_name": "rewards_referral_code"
+    },
+    {
+      "table_name": "rewards_referral_event"
+    },
+    {
+      "table_name": "rewards_referral_program"
+    },
+    {
+      "table_name": "rewards_referral_qualification"
+    },
+    {
+      "table_name": "rewards_wallet"
+    },
+    {
+      "table_name": "rewards_wallet_transaction"
+    },
+    {
+      "table_name": "sales_channel"
+    },
+    {
+      "table_name": "sales_channel_stock_location"
+    },
+    {
+      "table_name": "script_migrations"
+    },
+    {
+      "table_name": "security_blocked_ip"
+    },
+    {
+      "table_name": "security_event"
+    },
+    {
+      "table_name": "security_ip_whitelist"
+    },
+    {
+      "table_name": "security_user_two_factor"
+    },
+    {
+      "table_name": "service_zone"
+    },
+    {
+      "table_name": "setting"
+    },
+    {
+      "table_name": "shape_master"
+    },
+    {
+      "table_name": "shipping_option"
+    },
+    {
+      "table_name": "shipping_option_price_set"
+    },
+    {
+      "table_name": "shipping_option_rule"
+    },
+    {
+      "table_name": "shipping_option_type"
+    },
+    {
+      "table_name": "shipping_profile"
+    },
+    {
+      "table_name": "shop"
+    },
+    {
+      "table_name": "shop_manager"
+    },
+    {
+      "table_name": "shopmodule_shop_deliverymodule_delivery"
+    },
+    {
+      "table_name": "shopmodule_shop_product_product"
+    },
+    {
+      "table_name": "slot_reservation"
+    },
+    {
+      "table_name": "state"
+    },
+    {
+      "table_name": "stock_location"
+    },
+    {
+      "table_name": "stock_location_address"
+    },
+    {
+      "table_name": "stock_notification"
+    },
+    {
+      "table_name": "store"
+    },
+    {
+      "table_name": "store_currency"
+    },
+    {
+      "table_name": "store_locale"
+    },
+    {
+      "table_name": "subscription"
+    },
+    {
+      "table_name": "supplier"
+    },
+    {
+      "table_name": "support_ticket"
+    },
+    {
+      "table_name": "tax_provider"
+    },
+    {
+      "table_name": "tax_rate"
+    },
+    {
+      "table_name": "tax_rate_rule"
+    },
+    {
+      "table_name": "tax_region"
+    },
+    {
+      "table_name": "teller"
+    },
+    {
+      "table_name": "teller_movement"
+    },
+    {
+      "table_name": "teller_session"
+    },
+    {
+      "table_name": "ticket_message"
+    },
+    {
+      "table_name": "translation"
+    },
+    {
+      "table_name": "user"
+    },
+    {
+      "table_name": "user_preference"
+    },
+    {
+      "table_name": "user_rbac_role"
+    },
+    {
+      "table_name": "variant_option"
+    },
+    {
+      "table_name": "vehicle"
+    },
+    {
+      "table_name": "vehicle_trip"
+    },
+    {
+      "table_name": "view_configuration"
+    },
+    {
+      "table_name": "webhook_delivery"
+    },
+    {
+      "table_name": "webhook_endpoint"
+    },
+    {
+      "table_name": "wishlist_item"
+    },
+    {
+      "table_name": "workflow_execution"
+    }
+  ]
+}

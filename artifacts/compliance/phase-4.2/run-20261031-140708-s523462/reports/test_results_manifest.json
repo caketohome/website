@@ -1,0 +1,118 @@
+{
+  "test_run_metadata": {
+    "run_id": "run-20261031-140708-s523462",
+    "timestamp": "2026-10-31T09:35:00Z",
+    "target_database": "cth_disposable_phase4_2 on 127.0.0.1:5433",
+    "protected_database": "cth_test on 127.0.0.1:5433",
+    "total_tests": 40,
+    "passed": 40,
+    "failed": 0,
+    "skipped": 0,
+    "verdict": "ALL_TESTS_PASSED"
+  },
+  "test_suites": [
+    {
+      "suite_name": "TypeScript Typecheck Suite",
+      "harness": "node_modules/.bin/tsc.cmd --noEmit",
+      "status": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "duration_ms": 18500
+    },
+    {
+      "suite_name": "Statutory Compliance & Governance Suite",
+      "harness": "test_phase4_2_compliance.js",
+      "status": "PASS",
+      "passed": 8,
+      "failed": 0,
+      "cases": [
+        { "name": "Branch Linkage & Foreign Key Verification", "status": "PASS" },
+        { "name": "Legacy CTH Sequence Isolation", "status": "PASS" },
+        { "name": "Cross-Entity Prefix Conflict Rejection", "status": "PASS" },
+        { "name": "Unapproved Series Rejection", "status": "PASS" },
+        { "name": "Atomic Allocation on Approved Series", "status": "PASS" },
+        { "name": "Idempotent Replay Zero Burning", "status": "PASS" },
+        { "name": "10-Worker Concurrency Serialization", "status": "PASS" },
+        { "name": "Master Database Immutability Check", "status": "PASS" }
+      ]
+    },
+    {
+      "suite_name": "Delivery Invoicing E2E Suite",
+      "harness": "run_delivery_e2e_verified.cjs",
+      "status": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "cases": [
+        { "name": "Case A: Conflicting CTH prefix rejected", "status": "PASS" },
+        { "name": "Case B: Unapproved prefix rejected", "status": "PASS" },
+        { "name": "Case C: Authorized SAFE-TEST series allocates invoice", "status": "PASS" },
+        { "name": "Case D: Delivery replay returned exact same invoice number", "status": "PASS" }
+      ]
+    },
+    {
+      "suite_name": "Fiscal Year Boundary Matrix",
+      "harness": "test_fiscal_boundary.cjs",
+      "status": "PASS",
+      "passed": 15,
+      "failed": 0,
+      "cases": [
+        { "name": "March 31, 2026 23:59:59.999 IST", "status": "PASS" },
+        { "name": "Equivalent UTC timestamp (2026-03-31T18:29:59.999Z)", "status": "PASS" },
+        { "name": "April 1, 2026 00:00:00.000 IST (Rollover boundary)", "status": "PASS" },
+        { "name": "Equivalent UTC timestamp (2026-03-31T18:30:00.000Z)", "status": "PASS" },
+        { "name": "April 1, 2026 00:00:00.001 IST", "status": "PASS" },
+        { "name": "Leap day: Feb 29, 2024 12:00:00 IST", "status": "PASS" },
+        { "name": "Calendar year rollover (Dec 31, 2026 23:59:59 IST)", "status": "PASS" },
+        { "name": "Calendar year rollover (Jan 1, 2027 00:00:01 IST)", "status": "PASS" },
+        { "name": "Numeric timestamp: 1775000000000", "status": "PASS" },
+        { "name": "Native Date object", "status": "PASS" },
+        { "name": "Invalid input rejection: empty string", "status": "PASS" },
+        { "name": "Invalid input rejection: invalid-date-string", "status": "PASS" },
+        { "name": "Invalid input rejection: NaN", "status": "PASS" },
+        { "name": "Invalid input rejection: null (Remediated)", "status": "PASS" },
+        { "name": "Default parameter (undefined)", "status": "PASS" }
+      ]
+    },
+    {
+      "suite_name": "Security and Admin Compliance API Suite",
+      "harness": "test_compliance_api_security.cjs",
+      "status": "PASS",
+      "passed": 6,
+      "failed": 0,
+      "cases": [
+        { "name": "Proposal State Isolation", "status": "PASS" },
+        { "name": "Allocation Fail-Closed on PROPOSED", "status": "PASS" },
+        { "name": "Allocation Fail-Closed on Inactive APPROVED", "status": "PASS" },
+        { "name": "Finance Controller Authorized Approval", "status": "PASS" },
+        { "name": "Allocation on Newly Approved Series", "status": "PASS" },
+        { "name": "Cross-Company Branch Isolation", "status": "PASS" }
+      ]
+    },
+    {
+      "suite_name": "Playwright Browser Verification Suite",
+      "harness": "run_playwright_test_p42.cjs",
+      "status": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "cases": [
+        { "name": "Legal Entities API view captured (04)", "status": "PASS" },
+        { "name": "Compliance Registry table loaded (01)", "status": "PASS" },
+        { "name": "Proposal state captured (02)", "status": "PASS" },
+        { "name": "Approved audit trail captured (03)", "status": "PASS" }
+      ]
+    },
+    {
+      "suite_name": "Master Database Immutability Checksums",
+      "harness": "snapshot_db.cjs",
+      "status": "PASS",
+      "passed": 3,
+      "failed": 0,
+      "cases": [
+        { "name": "orders_sha256 exact match", "status": "PASS" },
+        { "name": "invoices_sha256 exact match", "status": "PASS" },
+        { "name": "vouchers_sha256 exact match", "status": "PASS" }
+      ]
+    }
+  ]
+}
+

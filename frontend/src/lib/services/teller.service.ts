@@ -36,6 +36,82 @@ export class TellerService {
   }
 
   /**
+   * Ensures that a canonical default cash drawer station ("Main Cash Drawer", code "MAIN")
+   * exists for a branch. If none exists, auto-provisions it without requiring separate teller employee setup.
+   */
+  static async ensureDefaultBranchTeller(
+    branchId: string,
+    actor: AuthenticatedActor,
+    client?: PoolClient
+  ): Promise<TellerRow> {
+    this.validateBranchAccess(actor, branchId);
+
+    const execute = async (txClient: PoolClient) => {
+      // 1. Check if any active counter station already exists at this branch
+      const existingTellers = await TellerRepository.listByBranch(branchId, txClient);
+      const active = existingTellers.find((t) => t.status === "ACTIVE");
+      if (active) {
+        return active;
+      }
+
+      // Check if inactive MAIN drawer exists, activate it
+      const existingMain = await TellerRepository.findByBranchAndCode(branchId, "MAIN", txClient);
+      if (existingMain) {
+        return TellerRepository.activate(existingMain.id, actor.userId, txClient);
+      }
+
+      // 2. Verify branch existence
+      const bRes = await txClient.query(`SELECT id, name FROM public.branch WHERE id = $1`, [branchId]);
+      if (bRes.rows.length === 0) {
+        throw new TellerDomainError("BRANCH_NOT_FOUND", `Branch '${branchId}' not found.`);
+      }
+
+      // 3. Resolve operator user ID for the drawer constraint
+      // Check if actor has active teller elsewhere
+      const actorActive = await TellerRepository.findActiveByUserId(actor.userId, txClient, true);
+      let assignedUserId = actor.userId;
+      if (actorActive && actorActive.branch_id !== branchId) {
+        assignedUserId = `shpmgr_${branchId.replace(/^br_/, "")}`;
+      }
+
+      // Ensure user exists in public."user"
+      await txClient.query(
+        `INSERT INTO public."user" (id, email, created_at, updated_at)
+         VALUES ($1, $2, NOW(), NOW())
+         ON CONFLICT (id) DO NOTHING`,
+        [assignedUserId, `${assignedUserId}@cakes2home.local`]
+      );
+
+      // 4. Create canonical default station
+      try {
+        return await TellerRepository.create(
+          {
+            id: `tlr_${branchId}_main`,
+            branch_id: branchId,
+            user_id: assignedUserId,
+            name: "Main Cash Drawer",
+            code: "MAIN",
+            status: "ACTIVE",
+            created_by: actor.userId,
+          },
+          txClient
+        );
+      } catch (err: any) {
+        if (err.constraint === "uq_teller_branch_code" || err.constraint === "uq_teller_id_branch") {
+          const reloaded = await TellerRepository.findByBranchAndCode(branchId, "MAIN", txClient);
+          if (reloaded) return reloaded;
+        }
+        throw err;
+      }
+    };
+
+    if (client) {
+      return execute(client);
+    }
+    return dbTransaction(execute);
+  }
+
+  /**
    * Creates a new teller counter station.
    * Requires: TELLER.MANAGE.
    */
@@ -53,18 +129,32 @@ export class TellerService {
     this.validateBranchAccess(actor, params.branch_id);
 
     const execute = async (txClient: PoolClient) => {
+      // If user_id is empty or unspecified, auto-provision a station operator user
+      let targetUserId = (params.user_id || "").trim();
+      if (!targetUserId) {
+        targetUserId = `usr_till_${params.branch_id.replace(/^br_/, "")}_${params.code.trim().toLowerCase()}`;
+      }
+
+      // Ensure user exists in public."user"
+      await txClient.query(
+        `INSERT INTO public."user" (id, email, created_at, updated_at)
+         VALUES ($1, $2, NOW(), NOW())
+         ON CONFLICT (id) DO NOTHING`,
+        [targetUserId, `${targetUserId}@cakes2home.local`]
+      );
+
       // If requested status is ACTIVE, verify user has no active assignment company-wide
       const requestedStatus = params.status || "ACTIVE";
       if (requestedStatus === "ACTIVE") {
         const existingActive = await TellerRepository.findActiveByUserId(
-          params.user_id,
+          targetUserId,
           txClient,
           true
         );
         if (existingActive) {
           throw new TellerDomainError(
             "TELLER_DUPLICATE_ACTIVE_USER",
-            `User '${params.user_id}' already has an active teller assignment (${existingActive.code}) at branch '${existingActive.branch_id}'.`
+            `User '${targetUserId}' already has an active teller assignment (${existingActive.code}) at branch '${existingActive.branch_id}'.`
           );
         }
       }
@@ -72,6 +162,7 @@ export class TellerService {
       return TellerRepository.create(
         {
           ...params,
+          user_id: targetUserId,
           created_by: actor.userId,
         },
         txClient
@@ -301,6 +392,15 @@ export class TellerService {
       }
       targetBranchId = actor.branchId;
     }
-    return TellerRepository.listTellers({ ...filters, branchId: targetBranchId }, client);
+    let list = await TellerRepository.listTellers({ ...filters, branchId: targetBranchId }, client);
+    if (targetBranchId && list.length === 0) {
+      try {
+        await this.ensureDefaultBranchTeller(targetBranchId, actor, client);
+        list = await TellerRepository.listTellers({ ...filters, branchId: targetBranchId }, client);
+      } catch {
+        // If branch not found or other non-fatal error, return empty list
+      }
+    }
+    return list;
   }
 }

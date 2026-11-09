@@ -164,6 +164,8 @@ export const PERMISSION_CATALOG: PermissionDefinition[] = [
   { id: "BRANCHES.EDIT", module: "BRANCHES", action: "EDIT", label: "Configure Branches", description: "Modify branch hours, kitchens, and manager assignments", category: "Branch & Delivery" },
   { id: "DELIVERY.VIEW", module: "DELIVERY", action: "VIEW", label: "View Fleet Operations", description: "Monitor active delivery drivers and zone assignments", category: "Branch & Delivery" },
   { id: "DELIVERY.ASSIGN", module: "DELIVERY", action: "ASSIGN", label: "Assign Delivery Drivers", description: "Assign drivers to urgent orders", category: "Branch & Delivery" },
+  { id: "DELIVERY_COVERAGE.VIEW", module: "DELIVERY", action: "VIEW_COVERAGE", label: "View Delivery Coverage", description: "Browse store map fences, zones, exclusion boundaries, and delivery partner coverage", category: "Branch & Delivery" },
+  { id: "DELIVERY_COVERAGE.MANAGE", module: "DELIVERY", action: "MANAGE_COVERAGE", label: "Manage Delivery Coverage", description: "Configure store polygons, exclusion zones, partner geofences, and corporate routing eligibility", category: "Branch & Delivery" },
 
   // STAFF MANAGEMENT
   { id: "STAFF_MANAGEMENT.VIEW", module: "STAFF_MANAGEMENT", action: "VIEW", label: "View Staff & Profiles", description: "Browse staff directory and access profiles", category: "Administration & Security" },
@@ -254,6 +256,23 @@ export const PERMISSION_CATALOG: PermissionDefinition[] = [
   { id: "CORPORATE_GIFTING.TEMPLATE",   module: "CORPORATE_GIFTING", action: "TEMPLATE",   label: "Download Gifting Template", description: "Download official Excel ingestion template", category: "Corporate & Institutional" },
   { id: "CORPORATE_GIFTING.VALIDATE",   module: "CORPORATE_GIFTING", action: "VALIDATE",   label: "Validate Gifting Batches",  description: "Execute read-only dry-run validation of recipient workbooks", category: "Corporate & Institutional" },
   { id: "CORPORATE_GIFTING.EXECUTE",    module: "CORPORATE_GIFTING", action: "EXECUTE",    label: "Execute Gifting Batches",   description: "Execute approved corporate gifting batch import and invoice generation", category: "Corporate & Institutional" },
+
+  // CORPORATE ACCOUNTS & EMPLOYEE ROSTER (Phase C7.9)
+  { id: "CORPORATE_ACCOUNTS.VIEW",            module: "CORPORATE_ACCOUNTS",  action: "VIEW",            label: "View Corporate Accounts",       description: "Read corporate account master records, contacts, and membership", category: "Corporate & Institutional" },
+  { id: "CORPORATE_ACCOUNTS.CREATE",          module: "CORPORATE_ACCOUNTS",  action: "CREATE",          label: "Create Corporate Account",      description: "Draft and submit new corporate account registration", category: "Corporate & Institutional" },
+  { id: "CORPORATE_ACCOUNTS.UPDATE",          module: "CORPORATE_ACCOUNTS",  action: "UPDATE",          label: "Update Corporate Account",      description: "Update corporate account profile, addresses, and contacts", category: "Corporate & Institutional" },
+  { id: "CORPORATE_ACCOUNTS.CREDIT_REQUEST",  module: "CORPORATE_ACCOUNTS",  action: "CREDIT_REQUEST",  label: "Request Corporate Credit",      description: "Request credit terms and limit for approved corporate accounts", category: "Corporate & Institutional" },
+  { id: "CORPORATE_ACCOUNTS.APPROVE",         module: "CORPORATE_ACCOUNTS",  action: "APPROVE",         label: "Approve Corporate Account",     description: "Approve pending corporate account applications (Super Admin only)", category: "Corporate & Institutional" },
+  { id: "CORPORATE_ACCOUNTS.SUSPEND",         module: "CORPORATE_ACCOUNTS",  action: "SUSPEND",         label: "Suspend/Close Corporate Account", description: "Suspend, reactivate, or close corporate accounts (Super Admin only)", category: "Corporate & Institutional" },
+  { id: "CORPORATE_ACCOUNTS.CREDIT_ACTIVATE", module: "CORPORATE_ACCOUNTS",  action: "CREDIT_ACTIVATE", label: "Activate Corporate Credit",     description: "Authoritatively activate corporate customer credit terms (Super Admin only)", category: "Corporate & Institutional" },
+  { id: "CORPORATE_ACCOUNTS.MEMBERS",         module: "CORPORATE_ACCOUNTS",  action: "MEMBERS",         label: "Manage Corporate Members",      description: "Grant or revoke account-scoped staff roster access (Super Admin only)", category: "Corporate & Institutional" },
+  { id: "CORPORATE_EMPLOYEES.VIEW",           module: "CORPORATE_EMPLOYEES", action: "VIEW",            label: "View Employee Roster",          description: "Read employee roster profiles and delivery coordinates", category: "Corporate & Institutional" },
+  { id: "CORPORATE_EMPLOYEES.MANAGE",         module: "CORPORATE_EMPLOYEES", action: "MANAGE",          label: "Manage Employee Roster",        description: "Add, update, deactivate, and reactivate corporate employees", category: "Corporate & Institutional" },
+  { id: "CORPORATE_EMPLOYEES.IMPORT",         module: "CORPORATE_EMPLOYEES", action: "IMPORT",          label: "Import Employee Roster",        description: "Upload and commit employee roster batches via CSV", category: "Corporate & Institutional" },
+  
+  // CORPORATE ROUTING (Phase C7.11)
+  { id: "CORPORATE_ROUTING.VIEW",             module: "CORPORATE_ROUTING",   action: "VIEW",            label: "View Corporate Routing",        description: "Read corporate delivery assignments, matching diagnostics, and audit events", category: "Corporate & Institutional" },
+  { id: "CORPORATE_ROUTING.MANAGE",           module: "CORPORATE_ROUTING",   action: "MANAGE",          label: "Manage Corporate Routing",      description: "Execute single and batch corporate geographic matching and persist assignments", category: "Corporate & Institutional" },
 ];
 
 // ── PRE-SEEDED SYSTEM ACCESS PROFILES ──────────────────────────────────────
@@ -384,9 +403,37 @@ export const SYSTEM_ACCESS_PROFILES: AccessProfile[] = [
       "INVENTORY.VIEW",
       "INVENTORY.EDIT",
       "DELIVERY.VIEW",
+      "TELLER.VIEW",
+      "TELLER.SESSION_OPEN",
+      "TELLER.MOVEMENT_CREATE",
+      "TELLER.SESSION_CLOSE",
     ],
     created_at: "2026-08-01T00:00:00.000Z",
     updated_at: "2026-08-16T08:00:00.000Z",
+  },
+  {
+    id: "prof_store_supervisor",
+    name: "Store Supervisor",
+    slug: "store-supervisor",
+    description: "Branch shift oversight, drawer verification, cash settlement, and operational audit.",
+    status: "ACTIVE",
+    is_system: true,
+    permissions: [
+      "BRANCHES.VIEW",
+      "ORDERS.VIEW",
+      "ORDERS.VIEW_DETAILS",
+      "TELLER.VIEW",
+      "TELLER.SESSION_VERIFY",
+      "TELLER.SETTLE",
+      "TELLER.REPORT_VIEW",
+      "TELLER.SAFE_DROP",
+      "TELLER.SAFE_TO_TILL",
+      "BANK.VIEW",
+      "BANK.DEPOSIT_PREPARE",
+      "BANK.DEPOSIT_APPROVE",
+    ],
+    created_at: "2026-08-01T00:00:00.000Z",
+    updated_at: "2026-10-16T08:00:00.000Z",
   },
   {
     id: "prof_delivery_ops",
@@ -713,6 +760,23 @@ class StaffAccessControlStore {
         if ((normalizedModule === "GATEWAY" || normalizedModule === "BANK") && normalizedAction === "VIEW") {
           return true;
         }
+        if (
+          normalizedModule === "TELLER" &&
+          ["VIEW", "SESSION_OPEN", "MOVEMENT_CREATE", "SESSION_CLOSE"].includes(normalizedAction)
+        ) {
+          return true;
+        }
+      }
+      if (role === "SUPERVISOR" || role === "STORE_SUPERVISOR" || role === "FINANCE_CONTROLLER") {
+        if (
+          normalizedModule === "TELLER" &&
+          ["VIEW", "SESSION_VERIFY", "SETTLE", "REPORT_VIEW", "SAFE_DROP", "SAFE_TO_TILL"].includes(normalizedAction)
+        ) {
+          return true;
+        }
+        if (normalizedModule === "BRANCHES" || normalizedModule === "ORDERS" || normalizedModule === "REPORTS") {
+          return true;
+        }
       }
       if (role === "DELIVERY_PARTNER" && normalizedModule === "DELIVERY") {
         return true;
@@ -828,6 +892,7 @@ class StaffAccessControlStore {
       search_engine: { module: "PRODUCTS", action: "VIEW" },
       branches: { module: "BRANCHES", action: "VIEW" },
       delivery: { module: "DELIVERY", action: "VIEW" },
+      delivery_coverage: { module: "DELIVERY", action: "VIEW_COVERAGE" },
       tax_master: { module: "TAX_MASTER", action: "VIEW" },
       abandoned_carts: { module: "ORDERS", action: "VIEW" },
       telemarketing: { module: "TELEMARKETING", action: "VIEW" },
@@ -852,7 +917,9 @@ class StaffAccessControlStore {
       teller_custody: { module: "TELLER", action: "VIEW" },
       manual_journals: { module: "ACCOUNTING", action: "VIEW" },
       cost_allocations: { module: "COST_ALLOCATION", action: "VIEW" },
+      corporate_accounts: { module: "CORPORATE_ACCOUNTS", action: "VIEW" },
       corporate_gifting: { module: "CORPORATE_GIFTING", action: "VIEW" },
+      corporate_routing_review: { module: "CORPORATE_ROUTING", action: "VIEW" },
       fleet: { module: "FLEET", action: "VIEW" },
       staff_profiles: { module: "STAFF_MANAGEMENT", action: "VIEW" },
       gateway_settlements: { module: "GATEWAY", action: "VIEW" },

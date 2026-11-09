@@ -1,0 +1,34 @@
+{
+  "generated_at": "2026-11-06T00:25:16.162Z",
+  "reports_directory": "E:\\vig\\cakes2home-main\\cakes2home-main\\reports\\cross-app-integration",
+  "artifacts": {
+    "CROSS_APP_ARCHITECTURE_AUDIT.md": "7a88756078d1688cc751ece7c2ec77e79152bb41dae4184cdfaa61b36fce5bc9",
+    "APPLICATION_DEPENDENCY_REGISTER.md": "4d05d2591aabd9db952b4451c503f26dc89cf899f0a0a6c9e46995d1ae8f73eb",
+    "BUSINESS_DATA_SOURCE_OF_TRUTH.md": "8cca2d83573a910f49ba12b7f271a5bd3dee5b9c98b92ad4ea78d21abc0f633d",
+    "CROSS_APP_EVENT_ARCHITECTURE.md": "fe0f2dbb01a61699431568b61fa8075dd5669e30119eec28d83c5864002e03a7",
+    "FEATURE_INTEGRATION_MATRIX.md": "fa0c7acdda4184a93428a8b34497b2f09c25778a81d90340b1a32e4342f06f48",
+    "API_AND_CACHE_INVALIDATION_REGISTER.md": "4d14850c3bc06dc34a03cc7c8f7b21d2cb03b1acaf202871ea3abdddf1013dd2",
+    "ACCOUNTING_CROSS_APP_SYNC_REPORT.md": "e3dfcde88997e39d5e17a4f94ebea0d63876e16c01702af59763f83bc1843eae",
+    "CASHFREE_SETTLEMENT_END_TO_END_SYNC_REPORT.md": "5a16dd96f1e8ee143c80980442e7acf036b0ad08ed4efe633a280cca947ea2d8",
+    "ORDER_AND_INVENTORY_SYNC_REPORT.md": "8e107fe3526fff1300a68efe821bdd71eb35f65e5635444fbab4c7c0d65d637b",
+    "REPORTING_CONSISTENCY_REPORT.md": "259631e27fd0ab92aef3db9b2f12754a288a555c40ac782a792cbf5843e545d4",
+    "SECURITY_AND_TENANT_ISOLATION_REPORT.md": "09c531840cda9ae5b7dd24107d8a5f9e8f59170c4dd94d54f943e2fe7478a505",
+    "EVENT_RELIABILITY_AND_RECOVERY_REPORT.md": "fb0168353651b5e03f3d76c290c42066337d5e41d54991ebfa19d5ced3460065",
+    "CROSS_APP_E2E_TEST_REPORT.md": "2d4d7fcaabe164e54a9fccd185abb2317d9a9db0eabcabe2c7ccc749bdabd27c",
+    "PERFORMANCE_REPORT.md": "473c63bdb65793b3eeb1aed7d1a4759a088f59624d038991ab457a096a16c9d3",
+    "KNOWN_GAPS_AND_DEFECT_REGISTER.md": "724fe7d64af2c71fc3a61b62d5211b6407f6c907d6552e358502716e6e8fec73",
+    "FINAL_CROSS_APP_INTEGRATION_REPORT.md": "6aa7684d51a057143284a2f859bc1d2638203b4b485670866b7ce31a65bab4d0",
+    "CROSS_APP_TEST_MANIFEST.json": "5c43558561329b2ae4bf36e05c1421eeab92fc74ef32d9094a975f862e740ab8",
+    "DATABASE_INTEGRITY_MANIFEST.json": "2d0b3e6851060b4baf9dcb36bcecdd6d39810f2eceb47df9c914acebb40274ef"
+  },
+  "visual_screenshots": {
+    "01_accounting_banking_dashboard.png": "0bcea6024dfb68558d72bba084eac20b4b1193d8b81942392fbd9c98c335c783",
+    "02_bank_accounts_register.png": "156c5893b79ef8c0b283045ae0f2e447e8e236e7c2a39db4b6270b4b13733744",
+    "03_cashfree_settlements_clearing.png": "bca3a119093d015bb050f2fea8f5ab3aa15288dcb3bd69d9a71bb0aab3a5e060",
+    "04_bank_reconciliation_statement.png": "61afc154ea24e2793a5a79516cf37ccde43554c081c5d4d0770fa6fd2ec1733b",
+    "05_admin_orders_register.png": "25e275d102fef1dc4c3d580bbab03505ef1aef11048869ba99b74c29c4793ae2",
+    "06_branch_manager_operations.png": "c23ca20d221429e709139c0cf3f3d8ed2dd179fef2fd8a84dd317d913211ee9a",
+    "07_statutory_tax_invoice.png": "c23ca20d221429e709139c0cf3f3d8ed2dd179fef2fd8a84dd317d913211ee9a",
+    "08_chart_of_accounts_hierarchy.png": "7ae45f0e51586b94ae18c26e8201f9ebf9907a92ecd21628d31279822b3195a2"
+  }
+}

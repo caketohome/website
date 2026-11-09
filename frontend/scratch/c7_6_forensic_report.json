@@ -1,0 +1,1075 @@
+{
+  "cost_centre_columns": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "('cc_'::text || (gen_random_uuid())::text)"
+    },
+    {
+      "column_name": "code",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "name",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "department",
+      "data_type": "character varying",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "column_name": "parent_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "company_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "branch_id",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "is_active",
+      "data_type": "boolean",
+      "is_nullable": "NO",
+      "column_default": "true"
+    },
+    {
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "YES",
+      "column_default": "'{}'::jsonb"
+    },
+    {
+      "column_name": "created_by",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "column_name": "deleted_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": null
+    }
+  ],
+  "cost_centre_constraints": [
+    {
+      "conname": "cost_centre_branch_id_fkey",
+      "contype": "f",
+      "def": "FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "cost_centre_code_key",
+      "contype": "u",
+      "def": "UNIQUE (code)"
+    },
+    {
+      "conname": "cost_centre_company_id_fkey",
+      "contype": "f",
+      "def": "FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "cost_centre_created_by_fkey",
+      "contype": "f",
+      "def": "FOREIGN KEY (created_by) REFERENCES \"user\"(id) ON DELETE SET NULL"
+    },
+    {
+      "conname": "cost_centre_parent_id_fkey",
+      "contype": "f",
+      "def": "FOREIGN KEY (parent_id) REFERENCES cost_centre(id) ON DELETE RESTRICT"
+    },
+    {
+      "conname": "cost_centre_pkey",
+      "contype": "p",
+      "def": "PRIMARY KEY (id)"
+    }
+  ],
+  "cost_centre_indexes": [
+    {
+      "indexname": "cost_centre_pkey",
+      "indexdef": "CREATE UNIQUE INDEX cost_centre_pkey ON public.cost_centre USING btree (id)"
+    },
+    {
+      "indexname": "cost_centre_code_key",
+      "indexdef": "CREATE UNIQUE INDEX cost_centre_code_key ON public.cost_centre USING btree (code)"
+    },
+    {
+      "indexname": "idx_cost_centre_code",
+      "indexdef": "CREATE INDEX idx_cost_centre_code ON public.cost_centre USING btree (code)"
+    },
+    {
+      "indexname": "idx_cost_centre_department",
+      "indexdef": "CREATE INDEX idx_cost_centre_department ON public.cost_centre USING btree (department)"
+    },
+    {
+      "indexname": "idx_cost_centre_parent_id",
+      "indexdef": "CREATE INDEX idx_cost_centre_parent_id ON public.cost_centre USING btree (parent_id)"
+    },
+    {
+      "indexname": "idx_cost_centre_branch_id",
+      "indexdef": "CREATE INDEX idx_cost_centre_branch_id ON public.cost_centre USING btree (branch_id)"
+    },
+    {
+      "indexname": "idx_cost_centre_company_id",
+      "indexdef": "CREATE INDEX idx_cost_centre_company_id ON public.cost_centre USING btree (company_id)"
+    }
+  ],
+  "cost_centre_row_count": 0,
+  "cost_centre_rows": [],
+  "voucher_cost_centre_col": [
+    {
+      "column_name": "cost_centre_id",
+      "data_type": "text",
+      "is_nullable": "YES"
+    }
+  ],
+  "journal_line_cost_centre_col": [
+    {
+      "column_name": "cost_centre_id",
+      "data_type": "text",
+      "is_nullable": "YES"
+    }
+  ],
+  "vouchers_with_cost_centre": 0,
+  "lines_with_cost_centre": 0,
+  "company_columns": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "legal_name",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "trade_name",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "registered_address",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "city",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "state_code",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "pin_code",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "pan",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "cin",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "fssai",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "currency",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "fy_start_month",
+      "data_type": "integer",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "invoice_prefix",
+      "data_type": "text",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "phone",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "email",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "website",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "is_active",
+      "data_type": "boolean",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "metadata",
+      "data_type": "jsonb",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "created_by",
+      "data_type": "text",
+      "is_nullable": "YES"
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO"
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO"
+    }
+  ],
+  "company_rows": [],
+  "branch_columns": [
+    "id",
+    "name",
+    "code",
+    "is_open",
+    "phone",
+    "email",
+    "address",
+    "latitude",
+    "longitude",
+    "shop_id",
+    "city_id",
+    "region_id",
+    "metadata",
+    "created_at",
+    "updated_at",
+    "deleted_at"
+  ],
+  "branch_count": 57,
+  "branch_sample": [
+    {
+      "id": "br_01KYWH9YFVV5AK15D6313HB1NC",
+      "name": "Postgres Pipeline Branch 1785516587008",
+      "code": "HUB-976",
+      "is_open": true,
+      "phone": "+91 98765 88888",
+      "email": "pg_branch_1785516587008@cakes2home.com",
+      "address": "100 Feet Road, Indiranagar, Bengaluru",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "shop_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "city_id": null,
+      "region_id": null,
+      "metadata": {
+        "gstin": "29AABCU9603R1ZM",
+        "state": "Karnataka",
+        "max_drawer_cash_limit": 25000,
+        "petty_cash_imprest_limit": 5000
+      },
+      "created_at": "2026-07-31T16:49:47.515Z",
+      "updated_at": "2026-07-31T16:49:47.515Z",
+      "deleted_at": null
+    },
+    {
+      "id": "br_01KYWH0RTHVHRD04J79T28RAHN",
+      "name": "Full Pipeline PostgreSQL Hub 1785516286194",
+      "code": "HUB-365",
+      "is_open": true,
+      "phone": "+91 98765 88888",
+      "email": "pipeline_hub_1785516286194@cakes2home.com",
+      "address": "100 Feet Road, Indiranagar, Bengaluru",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "shop_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "city_id": "city_bbr",
+      "region_id": null,
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [],
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": null,
+        "weekly_schedule": {},
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Road, Indiranagar, Bengaluru",
+        "fulfillment_rules": {},
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "product_availability": {},
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      },
+      "created_at": "2026-07-31T16:44:46.805Z",
+      "updated_at": "2026-09-16T10:53:39.824Z",
+      "deleted_at": "2026-09-16T10:53:39.706Z"
+    },
+    {
+      "id": "br_01KYWHBCDMVT74MM27BTJFRSNB",
+      "name": "Postgres Pipeline Branch 1785516633599",
+      "code": "HUB-986",
+      "is_open": true,
+      "phone": "+91 98765 88888",
+      "email": "pg_branch_1785516633599@cakes2home.com",
+      "address": "100 Feet Road, Indiranagar, Bengaluru",
+      "latitude": 12.9716,
+      "longitude": 77.6412,
+      "shop_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "city_id": null,
+      "region_id": null,
+      "metadata": {
+        "max_drawer_cash_limit": 25000,
+        "petty_cash_imprest_limit": 5000
+      },
+      "created_at": "2026-07-31T16:50:34.549Z",
+      "updated_at": "2026-07-31T16:50:34.549Z",
+      "deleted_at": null
+    }
+  ],
+  "head_office_or_central_branches": [
+    {
+      "id": "br_1788949580698",
+      "name": "Kollam Central Cake Studio",
+      "code": "HUB-KLM-01HUB-KLM-99",
+      "is_open": true,
+      "phone": "+91 98765 43210",
+      "email": "kollam.manager@cakes2home.com",
+      "address": "Main Road, Kollam Town, Kollam",
+      "latitude": 8.8932,
+      "longitude": 76.6141,
+      "shop_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "city_id": "city_klm",
+      "region_id": null,
+      "metadata": {
+        "city": "Kollam",
+        "state": "Kerala",
+        "city_id": "city_klm",
+        "pincode": "691001",
+        "state_id": "state_kl",
+        "manager_id": null,
+        "state_code": "KL",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "zone_br_1788949580698_primary",
+            "name": "Kollam Central Cake Studio Primary Zone",
+            "areas": [
+              "Kollam"
+            ],
+            "max_km": 15,
+            "min_km": 0,
+            "enabled": true,
+            "base_fee": 49,
+            "pincodes": [
+              "691001"
+            ],
+            "branch_id": "br_1788949580698",
+            "radius_km": 15,
+            "express_allowed": true,
+            "midnight_allowed": true,
+            "max_serviceable_km": 15,
+            "remaining_radius_km": 0
+          }
+        ],
+        "extended_status": "open",
+        "location_source": "MANUAL_MAP",
+        "manager_account": {
+          "name": "Kollam Manager",
+          "email": "kollam.manager@cakes2home.com",
+          "phone": "+91 98765 43210",
+          "status": "active"
+        },
+        "weekly_schedule": {},
+        "capacity_settings": {
+          "current_load": 0,
+          "busy_threshold": 80,
+          "emergency_stop": false,
+          "is_auto_paused": false,
+          "max_hourly_orders": 25,
+          "auto_pause_enabled": true,
+          "max_express_orders": 20,
+          "max_midnight_orders": 15,
+          "max_scheduled_orders": 50,
+          "max_simultaneous_orders": 15
+        },
+        "deliverable_areas": [
+          "Kollam"
+        ],
+        "formatted_address": "Main Road, Kollam Town, Kollam",
+        "fulfillment_rules": {},
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "product_availability": {},
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      },
+      "created_at": "2026-09-09T10:26:22.562Z",
+      "updated_at": "2026-09-09T10:26:22.562Z",
+      "deleted_at": null
+    },
+    {
+      "id": "br_koramangala",
+      "name": "Koramangala Central Hub",
+      "code": "HUB-BLR-02",
+      "is_open": true,
+      "phone": "+91 98765 00002",
+      "email": "koramangala@cakes2home.com",
+      "address": "80 Feet Rd, 4th Block, Koramangala",
+      "latitude": 12.9352,
+      "longitude": 77.6245,
+      "shop_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "city_id": "city_bbr",
+      "region_id": null,
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_koramangala_z1",
+            "name": "Pincode 560034",
+            "enabled": true,
+            "pincode": "560034",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_koramangala",
+            "radius_km": 5,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_koramangala_z2",
+            "name": "Pincode 560102",
+            "enabled": true,
+            "pincode": "560102",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_koramangala",
+            "radius_km": 10,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": null,
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "08:30",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "08:30",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "08:30",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "08:30",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "08:30",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "08:30",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "08:30",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "80 Feet Rd, 4th Block, Koramangala",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 15,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 49,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 79,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 30,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 45,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 45,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 45,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 45,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:38:58.162Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:38:58.162Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:38.143Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:38.143Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:38.143Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      },
+      "created_at": "2026-08-28T04:07:08.740Z",
+      "updated_at": "2026-09-20T12:38:57.852Z",
+      "deleted_at": null
+    },
+    {
+      "id": "br_kollam_central",
+      "name": "Kollam Central Cake Studio",
+      "code": "HUB-KLM-01",
+      "is_open": true,
+      "phone": "+91 98470 00002",
+      "email": "kollam@cakes2home.com",
+      "address": "Residency Rd, Chinnakada, Kollam",
+      "latitude": 8.890075,
+      "longitude": 76.616464,
+      "shop_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+      "city_id": "city_klm",
+      "region_id": null,
+      "metadata": {
+        "city": "Kollam",
+        "state": "Kerala",
+        "city_id": "city_klm",
+        "pincode": "691001",
+        "state_id": "state_kl",
+        "manager_id": null,
+        "state_code": "KL",
+        "branch_type": "main_hub",
+        "manager_name": "Branch Manager",
+        "extended_status": "open",
+        "manager_account": {
+          "name": "Branch Manager",
+          "email": "kollam@cakes2home.com",
+          "phone": "+91 98470 00002",
+          "status": "active"
+        },
+        "weekly_schedule": {},
+        "capacity_settings": {
+          "current_load": 0,
+          "busy_threshold": 80,
+          "emergency_stop": false,
+          "is_auto_paused": false,
+          "max_hourly_orders": 25,
+          "auto_pause_enabled": true,
+          "max_express_orders": 20,
+          "max_midnight_orders": 15,
+          "max_scheduled_orders": 50,
+          "max_simultaneous_orders": 15
+        },
+        "deliverable_areas": [
+          "Kollam"
+        ],
+        "formatted_address": "Residency Rd, Chinnakada, Kollam",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "allow_delivery": true,
+          "express_cutoff": "20:00",
+          "midnight_cutoff": "21:00",
+          "same_day_cutoff": "18:00",
+          "prep_time_minutes": 120
+        },
+        "operational_status": "operational",
+        "product_availability": {},
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 20,
+        "petty_cash_imprest_limit": 15000
+      },
+      "created_at": "2026-08-28T04:07:08.740Z",
+      "updated_at": "2026-09-09T12:05:04.283Z",
+      "deleted_at": null
+    }
+  ],
+  "entity_cost_centre_columns": {
+    "expense": [],
+    "purchase": [],
+    "purchase_payment": [],
+    "invoice": [],
+    "customer": [],
+    "supplier": [],
+    "order": []
+  },
+  "allocation_tables": [
+    "purchase_payment_allocation",
+    "customer_receipt_allocation"
+  ],
+  "coa_count": 100,
+  "coa_groups": [
+    {
+      "code": "1000",
+      "name": "Assets",
+      "type": "ASSET",
+      "subtype": "CURRENT_ASSET",
+      "is_group": true,
+      "parent_id": null
+    },
+    {
+      "code": "1100",
+      "name": "Current Assets",
+      "type": "ASSET",
+      "subtype": "CURRENT_ASSET",
+      "is_group": true,
+      "parent_id": "49a86d8e-93d7-4ae2-83d6-59f5b4a2d93d"
+    },
+    {
+      "code": "1110",
+      "name": "Cash and Cash Equivalents",
+      "type": "ASSET",
+      "subtype": "CURRENT_ASSET",
+      "is_group": true,
+      "parent_id": "30e76f8a-b1f5-451d-a8e6-49748beafdd8"
+    },
+    {
+      "code": "1120",
+      "name": "Receivables and Advances",
+      "type": "ASSET",
+      "subtype": "CURRENT_ASSET",
+      "is_group": true,
+      "parent_id": "30e76f8a-b1f5-451d-a8e6-49748beafdd8"
+    },
+    {
+      "code": "1130",
+      "name": "Inventories",
+      "type": "ASSET",
+      "subtype": "CURRENT_ASSET",
+      "is_group": true,
+      "parent_id": "30e76f8a-b1f5-451d-a8e6-49748beafdd8"
+    },
+    {
+      "code": "1140",
+      "name": "Duties & Taxes - Input Tax Credit",
+      "type": "ASSET",
+      "subtype": "CURRENT_ASSET",
+      "is_group": true,
+      "parent_id": "30e76f8a-b1f5-451d-a8e6-49748beafdd8"
+    },
+    {
+      "code": "1500",
+      "name": "Fixed Assets (PP&E)",
+      "type": "ASSET",
+      "subtype": "FIXED_ASSET",
+      "is_group": true,
+      "parent_id": "49a86d8e-93d7-4ae2-83d6-59f5b4a2d93d"
+    },
+    {
+      "code": "2000",
+      "name": "Liabilities",
+      "type": "LIABILITY",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": true,
+      "parent_id": null
+    },
+    {
+      "code": "2100",
+      "name": "Current Liabilities",
+      "type": "LIABILITY",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": true,
+      "parent_id": "4197cc79-08a0-402b-9010-440ba54ad9ab"
+    },
+    {
+      "code": "2110",
+      "name": "Trade Payables",
+      "type": "LIABILITY",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": true,
+      "parent_id": "dedf9b0f-104d-495f-a06f-b3519955c449"
+    },
+    {
+      "code": "2120",
+      "name": "Duties & Taxes - Output Tax Liability",
+      "type": "LIABILITY",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": true,
+      "parent_id": "dedf9b0f-104d-495f-a06f-b3519955c449"
+    },
+    {
+      "code": "2140",
+      "name": "Advances & Unearned Revenue",
+      "type": "LIABILITY",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": true,
+      "parent_id": "dedf9b0f-104d-495f-a06f-b3519955c449"
+    },
+    {
+      "code": "2150",
+      "name": "Operating Accruals & Staff Payables",
+      "type": "LIABILITY",
+      "subtype": "CURRENT_LIABILITY",
+      "is_group": true,
+      "parent_id": "dedf9b0f-104d-495f-a06f-b3519955c449"
+    },
+    {
+      "code": "2500",
+      "name": "Long-Term Liabilities",
+      "type": "LIABILITY",
+      "subtype": "LONG_TERM_LIABILITY",
+      "is_group": true,
+      "parent_id": "4197cc79-08a0-402b-9010-440ba54ad9ab"
+    },
+    {
+      "code": "3000",
+      "name": "Equity",
+      "type": "EQUITY",
+      "subtype": "CAPITAL",
+      "is_group": true,
+      "parent_id": null
+    },
+    {
+      "code": "3100",
+      "name": "Capital & Reserves",
+      "type": "EQUITY",
+      "subtype": "CAPITAL",
+      "is_group": true,
+      "parent_id": "25ba5681-9be5-4121-af17-ff59623fa861"
+    },
+    {
+      "code": "3200",
+      "name": "Retained Earnings Group",
+      "type": "EQUITY",
+      "subtype": "RETAINED_EARNINGS",
+      "is_group": true,
+      "parent_id": "25ba5681-9be5-4121-af17-ff59623fa861"
+    },
+    {
+      "code": "4000",
+      "name": "Revenue",
+      "type": "REVENUE",
+      "subtype": "DIRECT_REVENUE",
+      "is_group": true,
+      "parent_id": null
+    },
+    {
+      "code": "4100",
+      "name": "Operating Revenue",
+      "type": "REVENUE",
+      "subtype": "DIRECT_REVENUE",
+      "is_group": true,
+      "parent_id": "ba438b5c-9c5b-4620-8b8f-b4b1fc82e9a4"
+    },
+    {
+      "code": "4200",
+      "name": "Other / Indirect Income",
+      "type": "REVENUE",
+      "subtype": "INDIRECT_REVENUE",
+      "is_group": true,
+      "parent_id": "ba438b5c-9c5b-4620-8b8f-b4b1fc82e9a4"
+    },
+    {
+      "code": "5000",
+      "name": "Expenses",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": true,
+      "parent_id": null
+    },
+    {
+      "code": "5100",
+      "name": "Cost of Goods Sold (COGS)",
+      "type": "EXPENSE",
+      "subtype": "COGS",
+      "is_group": true,
+      "parent_id": "03259507-b718-46b1-9eef-197c417c7878"
+    },
+    {
+      "code": "5200",
+      "name": "Operational & Administrative Expenses",
+      "type": "EXPENSE",
+      "subtype": "OPERATING_EXPENSE",
+      "is_group": true,
+      "parent_id": "03259507-b718-46b1-9eef-197c417c7878"
+    },
+    {
+      "code": "5300",
+      "name": "Financial & Depreciation Expenses",
+      "type": "EXPENSE",
+      "subtype": "FINANCIAL_EXPENSE",
+      "is_group": true,
+      "parent_id": "03259507-b718-46b1-9eef-197c417c7878"
+    }
+  ],
+  "voucher_types": [
+    {
+      "voucher_type": "EXPENSE",
+      "count": "3"
+    },
+    {
+      "voucher_type": "JOURNAL",
+      "count": "2"
+    },
+    {
+      "voucher_type": "SALES",
+      "count": "1"
+    }
+  ]
+}

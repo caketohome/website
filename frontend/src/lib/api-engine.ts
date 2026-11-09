@@ -562,8 +562,8 @@ export interface DeliveryDefaultsSettings {
 }
 
 export interface PaymentSettings {
-  supported_methods: Array<"cod" | "razorpay" | "wallet" | "test_mode">;
-  razorpay_key_id?: string;
+  supported_methods: Array<"cod" | "cashfree" | "wallet" | "test_mode">;
+  cashfree_app_id?: string;
   cod_max_limit: number;
   cod_surcharge: number;
   default_currency: string;
@@ -715,7 +715,7 @@ const DEFAULT_BUSINESS_PROFILE: BusinessProfile = {
   legal_name: "CakeToHome India Private Limited",
   trade_name: "CakeToHome",
   business_type: "PRIVATE_LIMITED",
-  pan: "AAACC1234F",
+  pan: "AABCC1234F",
   tan: "BLRC12345D",
   cin: "U15400KA2024PTC189001",
   registered_email: "compliance@cakes2home.com",
@@ -753,7 +753,7 @@ const DEFAULT_BUSINESS_PROFILE: BusinessProfile = {
 const DEFAULT_GST_REGISTRATIONS: GstRegistrationItem[] = [
   {
     id: "gst_ka",
-    gstin: "29AAAAA0000A1Z5",
+    gstin: "29AABCC1234F1Z5",
     legal_name: "CakeToHome India Private Limited",
     trade_name: "CakeToHome Karnataka",
     registration_type: "REGULAR",
@@ -1096,8 +1096,8 @@ const DEFAULT_DELIVERY_DEFAULTS: DeliveryDefaultsSettings = {
 };
 
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
-  supported_methods: ["cod", "razorpay", "test_mode", "wallet"],
-  razorpay_key_id: "rzp_test_placeholder_key",
+  supported_methods: ["cod", "cashfree", "test_mode", "wallet"],
+  cashfree_app_id: "TEST_CF_APP_ID",
   cod_max_limit: 5000,
   cod_surcharge: 0,
   default_currency: "INR",
@@ -1317,8 +1317,11 @@ const DEFAULT_DELIVERIES = [
 ];
 
 const DEFAULT_DELIVERY_PARTNERS = [
-  { id: "dlp_01", first_name: "Ramesh", last_name: "Rider", name: "Ramesh Rider", phone: "+91 99000 11111", status: "active", rating: 4.9, completed_trips: 142 },
-  { id: "dlp_02", first_name: "Mahesh", last_name: "Rider", name: "Mahesh Rider", phone: "+91 99000 22222", status: "active", rating: 4.8, completed_trips: 98 },
+  { id: "dlp_01", first_name: "Ramesh", last_name: "Rider", name: "Ramesh Rider", phone: "+91 99000 11111", status: "active", rating: 4.9, completed_trips: 142, primary_branch_id: "br_indiranagar", associated_branches: ["br_indiranagar", "res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "dlp_02", first_name: "Mahesh", last_name: "Rider", name: "Mahesh Rider", phone: "+91 99000 22222", status: "active", rating: 4.8, completed_trips: 98, primary_branch_id: "br_indiranagar", associated_branches: ["br_indiranagar", "res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "dlp_03", first_name: "Suresh", last_name: "Rider", name: "Suresh Rider", phone: "+91 99000 33333", status: "active", rating: 4.7, completed_trips: 84, primary_branch_id: "br_indiranagar", associated_branches: ["br_indiranagar", "res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "dlp_04", first_name: "Ganesh", last_name: "Rider", name: "Ganesh Rider", phone: "+91 99000 44444", status: "active", rating: 4.9, completed_trips: 110, primary_branch_id: "br_indiranagar", associated_branches: ["br_indiranagar", "res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
+  { id: "dlp_101", first_name: "Ravi", last_name: "Kumar", name: "Ravi Kumar", phone: "+91 98765 00101", status: "active", rating: 4.9, completed_trips: 120, primary_branch_id: "br_indiranagar", associated_branches: ["br_indiranagar", "res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
 ];
 
 const DEFAULT_SETTINGS = {
@@ -2418,8 +2421,8 @@ const DEFAULT_ACCESSORIES: AccessoryItem[] = [
     stock: 45,
     low_stock_threshold: 5,
     gst_rate: 18,
-    thumbnail: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400",
-    images: ["https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400"],
+    thumbnail: "/images/gold-acrylic-topper.jpg",
+    images: ["/images/gold-acrylic-topper.jpg"],
     description: "Premium mirror gold finish acrylic topper for birthday cakes.",
     status: "active",
     weight: "50g",
@@ -2439,8 +2442,8 @@ const DEFAULT_ACCESSORIES: AccessoryItem[] = [
     stock: 80,
     low_stock_threshold: 10,
     gst_rate: 18,
-    thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400",
-    images: ["https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400"],
+    thumbnail: "/images/birthday-candles.jpg",
+    images: ["/images/birthday-candles.jpg"],
     description: "Fun magic trick candles that relight automatically after blowing out.",
     status: "active",
     weight: "30g",
@@ -3557,10 +3560,10 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     max_delivery_radius_km: 15,
     city_id: "city_bbr",
     hierarchy: { region_id: "reg_south", state_id: "st_ka", city_id: "city_bbr", zone_id: "zone_east", kitchen_id: "ktch_01" },
-    gst_number: "29AAAAA0000A1Z5",
+    gst_number: "29AABCC1234F1Z5",
     is_branch_gst: true,
     fssai_number: "11223344556677",
-    pan_number: "AAAAA0000A",
+    pan_number: "AABCC1234F",
     address: "100 Feet Rd, 12th Main, Indiranagar",
     city: "Bengaluru",
     state: "Karnataka",
@@ -3730,10 +3733,10 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     max_delivery_radius_km: 10,
     city_id: "city_bbr",
     hierarchy: { region_id: "reg_south", state_id: "state_ka", city_id: "city_bbr", zone_id: "zone_south", kitchen_id: "ktch_02" },
-    gst_number: "29AAAAA0000A1Z5",
+    gst_number: "29AABCC1234F1Z5",
     is_branch_gst: false,
     fssai_number: "11223344556688",
-    pan_number: "AAAAA0000A",
+    pan_number: "AABCC1234F",
     address: "80 Feet Rd, 4th Block, Koramangala",
     city: "Bengaluru",
     state: "Karnataka",
@@ -3807,10 +3810,10 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     max_delivery_radius_km: 12,
     city_id: "city_bbr",
     hierarchy: { region_id: "reg_south", state_id: "state_ka", city_id: "city_bbr", zone_id: "zone_east", kitchen_id: "ktch_03" },
-    gst_number: "29AAAAA0000A1Z5",
+    gst_number: "29AABCC1234F1Z5",
     is_branch_gst: true,
     fssai_number: "11223344556700",
-    pan_number: "AAAAA0000A",
+    pan_number: "AABCC1234F",
     address: "ITPL Main Rd, Whitefield",
     city: "Bengaluru",
     state: "Karnataka",
@@ -4516,7 +4519,7 @@ const DEFAULT_ABANDONED_CARTS: AbandonedCart[] = [
         quantity: 1,
         unit_price: 99,
         total_price: 99,
-        thumbnail: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400",
+        thumbnail: "/images/gold-acrylic-topper.jpg",
       },
     ],
     item_count: 2,
@@ -4940,6 +4943,12 @@ export class ApiEngine {
     return memoryStore;
   }
 
+  static get memoryStore() {
+    ApiEngine.ensureOrdersStore();
+    ApiEngine.ensureDeliveryPartnersStore();
+    return memoryStore;
+  }
+
   static getStore() {
     ApiEngine.ensureOrdersStore();
     ApiEngine.ensureDeliveryPartnersStore();
@@ -4949,6 +4958,18 @@ export class ApiEngine {
   static getOrders(): any[] {
     ApiEngine.ensureOrdersStore();
     return memoryStore.orders || [];
+  }
+
+  static getCustomerOrders(customerUid: string) {
+    ApiEngine.ensureOrdersStore();
+    const cleanUid = customerUid ? String(customerUid).trim() : "";
+    const cleanPhone = cleanUid.startsWith("cth_cus_") ? cleanUid.replace(/^cth_cus_/, "") : "";
+    const orders = (memoryStore.orders || []).filter(
+      (o: any) =>
+        (cleanUid && (o.customer_uid === cleanUid || o.customer_id === cleanUid || o.customerUid === cleanUid)) ||
+        (cleanPhone && o.customer_phone && normalizePhone(o.customer_phone).includes(cleanPhone))
+    );
+    return { success: true, orders, total: orders.length };
   }
 
   static getDatabaseHydrationStatus() {
@@ -5783,7 +5804,14 @@ export class ApiEngine {
     // 3. Canonical Branch Manager Resolution from Store Branches
     if (((cleanPhone && normRole !== "CUSTOMER") || (userId && (userId.startsWith("shpmgr_") || userId.startsWith("mgr_")))) && normRole !== "CUSTOMER" && normRole !== "DELIVERY_PARTNER" && normRole !== "SUPER_ADMIN") {
       const branch = (store.branches || []).find((b: any) =>
-        (userId && (b.manager_user_id === userId || b.manager_account?.id === userId)) ||
+        (userId && (
+          b.manager_user_id === userId ||
+          b.manager_account?.id === userId ||
+          b.id === userId.replace(/^shpmgr_/, "br_") ||
+          b.id === userId.replace(/^shpmgr_/, "") ||
+          b.id === userId ||
+          b.slug === userId.replace(/^shpmgr_/, "")
+        )) ||
         (cleanPhone && (b.phone?.replace(/\D/g, "").slice(-10) === cleanPhone || b.manager_account?.phone?.replace(/\D/g, "").slice(-10) === cleanPhone))
       );
       if (branch) {
@@ -5800,6 +5828,7 @@ export class ApiEngine {
           role: "BRANCH_MANAGER",
           branch_id: branch.id,
           branch_name: branch.name,
+          permissions: ["orders:read", "orders:accept", "orders:fulfill", "orders:cancel", "inventory:read", "inventory:update"],
           created_at: branch.created_at || new Date().toISOString(),
         };
       }
@@ -5823,7 +5852,15 @@ export class ApiEngine {
       return null;
     }
     if (normRole === "BRANCH_MANAGER" || normRole === "SHOP_MANAGER" || normRole === "SHOP" || (userId && (userId.startsWith("shpmgr_") || userId.startsWith("mgr_")))) {
-      if (!phone || cleanPhone === "9876500001" || cleanPhone === "9876500002" || (userId && userId.startsWith("shpmgr_"))) {
+      if (!phone || cleanPhone === "9876500001" || cleanPhone === "9876500002" || (userId && (userId.startsWith("shpmgr_") || userId.startsWith("mgr_")))) {
+        let derivedBranchId = "br_indiranagar";
+        if (userId) {
+          if (userId.includes("whitefield")) derivedBranchId = "br_whitefield";
+          else if (userId.includes("indiranagar")) derivedBranchId = "br_indiranagar";
+          else if (userId.includes("koramangala")) derivedBranchId = "br_koramangala";
+          else if (userId.includes("jayanagar")) derivedBranchId = "br_jayanagar";
+          else derivedBranchId = userId.replace(/^shpmgr_/, "br_");
+        }
         return {
           id: userId || "shpmgr_01",
           name: "Branch Manager",
@@ -5833,8 +5870,9 @@ export class ApiEngine {
           email: "manager@caketohome.com",
           phone: phone || "+91 99999 00002",
           role: "BRANCH_MANAGER",
-          branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-          branch_name: "Indiranagar Flagship Bakery",
+          branch_id: derivedBranchId,
+          branch_name: derivedBranchId === "br_whitefield" ? "Whitefield Kitchen" : "Indiranagar Flagship Bakery",
+          permissions: ["orders:read", "orders:accept", "orders:fulfill", "orders:cancel", "inventory:read", "inventory:update"],
         };
       }
       return null;
@@ -7277,6 +7315,11 @@ export class ApiEngine {
 
   // ── Products & Catalog ──────────────────────────────
   static getProducts(paramsOrBranchId?: any, pincodeParam?: string) {
+    if (!memoryStore.products || memoryStore.products.length === 0) {
+      if (Array.isArray(DEFAULT_PRODUCTS) && DEFAULT_PRODUCTS.length > 0) {
+        memoryStore.products = DEFAULT_PRODUCTS.map((p) => ({ ...p }));
+      }
+    }
     const deduplicated = deduplicateStoreProducts(memoryStore.products || []);
     let products = deduplicated.map((p: any) => ApiEngine.enrichProductWithCategories(p));
     
@@ -7568,8 +7611,13 @@ export class ApiEngine {
 
   static getProductById(id: string, branchId?: string, pincode?: string): any | null {
     if (!id) return null;
+    if (!memoryStore.products || memoryStore.products.length === 0) {
+      if (Array.isArray(DEFAULT_PRODUCTS) && DEFAULT_PRODUCTS.length > 0) {
+        memoryStore.products = DEFAULT_PRODUCTS.map((p) => ({ ...p }));
+      }
+    }
     const cleanId = String(id).trim();
-    const allProducts = memoryStore.products || [];
+    const allProducts = deduplicateStoreProducts(memoryStore.products || []);
     const rawProduct = allProducts.find(
       (p: any) =>
         p.id === cleanId ||
@@ -7608,8 +7656,13 @@ export class ApiEngine {
 
   static getProductBySlug(slug: string, branchId?: string, pincode?: string): any | null {
     if (!slug) return null;
+    if (!memoryStore.products || memoryStore.products.length === 0) {
+      if (Array.isArray(DEFAULT_PRODUCTS) && DEFAULT_PRODUCTS.length > 0) {
+        memoryStore.products = DEFAULT_PRODUCTS.map((p) => ({ ...p }));
+      }
+    }
     const cleanSlug = String(slug).trim().toLowerCase();
-    const allProducts = memoryStore.products || [];
+    const allProducts = deduplicateStoreProducts(memoryStore.products || []);
     const rawProduct = allProducts.find(
       (p: any) =>
         (p.handle && p.handle.toLowerCase() === cleanSlug) ||
@@ -7853,7 +7906,7 @@ export class ApiEngine {
 
       const sellPrice = Math.max(1, Number(wp.selling_price || wp.price) || 599);
       const mrpVal = Math.max(sellPrice, Number(wp.mrp) || Math.round(sellPrice * 1.25));
-      const costVal = Math.max(1, Number(wp.cost_price) || Math.round(sellPrice * 0.45));
+      const costVal = (wp.cost_price !== undefined && wp.cost_price !== null && !isNaN(Number(wp.cost_price)) && Number(wp.cost_price) > 0) ? Number(wp.cost_price) : null;
       const prepTime = Math.max(15, Number(wp.prep_time_minutes) || (parsed.normalized_grams > 1000 ? 120 : 60));
       const isEnabled = wp.is_enabled !== undefined ? Boolean(wp.is_enabled) : (wp.enabled !== undefined ? Boolean(wp.enabled) : true);
 
@@ -9436,6 +9489,27 @@ export class ApiEngine {
     const newPartner = memoryStore.delivery_partners.find((p: any) => p.id === partnerId || p.partner_number === partnerId || p.phone === partnerId);
     if (!newPartner) throw new Error(`Delivery partner ${partnerId} not found.`);
 
+    const orderBranchId = order.branch_id || order.store_id || order.branch?.id;
+    if (orderBranchId) {
+      const partnerBranchIds = [
+        newPartner.primary_branch_id,
+        ...(Array.isArray(newPartner.associated_branches) ? newPartner.associated_branches.map((b: any) => typeof b === "string" ? b : (b?.branch_id || b?.id)) : []),
+        ...(Array.isArray(newPartner.assigned_branches) ? newPartner.assigned_branches.map((b: any) => typeof b === "string" ? b : (b?.branch_id || b?.id)) : [])
+      ].filter(Boolean);
+
+      const isMatch = (b1: string, b2: string) => {
+        if (b1 === b2) return true;
+        if ((b1 === "br_indiranagar" && b2 === "res_01KXYMAHGFPRY1G9TZKEVGAGAT") || (b2 === "br_indiranagar" && b1 === "res_01KXYMAHGFPRY1G9TZKEVGAGAT")) return true;
+        if ((b1 === "br_koramangala" && b2 === "res_02KXYMAHGFPRY1G9TZKEVGAGAT") || (b2 === "br_koramangala" && b1 === "res_02KXYMAHGFPRY1G9TZKEVGAGAT")) return true;
+        if ((b1 === "br_hsr" && b2 === "res_03KXYMAHGFPRY1G9TZKEVGAGAT") || (b2 === "br_hsr" && b1 === "res_03KXYMAHGFPRY1G9TZKEVGAGAT")) return true;
+        return false;
+      };
+
+      if (partnerBranchIds.length > 0 && !partnerBranchIds.some(bid => isMatch(bid, orderBranchId))) {
+        throw new Error(`Forbidden: Delivery partner ${newPartner.name || newPartner.id} is not assigned to order branch ${orderBranchId}.`);
+      }
+    }
+
     const oldPartnerId = order.delivery_partner_id;
 
     // Adjust old partner workload
@@ -9449,8 +9523,12 @@ export class ApiEngine {
     // Increment new partner workload
     newPartner.current_active_orders = (newPartner.current_active_orders || 0) + 1;
 
-    const pickupOtp = order.pickup_otp || order.delivery?.pickup_otp && order.delivery.pickup_otp !== "Not generated" ? (order.delivery.pickup_otp || order.pickup_otp) : String(Math.floor(1000 + Math.random() * 9000));
-    const deliveryOtp = order.delivery_otp || order.delivery?.delivery_otp && order.delivery.delivery_otp !== "Not generated" ? (order.delivery.delivery_otp || order.delivery_otp) : String(Math.floor(1000 + Math.random() * 9000));
+    const pickupOtp = (order.delivery?.pickup_otp && order.delivery.pickup_otp !== "Not generated")
+      ? order.delivery.pickup_otp
+      : (order.pickup_otp || String(Math.floor(1000 + Math.random() * 9000)));
+    const deliveryOtp = (order.delivery?.delivery_otp && order.delivery.delivery_otp !== "Not generated")
+      ? order.delivery.delivery_otp
+      : (order.delivery_otp || String(Math.floor(1000 + Math.random() * 9000)));
 
     const pName = newPartner.full_name || newPartner.name || `${newPartner.first_name || "Driver"} ${newPartner.last_name || ""}`.trim();
     const pNum = newPartner.partner_number || newPartner.id;
@@ -13296,8 +13374,8 @@ export class ApiEngine {
       is_intra_state: isIntraState,
       supplyType: isIntraState ? "INTRA-STATE" : "INTER-STATE",
       supply_type: isIntraState ? "INTRA-STATE" : "INTER-STATE",
-      sellerGstin: gstReg?.gstin || branch?.gst_number || "29AAAAA0000A1Z5",
-      seller_gstin: gstReg?.gstin || branch?.gst_number || "29AAAAA0000A1Z5",
+      sellerGstin: gstReg?.gstin || branch?.gst_number || null,
+      seller_gstin: gstReg?.gstin || branch?.gst_number || null,
       sellerLegalName: bizProfile?.legal_name || "CakeToHome India Private Limited",
       seller_legal_name: bizProfile?.legal_name || "CakeToHome India Private Limited",
       sellerTradeName: gstReg?.trade_name || bizProfile?.trade_name || "CakeToHome",
@@ -15346,7 +15424,11 @@ export class ApiEngine {
       return [];
     }
     if (memoryStore.branches.length === 0) {
-      return [];
+      if (Array.isArray(DEFAULT_BRANCHES) && DEFAULT_BRANCHES.length > 0) {
+        memoryStore.branches = DEFAULT_BRANCHES.map((b) => ({ ...b }));
+      } else {
+        return [];
+      }
     }
     // Permanently remove any legacy mock test branches
     memoryStore.branches = memoryStore.branches.filter((b: any) => !b.name?.toLowerCase().includes("playwright") && !b.id?.toLowerCase().includes("playwright"));
@@ -16412,8 +16494,35 @@ export class ApiEngine {
       if (!fallbackBranch && query.pincode) {
         fallbackBranch = operational.find((b: any) =>
           b.pincode === query.pincode ||
-          (b.delivery_zones || []).some((z: any) => (z.postal_codes || []).includes(query.pincode))
+          (b.delivery_zones || []).some((z: any) =>
+            (z.postal_codes || []).includes(query.pincode) ||
+            (z.pincodes || []).includes(query.pincode)
+          ) ||
+          (b.deliverable_areas || []).some((area: string) => area.toLowerCase().includes(query.pincode!.toLowerCase()))
         );
+
+        if (!fallbackBranch) {
+          const area = ApiEngine.getCityAreaByPincode(query.pincode);
+          const branchId = (area as any)?.branch_id || (area?.branch_ids && area.branch_ids[0]);
+          if (branchId) {
+            fallbackBranch = operational.find((b: any) => b.id === branchId);
+          }
+        }
+
+        if (!fallbackBranch) {
+          return {
+            branch: null as any,
+            resolvedBy: "unserviceable_pincode",
+            reasonCode: "UNSERVICEABLE_PINCODE",
+            etaminutes: 0,
+            deliveryFee: 0,
+            feeBreakdown: {},
+            partnerSequence: [],
+            candidatesEvaluated: operational.length,
+            blockedReason: `Pincode ${query.pincode} is outside our current delivery service area.`,
+            zoneName: "Unserviceable Pincode",
+          };
+        }
       }
       if (!fallbackBranch && operational.length > 0) {
         fallbackBranch = operational.find((b: any) => b.code?.toLowerCase().includes("indiranagar")) || operational[0];
@@ -20720,9 +20829,11 @@ export class ApiEngine {
     const taxTotal = branchOrders.reduce((s: number, o: any) => s + (Number(o.tax_total) || 0), 0);
     const discountTotal = branchOrders.reduce((s: number, o: any) => s + (Number(o.discount_total) || Number(o.discount) || 0), 0);
     const netSales = Math.max(0, grossRevenue - discountTotal - taxTotal);
-    const cogs = Math.round(netSales * 0.35);
-    const grossProfit = netSales - cogs;
-    const netProfit = Math.round(grossProfit * 0.565);
+    // Cost of goods sold cannot be fabricated with an arbitrary multiplier.
+    // In CakeToHome, orders lack relational line items/BOM costs. Explicit null is returned.
+    const cogs = null;
+    const grossProfit = null;
+    const netProfit = null;
     const aov = totalOrders > 0 ? Math.round(grossRevenue / totalOrders) : 0;
 
     return {
@@ -20736,8 +20847,12 @@ export class ApiEngine {
       delivered_orders: deliveredOrders,
       cancelled_orders: cancelledOrders,
       refunds_amount: refundsAmount,
+      cogs,
       gross_profit: grossProfit,
       net_profit: netProfit,
+      profitability_status: "UNAVAILABLE",
+      profitability_reason: "PERSISTED_RECIPE_BOM_DATA_UNAVAILABLE",
+      cogs_completeness: "UNAVAILABLE",
       aov,
       accessory_revenue: 0,
       cake_revenue: grossRevenue,
@@ -20822,7 +20937,7 @@ export class ApiEngine {
     return {
       gross_revenue: dash.gross_revenue,
       net_profit: dash.net_profit,
-      net_margin_pct: dash.gross_revenue > 0 ? `${((dash.net_profit / Math.max(1, dash.gross_revenue)) * 100).toFixed(1)}%` : "0.0%",
+      net_margin_pct: (dash.net_profit !== null && dash.gross_revenue > 0) ? `${((dash.net_profit / dash.gross_revenue) * 100).toFixed(1)}%` : null,
       sales_by_period: [
         { period: "Today", gross: todayGross, net: todayNet, orders: todayOrders.length, aov: todayOrders.length > 0 ? Math.round(todayGross / todayOrders.length) : 0 },
         { period: "Yesterday", gross: yestGross, net: yestNet, orders: yestOrders.length, aov: yestOrders.length > 0 ? Math.round(yestGross / yestOrders.length) : 0 },
@@ -20850,7 +20965,7 @@ export class ApiEngine {
     const accepted = orders.filter((o: any) => !["cancelled"].includes((o.status || "").toLowerCase())).length;
     const delivered = dash.delivered_orders;
     const slaCompliant = orders.filter((o: any) => (o.delivery_status || "").toLowerCase() !== "delayed").length;
-    const slaPct = orders.length > 0 ? `${((slaCompliant / orders.length) * 100).toFixed(1)}%` : "100.0%";
+    const slaPct = orders.length > 0 ? `${((slaCompliant / orders.length) * 100).toFixed(1)}%` : null;
 
     return {
       total_placed: orders.length,
@@ -20894,14 +21009,16 @@ export class ApiEngine {
         const pid = p.id || p.product_id;
         const sales = salesMap.get(pid) || { units: 0, revenue: 0 };
         const price = Number(p.price) || 599;
-        const cogs = Number(p.metadata?.cost_price) || Math.round(price * 0.35);
-        const margin = price > 0 ? `${(((price - cogs) / price) * 100).toFixed(1)}%` : "65.0%";
+        const hasCost = p.metadata?.cost_price != null && !isNaN(Number(p.metadata.cost_price));
+        const cogs = hasCost ? Number(p.metadata.cost_price) : null;
+        const margin = (hasCost && price > 0) ? `${(((price - cogs!) / price) * 100).toFixed(1)}%` : null;
 
         return {
           id: pid,
           title: p.title || p.name,
           price,
           cogs,
+          cogs_status: hasCost ? "ACTUAL" : "UNAVAILABLE",
           margin_pct: margin,
           units_sold: sales.units,
           revenue: sales.revenue,
@@ -21051,7 +21168,7 @@ export class ApiEngine {
     const failed = allOrders.filter((o: any) => (o.delivery_status || "").toLowerCase() === "failed" || (o.status || "").toLowerCase() === "cancelled");
     const onTime = delivered.filter((o: any) => (o.delivery_status || "").toLowerCase() !== "delayed");
 
-    const slaPct = delivered.length > 0 ? `${((onTime.length / delivered.length) * 100).toFixed(1)}%` : "100.0%";
+    const slaPct = delivered.length > 0 ? `${((onTime.length / delivered.length) * 100).toFixed(1)}%` : null;
 
     return {
       fleet_sla_pct: slaPct,
@@ -21097,22 +21214,21 @@ export class ApiEngine {
     const taxTotal = orders.reduce((s: number, o: any) => s + (Number(o.tax_total) || 0), 0);
     const discTotal = orders.reduce((s: number, o: any) => s + (Number(o.discount_total) || Number(o.discount) || 0), 0);
     const netRev = Math.max(0, grossRev - discTotal - taxTotal);
-    const cogs = Math.round(netRev * 0.35);
-    const packaging = Math.round(netRev * 0.038);
     const delivery = orders.reduce((s: number, o: any) => s + (Number(o.delivery_fee) || 0), 0);
-    const profit = netRev - cogs - packaging - delivery;
-    const marginPct = netRev > 0 ? `${((profit / netRev) * 100).toFixed(1)}%` : "0.0%";
 
     return {
       gross_revenue: grossRev,
       net_revenue: netRev,
-      cogs,
-      packaging_cost: packaging,
+      cogs: null,
+      cogs_status: "UNAVAILABLE",
+      cogs_reason: "PERSISTED_RECIPE_BOM_DATA_UNAVAILABLE",
+      packaging_cost: null,
       delivery_cost: delivery,
       discounts: discTotal,
       gst_taxes: taxTotal,
-      net_profit: profit,
-      net_margin_pct: marginPct,
+      net_profit: null,
+      net_margin_pct: null,
+      profitability_status: "UNAVAILABLE",
     };
   }
 
@@ -21129,7 +21245,7 @@ export class ApiEngine {
       net_profit: dash.net_profit,
       top_branch: branches[0]?.name || "Indiranagar Flagship",
       top_cake: products[0]?.title || "Belgian Chocolate Cake",
-      delivery_sla: "100.0%",
+      delivery_sla: null,
       recommendations: [
         "Maintain adequate stock levels before peak delivery windows.",
         "Review multi-branch operations and slot capacity in real time.",
@@ -21174,19 +21290,19 @@ export class ApiEngine {
     return {
       products: products.map((p: any) => {
         const price = Number(p.price) || 599;
-        const cogs = Number(p.metadata?.cost_price) || Math.round(price * 0.35);
-        const packaging = Math.round(price * 0.04);
-        const delivery = Math.round(price * 0.08);
-        const profit = price - cogs - packaging - delivery;
-        const margin = price > 0 ? `${((profit / price) * 100).toFixed(1)}%` : "0.0%";
+        const hasCost = p.metadata?.cost_price != null && !isNaN(Number(p.metadata.cost_price));
+        const cogs = hasCost ? Number(p.metadata.cost_price) : null;
+        const profit = hasCost ? price - cogs! : null;
+        const margin = (hasCost && price > 0) ? `${(((profit!) / price) * 100).toFixed(1)}%` : null;
 
         return {
           id: p.id || p.product_id,
           title: p.title || p.name,
           price,
           cogs,
-          packaging,
-          delivery,
+          cogs_status: hasCost ? "ACTUAL" : "UNAVAILABLE",
+          packaging: null,
+          delivery: null,
           net_profit: profit,
           margin_pct: margin,
         };
@@ -21203,7 +21319,6 @@ export class ApiEngine {
       branches: branches.map((b: any) => {
         const bOrders = orders.filter((o: any) => (o.branch?.id || o.branch_id) === b.id);
         const rev = bOrders.reduce((s: number, o: any) => s + (Number(o.total) || 0), 0);
-        const cogs = Math.round(rev * 0.35);
 
         return {
           id: b.id,
@@ -21211,10 +21326,12 @@ export class ApiEngine {
           code: b.code,
           orders: bOrders.length,
           revenue: rev,
-          profit: rev - cogs,
+          cogs: null,
+          profit: null,
+          profitability_status: "UNAVAILABLE",
           avg_delivery_mins: 35,
           kitchen_load_pct: Math.round(((b.current_hourly_load || 18) / (b.max_orders_per_hour || 25)) * 100),
-          sla_pct: "100.0%",
+          sla_pct: null,
         };
       }),
     };
@@ -21390,17 +21507,29 @@ export class ApiEngine {
   // ══════════════════════════════════════════════════════════════════════════
 
   static resolveBranchRecord(branchId: string) {
-    if (!memoryStore.branches) memoryStore.branches = [];
+    if (!memoryStore.branches || memoryStore.branches.length === 0) {
+      if (Array.isArray(DEFAULT_BRANCHES) && DEFAULT_BRANCHES.length > 0) {
+        memoryStore.branches = DEFAULT_BRANCHES.map((b) => ({ ...b }));
+      } else {
+        memoryStore.branches = [];
+      }
+    }
     const bId = branchId || "";
     if (!bId && memoryStore.branches.length === 0) return null;
-    const found = memoryStore.branches.find((b: any) =>
+    let found = memoryStore.branches.find((b: any) =>
       b.id === bId ||
       b.code === bId ||
       (bId === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" && (b.id === "br_indiranagar" || b.id === "res_01KXYMAHGFPRY1G9TZKEVGAGAT")) ||
+      (bId === "br_indiranagar" && (b.id === "br_indiranagar" || b.id === "res_01KXYMAHGFPRY1G9TZKEVGAGAT")) ||
       (bId === "res_02KXYMAHGFPRY1G9TZKEVGAGAT" && (b.id === "br_koramangala" || b.id === "res_02KXYMAHGFPRY1G9TZKEVGAGAT")) ||
+      (bId === "br_koramangala" && (b.id === "br_koramangala" || b.id === "res_02KXYMAHGFPRY1G9TZKEVGAGAT")) ||
       (bId === "res_03KXYMAHGFPRY1G9TZKEVGAGAT" && (b.id === "br_whitefield" || b.id === "res_03KXYMAHGFPRY1G9TZKEVGAGAT")) ||
+      (bId === "br_whitefield" && (b.id === "br_whitefield" || b.id === "res_03KXYMAHGFPRY1G9TZKEVGAGAT")) ||
       (bId === "shop_01" && (b.id === "br_indiranagar" || b.id === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" || b.id === "shop_01"))
     );
+    if (!found && bId) {
+      found = { id: bId, name: bId.replace(/^br_/, "").replace(/_/g, " ").toUpperCase(), code: bId };
+    }
     return found || null;
   }
 
@@ -21641,7 +21770,8 @@ export class ApiEngine {
     }
 
     // Strict Branch Security Check
-    if (!ApiEngine.isOrderInBranch(order, branch.id)) {
+    const branchTargetId = branch?.id || branchId;
+    if (!ApiEngine.isOrderInBranch(order, branchTargetId)) {
       return { success: false, statusCode: 403, error: `Forbidden: Order ${order.order_number} belongs to another branch. Access denied.` };
     }
 
@@ -21683,7 +21813,7 @@ export class ApiEngine {
           candle: order.customization?.candle || order.candle || "Included (Gold Sparkler)",
           knife: order.customization?.knife || order.knife || "Included (Cake Knife)",
           accessories: order.customization?.accessories || order.accessories || [],
-          special_instructions: order.special_instructions || order.notes || null,
+          special_instructions: order.customization?.special_instructions || order.special_instructions || order.notes || null,
         },
         photo_cake: {
           is_photo_cake: isPhotoCake,
@@ -21713,8 +21843,8 @@ export class ApiEngine {
         delivery_slot: order.delivery_slot || "Standard Delivery Slot",
         priority: order.priority || (order.is_express ? "EXPRESS" : "NORMAL"),
         pickup_otp: order.pickup_otp || order.delivery?.pickup_otp || null,
-        pickup_otp_status: order.pickup_verified_at ? "VERIFIED" : (order.pickup_otp ? "ACTIVE" : "PENDING"),
-        delivery_otp_status: order.delivery_otp_verified_at || order.delivered_at ? "VERIFIED" : (order.delivery_otp ? "ACTIVE" : "PENDING"),
+        pickup_otp_status: order.pickup_verified_at ? "VERIFIED" : "PENDING",
+        delivery_otp_status: order.delivery_otp_verified_at || order.delivered_at ? "VERIFIED" : "PENDING",
         is_delayed: order.is_delayed || false,
         delay_reason: order.delay_reason || null,
         new_eta: order.new_eta || null,
@@ -21989,8 +22119,8 @@ export class ApiEngine {
       branch_code: snap.branch_code || ord.branch_code || "HUB-BLR-01",
       branch_address: snap.seller_address || ord.branch?.address || "100 Feet Rd, Indiranagar, Bengaluru - 560038",
       seller_address: snap.seller_address || ord.branch?.address || "100 Feet Rd, Indiranagar, Bengaluru - 560038",
-      branch_gstin: snap.seller_gstin || "29AAAAA0000A1Z5",
-      seller_gstin: snap.seller_gstin || "29AAAAA0000A1Z5",
+      branch_gstin: snap.seller_gstin || null,
+      seller_gstin: snap.seller_gstin || null,
       branch_fssai: snap.seller_fssai_number || "11223344556677",
       seller_fssai_number: snap.seller_fssai_number || "11223344556677",
       branch_fssai_type: snap.seller_fssai_type || "STATE_LICENSE",
@@ -22541,7 +22671,9 @@ export class ApiEngine {
         const crypto = require("crypto");
         const body = `${payload.razorpay_order_id}|${payload.razorpay_payment_id}`;
         const expectedSignature = crypto.createHmac("sha256", keySecret).update(body).digest("hex");
-        const verified = expectedSignature === payload.razorpay_signature;
+        const expBuf = Buffer.from(expectedSignature, "utf8");
+        const sigBuf = Buffer.from(payload.razorpay_signature || "", "utf8");
+        const verified = expBuf.length === sigBuf.length && crypto.timingSafeEqual(expBuf, sigBuf);
         return {
           verified,
           payment_id: payload.razorpay_payment_id,
@@ -23109,7 +23241,7 @@ export class ApiEngine {
         place_of_supply: `${taxContext.customerState || taxContext.sellerState || ""} (${taxContext.isIntraState ? (taxContext.sellerStateCode || "29") : "00"})`,
         seller_legal_name: taxContext.sellerLegalName,
         seller_trade_name: taxContext.sellerTradeName,
-        seller_gstin: taxContext.sellerGstin || "29AAAAA0000A1Z5",
+        seller_gstin: taxContext.sellerGstin || null,
         seller_state: taxContext.sellerState,
         seller_state_code: taxContext.sellerStateCode,
         seller_fssai_number: taxContext.sellerFssai || taxContext.seller_fssai || "11223344556677",
@@ -23553,7 +23685,7 @@ export class ApiEngine {
     delivery_slot_id: string;
     delivery_type?: string;
     coupon_code?: string;
-    payment_method: "cod" | "razorpay" | "test_mode" | "wallet";
+    payment_method: "cod" | "cashfree" | "test_mode" | "wallet" | "razorpay";
     payment_details?: any;
     occasion?: string;
     ordered_for_self?: boolean;
@@ -23570,6 +23702,14 @@ export class ApiEngine {
     is_surprise_delivery?: boolean;
     special_instructions?: string;
   }) {
+    if ((payload.payment_method as string) === "razorpay") {
+      return {
+        success: false,
+        statusCode: 410,
+        error: "Razorpay has been decommissioned. Cashfree is the sole active payment gateway.",
+      };
+    }
+
     // 1. Revalidate everything authoritatively on server
     const addrObj = payload.address || (payload as any).shipping_address || {};
     const rawLatPayload = (payload as any).latitude ?? (payload as any).lat ?? (payload as any).delivery_latitude ?? addrObj.latitude ?? addrObj.lat ?? addrObj.delivery_latitude;
@@ -23639,7 +23779,7 @@ export class ApiEngine {
       city_id: "city_bbr",
       state: "Karnataka",
       hierarchy: { state_id: "state_ka" },
-      gst_number: "29AAAAA0000A1Z5",
+      gst_number: "29AABCC1234F1Z5",
       fssai_number: "11223344556677",
     };
 
@@ -23727,7 +23867,7 @@ export class ApiEngine {
       compliance_snapshot: {
         seller_legal_name: validation.taxes?.seller_legal_name || "CakeToHome India Private Limited",
         seller_trade_name: validation.taxes?.seller_trade_name || "CakeToHome",
-        seller_gstin: validation.taxes?.seller_gstin || branch?.gst_number || "29AAAAA0000A1Z5",
+        seller_gstin: validation.taxes?.seller_gstin || branch?.gst_number || null,
         seller_state: validation.taxes?.seller_state || branch?.state || "",
         seller_state_code: validation.taxes?.seller_state_code || (branch?.state ? ApiEngine.resolveStateCode(branch.state).gst_code : ""),
         seller_fssai_number: validation.taxes?.seller_fssai_number || branch?.fssai_number || "11223344556677",
@@ -23775,8 +23915,8 @@ export class ApiEngine {
       status: "confirmed",
       delivery_status: "shop_accepted",
       payment_status: payload.payment_method === "cod" ? "pending" : "captured",
-      payment_method: payload.payment_method === "cod" ? "Cash on Delivery (COD)" : payload.payment_method === "razorpay" ? "Online UPI (Razorpay)" : "Online Verified",
-      transaction_id: payload.payment_details?.razorpay_payment_id || `TXN_${Date.now()}`,
+      payment_method: payload.payment_method === "cod" ? "Cash on Delivery (COD)" : (payload.payment_method === "cashfree" ? "Cashfree PG (Cards/UPI)" : "Online Verified"),
+      transaction_id: payload.payment_details?.cf_payment_id || payload.payment_details?.payment_id || `TXN_CF_${Date.now()}`,
       delivery_type: payload.delivery_type || "delivery",
       delivery_date: validation.delivery.date,
       delivery_slot: validation.delivery.slot?.slot_name || "Evening Slot",

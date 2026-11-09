@@ -1,0 +1,1076 @@
+{
+ "generated_at": "2026-10-11T05:40:29.268Z",
+ "mode": "READ ONLY TRANSACTION",
+ "branch_totals": [
+  {
+   "total": "57",
+   "live": "53",
+   "soft_deleted": "4",
+   "first_created": "2026-07-31T16:38:53.177Z",
+   "last_created": "2026-09-09T12:43:41.043Z"
+  }
+ ],
+ "branch_fixture_split": [
+  {
+   "cls": "LIKELY_FIXTURE",
+   "n": "40",
+   "first_created": "2026-07-31T16:47:31.774Z",
+   "last_created": "2026-08-28T07:05:06.750Z"
+  },
+  {
+   "cls": "UNCLASSIFIED_OR_REAL",
+   "n": "13",
+   "first_created": "2026-07-31T17:02:28.873Z",
+   "last_created": "2026-09-09T12:43:41.043Z"
+  }
+ ],
+ "branch_coord_clusters": [
+  {
+   "lat": "12.9716",
+   "lng": "77.6412",
+   "n": "25"
+  },
+  {
+   "lat": "12.9716",
+   "lng": "77.5946",
+   "n": "6"
+  },
+  {
+   "lat": "13.0850",
+   "lng": "80.2100",
+   "n": "3"
+  },
+  {
+   "lat": "19.0550",
+   "lng": "72.8300",
+   "n": "3"
+  },
+  {
+   "lat": "8.8932",
+   "lng": "76.6141",
+   "n": "3"
+  },
+  {
+   "lat": "11.3713",
+   "lng": "78.3582",
+   "n": "1"
+  },
+  {
+   "lat": "9.9816",
+   "lng": "76.2999",
+   "n": "1"
+  },
+  {
+   "lat": "12.9121",
+   "lng": "77.6445",
+   "n": "1"
+  },
+  {
+   "lat": "15.4245",
+   "lng": "77.4375",
+   "n": "1"
+  },
+  {
+   "lat": "8.8901",
+   "lng": "76.6165",
+   "n": "1"
+  },
+  {
+   "lat": "11.8601",
+   "lng": "77.6535",
+   "n": "1"
+  },
+  {
+   "lat": "13.5321",
+   "lng": "78.4759",
+   "n": "1"
+  },
+  {
+   "lat": "18.8837",
+   "lng": "78.0062",
+   "n": "1"
+  },
+  {
+   "lat": "18.0342",
+   "lng": "75.8672",
+   "n": "1"
+  },
+  {
+   "lat": "12.9352",
+   "lng": "77.6245",
+   "n": "1"
+  }
+ ],
+ "branch_unclassified_sample": [
+  {
+   "id": "br_01KYWJ16081QW1RWANZ6TXVCGA",
+   "name": "Direct Branch 1785517348386",
+   "code": "HUB-337",
+   "city_id": null,
+   "latitude": 12.9716,
+   "longitude": 77.6412,
+   "is_open": true,
+   "created_at": "2026-07-31T17:02:28.873Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_01KYZ4ANQQA050PNED6F2AR7ND",
+   "name": "alex",
+   "code": "HUB-389",
+   "city_id": null,
+   "latitude": 12.9716,
+   "longitude": 77.6412,
+   "is_open": true,
+   "created_at": "2026-08-01T17:00:43.139Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_kochi_ernakulam",
+   "name": "Kochi Ernakulam Gourmet Hub",
+   "code": "HUB-KOC-01",
+   "city_id": "city_koc",
+   "latitude": 9.9816,
+   "longitude": 76.2999,
+   "is_open": true,
+   "created_at": "2026-08-28T04:07:08.740Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_indiranagar",
+   "name": "Indiranagar Flagship Bakery",
+   "code": "HUB-BLR-01",
+   "city_id": "city_bbr",
+   "latitude": 12.9716,
+   "longitude": 77.6412,
+   "is_open": true,
+   "created_at": "2026-08-28T04:07:08.740Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_koramangala",
+   "name": "Koramangala Central Hub",
+   "code": "HUB-BLR-02",
+   "city_id": "city_bbr",
+   "latitude": 12.9352,
+   "longitude": 77.6245,
+   "is_open": true,
+   "created_at": "2026-08-28T04:07:08.740Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_chennai_tnagar",
+   "name": "Chennai T. Nagar Artisanal Bakery",
+   "code": "HUB-MAA-01",
+   "city_id": "city_maa",
+   "latitude": 13.0418,
+   "longitude": 80.2341,
+   "is_open": true,
+   "created_at": "2026-08-28T04:07:08.740Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_hsr",
+   "name": "HSR Layout Kitchen",
+   "code": "HUB-BLR-03",
+   "city_id": "city_bbr",
+   "latitude": 12.9121,
+   "longitude": 77.6445,
+   "is_open": true,
+   "created_at": "2026-08-28T04:07:08.740Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_whitefield",
+   "name": "Whitefield Tech Hub",
+   "code": "HUB-BLR-04",
+   "city_id": "city_bbr",
+   "latitude": 12.9698,
+   "longitude": 77.7499,
+   "is_open": true,
+   "created_at": "2026-08-28T04:07:08.740Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_kollam_central",
+   "name": "Kollam Central Cake Studio",
+   "code": "HUB-KLM-01",
+   "city_id": "city_klm",
+   "latitude": 8.890075,
+   "longitude": 76.616464,
+   "is_open": true,
+   "created_at": "2026-08-28T04:07:08.740Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_mumbai_bandra",
+   "name": "Mumbai Bandra West Cake Studio",
+   "code": "HUB-BOM-01",
+   "city_id": "city_bom",
+   "latitude": 9.95972072040505,
+   "longitude": 76.2986760175891,
+   "is_open": true,
+   "created_at": "2026-08-28T04:07:08.740Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_1788949580698",
+   "name": "Kollam Central Cake Studio",
+   "code": "HUB-KLM-01HUB-KLM-99",
+   "city_id": "city_klm",
+   "latitude": 8.8932,
+   "longitude": 76.6141,
+   "is_open": true,
+   "created_at": "2026-09-09T10:26:22.562Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_search_test_1788955318258",
+   "name": "Search Verification Bakery 1788955318258",
+   "code": "HUB-SRCH-8258",
+   "city_id": "city_klm",
+   "latitude": 8.8932,
+   "longitude": 76.6141,
+   "is_open": true,
+   "created_at": "2026-09-09T12:01:58.050Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_search_test_1788957821141",
+   "name": "Search Verification Bakery 1788957821141",
+   "code": "HUB-SRCH-1139",
+   "city_id": "city_klm",
+   "latitude": 8.8932,
+   "longitude": 76.6141,
+   "is_open": true,
+   "created_at": "2026-09-09T12:43:41.043Z",
+   "test_suite": null
+  }
+ ],
+ "branch_fixture_sample": [
+  {
+   "id": "br_01KYWH5SXYWVPHC73TZN245CKR",
+   "name": "Postgres Pipeline Branch 1785516451109",
+   "code": "HUB-687",
+   "latitude": 12.9716,
+   "longitude": 77.6412,
+   "created_at": "2026-07-31T16:47:31.774Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_01KYWH6N9KF1FZBJ252K82TE82",
+   "name": "Postgres Pipeline Branch 1785516479519",
+   "code": "HUB-196",
+   "latitude": 12.9716,
+   "longitude": 77.6412,
+   "created_at": "2026-07-31T16:47:59.795Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_01KYWH9YFVV5AK15D6313HB1NC",
+   "name": "Postgres Pipeline Branch 1785516587008",
+   "code": "HUB-976",
+   "latitude": 12.9716,
+   "longitude": 77.6412,
+   "created_at": "2026-07-31T16:49:47.515Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_01KYWHBCDMVT74MM27BTJFRSNB",
+   "name": "Postgres Pipeline Branch 1785516633599",
+   "code": "HUB-986",
+   "latitude": 12.9716,
+   "longitude": 77.6412,
+   "created_at": "2026-07-31T16:50:34.549Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_01KYWHZY9KHRFB7MKTH1XJ3R4A",
+   "name": "Postgres Pipeline Branch 1785517301340",
+   "code": "HUB-649",
+   "latitude": 12.9716,
+   "longitude": 77.6412,
+   "created_at": "2026-07-31T17:01:48.212Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_01KYWJ6N07HQ27NSX08TKTZ796",
+   "name": "Postgres Pipeline Branch 1785517527036",
+   "code": "HUB-300",
+   "latitude": 12.9716,
+   "longitude": 77.6412,
+   "created_at": "2026-07-31T17:05:28.084Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_01KYWJBB97D59J26J1DSQ50QCM",
+   "name": "Postgres Pipeline Branch 1785517674748",
+   "code": "HUB-360",
+   "latitude": 12.9716,
+   "longitude": 77.6412,
+   "created_at": "2026-07-31T17:08:01.960Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_01KYWJVYN9F2VEVVNHW53CCNGA",
+   "name": "Postgres Pipeline Branch 1785518223598",
+   "code": "HUB-253",
+   "latitude": 12.9716,
+   "longitude": 77.6412,
+   "created_at": "2026-07-31T17:17:06.094Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_01KYXBT3K3MW97W66FEB6H1QMD",
+   "name": "Playwright E2E Hub 1785544374840",
+   "code": "HUB-605",
+   "latitude": 12.9716,
+   "longitude": 77.6412,
+   "created_at": "2026-08-01T00:33:00.013Z",
+   "test_suite": null
+  },
+  {
+   "id": "br_01KYXBTX7J15F9BKS841MSTRX2",
+   "name": "Playwright E2E Hub 1785544406051",
+   "code": "HUB-993",
+   "latitude": 12.9716,
+   "longitude": 77.6412,
+   "created_at": "2026-08-01T00:33:26.259Z",
+   "test_suite": null
+  }
+ ],
+ "branch_id_prefixes": [
+  {
+   "prefix": "br",
+   "n": "52"
+  },
+  {
+   "prefix": "test",
+   "n": "1"
+  }
+ ],
+ "branch_ref_columns": [
+  {
+   "table_name": "accounting_journal_entry",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "accounting_journal_line",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "accounting_voucher",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "ai_knowledge_base",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "ai_memory_state",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "analytics_event",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "analytics_expense",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "bank_deposit_slip",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "branch_capacity",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "branch_inventory",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "branch_price",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "branch_settings",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "branch_staff",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "branch_vault_movement",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "cost_centre",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "delivery_slot",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "delivery_zone",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "delivery_zone",
+   "column_name": "manual_override_branch_id"
+  },
+  {
+   "table_name": "driver_profile",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "expense",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "fleet_fuel",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "inventory_cost_lot",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "inventory_movement",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "invoice",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "offer_redemption",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "payment_transaction",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "petty_cash_request",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "purchase",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "purchase_payment",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "report_schedule",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "slot_reservation",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "supplier",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "teller",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "teller_movement",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "teller_session",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "vehicle",
+   "column_name": "branch_id"
+  },
+  {
+   "table_name": "vehicle_trip",
+   "column_name": "branch_id"
+  }
+ ],
+ "zone_totals": [
+  {
+   "total": "44",
+   "live": "44"
+  }
+ ],
+ "zone_orphans": [
+  {
+   "orphan_zones": "7",
+   "orphan_branch_ids": "1",
+   "linked_zones": "37"
+  }
+ ],
+ "zone_orphan_ids": [
+  {
+   "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+   "zones": "7"
+  }
+ ],
+ "zone_geometry_class": [
+  {
+   "cls": "RADIUS_ONLY",
+   "n": "25",
+   "serviceable": "25"
+  },
+  {
+   "cls": "POLYGON+RADIUS",
+   "n": "12",
+   "serviceable": "12"
+  },
+  {
+   "cls": "PIN_ONLY",
+   "n": "7",
+   "serviceable": "7"
+  }
+ ],
+ "zone_radius_stats": [
+  {
+   "min_r": "4",
+   "max_r": "15",
+   "avg_r": "11.65",
+   "nonpositive": "0"
+  }
+ ],
+ "zone_center_out_of_india": [
+  {
+   "n": "0"
+  }
+ ],
+ "zone_duplicate_pins": [
+  {
+   "pincode": "560001",
+   "zones": "5",
+   "branches": "5"
+  },
+  {
+   "pincode": "600040",
+   "zones": "5",
+   "branches": "3"
+  },
+  {
+   "pincode": "691001",
+   "zones": "4",
+   "branches": "4"
+  },
+  {
+   "pincode": "560038",
+   "zones": "4",
+   "branches": "4"
+  },
+  {
+   "pincode": "400050",
+   "zones": "4",
+   "branches": "4"
+  },
+  {
+   "pincode": "682001",
+   "zones": "3",
+   "branches": "3"
+  },
+  {
+   "pincode": "600001",
+   "zones": "2",
+   "branches": "2"
+  }
+ ],
+ "zone_per_branch_class": [
+  {
+   "cls": "FIXTURE_BRANCH",
+   "zones": "22",
+   "branches": "18"
+  },
+  {
+   "cls": "ORPHAN",
+   "zones": "7",
+   "branches": "1"
+  },
+  {
+   "cls": "OTHER_BRANCH",
+   "zones": "15",
+   "branches": "9"
+  }
+ ],
+ "zone_name_sample": [
+  {
+   "name": null,
+   "pincode": "560170",
+   "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+   "is_serviceable": true,
+   "radius_km": null,
+   "priority": 1,
+   "created_at": "2026-07-31T16:49:52.710Z"
+  },
+  {
+   "name": null,
+   "pincode": "560778",
+   "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+   "is_serviceable": true,
+   "radius_km": null,
+   "priority": 1,
+   "created_at": "2026-07-31T16:50:36.556Z"
+  },
+  {
+   "name": null,
+   "pincode": "560392",
+   "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+   "is_serviceable": true,
+   "radius_km": null,
+   "priority": 1,
+   "created_at": "2026-07-31T17:01:52.846Z"
+  },
+  {
+   "name": null,
+   "pincode": "560926",
+   "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+   "is_serviceable": true,
+   "radius_km": null,
+   "priority": 1,
+   "created_at": "2026-07-31T17:05:33.316Z"
+  },
+  {
+   "name": null,
+   "pincode": "560488",
+   "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+   "is_serviceable": true,
+   "radius_km": null,
+   "priority": 1,
+   "created_at": "2026-07-31T17:08:22.626Z"
+  },
+  {
+   "name": null,
+   "pincode": "560292",
+   "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+   "is_serviceable": true,
+   "radius_km": null,
+   "priority": 1,
+   "created_at": "2026-07-31T17:17:13.122Z"
+  },
+  {
+   "name": null,
+   "pincode": "560038",
+   "branch_id": "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+   "is_serviceable": true,
+   "radius_km": null,
+   "priority": 1,
+   "created_at": "2026-08-01T00:35:24.638Z"
+  },
+  {
+   "name": null,
+   "pincode": "560103",
+   "branch_id": "br_whitefield",
+   "is_serviceable": true,
+   "radius_km": "15",
+   "priority": 10,
+   "created_at": "2026-08-28T04:07:08.740Z"
+  },
+  {
+   "name": null,
+   "pincode": "560048",
+   "branch_id": "br_whitefield",
+   "is_serviceable": true,
+   "radius_km": "15",
+   "priority": 10,
+   "created_at": "2026-08-28T04:07:08.740Z"
+  },
+  {
+   "name": null,
+   "pincode": "560066",
+   "branch_id": "br_whitefield",
+   "is_serviceable": true,
+   "radius_km": "15",
+   "priority": 10,
+   "created_at": "2026-08-28T04:07:08.740Z"
+  },
+  {
+   "name": null,
+   "pincode": "400050",
+   "branch_id": "br_mumbai_bandra",
+   "is_serviceable": true,
+   "radius_km": "6",
+   "priority": 10,
+   "created_at": "2026-08-28T04:07:08.740Z"
+  },
+  {
+   "name": null,
+   "pincode": "682030",
+   "branch_id": "br_kochi_ernakulam",
+   "is_serviceable": true,
+   "radius_km": "12",
+   "priority": 5,
+   "created_at": "2026-08-28T04:07:08.740Z"
+  },
+  {
+   "name": null,
+   "pincode": "682016",
+   "branch_id": "br_kochi_ernakulam",
+   "is_serviceable": true,
+   "radius_km": "5",
+   "priority": 10,
+   "created_at": "2026-08-28T04:07:08.740Z"
+  },
+  {
+   "name": null,
+   "pincode": "682001",
+   "branch_id": "br_1787668807283",
+   "is_serviceable": true,
+   "radius_km": "15",
+   "priority": 10,
+   "created_at": "2026-08-28T04:07:08.740Z"
+  },
+  {
+   "name": null,
+   "pincode": "600017",
+   "branch_id": "br_chennai_tnagar",
+   "is_serviceable": true,
+   "radius_km": "6",
+   "priority": 10,
+   "created_at": "2026-08-28T04:07:08.740Z"
+  }
+ ],
+ "branch_references": [
+  {
+   "table": "accounting_journal_entry",
+   "column": "branch_id",
+   "rows_total": "4",
+   "rows_with_branch": "4",
+   "distinct_branches": "2",
+   "dangling": "0",
+   "rows_on_fixture_branches": "2"
+  },
+  {
+   "table": "accounting_journal_line",
+   "column": "branch_id",
+   "rows_total": "10",
+   "rows_with_branch": "10",
+   "distinct_branches": "2",
+   "dangling": "0",
+   "rows_on_fixture_branches": "4"
+  },
+  {
+   "table": "accounting_voucher",
+   "column": "branch_id",
+   "rows_total": "6",
+   "rows_with_branch": "6",
+   "distinct_branches": "2",
+   "dangling": "0",
+   "rows_on_fixture_branches": "3"
+  },
+  {
+   "table": "ai_knowledge_base",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "ai_memory_state",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "analytics_event",
+   "column": "branch_id",
+   "rows_total": "18",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "analytics_expense",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "bank_deposit_slip",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "branch_capacity",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "branch_inventory",
+   "column": "branch_id",
+   "rows_total": "424",
+   "rows_with_branch": "424",
+   "distinct_branches": "53",
+   "dangling": "0",
+   "rows_on_fixture_branches": "320"
+  },
+  {
+   "table": "branch_price",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "branch_settings",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "branch_staff",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "branch_vault_movement",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "cost_centre",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "delivery_slot",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "delivery_zone",
+   "column": "branch_id",
+   "rows_total": "44",
+   "rows_with_branch": "44",
+   "distinct_branches": "28",
+   "dangling": "7",
+   "rows_on_fixture_branches": "22"
+  },
+  {
+   "table": "delivery_zone",
+   "column": "manual_override_branch_id",
+   "rows_total": "44",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "driver_profile",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "expense",
+   "column": "branch_id",
+   "rows_total": "1",
+   "rows_with_branch": "1",
+   "distinct_branches": "1",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "fleet_fuel",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "inventory_cost_lot",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "inventory_movement",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "invoice",
+   "column": "branch_id",
+   "rows_total": "5",
+   "rows_with_branch": "4",
+   "distinct_branches": "2",
+   "dangling": "0",
+   "rows_on_fixture_branches": "3"
+  },
+  {
+   "table": "offer_redemption",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "payment_transaction",
+   "column": "branch_id",
+   "rows_total": "53",
+   "rows_with_branch": "53",
+   "distinct_branches": "6",
+   "dangling": "5",
+   "rows_on_fixture_branches": "37"
+  },
+  {
+   "table": "petty_cash_request",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "purchase",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "purchase_payment",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "report_schedule",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "slot_reservation",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "supplier",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "teller",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "teller_movement",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "teller_session",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "vehicle",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  },
+  {
+   "table": "vehicle_trip",
+   "column": "branch_id",
+   "rows_total": "0",
+   "rows_with_branch": "0",
+   "distinct_branches": "0",
+   "dangling": "0",
+   "rows_on_fixture_branches": "0"
+  }
+ ]
+}

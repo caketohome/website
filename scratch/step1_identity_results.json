@@ -1,0 +1,712 @@
+{
+  "identity": {
+    "db_name": "postgres",
+    "db_user": "postgres",
+    "pg_version_short": "PostgreSQL 17.6",
+    "server_ip": "2406:da1a:314:7101:e168:9fad:3c24:c7e/128",
+    "server_port": 5432,
+    "current_time": "2026-10-20 08:20:34.057899+00"
+  },
+  "voucherStatusSummary": [
+    {
+      "status": "APPROVED",
+      "voucher_count": "18",
+      "earliest_created": "2026-10-16 15:45:52.518712+00",
+      "latest_created": "2026-10-20 08:14:58.51311+00",
+      "earliest_posted": null,
+      "latest_posted": null,
+      "total_sum": "9800.00"
+    },
+    {
+      "status": "DRAFT",
+      "voucher_count": "14",
+      "earliest_created": "2026-10-17 13:06:17.591261+00",
+      "latest_created": "2026-10-19 13:07:52.489289+00",
+      "earliest_posted": null,
+      "latest_posted": null,
+      "total_sum": "22346.80"
+    },
+    {
+      "status": "POSTED",
+      "voucher_count": "46",
+      "earliest_created": "2026-10-02 14:03:16.161076+00",
+      "latest_created": "2026-10-20 08:14:58.370833+00",
+      "earliest_posted": "2026-10-02 14:03:16.580223+00",
+      "latest_posted": "2026-10-20 08:14:58.443336+00",
+      "total_sum": "20855.00"
+    },
+    {
+      "status": "SUBMITTED",
+      "voucher_count": "5",
+      "earliest_created": "2026-10-02 13:53:44.863633+00",
+      "latest_created": "2026-10-17 07:07:03.449813+00",
+      "earliest_posted": null,
+      "latest_posted": null,
+      "total_sum": "1260.00"
+    }
+  ],
+  "branchCategories": [
+    {
+      "branch_category": "OPERATIONAL",
+      "count": "52"
+    },
+    {
+      "branch_category": "TEST_TC",
+      "count": "10"
+    },
+    {
+      "branch_category": "TEST_CONC",
+      "count": "4"
+    }
+  ],
+  "targetBranches": [
+    {
+      "id": "br_01KYWH05FY08YH6XJKATV0NXDR",
+      "name": "PostgreSQL Authenticated Branch",
+      "code": "HUB-777",
+      "created_at": "2026-07-31 16:44:27.013+00",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [],
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": null,
+        "weekly_schedule": {},
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Road, Indiranagar, Bengaluru",
+        "fulfillment_rules": {},
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "product_availability": {},
+        "max_drawer_cash_limit": 25000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 5000
+      }
+    },
+    {
+      "id": "br_whitefield",
+      "name": "Whitefield Tech Hub",
+      "code": "HUB-BLR-04",
+      "created_at": "2026-08-28 04:07:08.740603+00",
+      "metadata": {
+        "manager_id": null,
+        "delivery_zones": [
+          {
+            "id": "br_whitefield_z1",
+            "name": "Zone A",
+            "areas": [
+              "Whitefield"
+            ],
+            "cities": [
+              "Bengaluru"
+            ],
+            "max_km": 4,
+            "min_km": 0,
+            "enabled": true,
+            "pincodes": [
+              "560066"
+            ],
+            "display_order": 1,
+            "service_areas": [
+              "ITPL Main Road Hub"
+            ],
+            "express_charge": 49,
+            "holiday_charge": 49,
+            "delivery_charge": 119,
+            "express_allowed": true,
+            "max_order_value": 50000,
+            "midnight_charge": 79,
+            "min_order_value": 299,
+            "midnight_allowed": true,
+            "same_day_allowed": true,
+            "est_delivery_mins": 30,
+            "max_cake_quantity": 5,
+            "scheduled_allowed": true,
+            "max_cake_weight_kg": 10,
+            "free_delivery_threshold": 999,
+            "preparation_buffer_mins": 15
+          },
+          {
+            "id": "br_whitefield_z2",
+            "name": "Zone B",
+            "areas": [
+              "Marathahalli",
+              "Brookefield"
+            ],
+            "cities": [
+              "Bengaluru"
+            ],
+            "max_km": 8,
+            "min_km": 4,
+            "enabled": true,
+            "pincodes": [
+              "560048",
+              "560037"
+            ],
+            "display_order": 2,
+            "service_areas": [
+              "Outer Ring Road Cluster"
+            ],
+            "express_charge": 119,
+            "holiday_charge": 89,
+            "delivery_charge": 59,
+            "express_allowed": false,
+            "max_order_value": 50000,
+            "midnight_charge": 109,
+            "min_order_value": 399,
+            "midnight_allowed": true,
+            "same_day_allowed": true,
+            "est_delivery_mins": 55,
+            "max_cake_quantity": 3,
+            "scheduled_allowed": true,
+            "max_cake_weight_kg": 8,
+            "free_delivery_threshold": 1299,
+            "preparation_buffer_mins": 20
+          },
+          {
+            "id": "br_whitefield_z3",
+            "name": "Zone C",
+            "areas": [
+              "Bellandur"
+            ],
+            "cities": [
+              "Bengaluru"
+            ],
+            "max_km": 14,
+            "min_km": 8,
+            "enabled": true,
+            "pincodes": [
+              "560103"
+            ],
+            "display_order": 3,
+            "service_areas": [
+              "Bellandur Gate Region"
+            ],
+            "express_charge": 149,
+            "holiday_charge": 109,
+            "delivery_charge": 89,
+            "express_allowed": false,
+            "max_order_value": 50000,
+            "midnight_charge": 149,
+            "min_order_value": 499,
+            "midnight_allowed": false,
+            "same_day_allowed": false,
+            "est_delivery_mins": 80,
+            "max_cake_quantity": 2,
+            "scheduled_allowed": true,
+            "max_cake_weight_kg": 6,
+            "free_delivery_threshold": 1499,
+            "preparation_buffer_mins": 30
+          }
+        ],
+        "location_source": "GPS",
+        "manager_account": null,
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "formatted_address": "ITPL Main Rd, Whitefield",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 15,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 49,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 79,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 30,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": {
+          "reason": null,
+          "is_paused": false,
+          "paused_at": null,
+          "pause_until": null,
+          "reopen_time": null
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    },
+    {
+      "id": "br_indiranagar",
+      "name": "Indiranagar Flagship Bakery",
+      "code": "HUB-BLR-01",
+      "created_at": "2026-08-28 04:07:08.740603+00",
+      "metadata": {
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "city_id": "city_bbr",
+        "pincode": "",
+        "state_id": "state_ka",
+        "manager_id": null,
+        "state_code": "KA",
+        "branch_type": "main_hub",
+        "delivery_zones": [
+          {
+            "id": "br_indiranagar_z1",
+            "name": "Pincode 560038",
+            "enabled": true,
+            "pincode": "560038",
+            "base_fee": 0,
+            "priority": 10,
+            "branch_id": "br_indiranagar",
+            "radius_km": 4,
+            "delivery_fee": 0,
+            "polygon_coordinates": [
+              [
+                12.96,
+                77.63
+              ],
+              [
+                12.985,
+                77.63
+              ],
+              [
+                12.985,
+                77.655
+              ],
+              [
+                12.96,
+                77.655
+              ]
+            ],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z2",
+            "name": "Pincode 560071",
+            "enabled": true,
+            "pincode": "560071",
+            "base_fee": 0,
+            "priority": 5,
+            "branch_id": "br_indiranagar",
+            "radius_km": 8,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          },
+          {
+            "id": "br_indiranagar_z3",
+            "name": "Pincode 560051",
+            "enabled": true,
+            "pincode": "560051",
+            "base_fee": 0,
+            "priority": 1,
+            "branch_id": "br_indiranagar",
+            "radius_km": 12,
+            "delivery_fee": 0,
+            "polygon_coordinates": [],
+            "estimated_delivery_minutes": 35
+          }
+        ],
+        "drawer_session": {
+          "date": "2026-10-17",
+          "status": "CLOSED",
+          "opened_at": "2026-10-17T01:34:21.280Z",
+          "opened_by": "shpmgr_01",
+          "teller_id": "tlr_1792200861133_oasasw7",
+          "denominations": null,
+          "opening_float": 500,
+          "opening_notes": "API Manager Drawer Shift Opening",
+          "closing_amount": 500,
+          "teller_session_id": "sess_1792200861365_2owg12s"
+        },
+        "cake_fulfilment": {
+          "acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_acc_01": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Branch availability: AVAILABLE",
+            "can_fulfil": true
+          }
+        },
+        "extended_status": "open",
+        "location_source": "GPS",
+        "manager_account": {
+          "name": "Rajesh Kumar",
+          "email": "indiranagar@cakes2home.com",
+          "phone": "+91 98765 12345",
+          "status": "active"
+        },
+        "weekly_schedule": {
+          "Friday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Monday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Sunday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Tuesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Saturday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:30"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Thursday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          },
+          "Wednesday": {
+            "is_open": true,
+            "windows": [
+              {
+                "open": "09:00",
+                "close": "23:00"
+              }
+            ],
+            "cutoff_buffer_mins": 30
+          }
+        },
+        "capacity_settings": {},
+        "deliverable_areas": [
+          "Bengaluru"
+        ],
+        "formatted_address": "100 Feet Rd, 12th Main, Indiranagar",
+        "fulfillment_rules": {
+          "allow_pickup": true,
+          "slot_capacity": 50,
+          "allow_delivery": true,
+          "prep_time_mins": 30,
+          "express_enabled": true,
+          "midnight_window": {
+            "end": "00:05",
+            "start": "23:30"
+          },
+          "max_advance_days": 14,
+          "midnight_enabled": true,
+          "next_day_allowed": true,
+          "same_day_allowed": true,
+          "express_prep_mins": 45,
+          "express_surcharge": 99,
+          "order_cutoff_mins": 30,
+          "midnight_surcharge": 199,
+          "slot_duration_mins": 60,
+          "dispatch_buffer_mins": 15,
+          "pickup_slot_capacity": 25,
+          "pickup_slot_duration_mins": 60
+        },
+        "temporary_closure": null,
+        "operational_status": "operational",
+        "accessory_inventory": {
+          "acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          },
+          "var_acc_01": {
+            "current_stock": 41,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 41,
+            "low_stock_threshold": 5
+          },
+          "var_acc_02": {
+            "current_stock": 80,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 80,
+            "low_stock_threshold": 5
+          },
+          "var_acc_03": {
+            "current_stock": 120,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 120,
+            "low_stock_threshold": 5
+          },
+          "var_acc_04": {
+            "current_stock": 25,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 25,
+            "low_stock_threshold": 5
+          },
+          "var_acc_05": {
+            "current_stock": 18,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 18,
+            "low_stock_threshold": 5
+          },
+          "var_acc_06": {
+            "current_stock": 30,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 30,
+            "low_stock_threshold": 5
+          },
+          "var_acc_07": {
+            "current_stock": 50,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 50,
+            "low_stock_threshold": 5
+          },
+          "var_acc_08": {
+            "current_stock": 12,
+            "reorder_level": 10,
+            "reserved_stock": 0,
+            "available_stock": 12,
+            "low_stock_threshold": 5
+          }
+        },
+        "product_availability": {
+          "acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "prod_acc_01": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-20T12:34:41.454Z"
+          },
+          "01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          },
+          "prod_prod_01KXYMAJKNDZ4T2YVA7K144XP5": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-19T13:34:37.903Z"
+          },
+          "prod_prod_01KXYMAJKNWZCFXJHESPTZE01G": {
+            "reason": "Updated by Branch Operations",
+            "status": "AVAILABLE",
+            "available_again_time": "2026-09-21T10:55:15.168Z"
+          }
+        },
+        "max_drawer_cash_limit": 50000,
+        "max_delivery_radius_km": 15,
+        "petty_cash_imprest_limit": 15000
+      }
+    }
+  ]
+}

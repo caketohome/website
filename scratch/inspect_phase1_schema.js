@@ -2,7 +2,7 @@ const { Client } = require('../backend/node_modules/pg');
 
 async function inspectSchema() {
   const client = new Client({
-    connectionString: process.env.DATABASE_URL || 'postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'
+    connectionString: process.env.DATABASE_URL || '[REDACTED_DATABASE_CREDENTIAL]'
   });
 
   try {

@@ -1,0 +1,189 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T03:18:27.393Z",
+  "environment": "cth_rehearsal_phase5_4",
+  "provenance": "e:/vig/cakes2home-main/cakes2home-main",
+  "run_id": "run-20261101-215100-s540001",
+  "files": {
+    "01_executive_determination.md": {
+      "sha256": "85096c27a30d0c2b87d9796e523e35662ad39f579b16d3af00ff5aa54bd0cef7",
+      "bytes": 1505
+    },
+    "02_repository_and_architecture_inspection.md": {
+      "sha256": "ca4a3712f69f3405d8b68394a9e8a6c47bcec7a1418e91501325c16c4b6371a8",
+      "bytes": 926
+    },
+    "03_protected_database_read_only_verification.md": {
+      "sha256": "30e181105b95e17d4f86c6c5d85ebacfb6c343065d94f532b2ffd92b58685d90",
+      "bytes": 960
+    },
+    "04_disposable_rehearsal_identity_and_safety_report.md": {
+      "sha256": "f2811b43b52e090d88ce3d208f5c24ea4878f8aded9274a17e44a120ed94dd81",
+      "bytes": 589
+    },
+    "05_repository_skill_router_execution_report.md": {
+      "sha256": "b440ded28b4c7afef0a3c4dd16767a8a7bee3ee396691d8e04cfd91fc64a65b4",
+      "bytes": 740
+    },
+    "06_arena_tournament_report.md": {
+      "sha256": "54eaf85d01ac8704d53f40c67ceab4ee6989d3910b9ca35a7b8368e5af21a80e",
+      "bytes": 832
+    },
+    "07_corporate_evidence_intake_register.md": {
+      "sha256": "1a0d769bacfd76e044bbeed92c7466e45986770173c52813a86168f227f0f99f",
+      "bytes": 750
+    },
+    "08_evidence_provenance_and_authenticity_report.md": {
+      "sha256": "97ebcad814e2f4ad82f020dc23f70d010f3e0fa753cf3485429453a398729820",
+      "bytes": 588
+    },
+    "09_board_resolution_verification_report.md": {
+      "sha256": "14b3c8ba1229e3ce400ce7f7a53b63577f789dfa609dc21727b85fa424a7cac5",
+      "bytes": 727
+    },
+    "10_company_secretary_clearance_register.md": {
+      "sha256": "a233840da0799f98cd66194da206b55da5912eaff21ce4d2f0338fbe7dd11a30",
+      "bytes": 608
+    },
+    "11_gst_accounting_clearance_register.md": {
+      "sha256": "987544efedb1298bd43a5ab484eca58b5a305796693a5b1f49b61a46ac741e5b",
+      "bytes": 652
+    },
+    "12_conditional_clearance_register.md": {
+      "sha256": "9de2c2f0f282320733acd78ac948a682a69738df8aca35fe836ce7dc317d424a",
+      "bytes": 807
+    },
+    "13_cdr_reconciliation.md": {
+      "sha256": "c1248d29a334efe4283eda8bc13c0c449e42d157ff3a38624aa60a8f8230b562",
+      "bytes": 1018
+    },
+    "14_historical_bdr_mapping_verification.md": {
+      "sha256": "20fe9e2ae1981ce63cf677bd6bbfc3a7759e95826858d9ac47f6988d18388cb6",
+      "bytes": 829
+    },
+    "15_five_dimensional_status_report.md": {
+      "sha256": "39ad3d1888ef0ab5ef3f86ffad4fde559697430951b5e66461bbb88879822457",
+      "bytes": 841
+    },
+    "16_historical_69_order_reconciliation.md": {
+      "sha256": "f46d5720f4d1a779b19ff7836a1c74ad55bd510fa4cca805509e5e40261b224f",
+      "bytes": 617
+    },
+    "17_six_layer_release_architecture_assessment.md": {
+      "sha256": "53803c71af15cb7972921befa4063b9e9437ceb258b53e604e5fd5c01cc65410",
+      "bytes": 909
+    },
+    "18_layer5_eligibility_assessment.md": {
+      "sha256": "5743cfdff98d1d2af4e3c6861a25d5f9e460b593f36c58a1f5b295e2b8c90b6a",
+      "bytes": 835
+    },
+    "19_sod_and_authorization_security_report.md": {
+      "sha256": "78db4e976e5cd5435e49b51f8bd1407bbe37a76fad0e564cc4dec2cbbe30ef7f",
+      "bytes": 571
+    },
+    "20_revocation_expiry_and_replay_test_results.md": {
+      "sha256": "c3130be6050edbb9ecc77c90a39b4564235c63e3fa2ab802e3fd9f97fc3f32f2",
+      "bytes": 625
+    },
+    "21_idempotency_and_concurrency_test_report.md": {
+      "sha256": "c78a6aaa8e00d5e47dffa9b4b3d9b202903da57e5cef1970ba9ca835018f27a4",
+      "bytes": 536
+    },
+    "22_database_and_migration_verification.md": {
+      "sha256": "c2c80f7877bc8df42f042e5d06a80bf586e7d2a16bb341279e897a2806265048",
+      "bytes": 503
+    },
+    "23_api_validation_report.md": {
+      "sha256": "82803e80aa3a8bd52332821dbef64720657ac0dd8d9bb9962d21c605c74b3b06",
+      "bytes": 522
+    },
+    "24_frontend_validation_report.md": {
+      "sha256": "d0910f62b14fd7c4da27d6ab7bec564ce3f1ebe871c17244389d0920c05eeeab",
+      "bytes": 487
+    },
+    "25_security_findings.md": {
+      "sha256": "773bc5bcab1dd440e1aee73ac405f703686255c9add7fccefb9c343ac3abcbde",
+      "bytes": 391
+    },
+    "26_performance_findings.md": {
+      "sha256": "d33336cd602e063452bcd60ee581979c677d24130154bcf1e017c76ce94ba337",
+      "bytes": 336
+    },
+    "27_regression_test_results.md": {
+      "sha256": "96ca165622a5f8f53d3fa25d63fd49ff58cb47c439fe84ed3296f4d986c20a2d",
+      "bytes": 558
+    },
+    "28_production_release_gate_determination.md": {
+      "sha256": "242bcc5b5ca3ff4c5e1e62da3217992e405bac6a2289e2be825d7ad9c70168de",
+      "bytes": 576
+    },
+    "29_sha256_evidence_manifest.md": {
+      "sha256": "7af28e588409494f156b1d53efc6efb8cd02f6c8a8fc10cd2fc9aaf7a4c7beb1",
+      "bytes": 550
+    },
+    "30_phase5_5_recommendation.md": {
+      "sha256": "266d89d6f723db37a10f1c9308e0054af91bf42614627e7440df9cd1401fc459",
+      "bytes": 780
+    },
+    "adversarial_security_tests.json": {
+      "sha256": "e704d52b7e0db49d639b35583dc70e6fcec811b1c2be15a0f4182d9d6f7295b2",
+      "bytes": 1230
+    },
+    "canonical_decision_register.json": {
+      "sha256": "a3ffbaf7cf27a2faa1cd76b66ccbcf8fbe50b03103c11f868c11d552b7c17c67",
+      "bytes": 4345
+    },
+    "cdr_status_dimensions.json": {
+      "sha256": "1822c8c7bf811bdca61e72fc42f9386b252722d689bab9de0b01c23109b54501",
+      "bytes": 747
+    },
+    "conditional_clearances.json": {
+      "sha256": "8b28b072cf9a52bf21b59cc1db8afc69b1a18d78daaf22484041c3a88d922b65",
+      "bytes": 1118
+    },
+    "corporate_decision.json": {
+      "sha256": "aa4fb19458f8c6cb0cb67a2ed0d0485984464be5f51e9b637ff4eb54f89fa306",
+      "bytes": 1022
+    },
+    "corporate_evidence_inventory.json": {
+      "sha256": "73ec3b5c7404e2d157dda8b3175c64d1bca82372fc7f6fae0e21ab53891a731e",
+      "bytes": 1707
+    },
+    "evidence_verification.json": {
+      "sha256": "5cd110ea05162d4030eacf6b6111c0aad7fc450bdfbc62df35bfa4a8375f860b",
+      "bytes": 1047
+    },
+    "historical_69_order_reconciliation.json": {
+      "sha256": "3583164cc607ab0e7a814da91bb04131ecd34b2a4c59fa7a9e8714d24f7d85b8",
+      "bytes": 738
+    },
+    "historical_bdr_mapping.json": {
+      "sha256": "5f72ca3a6e3f12e436b1eef8f75953a7cc76480a7d52bae74edaad60af5536e8",
+      "bytes": 1296
+    },
+    "layer5_eligibility_assessment.json": {
+      "sha256": "8726ea9052295ef67764c8060113499dabecfe8a97c7709689ed1dc8c0156f01",
+      "bytes": 1396
+    },
+    "migration_verification.json": {
+      "sha256": "307e3d2268d5def5c796fbbec5081dbe9b675e242310107b2b0beb30765aeeaa",
+      "bytes": 323
+    },
+    "professional_clearances.json": {
+      "sha256": "1e064b030514a35fa8f068fba785809b1e4b923f99be41666824aba9d44408df",
+      "bytes": 975
+    },
+    "release_gate_determination.json": {
+      "sha256": "c0e6dc7c63f9b453340df2185125df8c154a497f0b3e1619b8cfac1b41f9e437",
+      "bytes": 460
+    },
+    "sod_matrix.json": {
+      "sha256": "7ea080018569da548920b3c6c4b69c19c27cbd10515dbce69bf725bf3c0a6f7d",
+      "bytes": 1142
+    },
+    "test_results.json": {
+      "sha256": "970abe552ea079ac0361d53a99bc923832db5f73f759fb020e1a8e929ac1e48b",
+      "bytes": 344
+    }
+  }
+}

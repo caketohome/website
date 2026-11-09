@@ -26,6 +26,7 @@ import { AccountingVoucherRepository } from "../repositories/accounting-voucher.
 import { BankAccountRepository } from "../repositories/bank-account.repository";
 import { CompanyRepository } from "../repositories/company.repository";
 import { ExpenseRepository } from "../repositories/expense.repository";
+import { TellerSessionRepository } from "../repositories/teller-session.repository";
 import { TellerMovementService } from "./teller-movement.service";
 import { PostingService, PostingServiceError } from "./posting.service";
 import type {
@@ -38,6 +39,7 @@ import type {
   ExpenseRow,
   ExpenseStatus,
 } from "../types/expense.types";
+import type { TellerSessionRow } from "../types/teller.types";
 
 // ─── Error Model ───────────────────────────────────────────────────────────────
 
@@ -52,6 +54,11 @@ export type ExpensePostingErrorCode =
   | "BANK_ACCOUNT_NOT_FOUND"
   | "BANK_ACCOUNT_INACTIVE"
   | "TELLER_SESSION_INVALID"
+  | "TELLER_SESSION_NOT_FOUND"
+  | "INVALID_SESSION_STATE"
+  | "INSUFFICIENT_CASH_DRAWER_BALANCE"
+  | "INSUFFICIENT_CASH_BALANCE"
+  | "NO_AUTHORIZED_CASH_FLOAT"
   | "JOURNAL_UNBALANCED"
   | "POSTING_GUARD_FAILED"
   | "EXPENSE_POSTING_FAILED";
@@ -614,46 +621,9 @@ export class ExpensePostingService {
       const vendorSettlementAmount = isRcm ? taxableValue : totalAmount;
 
       if (expense.settlement_type === "DIRECT_PAYMENT") {
-        if (expense.payment_method === "CASH") {
-          if (expense.teller_session_id) {
-            // Cash from retail drawer: Account 1111 Cash in Hand
-            const cashAcc = await AccountingAccountRepository.findByCode("1111", c);
-            if (!cashAcc) throw new ExpensePostingError("GL_ACCOUNT_NOT_FOUND", "Cash in Hand account 1111 not found.");
+        const isBankPayment = ["BANK_TRANSFER", "UPI", "CARD", "CHEQUE"].includes(expense.payment_method || "");
 
-            journalLines.push({
-              account_id: cashAcc.id,
-              debit_amount: 0,
-              credit_amount: vendorSettlementAmount,
-              branch_id: expense.branch_id,
-              narration: `Cash drawer disbursement for expense ${expense.id}`,
-              metadata: { expense_id: expense.id, teller_session_id: expense.teller_session_id },
-            });
-
-            // Atomically project custody movement in C4 Teller ledger
-            await TellerMovementService.projectExpensePayment(
-              expense.id,
-              expense.branch_id,
-              vendorSettlementAmount,
-              postedBy,
-              expense.teller_session_id,
-              c
-            );
-          } else {
-            // Legitimate petty-cash float: Account 1114 Petty Cash - Branches
-            const pettyAcc = (await AccountingAccountRepository.findByCode("1114", c)) ||
-                             (await AccountingAccountRepository.findByCode("1111", c));
-            if (!pettyAcc) throw new ExpensePostingError("GL_ACCOUNT_NOT_FOUND", "Petty cash account 1114 not found.");
-
-            journalLines.push({
-              account_id: pettyAcc.id,
-              debit_amount: 0,
-              credit_amount: vendorSettlementAmount,
-              branch_id: expense.branch_id,
-              narration: `Petty cash disbursement for expense ${expense.id}`,
-              metadata: { expense_id: expense.id, petty_cash: true },
-            });
-          }
-        } else if (["BANK_TRANSFER", "UPI", "CARD", "CHEQUE"].includes(expense.payment_method || "")) {
+        if (isBankPayment) {
           let bankGlAccountId: string;
 
           if (expense.bank_account_id) {
@@ -677,17 +647,151 @@ export class ExpensePostingService {
             metadata: { expense_id: expense.id, bank_account_id: expense.bank_account_id, payment_method: expense.payment_method },
           });
         } else {
-          // Other direct payment: Fallback to Cash in Hand 1111
-          const cashAcc = await AccountingAccountRepository.findByCode("1111", c);
-          if (!cashAcc) throw new ExpensePostingError("GL_ACCOUNT_NOT_FOUND", "Cash in Hand account 1111 not found.");
-          journalLines.push({
-            account_id: cashAcc.id,
-            debit_amount: 0,
-            credit_amount: vendorSettlementAmount,
-            branch_id: expense.branch_id,
-            narration: `Direct payment settlement for expense ${expense.id}`,
-            metadata: { expense_id: expense.id },
-          });
+          // ── DIRECT CASH DISBURSEMENT GUARD (Server-side, fail-closed, atomic) ────
+          // Cash is disbursed either from retail teller drawer (1111) or petty cash float (1114/1111)
+          if (!expense.teller_session_id && expense.branch_id) {
+            const branchSessions = await TellerSessionRepository.findActiveByBranchId(expense.branch_id, c);
+            const openSession = branchSessions.find((s) => s.status === "OPEN");
+            if (openSession) {
+              expense.teller_session_id = openSession.id;
+              await c.query(`UPDATE public.expense SET teller_session_id = $1 WHERE id = $2`, [
+                openSession.id,
+                expense.id,
+              ]);
+            }
+          }
+
+          if (expense.teller_session_id) {
+            // Path A: Cash from Retail Drawer Session (Account 1111 Cash in Hand)
+            const cashAcc = await AccountingAccountRepository.findByCode("1111", c);
+            if (!cashAcc) throw new ExpensePostingError("GL_ACCOUNT_NOT_FOUND", "Cash in Hand account 1111 not found.");
+
+            // 1. Pessimistic row-level lock on teller session
+            const sessRes = await c.query<TellerSessionRow>(
+              `SELECT * FROM public.teller_session WHERE id = $1 FOR UPDATE`,
+              [expense.teller_session_id]
+            );
+            const session = sessRes.rows[0];
+            if (!session) {
+              throw new ExpensePostingError(
+                "TELLER_SESSION_NOT_FOUND",
+                `Target teller session '${expense.teller_session_id}' not found.`
+              );
+            }
+
+            if (expense.branch_id && session.branch_id !== expense.branch_id) {
+              throw new ExpensePostingError(
+                "BRANCH_ACCESS_DENIED",
+                `Session '${session.id}' belongs to branch '${session.branch_id}', not '${expense.branch_id}'.`
+              );
+            }
+
+            if (session.status !== "OPEN") {
+              throw new ExpensePostingError(
+                "INVALID_SESSION_STATE",
+                `Cannot disburse cash from teller session '${session.id}': session is currently ${session.status} (expected OPEN).`
+              );
+            }
+
+            // 2. Authoritative physical drawer balance: opening_float + sum(IN) - sum(OUT)
+            const movRes = await c.query<{ net_mov: string }>(
+              `SELECT COALESCE(SUM(CASE WHEN direction = 'IN' THEN amount ELSE -amount END), 0)::text AS net_mov
+               FROM public.teller_movement
+               WHERE teller_session_id = $1`,
+              [session.id]
+            );
+            const netMov = Number(movRes.rows[0]?.net_mov || 0);
+            const openingFloat = Number(session.opening_float || 0);
+            const availableDrawerCash = Math.round((openingFloat + netMov) * 100) / 100;
+
+            if (openingFloat <= 0 && netMov <= 0) {
+              throw new ExpensePostingError(
+                "NO_AUTHORIZED_CASH_FLOAT",
+                `Teller session '${session.id}' has no authorized opening float or positive cash balance (available: ₹${availableDrawerCash.toFixed(2)}). Cash disbursement is rejected.`
+              );
+            }
+
+            if (availableDrawerCash < vendorSettlementAmount) {
+              throw new ExpensePostingError(
+                "INSUFFICIENT_CASH_DRAWER_BALANCE",
+                `Cannot disburse ₹${vendorSettlementAmount.toFixed(2)} from teller drawer: available balance is ₹${availableDrawerCash.toFixed(2)}. Cash overdraft is strictly prohibited.`
+              );
+            }
+
+            journalLines.push({
+              account_id: cashAcc.id,
+              debit_amount: 0,
+              credit_amount: vendorSettlementAmount,
+              branch_id: expense.branch_id,
+              narration: `Cash drawer disbursement for expense ${expense.id}`,
+              metadata: { expense_id: expense.id, teller_session_id: expense.teller_session_id },
+            });
+
+            // Atomically project custody movement in C4 Teller ledger
+            await TellerMovementService.projectExpensePayment(
+              expense.id,
+              expense.branch_id,
+              vendorSettlementAmount,
+              postedBy,
+              expense.teller_session_id,
+              c
+            );
+          } else {
+            // Path B: Petty Cash / Direct Branch Cash Float (Account 1114 or 1111)
+            const pettyAcc = (await AccountingAccountRepository.findByCode("1114", c)) ||
+                             (await AccountingAccountRepository.findByCode("1111", c));
+            if (!pettyAcc) throw new ExpensePostingError("GL_ACCOUNT_NOT_FOUND", "Petty cash account 1114 or Cash account 1111 not found.");
+
+            // 1. Concurrency Control: Advisory transaction lock on (branch_id, account_id)
+            if (expense.branch_id) {
+              await c.query(`SELECT pg_advisory_xact_lock(hashtext('cash_guard_' || $1 || '_' || $2))`, [
+                expense.branch_id,
+                pettyAcc.id,
+              ]);
+            } else {
+              await c.query(`SELECT pg_advisory_xact_lock(hashtext('cash_guard_global_' || $1))`, [
+                pettyAcc.id,
+              ]);
+            }
+
+            // 2. Authoritative General Ledger book balance: sum(debit - credit)
+            const balRes = await c.query<{ branch_bal: string; total_bal: string }>(
+              `SELECT 
+                 COALESCE(SUM(CASE WHEN jl.branch_id = $2::text THEN jl.debit_amount - jl.credit_amount ELSE 0 END), 0)::text AS branch_bal,
+                 COALESCE(SUM(jl.debit_amount - jl.credit_amount), 0)::text AS total_bal
+               FROM public.accounting_journal_line jl
+               JOIN public.accounting_journal_entry je ON je.id = jl.journal_entry_id
+               WHERE jl.account_id = $1`,
+              [pettyAcc.id, expense.branch_id || null]
+            );
+
+            const branchBalance = expense.branch_id
+              ? Math.round(Number(balRes.rows[0]?.branch_bal || 0) * 100) / 100
+              : Math.round(Number(balRes.rows[0]?.total_bal || 0) * 100) / 100;
+
+            if (branchBalance <= 0) {
+              throw new ExpensePostingError(
+                "NO_AUTHORIZED_CASH_FLOAT",
+                `Direct cash disbursement of ₹${vendorSettlementAmount.toFixed(2)} rejected: no authorized opening float or positive cash balance exists for account '${pettyAcc.code} (${pettyAcc.name})' at branch '${expense.branch_id || "ALL"}' (current balance: ₹${branchBalance.toFixed(2)}). An approved opening float voucher must be posted before disbursing cash.`
+              );
+            }
+
+            if (branchBalance < vendorSettlementAmount) {
+              throw new ExpensePostingError(
+                "INSUFFICIENT_CASH_BALANCE",
+                `Direct cash disbursement of ₹${vendorSettlementAmount.toFixed(2)} rejected: available balance for account '${pettyAcc.code} (${pettyAcc.name})' at branch '${expense.branch_id || "ALL"}' is ₹${branchBalance.toFixed(2)}. Cash overdraft is strictly prohibited.`
+              );
+            }
+
+            journalLines.push({
+              account_id: pettyAcc.id,
+              debit_amount: 0,
+              credit_amount: vendorSettlementAmount,
+              branch_id: expense.branch_id,
+              narration: `Petty cash disbursement for expense ${expense.id}`,
+              metadata: { expense_id: expense.id, petty_cash: true },
+            });
+          }
         }
       } else {
         // CREDIT_ACCRUAL

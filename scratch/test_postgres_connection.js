@@ -1,6 +1,6 @@
 const { Client } = require("./backend/node_modules/pg");
 
-const connectionString = "postgresql://postgres.uubwhsnnrnicyczwqlbq:caketohomeqwerty@aws-1-ap-south-1.pooler.supabase.com:6543/postgres";
+const connectionString = "[REDACTED_DATABASE_CREDENTIAL]";
 
 async function testConnection() {
   console.log("Connecting to PostgreSQL at Supabase...");

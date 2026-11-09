@@ -1,0 +1,62 @@
+=== transferStock ===
+lib\services\inventory.service.ts:307: static async transferStock(
+=== inventory_transfer ===
+=== PurchaseReturnService ===
+lib\services\purchase-return.service.ts:203: // ─── PurchaseReturnService ────────────────────────────────────────────────────
+lib\services\purchase-return.service.ts:205: export class PurchaseReturnService {
+=== processPurchaseReturn ===
+lib\services\purchase-return.service.ts:101: export interface ProcessPurchaseReturnParams {
+lib\services\purchase-return.service.ts:219: params: ProcessPurchaseReturnParams
+=== PurchaseReversalService ===
+lib\services\purchase-reversal.service.ts:131: // ─── PurchaseReversalService ──────────────────────────────────────────────────
+lib\services\purchase-reversal.service.ts:133: export class PurchaseReversalService {
+=== reversePurchase ===
+lib\services\purchase-payment.service.ts:132: export interface ReversePurchasePaymentParams {
+lib\services\purchase-payment.service.ts:629: params: ReversePurchasePaymentParams
+lib\services\purchase-reversal.service.ts:97: export interface ReversePurchaseParams {
+lib\services\purchase-reversal.service.ts:148: static async reversePurchase(
+lib\services\purchase-reversal.service.ts:149: params: ReversePurchaseParams
+=== manager/inventory/damage ===
+app\api\v1\[...path]\route.ts:6681: if (path.startsWith("manager/inventory/") && path !== "manager/inventory/damage") {
+app\api\v1\[...path]\route.ts:6807: if (path === "manager/inventory/damage") {
+lib\data\manager.ts:472: const res = await fetch(`/api/v1/manager/inventory/damage`, {
+=== inventory/damage ===
+app\api\v1\[...path]\route.ts:6681: if (path.startsWith("manager/inventory/") && path !== "manager/inventory/damage") {
+app\api\v1\[...path]\route.ts:6807: if (path === "manager/inventory/damage") {
+lib\data\manager.ts:472: const res = await fetch(`/api/v1/manager/inventory/damage`, {
+=== AccountsPayableService ===
+lib\services\accounts-payable.service.ts:36: export class AccountsPayableService {
+lib\services\period-close.service.ts:32: import { AccountsPayableService } from "./accounts-payable.service";
+lib\services\period-close.service.ts:714: const apReconciliation = await AccountsPayableService.getApGlReconciliation(
+=== getSupplierStatement ===
+lib\services\accounts-payable.service.ts:41: static async getSupplierStatement(
+=== /grn ===
+app\api\v1\[...path]\route.ts:6836: if (path.startsWith("manager/purchases/") && path.endsWith("/grn")) {
+app\api\v1\[...path]\route.ts:6837: const purchaseId = path.replace("manager/purchases/", "").replace("/grn", "");
+lib\data\manager.ts:300: const res = await fetch(`/api/v1/manager/purchases/${purchaseId}/grn`, {
+=== inventory_movement ===
+lib\services\purchase-posting.service.ts:26: *      * Movement Ledger: inventory_movement (PURCHASE_RECEIPT, direction IN)
+lib\services\purchase-posting.service.ts:1617: INSERT INTO public.inventory_movement (
+lib\services\purchase-return.service.ts:23: *    - Inserts authoritative `inventory_movement` record:
+lib\services\purchase-return.service.ts:549: `INSERT INTO public.inventory_movement
+lib\services\purchase-return.service.ts:699: "UPDATE public.inventory_movement SET voucher_id = $1 WHERE id = $2",
+lib\services\purchase-reversal.service.ts:22: *    - Inserts inventory_movement rows with movement_type = 'INVOICE_REVERSAL', direction = 'OUT'.
+lib\services\purchase-reversal.service.ts:570: `INSERT INTO public.inventory_movement
+lib\services\sales-invoice-reversal.service.ts:43: *      branch_inventory incremented. Compensating inventory_movement recorded (movement_type = 'INVOICE_REVERSAL', direction = 'IN').
+lib\services\sales-invoice-reversal.service.ts:387: `SELECT * FROM public.inventory_movement WHERE voucher_id = $1`,
+lib\services\sales-invoice-reversal.service.ts:431: `SELECT * FROM public.inventory_movement WHERE voucher_id = $1`,
+lib\services\sales-invoice-reversal.service.ts:665: JOIN public.inventory_movement im ON im.id = icc.movement_id
+lib\services\sales-invoice-reversal.service.ts:724: // Record compensating inventory_movement
+=== inventory_cost_lot ===
+lib\services\purchase-posting.service.ts:25: *      * Cost Ledger: inventory_cost_lot (item_type = 'PACKAGING', received_quantity, unit_cost, total_cost)
+lib\services\purchase-posting.service.ts:1518: INSERT INTO public.inventory_cost_lot (
+lib\services\purchase-return.service.ts:11: *    - Each returned item is traced directly to its authoritative `inventory_cost_lot`.
+lib\services\purchase-return.service.ts:20: *    - Atomically decrements `inventory_cost_lot.remaining_quantity`.
+lib\services\purchase-return.service.ts:399: `SELECT * FROM public.inventory_cost_lot
+lib\services\purchase-return.service.ts:511: `UPDATE public.inventory_cost_lot
+lib\services\purchase-reversal.service.ts:290: `SELECT * FROM public.inventory_cost_lot
+lib\services\purchase-reversal.service.ts:541: `UPDATE public.inventory_cost_lot
+lib\services\sales-invoice-reversal.service.ts:666: JOIN public.inventory_cost_lot icl ON icl.id = icc.lot_id
+lib\services\sales-invoice-reversal.service.ts:691: `UPDATE public.inventory_cost_lot
+lib\services\sales-posting.service.ts:1560: `SELECT * FROM public.inventory_cost_lot
+lib\services\sales-posting.service.ts:1659: `UPDATE public.inventory_cost_lot

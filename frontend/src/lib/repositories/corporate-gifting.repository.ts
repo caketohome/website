@@ -582,4 +582,182 @@ export class CorporateGiftingRepository {
     const res = await queryFn(sql, params);
     return Number(res.rows[0]?.total_active || 0);
   }
+
+  /**
+   * Phase C7.13: Fetches comprehensive recipient routing assignments,
+   * delivery statuses, and candidate store/partner info for a campaign batch.
+   */
+  static async getBatchRoutingStatus(
+    batchId: string,
+    client?: PoolClient
+  ): Promise<{
+    batch_id: string;
+    total_recipients: number;
+    assigned_count: number;
+    unassigned_count: number;
+    unassigned_breakdown: Record<string, number>;
+    items: Array<{
+      recipient_id: string;
+      row_number: number;
+      employee_id: string | null;
+      recipient_name: string;
+      recipient_phone: string;
+      delivery_address: string;
+      delivery_city: string | null;
+      delivery_pincode: string;
+      delivery_date: string;
+      sku: string;
+      quantity: number;
+      delivery_id: string | null;
+      delivery_status: string;
+      assignment_id: string | null;
+      assignment_status: string | null;
+      reason_code: string | null;
+      assigned_store_id: string | null;
+      assigned_store_name: string | null;
+      assigned_partner_id: string | null;
+      assigned_partner_name: string | null;
+      distance_km: number | null;
+      matched_rule: string | null;
+      diagnostics_message: string | null;
+      override_reason: string | null;
+      latitude: number | null;
+      longitude: number | null;
+    }>;
+  }> {
+    const queryFn = (sql: string, params: any[]) =>
+      client ? client.query(sql, params) : dbQuery(sql, params);
+
+    const sql = `
+      SELECT 
+        cgr.id AS recipient_id,
+        cgr.row_number,
+        cgr.employee_id,
+        cgr.recipient_name,
+        cgr.recipient_phone,
+        cgr.delivery_address,
+        cgr.delivery_city,
+        cgr.delivery_pincode,
+        cgr.delivery_date,
+        cgr.sku,
+        cgr.quantity,
+        cgr.delivery_id,
+        COALESCE(d.delivery_status, 'pending') AS delivery_status,
+        cda.id AS assignment_id,
+        cda.status AS assignment_status,
+        cda.reason_code,
+        cda.assigned_store_id,
+        b.name AS assigned_store_name,
+        cda.assigned_partner_id,
+        TRIM(CONCAT(dp.first_name, ' ', dp.last_name)) AS assigned_partner_name,
+        cda.distance_km,
+        cda.matched_rule,
+        cda.diagnostics_message,
+        cda.override_reason,
+        cda.latitude,
+        cda.longitude
+      FROM public.corporate_gifting_recipient cgr
+      LEFT JOIN public.delivery d ON (d.id = cgr.delivery_id OR d.id = ('del_' || cgr.id))
+      LEFT JOIN public.corporate_delivery_assignment cda 
+        ON cda.entity_type = 'GIFTING_RECIPIENT' AND cda.entity_id = cgr.id
+      LEFT JOIN public.branch b ON b.id = cda.assigned_store_id
+      LEFT JOIN public.delivery_partner dp ON dp.id = cda.assigned_partner_id
+      WHERE cgr.batch_id = $1 AND cgr.deleted_at IS NULL
+      ORDER BY cgr.row_number ASC;
+    `;
+
+    const res = await queryFn(sql, [batchId]);
+    const items = res.rows.map((r: any) => ({
+      recipient_id: r.recipient_id,
+      row_number: Number(r.row_number),
+      employee_id: r.employee_id,
+      recipient_name: r.recipient_name,
+      recipient_phone: r.recipient_phone,
+      delivery_address: r.delivery_address,
+      delivery_city: r.delivery_city,
+      delivery_pincode: r.delivery_pincode,
+      delivery_date: r.delivery_date,
+      sku: r.sku,
+      quantity: Number(r.quantity),
+      delivery_id: r.delivery_id,
+      delivery_status: r.delivery_status,
+      assignment_id: r.assignment_id,
+      assignment_status: r.assignment_status,
+      reason_code: r.reason_code,
+      assigned_store_id: r.assigned_store_id,
+      assigned_store_name: r.assigned_store_name,
+      assigned_partner_id: r.assigned_partner_id,
+      assigned_partner_name: r.assigned_partner_name || null,
+      distance_km: r.distance_km !== null ? Number(r.distance_km) : null,
+      matched_rule: r.matched_rule,
+      diagnostics_message: r.diagnostics_message,
+      override_reason: r.override_reason,
+      latitude: r.latitude !== null ? Number(r.latitude) : null,
+      longitude: r.longitude !== null ? Number(r.longitude) : null,
+    }));
+
+    let assignedCount = 0;
+    let unassignedCount = 0;
+    const unassignedBreakdown: Record<string, number> = {};
+
+    for (const it of items) {
+      if (it.assignment_status === "ASSIGNED" || it.assignment_status === "MANUAL_OVERRIDE") {
+        assignedCount++;
+      } else {
+        unassignedCount++;
+        const code = it.reason_code || "UNASSIGNED";
+        unassignedBreakdown[code] = (unassignedBreakdown[code] || 0) + 1;
+      }
+    }
+
+    return {
+      batch_id: batchId,
+      total_recipients: items.length,
+      assigned_count: assignedCount,
+      unassigned_count: unassignedCount,
+      unassigned_breakdown: unassignedBreakdown,
+      items,
+    };
+  }
+
+  /**
+   * Phase C7.13: Finds single recipient with linked delivery and assignment.
+   */
+  static async getRecipientWithDeliveryAndAssignment(
+    recipientId: string,
+    client?: PoolClient
+  ): Promise<any | null> {
+    const queryFn = (sql: string, params: any[]) =>
+      client ? client.query(sql, params) : dbQuery(sql, params);
+
+    const sql = `
+      SELECT 
+        cgr.*,
+        COALESCE(d.delivery_status, 'pending') AS delivery_status,
+        d.delivery_partner_id,
+        cda.id AS assignment_id,
+        cda.status AS assignment_status,
+        cda.reason_code,
+        cda.assigned_store_id,
+        b.name AS assigned_store_name,
+        cda.assigned_partner_id AS routing_partner_id,
+        TRIM(CONCAT(dp.first_name, ' ', dp.last_name)) AS assigned_partner_name,
+        cda.distance_km,
+        cda.matched_rule,
+        cda.diagnostics_message,
+        cda.override_reason,
+        cda.latitude,
+        cda.longitude
+      FROM public.corporate_gifting_recipient cgr
+      LEFT JOIN public.delivery d ON (d.id = cgr.delivery_id OR d.id = ('del_' || cgr.id))
+      LEFT JOIN public.corporate_delivery_assignment cda 
+        ON cda.entity_type = 'GIFTING_RECIPIENT' AND cda.entity_id = cgr.id
+      LEFT JOIN public.branch b ON b.id = cda.assigned_store_id
+      LEFT JOIN public.delivery_partner dp ON dp.id = cda.assigned_partner_id
+      WHERE cgr.id = $1 AND cgr.deleted_at IS NULL
+      LIMIT 1;
+    `;
+    const res = await queryFn(sql, [recipientId]);
+    return res.rows[0] || null;
+  }
 }

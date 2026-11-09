@@ -1,0 +1,140 @@
+{
+  "testDate": "2026-10-25T19:11:21.734Z",
+  "suite": "CakeToHome Storefront & Persistence Recovery E2E",
+  "assertions": [
+    {
+      "status": "PASS",
+      "code": "REQ-1",
+      "message": "Public homepage opens with HTTP 200",
+      "details": {
+        "status": 200,
+        "durationMs": 3438
+      }
+    },
+    {
+      "status": "PASS",
+      "code": "REQ-2.1",
+      "message": "Storefront header renders successfully"
+    },
+    {
+      "status": "PASS",
+      "code": "REQ-2.2",
+      "message": "Brand title 'CakeToHome' is present in header"
+    },
+    {
+      "status": "PASS",
+      "code": "REQ-2.3",
+      "message": "Homepage hero section renders with expected copy"
+    },
+    {
+      "status": "PASS",
+      "code": "REQ-2.4",
+      "message": "Footer component renders properly"
+    },
+    {
+      "status": "PASS",
+      "code": "REQ-3.1",
+      "message": "Found 36 product links in storefront DOM"
+    },
+    {
+      "status": "PASS",
+      "code": "REQ-3.2",
+      "message": "Product cards display actual product titles and prices",
+      "details": {
+        "count": 8
+      }
+    },
+    {
+      "status": "PASS",
+      "code": "REQ-5.1",
+      "message": "Product detail page opens with HTTP 200",
+      "details": {
+        "href": "/products/acc_01"
+      }
+    },
+    {
+      "status": "PASS",
+      "code": "REQ-10",
+      "message": "Full page reload renders with HTTP 200"
+    },
+    {
+      "status": "PASS",
+      "code": "REQ-10.2",
+      "message": "Products persist across reload (36 links found)"
+    },
+    {
+      "status": "PASS",
+      "code": "REQ-11",
+      "message": "Cart trigger button is present in storefront header"
+    },
+    {
+      "status": "PASS",
+      "code": "REQ-9.1",
+      "message": "Zero uncaught fatal JavaScript exceptions in browser console",
+      "details": {
+        "errors": []
+      }
+    },
+    {
+      "status": "PASS",
+      "code": "REQ-9.2",
+      "message": "Zero failed critical internal network requests",
+      "details": {
+        "failures": []
+      }
+    }
+  ],
+  "consoleErrors": [
+    "Warning: Extra attributes from the server: %s%s style \n    at input\n    at div\n    at div\n    at PdpCustomizationForm (webpack-internal:///(app-pages-browser)/./src/components/store/pdp/pdp-customization-form.tsx:44:11)\n    at div\n    at div\n    at div\n    at ProductDetailClient (webpack-internal:///(app-pages-browser)/./src/components/store/shop/product-detail-client.tsx:64:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:242:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:340:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:162:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:152:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:227:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:359:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:242:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:340:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:162:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:152:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:227:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:359:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:242:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:340:11)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:162:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:152:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:227:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:359:11)\n    at main\n    at div\n    at EngagementProvider (webpack-internal:///(app-pages-browser)/./src/components/store/engagement/engagement-provider.tsx:54:11)\n    at InnerLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:242:11)\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at LoadingBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:340:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:115:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:162:11)\n    at InnerScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:152:9)\n    at ScrollAndFocusHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:227:11)\n    at RenderFromTemplateContext (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/render-from-template-context.js:16:44)\n    at OuterLayoutRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/layout-router.js:359:11)\n    at FavoritesProvider (webpack-internal:///(app-pages-browser)/./src/providers/favorites-provider.tsx:30:11)\n    at CustomerErrorBoundary (webpack-internal:///(app-pages-browser)/./src/providers/customer-provider.tsx:37:9)\n    at CustomerProvider (webpack-internal:///(app-pages-browser)/./src/providers/customer-provider.tsx:44:11)\n    at AuthProvider (webpack-internal:///(app-pages-browser)/./src/providers/auth-provider.tsx:26:11)\n    at body\n    at html\n    at RedirectErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:74:9)\n    at RedirectBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/redirect-boundary.js:82:11)\n    at NotFoundErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:76:9)\n    at NotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/not-found-boundary.js:84:11)\n    at DevRootNotFoundBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/dev-root-not-found-boundary.js:33:11)\n    at ReactDevOverlay (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/internal/ReactDevOverlay.js:84:9)\n    at HotReload (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/hot-reloader-client.js:307:11)\n    at Router (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:182:11)\n    at ErrorBoundaryHandler (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:115:9)\n    at ErrorBoundary (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/error-boundary.js:162:11)\n    at AppRouter (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router.js:542:13)\n    at ServerRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:129:11)\n    at RSCComponent\n    at Root (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:145:11)"
+  ],
+  "networkFailures": [],
+  "visibleProducts": [
+    {
+      "href": "/products/acc_01",
+      "title": "Gold Acrylic Happy Birthday Topper",
+      "price": "₹99★ 4.9(12)View details →"
+    },
+    {
+      "href": "/products/acc_02",
+      "title": "Magic Re-Lighting Birthday Candles (Pack of 10)",
+      "price": "₹49★ 4.9(12)View details →"
+    },
+    {
+      "href": "/products/acc_03",
+      "title": "Custom Handwritten Greeting Card",
+      "price": "₹99★ 4.9(12)View details →"
+    },
+    {
+      "href": "/products/acc_04",
+      "title": "Fresh Bouquet of 10 Red Roses",
+      "price": "₹299★ 4.9(12)View details →"
+    },
+    {
+      "href": "/products/acc_05",
+      "title": "Soft Plush Brown Teddy Bear (8-Inch)",
+      "price": "₹349★ 4.9(12)View details →"
+    },
+    {
+      "href": "/products/acc_06",
+      "title": "Ferrero Rocher Chocolate Box (16 Pieces)",
+      "price": "₹549★ 4.9(12)View details →"
+    },
+    {
+      "href": "/products/acc_07",
+      "title": "Helium Foil Metallic Balloon Bouquet (Bunch of 5)",
+      "price": "₹199★ 4.9(12)View details →"
+    },
+    {
+      "href": "/products/acc_08",
+      "title": "Royal Celebration Luxury Gift Basket",
+      "price": "₹1299★ 4.9(12)View details →"
+    }
+  ],
+  "screenshots": [
+    "01_recovered_storefront_homepage.png",
+    "02_recovered_product_detail.png",
+    "03_storefront_reloaded_persistence.png"
+  ],
+  "passed": 13,
+  "failed": 0
+}

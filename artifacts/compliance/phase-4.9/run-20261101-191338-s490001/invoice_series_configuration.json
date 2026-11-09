@@ -1,0 +1,32 @@
+{
+  "candidate_1": {
+    "prefix": "CTHI",
+    "format": "CTHI/26-27/00001",
+    "sequence_digits": 5,
+    "total_length": 16,
+    "annual_capacity": 99999,
+    "rule_46b_valid": true,
+    "historical_collision": false
+  },
+  "candidate_2": {
+    "prefix": "C2H",
+    "format": "C2H/26-27/000001",
+    "sequence_digits": 6,
+    "total_length": 16,
+    "annual_capacity": 999999,
+    "rule_46b_valid": true,
+    "historical_collision": false,
+    "recommended": true
+  },
+  "candidate_3_historical": {
+    "prefix": "CTH",
+    "format": "CTH/26-27/000001",
+    "sequence_digits": 6,
+    "total_length": 16,
+    "annual_capacity": 999999,
+    "rule_46b_valid": true,
+    "historical_collision": true,
+    "collision_invoice_id": "inv_1792901376459_xlxkf",
+    "status": "DISQUALIFIED"
+  }
+}

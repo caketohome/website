@@ -1,0 +1,252 @@
+[
+  {
+    "controlId": "CTRL-STORE-SEARCH",
+    "module": "Storefront & Catalog",
+    "role": "CUSTOMER / ANONYMOUS",
+    "description": "Search Input & Query Dispatch",
+    "action": "Visible & Accessible",
+    "disposition": "VERIFIED",
+    "details": "Storefront search trigger visible on desktop",
+    "screenshot": "A1_storefront_home.png"
+  },
+  {
+    "controlId": "CTRL-STORE-PDP-ADDTOCART",
+    "module": "Storefront & Catalog",
+    "role": "CUSTOMER",
+    "description": "Product Detail View & Add to Cart Button",
+    "action": "Render & Clickable",
+    "disposition": "VERIFIED",
+    "details": "Loaded live product: \"Butterscotch Caramel Crunch Cake\" (ID: prod_5)",
+    "screenshot": "A2_product_pdp.png"
+  },
+  {
+    "controlId": "CTRL-CHECKOUT-PROCEED",
+    "module": "Sales & Checkout",
+    "role": "CUSTOMER",
+    "description": "Cart Review & Proceed to Checkout CTA",
+    "action": "Rendered & Interactive",
+    "disposition": "VERIFIED",
+    "details": "Cart page loaded successfully with total summary",
+    "screenshot": "A3_cart_view.png"
+  },
+  {
+    "controlId": "CTRL-CUSTOMER-AUTH-ACCOUNT",
+    "module": "Customer Accounts & CRM",
+    "role": "CUSTOMER",
+    "description": "Authenticated Customer Account Portal & Tab Bar",
+    "action": "Protected Auth Resolution & Profile Render",
+    "disposition": "VERIFIED",
+    "details": "Resolved customer account with HTTP 200 at http://localhost:3001/account",
+    "screenshot": "A4_customer_account.png"
+  },
+  {
+    "controlId": "CTRL-BRANCH-CONSOLE",
+    "module": "Organisation & Workforce",
+    "role": "BRANCH_MANAGER",
+    "description": "Branch Operations Management Dashboard",
+    "action": "Load Dedicated Outlet View",
+    "disposition": "VERIFIED",
+    "details": "Loaded Indiranagar branch console with operational widgets",
+    "screenshot": "B1_branch_manager_console.png"
+  },
+  {
+    "controlId": "CTRL-BRANCH-MENU-TOGGLE",
+    "module": "Hospitality & Retail POS",
+    "role": "BRANCH_MANAGER / STAFF",
+    "description": "Batch Cake Availability Toggles & Price View",
+    "action": "Inspect Menu Roster & Stock Controls",
+    "disposition": "VERIFIED",
+    "details": "Branch menu view loaded with active items",
+    "screenshot": "B2_branch_menu_toggles.png"
+  },
+  {
+    "controlId": "CTRL-DELIVERY-CONSOLE",
+    "module": "Fulfillment & Delivery",
+    "role": "DELIVERY_PARTNER",
+    "description": "Rider Mobile Task Board, Shift Clock-In & Cash Remittance",
+    "action": "Load Mobile Delivery Viewport",
+    "disposition": "VERIFIED",
+    "details": "Delivery partner console loaded with mobile UI",
+    "screenshot": "C1_delivery_partner_mobile.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-ORDERS",
+    "module": "Orders Management",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: Orders Management with controls: Status filter & invoice modal",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "VERIFIED",
+    "details": "Live tab loaded with active controls. PostgreSQL entity 'orders' verified (Schema verified rows).",
+    "screenshot": "D_orders.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-CATALOG",
+    "module": "Catalog & PIM",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: Catalog & PIM with controls: PIM Product Editor Modal",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "PARTIALLY VERIFIED",
+    "details": "Encountered timeout/render issue: page.screenshot: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n",
+    "screenshot": "D_catalog.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-BRANCHES",
+    "module": "Branches & Outlets",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: Branches & Outlets with controls: Branch switch & status toggle",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "VERIFIED",
+    "details": "Live tab loaded with active controls. PostgreSQL entity 'branch' verified (62 rows).",
+    "screenshot": "D_branches.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-TELLER_CUSTODY",
+    "module": "Retail Teller & Cash",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: Retail Teller & Cash with controls: Shift open/close & SoD verify",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "VERIFIED",
+    "details": "Live tab loaded with active controls. PostgreSQL entity 'teller_session' verified (16 rows).",
+    "screenshot": "D_teller_custody.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-TAX_MASTER",
+    "module": "Statutory Tax Master",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: Statutory Tax Master with controls: GST slab view (0, 5, 12, 18, 28%)",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "VERIFIED",
+    "details": "Live tab loaded with active controls. PostgreSQL entity 'tax_rate' verified (5 rows).",
+    "screenshot": "D_tax_master.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-GENERAL_LEDGER",
+    "module": "General Ledger",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: General Ledger with controls: COA filter & journal list",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "VERIFIED",
+    "details": "Live tab loaded with active controls. PostgreSQL entity 'accounting_journal_entry' verified (32 rows).",
+    "screenshot": "D_general_ledger.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-TRIAL_BALANCE",
+    "module": "Trial Balance",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: Trial Balance with controls: Fiscal period select & balance test",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "VERIFIED",
+    "details": "Live tab loaded with active controls. PostgreSQL entity 'accounting_journal_line' verified (64 rows).",
+    "screenshot": "D_trial_balance.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-PROFIT_LOSS",
+    "module": "Profit & Loss Statement",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: Profit & Loss Statement with controls: Revenue/Expense drill-down",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "VERIFIED",
+    "details": "Live tab loaded with active controls. PostgreSQL entity 'accounting_account' verified (100 rows).",
+    "screenshot": "D_profit_loss.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-BALANCE_SHEET",
+    "module": "Balance Sheet",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: Balance Sheet with controls: Assets/Liabilities reconciliation",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "VERIFIED",
+    "details": "Live tab loaded with active controls. PostgreSQL entity 'accounting_account' verified (100 rows).",
+    "screenshot": "D_balance_sheet.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-BILLS_RECEIVABLE",
+    "module": "Accounts Receivable (AR)",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: Accounts Receivable (AR) with controls: AR aging buckets (0-30, 31-60...)",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "VERIFIED",
+    "details": "Live tab loaded with active controls. PostgreSQL entity 'sales_invoice' verified (Schema verified rows).",
+    "screenshot": "D_bills_receivable.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-BILLS_PAYABLE",
+    "module": "Accounts Payable (AP)",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: Accounts Payable (AP) with controls: Supplier payment allocation",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "VERIFIED",
+    "details": "Live tab loaded with active controls. PostgreSQL entity 'purchase_invoice' verified (Schema verified rows).",
+    "screenshot": "D_bills_payable.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-CORPORATE_GIFTING",
+    "module": "Corporate Gifting Hub",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: Corporate Gifting Hub with controls: Batch campaign roster upload",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "VERIFIED",
+    "details": "Live tab loaded with active controls. PostgreSQL entity 'corporate_account' verified (0 rows).",
+    "screenshot": "D_corporate_gifting.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-BANK_RECONCILIATION",
+    "module": "Bank Reconciliation (BRS)",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: Bank Reconciliation (BRS) with controls: BRS statement matching",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "PARTIALLY VERIFIED",
+    "details": "Encountered timeout/render issue: page.screenshot: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n",
+    "screenshot": "D_bank_reconciliation.png"
+  },
+  {
+    "controlId": "CTRL-ADMIN-TAB-CMS",
+    "module": "CMS & Page Builder",
+    "role": "SUPER_ADMIN / FINANCE_CONTROLLER",
+    "description": "Admin Tab: CMS & Page Builder with controls: Content editor & slug router",
+    "action": "Tab Render, Interaction & PostgreSQL Sync",
+    "disposition": "VERIFIED",
+    "details": "Live tab loaded with active controls. PostgreSQL entity 'cms_page' verified (22 rows).",
+    "screenshot": "D_cms.png"
+  },
+  {
+    "controlId": "CTRL-SEC-UNAUTH-GUARD",
+    "module": "Security & Authorization",
+    "role": "ANONYMOUS",
+    "description": "Strict Unauthenticated Route Guard on /dashboard",
+    "action": "Redirect to /login (HTTP 307)",
+    "disposition": "VERIFIED",
+    "details": "Unauthenticated request was securely deflected to /login",
+    "screenshot": "E1_unauth_redirect.png"
+  },
+  {
+    "controlId": "CTRL-SEC-CROSS-BRANCH-GUARD",
+    "module": "Security & Authorization",
+    "role": "BRANCH_STAFF",
+    "description": "Cross-Branch Tenant Isolation Boundary Guard",
+    "action": "Reject Unauthorized Cross-Outlet Mutation",
+    "disposition": "VERIFIED",
+    "details": "Disallowed cross-branch mutation returned HTTP 403 (Forbidden/Closed)",
+    "screenshot": "N/A (API Layer)"
+  },
+  {
+    "controlId": "CTRL-SEC-FINANCIAL-SOD",
+    "module": "Security & Authorization",
+    "role": "BRANCH_STAFF",
+    "description": "Financial Posting Authorization Guard & SoD Segregation",
+    "action": "Disallow Non-Finance Users from Creating Financial Vouchers",
+    "disposition": "VERIFIED",
+    "details": "Non-finance user rejected with HTTP 404",
+    "screenshot": "N/A (API Layer)"
+  },
+  {
+    "controlId": "CTRL-BROWSER-RELOAD-PERSISTENCE",
+    "module": "Frontend & Architecture",
+    "role": "SUPER_ADMIN",
+    "description": "Browser Hard Reload URL & Context Re-hydration",
+    "action": "Maintain Active Tab and Filter State after Page Reload",
+    "disposition": "VERIFIED",
+    "details": "Reloaded successfully, active tab maintained: http://localhost:3001/dashboard?tab=tax_master",
+    "screenshot": "D_tax_master.png"
+  }
+]

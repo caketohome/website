@@ -1,0 +1,33 @@
+{
+  "rule_46b_max_length": 16,
+  "candidates": {
+    "CTHI": {
+      "prefix_len": 4,
+      "seq_width": 5,
+      "format": "CTHI/26-27/00001",
+      "total_len": 16,
+      "annual_cap": 99999,
+      "collisions_in_cth_test": 0,
+      "status": "COMPLIANT"
+    },
+    "C2H": {
+      "prefix_len": 3,
+      "seq_width": 6,
+      "format": "C2H/26-27/000001",
+      "total_len": 16,
+      "annual_cap": 999999,
+      "collisions_in_cth_test": 0,
+      "status": "COMPLIANT"
+    },
+    "CTH": {
+      "prefix_len": 3,
+      "seq_width": 6,
+      "format": "CTH/26-27/000001",
+      "total_len": 16,
+      "annual_cap": 999999,
+      "collisions_in_cth_test": 55,
+      "status": "COLLISION_BLOCKED"
+    }
+  },
+  "neutrality_policy": "MAINTAINED"
+}

@@ -1,0 +1,924 @@
+{
+  "summary": {
+    "trackedModifiedCount": 44,
+    "untrackedCount": 451,
+    "secretFindingsCount": 9,
+    "realSecretFindingsCount": 7
+  },
+  "trackedClassified": {
+    "Other Modified": [
+      {
+        "file": "HECKPOINTS/LATEST_CHECKPOINT.md",
+        "stat": {
+          "add": 0,
+          "del": 0
+        }
+      }
+    ],
+    "Documentation & Checkpoints": [
+      {
+        "file": "frontend/CHECKPOINTS/LATEST_CHECKPOINT.md",
+        "stat": {
+          "add": 45,
+          "del": 28
+        }
+      }
+    ],
+    "Shared API Router Monolith": [
+      {
+        "file": "frontend/src/app/api/v1/[...path]/route.ts",
+        "stat": {
+          "add": 2598,
+          "del": 180
+        }
+      }
+    ],
+    "Unclassified / Core Platform (Phase 5C & Branch Auth)": [
+      {
+        "file": "frontend/src/app/api/v1/admin/branches/route.ts",
+        "stat": {
+          "add": 14,
+          "del": 0
+        }
+      },
+      {
+        "file": "frontend/src/lib/api-engine.ts",
+        "stat": {
+          "add": 4,
+          "del": 4
+        }
+      },
+      {
+        "file": "frontend/src/lib/db-persistence.ts",
+        "stat": {
+          "add": 53,
+          "del": 19
+        }
+      }
+    ],
+    "Admin Shell, Navigation & RBAC Registry": [
+      {
+        "file": "frontend/src/app/dashboard/page.tsx",
+        "stat": {
+          "add": 36,
+          "del": 1
+        }
+      },
+      {
+        "file": "frontend/src/components/admin/AdminSidebar.tsx",
+        "stat": {
+          "add": 8,
+          "del": 1
+        }
+      },
+      {
+        "file": "frontend/src/components/dashboard/admin/admin-tabs.tsx",
+        "stat": {
+          "add": 7,
+          "del": 1
+        }
+      },
+      {
+        "file": "frontend/src/lib/staff-access-control.ts",
+        "stat": {
+          "add": 46,
+          "del": 3
+        }
+      }
+    ],
+    "Phase C1-C4 (Core Accounting / AR / AP / Journals)": [
+      {
+        "file": "frontend/src/components/dashboard/admin/accounting-work-queue-panel.tsx",
+        "stat": {
+          "add": 237,
+          "del": 16
+        }
+      },
+      {
+        "file": "frontend/src/lib/data/accounting-work-queue.ts",
+        "stat": {
+          "add": 27,
+          "del": 1
+        }
+      },
+      {
+        "file": "frontend/src/lib/order-lifecycle-service.ts",
+        "stat": {
+          "add": 15,
+          "del": 2
+        }
+      },
+      {
+        "file": "frontend/src/lib/repositories/accounting-journal.repository.ts",
+        "stat": {
+          "add": 11,
+          "del": 3
+        }
+      },
+      {
+        "file": "frontend/src/lib/repositories/accounting-voucher.repository.ts",
+        "stat": {
+          "add": 436,
+          "del": 4
+        }
+      },
+      {
+        "file": "frontend/src/lib/repositories/gateway-payout.repository.ts",
+        "stat": {
+          "add": 4,
+          "del": 1
+        }
+      },
+      {
+        "file": "frontend/src/lib/services/customer-receipt.service.ts",
+        "stat": {
+          "add": 124,
+          "del": 0
+        }
+      },
+      {
+        "file": "frontend/src/lib/services/gateway-settlement.service.ts",
+        "stat": {
+          "add": 13,
+          "del": 8
+        }
+      },
+      {
+        "file": "frontend/src/lib/services/purchase-payment.service.ts",
+        "stat": {
+          "add": 71,
+          "del": 8
+        }
+      },
+      {
+        "file": "frontend/src/lib/services/purchase-posting.service.ts",
+        "stat": {
+          "add": 2,
+          "del": 1
+        }
+      },
+      {
+        "file": "frontend/src/lib/services/sales-posting.service.ts",
+        "stat": {
+          "add": 2,
+          "del": 1
+        }
+      },
+      {
+        "file": "frontend/src/lib/services/sales-return.service.ts",
+        "stat": {
+          "add": 63,
+          "del": 9
+        }
+      },
+      {
+        "file": "frontend/src/lib/types/accounting.types.ts",
+        "stat": {
+          "add": 744,
+          "del": 7
+        }
+      },
+      {
+        "file": "frontend/src/lib/types/purchase.types.ts",
+        "stat": {
+          "add": 19,
+          "del": 0
+        }
+      }
+    ],
+    "Phase C5 (Expense Posting & Reversals)": [
+      {
+        "file": "frontend/src/components/dashboard/admin/expense-panel.tsx",
+        "stat": {
+          "add": 882,
+          "del": 224
+        }
+      },
+      {
+        "file": "frontend/src/lib/repositories/expense-category.repository.ts",
+        "stat": {
+          "add": 9,
+          "del": 5
+        }
+      },
+      {
+        "file": "frontend/src/lib/repositories/expense.repository.ts",
+        "stat": {
+          "add": 46,
+          "del": 8
+        }
+      },
+      {
+        "file": "frontend/src/lib/services/expense.service.ts",
+        "stat": {
+          "add": 176,
+          "del": 10
+        }
+      },
+      {
+        "file": "frontend/src/lib/types/expense.types.ts",
+        "stat": {
+          "add": 44,
+          "del": 6
+        }
+      }
+    ],
+    "Customer Data Layer": [
+      {
+        "file": "frontend/src/lib/data/customer.ts",
+        "stat": {
+          "add": 15,
+          "del": 9
+        }
+      },
+      {
+        "file": "frontend/src/lib/repositories/customer.repository.ts",
+        "stat": {
+          "add": 18,
+          "del": 0
+        }
+      }
+    ],
+    "Phase B (Banking Master & Reconciliation)": [
+      {
+        "file": "frontend/src/lib/repositories/bank-account.repository.ts",
+        "stat": {
+          "add": 156,
+          "del": 36
+        }
+      },
+      {
+        "file": "frontend/src/lib/repositories/bank-deposit-slip.repository.ts",
+        "stat": {
+          "add": 4,
+          "del": 1
+        }
+      },
+      {
+        "file": "frontend/src/lib/repositories/bank-reconciliation.repository.ts",
+        "stat": {
+          "add": 4,
+          "del": 1
+        }
+      },
+      {
+        "file": "frontend/src/lib/repositories/bank-statement-import.repository.ts",
+        "stat": {
+          "add": 4,
+          "del": 1
+        }
+      },
+      {
+        "file": "frontend/src/lib/services/bank-account.service.ts",
+        "stat": {
+          "add": 268,
+          "del": 135
+        }
+      },
+      {
+        "file": "frontend/src/lib/services/bank-deposit-slip.service.ts",
+        "stat": {
+          "add": 3,
+          "del": 8
+        }
+      },
+      {
+        "file": "frontend/src/lib/services/bank-reconciliation-matching.service.ts",
+        "stat": {
+          "add": 21,
+          "del": 7
+        }
+      },
+      {
+        "file": "frontend/src/lib/services/bank-reconciliation-statement.service.ts",
+        "stat": {
+          "add": 16,
+          "del": 29
+        }
+      },
+      {
+        "file": "frontend/src/lib/services/bank-statement-import.service.ts",
+        "stat": {
+          "add": 2,
+          "del": 1
+        }
+      }
+    ],
+    "Shared Index / Domain Types": [
+      {
+        "file": "frontend/src/lib/repositories/index.ts",
+        "stat": {
+          "add": 15,
+          "del": 0
+        }
+      },
+      {
+        "file": "frontend/src/lib/services/index.ts",
+        "stat": {
+          "add": 23,
+          "del": 0
+        }
+      },
+      {
+        "file": "frontend/src/lib/types/domain.ts",
+        "stat": {
+          "add": 10,
+          "del": 0
+        }
+      },
+      {
+        "file": "frontend/src/lib/types/index.ts",
+        "stat": {
+          "add": 2,
+          "del": 0
+        }
+      }
+    ]
+  },
+  "untrackedClassifiedSummary": {
+    "Screenshots & Visual Evidence": 59,
+    "CHECKPOINTS/acceptance-test-evidence/ (Regression Evidence JSON)": 60,
+    "CHECKPOINTS/ (Prior Phase Checkpoints & Production Runbooks)": 16,
+    "CHECKPOINTS/ (Phase C7.6 Checkpoints)": 4,
+    "CHECKPOINTS/ (Phase C7.7 Checkpoints)": 4,
+    "CHECKPOINTS/ (Phase C7.8-C7.14 Roadmap & Discovery)": 3,
+    "Project Root Governance (FREEZE.md)": 1,
+    "backend/src/migrations/ (Phase A, B, C, C7.7 SQL Migrations)": 4,
+    "frontend/CHECKPOINTS/ (Frontend Phase Checkpoints)": 21,
+    "Baseline DB Snapshot": 1,
+    "frontend/ (Standalone Migration Runners)": 4,
+    "frontend/scratch/ (Test Suites & Verification Artifacts)": 168,
+    "frontend/scripts/ (E2E & Audit Scripts)": 9,
+    "frontend/src/ (Phase B Bank Master)": 1,
+    "frontend/src/ (Phase C7.2/C7.4 Bills Subsystem)": 12,
+    "frontend/src/ (Phase C7.7 Gifting Subsystem)": 4,
+    "frontend/src/ (Phase C7.6 Cost Allocation Subsystem)": 7,
+    "frontend/src/ (Phase C6 Manual Journal Subsystem)": 7,
+    "frontend/src/ (Phase C3/C7.5 Teller & Cash Subsystem)": 22,
+    "frontend/src/ (Other Domain Components)": 6,
+    "frontend/src/ (Phase A Company & GST Master)": 5,
+    "scratch/ (Test Suites, Baselines & Forensic Scripts)": 33
+  },
+  "untrackedClassified": {
+    "Screenshots & Visual Evidence": [
+      "CHECKPOINTS/acceptance-test-evidence/00-login-test.png",
+      "CHECKPOINTS/acceptance-test-evidence/accounting-uat/PREFLIGHT-01-dashboard.png",
+      "CHECKPOINTS/acceptance-test-evidence/accounting/01-accounting-work-queue-dashboard.png",
+      "CHECKPOINTS/acceptance-test-evidence/accounting/02-sales-voucher-posted.png",
+      "CHECKPOINTS/acceptance-test-evidence/billing/01-delivered-statutory-invoice.png",
+      "CHECKPOINTS/acceptance-test-evidence/branch-manager/01-shop-dashboard-overview.png",
+      "CHECKPOINTS/acceptance-test-evidence/branch-manager/02-shop-orders-queue.png",
+      "CHECKPOINTS/acceptance-test-evidence/branch-manager/03-shop-purchases-grn.png",
+      "CHECKPOINTS/acceptance-test-evidence/branch-manager/04-shop-expenses.png",
+      "CHECKPOINTS/acceptance-test-evidence/branch-manager/05-shop-cash-teller.png",
+      "CHECKPOINTS/acceptance-test-evidence/branch-manager/06-shop-inventory.png",
+      "CHECKPOINTS/acceptance-test-evidence/branch-manager/07-shop-branch-reports.png",
+      "CHECKPOINTS/acceptance-test-evidence/branch-manager/08-branch-isolation-enforced.png",
+      "CHECKPOINTS/acceptance-test-evidence/delivery/01-delivery-partner-active-job.png",
+      "CHECKPOINTS/acceptance-test-evidence/rbac/01-super-admin-auth-success.png",
+      "CHECKPOINTS/acceptance-test-evidence/rbac/02-branch-manager-auth-success.png",
+      "CHECKPOINTS/acceptance-test-evidence/rbac/03-branch-manager-blocked-from-admin.png",
+      "CHECKPOINTS/acceptance-test-evidence/rbac/04-delivery-partner-auth-success.png",
+      "CHECKPOINTS/acceptance-test-evidence/rbac/05-delivery-partner-blocked-from-shop.png",
+      "CHECKPOINTS/acceptance-test-evidence/rbac/06-unauthenticated-redirect-login.png",
+      "CHECKPOINTS/acceptance-test-evidence/responsive/01-login-desktop.png",
+      "CHECKPOINTS/acceptance-test-evidence/responsive/01-login-mobile.png",
+      "CHECKPOINTS/acceptance-test-evidence/responsive/01-login-tablet.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/01-super-admin-orders.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/02-super-admin-catalog.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/03-super-admin-branches.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/04-super-admin-suppliers.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/05-super-admin-purchases.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/06-super-admin-expenses.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/07-super-admin-work-queue.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/08-super-admin-general-ledger.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/09-super-admin-profit-loss.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/10-super-admin-balance-sheet.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/11-super-admin-cash-flow.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/12-super-admin-bank-reconciliation.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/13-super-admin-gateway-settlements.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/14-super-admin-accounting-setup.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/15-super-admin-tax-master.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/16-super-admin-staff-profiles.png",
+      "CHECKPOINTS/acceptance-test-evidence/super-admin/17-super-admin-analytics.png",
+      "screenshots/c4_2_01_active_drawer.png",
+      "screenshots/c4_2_02_modal_add_counter.png",
+      "screenshots/c4_2_02_work_queue.png",
+      "screenshots/c4_2_03_modal_open_shift.png",
+      "screenshots/c4_2_03_session_history.png",
+      "screenshots/c4_2_04_active_shift_open.png",
+      "screenshots/c4_2_04_modal_new_station.png",
+      "screenshots/c4_2_05_modal_adjustment.png",
+      "screenshots/c4_2_06_modal_close_count.png",
+      "screenshots/c4_2_07_modal_supervisor_verify.png",
+      "screenshots/c4_2_08_modal_settlement_preview.png",
+      "screenshots/c4_2_09_session_history.png",
+      "screenshots/c7_7_step7d_01_batches_overview.png",
+      "screenshots/c7_7_step7d_02_upload_campaign_form.png",
+      "screenshots/c7_7_step7d_03_validation_errors_display.png",
+      "screenshots/c7_7_step7d_04_validation_report_success.png",
+      "screenshots/c7_7_step7d_05_execution_confirm_modal.png",
+      "screenshots/c7_7_step7d_06_execution_success_banner.png",
+      "screenshots/c7_7_step7d_07_batch_detail_roster.png"
+    ],
+    "CHECKPOINTS/acceptance-test-evidence/ (Regression Evidence JSON)": [
+      "CHECKPOINTS/acceptance-test-evidence/PRG01_ACCEPTANCE_TEST_REPORT.md",
+      "CHECKPOINTS/acceptance-test-evidence/accounting-uat/REC-01/page@6c5202ca9b2445484f5d3a9388ede5cf.webm",
+      "CHECKPOINTS/acceptance-test-evidence/api_test_results.json",
+      "CHECKPOINTS/acceptance-test-evidence/api_test_results_jwt.json",
+      "CHECKPOINTS/acceptance-test-evidence/db_baseline.json",
+      "CHECKPOINTS/acceptance-test-evidence/financial_api_results.json",
+      "CHECKPOINTS/acceptance-test-evidence/pass-2/00_db_baseline_v4.json",
+      "CHECKPOINTS/acceptance-test-evidence/pass-2/18_balance_sheet_investigation_raw.json",
+      "CHECKPOINTS/acceptance-test-evidence/pass-2/19_comprehensive_verify.json",
+      "CHECKPOINTS/acceptance-test-evidence/pass-2/20_corrected_comprehensive.json",
+      "CHECKPOINTS/acceptance-test-evidence/suite1_auth_rbac_results.json",
+      "CHECKPOINTS/acceptance-test-evidence/suite2_admin_panel_results.json",
+      "CHECKPOINTS/acceptance-test-evidence/suite3_shop_panel_results.json",
+      "CHECKPOINTS/acceptance-test-evidence/suite4_order_lifecycle_results.json",
+      "CHECKPOINTS/acceptance-test-evidence/suite5_accounting_sod_results.json",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@018949df813c0a2931c85a92e0d82bae.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@0634ca18d8fe654cbfdaaa4e2c7852ae.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@07da0ef1e11a07842eb4c24a0fa46024.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@0c5512aaece82f55a7533e740e2d0519.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@1557fc2e96b21bd2aadcecdc769bc37c.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@15bb95ada8673e0416e1ea6820c5d3e3.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@1a3790ba93b29e1f5771dfbd32da42ed.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@1bd27f73978fdff789e35b99de6671cf.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@26eb3af5705ea02f9ce771dc51acb0fe.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@3eae1c23321568039118c5443af73504.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@41240005b9ab405a3cb63cb4ed357f97.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@4406536ccffd110c2a15cd95409575e6.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@4ce4acb511b81ae6edc590fa014b00bd.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@55ec1dfd4abd717a5e3cd44ca0e8f4b0.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@570e72118f62b5ff19374e47f207ed21.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@584759de551ca4000f55d84f8c04d1cc.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@5ba4a95e6ff6b54b57375c7d19533ad9.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@682d7119f88660a5046d607282ea6e20.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@6948cccd94069733bf4de3456c195619.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@6f2fdeb1f2ede72c3d316c169aee4c6c.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@7667901b6990025ae82a4a3cd68387f5.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@797b536bc9655f8751b95fd96a492a30.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@80aec0c00f1e587c3b91645949b04546.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@8b53fb62090636be8a99640301cb9b18.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@8ccc44b542e2732e3e09298ac59bae06.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@a453e6b84bb77f72459007e103a7a655.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@a49370e3ef373272ac4fcb8fcf43d5cd.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@a501dd1bc3cb130fa764594c3f07acfa.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@b275cc2162ca460c415b88280d8fbb05.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@b46f47fcb28752b60066578962ae9b95.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@ba586b6ab0c921704361b788e54e99a0.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@bb9861802d24da04f95c5aed26d0d8ec.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@bd0bd235858b6d6c69e3613335d821b1.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@bfe008cd40ef9a8544d2945fb08adacf.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@c21bc614e4b7b5c70c915cd57b1ae836.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@c2acef1ed323497f0e49b8f84f988140.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@cc7c0b2ad3732216c27a62ea0e3e515c.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@cdb31ba778a928b2756f332cfad53e5b.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@d03fe685dbfb19fd84211230d20a211b.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@d9fc73b59e3a3ba9c11e0b7d91f2c57f.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@ea6549db17fdcb66b3c28b3cb75302c9.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@eb34c8f7f2f1f47ebd9dd0594964acb3.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@edd1ad6937a531c90a5c1f28a031047b.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@eef1dcda52adbfc925df873d2ada62a7.webm",
+      "CHECKPOINTS/acceptance-test-evidence/video/page@fb3c5abc28cb80c999d6199d44dd71fa.webm"
+    ],
+    "CHECKPOINTS/ (Prior Phase Checkpoints & Production Runbooks)": [
+      "CHECKPOINTS/dashboard-acceptance-freeze.md",
+      "CHECKPOINTS/final-erp-completion-audit.md",
+      "CHECKPOINTS/phase-b-bank-account-master.md",
+      "CHECKPOINTS/phase-b1-forensic-inspection.md",
+      "CHECKPOINTS/phase-c2-schema-definition.md",
+      "CHECKPOINTS/phase-c3-teller-domain-services.md",
+      "CHECKPOINTS/phase-c4-1-teller-api-settlement.md",
+      "CHECKPOINTS/phase-c4-1-test-failure-investigation.md",
+      "CHECKPOINTS/phase-c4-2-teller-cash-custody-ui.md",
+      "CHECKPOINTS/phase-c7-2-bills-payable-checkpoint.md",
+      "CHECKPOINTS/phase-c7-3-payment-teller-checkpoint.md",
+      "CHECKPOINTS/phase-c7-4-corporate-ar-invoicing-checkpoint.md",
+      "CHECKPOINTS/phase5c-step3-sales-posting-and-receipt.md",
+      "CHECKPOINTS/prg01-production-connection-verification.md",
+      "CHECKPOINTS/prg01-step1-production-infrastructure-forensic.md",
+      "CHECKPOINTS/prg01-step2-production-architecture-and-provisioning-runbook.md"
+    ],
+    "CHECKPOINTS/ (Phase C7.6 Checkpoints)": [
+      "CHECKPOINTS/phase-c7-6-step-4-cost-allocation-design-checkpoint.md",
+      "CHECKPOINTS/phase-c7-6-step-4a-allocation-schema-checkpoint.md",
+      "CHECKPOINTS/phase-c7-6-step-4d-cost-allocation-api-checkpoint.md",
+      "CHECKPOINTS/phase-c7-6-step-4e-cost-allocation-ui-checkpoint.md"
+    ],
+    "CHECKPOINTS/ (Phase C7.7 Checkpoints)": [
+      "CHECKPOINTS/phase-c7-7-step-7a-corporate-gifting-schema-checkpoint.md",
+      "CHECKPOINTS/phase-c7-7-step-7b-corporate-gifting-domain-checkpoint.md",
+      "CHECKPOINTS/phase-c7-7-step-7c-corporate-gifting-api-checkpoint.md",
+      "CHECKPOINTS/phase-c7-7-step-7d-corporate-gifting-ui-checkpoint.md"
+    ],
+    "CHECKPOINTS/ (Phase C7.8-C7.14 Roadmap & Discovery)": [
+      "CHECKPOINTS/phase-c7-8-forensic-discovery-report.md",
+      "CHECKPOINTS/phase-c7-8-to-c7-14-corporate-account-delivery-routing-master-plan.md",
+      "CHECKPOINTS/phase-c7-9-design-lock-and-acceptance-checklist.md"
+    ],
+    "Project Root Governance (FREEZE.md)": [
+      "FREEZE.md"
+    ],
+    "backend/src/migrations/ (Phase A, B, C, C7.7 SQL Migrations)": [
+      "backend/src/migrations/20261004_phase_a_company_gst_master.sql",
+      "backend/src/migrations/20261004_phase_b_bank_account_master.sql",
+      "backend/src/migrations/20261004_phase_c_teller_management.sql",
+      "backend/src/migrations/20261009_phase_c7_7_corporate_gifting_schema.sql"
+    ],
+    "frontend/CHECKPOINTS/ (Frontend Phase Checkpoints)": [
+      "frontend/CHECKPOINTS/phase-c6-1-manual-journal-persistence-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c6-2-manual-journal-domain-service-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c6-3-manual-journal-api-rbac-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c6-4-manual-journal-ui-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-1-schema-foundations-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-2-bills-payable-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-5-branch-cash-control-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-6-step-2-accounting-cost-centre-propagation-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-6-step-3-coa-governance-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-6-step-3-coa-governance-forensic-design-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-6-step-4-cost-allocation-design-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-6-step-4a-allocation-schema-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-6-step-4b-repository-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-6-step-4c-cost-allocation-engine-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-6-step-4d-cost-allocation-api-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-6-step-4e-cost-allocation-ui-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-7-step-7a-corporate-gifting-schema-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-7-step-7b-corporate-gifting-domain-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-7-step-7c-corporate-gifting-api-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-7-step-7d-corporate-gifting-ui-checkpoint.md",
+      "frontend/CHECKPOINTS/phase-c7-party-accounting-bills-cash-cost-centre-forensic.md"
+    ],
+    "Baseline DB Snapshot": [
+      "frontend/baseline_db_snapshot.json"
+    ],
+    "frontend/ (Standalone Migration Runners)": [
+      "frontend/migrate_c5_expense_accounting.js",
+      "frontend/migrate_phase_c7_1_schema_foundations.js",
+      "frontend/migrate_phase_c7_6_step4a_cost_allocation_schema.js",
+      "frontend/migrate_phase_c7_7_step7a_corporate_gifting_schema.js"
+    ],
+    "frontend/scratch/ (Test Suites & Verification Artifacts)": [
+      "frontend/scratch/analyze_numbering.js",
+      "frontend/scratch/audit_c7_1_independent_post_verification.js",
+      "frontend/scratch/audit_c7_6_step1_post_db.js",
+      "frontend/scratch/audit_c7_6_step2_post_db.js",
+      "frontend/scratch/audit_c7_6_step3_post_db.js",
+      "frontend/scratch/audit_c7_6_step4a_schema_db.js",
+      "frontend/scratch/audit_c7_6_step4e_final.js",
+      "frontend/scratch/audit_c7_7_step7a_independent.js",
+      "frontend/scratch/audit_c7_7_step7b_independent.js",
+      "frontend/scratch/audit_c7_7_step7c_independent.js",
+      "frontend/scratch/audit_c7_7_step7d_independent.js",
+      "frontend/scratch/audit_phase_c7_4_post_verification.js",
+      "frontend/scratch/audit_phase_c7_5_db.js",
+      "frontend/scratch/audit_post_c6_3.js",
+      "frontend/scratch/b8_postgres_verification.js",
+      "frontend/scratch/c1_forensic_inspect.js",
+      "frontend/scratch/c2_schema_verification.js",
+      "frontend/scratch/c6_4_dashboard.png",
+      "frontend/scratch/c6_4_detail_modal.png",
+      "frontend/scratch/c6_4_entry_modal.png",
+      "frontend/scratch/c6_forensic_db.json",
+      "frontend/scratch/c7_1_pre_migration_forensics.js",
+      "frontend/scratch/c7_2_batch_selection.png",
+      "frontend/scratch/c7_2_bill_detail_modal.png",
+      "frontend/scratch/c7_2_bills_payable_dashboard.png",
+      "frontend/scratch/c7_2_forensics.js",
+      "frontend/scratch/c7_2_pay_bill_modal.png",
+      "frontend/scratch/c7_3_bills_payable_after_cash_disbursement.png",
+      "frontend/scratch/c7_3_branch_cash_dashboard.png",
+      "frontend/scratch/c7_3_branch_reconciliation_modal.png",
+      "frontend/scratch/c7_3_pay_bill_modal_cash.png",
+      "frontend/scratch/c7_4_bills_receivable_dashboard.png",
+      "frontend/scratch/c7_4_bills_receivable_detail_modal.png",
+      "frontend/scratch/c7_4_customer_ledger_modal.png",
+      "frontend/scratch/c7_4_receive_receipt_modal.png",
+      "frontend/scratch/c7_4_schedule_reminder_modal.png",
+      "frontend/scratch/c7_5_branch_cash_overview.png",
+      "frontend/scratch/c7_5_forensic_deep_check.js",
+      "frontend/scratch/c7_5_migration.js",
+      "frontend/scratch/c7_5_petty_cash_modal.png",
+      "frontend/scratch/c7_5_reconciliation_modal.png",
+      "frontend/scratch/c7_5_replenish_till_modal.png",
+      "frontend/scratch/c7_5_safe_drop_modal.png",
+      "frontend/scratch/c7_5_verify_stage1.js",
+      "frontend/scratch/c7_6_forensic_inspection.js",
+      "frontend/scratch/c7_6_forensic_report.json",
+      "frontend/scratch/c7_6_step4e_create_rule_modal.png",
+      "frontend/scratch/c7_6_step4e_execute_run_modal.png",
+      "frontend/scratch/c7_6_step4e_overview.png",
+      "frontend/scratch/c7_6_step4e_preview_tab.png",
+      "frontend/scratch/c7_7_step7d_01_batches_overview.png",
+      "frontend/scratch/c7_7_step7d_02_upload_campaign_form.png",
+      "frontend/scratch/c7_7_step7d_03_validation_errors_display.png",
+      "frontend/scratch/c7_7_step7d_04_validation_report_success.png",
+      "frontend/scratch/c7_7_step7d_05_execution_confirm_modal.png",
+      "frontend/scratch/c7_7_step7d_06_execution_success_banner.png",
+      "frontend/scratch/c7_7_step7d_07_batch_detail_roster.png",
+      "frontend/scratch/check_account_ui.js",
+      "frontend/scratch/check_audit_cols.js",
+      "frontend/scratch/check_audit_tables.js",
+      "frontend/scratch/check_baseline.js",
+      "frontend/scratch/check_baseline_b.js",
+      "frontend/scratch/check_branch_cash.js",
+      "frontend/scratch/check_branches.js",
+      "frontend/scratch/check_c41_investigation.js",
+      "frontend/scratch/check_coa_semantics.js",
+      "frontend/scratch/check_db.js",
+      "frontend/scratch/check_db_baseline.js",
+      "frontend/scratch/check_db_state.js",
+      "frontend/scratch/check_mem_procs.js",
+      "frontend/scratch/check_more_tables.js",
+      "frontend/scratch/check_order_invoice_schema.js",
+      "frontend/scratch/check_order_schema.js",
+      "frontend/scratch/check_residual_allocation_rows.js",
+      "frontend/scratch/check_status.js",
+      "frontend/scratch/check_tables.js",
+      "frontend/scratch/clean_c41_fixtures.js",
+      "frontend/scratch/clean_cc_test.js",
+      "frontend/scratch/clean_orphan_petty_cash_test_vouchers.js",
+      "frontend/scratch/clean_step7b_fixtures.js",
+      "frontend/scratch/cleanup_test_records.js",
+      "frontend/scratch/dump_core_tables.js",
+      "frontend/scratch/find_account_types.js",
+      "frontend/scratch/find_perms.js",
+      "frontend/scratch/find_repo_callers.js",
+      "frontend/scratch/find_route_acc.js",
+      "frontend/scratch/forensic_c7_6_step3_coa.js",
+      "frontend/scratch/forensic_c7_6_step3_data.json",
+      "frontend/scratch/forensic_c7_7_schema.js",
+      "frontend/scratch/forensic_c7_db_audit.js",
+      "frontend/scratch/forensic_c7_deep_dive.js",
+      "frontend/scratch/forensic_c7_deep_dive_acc.js",
+      "frontend/scratch/forensic_fk_inspection.js",
+      "frontend/scratch/forensic_inspect_c7_5.js",
+      "frontend/scratch/forensic_inspect_db.js",
+      "frontend/scratch/forensic_price_tables.js",
+      "frontend/scratch/forensic_product_schema.js",
+      "frontend/scratch/independent_postgresql_audit.js",
+      "frontend/scratch/inspect_accounts.js",
+      "frontend/scratch/inspect_accounts_detail.js",
+      "frontend/scratch/inspect_c2_prereqs.js",
+      "frontend/scratch/inspect_c41_state.js",
+      "frontend/scratch/inspect_c6_schema.js",
+      "frontend/scratch/inspect_c7_6_db.js",
+      "frontend/scratch/inspect_c7_6_pre_design.js",
+      "frontend/scratch/inspect_c7_6_step4_forensics.js",
+      "frontend/scratch/inspect_c7_7_prereqs.js",
+      "frontend/scratch/inspect_cleanup.js",
+      "frontend/scratch/inspect_expense_forensics.js",
+      "frontend/scratch/inspect_fks.js",
+      "frontend/scratch/inspect_posting_cc.js",
+      "frontend/scratch/inspect_pricing.js",
+      "frontend/scratch/inspect_proc.js",
+      "frontend/scratch/inspect_residuals.js",
+      "frontend/scratch/inspect_triggers.js",
+      "frontend/scratch/inspect_users.js",
+      "frontend/scratch/inspect_vouchers.js",
+      "frontend/scratch/print_all_accounts.js",
+      "frontend/scratch/print_purchase_schema.js",
+      "frontend/scratch/run_c2_migration.js",
+      "frontend/scratch/run_c6_forensic.js",
+      "frontend/scratch/scan_service_codes.js",
+      "frontend/scratch/search_account_mutations.js",
+      "frontend/scratch/summarize_step3_data.js",
+      "frontend/scratch/targeted_search_acc.js",
+      "frontend/scratch/test_c5_expense_accounting.js",
+      "frontend/scratch/test_c6_1_persistence.js",
+      "frontend/scratch/test_c6_2_domain_service.js",
+      "frontend/scratch/test_c6_3_api.js",
+      "frontend/scratch/test_c6_4_ui_integration.js",
+      "frontend/scratch/test_db_conn_read_only.js",
+      "frontend/scratch/test_http_and_pid.js",
+      "frontend/scratch/test_immutability_triggers.js",
+      "frontend/scratch/test_ipv6.js",
+      "frontend/scratch/test_phase_b_bank_master.js",
+      "frontend/scratch/test_phase_c2_schema.js",
+      "frontend/scratch/test_phase_c3_domain_services.js",
+      "frontend/scratch/test_phase_c4_1_api_settlement.js",
+      "frontend/scratch/test_phase_c4_2_ui_integration.js",
+      "frontend/scratch/test_phase_c7_1_schema_verification.js",
+      "frontend/scratch/test_phase_c7_2_api_and_service.js",
+      "frontend/scratch/test_phase_c7_2_bills_payable.js",
+      "frontend/scratch/test_phase_c7_2_comprehensive.js",
+      "frontend/scratch/test_phase_c7_3_payment_teller.js",
+      "frontend/scratch/test_phase_c7_4_bills_receivable.js",
+      "frontend/scratch/test_phase_c7_5_branch_cash.js",
+      "frontend/scratch/test_phase_c7_6_step1_cost_centre.js",
+      "frontend/scratch/test_phase_c7_6_step2_propagation.js",
+      "frontend/scratch/test_phase_c7_6_step3_coa_governance.js",
+      "frontend/scratch/test_phase_c7_6_step4b_repository.js",
+      "frontend/scratch/test_phase_c7_6_step4c_engine.js",
+      "frontend/scratch/test_phase_c7_6_step4d_api.js",
+      "frontend/scratch/test_phase_c7_7_step7a_schema.js",
+      "frontend/scratch/test_phase_c7_7_step7b_domain.js",
+      "frontend/scratch/test_phase_c7_7_step7c_api.js",
+      "frontend/scratch/test_pw.js",
+      "frontend/scratch/test_tx.js",
+      "frontend/scratch/test_variance_check.js",
+      "frontend/scratch/verify_c2_baseline.js",
+      "frontend/scratch/verify_c4_2_browser.js",
+      "frontend/scratch/verify_c6_4_browser.js",
+      "frontend/scratch/verify_c7_2_browser.js",
+      "frontend/scratch/verify_c7_3_browser.js",
+      "frontend/scratch/verify_c7_4_browser.js",
+      "frontend/scratch/verify_c7_5_browser.js",
+      "frontend/scratch/verify_c7_6_browser.js",
+      "frontend/scratch/verify_c7_7_step7d_browser.js",
+      "frontend/scratch/verify_step3_baseline.js"
+    ],
+    "frontend/scripts/ (E2E & Audit Scripts)": [
+      "frontend/scripts/capture_baseline.ts",
+      "frontend/scripts/setup_evidence_dirs.js",
+      "frontend/scripts/test_acceptance_suite1_auth_rbac.ts",
+      "frontend/scripts/test_acceptance_suite2_admin_panel.ts",
+      "frontend/scripts/test_acceptance_suite3_shop_panel.ts",
+      "frontend/scripts/test_acceptance_suite4_order_lifecycle.ts",
+      "frontend/scripts/test_acceptance_suite5_accounting_sod.ts",
+      "frontend/scripts/test_playwright_launch.js",
+      "frontend/scripts/verify-phase5c-step3-sales-posting-and-receipt.ts"
+    ],
+    "frontend/src/ (Phase B Bank Master)": [
+      "frontend/src/components/dashboard/admin/bank-accounts-panel.tsx"
+    ],
+    "frontend/src/ (Phase C7.2/C7.4 Bills Subsystem)": [
+      "frontend/src/components/dashboard/admin/bills-payable-panel.tsx",
+      "frontend/src/components/dashboard/admin/bills-payable/BillDetailModal.tsx",
+      "frontend/src/components/dashboard/admin/bills-payable/PayBillModal.tsx",
+      "frontend/src/components/dashboard/admin/bills-payable/types.ts",
+      "frontend/src/components/dashboard/admin/bills-receivable-panel.tsx",
+      "frontend/src/components/dashboard/admin/bills-receivable/BillReceivableDetailModal.tsx",
+      "frontend/src/components/dashboard/admin/bills-receivable/CustomerLedgerModal.tsx",
+      "frontend/src/components/dashboard/admin/bills-receivable/ReceiveReceiptModal.tsx",
+      "frontend/src/components/dashboard/admin/bills-receivable/ScheduleReminderModal.tsx",
+      "frontend/src/components/dashboard/admin/bills-receivable/types.ts",
+      "frontend/src/lib/services/bills-payable.service.ts",
+      "frontend/src/lib/services/bills-receivable.service.ts"
+    ],
+    "frontend/src/ (Phase C7.7 Gifting Subsystem)": [
+      "frontend/src/components/dashboard/admin/corporate-gifting-panel.tsx",
+      "frontend/src/lib/controllers/corporate-gifting.controller.ts",
+      "frontend/src/lib/repositories/corporate-gifting.repository.ts",
+      "frontend/src/lib/services/corporate-gifting.service.ts"
+    ],
+    "frontend/src/ (Phase C7.6 Cost Allocation Subsystem)": [
+      "frontend/src/components/dashboard/admin/cost-allocation-panel.tsx",
+      "frontend/src/lib/controllers/cost-allocation.controller.ts",
+      "frontend/src/lib/repositories/cost-allocation.repository.ts",
+      "frontend/src/lib/repositories/cost-centre.repository.ts",
+      "frontend/src/lib/services/cost-allocation-engine.service.ts",
+      "frontend/src/lib/services/cost-allocation-workflow.service.ts",
+      "frontend/src/lib/services/cost-centre.service.ts"
+    ],
+    "frontend/src/ (Phase C6 Manual Journal Subsystem)": [
+      "frontend/src/components/dashboard/admin/manual-journals-panel.tsx",
+      "frontend/src/components/dashboard/admin/manual-journals/ManualJournalDetailModal.tsx",
+      "frontend/src/components/dashboard/admin/manual-journals/ManualJournalEntryModal.tsx",
+      "frontend/src/components/dashboard/admin/manual-journals/ManualJournalListTable.tsx",
+      "frontend/src/components/dashboard/admin/manual-journals/ManualJournalReverseModal.tsx",
+      "frontend/src/components/dashboard/admin/manual-journals/types.ts",
+      "frontend/src/lib/services/manual-journal.service.ts"
+    ],
+    "frontend/src/ (Phase C3/C7.5 Teller & Cash Subsystem)": [
+      "frontend/src/components/dashboard/admin/teller-custody-panel.tsx",
+      "frontend/src/components/dashboard/admin/teller/ActiveDrawerTab.tsx",
+      "frontend/src/components/dashboard/admin/teller/BranchCashTab.tsx",
+      "frontend/src/components/dashboard/admin/teller/CloseSessionModal.tsx",
+      "frontend/src/components/dashboard/admin/teller/ManualAdjustmentModal.tsx",
+      "frontend/src/components/dashboard/admin/teller/MovementLedgerTable.tsx",
+      "frontend/src/components/dashboard/admin/teller/SessionHistoryTab.tsx",
+      "frontend/src/components/dashboard/admin/teller/SettlementWorkspaceModal.tsx",
+      "frontend/src/components/dashboard/admin/teller/SupervisorVerificationModal.tsx",
+      "frontend/src/components/dashboard/admin/teller/TellerMasterTab.tsx",
+      "frontend/src/components/dashboard/admin/teller/VerificationSettlementQueueTab.tsx",
+      "frontend/src/lib/repositories/teller-movement.repository.ts",
+      "frontend/src/lib/repositories/teller-session.repository.ts",
+      "frontend/src/lib/repositories/teller.repository.ts",
+      "frontend/src/lib/repositories/vault-custody.repository.ts",
+      "frontend/src/lib/services/branch-cash.service.ts",
+      "frontend/src/lib/services/teller-movement.service.ts",
+      "frontend/src/lib/services/teller-session.service.ts",
+      "frontend/src/lib/services/teller.service.ts",
+      "frontend/src/lib/services/vault-custody.service.ts",
+      "frontend/src/lib/types/teller.types.ts",
+      "frontend/src/lib/types/vault-custody.types.ts"
+    ],
+    "frontend/src/ (Other Domain Components)": [
+      "frontend/src/lib/controllers/index.ts",
+      "frontend/src/lib/repositories/petty-cash.repository.ts",
+      "frontend/src/lib/services/account-governance.service.ts",
+      "frontend/src/lib/services/expense-posting.service.ts",
+      "frontend/src/lib/services/expense-reversal.service.ts",
+      "frontend/src/lib/services/petty-cash.service.ts"
+    ],
+    "frontend/src/ (Phase A Company & GST Master)": [
+      "frontend/src/lib/repositories/company.repository.ts",
+      "frontend/src/lib/repositories/gst-registration.repository.ts",
+      "frontend/src/lib/services/company.service.ts",
+      "frontend/src/lib/services/gst-registration.service.ts",
+      "frontend/src/lib/types/company.types.ts"
+    ],
+    "scratch/ (Test Suites, Baselines & Forensic Scripts)": [
+      "scratch/api_acceptance_tests.js",
+      "scratch/api_acceptance_tests_jwt.js",
+      "scratch/capture_db_baseline.js",
+      "scratch/capture_db_baseline_v2.js",
+      "scratch/capture_db_baseline_v3.js",
+      "scratch/check_order_schema.js",
+      "scratch/check_url_routing.js",
+      "scratch/financial_api_tests.js",
+      "scratch/forensic_c7_8_customer_rbac_conventions.js",
+      "scratch/forensic_c7_8_customer_rbac_conventions.json",
+      "scratch/forensic_c7_8_data_classification.js",
+      "scratch/forensic_c7_8_data_classification.json",
+      "scratch/forensic_c7_8_db_followup.js",
+      "scratch/forensic_c7_8_db_followup.json",
+      "scratch/forensic_c7_8_db_inspector.js",
+      "scratch/forensic_c7_8_db_report.json",
+      "scratch/forensic_c7_8_masked_secret_scan.js",
+      "scratch/gate_classification_inspector.js",
+      "scratch/gate_classification_report.json",
+      "scratch/inspect_env.ps1",
+      "scratch/investigate_api_failures.js",
+      "scratch/pass2/01_baseline.js",
+      "scratch/pass2/18_bs_investigation.js",
+      "scratch/pass2/19_comprehensive_verify.js",
+      "scratch/pass2/20_corrected_verify.js",
+      "scratch/pass2/21_failure_investigation.js",
+      "scratch/pass2/find_wiring.ps1",
+      "scratch/pass2/lib.js",
+      "scratch/pass2/list_tables.js",
+      "scratch/pass2/show_baseline.js",
+      "scratch/pass2/wiring_out.txt",
+      "scratch/pass2_post_routes.txt",
+      "scratch/rbac_leak_investigation.js"
+    ]
+  },
+  "secretFindings": [
+    {
+      "file": "CHECKPOINTS/prg01-production-connection-verification.md",
+      "line": 293,
+      "pattern": "pg_url_with_password",
+      "isPlaceholder": true,
+      "length": 133
+    },
+    {
+      "file": "CHECKPOINTS/prg01-step2-production-architecture-and-provisioning-runbook.md",
+      "line": 557,
+      "pattern": "stripe_or_razorpay_live",
+      "isPlaceholder": false,
+      "length": 84
+    },
+    {
+      "file": "frontend/scratch/test_phase_c7_7_step7c_api.js",
+      "line": 85,
+      "pattern": "pg_url_with_password",
+      "isPlaceholder": true,
+      "length": 101
+    },
+    {
+      "file": "scratch/forensic_c7_8_masked_secret_scan.js",
+      "line": 16,
+      "pattern": "stripe_or_razorpay_live",
+      "isPlaceholder": false,
+      "length": 47
+    },
+    {
+      "file": "scratch/forensic_c7_8_masked_secret_scan.js",
+      "line": 17,
+      "pattern": "jwt_like",
+      "isPlaceholder": false,
+      "length": 25
+    },
+    {
+      "file": "scratch/forensic_c7_8_masked_secret_scan.js",
+      "line": 18,
+      "pattern": "supabase_service_role",
+      "isPlaceholder": false,
+      "length": 49
+    },
+    {
+      "file": "scratch/gate_classification_inspector.js",
+      "line": 129,
+      "pattern": "stripe_or_razorpay_live",
+      "isPlaceholder": false,
+      "length": 47
+    },
+    {
+      "file": "scratch/gate_classification_inspector.js",
+      "line": 130,
+      "pattern": "jwt_like",
+      "isPlaceholder": false,
+      "length": 25
+    },
+    {
+      "file": "scratch/gate_classification_inspector.js",
+      "line": 131,
+      "pattern": "supabase_service_role",
+      "isPlaceholder": false,
+      "length": 49
+    }
+  ]
+}

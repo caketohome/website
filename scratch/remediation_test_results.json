@@ -1,0 +1,112 @@
+{
+  "total": 14,
+  "passed": 14,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "DEF-CUST-04: Operational summaries exclude br_tc_*, br_conc_*, and soft-deleted branches while preserving operational branches",
+      "status": "PASS",
+      "details": {
+        "operational_count": 47,
+        "indiranagar_found": true
+      }
+    },
+    {
+      "name": "DEF-CUST-01.1: Active session reflects in active_drawer_cash",
+      "status": "PASS",
+      "details": {
+        "active": 1000
+      }
+    },
+    {
+      "name": "DEF-CUST-01.2: Closed settled session retains physical cash in closed_sessions_cash",
+      "status": "PASS",
+      "details": {
+        "closed_sessions_cash": 1000,
+        "total_physical_cash": 1000
+      }
+    },
+    {
+      "name": "DEF-CUST-01.3: Active session overrides closed station to prevent double-counting",
+      "status": "PASS",
+      "details": {
+        "active_drawer_cash": 400,
+        "closed_sessions_cash": 0,
+        "total_physical_cash": 400
+      }
+    },
+    {
+      "name": "DEF-CUST-01.4: Latest closed session custody correctly recorded after station closes again",
+      "status": "PASS",
+      "details": {
+        "closed_sessions_cash": 400
+      }
+    },
+    {
+      "name": "DEF-CUST-02.1: Valid manual adjustment generates atomic posted GL journal (Dr 1111 / Cr 5296)",
+      "status": "PASS",
+      "details": {
+        "movement_id": "mov_1792494610514_s64hfrf",
+        "voucher_id": "vch_00MVGL0CSG3YBLDU",
+        "voucher_no": "VCH-JOURNAL-FY2026-27-20261020-UB1OZS",
+        "status": "POSTED",
+        "dr": "250.00",
+        "cr": "250.00"
+      }
+    },
+    {
+      "name": "DEF-CUST-02.2: Segregation of duties (maker cannot be approver) strictly enforced",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "name": "DEF-CUST-02.3: Overdraft protection prevents adjustment OUT exceeding available cash",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "name": "DEF-CUST-02.4: Negative adjustment amounts strictly rejected",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "name": "DEF-CUST-02.5: Idempotency prevents duplicate movement and duplicate GL voucher on retry",
+      "status": "PASS",
+      "details": {
+        "original_id": "mov_1792494610514_s64hfrf",
+        "retry_id": "mov_1792494610514_s64hfrf",
+        "vouchers_count": 1
+      }
+    },
+    {
+      "name": "DEF-CUST-02.6: Atomic rollback on GL posting failure preserves custody ledger consistency",
+      "status": "PASS",
+      "details": {}
+    },
+    {
+      "name": "DEF-CUST-03.1: Negative expected cash is rejected and creates zero vouchers or journal entries",
+      "status": "PASS",
+      "details": {
+        "error": "Expected cash calculation resulted in invalid negative balance (₹-400.00). Session closing rejected. Inspect unvouched movements.",
+        "vouchers_created": 0
+      }
+    },
+    {
+      "name": "DEF-CUST-03.2: Valid shortage correctly creates balanced variance voucher",
+      "status": "PASS",
+      "details": {
+        "voucher_id": "vch_00MVGL0FV41FIBSO",
+        "voucher_no": "VCH-JOURNAL-FY2026-27-20261020-780UN9",
+        "variance": -50
+      }
+    },
+    {
+      "name": "Concurrency & Idempotency: Double settlement of settled session is idempotent (wasAlreadySettled = true)",
+      "status": "PASS",
+      "details": {
+        "wasAlreadySettled": true,
+        "settlement_voucher_id": "vch_00MVGL0FV41FIBSO"
+      }
+    }
+  ]
+}

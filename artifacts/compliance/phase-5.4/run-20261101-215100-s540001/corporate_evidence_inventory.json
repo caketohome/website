@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "generation_timestamp": "2026-11-02T03:18:27.250Z",
+  "environment": "cth_rehearsal_phase5_4",
+  "provenance": "e:/vig/cakes2home-main/cakes2home-main",
+  "run_id": "run-20261101-215100-s540001",
+  "legal_entity": "CakeToHome India Private Limited",
+  "cin": "U15400KA2026PTC189211",
+  "gstin": "29AABCC1234F1Z5",
+  "inventory": [
+    {
+      "item_id": "DOC-01",
+      "title": "Board Submission Agenda Note CTH-GOV-2026-SUB-01",
+      "location": "artifacts/compliance/phase-4.8/board-submission/CTH-GOV-2026-SUB-01.md",
+      "type": "BOARD_SUBMISSION_NOTE",
+      "status": "DRAFT_UNADOPTED",
+      "legal_effect": "NO_STATUTORY_AUTHORITY",
+      "notes": "Watermarked DRAFT — FOR COMPANY SECRETARY / LEGAL REVIEW — NOT ADOPTED."
+    },
+    {
+      "item_id": "DOC-02",
+      "title": "Certified Extract of Board Resolution under Section 179",
+      "location": null,
+      "type": "BOARD_RESOLUTION_EXTRACT",
+      "status": "NOT_SUBMITTED",
+      "legal_effect": "ABSENT",
+      "notes": "No executed extract deposited into evidence."
+    },
+    {
+      "item_id": "DOC-03",
+      "title": "Minutes of Meeting of Board of Directors under Section 118",
+      "location": null,
+      "type": "BOARD_MINUTES",
+      "status": "NOT_SUBMITTED",
+      "legal_effect": "ABSENT",
+      "notes": "No signed minutes of meeting available."
+    },
+    {
+      "item_id": "DOC-04",
+      "title": "Officer Signatory Power of Attorney / Delegation Instrument",
+      "location": null,
+      "type": "DELEGATION_INSTRUMENT",
+      "status": "NOT_SUBMITTED",
+      "legal_effect": "ABSENT",
+      "notes": "No attributable instrument designating authorized invoice officers."
+    }
+  ]
+}

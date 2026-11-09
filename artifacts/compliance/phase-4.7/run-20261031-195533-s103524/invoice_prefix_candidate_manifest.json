@@ -1,0 +1,35 @@
+{
+  "phase": "4.7",
+  "candidates": [
+    {
+      "prefix": "CTHI",
+      "prefix_len": 4,
+      "seq_width": 5,
+      "total_len": 16,
+      "capacity": 99999,
+      "collisions": 0,
+      "compliant": true,
+      "recommendation": "Strongest for distinct legal entity"
+    },
+    {
+      "prefix": "C2H",
+      "prefix_len": 3,
+      "seq_width": 6,
+      "total_len": 16,
+      "capacity": 999999,
+      "collisions": 0,
+      "compliant": true,
+      "recommendation": "Strongest for high sequence volume runway"
+    },
+    {
+      "prefix": "CTH",
+      "prefix_len": 3,
+      "seq_width": 6,
+      "total_len": 16,
+      "capacity": 999999,
+      "collisions": 55,
+      "compliant": true,
+      "recommendation": "Collides with historical table-wide unique key"
+    }
+  ]
+}

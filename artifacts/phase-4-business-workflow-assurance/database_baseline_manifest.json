@@ -1,0 +1,32 @@
+{
+  "baseline_protected_db": {
+    "database": "cth_test",
+    "port": 5433,
+    "status": "PROTECTED_READ_ONLY_INVARIANT_PRESERVED",
+    "counts": {
+      "orders": 127,
+      "invoices": 71,
+      "vouchers": 4,
+      "payments": 40,
+      "products": 26
+    },
+    "hashes": {
+      "orders_sha256": "b0019df00fba1a84fadff36153807da1da9e8bc8b3e654ab5d9d92f59ff0d803",
+      "invoices_sha256": "77c572b7468318da1557fa3e280e7649448ab75f5028abdaae18ae7acbdbf9fd",
+      "vouchers_sha256": "cbc09f6bc19a0d0eb78b9bd0de9f8793bf31669253b22c7955f65a91d9302384"
+    },
+    "verified_at": "2026-11-03T16:07:38.159Z"
+  },
+  "rehearsal_active_db": {
+    "database": "cth_rehearsal_phase4",
+    "port": 5433,
+    "status": "ISOLATED_REHEARSAL_VERIFIED",
+    "tables_count": 50,
+    "executed_suites": [
+      "scripts/test_phase4_e2e_assurance_suite.cjs (39 passed, 0 failed)",
+      "scripts/test_phase4_failure_injection.cjs (30 passed, 0 failed)",
+      "scripts/test_payment_verification_lifecycle.cjs (55 passed, 0 failed)"
+    ]
+  },
+  "invariant_status": "VERIFIED_PRESERVED"
+}

@@ -1,0 +1,14 @@
+{
+  "evaluation_date": "2026-11-01",
+  "rule": "CBIC CGST Rule 46(b)",
+  "max_characters": 16,
+  "allowed_characters": "alphanumeric, slash (/), hyphen (-)",
+  "alternatives_evaluated": [
+    "Alternative A (Distinct Prefix)",
+    "Alternative B (Composite Uniqueness)",
+    "Alternative C (Data Remediation)"
+  ],
+  "selected_alternative": "Alternative A",
+  "primary_candidate": "C2H",
+  "legal_fallback_candidate": "CTHI"
+}

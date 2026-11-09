@@ -1,0 +1,7 @@
+{
+  "version": "1.0.0",
+  "determination": "OUTCOME 1 — TECHNICAL READINESS VERIFIED; CORPORATE OR PROFESSIONAL APPROVAL PENDING",
+  "production_invoicing": "DISABLED / FAIL-CLOSED",
+  "production_sequence": "UNINITIALIZED / BLOCKED",
+  "live_invoices_issued": 0
+}

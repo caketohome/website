@@ -1,0 +1,114 @@
+{
+  "phase": "4.3",
+  "tournament_id": "run-20261031-153232-s686754",
+  "timestamp": "2026-10-31T10:32:00Z",
+  "summary": {
+    "total_executed": 52,
+    "passed": 52,
+    "failed": 0,
+    "blocked": 0,
+    "skipped": 0,
+    "pass_rate": "100%"
+  },
+  "suites": {
+    "workstream_i_migration_and_recovery": {
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "tests": [
+        "Clean installation from cth_test baseline template",
+        "Verification of 0 default approved series on clean migration",
+        "Upgrade idempotency of c7_13 on existing schema",
+        "Direct SQL trigger rollback on synthetic ca_audit_signed",
+        "Audit table immutable rejection of UPDATE operations",
+        "Audit table immutable rejection of DELETE operations"
+      ]
+    },
+    "workstream_j_authorization_security": {
+      "total": 20,
+      "passed": 20,
+      "failed": 0,
+      "tests": [
+        "J-01: Unauthenticated approval request -> 401/403",
+        "J-02: Authenticated user without compliance role (CUSTOMER) -> 403",
+        "J-03: Ordinary administrator (ADMIN) without statutory delegation -> 403",
+        "J-04: Finance Controller (FINANCE_CONTROLLER) valid approval -> 200",
+        "J-05: Super Admin (SUPER_ADMIN) valid approval -> 200",
+        "J-06: Expired JWT token -> 401/403",
+        "J-07: Non-privileged role token (TELLER) -> 403",
+        "J-08: Client attempts to forge authorized_by in body -> Session ID enforced",
+        "J-09: Client attempts to forge authorized_at in body -> Server NOW() enforced",
+        "J-10: Proposal with client approval_status = APPROVED -> Defaults to PROPOSED",
+        "J-11: Proposal with invalid prefix characters -> 400 INVALID_PREFIX",
+        "J-12: Proposal with malformed GSTIN -> 400 INVALID_GSTIN",
+        "J-13: Cross-GSTIN prefix binding conflict -> INVOICE_SERIES_PREFIX_CONFLICT",
+        "J-14: Direct SQL update with synthetic ca_audit_signed -> STATUTORY_SECURITY_VIOLATION",
+        "J-15: Direct allocate_invoice_number on revoked SAFE-TEST -> UNAUTHORIZED_INVOICE_SERIES",
+        "J-16: Duplicate approval request handling -> Idempotent 200 OK",
+        "J-17: Advisory lock serialization during concurrent allocations -> Strictly unique numbers",
+        "J-18: Attempt to approve DEPRECATED_HISTORICAL series -> 400 SERIES_CANNOT_BE_APPROVED",
+        "J-19: Attempt to approve REVOKED_SYNTHETIC series -> 400 SERIES_CANNOT_BE_APPROVED",
+        "J-20: Audit log table immutable history verification -> Validated"
+      ]
+    },
+    "statutory_compliance_suite": {
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "tests": [
+        "Test 1: Branch Linkage and Foreign Key Verification",
+        "Test 2: Inactive / Deprecated Historical Series Verification (CTH)",
+        "Test 3: Synthetic test sequences neutralized as REVOKED_SYNTHETIC",
+        "Test 4: Fail-closed on REVOKED_SYNTHETIC prefix allocation (SAFE-TEST)",
+        "Test 5: Idempotency preservation on historical order",
+        "Test 6: Authorized Series Allocation (SEC-TEST approved by FC)",
+        "Test 7: Audit log table immutability in PostgreSQL",
+        "Test 8: Protected cth_test database integrity check"
+      ]
+    },
+    "fiscal_boundary_suite": {
+      "total": 15,
+      "passed": 15,
+      "failed": 0,
+      "tests": [
+        "March 31, 2026 23:59:59.999 IST -> FY 2025 (25-26)",
+        "Equivalent UTC timestamp -> FY 2025 (25-26)",
+        "April 1, 2026 00:00:00.000 IST (Rollover) -> FY 2026 (26-27)",
+        "Equivalent UTC timestamp -> FY 2026 (26-27)",
+        "April 1, 2026 00:00:00.001 IST -> FY 2026 (26-27)",
+        "Leap day Feb 29, 2024 -> FY 2023 (23-24)",
+        "Calendar year rollover Dec 31, 2026 -> FY 2026 (26-27)",
+        "Calendar year rollover Jan 1, 2027 -> FY 2026 (26-27)",
+        "Numeric timestamp 1775000000000 -> FY 2026 (26-27)",
+        "Native Date object -> FY 2026 (26-27)",
+        "Empty string date -> INVALID_ISSUE_DATE error",
+        "Invalid date string -> INVALID_ISSUE_DATE error",
+        "NaN date -> INVALID_ISSUE_DATE error",
+        "Null date -> INVALID_ISSUE_DATE error",
+        "Undefined date -> Current FY 2026"
+      ]
+    },
+    "delivery_invoicing_e2e": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "tests": [
+        "Case A: Order requesting CTH prefix -> INVOICE_SERIES_PREFIX_CONFLICT",
+        "Case B: Order requesting UNAPPRV prefix -> UNAUTHORIZED_INVOICE_SERIES",
+        "Case C.1: Order using revoked synthetic SAFE-TEST -> UNAUTHORIZED_INVOICE_SERIES",
+        "Case C.2: Order using authorized SEC-TEST -> Generated SEC-TEST/26-27/000004",
+        "Case D: Idempotency replay on duplicate delivery event -> Exact match without renumbering"
+      ]
+    },
+    "typescript_and_ci_linting": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        "tsc --noEmit compilation check (0 errors)",
+        "scripts/lint_migrations.cjs CI migration static analysis"
+      ]
+    }
+  }
+}
+

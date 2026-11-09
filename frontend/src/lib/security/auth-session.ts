@@ -168,7 +168,8 @@ export function verifyAuthToken(token: string | null | undefined): AuthUserPaylo
         return null; // Expired
       }
 
-      const role = (decodedPayload.role || decodedPayload.actor_type || "CUSTOMER").toUpperCase();
+      const rawRole = (decodedPayload.role || decodedPayload.actor_type || "CUSTOMER").toUpperCase();
+      const role = rawRole === "AUTHENTICATED" ? "CUSTOMER" : rawRole;
       const userId = decodedPayload.userId || decodedPayload.actor_id || decodedPayload.sub || "";
 
       const verifiedPayload: AuthUserPayload = {
